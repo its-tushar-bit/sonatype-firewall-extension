@@ -214,6 +214,29 @@ public class SourceControlDAOTest
   }
 
   @Test
+  public void testGetNextRepositoryToPoll_future() {
+    // given: source control entries with pull request poll time in future
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
+    LocalDateTime dateTime = LocalDateTime.now();
+    SourceControl appSourceControl =
+        tempEntity.newSourceControl(app.getId(), "http://a.com/org/repo1", toDate(dateTime.plusDays(1)));
+
+    // when: get source control for next repo to poll
+    SourceControl sourceControl = sourceControlDAO.getNextRepositoryToPoll();
+
+    // then: nothing should be returned
+    assertThat(sourceControl).isNull();
+
+    // when: update app source control poll time to have past time
+    appSourceControl.setPullRequestPollTime(toDate(dateTime.minusDays(1)));
+    sourceControlDAO.update(appSourceControl);
+    sourceControl = sourceControlDAO.getNextRepositoryToPoll();
+
+    // then: app source control is returned
+    assertThat(sourceControl.getOwnerId()).isEqualTo(app.getId());
+  }
+
+  @Test
   public void testInsert_MissingOwnerId() {
     assertThatThrownBy(() -> {
       sourceControlDAO.insert(new SourceControl.Builder().build());

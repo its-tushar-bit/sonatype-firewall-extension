@@ -22,7 +22,6 @@ import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.scan.model.ClientScanResult;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.scan.model.Scan;
-import com.sonatype.insight.test.networking.SslProperties;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -74,10 +73,6 @@ import static org.mockito.Mockito.when;
 public class ExpandedCoveragePolicyEvaluatorTest
     extends AbstractPolicyEvaluatorTest
 {
-  static {
-    SslProperties.use();
-  }
-
   @Inject
   private ExpandedCoveragePolicyEvaluator evaluator;
 

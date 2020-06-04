@@ -20,6 +20,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.service.DatabaseConfig;
 import com.sonatype.insight.brain.service.InsightConfig;
 
 import com.google.common.hash.Hasher;
@@ -56,6 +57,8 @@ public class TelemetryId
   private SystemConfigurationPropertyDAO dao = new SystemConfigurationPropertyDAO();
 
   private String id;
+
+  private String clusterId;
 
   @Inject
   public TelemetryId(InsightConfig insightConfig) {
@@ -119,6 +122,28 @@ public class TelemetryId
 
     String derivedId = calculateDerivedId(hostname, ports, hardwareAddresses);
     id = generatedIdProperty.getValue() + "-" + derivedId;
+    clusterId = calculateClusterId(insightConfig.getDatabase());
+  }
+
+  static String calculateClusterId(DatabaseConfig databaseConfig) {
+    if (databaseConfig == null) {
+      return null;
+    }
+
+    String databaseHostname = databaseConfig.getHostname();
+    if ("localhost".equalsIgnoreCase(databaseHostname)) {
+      try {
+        databaseHostname = InetAddress.getLocalHost().getHostName();
+      }
+      catch (Exception e) {
+        log.warn("Cannot get the hostname for the local machine: " + e.getMessage(), e);
+      }
+    }
+
+    String idBasedOnDatabaseConfig = databaseHostname + databaseConfig.getPort() + databaseConfig.getName();
+    Hasher hasher = Hashing.sha512().newHasher();
+    hasher.putString(idBasedOnDatabaseConfig, StandardCharsets.UTF_8);
+    return hasher.hash().toString();
   }
 
   @SuppressWarnings("deprecation")
@@ -136,5 +161,9 @@ public class TelemetryId
 
   public String getId() {
     return id;
+  }
+
+  public String getClusterId() {
+    return clusterId;
   }
 }

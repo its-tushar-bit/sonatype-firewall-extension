@@ -262,8 +262,10 @@ public class ApiComponentRemediationServiceTest
 
     ApiComponentRemediationDTO retVal = service
         .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID);
-    assertNoViolations(retVal.remediation, componentDetailsDTO.componentIdentifier);
-    assertTelemetry("application", app.getId(), componentDetailsDTO.componentIdentifier, "option_next_no_violations");
+    assertNoViolations(retVal.remediation, componentDetailsDTO.componentIdentifier,
+        PackageUrlIdentifier.toPackageUrl(componentDetailsDTO.componentIdentifier));
+    assertTelemetry("application", app.getId(), componentDetailsDTO.componentIdentifier, "option_next_no_violations",
+        "option_next_non_failing");
   }
 
   @Test
@@ -465,8 +467,10 @@ public class ApiComponentRemediationServiceTest
 
     ApiComponentRemediationDTO retVal = service
         .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID);
-    assertNoViolations(retVal.remediation, v2.componentIdentifier);
-    assertTelemetry("application", app.getId(), v1.componentIdentifier, "option_next_no_violations");
+    assertNoViolations(retVal.remediation, v2.componentIdentifier,
+        PackageUrlIdentifier.toPackageUrl(v2.componentIdentifier));
+    assertTelemetry("application", app.getId(), v1.componentIdentifier, "option_next_no_violations",
+        "option_next_non_failing");
   }
 
   @Test
@@ -489,8 +493,38 @@ public class ApiComponentRemediationServiceTest
 
     ApiComponentRemediationDTO retVal = service
         .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID);
-    assertNoViolations(retVal.remediation, v1.componentIdentifier);
-    assertTelemetry("application", app.getId(), v1.componentIdentifier, "option_next_no_violations");
+    assertNoViolations(retVal.remediation, v1.componentIdentifier,
+        PackageUrlIdentifier.toPackageUrl(v1.componentIdentifier));
+    assertTelemetry("application", app.getId(), v1.componentIdentifier, "option_next_no_violations",
+        "option_next_non_failing");
+  }
+
+  @Test
+  public void testGetSuggestedRemediationForComponent_NonFailing() {
+    ComponentDetailsDTO v1 = new ComponentDetailsDTO();
+    v1.componentIdentifier = MAVEN_COORDINATES_V1;
+    v1.violatedPolicyCount = 1;
+    v1.policyAlerts = asList(warnAlert, failAlert);
+    ComponentDetailsDTO v2 = new ComponentDetailsDTO();
+    v2.componentIdentifier = MAVEN_COORDINATES_V2;
+    v2.violatedPolicyCount = 1;
+    v2.policyAlerts = asList(warnAlert);
+    ComponentDetailsDTO v3 = new ComponentDetailsDTO();
+    v3.componentIdentifier = MAVEN_COORDINATES_V3;
+    v3.violatedPolicyCount = 1;
+    v3.policyAlerts = asList(warnAlert);
+
+    List<ComponentDetailsDTO> list = Stream.of(v1, v2, v3).collect(Collectors.toList());
+    mockHdsGetComponentDetailsList(list, v1.componentIdentifier);
+
+    ApiComponentDTOV2 dto = new ApiComponentDTOV2();
+    dto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(MAVEN_COORDINATES_V1);
+
+    ApiComponentRemediationDTO retVal = service
+        .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID);
+    assertNonFailing(retVal.remediation, v2.componentIdentifier,
+        PackageUrlIdentifier.toPackageUrl(v2.componentIdentifier));
+    assertTelemetry("application", app.getId(), v1.componentIdentifier, "option_next_non_failing");
   }
 
   @Test
@@ -587,13 +621,14 @@ public class ApiComponentRemediationServiceTest
   }
 
   private void assertNoViolations(ApiComponentRemediationValueDTO apiComponentRemediationValueDTO,
-                                  ComponentIdentifier expectedComponentIdentifier)
+                                  ComponentIdentifier expectedComponentIdentifier,
+                                  String expectedPackageUrl)
   {
     assertThat(apiComponentRemediationValueDTO.componentOverrides).hasSize(0);
     assertThat(apiComponentRemediationValueDTO.policyWaivers).hasSize(0);
 
     assertThat(apiComponentRemediationValueDTO).isNotNull();
-    assertThat(apiComponentRemediationValueDTO.versionChanges).hasSize(1);
+    assertThat(apiComponentRemediationValueDTO.versionChanges).hasSize(2);
     ApiVersionChangeOptionDTO noViolationsOption = apiComponentRemediationValueDTO.versionChanges.get(0);
     assertThat(noViolationsOption.getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
     ApiComponentDTOV2 noViolationsDto = noViolationsOption.getData().getComponent();
@@ -602,6 +637,37 @@ public class ApiComponentRemediationServiceTest
     assertThat(noViolationsDto.componentIdentifier.toComponentIdentifier()).isEqualTo(expectedComponentIdentifier);
     assertThat(noViolationsDto.hash).isNull();
     assertThat(noViolationsDto.proprietary).isNull();
+
+    ApiVersionChangeOptionDTO nonFailingOption = apiComponentRemediationValueDTO.versionChanges.get(1);
+    assertThat(nonFailingOption.getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NON_FAILING);
+    ApiComponentDTOV2 nonFailingDto = nonFailingOption.getData().getComponent();
+
+    assertThat(nonFailingDto.componentIdentifier).isNotNull();
+    assertThat(nonFailingDto.componentIdentifier.toComponentIdentifier()).isEqualTo(expectedComponentIdentifier);
+    assertThat(nonFailingDto.hash).isNull();
+    assertThat(nonFailingDto.packageUrl).isEqualTo(expectedPackageUrl);
+    assertThat(nonFailingDto.proprietary).isNull();
+  }
+
+  private void assertNonFailing(ApiComponentRemediationValueDTO apiComponentRemediationValueDTO,
+                                ComponentIdentifier expectedComponentIdentifier,
+                                String expectedPackageUrl)
+  {
+    assertThat(apiComponentRemediationValueDTO.componentOverrides).hasSize(0);
+    assertThat(apiComponentRemediationValueDTO.policyWaivers).hasSize(0);
+
+    assertThat(apiComponentRemediationValueDTO).isNotNull();
+    assertThat(apiComponentRemediationValueDTO.versionChanges).hasSize(1);
+
+    ApiVersionChangeOptionDTO nonFailingOption = apiComponentRemediationValueDTO.versionChanges.get(0);
+    assertThat(nonFailingOption.getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NON_FAILING);
+    ApiComponentDTOV2 nonFailingDto = nonFailingOption.getData().getComponent();
+
+    assertThat(nonFailingDto.componentIdentifier).isNotNull();
+    assertThat(nonFailingDto.componentIdentifier.toComponentIdentifier()).isEqualTo(expectedComponentIdentifier);
+    assertThat(nonFailingDto.hash).isNull();
+    assertThat(nonFailingDto.packageUrl).isEqualTo(expectedPackageUrl);
+    assertThat(nonFailingDto.proprietary).isNull();
   }
 
   private ApiComponentDTOV2 createComponent(final ComponentIdentifier componentIdentifier) {

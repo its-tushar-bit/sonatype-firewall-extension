@@ -149,7 +149,7 @@ def copy_and_restore_database(parsed_args, test_profile, workingDir, iq_server_u
         my_env = os.environ.copy()
         my_env["PGCLIENTENCODING"] = "UTF8"
         my_env["PGPASSWORD"] = test_profile["postgres"]["password"]
-        completed_process = subprocess.run(["psql", "--set", "ON_ERROR_STOP=1",
+        subprocess.run(["psql", "--set", "ON_ERROR_STOP=1",
                         "--host", test_profile["postgres"]["hostname"],
                         "--port", str(test_profile["postgres"]["port"]),
                         "--username", test_profile["postgres"]["username"],

@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.Collection;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
@@ -81,32 +80,42 @@ public class ApiMetricsReportingServiceV2
     this.policyViolationAggregationService = policyViolationAggregationService;
   }
 
-  public List<ApiMetricsReportingDTOV2> getMetrics(ApiMetricsReportingQueryDTOV2 queryDTO) {
+  public void validate(ApiMetricsReportingQueryDTOV2 queryDTO) {
     validateRequiredFields(queryDTO);
+    DateParser dateParser = inputDateParsers.get(queryDTO.timePeriod);
+    validateDateOrdering(dateParser.parse(queryDTO.firstTimePeriod),
+        Optional.ofNullable(queryDTO.lastTimePeriod).map(dateParser::parse));
+  }
 
+  public List<Application> getApplications(ApiMetricsReportingQueryDTOV2 queryDTO) {
+    return applicationService
+        .getApplicationsByIdsAndOrganizationIdsAndTagIds(queryDTO.organizationIds, queryDTO.applicationIds, null);
+  }
+
+  List<ApiMetricsReportingDTOV2> getMetrics(ApiMetricsReportingQueryDTOV2 queryDTO) {
+    return getMetrics(queryDTO, new DateTime(), getApplications(queryDTO));
+  }
+
+  public List<ApiMetricsReportingDTOV2> getMetrics(
+      ApiMetricsReportingQueryDTOV2 queryDTO,
+      DateTime now,
+      List<Application> applications)
+  {
     TimePeriod timePeriod = queryDTO.timePeriod;
     DateParser dateParser = inputDateParsers.get(timePeriod);
 
-    DateTime now = new DateTime();
     LocalDate beginningOfCurrentTimePeriod = now.toLocalDate().withField(timePeriod.getDateTimeFieldType(), 1);
 
     LocalDate firstTimePeriod = dateParser.parse(queryDTO.firstTimePeriod);
     Optional<LocalDate> lastTimePeriod = Optional.ofNullable(queryDTO.lastTimePeriod).map(dateParser::parse);
 
-    validateDateOrdering(firstTimePeriod, lastTimePeriod);
-
     // DAO expects endDate to be exclusive, ie it should be the beginning of the first time period that we don't want
     Optional<LocalDate> endDate = lastTimePeriod.map(localDate -> localDate.plus(timePeriod.getPeriod(1)));
     boolean includeLatestData = endDate.map(ed -> ed.isAfter(beginningOfCurrentTimePeriod)).orElse(true);
 
-    Collection<Application> applications =
-        applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(queryDTO.organizationIds,
-            queryDTO.applicationIds, null);
-
     Map<String, Application> applicationsById = applications.stream()
         .collect(Collectors.toMap(Application::getId, Function.identity()));
 
-    auditExportMetricsReport(queryDTO, applicationsById, firstTimePeriod, endDate);
     Set<String> applicationIds = applicationsById.keySet();
 
     policyViolationAggregationService.generatePolicyViolationAggregations(applicationIds, now, includeLatestData);
@@ -118,12 +127,16 @@ public class ApiMetricsReportingServiceV2
     return makeDTOs(aggregations, applicationsById);
   }
 
-  private void auditExportMetricsReport(
+  public void auditExportMetricsReport(
       final ApiMetricsReportingQueryDTOV2 queryDTO,
-      final Map<String, Application> applicationsById,
-      final LocalDate startDate,
-      final Optional<LocalDate> endDate)
+      final List<Application> applications)
   {
+    Map<String, Application> applicationsById = applications.stream()
+        .collect(Collectors.toMap(Application::getId, Function.identity()));
+    DateParser dateParser = inputDateParsers.get(queryDTO.timePeriod);
+    LocalDate startDate = dateParser.parse(queryDTO.firstTimePeriod);
+    Optional<LocalDate> endDate = Optional.ofNullable(queryDTO.lastTimePeriod).map(dateParser::parse)
+        .map(localDate -> localDate.plus(queryDTO.timePeriod.getPeriod(1)));
     AuditData.get()
         .setData("beginDate", startDate.toString())
         .setData("endDate", endDate.orElse(LocalDate.now()).toString())
@@ -136,8 +149,17 @@ public class ApiMetricsReportingServiceV2
   /**
    * Same as getMetrics, but returns the data in flattened DTOs
    */
-  public List<ApiMetricsReportingFlattenedDTOV2> getFlattenedMetrics(ApiMetricsReportingQueryDTOV2 queryDTO) {
+  List<ApiMetricsReportingFlattenedDTOV2> getFlattenedMetrics(ApiMetricsReportingQueryDTOV2 queryDTO) {
     return getMetrics(queryDTO).stream().flatMap(this::flattenDTO).collect(Collectors.toList());
+  }
+
+  public List<ApiMetricsReportingFlattenedDTOV2> getFlattenedMetrics(
+      ApiMetricsReportingQueryDTOV2 queryDTO,
+      DateTime now,
+      List<Application> applications)
+  {
+    return getMetrics(queryDTO, now, applications).stream().flatMap(this::flattenDTO)
+        .collect(Collectors.toList());
   }
 
   /**

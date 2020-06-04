@@ -105,9 +105,6 @@ export default function AdvancedSearchConfig(props) {
               As this feature is early access, there are a number of caveats:
               <ul>
                 <li>
-                  The resulting dataset does not adhere to any configured permissions (all results are displayed)
-                </li>
-                <li>
                   To see new data in the results a re-index is required.
                   This can either be automated using the provided REST API or manually from the UI
                 </li>

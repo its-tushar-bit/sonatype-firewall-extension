@@ -3,6 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
+@import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+
 /*
   #Layout
 */
@@ -68,4 +71,8 @@ body {
 
 .iq-body-container--single-pane {
   width: 100%;
+}
+
+.maximized-container {
+  @include container-vertical;
 }

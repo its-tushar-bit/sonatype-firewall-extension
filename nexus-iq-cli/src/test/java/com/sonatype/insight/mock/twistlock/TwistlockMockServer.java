@@ -14,8 +14,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.sonatype.insight.test.networking.SslProperties;
-
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.NetworkConnector;
 import org.eclipse.jetty.server.Request;
@@ -27,10 +25,6 @@ import org.eclipse.jetty.util.IO;
 
 public class TwistlockMockServer
 {
-  static {
-    SslProperties.use();
-  }
-
   private int httpPort;
 
   private Server server;

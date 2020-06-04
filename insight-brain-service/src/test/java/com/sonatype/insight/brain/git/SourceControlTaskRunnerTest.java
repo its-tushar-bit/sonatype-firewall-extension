@@ -91,7 +91,8 @@ public class SourceControlTaskRunnerTest
 
     // then we see the PR task executed
     await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
-      assertThat(logOutput).atInfoLevel().contains("Executing pull request task for [maven: {artifactId=artid," +
+      assertThat(logOutput).atInfoLevel().contains(
+          "Sent for execution: pull request task for [maven: {artifactId=artid," +
           " groupId=grpid, version=1.2.3}] on application with id [" + application.getId() + "]");
     });
     verify(pullRequestTask).run();
@@ -138,7 +139,7 @@ public class SourceControlTaskRunnerTest
     // then we see the PR task executed
     await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
       assertThat(logOutput).atInfoLevel()
-          .contains("Executing location discovery task for 1 component(s) on application with id [" +
+          .contains("Sent for execution: location discovery task for 1 component(s) on application with id [" +
               application.getId() + "]");
     });
     verify(locationDiscoveryTask).call();

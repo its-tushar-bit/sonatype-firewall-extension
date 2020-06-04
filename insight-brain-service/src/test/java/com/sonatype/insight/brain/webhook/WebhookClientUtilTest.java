@@ -21,7 +21,6 @@ import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.utils.AbstractHttpClientTest;
 import com.sonatype.insight.brain.webhook.dto.WebhookPayload;
 import com.sonatype.insight.test.LogOutput;
-import com.sonatype.insight.test.networking.SslProperties;
 
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.server.NetworkConnector;
@@ -38,10 +37,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class WebhookClientUtilTest
     extends AbstractHttpClientTest
 {
-  static {
-    SslProperties.use();
-  }
-
   private Server server;
 
   private AbstractHandler handler;

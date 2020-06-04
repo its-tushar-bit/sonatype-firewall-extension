@@ -28,7 +28,6 @@ import com.sonatype.insight.brain.successmetrics.SuccessMetricsPurger;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.db.DatabaseConfig;
-import com.sonatype.insight.test.networking.SslProperties;
 
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
@@ -52,10 +51,6 @@ import org.slf4j.LoggerFactory;
 public class TestInsightBrainService
     extends InsightBrainService
 {
-  static {
-    SslProperties.use();
-  }
-
   private static final Logger log = LoggerFactory.getLogger(TestInsightBrainService.class);
   
   private static final String DEFAULT_CONFIG_FILE_PATH = "target/test-classes/config-test.yml";

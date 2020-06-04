@@ -120,6 +120,7 @@ public class SourceControlDAO
         "SELECT entity FROM SourceControl entity" +
             " WHERE entity.repositoryUrl IS NOT NULL" +
             " AND entity.pullRequestPollTime IS NOT NULL" +
+            " AND entity.pullRequestPollTime <= CURRENT_TIMESTAMP" +
             " ORDER BY entity.pullRequestPollTime ASC";
     return createQuery(sQuery).forceSingleResult().get();
   }

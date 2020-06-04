@@ -5,15 +5,20 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
+import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 
@@ -24,9 +29,19 @@ public class PermissionService
 {
   private final AuthorizationChecker authzChecker;
 
+  private final MembershipMappingDAO membershipMappingDAO;
+
+  private final RolePermissionDAO rolePermissionDAO;
+
   @Inject
-  public PermissionService(AuthorizationChecker authzChecker) {
+  public PermissionService(
+      AuthorizationChecker authzChecker,
+      MembershipMappingDAO membershipMappingDAO,
+      RolePermissionDAO rolePermissionDAO)
+  {
     this.authzChecker = authzChecker;
+    this.membershipMappingDAO = membershipMappingDAO;
+    this.rolePermissionDAO = rolePermissionDAO;
   }
 
   public Set<Permission> hasPermissions(Subject subject,
@@ -67,5 +82,20 @@ public class PermissionService
     }
 
     return result;
+  }
+
+  public Set<String> getContextIdsForUserWithPermission(UserPrincipal userPrincipal, Permission permission) {
+    Collection<MembershipMapping> membershipMappings
+        = membershipMappingDAO.getByUserAndGroups(userPrincipal.getUsername(), userPrincipal.getMembership());
+
+    Set<String> contextIds = new HashSet<>();
+
+    for (MembershipMapping membershipMapping : membershipMappings) {
+      if (rolePermissionDAO.getPermissionsForRole(membershipMapping.getRoleId()).contains(permission)) {
+        contextIds.add(membershipMapping.getContextId());
+      }
+    }
+
+    return contextIds;
   }
 }

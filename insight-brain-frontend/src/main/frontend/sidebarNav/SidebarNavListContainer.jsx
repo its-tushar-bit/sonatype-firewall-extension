@@ -15,20 +15,25 @@ function mapStateToProps({ sidebarNavList, router, violationPage }) {
   if (!props.contentType) {
     const currentStateName = router.currentState.name;
     switch (currentStateName) {
-      case 'violation':
+      case 'sidebarView.violation':
         if (violationPage.violationDetails) {
-          return {
+          props = {
             data: [violationPage.violationDetails],
+            loading: false,
             contentType: 'violations',
             backButtonStateName: 'dashboard.overview.violations',
-            loading: false,
             error: null
           };
         }
         break;
     }
   }
-  return props;
+  return {
+    ...props,
+    stateParams: router.currentParams,
+    // dont scroll to selection if we're coming from an entry in the sidebar (same parent state)
+    scrollToSelection: router.currentState.name !== router.prevState.name
+  };
 }
 
 const mapDispatchToProps = {

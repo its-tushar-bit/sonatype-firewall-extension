@@ -36,7 +36,7 @@ public class AbstractServiceAuthzTest
 
   protected Application app;
 
-  private User user;
+  protected User user;
 
   private ShiroModule shiroModule;
 

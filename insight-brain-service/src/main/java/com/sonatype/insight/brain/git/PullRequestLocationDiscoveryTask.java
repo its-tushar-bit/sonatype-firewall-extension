@@ -40,10 +40,6 @@ public class PullRequestLocationDiscoveryTask
 
   private List<ComponentIdentifier> componentIdentifiers;
 
-  private GitRepositoryInfo gitRepositoryInfo;
-
-  private String applicationId;
-
   private String branch;
 
   @Inject

@@ -68,6 +68,14 @@ public class ApiAdvancedSearchResourceTest
     assertThat(searchResultItemDTO.applicationId).isEqualTo(application.getId());
   }
 
+  @Test
+  public void testSearchIndex_Unauthenticated() throws Exception {
+    HttpResponse response =
+        restRequest().anon().query("search", FieldIdentifier.APPLICATION_ID.label + ":" + "i-am-anon").get();
+
+    assertResponseStatus(401, response);
+  }
+
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(PublicApiPaths.ADVANCED_SEARCH_RESOURCE_PATH);

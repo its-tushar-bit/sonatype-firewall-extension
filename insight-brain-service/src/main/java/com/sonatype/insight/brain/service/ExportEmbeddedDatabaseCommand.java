@@ -67,6 +67,8 @@ public class ExportEmbeddedDatabaseCommand
   protected void run(final Bootstrap<InsightConfig> bootstrap, final Namespace namespace, final InsightConfig config)
       throws Exception
   {
+    long start = System.currentTimeMillis();
+
     if (!config.isDatabaseEmbedded()) {
       throw new BadRequestException("The " + getName()
           + " command can only be used when no external database is specified in the server's config.yml file.");
@@ -100,7 +102,7 @@ public class ExportEmbeddedDatabaseCommand
       export(writer, AggregationDataStoreProvider.getDataSource());
       export(writer, ThirdPartyScansProvider.getDataSource());
     }
-    log.info("Completed export to {}", dumpFile);
+    log.info("Completed export to '{}' in {} ms.", dumpFile, System.currentTimeMillis() - start);
   }
 
   private OutputStream newOutputStream(File dumpFile) throws Exception {

@@ -66,6 +66,7 @@ describe('retentionTile', function() {
       });
       expect(mockCLMContextLocations.isOrganization).toHaveBeenCalled();
       expect(vm.isOrganization).toBe(false);
+      expect(mockOrganizationStore.getById).toHaveBeenCalledTimes(1);
     });
 
     it('loads the owner name and reports on success', function() {

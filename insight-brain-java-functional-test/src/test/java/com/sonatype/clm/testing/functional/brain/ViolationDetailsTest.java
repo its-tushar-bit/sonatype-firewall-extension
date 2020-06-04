@@ -243,6 +243,39 @@ public class ViolationDetailsTest
     detailsTile.headerTitle().shouldHave(text("Violation of Policy 2"));
   }
 
+  @Test
+  public void testScrollingToSelection() {
+    Instant now = Instant.now();
+    Instant twoDaysAgo = now.minus(2, ChronoUnit.DAYS);
+
+    Organization organization = staticTempEntity.newOrganization("Org 2");
+    Application app = tempEntity.newApplication("App Test Scroll", "appTestScroll", organization.getId());
+
+    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app.getId(),
+        StageTypes.RELEASE.getId(), "scan1", false, false, Date.from(twoDaysAgo));
+
+    PolicyViolation selectedPolicyViolation = tempEntity.newPolicyViolation(
+        policyEvaluation1, tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Base Policy", 7));
+
+    for (int i = 0; i < 100; i++) {
+      tempEntity.newPolicyViolation(policyEvaluation1, tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID,
+          "Nu Policy" + i, 9));
+    }
+
+    refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(selectedPolicyViolation.getId(), "violation", "filter"));
+    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+    SidebarNav sidebarNav = violationDetailsPage.sidebarNav();
+    sidebarNav.sidebarNavTitle().shouldHave(text("VIOLATIONS"));
+
+    ElementsCollection navItems = sidebarNav.sidebarNavItems();
+    navItems.shouldHaveSize(101);
+
+    SidebarNavListItem selectedItem = sidebarNav.navItem(100);
+    selectedItem.shouldBe(visible);
+    selectedItem.shouldHave(cssClass("selected"));
+    eyesWatcher.eyesCheck("selected element is visible");
+  }
+
   private void mockHdsResponseForVulnerabilityDetails() {
     testCLMServer.getHdsServer()
         .respondWith(getClass().getClassLoader().getResource("vulnerabilityDetails/vulnerabilityDetails2.json"))

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.scheduler;
 
+import java.time.Duration;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Date;
@@ -23,12 +24,15 @@ import com.sonatype.insight.db.H2DatabaseEngine;
 
 import io.dropwizard.lifecycle.Managed;
 import org.quartz.CronScheduleBuilder;
+import org.quartz.DailyTimeIntervalScheduleBuilder;
 import org.quartz.Job;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
+import org.quartz.SimpleScheduleBuilder;
+import org.quartz.TimeOfDay;
 import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
 import org.quartz.TriggerKey;
@@ -148,6 +152,34 @@ public class TaskScheduler
     Trigger trigger = TriggerBuilder.newTrigger() //
         .withIdentity(job.getKey().getName(), job.getKey().getGroup()) //
         .withSchedule(schedule) //
+        .build();
+    scheduleTask(job, trigger);
+  }
+
+  public void scheduleOneTimeTask(Class<? extends Job> jobClass, String name, LocalTime localTime) {
+    JobDetail job = JobBuilder.newJob(jobClass) //
+        .withIdentity(name) //
+        .build();
+    Trigger trigger = TriggerBuilder.newTrigger() //
+        .withIdentity(job.getKey().getName(), job.getKey().getGroup()) //
+        .withSchedule(DailyTimeIntervalScheduleBuilder.dailyTimeIntervalSchedule() //
+            .startingDailyAt(TimeOfDay.hourAndMinuteOfDay(localTime.getHour(), localTime.getMinute())) //
+            .withRepeatCount(0) //
+            .withMisfireHandlingInstructionDoNothing()) //
+        .build();
+    scheduleTask(job, trigger);
+  }
+
+  public void schedulePeriodicTask(Class<? extends Job> jobClass, String name, Duration interval) {
+    JobDetail job = JobBuilder.newJob(jobClass) //
+        .withIdentity(name) //
+        .build();
+    Trigger trigger = TriggerBuilder.newTrigger() //
+        .withIdentity(job.getKey().getName(), job.getKey().getGroup()) //
+        .withSchedule(SimpleScheduleBuilder.simpleSchedule() //
+            .withIntervalInMilliseconds(interval.toMillis()) //
+            .repeatForever() //
+            .withMisfireHandlingInstructionIgnoreMisfires()) //
         .build();
     scheduleTask(job, trigger);
   }

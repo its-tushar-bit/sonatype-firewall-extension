@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
+import com.sonatype.insight.brain.SslSettings;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -23,6 +24,7 @@ import com.sonatype.insight.test.reverseproxy.ReverseProxyServer;
 import org.apache.http.client.HttpResponseException;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -34,6 +36,9 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class DefaultPolicyEvaluatorReverseProxyAuthTest
     extends AbstractPolicyEvaluatorTest
 {
+  @Rule
+  public SslSettings sslSettings = new SslSettings();
+
   private ReverseProxyServer reverseProxy;
 
   private boolean rutEnabled;
@@ -52,6 +57,7 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
   public void setUp() throws Exception {
     super.setUp();
 
+    sslSettings.use();
     createAppAndAuthorizedUser("the-app-id", "mmurdock", "pa55word");
   }
 

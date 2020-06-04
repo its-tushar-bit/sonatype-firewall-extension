@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.scheduler;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.listeners.JobListenerSupport;
@@ -16,7 +18,7 @@ public class TestJobListener
 
   private volatile JobExecutionException jobExecutionException;
 
-  private volatile boolean executed;
+  private volatile AtomicInteger executions = new AtomicInteger();
 
   @Override
   public String getName() {
@@ -27,7 +29,7 @@ public class TestJobListener
   public void jobWasExecuted(JobExecutionContext jobExecutionContext, JobExecutionException jobExecutionException) {
     this.jobExecutionContext = jobExecutionContext;
     this.jobExecutionException = jobExecutionException;
-    executed = true;
+    executions.incrementAndGet();
   }
 
   public JobExecutionContext getJobExecutionContext() {
@@ -38,7 +40,7 @@ public class TestJobListener
     return jobExecutionException;
   }
 
-  public boolean isExecuted() {
-    return executed;
+  public int getExecutions() {
+    return executions.get();
   }
 }

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, {useEffect} from 'react';
+import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 
 import BackButton from '../react/BackButton';
@@ -20,32 +20,34 @@ export default function SidebarNavList(props) {
     data,
     contentType,
     backButtonStateName,
-    $state
+    $state,
+    stateParams,
+    scrollToSelection
   } = props;
-  const { params: stateParams } = $state;
 
-  useEffect(load, [stateParams.type, stateParams.sidebarReference, stateParams.sidebarId]);
+  const { id, sidebarId, sidebarReference, type } = stateParams;
 
-  function load() {
+  useEffect(() => {
     loadSidebarNav(stateParams);
-  }
+  }, [sidebarId, sidebarReference, type]);
 
   const sidebarDisplayComponent = (function(contentType) {
     switch (contentType) {
       case 'violations':
-        return <SidebarNavViolationList currentViolationId={stateParams.id}
+        return <SidebarNavViolationList currentViolationId={id}
                                         violations={data}
-                                        onClick={ gotoNewVulnerability } />;
+                                        onClick={gotoNewVulnerability}
+                                        scrollToSelection={scrollToSelection} />;
       default:
         return null;
     }
   }(contentType));
 
   return (
-    <aside className="nx-page-sidebar nx-page-scrollbar--violations-list">
+    <aside className="nx-page-scrollbar nx-page-scrollbar--violations-list">
       { backButtonStateName && <BackButton $state={$state} stateName={backButtonStateName} /> }
       <LoadWrapper error={error} loading={loading}>
-        <div id="sidebar-nav-list" className="nx-list nx-list--clickable">
+        <div id="sidebar-nav-list" className="nx-list nx-list--clickable sidebar-nav-list">
           <h4 className="nx-list__title">
             {contentType}
           </h4>
@@ -61,16 +63,9 @@ export default function SidebarNavList(props) {
 SidebarNavList.propTypes = {
   loadSidebarNav: PropTypes.func.isRequired,
   gotoNewVulnerability: PropTypes.func.isRequired,
-  $state: PropTypes.shape({
-    params: PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      type: PropTypes.string,
-      sidebarReference: PropTypes.string,
-      sidebarId: PropTypes.string
-    }).isRequired
-  }).isRequired,
+  $state: BackButton.propTypes.$state,
   backButtonStateName: PropTypes.string,
-  contentType: PropTypes.string.isRequired,
+  contentType: PropTypes.string,
   loading: PropTypes.bool.isRequired,
   error: LoadWrapper.propTypes.error,
   data: PropTypes.arrayOf(
@@ -79,5 +74,12 @@ SidebarNavList.propTypes = {
         policyViolationId: PropTypes.string.isRequired,
         threatLevel: PropTypes.number.isRequired
       })
-  )
+  ),
+  stateParams: PropTypes.shape({
+    id: PropTypes.string,
+    type: PropTypes.string,
+    sidebarReference: PropTypes.string,
+    sidebarId: PropTypes.string
+  }).isRequired,
+  scrollToSelection: PropTypes.bool.isRequired
 };

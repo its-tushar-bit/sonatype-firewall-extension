@@ -27,6 +27,7 @@ import com.sonatype.clm.dto.model.ide.LicenseStatus;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -1020,7 +1021,9 @@ public class ComponentInfoServiceTest
     assertThat(componentDetails2.policyAlerts.get(0).getActions()).extracting("actionTypeId").contains("warn");
 
     assertThat(dto.remediation.versionChanges).isNotNull();
-    assertThat(dto.remediation.versionChanges).hasSize(0);
+    assertThat(dto.remediation.versionChanges).hasSize(1);
+    assertThat(dto.remediation.versionChanges.get(0).getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NON_FAILING);
+    assertThat(dto.remediation.versionChanges.get(0).getData().getComponent().packageUrl).isEqualTo("pkg:nuget/a@v");
   }
 
   @Test

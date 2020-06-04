@@ -539,8 +539,8 @@ public class PdfGeneratorTest
   @Test
   public void testBreakWordHard_IncludesAllLetters() throws Exception {
     WordBreaker wordBreaker = new WordBreaker();
-    PDFont proximanova = PdfGeneratorUtils.loadPDType0Font(new PDDocument(), "proximanova-reg-webfont.ttf");
-    FontDescriptor fontDescriptor = new FontDescriptor(proximanova, 10);
+    PDFont openSansRegular = PdfGeneratorUtils.loadPDType0Font(new PDDocument(), "OpenSans-Regular.ttf");
+    FontDescriptor fontDescriptor = new FontDescriptor(openSansRegular, 8);
 
     Pair<String> result = wordBreaker.breakWordHard("sonatype-2015-0002", fontDescriptor, 92.65513f);
 
@@ -550,8 +550,8 @@ public class PdfGeneratorTest
   @Test
   public void testBreakWordHard_IncludesNoLetters() throws Exception {
     WordBreaker wordBreaker = new WordBreaker();
-    PDFont proximanova = PdfGeneratorUtils.loadPDType0Font(new PDDocument(), "proximanova-reg-webfont.ttf");
-    FontDescriptor fontDescriptor = new FontDescriptor(proximanova, 10);
+    PDFont openSansRegular = PdfGeneratorUtils.loadPDType0Font(new PDDocument(), "OpenSans-Regular.ttf");
+    FontDescriptor fontDescriptor = new FontDescriptor(openSansRegular, 8);
 
     Pair<String> result = wordBreaker.breakWordHard("sonatype-2015-0002", fontDescriptor, 0f);
 

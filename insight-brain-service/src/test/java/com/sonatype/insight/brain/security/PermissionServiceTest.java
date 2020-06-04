@@ -6,12 +6,14 @@
 package com.sonatype.insight.brain.security;
 
 import java.util.EnumSet;
+import java.util.Set;
 
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.junit.Test;
@@ -87,5 +89,40 @@ public class PermissionServiceTest
     grantReadPermission(app.getId());
     grantWritePermission(app.getId());
     assertPermissions(OwnerType.APPLICATION, app.getId(), Permission.READ, Permission.WRITE);
+  }
+
+  @Test
+  public void testGetContextIdsForUserWithPermission_Global() {
+    grantGlobalPermission(Permission.READ);
+    UserPrincipal principal = new UserPrincipal(user.getUsername(), "", InternalRealm.ID);
+
+    assertThat(service.getContextIdsForUserWithPermission(principal, Permission.READ)).containsOnly("global");
+  }
+
+  @Test
+  public void testGetContextIdsForUserWithPermission_UserApplication() {
+    grantReadPermission(app.getId());
+    UserPrincipal principal = new UserPrincipal(user.getUsername(), "", InternalRealm.ID);
+
+    assertThat(service.getContextIdsForUserWithPermission(principal, Permission.READ)).containsOnly(app.getId());
+  }
+
+  @Test
+  public void testGetContextIdsForUserWithPermission_UserOrganization() {
+    grantReadPermission(org.getId());
+
+    UserPrincipal principal = new UserPrincipal(user.getUsername(), "", InternalRealm.ID);
+
+    assertThat(service.getContextIdsForUserWithPermission(principal, Permission.READ)).containsOnly(org.getId());
+  }
+
+  @Test
+  public void testGetContextIdsForUserWithPermission_UserApplicationAndOrganization() {
+    grantReadPermission(app.getId());
+    grantReadPermission(org.getId());
+    UserPrincipal principal = new UserPrincipal(user.getUsername(), "", InternalRealm.ID);
+
+    Set<String> ids = service.getContextIdsForUserWithPermission(principal, Permission.READ);
+    assertThat(ids).containsOnly(app.getId(), org.getId());
   }
 }

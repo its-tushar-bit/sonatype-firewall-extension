@@ -5,13 +5,21 @@
  */
 package com.sonatype.insight.brain.search.query;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.search.index.IndexService;
+import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryCollector;
@@ -25,6 +33,7 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryCollector.TOTAL_SEARCHES;
 import static com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryCollector.TOTAL_SEARCHES_BY_FIELD_NAME;
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -127,5 +136,113 @@ public class SearchServiceTest
     assertThat(telemetryData.getAttributes()).containsOnlyKeys(TOTAL_SEARCHES, TOTAL_SEARCHES_BY_FIELD_NAME);
     assertThat(actualSearchCounts).usingRecursiveComparison().ignoringCollectionOrder().isEqualTo(expectedSearchCounts);
     assertThat(telemetryData.getAttributes().get(TOTAL_SEARCHES)).isEqualTo(1L);
+  }
+
+  @Test
+  public void testSearchIndex_RestrictedApplicationNotReturnedItemTypeSearch() throws IOException {
+    Role nonGlobalReadRole = tempEntity.newRole(false, Permission.READ);
+
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newApplicationWithParent();
+
+    UserPrincipal userPrincipal = (UserPrincipal) subject.getPrincipal();
+    tempEntity.newMembershipMapping(application.getId(), nonGlobalReadRole.getId(), userPrincipal.getUsername());
+
+    indexService.createSearchIndex();
+    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:APPLICATION", 20, 0);
+
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(1);
+
+    List<String> applicationIds = searchResultDTO.groupingByDTOS.stream()
+        .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
+        .map(searchResultItemDTO -> searchResultItemDTO.applicationId)
+        .collect(toList());
+    assertThat(applicationIds).containsOnly(application.getId());
+  }
+
+  @Test
+  public void testSearchIndex_AllPermittedApplicationsReturned() throws IOException {
+    Role nonGlobalReadRole = tempEntity.newRole(false, Permission.READ);
+
+    Application application = tempEntity.newApplicationWithParent();
+    Application anotherApplication = tempEntity.newApplicationWithParent();
+
+    UserPrincipal userPrincipal = (UserPrincipal) subject.getPrincipal();
+    tempEntity.newMembershipMapping(application.getId(), nonGlobalReadRole.getId(), userPrincipal.getUsername());
+    tempEntity.newMembershipMapping(anotherApplication.getId(), nonGlobalReadRole.getId(), userPrincipal.getUsername());
+
+    indexService.createSearchIndex();
+    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:APPLICATION", 20, 0);
+
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(2);
+
+    List<String> applicationIds = searchResultDTO.groupingByDTOS.stream()
+        .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
+        .map(searchResultItemDTO -> searchResultItemDTO.applicationId)
+        .collect(toList());
+    assertThat(applicationIds).containsOnly(application.getId(), anotherApplication.getId());
+  }
+
+  @Test
+  public void testSearchIndex_ApplicationsOfOrganizationReturned() throws IOException {
+    Role nonGlobalReadRole = tempEntity.newRole(false, Permission.READ);
+
+    Organization organization = tempEntity.newOrganization();
+    Organization restrictedOrganization = tempEntity.newOrganization();
+
+    Application organizationApplication1 = tempEntity.newApplication(organization.getId());
+    Application organizationApplication2 = tempEntity.newApplication(organization.getId());
+
+    tempEntity.newApplication(restrictedOrganization.getId());
+    tempEntity.newApplication(restrictedOrganization.getId());
+
+    UserPrincipal userPrincipal = (UserPrincipal) subject.getPrincipal();
+    tempEntity.newMembershipMapping(organization.getId(), nonGlobalReadRole.getId(), userPrincipal.getUsername());
+
+    indexService.createSearchIndex();
+
+    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:ORGANIZATION", 20, 0);
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(1);
+
+    List<String> organizationIds = searchResultDTO.groupingByDTOS.stream()
+        .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
+        .map(searchResultItemDTO -> searchResultItemDTO.organizationId)
+        .collect(toList());
+    assertThat(organizationIds).containsOnly(organization.getId());
+
+    searchResultDTO = searchService.searchIndex("itemType:APPLICATION", 20, 0);
+
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(2);
+    List<String> applicationIds = searchResultDTO.groupingByDTOS.stream()
+        .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
+        .map(searchResultItemDTO -> searchResultItemDTO.applicationId)
+        .collect(toList());
+    assertThat(applicationIds).containsOnly(organizationApplication1.getId(), organizationApplication2.getId());
+  }
+
+  @Test
+  public void testSearchIndex_ApplicationsReturnedForGlobalContextPermission() throws IOException {
+    Role role = tempEntity.newRole(true, Permission.READ);
+
+    Organization org1 = tempEntity.newOrganization();
+    Organization org2 = tempEntity.newOrganization();
+
+    tempEntity.newApplication(org1.getId());
+    tempEntity.newApplication(org1.getId());
+
+    tempEntity.newApplication(org2.getId());
+    tempEntity.newApplication(org2.getId());
+
+    UserPrincipal userPrincipal = (UserPrincipal) subject.getPrincipal();
+
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), userPrincipal.getUsername());
+
+    indexService.createSearchIndex();
+
+    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:ORGANIZATION", 20, 0);
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(3); // 2 orgs + the Root org = 3
+
+    searchResultDTO = searchService.searchIndex("itemType:APPLICATION", 20, 0);
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(4);  // 4 applications owned by 2 organizations
   }
 }

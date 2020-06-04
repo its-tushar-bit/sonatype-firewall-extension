@@ -19,8 +19,9 @@ Threat (of 10) | Policy | Violation Details
     <#list constraint.conditions as condition>
       <li>${condition}</li><#t>
     </#list>
-    </ul><#lt>
+    </ul><#t>
   </#list>
+
 </#list>
 
 </details>

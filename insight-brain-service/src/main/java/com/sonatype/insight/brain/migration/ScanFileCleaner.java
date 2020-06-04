@@ -10,13 +10,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
+import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -27,51 +24,42 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.security.SystemRunnable;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.InsightWork;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.dropwizard.lifecycle.Managed;
-import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
+import org.quartz.DisallowConcurrentExecution;
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
+@DisallowConcurrentExecution
 public class ScanFileCleaner
-    implements Managed
+    implements Managed, Job
 {
   private static final Logger log = LoggerFactory.getLogger(ScanFileCleaner.class);
+
+  // Visible for testing
+  static final String NAME = "ScanFileCleaner";
 
   private final Path markerFile;
 
   private final InsightWork insightWork;
 
-  private ScheduledExecutorService executor;
+  private final TaskScheduler taskScheduler;
 
   public boolean disableForTesting;
 
   @Inject
-  public ScanFileCleaner(InsightWork insightWork) {
+  public ScanFileCleaner(InsightWork insightWork, TaskScheduler taskScheduler) {
     this.insightWork = insightWork;
+    this.taskScheduler = taskScheduler;
     markerFile = insightWork.getWorkDir().toPath().resolve("obsoletescanfiles-cleaned");
-  }
-
-  ScheduledExecutorService newExecutor() {
-    ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("ScanFileCleaner").setDaemon(true).build();
-    return new ScheduledThreadPoolExecutor(1, threadFactory);
-  }
-
-  private DateTime determineExecutionTime() {
-    // Schedule for 11 pm.
-    DateTime dateTime =
-        new DateTime().withHourOfDay(23).withMinuteOfHour(0).withSecondOfMinute(0).withMillisOfSecond(0);
-    // Set for tomorrow if this time has already passed today.
-    if (dateTime.isBeforeNow()) {
-      dateTime = dateTime.plusDays(1);
-    }
-    return dateTime;
   }
 
   @Override
@@ -85,26 +73,29 @@ public class ScanFileCleaner
       return;
     }
 
-    DateTime dateTime = determineExecutionTime();
-    executor = newExecutor();
-    long delay = dateTime.getMillis() - System.currentTimeMillis();
-    executor.schedule(new SystemRunnable(() -> {
-      try {
-        ScanFileCleaner.this.deleteScanFiles();
-      }
-      catch (Exception e) {
-        log.error(e.getMessage(), e);
-      }
-    }), delay, TimeUnit.MILLISECONDS);
-    log.info("Scan file cleaner scheduled for {}.", dateTime);
+    taskScheduler.scheduleOneTimeTask(ScanFileCleaner.class, NAME, LocalTime.of(23, 0));
+    log.info("Scan file cleaner scheduled for {}.", taskScheduler.getNextExecutionTime(NAME));
   }
 
   @Override
   public void stop() {
-    if (executor != null) {
-      executor.shutdown();
-      executor = null;
-      log.info("Scan file cleaner stopped.");
+    // noop
+  }
+
+  @Override
+  public void execute(JobExecutionContext context) {
+    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
+      deleteScanFiles();
+    }
+    catch (Exception e) {
+      log.error("Scan file cleaner error: {}", e.getMessage(), e);
+    }
+    catch (Throwable t) {
+      // Try to log to stderr before trying the standard logging because the standard logging may not be operational
+      // at this point.
+      t.printStackTrace();
+      log.error(t.getMessage(), t);
+      System.exit(1);
     }
   }
 

@@ -41,7 +41,10 @@ describe('SidebarNavListContainer', function() {
       },
       router: {
         currentState: {
-          name: 'violation'
+          name: 'sidebarView.violation'
+        },
+        prevState: {
+          name: ''
         }
       },
       violationPage: {
@@ -85,7 +88,7 @@ describe('SidebarNavListContainer', function() {
     expect(wrapper).toHaveProp('data', [{foo: 'bar' }]);
   });
 
-  it('sets data from violationDetails if contentType is not defined and stateName is violation', () => {
+  it('sets data from violationDetails if contentType is not defined and stateName is sidebarView.violation', () => {
     let wrapper = shallow(vdom).dive();
 
     expect(wrapper).toHaveProp('loading', false);
@@ -129,5 +132,14 @@ describe('SidebarNavListContainer', function() {
     gotoNewVulnerabilityCreator();
 
     expect(store.getActions()).toEqual([{ type: 'LOAD_LEFT_NAV' }, { type: 'GOTO_NEW_VULNERABILITY' }]);
+  });
+
+  it('sets the scrollToSelection prop according on the previous state', function() {
+    // coming from different state
+    expect(shallow(vdom).dive().prop('scrollToSelection')).toEqual(true);
+
+    // coming from the same state
+    state.router.prevState.name = state.router.currentState.name;
+    expect(shallow(vdom).dive().prop('scrollToSelection')).toEqual(false);
   });
 });

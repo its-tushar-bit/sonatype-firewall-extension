@@ -13,10 +13,12 @@ import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.naming.directory.InitialDirContext;
 
+import com.sonatype.insight.brain.SslSettings;
 import com.sonatype.insight.test.networking.SslProperties;
 
 import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
 import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -35,6 +37,9 @@ public class EmbeddedLdapServerTest
   private static final String AUTH_NONE = "none";
 
   private EmbeddedLdapServer testLdapServer = new EmbeddedLdapServer();
+
+  @Rule
+  public SslSettings sslSettings = new SslSettings();
 
   @After
   public void stopServer() throws Exception {
@@ -109,6 +114,7 @@ public class EmbeddedLdapServerTest
     testLdapServer.enableLdaps(SslProperties.SERVER_STORE_FILE, SslProperties.KEY_STORE_PASSWORD);
     testLdapServer.start();
 
+    sslSettings.use();
     assertLogin(AUTH_NONE);
   }
 

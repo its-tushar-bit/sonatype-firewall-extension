@@ -28,6 +28,10 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.report.ReportTestUtils;
@@ -43,6 +47,7 @@ import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.inject.Binder;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
@@ -80,6 +85,13 @@ public class IndexSearchingTest
     binder.bind(VulnerabilityDescriptionFetcher.class).toInstance(vulnerabilityDescriptionFetcher);
     binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
     super.configure(binder);
+  }
+
+  @Before
+  public void before() {
+    UserPrincipal userPrincipal = (UserPrincipal) subject.getPrincipal();
+    Role role = tempEntity.newRole(true, Permission.READ);
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), userPrincipal.getUsername());
   }
 
   private void index() throws Exception {

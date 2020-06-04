@@ -5,182 +5,122 @@
  */
 package com.sonatype.insight.brain.git;
 
-import java.io.IOException;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.sonatype.insight.brain.product.license.ProductLicense;
+import javax.inject.Inject;
+
+import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.security.MDCUsernameScope;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
+import com.sonatype.insight.license.model.LicensedFeature;
 
+import com.google.inject.Binder;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.quartz.JobBuilder;
+import org.quartz.JobExecutionContext;
+import org.slf4j.MDC;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verifyNoInteractions;
 
-@RunWith(MockitoJUnitRunner.class)
 public class PullRequestPollingSchedulerTest
-    extends VerifiableLoggingTestBase
+    extends AbstractComponentTest
 {
   @Mock
-  private PullRequestPollingService pullRequestPollingService;
+  private PullRequestPollingService pullRequestPollingServiceMock;
+
+  @Inject
+  private TestProductLicense testProductLicense;
+
+  @Inject
+  private InsightConfig insightConfig;
 
   @Mock
-  private ProductLicense productLicense;
+  private TaskScheduler taskSchedulerMock;
 
-  public PullRequestPollingSchedulerTest() {
-    super(PullRequestPollingScheduler.class);
+  @Inject
+  private PullRequestPollingScheduler pullRequestPollingScheduler;
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(PullRequestPollingService.class).toInstance(pullRequestPollingServiceMock);
+    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
+    super.configure(binder);
   }
 
   @Test
-  public void testPullRequestPollingScheduler_startAndStop() throws Exception {
-    // given: scheduler instance with valid product license
-    final int delaySeconds = 2;
-    final int intervalSeconds = 1;
-    PullRequestPollingScheduler scheduler =
-        new PullRequestPollingScheduler(pullRequestPollingService, productLicense, getInsightConfig(true),
-            delaySeconds, intervalSeconds);
-    when(productLicense.hasFeature(any())).thenReturn(true);
+  public void testStart_FeatureDisabled() throws Exception {
+    setFeatureFlagEnabled(false);
+    assertThat(insightConfig.isFeatureEnabled(Feature.PR_COMMENTING)).isFalse();
 
-    // when: start scheduler and wait (less than full initial delay)
-    scheduler.start();
-    Thread.sleep(1500);
+    pullRequestPollingScheduler.start();
 
-    // then: no invocations of polling yet
-    verify(pullRequestPollingService, never()).fetchAndSendPullRequestsForCommenting();
-    assertThatLogMessagesEqual(
-        info("Scheduled monitoring of SCM pull requests every 1 second(s) starting in 2 second(s)")
-    );
-
-    // when: wait 3 polling cycles
-    Thread.sleep(3000);
-
-    // then: polling service invoked 3 times
-    verify(pullRequestPollingService, times(3)).fetchAndSendPullRequestsForCommenting();
-    assertThatLogMessagesEqual(
-        info("Scheduled monitoring of SCM pull requests every 1 second(s) starting in 2 second(s)"),
-        debug("Commencing pull request polling cycle"),
-        debug("Pull request polling cycle complete"),
-        debug("Commencing pull request polling cycle"),
-        debug("Pull request polling cycle complete"),
-        debug("Commencing pull request polling cycle"),
-        debug("Pull request polling cycle complete")
-    );
-
-    // when: stop scheduler and wait (2 intervals)
-    scheduler.stop();
-    Thread.sleep(2000);
-
-    // then: scheduler stopped and no new invocations of the polling service
-    verify(pullRequestPollingService, times(3)).fetchAndSendPullRequestsForCommenting();
-    assertThatLogMessagesEqual(
-        info("Scheduled monitoring of SCM pull requests every 1 second(s) starting in 2 second(s)"),
-        debug("Commencing pull request polling cycle"),
-        debug("Pull request polling cycle complete"),
-        debug("Commencing pull request polling cycle"),
-        debug("Pull request polling cycle complete"),
-        debug("Commencing pull request polling cycle"),
-        debug("Pull request polling cycle complete"),
-        info("Stopped SCM pull request monitoring")
-    );
+    verifyNoInteractions(taskSchedulerMock);
   }
 
   @Test
-  public void testPullRequestPollingScheduler_exceptionInPolling() throws Exception {
-    // given: scheduler instance with polling service that throws IO exceptions
-    final int delaySeconds = 1;
-    final int intervalSeconds = 1;
-    PullRequestPollingScheduler scheduler =
-        new PullRequestPollingScheduler(pullRequestPollingService, productLicense, getInsightConfig(true),
-            delaySeconds, intervalSeconds);
-    doThrow(new IOException("some IO exception")).when(pullRequestPollingService)
-        .fetchAndSendPullRequestsForCommenting();
-    when(productLicense.hasFeature(any())).thenReturn(true);
+  public void testStart_FeatureEnabled() throws Exception {
+    setFeatureFlagEnabled(true);
+    assertThat(insightConfig.isFeatureEnabled(Feature.PR_COMMENTING)).isTrue();
 
-    // when: start scheduler, wait (delay + 1 interval)
-    scheduler.start();
-    Thread.sleep(1500);
+    pullRequestPollingScheduler.start();
 
-    // then : expecting exception was thrown, caught and handled
-    verify(pullRequestPollingService, times(1)).fetchAndSendPullRequestsForCommenting();
-    assertThatLogMessagesEqual(
-        info("Scheduled monitoring of SCM pull requests every 1 second(s) starting in 1 second(s)"),
-        debug("Commencing pull request polling cycle"),
-        error("some IO exception"),
-        debug("Pull request polling cycle complete")
-    );
-
-    // when: throw runtime exception instead and wait another interval
-    doThrow(new RuntimeException("some runtime exception")).when(pullRequestPollingService)
-        .fetchAndSendPullRequestsForCommenting();
-    Thread.sleep(1000);
-
-    // then: polling still occurring and runtime exception was handled
-    verify(pullRequestPollingService, times(2)).fetchAndSendPullRequestsForCommenting();
-    assertThatLogMessagesEqual(
-        info("Scheduled monitoring of SCM pull requests every 1 second(s) starting in 1 second(s)"),
-        debug("Commencing pull request polling cycle"),
-        error("some IO exception"),
-        debug("Pull request polling cycle complete"),
-        debug("Commencing pull request polling cycle"),
-        error("some runtime exception"),
-        debug("Pull request polling cycle complete")
-    );
-
-    // when: stop throwing and wait
-    doNothing().when(pullRequestPollingService).fetchAndSendPullRequestsForCommenting();
-    Thread.sleep(1000);
-
-    // then: polling still occurring
-    verify(pullRequestPollingService, times(3)).fetchAndSendPullRequestsForCommenting();
-    assertThatLogMessagesEqual(
-        info("Scheduled monitoring of SCM pull requests every 1 second(s) starting in 1 second(s)"),
-        debug("Commencing pull request polling cycle"),
-        error("some IO exception"),
-        debug("Pull request polling cycle complete"),
-        debug("Commencing pull request polling cycle"),
-        error("some runtime exception"),
-        debug("Pull request polling cycle complete"),
-        debug("Commencing pull request polling cycle"),
-        debug("Pull request polling cycle complete")
-    );
-
-    // cleanup: stop the scheduler so as not to interfere with other tests
-    scheduler.stop();
+    verify(taskSchedulerMock).schedulePeriodicTask(PullRequestPollingScheduler.class, PullRequestPollingScheduler.NAME,
+        Duration.ofSeconds(PullRequestPollingScheduler.PULL_REQUEST_MONITORING_INTERVAL_SECONDS));
   }
 
   @Test
-  public void testPullRequestPollingScheduler_featureFlagOff() throws Exception {
-    // given: valid scheduler instance but the feature flag is off
-    PullRequestPollingScheduler scheduler =
-        new PullRequestPollingScheduler(pullRequestPollingService, productLicense, getInsightConfig(false),
-            2, 1);
+  public void testExecute() {
+    PullRequestPollingScheduler pullRequestPollingSchedulerSpy = spy(pullRequestPollingScheduler);
+    doAnswer(invocationOnMock -> {
+      assertThat(MDC.get(MDCUsernameScope.USERNAME)).isEqualTo(MDCUsernameScope.SYSTEM);
+      return null;
+    }).when(pullRequestPollingSchedulerSpy).monitorPullRequestsForCommenting();
 
-    // when: start scheduler and wait (less than full initial delay)
-    scheduler.start();
+    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forUser("username")) {
+      pullRequestPollingSchedulerSpy.execute(mock(JobExecutionContext.class));
+    }
 
-    // then: PR polling scheduler is not started
-    assertThatLogMessagesEqual(
-        info("Pull request commenting feature is disabled; Pull request polling scheduler is not started.")
-    );
-    verify(pullRequestPollingService, never()).fetchAndSendPullRequestsForCommenting();
-
-    scheduler.stop();
+    verify(pullRequestPollingSchedulerSpy).monitorPullRequestsForCommenting();
   }
 
-  private InsightConfig getInsightConfig(boolean enableFeatureFlag) {
-    InsightConfig config = new InsightConfig();
+  @Test
+  public void testMonitorPullRequestsForCommenting_Unlicensed() {
+    testProductLicense.setFeatures();
+    assertThat(testProductLicense.hasFeature(LicensedFeature.AUTOMATION)).isFalse();
+
+    pullRequestPollingScheduler.monitorPullRequestsForCommenting();
+
+    verifyNoInteractions(pullRequestPollingServiceMock);
+  }
+
+  @Test
+  public void testMonitorPullRequestsForCommenting_Licensed() throws Exception {
+    assertThat(testProductLicense.hasFeature(LicensedFeature.AUTOMATION)).isTrue();
+
+    pullRequestPollingScheduler.monitorPullRequestsForCommenting();
+
+    verify(pullRequestPollingServiceMock).fetchAndSendPullRequestsForCommenting();
+  }
+
+  @Test
+  public void testDisallowConcurrentExecution() {
+    assertThat(JobBuilder.newJob(PullRequestPollingScheduler.class).build().isConcurrentExectionDisallowed()).isTrue();
+  }
+
+  private void setFeatureFlagEnabled(boolean featureFlagEnabled) {
     Map<String, Boolean> features = new HashMap<>();
-    features.put(Feature.PR_COMMENTING.getFlag(), enableFeatureFlag);
-    config.setFeatures(features);
-    return config;
+    features.put(Feature.PR_COMMENTING.getFlag(), featureFlagEnabled);
+    insightConfig.setFeatures(features);
   }
 }

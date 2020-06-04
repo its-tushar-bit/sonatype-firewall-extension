@@ -15,7 +15,6 @@ import javax.servlet.http.HttpServletResponse;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.test.InjectedTest;
-import com.sonatype.insight.test.networking.SslProperties;
 
 import io.dropwizard.jetty.HttpConnectorFactory;
 import io.dropwizard.server.DefaultServerFactory;
@@ -31,10 +30,6 @@ import org.junit.rules.TemporaryFolder;
 public abstract class AbstractHdsClientTest
     extends InjectedTest
 {
-  static {
-    SslProperties.use();
-  }
-
   @Inject
   protected PasswordHandler passwordHandler;
 

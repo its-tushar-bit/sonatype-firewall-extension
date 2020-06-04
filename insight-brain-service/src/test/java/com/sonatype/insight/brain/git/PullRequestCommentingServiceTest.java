@@ -54,6 +54,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -211,7 +212,7 @@ public class PullRequestCommentingServiceTest
         .withDevBranchPullRequest("INT-2493-pr-commenting-immediate-flow", 7, "commit456", "baseCommit")
         .withPolicyEvaluationDiffMarkup(commentText)
         .expectApplicationId("app1")
-        .withCommentForPullRequest(7, 27, "content-hash")
+        .withCommentForPullRequest(7, 27, 83, "content-hash", "sourcePe", "targetPe")
         .withCommentResponseForPR(7, 27, 84)
         .withGeneratedContentHash("new-content-hash")
         .expectSourceCommit("commit456")
@@ -226,7 +227,7 @@ public class PullRequestCommentingServiceTest
     // when : process event
     commentingService.onApplicationEvaluation(event);
 
-    // then : comment not created due to PR already having a comment from us
+    //then : comment not created due to PR already having a comment from us
     assertThatLogMessagesEqual(
         debug("obtained CommitInfo from SCM for commit 'commit456' with 1 pull request(s) and 0 base branch commit(s)"),
         debug("0 base branch commits to process for application 'app1'"),
@@ -373,11 +374,6 @@ public class PullRequestCommentingServiceTest
   @Test
   public void testOnApplicationEvaluation_GitLabUnsupported() throws Exception {
     testUnsupported(SourceControlProvider.GITLAB);
-  }
-
-  @Test
-  public void testOnApplicationEvaluation_BitbucketUnsupported() throws Exception {
-    testUnsupported(SourceControlProvider.BITBUCKET);
   }
 
   private void testUnsupported(final SourceControlProvider sourceControlProvider) throws Exception {
@@ -836,8 +832,11 @@ public class PullRequestCommentingServiceTest
       doReturn(mockGitApiClient).when(mockGitClientFactory).createApiClient(gitRepositoryInfo);
 
       for (Entry<Integer, CommentResponse> entry : pullRequestCommentResponseMap.entrySet()) {
-        doReturn(entry.getValue()).when(mockGitApiClient).createPullRequestComment(eq(entry.getKey()), any());
-        doReturn(entry.getValue()).when(mockGitApiClient).updatePullRequestComment(eq(entry.getValue().getId()), any());
+        Integer prId = entry.getKey();
+        CommentResponse comment = entry.getValue();
+        doReturn(comment).when(mockGitApiClient).createPullRequestComment(eq(prId), any());
+        doReturn(comment).when(mockGitApiClient)
+            .updatePullRequestComment(eq(prId), eq(comment.getId()), nullable(Integer.class), any());
       }
 
       doReturn(mockPullRequestInfoProvider).when(mockGitClientFactory).createPullRequestInfoClient(gitRepositoryInfo);
@@ -977,10 +976,23 @@ public class PullRequestCommentingServiceTest
         String sourcePolicyEvaluationId,
         String targetPolicyEvaluationId)
     {
+      return withCommentForPullRequest(pullRequestNumber, commentId, 0, contentHash, sourcePolicyEvaluationId,
+          targetPolicyEvaluationId);
+    }
+
+    TestablePullRequestCommentingServiceBuilder withCommentForPullRequest(
+        int pullRequestNumber,
+        int commentId,
+        int commentVersion,
+        String contentHash,
+        String sourcePolicyEvaluationId,
+        String targetPolicyEvaluationId)
+    {
       pullRequestComment = new SourceControlPullRequestComment();
       pullRequestComment.setApplicationId(applicationId);
       pullRequestComment.setPullRequestId(pullRequestNumber);
       pullRequestComment.setPullRequestCommentId(commentId);
+      pullRequestComment.setPullRequestCommentVersion(commentVersion);
       pullRequestComment.setContentHash(contentHash);
       pullRequestComment.setSourcePolicyEvaluationId(sourcePolicyEvaluationId);
       pullRequestComment.setTargetPolicyEvaluationId(targetPolicyEvaluationId);

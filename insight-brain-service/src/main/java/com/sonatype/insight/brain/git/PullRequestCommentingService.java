@@ -379,9 +379,9 @@ public class PullRequestCommentingService
       telemetry.action = ACTION_CREATED;
     }
     else {
-      int pullRequestCommentId = existingPullRequestComment.getPullRequestCommentId();
       commentResponse =
-          gitApiClient.updatePullRequestComment(pullRequestCommentId, commentText);
+          gitApiClient.updatePullRequestComment(pullRequestNumber, existingPullRequestComment.getPullRequestCommentId(),
+              existingPullRequestComment.getPullRequestCommentVersion(), commentText);
       if (commentResponse.getVersion() == null) {
         log.info("pull request comment '{}' updated for application '{}' pull request '{}'",
             commentResponse.getId(), applicationId, pullRequestNumber);

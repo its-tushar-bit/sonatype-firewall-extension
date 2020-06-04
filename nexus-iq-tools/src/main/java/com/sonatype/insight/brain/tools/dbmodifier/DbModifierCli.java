@@ -148,7 +148,7 @@ public final class DbModifierCli
     String fullDbPath = dbPath.endsWith(H2_DATABASE_SUFFIX) ? dbPath : dbPath + H2_DATABASE_SUFFIX;
 
     if (!new File(fullDbPath).exists()) {
-      throw new ParameterException("Invalid Db File: " + fullDbPath);
+      throw new ParameterException("Db file does not exist: " + fullDbPath);
     }
 
     this.database = fullDbPath.substring(0, fullDbPath.length() - H2_DATABASE_SUFFIX.length());

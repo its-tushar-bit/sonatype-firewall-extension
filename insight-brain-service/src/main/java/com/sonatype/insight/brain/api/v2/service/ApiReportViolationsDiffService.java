@@ -5,9 +5,12 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -15,10 +18,11 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.ApiApplicationAdapter;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationCommitDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentForDiffDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDiffDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationForDiffDTO;
+import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -32,14 +36,20 @@ import com.sonatype.insight.brain.policy.PolicyEvaluationDiffService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.report.ReportEntry;
+import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,14 +79,21 @@ public class ApiReportViolationsDiffService
 
   private final ProductLicense productLicense;
 
+  private final ReportService reportService;
+
+  public static final String CANT_CALCULATE_DIFF_MESSAGE =
+      "The policy violation diff could not be determined for the given request.";
+
   @Inject
-  public ApiReportViolationsDiffService(final ApplicationDAO applicationDAO,
-                                        final PolicyEvaluationDAO policyEvaluationDAO,
-                                        final ApiApplicationAdapter applicationAdapter,
-                                        final ApplicationComponentDAO applicationComponentDAO,
-                                        final PolicyViolationAdapter policyViolationAdapter,
-                                        final PolicyEvaluationDiffService policyEvaluationDiffService,
-                                        final ProductLicense productLicense)
+  public ApiReportViolationsDiffService(
+      final ApplicationDAO applicationDAO,
+      final PolicyEvaluationDAO policyEvaluationDAO,
+      final ApiApplicationAdapter applicationAdapter,
+      final ApplicationComponentDAO applicationComponentDAO,
+      final PolicyViolationAdapter policyViolationAdapter,
+      final PolicyEvaluationDiffService policyEvaluationDiffService,
+      final ProductLicense productLicense,
+      final ReportService reportService)
   {
     this.applicationDAO = applicationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
@@ -85,23 +102,34 @@ public class ApiReportViolationsDiffService
     this.policyViolationAdapter = policyViolationAdapter;
     this.policyEvaluationDiffService = policyEvaluationDiffService;
     this.productLicense = productLicense;
+    this.reportService = reportService;
   }
 
   @Authorize(permission = Permission.READ)
   public ApiPolicyViolationDiffDTO getPolicyViolationDiff(
       @AuthzContext(Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
       final String fromCommit,
-      final String toCommit)
+      final String toCommit,
+      final String fromEvaluationId,
+      final String toEvaluationId)
   {
     checkLicense();
-    validateCommits(fromCommit, toCommit);
+    validateInputs(fromCommit, toCommit, fromEvaluationId, toEvaluationId);
 
     final Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     final PolicyEvaluation fromPolicyEvaluation =
-        getPolicyEvaluationForApplicationAndHash(application.getId(), fromCommit);
+        getPolicyEvaluationForInput(application.getId(), fromCommit, fromEvaluationId);
     final PolicyEvaluation toPolicyEvaluation =
-        getPolicyEvaluationForApplicationAndHash(application.getId(), toCommit);
+        getPolicyEvaluationForInput(application.getId(), toCommit, toEvaluationId);
 
+    return getPolicyViolationDiffFromEvaluations(application, fromPolicyEvaluation, toPolicyEvaluation);
+  }
+
+  private ApiPolicyViolationDiffDTO getPolicyViolationDiffFromEvaluations(
+      final Application application,
+      final PolicyEvaluation fromPolicyEvaluation,
+      final PolicyEvaluation toPolicyEvaluation)
+  {
     final PolicyViolationDiff<PolicyViolation> policyViolationDiff =
         getViolationDiffFromEvaluations(fromPolicyEvaluation, toPolicyEvaluation);
 
@@ -109,16 +137,41 @@ public class ApiReportViolationsDiffService
         policyViolationDiff);
   }
 
-  private void validateCommits(final String fromCommit, final String toCommit) {
-    if (Strings.isNullOrEmpty(fromCommit)) {
-      throw new BadRequestException("The commit identifier for `fromCommit` must be specified.");
+  private void validateInputs(
+      final String fromCommit,
+      final String toCommit,
+      final String fromEvaluationId,
+      final String toEvaluationId)
+  {
+    if (Strings.isNullOrEmpty(fromCommit) && Strings.isNullOrEmpty(fromEvaluationId)) {
+      throw new BadRequestException(
+          "The commit identifier or policy evaluation id for the `from` evaluation needs to be specified");
     }
-    if (Strings.isNullOrEmpty(toCommit)) {
-      throw new BadRequestException("The commit identifier for `toCommit` must be specified.");
+    if (Strings.isNullOrEmpty(toCommit) && Strings.isNullOrEmpty(toEvaluationId)) {
+      throw new BadRequestException(
+          "The commit identifier or policy evaluation id for the `to` evaluation needs to be specified");
     }
-    if (toCommit.equals(fromCommit)) {
-      throw new BadRequestException("The specified commits cannot be identical.");
+    if ((toCommit != null && toCommit.equals(fromCommit)) ||
+        (toEvaluationId != null && toEvaluationId.equals(fromEvaluationId))) {
+      throw new BadRequestException("The specified commits or evaluation ids cannot be identical.");
     }
+    if (!Strings.isNullOrEmpty(fromCommit) && !Strings.isNullOrEmpty(fromEvaluationId)) {
+      throw new BadRequestException("Cannot specify both commit identifier and evaluation id for `from` evaluation.");
+    }
+    if (!Strings.isNullOrEmpty(toCommit) && !Strings.isNullOrEmpty(toEvaluationId)) {
+      throw new BadRequestException("Cannot specify both commit identifier and evaluation id for `to` evaluation.");
+    }
+  }
+
+  private PolicyEvaluation getPolicyEvaluationForInput(String applicationId, String commitHash, String evaluationId) {
+    if (!Strings.isNullOrEmpty(commitHash)) {
+      return getPolicyEvaluationForApplicationAndHash(applicationId, commitHash);
+    }
+    final PolicyEvaluation policyEvaluation = policyEvaluationDAO.getById(evaluationId);
+    if (policyEvaluation == null || !policyEvaluation.getApplicationId().equals(applicationId)) {
+      throw new NotFoundException(CANT_CALCULATE_DIFF_MESSAGE);
+    }
+    return policyEvaluation;
   }
 
   private PolicyEvaluation getPolicyEvaluationForApplicationAndHash(String applicationId, String commitHash) {
@@ -136,7 +189,7 @@ public class ApiReportViolationsDiffService
     }
 
     if (policyEvaluation == null) {
-      throw new NotFoundException("The policy violation diff could not be determined for the given request.");
+      throw new NotFoundException(CANT_CALCULATE_DIFF_MESSAGE);
     }
     return policyEvaluation;
   }
@@ -149,7 +202,7 @@ public class ApiReportViolationsDiffService
         policyEvaluationDiffService.createPolicyViolationDiff(originalPolicyEvaluation, updatedPolicyEvaluation);
 
     if (!policyViolationDiff.isPresent()) {
-      throw new NotFoundException("The policy violation diff could not be determined for the given request.");
+      throw new NotFoundException(CANT_CALCULATE_DIFF_MESSAGE);
     }
 
     return policyViolationDiff.get();
@@ -162,12 +215,25 @@ public class ApiReportViolationsDiffService
       final PolicyViolationDiff<PolicyViolation> policyViolationDiff)
   {
     final ApiPolicyViolationDiffDTO dto = new ApiPolicyViolationDiffDTO();
+    Map<String, String> toEvaluationComponentNames = null;
+    Map<String, String> fromEvaluationComponentNames = null;
+    try {
+      toEvaluationComponentNames =
+          getDisplayNamesMapFromBom(reportService.getBomForPolicyEvaluation(toPolicyEvaluation));
+      fromEvaluationComponentNames =
+          getDisplayNamesMapFromBom(reportService.getBomForPolicyEvaluation(fromPolicyEvaluation));
+    }
+    catch (IOException e) {
+      log.error("Failed to retrieve required BOM files", e);
+      throw new NotFoundException(CANT_CALCULATE_DIFF_MESSAGE);
+    }
+
     dto.addedViolations = buildPolicyViolationsDtos(policyViolationDiff.getAppeared(), application.getId(),
-        toPolicyEvaluation.getStageTypeId());
+        toPolicyEvaluation.getStageTypeId(), toEvaluationComponentNames);
     dto.sameViolations = buildPolicyViolationsDtos(policyViolationDiff.getSame().values(), application.getId(),
-        toPolicyEvaluation.getStageTypeId());
+        toPolicyEvaluation.getStageTypeId(), toEvaluationComponentNames);
     dto.removedViolations = buildPolicyViolationsDtos(policyViolationDiff.getCleared(), application.getId(),
-        fromPolicyEvaluation.getStageTypeId());
+        fromPolicyEvaluation.getStageTypeId(), fromEvaluationComponentNames);
     dto.fromCommit = buildEvaluationCommit(application.getPublicId(), fromPolicyEvaluation);
     dto.toCommit = buildEvaluationCommit(application.getPublicId(), toPolicyEvaluation);
     dto.application = applicationAdapter.convertToDTO(application);
@@ -178,20 +244,23 @@ public class ApiReportViolationsDiffService
   private Set<ApiPolicyViolationForDiffDTO> buildPolicyViolationsDtos(
       final Collection<PolicyViolation> policyViolations,
       final String applicationId,
-      final String stageTypeId)
+      final String stageTypeId,
+      final Map<String, String> componentNamesMap)
   {
     final Set<ApiPolicyViolationForDiffDTO> set = new HashSet<>(policyViolations.size());
     policyViolations.forEach(violation -> {
       if (violation.isActive()) {
-        set.add(buildDiffPolicyViolationDTO(applicationId, stageTypeId, violation));
+        set.add(buildDiffPolicyViolationDTO(applicationId, stageTypeId, violation, componentNamesMap));
       }
     });
     return set;
   }
 
-  private ApiPolicyViolationForDiffDTO buildDiffPolicyViolationDTO(String applicationId,
-                                                                   String stageTypeId,
-                                                                   PolicyViolation policyViolation)
+  private ApiPolicyViolationForDiffDTO buildDiffPolicyViolationDTO(
+      String applicationId,
+      String stageTypeId,
+      PolicyViolation policyViolation,
+      final Map<String, String> componentNamesMap)
   {
 
     final ApiPolicyViolationForDiffDTO apiPolicyViolationForDiffDTO = new ApiPolicyViolationForDiffDTO();
@@ -201,7 +270,7 @@ public class ApiReportViolationsDiffService
     apiPolicyViolationForDiffDTO.threatLevel = policyViolation.getThreatLevel();
     final ApplicationComponent applicationComponent = applicationComponentDAO.getByApplicationIdAndStageTypeIdAndHash(
         applicationId, stageTypeId, policyViolation.getHash());
-    apiPolicyViolationForDiffDTO.component = new ApiComponentDTOV2();
+    apiPolicyViolationForDiffDTO.component = new ApiComponentForDiffDTOV2();
     apiPolicyViolationForDiffDTO.component.hash = policyViolation.getHash();
     apiPolicyViolationForDiffDTO.component.proprietary = applicationComponent != null
         && applicationComponent.isProprietary();
@@ -209,7 +278,9 @@ public class ApiReportViolationsDiffService
         .fromComponentIdentifier(policyViolation.getComponentIdentifier());
     apiPolicyViolationForDiffDTO.component.packageUrl =
         PackageUrlIdentifier.toPackageUrl(policyViolation.getComponentIdentifier());
+    apiPolicyViolationForDiffDTO.component.displayName = componentNamesMap.get(policyViolation.getHash());
     apiPolicyViolationForDiffDTO.constraintViolations = policyViolationAdapter.convert(policyViolation);
+
     return apiPolicyViolationForDiffDTO;
   }
 
@@ -230,5 +301,21 @@ public class ApiReportViolationsDiffService
       log.debug("License does not support SourceControl automation features");
       throw new InvalidLicenseException();
     }
+  }
+
+  private Map<String, String> getDisplayNamesMapFromBom(final ReportEntry bomReportEntry) throws IOException {
+    final Map<String, String> componentDisplayNamesMap = new HashMap<>();
+    JsonNode bomJson = JsonUtils.parse(bomReportEntry.buf);
+    if (bomJson != null) {
+      bomJson = bomJson.get("aaData");
+      if (bomJson != null) {
+        final ArrayNode bomJsonArray = (ArrayNode) bomJson;
+        bomJsonArray.forEach(jsonNode -> {
+          final String hash = JsonUtils.getNullableString(jsonNode.get("hash"));
+          componentDisplayNamesMap.put(hash, ComponentDisplayNameUtil.fromJsonNode((ObjectNode) jsonNode).toString());
+        });
+      }
+    }
+    return componentDisplayNamesMap;
   }
 }

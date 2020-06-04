@@ -15,8 +15,10 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
+import com.sonatype.insight.brain.component.ComponentDisplayFilename;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.utils.ComponentFactUtil;
 
@@ -62,5 +64,28 @@ public class PolicyAlertUtil
       conditionFact.setConditionIndex(0);
       conditionFact.setTriggerJson(null);
     }
+  }
+
+  public static List<PolicyViolation> getPolicyViolationsFromAlertsAndEvaluation(
+      PolicyEvaluation policyEvaluation,
+      List<PolicyAlert> allPolicyAlerts)
+  {
+    List<PolicyViolation> allViolations = new ArrayList<>();
+    for (PolicyAlert policyAlert : allPolicyAlerts) {
+      PolicyFact policyFact = policyAlert.getTrigger();
+      for (ComponentFact componentFact : policyFact.getComponentFacts()) {
+        PolicyViolation policyViolation =
+            new PolicyViolation(policyEvaluation, policyFact.getPolicyId(), policyFact.getPolicyName(),
+                policyFact.getThreatLevel(), null, componentFact.getHash(), componentFact.getComponentIdentifier(),
+                componentFact.getConstraintFacts(), getFilename(componentFact));
+        policyViolation.setId(policyFact.getPolicyViolationId());
+        allViolations.add(policyViolation);
+      }
+    }
+    return allViolations;
+  }
+
+  private static String getFilename(ComponentFact componentFact) {
+    return new ComponentDisplayFilename().addPathnames(componentFact.getPathnames()).getFilename().orElse(null);
   }
 }

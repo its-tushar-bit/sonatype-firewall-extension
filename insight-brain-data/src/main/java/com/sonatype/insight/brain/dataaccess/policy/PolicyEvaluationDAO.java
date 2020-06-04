@@ -369,4 +369,14 @@ public class PolicyEvaluationDAO
     String sQuery = "SELECT COUNT(entity) FROM PolicyEvaluation entity";
     return getSingle(Long.class, sQuery);
   }
+
+  public List<PolicyEvaluation> getLimitedAmountByApplicationId(String applicationId, int maxResultsToReturn) {
+    String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
+        " WHERE entity.applicationId = ?1 " + //
+        " AND entity.isForObsoleteScan = false" + //
+        " ORDER BY entity.time DESC";
+    Query<PolicyEvaluation> query = new Query<PolicyEvaluation>(sQuery, applicationId);
+    query.setMaxResults(maxResultsToReturn);
+    return query.getList();
+  }
 }

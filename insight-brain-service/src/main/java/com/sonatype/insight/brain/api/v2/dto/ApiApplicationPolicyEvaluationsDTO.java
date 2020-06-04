@@ -5,11 +5,11 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
-/**
- * @since 1.82.0
- */
-public class ApiPolicyViolationForDiffDTO
-    extends ApiPolicyViolationDTOV2
+import java.util.List;
+
+public class ApiApplicationPolicyEvaluationsDTO
 {
-  public ApiComponentForDiffDTOV2 component;
+  public String applicationId;
+
+  public List<ApiPolicyEvaluationDTO> policyEvaluations;
 }

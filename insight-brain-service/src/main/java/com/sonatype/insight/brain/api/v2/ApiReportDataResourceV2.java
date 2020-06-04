@@ -56,9 +56,10 @@ public class ApiReportDataResourceV2
   private final ApiReportViolationsDiffService apiReportViolationsDiffService;
 
   @Inject
-  public ApiReportDataResourceV2(final ApiReportDataServiceV2 reportDataService,
-                                 final BaseUrl baseUrl,
-                                 final ApiReportViolationsDiffService apiReportViolationsDiffService)
+  public ApiReportDataResourceV2(
+      final ApiReportDataServiceV2 reportDataService,
+      final BaseUrl baseUrl,
+      final ApiReportViolationsDiffService apiReportViolationsDiffService)
   {
     this.reportDataService = reportDataService;
     this.baseUrl = baseUrl;
@@ -123,8 +124,12 @@ public class ApiReportDataResourceV2
   public ApiPolicyViolationDiffDTO getPolicyViolationDiff(
       @PathParam("applicationPublicId") final String applicationPublicId,
       @QueryParam("fromCommit") final String fromCommit,
-      @QueryParam("toCommit") final String toCommit)
+      @QueryParam("toCommit") final String toCommit,
+      @QueryParam("fromPolicyEvaluationId") final String fromPolicyEvaluationId,
+      @QueryParam("toPolicyEvaluationId") final String toPolicyEvaluationId)
   {
-    return apiReportViolationsDiffService.getPolicyViolationDiff(applicationPublicId, fromCommit, toCommit);
+    return apiReportViolationsDiffService
+        .getPolicyViolationDiff(applicationPublicId, fromCommit, toCommit, fromPolicyEvaluationId,
+            toPolicyEvaluationId);
   }
 }

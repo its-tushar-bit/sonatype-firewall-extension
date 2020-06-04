@@ -914,6 +914,72 @@ public class PolicyEvaluationDAOTest
         .isEqualTo(expected.getId());
   }
 
+  @Test
+  public void testGetLimitedAmountByApplicationId_none() {
+    //setup
+    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+
+    //when fetching evaluations
+    List<PolicyEvaluation> policyEvaluations = dao.getLimitedAmountByApplicationId(application.getId(), 100);
+
+    //then assert that results are not null, and are empty
+    assertThat(policyEvaluations).isNotNull();
+    assertThat(policyEvaluations).isEmpty();
+  }
+
+  @Test
+  public void testGetLimitedAmountByApplicationId_single() {
+    //setup
+    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_RELEASE, "scan1", false, false, new Date());
+
+    //when fetching evaluations
+    List<PolicyEvaluation> policyEvaluations = dao.getLimitedAmountByApplicationId(application.getId(), 100);
+
+    //then assert that 1 evaluation is returned
+    assertThat(policyEvaluations).isNotNull();
+    assertThat(policyEvaluations).hasSize(1);
+  }
+
+  @Test
+  public void testGetLimitedAmountByApplicationId_multiple() {
+    //setup
+    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_RELEASE, "scan1", false, false, new Date());
+    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_RELEASE, "scan2", false, false, new Date());
+
+    //when fetching evaluations
+    List<PolicyEvaluation> policyEvaluations = dao.getLimitedAmountByApplicationId(application.getId(), 100);
+
+    //then assert that 2 evaluations are returned
+    assertThat(policyEvaluations).isNotNull();
+    assertThat(policyEvaluations).hasSize(2);
+  }
+
+  @Test
+  public void testGetLimitedAmountByApplicationId_limited() {
+    //setup
+    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+    final int policyEvalCount = 5;
+    for (int i = 0; i < policyEvalCount; i++) {
+      tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_RELEASE, "scan" + i, false, false, new Date());
+    }
+
+    //when fetching evaluations
+    List<PolicyEvaluation> policyEvaluations = dao.getLimitedAmountByApplicationId(application.getId(), 100);
+
+    //then assert that 5 evaluations are returned
+    assertThat(policyEvaluations).isNotNull();
+    assertThat(policyEvaluations).hasSize(policyEvalCount);
+
+    //when fetching evaluations with limit lower than the number
+    policyEvaluations = dao.getLimitedAmountByApplicationId(application.getId(), policyEvalCount - 1);
+
+    //then assert that only the specified max is retrieved
+    assertThat(policyEvaluations).isNotNull();
+    assertThat(policyEvaluations).hasSize(policyEvalCount - 1);
+  }
+
   @FunctionalInterface
   interface PolicyEvaluationChooser
   {

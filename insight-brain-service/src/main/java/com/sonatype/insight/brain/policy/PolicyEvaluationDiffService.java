@@ -8,19 +8,16 @@ package com.sonatype.insight.brain.policy;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import javax.inject.Inject;
 
-import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
-import com.sonatype.clm.dto.model.policy.PolicyFact;
-import com.sonatype.insight.brain.component.ComponentDisplayFilename;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.policy.evaluator.PolicyAlertUtil;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
@@ -92,8 +89,10 @@ public class PolicyEvaluationDiffService
 
       List<PolicyAlert> fromAlerts = Arrays.asList(JsonUtils.parse(fromReportEntry.buf, PolicyAlert[].class));
       List<PolicyAlert> toAlerts = Arrays.asList(JsonUtils.parse(toReportEntry.buf, PolicyAlert[].class));
-      List<PolicyViolation> fromViolations = getPolicyViolations(fromEvaluation, fromAlerts);
-      List<PolicyViolation> toViolations = getPolicyViolations(toEvaluation, toAlerts);
+      List<PolicyViolation> fromViolations =
+          PolicyAlertUtil.getPolicyViolationsFromAlertsAndEvaluation(fromEvaluation, fromAlerts);
+      List<PolicyViolation> toViolations =
+          PolicyAlertUtil.getPolicyViolationsFromAlertsAndEvaluation(toEvaluation, toAlerts);
 
       return Optional.of(PolicyViolationDigester.digestPolicyViolations(fromViolations, toViolations));
     }
@@ -110,28 +109,5 @@ public class PolicyEvaluationDiffService
       }
     }
     return null;
-  }
-
-  private List<PolicyViolation> getPolicyViolations(
-      PolicyEvaluation policyEvaluation,
-      List<PolicyAlert> allPolicyAlerts)
-  {
-    List<PolicyViolation> allViolations = new ArrayList<>();
-    for (PolicyAlert policyAlert : allPolicyAlerts) {
-      PolicyFact policyFact = policyAlert.getTrigger();
-      for (ComponentFact componentFact : policyFact.getComponentFacts()) {
-        PolicyViolation policyViolation =
-            new PolicyViolation(policyEvaluation, policyFact.getPolicyId(), policyFact.getPolicyName(),
-                policyFact.getThreatLevel(), null, componentFact.getHash(), componentFact.getComponentIdentifier(),
-                componentFact.getConstraintFacts(), getFilename(componentFact));
-        policyViolation.setId(policyFact.getPolicyViolationId());
-        allViolations.add(policyViolation);
-      }
-    }
-    return allViolations;
-  }
-
-  private String getFilename(ComponentFact componentFact) {
-    return new ComponentDisplayFilename().addPathnames(componentFact.getPathnames()).getFilename().orElse(null);
   }
 }

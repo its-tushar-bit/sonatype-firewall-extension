@@ -32,6 +32,7 @@ import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.skyscreamer.jsonassert.comparator.CustomComparator;
 
 import static com.sonatype.insight.brain.api.v2.ApiReportDataResourceV2.SCAN_PATH;
+import static com.sonatype.insight.brain.api.v2.service.ApiReportViolationsDiffService.CANT_CALCULATE_DIFF_MESSAGE;
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -61,6 +62,10 @@ public class ApiReportDataResourceV2Test
   private final Date date = new Date();
 
   private InsightWork insightWork;
+
+  private String fromEvalId;
+
+  private String toEvalId;
 
   @Before
   public void setupApplication() {
@@ -171,7 +176,8 @@ public class ApiReportDataResourceV2Test
         .query(String.format("toCommit=%s", TO_COMMIT_HASH))
         .get();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText()).isEqualTo("The commit identifier for `fromCommit` must be specified.");
+    assertThat(response.getBodyText())
+        .isEqualTo("The commit identifier or policy evaluation id for the `from` evaluation needs to be specified");
   }
 
   @Test
@@ -182,7 +188,8 @@ public class ApiReportDataResourceV2Test
         .query(String.format("fromCommit=%s", FROM_COMMIT_HASH))
         .get();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText()).isEqualTo("The commit identifier for `toCommit` must be specified.");
+    assertThat(response.getBodyText())
+        .isEqualTo("The commit identifier or policy evaluation id for the `to` evaluation needs to be specified");
   }
 
   @Test
@@ -193,7 +200,7 @@ public class ApiReportDataResourceV2Test
         .query(String.format("fromCommit=%s&toCommit=%s", FROM_COMMIT_HASH, FROM_COMMIT_HASH))
         .get();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText()).isEqualTo("The specified commits cannot be identical.");
+    assertThat(response.getBodyText()).isEqualTo("The specified commits or evaluation ids cannot be identical.");
   }
 
   @Test
@@ -231,7 +238,7 @@ public class ApiReportDataResourceV2Test
         .get();
     assertResponseStatus(404, response);
     assertThat(response.getBodyText())
-        .isEqualTo("The policy violation diff could not be determined for the given request.");
+        .isEqualTo(CANT_CALCULATE_DIFF_MESSAGE);
   }
 
   @Test
@@ -247,7 +254,7 @@ public class ApiReportDataResourceV2Test
         .get();
     assertResponseStatus(404, response);
     assertThat(response.getBodyText())
-        .isEqualTo("The policy violation diff could not be determined for the given request.");
+        .isEqualTo(CANT_CALCULATE_DIFF_MESSAGE);
   }
 
   @Test
@@ -277,7 +284,7 @@ public class ApiReportDataResourceV2Test
         .get();
     assertResponseStatus(404, response);
     assertThat(response.getBodyText())
-        .isEqualTo("The policy violation diff could not be determined for the given request.");
+        .isEqualTo(CANT_CALCULATE_DIFF_MESSAGE);
   }
 
   @Test
@@ -302,7 +309,7 @@ public class ApiReportDataResourceV2Test
         .get();
     assertResponseStatus(404, response);
     assertThat(response.getBodyText())
-        .isEqualTo("The policy violation diff could not be determined for the given request.");
+        .isEqualTo(CANT_CALCULATE_DIFF_MESSAGE);
   }
 
   private void createReport(String appPublicId, String scanId, String resource) throws IOException {
@@ -320,10 +327,141 @@ public class ApiReportDataResourceV2Test
             insightWork);
 
     //setup evaluations
-    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, FROM_SCAN_ID, false, false, false,
-        date, FROM_COMMIT_HASH);
-    tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TO_SCAN_ID, false, false, false,
-        date, TO_COMMIT_HASH);
+    fromEvalId = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, FROM_SCAN_ID, false, false, false,
+        date, FROM_COMMIT_HASH).getId();
+    toEvalId = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TO_SCAN_ID, false, false, false,
+        date, TO_COMMIT_HASH).getId();
+  }
+
+  @Test
+  public void testGetPolicyViolationDiff_FromEvaluations() throws Exception {
+    //setup
+    setupValidReportsAndEvaluations();
+
+    //when fetching diff with evaluation ids
+    final HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .parameter(app.getPublicId())
+        .query(String.format("fromPolicyEvaluationId=%s&toPolicyEvaluationId=%s", fromEvalId, toEvalId))
+        .get();
+
+    //then assert success response status and verify correct results
+    assertResponseStatus(200, response);
+    assertValidDiffResults(response);
+  }
+
+  @Test
+  public void testGetPolicyViolationDiff_NoFromEvaluationSpecified() throws Exception {
+    //when fetching diff without from eval specified
+    final HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .parameter(app.getPublicId())
+        .query(String.format("toPolicyEvaluationId=%s", toEvalId))
+        .get();
+
+    //then verify bad request response
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText())
+        .isEqualTo("The commit identifier or policy evaluation id for the `from` evaluation needs to be specified");
+  }
+
+  @Test
+  public void testGetPolicyViolationDiff_NoToEvaluationSpecified() throws Exception {
+    //when fetching diff without to eval specified
+    final HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .parameter(app.getPublicId())
+        .query(String.format("fromPolicyEvaluationId=%s", fromEvalId))
+        .get();
+
+    //then verify bad request response
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText())
+        .isEqualTo("The commit identifier or policy evaluation id for the `to` evaluation needs to be specified");
+  }
+
+  @Test
+  public void testGetPolicyViolationDiff_SameEvaluationSpecified() throws Exception {
+    //when fetching diff with same from and to evals
+    final HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .parameter(app.getPublicId())
+        .query(String.format("fromPolicyEvaluationId=%s&toPolicyEvaluationId=%s", fromEvalId, fromEvalId))
+        .get();
+
+    //then verify bad request response
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("The specified commits or evaluation ids cannot be identical.");
+  }
+
+  @Test
+  public void testGetPolicyViolationDiff_FromEvaluationNotFound() throws Exception {
+    //when fetching diff with non existing from eval id
+    final HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .parameter(app.getPublicId())
+        .query(String.format("fromPolicyEvaluationId=%s&toPolicyEvaluationId=%s", FROM_COMMIT_HASH, TO_COMMIT_HASH))
+        .get();
+
+    //then verify not found response
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText())
+        .isEqualTo(CANT_CALCULATE_DIFF_MESSAGE);
+  }
+
+  @Test
+  public void testGetPolicyViolationDiff_ToEvaluationNotFound() throws Exception {
+    //setup
+    final Date date = new Date();
+    tempEntity
+        .newPolicyEvaluation(app.getId(), Stage.ID_RELEASE, "scan1", false, false, false,
+            date, FROM_COMMIT_HASH);
+
+    //when fetching diff with non existing to eval id
+    final HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .parameter(app.getPublicId())
+        .query(String.format("fromPolicyEvaluationId=%s&toPolicyEvaluationId=%s", FROM_COMMIT_HASH, TO_COMMIT_HASH))
+        .get();
+
+    //then verify not found response
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText())
+        .isEqualTo(CANT_CALCULATE_DIFF_MESSAGE);
+  }
+
+  @Test
+  public void testGetPolicyViolationDiff_FromEvaluationAndCommitSpecified() throws Exception {
+    //when fetching diff with from commit and eval id specified
+    final HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .parameter(app.getPublicId())
+        .query(String
+            .format("fromPolicyEvaluationId=%s&toPolicyEvaluationId=%s&fromCommit=%s", FROM_COMMIT_HASH, TO_COMMIT_HASH,
+                FROM_COMMIT_HASH))
+        .get();
+
+    //then verify bad request response
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText())
+        .isEqualTo("Cannot specify both commit identifier and evaluation id for `from` evaluation.");
+  }
+
+  @Test
+  public void testGetPolicyViolationDiff_ToEvaluationAndCommitSpecified() throws Exception {
+    //when fetching diff with to commit and eval id specified
+    final HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
+        .parameter(app.getPublicId())
+        .query(String
+            .format("fromPolicyEvaluationId=%s&toPolicyEvaluationId=%s&toCommit=%s", FROM_COMMIT_HASH, TO_COMMIT_HASH,
+                TO_COMMIT_HASH))
+        .get();
+
+    //then verify bad request response
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText())
+        .isEqualTo("Cannot specify both commit identifier and evaluation id for `to` evaluation.");
   }
 
   private void assertValidDiffResults(final HttpResponse response) throws URISyntaxException, JSONException,

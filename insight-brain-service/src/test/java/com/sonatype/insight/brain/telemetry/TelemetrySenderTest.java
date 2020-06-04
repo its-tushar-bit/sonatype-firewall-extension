@@ -112,6 +112,7 @@ public class TelemetrySenderTest
       assertThat(telemetryHeaderReceived.getProduct())
           .isEqualTo(TelemetrySender.PRODUCT_PREFIX + "/" + versionService.getVersion());
       assertThat(telemetryHeaderReceived.getFormat()).isEqualTo(TelemetrySender.FILE_FORMAT);
+      assertThat(telemetryHeaderReceived.getClusterId()).isEqualTo(telemetryHeaderReceived.getTelemetryId());
 
       ZipEntry zipEntryData = zipInputStream.getNextEntry();
       assertThat(zipEntryData.getName()).isEqualTo(TelemetrySender.DATA_ENTRY_NAME);

@@ -497,7 +497,7 @@
       "trigger": {
         "policyId": "cleared_4",
         "policyName": "Security-High",
-        "threatLevel": 9,
+        "threatLevel": 1,
         "policyViolationId": "cleared_4",
         "componentFacts": [
           {

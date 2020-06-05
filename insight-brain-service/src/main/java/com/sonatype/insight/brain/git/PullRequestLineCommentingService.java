@@ -160,6 +160,9 @@ public class PullRequestLineCommentingService
         .filter(ci -> ci.getFormat().equalsIgnoreCase(ComponentIdentifier.FORMAT_MAVEN))
         .distinct()
         .collect(Collectors.toList());
+    if (componentIdentifierSet.isEmpty()) {
+      return null; // skip location discovery when component identifier list is empty
+    }
     return sourceControlTaskRunner
         .doPullRequestLocationDiscovery(componentIdentifierSet, gitRepositoryInfo, branch, applicationId);
   }

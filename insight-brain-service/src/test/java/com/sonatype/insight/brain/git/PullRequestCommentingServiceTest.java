@@ -50,6 +50,7 @@ import org.mockito.MockitoAnnotations;
 
 import static com.sonatype.insight.brain.git.PullRequestCommentingService.APPLICATION_PULL_REQUEST_FETCH_COUNT;
 import static com.sonatype.insight.brain.git.PullRequestCommentingService.COMMIT_HISTORY_FETCH_COUNT;
+import static com.sonatype.insight.brain.git.PullRequestCommentingService.MINIMUM_THREAT_LEVEL;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -861,7 +862,7 @@ public class PullRequestCommentingServiceTest
       doReturn(sourcePolicyEvaluation).when(mockPolicyEvaluationDAO).getById(eq(sourcePolicyEvaluation.getId()));
 
       doReturn(policyViolationDiff).when(mockPolicyEvaluationDiffService)
-          .createPolicyViolationDiff(basePolicyEvaluation, sourcePolicyEvaluation);
+          .createPolicyViolationDiff(basePolicyEvaluation, sourcePolicyEvaluation, MINIMUM_THREAT_LEVEL);
 
       doReturn(policyEvaluationDiffMarkup).when(mockPullRequestFeedbackMarkupService)
           .createMarkup(any(), any(), any(), any(), anyInt(), any(), any(), any());

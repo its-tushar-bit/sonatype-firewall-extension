@@ -58,6 +58,15 @@ public class PolicyEvaluationDiffServiceTest
 
   @Test
   public void testCreatePolicyViolationDiff() throws URISyntaxException, IOException {
+    testCreatePolicyViolationDiff(0);
+  }
+
+  @Test
+  public void testCreatePolicyViolationDiff_minimumThreatLevel() throws URISyntaxException, IOException {
+    testCreatePolicyViolationDiff(2);
+  }
+
+  private void testCreatePolicyViolationDiff(int minimumThreatLevel) throws URISyntaxException, IOException {
     //setup reports
     createReportFile(app.getId(), FROM_SCAN_ID, zipReportDir("/PolicyEvaluationDiffServiceTest/from-report", tempDir),
         insightWork);
@@ -69,8 +78,13 @@ public class PolicyEvaluationDiffServiceTest
     PolicyEvaluation to = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TO_SCAN_ID);
 
     //create diff
-    Optional<PolicyViolationDiff<PolicyViolation>>
-        diffOptional = policyEvaluationDiffService.createPolicyViolationDiff(from, to);
+    Optional<PolicyViolationDiff<PolicyViolation>> diffOptional;
+    if (minimumThreatLevel > 0) {
+      diffOptional = policyEvaluationDiffService.createPolicyViolationDiff(from, to, minimumThreatLevel);
+    }
+    else {
+      diffOptional = policyEvaluationDiffService.createPolicyViolationDiff(from, to);
+    }
 
     //assert added, same and cleared are correct
     assertThat(diffOptional).isNotEmpty();
@@ -82,10 +96,18 @@ public class PolicyEvaluationDiffServiceTest
         .containsExactlyInAnyOrder("same_1", "same_2", "same_3");
     assertThat(diffOptional.get().getAppeared()).extracting("id")
         .containsExactlyInAnyOrder("appeared_1", "appeared_2", "appeared_3", "appeared_4");
-    assertThat(diffOptional.get().getCleared()).extracting("id")
-        .containsExactlyInAnyOrder("cleared_1", "cleared_2", "cleared_3", "cleared_4");
     assertThat(diffOptional.get().getAppeared()).hasSize(4);
-    assertThat(diffOptional.get().getCleared()).hasSize(4);
+
+    if (minimumThreatLevel > 0) {
+      assertThat(diffOptional.get().getCleared()).extracting("id")
+          .containsExactlyInAnyOrder("cleared_1", "cleared_2", "cleared_3"); // "cleared_4" is filtered out
+      assertThat(diffOptional.get().getCleared()).hasSize(3); // "cleared_4" is filtered out
+    }
+    else {
+      assertThat(diffOptional.get().getCleared()).extracting("id")
+          .containsExactlyInAnyOrder("cleared_1", "cleared_2", "cleared_3", "cleared_4");
+      assertThat(diffOptional.get().getCleared()).hasSize(4);
+    }
   }
 
   @Test

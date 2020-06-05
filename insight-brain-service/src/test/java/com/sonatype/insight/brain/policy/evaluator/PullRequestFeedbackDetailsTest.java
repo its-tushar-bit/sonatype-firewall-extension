@@ -46,6 +46,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.git.PullRequestCommentingService.MINIMUM_THREAT_LEVEL;
 import static com.sonatype.insight.brain.report.ReportTestUtils.createReportFile;
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -565,7 +566,7 @@ public class PullRequestFeedbackDetailsTest
 
     //setup diff
     diff = policyEvaluationDiffService.createPolicyViolationDiff(defaultBranchPolicyEvaluation,
-        featureBranchPolicyEvaluation).get();
+        featureBranchPolicyEvaluation, MINIMUM_THREAT_LEVEL).get();
     
     //setup remediationVersionMap
     remediationVersionMap = new HashMap<>();

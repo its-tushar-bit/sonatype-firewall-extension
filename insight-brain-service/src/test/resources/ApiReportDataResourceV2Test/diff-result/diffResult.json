@@ -444,7 +444,7 @@
       "policyId": "cleared_4",
       "policyName": "Security-High",
       "policyViolationId": "cleared_4",
-      "threatLevel": 9,
+      "threatLevel": 1,
       "constraintViolations": [
         {
           "constraintId": "42b8b763e2dc497eb7e3f3c217a884d5",

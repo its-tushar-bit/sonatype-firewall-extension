@@ -66,6 +66,11 @@ public class PullRequestCommentingService
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestCommentingService.class);
 
+  /**
+   * Policy violations with a threat level below this threshold are filleted out of the policy violation diff
+   */
+  public static final int MINIMUM_THREAT_LEVEL = 2;
+
   static final int COMMIT_HISTORY_FETCH_COUNT = 12;
 
   static final int APPLICATION_PULL_REQUEST_FETCH_COUNT = 10;
@@ -271,7 +276,7 @@ public class PullRequestCommentingService
   {
     try {
       Optional<PolicyViolationDiff<PolicyViolation>> policyViolationDiff = policyEvaluationDiffService
-          .createPolicyViolationDiff(baseBranchPolicyEvaluation, sourceCommitPolicyEvaluation);
+          .createPolicyViolationDiff(baseBranchPolicyEvaluation, sourceCommitPolicyEvaluation, MINIMUM_THREAT_LEVEL);
 
       if (policyViolationDiff.isPresent()) {
         // retrieve suggested remediation map for components in the appeared violation list

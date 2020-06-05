@@ -67,19 +67,29 @@ public class PolicyAlertUtil
   }
 
   public static List<PolicyViolation> getPolicyViolationsFromAlertsAndEvaluation(
-      PolicyEvaluation policyEvaluation,
-      List<PolicyAlert> allPolicyAlerts)
+      final PolicyEvaluation policyEvaluation,
+      final List<PolicyAlert> allPolicyAlerts)
+  {
+    return getPolicyViolationsFromAlertsAndEvaluation(policyEvaluation, allPolicyAlerts, 0);
+  }
+
+  public static List<PolicyViolation> getPolicyViolationsFromAlertsAndEvaluation(
+      final PolicyEvaluation policyEvaluation,
+      final List<PolicyAlert> allPolicyAlerts,
+      final int minimumThreatLevel)
   {
     List<PolicyViolation> allViolations = new ArrayList<>();
     for (PolicyAlert policyAlert : allPolicyAlerts) {
       PolicyFact policyFact = policyAlert.getTrigger();
-      for (ComponentFact componentFact : policyFact.getComponentFacts()) {
-        PolicyViolation policyViolation =
-            new PolicyViolation(policyEvaluation, policyFact.getPolicyId(), policyFact.getPolicyName(),
-                policyFact.getThreatLevel(), null, componentFact.getHash(), componentFact.getComponentIdentifier(),
-                componentFact.getConstraintFacts(), getFilename(componentFact));
-        policyViolation.setId(policyFact.getPolicyViolationId());
-        allViolations.add(policyViolation);
+      if (policyFact.getThreatLevel() >= minimumThreatLevel) {
+        for (ComponentFact componentFact : policyFact.getComponentFacts()) {
+          PolicyViolation policyViolation =
+              new PolicyViolation(policyEvaluation, policyFact.getPolicyId(), policyFact.getPolicyName(),
+                  policyFact.getThreatLevel(), null, componentFact.getHash(), componentFact.getComponentIdentifier(),
+                  componentFact.getConstraintFacts(), getFilename(componentFact));
+          policyViolation.setId(policyFact.getPolicyViolationId());
+          allViolations.add(policyViolation);
+        }
       }
     }
     return allViolations;

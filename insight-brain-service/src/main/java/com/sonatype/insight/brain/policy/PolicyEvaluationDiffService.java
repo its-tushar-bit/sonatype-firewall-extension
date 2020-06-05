@@ -47,6 +47,14 @@ public class PolicyEvaluationDiffService
       final PolicyEvaluation fromEvaluation,
       final PolicyEvaluation toEvaluation)
   {
+    return createPolicyViolationDiff(fromEvaluation, toEvaluation, 0);
+  }
+
+  public Optional<PolicyViolationDiff<PolicyViolation>> createPolicyViolationDiff(
+      final PolicyEvaluation fromEvaluation,
+      final PolicyEvaluation toEvaluation,
+      final int minimumThreatLevel)
+  {
     final File fromReportFile = getReportByPolicyEvaluation(fromEvaluation);
     if (fromReportFile == null) {
       log.debug(
@@ -90,9 +98,9 @@ public class PolicyEvaluationDiffService
       List<PolicyAlert> fromAlerts = Arrays.asList(JsonUtils.parse(fromReportEntry.buf, PolicyAlert[].class));
       List<PolicyAlert> toAlerts = Arrays.asList(JsonUtils.parse(toReportEntry.buf, PolicyAlert[].class));
       List<PolicyViolation> fromViolations =
-          PolicyAlertUtil.getPolicyViolationsFromAlertsAndEvaluation(fromEvaluation, fromAlerts);
+          PolicyAlertUtil.getPolicyViolationsFromAlertsAndEvaluation(fromEvaluation, fromAlerts, minimumThreatLevel);
       List<PolicyViolation> toViolations =
-          PolicyAlertUtil.getPolicyViolationsFromAlertsAndEvaluation(toEvaluation, toAlerts);
+          PolicyAlertUtil.getPolicyViolationsFromAlertsAndEvaluation(toEvaluation, toAlerts, minimumThreatLevel);
 
       return Optional.of(PolicyViolationDigester.digestPolicyViolations(fromViolations, toViolations));
     }

@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.tools.dbmodifier;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import net.sf.jsqlparser.JSQLParserException;
@@ -22,7 +24,7 @@ public class InputParser
   static SQLLine parseInput(String insertSqlString) {
     try {
       Insert insertSql = (Insert) CCJSqlParserUtil.parse(insertSqlString);
-      String tableName = insertSql.getTable().getSchemaName() + "." + insertSql.getTable().getName();
+      String tableName = insertSql.getTable().getFullyQualifiedName();
       return new SQLLine(tableName, getColumnNames(insertSql), getColumnValues(insertSql));
     }
     catch (JSQLParserException e) {
@@ -32,8 +34,8 @@ public class InputParser
   }
 
   private static List<String> getColumnNames(Insert insertSql) {
-    return insertSql.getColumns().stream().map(column -> column.getColumnName().replace("\"", ""))
-        .collect(Collectors.toList());
+    return Optional.ofNullable(insertSql.getColumns()).orElse(Collections.emptyList()).stream()
+        .map(column -> column.getColumnName().replace("\"", "")).collect(Collectors.toList());
   }
 
   private static List<String> getColumnValues(Insert insertSql) {

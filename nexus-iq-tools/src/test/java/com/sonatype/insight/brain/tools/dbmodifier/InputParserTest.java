@@ -12,6 +12,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class InputParserTest
 {
   @Test
+  public void testParseInput_NoSchemaOrColumnNames() {
+    SQLLine sqlLine = InputParser.parseInput("INSERT INTO SYSTEM_LOB_STREAM VALUES(123)");
+    assertThat(sqlLine.table).isEqualTo("SYSTEM_LOB_STREAM");
+    assertThat(sqlLine.cols).isEmpty();
+    assertThat(sqlLine.vals).containsExactly("123");
+  }
+
+  @Test
   public void testParseInput_NULL_Value() {
     SQLLine sqlLine = InputParser.parseInput(
         "INSERT INTO \"test_schema\".\"test_table\"(\"column1\", \"column2\", \"column3\")"

@@ -10,7 +10,9 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -35,6 +37,9 @@ public class FeaturesServiceTest
 
   @Mock
   private ProductLicense productLicense;
+
+  @Inject
+  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   private RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
 
@@ -115,5 +120,40 @@ public class FeaturesServiceTest
     when(productLicense.getFeatures()).thenReturn(features);
     assertThat(featuresService.getFeatures()).contains(LicensedFeature.FIREWALL)
         .doesNotContain(LicensedFeature.FIREWALL_FOR_ARTIFACTORY);
+  }
+
+  @Test
+  public void testGetFeatures_ReportsListEnabled() {
+    when(productLicense.isValid()).thenReturn(true);
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.REPORTS_LIST_DISABLED))
+        .isNull();
+
+    assertThat(featuresService.getFeatures()).contains(NonLicensedFeature.REPORTS_LIST);
+  }
+
+  @Test
+  public void testGetFeatures_ReportsListDisabled() {
+    when(productLicense.isValid()).thenReturn(true);
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.REPORTS_LIST_DISABLED, "true");
+
+    assertThat(featuresService.getFeatures()).doesNotContain(NonLicensedFeature.REPORTS_LIST);
+  }
+
+  @Test
+  public void testGetFeatures_DashboardEnabled() {
+    when(productLicense.isValid()).thenReturn(true);
+    when(productLicense.getFeatures()).thenReturn(EnumSet.of(LicensedFeature.DASHBOARD));
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.DASHBOARD_DISABLED)).isNull();
+
+    assertThat(featuresService.getFeatures()).contains(LicensedFeature.DASHBOARD);
+  }
+
+  @Test
+  public void testGetFeatures_DashboardDisabled() {
+    when(productLicense.isValid()).thenReturn(true);
+    when(productLicense.getFeatures()).thenReturn(EnumSet.of(LicensedFeature.DASHBOARD));
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.DASHBOARD_DISABLED, "true");
+
+    assertThat(featuresService.getFeatures()).doesNotContain(LicensedFeature.DASHBOARD);
   }
 }

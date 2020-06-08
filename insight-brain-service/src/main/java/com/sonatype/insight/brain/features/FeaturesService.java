@@ -11,7 +11,9 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.license.model.Feature;
@@ -35,14 +37,19 @@ public class FeaturesService
 
   private final InsightConfig insightConfig;
 
+  private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
   @Inject
-  public FeaturesService(ProductLicense productLicense,
-                         RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils,
-                         InsightConfig insightConfig)
+  public FeaturesService(
+      ProductLicense productLicense,
+      RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils,
+      InsightConfig insightConfig,
+      SystemConfigurationPropertyDAO systemConfigurationPropertyDAO)
   {
     this.productLicense = productLicense;
     this.rootOrganizationConfigMigrationUtils = rootOrganizationConfigMigrationUtils;
     this.insightConfig = insightConfig;
+    this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
   }
 
   /**
@@ -54,6 +61,7 @@ public class FeaturesService
     if (productLicense.isValid()) {
       addVersionSpecificFeatures(features);
       addLicenseSpecificFeatures(features);
+      features.add(NonLicensedFeature.REPORTS_LIST);
 
       if (rootOrganizationConfigMigrationUtils.isMigrated()) {
         features.add(NonLicensedFeature.ROOT_ORG);
@@ -65,6 +73,8 @@ public class FeaturesService
       if (insightConfig.isExternalHyperlinksAllowed()) {
         features.add(NonLicensedFeature.ALLOW_EXTERNAL_HYPERLINKS);
       }
+
+      removeDisabledFeatures(features);
     }
     log.debug("Found features: {}", features);
     return features;
@@ -81,6 +91,15 @@ public class FeaturesService
     if (features.contains(LicensedFeature.FIREWALL_FOR_ARTIFACTORY)) {
       features.remove(LicensedFeature.FIREWALL_FOR_ARTIFACTORY);
       features.add(LicensedFeature.FIREWALL);
+    }
+  }
+
+  private void removeDisabledFeatures(Set<Feature> features) {
+    if (systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.DASHBOARD_DISABLED) != null) {
+      features.remove(LicensedFeature.DASHBOARD);
+    }
+    if (systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.REPORTS_LIST_DISABLED) != null) {
+      features.remove(NonLicensedFeature.REPORTS_LIST);
     }
   }
 }

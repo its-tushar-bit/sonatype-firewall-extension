@@ -27,7 +27,9 @@ public enum NonLicensedFeature
 
   ROOT_ORG,
 
-  ROOT_ORG_MIGRATE;
+  ROOT_ORG_MIGRATE,
+
+  REPORTS_LIST;
 
   @Override
   public String toString() {

@@ -1,0 +1,135 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.git;
+
+import java.io.IOException;
+import java.net.URI;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
+import com.sonatype.insight.brain.policy.evaluator.PullRequestCodeInsightsDetails;
+import com.sonatype.insight.brain.report.ReportEntry;
+import com.sonatype.insight.brain.report.ReportService;
+import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.nexus.scm.bitbucket.BitbucketApiClient;
+import com.sonatype.nexus.scm.bitbucket.BitbucketCodeInsightReportType;
+
+import com.google.common.annotations.VisibleForTesting;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Service that creates/maintains Bitbucket code insight reports for a policy evaluation
+ */
+@Named
+@Singleton
+public class BitbucketCodeInsightsService
+    implements PullRequestPostCommentAction
+{
+  private static final Logger log = LoggerFactory.getLogger(BitbucketCodeInsightsService.class);
+
+  @VisibleForTesting
+  static final String CODE_INSIGHT_REPORT_TITLE = "Nexus IQ for SCM";
+
+  @VisibleForTesting
+  static final String CODE_INSIGHT_REPORT_KEY = "nexus-iq-for-scm";
+
+  @VisibleForTesting
+  static final String CODE_INSIGHT_REPORTER = "Nexus IQ";
+
+  @VisibleForTesting
+  static final URI CODE_INSIGHT_LOGO_URL = URI
+      .create("http://cdn.sonatype.com/iq-for-scm/1.0/bitbucket-code-insights.png");
+
+  @VisibleForTesting
+  static final BitbucketCodeInsightReportType CODE_INSIGHT_REPORT_TYPE = BitbucketCodeInsightReportType.BUG;
+
+  private final ApplicationDAO applicationDAO;
+
+  private final ReportService reportService;
+
+  private final InsightConfig insightConfig;
+
+  private final BaseUrl baseUrl;
+
+  @Inject
+  public BitbucketCodeInsightsService(
+      final ApplicationDAO applicationDAO,
+      final ReportService reportService,
+      final InsightConfig insightConfig,
+      final BaseUrl baseUrl)
+  {
+    this.applicationDAO = applicationDAO;
+    this.reportService = reportService;
+    this.insightConfig = insightConfig;
+    this.baseUrl = baseUrl;
+  }
+
+  @Override
+  public void invokeAction(
+      final GitClientFactory gitClientFactory,
+      final GitRepositoryInfo gitRepositoryInfo,
+      final PolicyViolationDiff<PolicyViolation> policyViolationDiff,
+      final PolicyEvaluation sourceCommitPolicyEvaluation,
+      final PolicyEvaluation baseBranchPolicyEvaluation)
+  {
+    // The SCM must support Code Insights (i.e. Bitbucket) to continue
+    if (!gitRepositoryInfo.provider.supportsCodeInsights()) {
+      return;
+    }
+    if (!insightConfig.isExperimentalFeatureEnabled(Feature.CODE_INSIGHTS)) {
+      return;
+    }
+
+    try {
+      Application application = applicationDAO.getById(sourceCommitPolicyEvaluation.getApplicationId());
+      ReportEntry reportEntry = reportService.getBomForPolicyEvaluation(sourceCommitPolicyEvaluation);
+      PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
+          gitRepositoryInfo.repositoryUrl,
+          application,
+          reportEntry,
+          sourceCommitPolicyEvaluation,
+          policyViolationDiff,
+          baseUrl.getConfigured());
+
+      BitbucketApiClient bitbucketApiClient = getBitbucketApiClient(gitClientFactory, gitRepositoryInfo);
+
+      // first delete any existing report (with annotations)
+      bitbucketApiClient.deleteCodeInsightReport(sourceCommitPolicyEvaluation.getCommitHash(), CODE_INSIGHT_REPORT_KEY);
+
+      bitbucketApiClient.createCodeInsightReport(sourceCommitPolicyEvaluation.getCommitHash(),
+          details.getReportDetails(),
+          details.getReportOutcome(),
+          CODE_INSIGHT_REPORT_TYPE,
+          CODE_INSIGHT_REPORT_TITLE,
+          CODE_INSIGHT_REPORTER,
+          details.getReportUri(),
+          CODE_INSIGHT_LOGO_URL,
+          CODE_INSIGHT_REPORT_KEY,
+          details.getReportData());
+    }
+    catch (IOException e) {
+      log.error("Error creating Bitbucket Code Insight", e);
+    }
+  }
+
+  private BitbucketApiClient getBitbucketApiClient(
+      final GitClientFactory gitClientFactory,
+      final GitRepositoryInfo gitRepositoryInfo)
+  {
+    return (BitbucketApiClient) gitClientFactory.createApiClient(gitRepositoryInfo);
+  }
+}

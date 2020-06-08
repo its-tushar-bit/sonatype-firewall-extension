@@ -399,8 +399,6 @@ public class PullRequestCommentingService
     }
     telemetry.commentId = commentResponse.getId();
     sendTelemetry(telemetry);
-
-    log.debug("comment text = {}", commentText);
     return commentResponse;
   }
 

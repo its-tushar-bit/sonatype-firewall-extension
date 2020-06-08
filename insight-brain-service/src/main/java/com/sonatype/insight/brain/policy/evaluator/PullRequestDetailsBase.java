@@ -6,11 +6,14 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.text.MessageFormat;
+import java.time.Clock;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -36,17 +39,23 @@ import static java.util.stream.Collectors.toList;
 
 public class PullRequestDetailsBase
 {
+  static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter
+      .ofPattern("yyyy-MM-dd HH:mm:ss O").withLocale(Locale.ENGLISH);
+
   private static final Pattern CVE_REGEX_PATTERN = Pattern.compile("((CVE|SONATYPE|sonatype)-\\d+-\\d+)");
 
   private static final List<String> SECURITY_CONDITIONS = ImmutableList
       .of(SecurityVulnerabilitySeverityConditionType.ID, SecurityVulnerabilityStatusConditionType.ID);
+
+  @VisibleForTesting
+  static Clock clock = Clock.systemDefaultZone();
 
   /**
    * Gets the constraint details for the given list of constraints
    *
    * @param constraintFactsInput A list of constraint facts for a specific policy violation. These should all be
    *                             relevant to the same policy
-   * @param baseUrl             The baseUrl of the IQ server
+   * @param baseUrl              The baseUrl of the IQ server
    * @return A list of maps, each map in the list contains the details for a specific constraint
    */
   @VisibleForTesting

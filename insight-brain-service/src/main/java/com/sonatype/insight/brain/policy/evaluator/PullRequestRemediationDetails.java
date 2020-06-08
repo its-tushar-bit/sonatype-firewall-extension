@@ -7,13 +7,10 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.time.Clock;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -27,7 +24,6 @@ import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.utils.TemplateUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import freemarker.template.Template;
 import org.slf4j.Logger;
@@ -44,13 +40,7 @@ import static java.util.stream.Collectors.toList;
 public class PullRequestRemediationDetails
     extends PullRequestDetailsBase
 {
-  @VisibleForTesting
-  static Clock clock = Clock.systemDefaultZone();
-
   private static final Logger log = LoggerFactory.getLogger(PullRequestRemediationDetails.class);
-
-  private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter
-      .ofPattern("yyyy-MM-dd HH:mm:ss O").withLocale(Locale.ENGLISH);
 
   private static Template policyThreatsMDEmbeddedHtmlTemplate;
 

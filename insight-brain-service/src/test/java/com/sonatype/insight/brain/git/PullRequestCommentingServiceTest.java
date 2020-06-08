@@ -233,7 +233,6 @@ public class PullRequestCommentingServiceTest
         debug("obtained CommitInfo from SCM for commit 'commit456' with 1 pull request(s) and 0 base branch commit(s)"),
         debug("0 base branch commits to process for application 'app1'"),
         info("pull request comment '27' with version '84' updated for application 'app1' pull request '7'"),
-        debug("comment text = at least one new policy violation"),
         debug("pull request comment '27' for application 'app1' pull request '7' recorded in database")
     );
   }
@@ -329,7 +328,6 @@ public class PullRequestCommentingServiceTest
             "and 0 base branch commit(s)"),
         debug("0 base branch commits to process for application 'app1'"),
         info("pull request comment '27' created for application 'app1' pull request '14'"),
-        debug("comment text = " + commentText),
         debug("pull request comment '27' for application 'app1' pull request '14' recorded in database")
     );
   }
@@ -367,7 +365,6 @@ public class PullRequestCommentingServiceTest
             "and 0 base branch commit(s)"),
         debug("0 base branch commits to process for application 'app1'"),
         info("pull request comment '27' created for application 'app1' pull request '14'"),
-        debug("comment text = " + commentText),
         debug("pull request comment '27' for application 'app1' pull request '14' recorded in database")
     );
   }
@@ -378,7 +375,7 @@ public class PullRequestCommentingServiceTest
   }
 
   private void testUnsupported(final SourceControlProvider sourceControlProvider) throws Exception {
-    // given : app source control provider = GitLab
+    // given : app source control provider
     PullRequestCommentingService commentingService = new TestablePullRequestCommentingServiceBuilder()
         .withProvider(sourceControlProvider)
         .withGitRepositoryEffectivelyPrivateThrows(UnsupportedOperationException.class)
@@ -473,13 +470,11 @@ public class PullRequestCommentingServiceTest
             "The head commit hash 'otherCommit', for application 'app1', PR '13' does not match the commit on " +
                 "the policy evaluation 'sourceCommit'"),
         info("pull request comment '28' created for application 'app1' pull request '14'"),
-        debug("comment text = " + commentText),
         debug("pull request comment '28' for application 'app1' pull request '14' recorded in database"),
         debug(
             "The head commit hash 'anotherCommit', for application 'app1', PR '15' does not match the commit on " +
                 "the policy evaluation 'sourceCommit'"),
         info("pull request comment '32' created for application 'app1' pull request '16'"),
-        debug("comment text = " + commentText),
         debug("pull request comment '32' for application 'app1' pull request '16' recorded in database")
     );
   }
@@ -521,11 +516,9 @@ public class PullRequestCommentingServiceTest
         debug("0 base branch commits to process for application 'app1'"),
         debug("application 'app1' pull request '13' state 'CLOSED' is not open, skipping commenting for this PR"),
         info("pull request comment '42' created for application 'app1' pull request '14'"),
-        debug("comment text = " + commentText),
         debug("pull request comment '42' for application 'app1' pull request '14' recorded in database"),
         debug("application 'app1' pull request '15' state 'MERGED' is not open, skipping commenting for this PR"),
         info("pull request comment '48' created for application 'app1' pull request '16'"),
-        debug("comment text = " + commentText),
         debug("pull request comment '48' for application 'app1' pull request '16' recorded in database")
     );
   }
@@ -586,7 +579,6 @@ public class PullRequestCommentingServiceTest
     verify(mockTelemetrySender, only()).send((TelemetryData) any());
     assertThatLogMessagesEqual(
         info("pull request comment '25' updated for application 'app1' pull request '20'"),
-        debug("comment text = at least one new policy violation"),
         debug("pull request comment '25' for application 'app1' pull request '20' recorded in database")
     );
   }
@@ -644,7 +636,6 @@ public class PullRequestCommentingServiceTest
     verify(mockTelemetrySender, only()).send((TelemetryData) any());
     assertThatLogMessagesEqual(
         info("pull request comment '25' created for application 'app1' pull request '20'"),
-        debug("comment text = " + commentText),
         debug("pull request comment '25' for application 'app1' pull request '20' recorded in database")
     );
   }

@@ -14,9 +14,14 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Named
 public class ApiConfigFeaturesService
 {
+  private static final Logger log = LoggerFactory.getLogger(ApiConfigFeaturesService.class);
+
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   static final String FEATURE_DASHBOARD = "dashboard";
@@ -38,6 +43,7 @@ public class ApiConfigFeaturesService
     }
 
     systemConfigurationPropertyDAO.delete(systemConfiguration);
+    log.debug("Enabled feature '{}'", feature);
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -50,6 +56,7 @@ public class ApiConfigFeaturesService
     }
 
     systemConfigurationPropertyDAO.insert(new SystemConfigurationProperty(featureName, "true"));
+    log.debug("Disabled feature '{}'", feature);
   }
 
   String getPropertyNameForFeature(String feature) {

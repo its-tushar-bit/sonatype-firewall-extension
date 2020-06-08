@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
+import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
@@ -32,12 +34,15 @@ import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
+import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -53,19 +58,21 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ApiComponentRemediationServiceTest
     extends AbstractComponentTest
 {
-  private static final String PACKAGE_URL_MAVEN_V2 = "pkg:maven/g1/a1@v2?type=jar";
-
   private static final String PACKAGE_URL_MAVEN_V1 = "pkg:maven/g1/a1@v1?type=jar";
+
+  private static final String PACKAGE_URL_MAVEN_V2 = "pkg:maven/g1/a1@v2?type=jar";
 
   public static final String MISSING_COORDINATES = "The following coordinates are missing for given format: ";
 
@@ -115,11 +122,15 @@ public class ApiComponentRemediationServiceTest
   @Mock
   HdsClient hdsClientMock;
 
+  @Mock
+  private ProductLicense productLicense;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(ComponentInfoService.class).toInstance(componentInfoServiceMock);
     binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
     binder.bind(HdsClient.class).toInstance(hdsClientMock);
+    binder.bind(ProductLicense.class).toInstance(productLicense);
     binder.bind(ThirdPartyComponentDAO.class).toInstance(thirdPartyComponentDAO);
     lenient().doReturn(ComponentSummary.create(true)).when(hdsClientMock).get(eq(ComponentSummary.class),
         eq("rest/component/summary"), anyMap());
@@ -252,13 +263,14 @@ public class ApiComponentRemediationServiceTest
     assertNoClassifier(dto);
   }
 
-  private void assertNoClassifier(final ApiComponentDTOV2 dto ) {
+  private void assertNoClassifier(final ApiComponentDTOV2 dto) {
     ComponentDetailsDTO componentDetailsDTO = new ComponentDetailsDTO();
     componentDetailsDTO.componentIdentifier = MAVEN_COORDINATES_V1;
     componentDetailsDTO.violatedPolicyCount = 0;
 
     List<ComponentDetailsDTO> list = Stream.of(componentDetailsDTO).collect(Collectors.toList());
     mockHdsGetComponentDetailsList(list, componentDetailsDTO.componentIdentifier);
+    mockLicenseFeature(false);
 
     ApiComponentRemediationDTO retVal = service
         .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID);
@@ -266,6 +278,39 @@ public class ApiComponentRemediationServiceTest
         PackageUrlIdentifier.toPackageUrl(componentDetailsDTO.componentIdentifier));
     assertTelemetry("application", app.getId(), componentDetailsDTO.componentIdentifier, "option_next_no_violations",
         "option_next_non_failing");
+  }
+
+  @Test
+  public void testGetSuggestedRemediationForComponent_WithAdvancedRecommendations() {
+    ApiComponentDTOV2 dto = new ApiComponentDTOV2();
+    dto.packageUrl = PACKAGE_URL_MAVEN_V1;
+
+    ComponentDetailsDTO componentDetailsDTO = new ComponentDetailsDTO();
+    componentDetailsDTO.componentIdentifier = MAVEN_COORDINATES_V1;
+    componentDetailsDTO.violatedPolicyCount = 0;
+
+    List<ComponentDetailsDTO> list = Stream.of(componentDetailsDTO).collect(Collectors.toList());
+    mockHdsGetComponentDetailsList(list, componentDetailsDTO.componentIdentifier);
+
+    // mock dependencies for advanced recommendation strategies
+    PackageUrlIdentifier mvnPurlId = PackageUrlIdentifier.fromComponentIdentifier(MAVEN_COORDINATES_V1);
+    PackageUrlIdentifier depPurlId = PackageUrlIdentifier.fromComponentIdentifier(
+        ComponentIdentifier.createMavenCoordinates("g1", "a2", "v1", "", "jar"));
+    Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
+    Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
+    dependenciesMap.put(mvnPurlId, Collections.singletonList(depPurlId));
+    detailsMap.put(depPurlId, new ComponentDetails());
+    ComponentDependenciesDTO dependenciesDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
+    mockHdsGetComponentDependencies(dependenciesDto);
+    mockLicenseFeature(true);
+
+    ApiComponentRemediationDTO retVal = service
+        .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID);
+    assertNoViolationsWithAdvancedRecommendations(retVal.remediation,
+        PackageUrlIdentifier.toPackageUrl(componentDetailsDTO.componentIdentifier));
+    assertTelemetry("application", app.getId(), componentDetailsDTO.componentIdentifier,
+        "option_next_no_violations", "option_next_non_failing",
+        "option_next_no_violations_with_dependencies", "option_next_non_failing_with_dependencies");
   }
 
   @Test
@@ -614,6 +659,16 @@ public class ApiComponentRemediationServiceTest
             eq(componentIdentifier), any(), any(), any());
   }
 
+  private void mockHdsGetComponentDependencies(ComponentDependenciesDTO dependenciesDto) {
+    when(hdsClientMock.post(eq(ComponentDependenciesDTO.class), eq("rest/component/dependencies"), anyCollection()))
+        .thenReturn(dependenciesDto);
+  }
+
+  private void mockLicenseFeature(boolean includeAdvancedStrategies) {
+    when(productLicense.hasFeature(eq(LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES)))
+        .thenReturn(includeAdvancedStrategies);
+  }
+
   private void assertRemediationZeroCounts(ApiComponentRemediationValueDTO apiComponentRemediationValueDTO) {
     assertThat(apiComponentRemediationValueDTO.componentOverrides).hasSize(0);
     assertThat(apiComponentRemediationValueDTO.policyWaivers).hasSize(0);
@@ -668,6 +723,39 @@ public class ApiComponentRemediationServiceTest
     assertThat(nonFailingDto.hash).isNull();
     assertThat(nonFailingDto.packageUrl).isEqualTo(expectedPackageUrl);
     assertThat(nonFailingDto.proprietary).isNull();
+  }
+
+  private void assertNoViolationsWithAdvancedRecommendations(
+      ApiComponentRemediationValueDTO apiComponentRemediationValueDTO,
+      String expectedPackageUrl)
+  {
+    assertThat(apiComponentRemediationValueDTO.componentOverrides).hasSize(0);
+    assertThat(apiComponentRemediationValueDTO.policyWaivers).hasSize(0);
+
+    assertThat(apiComponentRemediationValueDTO).isNotNull();
+    assertThat(apiComponentRemediationValueDTO.versionChanges).hasSize(4);
+
+    ApiVersionChangeOptionDTO noViolationsOption = apiComponentRemediationValueDTO.versionChanges.get(0);
+    assertThat(noViolationsOption.getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
+    ApiComponentDTOV2 noViolationsDto = noViolationsOption.getData().getComponent();
+    assertThat(noViolationsDto.packageUrl).isEqualTo(expectedPackageUrl);
+
+    ApiVersionChangeOptionDTO nonFailingOption = apiComponentRemediationValueDTO.versionChanges.get(1);
+    assertThat(nonFailingOption.getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NON_FAILING);
+    ApiComponentDTOV2 nonFailingDto = nonFailingOption.getData().getComponent();
+    assertThat(nonFailingDto.packageUrl).isEqualTo(expectedPackageUrl);
+
+    ApiVersionChangeOptionDTO noViolationsWithDepOption = apiComponentRemediationValueDTO.versionChanges.get(2);
+    assertThat(noViolationsWithDepOption.getType())
+        .isEqualTo(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
+    ApiComponentDTOV2 noViolationsWithDepDto = noViolationsWithDepOption.getData().getComponent();
+    assertThat(noViolationsWithDepDto.packageUrl).isEqualTo(expectedPackageUrl);
+
+    ApiVersionChangeOptionDTO nonFailingWithDepOption = apiComponentRemediationValueDTO.versionChanges.get(3);
+    assertThat(nonFailingWithDepOption.getType())
+        .isEqualTo(ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES);
+    ApiComponentDTOV2 nonFailingWithDepDto = nonFailingWithDepOption.getData().getComponent();
+    assertThat(nonFailingWithDepDto.packageUrl).isEqualTo(expectedPackageUrl);
   }
 
   private ApiComponentDTOV2 createComponent(final ComponentIdentifier componentIdentifier) {

@@ -116,7 +116,7 @@ public class PullRequestLineFeedback
         .put("componentNameAndVersion", displayName)
         .put("threatLevel", threatLevel)
         .put("threatImage", threatImage)
-        .put("policiesViolated", getPoliciesViolatedMap(violations, baseUrl))
+        .put("policiesViolated", getPoliciesViolatedMap(violations, baseUrl, true))
         .put("suggestedVersion", suggestedVersion == null ? "" : suggestedVersion)
         .put("policiesViolatedCount", violations.size())
         .put("date", new SimpleDateFormat("MMM dd, yyyy").format(new Date()))

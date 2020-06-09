@@ -48,6 +48,7 @@ import static com.sonatype.insight.brain.report.ReportTestUtils.createReportFile
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static com.sonatype.nexus.scm.SourceControlProvider.BITBUCKET;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
@@ -165,6 +166,8 @@ public class BitbucketCodeInsightsServiceTest
     verify(bitbucketApiClient).createCodeInsightReport(eq(featureBranchPolicyEvaluation.getCommitHash()), anyString(),
         eq(BitbucketCodeInsightReportOutcome.FAIL), eq(CODE_INSIGHT_REPORT_TYPE), eq(CODE_INSIGHT_REPORT_TITLE),
         eq(CODE_INSIGHT_REPORTER), eq(reportUri), eq(CODE_INSIGHT_LOGO_URL), eq(CODE_INSIGHT_REPORT_KEY), eq(dataMap));
+    verify(bitbucketApiClient)
+        .createCodeInsightAnnotations(eq(featureBranchPolicyEvaluation.getCommitHash()), anyString(), anyList());
   }
 
   @Test

@@ -13,10 +13,13 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -37,12 +40,21 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.iq.location.dto.DiffPosition;
 import com.sonatype.nexus.scm.SourceControlProvider;
+import com.sonatype.nexus.scm.api.model.CodeInsightAnnotation;
+import com.sonatype.nexus.scm.bitbucket.BitbucketApiClientUtils;
+import com.sonatype.nexus.scm.bitbucket.BitbucketCodeInsightAnnotationType;
 import com.sonatype.nexus.scm.bitbucket.BitbucketCodeInsightReportOutcome;
+import com.sonatype.nexus.scm.bitbucket.BitbucketCodeInsightSeverity;
 import com.sonatype.nexus.scm.bitbucket.BitbucketLinkDataParameter;
+import com.sonatype.nexus.scm.bitbucket.dto.v1.BitbucketV1CodeInsightAnnotation;
+import com.sonatype.nexus.scm.bitbucket.dto.v2.BitbucketV2CodeInsightAnnotation;
 
 import com.google.common.collect.ImmutableMap;
+import org.assertj.core.data.Index;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import static com.sonatype.insight.brain.policy.evaluator.PullRequestDetailsBase.DATE_TIME_FORMATTER;
 import static com.sonatype.insight.brain.report.ReportTestUtils.createReportFile;
@@ -50,6 +62,7 @@ import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+@RunWith(Parameterized.class)
 public class PullRequestCodeInsightsDetailsTest
     extends AbstractComponentTest
 {
@@ -100,6 +113,21 @@ public class PullRequestCodeInsightsDetailsTest
 
   private Application app;
 
+  private String repositoryUrl;
+
+  public PullRequestCodeInsightsDetailsTest(final String repositoryUrl) {
+    this.repositoryUrl = repositoryUrl;
+  }
+
+  @Parameterized.Parameters(name = "repositoryUrl={0}")
+  public static Collection<Object[]> data() {
+    String bitbucketServerRepoUrl = "http://localhost:7990/scm/test/testing-things.git";
+    String bitbucketCloudRepoUrl = "https://bitbucket.org/sonatype/nexus-scm-client-testing.git";
+    return Arrays.stream(new String[]{bitbucketCloudRepoUrl, bitbucketServerRepoUrl})
+        .map(v -> new Object[]{v})
+        .collect(Collectors.toList());
+  }
+
   @Before
   public void before() {
     config.setBaseUrl("http://localhost:1122");
@@ -125,6 +153,22 @@ public class PullRequestCodeInsightsDetailsTest
     assertThat(details.getReportOutcome()).isEqualTo(BitbucketCodeInsightReportOutcome.FAIL);
     assertThat(details.getReportUri()).isEqualTo(EXPECTED_REPORT_URI);
     assertThat(details.getReportData()).containsAllEntriesOf(expectedReportData(32, 3, 4));
+
+    List<CodeInsightAnnotation> annotations = details.getAnnotations();
+    assertThat(annotations).hasSize(39);
+    // assert a couple of annotations
+    assertAnnotation(annotations, BitbucketCodeInsightSeverity.HIGH,
+        "10 - Unlikely Test Policy - org.springframework.security : spring-security-web : 4.2.3.RELEASE",
+        "Nonsensical Constraint: Found licenses in the 'Liberal' license threat group ('Apache-2.0')",
+        0);
+    assertAnnotation(annotations, BitbucketCodeInsightSeverity.HIGH,
+        "10 - Unlikely Test Policy - com.h2database : h2 : 1.4.190",
+        "Nonsensical Constraint: Found security vulnerability: CVE-2018-14335",
+        22);
+    assertAnnotation(annotations, BitbucketCodeInsightSeverity.LOW,
+        "2 - Component-Unknown - webgoat-server-8.0.0.M1.jar",
+        "Unknown 3rd party component: Match state was 'Unknown', Component does not contain proprietary packages",
+        34);
   }
 
   @Test
@@ -143,12 +187,13 @@ public class PullRequestCodeInsightsDetailsTest
     assertThat(details.getReportOutcome()).isEqualTo(BitbucketCodeInsightReportOutcome.PASS);
     assertThat(details.getReportUri()).isEqualTo(EXPECTED_REPORT_URI);
     assertThat(details.getReportData()).containsAllEntriesOf(expectedReportData(0, 0, 0));
+    assertThat(details.getAnnotations()).isEmpty();
   }
 
   @Test
   public void testPullRequestCodeInsights_addedAndCleared() throws Exception {
-    //setup test data
     setupTestData();
+
     // create cleared policy violation that does not exist in the bom file
     PolicyViolation existingViolation = diff.getAppeared().get(0);
     PolicyViolation policyViolation = new PolicyViolation();
@@ -171,6 +216,22 @@ public class PullRequestCodeInsightsDetailsTest
     assertThat(details.getReportOutcome()).isEqualTo(BitbucketCodeInsightReportOutcome.FAIL);
     assertThat(details.getReportUri()).isEqualTo(EXPECTED_REPORT_URI);
     assertThat(details.getReportData()).containsAllEntriesOf(expectedReportData(32, 3, 4));
+
+    List<CodeInsightAnnotation> annotations = details.getAnnotations();
+    assertThat(annotations).hasSize(39);
+    // assert a couple of annotations
+    assertAnnotation(annotations, BitbucketCodeInsightSeverity.HIGH,
+        "10 - Unlikely Test Policy - org.springframework.security : spring-security-web : 4.2.3.RELEASE",
+        "Nonsensical Constraint: Found licenses in the 'Liberal' license threat group ('Apache-2.0')",
+        0);
+    assertAnnotation(annotations, BitbucketCodeInsightSeverity.HIGH,
+        "10 - Unlikely Test Policy - com.h2database : h2 : 1.4.190",
+        "Nonsensical Constraint: Found security vulnerability: CVE-2018-14335",
+        22);
+    assertAnnotation(annotations, BitbucketCodeInsightSeverity.LOW,
+        "2 - Component-Unknown - webgoat-server-8.0.0.M1.jar",
+        "Unknown 3rd party component: Match state was 'Unknown', Component does not contain proprietary packages",
+        34);
   }
 
   @Test
@@ -190,6 +251,7 @@ public class PullRequestCodeInsightsDetailsTest
     assertThat(details.getReportOutcome()).isEqualTo(BitbucketCodeInsightReportOutcome.PASS);
     assertThat(details.getReportUri()).isEqualTo(EXPECTED_REPORT_URI);
     assertThat(details.getReportData()).containsAllEntriesOf(expectedReportData(0, 0, 0));
+    assertThat(details.getAnnotations()).isEmpty();
   }
 
   @Test
@@ -215,6 +277,12 @@ public class PullRequestCodeInsightsDetailsTest
     assertThat(details.getReportOutcome()).isEqualTo(BitbucketCodeInsightReportOutcome.FAIL);
     assertThat(details.getReportUri()).isEqualTo(EXPECTED_REPORT_URI);
     assertThat(details.getReportData()).containsAllEntriesOf(expectedReportData(1, 0, 0));
+    List<CodeInsightAnnotation> annotations = details.getAnnotations();
+    assertThat(annotations).hasSize(1);
+    assertAnnotation(annotations, BitbucketCodeInsightSeverity.HIGH,
+        "10 - Unlikely Test Policy - org.springframework.security : spring-security-web : 4.2.3.RELEASE",
+        "Nonsensical Constraint: Found licenses in the 'Liberal' license threat group ('Apache-2.0')",
+        0);
   }
 
   @Test
@@ -240,6 +308,7 @@ public class PullRequestCodeInsightsDetailsTest
     assertThat(details.getReportOutcome()).isEqualTo(BitbucketCodeInsightReportOutcome.PASS);
     assertThat(details.getReportUri()).isEqualTo(EXPECTED_REPORT_URI);
     assertThat(details.getReportData()).containsAllEntriesOf(expectedReportData(0, 0, 0));
+    assertThat(details.getAnnotations()).isEmpty();
   }
 
   @Test
@@ -353,7 +422,7 @@ public class PullRequestCodeInsightsDetailsTest
 
     //setup gitRepositoryInfo
     bitbucketGitRepositoryInfo =
-        new GitRepositoryInfo("https://bitbucket.com/scm/sonatype/enhanced-commit-information", "user", "token",
+        new GitRepositoryInfo(repositoryUrl, "user", "token",
             SourceControlProvider.BITBUCKET, "master", true, true);
 
     //setup bom report entry
@@ -378,5 +447,26 @@ public class PullRequestCodeInsightsDetailsTest
         .put("Severe", severeCount)
         .put("Stage", "release")
         .build();
+  }
+
+  private void assertAnnotation(
+      final List<CodeInsightAnnotation> annotations,
+      final BitbucketCodeInsightSeverity severity,
+      final String message, final String detail,
+      final int index)
+  {
+    CodeInsightAnnotation annotation;
+    if (BitbucketApiClientUtils.isCloudHosted(repositoryUrl)) {
+      annotation = new BitbucketV2CodeInsightAnnotation(message, detail, severity,
+          BitbucketCodeInsightAnnotationType.CODE_SMELL, null, null, null);
+    }
+    else {
+      BitbucketV1CodeInsightAnnotation v1Annotation = new BitbucketV1CodeInsightAnnotation();
+      v1Annotation.setSeverity(severity);
+      v1Annotation.setType(BitbucketCodeInsightAnnotationType.CODE_SMELL);
+      v1Annotation.setMessage(message + " - " + detail);
+      annotation = v1Annotation;
+    }
+    assertThat(annotations).contains(annotation, Index.atIndex(index));
   }
 }

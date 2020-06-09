@@ -232,7 +232,7 @@ public class PullRequestRemediationDetails
         .map(ComponentFact::getConstraintFacts)
         .filter(list -> list != null && !list.isEmpty())
         .flatMap(Collection::stream)
-        .collect(Collectors.toList()), baseUrl);
+        .collect(Collectors.toList()), baseUrl, true);
   }
 
   private boolean hasComponentFacts(final PolicyFact policyFact) {

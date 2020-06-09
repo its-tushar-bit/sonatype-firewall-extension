@@ -24,18 +24,24 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.nexus.scm.api.model.CodeInsightAnnotation;
 import com.sonatype.nexus.scm.bitbucket.BitbucketApiClientUtils;
+import com.sonatype.nexus.scm.bitbucket.BitbucketCodeInsightAnnotationRequestBuilder;
+import com.sonatype.nexus.scm.bitbucket.BitbucketCodeInsightAnnotationType;
 import com.sonatype.nexus.scm.bitbucket.BitbucketCodeInsightReportOutcome;
+import com.sonatype.nexus.scm.bitbucket.BitbucketCodeInsightSeverity;
 import com.sonatype.nexus.scm.bitbucket.BitbucketLinkDataParameter;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.sonatype.nexus.scm.bitbucket.BitbucketCodeInsightAnnotationType.CODE_SMELL;
 
 /**
  * Data utility class which stores, combines and normalizes the data for Code Insights. It accepts
@@ -46,6 +52,11 @@ public class PullRequestCodeInsightsDetails
     extends PullRequestDetailsBase
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestCodeInsightsDetails.class);
+
+  private static final BitbucketCodeInsightAnnotationType ANNOTATION_TYPE = CODE_SMELL;
+
+  // We provide the IQ report link at the Code Insight report level. The annotation link is not required.
+  private static final URI ANNOTATION_LINK = null;
 
   private final String repositoryUrl;
 
@@ -197,6 +208,44 @@ public class PullRequestCodeInsightsDetails
         .build();
   }
 
+  public List<CodeInsightAnnotation> getAnnotations() {
+    BitbucketCodeInsightAnnotationRequestBuilder builder = new BitbucketCodeInsightAnnotationRequestBuilder(
+        repositoryUrl);
+
+    newPolicyViolations.forEach(policyViolation -> {
+      String componentDisplayName = componentDisplayNamesMap.get(policyViolation.getHash());
+      AnnotationContent annotationContent = new AnnotationContent(policyViolation, componentDisplayName);
+      BitbucketCodeInsightSeverity severity = getSeverity(policyViolation.getThreatLevel());
+
+      // TODO: Path and LOC to be completed once line-level commenting is available
+      String path = null;
+      Integer lineOfCode = null;
+
+      builder.withAnnotation(
+          annotationContent.message,
+          annotationContent.details,
+          severity,
+          ANNOTATION_TYPE,
+          ANNOTATION_LINK,
+          path,
+          lineOfCode
+      );
+    });
+
+    return builder.build();
+  }
+
+  private BitbucketCodeInsightSeverity getSeverity(final Integer threatLevel) {
+    if (threatLevel >= 8) {
+      return BitbucketCodeInsightSeverity.HIGH;
+    }
+    if (threatLevel >= 4) {
+      return BitbucketCodeInsightSeverity.MEDIUM;
+    }
+    return BitbucketCodeInsightSeverity.LOW;
+  }
+
+
   /**
    * Gets the display names for all components in the BOM and components in the cleared policy violations section
    * (some of them may not be included in the BOM).
@@ -247,5 +296,43 @@ public class PullRequestCodeInsightsDetails
     return violations.stream()
         .filter(policyViolation -> componentDisplayNamesMap.containsKey(policyViolation.getHash()))
         .collect(Collectors.toList());
+  }
+
+  /**
+   * Encapsulate the differences between V1 and V2 regarding the summary/message/details fields
+   * For Bitbucket Server (V1) there is only a single 'message' field that will contain all the information
+   * For Bitbucket Cloud (V2) there are two fields so we split all the information: summary and details
+   */
+  private class AnnotationContent
+  {
+    String message;
+
+    String details;
+
+    AnnotationContent(
+        final PolicyViolation policyViolation,
+        final String componentDisplayName)
+    {
+      // Message format is:  {threat level} - {policy name} - {component name}
+      message = String.format("%d - %s - %s", policyViolation.getThreatLevel(), policyViolation.getPolicyName(),
+          componentDisplayName);
+
+      List<Map<String, Object>> constraintsForPolicyViolationsPerPolicy = getConstraintsForPolicyViolationsPerPolicy(
+          ImmutableList.of(policyViolation), baseUrl, false);
+
+      // Details format is: {constraint name}: {condition, condition,...}, ...
+      details = constraintsForPolicyViolationsPerPolicy
+          .stream()
+          .map(map -> {
+            String constraint = (String) map.get(CONSTRAINT_NAME);
+            List<String> conditions = (List<String>) map.get(CONDITIONS);
+            return constraint + ": " + String.join(", ", conditions);
+          })
+          .collect(Collectors.joining(","));
+
+      if (!BitbucketApiClientUtils.isCloudHosted(repositoryUrl)) {
+        message = message + " - " + details;
+      }
+    }
   }
 }

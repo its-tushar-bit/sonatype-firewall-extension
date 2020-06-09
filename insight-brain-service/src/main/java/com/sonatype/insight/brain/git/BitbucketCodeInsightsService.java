@@ -120,6 +120,10 @@ public class BitbucketCodeInsightsService
           CODE_INSIGHT_LOGO_URL,
           CODE_INSIGHT_REPORT_KEY,
           details.getReportData());
+
+      bitbucketApiClient
+          .createCodeInsightAnnotations(sourceCommitPolicyEvaluation.getCommitHash(), CODE_INSIGHT_REPORT_KEY,
+              details.getAnnotations());
     }
     catch (IOException e) {
       log.error("Error creating Bitbucket Code Insight", e);

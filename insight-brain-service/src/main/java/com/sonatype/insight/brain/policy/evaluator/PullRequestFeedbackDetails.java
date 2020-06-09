@@ -267,7 +267,7 @@ public class PullRequestFeedbackDetails
             .put("componentNameAndVersion", componentEntry.getKey())
             .put("highestThreatLevel",
                 getHighestThreatLevel(componentEntry.getValue()))
-            .put("policiesViolated", getPoliciesViolatedMap(componentEntry.getValue(), baseUrl))
+            .put("policiesViolated", getPoliciesViolatedMap(componentEntry.getValue(), baseUrl, true))
             .build())
         .sorted(
             (o1, o2) -> Integer.compare((Integer) o2.get("highestThreatLevel"), (Integer) o1.get("highestThreatLevel")))
@@ -303,7 +303,7 @@ public class PullRequestFeedbackDetails
             .put("suggestedVersion", getSuggestedVersion(remediationVersionMap, componentEntry.getValue()))
             .put("lineCommentLink",
                 getLineCommentLink(pullRequestLineComments, componentEntry.getValue(), gitRepositoryInfo, prNumber))
-            .put("policiesViolated", getPoliciesViolatedMap(componentEntry.getValue(), baseUrl))
+            .put("policiesViolated", getPoliciesViolatedMap(componentEntry.getValue(), baseUrl, true))
             .build())
         .sorted(
             (o1, o2) -> Integer.compare((Integer) o2.get("highestThreatLevel"), (Integer) o1.get("highestThreatLevel")))

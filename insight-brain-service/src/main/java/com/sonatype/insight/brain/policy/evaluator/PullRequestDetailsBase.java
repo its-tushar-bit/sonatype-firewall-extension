@@ -39,6 +39,7 @@ import static java.util.stream.Collectors.toList;
 
 public class PullRequestDetailsBase
 {
+  @VisibleForTesting
   static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter
       .ofPattern("yyyy-MM-dd HH:mm:ss O").withLocale(Locale.ENGLISH);
 
@@ -46,6 +47,12 @@ public class PullRequestDetailsBase
 
   private static final List<String> SECURITY_CONDITIONS = ImmutableList
       .of(SecurityVulnerabilitySeverityConditionType.ID, SecurityVulnerabilityStatusConditionType.ID);
+
+  @VisibleForTesting
+  static final String CONSTRAINT_NAME = "constraintName";
+
+  @VisibleForTesting
+  static final String CONDITIONS = "conditions";
 
   @VisibleForTesting
   static Clock clock = Clock.systemDefaultZone();
@@ -56,12 +63,14 @@ public class PullRequestDetailsBase
    * @param constraintFactsInput A list of constraint facts for a specific policy violation. These should all be
    *                             relevant to the same policy
    * @param baseUrl              The baseUrl of the IQ server
+   * @param convertCveToUrl      Convert any CVE references to markdown links
    * @return A list of maps, each map in the list contains the details for a specific constraint
    */
   @VisibleForTesting
   static List<Map<String, Object>> getConstraintDetailsForConstraints(
       final List<ConstraintFact> constraintFactsInput,
-      final String baseUrl)
+      final String baseUrl,
+      final Boolean convertCveToUrl)
   {
     return constraintFactsInput
         .stream()
@@ -70,8 +79,8 @@ public class PullRequestDetailsBase
         .stream()
         .filter(constraintFacts -> !constraintFacts.isEmpty())
         .map(constraintFacts -> ImmutableMap.<String, Object>builder()
-            .put("constraintName", constraintFacts.get(0).getConstraintName())
-            .put("conditions", getConstraintConditionSummaries(constraintFacts, baseUrl))
+            .put(CONSTRAINT_NAME, constraintFacts.get(0).getConstraintName())
+            .put(CONDITIONS, getConstraintConditionSummaries(constraintFacts, baseUrl, convertCveToUrl))
             .build())
         .distinct()
         .collect(Collectors.toList());
@@ -83,12 +92,14 @@ public class PullRequestDetailsBase
    *
    * @param constraintFacts The list of constraints that needs to be processed to get the condition summaries
    * @param baseUrl         The baseUrl of the IQ server
+   * @param convertCveToUrl      Convert any CVE references to markdown links
    * @return The list of condition summaries for the given constraints
    */
   @VisibleForTesting
   static List<String> getConstraintConditionSummaries(
       final List<ConstraintFact> constraintFacts,
-      final String baseUrl)
+      final String baseUrl,
+      final Boolean convertCveToUrl)
   {
     final Map<Boolean, List<ConditionFact>> conditionFactsByType = constraintFacts
         .stream()
@@ -97,7 +108,7 @@ public class PullRequestDetailsBase
         .collect(partitioningBy(conditionFact -> SECURITY_CONDITIONS.contains(conditionFact.getConditionTypeId())));
 
     final List<String> conditionReasons = new ArrayList<>();
-    getViolationSummaryForSecurityConditions(conditionFactsByType.get(Boolean.TRUE), baseUrl)
+    getViolationSummaryForSecurityConditions(conditionFactsByType.get(Boolean.TRUE), baseUrl, convertCveToUrl)
         .ifPresent(conditionReasons::add);
     conditionReasons.addAll(getViolationSummariesForNonSecurityConditions(conditionFactsByType.get(Boolean.FALSE)));
 
@@ -110,16 +121,18 @@ public class PullRequestDetailsBase
    * @param securityConditionFacts An list of security conditions that were violated that needs to be processed,
    *                               the optional will be empty of no security conditions are present
    * @param baseUrl                The baseUrl of the IQ Server
+   * @param convertCveToUrl        Convert any CVE references to markdown links
    * @return A single string, with comma delimited values for all security threats, prefixed with the required string
    */
   @VisibleForTesting
   static Optional<String> getViolationSummaryForSecurityConditions(
       final List<ConditionFact> securityConditionFacts,
-      final String baseUrl)
+      final String baseUrl,
+      final Boolean convertCveToUrl)
   {
     final List<String> securityConditionDescriptions = securityConditionFacts
         .stream()
-        .map(conditionFact -> applyCVEUrl(conditionFact, baseUrl))
+        .map(conditionFact -> maybeApplyCVEUrl(conditionFact, baseUrl, convertCveToUrl))
         .distinct()
         .collect(Collectors.toList());
 
@@ -157,9 +170,17 @@ public class PullRequestDetailsBase
   }
 
   @VisibleForTesting
-  static String applyCVEUrl(final ConditionFact conditionFact, final String baseUrl) {
+  static String maybeApplyCVEUrl(
+      final ConditionFact conditionFact,
+      final String baseUrl,
+      final Boolean convertCveToUrl)
+  {
     if (conditionFact.getReference() == null || conditionFact.getReference().getValue() == null) {
       return null;
+    }
+
+    if (!convertCveToUrl) {
+      return conditionFact.getReference().getValue();
     }
 
     final Matcher matcher = CVE_REGEX_PATTERN.matcher(conditionFact.getReference().getValue());
@@ -194,12 +215,14 @@ public class PullRequestDetailsBase
    * @param policyViolations A list of all policy violations, the list can contain multiple violations for the same
    *                         policy
    * @param baseUrl          The baseUrl of the IQ server
+   * @param convertCveToUrl  Convert any CVE references to markdown links
    * @return A list of maps, each map in the list contains the details for violations on a specific policy
    */
   @VisibleForTesting
   static List<Map<String, Object>> getPoliciesViolatedMap(
       final List<PolicyViolation> policyViolations,
-      final String baseUrl)
+      final String baseUrl,
+      final Boolean convertCveToUrl)
   {
     return policyViolations
         .stream()
@@ -213,7 +236,7 @@ public class PullRequestDetailsBase
             .put("threatLevel", groupedPolicyViolations.get(0).getThreatLevel())
             .put("name", groupedPolicyViolations.get(0).getPolicyName())
             .put("constraints", PullRequestDetailsBase
-                .getConstraintsForPolicyViolationsPerPolicy(groupedPolicyViolations, baseUrl))
+                .getConstraintsForPolicyViolationsPerPolicy(groupedPolicyViolations, baseUrl, convertCveToUrl))
             .build())
         .collect(toList());
   }
@@ -223,19 +246,21 @@ public class PullRequestDetailsBase
    *
    * @param policyViolations A list of policy violations, these should all be for the same policy id
    * @param baseUrl          The baseUrl of the IQ server
+   * @param convertCveToUrl  Convert any CVE references to markdown links
    * @return A list of maps, each map in the list contains the details for a specific constraint
    */
   @VisibleForTesting
   static List<Map<String, Object>> getConstraintsForPolicyViolationsPerPolicy(
       final List<PolicyViolation> policyViolations,
-      final String baseUrl)
+      final String baseUrl,
+      final Boolean convertCveToUrl)
   {
     return getConstraintDetailsForConstraints(policyViolations
         .stream()
         .sorted((o1, o2) -> Integer.compare(o2.getThreatLevel(), o1.getThreatLevel()))
         .map(PolicyViolation::getConstraintFacts)
         .flatMap(Collection::stream)
-        .collect(toList()), baseUrl);
+        .collect(toList()), baseUrl, convertCveToUrl);
   }
 
   protected Object getOrganizationName(final Application app) {

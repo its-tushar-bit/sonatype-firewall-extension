@@ -34,6 +34,10 @@ productFeatureModule.service('ProductFeatures', ['$http', 'CLMLocations', functi
     return available('dashboard');
   }
 
+  function reportsListAvailable() {
+    return available('reports-list');
+  }
+
   function isEnforcementSupportedForStage(stage) {
     return (available('firewall') && stage === 'proxy') || available('enforcement');
   }
@@ -49,7 +53,8 @@ productFeatureModule.service('ProductFeatures', ['$http', 'CLMLocations', functi
   return {
     load: load,
     isAvailable: available,
-    isDashboardLicensed: dashboardAvailable,
+    isDashboardAvailable: dashboardAvailable,
+    isReportsListAvailable: reportsListAvailable,
     isEnforcementSupportedForStage: isEnforcementSupportedForStage,
     isNotificationsSupportedForStage: isNotificationsSupportedForStage,
     isNotificationsSupportedForAnyStage: isNotificationsSupportedForAnyStage

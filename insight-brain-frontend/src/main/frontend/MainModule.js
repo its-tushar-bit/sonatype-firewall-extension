@@ -59,11 +59,14 @@ export const InitModule = angular.module('InitModule', [
 
             return $q.all([ProductFeatures.load(), ProductLicense.load(), CurrentUser.waitForLogin()])
                 .then(function() {
-                  if (ProductFeatures.isDashboardLicensed()) {
+                  if (ProductFeatures.isDashboardAvailable()) {
                     return 'dashboard.overview.violations';
                   }
-                  else {
+                  else if (ProductFeatures.isReportsListAvailable()) {
                     return 'violations';
+                  }
+                  else {
+                    return 'gettingStarted';
                   }
                 }, function(err) {
                   $rootScope.error = Messages.getHttpErrorMessage(err);

@@ -65,16 +65,29 @@ public class MainHeaderTest
   }
 
   @Test
-  public void testDashboardIcon_DashboardLicensed() {
+  public void testDashboardIcon_DashboardAvailable() {
     MainHeader.dashboardNavigationButton().shouldBe(visible);
   }
 
   @Test
-  public void testDashboardIcon_DashboardNotLicensed() {
+  public void testDashboardIcon_DashboardNotAvailable() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     refresh();
     MainHeader.policiesNavigationButton().shouldBe(visible);
     MainHeader.dashboardNavigationButton().shouldBe(hidden);
+  }
+
+  @Test
+  public void testReportingIcon_ReportsListAvailable() {
+    MainHeader.reportingNavigationButton().shouldBe(visible);
+  }
+
+  @Test
+  public void testReportingIcon_ReportsListNotAvailable() {
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.REPORTS_LIST_DISABLED, "true");
+    refresh();
+    MainHeader.policiesNavigationButton().shouldBe(visible);
+    MainHeader.reportingNavigationButton().shouldBe(hidden);
   }
 
   @Test

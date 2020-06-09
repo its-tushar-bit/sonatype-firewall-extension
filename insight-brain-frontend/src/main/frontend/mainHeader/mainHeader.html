@@ -25,7 +25,7 @@
            class="iq-navigation__button"
            id="dashboard-navigation-button"
            ng-class="{ 'active' : vm.$state.includes('dashboard') }"
-           ng-if="vm.isDashboardLicensed()">
+           ng-if="vm.isDashboardAvailable()">
           <nx-font-awesome-icon icon="vm.faTachometerAltFast"
                                 class="iq-main-nav__button-icon"
                                 size="'2x'">
@@ -36,7 +36,7 @@
            class="iq-navigation__button"
            id="reporting-navigation-button"
            ng-class="{ 'active' : vm.$state.includes('violations') }"
-           ng-if="vm.isLicensed()">
+           ng-if="vm.isReportsListAvailable()">
           <nx-font-awesome-icon icon="vm.faFileAlt"
                                 class="iq-main-nav__button-icon"
                                 size="'2x'">

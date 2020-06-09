@@ -828,7 +828,7 @@ public class PullRequestCommentingServiceTest
         CommentResponse comment = entry.getValue();
         doReturn(comment).when(mockGitApiClient).createPullRequestComment(eq(prId), any());
         doReturn(comment).when(mockGitApiClient)
-            .updatePullRequestComment(eq(prId), eq(comment.getId()), nullable(Integer.class), any());
+            .updatePullRequestComment(eq(comment.getId()), eq(prId), nullable(Integer.class), any());
       }
 
       doReturn(mockPullRequestInfoProvider).when(mockGitClientFactory).createPullRequestInfoClient(gitRepositoryInfo);

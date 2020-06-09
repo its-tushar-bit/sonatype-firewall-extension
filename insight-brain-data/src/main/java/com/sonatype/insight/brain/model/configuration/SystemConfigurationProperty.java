@@ -30,6 +30,10 @@ public class SystemConfigurationProperty
 
   public static final String ADVANCED_SEARCH_ENABLED = "ADVANCED_SEARCH_ENABLED";
 
+  public static final String DASHBOARD_DISABLED = "DASHBOARD_DISABLED";
+
+  public static final String REPORTS_LIST_DISABLED = "REPORTS_LIST_DISABLED";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

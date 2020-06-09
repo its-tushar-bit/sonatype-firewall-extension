@@ -6,7 +6,9 @@
 package com.sonatype.insight.brain.organization;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -17,11 +19,17 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.StageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -45,6 +53,8 @@ public class ApplicationService
 
   private final ApplicationDAO applicationDAO;
 
+  private final ApplicationAdapter applicationAdapter;
+
   private final ApplicationCleaner applicationCleaner;
 
   private final ApplicationHelper applicationHelper;
@@ -53,21 +63,27 @@ public class ApplicationService
 
   private final OrganizationDAO organizationDAO;
 
+  private final ScanPolicyEvaluator scanPolicyEvaluator;
+
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
   @Inject
   public ApplicationService(ApplicationDAO applicationDAO,
+                            ApplicationAdapter applicationAdapter,
                             final ApplicationCleaner applicationCleaner,
                             final ApplicationHelper applicationHelper,
                             final ManagementEventService managementEventService,
                             final OrganizationDAO organizationDAO,
+                            ScanPolicyEvaluator scanPolicyEvaluator,
                             final PolicyViolationLoggerFactory policyViolationLoggerFactory)
   {
     this.applicationDAO = applicationDAO;
+    this.applicationAdapter = applicationAdapter;
     this.applicationCleaner = applicationCleaner;
     this.applicationHelper = applicationHelper;
     this.managementEventService = managementEventService;
     this.organizationDAO = organizationDAO;
+    this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
   }
 
@@ -217,5 +233,70 @@ public class ApplicationService
       }
     }
     return applicationIds;
+  }
+
+  public List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries() {
+    return getApplicationManagementSummaries(getApplications());
+  }
+
+  public ApplicationManagementSummaryDTO getApplicationManagementSummary(String applicationPublicId) {
+    final Application application = getApplicationByPublicIdNotNull(applicationPublicId);
+    return getApplicationManagementSummary(application);
+  }
+
+  private List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries(
+      final List<Application> applications)
+  {
+    // Create the summary DTOs from the applications
+    final List<ApplicationManagementSummaryDTO> applicationManagementSummaryDTOs = applicationAdapter
+        .createApplicationManagementSummaries(applications);
+
+    loadPolicyEvaluations(applicationManagementSummaryDTOs);
+    loadPolicyEvaluationsResults(applicationManagementSummaryDTOs);
+
+    return applicationManagementSummaryDTOs;
+  }
+
+  private ApplicationManagementSummaryDTO getApplicationManagementSummary(final Application application) {
+    final ApplicationManagementSummaryDTO applicationManagement = applicationAdapter
+        .createApplicationManagementSummary(application);
+    loadPolicyEvaluations(Arrays.asList(applicationManagement));
+
+    return applicationManagement;
+  }
+
+  private void loadPolicyEvaluations(List<ApplicationManagementSummaryDTO> applicationManagementSummaries) {
+    Map<String, ApplicationManagementSummaryDTO> summariesByAppId = new HashMap<>();
+    for (ApplicationManagementSummaryDTO summary : applicationManagementSummaries) {
+      summariesByAppId.put(summary.getId(), summary);
+      summary.setPolicyEvaluations(new HashMap<String, PolicyEvaluation>());
+    }
+    Set<String> stageTypeIds = new HashSet<>();
+    for (StageType stageType : StageTypes.getAll()) {
+      stageTypeIds.add(stageType.getId());
+    }
+    List<PolicyEvaluation> policyEvaluations = new PolicyEvaluationDAO().getLastByApplicationIds(summariesByAppId
+        .keySet());
+    for (PolicyEvaluation policyEvaluation : policyEvaluations) {
+      if (stageTypeIds.contains(policyEvaluation.getStageTypeId())) {
+        ApplicationManagementSummaryDTO summary = summariesByAppId.get(policyEvaluation.getApplicationId());
+        summary.getPolicyEvaluations().put(policyEvaluation.getStageTypeId(), policyEvaluation);
+      }
+    }
+  }
+
+  private void loadPolicyEvaluationsResults(List<ApplicationManagementSummaryDTO> applicationManagementSummaries) {
+    for (ApplicationManagementSummaryDTO applicationManagement : applicationManagementSummaries) {
+      Map<String, PolicyEvaluationResult> policyEvaluationResults = new HashMap<>();
+      for (PolicyEvaluation policyEvaluation : applicationManagement.getPolicyEvaluations().values()) {
+        // Alerts are not needed by the Application Management UI and greatly bloat the JSON response
+        // they are also time-consuming when we deal with thousands of applications/evaluations
+        final PolicyEvaluationResult policyEvaluationResult = scanPolicyEvaluator
+            .createPolicyEvaluationResult(policyEvaluation);
+
+        policyEvaluationResults.put(policyEvaluation.getStageTypeId(), policyEvaluationResult);
+      }
+      applicationManagement.setPolicyEvaluationsResults(policyEvaluationResults);
+    }
   }
 }

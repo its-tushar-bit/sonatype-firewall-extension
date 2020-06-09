@@ -7,12 +7,8 @@ package com.sonatype.insight.brain.organization;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -30,18 +26,12 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.StageType;
-import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -81,8 +71,6 @@ public class ApplicationResource
 
   private final InsightWork work;
 
-  private final ScanPolicyEvaluator scanPolicyEvaluator;
-
   private ApplicationService applicationService;
 
   private final OrganizationDAO organizationDAO;
@@ -91,7 +79,6 @@ public class ApplicationResource
   public ApplicationResource(final InsightWork work,
                              final BaseUrl baseUrl,
                              final RobotImageService robotImageService,
-                             final ScanPolicyEvaluator scanPolicyEvaluator,
                              final ApplicationAdapter applicationAdapter,
                              final ApplicationService applicationService,
                              final NgUploadResponseGenerator ngUploadResponseGenerator,
@@ -99,7 +86,6 @@ public class ApplicationResource
   {
     super(baseUrl, ngUploadResponseGenerator, robotImageService);
     this.work = work;
-    this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.applicationAdapter = applicationAdapter;
     this.applicationService = applicationService;
     this.organizationDAO = organizationDAO;
@@ -131,12 +117,7 @@ public class ApplicationResource
   @Path(GET_APPLICATION_MANAGEMENT_SUMMARIES)
   @Produces(MediaType.APPLICATION_JSON)
   public List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries() {
-    final List<Application> applications = applicationService.getApplications();
-
-    final List<ApplicationManagementSummaryDTO> applicationManagements = 
-        getApplicationManagementSummaries(applications);
-
-    return applicationManagements;
+    return applicationService.getApplicationManagementSummaries();
   }
 
   @GET
@@ -168,8 +149,7 @@ public class ApplicationResource
   public ApplicationManagementSummaryDTO getApplicationManagementSummary(
       @PathParam("applicationPublicId") final String applicationPublicId)
   {
-    final Application application = applicationService.getApplicationByPublicIdNotNull(applicationPublicId);
-    return getApplicationManagementSummary(application);
+    return applicationService.getApplicationManagementSummary(applicationPublicId);
   }
 
   /**
@@ -242,62 +222,6 @@ public class ApplicationResource
   @Audited(AuditEvent.DELETE_APPLICATION)
   public void deleteApplication(@PathParam("applicationPublicId") final String applicationPublicId) throws IOException {
     applicationService.deleteApplicationByPublicId(applicationPublicId);
-  }
-
-  private List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries(
-      final List<Application> applications)
-  {
-    // Create the summary DTOs from the applications
-    final List<ApplicationManagementSummaryDTO> applicationManagementSummaryDTOs = applicationAdapter
-        .createApplicationManagementSummaries(applications);
-
-    loadPolicyEvaluations(applicationManagementSummaryDTOs);
-    loadPolicyEvaluationsResults(applicationManagementSummaryDTOs);
-
-    return applicationManagementSummaryDTOs;
-  }
-
-  private ApplicationManagementSummaryDTO getApplicationManagementSummary(final Application application) {
-    final ApplicationManagementSummaryDTO applicationManagement = applicationAdapter
-        .createApplicationManagementSummary(application);
-    loadPolicyEvaluations(Arrays.asList(applicationManagement));
-
-    return applicationManagement;
-  }
-
-  private void loadPolicyEvaluations(List<ApplicationManagementSummaryDTO> applicationManagementSummaries) {
-    Map<String, ApplicationManagementSummaryDTO> summariesByAppId = new HashMap<>();
-    for (ApplicationManagementSummaryDTO summary : applicationManagementSummaries) {
-      summariesByAppId.put(summary.getId(), summary);
-      summary.setPolicyEvaluations(new HashMap<String, PolicyEvaluation>());
-    }
-    Set<String> stageTypeIds = new HashSet<>();
-    for (StageType stageType : StageTypes.getAll()) {
-      stageTypeIds.add(stageType.getId());
-    }
-    List<PolicyEvaluation> policyEvaluations = new PolicyEvaluationDAO().getLastByApplicationIds(summariesByAppId
-        .keySet());
-    for (PolicyEvaluation policyEvaluation : policyEvaluations) {
-      if (stageTypeIds.contains(policyEvaluation.getStageTypeId())) {
-        ApplicationManagementSummaryDTO summary = summariesByAppId.get(policyEvaluation.getApplicationId());
-        summary.getPolicyEvaluations().put(policyEvaluation.getStageTypeId(), policyEvaluation);
-      }
-    }
-  }
-
-  private void loadPolicyEvaluationsResults(List<ApplicationManagementSummaryDTO> applicationManagementSummaries) {
-    for (ApplicationManagementSummaryDTO applicationManagement : applicationManagementSummaries) {
-      Map<String, PolicyEvaluationResult> policyEvaluationResults = new HashMap<>();
-      for (PolicyEvaluation policyEvaluation : applicationManagement.getPolicyEvaluations().values()) {
-        // Alerts are not needed by the Application Management UI and greatly bloat the JSON response
-        // they are also time-consuming when we deal with thousands of applications/evaluations
-        final PolicyEvaluationResult policyEvaluationResult = scanPolicyEvaluator
-            .createPolicyEvaluationResult(policyEvaluation);
-
-        policyEvaluationResults.put(policyEvaluation.getStageTypeId(), policyEvaluationResult);
-      }
-      applicationManagement.setPolicyEvaluationsResults(policyEvaluationResults);
-    }
   }
 
   @Override

@@ -9,15 +9,16 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.GettingStartedPage;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.ProductLicensePage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
 import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codeborne.selenide.Selenide;
-
 import org.junit.Before;
 import org.junit.Test;
 
@@ -198,6 +199,27 @@ public class PageLoadTest
     loginAsAdmin();
     waitUntilUrl(ReportListPage.url());
     ReportListPage.listContainer().shouldBe(visible);
+  }
+
+  @Test
+  public void testLoadIndexHtml_NoReportsList() {
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.REPORTS_LIST_DISABLED, "true");
+
+    refreshOrOpen(IndexPage.url());
+    loginAsAdmin();
+    waitUntilUrl(DashboardPage.url());
+    DashboardPage.dashboardContainer().shouldBe(visible);
+  }
+
+  @Test
+  public void testLoadIndexHtml_NoDashboardAndNoReportsList() {
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.DASHBOARD_DISABLED, "true");
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.REPORTS_LIST_DISABLED, "true");
+
+    refreshOrOpen(IndexPage.url());
+    loginAsAdmin();
+    waitUntilUrl(GettingStartedPage.url());
+    new GettingStartedPage().productLicenseSummary().shouldBe(visible);
   }
 
   @Test

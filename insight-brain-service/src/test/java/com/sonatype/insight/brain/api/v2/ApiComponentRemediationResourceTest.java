@@ -34,8 +34,10 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -60,15 +62,17 @@ public class ApiComponentRemediationResourceTest
   private Organization org;
 
   @Before
-  public void before() {
+  public void before() throws Exception {
     org = tempEntity.newOrganization("Org");
     app = tempEntity.newApplication(org.getId());
+    setFeatures(LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES);
   }
 
   @Test
   public void testSuggestedRemediation_Application() throws Exception {
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V1,null);
-    assertRemediationApplication(component);
+    assertRemediationApplication(component, ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
   }
 
   @Test
@@ -115,10 +119,14 @@ public class ApiComponentRemediationResourceTest
   public void testSuggestedRemediation_Application_Purl() throws Exception {
     String purl = "pkg:maven/g1/a1@v1?type=jar";
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(purl);
-    assertRemediationApplication(component);
+    assertRemediationApplication(component, ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
   }
   
-  private void assertRemediationApplication(ApiComponentDTOV2 component) throws Exception {
+  private void assertRemediationApplication(
+      ApiComponentDTOV2 component,
+      final ApiVersionChangeOptionType... optionTypes) throws Exception
+  {
     mockComponentSummary(MAVEN_COORDINATES_V1, ComponentSummary.create(true));
     mockGetDependencies(new ComponentDependenciesDTO(new HashMap<>(), new HashMap<>()));
     createPolicyWithSecurityVulnerabilityConstraint(app.getId());
@@ -138,24 +146,28 @@ public class ApiComponentRemediationResourceTest
         restRequest().path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2).parameter(OwnerType.APPLICATION, app.getId())
             .body(component).post();
 
-    assertResponse(response, expectedComponent, PackageUrlIdentifier.toPackageUrl(MAVEN_COORDINATES_V3),
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
+    assertResponse(response, expectedComponent, PackageUrlIdentifier.toPackageUrl(MAVEN_COORDINATES_V3), optionTypes);
   }
 
   @Test
   public void testSuggestedRemediation_Organization() throws Exception {
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V1, null);
-    assertRemediationOrganization(component);
+    assertRemediationOrganization(component, ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
   }
   
   @Test
   public void testSuggestedRemediation_Organization_Purl() throws Exception {
     String purl = "pkg:maven/g1/a1@v1?type=jar";
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(purl);
-    assertRemediationOrganization(component);
+    assertRemediationOrganization(component, ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
   }
   
-  private void assertRemediationOrganization(final ApiComponentDTOV2 component) throws Exception {
+  private void assertRemediationOrganization(
+      final ApiComponentDTOV2 component,
+      final ApiVersionChangeOptionType... optionTypes) throws Exception
+  {
     mockGetDependencies(new ComponentDependenciesDTO(new HashMap<>(), new HashMap<>()));
     mockComponentSummary(MAVEN_COORDINATES_V1, ComponentSummary.create(true));
     Organization org = tempEntity.newOrganization("testOrg");
@@ -176,8 +188,7 @@ public class ApiComponentRemediationResourceTest
         restRequest().path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2).parameter(OwnerType.ORGANIZATION, org.getId())
             .body(component).post();
 
-    assertResponse(response, expectedComponent, PackageUrlIdentifier.toPackageUrl(MAVEN_COORDINATES_V3),
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
+    assertResponse(response, expectedComponent, PackageUrlIdentifier.toPackageUrl(MAVEN_COORDINATES_V3), optionTypes);
   }
 
   private void createPolicyWithSecurityVulnerabilityConstraint(final String ownerId) {
@@ -212,7 +223,7 @@ public class ApiComponentRemediationResourceTest
   private void assertResponse(final HttpResponse response,
                               final ApiComponentDTOV2 expectedComponent,
                               final String expectedPackageUrl,
-                              final ApiVersionChangeOptionType optionType)
+                              final ApiVersionChangeOptionType... optionTypes)
   {
     assertResponseStatus(200, response);
     String responseText = response.getBodyText();
@@ -220,12 +231,16 @@ public class ApiComponentRemediationResourceTest
 
     ApiComponentRemediationDTO result = response.getBody(ApiComponentRemediationDTO.class);
     assertThat(result).isNotNull();
-    assertThat(result.remediation.versionChanges).hasSize(1);
-    ApiVersionChangeOptionDTO versionChangeOption = result.remediation.versionChanges.get(0);
-    assertThat(versionChangeOption.getType()).isEqualTo(optionType);
-    assertThat(versionChangeOption.getData().getComponent().componentIdentifier)
-        .isEqualToComparingFieldByField(expectedComponent.componentIdentifier);
-    assertThat(versionChangeOption.getData().getComponent().packageUrl).isEqualTo(expectedPackageUrl);
+    assertThat(result.remediation.versionChanges).hasSize(optionTypes.length);
+    for (int i = 0; i < optionTypes.length; i++) {
+      ApiVersionChangeOptionDTO versionChangeOption = result.remediation.versionChanges.get(i);
+      assertThat(versionChangeOption.getType()).isEqualTo(optionTypes[i]);
+      assertThat(equalsMavenIdsIgnoringBlankClassifier(
+          versionChangeOption.getData().getComponent().componentIdentifier.toComponentIdentifier(),
+          expectedComponent.componentIdentifier.toComponentIdentifier())
+      ).isTrue();
+      assertThat(versionChangeOption.getData().getComponent().packageUrl).isEqualTo(expectedPackageUrl);
+    }
   }
 
   private ComponentIdentifier componentIdentifierFrom(final String format, final String name, final String version) {
@@ -233,5 +248,20 @@ public class ApiComponentRemediationResourceTest
     coords.put("name", name);
     coords.put(ComponentIdentifier.VERSION, version);
     return new ComponentIdentifier(format, coords);
+  }
+
+  private boolean equalsMavenIdsIgnoringBlankClassifier(ComponentIdentifier actual, ComponentIdentifier expected) {
+    if (!actual.isMaven() || !expected.isMaven()) {
+      return actual.equals(expected);
+    }
+
+    return actual.get(ComponentIdentifier.MAVEN_GROUP_ID).equals(expected.get(ComponentIdentifier.MAVEN_GROUP_ID))
+        && actual.get(ComponentIdentifier.MAVEN_ARTIFACT_ID).equals(expected.get(ComponentIdentifier.MAVEN_ARTIFACT_ID))
+        && actual.get(ComponentIdentifier.VERSION).equals(expected.get(ComponentIdentifier.VERSION))
+        && actual.get(ComponentIdentifier.MAVEN_EXTENSION).equals(expected.get(ComponentIdentifier.MAVEN_EXTENSION))
+        && ((StringUtils.isBlank(actual.get(ComponentIdentifier.MAVEN_CLASSIFIER))
+              && StringUtils.isBlank(expected.get(ComponentIdentifier.MAVEN_CLASSIFIER)))
+            || actual.get(ComponentIdentifier.MAVEN_CLASSIFIER).equals(
+                expected.get(ComponentIdentifier.MAVEN_CLASSIFIER)));
   }
 }

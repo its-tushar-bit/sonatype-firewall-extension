@@ -27,11 +27,14 @@ import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.PullRequestInfoProvider;
 import com.sonatype.nexus.scm.api.model.ProjectUri;
 import com.sonatype.nexus.scm.api.model.PullRequest;
+import com.sonatype.nexus.scm.bitbucket.BitbucketApiClientUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.nexus.scm.SourceControlProvider.BITBUCKET;
 
 @Named
 @Singleton
@@ -254,13 +257,22 @@ public class PullRequestPollingService
     if (null == gitRepositoryInfo || null == gitRepositoryInfo.provider) {
       return false;
     }
-    if (!gitRepositoryInfo.provider.supportsPullRequestCommenting()) {
+    if (!gitRepositoryInfo.provider.supportsPullRequestCommenting() || isBitbucketCloud(gitRepositoryInfo)) {
       if (log.isDebugEnabled()) {
-        log.debug("{} is not currently supported for pull request commenting",
-            gitRepositoryInfo.provider.toString().toUpperCase());
+        log.debug("{} is not currently supported for pull request commenting on repository {}",
+            gitRepositoryInfo.provider.toString().toUpperCase(), gitRepositoryInfo.repositoryUrl);
       }
       return false;
     }
     return sourceControlUtils.isScmEnabled(gitRepositoryInfo);
+  }
+
+  /**
+   * Pull request commenting features are not yet supported for Bitbucket cloud so provide logic to recognize
+   * any repositories in that SCM.
+   */
+  private boolean isBitbucketCloud(GitRepositoryInfo gitRepositoryInfo) {
+    return gitRepositoryInfo.provider.equals(BITBUCKET) &&
+        BitbucketApiClientUtils.isCloudHosted(gitRepositoryInfo.repositoryUrl);
   }
 }

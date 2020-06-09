@@ -68,7 +68,7 @@ describe('mainModuleSpec', function() {
           $httpBackend.flush();
           expect($rootScope.licensed).toEqual(true);
           expect($rootScope.username).toEqual('myname');
-          expect(ProductFeatures.isDashboardLicensed()).toEqual(true);
+          expect(ProductFeatures.isDashboardAvailable()).toEqual(true);
           expect(ProductFeatures.isAvailable('allow-external-hyperlinks')).toEqual(true);
           expect($window.externalLinkClickHandler).not.toBeDefined();
 
@@ -144,9 +144,83 @@ describe('mainModuleSpec', function() {
           $httpBackend.flush();
           expect($rootScope.licensed).toEqual(true);
           expect($rootScope.username).toEqual('myname');
-          expect(ProductFeatures.isDashboardLicensed()).toEqual(true);
+          expect(ProductFeatures.isDashboardAvailable()).toEqual(true);
           expect(ProductFeatures.isAvailable('allow-external-hyperlinks')).toEqual(false);
           expect($window.externalLinkClickHandler).toBeDefined();
+
+          expect(pendoServiceMock.start).toHaveBeenCalled();
+        }));
+
+    it('validate state with only dashboard available',
+        inject(function($httpBackend, CLMLocations, initService, $rootScope, ProductFeatures, $window, $state) {
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username: 'myname'});
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
+
+          initService.start();
+          $httpBackend.flush();
+          expect($rootScope.licensed).toEqual(true);
+          expect($rootScope.username).toEqual('myname');
+          expect(ProductFeatures.isDashboardAvailable()).toBeTruthy();
+          expect(ProductFeatures.isReportsListAvailable()).toBeFalsy();
+          expect($window.externalLinkClickHandler).toBeDefined();
+          expect($state.current.name).toBe('dashboard.overview.violations');
+
+          expect(pendoServiceMock.start).toHaveBeenCalled();
+        }));
+
+    it('validate state with only reports-list available',
+        inject(function($httpBackend, CLMLocations, initService, $rootScope, ProductFeatures, $window, $state) {
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username: 'myname'});
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl()))
+              .respond(['reports-list']);
+
+          initService.start();
+          $httpBackend.flush();
+          expect($rootScope.licensed).toEqual(true);
+          expect($rootScope.username).toEqual('myname');
+          expect(ProductFeatures.isDashboardAvailable()).toBeFalsy();
+          expect(ProductFeatures.isReportsListAvailable()).toBeTruthy();
+          expect($window.externalLinkClickHandler).toBeDefined();
+          expect($state.current.name).toBe('violations');
+
+          expect(pendoServiceMock.start).toHaveBeenCalled();
+        }));
+
+    it('validate state with dashboard and reports-list available',
+        inject(function($httpBackend, CLMLocations, initService, $rootScope, ProductFeatures, $window, $state) {
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username: 'myname'});
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl()))
+              .respond(['dashboard', 'reports-list']);
+
+          initService.start();
+          $httpBackend.flush();
+          expect($rootScope.licensed).toEqual(true);
+          expect($rootScope.username).toEqual('myname');
+          expect(ProductFeatures.isDashboardAvailable()).toBeTruthy();
+          expect(ProductFeatures.isReportsListAvailable()).toBeTruthy();
+          expect($window.externalLinkClickHandler).toBeDefined();
+          expect($state.current.name).toBe('dashboard.overview.violations');
+
+          expect(pendoServiceMock.start).toHaveBeenCalled();
+        }));
+
+    it('validate state with neither dashboard nor reports-list available',
+        inject(function($httpBackend, CLMLocations, initService, $rootScope, ProductFeatures, $window, $state) {
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username: 'myname'});
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond([]);
+
+          initService.start();
+          $httpBackend.flush();
+          expect($rootScope.licensed).toEqual(true);
+          expect($rootScope.username).toEqual('myname');
+          expect(ProductFeatures.isDashboardAvailable()).toBeFalsy();
+          expect(ProductFeatures.isReportsListAvailable()).toBeFalsy();
+          expect($window.externalLinkClickHandler).toBeDefined();
+          expect($state.current.name).toBe('gettingStarted');
 
           expect(pendoServiceMock.start).toHaveBeenCalled();
         }));

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.hds;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -61,11 +62,15 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.utils.IdUtils;
+import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Binder;
@@ -75,10 +80,16 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NON_FAILING;
+import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES;
+import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS;
+import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 public class ComponentInfoServiceTest
@@ -103,6 +114,9 @@ public class ComponentInfoServiceTest
   private Repository repository;
 
   @Mock
+  private ProductLicense productLicenseMock;
+
+  @Mock
   private HdsClient hdsClientMock;
 
   @Mock
@@ -113,6 +127,7 @@ public class ComponentInfoServiceTest
 
   @Override
   public void configure(Binder binder) {
+    binder.bind(ProductLicense.class).toInstance(productLicenseMock);
     binder.bind(HdsClient.class).toInstance(hdsClientMock);
     binder.bind(ThirdPartyComponentDAO.class).toInstance(thirdPartyComponentDAO);
     super.configure(binder);
@@ -140,6 +155,16 @@ public class ComponentInfoServiceTest
     queryParams
         .put("componentIdentifier", ComponentIdentifierAdapter.toJson(componentDetails.getComponentIdentifier()));
     return queryParams;
+  }
+
+  private void mockLicenseFeature(boolean includeAdvancedStrategies) {
+    when(productLicenseMock.hasFeature(eq(LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES)))
+        .thenReturn(includeAdvancedStrategies);
+  }
+
+  private void mockHdsGetComponentDependencies(ComponentDependenciesDTO dependenciesDto) {
+    when(hdsClientMock.post(eq(ComponentDependenciesDTO.class), eq("rest/component/dependencies"), anyCollection()))
+        .thenReturn(dependenciesDto);
   }
 
   private void mockHdsGetComponentDetails(NamedComponentDetails hdsComponentDetails) throws IOException {
@@ -939,7 +964,7 @@ public class ComponentInfoServiceTest
   }
 
   @Test
-  public void testGetComponentVersionInfo_ReadPermission_Application_noStageId() throws Exception {
+  public void testGetComponentVersionInfo_ReadPermission_Application_NoStageId() throws Exception {
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "8"));
     Policy policy1 = new Policy("security-high", "Security-High");
@@ -956,6 +981,7 @@ public class ComponentInfoServiceTest
     policy2.setAction(ReleaseStageType.ID, WarnActionType.ID);
     addPolicy(applicationPublicId, policy2);
 
+    mockLicenseFeature(false);
     ComponentVersionInfoDTO dto = testGetComponentVersionInfo_ReadPermission(
         application, application.getPublicId(), null);
 
@@ -1000,6 +1026,7 @@ public class ComponentInfoServiceTest
     policy2.setAction(ReleaseStageType.ID, WarnActionType.ID);
     addPolicy(applicationPublicId, policy2);
 
+    mockLicenseFeature(false);
     ComponentVersionInfoDTO dto = testGetComponentVersionInfo_ReadPermission(
         application, application.getPublicId(), ReleaseStageType.ID);
 
@@ -1082,6 +1109,41 @@ public class ComponentInfoServiceTest
     assertThat(componentDetails.violatedPolicyCount).isEqualTo(1);
     
     assertThat(componentDetails.declaredLicenses).hasSize(1);
+  }
+
+  @Test
+  public void testGetComponentVersionInfo_WithAdvancedRecommendation() throws Exception {
+    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
+    constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "5"));
+    Policy policy1 = new Policy("security-low", "Security-Low");
+    policy1.setThreatLevel(5);
+    policy1.addConstraint(constraint1);
+    policy1.setAction(ReleaseStageType.ID, WarnActionType.ID);
+    addPolicy(applicationPublicId, policy1);
+
+    // mock dependencies for advanced recommendation strategies
+    PackageUrlIdentifier mvnPurlId = PackageUrlIdentifier.fromComponentIdentifier(MAVEN_COORDINATES);
+    PackageUrlIdentifier depPurlId = PackageUrlIdentifier.fromComponentIdentifier(
+        ComponentIdentifier.createMavenCoordinates("g1", "a2", "v1", "", "jar"));
+    Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
+    Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
+    dependenciesMap.put(mvnPurlId, Collections.singletonList(depPurlId));
+    detailsMap.put(depPurlId, new ComponentDetails());
+    ComponentDependenciesDTO dependenciesDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
+    mockHdsGetComponentDependencies(dependenciesDto);
+    mockLicenseFeature(true);
+
+    ComponentVersionInfoDTO dto = testGetComponentVersionInfo_ReadPermission(
+        application, application.getPublicId(), ReleaseStageType.ID);
+
+    assertThat(dto.remediation.versionChanges).isNotNull();
+    assertThat(dto.remediation.versionChanges).hasSize(4);
+    assertThat(dto.remediation.versionChanges).extracting(vc -> vc.getType().name())
+        .containsExactlyInAnyOrder(NEXT_NO_VIOLATIONS.name(), NEXT_NON_FAILING.name(),
+            NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES.name(), NEXT_NON_FAILING_WITH_DEPENDENCIES.name());
+    assertThat(dto.remediation.versionChanges).extracting(vc -> vc.getData().getComponent().packageUrl)
+        .containsExactlyInAnyOrder("pkg:nuget/a@v", mvnPurlId.getPackageUrl(),
+            "pkg:nuget/a@v", mvnPurlId.getPackageUrl());
   }
 
   @Test

@@ -160,6 +160,9 @@ public class PullRequestLineCommentingService
         .filter(ci -> ci.getFormat().equalsIgnoreCase(ComponentIdentifier.FORMAT_MAVEN))
         .distinct()
         .collect(Collectors.toList());
+    if (componentIdentifierSet.isEmpty()) {
+      return null; // skip location discovery when component identifier list is empty
+    }
     return sourceControlTaskRunner
         .doPullRequestLocationDiscovery(componentIdentifierSet, gitRepositoryInfo, branch, applicationId);
   }
@@ -187,11 +190,12 @@ public class PullRequestLineCommentingService
               .createPullRequestLineComment(pullRequestId, lineCommentDTO.getMarkup(), commitHash,
                   lineCommentDTO.getDiffPosition().getFilePath(), lineCommentDTO.getDiffPosition().getDiffPosition());
           lineCommentDTO.setScmId(response.getId());
+          lineCommentDTO.setScmVersion(response.getVersion());
 
           //Add the line comment details to the database
           SourceControlPullRequestComment pullRequestComment = new SourceControlPullRequestComment(
               applicationId, lineCommentDTO.getHash(), pullRequestId, response.getId(),
-              sourcePolicyEvaluationId, basePolicyEvaluationId);
+              response.getVersion(), sourcePolicyEvaluationId, basePolicyEvaluationId);
           pullRequestCommentDAO.insert(pullRequestComment);
 
           successfulCount++;

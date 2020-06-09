@@ -66,6 +66,11 @@ public class PullRequestCommentingService
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestCommentingService.class);
 
+  /**
+   * Policy violations with a threat level below this threshold are filleted out of the policy violation diff
+   */
+  public static final int MINIMUM_THREAT_LEVEL = 2;
+
   static final int COMMIT_HISTORY_FETCH_COUNT = 12;
 
   static final int APPLICATION_PULL_REQUEST_FETCH_COUNT = 10;
@@ -271,7 +276,7 @@ public class PullRequestCommentingService
   {
     try {
       Optional<PolicyViolationDiff<PolicyViolation>> policyViolationDiff = policyEvaluationDiffService
-          .createPolicyViolationDiff(baseBranchPolicyEvaluation, sourceCommitPolicyEvaluation);
+          .createPolicyViolationDiff(baseBranchPolicyEvaluation, sourceCommitPolicyEvaluation, MINIMUM_THREAT_LEVEL);
 
       if (policyViolationDiff.isPresent()) {
         // retrieve suggested remediation map for components in the appeared violation list
@@ -344,9 +349,9 @@ public class PullRequestCommentingService
         sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation, telemetry);
 
     if (policyEvaluationDiffMarkup.isPresent()) {
-      int commentId = createOrUpdateCommentInGitSCM(applicationId, gitRepositoryInfo, pullRequestNumber,
+      CommentResponse response = createOrUpdateCommentInGitSCM(applicationId, gitRepositoryInfo, pullRequestNumber,
           policyEvaluationDiffMarkup.get(), existingPullRequestComment, telemetry);
-      recordCommentInDatabase(applicationId, pullRequestNumber, commentId, contentHash,
+      recordCommentInDatabase(applicationId, pullRequestNumber, response.getId(), response.getVersion(), contentHash,
           sourceCommitPolicyEvaluation.getId(), baseBranchPolicyEvaluation.getId(), existingPullRequestComment);
       invokePostCommentActions(gitRepositoryInfo, policyViolationDiff.get(),
           sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation);
@@ -360,7 +365,7 @@ public class PullRequestCommentingService
   /**
    * creates or updates the pull request comment in GitHub for the given repo and pull request
    */
-  private Integer createOrUpdateCommentInGitSCM(
+  private CommentResponse createOrUpdateCommentInGitSCM(
       String applicationId,
       GitRepositoryInfo gitRepositoryInfo,
       int pullRequestNumber,
@@ -379,18 +384,22 @@ public class PullRequestCommentingService
       telemetry.action = ACTION_CREATED;
     }
     else {
-      int pullRequestCommentId = existingPullRequestComment.getPullRequestCommentId();
       commentResponse =
-          gitApiClient.updatePullRequestComment(pullRequestCommentId, commentText);
-      log.info("pull request comment '{}' updated for application '{}' pull request '{}'",
-          commentResponse.getId(), applicationId, pullRequestNumber);
+          gitApiClient.updatePullRequestComment(existingPullRequestComment.getPullRequestCommentId(), pullRequestNumber,
+              existingPullRequestComment.getPullRequestCommentVersion(), commentText);
+      if (commentResponse.getVersion() == null) {
+        log.info("pull request comment '{}' updated for application '{}' pull request '{}'",
+            commentResponse.getId(), applicationId, pullRequestNumber);
+      }
+      else {
+        log.info("pull request comment '{}' with version '{}' updated for application '{}' pull request '{}'",
+            commentResponse.getId(), commentResponse.getVersion(), applicationId, pullRequestNumber);
+      }
       telemetry.action = ACTION_UPDATED;
     }
     telemetry.commentId = commentResponse.getId();
     sendTelemetry(telemetry);
-
-    log.debug("comment text = {}", commentText);
-    return commentResponse.getId();
+    return commentResponse;
   }
 
   private void sendTelemetry(final PullRequestCommentTelemetry telemetry) {
@@ -407,6 +416,7 @@ public class PullRequestCommentingService
       String applicationId,
       int pullRequestNumber,
       Integer commentId,
+      Integer commentVersion,
       String contentHash,
       String sourcePolicyEvaluationId,
       String basePolicyEvaluationId,
@@ -414,12 +424,13 @@ public class PullRequestCommentingService
   {
     if (existingPullRequestComment == null) {
       SourceControlPullRequestComment pullRequestComment =
-          new SourceControlPullRequestComment(applicationId, pullRequestNumber, commentId, contentHash, 
+          new SourceControlPullRequestComment(applicationId, pullRequestNumber, commentId, commentVersion, contentHash,
               sourcePolicyEvaluationId, basePolicyEvaluationId);
       pullRequestCommentDAO.insert(pullRequestComment);
     }
     else {
       existingPullRequestComment.setPullRequestCommentId(commentId);
+      existingPullRequestComment.setPullRequestCommentVersion(commentVersion);
       existingPullRequestComment.setContentHash(contentHash);
       existingPullRequestComment.setSourcePolicyEvaluationId(sourcePolicyEvaluationId);
       existingPullRequestComment.setTargetPolicyEvaluationId(basePolicyEvaluationId);

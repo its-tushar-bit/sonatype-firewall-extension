@@ -168,6 +168,8 @@ import org.joda.time.LocalDate;
 import org.junit.rules.ExternalResource;
 
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DASHBOARD_DISABLED;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.REPORTS_LIST_DISABLED;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.OTHER;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.QUALITY;
@@ -478,6 +480,14 @@ public class TemporaryEntity
 
     // Disable search
     systemConfigurationPropertyDAO.update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "false"));
+
+    // Enable Dashboard and ReportsList by deleting properties that indicate they are disabled
+    for (String name : new String[]{DASHBOARD_DISABLED, REPORTS_LIST_DISABLED}) {
+      SystemConfigurationProperty property = systemConfigurationPropertyDAO.getByName(name);
+      if (property != null) {
+        systemConfigurationPropertyDAO.delete(property);
+      }
+    }
   }
 
   private <T extends HasStringId> void delete(Collection<T> entities, AbstractDAO<T> dao) {
@@ -1150,6 +1160,7 @@ public class TemporaryEntity
       String applicationId,
       int pullRequestId,
       int pullRequestCommentId,
+      Integer pullRequestCommentVersion,
       String contentHash,
       String sourcePolicyEvaluationId,
       String targetPolicyEvaluationId)
@@ -1158,6 +1169,7 @@ public class TemporaryEntity
         applicationId,
         pullRequestId,
         pullRequestCommentId,
+        pullRequestCommentVersion,
         contentHash,
         sourcePolicyEvaluationId,
         targetPolicyEvaluationId
@@ -1171,6 +1183,7 @@ public class TemporaryEntity
       String componentHash,
       int pullRequestId,
       int pullRequestCommentId,
+      Integer pullRequestCommentVersion,
       String sourcePolicyEvaluationId,
       String targetPolicyEvaluationId)
   {
@@ -1179,6 +1192,7 @@ public class TemporaryEntity
         componentHash,
         pullRequestId,
         pullRequestCommentId,
+        pullRequestCommentVersion,
         sourcePolicyEvaluationId,
         targetPolicyEvaluationId
     );

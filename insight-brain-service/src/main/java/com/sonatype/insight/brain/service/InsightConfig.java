@@ -763,7 +763,8 @@ public class InsightConfig
 
   public enum Feature
   {
-    PR_COMMENTING("prCommenting");
+    PR_COMMENTING("prCommenting"),
+    CODE_INSIGHTS("codeInsights");
 
     private String flag;
 

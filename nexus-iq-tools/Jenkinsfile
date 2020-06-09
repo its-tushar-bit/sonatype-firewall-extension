@@ -41,7 +41,7 @@ pipeline {
         withMaven(jdk: 'Java 8', maven: 'M3', mavenSettingsConfig: 'private-settings.xml',
             options: [ artifactsPublisher(disabled: true), junitPublisher(disabled: true) ]) {
           sh '''
-              mvn clean install -T 1C -DskipTests -Dpmd.skip -Dskip-obfuscate \
+              mvn clean install -Dmaven.repo.local="$WORKSPACE/.zion/repository" -T 1C -DskipTests -Dpmd.skip -Dskip-obfuscate \
                   -pl -insight-brain-frontend,-nexus-iq-cli,-nexus-iq-integrator-scanner,-nexus-iq-server,-insight-rm-common
              '''
         }

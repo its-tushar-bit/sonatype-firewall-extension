@@ -32,6 +32,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class PullRequestDetailsBaseTest
     extends AbstractComponentTest
 {
+  // All SCM features do the markdown CVE URL save for Bitbucket. So we want to always convert URLs for this class.
+  static final Boolean CONVERT_URLS = true;
+
   @Inject
   private InsightConfig config;
 
@@ -60,7 +63,8 @@ public class PullRequestDetailsBaseTest
 
     //When
     final List<Map<String, Object>> results = PullRequestDetailsBase.getConstraintDetailsForConstraints(
-        Lists.newArrayList(constraintFact1, constraintFact2, constraintFact3, constraintFact4), config.getBaseUrl());
+        Lists.newArrayList(constraintFact1, constraintFact2, constraintFact3, constraintFact4),
+        config.getBaseUrl(), CONVERT_URLS);
 
     //Then
     assertThat(results).hasSize(1);
@@ -94,7 +98,8 @@ public class PullRequestDetailsBaseTest
 
     //When
     final List<Map<String, Object>> results = PullRequestDetailsBase.getConstraintDetailsForConstraints(
-        Lists.newArrayList(constraintFact1, constraintFact2, constraintFact3, constraintFact4), config.getBaseUrl());
+        Lists.newArrayList(constraintFact1, constraintFact2, constraintFact3, constraintFact4),
+        config.getBaseUrl(), CONVERT_URLS);
 
     //Then
     assertThat(results).hasSize(2);
@@ -115,7 +120,7 @@ public class PullRequestDetailsBaseTest
 
     //When
     final List<Map<String, Object>> results = PullRequestDetailsBase.getConstraintDetailsForConstraints(
-        Lists.newArrayList(constraintFact1), config.getBaseUrl());
+        Lists.newArrayList(constraintFact1), config.getBaseUrl(), CONVERT_URLS);
 
     //Then
     assertThat(results).hasSize(1);
@@ -128,7 +133,7 @@ public class PullRequestDetailsBaseTest
   public void testGetConstraintDetailsForConstraints_NoConstraint() {
     //When
     final List<Map<String, Object>> results = PullRequestDetailsBase.getConstraintDetailsForConstraints(
-        Lists.newArrayList(), config.getBaseUrl());
+        Lists.newArrayList(), config.getBaseUrl(), CONVERT_URLS);
 
     //Then
     assertThat(results).isEmpty();
@@ -141,7 +146,7 @@ public class PullRequestDetailsBaseTest
 
     //When
     final List<Map<String, Object>> results = PullRequestDetailsBase.getConstraintDetailsForConstraints(
-        Lists.newArrayList(constraintFact1), config.getBaseUrl());
+        Lists.newArrayList(constraintFact1), config.getBaseUrl(), CONVERT_URLS);
 
     //Then
     assertThat(results).hasSize(1);
@@ -158,7 +163,7 @@ public class PullRequestDetailsBaseTest
 
     //When
     final List<Map<String, Object>> results = PullRequestDetailsBase.getConstraintDetailsForConstraints(
-        Lists.newArrayList(constraintFact1), config.getBaseUrl());
+        Lists.newArrayList(constraintFact1), config.getBaseUrl(), CONVERT_URLS);
 
     //Then
     assertThat(results).hasSize(1);
@@ -187,7 +192,8 @@ public class PullRequestDetailsBaseTest
 
     //When
     final List<String> results = PullRequestDetailsBase.getConstraintConditionSummaries(
-        Lists.newArrayList(constraintFact1, constraintFact2, constraintFact3, constraintFact4), config.getBaseUrl());
+        Lists.newArrayList(constraintFact1, constraintFact2, constraintFact3, constraintFact4),
+        config.getBaseUrl(), CONVERT_URLS);
 
     //Then
     assertThat(results).hasSize(4);
@@ -215,7 +221,8 @@ public class PullRequestDetailsBaseTest
 
     //When
     final List<String> results = PullRequestDetailsBase.getConstraintConditionSummaries(
-        Lists.newArrayList(constraintFact1, constraintFact2, constraintFact3, constraintFact4), config.getBaseUrl());
+        Lists.newArrayList(constraintFact1, constraintFact2, constraintFact3, constraintFact4), config.getBaseUrl(),
+        CONVERT_URLS);
 
     //Then
     assertThat(results).hasSize(4);
@@ -232,7 +239,7 @@ public class PullRequestDetailsBaseTest
 
     //When
     final List<String> results = PullRequestDetailsBase.getConstraintConditionSummaries(
-        Lists.newArrayList(constraintFact1), config.getBaseUrl());
+        Lists.newArrayList(constraintFact1), config.getBaseUrl(), CONVERT_URLS);
 
     //Then
     assertThat(results).hasSize(1);
@@ -243,7 +250,7 @@ public class PullRequestDetailsBaseTest
   public void testGetConstraintConditionSummaries_NoConstraint() {
     //When
     final List<String> results = PullRequestDetailsBase.getConstraintConditionSummaries(
-        Lists.newArrayList(), config.getBaseUrl());
+        Lists.newArrayList(), config.getBaseUrl(), CONVERT_URLS);
 
     //Then
     assertThat(results).isEmpty();
@@ -256,7 +263,7 @@ public class PullRequestDetailsBaseTest
 
     //When
     final List<String> results = PullRequestDetailsBase.getConstraintConditionSummaries(
-        Lists.newArrayList(constraintFact1), config.getBaseUrl());
+        Lists.newArrayList(constraintFact1), config.getBaseUrl(), CONVERT_URLS);
 
     //Then
     assertThat(results).isEmpty();
@@ -270,7 +277,7 @@ public class PullRequestDetailsBaseTest
 
     //When
     final List<String> results = PullRequestDetailsBase.getConstraintConditionSummaries(
-        Lists.newArrayList(constraintFact1), config.getBaseUrl());
+        Lists.newArrayList(constraintFact1), config.getBaseUrl(), CONVERT_URLS);
 
     //Then
     assertThat(results).isEmpty();
@@ -283,7 +290,8 @@ public class PullRequestDetailsBaseTest
 
     //when
     final Optional<String> result = PullRequestDetailsBase
-        .getViolationSummaryForSecurityConditions(Lists.newArrayList(statusConditionFact), config.getBaseUrl());
+        .getViolationSummaryForSecurityConditions(Lists.newArrayList(statusConditionFact), config.getBaseUrl(),
+            CONVERT_URLS);
 
     //then
     assertThat(result).isNotEmpty();
@@ -298,7 +306,8 @@ public class PullRequestDetailsBaseTest
 
     //when
     final Optional<String> result = PullRequestDetailsBase
-        .getViolationSummaryForSecurityConditions(Lists.newArrayList(severityConditionFact), config.getBaseUrl());
+        .getViolationSummaryForSecurityConditions(Lists.newArrayList(severityConditionFact), config.getBaseUrl(),
+            CONVERT_URLS);
 
     //then
     assertThat(result).isNotEmpty();
@@ -315,7 +324,7 @@ public class PullRequestDetailsBaseTest
     //when
     final Optional<String> result = PullRequestDetailsBase
         .getViolationSummaryForSecurityConditions(Lists.newArrayList(statusConditionFact, severityConditionFact),
-            config.getBaseUrl());
+            config.getBaseUrl(), CONVERT_URLS);
 
     //then
     assertThat(result).isNotEmpty();
@@ -334,7 +343,7 @@ public class PullRequestDetailsBaseTest
     final Optional<String> result = PullRequestDetailsBase
         .getViolationSummaryForSecurityConditions(
             Lists.newArrayList(statusConditionFact, statusConditionFact2, severityConditionFact),
-            config.getBaseUrl());
+            config.getBaseUrl(), CONVERT_URLS);
 
     //then
     assertThat(result).isNotEmpty();
@@ -354,7 +363,7 @@ public class PullRequestDetailsBaseTest
     final Optional<String> result = PullRequestDetailsBase
         .getViolationSummaryForSecurityConditions(
             Lists.newArrayList(statusConditionFact, severityConditionFact, severityConditionFact2),
-            config.getBaseUrl());
+            config.getBaseUrl(), CONVERT_URLS);
 
     //then
     assertThat(result).isNotEmpty();
@@ -375,7 +384,7 @@ public class PullRequestDetailsBaseTest
     final Optional<String> result = PullRequestDetailsBase
         .getViolationSummaryForSecurityConditions(Lists
                 .newArrayList(statusConditionFact, statusConditionFact2, severityConditionFact, severityConditionFact2),
-            config.getBaseUrl());
+            config.getBaseUrl(), CONVERT_URLS);
 
     //then
     assertThat(result).isNotEmpty();
@@ -388,7 +397,7 @@ public class PullRequestDetailsBaseTest
   public void testGetViolationSummaryForSecurityConditions_Empty() {
     //when
     final Optional<String> result = PullRequestDetailsBase
-        .getViolationSummaryForSecurityConditions(Lists.newArrayList(), config.getBaseUrl());
+        .getViolationSummaryForSecurityConditions(Lists.newArrayList(), config.getBaseUrl(), CONVERT_URLS);
 
     //then
     assertThat(result).isEmpty();
@@ -477,73 +486,91 @@ public class PullRequestDetailsBaseTest
   }
 
   @Test
-  public void testApplyCVEUrl_CVE() {
+  public void testMaybeApplyCVEUrl_CVE() {
     //Setup
     final ConditionFact statusConditionFact = getSecurityStatusConditionFact("CVE-123-123");
 
     //when
-    final String result = PullRequestDetailsBase.applyCVEUrl(statusConditionFact, config.getBaseUrl());
+    final String result = PullRequestDetailsBase
+        .maybeApplyCVEUrl(statusConditionFact, config.getBaseUrl(), CONVERT_URLS);
 
     //then
     assertThat(result).isEqualTo("[CVE-123-123](http://localhost:1122/ui/links/vln/CVE-123-123)");
   }
 
   @Test
-  public void testApplyCVEUrl_SonatypeCapitals() {
+  public void testMaybeApplyCVEUrl_CVE_DoNotConvert() {
+    //Setup
+    final ConditionFact statusConditionFact = getSecurityStatusConditionFact("CVE-123-123");
+
+    //when - we pass in false for the URL conversion
+    final String result = PullRequestDetailsBase.maybeApplyCVEUrl(statusConditionFact, config.getBaseUrl(), false);
+
+    //then - URL conversion does not occur
+    assertThat(result).isEqualTo("CVE-123-123");
+  }
+
+  @Test
+  public void testMaybeApplyCVEUrl_SonatypeCapitals() {
     //Setup
     final ConditionFact statusConditionFact = getSecurityStatusConditionFact("SONATYPE-123-123");
 
     //when
-    final String result = PullRequestDetailsBase.applyCVEUrl(statusConditionFact, config.getBaseUrl());
+    final String result = PullRequestDetailsBase
+        .maybeApplyCVEUrl(statusConditionFact, config.getBaseUrl(), CONVERT_URLS);
 
     //then
     assertThat(result).isEqualTo("[SONATYPE-123-123](http://localhost:1122/ui/links/vln/SONATYPE-123-123)");
   }
 
   @Test
-  public void testApplyCVEUrl_SonatypeLower() {
+  public void testMaybeApplyCVEUrl_SonatypeLower() {
     //Setup
     final ConditionFact statusConditionFact = getSecurityStatusConditionFact("sonatype-123-123");
 
     //when
-    final String result = PullRequestDetailsBase.applyCVEUrl(statusConditionFact, config.getBaseUrl());
+    final String result =
+        PullRequestDetailsBase.maybeApplyCVEUrl(statusConditionFact, config.getBaseUrl(), CONVERT_URLS);
 
     //then
     assertThat(result).isEqualTo("[sonatype-123-123](http://localhost:1122/ui/links/vln/sonatype-123-123)");
   }
 
   @Test
-  public void testApplyCVEUrl_NoMatch() {
+  public void testMaybeApplyCVEUrl_NoMatch() {
     //Setup
     final ConditionFact statusConditionFact = getSecurityStatusConditionFact("invalid-cve");
 
     //when
-    final String result = PullRequestDetailsBase.applyCVEUrl(statusConditionFact, config.getBaseUrl());
+    final String result =
+        PullRequestDetailsBase.maybeApplyCVEUrl(statusConditionFact, config.getBaseUrl(), CONVERT_URLS);
 
     //then
     assertThat(result).isEqualTo("invalid-cve");
   }
 
   @Test
-  public void testApplyCVEUrl_NullReference() {
+  public void testMaybeApplyCVEUrl_NullReference() {
     //Setup
     final ConditionFact statusConditionFact = getSecurityStatusConditionFact(null);
     statusConditionFact.setReference(null);
 
     //when
-    final String result = PullRequestDetailsBase.applyCVEUrl(statusConditionFact, config.getBaseUrl());
+    final String result =
+        PullRequestDetailsBase.maybeApplyCVEUrl(statusConditionFact, config.getBaseUrl(), CONVERT_URLS);
 
     //then
     assertThat(result).isNull();
   }
 
   @Test
-  public void testApplyCVEUrl_NullReferenceValue() {
+  public void testMaybeApplyCVEUrl_NullReferenceValue() {
     //Setup
     final ConditionFact statusConditionFact = getSecurityStatusConditionFact(null);
 
     //when
-    final String result = PullRequestDetailsBase.applyCVEUrl(statusConditionFact, config.getBaseUrl());
+    final String result =
+        PullRequestDetailsBase.maybeApplyCVEUrl(statusConditionFact, config.getBaseUrl(), CONVERT_URLS);
 
     //then
     assertThat(result).isNull();

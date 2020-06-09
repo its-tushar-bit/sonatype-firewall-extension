@@ -178,7 +178,25 @@ public class PullRequestPollingServiceTest
     // then: no events emitted
     verify(mockAsyncEventBus, never()).post(any());
     assertThatLogMessagesEqual(
-        debug("GITLAB is not currently supported for pull request commenting")
+        debug("GITLAB is not currently supported for pull request commenting on repository https://domain.com/org/repo")
+    );
+  }
+
+  @Test
+  public void testFetchAndSendPullRequestsForCommenting_bitbucketCloudNotSupported() throws IOException {
+    // given:
+    String repositoryUrl = "https://bitbucket.org/org/repo";
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
+        .forRepository(repositoryUrl, "app1", "org/repo", SourceControlProvider.BITBUCKET)
+        .build();
+
+    // when: fetch and send
+    pollingService.fetchAndSendPullRequestsForCommenting();
+
+    // then: no events emitted
+    verify(mockAsyncEventBus, never()).post(any());
+    assertThatLogMessagesEqual(
+        debug("BITBUCKET is not currently supported for pull request commenting on repository " + repositoryUrl) 
     );
   }
 
@@ -330,7 +348,15 @@ public class PullRequestPollingServiceTest
         String orgAndRepoName,
         SourceControlProvider provider)
     {
-      String url = "https://domain.com/" + orgAndRepoName;
+      return forRepository("https://domain.com/" + orgAndRepoName, applicationId, orgAndRepoName, provider);
+    }
+
+    TestablePullRequestPollingServiceBuilder forRepository(
+        String url,
+        String applicationId,
+        String orgAndRepoName,
+        SourceControlProvider provider)
+    {
       String username = provider.requiresUsername() ? "username" : null;
       sourceControl = new SourceControl(applicationId, url, username, "token", provider, true, true, "master");
       sourceControl.setPullRequestPollTime(new Date());

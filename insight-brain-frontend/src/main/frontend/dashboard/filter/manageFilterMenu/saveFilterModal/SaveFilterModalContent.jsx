@@ -142,7 +142,7 @@ export default function SaveFilterModalContent(props) {
     </fieldset>;
 
   return (
-    <NxModal id="save-filter-modal">
+    <NxModal id="save-filter-modal" onClose={onCancel}>
       { (saveFilterSaving || saveFilterSuccess) &&
         <NxSubmitMask message="Saving…" success={saveFilterSuccess} /> }
       <header className="nx-modal-header">

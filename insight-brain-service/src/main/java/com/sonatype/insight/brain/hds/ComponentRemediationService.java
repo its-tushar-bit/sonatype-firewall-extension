@@ -37,10 +37,12 @@ import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -76,15 +78,19 @@ public class ComponentRemediationService
 
   private final ComponentPolicyEvaluator componentPolicyEvaluator;
 
+  private final ProductLicense productLicense;
+
   @Inject
   public ComponentRemediationService(
       TelemetrySender telemetrySender,
       HdsClient hdsClient,
-      ComponentPolicyEvaluator componentPolicyEvaluator)
+      ComponentPolicyEvaluator componentPolicyEvaluator,
+      ProductLicense productLicense)
   {
     this.telemetrySender = telemetrySender;
     this.hdsClient = hdsClient;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
+    this.productLicense = productLicense;
   }
 
   public ApiComponentRemediationValueDTO getSuggestedRemediation(
@@ -93,17 +99,6 @@ public class ComponentRemediationService
       final OwnerType ownerType,
       final String ownerId,
       final String stageId)
-  {
-    return getSuggestedRemediation(currentComponent, allVersions, ownerType, ownerId, stageId, false);
-  }
-
-  public ApiComponentRemediationValueDTO getSuggestedRemediation(
-      final ComponentIdentifier currentComponent,
-      final List<ComponentDetailsDTO> allVersions,
-      final OwnerType ownerType,
-      final String ownerId,
-      final String stageId,
-      final boolean includeAdvancedStrategies)
   {
     if (ownerType == OwnerType.REPOSITORY || ownerType == OwnerType.REPOSITORY_CONTAINER) {
       return null;
@@ -146,6 +141,7 @@ public class ComponentRemediationService
             telemetryAttributes.put(OPTION_NEXT_NON_FAILING_ATTR, String.valueOf(true));
           });
 
+      boolean includeAdvancedStrategies = productLicense.hasFeature(LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES);
       if (includeAdvancedStrategies) {
         // non-violating/non-failing with dependencies
         Collection<PackageUrlIdentifier> nonFailingVersionsPurls = nonFailingVersions.stream()

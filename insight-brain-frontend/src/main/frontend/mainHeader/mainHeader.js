@@ -15,7 +15,8 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
 
   Object.assign(vm, { faTachometerAltFast, faFileAlt, faSitemap, faAnalytics, faBug, faSearch, faUserAlt });
   vm.$state = $state;
-  vm.isDashboardLicensed = ProductFeatures.isDashboardLicensed;
+  vm.isDashboardAvailable = ProductFeatures.isDashboardAvailable;
+  vm.isReportsListAvailable = ProductFeatures.isReportsListAvailable;
   vm.isSuccessMetricsEnabled = false;
   vm.isAdvancedSearchEnabled = false;
   vm.permissions = {};

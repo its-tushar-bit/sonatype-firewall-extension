@@ -50,10 +50,12 @@ import org.mockito.MockitoAnnotations;
 
 import static com.sonatype.insight.brain.git.PullRequestCommentingService.APPLICATION_PULL_REQUEST_FETCH_COUNT;
 import static com.sonatype.insight.brain.git.PullRequestCommentingService.COMMIT_HISTORY_FETCH_COUNT;
+import static com.sonatype.insight.brain.git.PullRequestCommentingService.MINIMUM_THREAT_LEVEL;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -211,8 +213,8 @@ public class PullRequestCommentingServiceTest
         .withDevBranchPullRequest("INT-2493-pr-commenting-immediate-flow", 7, "commit456", "baseCommit")
         .withPolicyEvaluationDiffMarkup(commentText)
         .expectApplicationId("app1")
-        .withCommentForPullRequest(7, 27, "content-hash")
-        .withCommentResponseForPR(7, 27)
+        .withCommentForPullRequest(7, 27, 83, "content-hash", "sourcePe", "targetPe")
+        .withCommentResponseForPR(7, 27, 84)
         .withGeneratedContentHash("new-content-hash")
         .expectSourceCommit("commit456")
         .build();
@@ -226,12 +228,11 @@ public class PullRequestCommentingServiceTest
     // when : process event
     commentingService.onApplicationEvaluation(event);
 
-    // then : comment not created due to PR already having a comment from us
+    //then : comment not created due to PR already having a comment from us
     assertThatLogMessagesEqual(
         debug("obtained CommitInfo from SCM for commit 'commit456' with 1 pull request(s) and 0 base branch commit(s)"),
         debug("0 base branch commits to process for application 'app1'"),
-        info("pull request comment '27' updated for application 'app1' pull request '7'"),
-        debug("comment text = at least one new policy violation"),
+        info("pull request comment '27' with version '84' updated for application 'app1' pull request '7'"),
         debug("pull request comment '27' for application 'app1' pull request '7' recorded in database")
     );
   }
@@ -305,7 +306,7 @@ public class PullRequestCommentingServiceTest
         .withSourcePolicyEvaluation("sourcePe", "sourceCommit", "app1")
         .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
         .withPolicyEvaluationDiffMarkup(commentText)
-        .withCommentResponseForPR(14, 27)
+        .withCommentResponseForPR(14, 27, null)
         .withAddedViolation(new PolicyViolation())
         .expectApplicationId("app1")
         .expectSourceCommit("sourceCommit")
@@ -327,7 +328,6 @@ public class PullRequestCommentingServiceTest
             "and 0 base branch commit(s)"),
         debug("0 base branch commits to process for application 'app1'"),
         info("pull request comment '27' created for application 'app1' pull request '14'"),
-        debug("comment text = " + commentText),
         debug("pull request comment '27' for application 'app1' pull request '14' recorded in database")
     );
   }
@@ -341,7 +341,7 @@ public class PullRequestCommentingServiceTest
         .withSourcePolicyEvaluation("sourcePe", "sourceCommit", "app1")
         .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
         .withPolicyEvaluationDiffMarkup(commentText)
-        .withCommentResponseForPR(14, 27)
+        .withCommentResponseForPR(14, 27, null)
         .withAddedViolation(new PolicyViolation())
         .expectApplicationId("app1")
         .expectSourceCommit("sourceCommit")
@@ -365,7 +365,6 @@ public class PullRequestCommentingServiceTest
             "and 0 base branch commit(s)"),
         debug("0 base branch commits to process for application 'app1'"),
         info("pull request comment '27' created for application 'app1' pull request '14'"),
-        debug("comment text = " + commentText),
         debug("pull request comment '27' for application 'app1' pull request '14' recorded in database")
     );
   }
@@ -375,13 +374,8 @@ public class PullRequestCommentingServiceTest
     testUnsupported(SourceControlProvider.GITLAB);
   }
 
-  @Test
-  public void testOnApplicationEvaluation_BitbucketUnsupported() throws Exception {
-    testUnsupported(SourceControlProvider.BITBUCKET);
-  }
-
   private void testUnsupported(final SourceControlProvider sourceControlProvider) throws Exception {
-    // given : app source control provider = GitLab
+    // given : app source control provider
     PullRequestCommentingService commentingService = new TestablePullRequestCommentingServiceBuilder()
         .withProvider(sourceControlProvider)
         .withGitRepositoryEffectivelyPrivateThrows(UnsupportedOperationException.class)
@@ -411,7 +405,7 @@ public class PullRequestCommentingServiceTest
         .withSourcePolicyEvaluation("sourcePe", "sourceCommit", "app1")
         .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
         .withPolicyEvaluationDiffMarkup(commentText)
-        .withCommentResponseForPR(14, 25)
+        .withCommentResponseForPR(14, 25, null)
         .withGitRepositoryPrivate(false)
         .withGitRepositoryInternal(false)
         .expectApplicationId("app1")
@@ -450,8 +444,8 @@ public class PullRequestCommentingServiceTest
         .withSourcePolicyEvaluation("sourcePe", "sourceCommit", "app1")
         .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
         .withPolicyEvaluationDiffMarkup(commentText)
-        .withCommentResponseForPR(14, 28)
-        .withCommentResponseForPR(16, 32)
+        .withCommentResponseForPR(14, 28, null)
+        .withCommentResponseForPR(16, 32, null)
         .withAddedViolation(new PolicyViolation())
         .expectApplicationId("app1")
         .expectSourceCommit("sourceCommit")
@@ -476,13 +470,11 @@ public class PullRequestCommentingServiceTest
             "The head commit hash 'otherCommit', for application 'app1', PR '13' does not match the commit on " +
                 "the policy evaluation 'sourceCommit'"),
         info("pull request comment '28' created for application 'app1' pull request '14'"),
-        debug("comment text = " + commentText),
         debug("pull request comment '28' for application 'app1' pull request '14' recorded in database"),
         debug(
             "The head commit hash 'anotherCommit', for application 'app1', PR '15' does not match the commit on " +
                 "the policy evaluation 'sourceCommit'"),
         info("pull request comment '32' created for application 'app1' pull request '16'"),
-        debug("comment text = " + commentText),
         debug("pull request comment '32' for application 'app1' pull request '16' recorded in database")
     );
   }
@@ -500,8 +492,8 @@ public class PullRequestCommentingServiceTest
         .withSourcePolicyEvaluation("sourcePe", "sourceCommit", "app1")
         .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
         .withPolicyEvaluationDiffMarkup(commentText)
-        .withCommentResponseForPR(14, 42)
-        .withCommentResponseForPR(16, 48)
+        .withCommentResponseForPR(14, 42, null)
+        .withCommentResponseForPR(16, 48, null)
         .withAddedViolation(new PolicyViolation())
         .expectApplicationId("app1")
         .expectSourceCommit("sourceCommit")
@@ -524,11 +516,9 @@ public class PullRequestCommentingServiceTest
         debug("0 base branch commits to process for application 'app1'"),
         debug("application 'app1' pull request '13' state 'CLOSED' is not open, skipping commenting for this PR"),
         info("pull request comment '42' created for application 'app1' pull request '14'"),
-        debug("comment text = " + commentText),
         debug("pull request comment '42' for application 'app1' pull request '14' recorded in database"),
         debug("application 'app1' pull request '15' state 'MERGED' is not open, skipping commenting for this PR"),
         info("pull request comment '48' created for application 'app1' pull request '16'"),
-        debug("comment text = " + commentText),
         debug("pull request comment '48' for application 'app1' pull request '16' recorded in database")
     );
   }
@@ -573,7 +563,7 @@ public class PullRequestCommentingServiceTest
         .withBasePolicyEvaluation("basePe", "baseCommit", applicationId)
         .withPolicyEvaluationDiffMarkup(commentText)
         .expectApplicationId(applicationId)
-        .withCommentResponseForPR(20, 25)
+        .withCommentResponseForPR(20, 25, null)
         .withCommentForPullRequest(20, 25, "content-hash", "sourcePe-0", "basePe")
         .withGeneratedContentHash("new-content-hash")
         .expectSourceCommit("sourceCommit")
@@ -589,7 +579,6 @@ public class PullRequestCommentingServiceTest
     verify(mockTelemetrySender, only()).send((TelemetryData) any());
     assertThatLogMessagesEqual(
         info("pull request comment '25' updated for application 'app1' pull request '20'"),
-        debug("comment text = at least one new policy violation"),
         debug("pull request comment '25' for application 'app1' pull request '20' recorded in database")
     );
   }
@@ -631,7 +620,7 @@ public class PullRequestCommentingServiceTest
         .withSourcePolicyEvaluation("sourcePe", "sourceCommit", "app1")
         .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
         .withPolicyEvaluationDiffMarkup(commentText)
-        .withCommentResponseForPR(20, 25)
+        .withCommentResponseForPR(20, 25, null)
         .withAddedViolation(new PolicyViolation())
         .expectApplicationId("app1")
         .expectSourceCommit("sourceCommit")
@@ -647,7 +636,6 @@ public class PullRequestCommentingServiceTest
     verify(mockTelemetrySender, only()).send((TelemetryData) any());
     assertThatLogMessagesEqual(
         info("pull request comment '25' created for application 'app1' pull request '20'"),
-        debug("comment text = " + commentText),
         debug("pull request comment '25' for application 'app1' pull request '20' recorded in database")
     );
   }
@@ -683,7 +671,7 @@ public class PullRequestCommentingServiceTest
         .withSourcePolicyEvaluation("sourcePe", "sourceCommit", "app1")
         .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
         .withPolicyEvaluationDiffMarkup(commentText)
-        .withCommentResponseForPR(14, 27)
+        .withCommentResponseForPR(14, 27, null)
         .withAddedViolation(new PolicyViolation())
         .expectApplicationId("app1")
         .expectSourceCommit("sourceCommit")
@@ -836,8 +824,11 @@ public class PullRequestCommentingServiceTest
       doReturn(mockGitApiClient).when(mockGitClientFactory).createApiClient(gitRepositoryInfo);
 
       for (Entry<Integer, CommentResponse> entry : pullRequestCommentResponseMap.entrySet()) {
-        doReturn(entry.getValue()).when(mockGitApiClient).createPullRequestComment(eq(entry.getKey()), any());
-        doReturn(entry.getValue()).when(mockGitApiClient).updatePullRequestComment(eq(entry.getValue().getId()), any());
+        Integer prId = entry.getKey();
+        CommentResponse comment = entry.getValue();
+        doReturn(comment).when(mockGitApiClient).createPullRequestComment(eq(prId), any());
+        doReturn(comment).when(mockGitApiClient)
+            .updatePullRequestComment(eq(comment.getId()), eq(prId), nullable(Integer.class), any());
       }
 
       doReturn(mockPullRequestInfoProvider).when(mockGitClientFactory).createPullRequestInfoClient(gitRepositoryInfo);
@@ -862,7 +853,7 @@ public class PullRequestCommentingServiceTest
       doReturn(sourcePolicyEvaluation).when(mockPolicyEvaluationDAO).getById(eq(sourcePolicyEvaluation.getId()));
 
       doReturn(policyViolationDiff).when(mockPolicyEvaluationDiffService)
-          .createPolicyViolationDiff(basePolicyEvaluation, sourcePolicyEvaluation);
+          .createPolicyViolationDiff(basePolicyEvaluation, sourcePolicyEvaluation, MINIMUM_THREAT_LEVEL);
 
       doReturn(policyEvaluationDiffMarkup).when(mockPullRequestFeedbackMarkupService)
           .createMarkup(any(), any(), any(), any(), anyInt(), any(), any(), any());
@@ -977,10 +968,23 @@ public class PullRequestCommentingServiceTest
         String sourcePolicyEvaluationId,
         String targetPolicyEvaluationId)
     {
+      return withCommentForPullRequest(pullRequestNumber, commentId, 0, contentHash, sourcePolicyEvaluationId,
+          targetPolicyEvaluationId);
+    }
+
+    TestablePullRequestCommentingServiceBuilder withCommentForPullRequest(
+        int pullRequestNumber,
+        int commentId,
+        int commentVersion,
+        String contentHash,
+        String sourcePolicyEvaluationId,
+        String targetPolicyEvaluationId)
+    {
       pullRequestComment = new SourceControlPullRequestComment();
       pullRequestComment.setApplicationId(applicationId);
       pullRequestComment.setPullRequestId(pullRequestNumber);
       pullRequestComment.setPullRequestCommentId(commentId);
+      pullRequestComment.setPullRequestCommentVersion(commentVersion);
       pullRequestComment.setContentHash(contentHash);
       pullRequestComment.setSourcePolicyEvaluationId(sourcePolicyEvaluationId);
       pullRequestComment.setTargetPolicyEvaluationId(targetPolicyEvaluationId);
@@ -1015,9 +1019,14 @@ public class PullRequestCommentingServiceTest
       return this;
     }
 
-    TestablePullRequestCommentingServiceBuilder withCommentResponseForPR(int pullRequestId, int commentId) {
+    TestablePullRequestCommentingServiceBuilder withCommentResponseForPR(
+        int pullRequestId,
+        int commentId,
+        Integer commentVersion)
+    {
       CommentResponse commentResponse = new DefaultCommentResponse();
       commentResponse.setId(commentId);
+      commentResponse.setVersion(commentVersion);
       pullRequestCommentResponseMap.put(pullRequestId, commentResponse);
       return this;
     }

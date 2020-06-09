@@ -48,7 +48,7 @@ public class PullRequestCommentPurgerTest
 
     // when: no obsolete comments exist
     SourceControlPullRequestComment comment1 = new SourceControlPullRequestComment(
-        application.getId(), 1, 101, "contentHash", sourcePolicyEvaluation.getId(),
+        application.getId(), 1, 101, 3, "contentHash", sourcePolicyEvaluation.getId(),
         targetPolicyEvaluation.getId());
     sourceControlPullRequestCommentDAO.insert(comment1);
     pullRequestCommentPurger.purgeObsoleteRecords();
@@ -60,7 +60,7 @@ public class PullRequestCommentPurgerTest
 
     // when: one obsolete comment exists (and one not obsolete)
     SourceControlPullRequestComment comment2 = new SourceControlPullRequestComment(
-        application.getId(), 2, 102, "contentHash", sourcePolicyEvaluation.getId(),
+        application.getId(), 2, 102, 3, "contentHash", sourcePolicyEvaluation.getId(),
         targetPolicyEvaluation.getId());
     Date updateTime = Date.from(ZonedDateTime.now().minusMonths(12).toInstant());
     comment2.setUpdateTime(updateTime);

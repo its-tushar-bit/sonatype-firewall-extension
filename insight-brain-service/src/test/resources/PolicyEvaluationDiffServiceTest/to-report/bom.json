@@ -1,0 +1,483 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "jackson-annotations",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.fasterxml.jackson.core",
+          "version": "2.9.0"
+        }
+      },
+      "groupId": "com.fasterxml.jackson.core",
+      "artifactId": "jackson-annotations",
+      "version": "2.9.0",
+      "filenames": [
+        "jackson-annotations-2.9.0.jar"
+      ],
+      "pathnames": [
+        "intentionally-vulnerable-maven-project-0.0.1-SNAPSHOT.jar/BOOT-INF/lib/jackson-annotations-2.9.0.jar"
+      ],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "0d47936a4ce57483848a",
+      "relativePopularity": 1.0,
+      "createTime": 1501386820000,
+      "lastModifiedTime": 1501372406000,
+      "lastModifiedEntryTime": 1501372406000,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "cli",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "com.fasterxml.jackson.core"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "jackson-annotations"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "2.9.0"
+          }
+        ]
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "jul-to-slf4j",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.slf4j",
+          "version": "1.7.25"
+        }
+      },
+      "groupId": "org.slf4j",
+      "artifactId": "jul-to-slf4j",
+      "version": "1.7.25",
+      "filenames": [
+        "jul-to-slf4j-1.7.25.jar"
+      ],
+      "pathnames": [
+        "intentionally-vulnerable-maven-project-0.0.1-SNAPSHOT.jar/BOOT-INF/lib/jul-to-slf4j-1.7.25.jar"
+      ],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "66c07732d421568c8e4a",
+      "relativePopularity": 1.0,
+      "createTime": 1489682265000,
+      "lastModifiedTime": 1489696668000,
+      "lastModifiedEntryTime": 1489695512000,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "cli",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "org.slf4j"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "jul-to-slf4j"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "1.7.25"
+          }
+        ]
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "spring-boot-starter-actuator",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.springframework.boot",
+          "version": "2.1.2.RELEASE"
+        }
+      },
+      "groupId": "org.springframework.boot",
+      "artifactId": "spring-boot-starter-actuator",
+      "version": "2.1.2.RELEASE",
+      "filenames": [
+        "spring-boot-starter-actuator-2.1.2.RELEASE.jar"
+      ],
+      "pathnames": [
+        "intentionally-vulnerable-maven-project-0.0.1-SNAPSHOT.jar/BOOT-INF/lib/spring-boot-starter-actuator-2.1.2.RELEASE.jar"
+      ],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "e061b9f399a5e8d5cfcc",
+      "relativePopularity": 0.51,
+      "createTime": 1547265663000,
+      "lastModifiedTime": 1547275624000,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 139,
+          "path": "Monitoring and Management/Configuration Management"
+        }
+      ],
+      "hygieneRating": {
+        "id": 1,
+        "label": "Exemplar"
+      },
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "cli",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "org.springframework.boot"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "spring-boot-starter-actuator"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "2.1.2.RELEASE"
+          }
+        ]
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "jackson-core",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.fasterxml.jackson.core",
+          "version": "2.9.8"
+        }
+      },
+      "groupId": "com.fasterxml.jackson.core",
+      "artifactId": "jackson-core",
+      "version": "2.9.8",
+      "filenames": [
+        "jackson-core-2.9.8.jar"
+      ],
+      "pathnames": [
+        "intentionally-vulnerable-maven-project-0.0.1-SNAPSHOT.jar/BOOT-INF/lib/jackson-core-2.9.8.jar"
+      ],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "3202162bb547fa5a9c97",
+      "relativePopularity": 1.0,
+      "createTime": 1544908773000,
+      "lastModifiedTime": 1544894352000,
+      "lastModifiedEntryTime": 1544894352000,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "cli",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "com.fasterxml.jackson.core"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "jackson-core"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "2.9.8"
+          }
+        ]
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "log4j-to-slf4j",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.apache.logging.log4j",
+          "version": "2.11.1"
+        }
+      },
+      "groupId": "org.apache.logging.log4j",
+      "artifactId": "log4j-to-slf4j",
+      "version": "2.11.1",
+      "filenames": [
+        "log4j-to-slf4j-2.11.1.jar"
+      ],
+      "pathnames": [
+        "intentionally-vulnerable-maven-project-0.0.1-SNAPSHOT.jar/BOOT-INF/lib/log4j-to-slf4j-2.11.1.jar"
+      ],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "341edc63fdd8b44e17b2",
+      "relativePopularity": 0.25,
+      "createTime": 1532317656000,
+      "lastModifiedTime": 1532303254000,
+      "lastModifiedEntryTime": 1532303252000,
+      "website": "http://logging.apache.org/log4j/2.x/log4j-to-slf4j/",
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 81,
+          "path": "Logging/Bridges"
+        }
+      ],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "cli",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "org.apache.logging.log4j"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "log4j-to-slf4j"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "2.11.1"
+          }
+        ]
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "jackson-databind",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.fasterxml.jackson.core",
+          "version": "2.9.8"
+        }
+      },
+      "groupId": "com.fasterxml.jackson.core",
+      "artifactId": "jackson-databind",
+      "version": "2.9.8",
+      "filenames": [
+        "jackson-databind-2.9.8.jar"
+      ],
+      "pathnames": [
+        "intentionally-vulnerable-maven-project-0.0.1-SNAPSHOT.jar/BOOT-INF/lib/jackson-databind-2.9.8.jar"
+      ],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "341edc63fdd8b44e17b2",
+      "relativePopularity": 1.0,
+      "createTime": 1544911179000,
+      "lastModifiedTime": 1544925546000,
+      "lastModifiedEntryTime": 1544925546000,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "cli",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "com.fasterxml.jackson.core"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "jackson-databind"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "2.9.8"
+          }
+        ]
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "spring-expression",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.springframework",
+          "version": "5.1.4.RELEASE"
+        }
+      },
+      "groupId": "org.springframework",
+      "artifactId": "spring-expression",
+      "version": "5.1.4.RELEASE",
+      "filenames": [
+        "spring-expression-5.1.4.RELEASE.jar"
+      ],
+      "pathnames": [
+        "intentionally-vulnerable-maven-project-0.0.1-SNAPSHOT.jar/BOOT-INF/lib/spring-expression-5.1.4.RELEASE.jar"
+      ],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "341edc63fdd8b44e17b2",
+      "relativePopularity": 0.37,
+      "createTime": 1547040056000,
+      "lastModifiedTime": 1547051086000,
+      "lastModifiedEntryTime": 1547051086000,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 75,
+          "path": "Expression Language"
+        }
+      ],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "cli",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "org.springframework"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "spring-expression"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "5.1.4.RELEASE"
+          }
+        ]
+      }
+    }
+  ]
+}

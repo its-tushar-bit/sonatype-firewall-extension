@@ -46,6 +46,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.git.PullRequestCommentingService.MINIMUM_THREAT_LEVEL;
+import static com.sonatype.insight.brain.policy.evaluator.PullRequestDetailsBaseTest.CONVERT_URLS;
 import static com.sonatype.insight.brain.report.ReportTestUtils.createReportFile;
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -467,7 +469,8 @@ public class PullRequestFeedbackDetailsTest
 
   @Test
   public void testGetPoliciesViolatedMap_noPolicies() {
-    assertThat(PullRequestFeedbackDetails.getPoliciesViolatedMap(Collections.emptyList(), config.getBaseUrl()))
+    assertThat(
+        PullRequestFeedbackDetails.getPoliciesViolatedMap(Collections.emptyList(), config.getBaseUrl(), CONVERT_URLS))
         .isEmpty();
   }
 
@@ -477,7 +480,7 @@ public class PullRequestFeedbackDetailsTest
 
     final List<Map<String, Object>> result = PullRequestFeedbackDetails.getPoliciesViolatedMap(
         diff.getAppeared().stream().peek(policyViolation -> policyViolation.setPolicyId("1"))
-            .collect(Collectors.toList()), config.getBaseUrl());
+            .collect(Collectors.toList()), config.getBaseUrl(), CONVERT_URLS);
 
     assertThat(result).hasSize(1);
   }
@@ -485,7 +488,7 @@ public class PullRequestFeedbackDetailsTest
   @Test
   public void testGetConstraintsForPolicyViolationsPerPolicy_NoViolations() {
     assertThat(PullRequestFeedbackDetails
-        .getConstraintsForPolicyViolationsPerPolicy(Collections.emptyList(), config.getBaseUrl()))
+        .getConstraintsForPolicyViolationsPerPolicy(Collections.emptyList(), config.getBaseUrl(), CONVERT_URLS))
         .isEmpty();
   }
 
@@ -495,7 +498,7 @@ public class PullRequestFeedbackDetailsTest
 
     final List<Map<String, Object>> result = PullRequestFeedbackDetails
         .getConstraintsForPolicyViolationsPerPolicy(Collections.singletonList(diff.getAppeared().get(0)),
-            config.getBaseUrl());
+            config.getBaseUrl(), CONVERT_URLS);
 
     assertThat(result).hasSize(1);
   }
@@ -511,7 +514,7 @@ public class PullRequestFeedbackDetailsTest
           policyViolation.setPolicyId("1");
           policyViolation.setConstraintFacts(new ArrayList<>(policyViolation.getConstraintFacts()));
           policyViolation.getConstraintFacts().clear();
-        }).collect(Collectors.toList()), config.getBaseUrl());
+        }).collect(Collectors.toList()), config.getBaseUrl(), CONVERT_URLS);
 
     assertThat(result).isEmpty();
   }
@@ -525,7 +528,7 @@ public class PullRequestFeedbackDetailsTest
     final List<Map<String, Object>> result = PullRequestFeedbackDetails
         .getConstraintsForPolicyViolationsPerPolicy(diff.getAppeared().stream().peek(policyViolation -> {
           policyViolation.setPolicyId("1");
-        }).collect(Collectors.toList()), config.getBaseUrl());
+        }).collect(Collectors.toList()), config.getBaseUrl(), CONVERT_URLS);
 
     assertThat(result).hasSize(6);
   }
@@ -540,7 +543,7 @@ public class PullRequestFeedbackDetailsTest
 
     final List<Map<String, Object>> result = PullRequestFeedbackDetails
         .getConstraintsForPolicyViolationsPerPolicy(Collections.singletonList(diff.getAppeared().get(0)),
-            config.getBaseUrl());
+            config.getBaseUrl(), CONVERT_URLS);
 
     assertThat(result).isEmpty();
   }
@@ -565,7 +568,7 @@ public class PullRequestFeedbackDetailsTest
 
     //setup diff
     diff = policyEvaluationDiffService.createPolicyViolationDiff(defaultBranchPolicyEvaluation,
-        featureBranchPolicyEvaluation).get();
+        featureBranchPolicyEvaluation, MINIMUM_THREAT_LEVEL).get();
     
     //setup remediationVersionMap
     remediationVersionMap = new HashMap<>();

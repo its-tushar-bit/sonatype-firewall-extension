@@ -11,66 +11,16 @@
     "commitHash": "abcdef1234abcdef1234abcdef1234abcdef1234",
     "scanId": "fromScanId",
     "reportUrl": "ui/links/application/TEST_APP_PUBLIC_ID/report/fromScanId",
-    "scanTime": "2019-12-18T11:11:42.074-04:00"
+    "scanTime": "2020-05-14T14:52:38.309-03:00"
   },
   "toCommit": {
     "commitHash": "1234567890123456789012345678901234567890",
     "scanId": "toScanId",
     "reportUrl": "ui/links/application/TEST_APP_PUBLIC_ID/report/toScanId",
-    "scanTime": "2019-12-18T11:11:42.074-04:00"
+    "scanTime": "2020-05-14T14:52:38.309-03:00"
   },
-  "diffTime": "2019-12-18T11:12:14.206-04:00",
+  "diffTime": "2020-05-14T14:52:52.662-03:00",
   "addedViolations": [
-    {
-      "policyId": "appeared_4",
-      "policyName": "Security-High",
-      "policyViolationId": "appeared_4",
-      "threatLevel": 9,
-      "constraintViolations": [
-        {
-          "constraintId": "42b8b763e2dc497eb7e3f3c217a884d5",
-          "constraintName": "High risk CVSS score",
-          "reasons": [
-            {
-              "reason": "Found security vulnerability CVE-2018-12023 with severity >= 7 (severity = 7.5).",
-              "reference": {
-                "type": "SECURITY_VULNERABILITY_REFID",
-                "value": "CVE-2018-12023"
-              }
-            },
-            {
-              "reason": "Found security vulnerability CVE-2018-12023 with severity < 10 (severity = 7.5).",
-              "reference": {
-                "type": "SECURITY_VULNERABILITY_REFID",
-                "value": "CVE-2018-12023"
-              }
-            },
-            {
-              "reason": "Found security vulnerability CVE-2018-12023 with status 'Open', not 'Not Applicable'.",
-              "reference": {
-                "type": "SECURITY_VULNERABILITY_REFID",
-                "value": "CVE-2018-12023"
-              }
-            }
-          ]
-        }
-      ],
-      "component": {
-        "packageUrl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.8.11.1?type=jar",
-        "hash": "341edc63fdd8b44e17b2",
-        "componentIdentifier": {
-          "format": "maven",
-          "coordinates": {
-            "artifactId": "jackson-databind",
-            "classifier": "",
-            "extension": "jar",
-            "groupId": "com.fasterxml.jackson.core",
-            "version": "2.8.11.1"
-          }
-        },
-        "proprietary": false
-      }
-    },
     {
       "policyId": "appeared_1",
       "policyName": "Component-Unknown",
@@ -96,57 +46,8 @@
         "packageUrl": null,
         "hash": "0d47936a4ce57483848a",
         "componentIdentifier": null,
-        "proprietary": false
-      }
-    },
-    {
-      "policyId": "appeared_2",
-      "policyName": "Security-Low",
-      "policyViolationId": "appeared_2",
-      "threatLevel": 3,
-      "constraintViolations": [
-        {
-          "constraintId": "755261b0dcc945adb7ecdbdeb900ddcb",
-          "constraintName": "Low risk CVSS score",
-          "reasons": [
-            {
-              "reason": "Found security vulnerability CVE-2015-6644 with severity >= 0 (severity = 3.3).",
-              "reference": {
-                "type": "SECURITY_VULNERABILITY_REFID",
-                "value": "CVE-2015-6644"
-              }
-            },
-            {
-              "reason": "Found security vulnerability CVE-2015-6644 with severity < 4 (severity = 3.3).",
-              "reference": {
-                "type": "SECURITY_VULNERABILITY_REFID",
-                "value": "CVE-2015-6644"
-              }
-            },
-            {
-              "reason": "Found security vulnerability CVE-2015-6644 with status 'Open', not 'Not Applicable'.",
-              "reference": {
-                "type": "SECURITY_VULNERABILITY_REFID",
-                "value": "CVE-2015-6644"
-              }
-            }
-          ]
-        }
-      ],
-      "component": {
-        "packageUrl": "pkg:maven/org.jruby/jruby-complete@1.7.21?type=jar",
-        "hash": "e061b9f399a5e8d5cfcc",
-        "componentIdentifier": {
-          "format": "maven",
-          "coordinates": {
-            "artifactId": "jruby-complete",
-            "classifier": "",
-            "extension": "jar",
-            "groupId": "org.jruby",
-            "version": "1.7.21"
-          }
-        },
-        "proprietary": false
+        "proprietary": false,
+        "displayName": "com.fasterxml.jackson.core : jackson-annotations : 2.9.0"
       }
     },
     {
@@ -196,15 +97,65 @@
             "version": "2.8.11.1"
           }
         },
-        "proprietary": false
+        "proprietary": false,
+        "displayName": "org.springframework : spring-expression : 5.1.4.RELEASE"
       }
-    }
-  ],
-  "sameViolations": [
+    },
     {
-      "policyId": "same_2",
+      "policyId": "appeared_2",
+      "policyName": "Security-Low",
+      "policyViolationId": "appeared_2",
+      "threatLevel": 3,
+      "constraintViolations": [
+        {
+          "constraintId": "755261b0dcc945adb7ecdbdeb900ddcb",
+          "constraintName": "Low risk CVSS score",
+          "reasons": [
+            {
+              "reason": "Found security vulnerability CVE-2015-6644 with severity >= 0 (severity = 3.3).",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "CVE-2015-6644"
+              }
+            },
+            {
+              "reason": "Found security vulnerability CVE-2015-6644 with severity < 4 (severity = 3.3).",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "CVE-2015-6644"
+              }
+            },
+            {
+              "reason": "Found security vulnerability CVE-2015-6644 with status 'Open', not 'Not Applicable'.",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "CVE-2015-6644"
+              }
+            }
+          ]
+        }
+      ],
+      "component": {
+        "packageUrl": "pkg:maven/org.jruby/jruby-complete@1.7.21?type=jar",
+        "hash": "e061b9f399a5e8d5cfcc",
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "artifactId": "jruby-complete",
+            "classifier": "",
+            "extension": "jar",
+            "groupId": "org.jruby",
+            "version": "1.7.21"
+          }
+        },
+        "proprietary": false,
+        "displayName": "org.springframework.boot : spring-boot-starter-actuator : 2.1.2.RELEASE"
+      }
+    },
+    {
+      "policyId": "appeared_4",
       "policyName": "Security-High",
-      "policyViolationId": "same_2",
+      "policyViolationId": "appeared_4",
       "threatLevel": 9,
       "constraintViolations": [
         {
@@ -212,45 +163,48 @@
           "constraintName": "High risk CVSS score",
           "reasons": [
             {
-              "reason": "Found security vulnerability sonatype-2019-0115 with severity >= 7 (severity = 9.8).",
+              "reason": "Found security vulnerability CVE-2018-12023 with severity >= 7 (severity = 7.5).",
               "reference": {
                 "type": "SECURITY_VULNERABILITY_REFID",
-                "value": "sonatype-2019-0115"
+                "value": "CVE-2018-12023"
               }
             },
             {
-              "reason": "Found security vulnerability sonatype-2019-0115 with severity < 10 (severity = 9.8).",
+              "reason": "Found security vulnerability CVE-2018-12023 with severity < 10 (severity = 7.5).",
               "reference": {
                 "type": "SECURITY_VULNERABILITY_REFID",
-                "value": "sonatype-2019-0115"
+                "value": "CVE-2018-12023"
               }
             },
             {
-              "reason": "Found security vulnerability sonatype-2019-0115 with status 'Open', not 'Not Applicable'.",
+              "reason": "Found security vulnerability CVE-2018-12023 with status 'Open', not 'Not Applicable'.",
               "reference": {
                 "type": "SECURITY_VULNERABILITY_REFID",
-                "value": "sonatype-2019-0115"
+                "value": "CVE-2018-12023"
               }
             }
           ]
         }
       ],
       "component": {
-        "packageUrl": "pkg:maven/org.webjars/jquery@3.2.1?type=jar",
-        "hash": "3202162bb547fa5a9c97",
+        "packageUrl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.8.11.1?type=jar",
+        "hash": "341edc63fdd8b44e17b2",
         "componentIdentifier": {
           "format": "maven",
           "coordinates": {
-            "artifactId": "jquery",
+            "artifactId": "jackson-databind",
             "classifier": "",
             "extension": "jar",
-            "groupId": "org.webjars",
-            "version": "3.2.1"
+            "groupId": "com.fasterxml.jackson.core",
+            "version": "2.8.11.1"
           }
         },
-        "proprietary": false
+        "proprietary": false,
+        "displayName": "org.springframework : spring-expression : 5.1.4.RELEASE"
       }
-    },
+    }
+  ],
+  "sameViolations": [
     {
       "policyId": "same_3",
       "policyName": "Security-High",
@@ -298,7 +252,8 @@
             "version": "2.8.11.1"
           }
         },
-        "proprietary": false
+        "proprietary": false,
+        "displayName": "org.springframework : spring-expression : 5.1.4.RELEASE"
       }
     },
     {
@@ -348,7 +303,59 @@
             "version": "4.2.5.RELEASE"
           }
         },
-        "proprietary": false
+        "proprietary": false,
+        "displayName": "org.slf4j : jul-to-slf4j : 1.7.25"
+      }
+    },
+    {
+      "policyId": "same_2",
+      "policyName": "Security-High",
+      "policyViolationId": "same_2",
+      "threatLevel": 9,
+      "constraintViolations": [
+        {
+          "constraintId": "42b8b763e2dc497eb7e3f3c217a884d5",
+          "constraintName": "High risk CVSS score",
+          "reasons": [
+            {
+              "reason": "Found security vulnerability sonatype-2019-0115 with severity >= 7 (severity = 9.8).",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "sonatype-2019-0115"
+              }
+            },
+            {
+              "reason": "Found security vulnerability sonatype-2019-0115 with severity < 10 (severity = 9.8).",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "sonatype-2019-0115"
+              }
+            },
+            {
+              "reason": "Found security vulnerability sonatype-2019-0115 with status 'Open', not 'Not Applicable'.",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "sonatype-2019-0115"
+              }
+            }
+          ]
+        }
+      ],
+      "component": {
+        "packageUrl": "pkg:maven/org.webjars/jquery@3.2.1?type=jar",
+        "hash": "3202162bb547fa5a9c97",
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "artifactId": "jquery",
+            "classifier": "",
+            "extension": "jar",
+            "groupId": "org.webjars",
+            "version": "3.2.1"
+          }
+        },
+        "proprietary": false,
+        "displayName": "com.fasterxml.jackson.core : jackson-core : 2.9.8"
       }
     }
   ],
@@ -378,7 +385,8 @@
         "packageUrl": null,
         "hash": "b280b42422bb101124a4",
         "componentIdentifier": null,
-        "proprietary": false
+        "proprietary": false,
+        "displayName": "com.fasterxml.jackson.core : jackson-annotations : 2.9.0"
       }
     },
     {
@@ -428,7 +436,59 @@
             "version": "1.50"
           }
         },
-        "proprietary": false
+        "proprietary": false,
+        "displayName": "org.springframework.boot : spring-boot-starter-actuator : 2.1.2.RELEASE"
+      }
+    },
+    {
+      "policyId": "cleared_4",
+      "policyName": "Security-High",
+      "policyViolationId": "cleared_4",
+      "threatLevel": 1,
+      "constraintViolations": [
+        {
+          "constraintId": "42b8b763e2dc497eb7e3f3c217a884d5",
+          "constraintName": "High risk CVSS score",
+          "reasons": [
+            {
+              "reason": "Found security vulnerability CVE-2018-8034 with severity >= 7 (severity = 7.5).",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "CVE-2018-8034"
+              }
+            },
+            {
+              "reason": "Found security vulnerability CVE-2018-8034 with severity < 10 (severity = 7.5).",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "CVE-2018-8034"
+              }
+            },
+            {
+              "reason": "Found security vulnerability CVE-2018-8034 with status 'Open', not 'Not Applicable'.",
+              "reference": {
+                "type": "SECURITY_VULNERABILITY_REFID",
+                "value": "CVE-2018-8034"
+              }
+            }
+          ]
+        }
+      ],
+      "component": {
+        "packageUrl": "pkg:maven/org.apache.tomcat.embed/tomcat-embed-websocket@8.5.29?type=jar",
+        "hash": "37786f4ca8a1597a91a0",
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "artifactId": "tomcat-embed-websocket",
+            "classifier": "",
+            "extension": "jar",
+            "groupId": "org.apache.tomcat.embed",
+            "version": "8.5.29"
+          }
+        },
+        "proprietary": false,
+        "displayName": "org.springframework : spring-expression : 5.1.4.RELEASE"
       }
     },
     {
@@ -476,57 +536,8 @@
             "version": "1.10.2"
           }
         },
-        "proprietary": false
-      }
-    },
-    {
-      "policyId": "cleared_4",
-      "policyName": "Security-High",
-      "policyViolationId": "cleared_4",
-      "threatLevel": 9,
-      "constraintViolations": [
-        {
-          "constraintId": "42b8b763e2dc497eb7e3f3c217a884d5",
-          "constraintName": "High risk CVSS score",
-          "reasons": [
-            {
-              "reason": "Found security vulnerability CVE-2018-8034 with severity >= 7 (severity = 7.5).",
-              "reference": {
-                "type": "SECURITY_VULNERABILITY_REFID",
-                "value": "CVE-2018-8034"
-              }
-            },
-            {
-              "reason": "Found security vulnerability CVE-2018-8034 with severity < 10 (severity = 7.5).",
-              "reference": {
-                "type": "SECURITY_VULNERABILITY_REFID",
-                "value": "CVE-2018-8034"
-              }
-            },
-            {
-              "reason": "Found security vulnerability CVE-2018-8034 with status 'Open', not 'Not Applicable'.",
-              "reference": {
-                "type": "SECURITY_VULNERABILITY_REFID",
-                "value": "CVE-2018-8034"
-              }
-            }
-          ]
-        }
-      ],
-      "component": {
-        "packageUrl": "pkg:maven/org.apache.tomcat.embed/tomcat-embed-websocket@8.5.29?type=jar",
-        "hash": "37786f4ca8a1597a91a0",
-        "componentIdentifier": {
-          "format": "maven",
-          "coordinates": {
-            "artifactId": "tomcat-embed-websocket",
-            "classifier": "",
-            "extension": "jar",
-            "groupId": "org.apache.tomcat.embed",
-            "version": "8.5.29"
-          }
-        },
-        "proprietary": false
+        "proprietary": false,
+        "displayName": "com.fasterxml.jackson.core : jackson-databind : 2.9.8"
       }
     }
   ]

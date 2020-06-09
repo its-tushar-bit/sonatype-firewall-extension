@@ -21,11 +21,13 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationPolicyEvaluationsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiPolicyEvaluationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiScanResultDTOV2;
@@ -36,6 +38,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
@@ -43,6 +46,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @since 1.13.0
@@ -527,6 +531,38 @@ public class ApiEvaluationResourceV2Test
     assertThat(apiScanResultDTOV2.status).isNotNull();
   }
 
+  @Test
+  public void testGetApplicationEvaluations() throws Exception {
+    //setup
+    tempEntity.newPolicy(app);
+    final String scanId1 = "ScanId1";
+    final String scanId2 = "ScanId2";
+    final String scanId3 = "ScanId3";
+    mockReport(scanId1, "/" + getClass().getSimpleName() + "/report");
+    mockReport(scanId2, "/" + getClass().getSimpleName() + "/report");
+    mockReport(scanId3, "/" + getClass().getSimpleName() + "/report");
+
+    // Eval policy
+    HttpResponse response = evalRequest(app.getPublicId(), scanId1, new Stage(Stage.ID_BUILD)).post();
+    assertResponseStatus(200, response);
+    response = evalRequest(app.getPublicId(), scanId3, new Stage(Stage.ID_RELEASE)).post();
+    assertResponseStatus(200, response);
+    response = evalRequest(app.getPublicId(), scanId2, new Stage(Stage.ID_BUILD)).post();
+    assertResponseStatus(200, response);
+
+    //when fetching evaluations
+    response = restRequest().path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, app.getId()).get();
+
+    //then assert application with the 3 correct evaluations are returned
+    assertResponseStatus(200, response);
+    ApiApplicationPolicyEvaluationsDTO evaluations = response.getBody(ApiApplicationPolicyEvaluationsDTO.class);
+    assertThat(evaluations.applicationId).isEqualTo(app.getId());
+    assertThat(evaluations.policyEvaluations).hasSize(3);
+    assertPolicyEvaluationResults(evaluations.policyEvaluations.get(0));
+    assertPolicyEvaluationResults(evaluations.policyEvaluations.get(1));
+    assertPolicyEvaluationResults(evaluations.policyEvaluations.get(2));
+  }
+
   private void mockComponentDetails(final ComponentEvaluationDataList componentEvaluationDataList) {
     hdsRespondWith(componentEvaluationDataList).atUri(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH
         .replace("{purpose: evaluation|integration}", ApiComponentEvaluationServiceV2.PURPOSE_EVALUATION));
@@ -556,5 +592,21 @@ public class ApiEvaluationResourceV2Test
       Thread.sleep(RETRY_INTERVAL);
     }
     return response;
+  }
+
+  private HttpRequest evalRequest(String appId, String scanId, Stage stage) {
+    return super.restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", scanId).parameter(appId)
+        .body(stage);
+  }
+
+  private void assertPolicyEvaluationResults(ApiPolicyEvaluationDTO policyEvaluation) {
+    assertTrue(policyEvaluation.isReportAvailable);
+    assertThat(policyEvaluation.policyEvaluationResult.getAffectedComponentCount())
+        .isEqualTo(7);
+    assertThat(policyEvaluation.policyEvaluationResult.getCriticalComponentCount())
+        .isEqualTo(0);
+    assertThat(policyEvaluation.policyEvaluationResult.getModerateComponentCount())
+        .isEqualTo(0);
+    assertThat(policyEvaluation.policyEvaluationResult.getSevereComponentCount()).isEqualTo(7);
   }
 }

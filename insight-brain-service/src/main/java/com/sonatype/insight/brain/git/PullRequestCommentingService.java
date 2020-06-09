@@ -385,7 +385,7 @@ public class PullRequestCommentingService
     }
     else {
       commentResponse =
-          gitApiClient.updatePullRequestComment(pullRequestNumber, existingPullRequestComment.getPullRequestCommentId(),
+          gitApiClient.updatePullRequestComment(existingPullRequestComment.getPullRequestCommentId(), pullRequestNumber,
               existingPullRequestComment.getPullRequestCommentVersion(), commentText);
       if (commentResponse.getVersion() == null) {
         log.info("pull request comment '{}' updated for application '{}' pull request '{}'",

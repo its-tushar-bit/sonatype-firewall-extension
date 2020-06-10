@@ -169,6 +169,9 @@ public enum AuditEvent
 
   CREATE_PULL_REQUEST(Domain.NOTIFICATION_PULL_REQUEST, Type.CREATE),
 
+  CREATE_PULL_REQUEST_COMMENT(Domain.NOTIFICATION_PULL_REQUEST_COMMENT, Type.CREATE),
+  UPDATE_PULL_REQUEST_COMMENT(Domain.NOTIFICATION_PULL_REQUEST_COMMENT, Type.UPDATE),
+
   CONFIGURE_PROXY(Domain.SERVER_PROXY, Type.CONFIGURE),
 
   CONFIGURE_MAIL(Domain.SERVER_MAIL, Type.CONFIGURE),
@@ -363,6 +366,8 @@ public enum AuditEvent
     String NOTIFICATION_ISSUE_JIRA = join(NOTIFICATION, join("issue", "jira"));
 
     String NOTIFICATION_PULL_REQUEST = join(NOTIFICATION, "pull-request");
+
+    String NOTIFICATION_PULL_REQUEST_COMMENT = join(NOTIFICATION_PULL_REQUEST, "comment");
 
     static String join(String parent, String child) {
       return parent + "." + child;

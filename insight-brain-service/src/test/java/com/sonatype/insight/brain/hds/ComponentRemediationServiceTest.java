@@ -53,7 +53,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.when;
 
 public class ComponentRemediationServiceTest
     extends AbstractComponentTest
@@ -289,7 +288,7 @@ public class ComponentRemediationServiceTest
   }
 
   private void mockLicenseFeature(boolean includeAdvancedStrategies) {
-    when(productLicense.hasFeature(eq(LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES)))
+    lenient().when(productLicense.hasFeature(eq(LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES)))
         .thenReturn(includeAdvancedStrategies);
   }
 
@@ -411,6 +410,63 @@ public class ComponentRemediationServiceTest
     assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING, componentDtoA1V2));
     assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING_WITH_DEPENDENCIES, componentDtoA1V2));
     assertThat(dto.versionChanges).hasSize(4);
+  }
+
+  /**
+   * Test with advanced strategies flag as true, with dependencies.
+   * Looking up NuGet versions a1, a2, and a3 with a1 being the current version.
+   * a1 dependencies: a2
+   * a2 dependencies: a3
+   * a3 dependencies: none
+   * a1 has a warn alert (*non-failing), a2 has a warn alert, and a3 has no alerts (*non-violating).
+   */
+  @Test
+  public void testAdvanced_NonMaven() {
+    ComponentIdentifier compIdNgA1 = ComponentIdentifier.createNugetCoordinates("a1", "v");
+    ComponentIdentifier compIdNgA2 = ComponentIdentifier.createNugetCoordinates("a2", "v");
+    ComponentIdentifier compIdNgA3 = ComponentIdentifier.createNugetCoordinates("a3", "v");
+    PackageUrlIdentifier purlNgA1 = PackageUrlIdentifier.fromComponentIdentifier(compIdNgA1);
+    PackageUrlIdentifier purlNgA2 = PackageUrlIdentifier.fromComponentIdentifier(compIdNgA2);
+    PackageUrlIdentifier purlNgA3 = PackageUrlIdentifier.fromComponentIdentifier(compIdNgA3);
+
+    Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
+    Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
+    dependenciesMap.put(purlNgA1, Collections.singletonList(purlNgA2));
+    dependenciesMap.put(purlNgA2, Collections.singletonList(purlNgA3));
+    dependenciesMap.put(purlNgA3, Collections.emptyList());
+
+    ComponentDetails detailsNgA2 = buildComponentDetails(compIdNgA2, Collections.singletonList(warnAlert));
+    ComponentDetails detailsNgA3 = buildComponentDetails(compIdNgA3, null);
+    detailsMap.put(purlNgA2, detailsNgA2);
+    detailsMap.put(purlNgA3, detailsNgA3);
+
+    ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
+    ComponentDetailsDTO ngDtoA1 = new ComponentDetailsDTO();
+    ngDtoA1.componentIdentifier = compIdNgA1;
+    ngDtoA1.violatedPolicyCount = 1;
+    ComponentDetailsDTO ngDtoA2 = new ComponentDetailsDTO();
+    ngDtoA2.componentIdentifier = compIdNgA2;
+    ngDtoA2.violatedPolicyCount = 1;
+    ComponentDetailsDTO ngDtoA3 = new ComponentDetailsDTO();
+    ngDtoA3.componentIdentifier = compIdNgA3;
+    ngDtoA3.violatedPolicyCount = 0;
+    List<ComponentDetailsDTO> allVersions = Arrays.asList(ngDtoA1, ngDtoA2, ngDtoA3);
+
+    mockHdsGetComponentDependencies(returnDto);
+    mockLicenseFeature(true);
+    ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(compIdNgA1,
+        allVersions, org.getType(), org.getId(), DevelopStageType.ID);
+
+    ApiComponentDTOV2 ngApiDtoA1 = new ApiComponentDTOV2();
+    ngApiDtoA1.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(compIdNgA1);
+    ngApiDtoA1.packageUrl = "pkg:nuget/a1@v";
+    ApiComponentDTOV2 ngApiDtoA3 = new ApiComponentDTOV2();
+    ngApiDtoA3.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(compIdNgA3);
+    ngApiDtoA3.packageUrl = "pkg:nuget/a3@v";
+
+    assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING, ngApiDtoA1));
+    assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS, ngApiDtoA3));
+    assertThat(dto.versionChanges).hasSize(2);
   }
 
   /**

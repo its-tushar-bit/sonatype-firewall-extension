@@ -17,6 +17,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationReportDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportHistoryDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiReportServiceV2;
 
 import com.codahale.metrics.annotation.Timed;
@@ -46,5 +47,14 @@ public class ApiReportResourceV2
   @Produces(MediaType.APPLICATION_JSON)
   public List<ApiApplicationReportDTOV2> getAll() {
     return reportService.getAll();
+  }
+
+  @Path("{applicationId}/history")
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public ApiReportHistoryDTO getReportHistoryForApplication(
+      @PathParam("applicationId") final String applicationId)
+  {
+    return reportService.getReportHistoryForApplication(applicationId);
   }
 }

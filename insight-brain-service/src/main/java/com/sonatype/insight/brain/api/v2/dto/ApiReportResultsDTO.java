@@ -5,21 +5,13 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
-import java.util.Date;
-
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.utils.ISODateSerializer;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
-public class ApiPolicyEvaluationDTO
+public class ApiReportResultsDTO
+    extends ApiApplicationReportDTOV2
 {
-  public String id;
-
-  public String applicationId;
-
-  public String stageTypeId;
+  public String policyEvaluationId;
 
   public String scanId;
 
@@ -29,43 +21,36 @@ public class ApiPolicyEvaluationDTO
 
   public String commitHash;
 
-  public boolean isReportAvailable;
-
-  @JsonSerialize(using = ISODateSerializer.class)
-  public Date time;
-
   public PolicyEvaluationResult policyEvaluationResult;
 
-  public ApiPolicyEvaluationDTO() {
+  public ApiReportResultsDTO() {
   }
 
-  public ApiPolicyEvaluationDTO(
+  public ApiReportResultsDTO(
       final PolicyEvaluation policyEvaluation,
-      final PolicyEvaluationResult policyEvaluationResult,
-      final boolean isReportAvailable)
+      final PolicyEvaluationResult policyEvaluationResult)
   {
     this.applicationId = policyEvaluation.getApplicationId();
-    this.stageTypeId = policyEvaluation.getStageTypeId();
+    this.stage = policyEvaluation.getStageTypeId();
     this.scanId = policyEvaluation.getScanId();
     this.isReevaluation = policyEvaluation.isReevaluation();
     this.isForMonitoring = policyEvaluation.isForMonitoring();
-    this.id = policyEvaluation.getId();
-    this.time = policyEvaluation.getTime();
+    this.policyEvaluationId = policyEvaluation.getId();
+    this.evaluationDate = policyEvaluation.getTime();
     this.commitHash = policyEvaluation.getCommitHash();
     this.policyEvaluationResult = policyEvaluationResult;
-    this.isReportAvailable = isReportAvailable;
   }
 
   @Override
   public String toString() {
     return "PolicyEvaluation{" + //
-        "id='" + id + '\'' + //
+        "policyEvaluationId='" + policyEvaluationId + '\'' + //
         ", applicationId='" + applicationId + '\'' + //
-        ", stageTypeId='" + stageTypeId + '\'' + //
+        ", stageTypeId='" + stage + '\'' + //
         ", scanId='" + scanId + '\'' + //
         ", isReevaluation=" + isReevaluation + //
         ", isForMonitoring=" + isForMonitoring + //
-        ", time=" + time + " (" + (time == null ? "" : time.getTime()) + ")" + //
+        ", reportDate=" + evaluationDate + " (" + (evaluationDate == null ? "" : evaluationDate.getTime()) + ")" + //
         ", commitHash='" + commitHash + '\'' + //
         '}';
   }

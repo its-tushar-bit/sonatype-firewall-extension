@@ -12,7 +12,13 @@ import * as dashboardFilterActions from '../dashboardFilterActions';
 function mapStateToProps({ manageFilters, dashboardFilter }) {
   return {
     ...dashboardFilter,
-    ...pick(['appliedFilterName', 'showDirtyAsterisk', 'showSaveFilterModal'], manageFilters)
+    ...pick([
+      'appliedFilterName',
+      'showDirtyAsterisk',
+      'showSaveFilterModal',
+      'savedFilters',
+      'filtersDropdownOpen'
+    ], manageFilters)
   };
 }
 

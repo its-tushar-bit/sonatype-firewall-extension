@@ -1,0 +1,73 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
+
+.nx-dropdown.iq-manage-filters-dropdown {
+  display: block;
+  margin-top: 8px;
+
+  .nx-dropdown__toggle {
+    align-items: center;
+    display: flex;
+    padding: 0 $nx-spacing-xs;
+    text-align: inherit;
+    width: 100%;
+
+    .iq-manage-filters-dropdown__label {
+      @include truncate-ellipsis;
+      flex-grow: 1;
+    }
+
+    .iq-manage-filters-dropdown__dirty-asterisk {
+      color: $nx-off-black;
+      font-size: 16px;
+    }
+  }
+
+  .nx-dropdown-menu {
+    @include vertically-scrollable($iq-scrollable-default-height);
+    $menu-padding: $nx-spacing-xs;
+    $menu-border: 1px;
+
+    padding: $menu-padding;
+    width: calc(100% - #{2 * ($menu-padding + $menu-border)});
+
+    .iq-manage-filters-dropdown__option {
+      display: flex;
+
+      &:hover, &:focus {
+        background-color: $nx-grey-1;
+      }
+
+      &.iq-manage-filters-dropdown__option--selected {
+        background-color: $iq-blue-light;
+
+        .nx-dropdown-button {
+          @include semi-bold();
+          color: $nx-off-black
+        }
+      }
+
+      .nx-dropdown-button--select-filter {
+        background-color: unset;
+        flex-grow: 1;
+        padding-left: $nx-spacing-xxs;
+
+        &:hover, &:focus {
+          color: $nx-off-black
+        }
+      }
+
+      .nx-btn--delete-filter {
+        margin: 0;
+        min-width: auto;
+        padding: 0 8px;
+      }
+    }
+  }
+}

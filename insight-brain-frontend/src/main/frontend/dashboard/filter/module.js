@@ -7,10 +7,9 @@ import { react2angular } from 'react2angular';
 
 import CLMLocationModule from '../../util/CLMLocation';
 import manageFiltersReducer from './manageFiltersReducer';
-import deleteFiltersModalController from './manageFilterMenu/deleteFiltersModal/deleteFiltersModalController';
-import deleteFiltersModal from './manageFilterMenu/deleteFiltersModal/deleteFiltersModal';
+import deleteFiltersModalController from './manageFiltersDropdown/deleteFiltersModal/deleteFiltersModalController';
+import deleteFiltersModal from './manageFiltersDropdown/deleteFiltersModal/deleteFiltersModal';
 import withStoreProvider from '../../reactAdapter/StoreProvider';
-import manageFilterMenu from './manageFilterMenu/manageFilterMenu';
 import utilityModule from '../../utility/utility.module';
 import storesModule from '../../util/Stores';
 import dashboardUtilsModule from '../utils/dashboard.utils.module';
@@ -31,7 +30,6 @@ var module = angular.module('dashboardFilter',
     // manage filter modal
     .controller('deleteFiltersModalController', deleteFiltersModalController)
     .service('deleteFiltersModal', deleteFiltersModal)
-    .component('manageFilterMenu', manageFilterMenu)
     .value('dashboardFilterActions', dashboardFilterActions)
     .value('manageFiltersReducer', manageFiltersReducer)
     .value('dashboardFilterReducer', dashboardFilterReducer);

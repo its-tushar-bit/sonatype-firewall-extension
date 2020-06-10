@@ -6,8 +6,6 @@
 import React from 'react';
 import { mount } from 'enzyme';
 
-import DashboardFilterHeader from
-  '../../../../../main/frontend/dashboard/filter/dashboardFilter/DashboardFilterHeader';
 import DashboardFilterFooter from
   '../../../../../main/frontend/dashboard/filter/dashboardFilter/DashboardFilterFooter';
 import {
@@ -19,6 +17,9 @@ import {
 } from '../../../../../main/frontend/dashboard/filter/staticFilterEntries';
 import * as enzymeUtils from '../../../enzymeUtils';
 import LoadWrapper from '../../../../../main/frontend/react/LoadWrapper';
+import ManageFiltersDropdown
+  from '../../../../../main/frontend/dashboard/filter/manageFiltersDropdown/ManageFiltersDropdown';
+import { NxErrorAlert } from '@sonatype/react-shared-components';
 
 describe('DashboardFilter', function() {
   let getShallowComponent, loadFilterSpy, minimalProps, SaveFilterModalContainerMock, DashboardFilter;
@@ -63,12 +64,26 @@ describe('DashboardFilter', function() {
     }
   };
 
+  const savedFilters = [
+    {
+      name: 'foo'
+    },
+    {
+      name: 'bar'
+    }
+  ];
+
   beforeEach(function() {
     loadFilterSpy = jasmine.createSpy('loadFilter');
     minimalProps = {
       ...filterData,
       loadFilter: loadFilterSpy,
-      loading: false
+      loading: false,
+      savedFilters,
+      filtersDropdownOpen: true,
+      applyDefaultFilter: jasmine.createSpy('applyDefaultFilter'),
+      applySavedFilter: jasmine.createSpy('applySavedFilter'),
+      toggleFiltersDropdown: jasmine.createSpy('toggleFiltersDropdown')
     };
     SaveFilterModalContainerMock = jasmine.createSpy('SaveFilterModalContainer')
         .and.returnValue(<div>Save Filter Modal</div>);
@@ -76,7 +91,7 @@ describe('DashboardFilter', function() {
     DashboardFilter = require(
         'inject-loader!../../../../../main/frontend/dashboard/filter/dashboardFilter/DashboardFilter'
     )({
-      '../manageFilterMenu/saveFilterModal/SaveFilterModalContainer': SaveFilterModalContainerMock
+      '../saveFilterModal/SaveFilterModalContainer': SaveFilterModalContainerMock
     }).default;
 
     getShallowComponent = enzymeUtils.getShallowComponent(DashboardFilter, minimalProps);
@@ -92,19 +107,69 @@ describe('DashboardFilter', function() {
     component.unmount();
   });
 
-  it('renders a DashboardFilterHeader with the correct props', function() {
-    const props = {
-          appliedFilterName: 'a filter name',
-          showDirtyAsterisk: false,
-          loadErrorFilterName: 'err filter'
-        },
-        fullFilter = getShallowComponent(props),
-        filterHeader = fullFilter.find(DashboardFilterHeader);
+  describe('apply named filter error', function() {
+    it('is rendered within scrollable section if loadErrorFilterName is not null', function() {
+      const props = { loadErrorFilterName: 'filter 1234' },
+          shallowRender = getShallowComponent(props),
+          filter = shallowRender.find('.dashboard-filter');
 
-    expect(filterHeader).toExist();
-    expect(filterHeader).toHaveProp('appliedFilterName', props.appliedFilterName);
-    expect(filterHeader).toHaveProp('showDirtyAsterisk', props.showDirtyAsterisk);
-    expect(filterHeader).toHaveProp('loadErrorFilterName', props.loadErrorFilterName);
+      expect(filter).toContainReact(<NxErrorAlert>Failed to load filter 1234</NxErrorAlert>);
+    });
+
+    it('is not rendered if loadErrorFilterName is null', function() {
+      const props = { loadErrorFilterName: null },
+          shallowRender = getShallowComponent(props),
+          error = shallowRender.find('.nx-alert');
+      expect(error).not.toExist();
+    });
+  });
+
+  describe('filter header', function() {
+    it('renders ManageFiltersDropdown outside of label element', function() {
+      const props = {
+            appliedFilterName: 'some filter',
+            showDirtyAsterisk: true
+          },
+          shallowRender = getShallowComponent(props),
+          header = shallowRender.find('.dashboard-filter-header');
+
+      expect(header.childAt(0)).toHaveClassName('nx-label');
+      expect(header.childAt(0)).toHaveText('Filter');
+
+      expect(header.childAt(1)).toContainReact(
+        <ManageFiltersDropdown appliedFilterName="some filter"
+                               showDirtyAsterisk={true}
+                               savedFilters={savedFilters}
+                               filtersDropdownOpen={true}
+                               applyDefaultFilter={minimalProps.applyDefaultFilter}
+                               applySavedFilter={minimalProps.applySavedFilter}
+                               toggleFiltersDropdown={minimalProps.toggleFiltersDropdown}/>
+      );
+    });
+
+    it('does not render ManageFiltersDropdown if loading', function() {
+      const props = {
+            appliedFilterName: 'some filter',
+            showDirtyAsterisk: true,
+            loading: true
+          },
+          shallowRender = getShallowComponent(props),
+          header = shallowRender.find('.dashboard-filter-header');
+
+      expect(header.find('.iq-manage-filters-dropdown')).not.toExist();
+    });
+
+    it('does not render ManageFiltersDropdown if loadError', function() {
+      const props = {
+            appliedFilterName: 'some filter',
+            showDirtyAsterisk: true,
+            loadError: 'Error'
+          },
+          shallowRender = getShallowComponent(props),
+          header = shallowRender.find('.dashboard-filter-header');
+
+      expect(header.find('.iq-manage-filters-dropdown')).not.toExist();
+    });
   });
 
   it('renders a DashboardFilterFooter with the correct props', function() {

@@ -77,12 +77,8 @@ public class DashboardFilters
     return new Tooltip("#dashboard-filter-save-tooltip");
   }
 
-  public static SelenideElement saveFilterNameLabel() {
-    return $(".dashboard-filter-name");
-  }
-
-  public static SelenideElement saveFilterDirtyAsterisk() {
-    return $(".dashboard-filter-name .dashboard-filter-dirty-asterisk");
+  public static ManageFiltersDropdown manageFiltersDropdown() {
+    return new ManageFiltersDropdown();
   }
 
   public static void apply() {
@@ -95,55 +91,67 @@ public class DashboardFilters
     return new SaveFilterDialog();
   }
 
-  public static ManageFilters manage() {
-    return new ManageFilters();
-  }
-
-  public static class ManageFilters
-      extends BasicElement<ManageFilters>
+  public static class ManageFiltersDropdown
+      extends BasicElement<ManageFiltersDropdown>
   {
-    public ManageFilters() {
-      super("#manage-filters-dropdown");
+    public ManageFiltersDropdown() {
+      super("#dashboard-filter-header .iq-manage-filters-dropdown");
+    }
+
+    public SelenideElement selectedFilterLabel() {
+      return child(".iq-manage-filters-dropdown__label");
+    }
+
+    public SelenideElement selectedFilterDirtyAsterisk() {
+      return child(".iq-manage-filters-dropdown__dirty-asterisk");
     }
 
     public SelenideElement openMenuButton() {
-      return $("#manage-filters-button");
+      return $(".nx-dropdown__toggle");
     }
 
-    public SelenideElement dropdownMenu() {
-      return child(".dropdown-menu");
+    public ManageFiltersDropdownMenu dropdownMenu() {
+      return new ManageFiltersDropdownMenu(selector);
     }
+  }
 
-    public SelenideElement saveFilter() {
-      return $("#show-save-filter-modal");
-    }
-
-    public SelenideElement deleteFilters() {
-      return $("#show-delete-filters-modal");
-    }
-
-    public SelenideElement tooltip() {
-      return $(".filter-label-tooltip");
+  public static class ManageFiltersDropdownMenu
+      extends BasicElement<ManageFiltersDropdownMenu>
+  {
+    public ManageFiltersDropdownMenu(String selector) {
+      super(selector, ".nx-dropdown-menu");
     }
 
     public SelenideElement emptyListMessage() {
-      return child(".iq-list__item--empty");
+      return child(".nx-list__item--empty");
     }
 
-    public DeleteFiltersDialog deleteFiltersDialog() {
-      return new DeleteFiltersDialog();
+    public ElementsCollection options() {
+      return children(".iq-manage-filters-dropdown__option");
     }
 
-    public DeleteDialog deleteDialog() {
-      return new DeleteDialog();
+    public ManageFiltersDropdownOption defaultFilterOption() {
+      return option(0);
     }
 
-    public ElementsCollection filters() {
-      return children("#manage-filter-list", ".iq-list__item");
+    public ManageFiltersDropdownOption option(int i) {
+      return new ManageFiltersDropdownOption(".iq-manage-filters-dropdown__option", SelectorUtils.nthChild(i + 1));
+    }
+  }
+
+  public static class ManageFiltersDropdownOption
+      extends BasicElement<ManageFiltersDropdownOption>
+  {
+    public ManageFiltersDropdownOption(String... selectors) {
+      super(selectors);
     }
 
-    public SelenideElement filter(int i) {
-      return child("#manage-filter-list", ".iq-list__item", SelectorUtils.nthChild(i + 1));
+    public SelenideElement selectFilterButton() {
+      return child(".nx-dropdown-button--select-filter");
+    }
+
+    public SelenideElement deleteFilterButton() {
+      return child(".nx-btn--delete-filter");
     }
   }
 

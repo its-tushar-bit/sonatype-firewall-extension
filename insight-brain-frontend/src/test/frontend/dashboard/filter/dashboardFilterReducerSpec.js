@@ -651,61 +651,6 @@ describe('dashboardFilterReducer', function() {
     });
   });
 
-  describe('CLEAR_FILTER action', function() {
-    it('resets selected filter to default and resets loadErrorFilterName', function() {
-      var state = Object.freeze({
-        loadErrorFilterName: 'Test filter name',
-        appliedFilter: {},
-        selected: {},
-        other: otherObject
-      });
-      var newState = reduce(state, {type: 'CLEAR_FILTER'});
-      expect(newState.loadErrorFilterName).toBeNull();
-      expect(newState.selected.organizations).toEqual(new Set());
-      expect(newState.selected.applications).toEqual(new Set());
-      expect(newState.selected.categories).toEqual(new Set());
-      expect(newState.selected.stages).toEqual(new Set());
-      expect(newState.selected.policyTypes).toEqual(new Set());
-      expect(newState.selected.policyViolationStates).toEqual(new Set(['OPEN']));
-      expect(newState.selected.maxDaysOld).toBe(30);
-      expect(newState.selected.policyThreatLevels).toEqual([2, 10]);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
-    });
-
-    it('sets filtersAreDirty to true if appliedFilter is not the same as default', function() {
-      var state = Object.freeze({
-        filtersAreDirty: false,
-        appliedFilter: {},
-        selected: {},
-        other: otherObject
-      });
-      var newState = reduce(state, {type: 'CLEAR_FILTER'});
-      expect(newState.filtersAreDirty).toBe(true);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
-    });
-
-    it('sets filtersAreDirty to false if appliedFilter is the same as default', function() {
-      var state = Object.freeze({
-        filtersAreDirty: true,
-        appliedFilter: {
-          organizations: new Set(),
-          applications: new Set(),
-          categories: new Set(),
-          stages: new Set(),
-          policyTypes: new Set(),
-          policyViolationStates: new Set(['OPEN']),
-          maxDaysOld: 30,
-          policyThreatLevels: [2, 10]
-        },
-        selected: {},
-        other: otherObject
-      });
-      var newState = reduce(state, {type: 'CLEAR_FILTER'});
-      expect(newState.filtersAreDirty).toBe(false);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
-    });
-  });
-
   describe('REVERT_FILTER action', function() {
     it('sets selected filter to current appliedFilter, resets filtersAreDirty and loadErrorFilterName', function() {
       var state = Object.freeze({

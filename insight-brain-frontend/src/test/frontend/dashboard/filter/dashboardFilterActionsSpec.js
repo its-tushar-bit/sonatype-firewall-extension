@@ -7,7 +7,8 @@ import axios from 'axios';
 import {
   loadFilter,
   applyFilter,
-  applySavedFilter
+  applySavedFilter,
+  applyDefaultFilter
 } from '../../../../main/frontend/dashboard/filter/dashboardFilterActions';
 import {
   getApplicationsUrl,
@@ -17,6 +18,9 @@ import {
   getDashboardSavedFilters,
   getNewestRisksUrl
 } from '../../../../main/frontend/util/CLMLocation';
+
+import defaultFilter from '../../../../main/frontend/dashboard/filter/defaultFilter';
+import { filterToJson } from '../../../../main/frontend/dashboard/filter/dashboardFilterService';
 
 describe('dashboardFilterActions: non-angular', function() {
   let store;
@@ -244,61 +248,53 @@ describe('dashboardFilterActions: non-angular', function() {
   });
 
   describe('applyFilter', function() {
-    it('updates filters and loads results', function(done) {
-      mockAxiosCalls({
-        put: {
-          [getDashboardFilters()]: Promise.resolve({ data: 'update filters response' })
-        },
-        post: {
-          [getNewestRisksUrl()]: Promise.resolve({ data: {
-            dashboardResults: 'results', numResults: 3, classyBrew: 'classyBrew'
-          }})
-        }
-      });
+    const expectedFailAction = {
+      type: 'APPLY_FILTER_FAILED',
+      payload: { status: 403 }
+    };
 
-      store = SpecUtil.mockReduxStore(initialState);
+    const action = applyFilter('test filters', 'test filter name');
 
-      store.dispatch(applyFilter('test filters', 'test filter name'))
-          .then(() => {
-            expect(axios.put).toHaveBeenCalledWith(getDashboardFilters(), {
-              filter: 'test filters',
-              basedOnFilterName: 'test filter name'
-            });
+    testSuccessfullyUpdatesFiltersAndLoadsResults(action, 'test filters', 'test filter name');
+    testSuccessfullyUpdatesFiltersButFailsToLoadsResults(action, 'test filters', 'test filter name');
+    testFailedToUpdateFilter(action, 'test filters', 'test filter name', expectedFailAction);
+  });
 
-            expect(axios.post).toHaveBeenCalledWith(getNewestRisksUrl(), expectedRisksPayload);
+  describe('applySavedFilter', function() {
+    const savedFilter = {
+      filter: 'test filters',
+      name: 'test filter name'
+    };
 
-            expect(store.getActions().length).toBe(4);
+    const expectedFailAction = {
+      type: 'APPLY_SAVED_FILTER_FAILED',
+      payload: 'test filter name'
+    };
 
-            expect(store.getActions()[1]).toEqual({
-              type: 'APPLY_FILTER_FULFILLED',
-              payload: {
-                filter: 'update filters response',
-                basedOnFilterName: 'test filter name'
-              }
-            });
+    const action = applySavedFilter(savedFilter);
 
-            expect(store.getActions()[2]).toEqual({
-              type: 'LOAD_RESULTS_REQUESTED',
-              payload: 'violations'
-            });
+    testSuccessfullyUpdatesFiltersAndLoadsResults(action, 'test filters', 'test filter name');
+    testSuccessfullyUpdatesFiltersButFailsToLoadsResults(action, 'test filters', 'test filter name');
+    testFailedToUpdateFilter(action, 'test filters', 'test filter name', expectedFailAction);
+  });
 
-            expect(store.getActions()[3]).toEqual({
-              type: 'LOAD_RESULTS_FULFILLED',
-              payload: {
-                resultsType: 'violations',
-                results: 'results',
-                numResults: 3,
-                classyBrew: undefined
-              }
-            });
-            done();
-          });
+  describe('applyDefaultFilter', function() {
+    const filter = filterToJson(defaultFilter);
 
-      expect(store.getActions().length).toBe(1);
-      expect(store.getActions()[0]).toEqual({type: 'APPLY_FILTER_REQUESTED'});
-    });
+    const expectedFailAction = {
+      type: 'APPLY_SAVED_FILTER_FAILED',
+      payload: 'Default filter'
+    };
 
-    it('dispatches APPLY_FILTER_FAILED if failed to update filters', function(done) {
+    const action = applyDefaultFilter();
+
+    testSuccessfullyUpdatesFiltersAndLoadsResults(action, filter, null);
+    testSuccessfullyUpdatesFiltersButFailsToLoadsResults(action, filter, null);
+    testFailedToUpdateFilter(action, filter, null, expectedFailAction);
+  });
+
+  function testFailedToUpdateFilter(action, expectedFilter, expectedFilterName, expectedFailAction) {
+    it(`dispatches ${expectedFailAction.type} if failed to update filters`, function(done) {
       mockAxiosCalls({
         put: {
           [getDashboardFilters()]: Promise.reject({ status: 403 })
@@ -308,77 +304,27 @@ describe('dashboardFilterActions: non-angular', function() {
 
       store = SpecUtil.mockReduxStore(initialState);
 
-      store.dispatch(applyFilter('test filters', 'test filter name'))
+      store.dispatch(action)
           .catch(() => {
             expect(axios.put).toHaveBeenCalledWith(getDashboardFilters(), {
-              filter: 'test filters',
-              basedOnFilterName: 'test filter name'
+              filter: expectedFilter,
+              basedOnFilterName: expectedFilterName
             });
+            expect(axios.post).not.toHaveBeenCalledWith(getNewestRisksUrl());
 
             expect(store.getActions().length).toBe(2);
-            expect(store.getActions()[1].type).toBe('APPLY_FILTER_FAILED');
-            expect(store.getActions()[1].payload.status).toEqual(403);
 
-            expect(axios.post).not.toHaveBeenCalledWith(getNewestRisksUrl());
+            expect(store.getActions()[1]).toEqual(expectedFailAction);
+
             done();
           });
 
       expect(store.getActions().length).toBe(1);
       expect(store.getActions()[0]).toEqual({type: 'APPLY_FILTER_REQUESTED'});
     });
+  }
 
-    it('returns rejected promise and does not dispatch APPLY_FILTER_FAILED if failed to load results',
-        function(done) {
-          mockAxiosCalls({
-            put: {
-              [getDashboardFilters()]: Promise.resolve({data: 'update filters response'})
-            },
-            post: {
-              [getNewestRisksUrl()]: Promise.reject('load results error')
-            }
-          });
-
-          store = SpecUtil.mockReduxStore(initialState);
-
-          store.dispatch(applyFilter('test filters', 'test filter name'))
-              .catch(() => {
-                expect(axios.put).toHaveBeenCalledWith(getDashboardFilters(), {
-                  filter: 'test filters',
-                  basedOnFilterName: 'test filter name'
-                });
-                expect(axios.post).toHaveBeenCalledWith(getNewestRisksUrl(), expectedRisksPayload);
-
-                expect(store.getActions().length).toBe(4);
-
-                expect(store.getActions()[1]).toEqual({
-                  type: 'APPLY_FILTER_FULFILLED',
-                  payload: {
-                    filter: 'update filters response',
-                    basedOnFilterName: 'test filter name'
-                  }
-                });
-
-                expect(store.getActions()[2]).toEqual({
-                  type: 'LOAD_RESULTS_REQUESTED',
-                  payload: 'violations'
-                });
-
-                expect(store.getActions()[3].type).toBe('LOAD_RESULTS_FAILED');
-
-                done();
-              });
-
-          expect(store.getActions().length).toBe(1);
-          expect(store.getActions()[0]).toEqual({type: 'APPLY_FILTER_REQUESTED'});
-        });
-  });
-
-  describe('applySavedFilter', function() {
-    const savedFilter = {
-      filter: 'test filters',
-      name: 'test filter name'
-    };
-
+  function testSuccessfullyUpdatesFiltersAndLoadsResults(action, expectedFilter, expectedFilterName) {
     it('updates filters and loads results', function(done) {
       mockAxiosCalls({
         put: {
@@ -393,12 +339,12 @@ describe('dashboardFilterActions: non-angular', function() {
 
       store = SpecUtil.mockReduxStore(initialState);
 
-      store.dispatch(applySavedFilter(savedFilter))
+      store.dispatch(action)
           .then(() => {
             expect(axios.post).toHaveBeenCalledWith(getNewestRisksUrl(), expectedRisksPayload);
             expect(axios.put).toHaveBeenCalledWith(getDashboardFilters(), {
-              filter: 'test filters',
-              basedOnFilterName: 'test filter name'
+              filter: expectedFilter,
+              basedOnFilterName: expectedFilterName
             });
 
             expect(store.getActions().length).toBe(4);
@@ -407,7 +353,7 @@ describe('dashboardFilterActions: non-angular', function() {
               type: 'APPLY_FILTER_FULFILLED',
               payload: {
                 filter: 'update filters response',
-                basedOnFilterName: 'test filter name'
+                basedOnFilterName: expectedFilterName
               }
             });
             expect(store.getActions()[2]).toEqual({
@@ -431,40 +377,10 @@ describe('dashboardFilterActions: non-angular', function() {
       expect(store.getActions().length).toBe(1);
       expect(store.getActions()[0]).toEqual({type: 'APPLY_FILTER_REQUESTED'});
     });
+  }
 
-    it('dispatches APPLY_SAVED_FILTER_FAILED if failed to update filters', function(done) {
-      mockAxiosCalls({
-        put: {
-          [getDashboardFilters()]: Promise.reject({ status: 403 })
-        },
-        post: {}
-      });
-
-      store = SpecUtil.mockReduxStore(initialState);
-
-      store.dispatch(applySavedFilter(savedFilter))
-          .catch(() => {
-            expect(axios.put).toHaveBeenCalledWith(getDashboardFilters(), {
-              filter: 'test filters',
-              basedOnFilterName: 'test filter name'
-            });
-            expect(axios.post).not.toHaveBeenCalledWith(getNewestRisksUrl());
-
-            expect(store.getActions().length).toBe(2);
-
-            expect(store.getActions()[1]).toEqual({
-              type: 'APPLY_SAVED_FILTER_FAILED',
-              payload: 'test filter name'
-            });
-
-            done();
-          });
-
-      expect(store.getActions().length).toBe(1);
-      expect(store.getActions()[0]).toEqual({type: 'APPLY_FILTER_REQUESTED'});
-    });
-
-    it('returns rejected promise and does not dispatch APPLY_SAVED_FILTER_FAILED if failed to load results',
+  function testSuccessfullyUpdatesFiltersButFailsToLoadsResults(action, expectedFilter, expectedFilterName) {
+    it('returns rejected promise and does not dispatch apply filter failed action if failed to load results',
         function(done) {
           mockAxiosCalls({
             put: {
@@ -477,12 +393,12 @@ describe('dashboardFilterActions: non-angular', function() {
 
           store = SpecUtil.mockReduxStore(initialState);
 
-          store.dispatch(applySavedFilter(savedFilter))
+          store.dispatch(action)
               .catch(() => {
                 expect(axios.post).toHaveBeenCalledWith(getNewestRisksUrl(), expectedRisksPayload);
                 expect(axios.put).toHaveBeenCalledWith(getDashboardFilters(), {
-                  filter: 'test filters',
-                  basedOnFilterName: 'test filter name'
+                  filter: expectedFilter,
+                  basedOnFilterName: expectedFilterName
                 });
 
                 expect(store.getActions().length).toBe(4);
@@ -491,7 +407,7 @@ describe('dashboardFilterActions: non-angular', function() {
                   type: 'APPLY_FILTER_FULFILLED',
                   payload: {
                     filter: 'update filters response',
-                    basedOnFilterName: 'test filter name'
+                    basedOnFilterName: expectedFilterName
                   }
                 });
 
@@ -513,6 +429,7 @@ describe('dashboardFilterActions: non-angular', function() {
 
           expect(store.getActions().length).toBe(1);
           expect(store.getActions()[0]).toEqual({type: 'APPLY_FILTER_REQUESTED'});
-        });
-  });
+        }
+    );
+  }
 });

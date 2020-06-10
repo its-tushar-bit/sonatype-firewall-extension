@@ -8,6 +8,7 @@ import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
 import { map, curryN, prop } from 'ramda';
 import {
+  NxErrorAlert,
   NxStatefulTreeViewMultiSelect,
   NxStatefulTreeViewRadioSelect
 } from '@sonatype/react-shared-components';
@@ -18,9 +19,9 @@ import LoadWrapper from '../../../react/LoadWrapper';
 import Hexagon from '../../../react/Hexagon';
 import { filterToJson } from '../dashboardFilterService';
 
-import DashboardFilterHeader from './DashboardFilterHeader';
 import DashboardFilterFooter from './DashboardFilterFooter';
-import SaveFilterModalContainer from '../manageFilterMenu/saveFilterModal/SaveFilterModalContainer';
+import SaveFilterModalContainer from '../saveFilterModal/SaveFilterModalContainer';
+import ManageFiltersDropdown from '../manageFiltersDropdown/ManageFiltersDropdown';
 
 export default function DashboardFilter(props) {
   const {
@@ -33,6 +34,8 @@ export default function DashboardFilter(props) {
     needsAcknowledgement,
     showAgeFilter,
     showSaveFilterModal,
+    savedFilters,
+    filtersDropdownOpen,
 
     // filter items
     organizations,
@@ -54,7 +57,10 @@ export default function DashboardFilter(props) {
     revert,
     selectAge,
     toggleFilter,
-    toggleAppsAndOrgs
+    toggleAppsAndOrgs,
+    applyDefaultFilter,
+    applySavedFilter,
+    toggleFiltersDropdown
   } = props;
 
   useEffect(() => { loadFilter(); }, []);
@@ -85,9 +91,29 @@ export default function DashboardFilter(props) {
   return (
     <div className="dashboard-filter-container">
       { showSaveFilterModal && <SaveFilterModalContainer/> }
-      <DashboardFilterHeader { ...({ appliedFilterName, showDirtyAsterisk, loadErrorFilterName }) } />
+      <div className="dashboard-filter-header" id="dashboard-filter-header">
+        {/* Not wrapping ManageFiltersDropdown with label to prevent label clicks from triggering dropdown toggle */}
+        <label className="nx-label">
+          <span className="nx-label__text">Filter</span>
+        </label>
+        {!loading && !loadError &&
+          <ManageFiltersDropdown {...{
+            appliedFilterName,
+            showDirtyAsterisk,
+            savedFilters,
+            applyDefaultFilter,
+            applySavedFilter,
+            filtersDropdownOpen,
+            toggleFiltersDropdown
+          }}/>
+        }
+      </div>
 
       <div className={filterContentClassnames}>
+        {
+          loadErrorFilterName &&
+          <NxErrorAlert>Failed to load {loadErrorFilterName}</NxErrorAlert>
+        }
         <LoadWrapper loading={loading} error={loadError} retryHandler={loadFilter}>
           {() =>
             <Fragment>
@@ -173,7 +199,6 @@ DashboardFilter.propTypes = {
   loadError: LoadWrapper.propTypes.error,
   loadErrorFilterName: PropTypes.string,
   saveError: PropTypes.string,
-  showDirtyAsterisk: PropTypes.bool,
   filtersAreDirty: PropTypes.bool,
   needsAcknowledgement: PropTypes.bool,
   showAgeFilter: PropTypes.bool,
@@ -185,7 +210,6 @@ DashboardFilter.propTypes = {
   ages: PropTypes.array,
   policyTypes: PropTypes.array,
   policyViolationStates: PropTypes.array,
-  appliedFilterName: PropTypes.string,
   selected: PropTypes.shape({
     organizations: PropTypes.instanceOf(Set).isRequired,
     applications: PropTypes.instanceOf(Set).isRequired,
@@ -202,5 +226,6 @@ DashboardFilter.propTypes = {
   revert: PropTypes.func.isRequired,
   selectAge: PropTypes.func,
   toggleAppsAndOrgs: PropTypes.func,
-  toggleFilter: PropTypes.func
+  toggleFilter: PropTypes.func,
+  ...ManageFiltersDropdown.propTypes
 };

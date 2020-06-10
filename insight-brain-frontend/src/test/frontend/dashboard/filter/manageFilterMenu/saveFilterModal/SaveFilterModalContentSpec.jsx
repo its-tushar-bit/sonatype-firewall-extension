@@ -7,7 +7,7 @@ import React from 'react';
 import {shallow} from 'enzyme';
 import * as PropTypes from 'prop-types';
 import SaveFilterModalContent
-  from '../../../../../../main/frontend/dashboard/filter/manageFilterMenu/saveFilterModal/SaveFilterModalContent';
+  from '../../../../../../main/frontend/dashboard/filter/saveFilterModal/SaveFilterModalContent';
 import * as enzymeUtils from '../../../../enzymeUtils';
 import {NxModal, NxSubmitMask, NxWarningAlert} from '@sonatype/react-shared-components';
 import NxTextInput from '@sonatype/react-shared-components/components/NxTextInput/NxTextInput';

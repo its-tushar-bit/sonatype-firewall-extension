@@ -3,8 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+@import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@import "../dashboard/filter/manageFiltersDropdown/manageFiltersDropdown";
+
 .dashboard-filter-container {
-  $filter-header-height: 55px + $iq-spacing-xl + 1px;
+  $filter-header-height: 61px;
+  $filter-header-padding: 8px;
+  $filter-header-total-height: $iq-spacing-xl + $filter-header-height + $filter-header-padding + 1px;
   $filter-footer-height: $iq-spacing-xl + 12px + 12px + 1px;
   $filter-footer-error-height: 100px;
 
@@ -14,14 +19,14 @@
 
   .dashboard-filter {
     box-sizing: border-box;
-    height: calc(100% - #{$filter-header-height + $filter-footer-height - $iq-spacing-xl});
+    height: calc(100% - #{$filter-header-total-height + $filter-footer-height - $iq-spacing-xl});
     overflow-x: visible;
     overflow-y: auto;
     padding: 7px 0 0 8px;
   }
 
   .dashboard-filter.iq-apply-error-present {
-    height: calc(100% - #{$filter-header-height} - #{$filter-footer-error-height} + #{$iq-spacing-xl});
+    height: calc(100% - #{$filter-header-total-height} - #{$filter-footer-error-height} + #{$iq-spacing-xl});
   }
 
   .dashboard-filter-footer {
@@ -46,20 +51,15 @@
   .iq-alert {
     margin: 0 0 8px;
   }
-}
 
-.dashboard-filter-header {
-  border-bottom: 1px $iq-grey-4 solid;
-  margin: 0px 8px;
-  position: relative; // needed for box-shadow to render
-  z-index: 1;
-
-  .dashboard-filter-header-title {
-    @extend h3;
-    @include semi-bold();
-
-    color: $iq-slate;
-    margin-bottom: 16px;
+  .dashboard-filter-header {
+    @include container-vertical;
+    border-bottom: 1px $iq-grey-4 solid;
+    height: $filter-header-height; // to prevent footer from shifting when loading
+    margin: 0px 8px;
+    padding-bottom: $filter-header-padding;
+    position: relative; // needed for box-shadow to render
+    z-index: 1;
   }
 }
 
@@ -75,11 +75,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   width: 100%;
-
-  & .dashboard-filter-dirty-asterisk {
-    color: $iq-off-black;
-    font-size: 16px;
-  }
 }
 
 .tooltip.top-left {

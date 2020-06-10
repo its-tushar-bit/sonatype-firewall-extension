@@ -7,9 +7,9 @@ import { pick } from 'ramda';
 import { connect } from 'react-redux';
 
 import SaveFilterModalContent from './SaveFilterModalContent';
-import { saveFilter } from '../../manageFiltersActions';
-import { setDisplaySaveFilterModal } from '../../dashboardFilterActions';
-import { Messages } from '../../../../util/CommonServices';
+import { saveFilter } from '../manageFiltersActions';
+import { setDisplaySaveFilterModal } from '../dashboardFilterActions';
+import { Messages } from '../../../util/CommonServices';
 
 const mapDispatchToProps = {
   saveFilter,

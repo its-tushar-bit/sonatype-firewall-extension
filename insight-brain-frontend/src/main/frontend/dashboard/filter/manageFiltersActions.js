@@ -20,6 +20,7 @@ export const DELETE_SPECIFIED_FILTERS_REQUESTED = 'DELETE_SPECIFIED_FILTERS_REQU
 export const DELETE_SPECIFIED_FILTERS_FULFILLED = 'DELETE_SPECIFIED_FILTERS_FULFILLED';
 export const DELETE_SPECIFIED_FILTERS_FAILED = 'DELETE_SPECIFIED_FILTERS_FAILED';
 export const RESET_DELETE_FILTERS_STATUS = 'RESET_DELETE_FILTERS_STATUS';
+export const TOGGLE_FILTERS_DROPDOWN = 'TOGGLE_FILTERS_DROPDOWN';
 
 export function fetchSavedFilters() {
   return dispatch => {
@@ -77,3 +78,5 @@ export function deleteSpecifiedFilters(filtersToDelete) {
 }
 
 export const resetDeleteFiltersStatus = noPayloadActionCreator(RESET_DELETE_FILTERS_STATUS);
+
+export const toggleFiltersDropdown = payloadParamActionCreator(TOGGLE_FILTERS_DROPDOWN);

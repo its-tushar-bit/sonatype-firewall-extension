@@ -3,9 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { compose, append, contains, curry, merge, pick, find, propEq } from 'ramda';
+import { append, equals, compose, contains, curry, merge, pick, find, propEq } from 'ramda';
 import { propSet } from '../../util/jsUtil';
 import { createReducerFromActionMap, propSetConst } from '../../util/reduxUtil';
+import defaultFilter from './defaultFilter';
+import { filterToJson } from './dashboardFilterService';
 import {
   FETCH_SAVED_FILTERS_FULFILLED,
   FETCH_SAVED_FILTERS_FAILED,
@@ -15,13 +17,13 @@ import {
   DELETE_SPECIFIED_FILTERS_REQUESTED,
   DELETE_SPECIFIED_FILTERS_FULFILLED,
   DELETE_SPECIFIED_FILTERS_FAILED,
-  RESET_DELETE_FILTERS_STATUS
+  RESET_DELETE_FILTERS_STATUS,
+  TOGGLE_FILTERS_DROPDOWN
 } from './manageFiltersActions';
 
 import {
   APPLY_FILTER_FULFILLED,
   FETCH_CURRENT_FILTER_FULFILLED,
-  CLEAR_FILTER,
   SET_DISPLAY_SAVE_FILTER_MODAL
 } from './dashboardFilterActions';
 
@@ -33,6 +35,7 @@ const initState = {
   saveFilterSuccess: false,
   appliedFilterName: null,
   showDirtyAsterisk: false,
+  filtersDropdownOpen: false,
   deleteFiltersError: null,
   deleteFiltersSaving: false,
   deleteFiltersSuccess: false
@@ -61,7 +64,7 @@ const reducerActionMap = {
   [DELETE_SPECIFIED_FILTERS_FAILED]: deleteFiltersFailed,
   [SET_DISPLAY_SAVE_FILTER_MODAL]: resetProps(['saveFilterSaving', 'saveFilterError', 'saveFilterSuccess']),
   [RESET_DELETE_FILTERS_STATUS]: resetProps(['deleteFiltersSaving', 'deleteFiltersError', 'deleteFiltersSuccess']),
-  [CLEAR_FILTER]: resetProps(['appliedFilterName', 'showDirtyAsterisk'])
+  [TOGGLE_FILTERS_DROPDOWN]: propSet('filtersDropdownOpen')
 };
 
 function fetchSavedFiltersFulfilled(payload, state) {
@@ -112,8 +115,11 @@ function deleteFiltersFailed(payload, state) {
 
 const setShowDirtyAsterisk = payload => state => {
   const {basedOnFilterName, filter} = payload;
-  const savedFilter = basedOnFilterName && find(propEq('name', basedOnFilterName), state.savedFilters);
-  const showDirtyAsterisk = savedFilter && !angular.equals(filter, savedFilter.filter);
+  const cleanFilter = basedOnFilterName
+    ? find(propEq('name', basedOnFilterName), state.savedFilters).filter
+    : filterToJson(defaultFilter);
+
+  const showDirtyAsterisk = !equals(filter, cleanFilter);
   return {...state, showDirtyAsterisk};
 };
 

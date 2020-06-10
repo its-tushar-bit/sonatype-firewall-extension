@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import dashboardFilterModule from '../../../../main/frontend/dashboard/filter/module';
+import defaultFilter from '../../../../main/frontend/dashboard/filter/defaultFilter';
+import { filterToJson } from '../../../../main/frontend/dashboard/filter/dashboardFilterService';
 
 describe('manageFiltersReducer', function() {
   var reduce, otherObject;
@@ -73,6 +75,14 @@ describe('manageFiltersReducer', function() {
         expect(newState.other).toBe(otherObject); // other properties are not modified
       });
 
+      it('sets the appliedFilterName to null if payload.basedOnFilterName is null', function() {
+        const state = Object.freeze(initState);
+        action.payload.basedOnFilterName = null;
+        const newState = reduce(state, action);
+        expect(newState.appliedFilterName).toBeNull();
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+
       it('sets showDirtyAsterisk to false if filter is same as corresponding saved filter', function() {
         initState.showDirtyAsterisk = true;
         var state = Object.freeze(initState);
@@ -81,13 +91,34 @@ describe('manageFiltersReducer', function() {
         expect(newState.other).toBe(otherObject); // other properties are not modified
       });
 
-      it('sets showDirtyAsterisk to true if filter has changed', function() {
+      it('sets showDirtyAsterisk to true if saved filter has changed', function() {
         initState.showDirtyAsterisk = false;
         var state = Object.freeze(initState);
         action.payload.filter = angular.copy(filterJson);
         action.payload.filter.minPolicyThreatLevel = 2;
         var newState = reduce(state, action);
         expect(newState.showDirtyAsterisk).toBe(true);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+
+      it('sets showDirtyAsterisk to true if filter is Default and has changed', function() {
+        initState.showDirtyAsterisk = false;
+        const state = Object.freeze(initState);
+        action.payload.basedOnFilterName = null;
+        action.payload.filter = filterToJson(defaultFilter);
+        action.payload.filter.minPolicyThreatLevel = 3;
+        const newState = reduce(state, action);
+        expect(newState.showDirtyAsterisk).toBe(true);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+
+      it('sets showDirtyAsterisk to false if filter is Default and has not changed', function() {
+        initState.showDirtyAsterisk = true;
+        const state = Object.freeze(initState);
+        action.payload.basedOnFilterName = null;
+        action.payload.filter = filterToJson(defaultFilter);
+        const newState = reduce(state, action);
+        expect(newState.showDirtyAsterisk).toBe(false);
         expect(newState.other).toBe(otherObject); // other properties are not modified
       });
     });
@@ -265,16 +296,18 @@ describe('manageFiltersReducer', function() {
     });
   });
 
-  describe('CLEAR_FILTER action', function() {
-    it('resets appliedFilterName and showDirtyAsterisk', function() {
-      var state = Object.freeze({
-        appliedFilterName: 'Test filter name',
-        showDirtyAsterisk: true,
+  describe('TOGGLE_FILTERS_DROPDOWN action', function() {
+    it('sets filtersDropdownOpen to the payload', function() {
+      const state = Object.freeze({
+        filtersDropdownOpen: false,
         other: otherObject
       });
-      var newState = reduce(state, {type: 'CLEAR_FILTER'});
-      expect(newState.appliedFilterName).toBeNull();
-      expect(newState.showDirtyAsterisk).toBe(false);
+      const action = {
+        type: 'TOGGLE_FILTERS_DROPDOWN',
+        payload: true
+      };
+      const newState = reduce(state, action);
+      expect(newState.filtersDropdownOpen).toBe(true);
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });

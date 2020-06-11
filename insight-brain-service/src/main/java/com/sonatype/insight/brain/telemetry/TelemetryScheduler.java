@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -45,7 +46,8 @@ public class TelemetryScheduler
                      TelemetrySender telemetrySender,
                      ScheduledExecutorService scheduledExecutorService)
   {
-    this.telemetryCollectors = telemetryCollectors;
+    this.telemetryCollectors = telemetryCollectors.stream()
+        .filter(telemetryCollector -> !telemetryCollector.isClusterTelemetry()).collect(Collectors.toList());
     this.telemetrySender = telemetrySender;
     this.scheduledExecutorService = scheduledExecutorService;
   }

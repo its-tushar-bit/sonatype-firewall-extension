@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.security.PasswordService;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsPurger;
+import com.sonatype.insight.brain.telemetry.ClusterTelemetryTask;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.db.DatabaseConfig;
@@ -277,6 +278,12 @@ public class TestInsightBrainService
 
     super.run(config, env);
 
+    disableForTesting();
+
+    getInstance(ApplicationLifecycle.class).boot();
+  }
+
+  public void disableForTesting() {
     getInstance(TaskScheduler.class).disableForTesting = true;
     getInstance(PolicyMonitorScheduler.class).disableForTesting = true;
     getInstance(SuccessMetricsPurger.class).disableForTesting = true;
@@ -286,8 +293,7 @@ public class TestInsightBrainService
     getInstance(PolicyEvaluateService.class).disablePollingIntervalForTesting = true;
     getInstance(HdsProductNotificationService.class).disableCacheForTesting = true;
     getInstance(FirewallIgnorePatternService.class).disableCacheForTesting = true;
-
-    getInstance(ApplicationLifecycle.class).boot();
+    getInstance(ClusterTelemetryTask.class).disableForTesting = true;
   }
 
   @Override

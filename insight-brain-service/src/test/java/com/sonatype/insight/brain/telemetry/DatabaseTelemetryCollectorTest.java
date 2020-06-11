@@ -90,4 +90,9 @@ public class DatabaseTelemetryCollectorTest
     Map<String, Object> attributes = telemetryCollector.collectData().getAttributes();
     assertThat(attributes.get(DatabaseTelemetryCollector.DB_ENGINE)).isEqualTo("h2");
   }
+
+  @Test
+  public void testIsClusterTelemetry() {
+    assertThat(telemetryCollector.isClusterTelemetry()).isTrue();
+  }
 }

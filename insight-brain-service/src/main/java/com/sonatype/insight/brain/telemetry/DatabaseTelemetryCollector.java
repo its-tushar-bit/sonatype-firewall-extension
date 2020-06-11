@@ -87,4 +87,9 @@ public class DatabaseTelemetryCollector
       throw new RuntimeException(e);
     }
   }
+
+  @Override
+  public boolean isClusterTelemetry() {
+    return true;
+  }
 }

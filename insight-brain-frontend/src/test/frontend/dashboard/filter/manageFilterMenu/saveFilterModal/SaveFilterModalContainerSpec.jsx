@@ -44,7 +44,8 @@ describe('SaveFilterModalContainer', function() {
         'inject-loader!../../../../../../main/frontend/dashboard/' +
         'filter/manageFilterMenu/saveFilterModal/SaveFilterModalContainer'
     )({
-      './SaveFilterModalContent': MockSaveFilterModalContent
+      './SaveFilterModalContent': MockSaveFilterModalContent,
+      '../../../../util/CommonServices': { Messages: mockMessages }
     }).default;
 
     state = {

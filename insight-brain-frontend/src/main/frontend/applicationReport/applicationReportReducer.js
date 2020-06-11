@@ -51,10 +51,11 @@ import {
   GENERATE_VULNERABILITY_ENTRIES
 } from './applicationReportActions';
 
+import { sortItemsByFields } from '../util/sortUtils';
+
 import {
   aggregateReportEntries,
   filterReportEntries,
-  sortReportEntries,
   getVulnerabilities
 } from './applicationReportService';
 import { pathSet } from '../util/jsUtil';
@@ -91,7 +92,7 @@ const initState = Object.freeze({
   vulnerabilitiesPageEnabled: true
 });
 
-export default function(state = initState, {type, payload}) {
+export default function applicationReportReducer(state = initState, {type, payload}) {
   switch (type) {
     case SET_REPORT_PARAMETERS:
       return setReportParameters(state, payload);
@@ -196,6 +197,7 @@ export default function(state = initState, {type, payload}) {
       return state;
   }
 }
+
 function setReportParameters(state, payload) {
   return {
     ...initState,
@@ -253,7 +255,7 @@ function generateVulnerabilityEntries(state) {
 
     return {
       ...state,
-      vulnerabilities: sortReportEntries(
+      vulnerabilities: sortItemsByFields(
           ['violationSortState', '-policyThreatLevel', '-cvssScore', 'securityCode', 'derivedComponentName'],
           vulnerabilityEntries)
     };
@@ -270,7 +272,7 @@ function updateRawDataDisplayedEntries(state) {
     const { allEntries } = reportRawData;
     const processEntries = pipe(
         filterReportEntries(null, rawDataSubstringFilters, rawDataNumericFilters),
-        sortReportEntries(rawDataSortFields)
+        sortItemsByFields(rawDataSortFields)
     );
     const newDisplayedEntries = processEntries(allEntries);
 
@@ -294,7 +296,7 @@ function updateDisplayedEntries(state) {
         processEntries = pipe(
             aggregate ? aggregateReportEntries : identity,
             filterReportEntries(exactValueFilters, substringFilters, null),
-            sortReportEntries(sortFields)
+            sortItemsByFields(sortFields)
         ),
         newDisplayedEntries = processEntries(allEntries);
 

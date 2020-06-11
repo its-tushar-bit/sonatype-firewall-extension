@@ -3,43 +3,36 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {setToArray} from '../../util/jsUtil';
+import axios from 'axios';
 
-export default
-function dashboardFilterService($http, $q, CLMLocations, Messages) {
+import { getDashboardDeleteFiltersUrl } from '../../util/CLMLocation';
+import { Messages } from '../../util/CommonServices';
+import { setToArray } from '../../util/jsUtil';
 
-  function deleteSavedFilters(filters) {
-    return $http.post(CLMLocations.getDashboardDeleteFiltersUrl(), filters).catch(function(error) {
-      error = Messages.getHttpErrorMessage(error);
-      if (angular.isArray(error)) {
-        return $q.reject(error.map(function(err) {
-          return 'Filter ' + err.name + ', ' + err.errorMessage;
-        }));
-      }
-      else {
-        return $q.reject([error]);
-      }
-    });
-  }
-
-  function filterToJson(filter) {
-    return {
-      organizationFilters: setToArray(filter.organizations),
-      applicationFilters: setToArray(filter.applications),
-      policyThreatCategoryFilters: setToArray(filter.policyTypes),
-      stageTypeFilters: setToArray(filter.stages),
-      tagFilters: setToArray(filter.categories),
-      policyViolationStates: setToArray(filter.policyViolationStates),
-      maxDaysOld: filter.maxDaysOld,
-      minPolicyThreatLevel: filter.policyThreatLevels[0],
-      maxPolicyThreatLevel: filter.policyThreatLevels[1]
-    };
-  }
-
+export function filterToJson(filter) {
   return {
-    deleteSavedFilters: deleteSavedFilters,
-    filterToJson: filterToJson
+    organizationFilters: setToArray(filter.organizations),
+    applicationFilters: setToArray(filter.applications),
+    policyThreatCategoryFilters: setToArray(filter.policyTypes),
+    stageTypeFilters: setToArray(filter.stages),
+    tagFilters: setToArray(filter.categories),
+    policyViolationStates: setToArray(filter.policyViolationStates),
+    maxDaysOld: filter.maxDaysOld,
+    minPolicyThreatLevel: filter.policyThreatLevels[0],
+    maxPolicyThreatLevel: filter.policyThreatLevels[1]
   };
 }
 
-dashboardFilterService.$inject = ['$http', '$q', 'CLMLocations', 'Messages'];
+export function deleteSavedFilters(filters) {
+  return axios.post(getDashboardDeleteFiltersUrl(), filters)
+      .catch(error => {
+        error = Messages.getHttpErrorMessage(error);
+        if (Array.isArray(error)) {
+          const errors = error.map((err) => `Filter ${err.name}, ${err.errorMessage}`);
+          return Promise.reject(errors);
+        }
+        else {
+          return Promise.reject([error]);
+        }
+      });
+}

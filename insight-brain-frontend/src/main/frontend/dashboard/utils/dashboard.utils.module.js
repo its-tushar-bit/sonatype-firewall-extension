@@ -55,7 +55,7 @@ export function createDashboardDataRequestPayload(filter, maxResults, sortFields
   return params;
 }
 
-function extractColumn(orderedColumn) {
+export function extractColumn(orderedColumn) {
   if (orderedColumn.indexOf('-') === 0) {
     return orderedColumn.substring(1);
   }

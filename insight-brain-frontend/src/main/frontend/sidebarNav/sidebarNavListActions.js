@@ -3,14 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import axios from 'axios';
 
+import { loadFilter } from '../dashboard/filter/dashboardFilterActions';
 import { payloadParamActionCreator } from '../util/reduxUtil';
-import { getNewestRisksUrl } from '../util/CLMLocation';
 import { stateGo } from '../reduxUiRouter/routerActions';
-import { createDashboardDataRequestPayload } from '../dashboard/utils/dashboard.utils.module';
-import { MAX_RESULTS } from '../dashboard/services/dashboard.data.service';
-import { translateViolationsSortFields } from '../dashboard/services/sortFieldsUtils';
 
 export const LOAD_SIDEBAR_NAV_LIST_REQUESTED = 'LOAD_SIDEBAR_NAV_LIST_REQUESTED';
 export const LOAD_SIDEBAR_NAV_LIST_FULFILLED = 'LOAD_SIDEBAR_NAV_LIST_FULFILLED';
@@ -31,29 +27,26 @@ export function loadSidebarNav({type = null, sidebarReference = null, sidebarId 
   };
 }
 
-function getFilterViolationRequest(state) {
-  let sortFields = translateViolationsSortFields(state.dashboard.violations.sortFields);
-  let filter = state.dashboardFilter.appliedFilter;
-  return createDashboardDataRequestPayload(filter, MAX_RESULTS, sortFields);
-}
-
 function loadViolations(dispatch, getState, sidebarReference) {
-  let dataPromise = null;
+  let filterPromise = null;
 
   switch (sidebarReference) {
     case 'filter':
-      dataPromise = axios.post(getNewestRisksUrl(), getFilterViolationRequest(getState()));
+      filterPromise = dispatch(loadFilter('violations'));
       break;
     default:
       return dispatch(loadSidebarNavListFailed(`Unknown sidebarReference: ${sidebarReference}`));
   }
 
-  return dataPromise
-      .then(({ data }) => dispatch(loadSidebarNavListFulfilled({
-        data: data.dashboardResults,
-        contentType: 'violations',
-        backButtonStateName: 'dashboard.overview.violations'
-      })))
+  return filterPromise
+      .then(() => {
+        const { dashboard } = getState();
+        return dispatch(loadSidebarNavListFulfilled({
+          data: dashboard.violations.results,
+          contentType: 'violations',
+          backButtonStateName: 'dashboard.overview.violations'
+        }));
+      })
       .catch(err => dispatch(loadSidebarNavListFailed(err)));
 }
 

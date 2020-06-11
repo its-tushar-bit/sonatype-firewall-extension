@@ -14,7 +14,6 @@ import selectedComponentServiceModule from '../services/selectedComponentService
 
 import applicationReport from './applicationReport';
 import applicationReportResults from './results/applicationReportResults';
-import applicationReportReducer from './applicationReportReducer';
 import applicationReportActions from './applicationReportActions';
 import reevaluationErrorModal from './reevaluationErrorModal/reevaluationErrorModal';
 import applicationReportRoot from './applicationReportRoot';
@@ -35,7 +34,6 @@ export default angular.module('applicationReportModule',
     .component('applicationReportRawData', applicationReportRawData)
     .component('applicationReportVulnerabilities', react2angular(applicationReportVulnerabilities, [],
         ['$ngRedux', '$state', 'applicationReportActions']))
-    .value('applicationReportReducer', applicationReportReducer) // add to angular so we can test it
     .factory('applicationReportActions', applicationReportActions)
     .config(routes);
 

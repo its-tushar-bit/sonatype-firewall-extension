@@ -13,6 +13,25 @@ var clmEndpointTemplate = {
 
 /* global Insight, Brain */
 (function() {
+
+  const returnComponentIdentifier = (groupId, artifactId, version) => ({
+    coordinates: {
+      groupId,
+      artifactId,
+      version
+    }
+  });
+
+  const getVersionChangeData = (remediationType, componentIdentifier, thirdParty) => ({
+    type: remediationType,
+    data: {
+      component: {
+        componentIdentifier,
+        thirdParty
+      }
+    }
+  });
+
   describe('CIP Tests', function() {
     let versionGraphModule, versionGraphAppModule;
 
@@ -484,8 +503,9 @@ var clmEndpointTemplate = {
       describe('initialization', function() {
         var scope = null;
 
-        beforeEach(inject(function($controller, $rootScope) {
+        beforeEach(inject(function($controller, $rootScope, Properties) {
           clmEndpoint.selectApplication = true;
+          spyOn(Properties, 'getStageId').and.returnValue('build');
           scope = $rootScope.$new();
           $controller('ComponentController', {
             $scope: scope,
@@ -519,6 +539,333 @@ var clmEndpointTemplate = {
           expect(scope.componentDetailsList).not.toBeNull();
           expect(scope.componentDetailsList.length).toEqual(1);
         }));
+
+        describe('setting suggestedRemediations', function() {
+          it('displays all remediation types if current version is not recommended version',
+              inject(function($httpBackend, $rootScope) {
+                const gav = {
+                  groupId: 'foo',
+                  artifactId: 'bar',
+                  version: '1',
+                  proprietary: true
+                };
+                const fooComponentIdentifierV2 = returnComponentIdentifier('foo', 'bar', '2');
+                const fooComponentIdentifierV3 = returnComponentIdentifier('foo', 'bar', '3');
+                const fooComponentIdentifierV4 = returnComponentIdentifier('foo', 'bar', '4');
+                const fooComponentIdentifierV5 = returnComponentIdentifier('foo', 'bar', '5');
+                const remediationData = {
+                  remediation: {
+                    versionChanges: [
+                      getVersionChangeData('next-non-failing', fooComponentIdentifierV2),
+                      getVersionChangeData('next-no-violations', fooComponentIdentifierV3),
+                      getVersionChangeData('next-non-failing-with-dependencies', fooComponentIdentifierV4),
+                      getVersionChangeData('next-no-violations-with-dependencies', fooComponentIdentifierV5)
+                    ]
+                  }
+                };
+
+                $rootScope.$apply(function() {
+                  document.cookie = 'clmAppId=myFirstApp';
+                });
+                $httpBackend.verifyNoOutstandingRequest();
+
+                spyOn(Brain[clmEndpoint.type], 'getComponentListUrl').and.returnValue('foo');
+                $httpBackend.expectGET('foo').respond(remediationData);
+                Insight.setGav(gav);
+                $httpBackend.flush();
+                expect(scope.suggestedRemediations.length).toEqual(4);
+                expect(scope.suggestedRemediations[0]).toEqual({
+                  id: 'next-no-violation-version-link',
+                  text: ': Next version with no policy violation',
+                  type: 'next-no-violations',
+                  linkId: 'select-no-violation',
+                  linkText: '3',
+                  version: '3'
+                });
+                expect(scope.suggestedRemediations[1]).toEqual({
+                  id: 'next-no-violation-dependencies-version-link',
+                  text: ': Next version with no policy violations for this component and its dependencies',
+                  type: 'next-no-violations-with-dependencies',
+                  linkId: 'select-no-violation-dependencies',
+                  linkText: '5',
+                  version: '5'
+                });
+                expect(scope.suggestedRemediations[2]).toEqual({
+                  id: 'next-no-fail-version-link',
+                  text: ': Next version with no Build failure',
+                  type: 'next-non-failing',
+                  linkId: 'select-no-fail',
+                  linkText: '2',
+                  version: '2'
+                });
+                expect(scope.suggestedRemediations[3]).toEqual({
+                  id: 'next-no-fail-dependencies-version-link',
+                  text: ': Next version with no Build failure for this component and its dependencies',
+                  type: 'next-non-failing-with-dependencies',
+                  linkId: 'select-no-fail-dependencies',
+                  linkText: '4',
+                  version: '4'
+                });
+              }));
+
+          it('displays a no recommended versions available message if there are no recommendations',
+              inject(function($httpBackend, $rootScope) {
+                const gav = {
+                  groupId: 'foo',
+                  artifactId: 'bar',
+                  version: '1',
+                  proprietary: true
+                };
+                const remediationData = {
+                  remediation: {}
+                };
+
+                $rootScope.$apply(function() {
+                  document.cookie = 'clmAppId=myFirstApp';
+                });
+                $httpBackend.verifyNoOutstandingRequest();
+
+                spyOn(Brain[clmEndpoint.type], 'getComponentListUrl').and.returnValue('foo');
+                $httpBackend.expectGET('foo').respond(remediationData);
+                Insight.setGav(gav);
+                $httpBackend.flush();
+                expect(scope.suggestedRemediations.length).toEqual(1);
+                expect(scope.suggestedRemediations[0]).toEqual({
+                  id: 'no-versions-available',
+                  text: 'No recommended versions are available for the current component'
+                });
+              }));
+
+          it('displays text if a without dependencies strategy is recommended for the current version',
+              inject(function($httpBackend, $rootScope) {
+                const gav = {
+                  groupId: 'foo',
+                  artifactId: 'bar',
+                  version: '1',
+                  proprietary: true
+                };
+                const fooComponentIdentifier = returnComponentIdentifier('foo', 'bar', '1');
+                const remediationData = {
+                  remediation: {
+                    versionChanges: [
+                      getVersionChangeData('next-no-violations', fooComponentIdentifier),
+                      getVersionChangeData('next-non-failing', fooComponentIdentifier)
+                    ]
+                  }
+                };
+
+                $rootScope.$apply(function() {
+                  document.cookie = 'clmAppId=myFirstApp';
+                });
+                $httpBackend.verifyNoOutstandingRequest();
+
+                spyOn(Brain[clmEndpoint.type], 'getComponentListUrl').and.returnValue('foo');
+                $httpBackend.expectGET('foo').respond(remediationData);
+                Insight.setGav(gav);
+                $httpBackend.flush();
+                expect(scope.suggestedRemediations.length).toEqual(2);
+                expect(scope.suggestedRemediations[0]).toEqual({
+                  id: 'next-no-violation-version',
+                  text: 'The current version has no policy violations',
+                  type: 'next-no-violations',
+                  version: '1'
+                });
+                expect(scope.suggestedRemediations[1]).toEqual({
+                  id: 'next-no-fail-version',
+                  text: 'The current version doesn\'t cause Build failure',
+                  type: 'next-non-failing',
+                  version: '1'
+                });
+              }));
+
+          it('hides the non violation strategy if there is also a with dependency strategy for the current version',
+              inject(function($httpBackend, $rootScope) {
+                const gav = {
+                  groupId: 'foo',
+                  artifactId: 'bar',
+                  version: '1',
+                  proprietary: true
+                };
+                const fooComponentIdentifier = returnComponentIdentifier('foo', 'bar', '1');
+                const remediationData = {
+                  remediation: {
+                    versionChanges: [
+                      getVersionChangeData('next-no-violations', fooComponentIdentifier),
+                      getVersionChangeData('next-no-violations-with-dependencies', fooComponentIdentifier)
+                    ]
+                  }
+                };
+
+                $rootScope.$apply(function() {
+                  document.cookie = 'clmAppId=myFirstApp';
+                });
+                $httpBackend.verifyNoOutstandingRequest();
+
+                spyOn(Brain[clmEndpoint.type], 'getComponentListUrl').and.returnValue('foo');
+                $httpBackend.expectGET('foo').respond(remediationData);
+                Insight.setGav(gav);
+                $httpBackend.flush();
+                expect(scope.suggestedRemediations.length).toEqual(1);
+                expect(scope.suggestedRemediations[0]).toEqual({
+                  id: 'next-no-violation-dependencies-version',
+                  text: 'The current version has no policy violations for this component and its dependencies',
+                  type: 'next-no-violations-with-dependencies',
+                  version: '1'
+                });
+              }));
+
+          it('hides the not failing strategy if there is also a with dependency strategy for the current version',
+              inject(function($httpBackend, $rootScope) {
+                const gav = {
+                  groupId: 'foo',
+                  artifactId: 'bar',
+                  version: '1',
+                  proprietary: true
+                };
+                const fooComponentIdentifier = returnComponentIdentifier('foo', 'bar', '1');
+                const remediationData = {
+                  remediation: {
+                    versionChanges: [
+                      getVersionChangeData('next-non-failing', fooComponentIdentifier),
+                      getVersionChangeData('next-non-failing-with-dependencies', fooComponentIdentifier)
+                    ]
+                  }
+                };
+
+                $rootScope.$apply(function() {
+                  document.cookie = 'clmAppId=myFirstApp';
+                });
+                $httpBackend.verifyNoOutstandingRequest();
+
+                spyOn(Brain[clmEndpoint.type], 'getComponentListUrl').and.returnValue('foo');
+                $httpBackend.expectGET('foo').respond(remediationData);
+                Insight.setGav(gav);
+                $httpBackend.flush();
+                expect(scope.suggestedRemediations.length).toEqual(1);
+                expect(scope.suggestedRemediations[0]).toEqual({
+                  id: 'next-no-fail-dependencies-version',
+                  text: 'The current version doesn\'t cause Build failure for this component and its dependencies',
+                  type: 'next-non-failing-with-dependencies',
+                  version: '1'
+                });
+              }));
+
+          it('hides and does not display strategies that are not recommended',
+              inject(function($httpBackend, $rootScope) {
+                const gav = {
+                  groupId: 'foo',
+                  artifactId: 'bar',
+                  version: '1',
+                  proprietary: true
+                };
+                const fooComponentIdentifierV2 = returnComponentIdentifier('foo', 'bar', '2');
+                const remediationData = {
+                  remediation: {
+                    versionChanges: [
+                      getVersionChangeData('next-non-failing', fooComponentIdentifierV2)
+                    ]
+                  }
+                };
+
+                $rootScope.$apply(function() {
+                  document.cookie = 'clmAppId=myFirstApp';
+                });
+                $httpBackend.verifyNoOutstandingRequest();
+
+                spyOn(Brain[clmEndpoint.type], 'getComponentListUrl').and.returnValue('foo');
+                $httpBackend.expectGET('foo').respond(remediationData);
+                Insight.setGav(gav);
+                $httpBackend.flush();
+                expect(scope.suggestedRemediations.length).toEqual(1);
+                expect(scope.suggestedRemediations[0]).toEqual({
+                  id: 'next-no-fail-version-link',
+                  text: ': Next version with no Build failure',
+                  type: 'next-non-failing',
+                  linkId: 'select-no-fail',
+                  linkText: '2',
+                  version: '2'
+                });
+              }));
+
+          it('displays both with and without dependencies strategy recommendations even if they are the same version',
+              inject(function($httpBackend, $rootScope) {
+                const gav = {
+                  groupId: 'foo',
+                  artifactId: 'bar',
+                  version: '1',
+                  proprietary: true
+                };
+                const fooComponentIdentifier = returnComponentIdentifier('foo', 'bar', '2');
+                const remediationData = {
+                  remediation: {
+                    versionChanges: [
+                      getVersionChangeData('next-non-failing', fooComponentIdentifier),
+                      getVersionChangeData('next-non-failing-with-dependencies', fooComponentIdentifier)
+                    ]
+                  }
+                };
+
+                $rootScope.$apply(function() {
+                  document.cookie = 'clmAppId=myFirstApp';
+                });
+                $httpBackend.verifyNoOutstandingRequest();
+
+                spyOn(Brain[clmEndpoint.type], 'getComponentListUrl').and.returnValue('foo');
+                $httpBackend.expectGET('foo').respond(remediationData);
+                Insight.setGav(gav);
+                $httpBackend.flush();
+                expect(scope.suggestedRemediations.length).toEqual(2);
+                expect(scope.suggestedRemediations[0]).toEqual({
+                  id: 'next-no-fail-version-link',
+                  text: ': Next version with no Build failure',
+                  type: 'next-non-failing',
+                  linkId: 'select-no-fail',
+                  linkText: '2',
+                  version: '2'
+                });
+                expect(scope.suggestedRemediations[1]).toEqual({
+                  id: 'next-no-fail-dependencies-version-link',
+                  text: ': Next version with no Build failure for this component and its dependencies',
+                  type: 'next-non-failing-with-dependencies',
+                  linkId: 'select-no-fail-dependencies',
+                  linkText: '2',
+                  version: '2'
+                });
+              }));
+
+          it('correctly handles third party remediation data', inject(function($httpBackend, $rootScope) {
+            const gav = {
+              groupId: 'foo',
+              artifactId: 'bar',
+              version: '1',
+              proprietary: true
+            };
+            const fooComponentIdentifier = returnComponentIdentifier('foo', 'bar', '2');
+            const remediationData = {
+              remediation: {
+                versionChanges: [
+                  getVersionChangeData('next-no-violations', fooComponentIdentifier, true)
+                ]
+              }
+            };
+
+            $rootScope.$apply(function() {
+              document.cookie = 'clmAppId=myFirstApp';
+            });
+            $httpBackend.verifyNoOutstandingRequest();
+
+            spyOn(Brain[clmEndpoint.type], 'getComponentListUrl').and.returnValue('foo');
+            $httpBackend.expectGET('foo').respond(remediationData);
+            Insight.setGav(gav);
+            $httpBackend.flush();
+            expect(scope.suggestedRemediations.length).toEqual(1);
+            expect(scope.suggestedRemediations[0]).toEqual({
+              id: 'remediation-clair',
+              text: 'Next version: 2'
+            });
+          }));
+
+        });
       });
 
       describe('Add Proprietary Component Matchers', function() {
@@ -683,39 +1030,22 @@ var clmEndpointTemplate = {
           identificationSource: 'Sonatype'
         };
 
-        it('retrieves the application internal ID and suggested remediations', inject(function($httpBackend) {
+        it('retrieves the application internal ID', inject(function($httpBackend) {
           $httpBackend.verifyNoOutstandingRequest();
           spyOn(Brain[clmEndpoint.type], 'getComponentListUrl').and.returnValue('foo');
-          $httpBackend.expectGET('foo').respond({
-            allVersions: [],
-            'remediation': {
-              'versionChanges': [{
-                'type': 'next-no-violations',
-                'data': {
-                  'component': {
-                    'componentIdentifier': 'C1'
-                  }
-                }
-              }, {
-                'type': 'next-non-failing',
-                'data': {
-                  'component': {
-                    'componentIdentifier': 'C2'
-                  }
-                }
-              }]
+          const fooComponentIdentifierV3 = returnComponentIdentifier('foo', 'bar', '3');
+          const remediationData = {
+            remediation: {
+              versionChanges: [
+                getVersionChangeData('next-no-violations', fooComponentIdentifierV3)
+              ]
             }
-          });
+          };
+          $httpBackend.expectGET('foo').respond(remediationData);
 
           Insight.setCoordinates('maven', coords, properties);
           $httpBackend.flush();
           expect(Brain[clmEndpoint.type].getComponentListUrl).toHaveBeenCalled();
-
-          expect(scope.suggestedRemediations.size).toEqual(2);
-          expect(scope.suggestedRemediations.has('next-non-failing'));
-          expect(scope.suggestedRemediations.get('next-non-failing')).toEqual('C2');
-          expect(scope.suggestedRemediations.has('next-no-violations'));
-          expect(scope.suggestedRemediations.get('next-no-violations')).toEqual('C1');
         }));
       });
 
@@ -731,41 +1061,17 @@ var clmEndpointTemplate = {
           $controller;
         }));
 
-        describe('Validate that remediation type exists and is valid', function() {
-          it('Returns true when valid version of type exists', inject(function() {
-            scope.suggestedRemediations = new Map();
-            scope.suggestedRemediations.set('next-no-violations', {coordinates: {version: '3'}});
-            scope.suggestedRemediations.set('next-non-failing', {coordinates: {version: '2'}});
-            scope.coordinates = {coordinates: {version: '1'}};
-            expect(scope.nextNoViolationAvailableAndNotCurrent()).toBeTruthy();
-            expect(scope.nextNoFailAvailableAndNotCurrent()).toBeTruthy();
-          }));
-
-          it('Returns false when same version of type exists', inject(function() {
-            scope.suggestedRemediations = new Map();
-            scope.suggestedRemediations.set('next-no-violations', {coordinates: {version: '1'}});
-            scope.suggestedRemediations.set('next-non-failing', {coordinates: {version: '1'}});
-            scope.coordinates = {coordinates: {version: '1'}};
-            expect(scope.nextNoViolationAvailableAndNotCurrent()).toBeFalsy();
-            expect(scope.nextNoFailAvailableAndNotCurrent()).toBeFalsy();
-          }));
-
-          it('Returns false when no version of type exists', inject(function() {
-            scope.suggestedRemediations = new Map();
-            scope.suggestedRemediations.set('invalid-type', {coordinates: {version: '2'}});
-            scope.coordinates = {coordinates: {version: '1'}};
-            expect(scope.nextNoViolationAvailableAndNotCurrent()).toBeFalsy();
-            expect(scope.nextNoFailAvailableAndNotCurrent()).toBeFalsy();
-          }));
-        });
-
         describe('When marking next suggested version', function () {
           describe('If suggested version exists in component details list', function() {
 
             beforeEach(function() {
-              scope.suggestedRemediations = new Map();
-              scope.suggestedRemediations.set('next-no-violations', {coordinates: {version: '2'}});
-              scope.suggestedRemediations.set('next-non-failing', {coordinates: {version: '3'}});
+              scope.suggestedRemediations = [{
+                type: 'next-no-violations',
+                version: '2'
+              }, {
+                type: 'next-non-failing',
+                version: '3'
+              }];
               scope.coordinates = {coordinates: {version: '1'}};
               scope.componentDetailsList = [
                 {componentIdentifier: {coordinates: {version: '1'}}},
@@ -778,7 +1084,7 @@ var clmEndpointTemplate = {
 
               beforeEach(function() {
                 spyOn(Insight, 'updateBars');
-                scope.markNextNoViolation();
+                scope.markSelection({ type: 'next-no-violations'});
               });
 
               it('Coordinates are updated', inject(function(Coordinates) {
@@ -794,7 +1100,7 @@ var clmEndpointTemplate = {
 
               beforeEach(function() {
                 spyOn(Insight, 'updateBars');
-                scope.markNextNoFail();
+                scope.markSelection({type: 'next-non-failing'});
               });
 
               it('updates the coordinates', inject(function(Coordinates) {
@@ -811,9 +1117,13 @@ var clmEndpointTemplate = {
 
             beforeEach(inject(function(Coordinates) {
               Coordinates.setSelected({version: '1'});
-              scope.suggestedRemediations = new Map();
-              scope.suggestedRemediations.set('next-no-violations', {coordinates: {version: '2'}});
-              scope.suggestedRemediations.set('next-non-failing', {coordinates: {version: '3'}});
+              scope.suggestedRemediations = [{
+                type: 'next-no-violations',
+                version: 2
+              }, {
+                type: 'next-non-failing',
+                version: 3
+              }];
               scope.coordinates = {coordinates: {version: '1'}};
               scope.componentDetailsList = [
                 {componentIdentifier: {coordinates: {version: '1'}}},
@@ -825,7 +1135,7 @@ var clmEndpointTemplate = {
 
               beforeEach(function() {
                 spyOn(Insight, 'updateBars');
-                scope.markNextNoViolation();
+                scope.markSelection({type: 'next-no-violations'});
               });
 
               it('does not update coordinates', inject(function(Coordinates) {
@@ -833,7 +1143,7 @@ var clmEndpointTemplate = {
               }));
 
               it('does not update bars', function() {
-                expect(Insight.updateBars).not.toHaveBeenCalled;
+                expect(Insight.updateBars).not.toHaveBeenCalled();
               });
             });
 
@@ -841,7 +1151,7 @@ var clmEndpointTemplate = {
 
               beforeEach(function() {
                 spyOn(Insight, 'updateBars');
-                scope.markNextNoFail();
+                scope.markSelection({type: 'next-non-failing'});
               });
 
               it('does not not update coordinates', inject(function(Coordinates) {
@@ -849,78 +1159,8 @@ var clmEndpointTemplate = {
               }));
 
               it('does not update bars', function() {
-                expect(Insight.updateBars).not.toHaveBeenCalled;
+                expect(Insight.updateBars).not.toHaveBeenCalled();
               });
-            });
-          });
-        });
-
-        describe('When fetching next suggested version', function () {
-          describe('If suggested version type is available', function() {
-            beforeEach(function() {
-              scope.suggestedRemediations = new Map();
-              scope.suggestedRemediations.set('next-no-violations', {coordinates: {version: '2'}});
-              scope.suggestedRemediations.set('next-non-failing', {coordinates: {version: '3'}});
-              scope.coordinates = {coordinates: {version: '1'}};
-            });
-
-            describe('For next-no-violations', function() {
-              it('returns the correct version (2)', inject(function() {
-                expect(scope.getNoViolationVersion()).toEqual('2');
-              }));
-            });
-
-            describe('For next-no-fail', function() {
-              it('returns the correct version (3)', inject(function() {
-                expect(scope.getNoFailVersion()).toEqual('3');
-              }));
-            });
-          });
-
-          describe('If suggested version type is not available', function() {
-            beforeEach(function() {
-              scope.suggestedRemediations = new Map();
-              scope.suggestedRemediations.set('incompatible-type', {coordinates: {version: '2'}});
-              scope.coordinates = {coordinates: {version: '1'}};
-            });
-
-            describe('For next-no-violations', function() {
-              it('the correct version is returned', inject(function() {
-                expect(scope.getNoViolationVersion()).toEqual(null);
-              }));
-            });
-
-            describe('For next-no-fail', function() {
-              it('the correct version is returned', inject(function() {
-                expect(scope.getNoFailVersion()).toEqual(null);
-              }));
-            });
-          });
-
-          describe('When coordinates belong to Clair component', function() {
-            var coords = {coordinates: {version: '1'}};
-
-            var properties = {
-              matchState: 'exact"',
-              proprietary: 'false',
-              filename: 'filename',
-              hash: 'hash',
-              appId: 'myFirstApp',
-              identificationSource: 'Clair'
-            };
-
-            beforeEach(function() {
-              scope.suggestedRemediations = new Map();
-              scope.suggestedRemediations.set('next-no-violations', {coordinates: {version: '4'}});
-              Insight.setCoordinates('debian', coords, properties);
-            });
-
-            describe('For next-no-violations', function() {
-              it('returns the correct version (4)', inject(function() {
-                expect(scope.suggestedRemediations.size).toEqual(1);
-                expect(scope.suggestedRemediations.has('next-no-violations'));
-                expect(scope.getNoViolationVersion()).toEqual('4');
-              }));
             });
           });
         });

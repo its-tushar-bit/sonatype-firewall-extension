@@ -4,11 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 .cip-root-ancestors {
-  $version-graph-width: 475px;
   $ul-margin-left: 25px;
 
   margin-bottom: 10px;
-  max-width: $version-graph-width;
 
   .cip-root-ancestors__header {
     margin: 0;

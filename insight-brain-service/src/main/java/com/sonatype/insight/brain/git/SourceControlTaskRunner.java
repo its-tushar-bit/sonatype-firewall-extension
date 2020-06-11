@@ -16,8 +16,6 @@ import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
-import com.sonatype.insight.brain.security.SystemCallable;
-import com.sonatype.insight.brain.security.SystemRunnable;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.iq.concurrency.ResourceAwareThreadPoolExecutor;
 import com.sonatype.nexus.iq.location.discovery.LocationDiscoveryExecutor;
@@ -64,7 +62,7 @@ public class SourceControlTaskRunner
     PullRequestTask pullRequestTask = pullRequestTaskProvider.get();
     pullRequestTask.init(pullRequestRemediationDetails, pullRequestExecutor);
 
-    executor.execute(new SystemRunnable(pullRequestTask));
+    executor.execute(pullRequestTask);
     log.info("Sent for execution: pull request task for [{}] on application with id [{}]. {} tasks in the queue" +
             " and {} total tasks since startup", pullRequestRemediationDetails.getToBeRemediated(),
         pullRequestRemediationDetails.getApp().getId(), executor.getQueue().size(),
@@ -82,7 +80,7 @@ public class SourceControlTaskRunner
     locationDiscoveryTask.init(
         locationDiscoveryExecutor, componentIdentifiers, gitRepositoryInfo, branch, applicationId);
 
-    Future<LocationDiscoveryResult> future = executor.submit(new SystemCallable<>(locationDiscoveryTask));
+    Future<LocationDiscoveryResult> future = executor.submit(locationDiscoveryTask);
     log.info(
         "Sent for execution: location discovery task for {} component(s) on application with id [{}]. {} tasks in " +
             "the queue and {} total tasks since startup", componentIdentifiers.size(),

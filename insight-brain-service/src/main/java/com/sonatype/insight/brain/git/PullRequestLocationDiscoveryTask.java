@@ -12,6 +12,7 @@ import java.util.concurrent.Callable;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.iq.location.discovery.LocationDiscoveryExecutor;
@@ -78,7 +79,7 @@ public class PullRequestLocationDiscoveryTask
 
     if (initialized) {
       File checkoutDir = null;
-      try {
+      try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
         log.debug("Pull request location discovery task initiated for application '{}'", applicationId);
 
         String applicationPublicId = applicationDAO.getById(applicationId).getPublicId();

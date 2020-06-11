@@ -40,8 +40,6 @@ public abstract class GitRepositoryTask
 
   private static final String PATH_REGEX = "[^a-z0-9\\-]";
 
-  private static final String DEFAULT_RESOURCE_ID = "DEFAULT_RESOURCE_ID";
-
   private final FileCleaner fileCleaner;
 
   private final InsightConfig insightConfig;
@@ -49,8 +47,6 @@ public abstract class GitRepositoryTask
   protected String applicationId;
 
   protected GitRepositoryInfo gitRepositoryInfo;
-
-  private String resourceId;
 
   @Inject
   public GitRepositoryTask(
@@ -142,16 +138,10 @@ public abstract class GitRepositoryTask
 
   @Override
   public String getResourceId() {
-    if (resourceId == null) {
-      if (gitRepositoryInfo != null) {
-        String repositoryUrl = gitRepositoryInfo.getRepositoryUrl();
-        if (StringUtils.isNotEmpty(repositoryUrl)) {
-          resourceId = repositoryUrl;
-        }
-      }
-      resourceId = DEFAULT_RESOURCE_ID;
+    if (StringUtils.isEmpty(applicationId)) {
+      throw new IllegalStateException("applicationId is expected to be provided");
     }
-    return resourceId;
+    return applicationId;
   }
 }
 

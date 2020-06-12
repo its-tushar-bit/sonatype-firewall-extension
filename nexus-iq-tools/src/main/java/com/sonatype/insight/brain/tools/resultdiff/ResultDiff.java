@@ -178,8 +178,12 @@ public class ResultDiff
     Result result = new Result();
     result.source = source;
     for (String line : lines) {
-      String key = line.substring(0, line.indexOf(":")).trim().toLowerCase(Locale.ENGLISH);
-      String value = line.substring(line.indexOf(":") + 1).trim();
+      int colonAt = line.indexOf(":");
+      if (colonAt < 0) {
+        continue;
+      }
+      String key = line.substring(0, colonAt).trim().toLowerCase(Locale.ENGLISH);
+      String value = line.substring(colonAt + 1).trim();
 
       if (key.equals("url")) {
         result.url = value;

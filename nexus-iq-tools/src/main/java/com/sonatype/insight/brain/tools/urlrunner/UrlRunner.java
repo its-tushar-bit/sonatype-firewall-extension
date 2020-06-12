@@ -6,7 +6,13 @@
 package com.sonatype.insight.brain.tools.urlrunner;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.charset.UnsupportedCharsetException;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
@@ -23,6 +29,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
+import org.apache.http.ParseException;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -34,6 +41,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.protocol.HTTP;
+import org.apache.http.util.CharArrayBuffer;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,6 +64,8 @@ public class UrlRunner
   private static final Header csrfHeader = new BasicHeader(X_CSRF_HEADER, CSRF_FAKE_TOKEN);
 
   private static final Header csrfCookieHeader = new BasicHeader("Cookie", CSRF_HEADER_START + CSRF_FAKE_TOKEN);
+
+  private static final int MAX_RESPONSE_LENGTH = 1024 * 1024;
 
   private Header authHeader;
 
@@ -169,7 +180,7 @@ public class UrlRunner
 
     long responseTime;
     long currentTime = System.currentTimeMillis();
-    String responseBody;
+    ResponseBody responseBody;
     StatusLine statusLine;
 
     try (CloseableHttpResponse response = http.execute(request)) {
@@ -193,11 +204,12 @@ public class UrlRunner
     return metricsReport;
   }
 
-  private Stats collectStats(TestUrl url,
-                             String responseBody,
-                             StatusLine statusLine,
-                             long responseTime,
-                             MetricsReport metricsReport)
+  private Stats collectStats(
+      TestUrl url,
+      ResponseBody responseBody,
+      StatusLine statusLine,
+      long responseTime,
+      MetricsReport metricsReport)
   {
     Stats stats = new Stats();
     stats.setUrl(url.getUrl());
@@ -210,20 +222,87 @@ public class UrlRunner
     return stats;
   }
 
-  private String getResponseBody(final HttpResponse httpResponse) {
-    String responseBody = null;
-    if (httpResponse != null) {
-      HttpEntity entity = httpResponse.getEntity();
-      if (entity != null) {
-        try {
-          responseBody = EntityUtils.toString(entity, StandardCharsets.UTF_8);
-        }
-        catch (IOException e) {
-          log.error("Error getting response body", e);
+  // Limits the response content to MAX_RESPONSE_LENGTH
+  private ResponseBody getResponseBody(final HttpResponse httpResponse) {
+    if (httpResponse == null) {
+      return null;
+    }
+
+    HttpEntity entity = httpResponse.getEntity();
+    if (entity == null) {
+      return null;
+    }
+
+    try {
+      return getResponseBody(entity, StandardCharsets.UTF_8);
+    }
+    catch (IOException e) {
+      log.error("Error getting response body", e);
+      return null;
+    }
+  }
+
+  // Adapted from org.apache.http.util.EntityUtils
+  // Limits the response content to MAX_RESPONSE_LENGTH
+  private ResponseBody getResponseBody(
+      HttpEntity entity,
+      Charset defaultCharset) throws IOException, ParseException
+  {
+    try (InputStream inStream = entity.getContent()) {
+      if (inStream == null) {
+        return null;
+      }
+
+      ContentType contentType = null;
+      try {
+        contentType = ContentType.get(entity);
+      }
+      catch (UnsupportedCharsetException ex) {
+        if (defaultCharset == null) {
+          throw new UnsupportedEncodingException(ex.getMessage());
         }
       }
+      if (contentType != null) {
+        if (contentType.getCharset() == null) {
+          contentType = contentType.withCharset(defaultCharset);
+        }
+      }
+      else {
+        contentType = ContentType.DEFAULT_TEXT.withCharset(defaultCharset);
+      }
+
+      int capacity = (int) entity.getContentLength();
+      if (capacity < 0) {
+        capacity = 4096;
+      }
+      Charset charset = null;
+      if (contentType != null) {
+        charset = contentType.getCharset();
+        if (charset == null) {
+          ContentType defaultContentType = ContentType.getByMimeType(contentType.getMimeType());
+          charset = defaultContentType != null ? defaultContentType.getCharset() : null;
+        }
+      }
+      if (charset == null) {
+        charset = HTTP.DEF_CONTENT_CHARSET;
+      }
+
+      Reader reader = new InputStreamReader(inStream, charset);
+      CharArrayBuffer buffer = new CharArrayBuffer(capacity);
+      int contentLength = 0;
+      char[] tmp = new char[1024];
+      int l;
+      while ((l = reader.read(tmp)) != -1) {
+        contentLength += l;
+        if (contentLength < MAX_RESPONSE_LENGTH) {
+          buffer.append(tmp, 0, l);
+        }
+      }
+      if (contentLength >= MAX_RESPONSE_LENGTH) {
+        return new ResponseBody(buffer.toString() + "[***TRUNCATED***]", contentLength);
+      }
+      return new ResponseBody(buffer.toString(), contentLength);
     }
-    return responseBody;
   }
 
   private MetricsResult getMetrics(CloseableHttpClient http) throws Exception {

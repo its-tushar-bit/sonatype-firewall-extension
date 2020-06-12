@@ -19,7 +19,8 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
-import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.PolicyViolationInfoTile;
+import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.PolicyViolationConstraintInfoTile;
+import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.PolicyViolationSecurityDetailsInfoTile;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.SidebarNav;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.SidebarNavListItem;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.ViolationDetailsTile;
@@ -157,25 +158,38 @@ public class ViolationDetailsTest
   }
 
   @Test
-  public void testPolicyViolationInfoTile() {
+  public void testPolicyViolationInfoTiles() {
     refreshOrOpen(ViolationDetailsPage.url(securityPolicyViolation.getId()));
-    PolicyViolationInfoTile tile = new ViolationDetailsPage().policyViolationInfoTile();
+    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+    PolicyViolationConstraintInfoTile constraintInfoTile = violationDetailsPage.policyViolationConstraintInfoTile();
+    PolicyViolationSecurityDetailsInfoTile securityDetailsInfoTile =
+        violationDetailsPage.policyViolationSecurityDetailsInfoTile();
 
-    tile.headerTitle().shouldBe(visible).shouldHave(exactText("Policy Constraint - Test Constraint"));
-    tile.reasons().shouldHaveSize(1);
-    tile.reason(0).shouldHave(exactText("sonatype-2017-0507"));
-    tile.vulnerabilityDetailsHeader().shouldBe(visible).shouldHave(exactText("VULNERABILITY ISSUE sonatype-2017-0507"));
+    constraintInfoTile.headerTitle().shouldBe(visible).shouldHave(exactText("Policy Constraint"));
+    constraintInfoTile.subheaderTitle().shouldBe(visible)
+        .shouldHave(exactText("Test Constraint is in violation for the following reason(s):"));
+    constraintInfoTile.reasons().shouldHaveSize(1);
+    constraintInfoTile.reason(0).shouldHave(exactText("sonatype-2017-0507"));
+
+    securityDetailsInfoTile.vulnerabilityDetailsHeader().shouldBe(visible)
+        .shouldHave(exactText("VULNERABILITY ISSUE sonatype-2017-0507"));
   }
 
   @Test
-  public void testPolicyViolationInfoTile_OtherPolicyViolation() {
+  public void testPolicyViolationInfoTiles_OtherPolicyViolation() {
     refreshOrOpen(ViolationDetailsPage.url(otherPolicyViolation.getId()));
-    PolicyViolationInfoTile tile = new ViolationDetailsPage().policyViolationInfoTile();
+    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+    PolicyViolationConstraintInfoTile constraintInfoTile = violationDetailsPage.policyViolationConstraintInfoTile();
+    PolicyViolationSecurityDetailsInfoTile securityDetailsInfoTile =
+        violationDetailsPage.policyViolationSecurityDetailsInfoTile();
 
-    tile.headerTitle().shouldBe(visible).shouldHave(exactText("Policy Constraint - Test Constraint"));
-    tile.reasons().shouldHaveSize(1);
-    tile.reason(0).shouldHave(exactText("reason"));
-    tile.vulnerabilityDetailsHeader().shouldNotBe(visible);
+    constraintInfoTile.headerTitle().shouldBe(visible).shouldHave(exactText("Policy Constraint"));
+    constraintInfoTile.subheaderTitle().shouldBe(visible)
+        .shouldHave(exactText("Test Constraint is in violation for the following reason(s):"));
+    constraintInfoTile.reasons().shouldHaveSize(1);
+    constraintInfoTile.reason(0).shouldHave(exactText("reason"));
+
+    securityDetailsInfoTile.vulnerabilityDetailsHeader().shouldNotBe(visible);
   }
 
   @Test

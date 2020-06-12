@@ -87,8 +87,12 @@ public class ViolationDetailsPage
     return new ViolationDetailsTile(childSelector("#violation-details-tile"));
   }
 
-  public PolicyViolationInfoTile policyViolationInfoTile() {
-    return new PolicyViolationInfoTile(childSelector("#policy-violation-info-tile"));
+  public PolicyViolationConstraintInfoTile policyViolationConstraintInfoTile() {
+    return new PolicyViolationConstraintInfoTile(childSelector("#policy-violation-constraint-info-tile"));
+  }
+
+  public PolicyViolationSecurityDetailsInfoTile policyViolationSecurityDetailsInfoTile() {
+    return new PolicyViolationSecurityDetailsInfoTile(childSelector("#policy-violation-security-details-info-tile"));
   }
 
   public static class ViolationDetailsTile
@@ -156,15 +160,19 @@ public class ViolationDetailsPage
     }
   }
 
-  public class PolicyViolationInfoTile
-      extends BasicElement<PolicyViolationInfoTile>
+  public class PolicyViolationConstraintInfoTile
+      extends BasicElement<PolicyViolationConstraintInfoTile>
   {
-    private PolicyViolationInfoTile(String selector) {
+    private PolicyViolationConstraintInfoTile(String selector) {
       super(selector);
     }
 
     public SelenideElement headerTitle() {
       return child(".nx-tile-header__title");
+    }
+
+    public SelenideElement subheaderTitle() {
+      return child("h3.nx-h3");
     }
 
     public ElementsCollection reasons() {
@@ -173,6 +181,14 @@ public class ViolationDetailsPage
 
     public SelenideElement reason(int index) {
       return child("#policy-violation-reasons li:nth-of-type(" + (index + 1) + ")");
+    }
+  }
+
+  public class PolicyViolationSecurityDetailsInfoTile
+      extends BasicElement<PolicyViolationSecurityDetailsInfoTile>
+  {
+    private PolicyViolationSecurityDetailsInfoTile(String selector) {
+      super(selector);
     }
 
     public SelenideElement vulnerabilityDetailsHeader() {

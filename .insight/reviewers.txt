@@ -4,5 +4,4 @@
 * [@Vlad Tatavu](https://github.com/vladt)
 * [@Dennis Warren](https://github.com/DennisWarren)
 * [@Benjamin Bentmann](https://github.com/bentmann)
-* [@Koray Tugay](https://github.com/koraytugay)
 * [@Guillermo Varela](https://github.com/guillermo-varela)

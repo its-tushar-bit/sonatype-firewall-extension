@@ -8,6 +8,9 @@ package com.sonatype.insight.brain.git;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -17,11 +20,11 @@ import javax.inject.Singleton;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
-import com.sonatype.nexus.iq.concurrency.ResourceAwareThreadPoolExecutor;
 import com.sonatype.nexus.iq.location.discovery.LocationDiscoveryExecutor;
 import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
 import com.sonatype.nexus.iq.manager.PullRequestExecutor;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,8 +34,6 @@ public class SourceControlTaskRunner
 {
   private static final Logger log = LoggerFactory.getLogger(SourceControlTaskRunner.class);
 
-  private static final int SCM_WORKER_THREADS = 6;
-
   private final Provider<PullRequestTask> pullRequestTaskProvider;
 
   private final PullRequestExecutor pullRequestExecutor;
@@ -41,7 +42,7 @@ public class SourceControlTaskRunner
 
   private final LocationDiscoveryExecutor locationDiscoveryExecutor;
 
-  private final ResourceAwareThreadPoolExecutor executor;
+  private final ThreadPoolExecutor executor;
 
   @Inject
   public SourceControlTaskRunner(
@@ -55,7 +56,8 @@ public class SourceControlTaskRunner
     this.locationDiscoveryTaskProvider = locationDiscoveryTaskProvider;
     this.locationDiscoveryExecutor = locationDiscoveryExecutor;
 
-    this.executor = new ResourceAwareThreadPoolExecutor(SCM_WORKER_THREADS, "ScmWorker");
+    this.executor = new ThreadPoolExecutor(1, 1, 5L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(),
+        new ThreadFactoryBuilder().setDaemon(true).setNameFormat("ScmWorker-%s").build());
   }
 
   public void doPullRequestRemediation(final PullRequestRemediationDetails pullRequestRemediationDetails) {

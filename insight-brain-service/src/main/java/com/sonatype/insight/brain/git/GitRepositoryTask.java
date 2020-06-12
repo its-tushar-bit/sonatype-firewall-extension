@@ -15,7 +15,6 @@ import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
-import com.sonatype.nexus.iq.concurrency.ResourceAware;
 
 import com.google.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
@@ -28,7 +27,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * Base class for tasks that involve repository cloning and SCM interactions.
  */
 public abstract class GitRepositoryTask
-    implements ResourceAware
 {
   private static final Logger log = LoggerFactory.getLogger(GitRepositoryTask.class);
 
@@ -134,14 +132,6 @@ public abstract class GitRepositoryTask
     catch (NoSuchAlgorithmException e) {
       throw new IllegalStateException("Unable to create SHA1 hash for checkout directory.", e);
     }
-  }
-
-  @Override
-  public String getResourceId() {
-    if (StringUtils.isEmpty(applicationId)) {
-      throw new IllegalStateException("applicationId is expected to be provided");
-    }
-    return applicationId;
   }
 }
 

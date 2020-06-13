@@ -43,8 +43,8 @@ Please read our [contribution rules and guidelines](contributing.md).
 This week's rotating reviewers are:
 
 <!-- rotating-reviewers-begin -->
-* [@Dennis Warren](https://github.com/DennisWarren)
-* [@Benjamin Bentmann](https://github.com/bentmann)
+* [@Guillermo Varela](https://github.com/guillermo-varela)
+* [@Ross Pokorny](https://github.com/rpokorny)
 <!-- rotating-reviewers-end -->
 
 # Working with insight-brain #

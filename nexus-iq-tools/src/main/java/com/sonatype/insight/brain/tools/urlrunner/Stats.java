@@ -15,7 +15,7 @@ public class Stats
 
   private String type;
 
-  private String responseBody;
+  private ResponseBody responseBody;
 
   private StatusLine statusLine;
 
@@ -41,11 +41,11 @@ public class Stats
     this.type = type;
   }
 
-  public String getResponseBody() {
+  public ResponseBody getResponseBody() {
     return responseBody;
   }
 
-  public void setResponseBody(final String responseBody) {
+  public void setResponseBody(final ResponseBody responseBody) {
     this.responseBody = responseBody;
   }
 

@@ -48,12 +48,12 @@ export function getApplicationRisks(filters, sortFields) {
       });
 }
 
-const scoreFields = ['totalRisk', 'criticalRisk', 'severeRisk', 'moderateRisk', 'lowRisk'];
+const applicationsScoreFields = ['totalRisk', 'criticalRisk', 'severeRisk', 'moderateRisk', 'lowRisk'];
 
 function generateApplicationsSeries(applications) {
   const series = {};
   applications.forEach(function(application) {
-    scoreFields.forEach(function(scoreField) {
+    applicationsScoreFields.forEach(function(scoreField) {
       if (application.totalApplicationRisk[scoreField]) {
         series[application.totalApplicationRisk[scoreField]] = true;
       }
@@ -79,11 +79,12 @@ export function getComponentRisks(filters, sortFields) {
       });
 }
 
+const componentsScoreFields = ['score', 'scoreCritical', 'scoreSevere', 'scoreModerate', 'scoreLow'];
+
 function generateComponentsSeries(components) {
   const series = [];
-  const scoreFields = ['score', 'scoreCritical', 'scoreSevere', 'scoreModerate', 'scoreLow'];
   components.forEach(function(component) {
-    scoreFields.forEach(function(scoreField) {
+    componentsScoreFields.forEach(function(scoreField) {
       if (component[scoreField] && series.lastIndexOf(component[scoreField]) === -1) {
         series.push(component[scoreField]);
       }

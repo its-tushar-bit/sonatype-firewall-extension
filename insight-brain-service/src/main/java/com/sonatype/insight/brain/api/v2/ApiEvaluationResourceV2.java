@@ -18,7 +18,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.dto.ApiApplicationPolicyEvaluationsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
@@ -26,7 +25,6 @@ import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiScanResultDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentEvaluationServiceV2;
-import com.sonatype.insight.brain.api.v2.service.ApiPolicyEvaluationService;
 import com.sonatype.insight.brain.api.v2.service.ApiPromoteScanServiceV2;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -49,17 +47,13 @@ public class ApiEvaluationResourceV2
 
   private final ApiPromoteScanServiceV2 promoteScanService;
 
-  private final ApiPolicyEvaluationService apiPolicyEvaluationService;
-
   @Inject
   public ApiEvaluationResourceV2(
       final ApiComponentEvaluationServiceV2 componentEvaluationService,
-      final ApiPromoteScanServiceV2 apiPromoteScanServiceV2,
-      final ApiPolicyEvaluationService apiPolicyEvaluationService)
+      final ApiPromoteScanServiceV2 apiPromoteScanServiceV2)
   {
     this.componentEvaluationService = componentEvaluationService;
     this.promoteScanService = apiPromoteScanServiceV2;
-    this.apiPolicyEvaluationService = apiPolicyEvaluationService;
   }
 
   @Path("{applicationId}")
@@ -103,15 +97,5 @@ public class ApiEvaluationResourceV2
                                           @PathParam("statusId") String statusId)
   {
     return promoteScanService.getScanStatus(applicationId, statusId);
-  }
-
-  @Path("{applicationId}")
-  @GET
-  @Consumes(MediaType.APPLICATION_JSON)
-  @Produces(MediaType.APPLICATION_JSON)
-  public ApiApplicationPolicyEvaluationsDTO getApplicationEvaluations(
-      @PathParam("applicationId") final String applicationId)
-  {
-    return apiPolicyEvaluationService.getAllPolicyEvaluations(applicationId);
   }
 }

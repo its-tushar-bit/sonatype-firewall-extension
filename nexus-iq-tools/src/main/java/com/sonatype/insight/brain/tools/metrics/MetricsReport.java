@@ -26,18 +26,23 @@ public class MetricsReport
   }
 
   public void printMetrics() {
-    log.info("Number of SQL Calls: {}", calculateDifferenceLong(CustomMetrics.JPA_SQL_CALLS_KEY));
-    log.info("Disk Bytes Read: {}", calculateDifferenceLong(CustomMetrics.DISK_BYTES_READ_KEY));
+    Long jpaCalls = calculateDifferenceLong(CustomMetrics.JPA_SQL_CALLS_KEY);
+    if (jpaCalls != null) {
+      log.info("Number of SQL Calls: {}", jpaCalls);
+    }
+
+    Long diskBytesRead = calculateDifferenceLong(CustomMetrics.DISK_BYTES_READ_KEY);
+    if (diskBytesRead != null) {
+      log.info("Disk Bytes Read: {}", diskBytesRead);
+    }
   }
 
-  private long calculateDifferenceLong(String key) {
+  private Long calculateDifferenceLong(String key) {
     Optional<Long> beforeValue = beforeResult.getGaugeValue(key, Long.class);
     Optional<Long> afterValue = afterResult.getGaugeValue(key, Long.class);
     if (afterValue.isPresent() && beforeValue.isPresent()) {
       return afterValue.get() - beforeValue.get();
     }
-    else {
-      return -1L;
-    }
+    return null;
   }
 }

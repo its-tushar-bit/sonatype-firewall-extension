@@ -202,6 +202,7 @@ public abstract class AbstractBrainServiceTest
       if (taskScheduler != null) {
         taskScheduler.stop();
       }
+      getCLMServer().resetDisableForTesting();
     }
   }
 

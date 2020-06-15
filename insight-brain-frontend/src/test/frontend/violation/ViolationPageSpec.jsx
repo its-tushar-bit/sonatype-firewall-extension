@@ -9,8 +9,10 @@ import { always } from 'ramda';
 
 import * as enzymeUtils from '../enzymeUtils';
 import ViolationDetailsTile from '../../../main/frontend/violation/ViolationDetailsTile';
-import PolicyViolationInfoTile from '../../../main/frontend/violation/PolicyViolationInfoTile';
 import LoadWrapper from '../../../main/frontend/react/LoadWrapper';
+import PolicyViolationSecurityDetailsInfoTile
+  from '../../../main/frontend/violation/PolicyViolationSecurityDetailsInfoTile';
+import PolicyViolationConstraintInfoTile from '../../../main/frontend/violation/PolicyViolationConstraintInfoTile';
 
 // MaximizedContainer must be mocked because it depends on an angular service
 function MaximizedContainer({ children }) {
@@ -120,18 +122,24 @@ describe('ViolationPage', function() {
       }
   );
 
-  it('renders a PolicyViolationInfoTile within the LoadWrapper with correct props', function() {
-    const violationDetails = {},
-        vulnerabilityDetails = {},
+  it('renders a PolicyViolationConstraintInfoTile within the LoadWrapper with correct props', function() {
+    const violationDetails = { constraintViolations: 'constraintViolations' };
+    const tile = getShallowComponent({ violationDetails })
+        .find(LoadWrapper).find(PolicyViolationConstraintInfoTile);
+
+    expect(tile).toExist();
+    expect(tile.prop('constraintViolations')).toBe('constraintViolations');
+  });
+
+  it('renders a PolicyViolationSecurityDetailsInfoTile within the LoadWrapper with correct props', function() {
+    const vulnerabilityDetails = {},
         tile = getShallowComponent({
-          violationDetails,
           vulnerabilityDetails,
           vulnerabilityDetailsError: 'Test Error',
           vulnerabilityDetailsLoading: true
-        }).find(LoadWrapper).find(PolicyViolationInfoTile);
+        }).find(LoadWrapper).find(PolicyViolationSecurityDetailsInfoTile);
 
     expect(tile).toExist();
-    expect(tile.prop('violationDetails')).toBe(violationDetails);
     expect(tile.prop('vulnerabilityDetails')).toBe(vulnerabilityDetails);
     expect(tile.prop('vulnerabilityDetailsError')).toBe('Test Error');
     expect(tile.prop('vulnerabilityDetailsLoading')).toBe(true);

@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
+import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics;
@@ -88,7 +89,7 @@ public class PullRequestTask
       return;
     }
     File checkoutDir = null;
-    try {
+    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
       log.info("Pull request task initiated for application '{}'", applicationId);
 
       checkoutDir = getCheckoutDirectory(pullRequestRemediationDetails.getApp().getPublicId(), applicationId,

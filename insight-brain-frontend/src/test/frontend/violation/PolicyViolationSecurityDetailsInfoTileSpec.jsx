@@ -4,40 +4,18 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../enzymeUtils';
-import PolicyViolationInfoTile from '../../../main/frontend/violation/PolicyViolationInfoTile';
 import LoadWrapper from '../../../main/frontend/react/LoadWrapper';
 import {NxVulnerabilityDetails} from '@sonatype/react-shared-components';
+import PolicyViolationSecurityDetailsInfoTile
+  from '../../../main/frontend/violation/PolicyViolationSecurityDetailsInfoTile';
 
-describe('PolicyViolationInfoTile', function() {
-  let minimalProps, getShallowComponent;
-
-  beforeEach(function() {
-    minimalProps = {
-      violationDetails: {
-        constraintViolations: [{
-          constraintName: 'test constraint',
-          reasons: [
-            {reason: 'reason 1'},
-            {reason: 'reason 2'}
-          ]
-        }]
-      }
-    };
-
-    getShallowComponent = enzymeUtils.getShallowComponent(PolicyViolationInfoTile, minimalProps);
-  });
+describe('PolicyViolationSecurityDetailsInfoTile', function() {
+  let getShallowComponent = enzymeUtils.getShallowComponent(PolicyViolationSecurityDetailsInfoTile, {});
 
   it('renders title with policy constraint name', function() {
     const header = getShallowComponent().find('.nx-tile-header .nx-tile-header__title h2');
 
-    expect(header).toHaveText('Policy Constraint - test constraint');
-  });
-
-  it('renders violation reasons', function() {
-    const reasonListItems = getShallowComponent().find('#policy-violation-reasons .nx-list__item');
-    expect(reasonListItems.length).toBe(2);
-    expect(reasonListItems.at(0)).toHaveText('reason 1');
-    expect(reasonListItems.at(1)).toHaveText('reason 2');
+    expect(header).toHaveText('Security Vulnerability Details');
   });
 
   it('renders LoadWrapper with loading true if vulnerabilityDetailsLoading is true', function() {

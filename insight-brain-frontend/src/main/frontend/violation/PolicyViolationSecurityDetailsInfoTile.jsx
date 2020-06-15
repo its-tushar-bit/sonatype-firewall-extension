@@ -1,0 +1,38 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import React from 'react';
+import * as PropTypes from 'prop-types';
+import { NxVulnerabilityDetails } from '@sonatype/react-shared-components';
+import LoadWrapper from '../react/LoadWrapper';
+
+export default function PolicyViolationSecurityDetailsInfoTile(props) {
+  const { vulnerabilityDetails, vulnerabilityDetailsError, vulnerabilityDetailsLoading } = props;
+
+  return (
+    <div id="policy-violation-security-details-info-tile" className="nx-tile">
+      <div className="nx-tile-header">
+        <div className="nx-tile-header__title">
+          <h2 className="nx-h2">
+            Security Vulnerability Details
+          </h2>
+        </div>
+      </div>
+      <div className="nx-tile-content">
+        <LoadWrapper error={vulnerabilityDetailsError} loading={vulnerabilityDetailsLoading}>
+          {vulnerabilityDetails && <NxVulnerabilityDetails vulnerabilityDetails={vulnerabilityDetails}/>}
+        </LoadWrapper>
+      </div>
+    </div>
+  );
+}
+
+PolicyViolationSecurityDetailsInfoTile.propTypes = {
+  vulnerabilityDetailsLoading: PropTypes.bool.isRequired,
+  vulnerabilityDetailsError: LoadWrapper.propTypes.error,
+  vulnerabilityDetails: PropTypes.oneOfType([
+    NxVulnerabilityDetails.propTypes.vulnerabilityDetails, PropTypes.oneOf([null])
+  ])
+};

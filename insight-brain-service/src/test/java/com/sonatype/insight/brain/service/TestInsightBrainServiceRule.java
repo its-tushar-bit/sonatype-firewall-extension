@@ -149,4 +149,10 @@ public class TestInsightBrainServiceRule
     this.configurator = configurator;
     return this;
   }
+  
+  public void resetDisableForTesting() {
+    if (brain != null && brain.getInjector() != null) {
+      brain.disableForTesting();
+    }
+  }
 }

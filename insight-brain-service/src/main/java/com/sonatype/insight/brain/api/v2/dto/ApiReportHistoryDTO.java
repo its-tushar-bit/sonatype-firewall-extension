@@ -7,9 +7,9 @@ package com.sonatype.insight.brain.api.v2.dto;
 
 import java.util.List;
 
-public class ApiApplicationPolicyEvaluationsDTO
+public class ApiReportHistoryDTO
 {
   public String applicationId;
 
-  public List<ApiPolicyEvaluationDTO> policyEvaluations;
+  public List<ApiReportResultsDTO> reports;
 }

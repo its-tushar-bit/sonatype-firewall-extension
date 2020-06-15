@@ -11,11 +11,17 @@ import java.util.Date;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.DashboardFilters;
+import com.sonatype.clm.testing.functional.elements.DashboardFilters.AgeFilter;
+import com.sonatype.clm.testing.functional.elements.DashboardFilters.ManageFiltersDropdown;
+import com.sonatype.clm.testing.functional.elements.NxPolicyThreatLevelFilter;
+import com.sonatype.clm.testing.functional.elements.NxTreeViewMultiSelect;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
-import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.PolicyViolationInfoTile;
+import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.PolicyViolationConstraintInfoTile;
+import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.PolicyViolationSecurityDetailsInfoTile;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.SidebarNav;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.SidebarNavListItem;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.ViolationDetailsTile;
@@ -153,25 +159,38 @@ public class ViolationDetailsTest
   }
 
   @Test
-  public void testPolicyViolationInfoTile() {
+  public void testPolicyViolationInfoTiles() {
     refreshOrOpen(ViolationDetailsPage.url(securityPolicyViolation.getId()));
-    PolicyViolationInfoTile tile = new ViolationDetailsPage().policyViolationInfoTile();
+    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+    PolicyViolationConstraintInfoTile constraintInfoTile = violationDetailsPage.policyViolationConstraintInfoTile();
+    PolicyViolationSecurityDetailsInfoTile securityDetailsInfoTile =
+        violationDetailsPage.policyViolationSecurityDetailsInfoTile();
 
-    tile.headerTitle().shouldBe(visible).shouldHave(exactText("Policy Constraint - Test Constraint"));
-    tile.reasons().shouldHaveSize(1);
-    tile.reason(0).shouldHave(exactText("sonatype-2017-0507"));
-    tile.vulnerabilityDetailsHeader().shouldBe(visible).shouldHave(exactText("VULNERABILITY ISSUE sonatype-2017-0507"));
+    constraintInfoTile.headerTitle().shouldBe(visible).shouldHave(exactText("Policy Constraint"));
+    constraintInfoTile.subheaderTitle().shouldBe(visible)
+        .shouldHave(exactText("Test Constraint is in violation for the following reason(s):"));
+    constraintInfoTile.reasons().shouldHaveSize(1);
+    constraintInfoTile.reason(0).shouldHave(exactText("sonatype-2017-0507"));
+
+    securityDetailsInfoTile.vulnerabilityDetailsHeader().shouldBe(visible)
+        .shouldHave(exactText("VULNERABILITY ISSUE sonatype-2017-0507"));
   }
 
   @Test
-  public void testPolicyViolationInfoTile_OtherPolicyViolation() {
+  public void testPolicyViolationInfoTiles_OtherPolicyViolation() {
     refreshOrOpen(ViolationDetailsPage.url(otherPolicyViolation.getId()));
-    PolicyViolationInfoTile tile = new ViolationDetailsPage().policyViolationInfoTile();
+    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+    PolicyViolationConstraintInfoTile constraintInfoTile = violationDetailsPage.policyViolationConstraintInfoTile();
+    PolicyViolationSecurityDetailsInfoTile securityDetailsInfoTile =
+        violationDetailsPage.policyViolationSecurityDetailsInfoTile();
 
-    tile.headerTitle().shouldBe(visible).shouldHave(exactText("Policy Constraint - Test Constraint"));
-    tile.reasons().shouldHaveSize(1);
-    tile.reason(0).shouldHave(exactText("reason"));
-    tile.vulnerabilityDetailsHeader().shouldNotBe(visible);
+    constraintInfoTile.headerTitle().shouldBe(visible).shouldHave(exactText("Policy Constraint"));
+    constraintInfoTile.subheaderTitle().shouldBe(visible)
+        .shouldHave(exactText("Test Constraint is in violation for the following reason(s):"));
+    constraintInfoTile.reasons().shouldHaveSize(1);
+    constraintInfoTile.reason(0).shouldHave(exactText("reason"));
+
+    securityDetailsInfoTile.vulnerabilityDetailsHeader().shouldNotBe(visible);
   }
 
   @Test
@@ -246,21 +265,23 @@ public class ViolationDetailsTest
   @Test
   public void testScrollingToSelection() {
     Instant now = Instant.now();
-    Instant twoDaysAgo = now.minus(2, ChronoUnit.DAYS);
 
-    Organization organization = staticTempEntity.newOrganization("Org 2");
+    Organization organization = tempEntity.newOrganization("Org 2");
     Application app = tempEntity.newApplication("App Test Scroll", "appTestScroll", organization.getId());
 
-    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app.getId(),
-        StageTypes.RELEASE.getId(), "scan1", false, false, Date.from(twoDaysAgo));
+    for (int i = 0; i <= 28; i++) {
+      Instant pastTime = now.minus(i, ChronoUnit.DAYS);
+      PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(),
+          StageTypes.RELEASE.getId(), "scan" + i, false, false, Date.from(pastTime));
+      tempEntity.newPolicyViolation(evaluation, tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID,
+          "Nu Policy" + i, 6));
+    }
+
+    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app.getId(), StageTypes.RELEASE.getId(),
+        "scan1", false, false, Date.from(now.minus(29, ChronoUnit.DAYS)));
 
     PolicyViolation selectedPolicyViolation = tempEntity.newPolicyViolation(
         policyEvaluation1, tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Base Policy", 7));
-
-    for (int i = 0; i < 100; i++) {
-      tempEntity.newPolicyViolation(policyEvaluation1, tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID,
-          "Nu Policy" + i, 9));
-    }
 
     refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(selectedPolicyViolation.getId(), "violation", "filter"));
     ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
@@ -268,12 +289,72 @@ public class ViolationDetailsTest
     sidebarNav.sidebarNavTitle().shouldHave(text("VIOLATIONS"));
 
     ElementsCollection navItems = sidebarNav.sidebarNavItems();
-    navItems.shouldHaveSize(101);
+    navItems.shouldHaveSize(32);
 
-    SidebarNavListItem selectedItem = sidebarNav.navItem(100);
+    SidebarNavListItem selectedItem = sidebarNav.navItem(31);
     selectedItem.shouldBe(visible);
     selectedItem.shouldHave(cssClass("selected"));
     eyesWatcher.eyesCheck("selected element is visible");
+  }
+
+  @Test
+  public void sidebarReflectsDashboard() {
+    Instant now = Instant.now();
+    Instant twoDaysAgo = now.minus(2, ChronoUnit.DAYS);
+
+    Organization organization2 = tempEntity.newOrganization("Org 2");
+    Application app2 = tempEntity.newApplication("App 2", "App2", organization2.getId());
+    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app2.getId(),
+        StageTypes.RELEASE.getId(), "scan1", false, false, Date.from(twoDaysAgo));
+    Policy policy1 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy I", 9);
+    PolicyViolation selectedPolicyViolation = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
+
+    for (int i = 0; i < 50; i++) {
+      Instant pastTime = now.minus(i, ChronoUnit.DAYS);
+      PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app2.getId(),
+          StageTypes.RELEASE.getId(), "scan" + i, false, false, Date.from(pastTime));
+      tempEntity.newPolicyViolation(evaluation, tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID,
+          "Nu Policy" + i, 6));
+    }
+
+    refreshOrOpen(DashboardPage.urlToViolations());
+    NxTreeViewMultiSelect appFilter = DashboardFilters.applicationFilter();
+    appFilter.twisty().click();
+    appFilter.multiSelectList().shouldHaveSize(3);
+    appFilter.checkboxItem(3).click();
+    AgeFilter ageFilter = DashboardFilters.ageFilter();
+    ageFilter.twisty().click();
+    ageFilter.radioItem(6).click();
+    DashboardFilters.apply();
+
+    DashboardPage.violationsView().headers().threatHeader().click();
+    DashboardPage.violationsView().results().violations().shouldHaveSize(51);
+
+    refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(selectedPolicyViolation.getId(), "violation", "filter"));
+    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+    SidebarNav sidebarNav = violationDetailsPage.sidebarNav();
+    ElementsCollection navItems = sidebarNav.sidebarNavItems();
+    navItems.shouldHaveSize(51);
+    SidebarNavListItem selectedItem = sidebarNav.navItem(0);
+    selectedItem.should(visible);
+    violationDetailsPage.backButton().click();
+
+    waitUntilUrl(DashboardPage.urlToViolations());
+    DashboardPage.violationsView().results().violations().shouldHaveSize(51);
+
+    NxPolicyThreatLevelFilter threatLevelFilter = DashboardFilters.policyThreatLevelFilter();
+    threatLevelFilter.twisty().click();
+    threatLevelFilter.slider().setValues(8, 10);
+    DashboardFilters.apply();
+    DashboardPage.violationsView().results().violations().shouldHaveSize(1);
+
+    refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(selectedPolicyViolation.getId(), "violation", "filter"));
+    navItems.shouldHaveSize(1);
+
+    refreshOrOpen(DashboardPage.urlToViolations());
+    ManageFiltersDropdown manage = new ManageFiltersDropdown();
+    manage.openMenuButton().click();
+    manage.dropdownMenu().defaultFilterOption().click();
   }
 
   private void mockHdsResponseForVulnerabilityDetails() {

@@ -14,6 +14,7 @@ import {
   getApplicationsUrl,
   getOrganizationsUrl,
   getApplicationTagsUrl,
+  getApplicationRisksUrl,
   getDashboardFilters,
   getDashboardSavedFilters,
   getNewestRisksUrl
@@ -168,7 +169,8 @@ describe('dashboardFilterActions: non-angular', function() {
     });
 
     describe('when needsAcknowledgement is false', function() {
-      it('fires filter actions and also loads results', function(done) {
+      it('fires filter actions and calls loads results ' +
+      'with the value of dashboard.currentTab if called with no param', function(done) {
         filterJson.needsAcknowledgement = false;
         mockAxiosCalls({
           get: {
@@ -236,6 +238,84 @@ describe('dashboardFilterActions: non-angular', function() {
               classyBrew: undefined
             }
           });
+          done();
+        });
+
+        expect(store.getActions().length).toBe(1);
+        expect(store.getActions()[0]).toEqual({
+          type: 'LOAD_FILTER_REQUESTED'
+        });
+      });
+
+      it('fires filter actions and calls loads results ' +
+      'with the param supplied when called', function(done) {
+        filterJson.needsAcknowledgement = false;
+        mockAxiosCalls({
+          get: {
+            ...mockGetData,
+            [getDashboardFilters()]: Promise.resolve({data: filterJson})
+          },
+          post: {
+            [getApplicationRisksUrl()]: Promise.resolve({
+              data: {
+                dashboardResults: [],
+                numResults: 0
+              }
+            })
+          }
+        });
+
+        store = SpecUtil.mockReduxStore(initialState);
+
+        const expectedApplicationsRisksPayload = {
+          ...expectedRisksPayload,
+          orderBy: '-TOTAL_RISK'
+        };
+
+        store.dispatch(loadFilter('applications')).then(() => {
+          expect(axios.get).toHaveBeenCalledWith(getApplicationsUrl());
+          expect(axios.get).toHaveBeenCalledWith(getOrganizationsUrl());
+          expect(axios.get).toHaveBeenCalledWith(getApplicationTagsUrl());
+          expect(axios.get).toHaveBeenCalledWith(getDashboardFilters());
+          expect(axios.get).toHaveBeenCalledWith(getDashboardSavedFilters());
+          expect(axios.post).toHaveBeenCalledWith(getApplicationRisksUrl(), expectedApplicationsRisksPayload);
+
+          expect(store.getActions().length).toBe(6);
+
+          expect(store.getActions()[1]).toEqual({
+            type: 'FETCH_SAVED_FILTERS_FULFILLED',
+            payload: 'saved filters data'
+          });
+
+          expect(store.getActions()[2]).toEqual({
+            type: 'FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED',
+            payload: {
+              organizations: 'organizations data',
+              applications: 'applications data',
+              stages: initialState.stages.dashboard.stageTypes,
+              categories: 'tag data'
+            }
+          });
+
+          expect(store.getActions()[3]).toEqual({
+            type: 'FETCH_CURRENT_FILTER_FULFILLED',
+            payload: {
+              name: '',
+              basedOnFilterName: 'Test1',
+              filter: 'filter data',
+              needsAcknowledgement: false
+            }
+          });
+
+          expect(store.getActions()[4]).toEqual({
+            type: 'LOAD_RESULTS_REQUESTED',
+            payload: 'applications'
+          });
+
+          const lastAction = store.getActions()[5];
+          expect(lastAction.type).toEqual('LOAD_RESULTS_FULFILLED');
+          expect(lastAction.payload).not.toBeNull();
+          expect(lastAction.payload.resultsType).toEqual('applications');
           done();
         });
 

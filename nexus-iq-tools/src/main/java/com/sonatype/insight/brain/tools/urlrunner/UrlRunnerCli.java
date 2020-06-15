@@ -14,7 +14,6 @@ import java.util.Arrays;
 import com.sonatype.insight.brain.tools.common.PerfTestConfig;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,10 +74,11 @@ public class UrlRunnerCli
           stats.getStatusLine().getReasonPhrase());
       log.info("Response Time: {}", stats.getResponseTime());
 
-      if (StringUtils.isNotEmpty(stats.getResponseBody())) {
-        log.info("Size: {}", stats.getResponseBody().getBytes().length);
-        log.debug("Response body: {}", stats.getResponseBody());
-        log.info("MD5 of response: {}", getMD5(stats.getResponseBody()));
+      ResponseBody responseBody = stats.getResponseBody();
+      if (responseBody != null && responseBody.getLength() > 0) {
+        log.info("Size: {}", responseBody.getLength());
+        log.debug("Response body: {}", responseBody.getContent());
+        log.info("MD5 of response: {}", getMD5(responseBody.getContent()));
       }
 
       if (stats.getMetricsReport() != null) {

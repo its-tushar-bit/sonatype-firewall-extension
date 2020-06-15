@@ -25,10 +25,6 @@
       }
     },
     {
-      "url": "rest/report/{applicationPublicId}/{scanId}/metadata",
-      "type": "GET"
-    },
-    {
       "url": "api/v2/policyViolations?p={policyId}",
       "type": "GET"
     },
@@ -196,14 +192,6 @@
       },
       "repeat": {
         "ifLongerThan": "20"
-      }
-    },
-    {
-      "url": "rest/componentDetails/componentCounts",
-      "type": "POST",
-      "payload": {
-        "applicationIds": null,
-        "organizationIds": null
       }
     }
   ]

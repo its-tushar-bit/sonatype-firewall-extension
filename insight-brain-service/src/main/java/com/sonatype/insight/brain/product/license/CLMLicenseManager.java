@@ -466,6 +466,10 @@ public class CLMLicenseManager
       features.add(LicensedFeature.HYGIENE);
     }
 
+    if (licenseDetails.features.contains(LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES.name())) {
+      features.add(LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES);
+    }
+
     productLicense.set(key, licenseFingerprint, products, features, stageTypes, applicationCount,
         maxUsers, maxFirewallUsers);
     notifyListeners();

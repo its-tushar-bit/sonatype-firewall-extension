@@ -33,4 +33,8 @@ public interface TelemetryCollector
     }
     return allTelemetryData;
   }
+
+  default boolean isClusterTelemetry() {
+    return false;
+  }
 }

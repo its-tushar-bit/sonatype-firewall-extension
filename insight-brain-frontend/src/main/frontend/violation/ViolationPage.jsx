@@ -8,8 +8,9 @@ import * as PropTypes from 'prop-types';
 
 import LoadWrapper from '../react/LoadWrapper';
 import ViolationDetailsTile, { violationDetailsPropTypes } from './ViolationDetailsTile';
-import PolicyViolationInfoTile, { constraintViolationsPropType } from './PolicyViolationInfoTile';
 import MaximizedContainer from '../react/MaximizedContainer';
+import PolicyViolationConstraintInfoTile, { constraintViolationsPropType } from './PolicyViolationConstraintInfoTile';
+import PolicyViolationSecurityDetailsInfoTile from './PolicyViolationSecurityDetailsInfoTile';
 
 export default function ViolationPage(props) {
   const {
@@ -27,6 +28,8 @@ export default function ViolationPage(props) {
   const { id } = $state.params,
       error = props.violationDetailsError || props.stageTypesError;
 
+  const constraintViolations = violationDetails ? violationDetails.constraintViolations : [];
+
   useEffect(() => { load(); }, [id]);
 
   function load() {
@@ -38,8 +41,8 @@ export default function ViolationPage(props) {
     <MaximizedContainer id="violation-page">
       <LoadWrapper error={error} loading={loading || !(violationDetails && stageTypes)}>
         <ViolationDetailsTile { ...({ $state, stageTypes, violationDetails }) } />
-        <PolicyViolationInfoTile {...({
-          violationDetails,
+        <PolicyViolationConstraintInfoTile constraintViolations={constraintViolations} />
+        <PolicyViolationSecurityDetailsInfoTile {...({
           vulnerabilityDetails,
           vulnerabilityDetailsError,
           vulnerabilityDetailsLoading

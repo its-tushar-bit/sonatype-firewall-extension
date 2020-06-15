@@ -17,10 +17,10 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
-import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
@@ -32,11 +32,8 @@ import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.PullRequestCommentTelemetry;
-import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.license.model.LicensedFeature;
-import com.sonatype.insight.telemetry.model.TelemetryData;
-import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.nexus.scm.GitApiClientFactory;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.GitApiClientUtils;
@@ -57,7 +54,6 @@ import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.telemetry.PullRequestCommentTelemetry.ACTION_CREATED;
 import static com.sonatype.insight.brain.telemetry.PullRequestCommentTelemetry.ACTION_UPDATED;
-import static com.sonatype.insight.brain.telemetry.PullRequestCommentTelemetry.PULL_REQUEST_COMMENT_TELEMETRY;
 
 @Named
 @Singleton
@@ -87,7 +83,7 @@ public class PullRequestCommentingService
 
   private final GitCommitHistoryService gitCommitHistoryService;
 
-  private final TelemetrySender telemetrySender;
+  private final PullRequestCommentingMetricsService prCommentingMetricsService;
 
   private final AsyncEventBus asyncEventBus;
 
@@ -115,7 +111,7 @@ public class PullRequestCommentingService
       final PolicyEvaluationDAO policyEvaluationDAO,
       final PullRequestFeedbackMarkupService pullRequestFeedbackMarkupService,
       final GitCommitHistoryService gitCommitHistoryService,
-      final TelemetrySender telemetrySender,
+      final PullRequestCommentingMetricsService prCommentingMetricsService,
       final PullRequestCommentingRemediationService commentingRemediationService,
       final AsyncEventBus asyncEventBus,
       final ProductLicense productLicense,
@@ -132,7 +128,7 @@ public class PullRequestCommentingService
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.pullRequestFeedbackMarkupService = pullRequestFeedbackMarkupService;
     this.gitCommitHistoryService = gitCommitHistoryService;
-    this.telemetrySender = telemetrySender;
+    this.prCommentingMetricsService = prCommentingMetricsService;
     this.commentingRemediationService = commentingRemediationService;
     this.asyncEventBus = asyncEventBus;
     this.productLicense = productLicense;
@@ -355,6 +351,13 @@ public class PullRequestCommentingService
           sourceCommitPolicyEvaluation.getId(), baseBranchPolicyEvaluation.getId(), existingPullRequestComment);
       invokePostCommentActions(gitRepositoryInfo, policyViolationDiff.get(),
           sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation);
+
+      prCommentingMetricsService.sendTelemetry(telemetry);
+
+      AuditEvent auditEvent = existingPullRequestComment == null
+          ? AuditEvent.CREATE_PULL_REQUEST_COMMENT : AuditEvent.UPDATE_PULL_REQUEST_COMMENT;
+      prCommentingMetricsService.addAuditRecord(
+          auditEvent, applicationId, gitRepositoryInfo.repositoryUrl, pullRequestNumber);
     }
     else {
       log.info("generated feedback markup was empty for application '{}' pull request '{}'",
@@ -398,15 +401,7 @@ public class PullRequestCommentingService
       telemetry.action = ACTION_UPDATED;
     }
     telemetry.commentId = commentResponse.getId();
-    sendTelemetry(telemetry);
     return commentResponse;
-  }
-
-  private void sendTelemetry(final PullRequestCommentTelemetry telemetry) {
-    telemetry.applicationId = HdsClientAnalytics.obfuscate(telemetry.applicationId);
-    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.SOURCE_CONTROL_PULL_REQUEST_COMMENT);
-    telemetryData.put(PULL_REQUEST_COMMENT_TELEMETRY, telemetry);
-    telemetrySender.send(telemetryData);
   }
 
   /**

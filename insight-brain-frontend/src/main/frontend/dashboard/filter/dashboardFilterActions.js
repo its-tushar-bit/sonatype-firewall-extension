@@ -34,7 +34,7 @@ export const SELECT_AGE = 'SELECT_AGE';
 export const REVERT_FILTER = 'REVERT_FILTER';
 export const SET_DISPLAY_SAVE_FILTER_MODAL = 'SET_DISPLAY_SAVE_FILTER_MODAL';
 
-export function loadFilter() {
+export function loadFilter(resultsType = null) {
   return (dispatch, getState) => {
     dispatch({ type: LOAD_FILTER_REQUESTED });
 
@@ -55,7 +55,7 @@ export function loadFilter() {
 
           dispatch(fetchAvailableFilterOptionsFulfilled(
               applications.data, organizations.data, categoriesData.data, dashboard.stageTypes));
-          return dispatch(fetchCurrentFilterFulfilled(filterData.data));
+          return dispatch(fetchCurrentFilterFulfilled(filterData.data, resultsType));
         })
         .catch(error => {
           dispatch(loadFilterFailed(error));
@@ -76,14 +76,15 @@ function fetchAvailableFilterOptionsFulfilled(applications, organizations, categ
   };
 }
 
-function fetchCurrentFilterFulfilled(filter) {
+function fetchCurrentFilterFulfilled(filter, resultsType) {
   return (dispatch, getState) => {
+    resultsType = resultsType || getState().dashboard.currentTab;
     dispatch({
       type: FETCH_CURRENT_FILTER_FULFILLED,
       payload: filter
     });
     if (!filter.needsAcknowledgement) {
-      return dispatch(loadResults(getState().dashboard.currentTab));
+      return dispatch(loadResults(resultsType));
     }
     return Promise.resolve();
   };

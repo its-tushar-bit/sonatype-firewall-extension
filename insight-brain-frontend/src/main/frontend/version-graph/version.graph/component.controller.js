@@ -3,10 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, Brain, clmEndpoint*/
+/*global angular, Brain, clmEndpoint, Insight*/
 
 const NEXT_NO_VIOLATIONS = 'next-no-violations';
+const NEXT_NO_VIOLATIONS_DEPENDENCIES = 'next-no-violations-with-dependencies';
 const NEXT_NON_FAILING = 'next-non-failing';
+const NEXT_NON_FAILING_DEPENDENCIES = 'next-non-failing-with-dependencies';
+
+import { find, propEq } from 'ramda';
+import { capitalize } from '../../util/jsUtil';
 
 export default function ComponentController($scope, Coordinates, OwnerContext, errorMessage, Properties, $http,
                                             $injector) {
@@ -40,18 +45,146 @@ export default function ComponentController($scope, Coordinates, OwnerContext, e
     }
   }
 
+  function createSuggestedRemediationWithRecommendedVersion(item, remediationVersion) {
+    switch (item.type) {
+      case NEXT_NO_VIOLATIONS:
+        return {
+          id: 'next-no-violation-version-link',
+          text: ': Next version with no policy violation',
+          type: NEXT_NO_VIOLATIONS,
+          linkId: 'select-no-violation',
+          linkText: remediationVersion,
+          version: remediationVersion
+        };
+      case NEXT_NON_FAILING:
+        return {
+          id: 'next-no-fail-version-link',
+          text: `: Next version with no ${capitalize(Properties.getStageId())} failure`,
+          type: NEXT_NON_FAILING,
+          linkId: 'select-no-fail',
+          linkText: remediationVersion,
+          version: remediationVersion
+        };
+      case NEXT_NON_FAILING_DEPENDENCIES:
+        return {
+          id: 'next-no-fail-dependencies-version-link',
+          text: `: Next version with no ${capitalize(Properties.getStageId())} failure ` +
+              'for this component and its dependencies',
+          type: NEXT_NON_FAILING_DEPENDENCIES,
+          linkId: 'select-no-fail-dependencies',
+          linkText: remediationVersion,
+          version: remediationVersion
+        };
+      case NEXT_NO_VIOLATIONS_DEPENDENCIES:
+        return {
+          id: 'next-no-violation-dependencies-version-link',
+          text: ': Next version with no policy violations for this component and its dependencies',
+          type: NEXT_NO_VIOLATIONS_DEPENDENCIES,
+          linkId: 'select-no-violation-dependencies',
+          linkText: remediationVersion,
+          version: remediationVersion
+        };
+    }
+  }
+
+  function createSuggestedRemediationWithCurrentVersion(item, remediationVersion) {
+    switch (item.type) {
+      case NEXT_NO_VIOLATIONS_DEPENDENCIES:
+        return {
+          id: 'next-no-violation-dependencies-version',
+          text: 'The current version has no policy violations for this component and its dependencies',
+          type: NEXT_NO_VIOLATIONS_DEPENDENCIES,
+          version: remediationVersion
+        };
+      case NEXT_NO_VIOLATIONS:
+        return {
+          id: 'next-no-violation-version',
+          text: 'The current version has no policy violations',
+          type: NEXT_NO_VIOLATIONS,
+          version: remediationVersion
+        };
+      case NEXT_NON_FAILING_DEPENDENCIES:
+        return {
+          id: 'next-no-fail-dependencies-version',
+          text: `The current version doesn't cause ${capitalize(Properties.getStageId())} failure ` +
+              'for this component and its dependencies',
+          type: NEXT_NON_FAILING_DEPENDENCIES,
+          version: remediationVersion
+        };
+      case NEXT_NON_FAILING:
+        return {
+          id: 'next-no-fail-version',
+          text: `The current version doesn't cause ${capitalize(Properties.getStageId())} failure`,
+          type: NEXT_NON_FAILING,
+          version: remediationVersion
+        };
+    }
+  }
+
+  function createSuggestedRemediation(item) {
+    const applicationVersion = $scope.coordinates.coordinates.version;
+    const remediationVersion = item.data.component.componentIdentifier.coordinates.version;
+
+    if (item.data.component.thirdParty) {
+      return {
+        id: 'remediation-clair',
+        text: `Next version: ${remediationVersion}`
+      };
+    }
+    else if (remediationVersion !== applicationVersion) {
+      return createSuggestedRemediationWithRecommendedVersion(item, remediationVersion);
+    }
+    else {
+      return createSuggestedRemediationWithCurrentVersion(item, remediationVersion);
+    }
+  }
+
+  function shouldDisplayWithoutDependenciesRemediation(withDependenciesSuggestion, withoutDependenciesSuggestion) {
+    if (!withoutDependenciesSuggestion) {
+      return false;
+    }
+    if (!withDependenciesSuggestion) {
+      return true;
+    }
+    const withDependenciesVersion = withDependenciesSuggestion.data.component.componentIdentifier.coordinates.version;
+    const withoutDependenciesVersion =
+        withoutDependenciesSuggestion.data.component.componentIdentifier.coordinates.version;
+    const currentVersion = $scope.coordinates.coordinates.version;
+    return (withoutDependenciesVersion !== currentVersion || withDependenciesVersion !== currentVersion);
+  }
+
   function setRemediations({ remediation }) {
-    $scope.suggestedRemediations = new Map();
+    $scope.suggestedRemediations = [];
 
     if (remediation && remediation.versionChanges) {
-      $.each(remediation.versionChanges, function(index, item) {
-        $scope.suggestedRemediations.set(item.type,
-            item.data.component.componentIdentifier);
-        
-        if(item.data.component.thirdParty){
-          $scope.suggestedRemediations.set(item.data.component.componentIdentifier.coordinates.version,
-                  item.data.component.thirdParty);
-        }
+      const nonViolatingDependencySuggestion =
+          find(propEq('type', NEXT_NO_VIOLATIONS_DEPENDENCIES), remediation.versionChanges);
+      const nonViolatingSuggestion = find(propEq('type', NEXT_NO_VIOLATIONS), remediation.versionChanges);
+      const nonFailingDependencySuggestion =
+          find(propEq('type', NEXT_NON_FAILING_DEPENDENCIES), remediation.versionChanges);
+      const nonFailingSuggestion = find(propEq('type', NEXT_NON_FAILING), remediation.versionChanges);
+
+      if (shouldDisplayWithoutDependenciesRemediation(nonViolatingDependencySuggestion, nonViolatingSuggestion)) {
+        $scope.suggestedRemediations.push(createSuggestedRemediation(nonViolatingSuggestion));
+      }
+
+      if (nonViolatingDependencySuggestion) {
+        $scope.suggestedRemediations.push(createSuggestedRemediation(nonViolatingDependencySuggestion));
+      }
+
+      if (shouldDisplayWithoutDependenciesRemediation(nonFailingDependencySuggestion, nonFailingSuggestion)) {
+        $scope.suggestedRemediations.push(createSuggestedRemediation(nonFailingSuggestion));
+      }
+
+      if (nonFailingDependencySuggestion) {
+        $scope.suggestedRemediations.push(createSuggestedRemediation(nonFailingDependencySuggestion));
+      }
+    }
+
+    if (!$scope.suggestedRemediations.length) {
+      $scope.suggestedRemediations.push({
+        id: 'no-versions-available',
+        text: 'No recommended versions are available for the current component'
       });
     }
   }
@@ -100,28 +233,10 @@ export default function ComponentController($scope, Coordinates, OwnerContext, e
     return SelectedComponent.get().pathnames.filter(isNotDependency);
   }
 
-  $scope.markNextNoViolation = function() {
-    changeSelectedVersionToSuggestedRemediation(NEXT_NO_VIOLATIONS);
-  };
-
-  $scope.nextNoViolationAvailableAndNotCurrent = function() {
-    return isSuggestedRemediationOfTypeAvailableAndDifferentFromCurrent(NEXT_NO_VIOLATIONS);
-  };
-
-  $scope.markNextNoFail = function() {
-    changeSelectedVersionToSuggestedRemediation(NEXT_NON_FAILING);
-  };
-
-  $scope.nextNoFailAvailableAndNotCurrent = function() {
-    return isSuggestedRemediationOfTypeAvailableAndDifferentFromCurrent(NEXT_NON_FAILING);
-  };
-
-  $scope.getNoViolationVersion = function() {
-    return getSuggestedVersion(NEXT_NO_VIOLATIONS);
-  };
-
-  $scope.getNoFailVersion = function() {
-    return getSuggestedVersion(NEXT_NON_FAILING);
+  $scope.markSelection = (remediation) => {
+    if (remediation && remediation.type) {
+      changeSelectedVersionToSuggestedRemediation(remediation.type);
+    }
   };
 
   $scope.isApplicationOwnerContext = function() {
@@ -143,48 +258,15 @@ export default function ComponentController($scope, Coordinates, OwnerContext, e
   };
 
   function changeSelectedVersionToSuggestedRemediation(type) {
-
-    let version = $scope.suggestedRemediations.get(type);
+    let suggestedRemediationVersion = find(propEq('type', type), $scope.suggestedRemediations).version;
     $.each($scope.componentDetailsList, function(index, item) {
-      if (item.componentIdentifier.coordinates.version === version.coordinates.version) {
-        Coordinates.setSelected(version.coordinates);
+      if (item.componentIdentifier.coordinates.version === suggestedRemediationVersion) {
+        Coordinates.setSelected(item.componentIdentifier.coordinates);
         Properties.setHash(item.hash);
         Insight.updateBars(index);
       }
     });
   }
-
-  function isSuggestedRemediationOfTypeAvailableAndDifferentFromCurrent(type) {
-    if (!$scope.suggestedRemediations) {
-      return false;
-    }
-    return $scope.suggestedRemediations.get(type) &&
-        $scope.suggestedRemediations.get(type).coordinates.version !== $scope.coordinates.coordinates.version;
-  }
-
-  function getSuggestedVersion(type) {
-    if (!isSuggestedRemediationOfTypeAvailableAndDifferentFromCurrent(type)) {
-      return null;
-    }
-    return $scope.suggestedRemediations.get(type).coordinates.version;
-  }
-  
-  $scope.isThirdPartyRemediation = function() {  
-    if (!$scope.suggestedRemediations || $scope.suggestedRemediations.size == 0) {
-      return false;
-    }
-
-    let remediation = $scope.suggestedRemediations.get(NEXT_NO_VIOLATIONS);
-    if(!remediation){
-      return false;
-    }
-
-    let version = remediation.coordinates.version;
-    if(!version){
-      return false;
-    }
-    return $scope.suggestedRemediations.get(version); 
-  };
 }
 
 function isNotDependency(pathName) {

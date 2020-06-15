@@ -66,18 +66,18 @@ public class DbUtil
     List<TestUrl> targetUrls = new ArrayList<>();
 
     for (TestUrl url : config.getUrls()) {
-      replacers.forEach(r -> targetUrls.addAll(r.generateUrls(url)));
+      replacers.forEach(replacer -> targetUrls.addAll(replacer.generateUrls(url)));
     }
 
-    PerfTestConfig ptc = new PerfTestConfig();
-    ptc.setUrls(targetUrls);
+    PerfTestConfig perfTestConfig = new PerfTestConfig();
+    perfTestConfig.setUrls(targetUrls);
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.enable(SerializationFeature.INDENT_OUTPUT);
     mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
-    log.info(mapper.writeValueAsString(ptc));
-    log.debug("Count: {}", ptc.getUrls().size());
+    log.info(mapper.writeValueAsString(perfTestConfig));
+    log.debug("Count: {}", perfTestConfig.getUrls().size());
   }
 
   private Connection getConnection() throws Exception {

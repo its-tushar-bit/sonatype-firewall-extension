@@ -33,7 +33,9 @@ import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.organization.SampleDataCreator;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
+import com.sonatype.insight.brain.telemetry.ClusterTelemetryTask;
 import com.sonatype.insight.brain.telemetry.DatabaseTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.HierarchyMetricsTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.PolicyStatusOverrideTelemetryCollector;
@@ -120,6 +122,7 @@ public class InsightBrainServiceTest
         responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());
       }).andStatus(204).atUri(TelemetrySender.RESOURCE_PATH);
     });
+    temporarilyEnableQuartzTelemetry();
     await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(8));
     Date expectedMaxCreateTime = new Date();
     Collection<TelemetryData> allTelemetryData =
@@ -251,6 +254,7 @@ public class InsightBrainServiceTest
     TelemetryScheduler telemetryScheduler = getCLMServer().getInstance(TelemetryScheduler.class);
     responses.clear();
     telemetryScheduler.getTelemetryRunnable().run();
+    temporarilyEnableQuartzTelemetry();
     await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(9));
     Date expectedMaxCreateTime = new Date();
     Collection<TelemetryData> allTelemetryData =
@@ -420,5 +424,18 @@ public class InsightBrainServiceTest
     assertThat(config.isExperimentalFeatureEnabled("unspecifiedExperimentalFeature")).isFalse();
     assertThat(config.isExperimentalFeatureEnabled("enabledExperimentalFeature")).isTrue();
     assertThat(config.isExperimentalFeatureEnabled("disabledExperimentalFeature")).isFalse();
+  }
+
+  private void temporarilyEnableQuartzTelemetry() throws Exception {
+    TaskScheduler taskScheduler = getCLMServer().getInstance(TaskScheduler.class);
+    ClusterTelemetryTask clusterTelemetryTask = getCLMServer().getInstance(ClusterTelemetryTask.class);
+
+    taskScheduler.disableForTesting = false;
+    clusterTelemetryTask.disableForTesting = false;
+
+    taskScheduler.start();
+    clusterTelemetryTask.start();
+
+    // Note: this should be disabled again in AbstractBrainServiceTest.cleanupTest()
   }
 }

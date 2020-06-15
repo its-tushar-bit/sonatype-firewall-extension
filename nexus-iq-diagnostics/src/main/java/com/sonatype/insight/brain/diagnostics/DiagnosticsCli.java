@@ -62,8 +62,10 @@ public class DiagnosticsCli
     log.info("Total database size: {} bytes", h2.length());
 
     logSchemaVersionFromFile(ods);
+    // NOTE: Unless explicitly set, DB_CLOSE_DELAY is restored to the value from the last connection which usually was
+    // IQ Server setting it to -1. But -1 causes unclosed file handles and does not work well for e.g. recovery mode.
     String dbUrl =
-        "jdbc:h2:" + ods.getPath() + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000;MV_STORE=FALSE";
+        "jdbc:h2:" + ods.getPath() + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=0;LOCK_TIMEOUT=10000;MV_STORE=FALSE";
     logSchemaVersionFromDatabase(dbUrl);
 
     if (params.isRecover()) {

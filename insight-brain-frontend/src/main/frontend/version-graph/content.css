@@ -20,6 +20,7 @@
 #version-graph-container {
   color: #333333;
   font-family: Open Sans, sans-serif;
+  max-width: 481px;
 }
 
 .version-graph-container-text {

@@ -280,6 +280,8 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
         return baseUrl.get() + '/rest/dashboard/export/newestRisks';
       },
 
+      getApplicationTagsUrl,
+
       getDashboardFilters,
 
       getDashboardSavedFilters,

@@ -6,33 +6,30 @@
 import React from 'react';
 import * as PropTypes from 'prop-types';
 import { map } from 'ramda';
-import { NxVulnerabilityDetails } from '@sonatype/react-shared-components';
-import LoadWrapper from '../react/LoadWrapper';
 
-export default function PolicyViolationInfoTile(props) {
-  const { violationDetails, vulnerabilityDetails, vulnerabilityDetailsError, vulnerabilityDetailsLoading } = props,
-      { constraintViolations } = violationDetails,
+export default function PolicyViolationConstraintInfoTile(props) {
+  const { constraintViolations } = props,
       { constraintName, reasons } = constraintViolations[0];
 
   return (
-    <div id="policy-violation-info-tile" className="nx-tile">
+    <div id="policy-violation-constraint-info-tile" className="nx-tile">
       <div className="nx-tile-header">
         <div className="nx-tile-header__title">
           <h2 className="nx-h2">
-            Policy Constraint - {constraintName}
+            Policy Constraint
           </h2>
         </div>
       </div>
       <div className="nx-tile-content">
-        <div className="nx-list nx-list--bulleted">
-          <h4 className="nx-list__title nx-h4">is in violation for the following reason(s)</h4>
+        <h3 className="nx-h3">
+          <strong>{constraintName}</strong>
+          {' '}<span className="regular">is in violation for the following reason(s):</span>
+        </h3>
+        <div className="nx-list nx-list--bulleted nx-list--violation-reasons">
           <ul id="policy-violation-reasons">
             {map(({reason}) => <li className="nx-list__item" key={reason}>{reason}</li>, reasons)}
           </ul>
         </div>
-        <LoadWrapper error={vulnerabilityDetailsError} loading={vulnerabilityDetailsLoading}>
-          {vulnerabilityDetails && <NxVulnerabilityDetails vulnerabilityDetails={vulnerabilityDetails}/>}
-        </LoadWrapper>
       </div>
     </div>
   );
@@ -53,13 +50,6 @@ const constraintViolationPropType = PropTypes.shape({
 
 export const constraintViolationsPropType = PropTypes.arrayOf(constraintViolationPropType);
 
-PolicyViolationInfoTile.propTypes = {
-  violationDetails: PropTypes.shape({
-    constraintViolations: constraintViolationsPropType.isRequired
-  }),
-  vulnerabilityDetailsLoading: PropTypes.bool.isRequired,
-  vulnerabilityDetailsError: LoadWrapper.propTypes.error,
-  vulnerabilityDetails: PropTypes.oneOfType([
-    NxVulnerabilityDetails.propTypes.vulnerabilityDetails, PropTypes.oneOf([null])
-  ])
+PolicyViolationConstraintInfoTile.propTypes = {
+  constraintViolations: constraintViolationsPropType.isRequired
 };

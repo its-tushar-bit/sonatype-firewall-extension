@@ -141,7 +141,8 @@ public class ComponentRemediationService
             telemetryAttributes.put(OPTION_NEXT_NON_FAILING_ATTR, String.valueOf(true));
           });
 
-      boolean includeAdvancedStrategies = productLicense.hasFeature(LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES);
+      boolean includeAdvancedStrategies = currentComponent.isMaven() &&
+          productLicense.hasFeature(LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES);
       if (includeAdvancedStrategies) {
         // non-violating/non-failing with dependencies
         Collection<PackageUrlIdentifier> nonFailingVersionsPurls = nonFailingVersions.stream()

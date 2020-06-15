@@ -7,7 +7,7 @@
 function getClassyBrew(win) {
   win = win || window;
 
-  return function createClassyBrew(series) {
+  return function innerCreateClassyBrew(series) {
     const brew = new win.classyBrew();
 
     brew.colorSchemes.SonatypeBlues = {

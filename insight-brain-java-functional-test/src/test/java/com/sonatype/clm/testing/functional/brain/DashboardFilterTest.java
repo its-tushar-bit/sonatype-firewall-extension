@@ -518,7 +518,7 @@ public class DashboardFilterTest
     manage.dropdownMenu().shouldBe(visible);
     manage.dropdownMenu().options().shouldHaveSize(1);
     manage.dropdownMenu().defaultFilterOption().shouldHave(text("Default"));
-    manage.dropdownMenu().emptyListMessage().shouldBe(visible).shouldHave(text("No saved filters."));
+    manage.dropdownMenu().emptyListMessage().shouldBe(visible).shouldHave(text("No saved filters"));
     manage.openMenuButton().click();
     manage.dropdownMenu().shouldNotBe(visible);
 

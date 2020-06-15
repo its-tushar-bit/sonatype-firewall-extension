@@ -57,4 +57,10 @@ public class JsonUtilsTest
     String expectedJson = "{\"groupId\":\"tomcat\uF8FF\",\"artifactId\":\"tomcat-util\",\"version\":\"5.5.23\"}";
     assertThat(JsonUtils.writeUnformatted(pojo)).isEqualTo(expectedJson);
   }
+
+  @Test
+  public void testGetStringListFromArray_withNullValues() throws IOException {
+    JsonNode jsonNode = JsonUtils.parse("[null, \"value\"]");
+    assertThat(JsonUtils.getStringListFromArray(jsonNode)).containsOnly("value");
+  }
 }

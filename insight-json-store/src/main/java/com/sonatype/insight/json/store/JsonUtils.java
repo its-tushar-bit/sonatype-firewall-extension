@@ -212,7 +212,9 @@ public final class JsonUtils
     }
     final List<String> result = new ArrayList<>();
     for (final JsonNode child : jsonArray) {
-      result.add(child.asText());
+      if (!child.isNull()) {
+        result.add(child.asText());
+      }
     }
     return result;
   }

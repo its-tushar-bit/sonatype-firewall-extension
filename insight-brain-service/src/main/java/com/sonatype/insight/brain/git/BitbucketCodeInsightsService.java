@@ -90,7 +90,7 @@ public class BitbucketCodeInsightsService
     if (!gitRepositoryInfo.provider.supportsCodeInsights()) {
       return;
     }
-    if (!insightConfig.isExperimentalFeatureEnabled(Feature.CODE_INSIGHTS)) {
+    if (!insightConfig.isFeatureEnabled(Feature.CODE_INSIGHTS)) {
       return;
     }
 

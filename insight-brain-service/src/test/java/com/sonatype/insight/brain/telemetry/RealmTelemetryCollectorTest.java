@@ -23,6 +23,11 @@ public class RealmTelemetryCollectorTest
   private RealmTelemetryCollector telemetryCollector;
 
   @Test
+  public void testIsClusterTelemetry() {
+    assertThat(telemetryCollector.isClusterTelemetry()).isTrue();
+  }
+
+  @Test
   public void testCollectData_SamlNotConfigured() {
     TelemetryData telemetryData = telemetryCollector.collectData();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.REALM);

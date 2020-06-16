@@ -74,6 +74,7 @@ public class ClusterTelemetryTaskTest
     TelemetryPurpose[] expectedPurposes = { //
         TelemetryPurpose.DATABASE, //
         TelemetryPurpose.HIERARCHY_METRICS, //
+        TelemetryPurpose.REALM, //
         TelemetryPurpose.ROLE_USAGE, //
     };
     verify(telemetrySenderMock, times(expectedPurposes.length)).send(allTelemetryDataCaptor.capture());

@@ -31,6 +31,11 @@ public class RealmTelemetryCollector
   }
 
   @Override
+  public boolean isClusterTelemetry() {
+    return true;
+  }
+
+  @Override
   public TelemetryData collectData() {
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.REALM);
     telemetryData.getAttributes().put(SAML_CONFIGURED, String.valueOf(samlConfigurationDAO.get() != null));

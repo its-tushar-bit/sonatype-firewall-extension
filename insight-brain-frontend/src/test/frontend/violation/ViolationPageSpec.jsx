@@ -10,8 +10,8 @@ import { always } from 'ramda';
 import * as enzymeUtils from '../enzymeUtils';
 import ViolationDetailsTile from '../../../main/frontend/violation/ViolationDetailsTile';
 import LoadWrapper from '../../../main/frontend/react/LoadWrapper';
-import PolicyViolationSecurityDetailsInfoTile
-  from '../../../main/frontend/violation/PolicyViolationSecurityDetailsInfoTile';
+import SecurityVulnerabilityDetailsTile
+  from '../../../main/frontend/violation/SecurityVulnerabilityDetailsTile';
 import PolicyViolationConstraintInfoTile from '../../../main/frontend/violation/PolicyViolationConstraintInfoTile';
 
 // MaximizedContainer must be mocked because it depends on an angular service
@@ -131,17 +131,36 @@ describe('ViolationPage', function() {
     expect(tile.prop('constraintViolations')).toBe('constraintViolations');
   });
 
-  it('renders a PolicyViolationSecurityDetailsInfoTile within the LoadWrapper with correct props', function() {
-    const vulnerabilityDetails = {},
-        tile = getShallowComponent({
-          vulnerabilityDetails,
-          vulnerabilityDetailsError: 'Test Error',
-          vulnerabilityDetailsLoading: true
-        }).find(LoadWrapper).find(PolicyViolationSecurityDetailsInfoTile);
+  it('renders a SecurityVulnerabilityDetailsTile with correct props if it\'s a security vulnerability', function() {
+    const violationDetails = {
+      policyThreatCategory: 'security'
+    };
+    const vulnerabilityDetails = { foo: 'bar' };
+    const tile = getShallowComponent({
+      vulnerabilityDetails,
+      violationDetails,
+      vulnerabilityDetailsError: 'Test Error',
+      vulnerabilityDetailsLoading: true
+    }).find(LoadWrapper).find(SecurityVulnerabilityDetailsTile);
 
     expect(tile).toExist();
     expect(tile.prop('vulnerabilityDetails')).toBe(vulnerabilityDetails);
     expect(tile.prop('vulnerabilityDetailsError')).toBe('Test Error');
     expect(tile.prop('vulnerabilityDetailsLoading')).toBe(true);
+  });
+
+  it('does not render a SecurityVulnerabilityDetailsTile if it\'s not a security vulnerability', function() {
+    const violationDetails = {
+      policyThreatCategory: 'license'
+    };
+    const vulnerabilityDetails = { foo: 'bar' };
+    const tile = getShallowComponent({
+      vulnerabilityDetails,
+      violationDetails,
+      vulnerabilityDetailsError: 'Test Error',
+      vulnerabilityDetailsLoading: true
+    }).find(LoadWrapper).find(SecurityVulnerabilityDetailsTile);
+
+    expect(tile).not.toExist();
   });
 });

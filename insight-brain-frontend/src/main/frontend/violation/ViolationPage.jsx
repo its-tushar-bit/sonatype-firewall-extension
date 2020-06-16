@@ -10,7 +10,7 @@ import LoadWrapper from '../react/LoadWrapper';
 import ViolationDetailsTile, { violationDetailsPropTypes } from './ViolationDetailsTile';
 import MaximizedContainer from '../react/MaximizedContainer';
 import PolicyViolationConstraintInfoTile, { constraintViolationsPropType } from './PolicyViolationConstraintInfoTile';
-import PolicyViolationSecurityDetailsInfoTile from './PolicyViolationSecurityDetailsInfoTile';
+import SecurityVulnerabilityDetailsTile from './SecurityVulnerabilityDetailsTile';
 
 export default function ViolationPage(props) {
   const {
@@ -30,6 +30,8 @@ export default function ViolationPage(props) {
 
   const constraintViolations = violationDetails ? violationDetails.constraintViolations : [];
 
+  const isSecurityVulnerability = violationDetails && violationDetails.policyThreatCategory === 'security';
+
   useEffect(() => { load(); }, [id]);
 
   function load() {
@@ -42,11 +44,11 @@ export default function ViolationPage(props) {
       <LoadWrapper error={error} loading={loading || !(violationDetails && stageTypes)}>
         <ViolationDetailsTile { ...({ $state, stageTypes, violationDetails }) } />
         <PolicyViolationConstraintInfoTile constraintViolations={constraintViolations} />
-        <PolicyViolationSecurityDetailsInfoTile {...({
+        { isSecurityVulnerability && <SecurityVulnerabilityDetailsTile {...({
           vulnerabilityDetails,
           vulnerabilityDetailsError,
           vulnerabilityDetailsLoading
-        })}/>
+        })}/> }
       </LoadWrapper>
     </MaximizedContainer>
   );

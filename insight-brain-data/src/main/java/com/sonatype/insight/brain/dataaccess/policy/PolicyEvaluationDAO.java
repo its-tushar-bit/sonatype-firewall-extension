@@ -375,7 +375,7 @@ public class PolicyEvaluationDAO
         " WHERE entity.applicationId = ?1 " + //
         " AND entity.isForObsoleteScan = false" + //
         " ORDER BY entity.time DESC";
-    Query<PolicyEvaluation> query = new Query<PolicyEvaluation>(sQuery, applicationId);
+    Query<PolicyEvaluation> query = new Query<>(sQuery, applicationId);
     query.setMaxResults(maxResultsToReturn);
     return query.getList();
   }

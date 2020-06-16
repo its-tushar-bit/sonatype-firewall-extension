@@ -74,11 +74,12 @@ public class ClusterTelemetryTaskTest
     TelemetryPurpose[] expectedPurposes = { //
         TelemetryPurpose.DATABASE, //
         TelemetryPurpose.HIERARCHY_METRICS, //
+        TelemetryPurpose.ROLE_USAGE, //
     };
     verify(telemetrySenderMock, times(expectedPurposes.length)).send(allTelemetryDataCaptor.capture());
     List<TelemetryData> allTelemetryData =
         allTelemetryDataCaptor.getAllValues().stream().flatMap(List::stream).collect(toList());
-    assertThat(allTelemetryData).extracting(TelemetryData::getPurpose).containsExactlyInAnyOrder(expectedPurposes);
+    assertThat(allTelemetryData).extracting(TelemetryData::getPurpose).containsOnly(expectedPurposes);
   }
 
   @Test

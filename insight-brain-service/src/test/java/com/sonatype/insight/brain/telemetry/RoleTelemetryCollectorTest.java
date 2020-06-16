@@ -35,6 +35,11 @@ public class RoleTelemetryCollectorTest
   private RoleDAO roleDAO;
 
   @Test
+  public void testIsClusterTelemetry() {
+    assertThat(telemetryCollector.isClusterTelemetry()).isTrue();
+  }
+
+  @Test
   public void testCollectAllData() {
     List<String> roleNames = new ArrayList<>();
     roleNames.addAll(roleDAO.getAll().stream().map(Role::getName).collect(toList()));

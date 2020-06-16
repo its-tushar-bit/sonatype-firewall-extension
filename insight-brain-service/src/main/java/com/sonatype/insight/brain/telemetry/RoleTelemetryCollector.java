@@ -59,6 +59,11 @@ public class RoleTelemetryCollector
   }
 
   @Override
+  public boolean isClusterTelemetry() {
+    return true;
+  }
+
+  @Override
   public List<TelemetryData> collectAllData() {
     return roleDAO.getAll().stream().map(this::collectData).collect(toList());
   }

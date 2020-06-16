@@ -87,7 +87,7 @@ public class BitbucketCodeInsightsServiceTest
   private GitClientFactory gitClientFactory;
 
   @Mock
-  private BitbucketApiClient bitbucketApiClient;
+  private BitbucketApiClient<?, ?> bitbucketApiClient;
 
   private Application application;
 

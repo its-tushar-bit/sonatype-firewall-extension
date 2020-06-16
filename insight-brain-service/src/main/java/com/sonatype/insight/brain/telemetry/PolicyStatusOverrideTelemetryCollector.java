@@ -41,6 +41,11 @@ public class PolicyStatusOverrideTelemetryCollector
   }
 
   @Override
+  public boolean isClusterTelemetry() {
+    return true;
+  }
+
+  @Override
   public TelemetryData collectData() {
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.POLICY_STATUS_OVERRIDE);
     Map<String, Object> attributes = telemetryData.getAttributes();

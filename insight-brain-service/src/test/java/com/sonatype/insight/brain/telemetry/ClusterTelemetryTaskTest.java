@@ -74,6 +74,7 @@ public class ClusterTelemetryTaskTest
     TelemetryPurpose[] expectedPurposes = { //
         TelemetryPurpose.DATABASE, //
         TelemetryPurpose.HIERARCHY_METRICS, //
+        TelemetryPurpose.POLICY_STATUS_OVERRIDE, //
         TelemetryPurpose.REALM, //
         TelemetryPurpose.ROLE_USAGE, //
     };

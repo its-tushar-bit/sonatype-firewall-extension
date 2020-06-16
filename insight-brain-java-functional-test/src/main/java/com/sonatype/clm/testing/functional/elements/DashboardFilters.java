@@ -239,7 +239,11 @@ public class DashboardFilters
     }
 
     public NxCheckbox noCategory() {
-      return new NxCheckbox(child(".nx-tree-view__children .nx-tree-view__child", nthChild(2)));
+      return getFilterCheckboxAt(1);
+    }
+
+    public NxCheckbox getFilterCheckboxAt(int i ) {
+      return new NxCheckbox(child(".nx-tree-view__children .nx-tree-view__child", nthChild(i + 1)));
     }
   }
 

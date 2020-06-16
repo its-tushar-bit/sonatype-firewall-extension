@@ -6,7 +6,7 @@
 import React, { useEffect, Fragment } from 'react';
 import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
-import { map, curryN, prop } from 'ramda';
+import { map, curryN } from 'ramda';
 import {
   NxErrorAlert,
   NxStatefulTreeViewMultiSelect,
@@ -86,6 +86,8 @@ export default function DashboardFilter(props) {
     selectAge(ageAsNumber);
   }
 
+  const applicationCategoryTooltip = (prop) => prop && prop.owner && `in ${prop.owner}` || '';
+
   const filterContentClassnames = classnames('dashboard-filter', { 'iq-apply-error-present': saveError });
 
   return (
@@ -127,7 +129,7 @@ export default function DashboardFilter(props) {
               <NxStatefulTreeViewMultiSelect options={categories}
                                              selectedIds={selected.categories}
                                              onChange={onCategoriesChange}
-                                             optionTooltipGenerator={prop('name')}
+                                             optionTooltipGenerator={ applicationCategoryTooltip }
                                              filterPlaceholder="Category"
                                              name="application categories"
                                              id="category-filter">

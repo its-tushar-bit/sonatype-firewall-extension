@@ -338,6 +338,14 @@ public class DashboardFilterTest
 
     // enable "uncategorized applications" so that secondApp results show
     DashboardFilters.applicationCategoryFilter().twisty().click();
+    DashboardFilters.applicationCategoryFilter().getFilterCheckboxAt(0).hover();
+    Tooltip.get().shouldNotBe(visible);
+    DashboardFilters.applicationCategoryFilter().noCategory().hover();
+    Tooltip.get().shouldNotBe(visible);
+    DashboardFilters.applicationCategoryFilter().getFilterCheckboxAt(2).hover();
+    Tooltip.get().shouldBe(visible).shouldHave(text("in DashboardTest"));
+    DashboardFilters.applicationCategoryFilter().getFilterCheckboxAt(3).hover();
+    Tooltip.get().shouldBe(visible).shouldHave(text("in DashboardTest"));
     DashboardFilters.applicationCategoryFilter().noCategory().click();
     DashboardFilters.applicationCategoryFilter().twisty().click();
     DashboardFilters.apply();

@@ -42,7 +42,7 @@ describe('DashboardFilter', function() {
         organizationName: 'Org1'
       }
     ],
-    categories: [uncategorizedCategory, { id: 'cat', name: 'Cat' }],
+    categories: [uncategorizedCategory, { id: 'cat', name: 'Cat', owner: 'Org1' }],
     stages: [
       {id: 'build', name: 'Build'},
       {id: 'stage-release', name: 'Stage Release'},
@@ -224,8 +224,12 @@ describe('DashboardFilter', function() {
       const selectedCategories = [null];
       categoryFilter.simulate('change', selectedCategories);
       expect(toggleFilterSpy).toHaveBeenCalledWith('categories', selectedCategories);
+
+      const noTooltipForUncategorizedApplications =
+          categoryFilter.prop('optionTooltipGenerator')(minimalProps.categories[0]);
       const generatedTooltip = categoryFilter.prop('optionTooltipGenerator')(minimalProps.categories[1]);
-      expect(generatedTooltip).toBe('Cat');
+      expect(noTooltipForUncategorizedApplications).toBe('');
+      expect(generatedTooltip).toBe('in Org1');
 
       expect(stageFilter).toHaveProp('options', minimalProps.stages);
       expect(stageFilter).toHaveProp('selectedIds', minimalProps.selected.stages);

@@ -34,11 +34,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(MockitoJUnitRunner.class)
 public class PullRequestCommentingHashBuilderTest
 {
-  private final ComponentIdentifier[] identifiers = new ComponentIdentifier[] {
+  private final ComponentIdentifier[] identifiers = new ComponentIdentifier[]{
       ComponentIdentifier.createNpmCoordinates("comp-1", "1.1.0"),
       ComponentIdentifier.createNpmCoordinates("comp-2", "1.2.0"),
       ComponentIdentifier.createNpmCoordinates("comp-3", "1.3.0"),
       ComponentIdentifier.createNpmCoordinates("comp-4", "1.4.0")
+  };
+
+  private final String[] componentHashes = new String[]{
+      "HASH_0",
+      "HASH_1",
+      "HASH_2",
+      "HASH_3"
   };
 
   private PolicyEvaluation evaluation;
@@ -54,7 +61,9 @@ public class PullRequestCommentingHashBuilderTest
     // given: 
     PolicyViolationDiff<PolicyViolation> diff = new PolicyViolationDiffBuilder()
         .withAddedViolations(2)
+        .withUnknownComponentsAdded(2)
         .withRemovedViolations(1)
+        .withUnknownComponentsRemoved(1)
         .build();
     SortedMap<ComponentIdentifier, String> remediationVersionMap = createRemediationVersionMap(2);
     
@@ -90,7 +99,9 @@ public class PullRequestCommentingHashBuilderTest
   public void testGenerateHash_ClearedViolationsOnlyAndNoRemediations_Success() throws Exception {
     // given: 
     PolicyViolationDiff<PolicyViolation> diff = new PolicyViolationDiffBuilder()
-        .withAddedViolations(0).build();
+        .withAddedViolations(0)
+        .withUnknownComponentsAdded(0)
+        .build();
     SortedMap<ComponentIdentifier, String> remediationVersionMap = createRemediationVersionMap(0);
     
     // when:
@@ -108,7 +119,11 @@ public class PullRequestCommentingHashBuilderTest
   public void testGenerateHash_NoViolationsOnlyAndNoRemediations_Success() throws Exception {
     // given: 
     PolicyViolationDiff<PolicyViolation> diff = new PolicyViolationDiffBuilder()
-        .withAddedViolations(0).withRemovedViolations(0).build();
+        .withAddedViolations(0)
+        .withUnknownComponentsAdded(0)
+        .withRemovedViolations(0)
+        .withUnknownComponentsRemoved(0)
+        .build();
     SortedMap<ComponentIdentifier, String> remediationVersionMap = createRemediationVersionMap(0);
     
     // when:
@@ -127,7 +142,9 @@ public class PullRequestCommentingHashBuilderTest
     // given: 
     PolicyViolationDiff<PolicyViolation> diff = new PolicyViolationDiffBuilder()
         .withAddedViolations(2)
+        .withUnknownComponentsAdded(2)
         .withRemovedViolations(1)
+        .withUnknownComponentsRemoved(1)
         .withNoReferencesForConditionFacts()
         .build();
     SortedMap<ComponentIdentifier, String> remediationVersionMap = createRemediationVersionMap(2);
@@ -148,7 +165,9 @@ public class PullRequestCommentingHashBuilderTest
     // given: 
     PolicyViolationDiff<PolicyViolation> diff = new PolicyViolationDiffBuilder()
         .withAddedViolations(2)
+        .withUnknownComponentsAdded(2)
         .withRemovedViolations(1)
+        .withUnknownComponentsRemoved(1)
         .withConditionFactsPerConstraintFact(0)
         .build();
     SortedMap<ComponentIdentifier, String> remediationVersionMap = createRemediationVersionMap(2);
@@ -169,7 +188,9 @@ public class PullRequestCommentingHashBuilderTest
     // given: 
     PolicyViolationDiff<PolicyViolation> diff = new PolicyViolationDiffBuilder()
         .withAddedViolations(2)
+        .withUnknownComponentsAdded(2)
         .withRemovedViolations(1)
+        .withUnknownComponentsRemoved(1)
         .withConstraintFactsPerViolation(0)
         .build();
     SortedMap<ComponentIdentifier, String> remediationVersionMap = createRemediationVersionMap(2);
@@ -212,9 +233,18 @@ public class PullRequestCommentingHashBuilderTest
   public void testGenerateHash_DifferentOrderOnly_SameHash() throws Exception {
     // given: 
     PolicyViolationDiff<PolicyViolation> diff1 = new PolicyViolationDiffBuilder()
-        .withAddedViolations(2).withRemovedViolations(2).build();
+        .withAddedViolations(2)
+        .withUnknownComponentsAdded(2)
+        .withRemovedViolations(2)
+        .withUnknownComponentsRemoved(2)
+        .build();
     PolicyViolationDiff<PolicyViolation> diff2 = new PolicyViolationDiffBuilder()
-        .withAddedViolations(2).withRemovedViolations(2).withReversedViolationOrder().build();
+        .withAddedViolations(2)
+        .withUnknownComponentsAdded(2)
+        .withRemovedViolations(2)
+        .withUnknownComponentsRemoved(2)
+        .withReversedViolationOrder()
+        .build();
     SortedMap<ComponentIdentifier, String> remediationVersionMap = createRemediationVersionMap(2);
     
     // when:
@@ -237,9 +267,13 @@ public class PullRequestCommentingHashBuilderTest
   public void testGenerateHash_DifferentViolations_DifferentHash() throws Exception {
     // given: 
     PolicyViolationDiff<PolicyViolation> diff1 = new PolicyViolationDiffBuilder()
-        .withAddedViolations(3).build();
+        .withAddedViolations(3)
+        .withUnknownComponentsAdded(3)
+        .build();
     PolicyViolationDiff<PolicyViolation> diff2 = new PolicyViolationDiffBuilder()
-        .withAddedViolations(2).build();
+        .withAddedViolations(2)
+        .withUnknownComponentsAdded(2)
+        .build();
     SortedMap<ComponentIdentifier, String> remediationVersionMap = createRemediationVersionMap(2);
     
     // when:
@@ -251,8 +285,66 @@ public class PullRequestCommentingHashBuilderTest
         .withPolicyViolationDiff(diff2)
         .withRemediationVersionMap(remediationVersionMap)
         .generateHash();
-    
+
     // then:  
+    assertThat(hash1).isNotNull();
+    assertThat(hash2).isNotNull();
+    assertThat(hash1).isNotEqualTo(hash2);
+  }
+
+  @Test
+  public void testGenerateHash_DifferentViolations_KnownOnly_DifferentHash() throws Exception {
+    // given:
+    PolicyViolationDiff<PolicyViolation> diff1 = new PolicyViolationDiffBuilder()
+        .withAddedViolations(3)
+        .withUnknownComponentsAdded(0)
+        .build();
+    PolicyViolationDiff<PolicyViolation> diff2 = new PolicyViolationDiffBuilder()
+        .withAddedViolations(2)
+        .withUnknownComponentsAdded(0)
+        .build();
+    SortedMap<ComponentIdentifier, String> remediationVersionMap = createRemediationVersionMap(2);
+
+    // when:
+    String hash1 = new PullRequestCommentingHashBuilder()
+        .withPolicyViolationDiff(diff1)
+        .withRemediationVersionMap(remediationVersionMap)
+        .generateHash();
+    String hash2 = new PullRequestCommentingHashBuilder()
+        .withPolicyViolationDiff(diff2)
+        .withRemediationVersionMap(remediationVersionMap)
+        .generateHash();
+
+    // then:
+    assertThat(hash1).isNotNull();
+    assertThat(hash2).isNotNull();
+    assertThat(hash1).isNotEqualTo(hash2);
+  }
+
+  @Test
+  public void testGenerateHash_DifferentViolations_UnknownOnly_DifferentHash() throws Exception {
+    // given:
+    PolicyViolationDiff<PolicyViolation> diff1 = new PolicyViolationDiffBuilder()
+        .withAddedViolations(0)
+        .withUnknownComponentsAdded(3)
+        .build();
+    PolicyViolationDiff<PolicyViolation> diff2 = new PolicyViolationDiffBuilder()
+        .withAddedViolations(0)
+        .withUnknownComponentsAdded(2)
+        .build();
+    SortedMap<ComponentIdentifier, String> remediationVersionMap = createRemediationVersionMap(2);
+
+    // when:
+    String hash1 = new PullRequestCommentingHashBuilder()
+        .withPolicyViolationDiff(diff1)
+        .withRemediationVersionMap(remediationVersionMap)
+        .generateHash();
+    String hash2 = new PullRequestCommentingHashBuilder()
+        .withPolicyViolationDiff(diff2)
+        .withRemediationVersionMap(remediationVersionMap)
+        .generateHash();
+
+    // then:
     assertThat(hash1).isNotNull();
     assertThat(hash2).isNotNull();
     assertThat(hash1).isNotEqualTo(hash2);
@@ -265,7 +357,7 @@ public class PullRequestCommentingHashBuilderTest
     PolicyViolationDiff<PolicyViolation> diff2 = new PolicyViolationDiffBuilder().build();
     SortedMap<ComponentIdentifier, String> remediationVersionMap1 = createRemediationVersionMap(1);
     SortedMap<ComponentIdentifier, String> remediationVersionMap2 = createRemediationVersionMap(2);
-    
+
     // when:
     String hash1 = new PullRequestCommentingHashBuilder()
         .withPolicyViolationDiff(diff1)
@@ -275,7 +367,7 @@ public class PullRequestCommentingHashBuilderTest
         .withPolicyViolationDiff(diff2)
         .withRemediationVersionMap(remediationVersionMap2)
         .generateHash();
-    
+
     // then:  
     assertThat(hash1).isNotNull();
     assertThat(hash2).isNotNull();
@@ -289,13 +381,17 @@ public class PullRequestCommentingHashBuilderTest
     }
     return map;
   }
-  
+
   private class PolicyViolationDiffBuilder
   {
     int addedViolations = 1;
-    
+
     int removedViolations = 1;
-    
+
+    int unknownComponentAddedViolations = 1;
+
+    int unknownComponentRemovedViolations = 1;
+
     boolean reverseOrder = false;
 
     private int constraintFactsPerViolation = 1;
@@ -328,62 +424,97 @@ public class PullRequestCommentingHashBuilderTest
       this.conditionFactsPerConstraintFact = conditionFactsPerConstraintFact;
       return this;
     }
-    
+
     public PolicyViolationDiffBuilder withNoReferencesForConditionFacts() {
       conditionFactsHaveReferences = false;
       return this;
     }
 
+    public PolicyViolationDiffBuilder withUnknownComponentsAdded(int unknownComponentsAdded) {
+      this.unknownComponentAddedViolations = unknownComponentsAdded;
+      return this;
+    }
+
+    public PolicyViolationDiffBuilder withUnknownComponentsRemoved(int unknownComponentsRemoved) {
+      this.unknownComponentRemovedViolations = unknownComponentsRemoved;
+      return this;
+    }
+
     PolicyViolationDiff<PolicyViolation> build() {
-      int k = 0;
       PolicyViolationDiff<PolicyViolation> diff = new PolicyViolationDiff<>();
-      if (reverseOrder) {
-        k = addedViolations - 1;
-      }
-      for (int i = 0; i < addedViolations; i++) {
-        PolicyViolationBuilder violationBuilder = new PolicyViolationBuilder();
-        ComponentIdentifier ci = identifiers[k];
-        if (reverseOrder) {
-          k--;
-        }
-        else {
-          k++;
-        }
-        diff.addAppeared(violationBuilder.withComponentIdentifier(ci)
-            .withConstraintFacts(constraintFactsPerViolation)
-            .withConditionFacts(conditionFactsPerConstraintFact)
-            .withConditionFactReference(conditionFactsHaveReferences).build());
-      }
-      if (reverseOrder) {
-        k = addedViolations + removedViolations - 1;
-      }
-      for (int i = 0; i < removedViolations; i++) {
-        PolicyViolationBuilder violationBuilder = new PolicyViolationBuilder();
-        ComponentIdentifier ci = identifiers[k];
-        if (reverseOrder) {
-          k--;
-        }
-        else {
-          k++;
-        }
-        diff.addAppeared(violationBuilder.withComponentIdentifier(ci)
-            .withConstraintFacts(constraintFactsPerViolation)
-            .withConditionFacts(conditionFactsPerConstraintFact)
-            .withConditionFactReference(conditionFactsHaveReferences).build());
-      }
+      buildViolations(false, diff);
+      buildViolations(true, diff);
       return diff;
     }
+
+    private void buildViolations(
+        boolean isUnknownComponents,
+        final PolicyViolationDiff<PolicyViolation> diff)
+    {
+      int addedCount;
+      int removedCount;
+      if (!isUnknownComponents) {
+        addedCount = this.addedViolations;
+        removedCount = this.removedViolations;
+      }
+      else {
+        addedCount = this.unknownComponentAddedViolations;
+        removedCount = this.unknownComponentRemovedViolations;
+      }
+
+      int k = 0;
+      if (reverseOrder) {
+        k = addedCount - 1;
+      }
+      for (int i = 0; i < addedCount; i++) {
+        PolicyViolationBuilder violationBuilder = new PolicyViolationBuilder();
+        ComponentIdentifier ci = isUnknownComponents ? null : identifiers[k];
+        String hash = isUnknownComponents ? componentHashes[k] : "hash";
+        if (reverseOrder) {
+          k--;
+        }
+        else {
+          k++;
+        }
+        diff.addAppeared(violationBuilder.withComponentIdentifier(ci)
+            .withHash(hash)
+            .withConstraintFacts(constraintFactsPerViolation)
+            .withConditionFacts(conditionFactsPerConstraintFact)
+            .withConditionFactReference(conditionFactsHaveReferences).build());
+      }
+      if (reverseOrder) {
+        k = addedCount + removedCount - 1;
+      }
+      for (int i = 0; i < removedCount; i++) {
+        PolicyViolationBuilder violationBuilder = new PolicyViolationBuilder();
+        ComponentIdentifier ci = isUnknownComponents ? null : identifiers[k];
+        String hash = isUnknownComponents ? componentHashes[k] : "hash";
+        if (reverseOrder) {
+          k--;
+        }
+        else {
+          k++;
+        }
+        diff.addAppeared(violationBuilder.withComponentIdentifier(ci)
+            .withHash(hash)
+            .withConstraintFacts(constraintFactsPerViolation)
+            .withConditionFacts(conditionFactsPerConstraintFact)
+            .withConditionFactReference(conditionFactsHaveReferences).build());
+      }
+    }
   }
-  
-  private class PolicyViolationBuilder 
+
+  private class PolicyViolationBuilder
   {
     private int constraintFacts = 1;
-    
+
     private int conditionFacts = 1;
-    
+
     private boolean hasReference = true;
-    
+
     private ComponentIdentifier componentIdentifier;
+
+    private String hash = "hash";
 
     PolicyViolationBuilder withComponentIdentifier(ComponentIdentifier componentIdentifier) {
       this.componentIdentifier = componentIdentifier;
@@ -405,6 +536,11 @@ public class PullRequestCommentingHashBuilderTest
       return this;
     }
 
+    PolicyViolationBuilder withHash(String hash) {
+      this.hash = hash;
+      return this;
+    }
+
     PolicyViolation build() {
       List<ConstraintFact> constraintFactList = new LinkedList<>();
       for (int i = 0; i < constraintFacts; i++) {
@@ -419,8 +555,8 @@ public class PullRequestCommentingHashBuilderTest
           constraintFactList.add(constraintFact);
         }
       }
-      return new PolicyViolation(evaluation, "policyId", "policyName", 5, PolicyThreatCategory.LICENSE, "hash",
-          componentIdentifier, JsonUtils.writeUnformatted(constraintFactList), null);
+      return new PolicyViolation(evaluation, "policyId", "policyName", 5, PolicyThreatCategory.LICENSE, hash,
+          hash.equals("hash") ? componentIdentifier : null, JsonUtils.writeUnformatted(constraintFactList), null);
     }
   } 
 }

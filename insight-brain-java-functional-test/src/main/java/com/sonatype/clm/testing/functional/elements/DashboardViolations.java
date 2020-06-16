@@ -105,6 +105,10 @@ public class DashboardViolations
       super(selector);
     }
 
+    public SelenideElement threatCell() {
+      return child(".iq-cell--threat");
+    }
+
     public SelenideElement threatBar() {
       return child(".iq-cell--threat .iq-threat-indication");
     }
@@ -125,16 +129,12 @@ public class DashboardViolations
       return child(".iq-cell--component");
     }
 
-    public SelenideElement componentLink() {
-      return child(".iq-cell--component a");
-    }
-
     public SelenideElement age() {
       return child(".iq-cell--age");
     }
 
-    public SelenideElement latestReport() {
-      return child(".iq-cell--report a");
+    public SelenideElement chevron() {
+      return child(".iq-cell--chevron");
     }
 
     public SelenideElement componentEllipsis() {

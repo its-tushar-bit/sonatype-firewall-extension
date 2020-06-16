@@ -16,9 +16,10 @@ describe('violationsTableRow.spec', function() {
 
   var riskData =
       {
-        'stageTypeId': 'stage-release',
-        'actionTypeId': null,
-        'scanId': '5d6a9955588f482a9e48d2d93f2236f0'
+        policyViolationId: 'violation-1',
+        stageTypeId: 'stage-release',
+        actionTypeId: null,
+        scanId: '5d6a9955588f482a9e48d2d93f2236f0'
       };
 
   beforeEach(angular.mock.module(dashboardResultsModule.name, legacyConfigurationModule.name, function($provide) {
@@ -81,6 +82,19 @@ describe('violationsTableRow.spec', function() {
 
     it('Gets the latest report', function() {
       expect(violationsTableRow.risk).toEqual(riskData);
+    });
+
+    it('sets vm.violationHref to the violation detail page link provided by the $state service', function() {
+      spyOn(mockState, 'href').and.returnValue('#/violation/foo');
+
+      const vm = getVm();
+
+      expect(vm.violationHref).toBe('#/violation/foo');
+      expect(mockState.href).toHaveBeenCalledWith('sidebarView.violation', {
+        id: 'violation-1',
+        type: 'violation',
+        sidebarReference: 'filter'
+      });
     });
   });
 });

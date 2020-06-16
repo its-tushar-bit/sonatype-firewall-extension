@@ -6,7 +6,6 @@
 $iq-cell-default-width: 114px;
 $iq-cell-threat-width: 89px;
 $iq-cell-age-width: 89px;
-$iq-cell-report-width: 164px;
 $iq-cell-chevron-width: 21px;
 $iq-cell-affected-apps-width: 133px;
 
@@ -95,6 +94,32 @@ $iq-cell-affected-apps-width: 133px;
 
     .iq-spinner__wrapper {
       margin-top: 16px;
+    }
+  }
+
+  .iq-cell--link {
+    padding: 0;
+
+    > a {
+      box-sizing: border-box;
+      color: inherit;
+      display: block;
+      height: 100%;
+      width: 100%;
+      padding: $iq-spacing-xs $iq-spacing-sm;
+      text-decoration: none;
+    }
+
+    &.iq-cell--threat > a {
+      padding: 0;
+    }
+
+    &.iq-cell--chevron {
+      padding: 0;
+
+      > a {
+        padding: $iq-spacing-xs $iq-spacing-sm $iq-spacing-xs 0;
+      }
     }
   }
 }
@@ -217,9 +242,9 @@ $iq-cell-affected-apps-width: 133px;
 */
 
 .iq-dashboard-headers {
-  .iq-cell--report {
-    width: $iq-cell-report-width + $iq-cell-scroll-bar-width;
-    max-width: $iq-cell-report-width + $iq-cell-scroll-bar-width;
+  .iq-cell--age {
+    width: $iq-cell-age-width + $iq-cell-chevron-width;
+    max-width: $iq-cell-age-width + $iq-cell-chevron-width;
   }
 }
 
@@ -250,32 +275,13 @@ $iq-cell-affected-apps-width: 133px;
 .iq-cell--policy,
 .iq-cell--application,
 .iq-cell--component {
-  width: calc((100% - (#{$iq-cell-threat-width} + 8px + #{$iq-cell-age-width} + #{$iq-cell-report-width} + 8px)) / 3);
+  width: calc((100% -
+      (#{$iq-cell-threat-width + $iq-cell-age-width + $iq-cell-chevron-width})) / 3);
 }
 
 .iq-cell--age {
   width: $iq-cell-age-width;
   max-width: $iq-cell-age-width;
-}
-
-.iq-cell--report {
-  width: $iq-cell-report-width;
-  max-width: $iq-cell-report-width;
-
-  a {
-    span {
-      vertical-align: middle;
-    }
-    .fa-external-link {
-      margin-right: 5px;
-      vertical-align: middle;
-    }
-
-    .fa-exclamation-triangle, .fa-exclamation-circle {
-      margin-left: 8px;
-      vertical-align: middle;
-    }
-  }
 }
 
 // Cells in the <tbody> must adjust their size to accommodate wider space
@@ -290,21 +296,22 @@ $iq-cell-affected-apps-width: 133px;
     width: $iq-cell-threat-width;
     max-width: $iq-cell-threat-width;
   }
-
-  .iq-cell--report {
-    width: $iq-cell-report-width;
-    max-width: $iq-cell-report-width;
-  }
 }
 
 // If the scrollbar is present the cells must adjust to accommodate the lost space
 .scrollbar-present {
   // <tbody> cells
-  .iq-violations-results {
+  .iq-dashboard-headers {
     .iq-cell--policy,
     .iq-cell--application,
     .iq-cell--component {
-      width: calc((100% - (#{$iq-cell-threat-width} + #{$iq-cell-age-width} + #{$iq-cell-report-width})) / 3);
+      width: calc((100% -
+          (#{$iq-cell-threat-width + $iq-cell-scroll-bar-width + $iq-cell-age-width + $iq-cell-chevron-width})) / 3);
+    }
+
+    .iq-cell--age {
+      width: $iq-cell-age-width + $iq-cell-chevron-width + $iq-cell-scroll-bar-width;
+      max-width: $iq-cell-age-width + $iq-cell-chevron-width + $iq-cell-scroll-bar-width;
     }
   }
 }

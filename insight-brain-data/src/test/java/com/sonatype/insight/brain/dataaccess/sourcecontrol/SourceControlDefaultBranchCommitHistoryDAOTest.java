@@ -301,7 +301,7 @@ public class SourceControlDefaultBranchCommitHistoryDAOTest
 
     // then : entries were removed for first application
     commitHistoryList = defaultBranchCommitHistoryDAO.getByApplicationIdSortedByDateDesc(application.getId());
-    assertThat(commitHistoryList.size()).isEqualTo(0);
+    assertThat(commitHistoryList.isEmpty());
 
     // and : history for app2 not affected
     commitHistoryList = defaultBranchCommitHistoryDAO.getByApplicationIdSortedByDateDesc(app2.getId());

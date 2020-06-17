@@ -9,16 +9,21 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.security.UserToken;
+import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
@@ -150,6 +155,38 @@ public class DbScrubberTest
 
     assertThat(getSqlDumpContent()).contains(webhook.getId(), "http://example.com");
     assertThat(getScrubbedSqlContent()).doesNotContain(webhook.getId(), "http://example.com");
+  }
+
+  @Test
+  public void testScrubDB_Table_scm() throws Exception {
+    // source_control table
+    String repoUrl = "http://bitbucket.org/scm/org/repo";
+    Application app = tempEntity.newApplicationWithParent();
+    tempEntity.newOrganization();
+    tempEntity.newSourceControl("ROOT_ORGANIZATION_ID", null, "testUser",
+        "testToken", SourceControlProvider.BITBUCKET, true, false, "master", null);
+    tempEntity
+            .newSourceControl(app.getId(), repoUrl, null, "TOKEN", null, null, true, null,
+                null);
+
+    // sc pull request comment
+    PolicyEvaluation sourcePolicyEvaluation = tempEntity.newPolicyEvaluation(
+        app.getId(), BuildStageType.ID, "sourceScan", "sourceCommit");
+    PolicyEvaluation targetPolicyEvaluation = tempEntity.newPolicyEvaluation(
+        app.getId(), BuildStageType.ID, "targetScan", "targetCommit");
+    tempEntity.newSourceControlPullRequestComment(app.getId(), 1, 2, 3, "contentHash", sourcePolicyEvaluation.getId(),
+        targetPolicyEvaluation.getId());
+
+    // commit history
+    tempEntity.newSourceControlDefaultBranchCommitHistory(app.getId(), "commitHash", new Date(), null);
+
+    DbScrubber.scrubDb(IN_MEMORY_DB_CONNECTION_STRING, //
+        "sa" /* username */, //
+        "" /* password */, //
+        false /* rebuild */, true /* keepFiles */, tempDir.getRoot());
+
+    assertThat(getSqlDumpContent()).contains(repoUrl, "testUser", "testToken", "contentHash", "commitHash");
+    assertThat(getScrubbedSqlContent()).doesNotContain(repoUrl, "testUser", "testToken", "contentHash", "commitHash");
   }
 
   private String getSqlDumpContent() throws IOException {

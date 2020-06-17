@@ -51,10 +51,10 @@ public class StageTypeService
   public StageTypeService(final ProductLicense productLicense) {
     this.productLicense = productLicense;
     contextFilterMap.put(ALL_CONTEXT, x -> true);
-    contextFilterMap.put(CI_CONTEXT, new CIFilter());
+    contextFilterMap.put(CI_CONTEXT, new BuildFilter());
     contextFilterMap.put(CLI_CONTEXT, new BuildFilter());
-    contextFilterMap.put(QA_CONTEXT, new CIFilter());
-    contextFilterMap.put(RM_CONTEXT, new CIFilter());
+    contextFilterMap.put(QA_CONTEXT, new RMFilter());
+    contextFilterMap.put(RM_CONTEXT, new RMFilter());
     contextFilterMap.put(MAVEN_CONTEXT, new BuildFilter());
     contextFilterMap.put(DASHBOARD_CONTEXT, new DashboardFilter());
   }
@@ -104,7 +104,7 @@ public class StageTypeService
     return ordered;
   }
 
-  class CIFilter
+  class RMFilter
       implements Predicate<StageType>
   {
     @Override

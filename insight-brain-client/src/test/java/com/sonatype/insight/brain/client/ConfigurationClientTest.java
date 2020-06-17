@@ -206,15 +206,17 @@ public class ConfigurationClientTest
 
     List<Stage> stages = client.getLicensedStages(Context.CI);
     // This rest call will return the stages in the following predefined order
-    assertThat(stages).hasSize(4);
-    assertThat(stages.get(0).getStageTypeId()).isEqualTo(StageTypes.BUILD.getId());
-    assertThat(stages.get(0).getStageName()).isEqualTo(StageTypes.BUILD.getName());
-    assertThat(stages.get(1).getStageTypeId()).isEqualTo(StageTypes.STAGE_RELEASE.getId());
-    assertThat(stages.get(1).getStageName()).isEqualTo(StageTypes.STAGE_RELEASE.getName());
-    assertThat(stages.get(2).getStageTypeId()).isEqualTo(StageTypes.RELEASE.getId());
-    assertThat(stages.get(2).getStageName()).isEqualTo(StageTypes.RELEASE.getName());
-    assertThat(stages.get(3).getStageTypeId()).isEqualTo(StageTypes.OPERATE.getId());
-    assertThat(stages.get(3).getStageName()).isEqualTo(StageTypes.OPERATE.getName());
+    assertThat(stages).hasSize(5);
+    assertThat(stages.get(0).getStageTypeId()).isEqualTo(StageTypes.DEVELOP.getId());
+    assertThat(stages.get(0).getStageName()).isEqualTo(StageTypes.DEVELOP.getName());
+    assertThat(stages.get(1).getStageTypeId()).isEqualTo(StageTypes.BUILD.getId());
+    assertThat(stages.get(1).getStageName()).isEqualTo(StageTypes.BUILD.getName());
+    assertThat(stages.get(2).getStageTypeId()).isEqualTo(StageTypes.STAGE_RELEASE.getId());
+    assertThat(stages.get(2).getStageName()).isEqualTo(StageTypes.STAGE_RELEASE.getName());
+    assertThat(stages.get(3).getStageTypeId()).isEqualTo(StageTypes.RELEASE.getId());
+    assertThat(stages.get(3).getStageName()).isEqualTo(StageTypes.RELEASE.getName());
+    assertThat(stages.get(4).getStageTypeId()).isEqualTo(StageTypes.OPERATE.getId());
+    assertThat(stages.get(4).getStageName()).isEqualTo(StageTypes.OPERATE.getName());
   }
 
   @Test

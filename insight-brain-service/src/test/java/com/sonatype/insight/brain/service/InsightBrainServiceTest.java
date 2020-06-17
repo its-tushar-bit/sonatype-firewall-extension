@@ -9,11 +9,10 @@ import java.security.Provider;
 import java.security.Security;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -114,7 +113,7 @@ public class InsightBrainServiceTest
   @Test
   @ManualServerInit
   public void testRun_TelemetryIsCalled() throws Exception {
-    final Map<ByteArrayDataSource, Integer> responses = Collections.synchronizedMap(new LinkedHashMap<>());
+    final Map<ByteArrayDataSource, Integer> responses = new ConcurrentHashMap<>();
 
     Date expectedMinCreateTime = new Date();
     initServer(config -> {
@@ -236,7 +235,7 @@ public class InsightBrainServiceTest
   @Test
   @ManualServerInit
   public void testRestEndpointTelemetry() throws Exception {
-    Map<ByteArrayDataSource, Integer> responses = Collections.synchronizedMap(new LinkedHashMap<>());
+    Map<ByteArrayDataSource, Integer> responses = new ConcurrentHashMap<>();
     Date expectedMinCreateTime = new Date();
     initServer(config -> getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> {
       responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());

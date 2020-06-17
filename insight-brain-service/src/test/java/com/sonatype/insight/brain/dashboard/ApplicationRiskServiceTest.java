@@ -28,10 +28,12 @@ import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.ConflictException;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DASHBOARD_DISABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -412,6 +414,16 @@ public class ApplicationRiskServiceTest
     StageRiskScoreDTO releaseStageRisk2 = applicationRiskScoreDTO2.getStageRiskScore(ReleaseStageType.ID);
     assertRisk(releaseStageRisk2.risk, 0, 0, 3, 0, 3);
     assertThat(releaseStageRisk2.scanId).isEqualTo(policyEvaluation22.getScanId());
+  }
+
+  @Test
+  public void testGetApplicationRisks_DashboardFeatureDisabled() {
+    tempEntity.newSystemConfigurationProperty(DASHBOARD_DISABLED, "true");
+
+    assertThatExceptionOfType(ConflictException.class).isThrownBy(() -> {
+      applicationRiskService
+          .getApplicationRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", Integer.MAX_VALUE);
+    }).withMessage("The dashboard feature has been disabled.");
   }
 
   private void assertRisk(RiskDTO risk, int criticalRisk, int severeRisk, int moderateRisk, int lowRisk, int netRisk) {

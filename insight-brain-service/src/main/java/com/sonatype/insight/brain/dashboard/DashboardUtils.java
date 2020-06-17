@@ -20,13 +20,17 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.license.model.LicensedFeature;
+
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DASHBOARD_DISABLED;
 
 @Named
 public class DashboardUtils
@@ -35,14 +39,25 @@ public class DashboardUtils
 
   private final StageTypeService stageTypeService;
 
+  private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
   @Inject
-  public DashboardUtils(ProductLicense productLicense, StageTypeService stageTypeService) {
+  public DashboardUtils(
+      ProductLicense productLicense,
+      StageTypeService stageTypeService,
+      SystemConfigurationPropertyDAO systemConfigurationPropertyDAO)
+  {
     this.productLicense = productLicense;
     this.stageTypeService = stageTypeService;
+    this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
   }
 
-  void validateDashboardLicensed() {
+  void validateDashboardLicensedAndEnabled() {
     productLicense.validateFeature(LicensedFeature.DASHBOARD);
+
+    if (systemConfigurationPropertyDAO.getByName(DASHBOARD_DISABLED) != null) {
+      throw new ConflictException("The dashboard feature has been disabled.");
+    }
   }
 
   Set<StageType> getStageTypes(Set<String> stageTypeIds) {

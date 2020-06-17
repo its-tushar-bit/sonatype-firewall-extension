@@ -23,6 +23,7 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -36,11 +37,13 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.webhook.ManagementEventService;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.REPORTS_LIST_DISABLED;
 import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
 import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
 import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
@@ -67,6 +70,8 @@ public class ApplicationService
 
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
+  private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
   @Inject
   public ApplicationService(ApplicationDAO applicationDAO,
                             ApplicationAdapter applicationAdapter,
@@ -75,7 +80,8 @@ public class ApplicationService
                             final ManagementEventService managementEventService,
                             final OrganizationDAO organizationDAO,
                             ScanPolicyEvaluator scanPolicyEvaluator,
-                            final PolicyViolationLoggerFactory policyViolationLoggerFactory)
+                            final PolicyViolationLoggerFactory policyViolationLoggerFactory,
+                            final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO)
   {
     this.applicationDAO = applicationDAO;
     this.applicationAdapter = applicationAdapter;
@@ -85,6 +91,7 @@ public class ApplicationService
     this.organizationDAO = organizationDAO;
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
+    this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
   }
 
   public String validateApplicationPublicId(final String applicationPublicId) {
@@ -236,6 +243,7 @@ public class ApplicationService
   }
 
   public List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries() {
+    validateReportsListFeatureEnabled();
     return getApplicationManagementSummaries(getApplications());
   }
 
@@ -297,6 +305,12 @@ public class ApplicationService
         policyEvaluationResults.put(policyEvaluation.getStageTypeId(), policyEvaluationResult);
       }
       applicationManagement.setPolicyEvaluationsResults(policyEvaluationResults);
+    }
+  }
+
+  private void validateReportsListFeatureEnabled() {
+    if (systemConfigurationPropertyDAO.getByName(REPORTS_LIST_DISABLED) != null) {
+      throw new ConflictException("The reports list feature has been disabled.");
     }
   }
 }

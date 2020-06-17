@@ -34,11 +34,13 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.ConflictException;
 
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DASHBOARD_DISABLED;
 import static com.sonatype.insight.brain.utils.DisplayFieldValueAssertionUtil.assertDisplayFieldValues;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -500,6 +502,17 @@ public class NewestRiskServiceTest
     assertThat(result.numResults).isEqualTo(1);
     NewestRiskDTO riskDTO = result.dashboardResults.get(0);
     assertNewestRiskDTO(riskDTO, app, org1, violation1, evaluation.getTime());
+  }
+
+  @Test
+  public void testGetNewestRisks_DashboardFeatureDisabled() {
+    tempEntity.newSystemConfigurationProperty(DASHBOARD_DISABLED, "true");
+
+    assertThatExceptionOfType(ConflictException.class).isThrownBy(() -> {
+      newestRiskService
+          .getNewestRisks(null, null, null, null, null, null, null, null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD,
+              1000);
+    }).withMessage("The dashboard feature has been disabled.");
   }
 
   private ConstraintFact buildConstraintFact(Policy policy, String trigger) {

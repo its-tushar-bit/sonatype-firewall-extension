@@ -28,6 +28,6 @@ public abstract class AbstractServiceNotLicensedTest
 
   @Before
   public void setup() {
-    doThrow(new InvalidLicenseException()).when(dashboardUtils).validateDashboardLicensed();
+    doThrow(new InvalidLicenseException()).when(dashboardUtils).validateDashboardLicensedAndEnabled();
   }
 }

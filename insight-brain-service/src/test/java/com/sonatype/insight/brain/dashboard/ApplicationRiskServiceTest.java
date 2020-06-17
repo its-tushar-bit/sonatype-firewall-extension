@@ -26,9 +26,12 @@ import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -42,6 +45,9 @@ public class ApplicationRiskServiceTest
 {
   @Inject
   private ApplicationRiskService applicationRiskService;
+
+  @Inject
+  private TestProductLicense testProductLicense;
 
   private Organization org;
 
@@ -78,6 +84,14 @@ public class ApplicationRiskServiceTest
     tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, "hash-4", MatchState.UNKNOWN, false);
     tempEntity.newApplicationComponent(app2.getId(), BuildStageType.ID, "hash-2",
         ComponentIdentifier.createMavenCoordinates("g", "a", "2"));
+  }
+
+  @Test
+  public void testGetApplicationRisks_Unlicensed() {
+    testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD);
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      applicationRiskService.getApplicationRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0);
+    });
   }
 
   @Test

@@ -32,9 +32,12 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -50,6 +53,9 @@ public class NewestRiskServiceTest
 {
   @Inject
   private NewestRiskService newestRiskService;
+
+  @Inject
+  private TestProductLicense testProductLicense;
 
   private Organization org1;
 
@@ -95,6 +101,15 @@ public class NewestRiskServiceTest
     tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, "hash-4", MatchState.UNKNOWN, false);
     tempEntity.newApplicationComponent(app2.getId(), BuildStageType.ID, "hash-2",
         ComponentIdentifier.createMavenCoordinates("g", "a", "2"));
+  }
+
+  @Test
+  public void testGetNewestRisks_Unlicensed() throws Exception {
+    testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD);
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      newestRiskService.getNewestRisks(null, null, null, null, null, null, null, null,
+          DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0);
+    });
   }
 
   @Test

@@ -24,6 +24,8 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -31,6 +33,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -61,6 +64,9 @@ public class DashboardFilterServiceTest
 
   @Inject
   private InsightConfig insightConfig;
+
+  @Inject
+  private TestProductLicense testProductLicense;
 
   private Organization org;
 
@@ -107,6 +113,38 @@ public class DashboardFilterServiceTest
     tempEntity.newApplicationTag(app1.getId(), tag1.getId());
     tempEntity.newApplicationTag(app1.getId(), tag2.getId());
     tempEntity.newUser(USERNAME);
+  }
+
+  @Test
+  public void testCreateOrUpdateDashboardFilterForCurrentUser_Unlicensed() {
+    testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD);
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(null);
+    });
+  }
+
+  @Test
+  public void testDeleteDashboardFiltersForCurrentUserByFilterName_Unlicensed() {
+    testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD);
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      dashboardFilterService.deleteDashboardFiltersForCurrentUserByFilterName(null);
+    });
+  }
+
+  @Test
+  public void testGetNamedDashboardFiltersForCurrentUser_Unlicensed() {
+    testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD);
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      dashboardFilterService.getNamedDashboardFiltersForCurrentUser();
+    });
+  }
+
+  @Test
+  public void testGetActiveDashboardFilterForCurrentUser_Unlicensed() {
+    testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD);
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      dashboardFilterService.getActiveDashboardFilterForCurrentUser();
+    });
   }
 
   @Test

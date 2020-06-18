@@ -5,10 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.List;
 import java.util.UUID;
 
 import javax.inject.Inject;
@@ -43,7 +41,6 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.thirdparty.ThirdPartySbomValidator;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.scan.application.ScannerDriver;
@@ -79,8 +76,6 @@ public class ApiThirdPartyScanService
 
   private final ApplicationDAO applicationDAO;
 
-  private final ThirdPartySbomValidator thirdPartySbomValidator;
-
   private final StageTypeService stageTypeService;
 
   @Inject
@@ -92,7 +87,6 @@ public class ApiThirdPartyScanService
       final InsightWork work,
       final PolicyEvaluateService policyEvaluateService,
       final ApplicationDAO applicationDAO,
-      final ThirdPartySbomValidator thirdPartySbomValidator,
       StageTypeService stageTypeService)
   {
     this.schemaValidator = schemaValidator;
@@ -102,7 +96,6 @@ public class ApiThirdPartyScanService
     this.work = work;
     this.policyEvaluateService = policyEvaluateService;
     this.applicationDAO = applicationDAO;
-    this.thirdPartySbomValidator = thirdPartySbomValidator;
     this.stageTypeService = stageTypeService;
   }
 
@@ -130,8 +123,6 @@ public class ApiThirdPartyScanService
     Application app = new ApplicationDAO().getById(applicationId);
     ScanResult scanResult = createScanFile(app, sbom, source);
 
-    validateSbomContent(scanResult.getScanFile());
-
     policyEvaluateService.evaluateWithPolling(scanRequestId, app, ClientScanType.SONATYPE_THIRD_PARTY,
         new Stage(stageTypeId), scanResult.getScanFile(), "api", userAgent);
 
@@ -148,13 +139,6 @@ public class ApiThirdPartyScanService
     }
     catch (SAXException ex) {
       throw new BadRequestException(ex.getMessage());
-    }
-  }
-
-  private void validateSbomContent(File scanFile) {
-    List<String> errors = thirdPartySbomValidator.validateSbomContent(scanFile);
-    if (!errors.isEmpty()) {
-      throw new BadRequestException(String.join("\n", errors));
     }
   }
 

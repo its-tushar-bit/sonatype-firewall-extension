@@ -249,20 +249,22 @@ public class ApiThirdPartyScanServiceTest
   public void testScanComponents_invalid_vulnerability_id() throws Exception {
     String bom = getBomFile("invalid_bom_id_vulnerability.xml");
 
-    assertThatThrownBy(() -> thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null))
-        .isInstanceOf(BadRequestException.class).hasMessage(
-        "Error in component jackson-databind: An element <id> of vulnerability with " +
-            "ref pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9 is null or empty");
+    ApiThirdPartyScanTicketDTO scanResult =
+        thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null);
+    assertThat(scanResult).isNotNull();
+    assertThat(scanResult.statusUrl).isNotNull();
+    assertThat(new URI(scanResult.statusUrl)).isNotNull();
   }
 
   @Test
   public void testScanComponents_invalid_vulnerability_score_base() throws Exception {
     String bom = getBomFile("invalid_bom_base_score_vulnerability.xml");
 
-    assertThatThrownBy(() -> thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null))
-        .isInstanceOf(BadRequestException.class).hasMessage(
-        "Error in component jackson-databind: An element <base> of a vulnerability score with " +
-            "ref pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9 is null or empty");
+    ApiThirdPartyScanTicketDTO scanResult =
+        thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null);
+    assertThat(scanResult).isNotNull();
+    assertThat(scanResult.statusUrl).isNotNull();
+    assertThat(new URI(scanResult.statusUrl)).isNotNull();
   }
 
   @Test

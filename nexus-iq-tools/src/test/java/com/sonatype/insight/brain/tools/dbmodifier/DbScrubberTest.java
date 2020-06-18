@@ -21,25 +21,16 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
-<<<<<<< .mine
 import com.sonatype.insight.brain.model.label.Label;
-=======
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
->>>>>>> .theirs
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
-<<<<<<< .mine
-import com.sonatype.insight.brain.model.security.Role;
-=======
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
->>>>>>> .theirs
+import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.UserToken;
-<<<<<<< .mine
 import com.sonatype.insight.brain.model.tag.Tag;
-=======
 import com.sonatype.nexus.scm.SourceControlProvider;
->>>>>>> .theirs
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Ignore;
@@ -173,10 +164,7 @@ public class DbScrubberTest
     // commit history
     tempEntity.newSourceControlDefaultBranchCommitHistory(app.getId(), "commitHash", new Date(), null);
 
-    DbScrubber.scrubDb(IN_MEMORY_DB_CONNECTION_STRING, //
-        "sa" /* username */, //
-        "" /* password */, //
-        false /* rebuild */, true /* keepFiles */, tempDir.getRoot());
+    scrubDb();
 
     assertThat(getSqlDumpContent()).contains(repoUrl, "testUser", "testToken", "contentHash", "commitHash");
     assertThat(getScrubbedSqlContent()).doesNotContain(repoUrl, "testUser", "testToken", "contentHash", "commitHash");

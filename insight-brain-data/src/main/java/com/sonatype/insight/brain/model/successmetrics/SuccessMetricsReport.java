@@ -135,7 +135,7 @@ public class SuccessMetricsReport
       return JsonUtils.parse(scopeJson, Scope.class);
     }
     catch (IOException e) {
-      throw new UncheckedIOException(e);
+      throw new UncheckedIOException("Failed to read scope for success metrics report " + id, e);
     }
   }
 

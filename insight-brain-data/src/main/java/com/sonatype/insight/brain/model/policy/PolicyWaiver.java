@@ -148,7 +148,7 @@ public class PolicyWaiver
         constraintFacts = Arrays.asList(JsonUtils.parse(constraintFactsJson, ConstraintFact[].class));
       }
       catch (IOException e) {
-        throw new UncheckedIOException(e);
+        throw new UncheckedIOException("Failed to read constraint facts for policy waiver " + id, e);
       }
     }
     return constraintFacts;

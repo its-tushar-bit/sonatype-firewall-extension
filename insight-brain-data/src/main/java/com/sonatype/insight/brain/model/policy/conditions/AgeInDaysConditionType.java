@@ -90,7 +90,7 @@ public class AgeInDaysConditionType
 
   @Override
   public boolean internalEvaluateCondition(Component component, String operator, Integer value) {
-    if (component.getCatalogDate() == null) {
+    if (component.getCatalogDate() == null || component.getCatalogDate() == 0L) {
       return false;
     }
     int ageInDays = (int) ((System.currentTimeMillis() - component.getCatalogDate()) / DAY_IN_MILLISECONDS);

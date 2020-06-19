@@ -164,7 +164,7 @@ public class ViolationDetailsTest
     ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
     PolicyViolationConstraintInfoTile constraintInfoTile = violationDetailsPage.policyViolationConstraintInfoTile();
     PolicyViolationSecurityDetailsInfoTile securityDetailsInfoTile =
-        violationDetailsPage.policyViolationSecurityDetailsInfoTile();
+        violationDetailsPage.securityVulnerabilityDetailsTile();
 
     constraintInfoTile.headerTitle().shouldBe(visible).shouldHave(exactText("Policy Constraint"));
     constraintInfoTile.subheaderTitle().shouldBe(visible)
@@ -182,7 +182,7 @@ public class ViolationDetailsTest
     ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
     PolicyViolationConstraintInfoTile constraintInfoTile = violationDetailsPage.policyViolationConstraintInfoTile();
     PolicyViolationSecurityDetailsInfoTile securityDetailsInfoTile =
-        violationDetailsPage.policyViolationSecurityDetailsInfoTile();
+        violationDetailsPage.securityVulnerabilityDetailsTile();
 
     constraintInfoTile.headerTitle().shouldBe(visible).shouldHave(exactText("Policy Constraint"));
     constraintInfoTile.subheaderTitle().shouldBe(visible)

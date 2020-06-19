@@ -153,6 +153,20 @@ public class PdfGeneratorTest
   }
 
   @Test
+  public void testGenerate_NonLatinCharactersSupportedByFont() throws Exception {
+    ApiReportComponentPolicyViolationsDTOV2 component = new ApiReportComponentPolicyViolationsDTOV2();
+    component.displayName = "�-test.zip";
+    component.violations.add(new ApiReportPolicyViolationDTOV2());
+    ApiReportPolicyDataDTOV2 policyData = generateMinimalPolicyData();
+    policyData.components.add(component);
+    File pdfFile = PdfGenerator.getPdfFile(generateReportFile());
+
+    PdfGenerator.generate(pdfFile, null, policyData, new ApiReportRawDataDTOV2());
+
+    assertThat(pdfFile).isFile();
+  }
+
+  @Test
   public void testGetTitle_EmptyPolicyData() {
     String sectionName = "sectionName";
     assertThat(

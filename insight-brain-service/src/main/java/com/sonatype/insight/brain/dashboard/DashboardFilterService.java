@@ -67,7 +67,7 @@ public class DashboardFilterService
    * @since 1.24.0
    */
   public NamedDashboardFilterDTO getActiveDashboardFilterForCurrentUser() throws IOException {
-    dashboardUtils.validateDashboardLicensed();
+    dashboardUtils.validateDashboardLicensedAndEnabled();
 
     String username = currentUser.getUsername();
     String realmId = currentUser.getRealmId();
@@ -93,7 +93,7 @@ public class DashboardFilterService
    * @since 1.24.0
    */
   public List<NamedDashboardFilterDTO> getNamedDashboardFiltersForCurrentUser() throws IOException {
-    dashboardUtils.validateDashboardLicensed();
+    dashboardUtils.validateDashboardLicensedAndEnabled();
 
     String username = currentUser.getUsername();
     String realmId = currentUser.getRealmId();
@@ -141,7 +141,7 @@ public class DashboardFilterService
   public NamedDashboardFilterDTO createOrUpdateDashboardFilterForCurrentUser(
       NamedDashboardFilterDTO namedDashboardFilterDTO)
   {
-    dashboardUtils.validateDashboardLicensed();
+    dashboardUtils.validateDashboardLicensedAndEnabled();
 
     String username = currentUser.getUsername();
     String realmId = currentUser.getRealmId();
@@ -224,7 +224,7 @@ public class DashboardFilterService
   public List<DashboardFilterErrorResponseDTO> deleteDashboardFiltersForCurrentUserByFilterName(
       List<String> filterNames)
   {
-    dashboardUtils.validateDashboardLicensed();
+    dashboardUtils.validateDashboardLicensedAndEnabled();
 
     if (isEmpty(filterNames)) {
       throw new BadRequestException("Filter names cannot be null or empty.");

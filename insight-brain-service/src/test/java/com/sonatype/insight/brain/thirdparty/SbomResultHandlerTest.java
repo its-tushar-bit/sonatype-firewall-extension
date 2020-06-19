@@ -532,7 +532,7 @@ public class SbomResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
     assertThat(filteredContent).isNotNull();
-    assertFilteredSbomFile(filteredContent, 0);
+    assertFilteredSbomFile(filteredContent, 1);
   }
 
   @Test

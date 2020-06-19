@@ -27,6 +27,8 @@ function ViolationsTableRowController(StageTypeStore, $window, $state) {
   vm.openReport = openReport;
   vm.stageTypes = undefined;
 
+  vm.violationHref = computeViolationHref(vm.risk);
+
   vm.doLoad();
 
   function doLoad() {
@@ -45,6 +47,14 @@ function ViolationsTableRowController(StageTypeStore, $window, $state) {
         scanId: scanId
       }), '_blank');
     }
+  }
+
+  function computeViolationHref(violation) {
+    return $state.href('sidebarView.violation', {
+      id: violation.policyViolationId,
+      type: 'violation',
+      sidebarReference: 'filter'
+    });
   }
 }
 

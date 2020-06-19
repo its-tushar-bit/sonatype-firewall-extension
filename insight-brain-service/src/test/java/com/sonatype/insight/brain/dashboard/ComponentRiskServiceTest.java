@@ -34,15 +34,19 @@ import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.ConflictException;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.dashboard.PolicyViolationDTOTestUtils.assertPolicyViolationDTO;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DASHBOARD_DISABLED;
 import static com.sonatype.insight.brain.utils.DisplayFieldValueAssertionUtil.assertDisplayFieldValues;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -114,6 +118,14 @@ public class ComponentRiskServiceTest
       fixedViolation.setFixTime(evaluation.getTime());
       violationDAO.update(fixedViolation);
     }
+  }
+
+  @Test
+  public void testGetComponentRisks_Unlicensed() {
+    testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD);
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      componentRiskService.getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0);
+    });
   }
 
   @Test
@@ -739,6 +751,15 @@ public class ComponentRiskServiceTest
 
     riskDTO = result.dashboardResults.get(1);
     assertThat(riskDTO.derivedComponentName).isEqualTo("Unknown");
+  }
+
+  @Test
+  public void testGetComponentRisks_DashboardFeatureDisabled() {
+    tempEntity.newSystemConfigurationProperty(DASHBOARD_DISABLED, "true");
+
+    assertThatExceptionOfType(ConflictException.class).isThrownBy(() -> {
+      componentRiskService.getComponentRisks(null, null, null, null, null, null, null, "NAME", 2);
+    }).withMessage("The dashboard feature has been disabled.");
   }
 
   /**

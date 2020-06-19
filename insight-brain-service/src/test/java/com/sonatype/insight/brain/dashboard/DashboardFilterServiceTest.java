@@ -24,12 +24,16 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -37,6 +41,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import static com.sonatype.insight.brain.dashboard.DashboardFilterService.ACTIVE_FILTER_NAME;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DASHBOARD_DISABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.doReturn;
@@ -53,12 +58,15 @@ public class DashboardFilterServiceTest
       "/DashboardFilterServiceTest/DashboardFilterWithoutPolicyViolationStatesProperty.json";
 
   private final DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
-
+  
   @Inject
   private DashboardFilterService dashboardFilterService;
 
   @Inject
   private InsightConfig insightConfig;
+
+  @Inject
+  private TestProductLicense testProductLicense;
 
   private Organization org;
 
@@ -105,6 +113,38 @@ public class DashboardFilterServiceTest
     tempEntity.newApplicationTag(app1.getId(), tag1.getId());
     tempEntity.newApplicationTag(app1.getId(), tag2.getId());
     tempEntity.newUser(USERNAME);
+  }
+
+  @Test
+  public void testCreateOrUpdateDashboardFilterForCurrentUser_Unlicensed() {
+    testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD);
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(null);
+    });
+  }
+
+  @Test
+  public void testDeleteDashboardFiltersForCurrentUserByFilterName_Unlicensed() {
+    testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD);
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      dashboardFilterService.deleteDashboardFiltersForCurrentUserByFilterName(null);
+    });
+  }
+
+  @Test
+  public void testGetNamedDashboardFiltersForCurrentUser_Unlicensed() {
+    testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD);
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      dashboardFilterService.getNamedDashboardFiltersForCurrentUser();
+    });
+  }
+
+  @Test
+  public void testGetActiveDashboardFilterForCurrentUser_Unlicensed() {
+    testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD);
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      dashboardFilterService.getActiveDashboardFilterForCurrentUser();
+    });
   }
 
   @Test
@@ -187,6 +227,15 @@ public class DashboardFilterServiceTest
     assertThat(actual.filter.policyViolationStates).hasSize(1);
     assertThat(actual.filter.policyViolationStates.get(0))
         .isEqualTo(DashboardFilterDTO.DEFAULT_POLICY_VIOLATION_STATE.name());
+  }
+
+  @Test
+  public void testGetNamedDashboardFilterForCurrentUser_DashboardFeatureDisabled() throws Exception {
+    tempEntity.newSystemConfigurationProperty(DASHBOARD_DISABLED, "true");
+
+    assertThatExceptionOfType(ConflictException.class).isThrownBy(() -> {
+      dashboardFilterService.getNamedDashboardFiltersForCurrentUser();
+    }).withMessage("The dashboard feature has been disabled.");
   }
 
   @Test
@@ -317,6 +366,16 @@ public class DashboardFilterServiceTest
     assertFilterEmptyState(JsonUtils.parse(activeFilter.getFilter(), DashboardFilterDTO.class), 2, 10);
   }
 
+  @Test
+  public void testCreateOrUpdateDashboardFilterForCurrentUser_DashboardFeatureDisabled() throws Exception {
+    tempEntity.newSystemConfigurationProperty(DASHBOARD_DISABLED, "true");
+    NamedDashboardFilterDTO namedDashboardFilterDTO = createNamedDashboardFilterDTO("Filter1", 2, 10);
+
+    assertThatExceptionOfType(ConflictException.class).isThrownBy(() -> {
+      dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(namedDashboardFilterDTO);
+    }).withMessage("The dashboard feature has been disabled.");
+  }
+
   private void assertFilterEmptyState(DashboardFilterDTO actualDto,
                                       int minPolicyThreatLevel,
                                       int maxPolicyThreatLevel)
@@ -442,6 +501,15 @@ public class DashboardFilterServiceTest
   }
 
   @Test
+  public void testGetActiveDashboardFilterForCurrentUser_DashboardFeatureDisabled() {
+    tempEntity.newSystemConfigurationProperty(DASHBOARD_DISABLED, "true");
+
+    assertThatExceptionOfType(ConflictException.class).isThrownBy(() -> {
+      dashboardFilterService.getActiveDashboardFilterForCurrentUser();
+    }).withMessage("The dashboard feature has been disabled.");
+  }
+
+  @Test
   public void testDeleteDashboardFiltersForCurrentUserByFilterName() {
     String filterName1 = "Filter 1";
     String filterName2 = "Filter 2";
@@ -556,6 +624,15 @@ public class DashboardFilterServiceTest
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       dashboardFilterService.deleteDashboardFiltersForCurrentUserByFilterName(new ArrayList<String>());
     }).withMessage("Filter names cannot be null or empty.");
+  }
+
+  @Test
+  public void testDeleteDashboardFiltersForCurrentUserByFilterName_DashboardFeatureDisabled() {
+    tempEntity.newSystemConfigurationProperty(DASHBOARD_DISABLED, "true");
+
+    assertThatExceptionOfType(ConflictException.class).isThrownBy(() -> {
+      dashboardFilterService.deleteDashboardFiltersForCurrentUserByFilterName(new ArrayList<String>());
+    }).withMessage("The dashboard feature has been disabled.");
   }
 
   private NamedDashboardFilterDTO createNamedDashboardFilterDTO(String filterName,

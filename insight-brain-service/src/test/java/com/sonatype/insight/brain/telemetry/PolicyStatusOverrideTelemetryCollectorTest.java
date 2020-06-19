@@ -28,6 +28,11 @@ public class PolicyStatusOverrideTelemetryCollectorTest
   private PolicyStatusOverrideTelemetryCollector telemetryCollector;
 
   @Test
+  public void testIsClusterTelemetry() {
+    assertThat(telemetryCollector.isClusterTelemetry()).isTrue();
+  }
+
+  @Test
   public void testCollectData_TelemetryPurpose() throws Exception {
     TelemetryData telemetryData = telemetryCollector.collectData();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.POLICY_STATUS_OVERRIDE);

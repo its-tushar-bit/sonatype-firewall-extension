@@ -97,6 +97,11 @@ public class HierarchyMetricsTelemetryCollector
   }
 
   @Override
+  public boolean isClusterTelemetry() {
+    return true;
+  }
+
+  @Override
   public TelemetryData collectData() {
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.HIERARCHY_METRICS);
     Map<String, Object> attributes = telemetryData.getAttributes();

@@ -1,0 +1,121 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.concurrent;
+
+import com.google.common.collect.ImmutableList;
+import org.junit.Test;
+
+import static java.lang.System.currentTimeMillis;
+import static java.lang.Thread.sleep;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.ThrowableAssert.catchThrowable;
+
+public class SemaphorePoolTest
+{
+  @Test
+  public void testIdealPoolSize() throws Exception {
+    // given : a semaphore pool with an ideal size and a bunch of keys
+    final int idealSize = 5;
+    SemaphorePool semaphorePool = new SemaphorePool(idealSize);
+    ImmutableList<String> keys = ImmutableList.of("1", "2", "3", "4", "5", "6", "7");
+
+    // then: assert initial state
+    assertThat(semaphorePool.getInUseCount()).isEqualTo(0);
+    assertThat(semaphorePool.getAvailableCount()).isEqualTo(0);
+
+    // when: grow the pool beyond ideal size
+    for (String key : keys) {
+      semaphorePool.acquire(key);
+    }
+
+    // then: should have enough semaphores for all keys with no extras in the pool
+    assertThat(semaphorePool.getInUseCount()).isEqualTo(keys.size());
+    assertThat(semaphorePool.getAvailableCount()).isEqualTo(0);
+
+    // when: release one item from the pool
+    semaphorePool.release("1");
+
+    // then: released item is not recycled into the available pool
+    assertThat(semaphorePool.getInUseCount()).isEqualTo(6);
+    assertThat(semaphorePool.getAvailableCount()).isEqualTo(0);
+
+    // when: release more items from the pool
+    semaphorePool.release("2");
+    semaphorePool.release("3");
+
+    // then: pool shrunk to the ideal size
+    assertThat(semaphorePool.getInUseCount()).isEqualTo(4);
+    assertThat(semaphorePool.getAvailableCount()).isEqualTo(1);
+
+    // when: acquire more items
+    semaphorePool.acquire("8");
+
+    // then: recycled semaphore is used from the available pool
+    assertThat(semaphorePool.getInUseCount()).isEqualTo(5);
+    assertThat(semaphorePool.getAvailableCount()).isEqualTo(0);
+  }
+
+  private boolean threadFinished = false;
+
+  @Test
+  public void testBlocksOnSameKey() throws Exception {
+    // given: an empty semaphore pool
+    final String key = "k1";
+    SemaphorePool semaphorePool = new SemaphorePool(2);
+
+    // and given : a thread that locks on a key for some period of time
+    new Thread(() -> {
+      try {
+        semaphorePool.acquire(key);
+        sleep(600);
+        semaphorePool.release(key);
+        threadFinished = true;
+      }
+      catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }).start();
+
+    // and given: some time for the thread to acquire the lock
+    sleep(10);
+
+    // when: try to acquire the same lock
+    long start = currentTimeMillis();
+    semaphorePool.acquire(key);
+    long duration = currentTimeMillis() - start;
+    sleep(10);
+
+    // then: worker thread finished and duration indicated we had to wait for it
+    assertThat(threadFinished).isTrue();
+    assertThat(duration).isGreaterThan(500);
+  }
+
+  @Test
+  public void testBoundaries() throws Exception {
+    // given: an empty semaphore pool
+    SemaphorePool semaphorePool = new SemaphorePool(20);
+
+    // when: acquire lock with null key provided
+    Throwable thrownNull = catchThrowable(() -> semaphorePool.acquire(null) );
+    Throwable thrownBlank = catchThrowable(() -> semaphorePool.acquire("") );
+
+    // then: not expecting any pool usage
+    assertThat(thrownNull).isInstanceOf(IllegalArgumentException.class);
+    assertThat(thrownBlank).isInstanceOf(IllegalArgumentException.class);
+    assertThat(semaphorePool.getInUseCount()).isEqualTo(0);
+    assertThat(semaphorePool.getAvailableCount()).isEqualTo(0);
+
+    // when: trying to release on a blank key or bogus key
+    thrownNull = catchThrowable(() -> semaphorePool.release(null) );
+    thrownBlank = catchThrowable(() -> semaphorePool.release("") );
+    Throwable thrownBogus = catchThrowable(() -> semaphorePool.release("bogus"));
+
+    // then: expect no exceptions
+    assertThat(thrownNull).isInstanceOf(IllegalArgumentException.class);
+    assertThat(thrownBlank).isInstanceOf(IllegalArgumentException.class);
+    assertThat(thrownBogus).isInstanceOf(IllegalArgumentException.class);
+  }
+}

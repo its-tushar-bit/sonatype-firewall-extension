@@ -67,6 +67,8 @@ public class SbomResultHandler
 {
   private static final Logger log = LoggerFactory.getLogger(SbomResultHandler.class);
 
+  private static final String MISSING_COMPONENT_NAME = "[Not Provided]";
+
   private final ThirdPartyFileDAO thirdPartyFileDAO = new ThirdPartyFileDAO();
 
   private final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO = new ThirdPartyFileCoordinateDAO();
@@ -212,6 +214,7 @@ public class SbomResultHandler
       final Xpp3Dom component) throws MalformedPackageURLException
   {
     String name = getValueFromTag(component, "name");
+    name = StringUtils.isBlank(name) ? MISSING_COMPONENT_NAME : name;
     String version = getValueFromTag(component, "version");
 
     if (StringUtils.isNoneBlank(name, version)) {
@@ -327,7 +330,6 @@ public class SbomResultHandler
       fileCoordinate.setPackageUrl(sbomComponent.getPurl());
       thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
       hashFileCoordinateIdMap.put(fakeHash, fileCoordinate.getId());
-
       saveLicenses(component.getChild("licenses"), fileCoordinate.getId(), sbomComponent.getPurl(), tx);
       saveVulnerabilities(component.getChild("vulnerabilities"), fileCoordinate.getId(), tx);
       sbom.addComponent(sbomComponent);
@@ -338,7 +340,7 @@ public class SbomResultHandler
     Set<String> vulnerabilityMap = new HashSet<>();
     if (vulnerabilities != null) {
       for (Xpp3Dom vulnerability : vulnerabilities.getChildren()) {
-        if (vulnerability != null) {
+        if (vulnerability != null && vulnerability.getChild("id") != null) {
           String refId = vulnerability.getChild("id").getValue();
           if (StringUtils.isNotBlank(refId) && !vulnerabilityMap.contains(refId)) {
             saveVulnerability(vulnerability, fileCoordinateId, refId, tx);

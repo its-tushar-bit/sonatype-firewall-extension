@@ -116,7 +116,7 @@ public class ApiReportServiceV2Test
   }
 
   @Test
-  public void testGetReportHistoryForApplication_NoReport() throws IOException, URISyntaxException {
+  public void testGetReportHistoryForApplication_NoReport() {
     //setup evaluation
     tempEntity.newPolicy(appOne);
     tempEntity.newPolicyEvaluation(appOne.getId(), "build", "scanId");

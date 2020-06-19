@@ -87,7 +87,7 @@ public class BitbucketCodeInsightsServiceTest
   private GitClientFactory gitClientFactory;
 
   @Mock
-  private BitbucketApiClient bitbucketApiClient;
+  private BitbucketApiClient<?, ?> bitbucketApiClient;
 
   private Application application;
 
@@ -135,12 +135,17 @@ public class BitbucketCodeInsightsServiceTest
 
   @Test
   public void testCodeInsightFeatureFlag() throws IOException {
-    config.setExperimentalFeatures(ImmutableMap.of(Feature.CODE_INSIGHTS.getFlag(), Boolean.FALSE));
-
+    // verify when disabled that the feature is not interacted with
+    config.setFeatures(ImmutableMap.of(Feature.CODE_INSIGHTS.getFlag(), Boolean.FALSE));
     service.invokeAction(gitClientFactory, gitRepositoryInfo, policyViolationDiff, featureBranchPolicyEvaluation,
         defaultBranchPolicyEvaluation);
-
     verifyNoInteractions(bitbucketApiClient);
+
+    // verify when enabled that the feature is interacted with
+    config.setFeatures(ImmutableMap.of(Feature.CODE_INSIGHTS.getFlag(), Boolean.TRUE));
+    service.invokeAction(gitClientFactory, gitRepositoryInfo, policyViolationDiff, featureBranchPolicyEvaluation,
+        defaultBranchPolicyEvaluation);
+    verify(bitbucketApiClient).deleteCodeInsightReport(anyString(), anyString()); //interaction itself doesn't matter
   }
 
   @Test

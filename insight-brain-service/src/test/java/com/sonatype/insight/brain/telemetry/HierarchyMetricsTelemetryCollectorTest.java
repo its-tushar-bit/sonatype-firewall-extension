@@ -32,6 +32,11 @@ public class HierarchyMetricsTelemetryCollectorTest
   private HierarchyMetricsTelemetryCollector telemetryCollector;
 
   @Test
+  public void testIsClusterTelemetry() {
+    assertThat(telemetryCollector.isClusterTelemetry()).isTrue();
+  }
+
+  @Test
   public void testCollectData_TelemetryPurpose() {
     TelemetryData telemetryData = telemetryCollector.collectData();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.HIERARCHY_METRICS);

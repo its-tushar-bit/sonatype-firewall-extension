@@ -309,6 +309,9 @@ class ScrubberInsertMods
     insertModMap.put(h2OdsTable("proxy_server_configuration"), truncate);
     insertModMap.put(h2OdsTable("saml_configuration"), truncate);
     insertModMap.put(h2OdsTable("user_token"), truncate);
+    insertModMap.put(h2OdsTable("source_control"), truncate);
+    insertModMap.put(h2OdsTable("source_control_pull_request_comment"), truncate);
+    insertModMap.put(h2OdsTable("source_control_default_branch_commit_history"), truncate);
     // user special
     insertModMap
         .put(h2OdsTable("user"), tableMod("username:user", "password:user", "first_name", "last_name", "email"));
@@ -330,6 +333,7 @@ class ScrubberInsertMods
     insertModMap.put(h2OdsTable("repository_component"), tableMod("pathname:path"));
     insertModMap.put(h2OdsTable("repository_policy_violation"),
         tableMod("pathname:path", "policy_name", "policy_waiver_comment"));
+    insertModMap.put(h2OdsTable("role"), tableMod("name", "description"));
     insertModMap.put(h2OdsTable("sv_override"), tableMod("comment"));
     insertModMap.put(h2OdsTable("tag"), tableMod("name", "description"));
   }

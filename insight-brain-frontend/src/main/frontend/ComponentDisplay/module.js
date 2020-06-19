@@ -3,9 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import linkedComponentDisplay from './linkedComponentDisplay';
 import componentDisplay from './componentDisplay';
 
 export default angular.module('ComponentDisplay', ['ui.router'])
-    .component('componentDisplay', componentDisplay)
-    .component('linkedComponentDisplay', linkedComponentDisplay);
+    .component('componentDisplay', componentDisplay);

@@ -73,6 +73,7 @@ public class StageTypeServiceTest
     testProductLicense.setStageTypes(StageTypes.getAll());
 
     assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.CI_CONTEXT)).containsExactly( //
+        StageTypes.DEVELOP, //
         StageTypes.BUILD, //
         StageTypes.STAGE_RELEASE, //
         StageTypes.RELEASE, //

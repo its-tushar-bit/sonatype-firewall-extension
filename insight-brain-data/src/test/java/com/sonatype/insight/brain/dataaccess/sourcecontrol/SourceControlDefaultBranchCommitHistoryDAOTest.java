@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Test;
 
@@ -262,6 +263,50 @@ public class SourceControlDefaultBranchCommitHistoryDAOTest
     // then : expecting exception
     assertThat(thrown).hasStackTraceContaining(
         "Referential integrity constraint violation: \"source_control_default_branch_commit_history_policy_eval_fk");
+  }
+
+  @Test
+  public void testDeleteByApplicationId() {
+    // given : a set of commit history entries, some linked to a policy evaluation, some not, and some for a different
+    //         application
+    String policyEvaluationId =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan", "commit1")
+            .getId();
+    Date commitTime = new Date();
+    // app 1
+    tempEntity.newSourceControlDefaultBranchCommitHistory(
+        application.getId(), "commit1", commitTime, policyEvaluationId);
+    tempEntity.newSourceControlDefaultBranchCommitHistory(application.getId(), "commit2", commitTime, null);
+    // app 2
+    Application app2 = tempEntity.newApplication("app2", organization.getId());
+    String policyEvaluationId2 =
+        tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scan2", "commit7").getId();
+    tempEntity.newSourceControlDefaultBranchCommitHistory(app2.getId(), "commit7", commitTime, policyEvaluationId2);
+    tempEntity.newSourceControlDefaultBranchCommitHistory(app2.getId(), "commit8", commitTime, null);
+
+    // when : fetch all entries for first application
+    List<SourceControlDefaultBranchCommitHistory> commitHistoryList =
+        defaultBranchCommitHistoryDAO.getByApplicationIdSortedByDateDesc(application.getId());
+
+    // then : all entries for given app and count is correct
+    assertThat(commitHistoryList.size()).isEqualTo(2);
+    commitHistoryList.forEach(entry -> assertThat(entry.getApplicationId()).isEqualTo(application.getId()));
+
+    // when : delete entries for first application
+    try (TransactionContext tx = defaultBranchCommitHistoryDAO.createTransactionContext()) {
+      tx.begin();
+      defaultBranchCommitHistoryDAO.deleteByApplicationId(tx, application.getId());
+      tx.commit();
+    }
+
+    // then : entries were removed for first application
+    commitHistoryList = defaultBranchCommitHistoryDAO.getByApplicationIdSortedByDateDesc(application.getId());
+    assertThat(commitHistoryList.isEmpty());
+
+    // and : history for app2 not affected
+    commitHistoryList = defaultBranchCommitHistoryDAO.getByApplicationIdSortedByDateDesc(app2.getId());
+    assertThat(commitHistoryList.size()).isEqualTo(2);
+    commitHistoryList.forEach(entry -> assertThat(entry.getApplicationId()).isEqualTo(app2.getId()));
   }
 
   private Date createTime(int offsetInMinutes) {

@@ -12,8 +12,10 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,9 +27,8 @@ import com.sonatype.clm.testing.functional.elements.DashboardViolations.Violatio
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationsHeaders;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationsResults;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
-import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
-import com.sonatype.clm.testing.functional.pages.DashboardComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
 import com.sonatype.clm.testing.functional.utils.proxy.ResponseCopyHandler;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -37,6 +38,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
@@ -48,8 +50,7 @@ import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 
-import com.codeborne.selenide.Selenide;
-import com.codeborne.selenide.WebDriverRunner;
+import com.codeborne.selenide.SelenideElement;
 import com.google.common.collect.ImmutableMap;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
@@ -62,7 +63,6 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.DashboardViolations.SEVERE;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
@@ -232,25 +232,6 @@ public class DashboardViolationsTest
 
     DashboardFilters.revertButton().hover();
     Tooltip.get().shouldBe(hidden);
-
-    // check the report link - opens new window
-    firstViolation.latestReport().shouldNotBe(DISABLED).shouldHave(text("Build")).click();
-    Selenide.switchTo().window(1);
-    ApplicationReportPage reportPage = new ApplicationReportPage();
-    waitUntilUrl(ApplicationReportPage.url(app1, buildEvalNow.getScanId()));
-    reportPage.shouldBe(visible);
-    WebDriverRunner.getWebDriver().close();
-    Selenide.switchTo().window(0);
-    waitUntilUrl(DashboardPage.urlToViolations());
-
-    // open component details and back
-    DashboardComponentDetailsPage dashboardComponentDetailsPage = new DashboardComponentDetailsPage();
-    firstViolation.componentLink().click(5, 5);
-    waitUntilUrl(DashboardComponentDetailsPage.url("g1a1v1"));
-    DashboardPage.dashboardContainer().shouldBe(hidden);
-    dashboardComponentDetailsPage.header().shouldHave(text("g1 : a1 : v1"));
-    Selenide.back();
-    DashboardPage.dashboardContainer().shouldBe(visible);
 
     ViolationsHeaders headers = DashboardPage.violationsView().headers();
 
@@ -436,6 +417,33 @@ public class DashboardViolationsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     assertThat(exportCsv).as("Expected empty export").isEqualTo(CSV_HEADERS);
+  }
+
+  @Test
+  public void testTableRowClick() {
+    // add a violation
+    PolicyViolation violation = tempEntity.newPolicyViolation(releaseEval2DaysAgo, securityPolicy, 10,
+        SECURITY, releaseComponent.getComponentIdentifier(), releaseComponent.getHash(), FailActionType.ID);
+
+    List<Function<ViolationTile, SelenideElement>> cellGetters = Arrays.asList(
+        ViolationTile::threatCell,
+        ViolationTile::policy,
+        ViolationTile::application,
+        ViolationTile::component,
+        ViolationTile::age,
+        ViolationTile::chevron
+    );
+
+    // test that clicking any cell in the row opens the details page
+    for (Function<ViolationTile, SelenideElement> cellGetter : cellGetters) {
+      refreshOrOpen(DashboardPage.urlToViolations());
+
+      ViolationTile row = table.firstViolation();
+      SelenideElement cell = cellGetter.apply(row);
+
+      cell.click();
+      waitUntilUrl(ViolationDetailsPage.urlWithQueryParams(violation.getId(), "violation", "filter"));
+    }
   }
 
   @Test

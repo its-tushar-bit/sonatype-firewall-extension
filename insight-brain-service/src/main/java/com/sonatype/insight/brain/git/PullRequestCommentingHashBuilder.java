@@ -16,6 +16,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
@@ -95,10 +96,16 @@ public class PullRequestCommentingHashBuilder
       final List<PolicyViolation> list)
   {
     //Policy violations need to be grouped by component
-    final SortedMap<ComponentIdentifier, List<PolicyViolation>> componentPolicyViolationsMap = list
+    final SortedMap<String, List<PolicyViolation>> componentPolicyViolationsMap = list
         .stream()
-        .filter(pv -> pv.getComponentIdentifier() != null)
-        .collect(Collectors.groupingBy(PolicyViolation::getComponentIdentifier, TreeMap::new, Collectors.toList()));
+        .collect(Collectors.groupingBy(x -> {
+          if (null != x.getComponentIdentifier()) {
+            return ComponentDisplayNameUtil.fromIdentifier(x.getComponentIdentifier()).toString();
+          }
+          else {
+            return x.getHash();
+          }
+        }, TreeMap::new, Collectors.toList()));
     
     // Ensure the policy violation order is always the same 
     ensureConsistentOrdering(componentPolicyViolationsMap.values());
@@ -118,10 +125,10 @@ public class PullRequestCommentingHashBuilder
    */
   private void collectRelevantDataFromComponentViolations(
       final StringBuilder stringBuilder,
-      final SortedMap<ComponentIdentifier, List<PolicyViolation>> componentPolicyViolationsMap)
+      final SortedMap<String, List<PolicyViolation>> componentPolicyViolationsMap)
   {
-    for (Entry<ComponentIdentifier, List<PolicyViolation>> entry : componentPolicyViolationsMap.entrySet()) {
-      stringBuilder.append(entry.getKey().toString()); // component identifier
+    for (Entry<String, List<PolicyViolation>> entry : componentPolicyViolationsMap.entrySet()) {
+      stringBuilder.append(entry.getKey()); // component identifier
       for (PolicyViolation violation : entry.getValue()) {
         stringBuilder.append(violation.getPolicyName());
         stringBuilder.append(violation.getThreatLevel());

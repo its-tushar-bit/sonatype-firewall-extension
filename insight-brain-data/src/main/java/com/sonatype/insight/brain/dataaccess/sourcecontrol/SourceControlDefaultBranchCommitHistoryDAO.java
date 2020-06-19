@@ -109,6 +109,17 @@ public class SourceControlDefaultBranchCommitHistoryDAO
     }
   }
 
+  public void deleteByApplicationId(
+      final TransactionContext tx,
+      final String applicationId)
+  {
+    List<SourceControlDefaultBranchCommitHistory> commitHistoryList = getList(
+        tx, SELECT_ENTITY + "WHERE entity.applicationId=?1", applicationId);
+    for (SourceControlDefaultBranchCommitHistory defaultBranchCommitHistory : commitHistoryList) {
+      delete(tx, defaultBranchCommitHistory);
+    }
+  }
+
   public void deleteByPolicyEvaluationId(final String id) {
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();

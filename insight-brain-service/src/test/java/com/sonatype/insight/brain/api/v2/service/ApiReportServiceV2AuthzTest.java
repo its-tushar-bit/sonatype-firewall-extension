@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiReportHistoryDTO;
@@ -45,7 +42,7 @@ public class ApiReportServiceV2AuthzTest
   }
 
   @Test
-  public void testGetReportHistoryForApplication_Authorized() throws IOException, URISyntaxException {
+  public void testGetReportHistoryForApplication_Authorized() {
     grantReadPermission(app.getId());
 
     ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(app.getId());
@@ -55,7 +52,7 @@ public class ApiReportServiceV2AuthzTest
   }
 
   @Test
-  public void testGetReportHistoryForApplication_AuthorizedOrg() throws IOException, URISyntaxException {
+  public void testGetReportHistoryForApplication_AuthorizedOrg() {
     grantReadPermission(org.getId());
 
     ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(app.getId());

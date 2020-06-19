@@ -25,10 +25,12 @@ import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
 import org.slf4j.MDC;
 
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 public class ClusterTelemetryTaskTest
@@ -69,10 +71,17 @@ public class ClusterTelemetryTaskTest
       clusterTelemetryTask.execute(mock(JobExecutionContext.class));
     }
 
-    verify(telemetrySenderMock).send(allTelemetryDataCaptor.capture());
-    List<TelemetryData> allTelemetryData = allTelemetryDataCaptor.getValue();
-    assertThat(allTelemetryData).extracting(TelemetryData::getPurpose).containsExactlyInAnyOrder(
-        TelemetryPurpose.DATABASE);
+    TelemetryPurpose[] expectedPurposes = { //
+        TelemetryPurpose.DATABASE, //
+        TelemetryPurpose.HIERARCHY_METRICS, //
+        TelemetryPurpose.POLICY_STATUS_OVERRIDE, //
+        TelemetryPurpose.REALM, //
+        TelemetryPurpose.ROLE_USAGE, //
+    };
+    verify(telemetrySenderMock, times(expectedPurposes.length)).send(allTelemetryDataCaptor.capture());
+    List<TelemetryData> allTelemetryData =
+        allTelemetryDataCaptor.getAllValues().stream().flatMap(List::stream).collect(toList());
+    assertThat(allTelemetryData).extracting(TelemetryData::getPurpose).containsOnly(expectedPurposes);
   }
 
   @Test

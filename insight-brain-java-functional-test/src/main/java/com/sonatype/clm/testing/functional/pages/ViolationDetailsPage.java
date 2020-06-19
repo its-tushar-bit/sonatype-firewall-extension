@@ -91,8 +91,8 @@ public class ViolationDetailsPage
     return new PolicyViolationConstraintInfoTile(childSelector("#policy-violation-constraint-info-tile"));
   }
 
-  public PolicyViolationSecurityDetailsInfoTile policyViolationSecurityDetailsInfoTile() {
-    return new PolicyViolationSecurityDetailsInfoTile(childSelector("#policy-violation-security-details-info-tile"));
+  public PolicyViolationSecurityDetailsInfoTile securityVulnerabilityDetailsTile() {
+    return new PolicyViolationSecurityDetailsInfoTile(childSelector("#security-vulnerability-details-tile"));
   }
 
   public static class ViolationDetailsTile

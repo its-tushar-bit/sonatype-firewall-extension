@@ -74,7 +74,7 @@ public class ProprietaryConfig
         packages = JsonUtils.parse(packagesJson, List.class);
       }
       catch (IOException e) {
-        throw new UncheckedIOException(e);
+        throw new UncheckedIOException("Failed to read proprietary package configuration " + id, e);
       }
     }
     if (packages == null) {
@@ -101,7 +101,7 @@ public class ProprietaryConfig
         regexes = JsonUtils.parse(regexesJson, List.class);
       }
       catch (IOException e) {
-        throw new UncheckedIOException(e);
+        throw new UncheckedIOException("Failed to read proprietary regex configuration " + id, e);
       }
     }
     if (regexes == null) {

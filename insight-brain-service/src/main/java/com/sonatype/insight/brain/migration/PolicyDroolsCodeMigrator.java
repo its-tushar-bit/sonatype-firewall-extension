@@ -36,7 +36,8 @@ public class PolicyDroolsCodeMigrator
   // v2 since 1.16
   // v3 since 1.32
   // v4 since 1.50
-  static final int DROOLS_CODE_VERSION = 4;
+  // v5 since 1.95
+  static final int DROOLS_CODE_VERSION = 5;
 
   @Inject
   public PolicyDroolsCodeMigrator(MigrationTrackerDAO migrationTrackerDAO) {

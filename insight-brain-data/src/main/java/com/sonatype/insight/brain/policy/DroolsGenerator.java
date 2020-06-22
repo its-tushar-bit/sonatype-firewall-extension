@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.AbstractComponentConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.AbstractLicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.AbstractVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -24,6 +25,8 @@ import org.slf4j.LoggerFactory;
 public class DroolsGenerator
 {
   private static final Logger log = LoggerFactory.getLogger(DroolsGenerator.class);
+
+  public static final String LICENSE_THREAT_GROUP_VARIABLE = "$licenseThreatGroup";
 
   private static final String INDENT = "    ";
 
@@ -120,6 +123,8 @@ public class DroolsGenerator
 
     private final StringBuilder vulnerabilityConditionCode = new StringBuilder();
 
+    private final StringBuilder licenseThreatGroupConditionCode = new StringBuilder();
+
     private final StringBuilder otherConditionCode = new StringBuilder();
 
     private final StringBuilder conditionTriggerCode = new StringBuilder();
@@ -132,6 +137,9 @@ public class DroolsGenerator
       }
       else if (conditionType instanceof AbstractVulnerabilityConditionType) {
         appendConditionCode(vulnerabilityConditionCode, conditionCode);
+      }
+      else if (conditionType instanceof AbstractLicenseThreatGroupConditionType) {
+        appendConditionCode(licenseThreatGroupConditionCode, conditionCode);
       }
       else {
         otherConditionCode.append(INDENT).append(conditionCode).append("\n");
@@ -165,6 +173,13 @@ public class DroolsGenerator
         code.append(INDENT).append("(\n");
         code.append(vulnerabilityConditionCode);
         code.append(INDENT).append(") from $component.securityVulnerabilities)\n");
+      }
+
+      if (licenseThreatGroupConditionCode.length() > 0) {
+        code.append(INDENT).append(LICENSE_THREAT_GROUP_VARIABLE).append(" : (LicenseThreatGroup\n");
+        code.append(INDENT).append("(\n");
+        code.append(licenseThreatGroupConditionCode);
+        code.append(INDENT).append(") from $component.licenseThreatGroups)\n");
       }
 
       if (otherConditionCode.length() > 0) {

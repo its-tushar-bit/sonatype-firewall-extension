@@ -101,7 +101,13 @@ public class ApplicationAdapter
    * @param applicationList the list of applications
    * @return the list of application summary DTOs
    */
-  public List<ApplicationManagementSummaryDTO> createApplicationManagementSummaries(List<Application> applicationList) {
+  public List<ApplicationManagementSummaryDTO> createApplicationManagementSummaries(
+      List<Application> applicationList,
+      String nameFilter)
+  {
+    if (nameFilter != null) {
+      nameFilter = nameFilter.toLowerCase(Locale.ENGLISH);
+    }
 
     final List<ApplicationManagementSummaryDTO> applicationManagementSummaryDTOList = new ArrayList<>(
         applicationList.size());
@@ -111,29 +117,29 @@ public class ApplicationAdapter
 
     final List<String> internalNameList = new ArrayList<>(applicationList.size());
     for (final Application application : applicationList) {
-      final String internalName = application.getContactInternalName();
-      internalNameList.add(internalName);
-      String organizationId = application.getOrganizationId();
-      if (!organizationMap.containsKey(organizationId)) {
-        organizationMap.put(organizationId, organizationDAO.getByIdNotNull(organizationId));
-      }
-    }
+      Organization organization =
+          organizationMap.computeIfAbsent(application.getOrganizationId(), organizationDAO::getByIdNotNull);
 
-    final ContactDTO[] contacts = getContacts(internalNameList);
-    for (int i = 0; i < applicationList.size(); i++) {
-      Application application = applicationList.get(i);
-      final ApplicationManagementSummaryDTO summary = new ApplicationManagementSummaryDTO();
+      if (nameFilter != null && !application.getName().toLowerCase(Locale.ENGLISH).contains(nameFilter)
+          && !organization.getName().toLowerCase(Locale.ENGLISH).contains(nameFilter)) {
+        continue;
+      }
+
+      ApplicationManagementSummaryDTO summary = new ApplicationManagementSummaryDTO();
       summary.setId(application.getId());
       summary.setName(application.getName());
       summary.setPublicId(application.getPublicId());
-
-      String organizationId = application.getOrganizationId();
-      summary.setOrganizationId(organizationId);
-      Organization org = organizationMap.get(organizationId);
-      summary.setOrganizationName(org.getName());
-
-      summary.setContact(contacts[i]);
+      summary.setOrganizationId(organization.getId());
+      summary.setOrganizationName(organization.getName());
       applicationManagementSummaryDTOList.add(summary);
+
+      internalNameList.add(application.getContactInternalName());
+    }
+
+    final ContactDTO[] contacts = getContacts(internalNameList);
+    for (int i = 0; i < applicationManagementSummaryDTOList.size(); i++) {
+      final ApplicationManagementSummaryDTO summary = applicationManagementSummaryDTOList.get(i);
+      summary.setContact(contacts[i]);
     }
 
     return applicationManagementSummaryDTOList;

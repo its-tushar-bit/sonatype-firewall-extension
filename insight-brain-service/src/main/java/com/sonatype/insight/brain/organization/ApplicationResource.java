@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -116,8 +117,13 @@ public class ApplicationResource
   @GET
   @Path(GET_APPLICATION_MANAGEMENT_SUMMARIES)
   @Produces(MediaType.APPLICATION_JSON)
-  public List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries() {
-    return applicationService.getApplicationManagementSummaries();
+  public List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries(
+      @QueryParam("nameFilter") String nameFilter,
+      @QueryParam("order") @DefaultValue("APP_NAME_ASC") ApplicationManagementSummaryOrder order,
+      @QueryParam("page") Integer page,
+      @QueryParam("pageSize") Integer pageSize)
+  {
+    return applicationService.getApplicationManagementSummaries(nameFilter, order, page, pageSize);
   }
 
   @GET

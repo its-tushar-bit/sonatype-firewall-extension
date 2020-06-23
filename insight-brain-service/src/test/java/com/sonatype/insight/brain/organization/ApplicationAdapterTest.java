@@ -208,7 +208,7 @@ public class ApplicationAdapterTest
     }
 
     List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter
-        .createApplicationManagementSummaries(applications);
+        .createApplicationManagementSummaries(applications, null);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
   }
@@ -237,7 +237,7 @@ public class ApplicationAdapterTest
     }
 
     List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter
-        .createApplicationManagementSummaries(applications);
+        .createApplicationManagementSummaries(applications, null);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
   }
@@ -272,7 +272,7 @@ public class ApplicationAdapterTest
 
     applicationAdapter = new ApplicationAdapter(mockUserDirectory);
     List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter
-        .createApplicationManagementSummaries(applications);
+        .createApplicationManagementSummaries(applications, null);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
   }
@@ -295,7 +295,7 @@ public class ApplicationAdapterTest
     }
 
     List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter
-        .createApplicationManagementSummaries(applications);
+        .createApplicationManagementSummaries(applications, null);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
   }
@@ -324,7 +324,7 @@ public class ApplicationAdapterTest
     createMember(contactInternalName, userFirstName, userLastName, userEmail);
 
     List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter
-        .createApplicationManagementSummaries(applications);
+        .createApplicationManagementSummaries(applications, null);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
   }
@@ -362,7 +362,7 @@ public class ApplicationAdapterTest
     }
 
     List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter
-        .createApplicationManagementSummaries(applications);
+        .createApplicationManagementSummaries(applications, null);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
   }

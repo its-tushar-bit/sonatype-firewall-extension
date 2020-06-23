@@ -14,7 +14,7 @@ export default {
       }
     ];
   },
-  getApplicationSummaryData: function() {
+  getApplicationSummaryData: function(size) {
     var results = [{
       'id': '78c1d44c07584e57945f04890c672e82',
       'name': 'application3',
@@ -58,6 +58,35 @@ export default {
         'moderateComponentCount': 0
       };
     });
+    if (size) {
+      results = [];
+      for (let app = 0; app < size; app++) {
+        results.push({
+          'id': 'id' + app,
+          'name': 'name' + app,
+          'publicId': 'publicId' + app,
+          'organizationId': '1',
+          'organizationName': 'Ye Ole Organization',
+          'policyEvaluations': {
+            'build': {
+              'stageTypeId': 'build',
+              'scanId': 'scanId' + app,
+              'time': 1371487786570,
+              'user': 'anonymous'
+            }
+          },
+          'policyEvaluationsResults': {
+            'build': {
+              'alerts': [],
+              'affectedComponentCount': 0,
+              'criticalComponentCount': 0,
+              'severeComponentCount': 0,
+              'moderateComponentCount': 0
+            }
+          }
+        });
+      }
+    }
     return results;
   },
   getApplicablePolicies: function() {

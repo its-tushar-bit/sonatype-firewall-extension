@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import org.openqa.selenium.Keys
 import spock.lang.Stepwise
 
 @Stepwise
@@ -46,7 +47,7 @@ class ReportViolationsSpec
       ReportViolationsPage page = at ReportViolationsPage
 
     when: "I type a filter"
-      page.filter << "org2"
+      page.filter << "org2" + Keys.ENTER
 
     then:
       reportViolationRows.size() == 3

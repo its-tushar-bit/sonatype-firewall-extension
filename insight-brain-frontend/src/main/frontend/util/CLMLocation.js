@@ -149,8 +149,10 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
         return baseUrl.get() + '/rest/application/' + encodeURIComponent(applicationPublicId);
       },
 
-      getApplicationSummariesUrl: function() {
-        return baseUrl.get() + '/rest/application/services/summary';
+      getApplicationSummariesUrl: function(nameFilter, order, page, pageSize) {
+        return baseUrl.get() + '/rest/application/services/summary?' +
+            (nameFilter ? 'nameFilter=' + encodeURIComponent(nameFilter) + '&' : '') + 'order=' +
+            encodeURIComponent(order) + '&page=' + page + '&pageSize=' + pageSize;
       },
 
       getApplicationSummaryUrl: function(applicationPublicId) {

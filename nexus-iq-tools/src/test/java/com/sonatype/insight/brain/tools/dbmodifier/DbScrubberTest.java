@@ -13,18 +13,23 @@ import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.license.LicenseOverride;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -32,6 +37,8 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.apache.commons.io.FileUtils;
@@ -306,6 +313,63 @@ public class DbScrubberTest
     String scrubbedSqlContent = getScrubbedSqlContent();
     assertThat(scrubbedSqlContent).contains(repo.getId());
     assertThat(scrubbedSqlContent).doesNotContain("TestPublicId");
+  }
+
+  @Test
+  public void testScrubDB_Table_hash_component_identifier() throws Exception {
+    HashComponentIdentifier claimedComponent = tempEntity.newClaimedComponent("TestHash",
+        ComponentIdentifier.createNpmCoordinates("TestPackageId", "TestVersion"));
+    claimedComponent.setComment("Test comment");
+    new HashComponentIdentifierDAO().update(claimedComponent);
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(claimedComponent.getId(), "Test comment");
+    String scrubbedSqlContent = getScrubbedSqlContent();
+    assertThat(scrubbedSqlContent).contains(claimedComponent.getId());
+    assertThat(scrubbedSqlContent).doesNotContain("Test comment");
+  }
+
+  @Test
+  public void testScrubDB_Table_policy_waiver() throws Exception {
+    Policy policy = tempEntity.newPolicy();
+    PolicyWaiver policyWaiver =
+        tempEntity.newWaiver("TestHash", policy.getId(), Organization.ROOT_ORGANIZATION_ID, "Test comment");
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(policyWaiver.getId(), "Test comment");
+    String scrubbedSqlContent = getScrubbedSqlContent();
+    assertThat(scrubbedSqlContent).contains(policyWaiver.getId());
+    assertThat(scrubbedSqlContent).doesNotContain("Test comment");
+  }
+
+  @Test
+  public void testScrubDB_Table_license_override() throws Exception {
+    LicenseOverride licenseOverride = tempEntity.newLicenseOverride(Organization.ROOT_ORGANIZATION_ID,
+        ComponentIdentifier.createNpmCoordinates("TestPackageId", "TestVersion"), LicenseOverrideStatus.OVERRIDDEN,
+        "Apache-2.0", "Test comment");
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(licenseOverride.getId(), "Test comment");
+    String scrubbedSqlContent = getScrubbedSqlContent();
+    assertThat(scrubbedSqlContent).contains(licenseOverride.getId());
+    assertThat(scrubbedSqlContent).doesNotContain("Test comment");
+  }
+
+  @Test
+  public void testScrubDB_Table_sv_override() throws Exception {
+    SecurityVulnerabilityOverride svOverride =
+        tempEntity.newSecurityVulnerabilityOverride(Organization.ROOT_ORGANIZATION_ID, "TestHash", "CVE",
+            "CVE-1234-5678", SecurityVulnerabilityOverrideStatus.NOT_APPLICABLE, "Test comment");
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(svOverride.getId(), "Test comment");
+    String scrubbedSqlContent = getScrubbedSqlContent();
+    assertThat(scrubbedSqlContent).contains(svOverride.getId());
+    assertThat(scrubbedSqlContent).doesNotContain("Test comment");
   }
 
   private void scrubDb() {

@@ -58,4 +58,14 @@ public class InputParserTest
     assertThat(sqlLine.cols).containsExactly("column1", "column2", "column3");
     assertThat(sqlLine.vals).containsExactly("'foo,bar'", "'foo, bar'", "'''foo'', bar'");
   }
+
+  @Test
+  public void testParseInput_BYTEA() {
+    SQLLine sqlLine = InputParser.parseInput(
+        "INSERT INTO \"test_schema\".\"test_table\"(\"column1\", \"column2\", \"column3\", \"column4\")"
+            + " VALUES (X'', X'01FF', X'01 bc 2a', X'01' '02')");
+    assertThat(sqlLine.table).isEqualTo("\"test_schema\".\"test_table\"");
+    assertThat(sqlLine.cols).containsExactly("column1", "column2", "column3", "column4");
+    assertThat(sqlLine.vals).containsExactly("X''", "X'01FF'", "X'01 bc 2a'", "X'01' '02'");
+  }
 }

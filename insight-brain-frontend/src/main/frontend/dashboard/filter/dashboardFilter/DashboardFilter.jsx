@@ -22,6 +22,7 @@ import { filterToJson } from '../dashboardFilterService';
 import DashboardFilterFooter from './DashboardFilterFooter';
 import SaveFilterModalContainer from '../saveFilterModal/SaveFilterModalContainer';
 import ManageFiltersDropdown from '../manageFiltersDropdown/ManageFiltersDropdown';
+import DeleteFilterModalContainer from '../deleteFilterModal/DeleteFilterModalContainer';
 
 export default function DashboardFilter(props) {
   const {
@@ -36,6 +37,7 @@ export default function DashboardFilter(props) {
     showSaveFilterModal,
     savedFilters,
     filtersDropdownOpen,
+    filterToDelete,
 
     // filter items
     organizations,
@@ -60,7 +62,9 @@ export default function DashboardFilter(props) {
     toggleAppsAndOrgs,
     applyDefaultFilter,
     applySavedFilter,
-    toggleFiltersDropdown
+    toggleFiltersDropdown,
+    selectFilterToDelete,
+    handleDocumentClick
   } = props;
 
   useEffect(() => { loadFilter(); }, []);
@@ -93,6 +97,7 @@ export default function DashboardFilter(props) {
   return (
     <div className="dashboard-filter-container">
       { showSaveFilterModal && <SaveFilterModalContainer/> }
+      { filterToDelete && <DeleteFilterModalContainer/> }
       <div className="dashboard-filter-header" id="dashboard-filter-header">
         {/* Not wrapping ManageFiltersDropdown with label to prevent label clicks from triggering dropdown toggle */}
         <label className="nx-label">
@@ -106,7 +111,9 @@ export default function DashboardFilter(props) {
             applyDefaultFilter,
             applySavedFilter,
             filtersDropdownOpen,
-            toggleFiltersDropdown
+            toggleFiltersDropdown,
+            selectFilterToDelete,
+            handleDocumentClick
           }}/>
         }
       </div>

@@ -25,6 +25,8 @@ public class DashboardFilters
 
   public static final Condition NO_CHANGES_MESSAGE = text("There are no changes to update.");
 
+  public static final Condition SELECTED_SAVED_FILTER_OPTION = cssClass("iq-manage-filters-dropdown__option--selected");
+
   public static NxTreeViewMultiSelect organizationFilter() {
     return new NxTreeViewMultiSelect("#org-app-filters > div:nth-child(1)");
   }
@@ -89,6 +91,10 @@ public class DashboardFilters
 
   public static SaveFilterDialog saveFilterDialog() {
     return new SaveFilterDialog();
+  }
+
+  public static DeleteFilterDialog deleteFilterDialog() {
+    return new DeleteFilterDialog();
   }
 
   public static class ManageFiltersDropdown
@@ -191,43 +197,23 @@ public class DashboardFilters
     }
   }
 
-  public static class DeleteFiltersDialog
-      extends BasicElement<DeleteFiltersDialog>
+  public static class DeleteFilterDialog
+      extends BasicElement<DeleteFilterDialog>
   {
-    public DeleteFiltersDialog() {
-      super("#delete-filters-modal");
-    }
-
-    public SelenideElement deleteButton() {
-      return child(".iq-modal-footer", ".iq-btn--primary");
-    }
-
-    public ElementsCollection filters() {
-      return children(".iq-form iq-checkbox");
-    }
-
-    public IqCheckbox checkboxItem(int index) {
-      return new IqCheckbox(child(".iq-form iq-checkbox", nthChild(index)));
-    }
-  }
-
-  public static class DeleteDialog
-      extends BasicElement<DeleteDialog>
-  {
-    public DeleteDialog() {
-      super("#delete-modal");
-    }
-
-    public SelenideElement body() {
-      return child(".iq-modal-content");
+    public DeleteFilterDialog() {
+      super("#delete-filter-modal");
     }
 
     public SelenideElement continueButton() {
-      return child(".iq-modal-footer", ".iq-btn--primary");
+      return child("#delete-filter-modal-continue-button");
     }
 
     public SelenideElement cancelButton() {
-      return child(".iq-btn:not(.iq-btn--primary)[type='button']");
+      return child("#delete-filter-modal-cancel-button");
+    }
+
+    public SelenideElement confirmation() {
+      return child("#delete-filter-confirmation");
     }
   }
 

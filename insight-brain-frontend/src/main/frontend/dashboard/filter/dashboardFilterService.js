@@ -23,16 +23,15 @@ export function filterToJson(filter) {
   };
 }
 
-export function deleteSavedFilters(filters) {
-  return axios.post(getDashboardDeleteFiltersUrl(), filters)
+export function deleteSavedFilter(filterName) {
+  return axios.post(getDashboardDeleteFiltersUrl(), [filterName])
       .catch(error => {
         error = Messages.getHttpErrorMessage(error);
         if (Array.isArray(error)) {
-          const errors = error.map((err) => `Filter ${err.name}, ${err.errorMessage}`);
-          return Promise.reject(errors);
+          return Promise.reject(error[0].errorMessage);
         }
         else {
-          return Promise.reject([error]);
+          return Promise.reject(error);
         }
       });
 }

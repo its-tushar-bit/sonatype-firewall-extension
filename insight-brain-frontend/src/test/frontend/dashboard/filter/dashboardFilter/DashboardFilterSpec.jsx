@@ -5,6 +5,7 @@
  */
 import React from 'react';
 import { mount } from 'enzyme';
+import { NxErrorAlert } from '@sonatype/react-shared-components';
 
 import DashboardFilterFooter from
   '../../../../../main/frontend/dashboard/filter/dashboardFilter/DashboardFilterFooter';
@@ -19,10 +20,10 @@ import * as enzymeUtils from '../../../enzymeUtils';
 import LoadWrapper from '../../../../../main/frontend/react/LoadWrapper';
 import ManageFiltersDropdown
   from '../../../../../main/frontend/dashboard/filter/manageFiltersDropdown/ManageFiltersDropdown';
-import { NxErrorAlert } from '@sonatype/react-shared-components';
 
 describe('DashboardFilter', function() {
-  let getShallowComponent, loadFilterSpy, minimalProps, SaveFilterModalContainerMock, DashboardFilter;
+  let getShallowComponent, loadFilterSpy, minimalProps, SaveFilterModalContainerMock, DeleteFilterModalContainerMock,
+      DashboardFilter;
 
   const filterData = {
     organizations: [
@@ -81,17 +82,23 @@ describe('DashboardFilter', function() {
       loading: false,
       savedFilters,
       filtersDropdownOpen: true,
+      filterToDelete: null,
       applyDefaultFilter: jasmine.createSpy('applyDefaultFilter'),
       applySavedFilter: jasmine.createSpy('applySavedFilter'),
-      toggleFiltersDropdown: jasmine.createSpy('toggleFiltersDropdown')
+      toggleFiltersDropdown: jasmine.createSpy('toggleFiltersDropdown'),
+      handleDocumentClick: jasmine.createSpy('handleDocumentClick')
     };
     SaveFilterModalContainerMock = jasmine.createSpy('SaveFilterModalContainer')
         .and.returnValue(<div>Save Filter Modal</div>);
 
+    DeleteFilterModalContainerMock = jasmine.createSpy('DeleteFilterModalContainer')
+        .and.returnValue(<div>Delete Filter Modal</div>);
+
     DashboardFilter = require(
         'inject-loader!../../../../../main/frontend/dashboard/filter/dashboardFilter/DashboardFilter'
     )({
-      '../saveFilterModal/SaveFilterModalContainer': SaveFilterModalContainerMock
+      '../saveFilterModal/SaveFilterModalContainer': SaveFilterModalContainerMock,
+      '../deleteFilterModal/DeleteFilterModalContainer': DeleteFilterModalContainerMock
     }).default;
 
     getShallowComponent = enzymeUtils.getShallowComponent(DashboardFilter, minimalProps);
@@ -143,7 +150,8 @@ describe('DashboardFilter', function() {
                                filtersDropdownOpen={true}
                                applyDefaultFilter={minimalProps.applyDefaultFilter}
                                applySavedFilter={minimalProps.applySavedFilter}
-                               toggleFiltersDropdown={minimalProps.toggleFiltersDropdown}/>
+                               toggleFiltersDropdown={minimalProps.toggleFiltersDropdown}
+                               handleDocumentClick={minimalProps.handleDocumentClick}/>
       );
     });
 
@@ -344,6 +352,22 @@ describe('DashboardFilter', function() {
       });
 
       expect(shallowRender).not.toContainReact(<SaveFilterModalContainerMock/>);
+    });
+  });
+
+  describe('DeleteFilterModal', function() {
+    it('is rendered when filterToDelete is not null', function() {
+      const shallowRender = getShallowComponent({
+        filterToDelete: 'bar'
+      });
+
+      expect(shallowRender).toContainReact(<DeleteFilterModalContainerMock/>);
+    });
+
+    it('is not rendered when filterToDelete is null', function() {
+      const shallowRender = getShallowComponent();
+
+      expect(shallowRender).not.toContainReact(<DeleteFilterModalContainerMock/>);
     });
   });
 });

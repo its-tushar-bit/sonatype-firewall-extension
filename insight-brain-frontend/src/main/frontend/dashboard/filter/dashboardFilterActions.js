@@ -105,7 +105,7 @@ export function applyFilter(filter, basedOnFilterName) {
         dispatch(applyFilterFailed(error));
         return Promise.reject(error);
       })
-      .then(({data}) => dispatch(updateFiltersFulfilled(data, basedOnFilterName)));
+      .then(({data}) => dispatch(applyFilterFulfilled(data, basedOnFilterName)));
 }
 
 export function applyDefaultFilter() {
@@ -114,7 +114,7 @@ export function applyDefaultFilter() {
         dispatch(applySavedFilterFailed('Default filter'));
         return Promise.reject(error);
       })
-      .then(({data}) => dispatch(updateFiltersFulfilled(data, null)));
+      .then(({data}) => dispatch(applyFilterFulfilled(data, null)));
 }
 
 export function applySavedFilter({ filter, name }) {
@@ -123,14 +123,14 @@ export function applySavedFilter({ filter, name }) {
         dispatch(applySavedFilterFailed(name));
         return Promise.reject(error);
       })
-      .then(({data}) => dispatch(updateFiltersFulfilled(data, name)));
+      .then(({data}) => dispatch(applyFilterFulfilled(data, name)));
 }
 
 const applyFilterFailed = payloadParamActionCreator(APPLY_FILTER_FAILED);
 
 const applySavedFilterFailed = payloadParamActionCreator(APPLY_SAVED_FILTER_FAILED);
 
-function updateFiltersFulfilled(filter, basedOnFilterName) {
+function applyFilterFulfilled(filter, basedOnFilterName) {
   return (dispatch, getState) => {
     dispatch({
       type: APPLY_FILTER_FULFILLED,

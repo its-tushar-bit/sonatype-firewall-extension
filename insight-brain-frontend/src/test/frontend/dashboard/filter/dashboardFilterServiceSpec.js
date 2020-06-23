@@ -5,32 +5,21 @@
  */
 import axios from 'axios';
 
+import { deleteSavedFilter, filterToJson } from '../../../../main/frontend/dashboard/filter/dashboardFilterService';
 import { getDashboardDeleteFiltersUrl } from '../../../../main/frontend/util/CLMLocation';
 
 describe('dashboardFilterService', function() {
-  let deleteSavedFilters, filterToJson;
 
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
 
-  beforeEach(function() {
-    const module = require('inject-loader!../../../../main/frontend/dashboard/filter/dashboardFilterService')();
-    deleteSavedFilters = module.deleteSavedFilters;
-    filterToJson = module.filterToJson;
-  });
-
-  describe('deleteSavedFilters()', function() {
-    it('properly parses multiple errors', function(done) {
+  describe('deleteSavedFilter()', function() {
+    it('properly parses filter specific error', function(done) {
       const deleteFiltersUrl = getDashboardDeleteFiltersUrl(),
           mockRejection = [
             {
               'name': 'Test1',
               'errorMessage': 'foo',
               'status': 404
-            },
-            {
-              'name': 'Test2',
-              'errorMessage': 'bar',
-              'status': 500
             }
           ];
 
@@ -40,17 +29,17 @@ describe('dashboardFilterService', function() {
         }
       });
 
-      deleteSavedFilters(['Test1', 'Test2'])
+      deleteSavedFilter('Test1')
           .then(function() {
             throw 'promise should have been rejected';
           }).catch(function(error) {
-            expect(axios.post).toHaveBeenCalledWith(deleteFiltersUrl, ['Test1', 'Test2']);
-            expect(error).toEqual(['Filter Test1, foo', 'Filter Test2, bar']);
+            expect(axios.post).toHaveBeenCalledWith(deleteFiltersUrl, ['Test1']);
+            expect(error).toEqual('foo');
             done();
           });
     });
 
-    it('properly parses single error', function(done) {
+    it('properly parses general error', function(done) {
       const deleteFiltersUrl = getDashboardDeleteFiltersUrl();
 
       mockAxiosCalls({
@@ -59,12 +48,12 @@ describe('dashboardFilterService', function() {
         }
       });
 
-      deleteSavedFilters(['Test1'])
+      deleteSavedFilter('Test1')
           .then(function() {
             throw 'promise should have been rejected';
           }).catch(function(error) {
             expect(axios.post).toHaveBeenCalledWith(deleteFiltersUrl, ['Test1']);
-            expect(error).toEqual(['not found']);
+            expect(error).toEqual('not found');
             done();
           });
     });

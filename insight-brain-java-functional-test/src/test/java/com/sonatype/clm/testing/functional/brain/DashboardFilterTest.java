@@ -14,6 +14,7 @@ import com.sonatype.clm.testing.functional.elements.DashboardComponents.Componen
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.AgeFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.CategoryFilter;
+import com.sonatype.clm.testing.functional.elements.DashboardFilters.DeleteFilterDialog;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.ManageFiltersDropdown;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.PolicyTypeFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.PolicyViolationStateFilter;
@@ -32,6 +33,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
@@ -71,6 +73,7 @@ import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMav
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.DashboardFilters.ACTIVE;
 import static com.sonatype.clm.testing.functional.elements.DashboardFilters.NO_CHANGES_MESSAGE;
+import static com.sonatype.clm.testing.functional.elements.DashboardFilters.SELECTED_SAVED_FILTER_OPTION;
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.applicationsTab;
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.componentsTab;
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.violationsTab;
@@ -614,118 +617,92 @@ public class DashboardFilterTest
   }
 
   @Test
-  public void testDeleteFilterButtonDoesntCloseTheDropdown() {
-    saveFilter("To Delete", null, false, false);
+  public void testDeleteSavedFilter() {
+    // create filters
+    saveFilter("Delete", null, false, false);
+    saveFilter("Do not delete", "Delete", false, false);
+
     ManageFiltersDropdown manage = DashboardFilters.manageFiltersDropdown();
+    DeleteFilterDialog deleteFilterDialog = DashboardFilters.deleteFilterDialog();
+
+    // document click should close the dropdown
     manage.openMenuButton().click();
     manage.dropdownMenu().shouldBe(visible);
-    manage.dropdownMenu().options().shouldHaveSize(2);
-    manage.dropdownMenu().option(1).shouldHave(text("To Delete")).deleteFilterButton().click();
+    DashboardPage.violationsTab().click();
+    manage.dropdownMenu().shouldBe(hidden);
+
+    // delete filter - cancel
+    manage.openMenuButton().click();
     manage.dropdownMenu().shouldBe(visible);
+    manage.dropdownMenu().options().shouldHaveSize(3);
+    manage.dropdownMenu().option(2).shouldHave(text("Do not delete")).shouldBe(SELECTED_SAVED_FILTER_OPTION);
+    manage.dropdownMenu().option(1).shouldHave(text("Delete")).deleteFilterButton().click();
+    // delete filter button shouldn't close the filters dropdown
+    manage.dropdownMenu().shouldBe(visible);
+    eyesWatcher.eyesCheck();
+    deleteFilterDialog.shouldBe(visible).confirmation()
+        .shouldHave(exactText("You are about to delete \"Delete\" filter. This action can not be undone."));
+    // document click while delete dialog is open shouldn't close the filters dropdown
+    deleteFilterDialog.confirmation().click();
+    manage.dropdownMenu().shouldBe(visible);
+    // cancel dialog button shouldn't close the filters dropdown
+    deleteFilterDialog.cancelButton().click();
+    deleteFilterDialog.shouldBe(hidden);
+    manage.dropdownMenu().shouldBe(visible);
+
+    // delete filter - continue
+    manage.dropdownMenu().option(1).deleteFilterButton().click();
+    deleteFilterDialog.shouldBe(visible);
+    deleteFilterDialog.continueButton().click();
+    FormMask.seeAndWaitForDismissal();
+    deleteFilterDialog.shouldBe(hidden);
+    manage.dropdownMenu().shouldBe(hidden);
+
+    // verify delete
+    manage.openMenuButton().click();
+    manage.dropdownMenu().options().shouldHaveSize(2);
+    manage.dropdownMenu().option(1).shouldHave(text("Do not delete"));
+
+    DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
+    List<com.sonatype.insight.brain.model.filter.DashboardFilter> filters =
+        dashboardFilterDAO.getByUsernameAndRealmId("admin", InternalRealm.ID);
+    assertThat(filters).hasSize(2);
+    assertThat(filters.get(0).getName()).isEqualTo(""); // default filter
+    assertThat(filters.get(1).getName()).isEqualTo("Do not delete");
   }
 
-  // TODO with manage section
-  //@Test
-  //public void testDeleteFilter() {
-  //  ManageFilters manage = DashboardFilters.manage();
-  //  String filter1 = "Delete";
-  //  String filter2 = "Do not delete";
-  //
-  //  // no filters to delete
-  //  manage.openMenuButton().click();
-  //  manage.deleteFilters().shouldHave(DISABLED).click();
-  //  manage.deleteFiltersDialog().shouldBe(hidden);
-  //  manage.openMenuButton().click();
-  //
-  //  // create filters
-  //  saveFilter(filter1, null, false, false);
-  //  saveFilter(filter2, filter1, false, false);
-  //  manage.openMenuButton().click();
-  //
-  //  // delete filter button disabled if nothing selected
-  //  manage.deleteFilters().shouldNotHave(DISABLED).click();
-  //  DeleteFiltersDialog deleteFiltersDialog = manage.deleteFiltersDialog();
-  //  deleteFiltersDialog.shouldBe(visible);
-  //  deleteFiltersDialog.filters().shouldHaveSize(2);
-  //  deleteFiltersDialog.checkboxItem(1).input().shouldNotBe(selected);
-  //  deleteFiltersDialog.checkboxItem(2).input().shouldNotBe(selected);
-  //  deleteFiltersDialog.checkboxItem(1).label().shouldHave(text(filter1));
-  //  deleteFiltersDialog.checkboxItem(2).label().shouldHave(text(filter2));
-  //  deleteFiltersDialog.deleteButton().shouldHave(DISABLED);
-  //
-  //  // delete filter
-  //  deleteFiltersDialog.checkboxItem(1).click();
-  //  eyesWatcher.eyesCheck();
-  //  deleteFiltersDialog.deleteButton().shouldNotHave(DISABLED).click();
-  //
-  //  // delete confirmation cancel
-  //  deleteFiltersDialog.shouldBe(hidden);
-  //  eyesWatcher.eyesCheck();
-  //  DeleteDialog deleteDialog = manage.deleteDialog();
-  //  deleteDialog.shouldBe(visible);
-  //  deleteDialog.body().shouldHave(
-  //      text("You are about to remove 1 filter(s). This action cannot be undone."));
-  //  deleteDialog.cancelButton().click();
-  //
-  //  //delete confirmation continue
-  //  deleteFiltersDialog.deleteButton().shouldNotHave(DISABLED).click();
-  //
-  //  deleteDialog.shouldBe(visible);
-  //  deleteDialog.continueButton().click();
-  //  FormMask.seeAndWaitForDismissal();
-  //
-  //  deleteDialog.shouldBe(hidden);
-  //  deleteFiltersDialog.shouldBe(hidden);
-  //
-  //  // verify delete
-  //  manage.openMenuButton().click();
-  //  manage.deleteFilters().shouldNotHave(DISABLED).click();
-  //  deleteFiltersDialog.filters().shouldHaveSize(1);
-  //  deleteFiltersDialog.checkboxItem(1).input().shouldNotBe(selected);
-  //  deleteFiltersDialog.checkboxItem(1).label().shouldHave(text(filter2));
-  //
-  //  DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
-  //  List<com.sonatype.insight.brain.model.filter.DashboardFilter> filters =
-  //      dashboardFilterDAO.getByUsernameAndRealmId("admin", InternalRealm.ID);
-  //  assertThat(filters).hasSize(2);
-  //  assertThat(filters.get(0).getName()).isEqualTo(""); // default filter
-  //  assertThat(filters.get(1).getName()).isEqualTo(filter2);
-  //}
+  @Test
+  public void testDeleteSavedFilter_appliedFilter() {
+    ManageFiltersDropdown manage = DashboardFilters.manageFiltersDropdown();
+    DeleteFilterDialog deleteFilterDialog = DashboardFilters.deleteFilterDialog();
+    String filter1 = "Applied Filter Is Based On Me";
 
-  // TODO with manage-section
-  //@Test
-  //public void testDeleteSavedFilter_appliedFilter() {
-  //  ManageFilters manage = DashboardFilters.manage();
-  //  String filter1 = "Applied Filter Is Based On Me";
-  //
-  //  // save a filter
-  //  saveFilter(filter1, null, false, false);
-  //  // modify, apply, but don't save
-  //  setSomeFilterValues();
-  //  DashboardFilters.apply();
-  //  DashboardFilters.saveFilterNameLabel().shouldHave(text("Applied Filter Is Based On Me"));
-  //  DashboardFilters.saveFilterDirtyAsterisk().shouldBe(visible);
-  //
-  //  // delete the saved filter
-  //  manage.openMenuButton().click();
-  //  manage.deleteFilters().shouldNotHave(DISABLED).click();
-  //  DeleteFiltersDialog deleteFiltersDialog = manage.deleteFiltersDialog();
-  //  deleteFiltersDialog.checkboxItem(1).click();
-  //  deleteFiltersDialog.deleteButton().shouldNotHave(DISABLED).click();
-  //  manage.deleteDialog().continueButton().click();
-  //  FormMask.seeAndWaitForDismissal();
-  //
-  //  // check the UI is in a clean state
-  //  DashboardFilters.saveFilterNameLabel().shouldBe(hidden);
-  //  DashboardFilters.saveFilterDirtyAsterisk().shouldBe(hidden);
-  //  // UI should be in a clean state... no need to check delete modal as it is covered in {@link #testDeleteFilter()}
-  //  eyesWatcher.eyesCheck();
-  //
-  //  // verify that applied filter is no longer based on the deleted one
-  //  DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
-  //  DashboardFilter filter = dashboardFilterDAO.getByUsernameAndRealmIdAndName("admin", InternalRealm.ID, "");
-  //  assertThat(filter.getBasedOnFilterName()).isNull();
-  //}
+    // save a filter
+    saveFilter(filter1, null, false, false);
+    // modify, apply, but don't save
+    setSomeFilterValues();
+    DashboardFilters.apply();
+    manage.selectedFilterLabel().shouldHave(text("Applied Filter Is Based On Me"));
+    manage.selectedFilterDirtyAsterisk().shouldBe(visible);
+
+    // delete selected filter
+    manage.openMenuButton().click();
+    manage.dropdownMenu().option(1).shouldBe(SELECTED_SAVED_FILTER_OPTION).deleteFilterButton().click();
+    deleteFilterDialog.shouldBe(visible);
+    deleteFilterDialog.continueButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    // check Default filter is now shown as selected with the asterisk
+    manage.selectedFilterLabel().shouldHave(text("Default"));
+    manage.selectedFilterDirtyAsterisk().shouldBe(visible);
+    manage.openMenuButton().click();
+    manage.dropdownMenu().defaultFilterOption().shouldBe(SELECTED_SAVED_FILTER_OPTION);
+
+    // verify that applied filter is no longer based on the deleted one
+    DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
+    DashboardFilter filter = dashboardFilterDAO.getByUsernameAndRealmIdAndName("admin", InternalRealm.ID, "");
+    assertThat(filter.getBasedOnFilterName()).isNull();
+  }
 
   @Test
   public void testNeedsAcknowledgement() {

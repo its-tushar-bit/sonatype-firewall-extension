@@ -6,9 +6,6 @@
 import { react2angular } from 'react2angular';
 
 import CLMLocationModule from '../../util/CLMLocation';
-import manageFiltersReducer from './manageFiltersReducer';
-import deleteFiltersModalController from './manageFiltersDropdown/deleteFiltersModal/deleteFiltersModalController';
-import deleteFiltersModal from './manageFiltersDropdown/deleteFiltersModal/deleteFiltersModal';
 import withStoreProvider from '../../reactAdapter/StoreProvider';
 import utilityModule from '../../utility/utility.module';
 import storesModule from '../../util/Stores';
@@ -20,18 +17,13 @@ import componentsModule from '../../components/module';
 import DashboardFilterContainer from './dashboardFilter/DashboardFilterContainer';
 import * as dashboardFilterActions from './dashboardFilterActions';
 
-var module = angular.module('dashboardFilter',
+const module = angular.module('dashboardFilter',
     [
       CLMLocationModule.name, storesModule.name, utilityModule.name, dashboardUtilsModule.name,
       dashboardServicesModule.name, dashboardResultsActionsModule.name, componentsModule.name, 'ngRedux'
     ])
     .component('dashboardFilter', react2angular(withStoreProvider(DashboardFilterContainer), [], ['$ngRedux']))
-
-    // manage filter modal
-    .controller('deleteFiltersModalController', deleteFiltersModalController)
-    .service('deleteFiltersModal', deleteFiltersModal)
     .value('dashboardFilterActions', dashboardFilterActions)
-    .value('manageFiltersReducer', manageFiltersReducer)
     .value('dashboardFilterReducer', dashboardFilterReducer);
 
 export default module;

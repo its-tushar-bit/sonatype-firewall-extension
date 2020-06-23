@@ -3,12 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { Fragment, useEffect } from 'react';
+import React, { Fragment } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxDropdown, NxFontAwesomeIcon, NxButton } from '@sonatype/react-shared-components';
-import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/index';
 import classnames from 'classnames';
 import { isEmpty, map } from 'ramda';
+import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/index';
+import { NxDropdown, NxFontAwesomeIcon, NxButton } from '@sonatype/react-shared-components';
+
+import DocumentClickListenerWrapper from '../../../react/DocumentClickListenerWrapper';
 
 export default function ManageFiltersDropdown(props) {
   const {
@@ -16,7 +18,9 @@ export default function ManageFiltersDropdown(props) {
     applyDefaultFilter,
     applySavedFilter,
     filtersDropdownOpen,
-    toggleFiltersDropdown
+    toggleFiltersDropdown,
+    selectFilterToDelete,
+    handleDocumentClick
   } = props;
 
   const savedFilters = props.savedFilters || [],
@@ -28,27 +32,12 @@ export default function ManageFiltersDropdown(props) {
     }
   };
 
-  const handleDocumentClick = () => {
-    if (filtersDropdownOpen) {
-      toggleFiltersDropdown(false);
-    }
-  };
-
-  useEffect(() => {
-    document.addEventListener('click', handleDocumentClick);
-    return function cleanup() {
-      document.removeEventListener('click', handleDocumentClick);
-    };
-  });
-
-  const handleDropdownToggle = event => {
-    // this is to avoid double toggleFiltersDropdown() call from document click handler
-    event.nativeEvent.stopImmediatePropagation();
+  const handleDropdownToggle = () => {
     toggleFiltersDropdown(!filtersDropdownOpen);
   };
 
-  const handleDeleteFilter = event => {
-    event.nativeEvent.stopImmediatePropagation();
+  const handleDeleteFilter = ({ name }) => {
+    selectFilterToDelete(name);
   };
 
   function getOptionClassNames(isSelected) {
@@ -66,7 +55,7 @@ export default function ManageFiltersDropdown(props) {
                 className="nx-dropdown-button nx-dropdown-button--select-filter">
           <span>{filter.name}</span>
         </button>
-        <NxButton onClick={e => handleDeleteFilter(e)} variant="tertiary" className="nx-btn--delete-filter">
+        <NxButton onClick={() => handleDeleteFilter(filter)} variant="tertiary" className="nx-btn--delete-filter">
           <NxFontAwesomeIcon icon={faTrashAlt}/>
         </NxButton>
       </div>
@@ -92,17 +81,19 @@ export default function ManageFiltersDropdown(props) {
     <NxDropdown className="iq-manage-filters-dropdown"
                 isOpen={filtersDropdownOpen}
                 onKeyDown={handleKeyPress}
-                onToggleCollapse={e => handleDropdownToggle(e)}
+                onToggleCollapse={handleDropdownToggle}
                 label={dropdownLabel}
                 tabIndex={0}
                 variant="secondary">
-      <div key='Default' className={getOptionClassNames('Default' === appliedFilterName)}>
-        <button onClick={applyDefaultFilter}
-                className="nx-dropdown-button nx-dropdown-button--select-filter">
-          <span>Default</span>
-        </button>
-      </div>
-      {isEmpty(options) ? emptyListMessage : options}
+      <DocumentClickListenerWrapper onDocumentClick={handleDocumentClick}>
+        <div key='Default' className={getOptionClassNames('Default' === appliedFilterName)}>
+          <button onClick={applyDefaultFilter}
+                  className="nx-dropdown-button nx-dropdown-button--select-filter">
+            <span>Default</span>
+          </button>
+        </div>
+        {isEmpty(options) ? emptyListMessage : options}
+      </DocumentClickListenerWrapper>
     </NxDropdown>
   );
 }
@@ -116,5 +107,7 @@ ManageFiltersDropdown.propTypes = {
   applyDefaultFilter: PropTypes.func.isRequired,
   applySavedFilter: PropTypes.func.isRequired,
   filtersDropdownOpen: PropTypes.bool.isRequired,
-  toggleFiltersDropdown: PropTypes.func.isRequired
+  toggleFiltersDropdown: PropTypes.func.isRequired,
+  selectFilterToDelete: PropTypes.func.isRequired,
+  handleDocumentClick: PropTypes.func.isRequired
 };

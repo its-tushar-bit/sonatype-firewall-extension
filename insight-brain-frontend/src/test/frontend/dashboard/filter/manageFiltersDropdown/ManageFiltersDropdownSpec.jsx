@@ -3,21 +3,23 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
-import { mount } from 'enzyme';
 import * as enzymeUtils from '../../../enzymeUtils';
 import { NxDropdown } from '@sonatype/react-shared-components';
 
+import DocumentClickListenerWrapper from '../../../../../main/frontend/react/DocumentClickListenerWrapper';
 import ManageFiltersDropdown
   from '../../../../../main/frontend/dashboard/filter/manageFiltersDropdown/ManageFiltersDropdown';
 
 describe('ManageFiltersDropdown', function() {
-  let props, getShallowComponent, applyDefaultFilter, applySavedFilter, toggleFiltersDropdown;
+  let props, getShallowComponent, applyDefaultFilter, applySavedFilter, toggleFiltersDropdown, selectFilterToDelete,
+      handleDocumentClick;
 
   beforeEach(function() {
     applyDefaultFilter = jasmine.createSpy('applyDefaultFilter');
     applySavedFilter = jasmine.createSpy('applySavedFilter');
     toggleFiltersDropdown = jasmine.createSpy('toggleFiltersDropdown');
+    selectFilterToDelete = jasmine.createSpy('selectFilterToDelete');
+    handleDocumentClick = jasmine.createSpy('handleDocumentClick');
 
     props = {
       showDirtyAsterisk: false,
@@ -33,7 +35,9 @@ describe('ManageFiltersDropdown', function() {
       ],
       applyDefaultFilter,
       applySavedFilter,
-      toggleFiltersDropdown
+      toggleFiltersDropdown,
+      selectFilterToDelete,
+      handleDocumentClick
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ManageFiltersDropdown, props);
@@ -122,13 +126,20 @@ describe('ManageFiltersDropdown', function() {
   });
 
   describe('dropdown menu', function() {
+    it('wraps options with DocumentClickListenerWrapper', function() {
+      const component = getShallowComponent(),
+          defaultOption = component.find(DocumentClickListenerWrapper).childAt(0);
+
+      expect(defaultOption).toHaveText('Default');
+    });
+
     it('renders default option and empty list message if no savedFilters provided', function() {
       const component = getShallowComponent({ savedFilters: [] }),
-          children = component.children(),
-          defaultOption = children.at(0),
-          emptyListMessage = children.at(1);
+          options = component.find(DocumentClickListenerWrapper).children(),
+          defaultOption = options.at(0),
+          emptyListMessage = options.at(1);
 
-      expect(children.length).toBe(2);
+      expect(options.length).toBe(2);
       expect(defaultOption).toHaveText('Default');
       expect(defaultOption.find('.nx-btn--delete-filter')).not.toExist();
       expect(emptyListMessage).toHaveText('No saved filters');
@@ -136,17 +147,17 @@ describe('ManageFiltersDropdown', function() {
 
     it('renders savedFilters options with delete buttons', function() {
       const component = getShallowComponent({ appliedFilterName: null }),
-          children = component.children();
+          options = component.find(DocumentClickListenerWrapper).children();
 
-      expect(children.length).toBe(3);
-      expect(children.at(0)).toHaveText('Default');
-      expect(children.at(0).find('.nx-btn--delete-filter')).not.toExist();
+      expect(options.length).toBe(3);
+      expect(options.at(0)).toHaveText('Default');
+      expect(options.at(0).find('.nx-btn--delete-filter')).not.toExist();
 
-      expect(children.at(1).find('.nx-dropdown-button')).toHaveText('foo');
-      expect(children.at(1).find('.nx-btn--delete-filter')).toExist();
+      expect(options.at(1).find('.nx-dropdown-button')).toHaveText('foo');
+      expect(options.at(1).find('.nx-btn--delete-filter')).toExist();
 
-      expect(children.at(2).find('.nx-dropdown-button')).toHaveText('bar');
-      expect(children.at(2).find('.nx-btn--delete-filter')).toExist();
+      expect(options.at(2).find('.nx-dropdown-button')).toHaveText('bar');
+      expect(options.at(2).find('.nx-btn--delete-filter')).toExist();
     });
 
     it('renders default option with selected class if appliedFilterName is null', function() {
@@ -189,16 +200,11 @@ describe('ManageFiltersDropdown', function() {
     });
 
     describe('delete filter button click handler', function() {
-      it('stops event propagation', function() {
-        const savedFilterOption = getShallowComponent().find('.iq-manage-filters-dropdown__option').at(1),
-            stopImmediatePropagation = jasmine.createSpy('stopImmediatePropagation');
+      it('fires selectFilterToDelete action with filter name', function() {
+        const savedFilterOption = getShallowComponent().find('.iq-manage-filters-dropdown__option').at(1);
 
-        savedFilterOption.find('.nx-btn--delete-filter').simulate('click', {
-          nativeEvent: {
-            stopImmediatePropagation
-          }
-        });
-        expect(stopImmediatePropagation).toHaveBeenCalled();
+        savedFilterOption.find('.nx-btn--delete-filter').simulate('click');
+        expect(selectFilterToDelete).toHaveBeenCalledWith('foo');
       });
     });
   });
@@ -252,86 +258,28 @@ describe('ManageFiltersDropdown', function() {
   });
 
   describe('onToggleCollapse handler', function() {
-    let stopImmediatePropagation;
-
-    beforeEach(function() {
-      stopImmediatePropagation = jasmine.createSpy('stopImmediatePropagation');
-    });
-
-    it('stops event propagation and fires the action to close the dropdown if open', function() {
+    it('fires the action to close the dropdown if open', function() {
       const component = getShallowComponent();
 
-      component.simulate('toggleCollapse', {
-        nativeEvent: {
-          stopImmediatePropagation
-        }
-      });
-      expect(stopImmediatePropagation).toHaveBeenCalled();
+      component.simulate('toggleCollapse');
       expect(toggleFiltersDropdown).toHaveBeenCalledWith(false);
     });
 
-    it('stops event propagation and fires the action to open the dropdown if closed', function() {
+    it('fires the action to open the dropdown if closed', function() {
       const component = getShallowComponent({
         filtersDropdownOpen: false
       });
 
-      component.simulate('toggleCollapse', {
-        nativeEvent: {
-          stopImmediatePropagation
-        }
-      });
-      expect(stopImmediatePropagation).toHaveBeenCalled();
+      component.simulate('toggleCollapse');
       expect(toggleFiltersDropdown).toHaveBeenCalledWith(true);
     });
   });
 
-  describe('document click handler', function() {
-    let container;
-
-    beforeEach(function() {
-      // Avoid rendering directly on the body.
-      container = document.createElement('div');
-      document.body.appendChild(container);
-    });
-
-    afterEach(function() {
-      if (container) {
-        document.body.removeChild(container);
-        container = null;
-      }
-    });
-
-    it('fires the action to close the dropdown if open', function() {
-      const element = mount(
-        <div>
-          <ManageFiltersDropdown {...props} />
-          <button id="test-btn">click</button>
-        </div>,
-        { attachTo: container }
-      );
-
-      element.find('#test-btn').getDOMNode().dispatchEvent(new MouseEvent('click', {
-        bubbles: true
-      }));
-
-      expect(toggleFiltersDropdown).toHaveBeenCalledWith(false);
-    });
-
-    it('doesn\'t fire the action to close the dropdown if already closed', function() {
-      props.filtersDropdownOpen = false;
-      const element = mount(
-        <div>
-          <ManageFiltersDropdown {...props} />
-          <button id="test-btn">click</button>
-        </div>,
-        { attachTo: container }
-      );
-
-      element.find('#test-btn').getDOMNode().dispatchEvent(new MouseEvent('click', {
-        bubbles: true
-      }));
-
-      expect(toggleFiltersDropdown).not.toHaveBeenCalled();
+  describe('onDocumentClick handler', function() {
+    it('fires handleDocumentClick action', function() {
+      const component = getShallowComponent();
+      component.find(DocumentClickListenerWrapper).simulate('documentClick');
+      expect(handleDocumentClick).toHaveBeenCalled();
     });
   });
 });

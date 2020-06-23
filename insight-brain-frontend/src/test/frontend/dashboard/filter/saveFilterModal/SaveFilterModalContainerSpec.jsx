@@ -41,7 +41,7 @@ describe('SaveFilterModalContainer', function() {
     };
 
     SaveFilterModalContainer = require(
-        'inject-loader!../../../../../../main/frontend/dashboard/' +
+        'inject-loader!../../../../../main/frontend/dashboard/' +
         'filter/saveFilterModal/SaveFilterModalContainer'
     )({
       './SaveFilterModalContent': MockSaveFilterModalContent,

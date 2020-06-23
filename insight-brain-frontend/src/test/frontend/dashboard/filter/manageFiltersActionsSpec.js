@@ -4,27 +4,27 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
+import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 import { getDashboardSavedFilters } from '../../../../main/frontend/util/CLMLocation';
 
 describe('manageFilterActions', function() {
-  let saveFilter, fetchSavedFilters, deleteSpecifiedFilters, resetDeleteFiltersStatus;
+  let saveFilter, fetchSavedFilters, deleteFilter;
 
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
 
   const filterJsonSpy = jasmine.createSpy('filterJson'),
-      deleteSavedFiltersSpy = jasmine.createSpy('deleteSavedFilters');
+      deleteSavedFilterSpy = jasmine.createSpy('deleteSavedFilter');
 
   beforeEach(function() {
     const module = require('inject-loader!../../../../main/frontend/dashboard/filter/manageFiltersActions')({
       './dashboardFilterService': {
         filterToJson: filterJsonSpy,
-        deleteSavedFilters: deleteSavedFiltersSpy
+        deleteSavedFilter: deleteSavedFilterSpy
       }
     });
-    deleteSpecifiedFilters = module.deleteSpecifiedFilters;
+    deleteFilter = module.deleteFilter;
     fetchSavedFilters = module.fetchSavedFilters;
-    resetDeleteFiltersStatus = module.resetDeleteFiltersStatus;
     saveFilter = module.saveFilter;
   });
 
@@ -199,57 +199,57 @@ describe('manageFilterActions', function() {
     });
   });
 
-  describe('deleteSpecifiedFilters', function() {
+  describe('deleteFilter', function() {
     let store;
 
     const initialState = { manageFilters: { savedFilters: null } },
         dashboardSavedFiltersUrl = getDashboardSavedFilters(),
-        filtersToDelete = ['foo', 'bar'];
+        filterToDelete = 'foo';
 
     beforeEach(() => {
       store = SpecUtil.mockReduxStore(initialState);
     });
 
-    it('immediately dispatches a DELETE_SPECIFIED_FILTERS_REQUESTED action with no payload', function() {
+    it('immediately dispatches a DELETE_FILTER_REQUESTED action with no payload', function() {
       mockAxiosCalls({
         get: {
           [dashboardSavedFiltersUrl]: Promise.resolve({ data: {} })
         }
       });
-      deleteSavedFiltersSpy.and.returnValue(Promise.resolve({ data: {} }));
+      deleteSavedFilterSpy.and.returnValue(Promise.resolve({ data: {} }));
 
-      store.dispatch(deleteSpecifiedFilters(filtersToDelete));
+      store.dispatch(deleteFilter(filterToDelete));
 
       const actions = store.getActions();
 
       expect(actions.length).toBe(1);
-      expect(actions[0].type).toBe('DELETE_SPECIFIED_FILTERS_REQUESTED');
+      expect(actions[0].type).toBe('DELETE_FILTER_REQUESTED');
       expect(actions[0].payload).toBeUndefined();
     });
 
-    it('POSTS to deleteSavedFilters with its parameter and then dispatches ' +
-        'DELETE_SPECIFIED_FILTERS_FULFILLED after that completes', function(done) {
+    it('POSTS to deleteSavedFilter with its parameter and then dispatches ' +
+        'DELETE_FILTER_FULFILLED after that completes', function(done) {
       mockAxiosCalls({
         get: {
           [dashboardSavedFiltersUrl]: Promise.resolve({ data: {} })
         }
       });
 
-      deleteSavedFiltersSpy.and.returnValue(Promise.resolve({}));
+      deleteSavedFilterSpy.and.returnValue(Promise.resolve({}));
 
-      store.dispatch(deleteSpecifiedFilters(filtersToDelete))
+      store.dispatch(deleteFilter(filterToDelete))
           .then(() => {
             const actions = store.getActions();
             expect(actions.length).toBe(3);
-            expect(actions[1].type).toBe('DELETE_SPECIFIED_FILTERS_FULFILLED');
-            expect(actions[1].payload).toBe(filtersToDelete);
+            expect(actions[1].type).toBe('DELETE_FILTER_FULFILLED');
+            expect(actions[1].payload).toBe(filterToDelete);
             done();
           });
 
       expect(store.getActions().length).toBe(1);
     });
 
-    it('fetches the saved filters after deleteSavedFilters completes', function(done) {
+    it('fetches the saved filters after deleteSavedFilter completes', function(done) {
       const getSavedFiltersResponse = { foo: 'bar' };
 
       mockAxiosCalls({
@@ -257,16 +257,16 @@ describe('manageFilterActions', function() {
           [dashboardSavedFiltersUrl]: Promise.resolve({ data: getSavedFiltersResponse })
         }
       });
-      deleteSavedFiltersSpy.and.returnValue(Promise.resolve({}));
+      deleteSavedFilterSpy.and.returnValue(Promise.resolve({}));
 
-      store.dispatch(deleteSpecifiedFilters(filtersToDelete))
+      store.dispatch(deleteFilter(filterToDelete))
           .then(() => {
             expect(axios.get).toHaveBeenCalledWith(dashboardSavedFiltersUrl);
 
             const actions = store.getActions();
             expect(actions.length).toBe(3);
-            expect(actions[1].type).toBe('DELETE_SPECIFIED_FILTERS_FULFILLED');
-            expect(actions[1].payload).toBe(filtersToDelete);
+            expect(actions[1].type).toBe('DELETE_FILTER_FULFILLED');
+            expect(actions[1].payload).toBe(filterToDelete);
             expect(actions[2].type).toBe('FETCH_SAVED_FILTERS_FULFILLED');
             expect(actions[2].payload).toEqual(getSavedFiltersResponse);
             done();
@@ -275,30 +275,59 @@ describe('manageFilterActions', function() {
       expect(store.getActions().length).toBe(1);
     });
 
-    it('dispatches DELETE_SPECIFIED_FILTERS_FAILED and rejects the promise if deleteSavedFilters fails', function() {
-      deleteSavedFiltersSpy.and.returnValue(Promise.reject('error!'));
+    it('closes filters dropdown and delete filter modal after deleteSavedFilters completes', function(done) {
+      const getSavedFiltersResponse = { foo: 'bar' };
 
-      store.dispatch(deleteSpecifiedFilters())
+      mockAxiosCalls({
+        get: {
+          [dashboardSavedFiltersUrl]: Promise.resolve({ data: getSavedFiltersResponse })
+        }
+      });
+      deleteSavedFilterSpy.and.returnValue(Promise.resolve({}));
+
+      store.dispatch(deleteFilter(filterToDelete))
+          .then(() => {
+
+            const actions = store.getActions();
+            expect(actions.length).toBe(3);
+
+            setTimeout(function() {
+              expect(actions.length).toBe(5);
+              expect(actions[3].type).toBe('TOGGLE_FILTERS_DROPDOWN');
+              expect(actions[3].payload).toBe(false);
+              expect(actions[4].type).toBe('HIDE_DELETE_FILTER_MODAL');
+
+              done();
+            }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          });
+
+      expect(store.getActions().length).toBe(1);
+    });
+
+    it('dispatches DELETE_FILTER_FAILED and rejects the promise if deleteSavedFilter fails', function() {
+      deleteSavedFilterSpy.and.returnValue(Promise.reject('error!'));
+
+      store.dispatch(deleteFilter())
           .catch(() => {
             const actions = store.getActions();
             expect(actions.length).toBe(2);
-            expect(actions[1].type).toBe('DELETE_SPECIFIED_FILTERS_FAILED');
+            expect(actions[1].type).toBe('DELETE_FILTER_FAILED');
             expect(actions[1].payload).toEqual('error!');
           });
 
       expect(store.getActions().length).toBe(1);
     });
 
-    it('rejects if fetching the saved filters fails but does not dispatch DELETE_SPECIFIED_FILTERS_FAILED',
+    it('rejects if fetching the saved filters fails but does not dispatch DELETE_FILTER_FAILED',
         function(done) {
-          deleteSavedFiltersSpy.and.returnValue(Promise.resolve({}));
+          deleteSavedFilterSpy.and.returnValue(Promise.resolve({}));
           mockAxiosCalls({
             get: {
               [dashboardSavedFiltersUrl]: Promise.reject({ status: 403 })
             }
           });
 
-          store.dispatch(deleteSpecifiedFilters(filtersToDelete))
+          store.dispatch(deleteFilter(filterToDelete))
               .catch(() => {
                 const actions = store.getActions();
                 expect(actions.length).toBe(3);
@@ -308,21 +337,5 @@ describe('manageFilterActions', function() {
               });
         }
     );
-  });
-
-  describe('resetDeleteFiltersStatus', function() {
-    it('immediately sends a RESET_DELETE_FILTERS_STATUS action with no payload', function() {
-      const payload = {},
-          initialState = { manageFilters: { savedFilters: null } },
-          mockReduxStore = SpecUtil.mockReduxStore(initialState);
-
-      mockReduxStore.dispatch(resetDeleteFiltersStatus(payload));
-
-      var actions = mockReduxStore.getActions();
-
-      expect(actions.length).toBe(1);
-      expect(actions[0].type).toBe('RESET_DELETE_FILTERS_STATUS');
-      expect(actions[0].payload).toBeUndefined();
-    });
   });
 });

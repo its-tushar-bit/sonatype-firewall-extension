@@ -61,17 +61,6 @@ public abstract class HasComponentId
   }
 
   /**
-   * Copy the componentId values from another HasComponentId into this one. Copies the internal String
-   * representations to avoid JSON parsing overhead
-   * 
-   * @since 1.33
-   */
-  protected void copyComponentIdentifierFrom(HasComponentId other) {
-    this.componentIdFormat = other.componentIdFormat;
-    this.componentIdCoordinatesJson = other.componentIdCoordinatesJson;
-  }
-
-  /**
    * exposed for testing
    */
   String getComponentIdFormat() {

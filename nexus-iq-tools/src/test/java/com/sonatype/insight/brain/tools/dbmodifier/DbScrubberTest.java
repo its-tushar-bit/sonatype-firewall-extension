@@ -27,6 +27,8 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -280,6 +282,30 @@ public class DbScrubberTest
     String scrubbedSqlContent = getScrubbedSqlContent();
     assertThat(scrubbedSqlContent).contains(appCategory.getId());
     assertThat(scrubbedSqlContent).doesNotContain("Test app category", "testappcategory", "Test description");
+  }
+
+  @Test
+  public void testScrubDB_Table_repository_manager() throws Exception {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager("TestInstanceId"); 
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(repoManager.getId(), "TestInstanceId");
+    String scrubbedSqlContent = getScrubbedSqlContent();
+    assertThat(scrubbedSqlContent).contains(repoManager.getId());
+    assertThat(scrubbedSqlContent).doesNotContain("TestInstanceId");
+  }
+
+  @Test
+  public void testScrubDB_Table_repository() throws Exception {
+    Repository repo = tempEntity.newRepository("TestPublicId");
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(repo.getId(), "TestPublicId");
+    String scrubbedSqlContent = getScrubbedSqlContent();
+    assertThat(scrubbedSqlContent).contains(repo.getId());
+    assertThat(scrubbedSqlContent).doesNotContain("TestPublicId");
   }
 
   private void scrubDb() {

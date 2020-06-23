@@ -272,8 +272,9 @@ public class ExportEmbeddedDatabaseCommandTest
 
   @Test
   public void testTransformInsertValues_String_Encoded() {
-    assertThat(ExportEmbeddedDatabaseCommand.transformInsertValues("STRINGDECODE('abc \'\' \\n\\t\\\\ \\u20AC')"))
-        .isEqualTo("abc \' \\n\\t\\\\ \u20AC");
+    assertThat(ExportEmbeddedDatabaseCommand
+        .transformInsertValues("STRINGDECODE('abc \'\' \\n\\t\\\\ \\u20AC \\\\\\u20AC \\\\uASis')"))
+            .isEqualTo("abc \' \\n\\t\\\\ \u20AC \\\\\u20AC \\\\uASis");
   }
 
   @Test

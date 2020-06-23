@@ -263,6 +263,7 @@ public class ExportEmbeddedDatabaseCommand
       int singleQuote,
       boolean stillNeedsEscaping)
   {
+    boolean nextCharIsEscaped = false;
     for (int i = singleQuote + 1;; i++) {
       char c = values.charAt(i);
       if (c == '\'') {
@@ -277,12 +278,13 @@ public class ExportEmbeddedDatabaseCommand
         if (stillNeedsEscaping) {
           builder.append('\\');
         }
-        else if (i + 5 < values.length() && values.charAt(i + 1) == 'u') {
+        else if (!nextCharIsEscaped && i + 5 < values.length() && values.charAt(i + 1) == 'u') {
           c = (char) Integer.parseInt(values.substring(i + 2, i + 6), 16);
           i += 5;
         }
       }
       builder.append(c);
+      nextCharIsEscaped = !nextCharIsEscaped && c == '\\';
     }
   }
 }

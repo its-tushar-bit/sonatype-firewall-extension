@@ -251,4 +251,21 @@ public class SourceControl
       return sourceControl;
     }
   }
+
+  @Override
+  public String toString() {
+    return "SourceControl{" +
+        "id='" + id + '\'' +
+        ", ownerId='" + ownerId + '\'' +
+        ", repositoryUrl='" + repositoryUrl + '\'' +
+        ", username='" + username + '\'' +
+        ", token='MASKED" + '\'' +
+        ", provider=" + provider +
+        ", baseBranch='" + baseBranch + '\'' +
+        ", enablePullRequests=" + enablePullRequests +
+        ", enableStatusChecks=" + enableStatusChecks +
+        ", pullRequestPollTime=" + pullRequestPollTime +
+        ", pullRequestErrorCount=" + pullRequestErrorCount +
+        '}';
+  }
 }

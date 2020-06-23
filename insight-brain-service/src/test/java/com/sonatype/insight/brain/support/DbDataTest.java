@@ -9,11 +9,13 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
@@ -105,6 +107,40 @@ public class DbDataTest
 
     assertThat(sourceControls).hasOnlyOneElementSatisfying(sourceControl ->
         assertThat(sourceControl.getToken()).isNull());
+  }
+
+  @Test
+  public void testGetSourceControl_repositoryUrlContainsCredentials() {
+    //given: a stored url with embedded credentials
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, null, BITBUCKET, true, true, "master", new Date());
+    tempEntity.newSourceControl(application.getId(), "https://foo:bar@example.com/scm/project/repo",
+        "admin", "admin", null, true, true, "base_branch", new Date());
+
+    //when: querying SourceControl records
+    @SuppressWarnings({"unchecked"})
+    List<SourceControl> sourceControls = (List<SourceControl>) dbData.getSourceControl().getValue();
+    
+    //then: embedded credentials are stripped from the value included in support information
+    assertThat(sourceControls).extracting(SourceControl::getRepositoryUrl).filteredOn(Objects::nonNull)
+        .containsOnly("https://example.com/scm/project/repo");
+  }
+
+  @Test
+  public void testGetSourceControl_repositoryUrlContainsUsername() {
+    //given: a stored url with embedded username
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, null, BITBUCKET, true, true, "master", new Date());
+    tempEntity.newSourceControl(application.getId(), "https://foo@example.com/scm/project/repo",
+        "admin", "admin", null, true, true, "base_branch", new Date());
+
+    //when: querying SourceControl records
+    @SuppressWarnings({"unchecked"})
+    List<SourceControl> sourceControls = (List<SourceControl>) dbData.getSourceControl().getValue();
+
+    //then: embedded username is stripped from the value included in support information
+    assertThat(sourceControls).extracting(SourceControl::getRepositoryUrl).filteredOn(Objects::nonNull)
+        .containsOnly("https://example.com/scm/project/repo");
   }
 
   @Test

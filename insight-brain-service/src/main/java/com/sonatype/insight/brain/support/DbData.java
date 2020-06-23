@@ -53,6 +53,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import static com.sonatype.insight.brain.hds.TelemetryId.TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID;
+import static com.sonatype.nexus.git.utils.repository.RepositoryUrlFinderUtils.sanitizeUrl;
 
 /**
  * @since 1.35
@@ -284,7 +285,12 @@ class DbData
 
   Entry<String, Object> getSourceControl() {
     List<SourceControl> sourceControls = sourceControlDAO.getAll();
-    sourceControls.forEach(sourceControl -> maskValueIfPresent(sourceControl.getToken(), sourceControl::setToken));
+    sourceControls.forEach(sourceControl -> {
+      maskValueIfPresent(sourceControl.getToken(), sourceControl::setToken);
+      if (!StringUtils.isBlank(sourceControl.getRepositoryUrl())) {
+        sourceControl.setRepositoryUrl(sanitizeUrl(sourceControl.getRepositoryUrl()));
+      }
+    });
     return wrapEntry("sourceControl", sourceControls);
   }
 

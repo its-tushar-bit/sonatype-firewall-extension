@@ -6,10 +6,11 @@
 import axios from 'axios';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
-import { filterToJson, deleteSavedFilter } from './dashboardFilterService';
+import { filterToJson } from './dashboardFilterService';
 import { SET_DISPLAY_SAVE_FILTER_MODAL } from './dashboardFilterActions';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
-import { getDashboardSavedFilters } from '../../util/CLMLocation';
+import { getDashboardDeleteFilterUrl, getDashboardSavedFilters } from '../../util/CLMLocation';
+import { Messages } from '../../util/CommonServices';
 
 export const FETCH_SAVED_FILTERS_FULFILLED = 'FETCH_SAVED_FILTERS_FULFILLED';
 export const FETCH_SAVED_FILTERS_FAILED = 'FETCH_SAVED_FILTERS_FAILED';
@@ -72,9 +73,9 @@ export const handleDocumentClick = noPayloadActionCreator(DOCUMENT_CLICKED);
 export function deleteFilter(filterName) {
   return dispatch => {
     dispatch({ type: DELETE_FILTER_REQUESTED });
-    return deleteSavedFilter(filterName)
+    return axios.post(getDashboardDeleteFilterUrl(filterName))
         .catch(error => {
-          dispatch({ type: DELETE_FILTER_FAILED, payload: error });
+          dispatch({ type: DELETE_FILTER_FAILED, payload: Messages.getHttpErrorMessage(error) });
           return Promise.reject(error);
         })
         .then(() => {

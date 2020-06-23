@@ -6,21 +6,19 @@
 import axios from 'axios';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
-import { getDashboardSavedFilters } from '../../../../main/frontend/util/CLMLocation';
+import { getDashboardDeleteFilterUrl, getDashboardSavedFilters } from '../../../../main/frontend/util/CLMLocation';
 
 describe('manageFilterActions', function() {
   let saveFilter, fetchSavedFilters, deleteFilter;
 
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
 
-  const filterJsonSpy = jasmine.createSpy('filterJson'),
-      deleteSavedFilterSpy = jasmine.createSpy('deleteSavedFilter');
+  const filterJsonSpy = jasmine.createSpy('filterJson');
 
   beforeEach(function() {
     const module = require('inject-loader!../../../../main/frontend/dashboard/filter/manageFiltersActions')({
       './dashboardFilterService': {
-        filterToJson: filterJsonSpy,
-        deleteSavedFilter: deleteSavedFilterSpy
+        filterToJson: filterJsonSpy
       }
     });
     deleteFilter = module.deleteFilter;
@@ -203,8 +201,9 @@ describe('manageFilterActions', function() {
     let store;
 
     const initialState = { manageFilters: { savedFilters: null } },
+        filterToDelete = 'foo',
         dashboardSavedFiltersUrl = getDashboardSavedFilters(),
-        filterToDelete = 'foo';
+        deleteFiltersUrl = getDashboardDeleteFilterUrl(filterToDelete);
 
     beforeEach(() => {
       store = SpecUtil.mockReduxStore(initialState);
@@ -212,11 +211,13 @@ describe('manageFilterActions', function() {
 
     it('immediately dispatches a DELETE_FILTER_REQUESTED action with no payload', function() {
       mockAxiosCalls({
+        post: {
+          [deleteFiltersUrl]: Promise.resolve({})
+        },
         get: {
           [dashboardSavedFiltersUrl]: Promise.resolve({ data: {} })
         }
       });
-      deleteSavedFilterSpy.and.returnValue(Promise.resolve({ data: {} }));
 
       store.dispatch(deleteFilter(filterToDelete));
 
@@ -230,12 +231,13 @@ describe('manageFilterActions', function() {
     it('POSTS to deleteSavedFilter with its parameter and then dispatches ' +
         'DELETE_FILTER_FULFILLED after that completes', function(done) {
       mockAxiosCalls({
+        post: {
+          [deleteFiltersUrl]: Promise.resolve({})
+        },
         get: {
           [dashboardSavedFiltersUrl]: Promise.resolve({ data: {} })
         }
       });
-
-      deleteSavedFilterSpy.and.returnValue(Promise.resolve({}));
 
       store.dispatch(deleteFilter(filterToDelete))
           .then(() => {
@@ -253,11 +255,13 @@ describe('manageFilterActions', function() {
       const getSavedFiltersResponse = { foo: 'bar' };
 
       mockAxiosCalls({
+        post: {
+          [deleteFiltersUrl]: Promise.resolve({})
+        },
         get: {
           [dashboardSavedFiltersUrl]: Promise.resolve({ data: getSavedFiltersResponse })
         }
       });
-      deleteSavedFilterSpy.and.returnValue(Promise.resolve({}));
 
       store.dispatch(deleteFilter(filterToDelete))
           .then(() => {
@@ -279,11 +283,13 @@ describe('manageFilterActions', function() {
       const getSavedFiltersResponse = { foo: 'bar' };
 
       mockAxiosCalls({
+        post: {
+          [deleteFiltersUrl]: Promise.resolve({})
+        },
         get: {
           [dashboardSavedFiltersUrl]: Promise.resolve({ data: getSavedFiltersResponse })
         }
       });
-      deleteSavedFilterSpy.and.returnValue(Promise.resolve({}));
 
       store.dispatch(deleteFilter(filterToDelete))
           .then(() => {
@@ -305,9 +311,13 @@ describe('manageFilterActions', function() {
     });
 
     it('dispatches DELETE_FILTER_FAILED and rejects the promise if deleteSavedFilter fails', function() {
-      deleteSavedFilterSpy.and.returnValue(Promise.reject('error!'));
+      mockAxiosCalls({
+        post: {
+          [deleteFiltersUrl]: Promise.reject('error!')
+        }
+      });
 
-      store.dispatch(deleteFilter())
+      store.dispatch(deleteFilter(filterToDelete))
           .catch(() => {
             const actions = store.getActions();
             expect(actions.length).toBe(2);
@@ -320,8 +330,10 @@ describe('manageFilterActions', function() {
 
     it('rejects if fetching the saved filters fails but does not dispatch DELETE_FILTER_FAILED',
         function(done) {
-          deleteSavedFilterSpy.and.returnValue(Promise.resolve({}));
           mockAxiosCalls({
+            post: {
+              [deleteFiltersUrl]: Promise.resolve({})
+            },
             get: {
               [dashboardSavedFiltersUrl]: Promise.reject({ status: 403 })
             }

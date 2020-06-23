@@ -109,8 +109,8 @@ export function getAdvancedSearchQuerySuggesterUrl(query) {
   return `${getBaseUrl(window.location.href)}/api/experimental/search/advanced/suggester?search=${query}`;
 }
 
-export function getDashboardDeleteFiltersUrl() {
-  return `${getBaseUrl(window.location.href)}/rest/dashboard/filters/named/delete`;
+export function getDashboardDeleteFilterUrl(filterName) {
+  return `${getBaseUrl(window.location.href)}/rest/dashboard/filters/named/delete?filterName=${filterName}`;
 }
 
 export default
@@ -285,8 +285,6 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
       getDashboardFilters,
 
       getDashboardSavedFilters,
-
-      getDashboardDeleteFiltersUrl,
 
       getDashboardComponentMatchSummaryUrl: function() {
         return baseUrl.get() + '/rest/dashboard/components/summary';

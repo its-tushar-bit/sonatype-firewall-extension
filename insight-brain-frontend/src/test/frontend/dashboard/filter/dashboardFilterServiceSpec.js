@@ -3,62 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import axios from 'axios';
 
-import { deleteSavedFilter, filterToJson } from '../../../../main/frontend/dashboard/filter/dashboardFilterService';
-import { getDashboardDeleteFiltersUrl } from '../../../../main/frontend/util/CLMLocation';
+import { filterToJson } from '../../../../main/frontend/dashboard/filter/dashboardFilterService';
 
 describe('dashboardFilterService', function() {
-
-  const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
-
-  describe('deleteSavedFilter()', function() {
-    it('properly parses filter specific error', function(done) {
-      const deleteFiltersUrl = getDashboardDeleteFiltersUrl(),
-          mockRejection = [
-            {
-              'name': 'Test1',
-              'errorMessage': 'foo',
-              'status': 404
-            }
-          ];
-
-      mockAxiosCalls({
-        post: {
-          [deleteFiltersUrl]: Promise.reject({ data: mockRejection })
-        }
-      });
-
-      deleteSavedFilter('Test1')
-          .then(function() {
-            throw 'promise should have been rejected';
-          }).catch(function(error) {
-            expect(axios.post).toHaveBeenCalledWith(deleteFiltersUrl, ['Test1']);
-            expect(error).toEqual('foo');
-            done();
-          });
-    });
-
-    it('properly parses general error', function(done) {
-      const deleteFiltersUrl = getDashboardDeleteFiltersUrl();
-
-      mockAxiosCalls({
-        post: {
-          [deleteFiltersUrl]: Promise.reject('not found')
-        }
-      });
-
-      deleteSavedFilter('Test1')
-          .then(function() {
-            throw 'promise should have been rejected';
-          }).catch(function(error) {
-            expect(axios.post).toHaveBeenCalledWith(deleteFiltersUrl, ['Test1']);
-            expect(error).toEqual('not found');
-            done();
-          });
-    });
-  });
-
   describe('filterToJson()', function() {
     var filter = {
       organizations: new Set(['orgId1', 'orgId2']),

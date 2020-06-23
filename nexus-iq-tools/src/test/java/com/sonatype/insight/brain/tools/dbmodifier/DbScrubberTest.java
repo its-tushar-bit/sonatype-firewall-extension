@@ -36,6 +36,9 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.UserToken;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
@@ -151,32 +154,50 @@ public class DbScrubberTest
   }
 
   @Test
-  public void testScrubDB_Table_scm() throws Exception {
-    // source_control table
+  public void testScrubDB_Table_source_control() throws Exception {
     String repoUrl = "http://bitbucket.org/scm/org/repo";
     Application app = tempEntity.newApplicationWithParent();
     tempEntity.newOrganization();
-    tempEntity.newSourceControl("ROOT_ORGANIZATION_ID", null, "testUser",
+    SourceControl rootSourceControl = tempEntity.newSourceControl("ROOT_ORGANIZATION_ID", null, "testUser",
         "testToken", SourceControlProvider.BITBUCKET, true, false, "master", null);
-    tempEntity
-            .newSourceControl(app.getId(), repoUrl, null, "TOKEN", null, null, true, null,
-                null);
+    SourceControl appSourceControl =
+        tempEntity.newSourceControl(app.getId(), repoUrl, null, "TOKEN", null, null, true, null, null);
 
-    // sc pull request comment
+    scrubDb();
+
+    assertThat(getSqlDumpContent())
+        .contains(rootSourceControl.getId(), appSourceControl.getId(), repoUrl, "testUser", "TOKEN");
+    assertThat(getScrubbedSqlContent())
+        .doesNotContain(rootSourceControl.getId(), appSourceControl.getId(), repoUrl, "testUser", "TOKEN");
+  }
+
+  @Test
+  public void testScrubDB_Table_source_control_pull_request_comment() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
     PolicyEvaluation sourcePolicyEvaluation = tempEntity.newPolicyEvaluation(
         app.getId(), BuildStageType.ID, "sourceScan", "sourceCommit");
     PolicyEvaluation targetPolicyEvaluation = tempEntity.newPolicyEvaluation(
         app.getId(), BuildStageType.ID, "targetScan", "targetCommit");
-    tempEntity.newSourceControlPullRequestComment(app.getId(), 1, 2, 3, "contentHash", sourcePolicyEvaluation.getId(),
-        targetPolicyEvaluation.getId());
-
-    // commit history
-    tempEntity.newSourceControlDefaultBranchCommitHistory(app.getId(), "commitHash", new Date(), null);
+    SourceControlPullRequestComment sourceControlPullRequestComment = tempEntity
+        .newSourceControlPullRequestComment(app.getId(), 1, 2, 3, "contentHash", sourcePolicyEvaluation.getId(),
+            targetPolicyEvaluation.getId());
 
     scrubDb();
 
-    assertThat(getSqlDumpContent()).contains(repoUrl, "testUser", "testToken", "contentHash", "commitHash");
-    assertThat(getScrubbedSqlContent()).doesNotContain(repoUrl, "testUser", "testToken", "contentHash", "commitHash");
+    assertThat(getSqlDumpContent()).contains(sourceControlPullRequestComment.getId());
+    assertThat(getScrubbedSqlContent()).doesNotContain(sourceControlPullRequestComment.getId());
+  }
+
+  @Test
+  public void testScrubDB_Table_source_control_default_branch_commit_history() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    SourceControlDefaultBranchCommitHistory sourceControlDefaultBranchCommitHistory =
+        tempEntity.newSourceControlDefaultBranchCommitHistory(app.getId(), "commitHash", new Date(), null);
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(sourceControlDefaultBranchCommitHistory.getId());
+    assertThat(getScrubbedSqlContent()).doesNotContain(sourceControlDefaultBranchCommitHistory.getId());
   }
 
   private String getSqlDumpContent() throws IOException {

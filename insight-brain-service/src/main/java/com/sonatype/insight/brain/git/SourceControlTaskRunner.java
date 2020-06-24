@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.git;
 
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -19,9 +16,6 @@ import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
-import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
-import com.sonatype.nexus.iq.location.discovery.LocationDiscoveryExecutor;
-import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
 import com.sonatype.nexus.iq.manager.PullRequestExecutor;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -38,23 +32,15 @@ public class SourceControlTaskRunner
 
   private final PullRequestExecutor pullRequestExecutor;
 
-  private final Provider<PullRequestLocationDiscoveryTask> locationDiscoveryTaskProvider;
-
-  private final LocationDiscoveryExecutor locationDiscoveryExecutor;
-
   private final ThreadPoolExecutor executor;
 
   @Inject
   public SourceControlTaskRunner(
       final Provider<PullRequestTask> pullRequestTaskProvider,
-      final PullRequestExecutor pullRequestExecutor,
-      final Provider<PullRequestLocationDiscoveryTask> locationDiscoveryTaskProvider,
-      final LocationDiscoveryExecutor locationDiscoveryExecutor)
+      final PullRequestExecutor pullRequestExecutor)
   {
     this.pullRequestTaskProvider = pullRequestTaskProvider;
     this.pullRequestExecutor = pullRequestExecutor;
-    this.locationDiscoveryTaskProvider = locationDiscoveryTaskProvider;
-    this.locationDiscoveryExecutor = locationDiscoveryExecutor;
 
     this.executor = new ThreadPoolExecutor(1, 1, 5L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(),
         new ThreadFactoryBuilder().setDaemon(true).setNameFormat("ScmWorker-%s").build());
@@ -70,24 +56,6 @@ public class SourceControlTaskRunner
         pullRequestRemediationDetails.getApp().getId(), executor.getQueue().size(),
         executor.getTaskCount()
     );
-  }
-
-  public LocationDiscoveryResult doPullRequestLocationDiscovery(
-      final List<ComponentIdentifier> componentIdentifiers,
-      final GitRepositoryInfo gitRepositoryInfo,
-      final String branch,
-      final String applicationId) throws ExecutionException, InterruptedException
-  {
-    PullRequestLocationDiscoveryTask locationDiscoveryTask = locationDiscoveryTaskProvider.get();
-    locationDiscoveryTask.init(
-        locationDiscoveryExecutor, componentIdentifiers, gitRepositoryInfo, branch, applicationId);
-
-    Future<LocationDiscoveryResult> future = executor.submit(locationDiscoveryTask);
-    log.info(
-        "Sent for execution: location discovery task for {} component(s) on application with id [{}]. {} tasks in " +
-            "the queue and {} total tasks since startup", componentIdentifiers.size(),
-            applicationId, executor.getQueue().size(), executor.getTaskCount());
-    return future.get();
   }
 
   public boolean isFormatSupportedForPullRequestRemediation(final ComponentIdentifier componentIdentifier) {

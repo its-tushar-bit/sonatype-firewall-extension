@@ -11,7 +11,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -52,7 +51,7 @@ public class PullRequestLineCommentingService
 
   private final PullRequestFeedbackMarkupService pullRequestFeedbackMarkupService;
 
-  private final SourceControlTaskRunner sourceControlTaskRunner;
+  private final PullRequestLocationDiscoveryService locationDiscoveryService;
 
   private final PositionDiscoveryExecutor positionDiscoveryExecutor;
 
@@ -63,14 +62,14 @@ public class PullRequestLineCommentingService
       final GitClientFactory gitClientFactory,
       final SourceControlPullRequestCommentDAO pullRequestCommentDAO,
       final PullRequestFeedbackMarkupService pullRequestFeedbackMarkupService,
-      final SourceControlTaskRunner sourceControlTaskRunner,
+      final PullRequestLocationDiscoveryService locationDiscoveryService,
       final PositionDiscoveryExecutor positionDiscoveryExecutor,
       final InsightConfig insightConfig)
   {
     this.gitClientFactory = gitClientFactory;
     this.pullRequestCommentDAO = pullRequestCommentDAO;
     this.pullRequestFeedbackMarkupService = pullRequestFeedbackMarkupService;
-    this.sourceControlTaskRunner = sourceControlTaskRunner;
+    this.locationDiscoveryService = locationDiscoveryService;
     this.positionDiscoveryExecutor = positionDiscoveryExecutor;
     this.insightConfig = insightConfig;
   }
@@ -102,8 +101,8 @@ public class PullRequestLineCommentingService
       deleteExistingLineCommentsIfExists(applicationId, gitRepositoryInfo, pullRequestId);
       if (!CollectionUtils.isEmpty(violationList)) {
         // Find all potential source locations to comment on
-        LocationDiscoveryResult locationDiscoveryResult =
-            doLocationDiscovery(violationList, gitRepositoryInfo, branch, applicationId);
+        LocationDiscoveryResult locationDiscoveryResult = locationDiscoveryService.doLocationDiscovery(
+            violationList, gitRepositoryInfo, branch, applicationId);
 
         if (locationDiscoveryResult != null && !locationDiscoveryResult.getLocationMap().isEmpty()) {
           GitApiClient gitApiClient = gitClientFactory.createApiClient(gitRepositoryInfo);
@@ -136,35 +135,6 @@ public class PullRequestLineCommentingService
     }
 
     return lineCommentList;
-  }
-
-  /**
-   * Given a repository, branch name and a policy violation list retrieve all potential location to comment on.
-   * <p>
-   * The ecosystem specific location collection steps are executed only if there is at least one component in
-   * policy evaluation diff that matches that ecosystem.
-   * <p>
-   * The output of this step is a map between components (ComponentIdentifier) and a list of
-   * potential locations to comment on (RankedSourceLocation).
-   */
-  private LocationDiscoveryResult doLocationDiscovery(
-      final List<PolicyViolation> violationList,
-      final GitRepositoryInfo gitRepositoryInfo,
-      final String branch,
-      final String applicationId)
-      throws ExecutionException, InterruptedException
-  {
-    List<ComponentIdentifier> componentIdentifierSet = violationList.stream()
-        .filter(pv -> pv.getComponentIdentifier() != null)
-        .map(PolicyViolation::getComponentIdentifier)
-        .filter(ci -> ci.getFormat().equalsIgnoreCase(ComponentIdentifier.FORMAT_MAVEN))
-        .distinct()
-        .collect(Collectors.toList());
-    if (componentIdentifierSet.isEmpty()) {
-      return null; // skip location discovery when component identifier list is empty
-    }
-    return sourceControlTaskRunner
-        .doPullRequestLocationDiscovery(componentIdentifierSet, gitRepositoryInfo, branch, applicationId);
   }
 
   /**
@@ -261,7 +231,6 @@ public class PullRequestLineCommentingService
    * @param applicationId     The application the PR relates to
    * @param gitRepositoryInfo The repository info the PR relates to
    * @param pullRequestId     The pull request id
-   * @throws IOException
    */
   private void deleteExistingLineCommentsIfExists(
       final String applicationId,

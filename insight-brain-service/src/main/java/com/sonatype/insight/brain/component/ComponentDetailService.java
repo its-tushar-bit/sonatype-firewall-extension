@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -48,7 +49,7 @@ public class ComponentDetailService
 
   private final ApplicationService appService;
 
-  private final ApplicationAdapter appAdapter;
+  private final UserDirectory userDirectory;
 
   private final ApplicationComponentDAO applicationComponentDAO;
 
@@ -57,14 +58,15 @@ public class ComponentDetailService
   private final ProductLicense productLicense;
 
   @Inject
-  public ComponentDetailService(ApplicationService appService,
-                                ApplicationAdapter appAdapter,
-                                ApplicationComponentDAO applicationComponentDAO,
-                                StageTypeService stageTypeService,
-                                ProductLicense productLicense)
+  public ComponentDetailService(
+      ApplicationService appService,
+      UserDirectory userDirectory,
+      ApplicationComponentDAO applicationComponentDAO,
+      StageTypeService stageTypeService,
+      ProductLicense productLicense)
   {
     this.appService = appService;
-    this.appAdapter = appAdapter;
+    this.userDirectory = userDirectory;
     this.applicationComponentDAO = applicationComponentDAO;
     this.stageTypeService = stageTypeService;
     this.productLicense = productLicense;
@@ -89,6 +91,7 @@ public class ComponentDetailService
     }
 
     // Get the list of applications the user can see
+    ApplicationAdapter appAdapter = ApplicationAdapter.getInstance(userDirectory);
     List<Application> applications = appService.getApplications();
     for (Application application : applications) {
       if (!isComponentPartOfApplication(application, hash)) {

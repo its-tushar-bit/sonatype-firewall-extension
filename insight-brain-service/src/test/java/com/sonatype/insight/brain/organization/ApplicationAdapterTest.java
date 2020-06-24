@@ -42,7 +42,7 @@ public class ApplicationAdapterTest
   private static final String TEST_MESSAGE = "Test Exception Message";
 
   @Inject
-  private ApplicationAdapter applicationAdapter;
+  private UserDirectory userDirectory;
 
   // Application variables
   private String applicationId = "AppId";
@@ -83,7 +83,7 @@ public class ApplicationAdapterTest
     ApplicationDTO expectedApplicationDTO = createExpectedApplicationDTO(applicationName, applicationId,
         expectedContactDTO);
 
-    ApplicationDTO actualApplicationDTO = applicationAdapter.convert(application);
+    ApplicationDTO actualApplicationDTO = ApplicationAdapter.getInstance(userDirectory).convert(application);
     assertApplicationDTO(actualApplicationDTO, expectedApplicationDTO);
   }
 
@@ -99,7 +99,7 @@ public class ApplicationAdapterTest
     ApplicationDTO expectedApplicationDTO = createExpectedApplicationDTO(applicationName, applicationId,
         expectedContactDTO);
 
-    ApplicationDTO actualApplicationDTO = applicationAdapter.convert(application);
+    ApplicationDTO actualApplicationDTO = ApplicationAdapter.getInstance(userDirectory).convert(application);
     assertApplicationDTO(actualApplicationDTO, expectedApplicationDTO);
   }
 
@@ -111,7 +111,7 @@ public class ApplicationAdapterTest
     ApplicationDTO expectedApplicationDTO = createExpectedApplicationDTO(applicationName, applicationId,
         expectedContact);
 
-    ApplicationDTO actualApplicationDTO = applicationAdapter.convert(application);
+    ApplicationDTO actualApplicationDTO = ApplicationAdapter.getInstance(userDirectory).convert(application);
     assertApplicationDTO(actualApplicationDTO, expectedApplicationDTO);
   }
 
@@ -128,8 +128,7 @@ public class ApplicationAdapterTest
     ApplicationDTO expectedApplicationDTO = createExpectedApplicationDTO(applicationName, applicationId,
         expectedContactDTO);
 
-    applicationAdapter = new ApplicationAdapter(mockUserDirectory);
-    ApplicationDTO actualApplicationDTO = applicationAdapter.convert(application);
+    ApplicationDTO actualApplicationDTO = ApplicationAdapter.getInstance(mockUserDirectory).convert(application);
     assertApplicationDTO(actualApplicationDTO, expectedApplicationDTO);
   }
 
@@ -141,7 +140,7 @@ public class ApplicationAdapterTest
     ApplicationDTO expectedApplicationDTO = createExpectedApplicationDTO(applicationName, applicationId,
         expectedContactDTO);
 
-    ApplicationDTO actualApplicationDTO = applicationAdapter.convert(application, false);
+    ApplicationDTO actualApplicationDTO = ApplicationAdapter.getInstance(userDirectory).convert(application, false);
     assertApplicationDTO(actualApplicationDTO, expectedApplicationDTO);
   }
 
@@ -176,7 +175,7 @@ public class ApplicationAdapterTest
       memberNames.add(contactName);
     }
 
-    List<ApplicationDTO> actualApplicationDTOs = applicationAdapter.convert(applications);
+    List<ApplicationDTO> actualApplicationDTOs = ApplicationAdapter.getInstance(userDirectory).convert(applications);
     assertApplicationDTOs(actualApplicationDTOs, expectedApplicationDTOs);
   }
 
@@ -207,8 +206,8 @@ public class ApplicationAdapterTest
       createMember(contactName, firstName, lastName, email);
     }
 
-    List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter
-        .createApplicationManagementSummaries(applications, null);
+    List<ApplicationManagementSummaryDTO> actualDTOs =
+        ApplicationAdapter.getInstance(userDirectory).createApplicationManagementSummaries(applications, null);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
   }
@@ -236,8 +235,8 @@ public class ApplicationAdapterTest
       memberNames.add(contactName);
     }
 
-    List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter
-        .createApplicationManagementSummaries(applications, null);
+    List<ApplicationManagementSummaryDTO> actualDTOs =
+        ApplicationAdapter.getInstance(userDirectory).createApplicationManagementSummaries(applications, null);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
   }
@@ -270,9 +269,8 @@ public class ApplicationAdapterTest
     UserDirectory mockUserDirectory = mock(UserDirectory.class);
     when(mockUserDirectory.getUsersByName(memberNames)).thenReturn(result);
 
-    applicationAdapter = new ApplicationAdapter(mockUserDirectory);
-    List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter
-        .createApplicationManagementSummaries(applications, null);
+    List<ApplicationManagementSummaryDTO> actualDTOs =
+        ApplicationAdapter.getInstance(mockUserDirectory).createApplicationManagementSummaries(applications, null);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
   }
@@ -294,8 +292,8 @@ public class ApplicationAdapterTest
       expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, null));
     }
 
-    List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter
-        .createApplicationManagementSummaries(applications, null);
+    List<ApplicationManagementSummaryDTO> actualDTOs =
+        ApplicationAdapter.getInstance(userDirectory).createApplicationManagementSummaries(applications, null);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
   }
@@ -323,8 +321,8 @@ public class ApplicationAdapterTest
 
     createMember(contactInternalName, userFirstName, userLastName, userEmail);
 
-    List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter
-        .createApplicationManagementSummaries(applications, null);
+    List<ApplicationManagementSummaryDTO> actualDTOs =
+        ApplicationAdapter.getInstance(userDirectory).createApplicationManagementSummaries(applications, null);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
   }
@@ -361,8 +359,8 @@ public class ApplicationAdapterTest
       expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, expectedContact));
     }
 
-    List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter
-        .createApplicationManagementSummaries(applications, null);
+    List<ApplicationManagementSummaryDTO> actualDTOs =
+        ApplicationAdapter.getInstance(userDirectory).createApplicationManagementSummaries(applications, null);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
   }

@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
+import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.webhook.ManagementEventService;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -58,7 +59,7 @@ public class ApplicationService
 
   private final ApplicationDAO applicationDAO;
 
-  private final ApplicationAdapter applicationAdapter;
+  private final UserDirectory userDirectory;
 
   private final ApplicationCleaner applicationCleaner;
 
@@ -75,18 +76,19 @@ public class ApplicationService
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   @Inject
-  public ApplicationService(ApplicationDAO applicationDAO,
-                            ApplicationAdapter applicationAdapter,
-                            final ApplicationCleaner applicationCleaner,
-                            final ApplicationHelper applicationHelper,
-                            final ManagementEventService managementEventService,
-                            final OrganizationDAO organizationDAO,
-                            ScanPolicyEvaluator scanPolicyEvaluator,
-                            final PolicyViolationLoggerFactory policyViolationLoggerFactory,
-                            final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO)
+  public ApplicationService(
+      ApplicationDAO applicationDAO,
+      UserDirectory userDirectory,
+      final ApplicationCleaner applicationCleaner,
+      final ApplicationHelper applicationHelper,
+      final ManagementEventService managementEventService,
+      final OrganizationDAO organizationDAO,
+      ScanPolicyEvaluator scanPolicyEvaluator,
+      final PolicyViolationLoggerFactory policyViolationLoggerFactory,
+      final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO)
   {
     this.applicationDAO = applicationDAO;
-    this.applicationAdapter = applicationAdapter;
+    this.userDirectory = userDirectory;
     this.applicationCleaner = applicationCleaner;
     this.applicationHelper = applicationHelper;
     this.managementEventService = managementEventService;
@@ -267,7 +269,7 @@ public class ApplicationService
 
     List<Application> applications = getApplications();
     List<ApplicationManagementSummaryDTO> applicationManagementSummaryDTOs =
-        applicationAdapter.createApplicationManagementSummaries(applications, nameFilter);
+        ApplicationAdapter.getInstance(userDirectory).createApplicationManagementSummaries(applications, nameFilter);
 
     Comparator<ApplicationManagementSummaryDTO> comparator;
     switch (order) {
@@ -298,8 +300,8 @@ public class ApplicationService
   }
 
   private ApplicationManagementSummaryDTO getApplicationManagementSummary(final Application application) {
-    final ApplicationManagementSummaryDTO applicationManagement = applicationAdapter
-        .createApplicationManagementSummary(application);
+    final ApplicationManagementSummaryDTO applicationManagement =
+        ApplicationAdapter.getInstance(userDirectory).createApplicationManagementSummary(application);
     loadPolicyEvaluations(Arrays.asList(applicationManagement));
 
     return applicationManagement;

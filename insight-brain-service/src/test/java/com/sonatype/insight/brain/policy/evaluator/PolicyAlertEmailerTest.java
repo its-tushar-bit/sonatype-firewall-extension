@@ -52,7 +52,6 @@ import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -447,8 +446,7 @@ public class PolicyAlertEmailerTest
         .getUsersByGroup(argThat(new SameId(ldapServers.get(0))), any(String.class));
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), ldapServiceSpy);
-    PolicyAlertEmailer undertest = new PolicyAlertEmailer(mailer, lookup(BaseUrl.class),
-        new ApplicationAdapter(userDirectory),
+    PolicyAlertEmailer undertest = new PolicyAlertEmailer(mailer, lookup(BaseUrl.class), userDirectory,
         new PolicyAlertEmailResolver(userDirectory, ldapServiceSpy, new OwnerDAO(), new MembershipMappingDAO()),
         new AuditRecorder(null), testProductLicense);
 

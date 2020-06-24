@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -46,23 +47,24 @@ public class PolicyAlertEmailer
 
   private final BaseUrl baseUrl;
 
-  private final ApplicationAdapter applicationAdapter;
+  private final UserDirectory userDirectory;
   
   private final AuditRecorder auditRecorder;
 
   private final ProductLicense productLicense;
 
   @Inject
-  public PolicyAlertEmailer(final InsightMail mail,
-                            final BaseUrl baseUrl,
-                            final ApplicationAdapter applicationAdapter,
-                            final PolicyAlertEmailResolver policyAlertEmailResolver,
-                            final AuditRecorder auditRecorder,
-                            final ProductLicense productLicense)
+  public PolicyAlertEmailer(
+      final InsightMail mail,
+      final BaseUrl baseUrl,
+      final UserDirectory userDirectory,
+      final PolicyAlertEmailResolver policyAlertEmailResolver,
+      final AuditRecorder auditRecorder,
+      final ProductLicense productLicense)
   {
     super(mail, policyAlertEmailResolver);
     this.baseUrl = baseUrl;
-    this.applicationAdapter = applicationAdapter;
+    this.userDirectory = userDirectory;
     this.auditRecorder = auditRecorder;
     this.productLicense = productLicense;
   }
@@ -125,7 +127,7 @@ public class PolicyAlertEmailer
                                                       int grandfatheredPolicyViolationCount)
   {
     Map<String, Object> model = createPolicyMailModel(getMail().getCdnUrl(), app, stageType, policyFacts);
-    ContactDTO contact = applicationAdapter.getContact(app.getContactInternalName());
+    ContactDTO contact = ApplicationAdapter.getInstance(userDirectory).getContact(app.getContactInternalName());
     if (contact != null) {
       model.put("applicationContactEmail", contact.getEmail());
       model.put("applicationContactName", contact.getDisplayName());

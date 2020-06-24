@@ -14,10 +14,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
-
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -28,12 +24,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Adapter class to translate between Application entity objects and ApplicationDTO objects
+ * Adapter class to translate between Application entity objects and ApplicationDTO objects.
+ * For performance reasons, it caches data in between calls, so instances of this class should have a short life span.
+ * See https://issues.sonatype.org/browse/CLM-15996 for performance details.
+ * 
+ * WARNING: This class is not thread-safe.
  *
  * @since 1.8
  */
-@Named
-@Singleton
 public class ApplicationAdapter
 {
   private static final Logger log = LoggerFactory.getLogger(ApplicationAdapter.class);
@@ -42,14 +40,15 @@ public class ApplicationAdapter
 
   private final UserDirectory userDirectory;
 
-  @Inject
-  public ApplicationAdapter(UserDirectory userDirectory) {
-    this(userDirectory, new OrganizationDAO());
+  private final Map<String, Organization> organizationCacheById = new HashMap<>();
+
+  private ApplicationAdapter(UserDirectory userDirectory) {
+    this.userDirectory = userDirectory;
+    organizationDAO = new OrganizationDAO();
   }
 
-  public ApplicationAdapter(UserDirectory userDirectory, OrganizationDAO organizationDAO) {
-    this.userDirectory = userDirectory;
-    this.organizationDAO = organizationDAO;
+  public static ApplicationAdapter getInstance(UserDirectory userDirectory) {
+    return new ApplicationAdapter(userDirectory);
   }
 
   /**
@@ -112,13 +111,10 @@ public class ApplicationAdapter
     final List<ApplicationManagementSummaryDTO> applicationManagementSummaryDTOList = new ArrayList<>(
         applicationList.size());
 
-    // Cache of Organizations to avoid hitting the DB multiple times for same organization
-    final Map<String, Organization> organizationMap = new HashMap<>();
-
     final List<String> internalNameList = new ArrayList<>(applicationList.size());
     for (final Application application : applicationList) {
       Organization organization =
-          organizationMap.computeIfAbsent(application.getOrganizationId(), organizationDAO::getByIdNotNull);
+          organizationCacheById.computeIfAbsent(application.getOrganizationId(), organizationDAO::getByIdNotNull);
 
       if (nameFilter != null && !application.getName().toLowerCase(Locale.ENGLISH).contains(nameFilter)
           && !organization.getName().toLowerCase(Locale.ENGLISH).contains(nameFilter)) {
@@ -278,7 +274,9 @@ public class ApplicationAdapter
 
     final String organizationId = application.getOrganizationId();
     applicationDTO.setOrganizationId(organizationId);
-    applicationDTO.setOrganizationName(organizationDAO.getByIdNotNull(organizationId).getName());
+    Organization org =
+        organizationCacheById.computeIfAbsent(organizationId, key -> organizationDAO.getByIdNotNull(key));
+    applicationDTO.setOrganizationName(org.getName());
 
     applicationDTO.setContact(contact);
 

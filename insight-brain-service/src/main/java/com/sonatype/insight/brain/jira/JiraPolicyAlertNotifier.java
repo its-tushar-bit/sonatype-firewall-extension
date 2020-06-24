@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertCounts;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.utils.TemplateUtils;
@@ -54,7 +55,7 @@ public class JiraPolicyAlertNotifier
 
   private final InsightConfig insightConfig;
 
-  private final ApplicationAdapter applicationAdapter;
+  private final UserDirectory userDirectory;
 
   private final JiraService jiraService;
 
@@ -67,15 +68,16 @@ public class JiraPolicyAlertNotifier
   private final ProductLicense productLicense;
 
   @Inject
-  public JiraPolicyAlertNotifier(final InsightConfig insightConfig,
-                                 final ApplicationAdapter applicationAdapter,
-                                 final JiraService jiraService,
-                                 final BaseUrl baseUrl,
-                                 final AuditRecorder auditRecorder,
-                                 final ProductLicense productLicense)
+  public JiraPolicyAlertNotifier(
+      final InsightConfig insightConfig,
+      final UserDirectory userDirectory,
+      final JiraService jiraService,
+      final BaseUrl baseUrl,
+      final AuditRecorder auditRecorder,
+      final ProductLicense productLicense)
   {
     this.insightConfig = insightConfig;
-    this.applicationAdapter = applicationAdapter;
+    this.userDirectory = userDirectory;
     this.jiraService = jiraService;
     this.baseUrl = baseUrl;
     this.auditRecorder = auditRecorder;
@@ -189,7 +191,7 @@ public class JiraPolicyAlertNotifier
     model.put("stage", stage.getStageName());
     model.put("policyAlertSections", new PolicyAlertSections(policyFacts));
     model.put("policyAlertCounts", counts);
-    model.put("contact", applicationAdapter.getContact(app.getContactInternalName()));
+    model.put("contact", ApplicationAdapter.getInstance(userDirectory).getContact(app.getContactInternalName()));
     model.put("detailedReportUrl", stringBaseUrl + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), scanId));
 
     return model;

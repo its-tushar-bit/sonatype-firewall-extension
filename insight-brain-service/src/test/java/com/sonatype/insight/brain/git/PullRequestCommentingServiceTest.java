@@ -16,10 +16,12 @@ import javax.inject.Provider;
 
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
 import com.sonatype.insight.brain.policy.PolicyEvaluationDiffService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
@@ -43,6 +45,7 @@ import com.sonatype.nexus.scm.github.dto.GithubPullRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -66,6 +69,9 @@ public class PullRequestCommentingServiceTest
 {
   @Mock
   private PullRequestCommentingMetricsService mockPrCommentingMetricsService;
+
+  @Mock
+  private SourceControlEventDAO mockSourceControlEventDAO;
 
   public PullRequestCommentingServiceTest() {
     super(PullRequestCommentingService.class);
@@ -182,11 +188,10 @@ public class PullRequestCommentingServiceTest
         .expectSourceCommit("commit456")
         .build();
 
-    ApplicationEvaluationEvent event = new ApplicationEvaluationEventBuilder()
-        .withApplicationId("app1")
-        .withPolicyEvaluationId("pe1")
-        .withCommitHash("commit456")
-        .build();
+    SourceControlEvent event = new SourceControlEvent()
+        .setApplicationId("app1")
+        .setPolicyEvaluationId("pe1")
+        .setCommitHash("commit456");
 
     // when : process event
     commentingService.onApplicationEvaluation(event);
@@ -216,11 +221,10 @@ public class PullRequestCommentingServiceTest
         .expectSourceCommit("commit456")
         .build();
 
-    ApplicationEvaluationEvent event = new ApplicationEvaluationEventBuilder()
-        .withApplicationId("app1")
-        .withPolicyEvaluationId("pe1")
-        .withCommitHash("commit456")
-        .build();
+    SourceControlEvent event = new SourceControlEvent()
+        .setApplicationId("app1")
+        .setPolicyEvaluationId("pe1")
+        .setCommitHash("commit456");
 
     // when : process event
     commentingService.onApplicationEvaluation(event);
@@ -246,11 +250,10 @@ public class PullRequestCommentingServiceTest
         .expectSourceCommit("commit456")
         .build();
 
-    ApplicationEvaluationEvent event = new ApplicationEvaluationEventBuilder()
-        .withApplicationId("app1")
-        .withPolicyEvaluationId("pe1")
-        .withCommitHash("commit456")
-        .build();
+    SourceControlEvent event = new SourceControlEvent()
+        .setApplicationId("app1")
+        .setPolicyEvaluationId("pe1")
+        .setCommitHash("commit456");
 
     // when : process event
     commentingService.onApplicationEvaluation(event);
@@ -276,11 +279,11 @@ public class PullRequestCommentingServiceTest
         .expectSourceCommit("sourceCommit")
         .build();
 
-    ApplicationEvaluationEvent event = new ApplicationEvaluationEventBuilder()
-        .withApplicationId("app1")
-        .withPolicyEvaluationId("sourcePe")
-        .withCommitHash("sourceCommit")
-        .build();
+    SourceControlEvent event = new SourceControlEvent()
+        .setApplicationId("app1")
+        .setPolicyEvaluationId("sourcePe")
+        .setCommitHash("sourceCommit")
+        .setTargetPolicyEvaluationId("basePe");
 
     // when : process event
     commentingService.onApplicationEvaluation(event);
@@ -297,7 +300,7 @@ public class PullRequestCommentingServiceTest
   }
 
   @Test
-  public void testOnApplicationEvaluation_shouldCreateComment() throws Exception {
+  public void testOnApplicationEvaluation_shouldEventuallyCreateComment() throws Exception {
     // given : all the necessary pieces to create a PR comment
     String commentText = "at least one new policy violation";
     PullRequestCommentingService commentingService = new TestablePullRequestCommentingServiceBuilder()
@@ -317,13 +320,38 @@ public class PullRequestCommentingServiceTest
         .withCommitHash("sourceCommit")
         .build();
 
-    // when : process event
+    // when : process application evaluation event
     commentingService.onApplicationEvaluation(event);
+
+    // then : source control event should be created
+    ArgumentCaptor<SourceControlEvent> eventCaptor = ArgumentCaptor.forClass(SourceControlEvent.class);
+    verify(mockSourceControlEventDAO).insert(eventCaptor.capture());
+    SourceControlEvent generatedEvent = eventCaptor.getValue();
+    assertThat(generatedEvent).isNotNull();
+    assertThat(generatedEvent.getApplicationId()).isEqualTo(event.ownerId);
+    assertThat(generatedEvent.getEventType()).isEqualTo(SourceControlEvent.APPLICATION_EVALUATION_EVENT);
+    assertThat(generatedEvent.getCommitHash()).isEqualTo(event.commitHash);
+    assertThat(generatedEvent.getPolicyEvaluationId()).isEqualTo(event.policyEvaluationId);
+    verify(mockPrCommentingMetricsService, never()).sendTelemetry(any());
+
+    // and that : didn't audit anything yet
+    verify(mockPrCommentingMetricsService, never()).addAuditRecord(any(), any(), any(), anyInt());
+
+    // and that : messages are as expected
+    assertThatLogMessagesEqual(
+        debug(
+            "Persisted source control event 'application evaluation' for application 'app1' and commit 'sourceCommit'")
+    );
+
+    // and when : generated event is processed (simulating pulling event from DB)
+    commentingService.onApplicationEvaluation(generatedEvent);
 
     // then : comment should be created
     verify(mockPrCommentingMetricsService, times(1)).sendTelemetry(any());
-    verify(mockPrCommentingMetricsService, times(1)).addAuditRecord(any(), any(), any(), anyInt());
+    verify(mockPrCommentingMetricsService, times(1)).addAuditRecord(any(), eq("app1"), any(), eq(14));
     assertThatLogMessagesEqual(
+        debug(
+            "Persisted source control event 'application evaluation' for application 'app1' and commit 'sourceCommit'"),
         debug("obtained CommitInfo from SCM for commit 'sourceCommit' with 1 pull request(s) " +
             "and 0 base branch commit(s)"),
         debug("0 base branch commits to process for application 'app1'"),
@@ -349,11 +377,10 @@ public class PullRequestCommentingServiceTest
         .withGitRepositoryPrivate(false)
         .build();
 
-    ApplicationEvaluationEvent event = new ApplicationEvaluationEventBuilder()
-        .withApplicationId("app1")
-        .withPolicyEvaluationId("sourcePe")
-        .withCommitHash("sourceCommit")
-        .build();
+    SourceControlEvent event = new SourceControlEvent()
+        .setApplicationId("app1")
+        .setPolicyEvaluationId("sourcePe")
+        .setCommitHash("sourceCommit");
 
     // when : process event
     commentingService.onApplicationEvaluation(event);
@@ -412,11 +439,10 @@ public class PullRequestCommentingServiceTest
         .expectSourceCommit("sourceCommit")
         .build();
 
-    ApplicationEvaluationEvent event = new ApplicationEvaluationEventBuilder()
-        .withApplicationId("app1")
-        .withPolicyEvaluationId("sourcePe")
-        .withCommitHash("sourceCommit")
-        .build();
+    SourceControlEvent event = new SourceControlEvent()
+        .setApplicationId("app1")
+        .setPolicyEvaluationId("sourcePe")
+        .setCommitHash("sourceCommit");
 
     // when : process event
     commentingService.onApplicationEvaluation(event);
@@ -441,21 +467,20 @@ public class PullRequestCommentingServiceTest
         .withDevBranchPullRequest("First_PR_With_Head_Commit", 14, "sourceCommit", "baseCommit")
         .withDevBranchPullRequest("Another_PR_With_Other_Head_Commit", 15, "anotherCommit", "baseCommit")
         .withDevBranchPullRequest("Secondary_PR_With_Head_Commit", 16, "sourceCommit", "baseCommit")
-        .withSourcePolicyEvaluation("sourcePe", "sourceCommit", "app1")
-        .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
+        .withSourcePolicyEvaluation("sourcePe", "sourceCommit", applicationId)
+        .withBasePolicyEvaluation("basePe", "baseCommit", applicationId)
         .withPolicyEvaluationDiffMarkup(commentText)
         .withCommentResponseForPR(14, 28, null)
         .withCommentResponseForPR(16, 32, null)
         .withAddedViolation(new PolicyViolation())
-        .expectApplicationId("app1")
+        .expectApplicationId(applicationId)
         .expectSourceCommit("sourceCommit")
         .build();
 
-    ApplicationEvaluationEvent event = new ApplicationEvaluationEventBuilder()
-        .withApplicationId(applicationId)
-        .withPolicyEvaluationId("sourcePe")
-        .withCommitHash("sourceCommit")
-        .build();
+    SourceControlEvent event = new SourceControlEvent()
+        .setApplicationId(applicationId)
+        .setPolicyEvaluationId("sourcePe")
+        .setCommitHash("sourceCommit");
 
     // when : process event
     commentingService.onApplicationEvaluation(event);
@@ -489,21 +514,20 @@ public class PullRequestCommentingServiceTest
         .withDevBranchPullRequest("First_PR_With_Head_Commit", 14, "sourceCommit", "baseCommit")
         .withDevBranchPullRequest("Merged_PR", 15, "sourceCommit", "baseCommit", PullRequestState.MERGED)
         .withDevBranchPullRequest("Secondary_PR_With_Head_Commit", 16, "sourceCommit", "baseCommit")
-        .withSourcePolicyEvaluation("sourcePe", "sourceCommit", "app1")
-        .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
+        .withSourcePolicyEvaluation("sourcePe", "sourceCommit", applicationId)
+        .withBasePolicyEvaluation("basePe", "baseCommit", applicationId)
         .withPolicyEvaluationDiffMarkup(commentText)
         .withCommentResponseForPR(14, 42, null)
         .withCommentResponseForPR(16, 48, null)
         .withAddedViolation(new PolicyViolation())
-        .expectApplicationId("app1")
+        .expectApplicationId(applicationId)
         .expectSourceCommit("sourceCommit")
         .build();
 
-    ApplicationEvaluationEvent event = new ApplicationEvaluationEventBuilder()
-        .withApplicationId(applicationId)
-        .withPolicyEvaluationId("sourcePe")
-        .withCommitHash("sourceCommit")
-        .build();
+    SourceControlEvent event = new SourceControlEvent()
+        .setApplicationId(applicationId)
+        .setPolicyEvaluationId("sourcePe")
+        .setCommitHash("sourceCommit");
 
     // when : process event
     commentingService.onApplicationEvaluation(event);
@@ -533,7 +557,7 @@ public class PullRequestCommentingServiceTest
         .expectSourceCommit("sourceCommit")
         .build();
 
-    DiscoveredPullRequestEvent event =
+    SourceControlEvent event =
         createDiscoveredPullRequestEvent("app1", "sourcePe", "sourceCommit", 20, null);
 
     // when : process event
@@ -569,7 +593,7 @@ public class PullRequestCommentingServiceTest
         .expectSourceCommit("sourceCommit")
         .build();
 
-    DiscoveredPullRequestEvent event =
+    SourceControlEvent event =
         createDiscoveredPullRequestEvent(applicationId, "sourcePe", "sourceCommit", 20, "basePe");
 
     // when : process event
@@ -595,7 +619,7 @@ public class PullRequestCommentingServiceTest
         .expectSourceCommit("sourceCommit")
         .build();
 
-    DiscoveredPullRequestEvent event =
+    SourceControlEvent event =
         createDiscoveredPullRequestEvent("app1", "sourcePe", "sourceCommit", 20, "basePe");
 
     // when : process event
@@ -605,38 +629,6 @@ public class PullRequestCommentingServiceTest
     verify(mockPrCommentingMetricsService, never()).sendTelemetry(any());
     assertThatLogMessagesEqual(
         info("policy evaluations have not changed for application 'app1' pull request '20'.")
-    );
-  }
-
-  @Test
-  public void testOnDiscoveredPullRequest_hasBaseBranchPolicyEvalCommentDoesNotExist()
-      throws Exception
-  {
-    // given : all the necessary pieces to create a PR comment
-    String commentText = "at least one new policy violation";
-    String applicationId = "app1";
-    PullRequestCommentingService commentingService = new TestablePullRequestCommentingServiceBuilder()
-        .withDevBranchPullRequest("INT-2493-pr-commenting-immediate-flow", 20, "sourceCommit", "baseCommit")
-        .withSourcePolicyEvaluation("sourcePe", "sourceCommit", "app1")
-        .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
-        .withPolicyEvaluationDiffMarkup(commentText)
-        .withCommentResponseForPR(20, 25, null)
-        .withAddedViolation(new PolicyViolation())
-        .expectApplicationId("app1")
-        .expectSourceCommit("sourceCommit")
-        .build();
-
-    DiscoveredPullRequestEvent event =
-        createDiscoveredPullRequestEvent(applicationId, "sourcePe", "sourceCommit", 20, "basePe");
-
-    // when : process event
-    commentingService.onDiscoveredPullRequest(event);
-
-    // then : comment should be created
-    verify(mockPrCommentingMetricsService, times(1)).sendTelemetry(any());
-    assertThatLogMessagesEqual(
-        info("pull request comment '25' created for application 'app1' pull request '20'"),
-        debug("pull request comment '25' for application 'app1' pull request '20' recorded in database")
     );
   }
 
@@ -679,14 +671,13 @@ public class PullRequestCommentingServiceTest
         .withPostCommentAction(postAction2)
         .build();
 
-    ApplicationEvaluationEvent event = new ApplicationEvaluationEventBuilder()
-        .withApplicationId("app1")
-        .withPolicyEvaluationId("sourcePe")
-        .withCommitHash("sourceCommit")
-        .build();
+    SourceControlEvent sourceControlEvent = new SourceControlEvent()
+        .setApplicationId("app1")
+        .setPolicyEvaluationId("sourcePe")
+        .setCommitHash("sourceCommit");
 
     // when : process event
-    commentingService.onApplicationEvaluation(event);
+    commentingService.onApplicationEvaluation(sourceControlEvent);
 
     // then : post comment actions invoked
     verify(postAction1, times(1)).invokeAction(any(GitClientFactory.class), any(GitRepositoryInfo.class),
@@ -695,20 +686,20 @@ public class PullRequestCommentingServiceTest
         any(PolicyViolationDiff.class), any(PolicyEvaluation.class), any(PolicyEvaluation.class));
   }
 
-  private DiscoveredPullRequestEvent createDiscoveredPullRequestEvent(
+  private SourceControlEvent createDiscoveredPullRequestEvent(
       String applicationId,
       String sourcePolicyEvaluationId,
       String commitHash,
       int pullRequestNumber,
       String targetPolicyEvaluationId)
   {
-    DiscoveredPullRequestEvent event = new DiscoveredPullRequestEvent();
-    event.applicationId = applicationId;
-    event.policyEvaluationId = sourcePolicyEvaluationId;
-    event.commitHash = commitHash;
-    event.targetPolicyEvaluationId = targetPolicyEvaluationId;
-    event.pullRequestNumber = pullRequestNumber;
-    return event;
+    return new SourceControlEvent()
+        .setEventType(SourceControlEvent.DISCOVERED_PULL_REQUEST_EVENT)
+        .setApplicationId(applicationId)
+        .setPolicyEvaluationId(sourcePolicyEvaluationId)
+        .setCommitHash(commitHash)
+        .setTargetPolicyEvaluationId(targetPolicyEvaluationId)
+        .setPullRequestNumber(pullRequestNumber);
   }
 
   private class TestablePullRequestCommentingServiceBuilder
@@ -777,7 +768,7 @@ public class PullRequestCommentingServiceTest
     private String sourceCommitHash = "";
 
     private String applicationId = "";
-    
+
     private String contentHash = "content-hash";
 
     private boolean enablePullRequests = true;
@@ -878,6 +869,7 @@ public class PullRequestCommentingServiceTest
           mockGitClientFactory,
           mockPullRequestCommentDAO,
           mockPolicyEvaluationDAO,
+          mockSourceControlEventDAO,
           mockPullRequestFeedbackMarkupService,
           mockGitCommitHistoryService,
           mockPrCommentingMetricsService,

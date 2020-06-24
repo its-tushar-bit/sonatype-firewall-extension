@@ -28,6 +28,11 @@ public class SourceControlConfig
   private Integer prCommentPurgeWindow;
 
   /**
+   * Purge window for PR event records in days
+   */
+  private Integer prEventPurgeWindow;
+
+  /**
    * @since 1.83
    */
   private String gitExecutable;
@@ -81,5 +86,13 @@ public class SourceControlConfig
 
   public void setPrCommentPurgeWindow(final Integer prCommentPurgeWindow) {
     this.prCommentPurgeWindow = prCommentPurgeWindow;
+  }
+
+  public Integer getPrEventPurgeWindow() {
+    return prEventPurgeWindow;
+  }
+
+  public void setPrEventPurgeWindow(final Integer prEventPurgeWindow) {
+    this.prEventPurgeWindow = prEventPurgeWindow;
   }
 }

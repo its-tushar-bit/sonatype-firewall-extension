@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -19,10 +20,12 @@ import javax.inject.Singleton;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
 import com.sonatype.insight.brain.policy.PolicyEvaluationDiffService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
@@ -79,6 +82,8 @@ public class PullRequestCommentingService
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
+  private final SourceControlEventDAO sourceControlEventDAO;
+
   private final PullRequestFeedbackMarkupService pullRequestFeedbackMarkupService;
 
   private final GitCommitHistoryService gitCommitHistoryService;
@@ -109,6 +114,7 @@ public class PullRequestCommentingService
       final GitClientFactory gitClientFactory,
       final SourceControlPullRequestCommentDAO pullRequestCommentDAO,
       final PolicyEvaluationDAO policyEvaluationDAO,
+      final SourceControlEventDAO sourceControlEventDAO,
       final PullRequestFeedbackMarkupService pullRequestFeedbackMarkupService,
       final GitCommitHistoryService gitCommitHistoryService,
       final PullRequestCommentingMetricsService prCommentingMetricsService,
@@ -126,6 +132,7 @@ public class PullRequestCommentingService
     this.gitClientFactory = gitClientFactory;
     this.pullRequestCommentDAO = pullRequestCommentDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
+    this.sourceControlEventDAO = sourceControlEventDAO;
     this.pullRequestFeedbackMarkupService = pullRequestFeedbackMarkupService;
     this.gitCommitHistoryService = gitCommitHistoryService;
     this.prCommentingMetricsService = prCommentingMetricsService;
@@ -167,43 +174,60 @@ public class PullRequestCommentingService
       return;
     }
 
+    if (eventHasCommitHashAndScmIsEnabled(event)) {
+      String applicationId = event.ownerId;
+      GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
+
+      if (!gitRepositoryInfo.provider.supportsPullRequestCommenting()) {
+        log.debug("'{}' not currently supported for pull request commenting", gitRepositoryInfo.provider.toString());
+      }
+      else {
+        SourceControlEvent sourceControlEvent = new SourceControlEvent()
+            .setApplicationId(applicationId)
+            .setCommitHash(event.commitHash)
+            .setEventType(SourceControlEvent.APPLICATION_EVALUATION_EVENT)
+            .setPolicyEvaluationId(event.policyEvaluationId)
+            .setInitiator(event.initiator)
+            .setCreateTime(new Date());
+
+        sourceControlEventDAO.insert(sourceControlEvent);
+        log.debug("Persisted source control event '{}' for application '{}' and commit '{}'",
+            sourceControlEvent.getEventType(), applicationId, event.commitHash);
+      }
+    }
+  }
+
+  public void onApplicationEvaluation(SourceControlEvent event) {
     try {
-      if (eventHasCommitHashAndScmIsEnabled(event)) {
-        String applicationId = event.ownerId;
-        GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
+      String applicationId = event.getApplicationId();
+      GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
 
-        if (!gitRepositoryInfo.provider.supportsPullRequestCommenting()) {
-          log.debug("'{}' not currently supported for pull request commenting", gitRepositoryInfo.provider.toString());
-        }
-        else {
-          PolicyEvaluation sourceCommitPolicyEvaluation = policyEvaluationDAO.getById(event.policyEvaluationId);
-          CommitInformation commitInfo = getCommitInfoFromScm(gitRepositoryInfo, event.commitHash);
+      PolicyEvaluation sourceCommitPolicyEvaluation = policyEvaluationDAO.getById(event.getPolicyEvaluationId());
+      CommitInformation commitInfo = getCommitInfoFromScm(gitRepositoryInfo, event.getCommitHash());
 
-          // the commit info contains not only the pull requests associated with the commit but also some recent
-          // commit history for the base branch
-          processBaseBranchCommitHistory(sourceCommitPolicyEvaluation, commitInfo.getCommits());
+      // the commit info contains not only the pull requests associated with the commit but also some recent
+      // commit history for the base branch
+      processBaseBranchCommitHistory(sourceCommitPolicyEvaluation, commitInfo.getCommits());
 
-          for (PullRequest pullRequest : commitInfo.getPullRequests()) {
-            if (shouldCommentOnPullRequest(applicationId, pullRequest, gitRepositoryInfo,
-                sourceCommitPolicyEvaluation)) {
-              SourceControlPullRequestComment existingPullRequestComment = pullRequestCommentDAO
-                  .getByApplicationIdAndPullRequestIdWithoutComponent(applicationId, pullRequest.getNumber());
+      for (PullRequest pullRequest : commitInfo.getPullRequests()) {
+        if (shouldCommentOnPullRequest(applicationId, pullRequest, gitRepositoryInfo,
+            sourceCommitPolicyEvaluation)) {
+          SourceControlPullRequestComment existingPullRequestComment = pullRequestCommentDAO
+              .getByApplicationIdAndPullRequestIdWithoutComponent(applicationId, pullRequest.getNumber());
 
-              Optional<PolicyEvaluation> baseBranchPolicyEvaluation =
-                  getLatestPolicyEvaluationReportForBaseBranch(applicationId);
+          Optional<PolicyEvaluation> baseBranchPolicyEvaluation =
+              getLatestPolicyEvaluationReportForBaseBranch(applicationId);
 
-              if (baseBranchPolicyEvaluation.isPresent()) {
-                doCreateOrUpdatePullRequestComment(applicationId, gitRepositoryInfo,
-                    pullRequest.getNumber(), pullRequest.getHead(),
-                    sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation.get(), existingPullRequestComment);
-              }
-              else {
-                log.warn(
-                    "no policy evaluation for base branch, skipping PR commenting for application '{}' " +
-                        "pull request '{}'",
-                    applicationId, pullRequest.getNumber());
-              }
-            }
+          if (baseBranchPolicyEvaluation.isPresent()) {
+            doCreateOrUpdatePullRequestComment(applicationId, gitRepositoryInfo,
+                pullRequest.getNumber(), pullRequest.getHead(),
+                sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation.get(), existingPullRequestComment);
+          }
+          else {
+            log.warn(
+                "no policy evaluation for base branch, skipping PR commenting for application '{}' " +
+                    "pull request '{}'",
+                applicationId, pullRequest.getNumber());
           }
         }
       }
@@ -213,39 +237,40 @@ public class PullRequestCommentingService
     }
   }
 
-  @Subscribe
-  public void onDiscoveredPullRequest(DiscoveredPullRequestEvent event) {
-    String applicationId = event.applicationId;
+  public void onDiscoveredPullRequest(SourceControlEvent event) {
+    String applicationId = event.getApplicationId();
     GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
-    PolicyEvaluation sourceCommitPolicyEvaluation = policyEvaluationDAO.getById(event.policyEvaluationId);
+    PolicyEvaluation sourceCommitPolicyEvaluation = policyEvaluationDAO.getById(event.getPolicyEvaluationId());
 
     Optional<PolicyEvaluation> baseBranchPolicyEvaluation = Optional.empty();
 
-    if (null == event.targetPolicyEvaluationId) {
+    if (null == event.getTargetPolicyEvaluationId()) {
       // we need to get and process the base branch commit history
-      CommitInformation commitInfo = getCommitInfoFromScm(gitRepositoryInfo, event.commitHash);
+      CommitInformation commitInfo = getCommitInfoFromScm(gitRepositoryInfo, event.getCommitHash());
       // the commit info contains not only the pull requests associated with the commit but also some recent commit
       // history for the base branch
       processBaseBranchCommitHistory(sourceCommitPolicyEvaluation, commitInfo.getCommits());
       baseBranchPolicyEvaluation = getLatestPolicyEvaluationReportForBaseBranch(applicationId);
     }
     else {
-      baseBranchPolicyEvaluation = Optional.ofNullable(policyEvaluationDAO.getById(event.targetPolicyEvaluationId));
+      baseBranchPolicyEvaluation =
+          Optional.ofNullable(policyEvaluationDAO.getById(event.getTargetPolicyEvaluationId()));
     }
 
     if (baseBranchPolicyEvaluation.isPresent()) {
       // do we already have a comment for this PR?
       SourceControlPullRequestComment existingPullRequestComment =
           pullRequestCommentDAO
-              .getByApplicationIdAndPullRequestIdWithoutComponent(applicationId, event.pullRequestNumber);
+              .getByApplicationIdAndPullRequestIdWithoutComponent(applicationId, event.getPullRequestNumber());
 
-      doCreateOrUpdatePullRequestComment(applicationId, gitRepositoryInfo, event.pullRequestNumber,
-          event.branchName, sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation.get(), existingPullRequestComment);
+      doCreateOrUpdatePullRequestComment(applicationId, gitRepositoryInfo, event.getPullRequestNumber(),
+          event.getBranchName(), sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation.get(),
+          existingPullRequestComment);
     }
     else {
       log.warn(
           "no policy evaluation for base branch, skipping PR commenting for application '{}' pull request '{}'",
-          applicationId, event.pullRequestNumber);
+          applicationId, event.getPullRequestNumber());
     }
   }
 

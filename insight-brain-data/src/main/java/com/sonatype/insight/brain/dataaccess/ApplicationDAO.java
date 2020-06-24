@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -346,6 +347,9 @@ public class ApplicationDAO
 
     // Cascade to SourceControl default branch commit history
     new SourceControlDefaultBranchCommitHistoryDAO().deleteByApplicationId(tx, application.getId());
+
+    // Cascade to SourceControl events
+    new SourceControlEventDAO().deleteByApplicationId(tx, application.getId());
 
     super.delete(tx, application);
 

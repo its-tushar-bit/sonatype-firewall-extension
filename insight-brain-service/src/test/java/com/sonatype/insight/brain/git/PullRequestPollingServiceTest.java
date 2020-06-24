@@ -14,9 +14,10 @@ import java.util.Optional;
 
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
-import com.sonatype.insight.brain.eventbus.AsyncEventBus;
+import com.sonatype.insight.brain.git.event.SourceControlEventService;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -46,7 +47,7 @@ public class PullRequestPollingServiceTest
     extends VerifiableLoggingTestBase
 {
   @Mock
-  private AsyncEventBus mockAsyncEventBus;
+  SourceControlEventService mockSourceControlEventService;
 
   @Mock
   private PullRequestInfoProvider mockClient;
@@ -72,7 +73,7 @@ public class PullRequestPollingServiceTest
     pollingService.fetchAndSendPullRequestsForCommenting();
 
     // then: no events emitted
-    verify(mockAsyncEventBus, never()).post(any());
+    verify(mockSourceControlEventService, never()).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual();
   }
 
@@ -89,7 +90,7 @@ public class PullRequestPollingServiceTest
     pollingService.fetchAndSendPullRequestsForCommenting();
 
     // then: event emitted
-    verify(mockAsyncEventBus, never()).post(any());
+    verify(mockSourceControlEventService, never()).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
         debug("Fetched 1 pull request(s) for org 'org' and repo 'none specified' since " + pullRequestCreateDate),
         debug("Policy evaluation not yet available for 'org/repo' pull request '10'"),
@@ -111,7 +112,7 @@ public class PullRequestPollingServiceTest
     pollingService.fetchAndSendPullRequestsForCommenting();
 
     // then: event emitted
-    verify(mockAsyncEventBus, never()).post(any());
+    verify(mockSourceControlEventService, never()).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
         debug("Fetched 1 pull request(s) for org 'org' and repo 'none specified' since " + pullRequestCreateDate),
         debug("application 'app1' pull request '10' is for the base branch, skipping commenting for this PR"),
@@ -133,7 +134,7 @@ public class PullRequestPollingServiceTest
     pollingService.fetchAndSendPullRequestsForCommenting();
 
     // then: event emitted
-    verify(mockAsyncEventBus, times(1)).post(any());
+    verify(mockSourceControlEventService, times(1)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
         debug("Fetched 1 pull request(s) for org 'org' and repo 'none specified' since " + pullRequestCreateDate),
         info("Sent pull request discovered event for application 'app1' with PR# '10' and policy evaluation 'spe1'"),
@@ -157,7 +158,7 @@ public class PullRequestPollingServiceTest
     pollingService.fetchAndSendPullRequestsForCommenting();
 
     // then: event emitted
-    verify(mockAsyncEventBus, times(1)).post(any());
+    verify(mockSourceControlEventService, times(1)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
         debug("Fetched 1 pull request(s) for org 'org' and repo 'none specified' since " + pullRequestCreateDate),
         info("Sent pull request discovered event for application 'app1' with PR# '10' and policy evaluation 'spe1'"),
@@ -176,7 +177,7 @@ public class PullRequestPollingServiceTest
     pollingService.fetchAndSendPullRequestsForCommenting();
 
     // then: no events emitted
-    verify(mockAsyncEventBus, never()).post(any());
+    verify(mockSourceControlEventService, never()).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
         debug("GITLAB is not currently supported for pull request commenting on repository https://domain.com/org/repo")
     );
@@ -194,9 +195,9 @@ public class PullRequestPollingServiceTest
     pollingService.fetchAndSendPullRequestsForCommenting();
 
     // then: no events emitted
-    verify(mockAsyncEventBus, never()).post(any());
+    verify(mockSourceControlEventService, never()).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
-        debug("BITBUCKET is not currently supported for pull request commenting on repository " + repositoryUrl) 
+        debug("BITBUCKET is not currently supported for pull request commenting on repository " + repositoryUrl)
     );
   }
 
@@ -215,7 +216,7 @@ public class PullRequestPollingServiceTest
     pollingService.fetchAndSendPullRequestsForCommenting();
 
     // then: no events emitted
-    verify(mockAsyncEventBus, never()).post(any());
+    verify(mockSourceControlEventService, never()).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
         debug("Fetched 1 pull request(s) for org 'org' and repo 'none specified' since " + pullRequestCreateDate),
         debug("Repository is not valid for pull requests, check that it is private: https://domain.com/org/repo"),
@@ -242,7 +243,7 @@ public class PullRequestPollingServiceTest
     pollingService.fetchAndSendPullRequestsForCommenting();
 
     // then: no events emitted
-    verify(mockAsyncEventBus, never()).post(any());
+    verify(mockSourceControlEventService, never()).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
         error(
             "Error fetching pull requests for org 'org' and repo 'none specified'; will retry in 5 minutes.  Please " +
@@ -331,8 +332,9 @@ public class PullRequestPollingServiceTest
       }
       pullRequests.forEach(pullRequest -> pullRequest.setRepositoryPrivate(isGitRepositoryPrivate));
 
-      return new PullRequestPollingService(mockSourceControlDAO, mockPolicyEvaluationDAO, mockGitCommitHistoryService,
-          mockSourceControlUtils, mockGitClientFactory, mockAsyncEventBus, mockPullRequestRepositoryValidator);
+      return new PullRequestPollingService(mockSourceControlDAO, mockSourceControlEventService, mockPolicyEvaluationDAO,
+          mockGitCommitHistoryService, mockSourceControlUtils, mockGitClientFactory,
+          mockPullRequestRepositoryValidator);
     }
 
     private List<SourceControl> buildSourceControlList() {

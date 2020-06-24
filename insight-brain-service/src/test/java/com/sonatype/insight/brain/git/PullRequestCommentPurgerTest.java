@@ -12,6 +12,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -35,10 +36,13 @@ public class PullRequestCommentPurgerTest
   @Inject
   private SourceControlDefaultBranchCommitHistoryDAO sourceControlDefaultBranchCommitHistoryDAO;
 
+  @Inject
+  private SourceControlEventDAO sourceControlEventDAO;
+
   @Test
   public void testPurgeObsoleteRecords_purgePullRequestComments() {
     // given:
-    PullRequestCommentPurger pullRequestCommentPurger = getTestablePullRequestCommentPurger(null);
+    PullRequestCommentPurger pullRequestCommentPurger = getTestablePullRequestCommentPurger(null, null);
 
     Application application = tempEntity.newApplicationWithParent();
     PolicyEvaluation sourcePolicyEvaluation = tempEntity.newPolicyEvaluation(
@@ -76,8 +80,8 @@ public class PullRequestCommentPurgerTest
   @Test
   public void testPurgeObsoleteRecords_purgeDefaultBranchCommitHistory() {
     // given:
-    PullRequestCommentPurger pullRequestCommentPurger = getTestablePullRequestCommentPurger(null);
-    
+    PullRequestCommentPurger pullRequestCommentPurger = getTestablePullRequestCommentPurger(null, null);
+
     Application application = tempEntity.newApplicationWithParent();
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(
         application.getId(), BuildStageType.ID, "sourceScan", "sourceCommit");
@@ -118,8 +122,8 @@ public class PullRequestCommentPurgerTest
   @Test
   public void testPurgeObsoleteRecords_purgeWindowOverride() {
     // given:
-    PullRequestCommentPurger pullRequestCommentPurger = getTestablePullRequestCommentPurger(30);
-    
+    PullRequestCommentPurger pullRequestCommentPurger = getTestablePullRequestCommentPurger(30, 5);
+
     Application application = tempEntity.newApplicationWithParent();
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(
         application.getId(), BuildStageType.ID, "sourceScan", "sourceCommit");
@@ -157,14 +161,18 @@ public class PullRequestCommentPurgerTest
     assertThat(defaultBranchCommitHistory).hasSize(1);
   }
 
-  private PullRequestCommentPurger getTestablePullRequestCommentPurger(final Integer purgeWindowsInDays) {
+  private PullRequestCommentPurger getTestablePullRequestCommentPurger(
+      final Integer purgeWindowInDays,
+      final Integer shortPurgeWindowInDays)
+  {
     InsightConfig insightConfig = new InsightConfig();
-    if (purgeWindowsInDays != null) {
+    if (purgeWindowInDays != null || shortPurgeWindowInDays != null) {
       SourceControlConfig sourceControlConfig = new SourceControlConfig();
-      sourceControlConfig.setPrCommentPurgeWindow(purgeWindowsInDays);
+      sourceControlConfig.setPrCommentPurgeWindow(purgeWindowInDays);
+      sourceControlConfig.setPrEventPurgeWindow(shortPurgeWindowInDays);
       insightConfig.setSourceControl(sourceControlConfig);
     }
     return new PullRequestCommentPurger(sourceControlPullRequestCommentDAO, sourceControlDefaultBranchCommitHistoryDAO,
-        insightConfig);
+        sourceControlEventDAO, insightConfig);
   }
 }

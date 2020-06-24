@@ -12,6 +12,7 @@ import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.model.policy.LastPolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -248,6 +249,8 @@ public class PolicyEvaluationDAO
     SourceControlDefaultBranchCommitHistoryDAO defaultBranchCommitHistoryDAO =
         new SourceControlDefaultBranchCommitHistoryDAO();
     defaultBranchCommitHistoryDAO.deleteByPolicyEvaluationId(tx, policyEvaluation.getId());
+
+    new SourceControlEventDAO().deleteByPolicyEvaluationId(tx, policyEvaluation.getId());
 
     // Delete the policy evaluation itself
     super.delete(tx, policyEvaluation);

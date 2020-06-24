@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.report;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.UncheckedIOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -46,7 +47,9 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.InsightWork;
 
+import com.google.common.collect.ImmutableMultimap;
 import io.dropwizard.lifecycle.Managed;
+import io.dropwizard.servlets.tasks.Task;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -61,6 +64,7 @@ import static java.util.stream.Collectors.toSet;
 @Singleton
 @DisallowConcurrentExecution
 public class ReportPurger
+    extends Task
     implements Managed, Job
 {
   public static final String NAME = "ReportPurger";
@@ -116,6 +120,7 @@ public class ReportPurger
       PolicyEvaluationDAO policyEvaluationDAO,
       TaskScheduler taskScheduler)
   {
+    super("purgeObsoleteReports");
     this.work = work;
     this.dataRetentionPolicyDAO = dataRetentionPolicyDAO;
     this.applicationDAO = applicationDAO;
@@ -142,6 +147,16 @@ public class ReportPurger
   @Override
   public void stop() {
     // no-op
+  }
+
+  /**
+   * @since 1.95
+   */
+  @Override
+  public void execute(ImmutableMultimap<String, String> parameters, PrintWriter output) {
+    log.debug("Triggering purging of obsolete reports");
+    taskScheduler.triggerTaskNow(NAME);
+    output.println("Triggered purging of obsolete reports");
   }
 
   @Override

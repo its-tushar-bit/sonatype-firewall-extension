@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.report;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.UncheckedIOException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
@@ -25,11 +27,14 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 
+import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
 
@@ -49,6 +54,9 @@ public class ReportPurgerTest
 
   @Inject
   private DataRetentionPolicyDAO dataRetentionPolicyDAO;
+
+  @Mock
+  private TaskScheduler taskSchedulerMock;
 
   private Organization org;
 
@@ -75,6 +83,12 @@ public class ReportPurgerTest
 
   private Date daysAgo(int days) {
     return Date.from(ZonedDateTime.now().minusDays(days).toInstant());
+  }
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
+    super.configure(binder);
   }
 
   @Before
@@ -237,5 +251,11 @@ public class ReportPurgerTest
     JobExecutionContext mockJobExecutionContext = mock(JobExecutionContext.class);
     reportPurgerSpy.execute(mockJobExecutionContext);
     verify(reportPurgerSpy).purgeReports();
+  }
+
+  @Test
+  public void testExecute_AdminTask() {
+    reportPurger.execute(null, new PrintWriter(new StringWriter()));
+    verify(taskSchedulerMock).triggerTaskNow(ReportPurger.NAME);
   }
 }

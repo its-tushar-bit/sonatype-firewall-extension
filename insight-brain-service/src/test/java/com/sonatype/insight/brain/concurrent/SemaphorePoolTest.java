@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.concurrent;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import com.google.common.collect.ImmutableList;
 import org.junit.Test;
 
@@ -65,28 +68,30 @@ public class SemaphorePoolTest
     // given: an empty semaphore pool
     final String key = "k1";
     SemaphorePool semaphorePool = new SemaphorePool(2);
+    CountDownLatch countdownLatch = new CountDownLatch(1);
 
     // and given : a thread that locks on a key for some period of time
     new Thread(() -> {
       try {
         semaphorePool.acquire(key);
+        countdownLatch.countDown();
+        // simulate some work
         sleep(600);
-        semaphorePool.release(key);
         threadFinished = true;
+        semaphorePool.release(key);
       }
       catch (InterruptedException e) {
         e.printStackTrace();
       }
     }).start();
 
-    // and given: some time for the thread to acquire the lock
-    sleep(10);
+    // and given: wait for the thread to acquire the lock
+    countdownLatch.await(10, TimeUnit.SECONDS);
 
     // when: try to acquire the same lock
     long start = currentTimeMillis();
     semaphorePool.acquire(key);
     long duration = currentTimeMillis() - start;
-    sleep(10);
 
     // then: worker thread finished and duration indicated we had to wait for it
     assertThat(threadFinished).isTrue();

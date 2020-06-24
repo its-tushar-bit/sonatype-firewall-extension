@@ -6,10 +6,8 @@
 package com.sonatype.insight.brain.organization;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -17,11 +15,7 @@ import java.util.Map;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.UserDirectory;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Adapter class to translate between Application entity objects and ApplicationDTO objects.
@@ -34,16 +28,14 @@ import org.slf4j.LoggerFactory;
  */
 public class ApplicationAdapter
 {
-  private static final Logger log = LoggerFactory.getLogger(ApplicationAdapter.class);
-
   private final OrganizationDAO organizationDAO;
-
-  private final UserDirectory userDirectory;
 
   private final Map<String, Organization> organizationCacheById = new HashMap<>();
 
+  private final ApplicationContactLoader applicationContactLoader;
+
   private ApplicationAdapter(UserDirectory userDirectory) {
-    this.userDirectory = userDirectory;
+    applicationContactLoader = ApplicationContactLoader.getInstance(userDirectory);
     organizationDAO = new OrganizationDAO();
   }
 
@@ -66,7 +58,8 @@ public class ApplicationAdapter
       return null;
     }
 
-    final ContactDTO contact = includeContact ? getContact(application.getContactInternalName()) : null;
+    ContactDTO contact =
+        includeContact ? applicationContactLoader.getContact(application.getContactInternalName()) : null;
     return createApplicationDTO(application, contact);
   }
 
@@ -84,7 +77,7 @@ public class ApplicationAdapter
       internalNameList.add(internalName);
     }
 
-    final ContactDTO[] contacts = getContacts(internalNameList);
+    final ContactDTO[] contacts = applicationContactLoader.getContacts(internalNameList);
 
     for (int i = 0; i < applicationList.size(); i++) {
       final ApplicationDTO applicationDTO = createApplicationDTO(applicationList.get(i), contacts[i]);
@@ -132,7 +125,7 @@ public class ApplicationAdapter
       internalNameList.add(application.getContactInternalName());
     }
 
-    final ContactDTO[] contacts = getContacts(internalNameList);
+    final ContactDTO[] contacts = applicationContactLoader.getContacts(internalNameList);
     for (int i = 0; i < applicationManagementSummaryDTOList.size(); i++) {
       final ApplicationManagementSummaryDTO summary = applicationManagementSummaryDTOList.get(i);
       summary.setContact(contacts[i]);
@@ -156,108 +149,10 @@ public class ApplicationAdapter
     String organizationId = application.getOrganizationId();
     summary.setOrganizationId(organizationId);
     summary.setOrganizationName(organizationDAO.getByIdNotNull(organizationId).getName());
-    final ContactDTO contact = getContact(application.getContactInternalName());
+    final ContactDTO contact = applicationContactLoader.getContact(application.getContactInternalName());
     summary.setContact(contact);
 
     return summary;
-  }
-
-  public ContactDTO getContact(final String internalName) {
-    return getContacts(Arrays.asList(internalName))[0];
-  }
-
-  /**
-   * Get the contact DTO from the contact internal name (username)
-   * 
-   * @param internalNamesList the list of contact internal names to look up
-   * @return the contact DTO array (guaranteed to be the same size as the input list)
-   */
-  public ContactDTO[] getContacts(List<String> internalNamesList) {
-    if (internalNamesList == null || internalNamesList.isEmpty()) {
-      return new ContactDTO[0];
-    }
-
-    // Preserving the original choice of an array and ordering as other parts of the API depend on this.
-    ContactDTO[] contacts = new ContactDTO[internalNamesList.size()];
-
-    Map<String, ContactDTO> nameToContactMap;
-    UserDirectory.QueryResult result = userDirectory.getUsersByName(new HashSet<>(internalNamesList));
-    if (result.hasException()) {
-      log.error("An exception occurred while trying to resolve user names; " +
-          "attempting to resolve user names using the local Nexus IQ realm.", result.getException());
-
-      // Map the existing names potentially loaded by the CLM data store.
-      nameToContactMap = mapNameToContact(result.get());
-      // Add the remaining names as user directory errors.
-      putUserDirectoryErrorContacts(internalNamesList, nameToContactMap);
-    }
-    else {
-      nameToContactMap = mapNameToContact(result.get());
-    }
-
-    putUnknownErrorContacts(internalNamesList, nameToContactMap);
-
-    // Place the contacts into the contact array in the order the names were given.
-    for (int i = 0; i < contacts.length; i++) {
-      contacts[i] = nameToContactMap.get(toLowerCase(internalNamesList.get(i)));
-    }
-
-    return contacts;
-  }
-
-  private String toLowerCase(String string) {
-    if (string == null) {
-      return null;
-    }
-
-    return string.toLowerCase(Locale.ENGLISH);
-  }
-
-  private void putUnknownErrorContacts(List<String> internalNamesList, Map<String, ContactDTO> nameToContactMap) {
-    // If we've already mapped all the names no work needs to be done.
-    if (nameToContactMap.size() == internalNamesList.size()) {
-      return;
-    }
-
-    for (String internalName : internalNamesList) {
-      if (internalName != null && !nameToContactMap.containsKey(toLowerCase(internalName))) {
-        nameToContactMap.put(toLowerCase(internalName),
-            createErrorContact(internalName, "The username " + internalName + " no longer exists."));
-      }
-    }
-  }
-
-  private void putUserDirectoryErrorContacts(List<String> internalNamesList, Map<String, ContactDTO> nameToContactMap) {
-    // If we've already mapped all the names no work needs to be done.
-    if (nameToContactMap.size() == internalNamesList.size()) {
-      return;
-    }
-
-    for (String internalName : internalNamesList) {
-      if (internalName != null && !nameToContactMap.containsKey(toLowerCase(internalName))) {
-        nameToContactMap.put(toLowerCase(internalName),
-            createErrorContact(internalName, "User directory query result error."));
-      }
-    }
-  }
-
-  private Map<String, ContactDTO> mapNameToContact(List<Member> members) {
-    Map<String, ContactDTO> result = new HashMap<>();
-
-    for (Member member : members) {
-      result.put(member.getInternalNameLowerCase(), new ContactDTO(member.getInternalName(), member.getDisplayName(),
-          member.getEmail(), member.getRealm()));
-    }
-
-    return result;
-  }
-
-  private ContactDTO createErrorContact(String internalName, String errorMessage) {
-
-    ContactDTO contact = new ContactDTO(internalName, null, null, null);
-    contact.setError(errorMessage);
-
-    return contact;
   }
 
   private ApplicationDTO createApplicationDTO(final Application application, ContactDTO contact) {

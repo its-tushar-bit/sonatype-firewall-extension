@@ -63,11 +63,14 @@ import com.sonatype.insight.brain.model.policy.notifications.Notification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.organization.ApplicationContactLoader;
+import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.report.ReportEntry;
+import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -105,6 +108,9 @@ public class PolicyEvaluateServiceTest
 
   @Inject
   private TestProductLicenseManager productLicenseManager;
+
+  @Inject
+  private UserDirectory userDirectory;
 
   private PolicyDAO policyDAO = new PolicyDAO();
 
@@ -311,7 +317,10 @@ public class PolicyEvaluateServiceTest
 
     String serverUrl = "http://localhost/";
     lookup(InsightConfig.class).setBaseUrl(serverUrl);
-    Map<String, Object> model = emailer.createPolicyMailModel(app, scanId, StageTypes.BUILD, policyFacts, 8);
+    ContactDTO appContact =
+        ApplicationContactLoader.getInstance(userDirectory).getContact(app.getContactInternalName());
+    Map<String, Object> model =
+        emailer.createPolicyMailModel(app, appContact, scanId, StageTypes.BUILD, policyFacts, 8);
     assertThat(model.get("policyFacts")).isEqualTo(policyFacts);
     assertThat(model.get("cdnUrl")).isEqualTo("https://cdn.sonatype.com/");
     assertThat(model.get("detailedReportUrl"))

@@ -29,7 +29,8 @@ import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
-import com.sonatype.insight.brain.organization.ApplicationAdapter;
+import com.sonatype.insight.brain.organization.ApplicationContactLoader;
+import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertCounts;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.UserDirectory;
@@ -126,6 +127,9 @@ public class JiraPolicyAlertNotifier
               + ", no JIRA projects configured for any violated policy", app.getPublicId(), scanId, stage);
           return;
         }
+
+        ContactDTO appContact =
+            ApplicationContactLoader.getInstance(userDirectory).getContact(app.getContactInternalName());
         for (final Entry<JiraNotification, List<PolicyFact>> policyFactsByJiraNotification :
             policyFactsByJiraNotifications.entrySet()) {
           try (AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.CREATE_JIRA_ISSUE)) {
@@ -155,7 +159,7 @@ public class JiraPolicyAlertNotifier
                       counts.getTotal()));
 
               // render description from template; prepare template parameters with appropriate details
-              Map<String, Object> params = createPolicyMailModel(app, scanId, stage, counts, policyFacts);
+              Map<String, Object> params = createPolicyMailModel(app, appContact, scanId, stage, counts, policyFacts);
               request.description(TemplateUtils.render(descriptionTemplate, params));
 
               log.debug("Creating JIRA issue: {}", request);
@@ -177,11 +181,13 @@ public class JiraPolicyAlertNotifier
   }
 
   // Visible for tests
-  Map<String, Object> createPolicyMailModel(Application app,
-                                                    String scanId,
-                                                    Stage stage,
-                                                    PolicyAlertCounts counts,
-                                                    List<PolicyFact> policyFacts)
+  Map<String, Object> createPolicyMailModel(
+      Application app,
+      ContactDTO appContact,
+      String scanId,
+      Stage stage,
+      PolicyAlertCounts counts,
+      List<PolicyFact> policyFacts)
   {
     String stringBaseUrl = baseUrl.getConfigured();
     Map<String, Object> model = new HashMap<>();
@@ -191,7 +197,7 @@ public class JiraPolicyAlertNotifier
     model.put("stage", stage.getStageName());
     model.put("policyAlertSections", new PolicyAlertSections(policyFacts));
     model.put("policyAlertCounts", counts);
-    model.put("contact", ApplicationAdapter.getInstance(userDirectory).getContact(app.getContactInternalName()));
+    model.put("contact", appContact);
     model.put("detailedReportUrl", stringBaseUrl + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), scanId));
 
     return model;

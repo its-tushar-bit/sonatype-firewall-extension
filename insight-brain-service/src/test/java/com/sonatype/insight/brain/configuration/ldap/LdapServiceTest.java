@@ -115,7 +115,7 @@ public class LdapServiceTest
     LdapConnectionStatus ldapConnectionStatus =
         ldapService.testLdapConnection(ldapConnection.getServerId(), ldapConnection);
     assertThat(ldapConnectionStatus.getStatus()).isEqualTo(LdapConnectionStatus.Status.FAILURE);
-    assertThat(ldapConnectionStatus.getMessage()).contains("Connection refused");
+    assertThat(ldapConnectionStatus.getMessage()).containsPattern("(?i)(connection refused|socket closed)");
   }
 
   @Test

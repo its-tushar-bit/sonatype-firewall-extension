@@ -73,6 +73,9 @@ public class LdapConnection
   @Column(name = "search_base")
   private String searchBase;
 
+  @Column(name = "referral_ignored")
+  private boolean referralIgnored;
+
   /**
    * @since 1.7
    */
@@ -131,6 +134,7 @@ public class LdapConnection
     this.hostname = other.hostname;
     this.port = other.port;
     this.searchBase = other.searchBase;
+    this.referralIgnored = other.referralIgnored;
     this.authenticationMethod = other.authenticationMethod;
     this.saslRealm = other.saslRealm;
     this.systemUsername = other.systemUsername;
@@ -189,6 +193,14 @@ public class LdapConnection
 
   public void setSearchBase(String searchBase) {
     this.searchBase = searchBase;
+  }
+
+  public boolean isReferralIgnored() {
+    return referralIgnored;
+  }
+
+  public void setReferralIgnored(boolean referralIgnored) {
+    this.referralIgnored = referralIgnored;
   }
 
   public LdapAuthenticationMethod getAuthenticationMethod() {

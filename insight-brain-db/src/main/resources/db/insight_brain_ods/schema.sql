@@ -259,6 +259,7 @@ CREATE TABLE ldap_connection (
   hostname varchar(255) NOT NULL,
   port int NOT NULL,
   search_base varchar(255),
+  referral_ignored boolean DEFAULT false NOT NULL,
   authentication_method varchar(10) NOT NULL,
   sasl_realm varchar(255),
   system_username varchar(255),

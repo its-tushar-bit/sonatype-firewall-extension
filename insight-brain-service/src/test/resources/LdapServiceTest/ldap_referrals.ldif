@@ -1,0 +1,7 @@
+dn: ou=users,dc=company,dc=com
+ou: users
+objectclass: top
+objectclass: extensibleObject
+objectclass: referral
+ref: invalid://localhost:38989/ou=users,dc=company,dc=com
+description: Container for user entries in an external LDAP system

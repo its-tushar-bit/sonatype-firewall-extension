@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import javax.naming.AuthenticationException;
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;
+import javax.naming.NotContextException;
 
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
@@ -39,6 +40,7 @@ import org.junit.rules.RuleChain;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.offset;
 
@@ -1943,5 +1945,24 @@ public class LdapServiceTest
     assertThatThrownBy(() -> {
       ldapService.upsertLdapUserMapping("fake LDAP server id", ldapUserMapping);
     }).isInstanceOf(BadRequestException.class).hasMessage("Inconsistent LDAP server ID.");
+  }
+
+  @Test
+  public void testReferrals() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    LdapConnection ldapConnection = createLdapConnection(ldapServer);
+    createUserMapping(ldapServer);
+    testLdapServer1.setLdifResourceName("/" + getClass().getSimpleName() + "/ldap_referrals.ldif");
+    startLdapServer(testLdapServer1, ldapConnection);
+
+    ldapConnection.setReferralIgnored(false);
+    new LdapConnectionDAO().update(ldapConnection);
+    assertThatExceptionOfType(NotContextException.class).isThrownBy(() -> {
+      ldapService.getUsersByName(ldapServer, new String[]{"nobody"});
+    });
+
+    ldapConnection.setReferralIgnored(true);
+    new LdapConnectionDAO().update(ldapConnection);
+    assertThat(ldapService.getUsersByName(ldapServer, new String[]{"nobody"})).isEmpty();
   }
 }

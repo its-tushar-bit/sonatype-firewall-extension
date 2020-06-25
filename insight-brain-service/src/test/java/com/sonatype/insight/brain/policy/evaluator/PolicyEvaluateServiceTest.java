@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -674,6 +675,33 @@ public class PolicyEvaluateServiceTest
       policyEvaluateService.evaluateWithPolling(IntegrationType.RM, app.getPublicId(), ClientScanType.SONATYPE, null,
           new Stage(Stage.ID_BUILD));
     }).withMessage("Your IQ Server license does not enable this feature.");
+  }
+
+  @Test
+  public void testEvaluateWithPolling_AppPublicIdCaseInsensitive() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("THE-public-ID");
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(simulateReportIsAvailable());
+
+    when(mockScanHandler.createTempScanFile(eq(null), any(Application.class), eq(ClientScanType.SONATYPE)))
+        .thenReturn(mock(File.class));
+    when(mockScanHandler
+        .handle(any(File.class), any(Application.class), eq(ClientScanType.SONATYPE), any(TelemetryData.class),
+            anyString()))
+        .thenReturn(scanReceipt);
+
+    PolicyEvaluationReceipt receipt = policyEvaluateService.evaluateWithPolling(IntegrationType.CLI,
+        app.getPublicId().toLowerCase(Locale.ENGLISH), ClientScanType.SONATYPE, null, new Stage(Stage.ID_BUILD));
+
+    PolicyEvaluationPollingResult policyEvaluationPollingResult =
+        waitForResult(app.getPublicId().toUpperCase(Locale.ENGLISH), receipt.getStatusId(),
+            p -> !p.getStatus().equals(PolicyEvaluationStatus.PENDING));
+
+    assertThat(policyEvaluationPollingResult).isNotNull();
+    assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.COMPLETED);
+    assertThat(policyEvaluationPollingResult.getReason()).isNull();
+    assertThat(policyEvaluationPollingResult.getResult()).isNotNull();
+    assertThat(policyEvaluationPollingResult.getScanReceipt()).isEqualTo(scanReceipt);
   }
 
   /**

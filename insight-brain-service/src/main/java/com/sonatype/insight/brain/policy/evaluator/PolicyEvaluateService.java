@@ -111,7 +111,7 @@ public class PolicyEvaluateService
   }
 
   private String getPolicyEvaluationKey(String applicationPublicId, String statusId) {
-    return applicationPublicId + ":" + statusId;
+    return ApplicationDAO.normalizePublicId(applicationPublicId) + ":" + statusId;
   }
 
   // default access for testing

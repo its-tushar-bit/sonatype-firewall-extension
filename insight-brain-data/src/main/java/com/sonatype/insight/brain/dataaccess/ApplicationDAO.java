@@ -198,7 +198,8 @@ public class ApplicationDAO
   }
 
   public List<Application> getByPublicIds(Set<String> applicationPublicIds) {
-    applicationPublicIds = applicationPublicIds.stream().map(this::normalizePublicId).collect(Collectors.toSet());
+    applicationPublicIds =
+        applicationPublicIds.stream().map(ApplicationDAO::normalizePublicId).collect(Collectors.toSet());
     String sQuery = "SELECT entity FROM Application entity" + //
         " WHERE entity.publicIdLowercase IN (?1)";
     return getList(sQuery, applicationPublicIds);
@@ -393,7 +394,7 @@ public class ApplicationDAO
     return getList(tx, oQuery, organizationId, labelLowercase);
   }
 
-  private String normalizePublicId(String publicId) {
+  public static String normalizePublicId(String publicId) {
     return publicId.trim().toLowerCase(Locale.ENGLISH);
   }
 }

@@ -38,7 +38,7 @@ public class SourceControlEventDAOTest
   @Before
   public void setup() {
     app = tempEntity.newApplicationWithParent();
-    testStartTime = toDate(LocalDateTime.now());
+    testStartTime = toDate(LocalDateTime.now().minusSeconds(1));
   }
 
   @After

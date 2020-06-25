@@ -1,4 +1,4 @@
--- Since 1.96.0
+-- Since 1.95
 CREATE TABLE source_control_event (
   source_control_event_id varchar(50) NOT NULL,
   instance_id varchar(50) NULL,

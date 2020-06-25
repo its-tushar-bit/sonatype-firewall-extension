@@ -15,7 +15,7 @@ import javax.persistence.Table;
 import com.sonatype.insight.model.HasStringId;
 
 /**
- * @since 1.96
+ * @since 1.95
  */
 @Entity
 @Table(name = "source_control_event")

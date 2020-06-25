@@ -385,23 +385,23 @@ describe('dashboardFilterReducer', function() {
   });
 
   describe('APPLY_FILTER_FAILED action', function() {
-    it('sets saveError', function() {
-      var state = Object.freeze({saveError: null, other: otherObject});
+    it('sets applyFilterError', function() {
+      var state = Object.freeze({applyFilterError: null, other: otherObject});
       var action = {
         type: 'APPLY_FILTER_FAILED',
         payload: 'update filter error'
       };
-      expect(state.saveError).toBeNull();
+      expect(state.applyFilterError).toBeNull();
       var newState = reduce(state, action);
-      expect(newState.saveError).toBe('update filter error');
+      expect(newState.applyFilterError).toBe('update filter error');
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });
 
   describe('APPLY_FILTER_REQUESTED action', function() {
-    it('resets saveError and loadErrorFilterName', function() {
+    it('resets applyFilterError and loadErrorFilterName', function() {
       var state = Object.freeze({
-        saveError: 'save error',
+        applyFilterError: 'apply filter error',
         loadErrorFilterName: 'test filter',
         other: otherObject
       });
@@ -410,7 +410,7 @@ describe('dashboardFilterReducer', function() {
       };
       var newState = reduce(state, action);
       expect(newState).toEqual({
-        saveError: null,
+        applyFilterError: null,
         loadErrorFilterName: null,
         other: otherObject
       });

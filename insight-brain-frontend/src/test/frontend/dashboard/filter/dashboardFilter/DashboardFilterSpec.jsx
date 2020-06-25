@@ -182,7 +182,7 @@ describe('DashboardFilter', function() {
 
   it('renders a DashboardFilterFooter with the correct props', function() {
     const props = {
-          saveError: 'err',
+          applyFilterError: 'err',
           filtersAreDirty: true,
           needsAcknowledgement: true,
           setDisplaySaveFilterModal: jasmine.createSpy('setDisplaySaveFilterModal'),
@@ -192,7 +192,7 @@ describe('DashboardFilter', function() {
         filterFooter = fullFilter.find(DashboardFilterFooter);
 
     expect(filterFooter).toExist();
-    expect(filterFooter).toHaveProp('saveError', props.saveError);
+    expect(filterFooter).toHaveProp('applyFilterError', props.applyFilterError);
     expect(filterFooter).toHaveProp('filtersAreDirty', props.filtersAreDirty);
     expect(filterFooter).toHaveProp('needsAcknowledgement', props.needsAcknowledgement);
     expect(filterFooter).toHaveProp('revert', props.revert);

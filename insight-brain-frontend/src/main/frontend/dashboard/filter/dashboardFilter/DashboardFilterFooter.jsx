@@ -3,14 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, {Fragment} from 'react';
 import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
-import { NxButton, NxTooltip } from '@sonatype/react-shared-components';
+import {NxErrorAlert, NxButton, NxFontAwesomeIcon, NxTooltip} from '@sonatype/react-shared-components';
+import {faSync} from '@fortawesome/free-solid-svg-icons';
 
 export default function DashboardFilterFooter(props) {
   const {
-    saveError,
+    applyFilterError,
     filtersAreDirty,
     needsAcknowledgement,
     setDisplaySaveFilterModal,
@@ -18,7 +19,7 @@ export default function DashboardFilterFooter(props) {
     onApplyCurrentFilter
   } = props;
 
-  const filterFooterClassnames = classnames('dashboard-filter-footer', { 'iq-apply-error-present': saveError }),
+  const filterFooterClassnames = classnames('dashboard-filter-footer', {'iq-apply-error-present': applyFilterError}),
       applyBtnDisabled = !filtersAreDirty && !needsAcknowledgement,
       revertBtnClassnames = classnames({'disabled': !filtersAreDirty}),
       applyBtnClassnames = classnames({'disabled': applyBtnDisabled}),
@@ -51,9 +52,9 @@ export default function DashboardFilterFooter(props) {
     </NxTooltip>
   );
 
-  return (
-    <div className={filterFooterClassnames}>
-      { filtersAreDirty ? applyButton : tooltipApplyBtn }
+  const footerHTML = (
+    <Fragment>
+      {filtersAreDirty ? applyButton : tooltipApplyBtn}
 
       <NxButton id="dashboard-filter-revert"
                 variant="tertiary"
@@ -70,11 +71,32 @@ export default function DashboardFilterFooter(props) {
           Save
         </NxButton>
       </NxTooltip>
+    </Fragment>
+  );
+
+  const footerErrorHTML = (
+    <NxErrorAlert className="nx-alert nx-alert--error">
+      <span>{applyFilterError}</span>
+      <div className="nx-btn-bar">
+        <NxButton id="dashboard-filter-retry-button"
+                  variant="error"
+                  onClick={handleApplyBtnClick}>
+          <Fragment>
+            <NxFontAwesomeIcon icon={faSync}/>
+            <span>Retry</span>
+          </Fragment>
+        </NxButton>
+      </div>
+    </NxErrorAlert>);
+
+  return (
+    <div className={filterFooterClassnames}>
+      {applyFilterError ? footerErrorHTML : footerHTML}
     </div>
   );
 }
 DashboardFilterFooter.propTypes = {
-  saveError: PropTypes.string,
+  applyFilterError: PropTypes.string,
   filtersAreDirty: PropTypes.bool,
   needsAcknowledgement: PropTypes.bool,
   setDisplaySaveFilterModal: PropTypes.func.isRequired,

@@ -330,7 +330,7 @@ describe('dashboardFilterActions: non-angular', function() {
   describe('applyFilter', function() {
     const expectedFailAction = {
       type: 'APPLY_FILTER_FAILED',
-      payload: { status: 403 }
+      payload: 'Error 403'
     };
 
     const action = applyFilter('test filters', 'test filter name');

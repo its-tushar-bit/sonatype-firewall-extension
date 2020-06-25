@@ -43,8 +43,9 @@
       min-width: auto;
     }
 
-    .iq-apply-error-present {
+    &.iq-apply-error-present {
       height: $filter-footer-error-height;
+      padding-top: 4px;
     }
   }
 

@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { NxButton } from '@sonatype/react-shared-components';
+import {NxButton, NxErrorAlert} from '@sonatype/react-shared-components';
 
 import DashboardFilterFooter from
   '../../../../../main/frontend/dashboard/filter/dashboardFilter/DashboardFilterFooter';
@@ -135,6 +135,61 @@ describe('DashboardFilter footer', function() {
 
       shallowRender.find('#dashboard-filter-apply').simulate('click');
       expect(onApplyCurrentFilter).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Filter error buttons', function() {
+    let onApplyCurrentFilter;
+    beforeEach(function() {
+      onApplyCurrentFilter = jasmine.createSpy('onApplyCurrentFilter');
+    });
+
+    it('shows the filter error buttons if applyFilterError is true', function() {
+      const shallowRender = getShallowComponent({
+        applyFilterError: true,
+        onApplyCurrentFilter
+      });
+
+      const footer = shallowRender.find('.dashboard-filter-footer');
+      const noErrorSaveButton = footer.find('#dashboard-filter-save');
+      const errorFooter = footer.find(NxErrorAlert);
+
+      expect(errorFooter).toExist();
+      expect(noErrorSaveButton).not.toExist();
+    });
+
+    it('retries to apply filters if you click the filter error button', function() {
+      const shallowRender = getShallowComponent({
+        applyFilterError: true,
+        filtersAreDirty: false,
+        needsAcknowledgement: true,
+        onApplyCurrentFilter
+      });
+
+      const footer = shallowRender.find('.dashboard-filter-footer');
+      const noErrorSaveButton = footer.find('#dashboard-filter-save');
+      const errorFooter = footer.find(NxErrorAlert);
+
+      expect(errorFooter).toExist();
+      expect(noErrorSaveButton).not.toExist();
+      const errorButton = errorFooter.find('#dashboard-filter-retry-button');
+      expect(onApplyCurrentFilter).not.toHaveBeenCalled();
+      errorButton.simulate('click');
+      expect(onApplyCurrentFilter).toHaveBeenCalled();
+    });
+
+    it('does not show the filter error buttons if applyFilterError is false', function() {
+      const shallowRender = getShallowComponent({
+        applyFilterError: false,
+        onApplyCurrentFilter
+      });
+
+      const footer = shallowRender.find('.dashboard-filter-footer');
+      const noErrorSaveButton = footer.find('#dashboard-filter-save');
+      const errorFooter = footer.find(NxErrorAlert);
+
+      expect(errorFooter).not.toExist();
+      expect(noErrorSaveButton).toExist();
     });
   });
 

@@ -29,7 +29,7 @@ export default function DashboardFilter(props) {
     loading,
     loadError,
     loadErrorFilterName,
-    saveError,
+    applyFilterError,
     showDirtyAsterisk,
     filtersAreDirty,
     needsAcknowledgement,
@@ -92,7 +92,7 @@ export default function DashboardFilter(props) {
 
   const applicationCategoryTooltip = (prop) => prop && prop.owner && `in ${prop.owner}` || '';
 
-  const filterContentClassnames = classnames('dashboard-filter', { 'iq-apply-error-present': saveError });
+  const filterContentClassnames = classnames('dashboard-filter', { 'iq-apply-error-present': applyFilterError });
 
   return (
     <div className="dashboard-filter-container">
@@ -192,7 +192,7 @@ export default function DashboardFilter(props) {
       </div>
 
       <DashboardFilterFooter {...({
-        saveError,
+        applyFilterError,
         filtersAreDirty,
         needsAcknowledgement,
         setDisplaySaveFilterModal,
@@ -207,7 +207,7 @@ DashboardFilter.propTypes = {
   loading: PropTypes.bool.isRequired,
   loadError: LoadWrapper.propTypes.error,
   loadErrorFilterName: PropTypes.string,
-  saveError: PropTypes.string,
+  applyFilterError: PropTypes.string,
   filtersAreDirty: PropTypes.bool,
   needsAcknowledgement: PropTypes.bool,
   showAgeFilter: PropTypes.bool,

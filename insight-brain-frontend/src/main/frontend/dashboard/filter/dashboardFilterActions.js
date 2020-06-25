@@ -17,6 +17,7 @@ import {
 } from '../../util/CLMLocation';
 import { filterToJson } from './dashboardFilterService';
 import defaultFilter from './defaultFilter';
+import { Messages } from '../../util/CommonServices';
 
 export const LOAD_FILTER_REQUESTED = 'LOAD_FILTER_REQUESTED';
 export const FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED = 'FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED';
@@ -102,7 +103,7 @@ function persistAppliedFilter(filter, basedOnFilterName) {
 export function applyFilter(filter, basedOnFilterName) {
   return dispatch => dispatch(persistAppliedFilter(filter, basedOnFilterName))
       .catch(error => {
-        dispatch(applyFilterFailed(error));
+        dispatch(applyFilterFailed(Messages.getHttpErrorMessage(error)));
         return Promise.reject(error);
       })
       .then(({data}) => dispatch(applyFilterFulfilled(data, basedOnFilterName)));

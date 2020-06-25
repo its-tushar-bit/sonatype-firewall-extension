@@ -34,7 +34,7 @@ import {UI_ROUTER_ON_FINISH} from '../../reduxUiRouter/routerActions';
 const initState = Object.freeze({
   loading: true,
   loadError: null,
-  saveError: null,
+  applyFilterError: null,
   loadErrorFilterName: null,
   filtersAreDirty: false,
   needsAcknowledgement: false,
@@ -86,7 +86,7 @@ export default function dashboardFilterReducer(state = initState, {type, payload
       )(state);
 
     case APPLY_FILTER_REQUESTED:
-      return resetProps(['saveError', 'loadErrorFilterName'], state);
+      return resetProps(['applyFilterError', 'loadErrorFilterName'], state);
 
     case APPLY_FILTER_FULFILLED: {
       return compose(
@@ -96,7 +96,7 @@ export default function dashboardFilterReducer(state = initState, {type, payload
     }
 
     case APPLY_FILTER_FAILED:
-      return {...state, saveError: payload};
+      return {...state, applyFilterError: payload};
 
     case APPLY_SAVED_FILTER_FAILED:
       return {...state, loadErrorFilterName: payload};

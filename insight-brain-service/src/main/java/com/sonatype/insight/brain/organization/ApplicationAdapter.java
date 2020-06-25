@@ -18,7 +18,8 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.security.UserDirectory;
 
 /**
- * Adapter class to translate between Application entity objects and ApplicationDTO objects.
+ * Adapter class to translate between Application entity objects and ApplicationDTO and ApplicationManagementSummaryDTO
+ * objects.
  * For performance reasons, it caches data in between calls, so instances of this class should have a short life span.
  * See https://issues.sonatype.org/browse/CLM-15996 for performance details.
  * 
@@ -64,7 +65,6 @@ public class ApplicationAdapter
   }
 
   public List<ApplicationDTO> convert(List<Application> applicationList) {
-
     if (applicationList == null || applicationList.isEmpty()) {
       return Collections.emptyList();
     }
@@ -141,7 +141,6 @@ public class ApplicationAdapter
    * @return the application management summary DTO
    */
   public ApplicationManagementSummaryDTO createApplicationManagementSummary(Application application) {
-
     ApplicationManagementSummaryDTO summary = new ApplicationManagementSummaryDTO();
     summary.setId(application.getId());
     summary.setName(application.getName());
@@ -156,7 +155,6 @@ public class ApplicationAdapter
   }
 
   private ApplicationDTO createApplicationDTO(final Application application, ContactDTO contact) {
-
     if (application == null) {
       return null;
     }

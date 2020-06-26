@@ -39,7 +39,7 @@ public class SourceControlEventProcessingScheduler
   private static final Logger log = LoggerFactory.getLogger(SourceControlEventProcessingScheduler.class);
 
   @VisibleForTesting
-  static final int SOURCE_CONTROL_EVENT_PROCESSING_INTERVAL_SECONDS = 10;
+  static final int SOURCE_CONTROL_EVENT_PROCESSING_INTERVAL_SECONDS = 15;
 
   @VisibleForTesting
   static final String NAME = "SourceControlEventProcessing";

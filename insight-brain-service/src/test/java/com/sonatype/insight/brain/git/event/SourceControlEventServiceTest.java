@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.git.event;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -209,6 +211,43 @@ public class SourceControlEventServiceTest
   }
 
   @Test
+  public void testProcessEvents_multipleInvocationsQuickSuccession() throws InterruptedException {
+    // given : given a process events invocation that will take a little time to complete
+    List<SourceControlEvent> events = generateEvents("1:app1:" + SourceControlEvent.APPLICATION_EVALUATION_EVENT);
+    when(mockSourceControlEventDAO.selectEventsForInstance(eq(SourceControlEventService.INSTANCE_ID), anyInt()))
+        .thenReturn(events);
+    CountDownLatch startupLatch = new CountDownLatch(1);
+    CountDownLatch finishLatch = new CountDownLatch(1);
+
+    doAnswer(a -> {
+      startupLatch.countDown();
+      sleep(500);
+      return null;
+    }).when(mockSourceControlEventDAO).markEventInProgress(events.get(0).getId());
+
+    doAnswer(a -> {
+      finishLatch.countDown();
+      return null;
+    }).when(mockSourceControlEventDAO).markEventComplete(events.get(0).getId());
+
+    new Thread(() -> eventService.processEvents()).start();
+
+    // make sure the thread inside the event service starts up first
+    assertThat(startupLatch.await(3, TimeUnit.SECONDS)).isTrue();
+
+    // when: invoke process events a second time while first one is running
+    eventService.processEvents();
+
+    // then: 2nd invocation should do nothing an log so
+    assertThat(finishLatch.await(5, TimeUnit.SECONDS)).isTrue();
+    assertThatLogMessagesEqual(
+        debug("Requested " + SourceControlEventService.TASK_QUEUE_CAPACITY + " source control events, processing 1"),
+        debug("skipping event processing this cycle as previous cycle is still running"),
+        debug(getProcessedEventMessage(events.get(0)))
+    );
+  }
+
+  @Test
   public void testProcessEvents_eventOverload() throws InterruptedException {
     // given: DAO setup to return more events than the event service is expecting
     List<SourceControlEvent> events = generateEvents(
@@ -321,7 +360,7 @@ public class SourceControlEventServiceTest
     verify(mockSourceControlEventDAO, never()).markEventHasError(eq(event.getId()), any());
     assertThatLogMessagesEqual(
         debug("Requested " + SourceControlEventService.TASK_QUEUE_CAPACITY + " source control events, processing 1"),
-        error("Error updating event processing status for event 'c0c0babe' of type 'application evaluation' for" +
+        error("Error marking event in progress for event 'c0c0babe' of type 'application evaluation' for" +
             " application 'app1' : simulated")
     );
   }
@@ -410,7 +449,7 @@ public class SourceControlEventServiceTest
     sleep(100);
 
     // then:
-    verify(mockSourceControlEventDAO, never()).markEventInProgress(eq(event.getId()));
+    verify(mockSourceControlEventDAO, times(1)).markEventInProgress(eq(event.getId()));
     verify(mockPullRequestCommentingService, never()).onDiscoveredPullRequest(eq(event));
     verify(mockPullRequestCommentingService, never()).onApplicationEvaluation(eq(event));
     verify(mockSourceControlEventDAO, never()).markEventComplete(eq(event.getId()));

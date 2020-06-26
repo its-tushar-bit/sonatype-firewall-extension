@@ -11,6 +11,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -65,6 +66,8 @@ public class SourceControlEventService
   @VisibleForTesting
   static final String INSTANCE_ID = UUID.randomUUID().toString();
 
+  private final AtomicBoolean inProcessing = new AtomicBoolean();
+
   /*
     work for the same repo/application should be done sequentially; work for different apps can be done in parallel
    */
@@ -94,40 +97,67 @@ public class SourceControlEventService
    */
   public int processEvents() {
     int eventsSubmittedForProcessing = 0;
-    int numberOfEventsToRequest = getNumberOfEventsToRequest();
 
-    if (numberOfEventsToRequest > 0) {
-      // get any events already reserved for this instance
-      List<SourceControlEvent> events =
-          sourceControlEventDAO.selectEventsForInstance(INSTANCE_ID, numberOfEventsToRequest);
+    if (inProcessing.get()) {
+      log.debug("skipping event processing this cycle as previous cycle is still running");
+    }
+    else {
+      try {
+        inProcessing.set(true);
 
-      // if there aren't enough, reserve more and re-fetch
-      if (events.size() < numberOfEventsToRequest) {
-        // we can't assume this is the only IQ server instance processing events
-        sourceControlEventDAO.reserveEventsForInstance(INSTANCE_ID, numberOfEventsToRequest - events.size());
-        events = sourceControlEventDAO.selectEventsForInstance(INSTANCE_ID, numberOfEventsToRequest);
+        int numberOfEventsToRequest = getNumberOfEventsToRequest();
+
+        if (numberOfEventsToRequest > 0) {
+          // get any events already reserved for this instance
+          List<SourceControlEvent> events =
+              sourceControlEventDAO.selectEventsForInstance(INSTANCE_ID, numberOfEventsToRequest);
+
+          // if there aren't enough, reserve more and re-fetch
+          if (events.size() < numberOfEventsToRequest) {
+            // we can't assume this is the only IQ server instance processing events
+            sourceControlEventDAO.reserveEventsForInstance(INSTANCE_ID, numberOfEventsToRequest - events.size());
+            events = sourceControlEventDAO.selectEventsForInstance(INSTANCE_ID, numberOfEventsToRequest);
+          }
+
+          log.debug("Requested {} source control events, processing {}", numberOfEventsToRequest, events.size());
+
+          for (SourceControlEvent event : events) {
+            if (!hasCapacity()) {
+              break;
+            }
+            if (markEventInProgress(event)) {
+              getThreadPoolExecutor().execute(() -> handleSourceControlEvent(event));
+              eventsSubmittedForProcessing++;
+              try {
+                // give thread pool time to startup event handling as we'd like the events to be processed in the order
+                // received as much as possible
+                sleep(10);
+              }
+              catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+              }
+            }
+          }
+        }
       }
-
-      log.debug("Requested {} source control events, processing {}", numberOfEventsToRequest, events.size());
-
-      for (SourceControlEvent event : events) {
-        if (!hasCapacity()) {
-          break;
-        }
-        threadPoolExecutor.execute(() -> handleSourceControlEvent(event));
-        eventsSubmittedForProcessing++;
-        try {
-          // give thread pool time to startup event handling as we'd like the events to be processed in the order
-          // received as much as possible
-          sleep(10);
-        }
-        catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-        }
+      finally {
+        inProcessing.set(false);
       }
     }
 
     return eventsSubmittedForProcessing;
+  }
+
+  private boolean markEventInProgress(SourceControlEvent event) {
+    try {
+      sourceControlEventDAO.markEventInProgress(event.getId());
+      return true;
+    }
+    catch (Exception e) {
+      log.error("Error marking event in progress for event '{}' of type '{}' for application '{}' : {}",
+          event.getId(), event.getEventType(), event.getApplicationId(), e.getMessage(), e);
+      return false;
+    }
   }
 
   /**
@@ -157,7 +187,6 @@ public class SourceControlEventService
       log.trace("Acquired repo access for event '{}' of type '{}' for application '{}'", event.getId(),
           event.getEventType(), event.getApplicationId());
       try {
-        sourceControlEventDAO.markEventInProgress(event.getId());
         if (executeSourceControlEvent(event)) {
           log.debug("Processed event '{}' of type '{}' for application '{}'", event.getId(), event.getEventType(),
               event.getApplicationId());

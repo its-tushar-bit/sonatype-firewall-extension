@@ -207,22 +207,22 @@ public class LdapConfigurationTest
     // Update the hostname
     ldapConnectionForm.hostname().setValue(originalHost + "1");
     ldapConnectionForm.systemPassword().shouldBe(empty);
-    ldapConnectionForm.passwordNeedsEntryMessage().shouldBe(visible);
+    ldapConnectionForm.passwordNeedsEntryMessage().scrollIntoView(false).shouldBe(visible);
 
     // Revert the hostname
     ldapConnectionForm.hostname().setValue(originalHost);
     assertThat(ldapConnectionForm.systemPassword().getValue()).isEqualTo(String.valueOf(LdapService.FAKE_PASSWORD));
-    ldapConnectionForm.passwordNeedsEntryMessage().shouldNotBe(visible);
+    ldapConnectionForm.passwordNeedsEntryMessage().scrollIntoView(false).shouldNotBe(visible);
 
     // Update the port
     ldapConnectionForm.port().setValue(ldapConnectionForm.port().getValue() + "1");
     ldapConnectionForm.systemPassword().shouldBe(empty);
-    ldapConnectionForm.passwordNeedsEntryMessage().shouldBe(visible);
+    ldapConnectionForm.passwordNeedsEntryMessage().scrollIntoView(false).shouldBe(visible);
 
     // Revert the port
     ldapConnectionForm.port().setValue(originalPort);
     assertThat(ldapConnectionForm.systemPassword().getValue()).isEqualTo(String.valueOf(LdapService.FAKE_PASSWORD));
-    ldapConnectionForm.passwordNeedsEntryMessage().shouldNotBe(visible);
+    ldapConnectionForm.passwordNeedsEntryMessage().scrollIntoView(false).shouldNotBe(visible);
 
     // User enters a password - password should not be updated if hostname or port are updated/reverted
     String password = "password";
@@ -231,22 +231,22 @@ public class LdapConfigurationTest
     // Update the hostname
     ldapConnectionForm.hostname().setValue(originalHost + "1");
     assertThat(ldapConnectionForm.systemPassword().getValue()).isEqualTo(password);
-    ldapConnectionForm.passwordNeedsEntryMessage().shouldNotBe(visible);
+    ldapConnectionForm.passwordNeedsEntryMessage().scrollIntoView(false).shouldNotBe(visible);
 
     // Revert the hostname
     ldapConnectionForm.hostname().setValue(originalHost);
     assertThat(ldapConnectionForm.systemPassword().getValue()).isEqualTo(password);
-    ldapConnectionForm.passwordNeedsEntryMessage().shouldNotBe(visible);
+    ldapConnectionForm.passwordNeedsEntryMessage().scrollIntoView(false).shouldNotBe(visible);
 
     // Update the port
     ldapConnectionForm.port().setValue(ldapConnectionForm.port().getValue() + "1");
     assertThat(ldapConnectionForm.systemPassword().getValue()).isEqualTo(password);
-    ldapConnectionForm.passwordNeedsEntryMessage().shouldNotBe(visible);
+    ldapConnectionForm.passwordNeedsEntryMessage().scrollIntoView(false).shouldNotBe(visible);
 
     // Revert the port
     ldapConnectionForm.port().setValue(originalPort);
     assertThat(ldapConnectionForm.systemPassword().getValue()).isEqualTo(password);
-    ldapConnectionForm.passwordNeedsEntryMessage().shouldNotBe(visible);
+    ldapConnectionForm.passwordNeedsEntryMessage().scrollIntoView(false).shouldNotBe(visible);
   }
 
   private void testFormValidation() {
@@ -317,6 +317,7 @@ public class LdapConfigurationTest
     connectionForm.hostname().shouldBe(visible).setValue(testLdapServer.getHostname());
     connectionForm.port().shouldBe(visible).shouldHave(value("389")).setValue("" + testLdapServer.getPort());
     connectionForm.searchBase().shouldBe(visible).setValue("ou=users,dc=company,dc=com");
+    connectionForm.ignoreReferrals().shouldBe(visible, enabled).shouldNotBe(checked);
 
     connectionForm.cancelButton().shouldBe(enabled);
     connectionForm.saveButton().shouldBe(enabled);
@@ -332,6 +333,7 @@ public class LdapConfigurationTest
         .setValue("just checking if persisted");
     connectionForm.systemPassword().scrollIntoView(false).shouldBe(visible, empty)
         .setValue("just checking if persisted");
+    connectionForm.ignoreReferrals().click();
     connectionForm.saveButton().scrollIntoView(false);
     connectionForm.connectionTimeout().shouldBe(value("30")).setValue("31");
     connectionForm.retryDelay().shouldBe(value("30")).setValue("31");
@@ -351,6 +353,7 @@ public class LdapConfigurationTest
     assertThat(persistedLdapConnection.getHostname()).isEqualTo(testLdapServer.getHostname());
     assertThat(persistedLdapConnection.getPort()).isEqualTo(testLdapServer.getPort());
     assertThat(persistedLdapConnection.getSearchBase()).isEqualTo("ou=users,dc=company,dc=com");
+    assertThat(persistedLdapConnection.isReferralIgnored()).isTrue();
     assertThat(persistedLdapConnection.getAuthenticationMethod()).isEqualTo(LdapAuthenticationMethod.SIMPLE);
     assertThat(persistedLdapConnection.getSaslRealm()).isEqualTo("just checking if persisted");
     assertThat(persistedLdapConnection.getSystemUsername()).isEqualTo("just checking if persisted");
@@ -463,6 +466,7 @@ public class LdapConfigurationTest
     connectionForm.hostname().shouldHave(value(persistedConnection.getHostname()));
     connectionForm.port().shouldHave(value("" + persistedConnection.getPort()));
     connectionForm.searchBase().shouldHave(value(persistedConnection.getSearchBase()));
+    connectionForm.ignoreReferrals().shouldBe(persistedConnection.isReferralIgnored() ? checked : not(checked));
     connectionForm.authenticationMethod().shouldHave(
         text(persistedConnection.getAuthenticationMethod().getMethod().toUpperCase()));
     connectionForm.saslRealm().shouldHave(value(persistedConnection.getSaslRealm()));

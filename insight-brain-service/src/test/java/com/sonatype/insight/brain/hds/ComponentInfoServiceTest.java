@@ -176,6 +176,11 @@ public class ComponentInfoServiceTest
             newCoordinatesQueryParam(hdsComponentDetails))).thenReturn(hdsComponentDetails);
   }
 
+  private void mockHdsGetComponentDetailsException(NamedComponentDetails hdsComponentDetails) throws IOException {
+    when(hdsClientMock.relay(httpRequestMock, NamedComponentDetails.class, "rest/" + TOOL_NAME + "/componentDetails",
+        newCoordinatesQueryParam(hdsComponentDetails))).thenThrow(NotFoundException.class);
+  }
+
   private void mockHdsGetComponentDetailsList(ComponentDetailsList hdsComponentDetailsList,
                                               ComponentIdentifier identifier)
   {
@@ -259,6 +264,25 @@ public class ComponentInfoServiceTest
     ComponentLicenses licenses =
         componentInfoService.getLicenses(OwnerType.APPLICATION, applicationPublicId, MAVEN_A1_COORDINATES,
             httpRequestMock, identificationSource, scanId);
+
+    assertThat(licenses.declaredlicenses).isEmpty();
+    assertThat(licenses.observedlicenses).isEmpty();
+    assertThat(licenses.effectiveLicenses).isEmpty();
+    assertThat(licenses.selectableLicenses).isEmpty();
+  }
+
+  @Test
+  public void testGetLicenses_PackageManifest() throws Exception {
+    String scanId = "scanId";
+    String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
+    NamedComponentDetails componentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
+    componentDetails.setMatchState(MatchState.EXACT.getId());
+    componentDetails.setIdentificationSource(identificationSource);
+
+    mockHdsGetComponentDetailsException(componentDetails);
+
+    ComponentLicenses licenses = componentInfoService.getLicenses(OwnerType.APPLICATION, applicationPublicId,
+        MAVEN_A1_COORDINATES, httpRequestMock, identificationSource, scanId);
 
     assertThat(licenses.declaredlicenses).isEmpty();
     assertThat(licenses.observedlicenses).isEmpty();
@@ -895,6 +919,25 @@ public class ComponentInfoServiceTest
     assertThat(componentDetails.getIdentificationSource()).isEqualTo(identificationSource);
   }
 
+  @Test
+  public void testGetComponentDetails_ReadPermission_PackageManifest() throws Exception {
+    String scanId = "scanId";
+    String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
+    NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
+    hdsComponentDetails.setMatchState(MatchState.EXACT.getId());
+    hdsComponentDetails.setIdentificationSource(identificationSource);
+
+    mockHdsGetComponentDetailsException(hdsComponentDetails);
+
+    ComponentDetails componentDetails = componentInfoService.getComponentDetails_ReadPermission(application.getType(),
+        applicationPublicId, MAVEN_A1_COORDINATES, MatchState.EXACT.getId(), null /* hash */, false /* proprietary */,
+        httpRequestMock, identificationSource, scanId);
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_A1_COORDINATES);
+    assertThat(componentDetails.getMatchState()).isEqualTo(MatchState.EXACT.getId());
+    assertThat(componentDetails.getIdentificationSource()).isEqualTo(identificationSource);
+  }
+
   @Deprecated
   private void testGetComponentDetailsList_ReadPermission(final Owner owner, final String ownerId) throws Exception {
     ComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
@@ -1114,6 +1157,42 @@ public class ComponentInfoServiceTest
     assertThat(componentDetails.violatedPolicyCount).isEqualTo(1);
     
     assertThat(componentDetails.declaredLicenses).hasSize(1);
+  }
+
+  @Test
+  public void testGetComponentVersionInfo_ReadPermission_PackageManifest() throws Exception {
+    String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
+    String scanId = "scanId";
+
+    ComponentDetails componentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
+    componentDetails.setIdentificationSource(identificationSource);
+    ComponentDetailsList componentDetailsList = new ComponentDetailsList();
+    componentDetailsList.setList(Collections.singletonList(componentDetails));
+
+    mockHdsGetComponentDetailsList(new ComponentDetailsList(), componentDetails.getComponentIdentifier());
+
+    ComponentVersionInfoDTO dto = componentInfoService.getComponentVersionInfo_ReadPermission(application.getType(),
+        application.getPublicId(), MAVEN_A1_COORDINATES, null, identificationSource, scanId);
+
+    List<ComponentDetailsDTO> resultComponentDetailsList = dto.allVersions;
+
+    assertThat(resultComponentDetailsList).hasSize(1);
+    assertThat(dto.remediation).isNotNull();
+    assertThat(dto.remediation.versionChanges).isNotEmpty();
+    assertThat(
+        dto.remediation.versionChanges.get(0).getData().getComponent().componentIdentifier.toComponentIdentifier())
+            .isEqualTo(MAVEN_A1_COORDINATES);
+
+    ComponentDetailsDTO resultComponentDetails = resultComponentDetailsList.get(0);
+    assertThat(resultComponentDetails.displayName)
+        .hasToString(ComponentDisplayNameUtil.fromIdentifier(MAVEN_A1_COORDINATES).toString());
+    assertThat(resultComponentDetails.matchState).isEqualTo(MatchState.EXACT.getId());
+    assertThat(resultComponentDetails.componentIdentifier).isEqualTo(componentDetails.getComponentIdentifier());
+    assertThat(resultComponentDetails.highestSecurityVulnerabilitySeverity).isEqualTo(0f);
+    assertThat(resultComponentDetails.identificationSource).isEqualTo(identificationSource);
+    assertThat(resultComponentDetails.policyMaxThreatLevelsByCategory).isEmpty();
+    assertThat(resultComponentDetails.violatedPolicyCount).isEqualTo(0);
+    assertThat(resultComponentDetails.declaredLicenses).isEmpty();
   }
 
   @Test

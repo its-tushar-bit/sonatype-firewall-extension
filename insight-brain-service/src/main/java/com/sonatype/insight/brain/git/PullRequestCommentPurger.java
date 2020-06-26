@@ -20,6 +20,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.security.SystemRunnable;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -31,7 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Purges pull request comment records older than 6 months. It runs avery day at 2:00 AM. 
+ * Purges pull request comment records older than 6 months. It runs avery day at 2:00 AM.
  */
 @Named
 @Singleton
@@ -43,12 +44,16 @@ public class PullRequestCommentPurger
   /**
    * Default purge window for PR comment records in days; it can be overwritten in 'config.yml'.
    */
-  private static int DEFAULT_PURGE_WINDOW_IN_DAYS = 180;
+  private static final int DEFAULT_COMMENT_PURGE_WINDOW_IN_DAYS = 180;
+
+  private static final int DEFAULT_EVENT_PURGE_WINDOW_IN_DAYS = 5;
 
   private final SourceControlPullRequestCommentDAO sourceControlPullRequestCommentDAO;
 
   private final SourceControlDefaultBranchCommitHistoryDAO sourceControlDefaultBranchCommitHistoryDAO;
-  
+
+  private final SourceControlEventDAO sourceControlEventDAO;
+
   private final InsightConfig insightConfig;
 
   private ScheduledExecutorService executor;
@@ -57,10 +62,12 @@ public class PullRequestCommentPurger
   public PullRequestCommentPurger(
       final SourceControlPullRequestCommentDAO sourceControlPullRequestCommentDAO,
       final SourceControlDefaultBranchCommitHistoryDAO sourceControlDefaultBranchCommitHistoryDAO,
+      final SourceControlEventDAO sourceControlEventDAO,
       final InsightConfig insightConfig)
   {
     this.sourceControlPullRequestCommentDAO = sourceControlPullRequestCommentDAO;
     this.sourceControlDefaultBranchCommitHistoryDAO = sourceControlDefaultBranchCommitHistoryDAO;
+    this.sourceControlEventDAO = sourceControlEventDAO;
     this.insightConfig = insightConfig;
   }
 
@@ -102,14 +109,22 @@ public class PullRequestCommentPurger
 
   @VisibleForTesting
   void purgeObsoleteRecords() {
-    int purgeWindowInDays = DEFAULT_PURGE_WINDOW_IN_DAYS;
+    int commentPurgeWindowInDays = DEFAULT_COMMENT_PURGE_WINDOW_IN_DAYS;
     if (insightConfig.getSourceControl() != null &&
         insightConfig.getSourceControl().getPrCommentPurgeWindow() != null) {
-      purgeWindowInDays = insightConfig.getSourceControl().getPrCommentPurgeWindow(); 
+      commentPurgeWindowInDays = insightConfig.getSourceControl().getPrCommentPurgeWindow();
     }
-    Date cutoffDate = Date.from(ZonedDateTime.now().minusDays(purgeWindowInDays).toInstant());
-    purgePullRequestComments(cutoffDate);
-    purgeDefaultBranchCommitHistory(cutoffDate);
+    Date commentCutoffDate = Date.from(ZonedDateTime.now().minusDays(commentPurgeWindowInDays).toInstant());
+    purgePullRequestComments(commentCutoffDate);
+    purgeDefaultBranchCommitHistory(commentCutoffDate);
+
+    int eventPurgeWindowInDays = DEFAULT_EVENT_PURGE_WINDOW_IN_DAYS;
+    if (insightConfig.getSourceControl() != null &&
+        insightConfig.getSourceControl().getPrCommentPurgeWindow() != null) {
+      eventPurgeWindowInDays = insightConfig.getSourceControl().getPrCommentPurgeWindow();
+    }
+    Date eventCutoffDate = Date.from(ZonedDateTime.now().minusDays(eventPurgeWindowInDays).toInstant());
+    purgeSourceControlEvents(eventCutoffDate);
   }
 
   void purgePullRequestComments(Date cutoffDate) {
@@ -123,6 +138,13 @@ public class PullRequestCommentPurger
     int deletedRows = sourceControlDefaultBranchCommitHistoryDAO.deleteAllBeforeDate(cutoffDate);
     if (deletedRows > 0) {
       log.info("Purged {} obsolete default branch commit history older than {}", deletedRows, cutoffDate);
+    }
+  }
+
+  private void purgeSourceControlEvents(final Date cutoffDate) {
+    int deletedRows = sourceControlEventDAO.deleteAllBeforeDate(cutoffDate);
+    if (deletedRows > 0) {
+      log.info("Purged {} obsolete source control events older than {}", deletedRows, cutoffDate);
     }
   }
 }

@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -197,7 +198,8 @@ public class ApplicationDAO
   }
 
   public List<Application> getByPublicIds(Set<String> applicationPublicIds) {
-    applicationPublicIds = applicationPublicIds.stream().map(this::normalizePublicId).collect(Collectors.toSet());
+    applicationPublicIds =
+        applicationPublicIds.stream().map(ApplicationDAO::normalizePublicId).collect(Collectors.toSet());
     String sQuery = "SELECT entity FROM Application entity" + //
         " WHERE entity.publicIdLowercase IN (?1)";
     return getList(sQuery, applicationPublicIds);
@@ -347,6 +349,9 @@ public class ApplicationDAO
     // Cascade to SourceControl default branch commit history
     new SourceControlDefaultBranchCommitHistoryDAO().deleteByApplicationId(tx, application.getId());
 
+    // Cascade to SourceControl events
+    new SourceControlEventDAO().deleteByApplicationId(tx, application.getId());
+
     super.delete(tx, application);
 
     // Cascade to aggregation tables. These are in a separate database and therefore use a separate transaction.
@@ -389,7 +394,7 @@ public class ApplicationDAO
     return getList(tx, oQuery, organizationId, labelLowercase);
   }
 
-  private String normalizePublicId(String publicId) {
+  public static String normalizePublicId(String publicId) {
     return publicId.trim().toLowerCase(Locale.ENGLISH);
   }
 }

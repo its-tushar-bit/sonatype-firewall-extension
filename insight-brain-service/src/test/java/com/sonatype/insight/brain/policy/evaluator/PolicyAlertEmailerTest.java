@@ -52,7 +52,8 @@ import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.organization.ApplicationAdapter;
+import com.sonatype.insight.brain.organization.ApplicationContactLoader;
+import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -99,6 +100,9 @@ public class PolicyAlertEmailerTest
 
   @Inject
   private TestProductLicense testProductLicense;
+
+  @Inject
+  private UserDirectory userDirectory;
 
   @Mock
   private InsightMail mailer;
@@ -447,8 +451,7 @@ public class PolicyAlertEmailerTest
         .getUsersByGroup(argThat(new SameId(ldapServers.get(0))), any(String.class));
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), ldapServiceSpy);
-    PolicyAlertEmailer undertest = new PolicyAlertEmailer(mailer, lookup(BaseUrl.class),
-        new ApplicationAdapter(userDirectory),
+    PolicyAlertEmailer undertest = new PolicyAlertEmailer(mailer, lookup(BaseUrl.class), userDirectory,
         new PolicyAlertEmailResolver(userDirectory, ldapServiceSpy, new OwnerDAO(), new MembershipMappingDAO()),
         new AuditRecorder(null), testProductLicense);
 
@@ -596,8 +599,10 @@ public class PolicyAlertEmailerTest
     String hashUnknown = "hashUnknown12&3";
     policyFacts.add(newPolicyFact(policy, null, hashUnknown));
 
+    ContactDTO appContact =
+        ApplicationContactLoader.getInstance(userDirectory).getContact(app.getContactInternalName());
     Map<String, Object> model =
-        policyAlertEmailer.createPolicyMailModel(app, scanId, StageTypes.STAGE_RELEASE, policyFacts, 7);
+        policyAlertEmailer.createPolicyMailModel(app, appContact, scanId, StageTypes.STAGE_RELEASE, policyFacts, 7);
 
     String emailBody = policyAlertEmailer.createPolicyMailBody(model);
     assertThat(emailBody)
@@ -626,7 +631,7 @@ public class PolicyAlertEmailerTest
         .add(newPolicyFact(policy, ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"), "hash"));
 
     assertThatThrownBy(() -> {
-      policyAlertEmailer.createPolicyMailModel(app, "scanId", StageTypes.BUILD, policyFacts, 0);
+      policyAlertEmailer.createPolicyMailModel(app, null /* appContact */, "scanId", StageTypes.BUILD, policyFacts, 0);
     }).isInstanceOf(IllegalStateException.class).hasMessage(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
   }
 

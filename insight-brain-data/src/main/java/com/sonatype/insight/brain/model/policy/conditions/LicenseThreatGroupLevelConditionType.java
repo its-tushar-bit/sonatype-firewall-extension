@@ -16,10 +16,11 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.IntegerValueType;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.brain.model.policy.facts.TriggerLicenseThreatGroupWithThreatLevel;
+import com.sonatype.insight.brain.policy.DroolsGenerator;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class LicenseThreatGroupLevelConditionType
-    extends AbstractConditionType
+    extends AbstractLicenseThreatGroupConditionType<Integer>
 {
   public static final String ID = "License Threat Group Level";
 
@@ -81,9 +82,12 @@ public class LicenseThreatGroupLevelConditionType
         + condition.getOperator() + " " + condition.getValue() + " (level = " + conditionTrigger.threatLevel + ")";
   }
 
-  public boolean evaluateCondition(LicenseThreatGroup licenseThreatGroup,
-                                   String operator,
-                                   Integer licenseThreatGroupLevel)
+  @Override
+  public boolean evaluateCondition(
+      Component component,
+      LicenseThreatGroup licenseThreatGroup,
+      String operator,
+      Integer licenseThreatGroupLevel)
   {
     if (">=".equals(operator)) {
       return licenseThreatGroup.getThreatLevel() >= licenseThreatGroupLevel;
@@ -105,15 +109,8 @@ public class LicenseThreatGroupLevelConditionType
   }
 
   @Override
-  public String generateDroolsConditionCode(TransactionContext tx, Condition condition) {
-    return "$licenseThreatGroup : (LicenseThreatGroup (ConditionTypes." + getClass().getSimpleName()
-        + ".evaluateCondition(this, \"" + condition.getOperator() + "\", "
-        + generateDroolsConditionValue(tx, condition.getValue()) + ")) from $component.licenseThreatGroups)";
-  }
-
-  @Override
   public String generateDroolsTriggerCode(Condition condition, int conditionIndex) {
     return "$conditionTriggers.add(new ConditionTrigger(" + conditionIndex
-        + ", new TriggerLicenseThreatGroupWithThreatLevel($licenseThreatGroup)));";
+        + ", new TriggerLicenseThreatGroupWithThreatLevel(" + DroolsGenerator.LICENSE_THREAT_GROUP_VARIABLE + ")));";
   }
 }

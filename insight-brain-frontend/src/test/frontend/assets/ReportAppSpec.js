@@ -32,17 +32,18 @@ describe('reportApp', function() {
     $httpBackend.verifyNoOutstandingRequest();
   });
 
-  describe('doLoad', function() {
+  describe('doLoad tries to get page 1 with 50 results', function() {
     it('handles no reports', function() {
       var mockStageData = MockData.getActionStageData();
       $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(mockStageData);
-      $httpBackend.expectGET('/rest/application/services/summary').respond([]);
+      $httpBackend.expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50')
+          .respond([]);
       const vm = $controller('ReportViolationsController', { $scope: scope, $state: state });
 
       expect(vm.stages).toBeUndefined();
-      expect(vm.applications).toBeUndefined();
-      expect(vm.noReports).toBeUndefined();
-      expect(vm.showReports).toBeUndefined();
+      expect(vm.applications).toEqual([]);
+      expect(vm.noReports).toBeFalsy();
+      expect(vm.showReports).toBeTruthy();
 
       $httpBackend.flush();
 
@@ -57,18 +58,18 @@ describe('reportApp', function() {
       expect(vm.showReports).toBe(false);
     });
 
-    it('loads reports, sorts and assigns index', function() {
+    it('loads reports', function() {
       var mockStageData = MockData.getActionStageData();
       var mockApplicationSummaryData = applicationMockData.getApplicationSummaryData();
       $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(mockStageData);
-      $httpBackend.expectGET('/rest/application/services/summary').respond(
-          mockApplicationSummaryData);
+      $httpBackend.expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50')
+          .respond(mockApplicationSummaryData);
       const vm = $controller('ReportViolationsController', { $scope: scope, $state: state });
 
       expect(vm.stages).toBeUndefined();
-      expect(vm.applications).toBeUndefined();
-      expect(vm.noReports).toBeUndefined();
-      expect(vm.showReports).toBeUndefined();
+      expect(vm.applications).toEqual([]);
+      expect(vm.noReports).toBeFalsy();
+      expect(vm.showReports).toBeTruthy();
 
       $httpBackend.flush();
 
@@ -79,85 +80,140 @@ describe('reportApp', function() {
 
       expect(vm.applications).toBeDefined();
       expect(vm.applications.length).toBe(mockApplicationSummaryData.length);
-      // should ne sorted by name
-      expect(vm.applications[0].id).toBe(mockApplicationSummaryData[2].id);
-      // should index
-      expect(vm.applications[0].index).toBe(0);
 
       expect(vm.noReports).toBe(false);
       expect(vm.showReports).toBe(true);
     });
   });
 
-  describe('$watch', function () {
+  describe('search', function () {
     let vm;
 
     beforeEach(function() {
       $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
-      $httpBackend.expectGET('/rest/application/services/summary').respond(
-          applicationMockData.getApplicationSummaryData());
+      $httpBackend.expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50')
+          .respond(applicationMockData.getApplicationSummaryData());
       vm = $controller('ReportViolationsController', { $scope: scope, $state: state });
       scope.vm = vm;
       $httpBackend.flush();
     });
 
-    describe('when filter changes', function () {
-      it('filters by Application Name, sorts and assigns index', function() {
+    describe('when filter changes and search is executed', function () {
+      it('filters by Application or Organization name', function() {
         vm.appFilter = 'appl';
-        scope.$digest();
-        expect(vm.applications.length).toBe(2);
-        expect(vm.applications[0].name).toBe('application2');
-        expect(vm.applications[0].index).toBe(0);
-        expect(vm.applications[1].name).toBe('application3');
-        expect(vm.applications[1].index).toBe(1);
-        vm.appFilter = 'foobar';
-        scope.$digest();
-        expect(vm.applications.length).toBe(0);
-      });
-
-      it('filters by Organization Name, sorts and assigns index', function() {
-        vm.appFilter = 'big'; // case insensitive
-        scope.$digest();
-        expect(vm.applications.length).toBe(2);
-        expect(vm.applications[0].name).toBe('app1');
-        expect(vm.applications[0].index).toBe(0);
-        expect(vm.applications[1].name).toBe('application2');
-        expect(vm.applications[1].index).toBe(1);
-        vm.appFilter = 'foobar';
-        scope.$digest();
-        expect(vm.applications.length).toBe(0);
+        vm.sortAndFilter();
+        $httpBackend.expectGET(
+            '/rest/application/services/summary?nameFilter=appl&order=APP_NAME_ASC&page=1&pageSize=50').respond([]);
+        $httpBackend.flush();
+        expect(vm.applications).toEqual([]);
       });
 
       it('does not filter if app filter is Null', function() {
         vm.appFilter = null;
-        scope.$digest();
-        expect(vm.applications.length).toBe(3);
+        vm.sortAndFilter();
+        $httpBackend.expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50')
+            .respond([]);
+        $httpBackend.flush();
+        expect(vm.applications).toEqual([]);
       });
 
       it('does not filter if app filter is Empty', function() {
         vm.appFilter = '';
-        scope.$digest();
-        expect(vm.applications.length).toBe(3);
+        vm.sortAndFilter();
+        $httpBackend.expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50')
+            .respond([]);
+        $httpBackend.flush();
+        expect(vm.applications).toEqual([]);
       });
     });
 
     describe('when sort field changes', function() {
-      it('filters, sorts and assigns index', function() {
-        var mockApplicationSummaryData = applicationMockData.getApplicationSummaryData();
-        vm.appFilter = 'big';
-        scope.$digest();
-        expect(vm.applications.length).toBe(2);
-        expect(vm.applications[0].id).toBe(mockApplicationSummaryData[2].id);
-        expect(vm.applications[0].index).toBe(0);
-        expect(vm.applications[1].index).toBe(1);
+      it('sorts', function() {
+        vm.sortChange(['name']);
+        $httpBackend.expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50')
+            .respond(['app1']);
+        $httpBackend.flush();
+        expect(vm.applications).toEqual(['app1']);
 
-        vm.sortFields = ['-name'];
-        scope.$digest();
+        vm.sortChange(['-name']);
+        $httpBackend.expectGET('/rest/application/services/summary?order=APP_NAME_DESC&page=1&pageSize=50')
+            .respond(['app2']);
+        $httpBackend.flush();
+        expect(vm.applications).toEqual(['app2']);
 
-        expect(vm.applications.length).toBe(2);
-        expect(vm.applications[0].id).toBe(mockApplicationSummaryData[1].id);
-        expect(vm.applications[0].index).toBe(0);
-        expect(vm.applications[1].index).toBe(1);
+        vm.sortChange(['organizationName']);
+        $httpBackend.expectGET('/rest/application/services/summary?order=ORG_NAME_ASC&page=1&pageSize=50')
+            .respond(['app3']);
+        $httpBackend.flush();
+        expect(vm.applications).toEqual(['app3']);
+
+        vm.sortChange(['-organizationName']);
+        $httpBackend.expectGET('/rest/application/services/summary?order=ORG_NAME_DESC&page=1&pageSize=50')
+            .respond(['app4']);
+        $httpBackend.flush();
+        expect(vm.applications).toEqual(['app4']);
+      });
+    });
+  });
+
+  describe('pages', function() {
+    let vm;
+
+    beforeEach(function() {
+      $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
+      vm = $controller('ReportViolationsController', {$scope: scope, $state: state});
+      scope.vm = vm;
+    });
+
+    it('has an initial size of 50', function() {
+      $httpBackend.expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50').respond([]);
+      $httpBackend.flush();
+    });
+
+    describe('when load more results is pressed', function() {
+      it('increases the pages', function() {
+        $httpBackend.expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50').respond([]);
+        $httpBackend.flush();
+
+        vm.loadMoreResults();
+
+        $httpBackend.expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=2&pageSize=50').respond([]);
+        $httpBackend.flush();
+      });
+    });
+
+    describe('when sorting or filtering', function() {
+      it('resets the pages to 1', function() {
+        $httpBackend.expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50').respond([]);
+        $httpBackend.flush();
+
+        vm.loadMoreResults();
+
+        $httpBackend.expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=2&pageSize=50').respond([]);
+        $httpBackend.flush();
+
+        vm.sortAndFilter();
+
+        $httpBackend.expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50').respond([]);
+        $httpBackend.flush();
+      });
+    });
+
+    describe('has more results', function() {
+      it('is set to true if a full page of results was last returned', function() {
+        $httpBackend.expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50')
+            .respond(applicationMockData.getApplicationSummaryData(50));
+        $httpBackend.flush();
+
+        expect(vm.hasMoreResults).toBeTruthy();
+      });
+
+      it('is set to false if a partial page of results was last returned', function() {
+        $httpBackend.expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50')
+            .respond(applicationMockData.getApplicationSummaryData(49));
+        $httpBackend.flush();
+
+        expect(vm.hasMoreResults).toBeFalsy();
       });
     });
   });

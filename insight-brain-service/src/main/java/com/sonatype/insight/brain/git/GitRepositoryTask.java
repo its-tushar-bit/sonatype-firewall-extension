@@ -63,6 +63,18 @@ public abstract class GitRepositoryTask
       final String applicationId,
       final String branchName)
   {
+    return getCheckoutDirectory(insightConfig, applicationPublicId, applicationId, branchName);
+  }
+
+  /**
+   * Checks whether the checkout directory exists. If so, it is returned; otherwise it is created.
+   */
+  static File getCheckoutDirectory(
+      final InsightConfig insightConfig,
+      final String applicationPublicId,
+      final String applicationId,
+      final String branchName)
+  {
     File checkoutDir = new File(
         insightConfig.getSourceControl().getCloneDirectory(),
         toSafePathname(applicationPublicId, branchName, applicationId));
@@ -82,6 +94,13 @@ public abstract class GitRepositoryTask
    * Deletes the checkout directory. To be used if the task fails.
    */
   protected void cleanDirectory(final File checkoutDir) {
+    cleanDirectory(fileCleaner, checkoutDir);
+  }
+
+  /**
+   * Deletes the checkout directory. To be used if the task fails.
+   */
+  static void cleanDirectory(final FileCleaner fileCleaner, final File checkoutDir) {
     try {
       if (null != checkoutDir) {
         fileCleaner.delete(checkoutDir);
@@ -103,7 +122,7 @@ public abstract class GitRepositoryTask
    * and dashes.
    * @return url and filename safe string
    */
-  protected String toSafePathname(
+  static String toSafePathname(
       final String applicationPublicId,
       final String branchName,
       final String applicationId)
@@ -124,7 +143,7 @@ public abstract class GitRepositoryTask
    * @param input input
    * @return hash value
    */
-  protected String truncatedHashOf(final String input) {
+  static String truncatedHashOf(final String input) {
     try {
       byte[] hash = Base64.getUrlEncoder().encode(MessageDigest.getInstance("SHA1").digest(input.getBytes(UTF_8)));
       return new String(hash, UTF_8).replaceAll("=", "").substring(0, HASH_LENGTH).toLowerCase();

@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupLevelConditionType;
@@ -134,6 +135,44 @@ public class LicenseThreatGroupLevelConditionTypeTest
     String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts().get(0).getReason();
     assertThat(actualReason).isEqualTo("Found license threat group 'Level 5' with level >= 5 (level = 5)");
+  }
+
+  @Test
+  public void testEvaluateRange() {
+    // Create policy constraint
+    Constraint constraint = new Constraint("Test-Contraint", "Range of Levels", LogicalOperator.AND);
+    constraint.addCondition(new Condition(LicenseThreatGroupLevelConditionType.ID, ">=", "3"));
+    constraint.addCondition(new Condition(LicenseThreatGroupLevelConditionType.ID, "<=", "8"));
+
+    // Create policy
+    Policy policy = new Policy("PolicyId1", "Policy Name 1");
+    policy.addConstraint(constraint);
+    policy.setAction(BuildStageType.ID, FailActionType.ID);
+
+    List<Component> components = new ArrayList<>();
+    Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
+    component1.addLicenseThreatGroup(licenseThreatGroup2);
+    components.add(component1);
+    Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
+    component2.addLicenseThreatGroup(licenseThreatGroup5);
+    components.add(component2);
+
+    // Evaluate the policy
+    List<PolicyAlert> policyAlerts = evaluate(policy, components);
+
+    assertThat(policyAlerts).hasSize(1);
+    assertFactCounts(1, 1, policyAlerts.get(0));
+
+    ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0,
+        new TriggerLicenseThreatGroupWithThreatLevel(licenseThreatGroup5));
+    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID,
+        LicenseThreatGroupLevelConditionType.ID, expectedConditionTrigger, policyAlerts);
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason).isEqualTo("Found license threat group 'Level 5' with level >= 3 (level = 5)");
+    actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(1).getReason();
+    assertThat(actualReason).isEqualTo("Found license threat group 'Level 5' with level <= 8 (level = 5)");
   }
 
   @Test

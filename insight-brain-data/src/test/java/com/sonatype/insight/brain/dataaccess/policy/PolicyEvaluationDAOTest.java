@@ -17,12 +17,14 @@ import java.util.stream.Collectors;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
 
 import com.google.common.collect.Sets;
@@ -354,7 +356,7 @@ public class PolicyEvaluationDAOTest
     PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scanId4", time2);
 
     Set<String> appIds = new LinkedHashSet<>();
-    while (appIds.size() < PolicyEvaluationDAO.IN_OPERATOR_THRESHOLD) {
+    while (appIds.size() < PolicyEvaluationDAO.H2_IN_OPERATOR_THRESHOLD) {
       appIds.add(tempEntity.uuid());
     }
     appIds.add(application.getId());
@@ -411,7 +413,7 @@ public class PolicyEvaluationDAOTest
     PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(application.getId(), stageTypeId, "scanId3", time2);
 
     Set<String> appIds = new LinkedHashSet<>();
-    while (appIds.size() < PolicyEvaluationDAO.IN_OPERATOR_THRESHOLD) {
+    while (appIds.size() < PolicyEvaluationDAO.H2_IN_OPERATOR_THRESHOLD) {
       appIds.add(tempEntity.uuid());
     }
     appIds.add(application.getId());
@@ -574,6 +576,53 @@ public class PolicyEvaluationDAOTest
         .getByApplicationIdAndComponentAndPullRequestId(application.getId(), componentHash,
             pullRequestComment.getPullRequestId());
     assertThat(fetchedLineComment).isNull();
+  }
+
+  @Test
+  public void testDelete_cascadeToSourceControlEventForSourcePolicyEvaluation() {
+    // given a source control event with policy evaluations
+    PolicyEvaluation sourcePolicyEvaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "sourceScan", "sourceCommit");
+
+    SourceControlEvent sourceControlEvent =
+        tempEntity.newSourceControlEvent(application, sourcePolicyEvaluation, null);
+
+    SourceControlEventDAO sourceControlEventDAO = new SourceControlEventDAO();
+    SourceControlEvent sourceControlEventByIdBeforeDelete = sourceControlEventDAO.getById(sourceControlEvent.getId());
+    assertThat(sourceControlEventByIdBeforeDelete).isNotNull();
+
+    // when the policy evaluation is deleted
+    PolicyEvaluationDAO policyEvaluationDao = new PolicyEvaluationDAO();
+    policyEvaluationDao.delete(sourcePolicyEvaluation);
+
+    // then the source control event is deleted
+    SourceControlEvent sourceControlEventByIAfterDelete = sourceControlEventDAO.getById(sourceControlEvent.getId());
+    assertThat(sourceControlEventByIAfterDelete).isNull();
+  }
+
+  @Test
+  public void testDelete_cascadeToSourceControlEventForTargetPolicyEvaluation() {
+    // given a source control event with policy evaluations
+    PolicyEvaluation sourcePolicyEvaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "sourceScan", "sourceCommit");
+
+    PolicyEvaluation targetPolicyEvaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "targetScan", "targetCommit");
+
+    SourceControlEvent sourceControlEvent =
+        tempEntity.newSourceControlEvent(application, sourcePolicyEvaluation, targetPolicyEvaluation);
+
+    SourceControlEventDAO sourceControlEventDAO = new SourceControlEventDAO();
+    SourceControlEvent sourceControlEventByIdBeforeDelete = sourceControlEventDAO.getById(sourceControlEvent.getId());
+    assertThat(sourceControlEventByIdBeforeDelete).isNotNull();
+
+    // when the policy evaluation is deleted
+    PolicyEvaluationDAO policyEvaluationDao = new PolicyEvaluationDAO();
+    policyEvaluationDao.delete(targetPolicyEvaluation);
+
+    // then the source control event is deleted
+    SourceControlEvent sourceControlEventByIAfterDelete = sourceControlEventDAO.getById(sourceControlEvent.getId());
+    assertThat(sourceControlEventByIAfterDelete).isNull();
   }
 
   @Test

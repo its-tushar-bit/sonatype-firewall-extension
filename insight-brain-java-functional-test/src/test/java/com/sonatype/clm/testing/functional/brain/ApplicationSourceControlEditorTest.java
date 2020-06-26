@@ -35,6 +35,8 @@ public class ApplicationSourceControlEditorTest
   private static final String REPOSITORY_URL = "https://a.com/b/c";
 
   private static final String BITBUCKET_REPOSITORY_URL = "https://bitbucket.org/org/repo.git";
+  
+  private static final String BITBUCKET_REPOSITORY_URL_SANITIZED = "https://bitbucket.org/org/repo";
 
   private static final String SSH_REPOSITORY_URL = "ssh://a.com/b/c";
 
@@ -376,7 +378,7 @@ public class ApplicationSourceControlEditorTest
 
     SourceControlEditorPage.credentialsOverrideRadio().shouldBe(selected);
     SourceControlEditorPage.credentialsInheritRadio().shouldNotBe(selected, enabled);
-    SourceControlEditorPage.repositoryUrl().shouldHave(value(BITBUCKET_REPOSITORY_URL));
+    SourceControlEditorPage.repositoryUrl().shouldHave(value(BITBUCKET_REPOSITORY_URL_SANITIZED));
     SourceControlEditorPage.credentialsToken().shouldHave(value(FAKE_SECRET_KEY));
 
     tempEntity.newSourceControl(organization.getId(), null, "orgUser", TOKEN, null, null, null, null, null);
@@ -389,7 +391,7 @@ public class ApplicationSourceControlEditorTest
 
     SourceControlEditorPage.credentialsOverrideRadio().shouldBe(selected);
     SourceControlEditorPage.credentialsInheritRadio().shouldNotBe(selected, disabled);
-    SourceControlEditorPage.repositoryUrl().shouldHave(value(BITBUCKET_REPOSITORY_URL));
+    SourceControlEditorPage.repositoryUrl().shouldHave(value(BITBUCKET_REPOSITORY_URL_SANITIZED));
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
     SourceControlEditorPage.saveButton().hover();
     assertToolTip("There are no changes to update.");

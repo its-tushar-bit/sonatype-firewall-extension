@@ -106,6 +106,7 @@ class LdapQuery
     ctxFactory.setSystemPassword(ldapConnection.getSystemPassword());
     ctxFactory.setSaslRealm(ldapConnection.getSaslRealm());
     ctxFactory.setConnectionTimeout(ldapConnection.getConnectionTimeout());
+    ctxFactory.setReferral(ldapConnection.isReferralIgnored() ? "ignore" : "follow");
 
     this.ldapUserMapping = ldapUserMapping;
   }

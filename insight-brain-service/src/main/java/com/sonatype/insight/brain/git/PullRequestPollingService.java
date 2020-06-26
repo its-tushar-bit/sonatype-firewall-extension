@@ -18,9 +18,10 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
-import com.sonatype.insight.brain.eventbus.AsyncEventBus;
+import com.sonatype.insight.brain.git.event.SourceControlEventService;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.scm.api.GitApiClient;
@@ -43,11 +44,15 @@ public class PullRequestPollingService
   private static final Logger log = LoggerFactory.getLogger(PullRequestPollingService.class);
 
   @VisibleForTesting
-  static final int PULL_REQUESTS_PER_MONITOR_CYCLE = 10;
+  static final int PULL_REQUESTS_PER_MONITOR_CYCLE = 50;
 
-  private static final int MAX_API_REQUESTS_PER_CYCLE = 10;
+  private static final int MAX_API_REQUESTS_PER_CYCLE = 50;
+
+  private static final String POLLING = "polling";
 
   private final SourceControlDAO sourceControlDAO;
+
+  private final SourceControlEventService sourceControlEventService;
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
@@ -57,26 +62,24 @@ public class PullRequestPollingService
 
   private final GitClientFactory gitClientFactory;
 
-  private final AsyncEventBus asyncEventBus;
-
   private final PullRequestRepositoryValidator pullRequestRepositoryValidator;
 
   @Inject
   public PullRequestPollingService(
       SourceControlDAO sourceControlDAO,
+      SourceControlEventService sourceControlEventService,
       PolicyEvaluationDAO policyEvaluationDAO,
       GitCommitHistoryService gitCommitHistoryService,
       SourceControlUtils sourceControlUtils,
       GitClientFactory gitClientFactory,
-      AsyncEventBus asyncEventBus,
       PullRequestRepositoryValidator pullRequestRepositoryValidator)
   {
     this.sourceControlDAO = sourceControlDAO;
+    this.sourceControlEventService = sourceControlEventService;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.gitCommitHistoryService = gitCommitHistoryService;
     this.sourceControlUtils = sourceControlUtils;
     this.gitClientFactory = gitClientFactory;
-    this.asyncEventBus = asyncEventBus;
     this.pullRequestRepositoryValidator = pullRequestRepositoryValidator;
   }
 
@@ -144,27 +147,28 @@ public class PullRequestPollingService
       PolicyEvaluation sourcePolicyEvaluation,
       PolicyEvaluation targetPolicyEvaluation)
   {
-    DiscoveredPullRequestEvent event = new DiscoveredPullRequestEvent();
-    event.applicationId = applicationId;
-    event.branchName = branchName;
-    event.commitHash = sourcePolicyEvaluation.getCommitHash();
-    event.policyEvaluationId = sourcePolicyEvaluation.getId();
-    event.pullRequestNumber = pullRequestNumber;
+    SourceControlEvent event = new SourceControlEvent()
+        .setApplicationId(applicationId)
+        .setBranchName(branchName)
+        .setCommitHash(sourcePolicyEvaluation.getCommitHash())
+        .setEventType(SourceControlEvent.DISCOVERED_PULL_REQUEST_EVENT)
+        .setPolicyEvaluationId(sourcePolicyEvaluation.getId())
+        .setPullRequestNumber(pullRequestNumber)
+        .setInitiator(POLLING);
     if (null != targetPolicyEvaluation) {
-      event.targetPolicyEvaluationId = targetPolicyEvaluation.getId();
+      event.setTargetPolicyEvaluationId(targetPolicyEvaluation.getId());
     }
-    event.initiator = PullRequestPollingService.class.getSimpleName();
-    asyncEventBus.post(event);
+    sourceControlEventService.publishEvent(event);
     log.info("Sent pull request discovered event for application '{}' with PR# '{}' and policy evaluation '{}'",
-        applicationId, pullRequestNumber, event.policyEvaluationId);
+        applicationId, pullRequestNumber, event.getPolicyEvaluationId());
   }
 
   /**
-   * cycles thru the source control applications in order of pull request poll times and queries the SCM provider
-   * for pull requests for the org and api key associated with the given source control entry.
+   * cycles thru the source control applications in order of pull request poll times and queries the SCM provider for
+   * pull requests for the org and api key associated with the given source control entry.
    *
-   * @return list of pull requests discovered or an empty list if there are no new pull requests for any of the
-   * source control applications
+   * @return list of pull requests discovered or an empty list if there are no new pull requests for any of the source
+   * control applications
    * @throws IOException thrown if there is a problem fetching pull requests from the SCM provider
    */
   private List<PullRequest> getPullRequestsFromScm(PullRequestPollingTracker pollingTracker)
@@ -192,11 +196,11 @@ public class PullRequestPollingService
         GitApiClient gitApiClient = gitClientFactory.createApiClient(gitRepositoryInfo);
         ProjectUri projectUri = gitApiClient.getProjectUri();
         String org = projectUri.getNamespace();
-        
+
         // if a provider supports querying across the organization, we do not need a repo in context
         String repo =
             gitRepositoryInfo.provider.supportsOrganizationWidePullRequestQueries() ? null : projectUri.getProject();
-        
+
         String token = gitRepositoryInfo.token;
 
         Date currentCutoffTime = pollingTracker.getCachedCutoffTime(org, repo, gitRepositoryInfo.token,
@@ -230,7 +234,7 @@ public class PullRequestPollingService
 
             apiCallCount++;
             log.debug("Fetched {} pull request(s) for org '{}' and repo '{}' since {}", pullRequests.size(),
-                org, null == repo ? "none specified" : repo, currentCutoffTime); 
+                org, null == repo ? "none specified" : repo, currentCutoffTime);
           }
           catch (Exception e) {
             String retryDelay = pollingTracker.onErrorProcessingPullRequests(sourceControl.getId());
@@ -268,8 +272,8 @@ public class PullRequestPollingService
   }
 
   /**
-   * Pull request commenting features are not yet supported for Bitbucket cloud so provide logic to recognize
-   * any repositories in that SCM.
+   * Pull request commenting features are not yet supported for Bitbucket cloud so provide logic to recognize any
+   * repositories in that SCM.
    */
   private boolean isBitbucketCloud(GitRepositoryInfo gitRepositoryInfo) {
     return gitRepositoryInfo.provider.equals(BITBUCKET) &&

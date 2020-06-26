@@ -67,6 +67,32 @@ public class AgeInDaysConditionTypeTest
   }
 
   @Test
+  public void testEvaluateComponentWithoutCatalogDate() {
+    // Create policy constraints
+    Constraint constraint = createConstraint("older than", "11");
+    List<Constraint> constraints = new ArrayList<>();
+    constraints.add(constraint);
+
+    // Create policy
+    Policy policy = new Policy("PolicyId1", "Policy Name 1");
+    policy.setConstraints(constraints);
+    policy.setAction(BuildStageType.ID, FailActionType.ID);
+
+    List<Component> components = new ArrayList<>();
+    // A component without age
+    Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
+    components.add(component1);
+    // A component with age 0
+    Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
+    component2.setCatalogDate(0L);
+    components.add(component2);
+
+    // Evaluate the policy
+    List<PolicyAlert> policyAlerts = evaluate(policy, components);
+    assertThat(policyAlerts).isEmpty();
+  }
+
+  @Test
   public void testEvaluateYoungerThan() {
     // Create policy constraints
     Constraint constraint = createConstraint("younger than", "11");

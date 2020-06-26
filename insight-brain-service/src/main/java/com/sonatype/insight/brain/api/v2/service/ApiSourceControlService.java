@@ -46,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControl.FAKE_SECRET_KEY;
+import static com.sonatype.nexus.git.utils.repository.RepositoryUrlFinderUtils.sanitizeUrl;
 import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -336,15 +337,15 @@ public class ApiSourceControlService
   @VisibleForTesting
   String convertUrlIfNeeded(String repositoryUrl) {
     if (repositoryUrl.startsWith("https:") || repositoryUrl.startsWith("http:")) {
-      return repositoryUrl;
+      return sanitizeUrl(repositoryUrl);
     }
     if (repositoryUrl.startsWith("ssh:")) {
       String url = repositoryUrl.replaceAll("/[^/@]+@", "/");
-      return url.replace("ssh:", "https:");
+      return sanitizeUrl(url.replace("ssh:", "https:"));
     }
     if (repositoryUrl.contains("@") && repositoryUrl.contains(":")) {
       String url = repositoryUrl.replaceAll("[^@]+@", "");
-      return "https://" + url.replace(":", "/");
+      return sanitizeUrl("https://" + url.replace(":", "/"));
     }
     throw new BadRequestException("Unsupported repository URL format: `" + repositoryUrl + "`");
   }

@@ -68,6 +68,7 @@ import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDAO;
@@ -138,6 +139,7 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
@@ -1566,6 +1568,31 @@ public class TemporaryEntity
     userViewedProductNotificationDAO.insert(userViewedProductNotification);
     userViewedProductNotifications.add(userViewedProductNotification);
     return userViewedProductNotification;
+  }
+
+  public SourceControlEvent newSourceControlEvent(
+      final Application application,
+      final PolicyEvaluation sourcePolicyEvaluation,
+      final PolicyEvaluation targetPolicyEvaluation)
+  {
+    SourceControlEvent sourceControlEvent = new SourceControlEvent();
+    sourceControlEvent
+        .setApplicationId(application.getId())
+        .setCommitHash("abcdefg")
+        .setEventType(SourceControlEvent.DISCOVERED_PULL_REQUEST_EVENT)
+        .setPolicyEvaluationId(sourcePolicyEvaluation.getId())
+        .setBranchName("branch")
+        .setPullRequestNumber(2)
+        .setScmUsername("user")
+        .setInitiator("webhook");
+
+    if (targetPolicyEvaluation != null) {
+      sourceControlEvent.setTargetPolicyEvaluationId(targetPolicyEvaluation.getId());
+    }
+
+    SourceControlEventDAO sourceControlEventDAO = new SourceControlEventDAO();
+    sourceControlEventDAO.insert(sourceControlEvent);
+    return sourceControlEvent;
   }
 
   public UserViewedProductNotification newUserViewedProductNotificationLegacy(String username, String notificationId) {

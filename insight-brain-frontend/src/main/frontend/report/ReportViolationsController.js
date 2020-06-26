@@ -14,20 +14,17 @@ var reportViolationsModule = angular.module('ReportViolations',
 export default reportViolationsModule;
 
 reportViolationsModule.controller('ReportViolationsController', ['$scope', '$http', '$q', 'CLMLocations', '$filter',
-  function($scope, $http, $q, clmLocations, $filter) {
+  function($scope, $http, $q, clmLocations) {
     const vm = this;
+    const RESULTS_PER_PAGE = 50;
 
-    let allApplications = undefined;
-
-    const isVisible = appFilter => item => {
-      return !appFilter ||
-          item.name.toLowerCase().indexOf(appFilter.toLowerCase()) > -1 ||
-          item.organizationName.toLowerCase().indexOf(appFilter.toLowerCase()) > -1;
-    };
+    let pages = 1;
 
     vm.encodeURIComponent = window.encodeURIComponent;
     vm.appFilter = '';
     vm.sortFields = ['name'];
+    vm.applications = [];
+    vm.hasMoreResults = true;
 
     vm.applicationHasViolationsForStage = function(application, stage) {
       const stageTypeId = stage.stageTypeId,
@@ -40,44 +37,66 @@ reportViolationsModule.controller('ReportViolationsController', ['$scope', '$htt
     vm.doLoad = function() {
       vm.error = null;
 
-      var promises = [];
-
-      promises.push($http.get(clmLocations.getActionStageUrl()));
-      promises.push($http.get(clmLocations.getApplicationSummariesUrl()));
-
-      $q.all(promises).then(function(results) {
-        vm.stages = results[0].data;
-        allApplications = results[1].data;
-        vm.noReports = allApplications.length === 0;
-        vm.showReports = allApplications.length > 0;
-        vm.applications = sortAndIndex(allApplications);
-      }, function() {
-        vm.error = arguments[0];
+      $http.get(clmLocations.getActionStageUrl()).then(function(results) {
+        vm.stages = results.data;
+      }, function(error) {
+        vm.error = error;
       });
+      getResults();
     };
     vm.doLoad();
 
-    $scope.$watchGroup(['vm.appFilter', 'vm.sortFields'], sortAndFilter);
+    vm.sortAndFilter = function() {
+      pages = 1;
+      vm.hasMoreResults = true;
+      getResults();
+    };
 
-    function sortAndFilter() {
-      if (allApplications) {
-        vm.applications = sortAndIndex(filter(allApplications));
+    vm.loadMoreResults = function() {
+      pages++;
+      getResults();
+    };
+
+    vm.sortChange = function(sortFields) {
+      vm.sortFields = sortFields;
+      vm.sortAndFilter();
+    };
+
+    function getResults() {
+      // Reset assuming there will be results to avoid empty space in table when going from no results to some results
+      vm.noReports = false;
+      vm.showReports = true;
+
+      vm.loadingApps = true;
+      if (pages === 1) {
+        vm.applications.length = 0;
       }
+      $http.get(clmLocations.getApplicationSummariesUrl(vm.appFilter, getOrder(), pages,
+          RESULTS_PER_PAGE)).then(function(results) {
+        vm.hasMoreResults = results.data.length === RESULTS_PER_PAGE;
+        vm.applications.push.apply(vm.applications, results.data);
+        vm.noReports = vm.applications.length === 0;
+        vm.showReports = vm.applications.length > 0;
+      }, function(error) {
+        vm.error = error;
+      }).finally(function() {
+        vm.loadingApps = false;
+      });
     }
 
-    function sortAndIndex(apps) {
-      return index(sort(apps));
-    }
-
-    function filter(apps) {
-      return apps.filter(isVisible(vm.appFilter));
-    }
-
-    function sort(apps) {
-      return $filter('orderBy')(apps, vm.sortFields[0]);
-    }
-
-    function index(apps) {
-      return apps.map((app, index) => ({...app, index}));
+    function getOrder() {
+      let sort = vm.sortFields[0];
+      switch (sort) {
+        case 'name':
+          return 'APP_NAME_ASC';
+        case '-name':
+          return 'APP_NAME_DESC';
+        case 'organizationName':
+          return 'ORG_NAME_ASC';
+        case '-organizationName':
+          return 'ORG_NAME_DESC';
+        default:
+          throw new Error('invalid sort: ' + sort);
+      }
     }
   }]);

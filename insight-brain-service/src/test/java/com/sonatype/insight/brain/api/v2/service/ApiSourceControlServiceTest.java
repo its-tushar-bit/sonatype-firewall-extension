@@ -185,7 +185,7 @@ public class ApiSourceControlServiceTest
   @Test
   public void testAddOrUpdateSourceControl_DuplicateAccountNme() {
     testAddOrUpdateSourceControl_AutomaticSourceControl(true, null,
-        "https://org@github.com/org/a", "https://org@github.com/org/a");
+        "https://org@github.com/org/a", "https://github.com/org/a");
   }
 
   @Test
@@ -197,19 +197,19 @@ public class ApiSourceControlServiceTest
   @Test
   public void testAddOrUpdateSourceControl_ImplicitSshProtocol() {
     testAddOrUpdateSourceControl_AutomaticSourceControl(true, null,
-        "git@github.com:org/a.git", "https://github.com/org/a.git");
+        "git@github.com:org/a.git", "https://github.com/org/a");
   }
 
   @Test
   public void testAddOrUpdateSourceControl_ExplicitSshProtocol() {
     testAddOrUpdateSourceControl_AutomaticSourceControl(true, null,
-        "ssh://git@github.com/org/a.git", "https://github.com/org/a.git");
+        "ssh://git@github.com/org/a.git", "https://github.com/org/a");
   }
 
   @Test
   public void testAddOrUpdateSourceControl_HttpsWithGitExtension() {
     testAddOrUpdateSourceControl_AutomaticSourceControl(true, null,
-        "https://org@github.com/org/a.git", "https://org@github.com/org/a.git");
+        "https://org@github.com/org/a.git", "https://github.com/org/a");
   }
 
   private void testAddOrUpdateSourceControl_AutomaticSourceControl(
@@ -676,11 +676,11 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testConvertUrlIfNeeded_HttpUrls() {
-    String repositoryUrl = "http://server/owner/repo.git";
+    String repositoryUrl = "http://server/owner/repo";
     String convertedUrl = sourceControlService.convertUrlIfNeeded(repositoryUrl);
     assertThat(convertedUrl).isEqualTo(repositoryUrl);
 
-    repositoryUrl = "https://server/owner/repo.git";
+    repositoryUrl = "https://server/owner/repo";
     convertedUrl = sourceControlService.convertUrlIfNeeded(repositoryUrl);
     assertThat(convertedUrl).isEqualTo(repositoryUrl);
   }
@@ -688,7 +688,7 @@ public class ApiSourceControlServiceTest
   @Test
   public void testConvertUrlIfNeeded_SshUrlsFormatOne() {
     String givenUrl = "ssh://git@server/owner/repo.git"; // user provided
-    String expectedUrl = "https://server/owner/repo.git";
+    String expectedUrl = "https://server/owner/repo";
     String convertedUrl = sourceControlService.convertUrlIfNeeded(givenUrl);
     assertThat(convertedUrl).isEqualTo(expectedUrl);
 
@@ -700,7 +700,15 @@ public class ApiSourceControlServiceTest
   @Test
   public void testConvertUrlIfNeeded_SshUrlsFormatTwo() {
     String givenUrl = "git@server:owner/repo.git"; // user provided
-    String expectedUrl = "https://server/owner/repo.git";
+    String expectedUrl = "https://server/owner/repo";
+    String convertedUrl = sourceControlService.convertUrlIfNeeded(givenUrl);
+    assertThat(convertedUrl).isEqualTo(expectedUrl);
+  }
+
+  @Test
+  public void testConvertUrlIfNeeded_embeddedCredentials() {
+    String givenUrl = "git@server:owner/repo.git"; // user provided
+    String expectedUrl = "https://server/owner/repo";
     String convertedUrl = sourceControlService.convertUrlIfNeeded(givenUrl);
     assertThat(convertedUrl).isEqualTo(expectedUrl);
   }

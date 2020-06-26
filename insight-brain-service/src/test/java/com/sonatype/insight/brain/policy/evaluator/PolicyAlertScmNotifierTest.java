@@ -52,7 +52,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class PolicyAlertScmNotifierTest
@@ -98,6 +101,7 @@ public class PolicyAlertScmNotifierTest
     scmNotifier = new PolicyAlertScmNotifier(pullRequestFeatureCheck,
         remediationService, new PolicyAlertSourceCodeOrganizer(), gitClientFactory,
         baseUrl, sourceControlUtils, sourceControlTaskRunner);
+    scmNotifier.pullRequestInvoker = spy(scmNotifier.pullRequestInvoker);
     Organization organization = tempEntity.newOrganization();
     application = tempEntity.newApplication(NAME, PUBLIC_ID, organization.getId());
   }
@@ -115,7 +119,22 @@ public class PolicyAlertScmNotifierTest
     scmNotifier.sendNotifications(application, "scanId", new Stage("build"), buildPolicyNotifications());
 
     // then we see no calls to the PR engine
-    assertThat(logOutput).atAnyLevel().doesNotContain("Invoke PR engine to construct a PR");
+    verifyNoInteractions(scmNotifier.pullRequestInvoker);
+  }
+
+  @Test
+  public void test_developStageNotSupported() throws Exception {
+    // given we have repository info for an application
+    when(sourceControlUtils.getGitRepositoryInfoForApplication(application.getId()))
+        .thenReturn(gitRepositoryInfo);
+
+    // when we send notifications
+    scmNotifier.sendNotifications(application, "scanId", new Stage(Stage.ID_DEVELOP), buildPolicyNotifications());
+
+    // then we see no calls to the PR engine
+    assertThat(logOutput).atDebugLevel().contains(
+        "Ignoring Pull Request notification for the 'develop' stage for application 'abc123' and scan 'scanId'");
+    verifyNoInteractions(scmNotifier.pullRequestInvoker);
   }
 
   @Test
@@ -138,8 +157,8 @@ public class PolicyAlertScmNotifierTest
           "Format 'nuget: {packageId=foo, version=1.2.3}' is not supported for automatic remediation");
     });
 
-    // and PR engine didn't run
-    assertThat(logOutput).atDebugLevel().doesNotContain("Invoke PR engine to construct a PR");
+    // and the source control task runner didn't attempt a PR
+    verify(sourceControlTaskRunner, never()).doPullRequestRemediation(any());
   }
 
   @Test
@@ -169,9 +188,8 @@ public class PolicyAlertScmNotifierTest
           "No remediation options found for component [maven: {artifactId=Package1, groupId=groupid, version=1.2.3}]");
     });
 
-    // and PR engine didn't run
-    assertThat(logOutput).atDebugLevel().doesNotContain(
-        "Invoke PR engine to construct a PR");
+    // and the source control task runner didn't attempt a PR
+    verify(sourceControlTaskRunner, never()).doPullRequestRemediation(any());
   }
 
   @Test
@@ -206,8 +224,8 @@ public class PolicyAlertScmNotifierTest
               "/groupid/Package1/1.2.3-to-2.0.1]");
     });
 
-    // and PR engine didn't run
-    assertThat(logOutput).atAnyLevel().doesNotContain("Invoke PR engine");
+    // and the source control task runner didn't attempt a PR
+    verify(sourceControlTaskRunner, never()).doPullRequestRemediation(any());
   }
 
   @Test

@@ -7,14 +7,21 @@ package com.sonatype.clm.testing.functional.brain;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
-import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQThreatIndicators;
+import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage.ReportListRow;
+import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
@@ -28,10 +35,15 @@ import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.openqa.selenium.Keys;
 
+import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ReportListTest
     extends AbstractFunctionalTest
@@ -136,5 +148,119 @@ public class ReportListTest
 
     IQThreatIndicators releaseThreatIndicators = firstRow.releaseReportThreatIndicators();
     releaseThreatIndicators.shouldNotBe(visible);
+  }
+
+  @Test
+  public void testSearch() {
+    Organization org1 = tempEntity.newOrganization("nameOneOrg");
+    Organization org2 = tempEntity.newOrganization("nameTwOOrg");
+    Organization org3 = tempEntity.newOrganization("nameThreeOrg");
+    Application app1 = tempEntity.newApplication("nameOneApp", "publicId1", org3.getId());
+    Application app2 = tempEntity.newApplication("nametwoApp", "publicId2", org1.getId());
+    Application app3 = tempEntity.newApplication("nameThreeApp", "publicId3", org2.getId());
+    List<Application> apps = new ApplicationDAO().getAll();
+
+    refresh();
+
+    ReportListPage.rows().shouldHaveSize(apps.size()).forEach(selenideElement -> selenideElement.shouldBe(visible));
+
+    ReportListPage.filter().setValue(app1.getName());
+    ReportListPage.search().click();
+    ReportListPage.rows().shouldHaveSize(1);
+    ReportListPage.firstRow().applicationName().shouldHave(text(app1.getName()));
+    ReportListPage.firstRow().organizationName().shouldHave(text(org3.getName()));
+
+    ReportListPage.filter().setValue(org2.getName()).sendKeys(Keys.ENTER);
+    ReportListPage.rows().shouldHaveSize(1);
+    ReportListPage.firstRow().applicationName().shouldHave(text(app3.getName()));
+    ReportListPage.firstRow().organizationName().shouldHave(text(org2.getName()));
+
+    ReportListPage.filter().setValue("tWo").sendKeys(Keys.ENTER);
+    ReportListPage.firstRow().applicationName().shouldHave(text(app3.getName()));
+    ReportListPage.firstRow().organizationName().shouldHave(text(org2.getName()));
+    ReportListPage.row(2).applicationName().shouldHave(text(app2.getName()));
+    ReportListPage.row(2).organizationName().shouldHave(text(org1.getName()));
+  }
+
+  @Test
+  public void testLoad() {
+    List<Application> apps = new ArrayList<>();
+    createAlphabeticalOrgsAndApps(new ArrayList<>(), apps);
+    apps.sort(Comparator.comparing(Application::getName));
+    ReportListPage.load().shouldBe(disabled);
+    refresh();
+
+    List<String> names = new ArrayList<>();
+    ReportListPage.consumeAllRows(row -> names.add(row.applicationName().getText()));
+    assertThat(names).isEqualTo(apps.subList(0, ReportListPage.RESULTS_PER_PAGE).stream().map(Application::getName)
+        .collect(Collectors.toList()));
+
+    ScrollUtil.awaitEndOfScrolling(ReportListPage.load().scrollIntoView(false).shouldBe(enabled));
+    assertThat(ReportListPage.row(ReportListPage.rows().size()).applicationName().getText())
+        .isNotEqualTo(apps.get(apps.size() - 1).getName());
+
+    ReportListPage.load().click();
+
+    ScrollUtil.awaitEndOfScrolling(ReportListPage.load().scrollIntoView(false).shouldBe(disabled));
+    assertThat(ReportListPage.row(ReportListPage.rows().size()).applicationName().getText())
+        .isEqualTo(apps.get(apps.size() - 1).getName());
+  }
+
+  @Test
+  public void testOrder() {
+    List<Organization> orgs = new ArrayList<>();
+    List<Application> apps = new ArrayList<>();
+    createAlphabeticalOrgsAndApps(orgs, apps);
+    refresh();
+
+    // App name ascending
+    ReportListPage.sortAscending(ReportListPage.applicationNameHeader());
+    List<String> names = new ArrayList<>();
+    ReportListPage.consumeAllRows(row -> names.add(row.applicationName().getText()));
+    apps.sort(Comparator.comparing(Application::getName));
+    assertThat(names).isEqualTo(apps.subList(0, ReportListPage.RESULTS_PER_PAGE).stream().map(Application::getName)
+        .collect(Collectors.toList()));
+
+    // App name descending
+    ReportListPage.sortDescending(ReportListPage.applicationNameHeader());
+    names.clear();
+    ReportListPage.consumeAllRows(row -> names.add(row.applicationName().getText()));
+    apps.sort(Comparator.comparing(Application::getName).reversed());
+    assertThat(names).isEqualTo(apps.subList(0, ReportListPage.RESULTS_PER_PAGE).stream().map(Application::getName)
+        .collect(Collectors.toList()));
+
+    // Org name ascending
+    ReportListPage.sortAscending(ReportListPage.organizationNameHeader());
+    names.clear();
+    ReportListPage.consumeAllRows(row -> names.add(row.organizationName().getText()));
+    orgs.sort(Comparator.comparing(Organization::getName));
+    assertThat(names).isEqualTo(orgs.subList(0, ReportListPage.RESULTS_PER_PAGE).stream().map(Organization::getName)
+        .collect(Collectors.toList()));
+
+    // Org name descending
+    ReportListPage.sortDescending(ReportListPage.organizationNameHeader());
+    names.clear();
+    ReportListPage.consumeAllRows(row -> names.add(row.organizationName().getText()));
+    orgs.sort(Comparator.comparing(Organization::getName).reversed());
+    assertThat(names).isEqualTo(orgs.subList(0, ReportListPage.RESULTS_PER_PAGE).stream().map(Organization::getName)
+        .collect(Collectors.toList()));
+  }
+
+  private void createAlphabeticalOrgsAndApps(List<Organization> orgs, List<Application> apps) {
+    orgs.addAll(new OrganizationDAO().getAll().stream()
+        .filter(org -> !org.getId().equals(Organization.ROOT_ORGANIZATION_ID)).collect(Collectors.toList()));
+    apps.addAll(new ApplicationDAO().getAll());
+    int currentSize = apps.size();
+    for (int result = 0; result < ReportListPage.RESULTS_PER_PAGE + 1 - currentSize; result++) {
+      String orgSuffix = getAlphabeticalSequenceElement(result);
+      String appSuffix = getAlphabeticalSequenceElement(result + 1);
+      Organization org = tempEntity.newOrganization("orgName" + orgSuffix);
+      orgs.add(org);
+      apps.add(tempEntity.newApplication("appName" + appSuffix, "appPublicId" + appSuffix, org.getId()));
+    }
+  }
+
+  private String getAlphabeticalSequenceElement(int i) {
+    return i < 0 ? "" : getAlphabeticalSequenceElement((i / 26) - 1) + (char) (65 + i % 26);
   }
 }

@@ -28,8 +28,10 @@ import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.organization.ApplicationContactLoader;
 import com.sonatype.insight.brain.policy.evaluator.PolicyNotificationUtil;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -69,6 +71,9 @@ public class JiraPolicyAlertNotifierTest
 
   @Inject
   private TestProductLicense testProductLicense;
+
+  @Inject
+  private UserDirectory userDirectory;
 
   @Mock
   private JiraClient jiraClient;
@@ -237,7 +242,9 @@ public class JiraPolicyAlertNotifierTest
     Application app = tempEntity.newApplicationWithParent();
 
     assertThatThrownBy(() -> {
-      jiraPolicyAlertNotifier.createPolicyMailModel(app, "scanId", new Stage(Stage.ID_BUILD), null, null);
+      jiraPolicyAlertNotifier.createPolicyMailModel(app,
+          ApplicationContactLoader.getInstance(userDirectory).getContact(app.getContactInternalName()), "scanId",
+          new Stage(Stage.ID_BUILD), null, null);
     }).isInstanceOf(IllegalStateException.class).hasMessage(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
   }
 

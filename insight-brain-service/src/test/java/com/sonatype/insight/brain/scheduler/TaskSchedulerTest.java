@@ -183,6 +183,17 @@ public class TaskSchedulerTest
   }
 
   @Test
+  public void testTriggerTaskNow() throws Exception {
+    taskScheduler.start();
+    taskScheduler.scheduleDailyTask(TestJob.class, TestJob.NAME, LocalTime.now().plusHours(4));
+    assertThat(TestJob.getExecutions()).isZero();
+    taskScheduler.triggerTaskNow(TestJob.NAME);
+    await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
+      assertThat(TestJob.getExecutions()).isOne();
+    });
+  }
+
+  @Test
   public void testScheduleDailyTask() throws Exception {
     String name = "TestJob";
     Scheduler scheduler = taskScheduler.createScheduler();

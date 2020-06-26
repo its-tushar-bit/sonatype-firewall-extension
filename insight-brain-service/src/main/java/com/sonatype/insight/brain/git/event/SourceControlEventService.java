@@ -1,0 +1,325 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.git.event;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import com.sonatype.insight.brain.concurrent.SemaphorePool;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.git.PullRequestCommentingService;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static java.lang.Thread.currentThread;
+import static java.lang.Thread.sleep;
+
+/**
+ * This class handles the interactions with the durable event queue (i.e. DB table) for source control events.
+ * These events represent things like responses to discovered pull requests and responses to policy evaluations
+ * that may or may not have a corresponding pull request associated with them.
+ *
+ * This class is responsible for publishing events to the durable queue and for retrieving events from that queue
+ * and submitting them for processing.  As such, this class handles the state transitions for the events, which are:
+ * NEW : represents a newly submitted event
+ * IN PROGRESS : the event is currently being processed
+ * COMPLETE : the event was successfully processed
+ * ERROR : there was an error processing the event
+ *
+ * This class is also multi-node compatible in that it can run from multiple instances of IQ server.  This class
+ * 'reserves' events for itself prior to pulling and working them, thus preventing the same event from being processed
+ * by multiple instances.  However, this is not good enough as events targeting the same SCM user must be handled
+ * by the same instance so that simultaneous SCM API requests are not submitted for the same user.  The problem of
+ * assigning events to particular IQ instances will be solved in the future, prior to releasing official support for
+ * multi-node IQ.
+ */
+@Named
+@Singleton
+public class SourceControlEventService
+{
+  private static final Logger log = LoggerFactory.getLogger(SourceControlEventService.class);
+
+  private static final int THREAD_POOL_SIZE = 10;
+
+  @VisibleForTesting
+  static final int TASK_QUEUE_CAPACITY = 20;
+
+  @VisibleForTesting
+  static final int MAX_LOAD = THREAD_POOL_SIZE + TASK_QUEUE_CAPACITY;
+
+  @VisibleForTesting
+  static final String INSTANCE_ID = UUID.randomUUID().toString();
+
+  private final AtomicBoolean inProcessing = new AtomicBoolean();
+
+  /*
+    work for the same repo/application should be done sequentially; work for different apps can be done in parallel
+   */
+  @VisibleForTesting
+  SemaphorePool repoAccessController;
+
+  private final SourceControlEventDAO sourceControlEventDAO;
+
+  private final PullRequestCommentingService pullRequestCommentingService;
+
+  private ThreadPoolExecutor threadPoolExecutor;
+
+  @Inject
+  public SourceControlEventService(
+      SourceControlEventDAO sourceControlEventDAO,
+      PullRequestCommentingService pullRequestCommentingService)
+  {
+    this.sourceControlEventDAO = sourceControlEventDAO;
+    this.pullRequestCommentingService = pullRequestCommentingService;
+  }
+
+  /**
+   * Initiates a cycle to pull events from the event queue (DB table) and submit them to the internal thread pool
+   * for execution.
+   *
+   * @return the count of events that were submitted for execution
+   */
+  public int processEvents() {
+    int eventsSubmittedForProcessing = 0;
+
+    if (inProcessing.get()) {
+      log.debug("skipping event processing this cycle as previous cycle is still running");
+    }
+    else {
+      try {
+        inProcessing.set(true);
+
+        int numberOfEventsToRequest = getNumberOfEventsToRequest();
+
+        if (numberOfEventsToRequest > 0) {
+          // get any events already reserved for this instance
+          List<SourceControlEvent> events =
+              sourceControlEventDAO.selectEventsForInstance(INSTANCE_ID, numberOfEventsToRequest);
+
+          // if there aren't enough, reserve more and re-fetch
+          if (events.size() < numberOfEventsToRequest) {
+            // we can't assume this is the only IQ server instance processing events
+            sourceControlEventDAO.reserveEventsForInstance(INSTANCE_ID, numberOfEventsToRequest - events.size());
+            events = sourceControlEventDAO.selectEventsForInstance(INSTANCE_ID, numberOfEventsToRequest);
+          }
+
+          log.debug("Requested {} source control events, processing {}", numberOfEventsToRequest, events.size());
+
+          for (SourceControlEvent event : events) {
+            if (!hasCapacity()) {
+              break;
+            }
+            if (markEventInProgress(event)) {
+              getThreadPoolExecutor().execute(() -> handleSourceControlEvent(event));
+              eventsSubmittedForProcessing++;
+              try {
+                // give thread pool time to startup event handling as we'd like the events to be processed in the order
+                // received as much as possible
+                sleep(10);
+              }
+              catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+              }
+            }
+          }
+        }
+      }
+      finally {
+        inProcessing.set(false);
+      }
+    }
+
+    return eventsSubmittedForProcessing;
+  }
+
+  private boolean markEventInProgress(SourceControlEvent event) {
+    try {
+      sourceControlEventDAO.markEventInProgress(event.getId());
+      return true;
+    }
+    catch (Exception e) {
+      log.error("Error marking event in progress for event '{}' of type '{}' for application '{}' : {}",
+          event.getId(), event.getEventType(), event.getApplicationId(), e.getMessage(), e);
+      return false;
+    }
+  }
+
+  /**
+   * this method initializes the events for this instance.   It is intended to clear latent reservations on
+   * subsequent restarts until the full multi-node event processing solution is put in place
+   */
+  public void initializeEvents() {
+    sourceControlEventDAO.clearEventReservations();
+  }
+
+  /**
+   * Persists the given event to the durable event queue (i.e. DB table)
+   *
+   * @param event the event to persist
+   */
+  public void publishEvent(SourceControlEvent event) {
+    if (null != event) {
+      sourceControlEventDAO.insert(event);
+    }
+  }
+
+  private void handleSourceControlEvent(final SourceControlEvent event) {
+    log.trace("Handling event '{}' of type '{}' for application '{}'", event.getId(), event.getEventType(),
+        event.getApplicationId());
+
+    if (acquireRepoAccess(event.getApplicationId())) {
+      log.trace("Acquired repo access for event '{}' of type '{}' for application '{}'", event.getId(),
+          event.getEventType(), event.getApplicationId());
+      try {
+        if (executeSourceControlEvent(event)) {
+          log.debug("Processed event '{}' of type '{}' for application '{}'", event.getId(), event.getEventType(),
+              event.getApplicationId());
+          sourceControlEventDAO.markEventComplete(event.getId());
+        }
+      }
+      catch (Exception e) {
+        log.error("Error updating event processing status for event '{}' of type '{}' for application '{}' : {}",
+            event.getId(), event.getEventType(), event.getApplicationId(), e.getMessage(), e);
+      }
+      finally {
+        releaseRepoAccess(event.getApplicationId());
+        log.trace("Released repo access for event '{}' of type '{}' for application '{}'", event.getId(),
+            event.getEventType(), event.getApplicationId());
+      }
+    }
+  }
+
+  private boolean acquireRepoAccess(String applicationId) {
+    try {
+      getRepoAccessController().acquire(applicationId);
+      return true;
+    }
+    catch (InterruptedException e) {
+      log.debug("Unable to acquire repo access for application '{}'", applicationId, e);
+      Thread.currentThread().interrupt();
+      return false;
+    }
+  }
+
+  private void releaseRepoAccess(String applicationId) {
+    try {
+      getRepoAccessController().release(applicationId);
+    }
+    catch (InterruptedException e) {
+      log.error("Unable to release repo access for application '{}'", applicationId, e);
+      Thread.currentThread().interrupt();
+    }
+  }
+
+  private boolean executeSourceControlEvent(SourceControlEvent event) {
+    boolean success = true;
+
+    try {
+      switch (event.getEventType()) {
+        case SourceControlEvent.APPLICATION_EVALUATION_EVENT:
+          pullRequestCommentingService.onApplicationEvaluation(event);
+          break;
+
+        case SourceControlEvent.DISCOVERED_PULL_REQUEST_EVENT:
+          pullRequestCommentingService.onDiscoveredPullRequest(event);
+          break;
+
+        case SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT:
+          log.warn("Unsupported source control event type '{}'", event.getEventType());
+          success = false;
+          sourceControlEventDAO.markEventHasError(event.getId(), "unsupported");
+          break;
+
+        default:
+          log.warn("Invalid source control event type '{}'", event.getEventType());
+          success = false;
+          sourceControlEventDAO.markEventHasError(event.getId(), "invalid event type");
+      }
+    }
+    catch (Exception e) {
+      success = false;
+      log.error("Unable to process event '{}' of type '{}' for application '{}' : {}", event.getId(),
+          event.getEventType(), event.getApplicationId(), e.getMessage(), e);
+      sourceControlEventDAO.markEventHasError(event.getId(), e.getMessage());
+    }
+
+    return success;
+  }
+
+  private void initThreadPoolExecutor() {
+    ThreadFactory threadFactory = new ThreadFactoryBuilder()
+        .setDaemon(true)
+        .setNameFormat("SourceControlEventService-%s")
+        .build();
+    threadPoolExecutor = new ThreadPoolExecutor(
+        THREAD_POOL_SIZE,
+        THREAD_POOL_SIZE,
+        30L,
+        TimeUnit.SECONDS,
+        new LinkedBlockingQueue<>(TASK_QUEUE_CAPACITY),
+        threadFactory);
+  }
+
+  private ThreadPoolExecutor getThreadPoolExecutor() {
+    if (null == threadPoolExecutor) {
+      initThreadPoolExecutor();
+    }
+    return threadPoolExecutor;
+  }
+
+  private int getNumberOfEventsToRequest() {
+    return getRemainingCapacity();
+  }
+
+  private int getRemainingCapacity() {
+    return getThreadPoolExecutor().getQueue().remainingCapacity();
+  }
+
+  private boolean hasCapacity() {
+    return getRemainingCapacity() > 0;
+  }
+
+  private SemaphorePool getRepoAccessController() {
+    if (null == repoAccessController) {
+      repoAccessController = new SemaphorePool(THREAD_POOL_SIZE);
+    }
+    return repoAccessController;
+  }
+
+  @VisibleForTesting
+  void setRepoAccessController(SemaphorePool repoAccessController) {
+    this.repoAccessController = repoAccessController;
+  }
+
+  @VisibleForTesting
+  void shutdown() {
+    if (null != threadPoolExecutor) {
+      threadPoolExecutor.shutdownNow();
+      while (!threadPoolExecutor.isShutdown()) {
+        try {
+          sleep(100);
+        }
+        catch (InterruptedException e) {
+          currentThread().interrupt();
+          break;
+        }
+      }
+    }
+  }
+}

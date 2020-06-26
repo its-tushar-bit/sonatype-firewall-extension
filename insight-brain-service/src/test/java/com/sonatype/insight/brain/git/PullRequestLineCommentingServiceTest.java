@@ -321,9 +321,9 @@ public class PullRequestLineCommentingServiceTest
   {
     @Mock
     private PullRequestFeedbackMarkupService mockPullRequestFeedbackMarkupService;
-    
+
     @Mock
-    private SourceControlTaskRunner mockSourceControlTaskRunner;
+    private PullRequestLocationDiscoveryService mockLocationDiscoveryService;
 
     @Mock
     private PositionDiscoveryExecutor mockPositionDiscoveryExecutor;
@@ -358,8 +358,7 @@ public class PullRequestLineCommentingServiceTest
             list.add(new RankedSourceLocation("path", 2, 2));
             discoveryResult.getLocationMap().put(identifier2, list);
           }
-          when(mockSourceControlTaskRunner
-              .doPullRequestLocationDiscovery(anyList(), any(), anyString(), anyString()))
+          when(mockLocationDiscoveryService.doLocationDiscovery(any(), any(), anyString(), anyString()))
               .thenReturn(discoveryResult);
         }
 
@@ -402,7 +401,7 @@ public class PullRequestLineCommentingServiceTest
           mockGitClientFactory,
           mockPullRequestCommentDAO,
           mockPullRequestFeedbackMarkupService,
-          mockSourceControlTaskRunner,
+          mockLocationDiscoveryService,
           mockPositionDiscoveryExecutor,
           getInsightConfig(featureFlagEnabled)
       );

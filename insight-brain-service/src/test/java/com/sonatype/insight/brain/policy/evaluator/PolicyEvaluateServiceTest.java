@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -62,11 +63,14 @@ import com.sonatype.insight.brain.model.policy.notifications.Notification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.organization.ApplicationContactLoader;
+import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.report.ReportEntry;
+import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -104,6 +108,9 @@ public class PolicyEvaluateServiceTest
 
   @Inject
   private TestProductLicenseManager productLicenseManager;
+
+  @Inject
+  private UserDirectory userDirectory;
 
   private PolicyDAO policyDAO = new PolicyDAO();
 
@@ -310,7 +317,10 @@ public class PolicyEvaluateServiceTest
 
     String serverUrl = "http://localhost/";
     lookup(InsightConfig.class).setBaseUrl(serverUrl);
-    Map<String, Object> model = emailer.createPolicyMailModel(app, scanId, StageTypes.BUILD, policyFacts, 8);
+    ContactDTO appContact =
+        ApplicationContactLoader.getInstance(userDirectory).getContact(app.getContactInternalName());
+    Map<String, Object> model =
+        emailer.createPolicyMailModel(app, appContact, scanId, StageTypes.BUILD, policyFacts, 8);
     assertThat(model.get("policyFacts")).isEqualTo(policyFacts);
     assertThat(model.get("cdnUrl")).isEqualTo("https://cdn.sonatype.com/");
     assertThat(model.get("detailedReportUrl"))
@@ -674,6 +684,33 @@ public class PolicyEvaluateServiceTest
       policyEvaluateService.evaluateWithPolling(IntegrationType.RM, app.getPublicId(), ClientScanType.SONATYPE, null,
           new Stage(Stage.ID_BUILD));
     }).withMessage("Your IQ Server license does not enable this feature.");
+  }
+
+  @Test
+  public void testEvaluateWithPolling_AppPublicIdCaseInsensitive() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("THE-public-ID");
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(simulateReportIsAvailable());
+
+    when(mockScanHandler.createTempScanFile(eq(null), any(Application.class), eq(ClientScanType.SONATYPE)))
+        .thenReturn(mock(File.class));
+    when(mockScanHandler
+        .handle(any(File.class), any(Application.class), eq(ClientScanType.SONATYPE), any(TelemetryData.class),
+            anyString()))
+        .thenReturn(scanReceipt);
+
+    PolicyEvaluationReceipt receipt = policyEvaluateService.evaluateWithPolling(IntegrationType.CLI,
+        app.getPublicId().toLowerCase(Locale.ENGLISH), ClientScanType.SONATYPE, null, new Stage(Stage.ID_BUILD));
+
+    PolicyEvaluationPollingResult policyEvaluationPollingResult =
+        waitForResult(app.getPublicId().toUpperCase(Locale.ENGLISH), receipt.getStatusId(),
+            p -> !p.getStatus().equals(PolicyEvaluationStatus.PENDING));
+
+    assertThat(policyEvaluationPollingResult).isNotNull();
+    assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.COMPLETED);
+    assertThat(policyEvaluationPollingResult.getReason()).isNull();
+    assertThat(policyEvaluationPollingResult.getResult()).isNotNull();
+    assertThat(policyEvaluationPollingResult.getScanReceipt()).isEqualTo(scanReceipt);
   }
 
   /**

@@ -253,7 +253,8 @@ public class ApplicationResourceTest
     response = evalRequest(applicationPublicId, scanId2, new Stage(Stage.ID_BUILD)).post();
     assertResponseStatus(200, response);
 
-    response = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES).get();
+    response = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES).query("page", "1")
+        .query("pageSize", "50").get();
     assertResponseStatus(200, response);
 
     ApplicationManagementSummaryDTO[] applications = response.getBody(ApplicationManagementSummaryDTO[].class);
@@ -295,7 +296,8 @@ public class ApplicationResourceTest
     super.restRequest().path(CIResource.RESOURCE_PATH, CIResource.SCAN_PATH).parameter(applicationPublicId).body("")
         .put();
 
-    response = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES).get();
+    response = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES).query("page", "1")
+        .query("pageSize", "50").get();
     assertResponseStatus(200, response);
 
     applications = response.getBody(ApplicationManagementSummaryDTO[].class);
@@ -324,6 +326,53 @@ public class ApplicationResourceTest
     stageTypeIds = policyEvaluationsResults.keySet().toArray(new String[0]);
 
     assertThat(policyEvaluationsResults).isEmpty();
+  }
+
+  @Test
+  public void testGetApplicationSummaries_QueryParameters() throws Exception {
+    Organization org = tempEntity.newOrganization("org");
+    Application app1 = tempEntity.newApplication("app1", "publicId1", org.getId());
+    Application app2 = tempEntity.newApplication("app2", "publicId2", org.getId());
+
+    // Uses default params for name filter and order
+    HttpResponse response = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES)
+        .query("page", "1").query("pageSize", "2").get();
+    assertResponseStatus(200, response);
+    ApplicationManagementSummaryDTO[] dtos = response.getBody(ApplicationManagementSummaryDTO[].class);
+    assertThat(dtos).extracting(ApplicationManagementSummaryDTO::getName)
+        .containsExactly(app1.getName(), app2.getName());
+
+    // Uses given name filter
+    response = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES)
+        .query("nameFilter", "app2").query("page", "1").query("pageSize", "2").get();
+    assertResponseStatus(200, response);
+    dtos = response.getBody(ApplicationManagementSummaryDTO[].class);
+    assertThat(dtos).extracting(ApplicationManagementSummaryDTO::getName).containsExactly(app2.getName());
+
+    // Uses given order
+    response = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES)
+        .query("order", "APP_NAME_DESC").query("page", "1").query("pageSize", "2").get();
+    assertResponseStatus(200, response);
+    dtos = response.getBody(ApplicationManagementSummaryDTO[].class);
+    assertThat(dtos).extracting(ApplicationManagementSummaryDTO::getName)
+        .containsExactly(app2.getName(), app1.getName());
+
+    Application app3 = tempEntity.newApplication("app3", "publicId3", org.getId());
+
+    // Uses given page
+    response = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES)
+        .query("page", "2").query("pageSize", "2").get();
+    assertResponseStatus(200, response);
+    dtos = response.getBody(ApplicationManagementSummaryDTO[].class);
+    assertThat(dtos).extracting(ApplicationManagementSummaryDTO::getName).containsExactly(app3.getName());
+
+    // Uses given page size
+    response = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES)
+        .query("page", "1").query("pageSize", "3").get();
+    assertResponseStatus(200, response);
+    dtos = response.getBody(ApplicationManagementSummaryDTO[].class);
+    assertThat(dtos).extracting(ApplicationManagementSummaryDTO::getName)
+        .containsExactly(app1.getName(), app2.getName(), app3.getName());
   }
 
   @Test(timeout = 10000)

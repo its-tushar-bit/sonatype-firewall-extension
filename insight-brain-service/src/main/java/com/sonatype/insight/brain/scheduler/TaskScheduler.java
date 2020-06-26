@@ -141,6 +141,15 @@ public class TaskScheduler
     }
   }
 
+  public void triggerTaskNow(String name) {
+    try {
+      getScheduler().triggerJob(JobKey.jobKey(name));
+    }
+    catch (SchedulerException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   public void scheduleDailyTask(Class<? extends Job> jobClass, String name, LocalTime localTime) {
     CronScheduleBuilder schedule = CronScheduleBuilder.dailyAtHourAndMinute(localTime.getHour(), localTime.getMinute())
         .withMisfireHandlingInstructionDoNothing();

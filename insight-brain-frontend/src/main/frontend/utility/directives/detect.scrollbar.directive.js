@@ -7,7 +7,7 @@
  * Usage: <div detect-scrollbar="state"></div>
  * Where "state" object will be watched for changes, to trigger scrollbar detection
  */
-export default function detectScrollbar($window, $timeout, EventNameConstant, StableBodyService) {
+export default function detectScrollbar($window, $timeout, StableBodyService) {
   return {
     restrict: 'A',
     link: ScrollbarDetectorLink,
@@ -17,7 +17,7 @@ export default function detectScrollbar($window, $timeout, EventNameConstant, St
   };
 
   function ScrollbarDetectorLink(scope, element) {
-    var timerId;
+    let timerId;
     function update() {
       // Natively detect if there is a scrollbar. Note that offsetWidth includes border and padding and will cause
       // false positives in cases where such styling is used.
@@ -40,4 +40,4 @@ export default function detectScrollbar($window, $timeout, EventNameConstant, St
   }
 }
 
-detectScrollbar.$inject = ['$window', '$timeout', 'event.name.constant', 'stable.body.service'];
+detectScrollbar.$inject = ['$window', '$timeout', 'stable.body.service'];

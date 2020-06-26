@@ -7,16 +7,17 @@
       <div class="iq-tile iq-tile--report-list-filter">
         <div class="iq-form-group">
           <div class="input-prepend">
-            <span class="add-on">
-              <i ng-class="{'icon-filter': !vm.appFilter, 'icon-remove': vm.appFilter}" ng-click="vm.appFilter = ''">
-              </i>
-            </span>
-            <input type="text"
+            <input id="iq-report-list-filter"
+                   type="text"
                    ng-model="vm.appFilter"
                    autocomplete="off"
-                   placeholder="Filter Applications"
-                   class="iq-text-input--long" />
+                   placeholder="Search by Application or Organization name"
+                   class="iq-text-input--long"
+                   enter-key-call="vm.sortAndFilter()"/>
           </div>
+          <button id="iq-report-list-search-button" class="btn btn-primary" ng-click="vm.sortAndFilter()">
+            Search
+          </button>
         </div>
       </div>
       <div class="iq-tile iq-tile--report-list iq-tile--fixed-table"
@@ -31,7 +32,7 @@
               <tr id="report-list-headers"
                   class="iq-table-row"
                   sort="vm.sortFields"
-                  on-sort-change="vm.sortFields = sortFields">
+                  on-sort-change="vm.sortChange(sortFields)">
                 <th id="report-list-header-app" class="iq-cell iq-cell--header">
                   <div sort-column="name">Application Name</div>
                 </th><!--
@@ -128,6 +129,22 @@
                   </div>
                 </td>
               </tr>
+            </tbody>
+            <tbody class="iq-table--fixed__content">
+            <tr class="iq-table-row">
+              <td colspan="6" class="iq-cell">
+                <span ng-if="vm.loadingApps">
+                  <i class="fa fa-spin fa-circle-o-notch iq-spinner__icon"></i>Loading...
+                </span>
+                <button id="iq-report-list-load-button"
+                        class="btn btn-secondary"
+                        ng-if="!vm.loadingApps"
+                        ng-click="vm.loadMoreResults()"
+                        ng-disabled="!vm.hasMoreResults">
+                  Load More Results
+                </button>
+              </td>
+            </tr>
             </tbody>
           </table>
         </div>

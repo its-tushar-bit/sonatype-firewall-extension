@@ -1,7 +1,0 @@
-* [@Ross Pokorny](https://github.com/rpokorny)
-* [@Kasun Ranawaka](https://github.com/kakumara)
-* [@Andrey Marushkevych](https://github.com/marushkevych)
-* [@Vlad Tatavu](https://github.com/vladt)
-* [@Dennis Warren](https://github.com/DennisWarren)
-* [@Benjamin Bentmann](https://github.com/bentmann)
-* [@Guillermo Varela](https://github.com/guillermo-varela)

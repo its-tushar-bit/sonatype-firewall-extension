@@ -63,7 +63,9 @@ import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.scan.util.HashUtils;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -168,7 +170,7 @@ public class ComponentInfoService
         componentDetails = thirdPartyComponentDAO.getComponentDetailsByIdentifier(identifier, owner.getId(), scanId);
       }
       else {
-        componentDetails = getComponentDetailsFromHDS(matchState, hash, identifier, httpRequest);
+        componentDetails = getComponentDetailsFromHDS(matchState, hash, identifier, httpRequest, identificationSource);
       }
     }
     else {
@@ -192,7 +194,8 @@ public class ComponentInfoService
   private NamedComponentDetails getComponentDetailsFromHDS(String matchState,
                                                            final String hash,
                                                            final ComponentIdentifier identifier,
-                                                           final HttpServletRequest httpRequest) throws IOException
+                                                           final HttpServletRequest httpRequest,
+                                                           final String identificationSource) throws IOException
   {
     return ComponentDetailsLoader.getComponentDetails(identifier, hash, matchState,
         new ComponentDetailsLoader.HostedDataServicesSource()
@@ -214,7 +217,12 @@ public class ComponentInfoService
             }
             catch (NotFoundException e) {
               // Identifier is unknown to HDS, still want to provide minimal data for details view
-              componentDetails = createEmptyComponentDetails(hash, identifier);
+              if (isPackageManifestIdentificationSource(identificationSource)) {
+                componentDetails = createComponentDetailsFromPackageManifest(hash, identifier);
+              }
+              else {
+                componentDetails = createEmptyComponentDetails(hash, identifier);
+              }
             }
             return componentDetails;
           }
@@ -228,6 +236,24 @@ public class ComponentInfoService
     details.setHash(hash);
     details.setMatchState(MatchState.UNKNOWN.getId());
     return details;
+  }
+
+  private NamedComponentDetails createComponentDetailsFromPackageManifest(String hash, ComponentIdentifier identifier) {
+    NamedComponentDetails details = new NamedComponentDetails();
+    details.setComponentIdentifier(identifier);
+    details.setHash(hash);
+    details.setMatchState(MatchState.EXACT.getId());
+    details.setIdentificationSource(IdentificationSource.PACKAGE_MANIFEST.getId());
+    return details;
+  }
+
+  private String generateFakeHash(ComponentIdentifier componentIdentifier) {
+    StringBuilder plainText = new StringBuilder(componentIdentifier.getFormat());
+    for (String coordinate : componentIdentifier.getCoordinates().values()) {
+      plainText.append(":").append(coordinate);
+    }
+    String hash = HashUtils.hash(plainText.toString(), HashUtils.SHA1);
+    return HashHelper.truncateHash(hash);
   }
 
   /**
@@ -428,7 +454,7 @@ public class ComponentInfoService
     if (IdentificationSource.isThirdPartyIdentificationSource(identificationSource)) {
       return thirdPartyComponentDAO.getComponentDetailsByIdentifier(identifier, owner.getId(), scanId);
     }
-    return getComponentDetailsFromHDS(matchState, hash, identifier, httpRequest);
+    return getComponentDetailsFromHDS(matchState, hash, identifier, httpRequest, identificationSource);
   }
 
   ComponentDetailsList getComponentDetailsList(
@@ -452,6 +478,14 @@ public class ComponentInfoService
       String url = "rest/" + toolName + "/componentDetails/list";
       componentDetailsList = hdsClient.get(ComponentDetailsList.class, url,
           Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(identifier)));
+
+      if (CollectionUtils.isEmpty(componentDetailsList.getList())
+          && isPackageManifestIdentificationSource(identificationSource)) {
+        String hash = generateFakeHash(identifier);
+        NamedComponentDetails details = createComponentDetailsFromPackageManifest(hash, identifier);
+        componentDetailsList = new ComponentDetailsList();
+        componentDetailsList.setList(Collections.singletonList(details));
+      }
     }
 
     log.debug("Loaded component details list for {} versions of component identifier {} in {} ms.",
@@ -487,7 +521,7 @@ public class ComponentInfoService
           thirdPartyComponentDAO.getComponentDetailsByIdentifier(componentIdentifier, owner.getId(), scanId);
     }
     else {
-      componentDetails = getComponentDetailsFromHDS(null, null, componentIdentifier, httpRequest);
+      componentDetails = getComponentDetailsFromHDS(null, null, componentIdentifier, httpRequest, identificationSource);
     }
 
     new ComponentDetailsLoader(owner).augmentComponentDetails(componentDetails);
@@ -589,6 +623,10 @@ public class ComponentInfoService
     licenseWithThreatLevel.threatLevel =
         licenseThreatGroupDAO.getLicenseThreatLevelByOwnerAndLicenseIdWithHierarchy(owner, license.getId());
     return licenseWithThreatLevel;
+  }
+
+  private static boolean isPackageManifestIdentificationSource(String identificationSource) {
+    return IdentificationSource.PACKAGE_MANIFEST.getId().equals(identificationSource);
   }
 
   /**

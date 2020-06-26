@@ -23,9 +23,10 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
-import com.sonatype.insight.brain.organization.ApplicationAdapter;
+import com.sonatype.insight.brain.organization.ApplicationContactLoader;
 import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -46,23 +47,24 @@ public class PolicyAlertEmailer
 
   private final BaseUrl baseUrl;
 
-  private final ApplicationAdapter applicationAdapter;
+  private final UserDirectory userDirectory;
   
   private final AuditRecorder auditRecorder;
 
   private final ProductLicense productLicense;
 
   @Inject
-  public PolicyAlertEmailer(final InsightMail mail,
-                            final BaseUrl baseUrl,
-                            final ApplicationAdapter applicationAdapter,
-                            final PolicyAlertEmailResolver policyAlertEmailResolver,
-                            final AuditRecorder auditRecorder,
-                            final ProductLicense productLicense)
+  public PolicyAlertEmailer(
+      final InsightMail mail,
+      final BaseUrl baseUrl,
+      final UserDirectory userDirectory,
+      final PolicyAlertEmailResolver policyAlertEmailResolver,
+      final AuditRecorder auditRecorder,
+      final ProductLicense productLicense)
   {
     super(mail, policyAlertEmailResolver);
     this.baseUrl = baseUrl;
-    this.applicationAdapter = applicationAdapter;
+    this.userDirectory = userDirectory;
     this.auditRecorder = auditRecorder;
     this.productLicense = productLicense;
   }
@@ -91,7 +93,11 @@ public class PolicyAlertEmailer
           log.debug("Not sending notification emails for application {} and scan {} in stage {}."
               + " There are either no recipients configured, or no new policy violations"
               + " for policies configured to send notifications.", applicationPublicId, scanId, stage);
+          return;
         }
+
+        ContactDTO appContact =
+            ApplicationContactLoader.getInstance(userDirectory).getContact(app.getContactInternalName());
         for (final Entry<String, List<PolicyFact>> details : policyFactsByEmailAddress.entrySet()) {
           try (AuditSession auditSession = auditRecorder.recordSystemEvent(AuditEvent.SEND_MAIL)) {
             try {
@@ -103,8 +109,8 @@ public class PolicyAlertEmailer
               AuditData.get().setData("totalPolicyViolationCount", policyAlertCounts.getTotal());
               StageType stageType = StageTypes.getById(stage.getStageTypeId());
               final String subject = createPolicyMailSubject(policyAlertCounts, app.getName(), stageType);
-              final String body = createPolicyMailBody(
-                  createPolicyMailModel(app, scanId, stageType, details.getValue(), grandfatheredPolicyViolationCount));
+              final String body = createPolicyMailBody(createPolicyMailModel(app, appContact, scanId, stageType,
+                  details.getValue(), grandfatheredPolicyViolationCount));
               getMail().sendHtml(details.getKey(), subject, body);
             }
             catch (final Exception e) {
@@ -118,17 +124,18 @@ public class PolicyAlertEmailer
     }.start();
   }
 
-  protected Map<String, Object> createPolicyMailModel(Application app,
-                                                      String scanId,
-                                                      StageType stageType,
-                                                      List<PolicyFact> policyFacts,
-                                                      int grandfatheredPolicyViolationCount)
+  protected Map<String, Object> createPolicyMailModel(
+      Application app,
+      ContactDTO appContact,
+      String scanId,
+      StageType stageType,
+      List<PolicyFact> policyFacts,
+      int grandfatheredPolicyViolationCount)
   {
     Map<String, Object> model = createPolicyMailModel(getMail().getCdnUrl(), app, stageType, policyFacts);
-    ContactDTO contact = applicationAdapter.getContact(app.getContactInternalName());
-    if (contact != null) {
-      model.put("applicationContactEmail", contact.getEmail());
-      model.put("applicationContactName", contact.getDisplayName());
+    if (appContact != null) {
+      model.put("applicationContactEmail", appContact.getEmail());
+      model.put("applicationContactName", appContact.getDisplayName());
     }
     model.put("detailedReportUrl",
         baseUrl.getConfigured() + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), scanId));

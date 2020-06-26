@@ -167,7 +167,8 @@ public class ComponentDetailsLoader
    */
   public Component augmentComponentDetails(ComponentDetails componentDetails, String matchState) {
     componentDetails.setMatchState(StringUtils.isEmpty(matchState) ? MatchState.EXACT.getId() : matchState);
-    if (!isThirdPartyIdentificationSource(componentDetails.getIdentificationSource())) {
+    if (!isThirdPartyIdentificationSource(componentDetails.getIdentificationSource())
+        && !IdentificationSource.PACKAGE_MANIFEST.getId().equals(componentDetails.getIdentificationSource())) {
       componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
     }
     return augmentComponentDetails(componentDetails);

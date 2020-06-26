@@ -22,7 +22,7 @@ public class VerifiableLoggingTestBase
 
   private Class<?> classUnderTest;
 
-  VerifiableLoggingTestBase(Class<?> classUnderTest) {
+  public VerifiableLoggingTestBase(Class<?> classUnderTest) {
     this.classUnderTest = classUnderTest;
   }
 

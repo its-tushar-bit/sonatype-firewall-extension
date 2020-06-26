@@ -11,6 +11,8 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import com.google.common.collect.Sets;
@@ -255,5 +257,52 @@ public class ApplicationServiceAuthzTest
     grantReadPermission(app2.getId());
     applications = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(null, null, null);
     assertThat(applications).extracting(Application::getId).containsExactlyInAnyOrder(app.getId(), app2.getId());
+  }
+
+  @Test
+  public void testGetApplicationManagementSummaries_Global_Authorized() {
+    grantGlobalPermission(Permission.READ);
+    List<ApplicationManagementSummaryDTO> dtos = applicationService
+        .getApplicationManagementSummaries(null, ApplicationManagementSummaryOrder.APP_NAME_ASC, 1, 10);
+    assertThat(dtos).extracting(ApplicationManagementSummaryDTO::getId).containsExactly(app.getId());
+  }
+
+  @Test
+  public void testGetApplicationManagementSummaries_RootOrg_Authorized() {
+    grantReadPermission(Organization.ROOT_ORGANIZATION_ID);
+    List<ApplicationManagementSummaryDTO> dtos = applicationService
+        .getApplicationManagementSummaries(null, ApplicationManagementSummaryOrder.APP_NAME_ASC, 1, 10);
+    assertThat(dtos).extracting(ApplicationManagementSummaryDTO::getId).containsExactly(app.getId());
+  }
+
+  @Test
+  public void testGetApplicationManagementSummaries_Org_Authorized() {
+    grantReadPermission(org.getId());
+    List<ApplicationManagementSummaryDTO> dtos = applicationService
+        .getApplicationManagementSummaries(null, ApplicationManagementSummaryOrder.APP_NAME_ASC, 1, 10);
+    assertThat(dtos).extracting(ApplicationManagementSummaryDTO::getId).containsExactly(app.getId());
+  }
+
+  @Test
+  public void testGetApplicationManagementSummaries_App_Authorized() {
+    grantReadPermission(app.getId());
+    List<ApplicationManagementSummaryDTO> dtos = applicationService
+        .getApplicationManagementSummaries(null, ApplicationManagementSummaryOrder.APP_NAME_ASC, 1, 10);
+    assertThat(dtos).extracting(ApplicationManagementSummaryDTO::getId).containsExactly(app.getId());
+  }
+
+  @Test
+  public void testGetApplicationManagementSummaries_Unauthorized() {
+    login();
+    List<ApplicationManagementSummaryDTO> dtos = applicationService
+        .getApplicationManagementSummaries(null, ApplicationManagementSummaryOrder.APP_NAME_ASC, 1, 10);
+    assertThat(dtos).isEmpty();
+  }
+
+  @Test
+  public void testGetApplicationManagementSummaries_Unauthenticated() {
+    List<ApplicationManagementSummaryDTO> dtos = applicationService
+        .getApplicationManagementSummaries(null, ApplicationManagementSummaryOrder.APP_NAME_ASC, 1, 10);
+    assertThat(dtos).isEmpty();
   }
 }

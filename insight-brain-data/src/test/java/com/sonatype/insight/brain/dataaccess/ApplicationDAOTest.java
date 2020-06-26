@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
@@ -53,6 +54,7 @@ import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -821,6 +823,27 @@ public class ApplicationDAOTest
     applicationDAO.delete(application);
 
     assertThat(new SourceControlDAO().getById(sourceControl.getId())).isNull();
+  }
+
+  @Test
+  public void testCascadeDeleteToSourceControlEvent() {
+    // given a source control event
+    PolicyEvaluation sourcePolicyEvaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "sourceScan", "sourceCommit");
+
+    SourceControlEvent sourceControlEvent =
+        tempEntity.newSourceControlEvent(application, sourcePolicyEvaluation, null);
+
+    SourceControlEventDAO sourceControlEventDAO = new SourceControlEventDAO();
+    SourceControlEvent sourceControlEventByIdBeforeDelete = sourceControlEventDAO.getById(sourceControlEvent.getId());
+    assertThat(sourceControlEventByIdBeforeDelete).isNotNull();
+
+    // when we delete the application
+    applicationDAO.delete(application);
+
+    // then the source control event is deleted
+    SourceControlEvent sourceControlEventByIAfterDelete = sourceControlEventDAO.getById(sourceControlEvent.getId());
+    assertThat(sourceControlEventByIAfterDelete).isNull();
   }
 
   @Test

@@ -25,7 +25,8 @@ public class ApplicationResourceAuthzTest
   public void testGetAllSummaries() throws Exception {
     grantReadPermission(app.getId());
 
-    HttpRequest request = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES);
+    HttpRequest request = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES)
+        .query("page", "1").query("pageSize", "50");
     HttpResponse response = request.auth(unauthorized).get();
     assertResponseStatus(200, response);
     ApplicationManagementSummaryDTO[] entities = response.getBody(ApplicationManagementSummaryDTO[].class);

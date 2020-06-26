@@ -1,7 +1,7 @@
 {
   "urls" : [
     {
-    "url" : "rest/application/services/summary",
+    "url" : "rest/application/services/summary?page=1&pageSize=50",
     "type": "GET",
     "repeat" : { "ifLongerThan" : 10000,
                "minRuns" : 3,

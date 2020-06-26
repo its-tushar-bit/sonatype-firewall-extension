@@ -6,9 +6,7 @@
 package com.sonatype.insight.brain.tag;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -93,17 +91,10 @@ public class TagService
   }
 
   public List<ApiApplicationCategoryDTO> getTagsUsedByApplications() {
-    List<Application> applications = applicationService.getApplications();
-    Map<String, Tag> allTagsById = new LinkedHashMap<>();
-
-    for (Application application : applications) {
-      final List<Tag> applicationTags = tagDAO.getByApplicationId(application.getId());
-      for (final Tag tag : applicationTags) {
-        allTagsById.put(tag.getId(), tag);
-      }
-    }
-
-    return allTagsById.values().stream().map(TagService::toDTO).collect(Collectors.toList());
+    List<String> applicationIds = applicationService.getApplications().stream().map(Application::getId).collect(
+        Collectors.toList());
+    List<Tag> tags = tagDAO.getByApplicationIds(applicationIds);
+    return tags.stream().map(TagService::toDTO).collect(Collectors.toList());
   }
 
   @Authorize(permission = Permission.READ)

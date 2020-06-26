@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -36,6 +37,7 @@ import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.NgUploadResponseGenerator;
@@ -67,7 +69,7 @@ public class ApplicationResource
 
   public static final String VALIDATE_PATH = "validate/{applicationPublicId}";
 
-  private final ApplicationAdapter applicationAdapter;
+  private final UserDirectory userDirectory;
 
   private final InsightWork work;
 
@@ -76,17 +78,18 @@ public class ApplicationResource
   private final OrganizationDAO organizationDAO;
 
   @Inject
-  public ApplicationResource(final InsightWork work,
-                             final BaseUrl baseUrl,
-                             final RobotImageService robotImageService,
-                             final ApplicationAdapter applicationAdapter,
-                             final ApplicationService applicationService,
-                             final NgUploadResponseGenerator ngUploadResponseGenerator,
-                             final OrganizationDAO organizationDAO)
+  public ApplicationResource(
+      final InsightWork work,
+      final BaseUrl baseUrl,
+      final RobotImageService robotImageService,
+      final UserDirectory userDirectory,
+      final ApplicationService applicationService,
+      final NgUploadResponseGenerator ngUploadResponseGenerator,
+      final OrganizationDAO organizationDAO)
   {
     super(baseUrl, ngUploadResponseGenerator, robotImageService);
     this.work = work;
-    this.applicationAdapter = applicationAdapter;
+    this.userDirectory = userDirectory;
     this.applicationService = applicationService;
     this.organizationDAO = organizationDAO;
   }
@@ -104,7 +107,8 @@ public class ApplicationResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public List<ApplicationDTO> getApplications() {
-    final List<ApplicationDTO> applications = applicationAdapter.convert(applicationService.getApplications());
+    List<Application> apps = applicationService.getApplications();
+    final List<ApplicationDTO> applications = ApplicationAdapter.getInstance(userDirectory).convert(apps);
     return applications;
   }
 
@@ -116,8 +120,13 @@ public class ApplicationResource
   @GET
   @Path(GET_APPLICATION_MANAGEMENT_SUMMARIES)
   @Produces(MediaType.APPLICATION_JSON)
-  public List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries() {
-    return applicationService.getApplicationManagementSummaries();
+  public List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries(
+      @QueryParam("nameFilter") String nameFilter,
+      @QueryParam("order") @DefaultValue("APP_NAME_ASC") ApplicationManagementSummaryOrder order,
+      @QueryParam("page") Integer page,
+      @QueryParam("pageSize") Integer pageSize)
+  {
+    return applicationService.getApplicationManagementSummaries(nameFilter, order, page, pageSize);
   }
 
   @GET
@@ -135,7 +144,7 @@ public class ApplicationResource
   @Produces(MediaType.APPLICATION_JSON)
   public ApplicationDTO getApplication(@PathParam("applicationPublicId") final String applicationPublicId) {
     Application application = applicationService.getApplicationByPublicIdNotNull(applicationPublicId);
-    return applicationAdapter.convert(application);
+    return ApplicationAdapter.getInstance(userDirectory).convert(application);
   }
 
   /**
@@ -204,7 +213,7 @@ public class ApplicationResource
   public ApplicationDTO addApplication(Application application) {
     AuditData.get().setParentOrganization(organizationDAO.getById(application.getParentOwnerId()));
     application = applicationService.addApplication(application);
-    return applicationAdapter.convert(application);
+    return ApplicationAdapter.getInstance(userDirectory).convert(application);
   }
 
   @PUT
@@ -214,7 +223,7 @@ public class ApplicationResource
   public ApplicationDTO updateApplication(Application application) {
     AuditData.get().setApplicationWithDetails(application);
     application = applicationService.updateApplication(application);
-    return applicationAdapter.convert(application);
+    return ApplicationAdapter.getInstance(userDirectory).convert(application);
   }
 
   @DELETE

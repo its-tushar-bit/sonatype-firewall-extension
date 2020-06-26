@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.organization;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,8 +36,10 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
+import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.webhook.ManagementEventService;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -56,7 +59,7 @@ public class ApplicationService
 
   private final ApplicationDAO applicationDAO;
 
-  private final ApplicationAdapter applicationAdapter;
+  private final UserDirectory userDirectory;
 
   private final ApplicationCleaner applicationCleaner;
 
@@ -73,18 +76,19 @@ public class ApplicationService
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   @Inject
-  public ApplicationService(ApplicationDAO applicationDAO,
-                            ApplicationAdapter applicationAdapter,
-                            final ApplicationCleaner applicationCleaner,
-                            final ApplicationHelper applicationHelper,
-                            final ManagementEventService managementEventService,
-                            final OrganizationDAO organizationDAO,
-                            ScanPolicyEvaluator scanPolicyEvaluator,
-                            final PolicyViolationLoggerFactory policyViolationLoggerFactory,
-                            final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO)
+  public ApplicationService(
+      ApplicationDAO applicationDAO,
+      UserDirectory userDirectory,
+      final ApplicationCleaner applicationCleaner,
+      final ApplicationHelper applicationHelper,
+      final ManagementEventService managementEventService,
+      final OrganizationDAO organizationDAO,
+      ScanPolicyEvaluator scanPolicyEvaluator,
+      final PolicyViolationLoggerFactory policyViolationLoggerFactory,
+      final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO)
   {
     this.applicationDAO = applicationDAO;
-    this.applicationAdapter = applicationAdapter;
+    this.userDirectory = userDirectory;
     this.applicationCleaner = applicationCleaner;
     this.applicationHelper = applicationHelper;
     this.managementEventService = managementEventService;
@@ -242,22 +246,52 @@ public class ApplicationService
     return applicationIds;
   }
 
-  public List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries() {
-    validateReportsListFeatureEnabled();
-    return getApplicationManagementSummaries(getApplications());
-  }
-
   public ApplicationManagementSummaryDTO getApplicationManagementSummary(String applicationPublicId) {
     final Application application = getApplicationByPublicIdNotNull(applicationPublicId);
     return getApplicationManagementSummary(application);
   }
 
-  private List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries(
-      final List<Application> applications)
+  public List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries(
+      String nameFilter,
+      ApplicationManagementSummaryOrder order,
+      Integer page,
+      Integer pageSize)
   {
-    // Create the summary DTOs from the applications
-    final List<ApplicationManagementSummaryDTO> applicationManagementSummaryDTOs = applicationAdapter
-        .createApplicationManagementSummaries(applications);
+    validateReportsListFeatureEnabled();
+
+    if (page == null || pageSize == null) {
+      throw new BadRequestException("Request must include required query parameters page and pageSize.");
+    }
+
+    if (nameFilter != null && nameFilter.isEmpty()) {
+      nameFilter = null;
+    }
+
+    List<Application> applications = getApplications();
+    List<ApplicationManagementSummaryDTO> applicationManagementSummaryDTOs =
+        ApplicationAdapter.getInstance(userDirectory).createApplicationManagementSummaries(applications, nameFilter);
+
+    Comparator<ApplicationManagementSummaryDTO> comparator;
+    switch (order) {
+      case APP_NAME_ASC:
+        comparator = Comparator.comparing(ApplicationManagementSummaryDTO::getName);
+        break;
+      case APP_NAME_DESC:
+        comparator = Comparator.comparing(ApplicationManagementSummaryDTO::getName).reversed();
+        break;
+      case ORG_NAME_ASC:
+        comparator = Comparator.comparing(ApplicationManagementSummaryDTO::getOrganizationName);
+        break;
+      case ORG_NAME_DESC:
+        comparator = Comparator.comparing(ApplicationManagementSummaryDTO::getOrganizationName).reversed();
+        break;
+      default:
+        throw new IllegalArgumentException("Unknown ordering: " + order);
+    }
+    applicationManagementSummaryDTOs.sort(comparator);
+
+    applicationManagementSummaryDTOs = applicationManagementSummaryDTOs.subList((page - 1) * pageSize,
+        Math.min(page * pageSize, applicationManagementSummaryDTOs.size()));
 
     loadPolicyEvaluations(applicationManagementSummaryDTOs);
     loadPolicyEvaluationsResults(applicationManagementSummaryDTOs);
@@ -266,8 +300,8 @@ public class ApplicationService
   }
 
   private ApplicationManagementSummaryDTO getApplicationManagementSummary(final Application application) {
-    final ApplicationManagementSummaryDTO applicationManagement = applicationAdapter
-        .createApplicationManagementSummary(application);
+    final ApplicationManagementSummaryDTO applicationManagement =
+        ApplicationAdapter.getInstance(userDirectory).createApplicationManagementSummary(application);
     loadPolicyEvaluations(Arrays.asList(applicationManagement));
 
     return applicationManagement;

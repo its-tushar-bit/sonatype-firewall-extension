@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.git.utils.VersionRemediationTitleGenerator;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,6 +69,9 @@ public class PolicyAlertScmNotifier
   private final SourceControlUtils sourceControlUtils;
 
   private final SourceControlTaskRunner sourceControlTaskRunner;
+
+  @VisibleForTesting
+  PullRequestInvoker pullRequestInvoker = new PullRequestInvoker();
 
   /**
    * notifier for sending to hosted git source control manager service
@@ -110,23 +114,25 @@ public class PolicyAlertScmNotifier
   {
     final GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(app.getId());
 
+    if (Stage.ID_DEVELOP.equals(stage.getStageTypeId())) {
+      log.debug("Ignoring Pull Request notification for the 'develop' stage for application '{}' and scan '{}'",
+          app.getPublicId(), scanId);
+      return;
+    }
+
     if (!pullRequestFeatureCheck.isPullRequestFeatureSupported(app, gitRepositoryInfo)) {
       return;
     }
 
-    new Thread("PolicyAlertScmNotifierForScan-" + scanId)
-    {
-      @Override
-      public void run() {
-        try {
-          internalSendNotification(app, scanId, stage, policyNotifications, gitRepositoryInfo);
-        }
-        catch (final Exception e) {
-          log.error("Unable to send PullRequest notification for application {} and scan {} in stage {}",
-              app.getPublicId(), scanId, stage, e);
-        }
+    pullRequestInvoker.execute(scanId, () -> {
+      try {
+        internalSendNotification(app, scanId, stage, policyNotifications, gitRepositoryInfo);
       }
-    }.start();
+      catch (final Exception e) {
+        log.error("Unable to send PullRequest notification for application {} and scan {} in stage {}",
+            app.getPublicId(), scanId, stage, e);
+      }
+    });
   }
 
   private void internalSendNotification(final Application app,
@@ -202,5 +208,15 @@ public class PolicyAlertScmNotifier
 
     return remediationService.getSuggestedRemediationForComponentNoAuth(
         componentDto, OWNER_TYPE, ownerId, STAGE_ID, null, null).remediation.versionChanges;
+  }
+
+  /**
+   * Invoke the PR runnable in a named thread. Package-private to allow for mocking in tests.
+   */
+  class PullRequestInvoker
+  {
+    public void execute(final String scanId, Runnable runnable) {
+      new Thread(runnable, "PolicyAlertScmNotifierForScan-" + scanId).start();
+    }
   }
 }

@@ -13,23 +13,35 @@ import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.license.LicenseOverride;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.UserToken;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.apache.commons.io.FileUtils;
@@ -142,32 +154,50 @@ public class DbScrubberTest
   }
 
   @Test
-  public void testScrubDB_Table_scm() throws Exception {
-    // source_control table
+  public void testScrubDB_Table_source_control() throws Exception {
     String repoUrl = "http://bitbucket.org/scm/org/repo";
     Application app = tempEntity.newApplicationWithParent();
     tempEntity.newOrganization();
-    tempEntity.newSourceControl("ROOT_ORGANIZATION_ID", null, "testUser",
+    SourceControl rootSourceControl = tempEntity.newSourceControl("ROOT_ORGANIZATION_ID", null, "testUser",
         "testToken", SourceControlProvider.BITBUCKET, true, false, "master", null);
-    tempEntity
-            .newSourceControl(app.getId(), repoUrl, null, "TOKEN", null, null, true, null,
-                null);
+    SourceControl appSourceControl =
+        tempEntity.newSourceControl(app.getId(), repoUrl, null, "TOKEN", null, null, true, null, null);
 
-    // sc pull request comment
+    scrubDb();
+
+    assertThat(getSqlDumpContent())
+        .contains(rootSourceControl.getId(), appSourceControl.getId(), repoUrl, "testUser", "TOKEN");
+    assertThat(getScrubbedSqlContent())
+        .doesNotContain(rootSourceControl.getId(), appSourceControl.getId(), repoUrl, "testUser", "TOKEN");
+  }
+
+  @Test
+  public void testScrubDB_Table_source_control_pull_request_comment() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
     PolicyEvaluation sourcePolicyEvaluation = tempEntity.newPolicyEvaluation(
         app.getId(), BuildStageType.ID, "sourceScan", "sourceCommit");
     PolicyEvaluation targetPolicyEvaluation = tempEntity.newPolicyEvaluation(
         app.getId(), BuildStageType.ID, "targetScan", "targetCommit");
-    tempEntity.newSourceControlPullRequestComment(app.getId(), 1, 2, 3, "contentHash", sourcePolicyEvaluation.getId(),
-        targetPolicyEvaluation.getId());
-
-    // commit history
-    tempEntity.newSourceControlDefaultBranchCommitHistory(app.getId(), "commitHash", new Date(), null);
+    SourceControlPullRequestComment sourceControlPullRequestComment = tempEntity
+        .newSourceControlPullRequestComment(app.getId(), 1, 2, 3, "contentHash", sourcePolicyEvaluation.getId(),
+            targetPolicyEvaluation.getId());
 
     scrubDb();
 
-    assertThat(getSqlDumpContent()).contains(repoUrl, "testUser", "testToken", "contentHash", "commitHash");
-    assertThat(getScrubbedSqlContent()).doesNotContain(repoUrl, "testUser", "testToken", "contentHash", "commitHash");
+    assertThat(getSqlDumpContent()).contains(sourceControlPullRequestComment.getId());
+    assertThat(getScrubbedSqlContent()).doesNotContain(sourceControlPullRequestComment.getId());
+  }
+
+  @Test
+  public void testScrubDB_Table_source_control_default_branch_commit_history() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    SourceControlDefaultBranchCommitHistory sourceControlDefaultBranchCommitHistory =
+        tempEntity.newSourceControlDefaultBranchCommitHistory(app.getId(), "commitHash", new Date(), null);
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(sourceControlDefaultBranchCommitHistory.getId());
+    assertThat(getScrubbedSqlContent()).doesNotContain(sourceControlDefaultBranchCommitHistory.getId());
   }
 
   private String getSqlDumpContent() throws IOException {
@@ -280,6 +310,87 @@ public class DbScrubberTest
     String scrubbedSqlContent = getScrubbedSqlContent();
     assertThat(scrubbedSqlContent).contains(appCategory.getId());
     assertThat(scrubbedSqlContent).doesNotContain("Test app category", "testappcategory", "Test description");
+  }
+
+  @Test
+  public void testScrubDB_Table_repository_manager() throws Exception {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager("TestInstanceId"); 
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(repoManager.getId(), "TestInstanceId");
+    String scrubbedSqlContent = getScrubbedSqlContent();
+    assertThat(scrubbedSqlContent).contains(repoManager.getId());
+    assertThat(scrubbedSqlContent).doesNotContain("TestInstanceId");
+  }
+
+  @Test
+  public void testScrubDB_Table_repository() throws Exception {
+    Repository repo = tempEntity.newRepository("TestPublicId");
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(repo.getId(), "TestPublicId");
+    String scrubbedSqlContent = getScrubbedSqlContent();
+    assertThat(scrubbedSqlContent).contains(repo.getId());
+    assertThat(scrubbedSqlContent).doesNotContain("TestPublicId");
+  }
+
+  @Test
+  public void testScrubDB_Table_hash_component_identifier() throws Exception {
+    HashComponentIdentifier claimedComponent = tempEntity.newClaimedComponent("TestHash",
+        ComponentIdentifier.createNpmCoordinates("TestPackageId", "TestVersion"));
+    claimedComponent.setComment("Test comment");
+    new HashComponentIdentifierDAO().update(claimedComponent);
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(claimedComponent.getId(), "Test comment");
+    String scrubbedSqlContent = getScrubbedSqlContent();
+    assertThat(scrubbedSqlContent).contains(claimedComponent.getId());
+    assertThat(scrubbedSqlContent).doesNotContain("Test comment");
+  }
+
+  @Test
+  public void testScrubDB_Table_policy_waiver() throws Exception {
+    Policy policy = tempEntity.newPolicy();
+    PolicyWaiver policyWaiver =
+        tempEntity.newWaiver("TestHash", policy.getId(), Organization.ROOT_ORGANIZATION_ID, "Test comment");
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(policyWaiver.getId(), "Test comment");
+    String scrubbedSqlContent = getScrubbedSqlContent();
+    assertThat(scrubbedSqlContent).contains(policyWaiver.getId());
+    assertThat(scrubbedSqlContent).doesNotContain("Test comment");
+  }
+
+  @Test
+  public void testScrubDB_Table_license_override() throws Exception {
+    LicenseOverride licenseOverride = tempEntity.newLicenseOverride(Organization.ROOT_ORGANIZATION_ID,
+        ComponentIdentifier.createNpmCoordinates("TestPackageId", "TestVersion"), LicenseOverrideStatus.OVERRIDDEN,
+        "Apache-2.0", "Test comment");
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(licenseOverride.getId(), "Test comment");
+    String scrubbedSqlContent = getScrubbedSqlContent();
+    assertThat(scrubbedSqlContent).contains(licenseOverride.getId());
+    assertThat(scrubbedSqlContent).doesNotContain("Test comment");
+  }
+
+  @Test
+  public void testScrubDB_Table_sv_override() throws Exception {
+    SecurityVulnerabilityOverride svOverride =
+        tempEntity.newSecurityVulnerabilityOverride(Organization.ROOT_ORGANIZATION_ID, "TestHash", "CVE",
+            "CVE-1234-5678", SecurityVulnerabilityOverrideStatus.NOT_APPLICABLE, "Test comment");
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(svOverride.getId(), "Test comment");
+    String scrubbedSqlContent = getScrubbedSqlContent();
+    assertThat(scrubbedSqlContent).contains(svOverride.getId());
+    assertThat(scrubbedSqlContent).doesNotContain("Test comment");
   }
 
   private void scrubDb() {

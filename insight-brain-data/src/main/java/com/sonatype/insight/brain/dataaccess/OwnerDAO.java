@@ -50,7 +50,7 @@ public class OwnerDAO
       return app;
     }
 
-    return repoDAO.getById(id);
+    return repoDAO.getById(tx, id);
   }
 
   public Owner getById(String id) {

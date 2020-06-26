@@ -48,6 +48,8 @@ public class PullRequestPollingService
 
   private static final int MAX_API_REQUESTS_PER_CYCLE = 50;
 
+  private static final String POLLING = "polling";
+
   private final SourceControlDAO sourceControlDAO;
 
   private final SourceControlEventService sourceControlEventService;
@@ -151,7 +153,8 @@ public class PullRequestPollingService
         .setCommitHash(sourcePolicyEvaluation.getCommitHash())
         .setEventType(SourceControlEvent.DISCOVERED_PULL_REQUEST_EVENT)
         .setPolicyEvaluationId(sourcePolicyEvaluation.getId())
-        .setPullRequestNumber(pullRequestNumber);
+        .setPullRequestNumber(pullRequestNumber)
+        .setInitiator(POLLING);
     if (null != targetPolicyEvaluation) {
       event.setTargetPolicyEvaluationId(targetPolicyEvaluation.getId());
     }

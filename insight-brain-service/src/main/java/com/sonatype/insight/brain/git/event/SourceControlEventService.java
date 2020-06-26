@@ -150,7 +150,12 @@ public class SourceControlEventService
   }
 
   private void handleSourceControlEvent(final SourceControlEvent event) {
+    log.trace("Handling event '{}' of type '{}' for application '{}'", event.getId(), event.getEventType(),
+        event.getApplicationId());
+
     if (acquireRepoAccess(event.getApplicationId())) {
+      log.trace("Acquired repo access for event '{}' of type '{}' for application '{}'", event.getId(),
+          event.getEventType(), event.getApplicationId());
       try {
         sourceControlEventDAO.markEventInProgress(event.getId());
         if (executeSourceControlEvent(event)) {
@@ -165,6 +170,8 @@ public class SourceControlEventService
       }
       finally {
         releaseRepoAccess(event.getApplicationId());
+        log.trace("Released repo access for event '{}' of type '{}' for application '{}'", event.getId(),
+            event.getEventType(), event.getApplicationId());
       }
     }
   }

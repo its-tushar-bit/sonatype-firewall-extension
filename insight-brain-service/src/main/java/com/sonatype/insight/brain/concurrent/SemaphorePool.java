@@ -5,14 +5,17 @@
  */
 package com.sonatype.insight.brain.concurrent;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.AtomicLongMap;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The purpose of the SemaphorePool is to try to maintain a finite availableSemaphorePool of semaphores.  The
@@ -21,6 +24,8 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class SemaphorePool
 {
+  private static final Logger log = LoggerFactory.getLogger(SemaphorePool.class);
+
   // this is an 'ideal' size for the availableSemaphorePool;  the availableSemaphorePool is unbounded but can shrink
   // back to the ideal availableSemaphorePool size over time as semaphores are released
   private final int idealPoolSize;
@@ -29,11 +34,15 @@ public class SemaphorePool
   private final Semaphore internalLock;
 
   // holds semaphores that have been created but are no longer in use and are available for acquisition
-  private List<Semaphore> availableSemaphorePool = new ArrayList<>();
+  private List<Semaphore> availableSemaphorePool = new LinkedList<>();
 
   // represents semaphores that are in use, mapped to the keys used to acquire them; other callers wanting to
   // acquire access to a semaphore already in use for that key will join the existing one
   private Map<String, Semaphore> semaphoresInUse = new HashMap<>();
+
+  // keep track of acquire (increment) and release (decrement) calls for the given key.  Relying on the semaphores
+  // themselves is unreliable because we don't call acquire on them inside the internal lock
+  private AtomicLongMap<String> keyUsageCounter = AtomicLongMap.create();
 
   public SemaphorePool(int idealPoolSize) {
     this.idealPoolSize = idealPoolSize;
@@ -43,8 +52,9 @@ public class SemaphorePool
   /**
    * runs acquire on the semaphore associated with the given key
    */
-  public void acquire(String key) throws InterruptedException {
+  public void acquire(final String key) throws InterruptedException {
     if (StringUtils.isBlank(key)) {
+      log.error("Trying to acquire with invalid key '{}'", key);
       throw new IllegalArgumentException("key is required");
     }
     internalLock.acquire();
@@ -66,6 +76,7 @@ public class SemaphorePool
         }
         semaphoresInUse.put(key, semaphoreForCallingThread);
       }
+      keyUsageCounter.getAndIncrement(key);
     }
     finally {
       internalLock.release();
@@ -79,23 +90,26 @@ public class SemaphorePool
   /**
    * releases the semaphore associated with the given key
    */
-  public void release(String key) throws InterruptedException {
-    if (StringUtils.isBlank(key) || !semaphoresInUse.containsKey(key)) {
-      // trying to release on a blank or bogus key could be safely ignored from this pool's perspective, but it is
-      // indicative of a problem in using this API so we'll throw an exception
-      throw new IllegalArgumentException("trying to release on an invalid key");
-    }
+  public void release(final String key) throws InterruptedException {
     internalLock.acquire();
 
     try {
-      Semaphore semaphore = semaphoresInUse.get(key);
-      semaphore.release();
-      if (!semaphore.hasQueuedThreads()) {
-        // there are no other threads currently using this semaphore
-        semaphoresInUse.remove(key);
-        // this is how we move back towards our ideal pool size if we've grown past it
-        if (getInUseCount() + getAvailableCount() < idealPoolSize) {
-          availableSemaphorePool.add(semaphore);
+      if (StringUtils.isBlank(key) || !semaphoresInUse.containsKey(key)) {
+        log.warn("Trying to release with invalid key '{}'", key);
+      }
+      else {
+        Semaphore semaphore = semaphoresInUse.get(key);
+        if (keyUsageCounter.get(key) == 1) {
+          // there are no other threads currently using this semaphore, only this one
+          semaphoresInUse.remove(key);
+          // this is how we move back towards our ideal pool size if we've grown past it
+          if (getInUseCount() + getAvailableCount() < idealPoolSize) {
+            availableSemaphorePool.add(semaphore);
+          }
+        }
+        semaphore.release();
+        if (keyUsageCounter.get(key) > 0) {
+          keyUsageCounter.decrementAndGet(key);
         }
       }
     }
@@ -112,5 +126,10 @@ public class SemaphorePool
   @VisibleForTesting
   int getAvailableCount() {
     return availableSemaphorePool.size();
+  }
+
+  @VisibleForTesting
+  long getKeyUsage(String key) {
+    return keyUsageCounter.get(key);
   }
 }

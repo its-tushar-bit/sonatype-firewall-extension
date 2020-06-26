@@ -24,8 +24,6 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class PolicyEvaluationDAO
     extends AbstractOperationalSqlDAO<PolicyEvaluation>
 {
-  static final int IN_OPERATOR_THRESHOLD = 2000;
-
   @Override
   protected PolicyEvaluation getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
@@ -47,7 +45,7 @@ public class PolicyEvaluationDAO
   }
 
   public List<PolicyEvaluation> getLastByApplicationIds(Set<String> appIds) {
-    if (appIds.size() >= IN_OPERATOR_THRESHOLD) {
+    if (appIds.size() >= H2_IN_OPERATOR_THRESHOLD) {
       return getLastByApplicationIdsManualFilter(appIds);
     }
     String sQuery = "SELECT pe FROM PolicyEvaluation pe," + //
@@ -96,7 +94,7 @@ public class PolicyEvaluationDAO
   }
 
   public List<PolicyEvaluation> getLastByApplicationIdsAndStageIds(Set<String> appIds, Set<String> stageTypeIds) {
-    if (appIds.size() >= IN_OPERATOR_THRESHOLD) {
+    if (appIds.size() >= H2_IN_OPERATOR_THRESHOLD) {
       return getLastByApplicationIdsAndStageIdsManualFilter(appIds, stageTypeIds);
     }
     String sQuery = "SELECT pe FROM PolicyEvaluation pe," + //

@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.dataaccess.tag;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -13,6 +15,8 @@ import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.DescriptionHelper;
@@ -24,6 +28,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.postgres.PostgresServer;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
@@ -470,6 +475,72 @@ public class TagDAOTest
 
     // Add another tag with a case-/whitespace-equivalent name at child org level
     assertUpdateTagWithDuplicateName(organization.getId(), tagName, expectedOrg);
+  }
+
+  @Test
+  public void testGetByApplicationIds_H2() {
+    testGetByApplicationIds(true);
+  }
+
+  @Test
+  public void testGetByApplicationIds_Postgres() {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      testGetByApplicationIds(false);
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
+  private void testGetByApplicationIds(boolean isDatabaseEmbedded) {
+    TagDAO dao = new TagDAO();
+    assertThat(dao.isDatabaseEmbedded()).isEqualTo(isDatabaseEmbedded);
+    organization = tempEntity.newOrganization();
+    Tag tag1 = tempEntity.newTag(organization.getId());
+    Tag tag2 = tempEntity.newTag(organization.getId());
+    Tag tag3 = tempEntity.newTag(organization.getId());
+    Application app1 = tempEntity.newApplication(organization.getId());
+    Application app2 = tempEntity.newApplication(organization.getId());
+    Application app3 = tempEntity.newApplication(organization.getId());
+    tempEntity.newApplicationTag(app1.getId(), tag1.getId());
+    tempEntity.newApplicationTag(app2.getId(), tag1.getId());
+    tempEntity.newApplicationTag(app2.getId(), tag2.getId());
+    tempEntity.newApplicationTag(app3.getId(), tag3.getId());
+
+    List<Tag> tags = dao.getByApplicationIds(Arrays.asList(app1.getId(), app2.getId()));
+
+    assertThat(tags).extracting(Tag::getId).containsExactlyInAnyOrder(tag1.getId(), tag2.getId());
+  }
+
+  @Test
+  public void testGetByApplicationIds_H2_IN_OPERATOR_THRESHOLD() {
+    Tag tag = tempEntity.newTag(organization.getId());
+    List<String> appIds = new ArrayList<>();
+    for (int i = 0; i < TagDAO.H2_IN_OPERATOR_THRESHOLD; i++) {
+      Application app = tempEntity.newApplication(organization.getId());
+      appIds.add(app.getId());
+      tempEntity.newApplicationTag(app.getId(), tag.getId());
+    }
+
+    assertThat(dao.getByApplicationIds(appIds)).extracting(Tag::getId).containsExactly(tag.getId());
+
+    Application app = tempEntity.newApplication(organization.getId());
+    appIds.add(app.getId());
+    tempEntity.newApplicationTag(app.getId(), tag.getId());
+
+    assertThat(dao.getByApplicationIds(appIds)).extracting(Tag::getId).containsExactly(tag.getId());
+  }
+
+  @Test
+  public void testGetByApplicationIds_Null() {
+    assertThat(dao.getByApplicationIds(null)).isEmpty();
+  }
+
+  @Test
+  public void testGetByApplicationIds_Empty() {
+    assertThat(dao.getByApplicationIds(Collections.emptyList())).isEmpty();
   }
 
   private void assertInsertTagWithDuplicateName(String orgId, String tagName, Organization expectedOrg) {

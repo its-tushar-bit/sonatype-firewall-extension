@@ -356,7 +356,7 @@ public class PolicyEvaluationDAOTest
     PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scanId4", time2);
 
     Set<String> appIds = new LinkedHashSet<>();
-    while (appIds.size() < PolicyEvaluationDAO.IN_OPERATOR_THRESHOLD) {
+    while (appIds.size() < PolicyEvaluationDAO.H2_IN_OPERATOR_THRESHOLD) {
       appIds.add(tempEntity.uuid());
     }
     appIds.add(application.getId());
@@ -413,7 +413,7 @@ public class PolicyEvaluationDAOTest
     PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(application.getId(), stageTypeId, "scanId3", time2);
 
     Set<String> appIds = new LinkedHashSet<>();
-    while (appIds.size() < PolicyEvaluationDAO.IN_OPERATOR_THRESHOLD) {
+    while (appIds.size() < PolicyEvaluationDAO.H2_IN_OPERATOR_THRESHOLD) {
       appIds.add(tempEntity.uuid());
     }
     appIds.add(application.getId());

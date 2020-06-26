@@ -12,6 +12,8 @@ import com.sonatype.insight.model.HasStringId;
 public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     extends AbstractSqlDAO<T>
 {
+  public static final int H2_IN_OPERATOR_THRESHOLD = 2000;
+
   @Override
   public TransactionContext createTransactionContext() {
     return new TransactionContext(OperationalDataStoreProvider.getJPAEntityManagerFactory().createEntityManager());

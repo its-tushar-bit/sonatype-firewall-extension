@@ -5,7 +5,11 @@
  */
 package com.sonatype.insight.brain.dataaccess.tag;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.DataAccessException;
@@ -75,6 +79,26 @@ public class TagDAO
     String sQuery = "SELECT tag FROM ApplicationTag appTag, Tag tag" + //
         " WHERE appTag.tagId=tag.id AND appTag.applicationId=?1";
     return getList(tx, sQuery, applicationId);
+  }
+
+  public List<Tag> getByApplicationIds(List<String> applicationIds) {
+    String sQuery = "SELECT DISTINCT tag FROM ApplicationTag appTag, Tag tag" + //
+        " WHERE appTag.tagId=tag.id AND appTag.applicationId IN ?1";
+    if (applicationIds == null || applicationIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+    if (isDatabaseEmbedded() && applicationIds.size() >= H2_IN_OPERATOR_THRESHOLD) {
+      Map<String, Tag> tagsById = new LinkedHashMap<>();
+      for (int i = 0; i < applicationIds.size(); i += H2_IN_OPERATOR_THRESHOLD) {
+        List<Tag> tags =
+            getList(sQuery, applicationIds.subList(i, Math.min(i + H2_IN_OPERATOR_THRESHOLD, applicationIds.size())));
+        tags.forEach(tag -> tagsById.put(tag.getId(), tag));
+      }
+      return new ArrayList<>(tagsById.values());
+    }
+    else {
+      return getList(sQuery, applicationIds);
+    }
   }
 
   /**

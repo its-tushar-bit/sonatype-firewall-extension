@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequ
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.iq.location.discovery.PositionDiscoveryExecutor;
 import com.sonatype.nexus.iq.location.dto.DiffPosition;
@@ -42,8 +43,6 @@ import org.slf4j.LoggerFactory;
 public class PullRequestLineCommentingService
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestLineCommentingService.class);
-
-  static final String LINE_COMMENT_FEATURE = "prLineCommenting";
 
   private final GitClientFactory gitClientFactory;
 
@@ -91,7 +90,7 @@ public class PullRequestLineCommentingService
       final String sourcePolicyEvaluationId,
       final String basePolicyEvaluationId)
   {
-    if (!insightConfig.isExperimentalFeatureEnabled(LINE_COMMENT_FEATURE) ||
+    if (!insightConfig.isFeatureEnabled(Feature.PR_LINE_COMMENTING) ||
         !gitRepositoryInfo.getProvider().supportsPullRequestLineCommenting()) {
       return Collections.emptyList();
     }

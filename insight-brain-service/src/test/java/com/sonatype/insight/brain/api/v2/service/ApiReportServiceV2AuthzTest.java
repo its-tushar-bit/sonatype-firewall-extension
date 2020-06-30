@@ -9,7 +9,6 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiReportHistoryDTO;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
@@ -34,10 +33,9 @@ public class ApiReportServiceV2AuthzTest
     apiReportServiceV2.getByApplicationId(app.getId());
   }
 
-  @Test(expected = NotFoundException.class)
   public void testGetByApplicationId_Authorized() throws Exception {
     grantReadPermission(app.getId());
-    apiReportServiceV2.getByApplicationId("fakeappid");
+    apiReportServiceV2.getByApplicationId(app.getId());
   }
 
   @Test

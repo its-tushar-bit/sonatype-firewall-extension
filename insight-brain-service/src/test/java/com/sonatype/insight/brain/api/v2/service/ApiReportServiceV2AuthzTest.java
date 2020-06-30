@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.api.v2.service;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiReportHistoryDTO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -33,24 +35,41 @@ public class ApiReportServiceV2AuthzTest
     apiReportServiceV2.getByApplicationId(app.getId());
   }
 
+  @Test
   public void testGetByApplicationId_Authorized() throws Exception {
     grantReadPermission(app.getId());
     apiReportServiceV2.getByApplicationId(app.getId());
   }
 
   @Test
-  public void testGetReportHistoryForApplication_Authorized() {
-    grantReadPermission(app.getId());
+  public void testGetAll_Unauthenticated() throws Exception {
+    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId");
 
-    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(app.getId());
-
-    assertThat(reports.applicationId).isEqualTo(app.getId());
-    assertThat(reports.reports).hasSize(0);
+    assertThat(apiReportServiceV2.getAll()).isEmpty();
   }
 
   @Test
-  public void testGetReportHistoryForApplication_AuthorizedOrg() {
-    grantReadPermission(org.getId());
+  public void testGetAll_Unauthorized() throws Exception {
+    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId");
+
+    login();
+    assertThat(apiReportServiceV2.getAll()).isEmpty();
+  }
+
+  @Test
+  public void testGetAll_Authorized() throws Exception {
+    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId");
+
+    Application unauthorizedApp = tempEntity.newApplicationWithParent();
+    tempEntity.newPolicyEvaluation(unauthorizedApp.getId(), StageTypes.BUILD.getId(), "scanId1");
+
+    grantReadPermission(app.getId());
+    assertThat(apiReportServiceV2.getAll()).extracting("applicationId").containsExactly(app.getId());
+  }
+
+  @Test
+  public void testGetReportHistoryForApplication_Authorized() {
+    grantReadPermission(app.getId());
 
     ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(app.getId());
 

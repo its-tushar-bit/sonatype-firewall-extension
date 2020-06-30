@@ -39,8 +39,8 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.nexus.iq.location.dto.DiffPosition;
 import com.sonatype.nexus.scm.SourceControlProvider;
+import com.sonatype.nexus.scm.api.DiffPosition;
 
 import org.junit.After;
 import org.junit.Before;

@@ -26,9 +26,9 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.iq.location.discovery.PositionDiscoveryExecutor;
-import com.sonatype.nexus.iq.location.dto.DiffPosition;
 import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
 import com.sonatype.nexus.iq.location.dto.PositionDiscoveryResult;
+import com.sonatype.nexus.scm.api.DiffPosition;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.CommentResponse;
 
@@ -154,10 +154,10 @@ public class PullRequestLineCommentingService
       if (lineCommentDTO.hasMarkup()) {
         totalCount++;
         try {
-          //Create the line comment in GitHub
+          //Create the line comment in SCM
           CommentResponse response = gitApiClient
               .createPullRequestLineComment(pullRequestId, lineCommentDTO.getMarkup(), commitHash,
-                  lineCommentDTO.getDiffPosition().getFilePath(), lineCommentDTO.getDiffPosition().getDiffPosition());
+                  lineCommentDTO.getDiffPosition());
           lineCommentDTO.setScmId(response.getId());
           lineCommentDTO.setScmVersion(response.getVersion());
 

@@ -68,7 +68,7 @@ public class ApiReportServiceV2Test
   }
 
   @Test
-  public void testAll() {
+  public void testGetAll() {
     List<ApiApplicationReportDTOV2> reports = apiReportServiceV2.getAll();
 
     assertThat(reports).hasSize(3);
@@ -79,7 +79,7 @@ public class ApiReportServiceV2Test
   }
 
   @Test
-  public void testSpecific() {
+  public void testGetByApplicationId() {
     List<ApiApplicationReportDTOV2> reports = apiReportServiceV2.getByApplicationId(appOne.getId());
 
     assertThat(reports).hasSize(2);

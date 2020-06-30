@@ -25,18 +25,18 @@ public class ApiReportServiceV2AuthzTest
   private ApiReportServiceV2 apiReportServiceV2;
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetData_Anon() throws Exception {
+  public void testGetByApplicationId_Unauthenticated() throws Exception {
     apiReportServiceV2.getByApplicationId(app.getId());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetData_Unauthorized() throws Exception {
+  public void testGetByApplicationId_Unauthorized() throws Exception {
     login();
     apiReportServiceV2.getByApplicationId(app.getId());
   }
 
   @Test(expected = NotFoundException.class)
-  public void testGetData_Authorized() throws Exception {
+  public void testGetByApplicationId_Authorized() throws Exception {
     grantReadPermission(app.getId());
     apiReportServiceV2.getByApplicationId("fakeappid");
   }

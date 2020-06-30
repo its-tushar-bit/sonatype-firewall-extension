@@ -38,7 +38,7 @@ public class ApiReportResourceV2Test
   }
 
   @Test
-  public void testGetApplicationEvaluations() throws Exception {
+  public void testGetReportHistoryForApplication() throws Exception {
     //setup
     tempEntity.newPolicy(app);
     final String scanId1 = "ScanId1";

@@ -375,7 +375,7 @@ public class PullRequestCommentingService
       recordCommentInDatabase(applicationId, pullRequestNumber, response.getId(), response.getVersion(), contentHash,
           sourceCommitPolicyEvaluation.getId(), baseBranchPolicyEvaluation.getId(), existingPullRequestComment);
       invokePostCommentActions(gitRepositoryInfo, policyViolationDiff.get(),
-          sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation);
+          sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation, branchName);
 
       prCommentingMetricsService.sendTelemetry(telemetry);
 
@@ -578,12 +578,14 @@ public class PullRequestCommentingService
       final GitRepositoryInfo gitRepositoryInfo,
       final PolicyViolationDiff<PolicyViolation> policyViolationDiff,
       final PolicyEvaluation sourceCommitPolicyEvaluation,
-      final PolicyEvaluation baseBranchPolicyEvaluation)
+      final PolicyEvaluation baseBranchPolicyEvaluation,
+      final String branch)
   {
     pullRequestPostCommentActionList.forEach(pullRequestPostCommentAction -> pullRequestPostCommentAction
         .invokeAction(gitClientFactory, gitRepositoryInfo, policyViolationDiff,
             sourceCommitPolicyEvaluation,
-            baseBranchPolicyEvaluation));
+            baseBranchPolicyEvaluation,
+            branch));
   }
 
   private boolean checkLicense() {

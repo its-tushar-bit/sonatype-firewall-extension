@@ -17,13 +17,17 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
+import com.sonatype.insight.brain.git.PullRequestLocationDiscoveryService;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.report.ReportEntry;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
+import com.sonatype.nexus.iq.location.dto.RankedSourceLocation;
 import com.sonatype.nexus.scm.api.model.CodeInsightAnnotation;
 import com.sonatype.nexus.scm.bitbucket.BitbucketApiClientUtils;
 import com.sonatype.nexus.scm.bitbucket.BitbucketCodeInsightAnnotationRequestBuilder;
@@ -76,13 +80,16 @@ public class PullRequestCodeInsightsDetails
 
   private final List<PolicyViolation> clearedPolicyViolations;
 
+  private final PullRequestLocationDiscoveryService locationDiscoveryService;
+
   public PullRequestCodeInsightsDetails(
       final String repositoryUrl,
       final Application application,
       final ReportEntry bomReportEntry,
       final PolicyEvaluation featureBranchEvaluation,
       final PolicyViolationDiff<PolicyViolation> policyViolationDiff,
-      final String baseUrl)
+      final String baseUrl,
+      final PullRequestLocationDiscoveryService locationDiscoveryService)
   {
     this.repositoryUrl = checkNotNull(repositoryUrl, "repositoryUrl is required and cannot be null");
     this.application = checkNotNull(application, "app is required and cannot be null");
@@ -92,6 +99,7 @@ public class PullRequestCodeInsightsDetails
     this.policyViolationDiff = checkNotNull(policyViolationDiff, "policyViolationDiff is required and cannot be null");
     checkNotNull(policyViolationDiff.getAppeared(), "new violations data is required, and cannot be null");
     this.baseUrl = checkNotNull(baseUrl, "baseUrl is required and cannot be null");
+    this.locationDiscoveryService = locationDiscoveryService;
 
     componentDisplayNamesMap = createDisplayNamesMap();
 
@@ -208,18 +216,29 @@ public class PullRequestCodeInsightsDetails
         .build();
   }
 
-  public List<CodeInsightAnnotation> getAnnotations() {
+  public List<CodeInsightAnnotation> getAnnotations(
+      final GitRepositoryInfo gitRepositoryInfo,
+      final String branch,
+      final String applicationId)
+  {
     BitbucketCodeInsightAnnotationRequestBuilder builder = new BitbucketCodeInsightAnnotationRequestBuilder(
         repositoryUrl);
+
+    LocationDiscoveryResult locationDiscoveryResult =
+        locationDiscoveryService.doLocationDiscovery(newPolicyViolations, gitRepositoryInfo, branch, applicationId);
 
     newPolicyViolations.forEach(policyViolation -> {
       String componentDisplayName = componentDisplayNamesMap.get(policyViolation.getHash());
       AnnotationContent annotationContent = new AnnotationContent(policyViolation, componentDisplayName);
       BitbucketCodeInsightSeverity severity = getSeverity(policyViolation.getThreatLevel());
 
-      // TODO: Path and LOC to be completed once line-level commenting is available
       String path = null;
       Integer lineOfCode = null;
+      RankedSourceLocation matchingLocation = findViolationLocation(locationDiscoveryResult, policyViolation);
+      if (matchingLocation != null) {
+        path = matchingLocation.getFilePath();
+        lineOfCode = matchingLocation.getLineNumber();
+      }
 
       builder.withAnnotation(
           annotationContent.message,
@@ -233,6 +252,26 @@ public class PullRequestCodeInsightsDetails
     });
 
     return builder.build();
+  }
+
+  /**
+   * attempt to find a source location for a given policy violation. If nothing is found, returns null
+   * @param locationDiscoveryResult list of all possibly location discovery results for violations
+   * @param policyViolation violation to search for
+   * @return top ranked source location if found, null otherwise
+   */
+  private RankedSourceLocation findViolationLocation(
+      LocationDiscoveryResult locationDiscoveryResult,
+      PolicyViolation policyViolation)
+  {
+    if (locationDiscoveryResult.getLocationMap().containsKey(policyViolation.getComponentIdentifier())) {
+      List<RankedSourceLocation> rankedSourceLocations =
+          locationDiscoveryResult.getLocationMap().get(policyViolation.getComponentIdentifier());
+      if (!rankedSourceLocations.isEmpty()) {
+        return rankedSourceLocations.get(0);
+      }
+    }
+    return null;
   }
 
   private BitbucketCodeInsightSeverity getSeverity(final Integer threatLevel) {

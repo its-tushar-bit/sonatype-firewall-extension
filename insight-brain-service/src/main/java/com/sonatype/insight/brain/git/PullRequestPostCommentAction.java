@@ -30,5 +30,6 @@ public interface PullRequestPostCommentAction
       final GitRepositoryInfo gitRepositoryInfo,
       final PolicyViolationDiff<PolicyViolation> policyViolationDiff,
       final PolicyEvaluation sourceCommitPolicyEvaluation,
-      final PolicyEvaluation baseBranchPolicyEvaluation);
+      final PolicyEvaluation baseBranchPolicyEvaluation,
+      final String branch);
 }

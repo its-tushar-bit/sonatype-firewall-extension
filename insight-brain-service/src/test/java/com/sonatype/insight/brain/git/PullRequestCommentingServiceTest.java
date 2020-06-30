@@ -658,8 +658,9 @@ public class PullRequestCommentingServiceTest
     PullRequestPostCommentAction postAction1 = mock(PullRequestPostCommentAction.class);
     PullRequestPostCommentAction postAction2 = mock(PullRequestPostCommentAction.class);
     String commentText = "at least one new policy violation";
+    String branchName = "INT-2493-pr-commenting-immediate-flow";
     PullRequestCommentingService commentingService = new TestablePullRequestCommentingServiceBuilder()
-        .withDevBranchPullRequest("INT-2493-pr-commenting-immediate-flow", 14, "sourceCommit", "baseCommit")
+        .withDevBranchPullRequest(branchName, 14, "sourceCommit", "baseCommit")
         .withSourcePolicyEvaluation("sourcePe", "sourceCommit", "app1")
         .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
         .withPolicyEvaluationDiffMarkup(commentText)
@@ -681,9 +682,11 @@ public class PullRequestCommentingServiceTest
 
     // then : post comment actions invoked
     verify(postAction1, times(1)).invokeAction(any(GitClientFactory.class), any(GitRepositoryInfo.class),
-        any(PolicyViolationDiff.class), any(PolicyEvaluation.class), any(PolicyEvaluation.class));
+        any(PolicyViolationDiff.class), any(PolicyEvaluation.class), any(PolicyEvaluation.class),
+        eq(branchName));
     verify(postAction2, times(1)).invokeAction(any(GitClientFactory.class), any(GitRepositoryInfo.class),
-        any(PolicyViolationDiff.class), any(PolicyEvaluation.class), any(PolicyEvaluation.class));
+        any(PolicyViolationDiff.class), any(PolicyEvaluation.class), any(PolicyEvaluation.class),
+        eq(branchName));
   }
 
   private SourceControlEvent createDiscoveredPullRequestEvent(

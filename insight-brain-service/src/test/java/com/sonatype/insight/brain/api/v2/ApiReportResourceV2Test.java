@@ -12,11 +12,9 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportHistoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportResultsDTO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,19 +25,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiReportResourceV2Test
     extends AbstractResourceTest
 {
-  private Organization org;
-
-  private Application app;
-
-  @Before
-  public void setupApplication() {
-    org = tempEntity.newOrganization();
-    app = tempEntity.newApplication(org.getId());
-  }
-
   @Test
   public void testGetReportHistoryForApplication() throws Exception {
     //setup
+    Application app = tempEntity.newApplicationWithParent();
     tempEntity.newPolicy(app);
     final String scanId1 = "ScanId1";
     final String scanId2 = "ScanId2";

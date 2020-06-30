@@ -16,7 +16,6 @@ import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class ApiReportServiceV2AuthzTest
     extends AbstractServiceAuthzTest
@@ -61,16 +60,14 @@ public class ApiReportServiceV2AuthzTest
     assertThat(reports.reports).hasSize(0);
   }
 
-  @Test
+  @Test(expected = UnauthenticatedException.class)
   public void testGetReportHistoryForApplication_Unauthenticated() {
-    assertThatThrownBy(() -> apiReportServiceV2.getReportHistoryForApplication(app.getId())).isInstanceOf(
-        UnauthenticatedException.class);
+    apiReportServiceV2.getReportHistoryForApplication(app.getId());
   }
 
-  @Test
-  public void testGetReportHistoryForApplication_UnauthorizedButAuthenticated() {
+  @Test(expected = UnauthorizedException.class)
+  public void testGetReportHistoryForApplication_Unauthorized() {
     login();
-    assertThatThrownBy(() -> apiReportServiceV2.getReportHistoryForApplication(app.getId())).isInstanceOf(
-        UnauthorizedException.class);
+    apiReportServiceV2.getReportHistoryForApplication(app.getId());
   }
 }

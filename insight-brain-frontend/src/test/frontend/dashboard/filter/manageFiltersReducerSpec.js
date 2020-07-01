@@ -3,42 +3,41 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import dashboardFilterModule from '../../../../main/frontend/dashboard/filter/module';
+import defaultFilter from '../../../../main/frontend/dashboard/filter/defaultFilter';
+import { filterToJson } from '../../../../main/frontend/dashboard/filter/dashboardFilterService';
+import reduce from '../../../../main/frontend/dashboard/filter/manageFiltersReducer';
 
 describe('manageFiltersReducer', function() {
-  var reduce, otherObject;
+  let otherObject;
 
-  beforeEach(angular.mock.module(dashboardFilterModule.name));
-
-  beforeEach(inject(function($injector) {
-    reduce = $injector.get('manageFiltersReducer');
+  beforeEach(function() {
     otherObject = {value: 'test value'};
-  }));
+  });
 
   describe('unknown action', function() {
     it('returns original state', function() {
-      var state = Object.freeze({foo: 'bar'});
-      var action = {
+      const state = Object.freeze({foo: 'bar'});
+      const action = {
         type: 'UNKNOWN'
       };
-      var newState = reduce(state, action);
+      const newState = reduce(state, action);
       expect(newState).toBe(state);
     });
   });
 
   describe('initial state', function() {
     it('is used if no state is provided', function() {
-      var action = {
+      const action = {
         type: 'UNKNOWN'
       };
-      var newState = reduce(undefined, action);
+      const newState = reduce(undefined, action);
       expect(newState).not.toBeUndefined();
     });
   });
 
   function testSetsAppliedFilterNameAndShowDirtyAsterisk(actionType) {
     describe(actionType + ' action', function() {
-      var initState, action, filterJson;
+      let initState, action, filterJson;
 
       beforeEach(function() {
         filterJson = {
@@ -53,6 +52,7 @@ describe('manageFiltersReducer', function() {
           maxPolicyThreatLevel: 6
         };
         initState = {
+          appliedFilter: null,
           appliedFilterName: 'foo',
           savedFilters: [{'name': 'Test1', 'filter': filterJson}],
           other: otherObject
@@ -66,28 +66,64 @@ describe('manageFiltersReducer', function() {
         };
       });
 
+      it('sets the appliedFilter to the filter in the payload', function() {
+        const state = Object.freeze(initState);
+        const newState = reduce(state, action);
+        expect(newState.appliedFilter).toBe(filterJson);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+
       it('sets the appliedFilterName to the basedOnFilterName in the payload', function() {
-        var state = Object.freeze(initState);
-        var newState = reduce(state, action);
+        const state = Object.freeze(initState);
+        const newState = reduce(state, action);
         expect(newState.appliedFilterName).toBe('Test1');
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+
+      it('sets the appliedFilterName to null if payload.basedOnFilterName is null', function() {
+        const state = Object.freeze(initState);
+        action.payload.basedOnFilterName = null;
+        const newState = reduce(state, action);
+        expect(newState.appliedFilterName).toBeNull();
         expect(newState.other).toBe(otherObject); // other properties are not modified
       });
 
       it('sets showDirtyAsterisk to false if filter is same as corresponding saved filter', function() {
         initState.showDirtyAsterisk = true;
-        var state = Object.freeze(initState);
-        var newState = reduce(state, action);
+        const state = Object.freeze(initState);
+        const newState = reduce(state, action);
         expect(newState.showDirtyAsterisk).toBe(false);
         expect(newState.other).toBe(otherObject); // other properties are not modified
       });
 
-      it('sets showDirtyAsterisk to true if filter has changed', function() {
+      it('sets showDirtyAsterisk to true if saved filter has changed', function() {
         initState.showDirtyAsterisk = false;
-        var state = Object.freeze(initState);
+        const state = Object.freeze(initState);
         action.payload.filter = angular.copy(filterJson);
         action.payload.filter.minPolicyThreatLevel = 2;
-        var newState = reduce(state, action);
+        const newState = reduce(state, action);
         expect(newState.showDirtyAsterisk).toBe(true);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+
+      it('sets showDirtyAsterisk to true if filter is Default and has changed', function() {
+        initState.showDirtyAsterisk = false;
+        const state = Object.freeze(initState);
+        action.payload.basedOnFilterName = null;
+        action.payload.filter = filterToJson(defaultFilter);
+        action.payload.filter.minPolicyThreatLevel = 3;
+        const newState = reduce(state, action);
+        expect(newState.showDirtyAsterisk).toBe(true);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+
+      it('sets showDirtyAsterisk to false if filter is Default and has not changed', function() {
+        initState.showDirtyAsterisk = true;
+        const state = Object.freeze(initState);
+        action.payload.basedOnFilterName = null;
+        action.payload.filter = filterToJson(defaultFilter);
+        const newState = reduce(state, action);
+        expect(newState.showDirtyAsterisk).toBe(false);
         expect(newState.other).toBe(otherObject); // other properties are not modified
       });
     });
@@ -98,12 +134,12 @@ describe('manageFiltersReducer', function() {
 
   describe('FETCH_SAVED_FILTERS_FULFILLED action', function() {
     it('sets savedFilters to the payload and sets savedFilterListError to null', function() {
-      var state = Object.freeze({ savedFilters: null, savedFilterListError: {}, other: otherObject });
-      var action = {
+      const state = Object.freeze({ savedFilters: null, savedFilterListError: {}, other: otherObject });
+      const action = {
         type: 'FETCH_SAVED_FILTERS_FULFILLED',
         payload: [{ name: 'foo' }, { name: 'bar' }]
       };
-      var newState = reduce(state, action);
+      const newState = reduce(state, action);
       expect(newState.savedFilters).toEqual([{ name: 'foo' }, { name: 'bar' }]);
       expect(newState.savedFilterListError).toBe(null);
       expect(newState.other).toBe(otherObject); // other properties are not modified
@@ -112,13 +148,13 @@ describe('manageFiltersReducer', function() {
 
   describe('FETCH_SAVED_FILTERS_FAILED action', function() {
     it('sets savedFilterListError to the payload', function() {
-      var state = Object.freeze({ savedFilterListError: null, other: otherObject });
-      var error = {};
-      var action = {
+      const state = Object.freeze({ savedFilterListError: null, other: otherObject });
+      const error = {};
+      const action = {
         type: 'FETCH_SAVED_FILTERS_FAILED',
         payload: error
       };
-      var newState = reduce(state, action);
+      const newState = reduce(state, action);
       expect(newState.savedFilterListError).toBe(error);
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
@@ -126,9 +162,9 @@ describe('manageFiltersReducer', function() {
 
   describe('SAVE_FILTER_REQUESTED action', function() {
     it('sets saveFilterSaving to true', function() {
-      var state = Object.freeze({ saveFilterSaving: false, other: otherObject });
-      var action = { type: 'SAVE_FILTER_REQUESTED' };
-      var newState = reduce(state, action);
+      const state = Object.freeze({ saveFilterSaving: false, other: otherObject });
+      const action = { type: 'SAVE_FILTER_REQUESTED' };
+      const newState = reduce(state, action);
       expect(newState.saveFilterSaving).toBe(true);
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
@@ -137,18 +173,18 @@ describe('manageFiltersReducer', function() {
   describe('SAVE_FILTER_FULFILLED action', function() {
     it('sets saveFilterSuccess to true, sets appliedFilterName from the payload name, appends the payload to ' +
         'savedFilters and resets showDirtyAsterisk', function() {
-      var state = Object.freeze({
+      const state = Object.freeze({
         saveFilterSaving: false,
         showDirtyAsterisk: true,
         appliedFilterName: 'bar',
         savedFilters: Object.freeze([{ name: 'bar' }]),
         other: otherObject
       });
-      var action = {
+      const action = {
         type: 'SAVE_FILTER_FULFILLED',
         payload: { name: 'foo' }
       };
-      var newState = reduce(state, action);
+      const newState = reduce(state, action);
       expect(newState.savedFilters).toEqual([{ name: 'bar' }, { name: 'foo' }]);
       expect(newState.appliedFilterName).toBe('foo');
       expect(newState.saveFilterSuccess).toBe(true);
@@ -160,18 +196,18 @@ describe('manageFiltersReducer', function() {
   describe('SAVE_FILTER_FAILED action', function() {
     it('sets saveFilterSuccess and saveFilterSaving to false, and saveFilterError to the payload',
         function() {
-          var state = Object.freeze({
+          const state = Object.freeze({
             saveFilterSaving: true,
             saveFilterSuccess: true,
             saveFilterError: null,
             other: otherObject
           });
-          var error = {};
-          var action = {
+          const error = {};
+          const action = {
             type: 'SAVE_FILTER_FAILED',
             payload: error
           };
-          var newState = reduce(state, action);
+          const newState = reduce(state, action);
           expect(newState.saveFilterSuccess).toBe(false);
           expect(newState.saveFilterSaving).toBe(false);
           expect(newState.saveFilterError).toBe(error);
@@ -182,15 +218,15 @@ describe('manageFiltersReducer', function() {
 
   describe('SET_DISPLAY_SAVE_FILTER_MODAL action', function() {
     it('resets saveFilterSaving, saveFilterError and saveFilterSuccess', function() {
-      var state = Object.freeze({
+      const state = Object.freeze({
         saveFilterSaving: true,
         saveFilterSuccess: true,
         saveFilterError: true,
         warning: 'overwrite',
         other: otherObject
       });
-      var action = { type: 'SET_DISPLAY_SAVE_FILTER_MODAL' };
-      var newState = reduce(state, action);
+      const action = { type: 'SET_DISPLAY_SAVE_FILTER_MODAL' };
+      const newState = reduce(state, action);
       expect(newState.saveFilterSaving).toBe(false);
       expect(newState.saveFilterError).toBe(null);
       expect(newState.saveFilterSuccess).toBe(false);
@@ -198,83 +234,193 @@ describe('manageFiltersReducer', function() {
     });
   });
 
-  describe('DELETE_SPECIFIED_FILTERS_REQUESTED action', function() {
-    it('sets deleteFiltersSaving to true', function() {
-      var state = Object.freeze({ deleteFiltersSaving: false, other: otherObject });
-      var action = { type: 'DELETE_SPECIFIED_FILTERS_REQUESTED' };
-      var newState = reduce(state, action);
-      expect(newState.deleteFiltersSaving).toBe(true);
+  describe('DELETE_FILTER_REQUESTED action', function() {
+    it('sets deleteFilterSaving to true', function() {
+      const state = Object.freeze({ deleteFilterSaving: false, other: otherObject });
+      const action = { type: 'DELETE_FILTER_REQUESTED' };
+      const newState = reduce(state, action);
+      expect(newState.deleteFilterSaving).toBe(true);
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });
 
-  describe('DELETE_SPECIFIED_FILTERS_FULFILLED action', function() {
-    it('sets deleteFiltersSuccess to true', function() {
-      var state = Object.freeze({ filtersToDelete: [], deleteFiltersSuccess: false, other: otherObject });
-      var action = { type: 'DELETE_SPECIFIED_FILTERS_FULFILLED', payload: ['foo'] };
-      var newState = reduce(state, action);
-      expect(newState.deleteFiltersSuccess).toBe(true);
+  describe('DELETE_FILTER_FULFILLED action', function() {
+    it('sets deleteFilterSuccess to true', function() {
+      const state = Object.freeze({ deleteFilteSuccess: false, other: otherObject });
+      const action = { type: 'DELETE_FILTER_FULFILLED', payload: 'foo' };
+      const newState = reduce(state, action);
+      expect(newState.deleteFilterSuccess).toBe(true);
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
 
-    it('resets appliedFilterName if it is in the payload', function() {
-      var state = Object.freeze({
-        appliedFilterName: 'bar',
-        deleteFiltersSuccess: false,
-        other: otherObject
+    describe('if deleted filter is applied filter', function() {
+      it('resets appliedFilterName', function() {
+        const state = Object.freeze({
+          appliedFilterName: 'bar',
+          other: otherObject
+        });
+        const action = { type: 'DELETE_FILTER_FULFILLED', payload: 'bar' };
+        const newState = reduce(state, action);
+        expect(newState.appliedFilterName).toBe(null);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
       });
-      var action = { type: 'DELETE_SPECIFIED_FILTERS_FULFILLED', payload: ['foo', 'bar'] };
-      var newState = reduce(state, action);
-      expect(newState.appliedFilterName).toBe(null);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
+
+      it('sets showDirtyAsterisk to false if applied filter is same as default filter', function() {
+        const state = Object.freeze({
+          appliedFilterName: 'bar',
+          appliedFilter: filterToJson(defaultFilter),
+          showDirtyAsterisk: true,
+          other: otherObject
+        });
+        const action = { type: 'DELETE_FILTER_FULFILLED', payload: 'bar' };
+        const newState = reduce(state, action);
+        expect(newState.showDirtyAsterisk).toBe(false);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+
+      it('sets showDirtyAsterisk to true if applied filter is different from default filter', function() {
+        const state = Object.freeze({
+          appliedFilterName: 'bar',
+          appliedFilter: filterToJson(defaultFilter),
+          showDirtyAsterisk: false,
+          other: otherObject
+        });
+        state.appliedFilter.minPolicyThreatLevel = 3;
+        const action = { type: 'DELETE_FILTER_FULFILLED', payload: 'bar' };
+        const newState = reduce(state, action);
+        expect(newState.showDirtyAsterisk).toBe(true);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
     });
 
-    it('does not reset appliedFilterName if it is not in the payload', function() {
-      var state = Object.freeze({
-        filtersToDelete: ['foo', 'bar'],
-        appliedFilterName: 'baz',
-        deleteFiltersSuccess: false,
-        other: otherObject
+    describe('if deleted filter is not applied filter', function() {
+      it('does not reset appliedFilterName', function() {
+        const state = Object.freeze({
+          appliedFilterName: 'baz',
+          deleteFilterSuccess: false,
+          other: otherObject
+        });
+        const action = { type: 'DELETE_FILTER_FULFILLED', payload: 'bar' };
+        const newState = reduce(state, action);
+        expect(newState.appliedFilterName).toBe('baz');
+        expect(newState.other).toBe(otherObject); // other properties are not modified
       });
-      var action = { type: 'DELETE_SPECIFIED_FILTERS_FULFILLED', payload: ['foo', 'bar'] };
-      var newState = reduce(state, action);
-      expect(newState.filtersToDelete).toEqual(['foo', 'bar']);
-      expect(newState.appliedFilterName).toBe('baz');
-      expect(newState.other).toBe(otherObject); // other properties are not modified
+
+      it('does not set showDirtyAsterisk to false if applied filter is same as default filter', function() {
+        const state = Object.freeze({
+          appliedFilterName: 'baz',
+          appliedFilter: filterToJson(defaultFilter),
+          showDirtyAsterisk: true,
+          other: otherObject
+        });
+        const action = { type: 'DELETE_FILTER_FULFILLED', payload: 'bar' };
+        const newState = reduce(state, action);
+        expect(newState.showDirtyAsterisk).toBe(true);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
     });
   });
 
-  describe('DELETE_SPECIFIED_FILTERS_FAILED action', function() {
-    it('resets deleteFiltersSaving and deleteFiltersSuccess and sets deleteFiltersError to the payload', function() {
-      var error = {};
-      var state = Object.freeze({
-        deleteFiltersSaving: true,
-        deleteFiltersSuccess: true,
-        deleteFiltersError: null,
+  describe('DELETE_FILTER_FAILED action', function() {
+    it('resets deleteFilterSaving and deleteFilterSuccess and sets deleteFilterError to the payload', function() {
+      const error = {};
+      const state = Object.freeze({
+        deleteFilterSaving: true,
+        deleteFilterSuccess: true,
+        deleteFilterError: null,
         other: otherObject
       });
-      var action = {
-        type: 'DELETE_SPECIFIED_FILTERS_FAILED',
+      const action = {
+        type: 'DELETE_FILTER_FAILED',
         payload: error
       };
-      var newState = reduce(state, action);
-      expect(newState.deleteFiltersSaving).toBe(false);
-      expect(newState.deleteFiltersSuccess).toBe(false);
-      expect(newState.deleteFiltersError).toBe(error);
+      const newState = reduce(state, action);
+      expect(newState.deleteFilterSaving).toBe(false);
+      expect(newState.deleteFilterSuccess).toBe(false);
+      expect(newState.deleteFilterError).toBe(error);
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });
 
-  describe('CLEAR_FILTER action', function() {
-    it('resets appliedFilterName and showDirtyAsterisk', function() {
-      var state = Object.freeze({
-        appliedFilterName: 'Test filter name',
-        showDirtyAsterisk: true,
+  describe('TOGGLE_FILTERS_DROPDOWN action', function() {
+    it('sets filtersDropdownOpen to the payload', function() {
+      const state = Object.freeze({
+        filtersDropdownOpen: false,
         other: otherObject
       });
-      var newState = reduce(state, {type: 'CLEAR_FILTER'});
-      expect(newState.appliedFilterName).toBeNull();
-      expect(newState.showDirtyAsterisk).toBe(false);
+      const action = {
+        type: 'TOGGLE_FILTERS_DROPDOWN',
+        payload: true
+      };
+      const newState = reduce(state, action);
+      expect(newState.filtersDropdownOpen).toBe(true);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('SELECT_FILTER_TO_DELETE action', function() {
+    it('resets deleteFilter flags and sets filterToDelete to the payload', function() {
+      const state = Object.freeze({
+        filterToDelete: 'foo',
+        deleteFilterError: 'error',
+        deleteFilterSaving: true,
+        deleteFilterSuccess: true,
+        other: otherObject
+      });
+      const action = {
+        type: 'SELECT_FILTER_TO_DELETE',
+        payload: 'bar'
+      };
+      const newState = reduce(state, action);
+      expect(newState.filterToDelete).toBe('bar');
+      expect(newState.deleteFilterError).toBeNull();
+      expect(newState.deleteFilterSaving).toBe(false);
+      expect(newState.deleteFilterSuccess).toBe(false);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('HIDE_DELETE_FILTER_MODAL action', function() {
+    it('resets filterToDelete', function() {
+      const state = Object.freeze({
+        filterToDelete: 'foo',
+        other: otherObject
+      });
+      const action = {
+        type: 'HIDE_DELETE_FILTER_MODAL'
+      };
+      const newState = reduce(state, action);
+      expect(newState.filterToDelete).toBeNull();
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('DOCUMENT_CLICKED action', function() {
+    it('sets filtersDropdownOpen to false if delete filter modal is not open', function() {
+      const state = Object.freeze({
+        filterToDelete: null,
+        filtersDropdownOpen: true,
+        other: otherObject
+      });
+      const action = {
+        type: 'DOCUMENT_CLICKED'
+      };
+      const newState = reduce(state, action);
+      expect(newState.filtersDropdownOpen).toBe(false);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+
+    it('does not set filtersDropdownOpen to false if delete filter modal is open', function() {
+      const state = Object.freeze({
+        filterToDelete: 'foo',
+        filtersDropdownOpen: true,
+        other: otherObject
+      });
+      const action = {
+        type: 'DOCUMENT_CLICKED'
+      };
+      const newState = reduce(state, action);
+      expect(newState.filtersDropdownOpen).toBe(true);
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });

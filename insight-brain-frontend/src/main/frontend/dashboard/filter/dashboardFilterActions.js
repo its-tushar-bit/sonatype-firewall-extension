@@ -15,6 +15,9 @@ import {
   getApplicationTagsUrl,
   getDashboardFilters
 } from '../../util/CLMLocation';
+import { filterToJson } from './dashboardFilterService';
+import defaultFilter from './defaultFilter';
+import { Messages } from '../../util/CommonServices';
 
 export const LOAD_FILTER_REQUESTED = 'LOAD_FILTER_REQUESTED';
 export const FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED = 'FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED';
@@ -29,7 +32,6 @@ export const REFRESH_VIOLATION_DETAILS_FAILED = 'REFRESH_VIOLATION_DETAILS_FAILE
 export const TOGGLE_FILTER = 'TOGGLE_FILTER';
 export const TOGGLE_APPS_AND_ORGS = 'TOGGLE_APPS_AND_ORGS';
 export const SELECT_AGE = 'SELECT_AGE';
-export const CLEAR_FILTER = 'CLEAR_FILTER';
 export const REVERT_FILTER = 'REVERT_FILTER';
 export const SET_DISPLAY_SAVE_FILTER_MODAL = 'SET_DISPLAY_SAVE_FILTER_MODAL';
 
@@ -91,39 +93,45 @@ function fetchCurrentFilterFulfilled(filter, resultsType) {
 
 const loadFilterFailed = payloadParamActionCreator(LOAD_FILTER_FAILED);
 
-export function applyFilter(filter, basedOnFilterName) {
+function persistAppliedFilter(filter, basedOnFilterName) {
   return dispatch => {
     dispatch({ type: APPLY_FILTER_REQUESTED });
-
-    return axios.put(getDashboardFilters(), { filter, basedOnFilterName })
-        .catch(error => {
-          dispatch(applyFilterFailed(error));
-          return Promise.reject(error);
-        })
-        .then(({data}) => dispatch(updateFiltersFulfilled(data, basedOnFilterName)));
+    return axios.put(getDashboardFilters(), { filter, basedOnFilterName });
   };
 }
 
-export function applySavedFilter({ filter, name }) {
-  return dispatch => {
-    dispatch({
-      type: APPLY_FILTER_REQUESTED
-    });
+export function applyFilter(filter, basedOnFilterName) {
+  return dispatch => dispatch(persistAppliedFilter(filter, basedOnFilterName))
+      .catch(error => {
+        dispatch(applyFilterFailed(Messages.getHttpErrorMessage(error)));
+        return Promise.reject(error);
+      })
+      .then(({data}) => dispatch(applyFilterFulfilled(data, basedOnFilterName)));
+}
 
-    return axios.put(getDashboardFilters(), { filter, basedOnFilterName: name })
-        .catch(error => {
-          dispatch(applySavedFilterFailed(name));
-          return Promise.reject(error);
-        })
-        .then(({ data }) => dispatch(updateFiltersFulfilled(data, name)));
-  };
+export function applyDefaultFilter() {
+  return dispatch => dispatch(persistAppliedFilter(filterToJson(defaultFilter), null))
+      .catch(error => {
+        dispatch(applySavedFilterFailed('Default filter'));
+        return Promise.reject(error);
+      })
+      .then(({data}) => dispatch(applyFilterFulfilled(data, null)));
+}
+
+export function applySavedFilter({ filter, name }) {
+  return dispatch => dispatch(persistAppliedFilter(filter, name))
+      .catch(error => {
+        dispatch(applySavedFilterFailed(name));
+        return Promise.reject(error);
+      })
+      .then(({data}) => dispatch(applyFilterFulfilled(data, name)));
 }
 
 const applyFilterFailed = payloadParamActionCreator(APPLY_FILTER_FAILED);
 
 const applySavedFilterFailed = payloadParamActionCreator(APPLY_SAVED_FILTER_FAILED);
 
-function updateFiltersFulfilled(filter, basedOnFilterName) {
+function applyFilterFulfilled(filter, basedOnFilterName) {
   return (dispatch, getState) => {
     dispatch({
       type: APPLY_FILTER_FULFILLED,
@@ -150,7 +158,5 @@ export function toggleAppsAndOrgs(selectedOrganizations, selectedApplications) {
     payload: { selectedOrganizations, selectedApplications }
   };
 }
-
-export const clear = noPayloadActionCreator(CLEAR_FILTER);
 
 export const revert = noPayloadActionCreator(REVERT_FILTER);

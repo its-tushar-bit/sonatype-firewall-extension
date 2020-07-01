@@ -5,6 +5,7 @@
  */
 import {compose, curry, equals, find, indexBy, map, merge, pick, prop, propEq, sortBy, uniqBy} from 'ramda';
 import {propSet, pathSet, lookup} from '../../util/jsUtil';
+import defaultFilter from './defaultFilter';
 import {
   ages,
   defaultMaxDaysOld,
@@ -24,28 +25,16 @@ import {
   TOGGLE_FILTER,
   TOGGLE_APPS_AND_ORGS,
   SELECT_AGE,
-  CLEAR_FILTER,
   REVERT_FILTER,
   SET_DISPLAY_SAVE_FILTER_MODAL
 } from './dashboardFilterActions';
 
 import {UI_ROUTER_ON_FINISH} from '../../reduxUiRouter/routerActions';
 
-const initSelected = Object.freeze({
-  organizations: new Set(),
-  applications: new Set(),
-  categories: new Set(),
-  stages: new Set(),
-  policyTypes: new Set(),
-  policyViolationStates: new Set(['OPEN']),
-  maxDaysOld: defaultMaxDaysOld,
-  policyThreatLevels: [2, 10]
-});
-
 const initState = Object.freeze({
-  loading: false,
+  loading: true,
   loadError: null,
-  saveError: null,
+  applyFilterError: null,
   loadErrorFilterName: null,
   filtersAreDirty: false,
   needsAcknowledgement: false,
@@ -63,8 +52,8 @@ const initState = Object.freeze({
   policyViolationStates,
 
   // selected filter items
-  appliedFilter: initSelected,
-  selected: initSelected
+  appliedFilter: defaultFilter,
+  selected: defaultFilter
 });
 
 const resetProps = curry((propNames, state) => merge(state, pick(propNames, initState)));
@@ -93,11 +82,11 @@ export default function dashboardFilterReducer(state = initState, {type, payload
       return compose(
           applyFilter(payload),
           propSet('needsAcknowledgement', payload.needsAcknowledgement),
-          resetProps(['loading'])
+          propSet('loading', false)
       )(state);
 
     case APPLY_FILTER_REQUESTED:
-      return resetProps(['saveError', 'loadErrorFilterName'], state);
+      return resetProps(['applyFilterError', 'loadErrorFilterName'], state);
 
     case APPLY_FILTER_FULFILLED: {
       return compose(
@@ -107,7 +96,7 @@ export default function dashboardFilterReducer(state = initState, {type, payload
     }
 
     case APPLY_FILTER_FAILED:
-      return {...state, saveError: payload};
+      return {...state, applyFilterError: payload};
 
     case APPLY_SAVED_FILTER_FAILED:
       return {...state, loadErrorFilterName: payload};
@@ -128,12 +117,6 @@ export default function dashboardFilterReducer(state = initState, {type, payload
       return compose(
           setFiltersAreDirty,
           selectAge(payload)
-      )(state);
-
-    case CLEAR_FILTER:
-      return compose(
-          setFiltersAreDirty,
-          resetProps(['selected', 'loadErrorFilterName'])
       )(state);
 
     case REVERT_FILTER:

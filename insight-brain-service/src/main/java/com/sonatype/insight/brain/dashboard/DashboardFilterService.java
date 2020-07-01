@@ -14,8 +14,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.audit.AuditData;
-import com.sonatype.insight.brain.audit.AuditEvent;
-import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -25,12 +23,11 @@ import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 @Named
 public class DashboardFilterService
@@ -219,52 +216,42 @@ public class DashboardFilterService
   }
 
   /**
-   * @since 1.24.0
+   * @since 1.95.0
    */
-  public List<DashboardFilterErrorResponseDTO> deleteDashboardFiltersForCurrentUserByFilterName(
-      List<String> filterNames)
-  {
+  public void deleteDashboardFilterForCurrentUserByFilterName(String filterName) {
     dashboardUtils.validateDashboardLicensedAndEnabled();
 
-    if (isEmpty(filterNames)) {
-      throw new BadRequestException("Filter names cannot be null or empty.");
+    if (filterName == null) {
+      throw new BadRequestException("Filter name cannot be null.");
     }
-    List<DashboardFilterErrorResponseDTO> errorMessages = new ArrayList<>();
     String username = currentUser.getUsername();
     String realmId = currentUser.getRealmId();
     DashboardFilter appliedDashboardFilter = getNewOrLegacyDashboardFilter(username, realmId, ACTIVE_FILTER_NAME);
-    AuditData.get().setEvent(null);
 
-    for (String filterName : filterNames) {
-      try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.DELETE_DASHBOARD_FILTER, true)) {
-        try {
-          DashboardFilter dashboardFilter = getNewOrLegacyDashboardFilter(username, realmId, filterName);
-          if (dashboardFilter != null) {
-            if (appliedDashboardFilter != null && filterName.equals(appliedDashboardFilter.getBasedOnFilterName())) {
-              appliedDashboardFilter.setBasedOnFilterName(null);
-              appliedDashboardFilter.setRealmId(realmId);
-              dashboardFilterDAO.update(appliedDashboardFilter);
-            }
-            dashboardFilterDAO.delete(dashboardFilter);
-            auditDashboardFilter(dashboardFilter);
-          }
-          else {
-            String errorMessage = "Cannot find a filter with name " + filterName + " for user " + username + ".";
-            errorMessages.add(new DashboardFilterErrorResponseDTO(filterName, errorMessage, 404));
-            AuditData.get().setHttpStatus(404);
-          }
+    try {
+      DashboardFilter dashboardFilter = getNewOrLegacyDashboardFilter(username, realmId, filterName);
+
+      if (dashboardFilter != null) {
+        if (appliedDashboardFilter != null && filterName.equals(appliedDashboardFilter.getBasedOnFilterName())) {
+          appliedDashboardFilter.setBasedOnFilterName(null);
+          appliedDashboardFilter.setRealmId(realmId);
+          dashboardFilterDAO.update(appliedDashboardFilter);
         }
-        catch (Exception exception) {
-          String errorMessage =
-              "An exception occurred while trying to find or delete filter name " + filterName + " for user " +
-                  username + ".";
-          errorMessages.add(new DashboardFilterErrorResponseDTO(filterName, errorMessage, 500));
-          log.error(errorMessage, exception);
-          AuditData.get().setException(exception);
-        }
+        dashboardFilterDAO.delete(dashboardFilter);
+        auditDashboardFilter(dashboardFilter);
+      }
+      else {
+        String errorMessage = "Cannot find a filter with name " + filterName + " for user " + username + ".";
+        throw new NotFoundException(errorMessage);
       }
     }
-    return errorMessages;
+    catch (Exception exception) {
+      String errorMessage =
+          "An exception occurred while trying to find or delete filter name " + filterName + " for user " +
+              username + ".";
+      log.error(errorMessage, exception);
+      throw exception;
+    }
   }
 
   private void pruneUnauthorizedApplicationIds(DashboardFilterDTO dto) {

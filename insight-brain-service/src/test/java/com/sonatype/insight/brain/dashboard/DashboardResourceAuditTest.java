@@ -32,7 +32,6 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.dashboard.DashboardFilterService.ACTIVE_FILTER_NAME;
 import static com.sonatype.insight.brain.model.security.User.ADMIN_USERNAME;
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DashboardResourceAuditTest
@@ -57,25 +56,20 @@ public class DashboardResourceAuditTest
   }
 
   @Test
-  public void testDeleteDashboardFiltersForCurrentUserByFilterName() throws Exception {
+  public void testDeleteDashboardFilterForCurrentUserByFilterName() throws Exception {
     String filterName = "some-filter";
     DashboardFilter filter = tempEntity.newDashboardFilter(ADMIN_USERNAME, InternalRealm.ID, filterName,
         JsonUtils.format(createNamedDashboardFilter(filterName)));
-    DashboardFilter activeFilter = tempEntity.newDashboardFilter(ADMIN_USERNAME, InternalRealm.ID, ACTIVE_FILTER_NAME,
-        JsonUtils.format(createNamedDashboardFilter(ACTIVE_FILTER_NAME)));
 
-    dashboardRequest().path(DashboardResource.DELETE_NAMED_FILTERS_PATH).body(asList(filterName, ACTIVE_FILTER_NAME))
-        .post();
+    dashboardRequest().path(DashboardResource.DELETE_NAMED_FILTER_PATH).query("filterName", filterName).post();
 
-    List<AuditDTO> auditDTOS = assertAuditLogs(AuditEvent.DELETE_DASHBOARD_FILTER, 2, null);
+    List<AuditDTO> auditDTOS = assertAuditLogs(AuditEvent.DELETE_DASHBOARD_FILTER, 1, null);
     assertDashboardFilterAuditData(filter, auditDTOS.get(0));
-    assertDashboardFilterAuditData(activeFilter, auditDTOS.get(1));
   }
 
   @Test
-  public void testDeleteDashboardFiltersForCurrentUserByFilterName_NotFound() throws Exception {
-    String filterName = "non-existent-filter";
-    dashboardRequest().path(DashboardResource.DELETE_NAMED_FILTERS_PATH).body(asList(filterName))
+  public void testDeleteDashboardFilterForCurrentUserByFilterName_NotFound() throws Exception {
+    dashboardRequest().path(DashboardResource.DELETE_NAMED_FILTER_PATH).query("filterName", "non-existent-filter")
         .post();
 
     assertAuditLog(AuditEvent.DELETE_DASHBOARD_FILTER, "not-found");

@@ -3,25 +3,29 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { compose, append, contains, curry, merge, pick, find, propEq } from 'ramda';
+import { append, equals, compose, curry, merge, pick, find, propEq } from 'ramda';
 import { propSet } from '../../util/jsUtil';
 import { createReducerFromActionMap, propSetConst } from '../../util/reduxUtil';
+import defaultFilter from './defaultFilter';
+import { filterToJson } from './dashboardFilterService';
 import {
   FETCH_SAVED_FILTERS_FULFILLED,
   FETCH_SAVED_FILTERS_FAILED,
   SAVE_FILTER_REQUESTED,
   SAVE_FILTER_FULFILLED,
   SAVE_FILTER_FAILED,
-  DELETE_SPECIFIED_FILTERS_REQUESTED,
-  DELETE_SPECIFIED_FILTERS_FULFILLED,
-  DELETE_SPECIFIED_FILTERS_FAILED,
-  RESET_DELETE_FILTERS_STATUS
+  DELETE_FILTER_REQUESTED,
+  DELETE_FILTER_FULFILLED,
+  DELETE_FILTER_FAILED,
+  TOGGLE_FILTERS_DROPDOWN,
+  SELECT_FILTER_TO_DELETE,
+  HIDE_DELETE_FILTER_MODAL,
+  DOCUMENT_CLICKED
 } from './manageFiltersActions';
 
 import {
   APPLY_FILTER_FULFILLED,
   FETCH_CURRENT_FILTER_FULFILLED,
-  CLEAR_FILTER,
   SET_DISPLAY_SAVE_FILTER_MODAL
 } from './dashboardFilterActions';
 
@@ -31,11 +35,14 @@ const initState = {
   saveFilterError: null,
   saveFilterSaving: false,
   saveFilterSuccess: false,
+  appliedFilter: null,
   appliedFilterName: null,
   showDirtyAsterisk: false,
-  deleteFiltersError: null,
-  deleteFiltersSaving: false,
-  deleteFiltersSuccess: false
+  filtersDropdownOpen: false,
+  filterToDelete: null,
+  deleteFilterError: null,
+  deleteFilterSaving: false,
+  deleteFilterSuccess: false
 };
 
 /*
@@ -56,13 +63,24 @@ const reducerActionMap = {
   [SAVE_FILTER_REQUESTED]: propSetConst('saveFilterSaving', true),
   [SAVE_FILTER_FULFILLED]: saveFilterFulfilled,
   [SAVE_FILTER_FAILED]: saveFilterFailed,
-  [DELETE_SPECIFIED_FILTERS_REQUESTED]: propSetConst('deleteFiltersSaving', true),
-  [DELETE_SPECIFIED_FILTERS_FULFILLED]: deleteSpecifiedFiltersFulfilled,
-  [DELETE_SPECIFIED_FILTERS_FAILED]: deleteFiltersFailed,
+  [DELETE_FILTER_REQUESTED]: propSetConst('deleteFilterSaving', true),
+  [DELETE_FILTER_FULFILLED]: deleteFilterFulfilled,
+  [DELETE_FILTER_FAILED]: deleteFilterFailed,
   [SET_DISPLAY_SAVE_FILTER_MODAL]: resetProps(['saveFilterSaving', 'saveFilterError', 'saveFilterSuccess']),
-  [RESET_DELETE_FILTERS_STATUS]: resetProps(['deleteFiltersSaving', 'deleteFiltersError', 'deleteFiltersSuccess']),
-  [CLEAR_FILTER]: resetProps(['appliedFilterName', 'showDirtyAsterisk'])
+  [TOGGLE_FILTERS_DROPDOWN]: propSet('filtersDropdownOpen'),
+  [SELECT_FILTER_TO_DELETE]: selectFilterToDelete,
+  [HIDE_DELETE_FILTER_MODAL]: resetProps(['filterToDelete']),
+  [DOCUMENT_CLICKED]: closeFiltersMenuIfNeeded
 };
+
+function closeFiltersMenuIfNeeded(payload, state) {
+  // don't close Filters Menu while Delete Filter modal is open
+  if (state.filterToDelete) {
+    return state;
+  }
+
+  return {...state, filtersDropdownOpen: false};
+}
 
 function fetchSavedFiltersFulfilled(payload, state) {
   return compose(propSet('savedFilters', payload), resetProps(['savedFilterListError'], payload))(state);
@@ -70,8 +88,9 @@ function fetchSavedFiltersFulfilled(payload, state) {
 
 function updateAppliedFilterName(payload, state) {
   return compose(
-      setShowDirtyAsterisk(payload),
-      propSetConst('appliedFilterName', payload.basedOnFilterName, payload)
+      setShowDirtyAsterisk(),
+      propSetConst('appliedFilter', payload.filter, null),
+      propSetConst('appliedFilterName', payload.basedOnFilterName, null)
   )(state);
 }
 
@@ -94,26 +113,42 @@ function saveFilterFailed(payload, state) {
   };
 }
 
+function selectFilterToDelete(payload, state) {
+  return compose(
+      resetProps(['deleteFilterSaving', 'deleteFilterError', 'deleteFilterSuccess'], null),
+      propSet('filterToDelete', payload)
+  )(state);
+}
+
 /**
- * @param payload the filters that were deleted
+ * @param payload deleted filter name
  */
-function deleteSpecifiedFiltersFulfilled(payload, state) {
-  const activeFilterWasDeleted = contains(state.appliedFilterName, payload),
-      stateWithDeleteFiltersSuccess = { ...state, deleteFiltersSuccess: true };
+function deleteFilterFulfilled(payload, state) {
+  const activeFilterWasDeleted = state.appliedFilterName === payload,
+      stateWithDeleteFilterSuccess = { ...state, deleteFilterSuccess: true };
 
-  return activeFilterWasDeleted ? resetProps(['appliedFilterName'], payload, stateWithDeleteFiltersSuccess) :
-    stateWithDeleteFiltersSuccess;
+  if (activeFilterWasDeleted) {
+    return compose(
+        setShowDirtyAsterisk(),
+        resetProps(['appliedFilterName'], null)
+    )(stateWithDeleteFilterSuccess);
+  }
+
+  return stateWithDeleteFilterSuccess;
 }
 
-function deleteFiltersFailed(payload, state) {
-  return resetProps(['deleteFiltersSaving', 'deleteFiltersSuccess'], payload,
-      { ...state, deleteFiltersError: payload });
+function deleteFilterFailed(payload, state) {
+  return resetProps(['deleteFilterSaving', 'deleteFilterSuccess'], payload,
+      { ...state, deleteFilterError: payload });
 }
 
-const setShowDirtyAsterisk = payload => state => {
-  const {basedOnFilterName, filter} = payload;
-  const savedFilter = basedOnFilterName && find(propEq('name', basedOnFilterName), state.savedFilters);
-  const showDirtyAsterisk = savedFilter && !angular.equals(filter, savedFilter.filter);
+const setShowDirtyAsterisk = () => state => {
+  const {appliedFilter, appliedFilterName, savedFilters} = state,
+      cleanFilter = appliedFilterName
+        ? find(propEq('name', appliedFilterName), savedFilters).filter
+        : filterToJson(defaultFilter),
+      showDirtyAsterisk = !equals(appliedFilter, cleanFilter);
+
   return {...state, showDirtyAsterisk};
 };
 

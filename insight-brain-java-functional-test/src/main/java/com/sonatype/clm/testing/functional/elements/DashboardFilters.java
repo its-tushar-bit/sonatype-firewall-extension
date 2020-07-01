@@ -21,9 +21,11 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 public class DashboardFilters
     extends BasicElement<DashboardFilters>
 {
-  public static final Condition ACTIVE = cssClass("iq-counter--active");
+  public static final Condition ACTIVE = cssClass("nx-counter--active");
 
   public static final Condition NO_CHANGES_MESSAGE = text("There are no changes to update.");
+
+  public static final Condition SELECTED_SAVED_FILTER_OPTION = cssClass("iq-manage-filters-dropdown__option--selected");
 
   public static NxTreeViewMultiSelect organizationFilter() {
     return new NxTreeViewMultiSelect("#org-app-filters > div:nth-child(1)");
@@ -49,7 +51,11 @@ public class DashboardFilters
     return new AgeFilter("#age-filter");
   }
 
-  public static PolicyThreatLevelFilter policyThreatLevelFilter() {
+  public static NxPolicyThreatLevelFilter policyThreatLevelFilter() {
+    return new NxPolicyThreatLevelFilter("#threat-level-filter");
+  }
+
+  public static PolicyThreatLevelFilter iqPolicyThreatLevelFilter() {
     return new PolicyThreatLevelFilter("#threat-level-filter");
   }
 
@@ -65,16 +71,16 @@ public class DashboardFilters
     return $("#dashboard-filter-revert");
   }
 
-  public static SelenideElement clearButton() {
-    return $("#dashboard-filter-clear");
+  public static SelenideElement saveButton() {
+    return $("#dashboard-filter-save");
   }
 
-  public static SelenideElement saveFilterNameLabel() {
-    return $(".dashboard-filter-name");
+  public static Tooltip saveButtonTooltip() {
+    return new Tooltip("#dashboard-filter-save-tooltip");
   }
 
-  public static SelenideElement saveFilterDirtyAsterisk() {
-    return $(".dashboard-filter-name .dashboard-filter-dirty-asterisk");
+  public static ManageFiltersDropdown manageFiltersDropdown() {
+    return new ManageFiltersDropdown();
   }
 
   public static void apply() {
@@ -83,59 +89,75 @@ public class DashboardFilters
     applyButton().shouldBe(DISABLED);
   }
 
-  public static ManageFilters manage() {
-    return new ManageFilters();
+  public static SaveFilterDialog saveFilterDialog() {
+    return new SaveFilterDialog();
   }
 
-  public static class ManageFilters
-      extends BasicElement<ManageFilters>
+  public static DeleteFilterDialog deleteFilterDialog() {
+    return new DeleteFilterDialog();
+  }
+
+  public static class ManageFiltersDropdown
+      extends BasicElement<ManageFiltersDropdown>
   {
-    public ManageFilters() {
-      super("#manage-filters-dropdown");
+    public ManageFiltersDropdown() {
+      super("#dashboard-filter-header .iq-manage-filters-dropdown");
+    }
+
+    public SelenideElement selectedFilterLabel() {
+      return child(".iq-manage-filters-dropdown__label");
+    }
+
+    public SelenideElement selectedFilterDirtyAsterisk() {
+      return child(".iq-manage-filters-dropdown__dirty-asterisk");
     }
 
     public SelenideElement openMenuButton() {
-      return $("#manage-filters-button");
+      return $(".nx-dropdown__toggle");
     }
 
-    public SelenideElement dropdownMenu() {
-      return child(".dropdown-menu");
+    public ManageFiltersDropdownMenu dropdownMenu() {
+      return new ManageFiltersDropdownMenu(selector);
     }
+  }
 
-    public SelenideElement saveFilter() {
-      return $("#show-save-filter-modal");
-    }
-
-    public SelenideElement deleteFilters() {
-      return $("#show-delete-filters-modal");
-    }
-
-    public SelenideElement tooltip() {
-      return $(".filter-label-tooltip");
+  public static class ManageFiltersDropdownMenu
+      extends BasicElement<ManageFiltersDropdownMenu>
+  {
+    public ManageFiltersDropdownMenu(String selector) {
+      super(selector, ".nx-dropdown-menu");
     }
 
     public SelenideElement emptyListMessage() {
-      return child(".iq-list__item--empty");
+      return child(".nx-list__item--empty");
     }
 
-    public SaveFilterDialog saveFilterDialog() {
-      return new SaveFilterDialog();
+    public ElementsCollection options() {
+      return children(".iq-manage-filters-dropdown__option");
     }
 
-    public DeleteFiltersDialog deleteFiltersDialog() {
-      return new DeleteFiltersDialog();
+    public ManageFiltersDropdownOption defaultFilterOption() {
+      return option(0);
     }
 
-    public DeleteDialog deleteDialog() {
-      return new DeleteDialog();
+    public ManageFiltersDropdownOption option(int i) {
+      return new ManageFiltersDropdownOption(".iq-manage-filters-dropdown__option", SelectorUtils.nthChild(i + 1));
+    }
+  }
+
+  public static class ManageFiltersDropdownOption
+      extends BasicElement<ManageFiltersDropdownOption>
+  {
+    public ManageFiltersDropdownOption(String... selectors) {
+      super(selectors);
     }
 
-    public ElementsCollection filters() {
-      return children("#manage-filter-list", ".iq-list__item");
+    public SelenideElement selectFilterButton() {
+      return child(".nx-dropdown-button--select-filter");
     }
 
-    public SelenideElement filter(int i) {
-      return child("#manage-filter-list", ".iq-list__item", SelectorUtils.nthChild(i + 1));
+    public SelenideElement deleteFilterButton() {
+      return child(".nx-btn--delete-filter");
     }
   }
 
@@ -175,138 +197,122 @@ public class DashboardFilters
     }
   }
 
-  public static class DeleteFiltersDialog
-      extends BasicElement<DeleteFiltersDialog>
+  public static class DeleteFilterDialog
+      extends BasicElement<DeleteFilterDialog>
   {
-    public DeleteFiltersDialog() {
-      super("#delete-filters-modal");
-    }
-
-    public SelenideElement deleteButton() {
-      return child(".iq-modal-footer", ".iq-btn--primary");
-    }
-
-    public ElementsCollection filters() {
-      return children(".iq-form iq-checkbox");
-    }
-
-    public IqCheckbox checkboxItem(int index) {
-      return new IqCheckbox(child(".iq-form iq-checkbox", nthChild(index)));
-    }
-  }
-
-  public static class DeleteDialog
-      extends BasicElement<DeleteDialog>
-  {
-    public DeleteDialog() {
-      super("#delete-modal");
-    }
-
-    public SelenideElement body() {
-      return child(".iq-modal-content");
+    public DeleteFilterDialog() {
+      super("#delete-filter-modal");
     }
 
     public SelenideElement continueButton() {
-      return child(".iq-modal-footer", ".iq-btn--primary");
+      return child("#delete-filter-modal-continue-button");
     }
 
     public SelenideElement cancelButton() {
-      return child(".iq-btn:not(.iq-btn--primary)[type='button']");
+      return child("#delete-filter-modal-cancel-button");
+    }
+
+    public SelenideElement confirmation() {
+      return child("#delete-filter-confirmation");
     }
   }
 
   public static class CategoryFilter
-      extends IqTreeViewMultiSelect
+      extends NxTreeViewMultiSelect
   {
     public CategoryFilter(final String selector) {
       super(selector);
     }
 
-    public IqCheckbox noCategory() {
-      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(2)));
+    public NxCheckbox noCategory() {
+      return getFilterCheckboxAt(1);
+    }
+
+    public NxCheckbox getFilterCheckboxAt(int i ) {
+      return new NxCheckbox(child(".nx-tree-view__children .nx-tree-view__child", nthChild(i + 1)));
     }
   }
 
   public static class PolicyTypeFilter
-      extends IqTreeViewMultiSelect
+      extends NxTreeViewMultiSelect
   {
     public PolicyTypeFilter(final String selector) {
       super(selector);
     }
 
-    public IqCheckbox security() {
+    public NxCheckbox security() {
       return super.checkboxItem(2);
     }
 
-    public IqCheckbox license() {
+    public NxCheckbox license() {
       return super.checkboxItem(3);
     }
 
-    public IqCheckbox quality() {
+    public NxCheckbox quality() {
       return super.checkboxItem(4);
     }
 
-    public IqCheckbox other() {
+    public NxCheckbox other() {
       return super.checkboxItem(5);
     }
   }
 
   public static class AgeFilter
-      extends IqTreeViewMultiSelect
+      extends NxTreeViewMultiSelect
   {
     public AgeFilter(final String selector) {
       super(selector);
     }
 
-    public IqRadio past30days() {
+    public NxRadio past30days() {
       return super.radioItem(3);
     }
 
-    public IqRadio past90days() {
+    public NxRadio past90days() {
       return super.radioItem(4);
     }
   }
 
   public static class StageFilter
-      extends IqTreeViewMultiSelect
+      extends NxTreeViewMultiSelect
   {
     public StageFilter(final String selector) {
       super(selector);
     }
 
-    public IqCheckbox build() {
+    public NxCheckbox build() {
       return checkboxItem(2);
     }
 
-    public IqCheckbox stageRelase() {
+    public NxCheckbox stageRelase() {
       return checkboxItem(3);
     }
 
-    public IqCheckbox release() {
+    public NxCheckbox release() {
       return checkboxItem(4);
     }
 
-    public IqCheckbox operate() {
+    public NxCheckbox operate() {
       return checkboxItem(5);
     }
   }
 
   public static class PolicyViolationStateFilter
-      extends IqTreeViewMultiSelect
+      extends NxTreeViewMultiSelect
   {
     public PolicyViolationStateFilter() {
       super("#policy-violation-state-filter");
     }
 
-    public IqCheckbox open() {
+    public NxCheckbox open() {
       return checkboxItem(2);
     }
 
-    public IqCheckbox waived() {
+    public NxCheckbox waived() {
       return checkboxItem(3);
     }
 
-    public IqCheckbox grandfathered() {
+    public NxCheckbox grandfathered() {
       return checkboxItem(4);
     }
   }

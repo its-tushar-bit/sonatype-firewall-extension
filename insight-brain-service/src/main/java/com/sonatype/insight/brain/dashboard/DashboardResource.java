@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.dashboard;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -17,9 +16,9 @@ import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -51,7 +50,7 @@ public class DashboardResource
 
   public static final String NAMED_FILTERS_PATH = "filters/named";
   
-  public static final String DELETE_NAMED_FILTERS_PATH = NAMED_FILTERS_PATH + "/delete";
+  public static final String DELETE_NAMED_FILTER_PATH = NAMED_FILTERS_PATH + "/delete";
 
   private final ApplicationRiskService applicationRiskService;
 
@@ -167,27 +166,11 @@ public class DashboardResource
    * @since 1.24.0
    */
   @POST
-  @Path(DELETE_NAMED_FILTERS_PATH)
-  @Consumes(MediaType.APPLICATION_JSON)
-  @Produces(MediaType.APPLICATION_JSON)
+  @Path(DELETE_NAMED_FILTER_PATH)
   @ExceptionMetered(name = "deleteDashboardFiltersForCurrentUserByFilterNameExceptionMeter")
   @Audited(AuditEvent.DELETE_DASHBOARD_FILTER)
-  public Response deleteDashboardFiltersForCurrentUserByFilterName(final List<String> names) {
-    List<DashboardFilterErrorResponseDTO> errorResponseDTOs = dashboardFilterService
-        .deleteDashboardFiltersForCurrentUserByFilterName(names);
-
-    ResponseBuilder builder;
-    if (errorResponseDTOs.isEmpty()) {
-      builder = Response.noContent();
-    }
-    else {
-      builder = Response.status(getMaxStatus(errorResponseDTOs)).entity(errorResponseDTOs);
-    }
-    return builder.build();
-  }
-
-  private int getMaxStatus(final List<DashboardFilterErrorResponseDTO> errorResponseDTOs) {
-    return Collections.max(errorResponseDTOs, (dto1, dto2) -> Integer.compare(dto1.status, dto2.status)).status;
+  public void deleteDashboardFilterForCurrentUserByFilterName(@QueryParam("filterName") final String filterName) {
+    dashboardFilterService.deleteDashboardFilterForCurrentUserByFilterName(filterName);
   }
 
   /**

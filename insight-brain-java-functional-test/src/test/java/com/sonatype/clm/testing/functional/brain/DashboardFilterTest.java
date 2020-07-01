@@ -14,9 +14,8 @@ import com.sonatype.clm.testing.functional.elements.DashboardComponents.Componen
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.AgeFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.CategoryFilter;
-import com.sonatype.clm.testing.functional.elements.DashboardFilters.DeleteDialog;
-import com.sonatype.clm.testing.functional.elements.DashboardFilters.DeleteFiltersDialog;
-import com.sonatype.clm.testing.functional.elements.DashboardFilters.ManageFilters;
+import com.sonatype.clm.testing.functional.elements.DashboardFilters.DeleteFilterDialog;
+import com.sonatype.clm.testing.functional.elements.DashboardFilters.ManageFiltersDropdown;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.PolicyTypeFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.PolicyViolationStateFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.SaveFilterDialog;
@@ -24,8 +23,8 @@ import com.sonatype.clm.testing.functional.elements.DashboardFilters.StageFilter
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationTile;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationsResults;
 import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.NxPolicyThreatLevelFilter;
 import com.sonatype.clm.testing.functional.elements.NxTreeViewMultiSelect;
-import com.sonatype.clm.testing.functional.elements.PolicyThreatLevelFilter;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -62,6 +61,7 @@ import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.not;
@@ -73,6 +73,7 @@ import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMav
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.DashboardFilters.ACTIVE;
 import static com.sonatype.clm.testing.functional.elements.DashboardFilters.NO_CHANGES_MESSAGE;
+import static com.sonatype.clm.testing.functional.elements.DashboardFilters.SELECTED_SAVED_FILTER_OPTION;
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.applicationsTab;
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.componentsTab;
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.violationsTab;
@@ -225,7 +226,7 @@ public class DashboardFilterTest
     ageFilter.past30days().shouldNotBe(selected).click();
     DashboardFilters.apply();
     ageFilter.twisty().click();
-    ageFilter.singleSelectList().shouldBe(empty);
+    ageFilter.singleSelectList().forEach(selenideElement -> selenideElement.shouldBe(hidden));
   }
 
   @Test
@@ -236,10 +237,10 @@ public class DashboardFilterTest
     refreshOrOpen(DashboardPage.urlToViolations());
 
     assertFilterDisabled(DashboardFilters.applicationFilter(), "applications");
-    assertStageFilterInitialState();
-    assertCategoryFilterInitialState();
-    assertPolicyTypeFilterInitialState();
-    assertThreatLevelFilterInitialState();
+    assertStageFilterDefaultState();
+    assertCategoryFilterDefaultState();
+    assertPolicyTypeFilterDefaultState();
+    assertThreatLevelFilterDefaultState();
 
     logout();
     loginAsAdmin();
@@ -247,8 +248,11 @@ public class DashboardFilterTest
 
   @Test
   public void testFilters() throws Exception {
-    assertInitialFilterState();
-    assertAgeFilterInitialState();
+    ManageFiltersDropdown manage = DashboardFilters.manageFiltersDropdown();
+    manage.selectedFilterLabel().shouldHave(exactText("Default"));
+    manage.selectedFilterDirtyAsterisk().shouldBe(hidden);
+    assertDefaultFilterState();
+    assertAgeFilterDefaultState();
 
     // assert no filtering is done
     DashboardPage.violationsView().results().violations().shouldHaveSize(3);
@@ -256,13 +260,15 @@ public class DashboardFilterTest
     DashboardPage.componentsTab().counter().shouldNot(exist);
     DashboardPage.applicationsTab().counter().shouldNot(exist);
 
-    DashboardFilters.applyButton().shouldBe(DISABLED).hover().tooltip().shouldHave(NO_CHANGES_MESSAGE);
+    DashboardFilters.applyButton().shouldBe(DISABLED).hover();
+    Tooltip.get().shouldHave(NO_CHANGES_MESSAGE);
     DashboardPage.violationsView().results().mask().shouldBe(hidden);
 
     // check that counters get updated
     setSomeFilterValues();
 
-    DashboardFilters.applyButton().shouldNotBe(DISABLED).hover().tooltip().shouldBe(hidden);
+    DashboardFilters.applyButton().shouldNotBe(DISABLED).hover();
+    Tooltip.get().shouldBe(hidden);
 
     // violations should be covered by the mask
     DashboardPage.violationsView().results().mask().shouldBe(visible);
@@ -283,7 +289,9 @@ public class DashboardFilterTest
 
     // check revert
     DashboardFilters.revertButton().click();
-    assertInitialFilterState();
+    manage.selectedFilterLabel().shouldHave(exactText("Default"));
+    manage.selectedFilterDirtyAsterisk().shouldBe(hidden);
+    assertDefaultFilterState();
     DashboardPage.violationsView().results().mask().shouldBe(hidden);
 
     // make sure changes persist after save + reload
@@ -333,6 +341,14 @@ public class DashboardFilterTest
 
     // enable "uncategorized applications" so that secondApp results show
     DashboardFilters.applicationCategoryFilter().twisty().click();
+    DashboardFilters.applicationCategoryFilter().getFilterCheckboxAt(0).hover();
+    Tooltip.get().shouldNotBe(visible);
+    DashboardFilters.applicationCategoryFilter().noCategory().hover();
+    Tooltip.get().shouldNotBe(visible);
+    DashboardFilters.applicationCategoryFilter().getFilterCheckboxAt(2).hover();
+    Tooltip.get().shouldBe(visible).shouldHave(text("in DashboardTest"));
+    DashboardFilters.applicationCategoryFilter().getFilterCheckboxAt(3).hover();
+    Tooltip.get().shouldBe(visible).shouldHave(text("in DashboardTest"));
     DashboardFilters.applicationCategoryFilter().noCategory().click();
     DashboardFilters.applicationCategoryFilter().twisty().click();
     DashboardFilters.apply();
@@ -419,9 +435,10 @@ public class DashboardFilterTest
     DashboardPage.applicationsView().results().applications().shouldHaveSize(1);
     DashboardPage.applicationsView().results().firstApplication().shouldHave(text("DashboardTestAppTwo"));
 
-    // reset
-    DashboardFilters.clearButton().click();
-    assertInitialFilterState();
+    selectDefaultFilter();
+    manage.selectedFilterLabel().shouldHave(exactText("Default"));
+    manage.selectedFilterDirtyAsterisk().shouldBe(hidden);
+    assertDefaultFilterState();
 
     // filter GRANDFATHERED only
     DashboardPage.componentsTab().click();
@@ -448,10 +465,6 @@ public class DashboardFilterTest
     DashboardPage.applicationsTab().click();
     DashboardPage.applicationsView().results().applications().shouldHaveSize(1);
     DashboardPage.applicationsView().results().firstApplication().shouldHave(text("DashboardTestAppTwo"));
-
-    // check reset
-    DashboardFilters.clearButton().click();
-    assertInitialFilterState();
   }
 
   @Test
@@ -491,49 +504,74 @@ public class DashboardFilterTest
   }
 
   @Test
-  public void testSaveLoadFilter() {
-    ManageFilters manage = DashboardFilters.manage();
+  public void testApplyChangesToDefaultFilter() {
+    ManageFiltersDropdown manage = DashboardFilters.manageFiltersDropdown();
+    manage.selectedFilterLabel().shouldHave(exactText("Default"));
+    manage.selectedFilterDirtyAsterisk().shouldBe(hidden);
 
-    // no saved filters
-    manage.openMenuButton().click();
-    manage.dropdownMenu().shouldBe(visible);
-    manage.emptyListMessage().shouldBe(visible).shouldHave(text("No saved filters."));
-    manage.openMenuButton().click();
-    DashboardFilters.saveFilterNameLabel().shouldBe(hidden);
-    DashboardFilters.saveFilterDirtyAsterisk().shouldBe(hidden);
-
-    // save initial filter
-    saveFilter("Initial", null, false, true);
-    manage.openMenuButton().click();
-    manage.filters().shouldHaveSize(1);
-    manage.filter(0).shouldHave(text("Initial"));
-    eyesWatcher.eyesCheck("Initial filter saved");
-    manage.openMenuButton().click();
-    DashboardFilters.saveFilterNameLabel().shouldHave(text("Initial"));
-    DashboardFilters.saveFilterDirtyAsterisk().shouldBe(hidden);
-
-    // Overwrite the filter, verifies the confirmation path
-    overwriteFilter("Initial");
-    DashboardFilters.saveFilterNameLabel().shouldHave(text("Initial"));
-    DashboardFilters.saveFilterDirtyAsterisk().shouldBe(hidden);
-
-    // "save filter" should be disabled if filter changes are not applied
     setSomeFilterValues();
-    DashboardFilters.saveFilterDirtyAsterisk().shouldBe(hidden);
-    manage.openMenuButton().click();
-    manage.saveFilter().shouldHave(DISABLED).click();
-    manage.saveFilterDialog().shouldBe(hidden);
-    manage.saveFilter().hover();
-    manage.tooltip().shouldHave(text("Please apply filter before saving"));
-
-    // apply new filter
     DashboardFilters.apply();
-    DashboardFilters.saveFilterNameLabel().shouldHave(text("Initial"));
-    DashboardFilters.saveFilterDirtyAsterisk().shouldBe(visible);
+    manage.selectedFilterLabel().shouldHave(exactText("Default"));
+    manage.selectedFilterDirtyAsterisk().shouldBe(visible);
 
     // check that the 'dirty' asterisk remains after reload
     refresh();
-    DashboardFilters.saveFilterDirtyAsterisk().shouldBe(visible);
+    manage.selectedFilterLabel().shouldHave(exactText("Default"));
+    manage.selectedFilterDirtyAsterisk().shouldBe(visible);
+  }
+
+  @Test
+  public void testSaveFilter() {
+    // no saved filters
+
+    ManageFiltersDropdown manage = DashboardFilters.manageFiltersDropdown();
+    manage.openMenuButton().click();
+    manage.dropdownMenu().shouldBe(visible);
+    manage.dropdownMenu().options().shouldHaveSize(1);
+    manage.dropdownMenu().defaultFilterOption().shouldHave(text("Default"));
+    manage.dropdownMenu().emptyListMessage().shouldBe(visible).shouldHave(text("No saved filters"));
+    manage.openMenuButton().click();
+    manage.dropdownMenu().shouldNotBe(visible);
+
+    manage.selectedFilterLabel().shouldHave(exactText("Default"));
+    manage.selectedFilterDirtyAsterisk().shouldBe(hidden);
+
+    // save initial filter
+    saveFilter("Initial", null, false, true);
+
+    manage.openMenuButton().click();
+    manage.dropdownMenu().options().shouldHaveSize(2);
+    manage.dropdownMenu().option(1).shouldHave(text("Initial"));
+
+    eyesWatcher.eyesCheck("Initial filter saved");
+    manage.selectedFilterLabel().shouldHave(exactText("Initial"));
+    manage.selectedFilterDirtyAsterisk().shouldBe(hidden);
+
+    // Overwrite the filter, verifies the confirmation path
+    overwriteFilter("Initial");
+    manage.selectedFilterLabel().shouldHave(exactText("Initial"));
+    manage.selectedFilterDirtyAsterisk().shouldBe(hidden);
+
+    // "save filter" should be disabled if filter changes are not applied
+    setSomeFilterValues();
+    manage.selectedFilterDirtyAsterisk().shouldBe(hidden);
+    DashboardFilters.saveButton().shouldHave(DISABLED);
+    DashboardFilters.saveButton().hover();
+    DashboardFilters.saveButtonTooltip().shouldBe(visible).shouldHave(text("Please apply filter before saving"));
+    DashboardFilters.saveButton().click();
+    DashboardFilters.saveFilterDialog().shouldNotBe(visible);
+
+    // apply new filter
+    DashboardFilters.apply();
+    manage.selectedFilterLabel().shouldHave(exactText("Initial"));
+    manage.selectedFilterDirtyAsterisk().shouldBe(visible);
+    DashboardFilters.saveButton().shouldNotBe(DISABLED);
+
+    // check that the 'dirty' asterisk remains after reload
+    refresh();
+    manage.selectedFilterLabel().shouldHave(exactText("Initial"));
+    manage.selectedFilterDirtyAsterisk().shouldBe(visible);
+
     List<com.sonatype.insight.brain.model.filter.DashboardFilter> filters = new DashboardFilterDAO()
         .getByUsernameAndRealmId("admin", InternalRealm.ID);
     assertThat(filters).hasSize(2);
@@ -542,105 +580,101 @@ public class DashboardFilterTest
 
     // save new filter
     saveFilter("New Filter", "Initial", false, false);
-    DashboardFilters.saveFilterDirtyAsterisk().shouldBe(hidden);
-    DashboardFilters.saveFilterNameLabel().shouldHave(text("New Filter"));
+    manage.selectedFilterLabel().shouldHave(exactText("New Filter"));
+    manage.selectedFilterDirtyAsterisk().shouldBe(hidden);
+
     manage.openMenuButton().click();
-    manage.filters().shouldHaveSize(2);
-    manage.filter(1).shouldHave(text("New Filter"));
+    manage.dropdownMenu().options().shouldHaveSize(3);
+    manage.dropdownMenu().option(2).shouldHave(text("New Filter"));
 
     // load other filter
     ViolationsResults table = DashboardPage.violationsView().results();
     table.violations().shouldHaveSize(1);
-    manage.filter(0).click();
-    assertInitialFilterState("Initial");
+    manage.dropdownMenu().option(1).selectFilterButton().click();
+    manage.dropdownMenu().shouldBe(hidden);
+
+    manage.selectedFilterLabel().shouldHave(exactText("Initial"));
+    manage.selectedFilterDirtyAsterisk().shouldBe(hidden);
+    assertDefaultFilterState();
     table.violations().shouldHaveSize(3);
 
     // check that refreshing doesn't change anything
     refresh();
-    assertInitialFilterState("Initial");
+    manage.selectedFilterLabel().shouldHave(exactText("Initial"));
+    manage.selectedFilterDirtyAsterisk().shouldBe(hidden);
+    assertDefaultFilterState();
     table.violations().shouldHaveSize(3);
 
     // go back to New Filter
     manage.openMenuButton().click();
-    manage.filter(1).shouldHave(text("New Filter")).click();
+    manage.dropdownMenu().option(2).selectFilterButton().shouldHave(text("New Filter")).click();
 
     // save as existing filter name
     saveFilter("Initial", "New Filter", true, true);
-    DashboardFilters.saveFilterNameLabel().shouldHave(text("Initial"));
-    DashboardFilters.saveFilterDirtyAsterisk().shouldBe(hidden);
+    manage.selectedFilterLabel().shouldHave(exactText("Initial"));
+    manage.selectedFilterDirtyAsterisk().shouldBe(hidden);
     table.violations().shouldHaveSize(1);
   }
 
   @Test
-  public void testDeleteFilter() {
-    ManageFilters manage = DashboardFilters.manage();
-    String filter1 = "Delete";
-    String filter2 = "Do not delete";
-
-    // no filters to delete
-    manage.openMenuButton().click();
-    manage.deleteFilters().shouldHave(DISABLED).click();
-    manage.deleteFiltersDialog().shouldBe(hidden);
-    manage.openMenuButton().click();
-
+  public void testDeleteSavedFilter() {
     // create filters
-    saveFilter(filter1, null, false, false);
-    saveFilter(filter2, filter1, false, false);
+    saveFilter("Delete", null, false, false);
+    saveFilter("Do not delete", "Delete", false, false);
+
+    ManageFiltersDropdown manage = DashboardFilters.manageFiltersDropdown();
+    DeleteFilterDialog deleteFilterDialog = DashboardFilters.deleteFilterDialog();
+
+    // document click should close the dropdown
     manage.openMenuButton().click();
+    manage.dropdownMenu().shouldBe(visible);
+    DashboardPage.violationsTab().click();
+    manage.dropdownMenu().shouldBe(hidden);
 
-    // delete filter button disabled if nothing selected
-    manage.deleteFilters().shouldNotHave(DISABLED).click();
-    DeleteFiltersDialog deleteFiltersDialog = manage.deleteFiltersDialog();
-    deleteFiltersDialog.shouldBe(visible);
-    deleteFiltersDialog.filters().shouldHaveSize(2);
-    deleteFiltersDialog.checkboxItem(1).input().shouldNotBe(selected);
-    deleteFiltersDialog.checkboxItem(2).input().shouldNotBe(selected);
-    deleteFiltersDialog.checkboxItem(1).label().shouldHave(text(filter1));
-    deleteFiltersDialog.checkboxItem(2).label().shouldHave(text(filter2));
-    deleteFiltersDialog.deleteButton().shouldHave(DISABLED);
-
-    // delete filter
-    deleteFiltersDialog.checkboxItem(1).click();
+    // delete filter - cancel
+    manage.openMenuButton().click();
+    manage.dropdownMenu().shouldBe(visible);
+    manage.dropdownMenu().options().shouldHaveSize(3);
+    manage.dropdownMenu().option(2).shouldHave(text("Do not delete")).shouldBe(SELECTED_SAVED_FILTER_OPTION);
+    manage.dropdownMenu().option(1).shouldHave(text("Delete")).deleteFilterButton().click();
+    // delete filter button shouldn't close the filters dropdown
+    manage.dropdownMenu().shouldBe(visible);
     eyesWatcher.eyesCheck();
-    deleteFiltersDialog.deleteButton().shouldNotHave(DISABLED).click();
+    deleteFilterDialog.shouldBe(visible).confirmation()
+        .shouldHave(exactText("You are about to delete \"Delete\" filter. This action can not be undone."));
+    // document click while delete dialog is open shouldn't close the filters dropdown
+    deleteFilterDialog.confirmation().click();
+    manage.dropdownMenu().shouldBe(visible);
+    // cancel dialog button shouldn't close the filters dropdown
+    deleteFilterDialog.cancelButton().click();
+    deleteFilterDialog.shouldBe(hidden);
+    manage.dropdownMenu().shouldBe(visible);
 
-    // delete confirmation cancel
-    deleteFiltersDialog.shouldBe(hidden);
-    eyesWatcher.eyesCheck();
-    DeleteDialog deleteDialog = manage.deleteDialog();
-    deleteDialog.shouldBe(visible);
-    deleteDialog.body().shouldHave(
-        text("You are about to remove 1 filter(s). This action cannot be undone."));
-    deleteDialog.cancelButton().click();
-
-    //delete confirmation continue
-    deleteFiltersDialog.deleteButton().shouldNotHave(DISABLED).click();
-
-    deleteDialog.shouldBe(visible);
-    deleteDialog.continueButton().click();
+    // delete filter - continue
+    manage.dropdownMenu().option(1).deleteFilterButton().click();
+    deleteFilterDialog.shouldBe(visible);
+    deleteFilterDialog.continueButton().click();
     FormMask.seeAndWaitForDismissal();
-
-    deleteDialog.shouldBe(hidden);
-    deleteFiltersDialog.shouldBe(hidden);
+    deleteFilterDialog.shouldBe(hidden);
+    manage.dropdownMenu().shouldBe(hidden);
 
     // verify delete
     manage.openMenuButton().click();
-    manage.deleteFilters().shouldNotHave(DISABLED).click();
-    deleteFiltersDialog.filters().shouldHaveSize(1);
-    deleteFiltersDialog.checkboxItem(1).input().shouldNotBe(selected);
-    deleteFiltersDialog.checkboxItem(1).label().shouldHave(text(filter2));
+    manage.dropdownMenu().options().shouldHaveSize(2);
+    manage.dropdownMenu().option(1).shouldHave(text("Do not delete"));
 
     DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
     List<com.sonatype.insight.brain.model.filter.DashboardFilter> filters =
         dashboardFilterDAO.getByUsernameAndRealmId("admin", InternalRealm.ID);
     assertThat(filters).hasSize(2);
     assertThat(filters.get(0).getName()).isEqualTo(""); // default filter
-    assertThat(filters.get(1).getName()).isEqualTo(filter2);
+    assertThat(filters.get(1).getName()).isEqualTo("Do not delete");
   }
 
   @Test
   public void testDeleteSavedFilter_appliedFilter() {
-    ManageFilters manage = DashboardFilters.manage();
+    ManageFiltersDropdown manage = DashboardFilters.manageFiltersDropdown();
+    DeleteFilterDialog deleteFilterDialog = DashboardFilters.deleteFilterDialog();
     String filter1 = "Applied Filter Is Based On Me";
 
     // save a filter
@@ -648,21 +682,21 @@ public class DashboardFilterTest
     // modify, apply, but don't save
     setSomeFilterValues();
     DashboardFilters.apply();
-    DashboardFilters.saveFilterNameLabel().shouldHave(text("Applied Filter Is Based On Me"));
-    DashboardFilters.saveFilterDirtyAsterisk().shouldBe(visible);
+    manage.selectedFilterLabel().shouldHave(text("Applied Filter Is Based On Me"));
+    manage.selectedFilterDirtyAsterisk().shouldBe(visible);
 
-    // delete the saved filter
+    // delete selected filter
     manage.openMenuButton().click();
-    manage.deleteFilters().shouldNotHave(DISABLED).click();
-    DeleteFiltersDialog deleteFiltersDialog = manage.deleteFiltersDialog();
-    deleteFiltersDialog.checkboxItem(1).click();
-    deleteFiltersDialog.deleteButton().shouldNotHave(DISABLED).click();
-    manage.deleteDialog().continueButton().click();
+    manage.dropdownMenu().option(1).shouldBe(SELECTED_SAVED_FILTER_OPTION).deleteFilterButton().click();
+    deleteFilterDialog.shouldBe(visible);
+    deleteFilterDialog.continueButton().click();
     FormMask.seeAndWaitForDismissal();
 
-    // check the UI is in a clean state
-    DashboardFilters.saveFilterNameLabel().shouldBe(hidden);
-    DashboardFilters.saveFilterDirtyAsterisk().shouldBe(hidden);
+    // check Default filter is now shown as selected with the asterisk
+    manage.selectedFilterLabel().shouldHave(text("Default"));
+    manage.selectedFilterDirtyAsterisk().shouldBe(visible);
+    manage.openMenuButton().click();
+    manage.dropdownMenu().defaultFilterOption().shouldBe(SELECTED_SAVED_FILTER_OPTION);
 
     // verify that applied filter is no longer based on the deleted one
     DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
@@ -675,7 +709,8 @@ public class DashboardFilterTest
     testCLMServer.getCLMServer().getConfiguration().setNeedsAcknowledgementOfInitialDashboardFilter(true);
     refreshOrOpen(DashboardPage.urlToViolations());
 
-    DashboardFilters.saveFilterNameLabel().shouldBe(hidden);
+    ManageFiltersDropdown manage = DashboardFilters.manageFiltersDropdown();
+    manage.selectedFilterLabel().shouldHave(exactText("Default"));
     DashboardPage.needsAcknowledgementMessage().shouldBe(visible)
         .shouldHave(text(DashboardPage.NEEDS_ACKNOWLEDGEMENT_MESSAGE));
     DashboardPage.violationsView().results().violations().shouldHaveSize(0);
@@ -770,11 +805,13 @@ public class DashboardFilterTest
   }
 
   private void assertNeedsAcknowledgementPostFilterState(String filterName) {
+    ManageFiltersDropdown manage = DashboardFilters.manageFiltersDropdown();
+
     if (filterName != null) {
-      DashboardFilters.saveFilterNameLabel().shouldBe(visible).shouldHave(text(filterName));
+      manage.selectedFilterLabel().shouldHave(exactText(filterName));
     }
     else {
-      DashboardFilters.saveFilterNameLabel().shouldBe(hidden);
+      manage.selectedFilterLabel().shouldHave(exactText("Default"));
     }
     DashboardPage.needsAcknowledgementMessage().shouldBe(hidden);
     DashboardPage.violationsView().results().violations().shouldHaveSize(3);
@@ -809,10 +846,8 @@ public class DashboardFilterTest
                           boolean existingExpected,
                           boolean useVisualTesting)
   {
-    ManageFilters manage = DashboardFilters.manage();
-    manage.openMenuButton().click();
-    manage.saveFilter().shouldNotHave(disabled).click();
-    SaveFilterDialog saveDialog = manage.saveFilterDialog();
+    DashboardFilters.saveButton().shouldNotBe(disabled).click();
+    SaveFilterDialog saveDialog = DashboardFilters.saveFilterDialog();
     saveDialog.shouldBe(visible);
     // Avoid superfluous validations
     if (useVisualTesting) {
@@ -867,10 +902,8 @@ public class DashboardFilterTest
   }
 
   private void overwriteFilter(String currentFilterName) {
-    ManageFilters manage = DashboardFilters.manage();
-    manage.openMenuButton().click();
-    manage.saveFilter().shouldNotBe(DISABLED).click();
-    SaveFilterDialog saveDialog = manage.saveFilterDialog();
+    DashboardFilters.saveButton().shouldNotBe(disabled).click();
+    SaveFilterDialog saveDialog = DashboardFilters.saveFilterDialog();
     saveDialog.shouldBe(visible);
     saveDialog.header().shouldHave(text("Save Filter"));
 
@@ -881,8 +914,7 @@ public class DashboardFilterTest
     // test cancel
     saveDialog.cancelButton().click();
     saveDialog.shouldBe(hidden);
-    manage.openMenuButton().click();
-    manage.saveFilter().shouldNotBe(DISABLED).click();
+    DashboardFilters.saveButton().shouldNotBe(disabled).click();
     saveDialog.overwriteRadio().shouldBe(selected);
 
     saveDialog.saveButton().shouldNotBe(DISABLED).click();
@@ -907,6 +939,12 @@ public class DashboardFilterTest
     saveDialog.shouldBe(hidden);
   }
 
+  private void selectDefaultFilter() {
+    ManageFiltersDropdown manage = DashboardFilters.manageFiltersDropdown();
+    manage.openMenuButton().click();
+    manage.dropdownMenu().defaultFilterOption().selectFilterButton().click();
+  }
+
   private void setSomeFilterValues() {
     DashboardFilters.stageFilter().twisty().click();
     DashboardFilters.stageFilter().release().click();
@@ -929,11 +967,7 @@ public class DashboardFilterTest
     DashboardFilters.policyThreatLevelFilter().twisty().click();
   }
 
-  private void assertInitialFilterState() {
-    assertInitialFilterState("");
-  }
-
-  private void assertInitialFilterState(final String savedFilterName) {
+  private void assertDefaultFilterState() {
     NxTreeViewMultiSelect appFilter = DashboardFilters.applicationFilter();
 
     appFilter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("2"));
@@ -947,7 +981,8 @@ public class DashboardFilterTest
 
     CategoryFilter categoryFilter = DashboardFilters.applicationCategoryFilter();
     categoryFilter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("3"));
-    categoryFilter.multiSelectList().shouldBe(empty);
+    // children of a closed filter are still there but hidden from view
+    categoryFilter.multiSelectList().forEach(selenideElement -> selenideElement.shouldBe(hidden));
     categoryFilter.twisty().shouldBe(visible).click();
     categoryFilter.multiSelectList().shouldHave(size(4));
     categoryFilter.checkboxItem(1).shouldNotBe(selected).label().shouldHave(text("all/none"));
@@ -956,23 +991,14 @@ public class DashboardFilterTest
     categoryFilter.checkboxItem(4).shouldNotBe(selected).label().shouldHave(text(firstAppCategory2.getName()));
     categoryFilter.twisty().click();
 
-    if (savedFilterName.isEmpty()) {
-      DashboardFilters.saveFilterNameLabel().shouldBe(hidden);
-      DashboardFilters.saveFilterDirtyAsterisk().shouldBe(hidden);
-    }
-    else {
-      DashboardFilters.saveFilterNameLabel().shouldBe(text(savedFilterName));
-      DashboardFilters.saveFilterDirtyAsterisk().shouldBe(hidden);
-    }
-
-    assertStageFilterInitialState();
-    assertPolicyTypeFilterInitialState();
-    assertThreatLevelFilterInitialState();
-    assertPolicyViolationStateFilterInitialState();
+    assertStageFilterDefaultState();
+    assertPolicyTypeFilterDefaultState();
+    assertThreatLevelFilterDefaultState();
+    assertPolicyViolationStateFilterDefaultState();
   }
 
-  private void assertThreatLevelFilterInitialState() {
-    PolicyThreatLevelFilter threatLevelFilter = DashboardFilters.policyThreatLevelFilter();
+  private void assertThreatLevelFilterDefaultState() {
+    NxPolicyThreatLevelFilter threatLevelFilter = DashboardFilters.policyThreatLevelFilter();
     threatLevelFilter.counter().shouldBe(visible).shouldBe(ACTIVE).shouldHave(text("2 – 10"));
     threatLevelFilter.slider().shouldBe(hidden);
     threatLevelFilter.twisty().click();
@@ -980,20 +1006,20 @@ public class DashboardFilterTest
     threatLevelFilter.twisty().click();
   }
 
-  private void assertAgeFilterInitialState() {
+  private void assertAgeFilterDefaultState() {
     AgeFilter ageFilter = DashboardFilters.ageFilter();
     ageFilter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("past 30 days"));
-    ageFilter.singleSelectList().shouldBe(empty);
+    ageFilter.singleSelectList().forEach(selenideElement -> selenideElement.shouldBe(hidden));
     ageFilter.twisty().click();
     ageFilter.singleSelectList().shouldHaveSize(6);
     ageFilter.past30days().shouldBe(selected).label().shouldHave(text("past 30 days"));
     ageFilter.twisty().click();
   }
 
-  private void assertPolicyTypeFilterInitialState() {
+  private void assertPolicyTypeFilterDefaultState() {
     PolicyTypeFilter policyTypeFilter = DashboardFilters.policyTypeFilter();
     policyTypeFilter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("4"));
-    policyTypeFilter.multiSelectList().shouldBe(empty);
+    policyTypeFilter.multiSelectList().forEach(selenideElement -> selenideElement.shouldBe(hidden));
     policyTypeFilter.twisty().shouldBe(visible).click();
     policyTypeFilter.multiSelectList().shouldHave(size(5));
     policyTypeFilter.allItems().shouldNotBe(selected).label().shouldHave(text("all/none"));
@@ -1004,10 +1030,10 @@ public class DashboardFilterTest
     policyTypeFilter.twisty().click();
   }
 
-  private void assertStageFilterInitialState() {
+  private void assertStageFilterDefaultState() {
     StageFilter stageFilter = DashboardFilters.stageFilter();
     stageFilter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("4"));
-    stageFilter.multiSelectList().shouldBe(empty);
+    stageFilter.multiSelectList().forEach(selenideElement -> selenideElement.shouldBe(hidden));
     stageFilter.twisty().shouldBe(visible).click();
     stageFilter.multiSelectList().shouldHave(size(5));
     stageFilter.allItems().shouldNotBe(selected).label().shouldHave(text("all/none"));
@@ -1018,10 +1044,10 @@ public class DashboardFilterTest
     stageFilter.twisty().click();
   }
 
-  private void assertCategoryFilterInitialState() {
+  private void assertCategoryFilterDefaultState() {
     CategoryFilter categoryFilter = DashboardFilters.applicationCategoryFilter();
     categoryFilter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("1"));
-    categoryFilter.multiSelectList().shouldBe(empty);
+    categoryFilter.multiSelectList().forEach(selenideElement -> selenideElement.shouldBe(hidden));
     categoryFilter.twisty().shouldBe(visible).click();
     categoryFilter.multiSelectList().shouldHave(size(2));
     categoryFilter.allItems().shouldNotBe(selected).label().shouldHave(text("all/none"));
@@ -1029,10 +1055,10 @@ public class DashboardFilterTest
     categoryFilter.twisty().click();
   }
 
-  private void assertPolicyViolationStateFilterInitialState() {
+  private void assertPolicyViolationStateFilterDefaultState() {
     PolicyViolationStateFilter policyViolationStateFilter = DashboardFilters.policyViolationStateFilter();
     policyViolationStateFilter.counter().shouldBe(visible).shouldHave(text("1 of 3"));
-    policyViolationStateFilter.multiSelectList().shouldBe(empty);
+    policyViolationStateFilter.multiSelectList().forEach(selenideElement -> selenideElement.shouldBe(hidden));
     policyViolationStateFilter.twisty().shouldBe(visible).click();
     policyViolationStateFilter.multiSelectList().shouldHave(size(4));
     policyViolationStateFilter.allItems().shouldNotBe(selected).label().shouldHave(text("all/none"));

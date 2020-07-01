@@ -41,11 +41,11 @@ describe('SaveFilterModalContainer', function() {
     };
 
     SaveFilterModalContainer = require(
-        'inject-loader!../../../../../../main/frontend/dashboard/' +
-        'filter/manageFilterMenu/saveFilterModal/SaveFilterModalContainer'
+        'inject-loader!../../../../../main/frontend/dashboard/' +
+        'filter/saveFilterModal/SaveFilterModalContainer'
     )({
       './SaveFilterModalContent': MockSaveFilterModalContent,
-      '../../../../util/CommonServices': { Messages: mockMessages }
+      '../../../util/CommonServices': { Messages: mockMessages }
     }).default;
 
     state = {

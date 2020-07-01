@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.dashboard;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -32,6 +31,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -127,7 +127,7 @@ public class DashboardFilterServiceTest
   public void testDeleteDashboardFiltersForCurrentUserByFilterName_Unlicensed() {
     testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD);
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
-      dashboardFilterService.deleteDashboardFiltersForCurrentUserByFilterName(null);
+      dashboardFilterService.deleteDashboardFilterForCurrentUserByFilterName(null);
     });
   }
 
@@ -510,73 +510,56 @@ public class DashboardFilterServiceTest
   }
 
   @Test
-  public void testDeleteDashboardFiltersForCurrentUserByFilterName() {
-    String filterName1 = "Filter 1";
-    String filterName2 = "Filter 2";
-    String filterName3 = "Filter 3";
+  public void testDeleteDashboardFilterForCurrentUserByFilterName() {
+    String filterName = "Filter 1";
 
-    NamedDashboardFilterDTO dto1 = createNamedDashboardFilterDTO(filterName1, 5, 7);
-    DashboardFilter dashboardFilter1 =
-        tempEntity.newDashboardFilter(USERNAME, InternalRealm.ID, dto1.name, JsonUtils.format(dto1.filter));
-
-    NamedDashboardFilterDTO dto2 = createNamedDashboardFilterDTO(filterName2, 4, 8);
-    DashboardFilter dashboardFilter2 =
-        tempEntity.newDashboardFilter(USERNAME, InternalRealm.ID, dto2.name, JsonUtils.format(dto2.filter));
-
-    // Legacy filter
-    NamedDashboardFilterDTO dto3 = createNamedDashboardFilterDTO(filterName3, 1, 5);
-    DashboardFilter dashboardFilter3 =
-        tempEntity.newDashboardFilterLegacy(USERNAME, dto3.name, JsonUtils.format(dto3.filter));
+    NamedDashboardFilterDTO dto = createNamedDashboardFilterDTO(filterName, 5, 7);
+    DashboardFilter dashboardFilter =
+        tempEntity.newDashboardFilter(USERNAME, InternalRealm.ID, dto.name, JsonUtils.format(dto.filter));
 
     NamedDashboardFilterDTO activeDto = createNamedDashboardFilterDTO(ACTIVE_FILTER_NAME, 6, 7);
     DashboardFilter dashboardFilterActive = tempEntity.newDashboardFilter(USERNAME, InternalRealm.ID, activeDto.name,
-        false, filterName1, JsonUtils.format(activeDto.filter));
+        false, filterName, JsonUtils.format(activeDto.filter));
 
-    List<String> filtersToDelete = Arrays.asList(filterName1, filterName2, filterName3);
+    dashboardFilterService.deleteDashboardFilterForCurrentUserByFilterName(filterName);
 
-    dashboardFilterService.deleteDashboardFiltersForCurrentUserByFilterName(filtersToDelete);
-
-    assertThat(dashboardFilterDAO.getById(dashboardFilter1.getId())).isNull();
-    assertThat(dashboardFilterDAO.getById(dashboardFilter2.getId())).isNull();
-    assertThat(dashboardFilterDAO.getById(dashboardFilter3.getId())).isNull();
+    assertThat(dashboardFilterDAO.getById(dashboardFilter.getId())).isNull();
     assertThat(dashboardFilterDAO.getById(dashboardFilterActive.getId())).isNotNull();
   }
 
   @Test
-  public void testDeleteDashboardFiltersForCurrentUserByFilterName_DeletesFilterWhenOneMissing() {
-    String filterName1 = "Filter X";
-    String filterName2 = "Filter Y";
-    NamedDashboardFilterDTO dto1 = createNamedDashboardFilterDTO(filterName2, 5, 7);
+  public void testDeleteDashboardFilterForCurrentUserByFilterName_LegacyFilter() {
+    String filterName = "Filter 1";
+
+    NamedDashboardFilterDTO dto = createNamedDashboardFilterDTO(filterName, 1, 5);
     DashboardFilter dashboardFilter =
-        tempEntity.newDashboardFilter(USERNAME, InternalRealm.ID, dto1.name, JsonUtils.format(dto1.filter));
+        tempEntity.newDashboardFilterLegacy(USERNAME, dto.name, JsonUtils.format(dto.filter));
 
-    List<String> filtersToDelete = Arrays.asList(filterName1, filterName2);
+    NamedDashboardFilterDTO activeDto = createNamedDashboardFilterDTO(ACTIVE_FILTER_NAME, 6, 7);
+    DashboardFilter dashboardFilterActive = tempEntity.newDashboardFilter(USERNAME, InternalRealm.ID, activeDto.name,
+        false, filterName, JsonUtils.format(activeDto.filter));
 
-    List<DashboardFilterErrorResponseDTO> actualErrors = dashboardFilterService
-        .deleteDashboardFiltersForCurrentUserByFilterName(filtersToDelete);
-    // verify that Filter X failed
-    assertThat(actualErrors).hasSize(1);
-    assertThat(actualErrors.get(0).name).isEqualTo(filterName1);
-    assertThat(actualErrors.get(0).errorMessage)
-        .isEqualTo("Cannot find a filter with name " + filterName1 + " for user " + USERNAME + ".");
-    assertThat(actualErrors.get(0).status).isEqualTo(404);
+    dashboardFilterService.deleteDashboardFilterForCurrentUserByFilterName(filterName);
 
-    // verify that Filter Y got deleted
     assertThat(dashboardFilterDAO.getById(dashboardFilter.getId())).isNull();
+    assertThat(dashboardFilterDAO.getById(dashboardFilterActive.getId())).isNotNull();
   }
 
   @Test
-  public void testDeleteDashboardFiltersForCurrentUserByFilterName_DeletesFilterWhenOneFails() {
-    // creating filters
-    String filterName1 = "Filter 1";
-    NamedDashboardFilterDTO dto1 = createNamedDashboardFilterDTO(filterName1, 5, 7);
-    DashboardFilter dashboardFilter1 =
-        tempEntity.newDashboardFilter(USERNAME, InternalRealm.ID, dto1.name, JsonUtils.format(dto1.filter));
+  public void testDeleteDashboardFilterForCurrentUserByFilterName_MissingFilter() {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
+      dashboardFilterService.deleteDashboardFilterForCurrentUserByFilterName("Filter X");
+    }).withMessage("Cannot find a filter with name Filter X for user testuser.");
+  }
 
-    String filterName2 = "Filter 2";
-    NamedDashboardFilterDTO dto2 = createNamedDashboardFilterDTO(filterName2, 5, 9);
-    DashboardFilter dashboardFilter2 =
-        tempEntity.newDashboardFilter(USERNAME, InternalRealm.ID, dto2.name, JsonUtils.format(dto2.filter));
+  @Test
+  public void testDeleteDashboardFilterForCurrentUserByFilterName_HandlesDeleteFailure() {
+
+    // creating filters
+    String filterName = "Filter 1";
+    NamedDashboardFilterDTO dto = createNamedDashboardFilterDTO(filterName, 5, 7);
+    DashboardFilter dashboardFilter =
+        tempEntity.newDashboardFilter(USERNAME, InternalRealm.ID, dto.name, JsonUtils.format(dto.filter));
 
     // spy
     DashboardFilterDAO dashboardFilterDaoSpy = Mockito.spy(dashboardFilterDAO);
@@ -591,47 +574,31 @@ public class DashboardFilterServiceTest
     when(currentUserMock.getRealmId()).thenReturn(InternalRealm.ID);
     doReturn(null).when(dashboardFilterDaoSpy).getByUsernameAndRealmIdAndName(USERNAME, InternalRealm.ID,
         ACTIVE_FILTER_NAME);
-    doReturn(dashboardFilter1).when(dashboardFilterDaoSpy).getByUsernameAndRealmIdAndName(USERNAME,
-        InternalRealm.ID, filterName1);
-    doThrow(new RuntimeException("Something went wrong.")).when(dashboardFilterDaoSpy).delete(dashboardFilter1);
+    doReturn(dashboardFilter).when(dashboardFilterDaoSpy).getByUsernameAndRealmIdAndName(USERNAME,
+        InternalRealm.ID, filterName);
+    doThrow(new RuntimeException("Something went wrong.")).when(dashboardFilterDaoSpy).delete(dashboardFilter);
 
-    List<String> filtersToDelete = Arrays.asList(filterName1, filterName2);
+    assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> {
+      dashboardFilterService.deleteDashboardFilterForCurrentUserByFilterName(filterName);
+    }).withMessage("Something went wrong.");
 
-    List<DashboardFilterErrorResponseDTO> actualErrors = dashboardFilterService
-        .deleteDashboardFiltersForCurrentUserByFilterName(filtersToDelete);
-    // verify that Filter 1 failed
-    assertThat(actualErrors).hasSize(1);
-    assertThat(actualErrors.get(0).name).isEqualTo(filterName1);
-    assertThat(actualErrors.get(0).errorMessage)
-        .isEqualTo("An exception occurred while trying to find or delete filter name " + filterName1 + " for user "
-            + USERNAME + ".");
-    assertThat(actualErrors.get(0).status).isEqualTo(500);
-
-    // verify that Filter 1 is present and Filter 2 got deleted
-    assertThat(dashboardFilterDAO.getById(dashboardFilter1.getId())).isNotNull();
-    assertThat(dashboardFilterDAO.getById(dashboardFilter2.getId())).isNull();
+    // verify that Filter 1 is present
+    assertThat(dashboardFilterDAO.getById(dashboardFilter.getId())).isNotNull();
   }
 
   @Test
-  public void testDeleteDashboardFiltersForCurrentUserByFilterName_ThrowsExceptionOnNullInput() {
+  public void testDeleteDashboardFilterForCurrentUserByFilterName_ThrowsExceptionOnNullInput() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dashboardFilterService.deleteDashboardFiltersForCurrentUserByFilterName(null);
-    }).withMessage("Filter names cannot be null or empty.");
+      dashboardFilterService.deleteDashboardFilterForCurrentUserByFilterName(null);
+    }).withMessage("Filter name cannot be null.");
   }
 
   @Test
-  public void testDeleteDashboardFiltersForCurrentUserByFilterName_ThrowsExceptionOnEmptyInput() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dashboardFilterService.deleteDashboardFiltersForCurrentUserByFilterName(new ArrayList<String>());
-    }).withMessage("Filter names cannot be null or empty.");
-  }
-
-  @Test
-  public void testDeleteDashboardFiltersForCurrentUserByFilterName_DashboardFeatureDisabled() {
+  public void testDeleteDashboardFilterForCurrentUserByFilterName_DashboardFeatureDisabled() {
     tempEntity.newSystemConfigurationProperty(DASHBOARD_DISABLED, "true");
 
     assertThatExceptionOfType(ConflictException.class).isThrownBy(() -> {
-      dashboardFilterService.deleteDashboardFiltersForCurrentUserByFilterName(new ArrayList<String>());
+      dashboardFilterService.deleteDashboardFilterForCurrentUserByFilterName(null);
     }).withMessage("The dashboard feature has been disabled.");
   }
 

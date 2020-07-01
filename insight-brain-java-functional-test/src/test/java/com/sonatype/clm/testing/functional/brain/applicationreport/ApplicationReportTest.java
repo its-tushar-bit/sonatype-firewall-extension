@@ -67,17 +67,8 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.empty;
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.disabled;
-import static com.codeborne.selenide.Condition.exactText;
-import static com.codeborne.selenide.Condition.exist;
-import static com.codeborne.selenide.Condition.hidden;
-import static com.codeborne.selenide.Condition.matchesText;
-import static com.codeborne.selenide.Condition.selected;
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.value;
-import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.*;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
-import static com.sonatype.clm.testing.functional.elements.DashboardFilters.ACTIVE;
 import static com.sonatype.clm.testing.functional.pages.ApplicationReportPage.DIRECT_DEPENDENCY_CLASS;
 import static com.sonatype.clm.testing.functional.pages.ApplicationReportPage.TRANSITIVE_DEPENDENCY_CLASS;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -582,8 +573,8 @@ public class ApplicationReportTest
     dependencyTypeFilter.twisty().click();
 
     // policy threat level filter
-    PolicyThreatLevelFilter threatLevelFilter = DashboardFilters.policyThreatLevelFilter();
-    threatLevelFilter.counter().shouldBe(visible).shouldBe(ACTIVE).shouldHave(text("0 – 10"));
+    PolicyThreatLevelFilter threatLevelFilter = DashboardFilters.iqPolicyThreatLevelFilter();
+    threatLevelFilter.counter().shouldBe(visible).shouldHave(cssClass("iq-counter--active")).shouldHave(text("0 – 10"));
     threatLevelFilter.slider().shouldBe(hidden);
     threatLevelFilter.twisty().click();
     threatLevelFilter.slider().shouldBe(visible);

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, {Fragment} from 'react';
+import React from 'react';
 import * as PropTypes from 'prop-types';
 import {NxFontAwesomeIcon, NxStatefulTreeViewMultiSelect} from '@sonatype/react-shared-components';
 import {faSitemap, faTerminal} from '@fortawesome/pro-regular-svg-icons';
@@ -15,7 +15,8 @@ export default function IqOrgAppPicker(props) {
     applications,
     selectedOrganizations,
     selectedApplications,
-    onChange
+    onChange,
+    id
   } = props;
 
   function onSelectedApplicationsChange(selectedApplications) {
@@ -78,7 +79,7 @@ export default function IqOrgAppPicker(props) {
   };
 
   return (
-    <Fragment>
+    <div id={id}>
       <NxStatefulTreeViewMultiSelect name="organizations"
                                      options={organizations}
                                      onChange={onSelectedOrganizationsChange}
@@ -97,7 +98,7 @@ export default function IqOrgAppPicker(props) {
         <NxFontAwesomeIcon icon={faTerminal}/>
         <span>Applications</span>
       </NxStatefulTreeViewMultiSelect>
-    </Fragment>
+    </div>
   );
 }
 
@@ -106,5 +107,6 @@ IqOrgAppPicker.propTypes = {
   applications: PropTypes.array,
   selectedOrganizations: PropTypes.instanceOf(Set).isRequired,
   selectedApplications: PropTypes.instanceOf(Set).isRequired,
-  onChange: PropTypes.func.isRequired
+  onChange: PropTypes.func.isRequired,
+  id: PropTypes.string
 };

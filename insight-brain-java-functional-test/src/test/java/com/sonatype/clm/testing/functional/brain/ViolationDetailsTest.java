@@ -13,8 +13,9 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.AgeFilter;
+import com.sonatype.clm.testing.functional.elements.DashboardFilters.ManageFiltersDropdown;
+import com.sonatype.clm.testing.functional.elements.NxPolicyThreatLevelFilter;
 import com.sonatype.clm.testing.functional.elements.NxTreeViewMultiSelect;
-import com.sonatype.clm.testing.functional.elements.PolicyThreatLevelFilter;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
@@ -323,7 +324,7 @@ public class ViolationDetailsTest
     appFilter.checkboxItem(3).click();
     AgeFilter ageFilter = DashboardFilters.ageFilter();
     ageFilter.twisty().click();
-    ageFilter.checkboxItem(6).click();
+    ageFilter.radioItem(6).click();
     DashboardFilters.apply();
 
     DashboardPage.violationsView().headers().threatHeader().click();
@@ -341,7 +342,7 @@ public class ViolationDetailsTest
     waitUntilUrl(DashboardPage.urlToViolations());
     DashboardPage.violationsView().results().violations().shouldHaveSize(51);
 
-    PolicyThreatLevelFilter threatLevelFilter = DashboardFilters.policyThreatLevelFilter();
+    NxPolicyThreatLevelFilter threatLevelFilter = DashboardFilters.policyThreatLevelFilter();
     threatLevelFilter.twisty().click();
     threatLevelFilter.slider().setValues(8, 10);
     DashboardFilters.apply();
@@ -351,8 +352,9 @@ public class ViolationDetailsTest
     navItems.shouldHaveSize(1);
 
     refreshOrOpen(DashboardPage.urlToViolations());
-    DashboardFilters.clearButton().click();
-    DashboardFilters.apply();
+    ManageFiltersDropdown manage = new ManageFiltersDropdown();
+    manage.openMenuButton().click();
+    manage.dropdownMenu().defaultFilterOption().click();
   }
 
   private void mockHdsResponseForVulnerabilityDetails() {

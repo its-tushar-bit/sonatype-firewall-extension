@@ -3,73 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import axios from 'axios';
 
-import { getDashboardDeleteFiltersUrl } from '../../../../main/frontend/util/CLMLocation';
+import { filterToJson } from '../../../../main/frontend/dashboard/filter/dashboardFilterService';
 
 describe('dashboardFilterService', function() {
-  let deleteSavedFilters, filterToJson;
-
-  const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
-
-  beforeEach(function() {
-    const module = require('inject-loader!../../../../main/frontend/dashboard/filter/dashboardFilterService')();
-    deleteSavedFilters = module.deleteSavedFilters;
-    filterToJson = module.filterToJson;
-  });
-
-  describe('deleteSavedFilters()', function() {
-    it('properly parses multiple errors', function(done) {
-      const deleteFiltersUrl = getDashboardDeleteFiltersUrl(),
-          mockRejection = [
-            {
-              'name': 'Test1',
-              'errorMessage': 'foo',
-              'status': 404
-            },
-            {
-              'name': 'Test2',
-              'errorMessage': 'bar',
-              'status': 500
-            }
-          ];
-
-      mockAxiosCalls({
-        post: {
-          [deleteFiltersUrl]: Promise.reject({ data: mockRejection })
-        }
-      });
-
-      deleteSavedFilters(['Test1', 'Test2'])
-          .then(function() {
-            throw 'promise should have been rejected';
-          }).catch(function(error) {
-            expect(axios.post).toHaveBeenCalledWith(deleteFiltersUrl, ['Test1', 'Test2']);
-            expect(error).toEqual(['Filter Test1, foo', 'Filter Test2, bar']);
-            done();
-          });
-    });
-
-    it('properly parses single error', function(done) {
-      const deleteFiltersUrl = getDashboardDeleteFiltersUrl();
-
-      mockAxiosCalls({
-        post: {
-          [deleteFiltersUrl]: Promise.reject('not found')
-        }
-      });
-
-      deleteSavedFilters(['Test1'])
-          .then(function() {
-            throw 'promise should have been rejected';
-          }).catch(function(error) {
-            expect(axios.post).toHaveBeenCalledWith(deleteFiltersUrl, ['Test1']);
-            expect(error).toEqual(['not found']);
-            done();
-          });
-    });
-  });
-
   describe('filterToJson()', function() {
     var filter = {
       organizations: new Set(['orgId1', 'orgId2']),

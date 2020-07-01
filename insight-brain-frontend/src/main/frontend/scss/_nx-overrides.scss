@@ -3,10 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
+
 // Tweaks necessary to get RSC nx-* classes to work within iq-* containers
 .iq-body-container {
   .nx-loading-spinner {
-    padding: 8px;
+    padding: $nx-spacing-xs;
   }
 }
 
@@ -21,7 +23,7 @@
 }
 
 .nx-cell > .iq-text-indicator:first-child {
-  margin-left: 12px;
+  margin-left: $nx-spacing-sm;
 }
 
 .nx-vulnerability-details dt {
@@ -29,7 +31,37 @@
 }
 
 .nx-page-title.iq-page-title {
-  margin: 0 0 $iq-spacing-md $iq-spacing-sm;
+  margin: 0 0 $nx-spacing-md $nx-spacing-sm;
+}
+
+.nx-tree-view--collapsed {
+  .nx-tree-view__child {
+    visibility: hidden;
+  }
+}
+
+.nx-tree-view--threat-slider {
+  .nx-tree-view__child {
+    line-height: 18px;
+    margin-left: $nx-spacing-xs;
+  }
+}
+.dashboard-filter {
+  .nx-tree-view {
+    margin-right: $nx-spacing-xs;
+  }
+
+  .nx-counter {
+    background-color: $iq-off-white;
+    border: 1px solid $iq-grey-3;
+    color: $iq-slate;
+
+    &.nx-counter--active {
+      background-color: $iq-blue-light;
+      border-color: $iq-blue-light;
+      color: $iq-blue;
+    }
+  }
 }
 
 #application-report-vulnerabilities-table {

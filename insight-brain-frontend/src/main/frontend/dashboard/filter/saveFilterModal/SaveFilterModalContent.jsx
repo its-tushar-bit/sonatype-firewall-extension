@@ -19,7 +19,7 @@ import { initialState, userInput } from '@sonatype/react-shared-components/compo
 import { faExclamationTriangle, faSave, faSync } from '@fortawesome/free-solid-svg-icons';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
-import {validateMaxLength, validateNonEmpty, hasValidationErrors} from '../../../../util/validationUtil';
+import {validateMaxLength, validateNonEmpty, hasValidationErrors} from '../../../util/validationUtil';
 import { isNil, reject } from 'ramda';
 
 const SAVE_MODE_OVERWRITE = 'overwrite';

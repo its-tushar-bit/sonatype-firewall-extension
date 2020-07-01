@@ -3,10 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import axios from 'axios';
-
-import { getDashboardDeleteFiltersUrl } from '../../util/CLMLocation';
-import { Messages } from '../../util/CommonServices';
 import { setToArray } from '../../util/jsUtil';
 
 export function filterToJson(filter) {
@@ -21,18 +17,4 @@ export function filterToJson(filter) {
     minPolicyThreatLevel: filter.policyThreatLevels[0],
     maxPolicyThreatLevel: filter.policyThreatLevels[1]
   };
-}
-
-export function deleteSavedFilters(filters) {
-  return axios.post(getDashboardDeleteFiltersUrl(), filters)
-      .catch(error => {
-        error = Messages.getHttpErrorMessage(error);
-        if (Array.isArray(error)) {
-          const errors = error.map((err) => `Filter ${err.name}, ${err.errorMessage}`);
-          return Promise.reject(errors);
-        }
-        else {
-          return Promise.reject([error]);
-        }
-      });
 }

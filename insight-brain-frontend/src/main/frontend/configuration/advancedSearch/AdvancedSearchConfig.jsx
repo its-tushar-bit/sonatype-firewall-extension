@@ -15,7 +15,7 @@ import {
   NxErrorAlert,
   NxFontAwesomeIcon,
   NxModal,
-  NxStatefulSubmitMask
+  NxSubmitMask
 } from '@sonatype/react-shared-components';
 
 import { faSyncAlt } from '@fortawesome/free-solid-svg-icons';
@@ -120,7 +120,7 @@ export default function AdvancedSearchConfig(props) {
             </p>
             <div>
               {submitMaskState !== null &&
-              <NxStatefulSubmitMask success={submitMaskState} message={submitMaskMessage} />}
+              <NxSubmitMask success={submitMaskState} message={submitMaskMessage} />}
               <form className="nx-form" onSubmit={onSubmit}>
                 <fieldset className="nx-fieldset">
                   <legend className="nx-label">Advanced Search</legend>

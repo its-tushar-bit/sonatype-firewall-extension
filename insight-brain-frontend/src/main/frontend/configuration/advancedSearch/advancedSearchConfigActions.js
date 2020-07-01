@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
+import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
 import { getAdvancedSearchIndexUrl, getAdvancedSearchConfigUrl } from '../../util/CLMLocation';
@@ -34,17 +35,25 @@ export function load() {
 export const ADVANCED_SEARCH_CONFIG_SAVE_REQUESTED = 'ADVANCED_SEARCH_CONFIG_SAVE_REQUESTED';
 export const ADVANCED_SEARCH_CONFIG_SAVE_FULFILLED = 'ADVANCED_SEARCH_CONFIG_SAVE_FULFILLED';
 export const ADVANCED_SEARCH_CONFIG_SAVE_FAILED = 'ADVANCED_SEARCH_CONFIG_SAVE_FAILED';
+export const ADVANCED_SEARCH_CONFIG_SAVE_SUBMIT_MASK_TIMER_DONE = 'ADVANCED_SEARCH_CONFIG_SAVE_SUBMIT_MASK_TIMER_DONE';
 
 const saveRequested = noPayloadActionCreator(ADVANCED_SEARCH_CONFIG_SAVE_REQUESTED);
 const saveFulfilled = noPayloadActionCreator(ADVANCED_SEARCH_CONFIG_SAVE_FULFILLED);
 const saveFailed = payloadParamActionCreator(ADVANCED_SEARCH_CONFIG_SAVE_FAILED);
 
+function startSubmitMaskSuccessTimer(dispatch) {
+  setTimeout(() => {
+    dispatch({ type: ADVANCED_SEARCH_CONFIG_SAVE_SUBMIT_MASK_TIMER_DONE });
+  }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+}
+
 export function save() {
   return function(dispatch, getState) {
     dispatch(saveRequested());
-    axios.put(getAdvancedSearchConfigUrl(), getState().advancedSearchConfig.formState)
+    return axios.put(getAdvancedSearchConfigUrl(), getState().advancedSearchConfig.formState)
         .then(() => {
           dispatch(saveFulfilled());
+          startSubmitMaskSuccessTimer(dispatch);
         })
         .catch(error => {
           dispatch(saveFailed(error));

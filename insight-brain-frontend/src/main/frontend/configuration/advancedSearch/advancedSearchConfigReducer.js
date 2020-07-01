@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createReducerFromActionMap } from '../../util/reduxUtil';
+import { pathSet } from '../../util/jsUtil';
 import {
   ADVANCED_SEARCH_CONFIG_LOAD_FAILED,
   ADVANCED_SEARCH_CONFIG_LOAD_FULFILLED,
@@ -15,7 +16,8 @@ import {
   ADVANCED_SEARCH_SET_IS_ENABLED,
   ADVANCED_SEARCH_TRIGGER_RE_INDEX,
   ADVANCED_SEARCH_CLOSE_RE_INDEX_MODAL,
-  ADVANCED_SEARCH_RE_INDEX_FAILED
+  ADVANCED_SEARCH_RE_INDEX_FAILED,
+  ADVANCED_SEARCH_CONFIG_SAVE_SUBMIT_MASK_TIMER_DONE
 } from './advancedSearchConfigActions';
 
 const initialState = {
@@ -51,8 +53,7 @@ function loadFulfilled(payload, state) {
     viewState: {
       ...state.viewState,
       loading: false,
-      error: null,
-      submitMaskState: null
+      error: null
     },
     formState: payload,
     serverData: payload
@@ -100,7 +101,6 @@ function saveFailed(payload, state) {
     ...state,
     viewState: {
       ...state.viewState,
-      loading: false,
       error: payload,
       submitMaskState: null
     },
@@ -109,6 +109,10 @@ function saveFailed(payload, state) {
       isEnabled: !state.formState.isEnabled
     }
   };
+}
+
+function resetSubmitMaskState(payload, state) {
+  return pathSet(['viewState', 'submitMaskState'], null, state);
 }
 
 function setIsAdvancedSearchEnabled(payload, state) {
@@ -184,7 +188,8 @@ const reducerActionMap = {
   [ADVANCED_SEARCH_RESET_FORM]: resetForm,
   [ADVANCED_SEARCH_TRIGGER_RE_INDEX]: triggerReIndex,
   [ADVANCED_SEARCH_CLOSE_RE_INDEX_MODAL]: closeReIndexModal,
-  [ADVANCED_SEARCH_RE_INDEX_FAILED]: advancedSearchReIndexFailed
+  [ADVANCED_SEARCH_RE_INDEX_FAILED]: advancedSearchReIndexFailed,
+  [ADVANCED_SEARCH_CONFIG_SAVE_SUBMIT_MASK_TIMER_DONE]: resetSubmitMaskState
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

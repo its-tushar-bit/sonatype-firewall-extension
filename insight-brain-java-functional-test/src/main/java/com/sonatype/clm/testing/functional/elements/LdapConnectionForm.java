@@ -59,6 +59,10 @@ public class LdapConnectionForm
     return child("#ldap-search-base");
   }
 
+  public Toggle ignoreReferrals() {
+    return new Toggle(childSelector("#ldap-ignore-referrals"));
+  }
+
   public SelenideElement systemPassword() {
     return child("#ldap-system-password");
   }

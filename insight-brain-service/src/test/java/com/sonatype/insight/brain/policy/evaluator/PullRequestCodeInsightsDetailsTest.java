@@ -25,6 +25,7 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.git.PullRequestLineCommentDTO;
+import com.sonatype.insight.brain.git.PullRequestLocationDiscoveryService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -38,8 +39,10 @@ import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
-import com.sonatype.nexus.iq.location.dto.DiffPosition;
+import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
+import com.sonatype.nexus.iq.location.dto.RankedSourceLocation;
 import com.sonatype.nexus.scm.SourceControlProvider;
+import com.sonatype.nexus.scm.api.DiffPosition;
 import com.sonatype.nexus.scm.api.model.CodeInsightAnnotation;
 import com.sonatype.nexus.scm.bitbucket.BitbucketApiClientUtils;
 import com.sonatype.nexus.scm.bitbucket.BitbucketCodeInsightAnnotationType;
@@ -55,12 +58,17 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.mockito.Mockito;
 
 import static com.sonatype.insight.brain.policy.evaluator.PullRequestDetailsBase.DATE_TIME_FORMATTER;
 import static com.sonatype.insight.brain.report.ReportTestUtils.createReportFile;
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 
 @RunWith(Parameterized.class)
 public class PullRequestCodeInsightsDetailsTest
@@ -93,6 +101,8 @@ public class PullRequestCodeInsightsDetailsTest
 
   private List<PullRequestLineCommentDTO> pullRequestLineComments;
 
+  private PullRequestLocationDiscoveryService pullRequestLocationDiscoveryService;
+
   private GitRepositoryInfo bitbucketGitRepositoryInfo;
 
   private ReportEntry bomEntry;
@@ -115,6 +125,12 @@ public class PullRequestCodeInsightsDetailsTest
 
   private String repositoryUrl;
 
+  private GitRepositoryInfo gitRepositoryInfo;
+
+  private String branch;
+
+  private LocationDiscoveryResult locationDiscoveryResult;
+
   public PullRequestCodeInsightsDetailsTest(final String repositoryUrl) {
     this.repositoryUrl = repositoryUrl;
   }
@@ -135,6 +151,11 @@ public class PullRequestCodeInsightsDetailsTest
     app = tempEntity.newApplicationWithSpecificId(APP_INTERNAL_ID, APP_NAME, APP_PUBLIC_ID, ORG_ID);
     PullRequestCodeInsightsDetails.clock = Clock
         .fixed(Instant.parse("2019-11-26T18:15:30Z"), ZoneId.of("America/Los_Angeles"));
+    gitRepositoryInfo = new GitRepositoryInfo("https://bitbucket.org/sonatype/nexus-scm-client-testing.git",
+        "username", "token", SourceControlProvider.BITBUCKET, "master", true, true);
+    branch = "testbranch";
+    locationDiscoveryResult = new LocationDiscoveryResult();
+    pullRequestLocationDiscoveryService = mock(PullRequestLocationDiscoveryService.class);
   }
 
   @Test
@@ -142,10 +163,15 @@ public class PullRequestCodeInsightsDetailsTest
     //setup test data
     setupTestData();
 
+    ComponentIdentifier ci = ComponentIdentifier.createMavenCoordinates("com.h2database", "h2", "1.4.190", "", "jar");
+    RankedSourceLocation sourceLocation1 = new RankedSourceLocation("/pom.xml", 19, 1);
+    RankedSourceLocation sourceLocation2 = new RankedSourceLocation("/pom.xml", 30, 2);
+    locationDiscoveryResult.getLocationMap().put(ci, Arrays.asList(sourceLocation1, sourceLocation2));
+
     //when
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
         bitbucketGitRepositoryInfo.repositoryUrl, app, bomEntry, featureBranchPolicyEvaluation, diff,
-        lookup(BaseUrl.class).getConfigured());
+        lookup(BaseUrl.class).getConfigured(), pullRequestLocationDiscoveryService);
 
     //then assert that created contents match expected
     assertThat(details.getReportDetails())
@@ -154,7 +180,7 @@ public class PullRequestCodeInsightsDetailsTest
     assertThat(details.getReportUri()).isEqualTo(EXPECTED_REPORT_URI);
     assertThat(details.getReportData()).containsAllEntriesOf(expectedReportData(32, 3, 4));
 
-    List<CodeInsightAnnotation> annotations = details.getAnnotations();
+    List<CodeInsightAnnotation> annotations = details.getAnnotations(gitRepositoryInfo, branch, APP_INTERNAL_ID);
     assertThat(annotations).hasSize(39);
     // assert a couple of annotations
     assertAnnotation(annotations, BitbucketCodeInsightSeverity.HIGH,
@@ -164,6 +190,7 @@ public class PullRequestCodeInsightsDetailsTest
     assertAnnotation(annotations, BitbucketCodeInsightSeverity.HIGH,
         "10 - Unlikely Test Policy - com.h2database : h2 : 1.4.190",
         "Nonsensical Constraint: Found security vulnerability: CVE-2018-14335",
+        "/pom.xml", 19,
         22);
     assertAnnotation(annotations, BitbucketCodeInsightSeverity.LOW,
         "2 - Component-Unknown - webgoat-server-8.0.0.M1.jar",
@@ -179,7 +206,7 @@ public class PullRequestCodeInsightsDetailsTest
     //when
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
         bitbucketGitRepositoryInfo.repositoryUrl, app, bomEntry, featureBranchPolicyEvaluation, diff,
-        lookup(BaseUrl.class).getConfigured());
+        lookup(BaseUrl.class).getConfigured(), pullRequestLocationDiscoveryService);
 
     //then assert that created contents match expected
     assertThat(details.getReportDetails()).isEqualTo("Nexus IQ found no new policy violations on " + bomTimestamp +
@@ -187,7 +214,7 @@ public class PullRequestCodeInsightsDetailsTest
     assertThat(details.getReportOutcome()).isEqualTo(BitbucketCodeInsightReportOutcome.PASS);
     assertThat(details.getReportUri()).isEqualTo(EXPECTED_REPORT_URI);
     assertThat(details.getReportData()).containsAllEntriesOf(expectedReportData(0, 0, 0));
-    assertThat(details.getAnnotations()).isEmpty();
+    assertThat(details.getAnnotations(gitRepositoryInfo, branch, APP_INTERNAL_ID)).isEmpty();
   }
 
   @Test
@@ -208,7 +235,7 @@ public class PullRequestCodeInsightsDetailsTest
     //when
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
         bitbucketGitRepositoryInfo.repositoryUrl, app, bomEntry, featureBranchPolicyEvaluation, diff,
-        lookup(BaseUrl.class).getConfigured());
+        lookup(BaseUrl.class).getConfigured(), pullRequestLocationDiscoveryService);
 
     //then assert that created contents match expected
     assertThat(details.getReportDetails()).isEqualTo("On " + bomTimestamp + ", Nexus IQ found 39 new policy " +
@@ -217,7 +244,7 @@ public class PullRequestCodeInsightsDetailsTest
     assertThat(details.getReportUri()).isEqualTo(EXPECTED_REPORT_URI);
     assertThat(details.getReportData()).containsAllEntriesOf(expectedReportData(32, 3, 4));
 
-    List<CodeInsightAnnotation> annotations = details.getAnnotations();
+    List<CodeInsightAnnotation> annotations = details.getAnnotations(gitRepositoryInfo, branch, APP_INTERNAL_ID);
     assertThat(annotations).hasSize(39);
     // assert a couple of annotations
     assertAnnotation(annotations, BitbucketCodeInsightSeverity.HIGH,
@@ -243,7 +270,7 @@ public class PullRequestCodeInsightsDetailsTest
     //when
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
         bitbucketGitRepositoryInfo.repositoryUrl, app, bomEntry, featureBranchPolicyEvaluation, diff,
-        lookup(BaseUrl.class).getConfigured());
+        lookup(BaseUrl.class).getConfigured(), pullRequestLocationDiscoveryService);
 
     //then assert that created contents match expected
     assertThat(details.getReportDetails())
@@ -251,7 +278,7 @@ public class PullRequestCodeInsightsDetailsTest
     assertThat(details.getReportOutcome()).isEqualTo(BitbucketCodeInsightReportOutcome.PASS);
     assertThat(details.getReportUri()).isEqualTo(EXPECTED_REPORT_URI);
     assertThat(details.getReportData()).containsAllEntriesOf(expectedReportData(0, 0, 0));
-    assertThat(details.getAnnotations()).isEmpty();
+    assertThat(details.getAnnotations(gitRepositoryInfo, branch, APP_INTERNAL_ID)).isEmpty();
   }
 
   @Test
@@ -269,7 +296,7 @@ public class PullRequestCodeInsightsDetailsTest
     //when
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
         bitbucketGitRepositoryInfo.repositoryUrl, app, bomEntry, featureBranchPolicyEvaluation, diff,
-        lookup(BaseUrl.class).getConfigured());
+        lookup(BaseUrl.class).getConfigured(), pullRequestLocationDiscoveryService);
 
     //then assert that created contents has singular violation in heading
     assertThat(details.getReportDetails())
@@ -277,7 +304,7 @@ public class PullRequestCodeInsightsDetailsTest
     assertThat(details.getReportOutcome()).isEqualTo(BitbucketCodeInsightReportOutcome.FAIL);
     assertThat(details.getReportUri()).isEqualTo(EXPECTED_REPORT_URI);
     assertThat(details.getReportData()).containsAllEntriesOf(expectedReportData(1, 0, 0));
-    List<CodeInsightAnnotation> annotations = details.getAnnotations();
+    List<CodeInsightAnnotation> annotations = details.getAnnotations(gitRepositoryInfo, branch, APP_INTERNAL_ID);
     assertThat(annotations).hasSize(1);
     assertAnnotation(annotations, BitbucketCodeInsightSeverity.HIGH,
         "10 - Unlikely Test Policy - org.springframework.security : spring-security-web : 4.2.3.RELEASE",
@@ -300,7 +327,7 @@ public class PullRequestCodeInsightsDetailsTest
     //when
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
         bitbucketGitRepositoryInfo.repositoryUrl, app, bomEntry, featureBranchPolicyEvaluation, diff,
-        lookup(BaseUrl.class).getConfigured());
+        lookup(BaseUrl.class).getConfigured(), pullRequestLocationDiscoveryService);
 
     //then assert that created contents has singular violation in heading
     assertThat(details.getReportDetails()).contains("Nexus IQ found no new policy violations on " + bomTimestamp +
@@ -308,7 +335,7 @@ public class PullRequestCodeInsightsDetailsTest
     assertThat(details.getReportOutcome()).isEqualTo(BitbucketCodeInsightReportOutcome.PASS);
     assertThat(details.getReportUri()).isEqualTo(EXPECTED_REPORT_URI);
     assertThat(details.getReportData()).containsAllEntriesOf(expectedReportData(0, 0, 0));
-    assertThat(details.getAnnotations()).isEmpty();
+    assertThat(details.getAnnotations(gitRepositoryInfo, branch, APP_INTERNAL_ID)).isEmpty();
   }
 
   @Test
@@ -320,7 +347,7 @@ public class PullRequestCodeInsightsDetailsTest
     //when
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
         bitbucketGitRepositoryInfo.repositoryUrl, app, bomEntry, featureBranchPolicyEvaluation, diff,
-        lookup(BaseUrl.class).getConfigured());
+        lookup(BaseUrl.class).getConfigured(), pullRequestLocationDiscoveryService);
 
     //then assert that created contents is not available
     String contents = details.getReportDetails();
@@ -333,7 +360,7 @@ public class PullRequestCodeInsightsDetailsTest
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
         new PullRequestCodeInsightsDetails(
             bitbucketGitRepositoryInfo.repositoryUrl, app, null, featureBranchPolicyEvaluation, diff,
-            lookup(BaseUrl.class).getConfigured()))
+            lookup(BaseUrl.class).getConfigured(), pullRequestLocationDiscoveryService))
         .withMessage("bomReportEntry is required and cannot be null");
   }
 
@@ -343,7 +370,7 @@ public class PullRequestCodeInsightsDetailsTest
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
         new PullRequestCodeInsightsDetails(
             bitbucketGitRepositoryInfo.repositoryUrl, app, bomEntry, featureBranchPolicyEvaluation, null,
-            lookup(BaseUrl.class).getConfigured()))
+            lookup(BaseUrl.class).getConfigured(), pullRequestLocationDiscoveryService))
         .withMessage("policyViolationDiff is required and cannot be null");
   }
 
@@ -353,7 +380,7 @@ public class PullRequestCodeInsightsDetailsTest
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
         new PullRequestCodeInsightsDetails(
             bitbucketGitRepositoryInfo.repositoryUrl, null, bomEntry, featureBranchPolicyEvaluation, diff,
-            lookup(BaseUrl.class).getConfigured()))
+            lookup(BaseUrl.class).getConfigured(), pullRequestLocationDiscoveryService))
         .withMessage("app is required and cannot be null");
   }
 
@@ -363,7 +390,7 @@ public class PullRequestCodeInsightsDetailsTest
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
         new PullRequestCodeInsightsDetails(
             null, app, bomEntry, featureBranchPolicyEvaluation, diff,
-            lookup(BaseUrl.class).getConfigured()))
+            lookup(BaseUrl.class).getConfigured(), pullRequestLocationDiscoveryService))
         .withMessage("repositoryUrl is required and cannot be null");
   }
 
@@ -373,7 +400,7 @@ public class PullRequestCodeInsightsDetailsTest
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
         new PullRequestCodeInsightsDetails(
             bitbucketGitRepositoryInfo.repositoryUrl, app, bomEntry, null, diff,
-            lookup(BaseUrl.class).getConfigured()))
+            lookup(BaseUrl.class).getConfigured(), pullRequestLocationDiscoveryService))
         .withMessage("featureBranchEvaluation is required and cannot be null");
   }
 
@@ -383,7 +410,7 @@ public class PullRequestCodeInsightsDetailsTest
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
         new PullRequestCodeInsightsDetails(
             bitbucketGitRepositoryInfo.repositoryUrl, app, bomEntry, featureBranchPolicyEvaluation, diff,
-            null))
+            null, pullRequestLocationDiscoveryService))
         .withMessage("baseUrl is required and cannot be null");
   }
 
@@ -430,6 +457,9 @@ public class PullRequestCodeInsightsDetailsTest
 
     bomTimestamp = DATE_TIME_FORMATTER
         .format(ZonedDateTime.ofInstant(Instant.ofEpochMilli(bomEntry.time), ZoneId.systemDefault()));
+
+    Mockito.lenient().when(pullRequestLocationDiscoveryService.doLocationDiscovery(anyList(),
+        any(GitRepositoryInfo.class), anyString(), anyString())).thenReturn(locationDiscoveryResult);
   }
 
   private Map<String, Object> expectedReportData(
@@ -453,20 +483,32 @@ public class PullRequestCodeInsightsDetailsTest
       final List<CodeInsightAnnotation> annotations,
       final BitbucketCodeInsightSeverity severity,
       final String message, final String detail,
+      final String path, final Integer lineNumber,
       final int index)
   {
     CodeInsightAnnotation annotation;
     if (BitbucketApiClientUtils.isCloudHosted(repositoryUrl)) {
       annotation = new BitbucketV2CodeInsightAnnotation(message, detail, severity,
-          BitbucketCodeInsightAnnotationType.CODE_SMELL, null, null, null);
+          BitbucketCodeInsightAnnotationType.CODE_SMELL, null, path, lineNumber);
     }
     else {
       BitbucketV1CodeInsightAnnotation v1Annotation = new BitbucketV1CodeInsightAnnotation();
       v1Annotation.setSeverity(severity);
       v1Annotation.setType(BitbucketCodeInsightAnnotationType.CODE_SMELL);
       v1Annotation.setMessage(message + " - " + detail);
+      v1Annotation.setLine(lineNumber);
+      v1Annotation.setPath(path);
       annotation = v1Annotation;
     }
     assertThat(annotations).contains(annotation, Index.atIndex(index));
+  }
+
+  private void assertAnnotation(
+      final List<CodeInsightAnnotation> annotations,
+      final BitbucketCodeInsightSeverity severity,
+      final String message, final String detail,
+      final int index)
+  {
+    assertAnnotation(annotations, severity, message, detail, null, null, index);
   }
 }

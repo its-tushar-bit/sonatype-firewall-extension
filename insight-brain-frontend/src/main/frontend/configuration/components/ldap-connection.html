@@ -52,6 +52,16 @@
              required
              type="text">
     </div>
+    <div class="iq-form-group">
+      <label class="iq-label" for="ldap-ignore-referrals">Ignore Referrals</label>
+      <div id="ldap-ignore-referrals" class="toggle-checkbox">
+        <input type="checkbox"
+               toggle-checkbox
+               data-on="Yes"
+               data-off="No"
+               ng-model="ldapConn.referralIgnored">
+      </div>
+    </div>
     <h4 class="iq-tile__section-header">Authentication</h4>
     <div class="iq-form-group">
       <label class="iq-label" for="ldap-authentication-method">Method</label>

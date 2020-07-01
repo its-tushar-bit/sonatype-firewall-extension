@@ -65,17 +65,21 @@ public class BitbucketCodeInsightsService
 
   private final BaseUrl baseUrl;
 
+  private final PullRequestLocationDiscoveryService locationDiscoveryService;
+
   @Inject
   public BitbucketCodeInsightsService(
       final ApplicationDAO applicationDAO,
       final ReportService reportService,
       final InsightConfig insightConfig,
-      final BaseUrl baseUrl)
+      final BaseUrl baseUrl,
+      final PullRequestLocationDiscoveryService locationDiscoveryService)
   {
     this.applicationDAO = applicationDAO;
     this.reportService = reportService;
     this.insightConfig = insightConfig;
     this.baseUrl = baseUrl;
+    this.locationDiscoveryService = locationDiscoveryService;
   }
 
   @Override
@@ -84,7 +88,8 @@ public class BitbucketCodeInsightsService
       final GitRepositoryInfo gitRepositoryInfo,
       final PolicyViolationDiff<PolicyViolation> policyViolationDiff,
       final PolicyEvaluation sourceCommitPolicyEvaluation,
-      final PolicyEvaluation baseBranchPolicyEvaluation)
+      final PolicyEvaluation baseBranchPolicyEvaluation,
+      final String branch)
   {
     // The SCM must support Code Insights (i.e. Bitbucket) to continue
     if (!gitRepositoryInfo.provider.supportsCodeInsights()) {
@@ -103,7 +108,8 @@ public class BitbucketCodeInsightsService
           reportEntry,
           sourceCommitPolicyEvaluation,
           policyViolationDiff,
-          baseUrl.getConfigured());
+          baseUrl.getConfigured(),
+          locationDiscoveryService);
 
       BitbucketApiClient<?, ?> bitbucketApiClient = getBitbucketApiClient(gitClientFactory, gitRepositoryInfo);
 
@@ -123,7 +129,7 @@ public class BitbucketCodeInsightsService
 
       bitbucketApiClient
           .createCodeInsightAnnotations(sourceCommitPolicyEvaluation.getCommitHash(), CODE_INSIGHT_REPORT_KEY,
-              details.getAnnotations());
+              details.getAnnotations(gitRepositoryInfo, branch, application.getId()));
     }
     catch (IOException e) {
       log.error("Error creating Bitbucket Code Insight", e);

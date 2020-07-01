@@ -11,7 +11,7 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.nexus.iq.location.dto.DiffPosition;
+import com.sonatype.nexus.scm.api.DiffPosition;
 
 /**
  * Holds information about a PR line comment as it is collected/used during the PR commenting flow

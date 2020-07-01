@@ -11,6 +11,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
@@ -31,6 +32,7 @@ import java.util.zip.ZipOutputStream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.persistence.OptimisticLockException;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -94,6 +96,8 @@ public class ReportPurger
 
   private static final Comparator<PolicyEvaluation> POLICY_EVALUATION_TIME_COMPARATOR =
       Comparator.comparing(PolicyEvaluation::getTime).reversed();
+
+  private static final int MAX_RETRIES = 10;
 
   private final InsightWork work;
 
@@ -195,7 +199,30 @@ public class ReportPurger
       if (trashBucket.isFull()) {
         break;
       }
-      purged += purgeReports(application, contextId, trashBucket);
+      for (int retry = 0; retry <= MAX_RETRIES; retry++) {
+        try {
+          purged += purgeReports(application, contextId, trashBucket);
+          break;
+        }
+        catch (OptimisticLockException e) {
+          // This exception occurs usually when the embedded database is under too much load from concurrent queries.
+          // To avoid having to start over the entire purging task, we retry to get this purging run completed.
+          if (retry >= MAX_RETRIES) {
+            throw e;
+          }
+          Duration delay = getDelayForRetry(retry);
+          log.debug("Failed to determine obsolete {} reports for application {}, retrying in {}", contextId,
+              application.getName(), delay, retry == 0 ? e : null);
+          try {
+            Thread.sleep(delay.toMillis());
+          }
+          catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            e.addSuppressed(ex);
+            throw e;
+          }
+        }
+      }
     }
     if (purged > 0) {
       log.info("Purged {} obsolete reports from application {}", purged, application.getName());
@@ -204,6 +231,10 @@ public class ReportPurger
       log.debug("Purged no obsolete reports from application {}", application.getName());
     }
     return purged;
+  }
+
+  Duration getDelayForRetry(int retry) {
+    return Duration.ofSeconds(1 << retry);
   }
 
   private int purgeReports(Application application, String contextId, TrashBucket trashBucket) {

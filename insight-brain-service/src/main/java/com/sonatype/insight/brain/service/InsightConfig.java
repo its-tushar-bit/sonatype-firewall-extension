@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.migration.ProxyServerConfigurationMigrator;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.annotations.VisibleForTesting;
 import io.dropwizard.Configuration;
 import io.dropwizard.server.DefaultServerFactory;
 import io.dropwizard.validation.ValidationMethod;
@@ -728,14 +729,29 @@ public class InsightConfig
     }
   }
 
+  /**
+   * Returns a map of declared feature flags and their states i.e. enabled or disabled.
+   * @see InsightConfig#features for details on how feature flags are specified
+   */
   public Map<String, Boolean> getFeatures() {
     return features;
   }
 
-  public boolean isFeatureEnabled(String feature) {
+  /**
+   * Returns {@code true} if a feature flag, identified by name, is enabled; returns {@code false} otherwise.
+   * <p>If the feature flag is not explicitly declared it is considered enabled by default.
+   * @see InsightConfig#features for details on how feature flags are specified
+   */
+  @VisibleForTesting
+  boolean isFeatureEnabled(String feature) {
     return features == null || !features.containsKey(feature) || features.containsKey(feature) && features.get(feature);
   }
 
+  /**
+   * Returns {@code true} if a feature flag is enabled; returns {@code false} otherwise.
+   * <p>If the feature flag is not explicitly declared it is considered enabled by default.
+   * @see InsightConfig#features for details on how feature flags are specified
+   */
   public boolean isFeatureEnabled(Feature feature) {
     return isFeatureEnabled(feature.flag);
   }
@@ -744,15 +760,30 @@ public class InsightConfig
     this.features = features;
   }
 
+  /**
+   * Returns a map of declared experimental feature flags and their states i.e. enabled or disabled.
+   * @see InsightConfig#experimentalFeatures for details on how experimental feature flags are specified
+   */
   public Map<String, Boolean> getExperimentalFeatures() {
     return experimentalFeatures;
   }
 
+  /**
+   * Returns {@code true} if an experimental feature flag, identified by name, is enabled; returns {@code false}
+   * otherwise.
+   * <p>If the experimental feature flag is not explicitly declared it is considered disabled by default.
+   * @see InsightConfig#experimentalFeatures for details on how experimental feature flags are specified
+   */
   public boolean isExperimentalFeatureEnabled(String feature) {
     return experimentalFeatures != null && experimentalFeatures.containsKey(feature) &&
         experimentalFeatures.get(feature);
   }
 
+  /**
+   * Returns {@code true} if an experimental feature flag is enabled; returns {@code false} otherwise.
+   * <p>If the experimental feature flag is not explicitly declared it is considered disabled by default.
+   * @see InsightConfig#experimentalFeatures for details on how experimental feature flags are specified
+   */
   public boolean isExperimentalFeatureEnabled(Feature feature) {
     return isExperimentalFeatureEnabled(feature.flag);
   }
@@ -764,6 +795,7 @@ public class InsightConfig
   public enum Feature
   {
     PR_COMMENTING("prCommenting"),
+    PR_LINE_COMMENTING("prLineCommenting"),
     CODE_INSIGHTS("codeInsights");
 
     private String flag;

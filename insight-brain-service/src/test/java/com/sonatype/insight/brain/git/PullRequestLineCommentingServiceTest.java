@@ -17,13 +17,14 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequ
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.iq.location.discovery.PositionDiscoveryExecutor;
-import com.sonatype.nexus.iq.location.dto.DiffPosition;
 import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
 import com.sonatype.nexus.iq.location.dto.PositionDiscoveryResult;
 import com.sonatype.nexus.iq.location.dto.RankedSourceLocation;
 import com.sonatype.nexus.scm.SourceControlProvider;
+import com.sonatype.nexus.scm.api.DiffPosition;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.CommentResponse;
 import com.sonatype.nexus.scm.api.model.DefaultCommentResponse;
@@ -382,7 +383,7 @@ public class PullRequestLineCommentingServiceTest
         CommentResponse response = new DefaultCommentResponse();
         response.setId(scmId);
         response.setVersion(commentVersion);
-        when(mockGitApiClient.createPullRequestLineComment(anyInt(), anyString(), anyString(), anyString(), anyInt()))
+        when(mockGitApiClient.createPullRequestLineComment(anyInt(), anyString(), anyString(), any(DiffPosition.class)))
             .thenReturn(response);
 
         if (existingLineCommentsCount > 0) {
@@ -444,9 +445,9 @@ public class PullRequestLineCommentingServiceTest
 
     private InsightConfig getInsightConfig(boolean enableFeatureFlag) {
       InsightConfig config = new InsightConfig();
-      Map<String, Boolean> expFeatures = new HashMap<>();
-      expFeatures.put(PullRequestLineCommentingService.LINE_COMMENT_FEATURE, enableFeatureFlag);
-      config.setExperimentalFeatures(expFeatures);
+      Map<String, Boolean> features = new HashMap<>();
+      features.put(Feature.PR_LINE_COMMENTING.getFlag(), enableFeatureFlag);
+      config.setFeatures(features);
       return config;
     }
   }

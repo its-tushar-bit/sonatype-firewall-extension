@@ -8,15 +8,15 @@ package com.sonatype.insight.brain.api.v2.service;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiReportHistoryDTO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class ApiReportServiceV2AuthzTest
     extends AbstractServiceAuthzTest
@@ -25,20 +25,46 @@ public class ApiReportServiceV2AuthzTest
   private ApiReportServiceV2 apiReportServiceV2;
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetData_Anon() throws Exception {
+  public void testGetByApplicationId_Unauthenticated() throws Exception {
     apiReportServiceV2.getByApplicationId(app.getId());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetData_Unauthorized() throws Exception {
+  public void testGetByApplicationId_Unauthorized() throws Exception {
     login();
     apiReportServiceV2.getByApplicationId(app.getId());
   }
 
-  @Test(expected = NotFoundException.class)
-  public void testGetData_Authorized() throws Exception {
+  @Test
+  public void testGetByApplicationId_Authorized() throws Exception {
     grantReadPermission(app.getId());
-    apiReportServiceV2.getByApplicationId("fakeappid");
+    apiReportServiceV2.getByApplicationId(app.getId());
+  }
+
+  @Test
+  public void testGetAll_Unauthenticated() throws Exception {
+    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId");
+
+    assertThat(apiReportServiceV2.getAll()).isEmpty();
+  }
+
+  @Test
+  public void testGetAll_Unauthorized() throws Exception {
+    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId");
+
+    login();
+    assertThat(apiReportServiceV2.getAll()).isEmpty();
+  }
+
+  @Test
+  public void testGetAll_Authorized() throws Exception {
+    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId");
+
+    Application unauthorizedApp = tempEntity.newApplicationWithParent();
+    tempEntity.newPolicyEvaluation(unauthorizedApp.getId(), StageTypes.BUILD.getId(), "scanId1");
+
+    grantReadPermission(app.getId());
+    assertThat(apiReportServiceV2.getAll()).extracting("applicationId").containsExactly(app.getId());
   }
 
   @Test
@@ -51,26 +77,14 @@ public class ApiReportServiceV2AuthzTest
     assertThat(reports.reports).hasSize(0);
   }
 
-  @Test
-  public void testGetReportHistoryForApplication_AuthorizedOrg() {
-    grantReadPermission(org.getId());
-
-    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(app.getId());
-
-    assertThat(reports.applicationId).isEqualTo(app.getId());
-    assertThat(reports.reports).hasSize(0);
-  }
-
-  @Test
+  @Test(expected = UnauthenticatedException.class)
   public void testGetReportHistoryForApplication_Unauthenticated() {
-    assertThatThrownBy(() -> apiReportServiceV2.getReportHistoryForApplication(app.getId())).isInstanceOf(
-        UnauthenticatedException.class);
+    apiReportServiceV2.getReportHistoryForApplication(app.getId());
   }
 
-  @Test
-  public void testGetReportHistoryForApplication_UnauthorizedButAuthenticated() {
+  @Test(expected = UnauthorizedException.class)
+  public void testGetReportHistoryForApplication_Unauthorized() {
     login();
-    assertThatThrownBy(() -> apiReportServiceV2.getReportHistoryForApplication(app.getId())).isInstanceOf(
-        UnauthorizedException.class);
+    apiReportServiceV2.getReportHistoryForApplication(app.getId());
   }
 }

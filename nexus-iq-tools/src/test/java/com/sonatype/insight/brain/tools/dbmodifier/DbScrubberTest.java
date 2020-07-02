@@ -12,14 +12,18 @@ import java.util.Collections;
 import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
@@ -29,10 +33,13 @@ import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.UserToken;
@@ -100,14 +107,20 @@ public class DbScrubberTest
   public void testScrubDB_Table_repository_policy_violation() throws Exception {
     RepositoryPolicyViolation repositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(tempEntity.newRepository().getId(), 5, "testPathname", true,
-        "testPolicyId", "testPolicyName", ComponentIdentifier.createNpmCoordinates("packageId", "version"));
+            "testPolicyId", "testPolicyName", ComponentIdentifier.createNpmCoordinates("TestPackageId", "TestVersion"));
     repositoryPolicyViolation.setPolicyWaiverComment("testPolicyWaiverComment");
     new RepositoryPolicyViolationDAO().update(repositoryPolicyViolation);
 
     scrubDb();
 
-    assertThat(getSqlDumpContent()).contains("testPathname", "testPolicyName", "testPolicyWaiverComment");
-    assertThat(getScrubbedSqlContent()).doesNotContain("testPathname", "testPolicyName", "testPolicyWaiverComment");
+    assertThat(getSqlDumpContent()).contains(repositoryPolicyViolation.getId(), "testPathname", "testPolicyName",
+        "testPolicyWaiverComment", "TestPackageId", "TestVersion", ComponentIdentifier.NPM_PACKAGE_ID,
+        ComponentIdentifier.VERSION);
+    String scrubbedSqlContent = getScrubbedSqlContent();
+    assertThat(scrubbedSqlContent).contains(repositoryPolicyViolation.getId(), ComponentIdentifier.NPM_PACKAGE_ID,
+        ComponentIdentifier.VERSION);
+    assertThat(scrubbedSqlContent).doesNotContain("testPathname", "testPolicyName", "testPolicyWaiverComment",
+        "TestPackageId", "TestVersion");
   }
 
   @Test
@@ -345,10 +358,11 @@ public class DbScrubberTest
 
     scrubDb();
 
-    assertThat(getSqlDumpContent()).contains(claimedComponent.getId(), "Test comment");
+    assertThat(getSqlDumpContent()).contains(claimedComponent.getId(), "TestPackageId", "TestVersion", "Test comment");
     String scrubbedSqlContent = getScrubbedSqlContent();
-    assertThat(scrubbedSqlContent).contains(claimedComponent.getId());
-    assertThat(scrubbedSqlContent).doesNotContain("Test comment");
+    assertThat(scrubbedSqlContent).contains(claimedComponent.getId(), ComponentIdentifier.NPM_PACKAGE_ID,
+        ComponentIdentifier.VERSION);
+    assertThat(scrubbedSqlContent).doesNotContain("TestPackageId", "TestVersion", "Test comment");
   }
 
   @Test
@@ -373,10 +387,12 @@ public class DbScrubberTest
 
     scrubDb();
 
-    assertThat(getSqlDumpContent()).contains(licenseOverride.getId(), "Test comment");
+    assertThat(getSqlDumpContent()).contains(licenseOverride.getId(), "TestPackageId", "TestVersion",
+        ComponentIdentifier.NPM_PACKAGE_ID, ComponentIdentifier.VERSION, "Test comment");
     String scrubbedSqlContent = getScrubbedSqlContent();
-    assertThat(scrubbedSqlContent).contains(licenseOverride.getId());
-    assertThat(scrubbedSqlContent).doesNotContain("Test comment");
+    assertThat(scrubbedSqlContent).contains(licenseOverride.getId(), ComponentIdentifier.NPM_PACKAGE_ID,
+        ComponentIdentifier.VERSION);
+    assertThat(scrubbedSqlContent).doesNotContain("TestPackageId", "TestVersion", "Test comment");
   }
 
   @Test
@@ -391,6 +407,152 @@ public class DbScrubberTest
     String scrubbedSqlContent = getScrubbedSqlContent();
     assertThat(scrubbedSqlContent).contains(svOverride.getId());
     assertThat(scrubbedSqlContent).doesNotContain("Test comment");
+  }
+
+  @Test
+  public void testScrubDB_Table_application_component_KnownComponent() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    ApplicationComponent knownComponent = tempEntity.newApplicationComponent(app.getId(), StageTypes.BUILD.getId(),
+        "hashKnownComponent", ComponentIdentifier.createNpmCoordinates("KnownPackageId", "KnownVersion"),
+        "knownPath/fooPath/barFile", MatchState.EXACT, false /* proprietary */, new Date());
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(knownComponent.getId(), "hashKnownComponent", "KnownPackageId",
+        "KnownVersion", ComponentIdentifier.NPM_PACKAGE_ID, ComponentIdentifier.VERSION, "knownPath/fooPath/barFile");
+    String scrubbedSqlContent = getScrubbedSqlContent();
+    assertThat(scrubbedSqlContent).contains(knownComponent.getId(), "hashKnownComponent", "KnownPackageId",
+        "KnownVersion", ComponentIdentifier.NPM_PACKAGE_ID, ComponentIdentifier.VERSION);
+    assertThat(scrubbedSqlContent).doesNotContain("knownPath", "fooPath", "barFile");
+  }
+
+  @Test
+  public void testScrubDB_Table_application_component_UnknownComponent() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    ApplicationComponent unknownComponent = tempEntity.newApplicationComponent(app.getId(), StageTypes.BUILD.getId(),
+        "hashUnknownComponent", null /* componentIdentifier */, "unknownPath/fooPath/barFile", MatchState.UNKNOWN,
+        false /* proprietary */, new Date());
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(unknownComponent.getId(), "hashUnknownComponent",
+        "unknownPath/fooPath/barFile");
+    String scrubbedSqlContent = getScrubbedSqlContent();
+    assertThat(scrubbedSqlContent).contains(unknownComponent.getId(), "hashUnknownComponent");
+    assertThat(scrubbedSqlContent).doesNotContain("unknownPath", "fooPath", "barFile");
+  }
+
+  @Test
+  public void testScrubDB_Table_application_component_NotIdentifiedBySonatypeComponent() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    ApplicationComponent claimedComponent = tempEntity.newApplicationComponent(app.getId(), StageTypes.BUILD.getId(),
+        "hashClaimedComponent", ComponentIdentifier.createNpmCoordinates("ClaimedPackageId", "ClaimedVersion"),
+        "claimedPath/fooPath/barFile", MatchState.EXACT, IdentificationSource.MANUAL, false /* proprietary */,
+        new Date());
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(claimedComponent.getId(), "hashClaimedComponent", "ClaimedPackageId",
+        "ClaimedVersion", ComponentIdentifier.NPM_PACKAGE_ID, ComponentIdentifier.VERSION,
+        IdentificationSource.MANUAL.getId(), "claimedPath/fooPath/barFile");
+    String scrubbedSqlContent = getScrubbedSqlContent();
+    assertThat(scrubbedSqlContent).contains(claimedComponent.getId(), "hashClaimedComponent",
+        ComponentIdentifier.NPM_PACKAGE_ID, ComponentIdentifier.VERSION, IdentificationSource.MANUAL.getId());
+    assertThat(scrubbedSqlContent).doesNotContain("ClaimedPackageId", "ClaimedVersion", "claimedPath", "fooPath",
+        "barFile");
+  }
+
+  @Test
+  public void testScrubDB_Table_application_component_ProprietaryComponent() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    ApplicationComponent proprietaryComponent =
+        tempEntity.newApplicationComponent(app.getId(), StageTypes.BUILD.getId(), "hashPropComponent",
+            ComponentIdentifier.createNpmCoordinates("ProprietaryPackageId", "ProprietaryVersion"),
+            "proprietaryPath/fooPath/barFile", MatchState.EXACT, true /* proprietary */, new Date());
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(proprietaryComponent.getId(), "hashPropComponent",
+        "ProprietaryPackageId", "ProprietaryVersion", ComponentIdentifier.NPM_PACKAGE_ID, ComponentIdentifier.VERSION,
+        "proprietaryPath/fooPath/barFile");
+    String scrubbedSqlContent = getScrubbedSqlContent();
+    assertThat(scrubbedSqlContent).contains(proprietaryComponent.getId(), "hashPropComponent",
+        ComponentIdentifier.NPM_PACKAGE_ID, ComponentIdentifier.VERSION);
+    assertThat(scrubbedSqlContent).doesNotContain("ProprietaryPackageId", "ProprietaryVersion", "proprietaryPath",
+        "fooPath", "barFile");
+  }
+
+  @Test
+  public void testScrubDB_Table_repository_component_KnownComponent() throws Exception {
+    Repository repo = tempEntity.newRepository();
+    RepositoryComponent knownComponent =
+        tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT, "knownPath/fooPath/barFile",
+            "hashKnownComponent",
+            ComponentIdentifier.createNpmCoordinates("KnownPackageId", "KnownVersion"), false);
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(knownComponent.getId(), "hashKnownComponent", "KnownPackageId",
+        "KnownVersion", ComponentIdentifier.NPM_PACKAGE_ID, ComponentIdentifier.VERSION, "knownPath/fooPath/barFile");
+    String scrubbedSqlContent = getScrubbedSqlContent();
+    assertThat(scrubbedSqlContent).contains(knownComponent.getId(), "hashKnownComponent", "KnownPackageId",
+        "KnownVersion", ComponentIdentifier.NPM_PACKAGE_ID, ComponentIdentifier.VERSION);
+    assertThat(scrubbedSqlContent).doesNotContain("knownPath", "fooPath", "barFile");
+  }
+
+  @Test
+  public void testScrubDB_Table_repository_component_UnknownComponent() throws Exception {
+    Repository repo = tempEntity.newRepository();
+    RepositoryComponent unknownComponent = tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT,
+        "unknownPath/fooPath/barFile", "hashUnknownComponent", null, false);
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(unknownComponent.getId(), "hashUnknownComponent",
+        "unknownPath/fooPath/barFile");
+    String scrubbedSqlContent = getScrubbedSqlContent();
+    assertThat(scrubbedSqlContent).contains(unknownComponent.getId(), "hashUnknownComponent");
+    assertThat(scrubbedSqlContent).doesNotContain("unknownPath", "fooPath", "barFile");
+  }
+
+  @Test
+  public void testScrubDB_Table_repository_component_NotIdentifiedBySonatypeComponent() throws Exception {
+    Repository repo = tempEntity.newRepository();
+    RepositoryComponent claimedComponent =
+        tempEntity.newRepositoryComponent(repo.getId(), "claimedPath/fooPath/barFile", new Date(),
+            "hashClaimedComponent",
+            ComponentIdentifier.createNpmCoordinates("ClaimedPackageId", "ClaimedVersion"), MatchState.EXACT.getId(),
+            IdentificationSource.MANUAL.getId(), new Date());
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(claimedComponent.getId(), "hashClaimedComponent", "ClaimedPackageId",
+        "ClaimedVersion", ComponentIdentifier.NPM_PACKAGE_ID, ComponentIdentifier.VERSION,
+        IdentificationSource.MANUAL.getId(), "claimedPath/fooPath/barFile");
+    String scrubbedSqlContent = getScrubbedSqlContent();
+    assertThat(scrubbedSqlContent).contains(claimedComponent.getId(), "hashClaimedComponent",
+        ComponentIdentifier.NPM_PACKAGE_ID, ComponentIdentifier.VERSION, IdentificationSource.MANUAL.getId());
+    assertThat(scrubbedSqlContent).doesNotContain("ClaimedPackageId", "ClaimedVersion", "claimedPath", "fooPath",
+        "barFile");
+  }
+
+  @Test
+  public void testScrubDB_Table_policy_violation() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId");
+    Policy policy = tempEntity.newPolicy();
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy,
+        ComponentIdentifier.createNpmCoordinates("TestPackageId", "TestVersion"), "TestHash");
+    new PolicyDAO().delete(policy);
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(policyViolation.getId(), policy.getName(), "TestHash", "TestPackageId",
+        "TestVersion", ComponentIdentifier.NPM_PACKAGE_ID, ComponentIdentifier.VERSION, policy.getName());
+    String scrubbedSqlContent = getScrubbedSqlContent();
+    assertThat(scrubbedSqlContent).contains(policyViolation.getId(), "TestHash", ComponentIdentifier.NPM_PACKAGE_ID,
+        ComponentIdentifier.VERSION);
+    assertThat(scrubbedSqlContent).doesNotContain("TestPackageId", "TestVersion", policy.getName());
   }
 
   private void scrubDb() {

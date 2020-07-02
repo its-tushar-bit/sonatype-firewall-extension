@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.tools.dbmodifier;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -13,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
 import java.util.SortedMap;
@@ -21,6 +24,10 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import org.apache.commons.lang3.RandomStringUtils;
 
@@ -127,6 +134,21 @@ class ScrubberInsertMods
     };
 
     return wrappedValueMod;
+  }
+
+  private static String componentIdentifierRandomizer(String componentIdCoordinatesJson) {
+    try {
+      @SuppressWarnings("unchecked")
+      Map<String, String> componentCoordinateMap = JsonUtils.parse(componentIdCoordinatesJson, Map.class);
+      for (Entry<String, String> componentCoordinate : componentCoordinateMap.entrySet()) {
+        componentCoordinateMap.put(componentCoordinate.getKey(),
+            consistentRandomString(componentCoordinate.getValue()));
+      }
+      return ComponentIdentifierAdapter.toJson(componentCoordinateMap);
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException("Failed to parse component coordinates json:" + componentIdCoordinatesJson, e);
+    }
   }
 
   // visible for testing
@@ -244,7 +266,10 @@ class ScrubberInsertMods
         String[] colParts = colName.split(":");
         if (colParts.length > 1) {
           name = colParts[0];
-          if (colParts[1].equals("path")) {
+          if (colParts[1].equals("componentIdentifier")) {
+            mutator = stringValueModifier(ScrubberInsertMods::componentIdentifierRandomizer);
+          }
+          else if (colParts[1].equals("path")) {
             mutator = stringValueModifier(ScrubberInsertMods::pathRandomizer);
           }
           else if (colParts[1].equals("json")) {
@@ -256,26 +281,36 @@ class ScrubberInsertMods
         }
 
         if (line.cols.contains(name)) {
-          int colIndex = line.cols.indexOf(name);
-          if (line.vals.get(colIndex).contains("SYSTEM_COMBINE_CLOB")) {
-            processed.addAll(randomizeClob(line.vals.get(colIndex), mutator));
-          }
-          else {
-            line.vals.set(colIndex, mutator.apply(line.vals.get(colIndex)));
-          }
-          if (line.cols.contains(name + "_lowercase")) {
-            line.vals.set(line.cols.indexOf(name + "_lowercase"),
-                line.vals.get(line.cols.indexOf(name)).toLowerCase(Locale.ENGLISH));
-          }
-          if (line.cols.contains(name + "_lowercase_no_whitespace")) {
-            line.vals.set(line.cols.indexOf(name + "_lowercase_no_whitespace"),
-                line.vals.get(line.cols.indexOf(name)).replaceAll("\\s", "").toLowerCase(Locale.ENGLISH));
-          }
+          scrubColumnValue(line, name, mutator, processed);
         }
       }
       processed.add(line);
       return processed;
     };
+  }
+
+  private static void scrubColumnValue(
+      SQLLine insertSqlLine,
+      String columnName,
+      Function<String, String> mutator,
+      List<SQLLine> processedSqlLines)
+  {
+    int columnIndex = insertSqlLine.cols.indexOf(columnName);
+    String columnValue = insertSqlLine.vals.get(columnIndex);
+    if (columnValue.contains("SYSTEM_COMBINE_CLOB")) {
+      processedSqlLines.addAll(randomizeClob(columnValue, mutator));
+    }
+    else {
+      insertSqlLine.vals.set(columnIndex, mutator.apply(columnValue));
+    }
+    if (insertSqlLine.cols.contains(columnName + "_lowercase")) {
+      insertSqlLine.vals.set(insertSqlLine.cols.indexOf(columnName + "_lowercase"),
+          insertSqlLine.vals.get(columnIndex).toLowerCase(Locale.ENGLISH));
+    }
+    if (insertSqlLine.cols.contains(columnName + "_lowercase_no_whitespace")) {
+      insertSqlLine.vals.set(insertSqlLine.cols.indexOf(columnName + "_lowercase_no_whitespace"),
+          insertSqlLine.vals.get(columnIndex).replaceAll("\\s", "").toLowerCase(Locale.ENGLISH));
+    }
   }
 
   // visible for testing
@@ -320,22 +355,95 @@ class ScrubberInsertMods
     insertModMap.put(h2OdsTable("dashboard_filter"), tableMod("username:user", "name", "based_on_filter_name"));
     // tables with data to scrub
     insertModMap.put(h2OdsTable("application"), tableMod("public_id", "name", "contact_internal_name:user"));
-    insertModMap.put(h2OdsTable("application_component"), tableMod("pathnames:path"));
-    insertModMap.put(h2OdsTable("hash_component_identifier"), tableMod("comment"));
+    insertModMap.put(h2OdsTable("application_component"), applicationComponentScrubber());
+    insertModMap.put(h2OdsTable("hash_component_identifier"),
+        tableMod("component_id_coordinates_json:componentIdentifier", "comment"));
     insertModMap.put(h2OdsTable("label"), tableMod("label", "description"));
-    insertModMap.put(h2OdsTable("license_override"), tableMod("comment"));
+    insertModMap.put(h2OdsTable("license_override"),
+        tableMod("component_id_coordinates_json:componentIdentifier", "comment"));
     insertModMap.put(h2OdsTable("license_threat_group"), tableMod("name"));
     insertModMap.put(h2OdsTable("organization"), tableMod("name"));
     insertModMap.put(h2OdsTable("policy"), tableMod("name", "content:json"));
-    insertModMap.put(h2OdsTable("policy_violation"), tableMod("policy_name"));
+    insertModMap.put(h2OdsTable("policy_violation"),
+        tableMod("policy_name", "component_id_coordinates_json:componentIdentifier"));
     insertModMap.put(h2OdsTable("policy_waiver"), tableMod("comment"));
     insertModMap.put(h2OdsTable("repository"), tableMod("public_id"));
-    insertModMap.put(h2OdsTable("repository_component"), tableMod("pathname:path"));
+    insertModMap.put(h2OdsTable("repository_component"), repositoryComponentScrubber());
     insertModMap.put(h2OdsTable("repository_manager"), tableMod("instance_id"));
     insertModMap.put(h2OdsTable("repository_policy_violation"),
-        tableMod("pathname:path", "policy_name", "policy_waiver_comment"));
+        tableMod("pathname:path", "policy_name", "policy_waiver_comment",
+            "component_id_coordinates_json:componentIdentifier"));
     insertModMap.put(h2OdsTable("role"), tableMod("name", "description"));
     insertModMap.put(h2OdsTable("sv_override"), tableMod("comment"));
     insertModMap.put(h2OdsTable("tag"), tableMod("name", "description"));
+  }
+
+  private static Function<SQLLine, List<SQLLine>> applicationComponentScrubber() {
+    return insertSqlLine -> {
+      List<SQLLine> scrubbedLines = new ArrayList<>();
+
+      int columnIndex = 0;
+      for (String columnName : insertSqlLine.cols) {
+        switch (columnName) {
+          case "component_id_coordinates_json":
+            String proprietary = getColumnValue(insertSqlLine, "proprietary");
+            String identificationSourceId = getColumnValue(insertSqlLine, "identification_source_id");
+            if ("true".equalsIgnoreCase(proprietary)
+                || !IdentificationSource.SONATYPE.getId().equals(stripQuotes(identificationSourceId))) {
+              String componentIdCoordinatesJson = insertSqlLine.vals.get(columnIndex);
+              insertSqlLine.vals.set(columnIndex, stringValueModifier(ScrubberInsertMods::componentIdentifierRandomizer)
+                  .apply(componentIdCoordinatesJson));
+            }
+            break;
+          case "pathnames":
+            Function<String, String> mutator = stringValueModifier(ScrubberInsertMods::pathRandomizer);
+            scrubColumnValue(insertSqlLine, columnName, mutator, scrubbedLines);
+            break;
+          default:
+            break;
+        }
+        
+        columnIndex++;
+      }
+      
+      scrubbedLines.add(insertSqlLine);
+      return scrubbedLines;
+    };
+  }
+
+  private static Function<SQLLine, List<SQLLine>> repositoryComponentScrubber() {
+    return insertSqlLine -> {
+      List<SQLLine> scrubbedLines = new ArrayList<>();
+
+      int columnIndex = 0;
+      for (String columnName : insertSqlLine.cols) {
+        switch (columnName) {
+          case "component_id_coordinates_json":
+            String identificationSourceId = getColumnValue(insertSqlLine, "identification_source_id");
+            if (!IdentificationSource.SONATYPE.getId().equals(stripQuotes(identificationSourceId))) {
+              String componentIdCoordinatesJson = insertSqlLine.vals.get(columnIndex);
+              insertSqlLine.vals.set(columnIndex, stringValueModifier(ScrubberInsertMods::componentIdentifierRandomizer)
+                  .apply(componentIdCoordinatesJson));
+            }
+            break;
+          case "pathname":
+            Function<String, String> mutator = stringValueModifier(ScrubberInsertMods::pathRandomizer);
+            scrubColumnValue(insertSqlLine, columnName, mutator, scrubbedLines);
+            break;
+          default:
+            break;
+        }
+
+        columnIndex++;
+      }
+
+      scrubbedLines.add(insertSqlLine);
+      return scrubbedLines;
+    };
+  }
+
+  private static String getColumnValue(SQLLine insertSqlLine, String columnName) {
+    int columnIndex = insertSqlLine.cols.indexOf(columnName);
+    return insertSqlLine.vals.get(columnIndex);
   }
 }

@@ -1550,9 +1550,24 @@ public class TemporaryEntity
                                                       boolean proprietary,
                                                       Date time)
   {
+    return newApplicationComponent(applicationId, stageTypeId, hash, componentIdentifier, pathnamesString, matchState,
+        IdentificationSource.SONATYPE, proprietary, time);
+  }
+
+  public ApplicationComponent newApplicationComponent(
+      String applicationId,
+      String stageTypeId,
+      String hash,
+      ComponentIdentifier componentIdentifier,
+      String pathnamesString,
+      MatchState matchState,
+      IdentificationSource identificationSource,
+      boolean proprietary,
+      Date time)
+  {
     List<String> pathnames = StringUtils.isBlank(pathnamesString) ? null : Collections.singletonList(pathnamesString);
     ApplicationComponent applicationComponent = new ApplicationComponent(applicationId, stageTypeId, time, hash,
-        componentIdentifier, matchState.getId(), IdentificationSource.SONATYPE.getId(), proprietary, pathnames);
+        componentIdentifier, matchState.getId(), identificationSource.getId(), proprietary, pathnames);
     appComponentDAO.insert(applicationComponent);
     return applicationComponent;
   }

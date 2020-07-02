@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.report.pdf.PdfGenerator.WordBreaker;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 
@@ -33,6 +34,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.codehaus.plexus.util.FileUtils;
+import org.junit.Before;
 import org.junit.Test;
 import org.vandeseer.easytable.structure.Row;
 import org.vandeseer.easytable.structure.Table;
@@ -52,6 +54,14 @@ public class PdfGeneratorTest
 
   @Inject
   private InsightWork insightWork;
+
+  @Inject
+  InsightConfig config;
+
+  @Before
+  public void setup() {
+    config.setBaseUrl("http://localhost:8070/");
+  }
 
   @Test
   public void testGenerate() throws Exception {

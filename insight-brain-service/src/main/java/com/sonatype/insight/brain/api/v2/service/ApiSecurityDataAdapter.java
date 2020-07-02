@@ -5,15 +5,18 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.SecurityThreatLevel;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.service.BaseUrl;
 
 /**
  * @since 1.13.0
@@ -21,6 +24,13 @@ import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverr
 @Named
 public class ApiSecurityDataAdapter
 {
+  private BaseUrl baseUrl;
+
+  @Inject
+  public ApiSecurityDataAdapter(BaseUrl baseUrl) {
+    this.baseUrl = baseUrl;
+  }
+
   public ApiSecurityDataDTO convertToDTO(final Component component) {
     ApiSecurityDataDTO securityData = new ApiSecurityDataDTO();
     for (SecurityVulnerability vuln : component.getSecurityVulnerabilities()) {
@@ -29,7 +39,7 @@ public class ApiSecurityDataAdapter
       sv.reference = vuln.getRefId();
       sv.severity = vuln.getSeverity();
       sv.status = vuln.getStatus().getName();
-      sv.url = vuln.getUrl();
+      sv.url = getSecurityUrl(vuln.getUrl(), vuln.getSource(), vuln.getRefId());
       sv.threatCategory = SecurityThreatLevel.getBySeverity(vuln.getSeverity()).getName();
       securityData.securityIssues.add(sv);
     }
@@ -48,11 +58,21 @@ public class ApiSecurityDataAdapter
       sv.reference = vuln.getRefId();
       sv.severity = vuln.getSeverity();
       sv.status = SecurityVulnerabilityOverrideStatus.OPEN.getName();
-      sv.url = vuln.getUrl();
+      sv.url = getSecurityUrl(vuln.getUrl(), vuln.getSource(), vuln.getRefId());
       sv.threatCategory = SecurityThreatLevel.getBySeverity(vuln.getSeverity()).getName();
       securityData.securityIssues.add(sv);
     }
 
     return securityData;
+  }
+
+  private String getSecurityUrl(String url, String source, String refId) {
+    if (url != null) {
+      return url;
+    }
+    if ("sonatype".equals(source)) {
+      return baseUrl.get() + UserInterfaceLinksResource.getVulnerabilityDetailsUrl(refId);
+    }
+    return null;
   }
 }

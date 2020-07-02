@@ -56,4 +56,6 @@ public class ComponentDetailsDTO
   public ComponentIdentifier componentIdentifier;
 
   public List<PolicyAlert> policyAlerts = Collections.emptyList();
+
+  public Integer breakingChangesCount;
 }

@@ -463,6 +463,23 @@
           }
         };
 
+    function getBreakingChangesSeverity(numChanges) {
+      if (numChanges > 5) {
+        return 0; // CRITICAL
+      }
+      else if (numChanges >= 3) {
+        return 1; // SEVERE
+      }
+      else if (numChanges >= 1) {
+        return 2; // MODERATE
+      }
+      else if (numChanges === 0) {
+        return 3; // LOW
+      }
+      
+      return 4;
+    }
+
     function getThreatSeverity(threatLevel) {
       if (threatLevel >= 8) {
         return 0; // CRITICAL
@@ -479,18 +496,48 @@
       return 4;
     }
 
+    /**
+     * Converts an integer value to a hex color.
+     * 
+     * @param {int} value 
+     */
+    function getBoxColor(value) {
+      switch (value) {
+        case 0:
+          return red;
+        case 1:
+          return orange;
+        case 2:
+          return yellow;
+        case 3:
+          return blue;
+        default:
+          return;
+      }
+    }
+
     /* Convert JSON data to be consumed by the graphic */
     function parseJsonData(json) {
       var data = {
         versions: [],
         versionPopularity: [],
         majorRevIndices: [],
+        breakingChangeCounts: [],
         policyThreatLevels: {HIGHEST_THREAT: [], SECURITY: [], LICENSE: [], QUALITY: [], OTHER: []}
-      };
+      },
+      allowBreakingChanges = false;
 
       $.each(json.versions, function(index, item) {
         data.versions.push(item.componentIdentifier.coordinates.version);
         data.versionPopularity.push(item.popularity || item.relativePopularity || 0);
+
+        let breakingChangeVal = null;
+        if (item.breakingChangesCount !== null) {
+          allowBreakingChanges = true;
+          breakingChangeVal = getBreakingChangesSeverity(item.breakingChangesCount);
+        }
+        
+        data.breakingChangeCounts.push(breakingChangeVal);
 
         if (json.version === item.componentIdentifier.coordinates.version) {
           data.currentVersionIndex = index;
@@ -508,6 +555,13 @@
             data.policyThreatLevels.QUALITY[index],
             data.policyThreatLevels.OTHER[index]));
       });
+
+      // If the breaking changes array is all nulls, don't show
+      // it at all. It means the license doesn't allow it.
+      if (!allowBreakingChanges) {
+        data.breakingChangeCounts = [];
+      }
+
       return data;
     }
 
@@ -715,6 +769,24 @@
       }).fillStyle(color);
     }
 
+    function createBreakingChangesPanel(vis, config) {
+      var inner = vis.add(pv.Panel).width(config.width).top(config.top - config.spacer).height(config.spacer).left(
+          config.left);
+
+      inner.add(pv.Bar).top(config.barGap / 2).data(config.data.breakingChangeCounts).width(
+          config.barWidth)
+          .height(config.barWidth).left(
+            function() {
+              return getLeftPositionFn(config)(this.index);
+            })
+          .fillStyle(getBoxColor)
+          .strokeStyle(getBoxColor);
+
+      config.top += config.spacer;
+
+      return vis;
+    }
+
     function createPolicyThreatPanel(vis, config, category) {
       var inner = vis.add(pv.Panel).width(config.width).top(config.top - config.spacer).height(config.spacer).left(
           config.left);
@@ -723,33 +795,9 @@
           config.barWidth).height(config.barWidth).left(
           function() {
             return getLeftPositionFn(config)(this.index);
-          }).fillStyle(function(d) {
-        switch (d) {
-          case 0:
-            return red;
-          case 1:
-            return orange;
-          case 2:
-            return yellow;
-          case 3:
-            return blue;
-          default:
-            return;
-        }
-      }).strokeStyle(function(d) {
-        switch (d) {
-          case 0:
-            return red;
-          case 1:
-            return orange;
-          case 2:
-            return yellow;
-          case 3:
-            return blue;
-          default:
-            return;
-        }
-      });
+          })
+          .fillStyle(getBoxColor)
+          .strokeStyle(getBoxColor);
 
       config.top += config.spacer;
 
@@ -781,12 +829,15 @@
 
     function loadVersionChart(config) {
       var gridLines = [],
+          fillRows = [6, 8, 9, 10, 11],
+          emptyRows = [4, 5, 7, 12],
           node = $('#aiVersionChartContainer'),
           panWrapper,
           panningFn,
           vizLabels,
           vizContent,
-          i;
+          i,
+          showBreakingChanges = config.data.breakingChangeCounts.length > 0;
       componentInfoVizContent = null;
 
       showThreatCategories = true;
@@ -799,6 +850,21 @@
       $.each(derivedValues, function(name, fn) {
         config[name] = fn.call(derivedValues, config);
       });
+
+      // This is done here to prevent unnecessary re-renders since
+      // we know up front if this will be shown.
+      if (showBreakingChanges) {
+        config.contentRows += 2;
+        config.contentRowsNoCategories += 2;
+        config.height += (config.barWidth + config.barGap);
+        config.noCategoriesHeight += (config.barWidth + config.barGap);
+        config.actualHeight += (config.barWidth + config.barGap);
+        config.noCategoriesActualHeight += (config.barWidth + config.barGap);
+
+        // Account for the extra breaking changes heatmap row.
+        fillRows = [5, 7, 9, 10, 11, 12];
+        emptyRows = [4, 6, 8, 13];
+      }
 
       node.height(config.actualHeight);
 
@@ -848,12 +914,12 @@
           .strokeDasharray('1 1');
 
       // fill in default heatmap rows
-      $.each(config.partialDisplay ? [] : [6, 8, 9, 10, 11], function(index, row) {
+      $.each(config.partialDisplay ? [] : fillRows, function(index, row) {
         fillRow(vizContent, $.extend({}, config, {top: config.top + (row - 1) * config.spacer}), lightGrey);
       });
 
       // fill in empty rows
-      $.each(config.partialDisplay ? [] : [4, 5, 7, 12], function(index, row) {
+      $.each(config.partialDisplay ? [] : emptyRows, function(index, row) {
         fillRow(vizContent, $.extend({}, config, {top: config.top + (row - 1) * config.spacer}), bgBlue, true);
       });
 
@@ -873,6 +939,18 @@
       createPopularityPanel(vizContent, config);
 
       config.top += (config.spacer * 2) + 1;
+
+      if (showBreakingChanges) {
+        config.top -= config.spacer;
+
+        vizLabels.add(pv.Label).left(5).top(config.top + 1).textAlign('left').font('bold 10px arial').text(
+          'Breaking Changes');
+
+        createBreakingChangesPanel(vizContent, config);
+
+        config.top += config.spacer;
+      }
+
       vizLabels.add(pv.Label).left(5).top(config.top + 1).textAlign('left').font('bold 10px arial').text(
           'Policy Threat');
 

@@ -238,6 +238,20 @@ public abstract class AbstractVersionGraphMavenTest
 
   }
 
+  @Test
+  public void testBreakingChangesHeatmap() {
+    setupHdsResponsesForBreakingChanges();
+
+    executeJavaScript(JAVA_SCRIPT_TO_EXECUTE);
+
+    VersionsCIP.viewDetailsButton().shouldBe(visible);
+
+    eyesWatcher.eyesCheck("Version graph with breaking changes heatmap");
+
+    VersionsCIP.groupId().shouldHave(text("javancss"));
+    VersionsCIP.viewDetailsButton().shouldBe(visible);
+  }
+
   protected Policy createPolicy(String ownerId,
                               int threatLevel,
                               String name,
@@ -292,6 +306,19 @@ public abstract class AbstractVersionGraphMavenTest
     testCLMServer.getHdsServer()
         .respondWith(getClass().getResource("/componentDetails/javancssComponentDetailsList.json"))
         .atUri("rest/rm/componentDetails/list");
+  }
+
+  protected void setupHdsResponsesForBreakingChanges() {
+    mockHdsResponseForFirstComponent();
+    testCLMServer.getHdsServer()
+            .respondWith(getClass().getResource("/componentDetails/componentDetailsBreakingChangesList.json"))
+            .atUri("rest/ide/componentDetails/list");
+    testCLMServer.getHdsServer()
+            .respondWith(getClass().getResource("/componentDetails/componentDetailsBreakingChangesList.json"))
+            .atUri("rest/ci/componentDetails/list");
+    testCLMServer.getHdsServer()
+            .respondWith(getClass().getResource("/componentDetails/componentDetailsBreakingChangesList.json"))
+            .atUri("rest/rm/componentDetails/list");
   }
 
   protected void mockHdsResponseForRemediation() {

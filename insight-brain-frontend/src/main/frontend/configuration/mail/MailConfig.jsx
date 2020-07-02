@@ -15,7 +15,7 @@ import {
   NxFontAwesomeIcon,
   NxInfoAlert,
   NxModal,
-  NxStatefulSubmitMask,
+  NxSubmitMask,
   NxTextInput,
   NxTooltip,
   NxWarningAlert
@@ -271,7 +271,7 @@ export default function MailConfig(props) {
                     documentation.&nbsp;<i className="fa fa-external-link fa-fw"/></a>
                   </p>
                   {submitMaskState !== null &&
-                  <NxStatefulSubmitMask success={submitMaskState} message={submitMaskMessage} />}
+                  <NxSubmitMask success={submitMaskState} message={submitMaskMessage} />}
                   {form}
                 </div>
               </Fragment>

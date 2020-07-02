@@ -5,6 +5,7 @@
  */
 import axios from 'axios';
 import { map, pick } from 'ramda';
+import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 import { getMailConfigUrl, getTestMailUrl } from '../../util/CLMLocation';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
@@ -17,6 +18,7 @@ export const MAIL_CONFIG_LOAD_FAILED = 'MAIL_CONFIG_LOAD_FAILED';
 export const MAIL_CONFIG_SAVE_REQUESTED = 'MAIL_CONFIG_SAVE_REQUESTED';
 export const MAIL_CONFIG_SAVE_FULFILLED = 'MAIL_CONFIG_SAVE_FULFILLED';
 export const MAIL_CONFIG_SAVE_FAILED = 'MAIL_CONFIG_SAVE_FAILED';
+export const MAIL_CONFIG_SUBMIT_MASK_TIMER_DONE = 'MAIL_CONFIG_SUBMIT_MASK_TIMER_DONE';
 
 export const MAIL_CONFIG_SEND_TEST_MAIL_REQUESTED = 'MAIL_CONFIG_SEND_TEST_MAIL_REQUESTED';
 export const MAIL_CONFIG_SEND_TEST_MAIL_FULFILLED = 'MAIL_CONFIG_SEND_TEST_MAIL_FULFILLED';
@@ -52,6 +54,12 @@ function toServerData(formState) {
   };
 }
 
+function startSubmitMaskSuccessTimer(dispatch) {
+  setTimeout(() => {
+    dispatch({ type: MAIL_CONFIG_SUBMIT_MASK_TIMER_DONE });
+  }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+}
+
 export function load() {
   return function(dispatch) {
     dispatch(loadRequested());
@@ -67,8 +75,11 @@ export function sendTestEmail() {
     dispatch(sendTestMailRequested());
 
     const formState = getState().mailConfig.formState;
-    axios.post(getTestMailUrl(formState.testEmail.trimmedValue), toServerData(formState))
-        .then(() => { dispatch(sendTestMailFulfilled()); })
+    return axios.post(getTestMailUrl(formState.testEmail.trimmedValue), toServerData(formState))
+        .then(() => {
+          dispatch(sendTestMailFulfilled());
+          startSubmitMaskSuccessTimer(dispatch);
+        })
         .catch(error => { dispatch(sendTestMailFailed(error)); });
   };
 }
@@ -80,8 +91,11 @@ export function save() {
     const formState = getState().mailConfig.formState,
         serverData = toServerData(formState);
 
-    axios.put(getMailConfigUrl(), serverData)
-        .then(() => { dispatch(saveFulfilled(serverData)); })
+    return axios.put(getMailConfigUrl(), serverData)
+        .then(() => {
+          dispatch(saveFulfilled(serverData));
+          startSubmitMaskSuccessTimer(dispatch);
+        })
         .catch(error => { dispatch(saveFailed(error)); });
   };
 }
@@ -90,8 +104,11 @@ export function del() {
   return function(dispatch) {
     dispatch(deleteRequested());
 
-    axios.delete(getMailConfigUrl())
-        .then(() => { dispatch(deleteFulfilled()); })
+    return axios.delete(getMailConfigUrl())
+        .then(() => {
+          dispatch(deleteFulfilled());
+          startSubmitMaskSuccessTimer(dispatch);
+        })
         .catch(error => { dispatch(deleteFailed(error)); });
   };
 }

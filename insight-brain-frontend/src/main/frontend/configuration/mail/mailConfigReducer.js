@@ -6,7 +6,7 @@
 import * as textInputStateHelpers from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
 import { __, any, complement, compose, curryN, eqProps, map, pick, prop, propEq, values } from 'ramda';
 
-import { createReducerFromActionMap } from '../../util/reduxUtil';
+import { createReducerFromActionMap, propSetConst } from '../../util/reduxUtil';
 import { pathSet, propSet } from '../../util/jsUtil';
 import { combineValidators, hasValidationErrors, validateNonEmpty, validatePatternMatch }
   from '../../util/validationUtil';
@@ -34,7 +34,8 @@ import {
   MAIL_CONFIG_SET_TEST_EMAIL,
   MAIL_CONFIG_SEND_TEST_MAIL_REQUESTED,
   MAIL_CONFIG_SEND_TEST_MAIL_FULFILLED,
-  MAIL_CONFIG_SEND_TEST_MAIL_FAILED
+  MAIL_CONFIG_SEND_TEST_MAIL_FAILED,
+  MAIL_CONFIG_SUBMIT_MASK_TIMER_DONE
 } from './mailConfigActions';
 
 const SUBMIT_MASK_SAVING_MESSAGE = 'Saving';
@@ -287,7 +288,8 @@ const reducerActionMap = {
   [MAIL_CONFIG_SEND_TEST_MAIL_FULFILLED]: sendTestMailFulfilled,
   [MAIL_CONFIG_SEND_TEST_MAIL_FAILED]: sendTestMailFailed,
   [MAIL_CONFIG_SET_TEST_EMAIL]: setTextInput('testEmail', null),
-  [MAIL_CONFIG_SET_SHOW_DELETE_MODAL]: propSet('showDeleteModal')
+  [MAIL_CONFIG_SET_SHOW_DELETE_MODAL]: propSet('showDeleteModal'),
+  [MAIL_CONFIG_SUBMIT_MASK_TIMER_DONE]: propSetConst('submitMaskState', null)
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

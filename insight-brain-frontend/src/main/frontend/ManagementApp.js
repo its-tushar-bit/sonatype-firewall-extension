@@ -23,6 +23,7 @@ import violationPageModule from './violation/module';
 import {react2angular} from 'react2angular';
 import withStoreProvider from './reactAdapter/StoreProvider';
 import AdvancedSearchContainer from './advancedSearch/AdvancedSearchContainer';
+import waiversModule from './waivers/module';
 
 export default angular.module('managementApp',
     [
@@ -30,7 +31,7 @@ export default angular.module('managementApp',
       systemNoticeModule.name, componentsModule.name, directivesModule.name, labsModule.name, configurationModule.name,
       legacyConfigurationModule.name, dashboardModule.name, reduxConfigModule.name,
       changeDefaultAdminPasswordModule.name, applicationReportModule.name, vulnerabilitySearchModule.name,
-      violationPageModule.name
+      violationPageModule.name, waiversModule.name
     ])
     .component('advancedSearch', react2angular(withStoreProvider(AdvancedSearchContainer), [], ['$ngRedux', '$state']))
     .config(routes);

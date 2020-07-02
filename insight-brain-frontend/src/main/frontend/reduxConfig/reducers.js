@@ -19,6 +19,7 @@ import stagesReducer from '../stages/stagesReducer';
 import advancedSearchConfigReducer from '../configuration/advancedSearch/advancedSearchConfigReducer';
 import advancedSearchReducer from '../advancedSearch/advancedSearchReducer';
 import sidebarNavListReducer from '../sidebarNav/sidebarNavListReducer';
+import addWaiverReducer from '../waivers/addWaiverReducer';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -35,5 +36,6 @@ export default combineReducers({
   violationPage: violationPageReducer,
   proxyConfig: proxyConfigReducer,
   advancedSearchConfig: advancedSearchConfigReducer,
-  advancedSearch: advancedSearchReducer
+  advancedSearch: advancedSearchReducer,
+  addWaiver: addWaiverReducer
 });

@@ -5,6 +5,7 @@
  */
 import axios from 'axios';
 import { map, pick } from 'ramda';
+import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 import { getProxyConfigUrl } from '../../util/CLMLocation';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
@@ -32,6 +33,8 @@ export const PROXY_CONFIG_SET_EXCLUDE_HOSTS = 'PROXY_CONFIG_SET_EXCLUDE_HOSTS';
 
 export const PROXY_CONFIG_SET_SHOW_DELETE_MODAL = 'PROXY_CONFIG_SET_SHOW_DELETE_MODAL';
 
+export const PROXY_CONFIG_SUBMIT_MASK_TIMER_DONE = 'PROXY_CONFIG_SUBMIT_MASK_TIMER_DONE';
+
 function toServerData(formState) {
   // pull the trimmedValue out of the input state object and convert empty strings to null
   const textPropMapper = ({ trimmedValue }) => trimmedValue || null;
@@ -44,6 +47,12 @@ function toServerData(formState) {
     excludeHosts: formState.excludeHosts.trimmedValue !== '' ?
       formState.excludeHosts.value.replace(/\s/g, '').split(',') : null
   };
+}
+
+function startSubmitMaskSuccessTimer(dispatch) {
+  setTimeout(() => {
+    dispatch({ type: PROXY_CONFIG_SUBMIT_MASK_TIMER_DONE });
+  }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 }
 
 export function load() {
@@ -64,7 +73,10 @@ export function save() {
     const serverData = toServerData(formState);
 
     return axios.put(getProxyConfigUrl(), serverData)
-        .then(() => { dispatch(saveFulfilled(serverData)); })
+        .then(() => {
+          dispatch(saveFulfilled(serverData));
+          startSubmitMaskSuccessTimer(dispatch);
+        })
         .catch(error => { dispatch(saveFailed(error)); });
   };
 }
@@ -74,7 +86,10 @@ export function del() {
     dispatch(deleteRequested());
 
     return axios.delete(getProxyConfigUrl())
-        .then(() => { dispatch(deleteFulfilled()); })
+        .then(() => {
+          dispatch(deleteFulfilled());
+          startSubmitMaskSuccessTimer(dispatch);
+        })
         .catch(error => { dispatch(deleteFailed(error)); });
   };
 }

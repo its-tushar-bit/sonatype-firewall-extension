@@ -28,7 +28,8 @@ import {
   PROXY_CONFIG_SET_USERNAME,
   PROXY_CONFIG_SET_PASSWORD,
   PROXY_CONFIG_SET_EXCLUDE_HOSTS,
-  PROXY_CONFIG_SET_SHOW_DELETE_MODAL
+  PROXY_CONFIG_SET_SHOW_DELETE_MODAL,
+  PROXY_CONFIG_SUBMIT_MASK_TIMER_DONE
 } from './proxyConfigActions';
 
 const SUBMIT_MASK_SAVING_MESSAGE = 'Saving';
@@ -221,7 +222,8 @@ const reducerActionMap = {
   [PROXY_CONFIG_SET_USERNAME]: setTextInput('username', null),
   [PROXY_CONFIG_SET_PASSWORD]: setTextInput('password', null),
   [PROXY_CONFIG_SET_EXCLUDE_HOSTS]: setTextInput('excludeHosts', null),
-  [PROXY_CONFIG_SET_SHOW_DELETE_MODAL]: propSet('showDeleteModal')
+  [PROXY_CONFIG_SET_SHOW_DELETE_MODAL]: propSet('showDeleteModal'),
+  [PROXY_CONFIG_SUBMIT_MASK_TIMER_DONE]: propSetConst('submitMaskState', null)
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

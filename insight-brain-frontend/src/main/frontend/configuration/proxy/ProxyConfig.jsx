@@ -16,7 +16,7 @@ import {
   NxTextInput,
   NxTooltip,
   NxWarningAlert,
-  NxStatefulSubmitMask,
+  NxSubmitMask,
   NxFontAwesomeIcon
 } from '@sonatype/react-shared-components';
 import LoadWrapper from '../../react/LoadWrapper';
@@ -211,7 +211,7 @@ export default function ProxyConfig(props) {
                     </p>
                   }
                   {submitMaskState !== null &&
-                    <NxStatefulSubmitMask success={submitMaskState} message={submitMaskMessage}/>}
+                    <NxSubmitMask success={submitMaskState} message={submitMaskMessage}/>}
                   {form}
                 </div>
               </Fragment>

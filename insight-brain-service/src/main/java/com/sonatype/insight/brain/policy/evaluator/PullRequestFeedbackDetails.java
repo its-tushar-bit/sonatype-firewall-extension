@@ -330,7 +330,7 @@ public class PullRequestFeedbackDetails
     }
     return link;
   }
-
+  
   private static String createLink(
       final GitRepositoryInfo gitRepositoryInfo,
       final Integer prNumber,

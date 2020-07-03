@@ -78,14 +78,17 @@ public class PullRequestFeedbackMarkupService
 
   /**
    * Creates the PR line comment markup text based on the supplied diff and policy evaluations
+   * Optionally embed html in the response (assumes that the caller knows whether or not the underlying
+   * SCM supports this).
    */
   public Optional<String> createLineMarkup(
       final List<PolicyViolation> violations,
       final String componentNameAndVersion,
-      final String suggestedVersion)
+      final String suggestedVersion, 
+      final boolean includeEmbeddedHtml)
   {
     PullRequestLineFeedback details =
         new PullRequestLineFeedback(violations, componentNameAndVersion, baseUrl.getConfigured(), suggestedVersion);
-    return details.renderTemplateAndGetContents();
+    return details.renderTemplateAndGetContents(includeEmbeddedHtml);
   }
 }

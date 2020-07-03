@@ -29,9 +29,7 @@ public class PullRequestLineFeedback
     extends PullRequestDetailsBase
 {
   private static Logger log = LoggerFactory.getLogger(PullRequestLineFeedback.class);
-
-  private static Template lineFeedbackTemplate;
-
+  
   private final List<PolicyViolation> violations;
 
   private final String displayName;
@@ -54,10 +52,16 @@ public class PullRequestLineFeedback
     this.baseUrl = baseUrl;
   }
 
-  private static synchronized Template getLineFeedbackTemplate() throws IOException {
-    if (lineFeedbackTemplate == null) {
+  private synchronized Template getLineFeedbackTemplate(final boolean includeEmbeddedHtml) throws IOException {
+    Template lineFeedbackTemplate;
+
+    if (includeEmbeddedHtml) {
       lineFeedbackTemplate =
           TemplateUtils.createFreemarkerConfig().getTemplate("pullrequest-line-feedback.ftl");
+    }
+    else {
+      lineFeedbackTemplate =
+          TemplateUtils.createFreemarkerConfig().getTemplate("pullrequest-minimal-markdown-line-feedback.ftl");
     }
     return lineFeedbackTemplate;
   }
@@ -67,11 +71,12 @@ public class PullRequestLineFeedback
    *
    * @return An optional variable containing the Markdown-formatted contents of the Pull Request Line Comment, will be
    * empty if no new violations or no components available
+   * @param includeEmbeddedHtml
    */
-  public Optional<String> renderTemplateAndGetContents() {
+  public Optional<String> renderTemplateAndGetContents(final boolean includeEmbeddedHtml) {
     String contents = null;
     try {
-      contents = constructContents();
+      contents = constructContents(includeEmbeddedHtml);
     }
     catch (IOException e) {
       log.debug("Cannot create PR line comment content", e);
@@ -84,14 +89,15 @@ public class PullRequestLineFeedback
    *
    * @return An optional variable containing the PR line feedback contents
    * @throws IOException
+   * @param includeEmbeddedHtml
    */
-  private String constructContents() throws IOException {
+  private String constructContents(final boolean includeEmbeddedHtml) throws IOException {
     Preconditions.checkState(!violations.isEmpty(), "violations cannot be empty");
 
     //Get a map containing the values to be populated in the template for the component
     final Map<String, Object> componentFeedbackList =
         getComponentFeedbackList(displayName, violations, baseUrl, suggestedVersion);
-    return TemplateUtils.render(getLineFeedbackTemplate(), componentFeedbackList);
+    return TemplateUtils.render(getLineFeedbackTemplate(includeEmbeddedHtml), componentFeedbackList);
   }
 
   /**

@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.inject.Inject;
@@ -31,6 +32,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightConfig;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -40,73 +42,76 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class PullRequestLineFeedbackTest
     extends AbstractComponentTest
 {
+  public static final String MULTIPLE_NO_SUGGESTIONS = "multipleNoSuggestions";
+
+  public static final String MULTIPLE_WITH_SUGGESTION = "multipleWithSuggestion";
+
+  public static final String SINGLE_NO_SUGGESTION = "singleNoSuggestion";
+
+  public static final String SINGLE_WITH_SUGGESTION = "singleWithSuggestion";
+
   @Inject
   private InsightConfig config;
+  
+  private Map<String, PullRequestLineFeedback> testCases;
 
   @Before
   public void before() {
     config.setBaseUrl("http://localhost:1122");
-  }
-
-  private String readResource(String resourceName) throws Exception {
-    final Path path = Paths.get(getClass().getResource("/PullRequestLineFeedbackTest/" + resourceName).toURI());
-    return new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+    String baseUrl = lookup(BaseUrl.class).getConfigured();
+    testCases = ImmutableMap.<String, PullRequestLineFeedback>builder()
+        .put(MULTIPLE_NO_SUGGESTIONS, new PullRequestLineFeedback(defaultPolicyViolations(10), "Test Component",
+            baseUrl, null))
+        .put(MULTIPLE_WITH_SUGGESTION, new PullRequestLineFeedback(defaultPolicyViolations(10), "Test Component",
+            baseUrl, "123"))
+        .put(SINGLE_NO_SUGGESTION, new PullRequestLineFeedback(defaultPolicyViolations(1), "Test Component", baseUrl,
+            null))
+        .put(SINGLE_WITH_SUGGESTION, new PullRequestLineFeedback(defaultPolicyViolations(1), "Test Component", baseUrl,
+            "123"))
+        .build();
   }
 
   @Test
   public void testPullRequestFeedback_multipleNoSuggestion() throws Exception {
-    //when
-    final PullRequestLineFeedback details =
-        new PullRequestLineFeedback(defaultPolicyViolations(10), "Test Component",
-            lookup(BaseUrl.class).getConfigured(), null);
-
-    //then assert that created contents match expected
-    final String expectedContent = readResource("PullRequestLineFeedback_multipleNoSuggestions.md");
-    final Optional<String> contents = details.renderTemplateAndGetContents();
-    assertThat(contents).isNotEmpty();
-    assertThat(removeDateFromOutput(contents.get())).isEqualTo(removeDateFromOutput(expectedContent));
+    assertContents(testCases.get(MULTIPLE_NO_SUGGESTIONS), "PullRequestLineFeedback_multipleNoSuggestions.md", true);
   }
 
   @Test
   public void testPullRequestFeedback_multipleWithSuggestion() throws Exception {
-    //when
-    final PullRequestLineFeedback details =
-        new PullRequestLineFeedback(defaultPolicyViolations(10), "Test Component",
-            lookup(BaseUrl.class).getConfigured(), "123");
-
-    //then assert that created contents match expected
-    final String expectedContent = readResource("PullRequestLineFeedback_multipleWithSuggestion.md");
-    final Optional<String> contents = details.renderTemplateAndGetContents();
-    assertThat(contents).isNotEmpty();
-    assertThat(removeDateFromOutput(contents.get())).isEqualTo(removeDateFromOutput(expectedContent));
+    assertContents(testCases.get(MULTIPLE_WITH_SUGGESTION), "PullRequestLineFeedback_multipleWithSuggestion.md", true);
   }
 
   @Test
   public void testPullRequestFeedback_singleNoSuggestion() throws Exception {
-    //when
-    final PullRequestLineFeedback details =
-        new PullRequestLineFeedback(defaultPolicyViolations(1), "Test Component", lookup(BaseUrl.class).getConfigured(),
-            null);
-
-    //then assert that created contents match expected
-    final String expectedContent = readResource("PullRequestLineFeedback_singleNoSuggestions.md");
-    final Optional<String> contents = details.renderTemplateAndGetContents();
-    assertThat(contents).isNotEmpty();
-    assertThat(removeDateFromOutput(contents.get())).isEqualTo(removeDateFromOutput(expectedContent));
+    assertContents(testCases.get(SINGLE_NO_SUGGESTION), "PullRequestLineFeedback_singleNoSuggestions.md", true);
   }
 
   @Test
   public void testPullRequestFeedback_singleWithSuggestion() throws Exception {
-    //when
-    final PullRequestLineFeedback details =
-        new PullRequestLineFeedback(defaultPolicyViolations(1), "Test Component", lookup(BaseUrl.class).getConfigured(),
-            "123");
+    assertContents(testCases.get(SINGLE_WITH_SUGGESTION), "PullRequestLineFeedback_singleWithSuggestion.md", true);
+  }
 
-    //then assert that created contents match expected
-    final String expectedContent = readResource("PullRequestLineFeedback_singleWithSuggestion.md");
-    final Optional<String> contents = details.renderTemplateAndGetContents();
-    assertThat(contents).isNotEmpty();
-    assertThat(removeDateFromOutput(contents.get())).isEqualTo(removeDateFromOutput(expectedContent));
+  @Test
+  public void testPullRequestFeedback_multipleNoSuggestion_no_html() throws Exception {
+    assertContents(testCases.get(MULTIPLE_NO_SUGGESTIONS), "PullRequestLineFeedback_multipleNoSuggestions_noHtml.md",
+        false);
+  }
+
+  @Test
+  public void testPullRequestFeedback_multipleWithSuggestion_no_html() throws Exception {
+    assertContents(testCases.get(MULTIPLE_WITH_SUGGESTION), "PullRequestLineFeedback_multipleWithSuggestion_noHtml.md",
+        false);
+  }
+
+  @Test
+  public void testPullRequestFeedback_singleNoSuggestion_no_html() throws Exception {
+    assertContents(testCases.get(SINGLE_NO_SUGGESTION), "PullRequestLineFeedback_singleNoSuggestions_noHtml.md", false);
+  }
+
+  @Test
+  public void testPullRequestFeedback_singleWithSuggestion_no_html() throws Exception {
+    assertContents(testCases.get(SINGLE_WITH_SUGGESTION), "PullRequestLineFeedback_singleWithSuggestion_noHtml.md",
+        false);
   }
 
   @Test
@@ -120,7 +125,7 @@ public class PullRequestLineFeedbackTest
   public void testPullRequestFeedback_emptyViolations() throws Exception {
     assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
       new PullRequestLineFeedback(new ArrayList<>(), "Test Component", lookup(BaseUrl.class).getConfigured(), null)
-          .renderTemplateAndGetContents();
+          .renderTemplateAndGetContents(true);
     }).withMessageContaining("violations cannot be empty");
   }
 
@@ -177,5 +182,22 @@ public class PullRequestLineFeedbackTest
 
   private String removeDateFromOutput(final String value) {
     return value.trim().replaceAll("as of _.*", "");
+  }
+
+  private String readResource(String resourceName) throws Exception {
+    final Path path = Paths.get(getClass().getResource("/PullRequestLineFeedbackTest/" + resourceName).toURI());
+    return new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+  }
+  
+  private void assertContents(
+      final PullRequestLineFeedback details,
+      final String expectedContentFile,
+      boolean includeEmbeddedHtml)
+      throws Exception
+  {
+    final String expectedContent = readResource(expectedContentFile);
+    final Optional<String> contents = details.renderTemplateAndGetContents(includeEmbeddedHtml);
+    assertThat(contents).isNotEmpty();
+    assertThat(removeDateFromOutput(contents.get())).isEqualTo(removeDateFromOutput(expectedContent));
   }
 }

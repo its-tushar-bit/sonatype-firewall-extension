@@ -273,7 +273,7 @@ public class PullRequestLineCommentingServiceTest
 
     // then: gitApiClient client should be created, and delete should be called on client and DAO for each
     verify(mockGitClientFactory).createApiClient(any());
-    verify(mockGitApiClient, times(5)).deletePullRequestLineComment(anyInt());
+    verify(mockGitApiClient, times(5)).deletePullRequestLineComment(anyInt(), anyInt(), anyInt());
     verify(mockPullRequestCommentDAO, times(5)).delete(any());
   }
 
@@ -282,7 +282,7 @@ public class PullRequestLineCommentingServiceTest
     // given:
     PullRequestLineCommentingService service =
         new TestablePullRequestLineCommentingServiceBuilder().withExistingLineComments(5).build();
-    doThrow(new HttpResponseException(404, "Not Found")).when(mockGitApiClient).deletePullRequestLineComment(3);
+    doThrow(new HttpResponseException(404, "Not Found")).when(mockGitApiClient).deletePullRequestLineComment(3, 1, 1);
 
     // when: try to create line comments
     service.createPullRequestLineComments(null, gitRepositoryInfo, remediationVersionMap, pullRequestId, 
@@ -290,7 +290,7 @@ public class PullRequestLineCommentingServiceTest
 
     // then: delete should be called on API client for each, dao for all that were deleted on api
     verify(mockGitClientFactory).createApiClient(any());
-    verify(mockGitApiClient, times(5)).deletePullRequestLineComment(anyInt());
+    verify(mockGitApiClient, times(5)).deletePullRequestLineComment(anyInt(), anyInt(), anyInt());
     verify(mockPullRequestCommentDAO, times(4)).delete(any());
   }
 
@@ -300,7 +300,7 @@ public class PullRequestLineCommentingServiceTest
     PullRequestLineCommentingService service =
         new TestablePullRequestLineCommentingServiceBuilder().withExistingLineComments(5).build();
     doThrow(new HttpResponseException(400, "Bad Request")).when(mockGitApiClient)
-        .deletePullRequestLineComment(anyInt());
+        .deletePullRequestLineComment(anyInt(), anyInt(), anyInt());
 
     // when: try to create line comments
     service.createPullRequestLineComments(null, gitRepositoryInfo, remediationVersionMap, pullRequestId, 
@@ -308,7 +308,7 @@ public class PullRequestLineCommentingServiceTest
 
     // then: processing of deletes should stop after exception
     verify(mockGitClientFactory).createApiClient(any());
-    verify(mockGitApiClient, times(1)).deletePullRequestLineComment(anyInt());
+    verify(mockGitApiClient, times(1)).deletePullRequestLineComment(anyInt(), anyInt(), anyInt());
     verify(mockPullRequestCommentDAO, never()).delete(any());
   }
 

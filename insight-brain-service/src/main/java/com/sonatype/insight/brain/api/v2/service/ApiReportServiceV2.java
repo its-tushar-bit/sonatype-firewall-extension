@@ -11,10 +11,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -29,8 +31,6 @@ import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.insight.brain.model.policy.StageType;
-import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertUtil;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
@@ -81,20 +81,13 @@ public class ApiReportServiceV2
   {
     Application application = applicationDAO.getById(applicationId);
 
-    List<ApiApplicationReportDTOV2> reports = new LinkedList<>();
-    addReports(reports, application);
-
-    return reports;
+    return getReports(Collections.singletonList(application));
   }
 
   public List<ApiApplicationReportDTOV2> getAll() {
-    List<ApiApplicationReportDTOV2> reports = new LinkedList<>();
+    List<Application> apps = applicationService.getApplications(Collections.emptySet());
 
-    for (Application application : applicationService.getApplications(Collections.emptySet())) {
-      addReports(reports, application);
-    }
-
-    return reports;
+    return getReports(apps);
   }
 
   @Authorize(permission = Permission.READ)
@@ -110,16 +103,19 @@ public class ApiReportServiceV2
     return apiReportHistoryDTO;
   }
 
-  private void addReports(List<ApiApplicationReportDTOV2> reports, Application application) {
-    for (StageType stageType : StageTypes.getAll()) {
-      PolicyEvaluation eval = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(),
-          stageType.getId());
-      if (eval != null) {
-        ApiApplicationReportDTOV2 apiApplicationReportDTOV2 = new ApiApplicationReportDTOV2();
-        populateReportDTO(apiApplicationReportDTOV2, application, eval);
-        reports.add(apiApplicationReportDTOV2);
-      }
+  private List<ApiApplicationReportDTOV2> getReports(List<Application> apps) {
+    List<ApiApplicationReportDTOV2> reports = new ArrayList<>();
+
+    Map<String, Application> appsById =
+        apps.stream().collect(Collectors.toMap(Application::getId, Function.identity()));
+    List<PolicyEvaluation> policyEvaluations = policyEvaluationDAO.getLastByApplicationIds(appsById.keySet());
+    for (PolicyEvaluation policyEvaluation : policyEvaluations) {
+      ApiApplicationReportDTOV2 apiApplicationReportDTOV2 = new ApiApplicationReportDTOV2();
+      populateReportDTO(apiApplicationReportDTOV2, appsById.get(policyEvaluation.getApplicationId()), policyEvaluation);
+      reports.add(apiApplicationReportDTOV2);
     }
+
+    return reports;
   }
 
   private void populateReportDTO(ApiApplicationReportDTOV2 report, Application app, PolicyEvaluation eval) {

@@ -50,8 +50,6 @@ public class PullRequestLineCommentingService
 
   private final PullRequestFeedbackMarkupService pullRequestFeedbackMarkupService;
 
-  private final PullRequestLocationDiscoveryService locationDiscoveryService;
-
   private final PositionDiscoveryExecutor positionDiscoveryExecutor;
 
   private final InsightConfig insightConfig;
@@ -61,14 +59,12 @@ public class PullRequestLineCommentingService
       final GitClientFactory gitClientFactory,
       final SourceControlPullRequestCommentDAO pullRequestCommentDAO,
       final PullRequestFeedbackMarkupService pullRequestFeedbackMarkupService,
-      final PullRequestLocationDiscoveryService locationDiscoveryService,
       final PositionDiscoveryExecutor positionDiscoveryExecutor,
       final InsightConfig insightConfig)
   {
     this.gitClientFactory = gitClientFactory;
     this.pullRequestCommentDAO = pullRequestCommentDAO;
     this.pullRequestFeedbackMarkupService = pullRequestFeedbackMarkupService;
-    this.locationDiscoveryService = locationDiscoveryService;
     this.positionDiscoveryExecutor = positionDiscoveryExecutor;
     this.insightConfig = insightConfig;
   }
@@ -84,11 +80,11 @@ public class PullRequestLineCommentingService
       final GitRepositoryInfo gitRepositoryInfo,
       final Map<ComponentIdentifier, String> remediationVersionMap,
       final int pullRequestId,
-      final String branch,
       final String commitHash,
       final String applicationId,
       final String sourcePolicyEvaluationId,
-      final String basePolicyEvaluationId)
+      final String basePolicyEvaluationId,
+      final LocationDiscoveryResult locationDiscoveryResult)
   {
     if (!insightConfig.isFeatureEnabled(Feature.PR_LINE_COMMENTING) ||
         !gitRepositoryInfo.getProvider().supportsPullRequestLineCommenting()) {
@@ -99,10 +95,6 @@ public class PullRequestLineCommentingService
     try {
       deleteExistingLineCommentsIfExists(applicationId, gitRepositoryInfo, pullRequestId);
       if (!CollectionUtils.isEmpty(violationList)) {
-        // Find all potential source locations to comment on
-        LocationDiscoveryResult locationDiscoveryResult = locationDiscoveryService.doLocationDiscovery(
-            violationList, gitRepositoryInfo, branch, applicationId);
-
         if (locationDiscoveryResult != null && !locationDiscoveryResult.getLocationMap().isEmpty()) {
           GitApiClient gitApiClient = gitClientFactory.createApiClient(gitRepositoryInfo);
 

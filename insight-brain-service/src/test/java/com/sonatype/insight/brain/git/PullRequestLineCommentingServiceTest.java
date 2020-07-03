@@ -82,6 +82,8 @@ public class PullRequestLineCommentingServiceTest
 
   private final int scmId = 11;
 
+  private LocationDiscoveryResult locationDiscoveryResult;
+
   private final ComponentIdentifier identifier1 =
       ComponentIdentifier.createMavenCoordinates("group", "artifact", "1.0");
 
@@ -98,6 +100,10 @@ public class PullRequestLineCommentingServiceTest
     MockitoAnnotations.initMocks(this);
     super.setup();
     when(gitRepositoryInfo.getProvider()).thenReturn(SourceControlProvider.GITHUB);
+    locationDiscoveryResult = new LocationDiscoveryResult();
+    List<RankedSourceLocation> list = new LinkedList<>();
+    list.add(new RankedSourceLocation("path", 1, 1));
+    locationDiscoveryResult.getLocationMap().put(identifier1, list);
   }
 
   @Test
@@ -109,8 +115,8 @@ public class PullRequestLineCommentingServiceTest
 
     // when: try to create line comments
     List<PullRequestLineCommentDTO> lineComments = service.createPullRequestLineComments(getViolationList(1),
-        gitRepositoryInfo, remediationVersionMap, pullRequestId, branch, commitHash, applicationId,
-        sourcePolicyEvaluationId, basePolicyEvaluationId);
+        gitRepositoryInfo, remediationVersionMap, pullRequestId, commitHash, applicationId,
+        sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult);
 
     // then: one comment should be created
     verify(mockGitClientFactory, atLeastOnce()).createApiClient(any());
@@ -131,8 +137,8 @@ public class PullRequestLineCommentingServiceTest
 
     // when: try to create line comments
     List<PullRequestLineCommentDTO> lineComments = service.createPullRequestLineComments(getViolationList(2),
-        gitRepositoryInfo, remediationVersionMap, pullRequestId, branch, commitHash, applicationId,
-        sourcePolicyEvaluationId, basePolicyEvaluationId);
+        gitRepositoryInfo, remediationVersionMap, pullRequestId, commitHash, applicationId,
+        sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult);
 
     // then: two comments should be created
     verify(mockGitClientFactory, atLeastOnce()).createApiClient(any());
@@ -147,8 +153,8 @@ public class PullRequestLineCommentingServiceTest
 
     // when: try to create line comments
     List<PullRequestLineCommentDTO> lineComments = service.createPullRequestLineComments(getViolationList(2),
-        gitRepositoryInfo, remediationVersionMap, pullRequestId, branch, commitHash, applicationId,
-        sourcePolicyEvaluationId, basePolicyEvaluationId);
+        gitRepositoryInfo, remediationVersionMap, pullRequestId, branch, applicationId,
+        sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult);
 
     // then: one comment should be created
     verify(mockGitClientFactory, atLeastOnce()).createApiClient(any());
@@ -165,8 +171,8 @@ public class PullRequestLineCommentingServiceTest
 
     // when: try to create line comments
     List<PullRequestLineCommentDTO> lineComments = service.createPullRequestLineComments(getViolationList(2),
-        gitRepositoryInfo, remediationVersionMap, pullRequestId, branch, commitHash, applicationId,
-        sourcePolicyEvaluationId, basePolicyEvaluationId);
+        gitRepositoryInfo, remediationVersionMap, pullRequestId, commitHash, applicationId,
+        sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult);
 
     // then: one comment should be created
     verify(mockGitClientFactory, atLeastOnce()).createApiClient(any());
@@ -180,11 +186,12 @@ public class PullRequestLineCommentingServiceTest
     PullRequestLineCommentingService service = new TestablePullRequestLineCommentingServiceBuilder()
         .withNoSourceLocationsAvailable()
         .build();
+    locationDiscoveryResult = new LocationDiscoveryResult();
 
     // when: try to create line comments
     List<PullRequestLineCommentDTO> lineComments = service.createPullRequestLineComments(getViolationList(1),
-        gitRepositoryInfo, remediationVersionMap, pullRequestId, branch, commitHash, applicationId,
-        sourcePolicyEvaluationId, basePolicyEvaluationId);
+        gitRepositoryInfo, remediationVersionMap, pullRequestId, commitHash, applicationId,
+        sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult);
 
     // then: no comment should be created
     verify(mockGitClientFactory, never()).createApiClient(any());
@@ -200,8 +207,8 @@ public class PullRequestLineCommentingServiceTest
 
     // when: try to create line comments
     List<PullRequestLineCommentDTO> lineComments = service.createPullRequestLineComments(getViolationList(1),
-        gitRepositoryInfo, remediationVersionMap, pullRequestId, branch, commitHash, applicationId,
-        sourcePolicyEvaluationId, basePolicyEvaluationId);
+        gitRepositoryInfo, remediationVersionMap, pullRequestId, commitHash, applicationId,
+        sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult);
 
     // then: no comment should be created
     assertThat(lineComments).isEmpty();
@@ -214,8 +221,8 @@ public class PullRequestLineCommentingServiceTest
 
     // when: try to create line comments
     List<PullRequestLineCommentDTO> lineComments = service.createPullRequestLineComments(null, 
-        gitRepositoryInfo, remediationVersionMap, pullRequestId, branch, commitHash, applicationId,
-        sourcePolicyEvaluationId, basePolicyEvaluationId);
+        gitRepositoryInfo, remediationVersionMap, pullRequestId, commitHash, applicationId,
+        sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult);
 
     // then: one comment should be created
     verify(mockGitClientFactory, never()).createApiClient(any());
@@ -247,7 +254,7 @@ public class PullRequestLineCommentingServiceTest
 
     // when: try to create line comments
     service.createPullRequestLineComments(null, gitRepositoryInfo, remediationVersionMap, pullRequestId, 
-        branch, commitHash, applicationId, sourcePolicyEvaluationId, basePolicyEvaluationId);
+        commitHash, applicationId, sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult);
 
     // then: gitApiClient client should not be created, and delete should never be called on DAO
     verify(mockGitClientFactory, never()).createApiClient(any());
@@ -262,7 +269,7 @@ public class PullRequestLineCommentingServiceTest
 
     // when: try to create line comments
     service.createPullRequestLineComments(null, gitRepositoryInfo, remediationVersionMap, pullRequestId, 
-        branch, commitHash, applicationId, sourcePolicyEvaluationId, basePolicyEvaluationId);
+        commitHash, applicationId, sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult);
 
     // then: gitApiClient client should be created, and delete should be called on client and DAO for each
     verify(mockGitClientFactory).createApiClient(any());
@@ -279,7 +286,7 @@ public class PullRequestLineCommentingServiceTest
 
     // when: try to create line comments
     service.createPullRequestLineComments(null, gitRepositoryInfo, remediationVersionMap, pullRequestId, 
-        branch, commitHash, applicationId, sourcePolicyEvaluationId, basePolicyEvaluationId);
+        commitHash, applicationId, sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult);
 
     // then: delete should be called on API client for each, dao for all that were deleted on api
     verify(mockGitClientFactory).createApiClient(any());
@@ -297,7 +304,7 @@ public class PullRequestLineCommentingServiceTest
 
     // when: try to create line comments
     service.createPullRequestLineComments(null, gitRepositoryInfo, remediationVersionMap, pullRequestId, 
-        branch, commitHash, applicationId, sourcePolicyEvaluationId, basePolicyEvaluationId);
+        commitHash, applicationId, sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult);
 
     // then: processing of deletes should stop after exception
     verify(mockGitClientFactory).createApiClient(any());
@@ -403,7 +410,6 @@ public class PullRequestLineCommentingServiceTest
           mockGitClientFactory,
           mockPullRequestCommentDAO,
           mockPullRequestFeedbackMarkupService,
-          mockLocationDiscoveryService,
           mockPositionDiscoveryExecutor,
           getInsightConfig(featureFlagEnabled)
       );

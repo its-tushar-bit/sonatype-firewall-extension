@@ -17,13 +17,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
-import com.sonatype.insight.brain.git.PullRequestLocationDiscoveryService;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.report.ReportEntry;
-import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
@@ -80,7 +78,7 @@ public class PullRequestCodeInsightsDetails
 
   private final List<PolicyViolation> clearedPolicyViolations;
 
-  private final PullRequestLocationDiscoveryService locationDiscoveryService;
+  private final LocationDiscoveryResult locationDiscoveryResult;
 
   public PullRequestCodeInsightsDetails(
       final String repositoryUrl,
@@ -89,7 +87,7 @@ public class PullRequestCodeInsightsDetails
       final PolicyEvaluation featureBranchEvaluation,
       final PolicyViolationDiff<PolicyViolation> policyViolationDiff,
       final String baseUrl,
-      final PullRequestLocationDiscoveryService locationDiscoveryService)
+      final LocationDiscoveryResult locationDiscoveryResult)
   {
     this.repositoryUrl = checkNotNull(repositoryUrl, "repositoryUrl is required and cannot be null");
     this.application = checkNotNull(application, "app is required and cannot be null");
@@ -99,7 +97,7 @@ public class PullRequestCodeInsightsDetails
     this.policyViolationDiff = checkNotNull(policyViolationDiff, "policyViolationDiff is required and cannot be null");
     checkNotNull(policyViolationDiff.getAppeared(), "new violations data is required, and cannot be null");
     this.baseUrl = checkNotNull(baseUrl, "baseUrl is required and cannot be null");
-    this.locationDiscoveryService = locationDiscoveryService;
+    this.locationDiscoveryResult = locationDiscoveryResult;
 
     componentDisplayNamesMap = createDisplayNamesMap();
 
@@ -216,16 +214,9 @@ public class PullRequestCodeInsightsDetails
         .build();
   }
 
-  public List<CodeInsightAnnotation> getAnnotations(
-      final GitRepositoryInfo gitRepositoryInfo,
-      final String branch,
-      final String applicationId)
-  {
+  public List<CodeInsightAnnotation> getAnnotations() {
     BitbucketCodeInsightAnnotationRequestBuilder builder = new BitbucketCodeInsightAnnotationRequestBuilder(
         repositoryUrl);
-
-    LocationDiscoveryResult locationDiscoveryResult =
-        locationDiscoveryService.doLocationDiscovery(newPolicyViolations, gitRepositoryInfo, branch, applicationId);
 
     newPolicyViolations.forEach(policyViolation -> {
       String componentDisplayName = componentDisplayNamesMap.get(policyViolation.getHash());

@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.PullRequestCommentTelemetry;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
 import com.sonatype.nexus.scm.GitApiClientFactory;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.GitApiClientUtils;
@@ -108,6 +109,8 @@ public class PullRequestCommentingService
 
   private final List<PullRequestPostCommentAction> pullRequestPostCommentActionList;
 
+  private final PullRequestLocationDiscoveryService locationDiscoveryService;
+
   @Inject
   public PullRequestCommentingService(
       final SourceControlUtils sourceControlUtils,
@@ -126,7 +129,8 @@ public class PullRequestCommentingService
       final InsightConfig insightConfig,
       final PullRequestLineCommentingService pullRequestLineCommentingService,
       final Provider<PullRequestCommentingHashBuilder> hashBuilderProvider,
-      final List<PullRequestPostCommentAction> pullRequestPostCommentActionList)
+      final List<PullRequestPostCommentAction> pullRequestPostCommentActionList,
+      final PullRequestLocationDiscoveryService locationDiscoveryService)
   {
     this.sourceControlUtils = sourceControlUtils;
     this.gitClientFactory = gitClientFactory;
@@ -145,6 +149,7 @@ public class PullRequestCommentingService
     this.pullRequestLineCommentingService = pullRequestLineCommentingService;
     this.hashBuilderProvider = hashBuilderProvider;
     this.pullRequestPostCommentActionList = pullRequestPostCommentActionList;
+    this.locationDiscoveryService = locationDiscoveryService;
   }
 
   @Override
@@ -358,11 +363,20 @@ public class PullRequestCommentingService
   {
     PullRequestCommentTelemetry telemetry = new PullRequestCommentTelemetry(applicationId, pullRequestNumber);
 
+    LocationDiscoveryResult locationDiscoveryResult = new LocationDiscoveryResult();
+    if (isLocationDiscoveryRequired(gitRepositoryInfo, policyViolationDiff)) {
+      // Find all potential source locations to comment on
+      List<PolicyViolation> violationList = policyViolationDiff.get().getAppeared();
+      locationDiscoveryResult = locationDiscoveryService.doLocationDiscovery(
+          violationList, gitRepositoryInfo, branchName, applicationId);
+    }
+
     // line comment sub-flow
     List<PullRequestLineCommentDTO> pullRequestLineComments = pullRequestLineCommentingService
         .createPullRequestLineComments(policyViolationDiff.get().getAppeared(), gitRepositoryInfo,
-            remediationVersionMap, pullRequestNumber, branchName, sourceCommitPolicyEvaluation.getCommitHash(),
-            applicationId, sourceCommitPolicyEvaluation.getId(), baseBranchPolicyEvaluation.getId());
+            remediationVersionMap, pullRequestNumber, sourceCommitPolicyEvaluation.getCommitHash(),
+            applicationId, sourceCommitPolicyEvaluation.getId(), baseBranchPolicyEvaluation.getId(),
+            locationDiscoveryResult);
     telemetry.lineCommentCount = pullRequestLineComments.size();
 
     Optional<String> policyEvaluationDiffMarkup = pullRequestFeedbackMarkupService.createMarkup(
@@ -375,7 +389,7 @@ public class PullRequestCommentingService
       recordCommentInDatabase(applicationId, pullRequestNumber, response.getId(), response.getVersion(), contentHash,
           sourceCommitPolicyEvaluation.getId(), baseBranchPolicyEvaluation.getId(), existingPullRequestComment);
       invokePostCommentActions(gitRepositoryInfo, policyViolationDiff.get(),
-          sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation, branchName);
+          sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation, branchName, locationDiscoveryResult);
 
       prCommentingMetricsService.sendTelemetry(telemetry);
 
@@ -388,6 +402,20 @@ public class PullRequestCommentingService
       log.info("generated feedback markup was empty for application '{}' pull request '{}'",
           applicationId, pullRequestNumber);
     }
+  }
+
+  /**
+   * Check if we will need to do location discovery
+   */
+  private boolean isLocationDiscoveryRequired(final GitRepositoryInfo gitRepositoryInfo,
+                                              final Optional<PolicyViolationDiff<PolicyViolation>> policyViolationDiff)
+  {
+    if ((insightConfig.isFeatureEnabled(Feature.PR_LINE_COMMENTING) &&
+        gitRepositoryInfo.getProvider().supportsPullRequestLineCommenting()) ||
+        gitRepositoryInfo.getProvider().supportsCodeInsights()) {
+      return policyViolationDiff.isPresent() && !policyViolationDiff.get().getAppeared().isEmpty();
+    }
+    return false;
   }
 
   /**
@@ -579,13 +607,12 @@ public class PullRequestCommentingService
       final PolicyViolationDiff<PolicyViolation> policyViolationDiff,
       final PolicyEvaluation sourceCommitPolicyEvaluation,
       final PolicyEvaluation baseBranchPolicyEvaluation,
-      final String branch)
+      final String branch,
+      final LocationDiscoveryResult locationDiscoveryResult)
   {
     pullRequestPostCommentActionList.forEach(pullRequestPostCommentAction -> pullRequestPostCommentAction
-        .invokeAction(gitClientFactory, gitRepositoryInfo, policyViolationDiff,
-            sourceCommitPolicyEvaluation,
-            baseBranchPolicyEvaluation,
-            branch));
+        .invokeAction(gitClientFactory, gitRepositoryInfo, policyViolationDiff, sourceCommitPolicyEvaluation,
+            baseBranchPolicyEvaluation, branch, locationDiscoveryResult));
   }
 
   private boolean checkLicense() {

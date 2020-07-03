@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.PullRequestInfoProvider;
@@ -55,6 +56,8 @@ import static com.sonatype.insight.brain.git.PullRequestCommentingService.MINIMU
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doReturn;
@@ -683,10 +686,10 @@ public class PullRequestCommentingServiceTest
     // then : post comment actions invoked
     verify(postAction1, times(1)).invokeAction(any(GitClientFactory.class), any(GitRepositoryInfo.class),
         any(PolicyViolationDiff.class), any(PolicyEvaluation.class), any(PolicyEvaluation.class),
-        eq(branchName));
+        eq(branchName), any(LocationDiscoveryResult.class));
     verify(postAction2, times(1)).invokeAction(any(GitClientFactory.class), any(GitRepositoryInfo.class),
         any(PolicyViolationDiff.class), any(PolicyEvaluation.class), any(PolicyEvaluation.class),
-        eq(branchName));
+        eq(branchName), any(LocationDiscoveryResult.class));
   }
 
   private SourceControlEvent createDiscoveredPullRequestEvent(
@@ -754,6 +757,9 @@ public class PullRequestCommentingServiceTest
     @Mock
     private PullRequestCommentingHashBuilder mockHashBuilder;
 
+    @Mock
+    private PullRequestLocationDiscoveryService locationDiscoveryService;
+
     private boolean scmEnabled = true;
 
     private String org = "testOrg";
@@ -802,6 +808,8 @@ public class PullRequestCommentingServiceTest
         Optional.of(new PolicyViolationDiff<>());
 
     private boolean featureFlagEnabled = true;
+
+    private LocationDiscoveryResult locationDiscoveryResult = new LocationDiscoveryResult();
 
     PullRequestCommentingService build() throws Exception {
       MockitoAnnotations.initMocks(this);
@@ -867,6 +875,9 @@ public class PullRequestCommentingServiceTest
       doReturn(mockHashBuilder).when(mockHashBuilder).withRemediationVersionMap(any());
       doReturn(contentHash).when(mockHashBuilder).generateHash();
 
+      doReturn(locationDiscoveryResult).when(locationDiscoveryService)
+          .doLocationDiscovery(anyList(), any(), anyString(), anyString());
+
       return new PullRequestCommentingService(
           mockSourceControlUtils,
           mockGitClientFactory,
@@ -884,7 +895,8 @@ public class PullRequestCommentingServiceTest
           getInsightConfig(featureFlagEnabled),
           pullRequestLineCommentingService,
           mockHashBuilderProvider,
-          pullRequestPostCommentActionList
+          pullRequestPostCommentActionList,
+          locationDiscoveryService
       );
     }
 

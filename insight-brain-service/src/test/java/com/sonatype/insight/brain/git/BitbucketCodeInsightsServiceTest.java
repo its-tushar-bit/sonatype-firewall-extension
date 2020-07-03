@@ -49,14 +49,12 @@ import static com.sonatype.insight.brain.report.ReportTestUtils.createReportFile
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static com.sonatype.nexus.scm.SourceControlProvider.BITBUCKET;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 
 public class BitbucketCodeInsightsServiceTest
     extends AbstractComponentTest
@@ -94,9 +92,6 @@ public class BitbucketCodeInsightsServiceTest
   @Mock
   private BitbucketApiClient<?, ?> bitbucketApiClient;
 
-  @Mock
-  private PullRequestLocationDiscoveryService locationDiscoveryService;
-
   private Application application;
 
   private GitRepositoryInfo gitRepositoryInfo;
@@ -109,6 +104,8 @@ public class BitbucketCodeInsightsServiceTest
 
   private BitbucketCodeInsightsService service;
 
+  private LocationDiscoveryResult locationDiscoveryResult;
+
   @Before
   public void before() throws URISyntaxException, IOException {
     MockitoAnnotations.initMocks(this);
@@ -117,7 +114,7 @@ public class BitbucketCodeInsightsServiceTest
     config.setBaseUrl("http://localhost:1122");
     application = tempEntity.newApplicationWithParent();
     service =
-        new BitbucketCodeInsightsService(applicationDAO, reportService, config, baseUrl, locationDiscoveryService);
+        new BitbucketCodeInsightsService(applicationDAO, reportService, config, baseUrl);
 
     createReportFile(application.getId(), FROM_SCAN_ID,
         zipReportDir("/BitbucketCodeInsightsServiceTest/from-report", tempDir), insightWork);
@@ -140,6 +137,8 @@ public class BitbucketCodeInsightsServiceTest
         .createPolicyViolationDiff(defaultBranchPolicyEvaluation, featureBranchPolicyEvaluation).get();
 
     lenient().when(gitClientFactory.createApiClient(gitRepositoryInfo)).thenReturn(bitbucketApiClient);
+
+    locationDiscoveryResult = new LocationDiscoveryResult();
   }
 
   @Test
@@ -147,24 +146,20 @@ public class BitbucketCodeInsightsServiceTest
     // verify when disabled that the feature is not interacted with
     config.setFeatures(ImmutableMap.of(Feature.CODE_INSIGHTS.getFlag(), Boolean.FALSE));
     service.invokeAction(gitClientFactory, gitRepositoryInfo, policyViolationDiff, featureBranchPolicyEvaluation,
-        defaultBranchPolicyEvaluation, BRANCH);
+        defaultBranchPolicyEvaluation, BRANCH, locationDiscoveryResult);
     verifyNoInteractions(bitbucketApiClient);
 
     // verify when enabled that the feature is interacted with
     config.setFeatures(ImmutableMap.of(Feature.CODE_INSIGHTS.getFlag(), Boolean.TRUE));
-    when(locationDiscoveryService.doLocationDiscovery(anyList(),
-        any(GitRepositoryInfo.class), anyString(), anyString())).thenReturn(new LocationDiscoveryResult());
     service.invokeAction(gitClientFactory, gitRepositoryInfo, policyViolationDiff, featureBranchPolicyEvaluation,
-        defaultBranchPolicyEvaluation, BRANCH);
+        defaultBranchPolicyEvaluation, BRANCH, locationDiscoveryResult);
     verify(bitbucketApiClient).deleteCodeInsightReport(anyString(), anyString()); //interaction itself doesn't matter
   }
 
   @Test
   public void testCodeInsightFlow() throws IOException {
-    when(locationDiscoveryService.doLocationDiscovery(anyList(),
-        any(GitRepositoryInfo.class), anyString(), anyString())).thenReturn(new LocationDiscoveryResult());
     service.invokeAction(gitClientFactory, gitRepositoryInfo, policyViolationDiff, featureBranchPolicyEvaluation,
-        defaultBranchPolicyEvaluation, BRANCH);
+        defaultBranchPolicyEvaluation, BRANCH, locationDiscoveryResult);
 
     URI reportUri = URI.create(String.format("http://localhost:1122/ui/links/application/%s/report/toScanId",
         application.getPublicId()));
@@ -193,7 +188,7 @@ public class BitbucketCodeInsightsServiceTest
     gitRepositoryInfo.provider = GITHUB;
 
     service.invokeAction(gitClientFactory, gitRepositoryInfo, policyViolationDiff, featureBranchPolicyEvaluation,
-        defaultBranchPolicyEvaluation, BRANCH);
+        defaultBranchPolicyEvaluation, BRANCH, locationDiscoveryResult);
 
     verifyNoInteractions(bitbucketApiClient);
   }

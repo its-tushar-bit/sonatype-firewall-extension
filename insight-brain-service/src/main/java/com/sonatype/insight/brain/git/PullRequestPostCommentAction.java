@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
 
 /**
  * For every pull request comment that is created or updated, the {@link #invokeAction} method of implementors of this
@@ -31,5 +32,6 @@ public interface PullRequestPostCommentAction
       final PolicyViolationDiff<PolicyViolation> policyViolationDiff,
       final PolicyEvaluation sourceCommitPolicyEvaluation,
       final PolicyEvaluation baseBranchPolicyEvaluation,
-      final String branch);
+      final String branch,
+      final LocationDiscoveryResult locationDiscoveryResult);
 }

@@ -523,7 +523,7 @@ public class CLMLicenseManagerTest
     mockHdsProductLicenseDetails(withInvalidSignature());
     assertThatExceptionOfType(LicensingException.class).isThrownBy(() -> {
       installLicense();
-    }).withMessage("Could not verify signature of license details");
+    }).withMessageStartingWith("Could not verify signature of license details");
     assertThat(licenseManager.isValid()).isFalse();
     assertThat(productLicense.isValid()).isFalse();
   }

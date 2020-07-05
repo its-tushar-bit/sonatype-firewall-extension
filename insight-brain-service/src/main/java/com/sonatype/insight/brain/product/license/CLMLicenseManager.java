@@ -234,7 +234,8 @@ public class CLMLicenseManager
       }
     }
     catch (Exception e) {
-      throw new LicensingException("Could not verify signature of license details", e);
+      throw new LicensingException(
+          "Could not verify signature of license details with fingerprint " + licenseFingerprint, e);
     }
   }
 

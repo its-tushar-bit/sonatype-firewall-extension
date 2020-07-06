@@ -459,16 +459,16 @@ public class CLMLicenseManager
       features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
     }
     stageTypes.add(StageTypes.PROXY);
-    if (licenseDetails.features.contains(LicensedFeature.EXTERNAL_DATABASE.name())) {
-      features.add(LicensedFeature.EXTERNAL_DATABASE);
-    }
 
-    if (licenseDetails.features.contains(LicensedFeature.HYGIENE.name())) {
-      features.add(LicensedFeature.HYGIENE);
-    }
-
-    if (licenseDetails.features.contains(LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES.name())) {
-      features.add(LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES);
+    Set<LicensedFeature> hdsControlledFeatures = EnumSet.of( //
+        LicensedFeature.EXTERNAL_DATABASE, //
+        LicensedFeature.HYGIENE, //
+        LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES //
+    );
+    for (LicensedFeature feature : hdsControlledFeatures) {
+      if (licenseDetails.features.contains(feature.name())) {
+        features.add(feature);
+      }
     }
 
     productLicense.set(key, licenseFingerprint, products, features, stageTypes, applicationCount,

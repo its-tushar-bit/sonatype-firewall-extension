@@ -365,7 +365,7 @@ class ScrubberInsertMods
     insertModMap.put(h2OdsTable("organization"), tableMod("name"));
     insertModMap.put(h2OdsTable("policy"), tableMod("name", "content:json"));
     insertModMap.put(h2OdsTable("policy_violation"),
-        tableMod("policy_name", "component_id_coordinates_json:componentIdentifier"));
+        tableMod("policy_name", "component_id_coordinates_json:componentIdentifier", "filename:path"));
     insertModMap.put(h2OdsTable("policy_waiver"), tableMod("comment"));
     insertModMap.put(h2OdsTable("repository"), tableMod("public_id"));
     insertModMap.put(h2OdsTable("repository_component"), repositoryComponentScrubber());

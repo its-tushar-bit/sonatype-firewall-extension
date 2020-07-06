@@ -105,22 +105,22 @@ public class DbScrubberTest
 
   @Test
   public void testScrubDB_Table_repository_policy_violation() throws Exception {
-    RepositoryPolicyViolation repositoryPolicyViolation =
-        tempEntity.newRepositoryPolicyViolation(tempEntity.newRepository().getId(), 5, "testPathname", true,
-            "testPolicyId", "testPolicyName", ComponentIdentifier.createNpmCoordinates("TestPackageId", "TestVersion"));
+    RepositoryPolicyViolation repositoryPolicyViolation = tempEntity.newRepositoryPolicyViolation(
+        tempEntity.newRepository().getId(), 5, "testPath1/testPath2/testFilename", true, "testPolicyId",
+        "testPolicyName", ComponentIdentifier.createNpmCoordinates("TestPackageId", "TestVersion"));
     repositoryPolicyViolation.setPolicyWaiverComment("testPolicyWaiverComment");
     new RepositoryPolicyViolationDAO().update(repositoryPolicyViolation);
 
     scrubDb();
 
-    assertThat(getSqlDumpContent()).contains(repositoryPolicyViolation.getId(), "testPathname", "testPolicyName",
-        "testPolicyWaiverComment", "TestPackageId", "TestVersion", ComponentIdentifier.NPM_PACKAGE_ID,
+    assertThat(getSqlDumpContent()).contains(repositoryPolicyViolation.getId(), "testPath1/testPath2/testFilename",
+        "testPolicyName", "testPolicyWaiverComment", "TestPackageId", "TestVersion", ComponentIdentifier.NPM_PACKAGE_ID,
         ComponentIdentifier.VERSION);
     String scrubbedSqlContent = getScrubbedSqlContent();
     assertThat(scrubbedSqlContent).contains(repositoryPolicyViolation.getId(), ComponentIdentifier.NPM_PACKAGE_ID,
         ComponentIdentifier.VERSION);
-    assertThat(scrubbedSqlContent).doesNotContain("testPathname", "testPolicyName", "testPolicyWaiverComment",
-        "TestPackageId", "TestVersion");
+    assertThat(scrubbedSqlContent).doesNotContain("testPath1", "testPath2", "testFilename",
+        "testPolicyWaiverComment", "TestPackageId", "TestVersion");
   }
 
   @Test
@@ -542,17 +542,20 @@ public class DbScrubberTest
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId");
     Policy policy = tempEntity.newPolicy();
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy,
-        ComponentIdentifier.createNpmCoordinates("TestPackageId", "TestVersion"), "TestHash");
+        ComponentIdentifier.createNpmCoordinates("TestPackageId", "TestVersion"), "TestHash", "TestReason",
+        "TestPath1/TestPath2/TestFileName");
     new PolicyDAO().delete(policy);
 
     scrubDb();
 
     assertThat(getSqlDumpContent()).contains(policyViolation.getId(), policy.getName(), "TestHash", "TestPackageId",
-        "TestVersion", ComponentIdentifier.NPM_PACKAGE_ID, ComponentIdentifier.VERSION, policy.getName());
+        "TestVersion", ComponentIdentifier.NPM_PACKAGE_ID, ComponentIdentifier.VERSION, policy.getName(),
+        "TestPath1/TestPath2/TestFileName");
     String scrubbedSqlContent = getScrubbedSqlContent();
     assertThat(scrubbedSqlContent).contains(policyViolation.getId(), "TestHash", ComponentIdentifier.NPM_PACKAGE_ID,
         ComponentIdentifier.VERSION);
-    assertThat(scrubbedSqlContent).doesNotContain("TestPackageId", "TestVersion", policy.getName());
+    assertThat(scrubbedSqlContent).doesNotContain("TestPackageId", "TestVersion", policy.getName(), "TestPath1",
+        "TestPath2", "TestFilename");
   }
 
   private void scrubDb() {

@@ -18,6 +18,7 @@ import java.util.Map.Entry;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -56,6 +57,8 @@ public class JiraPolicyAlertNotifier
 
   private final InsightConfig insightConfig;
 
+  private final ADFBuilder adfBuilder;
+
   private final UserDirectory userDirectory;
 
   private final JiraService jiraService;
@@ -67,6 +70,8 @@ public class JiraPolicyAlertNotifier
   private final AuditRecorder auditRecorder;
 
   private final ProductLicense productLicense;
+
+  private Boolean cloudDeployment;
 
   @Inject
   public JiraPolicyAlertNotifier(
@@ -93,6 +98,7 @@ public class JiraPolicyAlertNotifier
     catch (IOException e) {
       throw new UncheckedIOException(e);
     }
+    adfBuilder = new ADFBuilder(baseUrl);
   }
 
   public void sendNotifications(final Application app,
@@ -157,25 +163,40 @@ public class JiraPolicyAlertNotifier
               request.summary(String
                   .format("Nexus IQ: Application %s; %s stage; %d Policy alerts", app.getName(), stage.getStageName(),
                       counts.getTotal()));
-
-              // render description from template; prepare template parameters with appropriate details
-              Map<String, Object> params = createPolicyMailModel(app, appContact, scanId, stage, counts, policyFacts);
-              request.description(TemplateUtils.render(descriptionTemplate, params));
+              request.description(
+                  createDescription(app, appContact, scanId, stage, counts, policyFacts, isCloudDeployment()));
 
               log.debug("Creating JIRA issue: {}", request);
               JiraClient client = jiraService.client();
-              JiraIssueCreateResponse response = client.createIssue(request);
+              JiraIssueCreateResponse response = client.createIssue(request, isCloudDeployment());
               log.info("Created JIRA issue: {}", response.getKey());
             }
             catch (Exception e) {
               AuditData.get().setException(e);
               log.error(
                   "Failed to create JIRA notification for JIRA project key " + jiraNotification.getProjectKey() +
-                    " and JIRA issue type id " + jiraNotification.getIssueTypeId() + ". Failed for application " +
-                    app.getPublicId() + " and scan " + scanId + " in stage " + stage.getStageTypeId(), e);
+                      " and JIRA issue type id " + jiraNotification.getIssueTypeId() + ". Failed for application " +
+                      app.getPublicId() + " and scan " + scanId + " in stage " + stage.getStageTypeId(), e);
             }
           }
         }
+      }
+
+      private Object createDescription(
+          final Application app,
+          final ContactDTO appContact,
+          final String scanId,
+          final Stage stage,
+          final PolicyAlertCounts counts,
+          final List<PolicyFact> policyFacts,
+          final boolean cloudDeployment) throws IOException
+      {
+        if (cloudDeployment) {
+          return adfBuilder.createDescription(app, appContact, scanId, stage, counts, policyFacts);
+        }
+        // render description from template; prepare template parameters with appropriate details
+        Map<String, Object> params = createPolicyMailModel(app, appContact, scanId, stage, counts, policyFacts);
+        return TemplateUtils.render(descriptionTemplate, params);
       }
     }.start();
   }
@@ -223,6 +244,14 @@ public class JiraPolicyAlertNotifier
     return policyFactsByJiraNotifications;
   }
 
+  private boolean isCloudDeployment() throws IOException {
+    if (cloudDeployment == null) {
+      JiraClient client = jiraService.client();
+      cloudDeployment = client.isCloudDeployment();
+    }
+    return cloudDeployment;
+  }
+
   /**
    * Representation of policy alert sections.
    *
@@ -232,13 +261,13 @@ public class JiraPolicyAlertNotifier
    */
   public static class PolicyAlertSections
   {
-    public class Section
+    public static class Section
     {
       private final int threatLevel;
 
       private final String policyName;
 
-      private final List<PolicyFact> facts = new ArrayList<>();
+      private final Map<String, Integer> componentViolationCountMap = new LinkedHashMap<>();
 
       public Section(final int threatLevel, final String policyName) {
         this.threatLevel = threatLevel;
@@ -253,12 +282,16 @@ public class JiraPolicyAlertNotifier
         return policyName;
       }
 
-      public List<PolicyFact> getFacts() {
-        return facts;
+      public Map<String, Integer> getComponentViolationCountMap() {
+        return componentViolationCountMap;
       }
 
       public void add(final PolicyFact fact) {
-        facts.add(fact);
+        for (ComponentFact componentFact : fact.getComponentFacts()) {
+          String text = componentFact.getDisplayName() == null ?
+              "Hash: " + componentFact.getHash() : componentFact.getDisplayName().toString();
+          componentViolationCountMap.compute(text, (k, v) -> (v == null) ? 1 : v + 1);
+        }
       }
     }
 
@@ -270,13 +303,15 @@ public class JiraPolicyAlertNotifier
     private final Map<String, Section> sections = new LinkedHashMap<>();
 
     public PolicyAlertSections(final List<PolicyFact> policyFacts) {
-      for (PolicyFact policyFact : policyFacts) {
-        Section section = sections.get(policyFact.getPolicyId());
-        if (section == null) {
-          section = new Section(policyFact.getThreatLevel(), policyFact.getPolicyName());
-          sections.put(policyFact.getPolicyId(), section);
+      if (policyFacts != null) {
+        for (PolicyFact policyFact : policyFacts) {
+          Section section = sections.get(policyFact.getPolicyId());
+          if (section == null) {
+            section = new Section(policyFact.getThreatLevel(), policyFact.getPolicyName());
+            sections.put(policyFact.getPolicyId(), section);
+          }
+          section.add(policyFact);
         }
-        section.add(policyFact);
       }
     }
 

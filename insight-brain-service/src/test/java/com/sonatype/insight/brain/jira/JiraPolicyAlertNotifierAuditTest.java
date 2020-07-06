@@ -34,6 +34,7 @@ import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -82,7 +83,8 @@ public class JiraPolicyAlertNotifierAuditTest
     List<PolicyNotification> policyNotifications = createPolicyNotifications();
 
     JiraIssueCreateResponse jiraIssueCreateResponse = mock(JiraIssueCreateResponse.class);
-    when(mockJiraClient.createIssue(any(JiraIssueCreateRequest.class))).thenReturn(jiraIssueCreateResponse);
+    when(mockJiraClient.createIssue(any(JiraIssueCreateRequest.class), anyBoolean()))
+        .thenReturn(jiraIssueCreateResponse);
     when(jiraIssueCreateResponse.getKey()).thenReturn("audit-jira-key");
 
     jiraPolicyAlertNotifier.sendNotifications(app, SCAN_ID, new Stage(STAGE_ID, "BUILD"), policyNotifications);
@@ -101,7 +103,7 @@ public class JiraPolicyAlertNotifierAuditTest
     List<PolicyNotification> policyNotifications = createPolicyNotifications();
 
     JiraIssueCreateResponse jiraIssueCreateResponse = mock(JiraIssueCreateResponse.class);
-    when(mockJiraClient.createIssue(any())).thenThrow(new BadGatewayException("broken"))
+    when(mockJiraClient.createIssue(any(), anyBoolean())).thenThrow(new BadGatewayException("broken"))
         .thenReturn(jiraIssueCreateResponse);
     when(jiraIssueCreateResponse.getKey()).thenReturn("audit-jira-key");
 

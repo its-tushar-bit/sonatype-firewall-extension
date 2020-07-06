@@ -49,6 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.timeout;
@@ -120,7 +121,7 @@ public class JiraPolicyAlertNotifierTest
     ArgumentCaptor<JiraIssueCreateRequest> createRequestArgumentCaptor = ArgumentCaptor
         .forClass(JiraIssueCreateRequest.class);
     verify(jiraClient, timeout(NOTIFICATION_WAIT_TIMEOUT.toMillis()))
-        .createIssue(createRequestArgumentCaptor.capture());
+        .createIssue(createRequestArgumentCaptor.capture(), anyBoolean());
 
     JiraIssueCreateRequest jiraIssueCreateRequest = createRequestArgumentCaptor.getValue();
     assertThat(jiraIssueCreateRequest.getFields()).hasSize(4);
@@ -157,10 +158,10 @@ public class JiraPolicyAlertNotifierTest
     ArgumentCaptor<JiraIssueCreateRequest> createRequestArgumentCaptor = ArgumentCaptor
         .forClass(JiraIssueCreateRequest.class);
     verify(jiraClient, timeout(NOTIFICATION_WAIT_TIMEOUT.toMillis()))
-        .createIssue(createRequestArgumentCaptor.capture());
+        .createIssue(createRequestArgumentCaptor.capture(), anyBoolean());
 
     JiraIssueCreateRequest jiraIssueCreateRequest = createRequestArgumentCaptor.getValue();
-    assertThat((String) jiraIssueCreateRequest.getField("description"))
+    assertThat(jiraIssueCreateRequest.getField("description").toString())
         .contains(ComponentDisplayNameUtil.fromIdentifier(identifier).toString());
   }
 
@@ -184,7 +185,7 @@ public class JiraPolicyAlertNotifierTest
         .createPolicyNotifications(policyViolations, evaluation.getStageTypeId(), evaluation.isForMonitoring());
 
     Exception ex = new RuntimeException();
-    doThrow(ex).when(jiraClient).createIssue(any(JiraIssueCreateRequest.class));
+    doThrow(ex).when(jiraClient).createIssue(any(JiraIssueCreateRequest.class), anyBoolean());
     jiraPolicyAlertNotifier.sendNotifications(application, scanId, stage, policyNotifications);
 
     await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> {
@@ -232,7 +233,7 @@ public class JiraPolicyAlertNotifierTest
     assertThat(logOutput).atDebugLevel().contains("JIRA integration is not enabled; skipping issue creation");
 
     verify(jiraClient, timeout(NOTIFICATION_WAIT_TIMEOUT.toMillis()).times(0))
-        .createIssue(any(JiraIssueCreateRequest.class));
+        .createIssue(any(JiraIssueCreateRequest.class), anyBoolean());
   }
 
   @Test
@@ -271,6 +272,6 @@ public class JiraPolicyAlertNotifierTest
 
     jiraPolicyAlertNotifier.sendNotifications(application, scanId, stage, policyNotifications);
 
-    verify(jiraClient, timeout(NOTIFICATION_WAIT_TIMEOUT.toMillis()).times(0)).createIssue(any());
+    verify(jiraClient, timeout(NOTIFICATION_WAIT_TIMEOUT.toMillis()).times(0)).createIssue(any(), anyBoolean());
   }
 }

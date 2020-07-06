@@ -173,7 +173,7 @@ public class PolicyEvaluateServiceTest
     JiraClient mockJiraClient = mock(JiraClient.class);
     when(mockJiraClientFactory.create()).thenReturn(mockJiraClient);
     JiraIssueCreateResponse createResponse = new JiraIssueCreateResponse();
-    when(mockJiraClient.createIssue(any(JiraIssueCreateRequest.class))).thenReturn(createResponse);
+    when(mockJiraClient.createIssue(any(JiraIssueCreateRequest.class), anyBoolean())).thenReturn(createResponse);
 
     String mailA = "manager@example.com";
     String mailB = "john.doe@example.com";
@@ -405,7 +405,7 @@ public class PolicyEvaluateServiceTest
     JiraClient mockJiraClient = mock(JiraClient.class);
     when(mockJiraClientFactory.create()).thenReturn(mockJiraClient);
     JiraIssueCreateResponse createResponse = new JiraIssueCreateResponse();
-    when(mockJiraClient.createIssue(any(JiraIssueCreateRequest.class))).thenReturn(createResponse);
+    when(mockJiraClient.createIssue(any(JiraIssueCreateRequest.class), anyBoolean())).thenReturn(createResponse);
 
     String mailA = "managerWithPolling@example.com";
     String mailB = "john.doeWithPolling@example.com";
@@ -781,7 +781,7 @@ public class PolicyEvaluateServiceTest
 
     ArgumentCaptor<JiraIssueCreateRequest> createRequestArgumentCaptor = ArgumentCaptor
         .forClass(JiraIssueCreateRequest.class);
-    verify(mockJiraClient, timeout(5000)).createIssue(createRequestArgumentCaptor.capture());
+    verify(mockJiraClient, timeout(5000)).createIssue(createRequestArgumentCaptor.capture(), anyBoolean());
     JiraIssueCreateRequest jiraIssueCreateRequest = createRequestArgumentCaptor.getValue();
     assertThat(jiraIssueCreateRequest.getFields()).hasSize(4);
     Map<String, String> projectMeta = jiraIssueCreateRequest.getField(JiraField.PROJECT);
@@ -814,7 +814,7 @@ public class PolicyEvaluateServiceTest
     assertNotifications(messagesA, 0, 5000);
     assertNotifications(messagesB, 0, 1000);
 
-    verify(mockJiraClient, times(0)).createIssue(any(JiraIssueCreateRequest.class));
+    verify(mockJiraClient, times(0)).createIssue(any(JiraIssueCreateRequest.class), anyBoolean());
 
     messagesA.clear();
     messagesB.clear();

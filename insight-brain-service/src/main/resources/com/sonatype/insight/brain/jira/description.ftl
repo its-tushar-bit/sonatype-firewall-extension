@@ -37,22 +37,11 @@ h1. Nexus IQ Notification
   </#if>
 </#macro>
 
-<#-- Returns the display text for a component -->
-<#macro component_display component>
-  <#if component.displayName??>
-  ${component.displayName}<#t>
-  <#else>
-  Hash: ${component.hash}<#t>
-  </#if>
-</#macro>
-
 <#-- Renders an alert section panel with component details -->
 <#macro fact_section section>
-{panel:title=${section.policyName}|titleColor=#FFFFFF|titleBGColor=<@threat_color threatLevel=section.threatLevel/>|bgColor=#FFFFFF}
-  <#list section.facts as fact>
-    <#list fact.componentFacts as component>
-  * <@component_display component=component/><#lt>
-  </#list>
+{panel:title=${section.threatLevel} - ${section.policyName}|titleColor=#FFFFFF|titleBGColor=<@threat_color threatLevel=section.threatLevel/>|bgColor=#FFFFFF}
+<#list section.componentViolationCountMap as key, value>
+* ${key} <#if value gt 1>{color:#808080}(${value} violations){color}</#if>
 </#list>
 {panel}
 </#macro>

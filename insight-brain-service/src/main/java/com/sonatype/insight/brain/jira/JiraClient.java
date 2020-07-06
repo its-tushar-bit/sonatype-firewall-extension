@@ -53,17 +53,34 @@ public class JiraClient
   }
 
   /**
-   * Create a new issue.
-   *
-   * https://docs.atlassian.com/jira/REST/latest/#api/2/issue-createIssue
+   * Get details about deployment type: cloud vs server
+   * https://docs.atlassian.com/jira/REST/latest/#api/2/serverInfo
    */
-  public JiraIssueCreateResponse createIssue(final JiraIssueCreateRequest request) throws IOException {
-    HttpEntity entity = new StringEntity(JsonUtils.format(request), ContentType.APPLICATION_JSON);
-    Result result = path("/rest/api/2/issue").post(entity);
+  public boolean isCloudDeployment() throws IOException {
+    Result result = path("/rest/api/2/serverInfo").get();
+    if (result.status() >= 300) {
+      handleError(result, "fetch server info.");
+    }
+    ServerInfoResponse serverInfoResponse = JsonUtils.parse(result.text(), ServerInfoResponse.class);
+    return serverInfoResponse != null && serverInfoResponse.isCloudDeployment();
+  }
+
+  /**
+   * Create a new issue
+   * for Jira Cloud: https://developer.atlassian.com/cloud/jira/platform/rest/v3/#api-rest-api-3-issue-post
+   * , or
+   * for Jira Server: https://docs.atlassian.com/jira/REST/latest/#api/2/issue-createIssue
+   */
+  public JiraIssueCreateResponse createIssue(final JiraIssueCreateRequest request, final boolean isForCloud)
+      throws IOException
+  {
+    String jsonRequest = JsonUtils.format(request);
+    HttpEntity entity = new StringEntity(jsonRequest, ContentType.APPLICATION_JSON);
+    String path = isForCloud ? "/rest/api/3/issue" : "/rest/api/2/issue";
+    Result result = path(path).post(entity);
     if (result.status() >= 300) {
       return handleError(result, "create issue.");
     }
-
     return JsonUtils.parse(result.text(), JiraIssueCreateResponse.class);
   }
 
@@ -81,5 +98,18 @@ public class JiraClient
     }
 
     throw new BadGatewayException("Unexpected error from Jira when trying to " + context);
+  }
+
+  static class ServerInfoResponse
+  {
+    private String deploymentType;
+
+    public void setDeploymentType(final String deploymentType) {
+      this.deploymentType = deploymentType;
+    }
+
+    public boolean isCloudDeployment() {
+      return "Cloud".equalsIgnoreCase(deploymentType);
+    }
   }
 }

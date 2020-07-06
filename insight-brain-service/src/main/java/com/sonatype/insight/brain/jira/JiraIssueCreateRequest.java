@@ -62,8 +62,8 @@ public class JiraIssueCreateRequest
   /**
    * Helper to set {@code description} field.
    */
-  JiraIssueCreateRequest description(final String text) {
-    return field(DESCRIPTION, text);
+  JiraIssueCreateRequest description(final Object description) {
+    return field(DESCRIPTION, description);
   }
 
   @Override

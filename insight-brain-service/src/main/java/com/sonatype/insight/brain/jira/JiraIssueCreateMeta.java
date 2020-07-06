@@ -13,6 +13,7 @@ import java.util.List;
  * This includes the minimal data needed to determine which projects, issue-types and fields.
  *
  * https://docs.atlassian.com/jira/REST/latest/#api/2/issue-getCreateIssueMeta
+ * https://developer.atlassian.com/cloud/jira/platform/rest/v3/#api-rest-api-3-issue-createmeta-get
  *
  * @since 1.21.0
  */

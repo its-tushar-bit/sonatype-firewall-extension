@@ -18,12 +18,9 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
-import com.sonatype.insight.brain.db.PostgresDatabaseEngine;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.db.H2DatabaseEngine;
 
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.quartz.CronTrigger;
 import org.quartz.DailyTimeIntervalTrigger;
@@ -37,16 +34,11 @@ import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
 import org.quartz.TriggerKey;
 import org.quartz.impl.StdScheduler;
-import org.quartz.impl.jdbcjobstore.HSQLDBDelegate;
-import org.quartz.impl.jdbcjobstore.JobStoreTX;
-import org.quartz.impl.jdbcjobstore.PostgreSQLDelegate;
 import org.quartz.simpl.SimpleThreadPool;
 import org.quartz.utils.DBConnectionManager;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 public class TaskSchedulerTest
     extends AbstractComponentTest
@@ -54,16 +46,9 @@ public class TaskSchedulerTest
   @Inject
   private TaskScheduler taskScheduler;
 
-  private TaskScheduler taskSchedulerSpy;
-
   @Override
   public void configure(Properties properties) {
     properties.put("scheduler.name", TaskScheduler.DEFAULT_SCHEDULER_NAME + "-" + UUID.randomUUID());
-  }
-
-  @Before
-  public void before() {
-    taskSchedulerSpy = spy(taskScheduler);
   }
 
   @After
@@ -91,44 +76,10 @@ public class TaskSchedulerTest
   }
 
   @Test
-  public void testCreateJobStore_H2() throws Exception {
-    when(taskSchedulerSpy.getDatabaseEngine()).thenReturn(H2DatabaseEngine.INSTANCE);
-
-    JobStoreTX jobStoreTX = taskSchedulerSpy.createJobStore(new SimpleThreadPool());
-
-    assertThat(jobStoreTX.isClustered()).isFalse();
-    assertThat(jobStoreTX.getDriverDelegateClass()).isEqualTo(HSQLDBDelegate.class.getName());
-    testCreateJobStore(jobStoreTX);
-  }
-
-  @Test
-  public void testCreateJobStore_Postgres() throws Exception {
-    when(taskSchedulerSpy.getDatabaseEngine()).thenReturn(PostgresDatabaseEngine.INSTANCE);
-
-    JobStoreTX jobStoreTX = taskSchedulerSpy.createJobStore(new SimpleThreadPool());
-
-    assertThat(jobStoreTX.getDriverDelegateClass()).isEqualTo(PostgreSQLDelegate.class.getName());
-    assertThat(jobStoreTX.isClustered()).isTrue();
-    assertThat(jobStoreTX.getClusterCheckinInterval()).isEqualTo(3000);
-    testCreateJobStore(jobStoreTX);
-  }
-
-  private void testCreateJobStore(JobStoreTX jobStoreTX) {
-    assertThat(jobStoreTX.getDataSource()).isEqualTo("ods");
-    assertThat(jobStoreTX.getTablePrefix()).isEqualTo(OperationalDataStoreProvider.ID + ".QRTZ_");
-    assertThat(jobStoreTX.canUseProperties()).isTrue();
-  }
-
-  @Test
   public void testCreateThreadPool() {
     SimpleThreadPool simpleThreadPool = taskScheduler.createThreadPool();
     assertThat(simpleThreadPool.getPoolSize()).isEqualTo(10);
     assertThat(simpleThreadPool.isMakeThreadsDaemons()).isTrue();
-  }
-
-  @Test
-  public void testGetDatabaseEngine() {
-    assertThat(taskScheduler.getDatabaseEngine()).isEqualTo(H2DatabaseEngine.INSTANCE);
   }
 
   @Test
@@ -143,7 +94,7 @@ public class TaskSchedulerTest
     assertThat(scheduler.getSchedulerName()).startsWith("QuartzScheduler");
     assertThat(scheduler.getSchedulerInstanceId()).isNotNull();
     assertThat(scheduler.getMetaData().getThreadPoolClass()).isEqualTo(SimpleThreadPool.class);
-    assertThat(scheduler.getMetaData().getJobStoreClass()).isEqualTo(JobStoreTX.class);
+    assertThat(scheduler.getMetaData().getJobStoreClass()).isEqualTo(QuartzJobStoreTX.class);
   }
 
   @Test

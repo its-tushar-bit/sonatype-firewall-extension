@@ -16,12 +16,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
-import com.sonatype.insight.brain.db.PostgresDatabaseEngine;
-import com.sonatype.insight.db.DatabaseEngine;
-import com.sonatype.insight.db.H2DatabaseEngine;
-
 import io.dropwizard.lifecycle.Managed;
 import org.quartz.CronScheduleBuilder;
 import org.quartz.DailyTimeIntervalScheduleBuilder;
@@ -37,13 +31,8 @@ import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
 import org.quartz.TriggerKey;
 import org.quartz.impl.DirectSchedulerFactory;
-import org.quartz.impl.jdbcjobstore.HSQLDBDelegate;
-import org.quartz.impl.jdbcjobstore.InvalidConfigurationException;
-import org.quartz.impl.jdbcjobstore.JobStoreTX;
-import org.quartz.impl.jdbcjobstore.PostgreSQLDelegate;
 import org.quartz.simpl.SimpleThreadPool;
 import org.quartz.spi.JobFactory;
-import org.quartz.spi.ThreadPool;
 import org.quartz.utils.DBConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +47,7 @@ public class TaskScheduler
 
   private static final Logger log = LoggerFactory.getLogger(TaskScheduler.class);
 
-  private static final String DATA_SOURCE_NAME = "ods";
+  private final QuartzJobStoreTX quartzJobStoreTX;
 
   private final JobFactory jobFactory;
 
@@ -68,31 +57,13 @@ public class TaskScheduler
 
   @Inject
   public TaskScheduler(
+      QuartzJobStoreTX quartzJobStoreTX,
       JobFactory jobFactory,
       @Named("${scheduler.name:-" + DEFAULT_SCHEDULER_NAME + "}") String schedulerName)
   {
+    this.quartzJobStoreTX = quartzJobStoreTX;
     this.jobFactory = jobFactory;
     this.schedulerName = schedulerName;
-  }
-
-  // Visible for testing
-  JobStoreTX createJobStore(ThreadPool threadPool) throws InvalidConfigurationException {
-    JobStoreTX jobStoreTX = new JobStoreTX();
-    jobStoreTX.setDataSource(DATA_SOURCE_NAME);
-    jobStoreTX.setTablePrefix(OperationalDataStoreProvider.ID + ".QRTZ_");
-    jobStoreTX.setUseProperties("true");
-    jobStoreTX.setThreadPoolSize(threadPool.getPoolSize());
-    DatabaseEngine dbEngine = getDatabaseEngine();
-    if (H2DatabaseEngine.INSTANCE.equals(dbEngine)) {
-      jobStoreTX.setIsClustered(false);
-      jobStoreTX.setDriverDelegateClass(HSQLDBDelegate.class.getName());
-    }
-    else if (PostgresDatabaseEngine.INSTANCE.equals(dbEngine)) {
-      jobStoreTX.setIsClustered(true);
-      jobStoreTX.setClusterCheckinInterval(3000);
-      jobStoreTX.setDriverDelegateClass(PostgreSQLDelegate.class.getName());
-    }
-    return jobStoreTX;
   }
 
   // Visible for testing
@@ -104,24 +75,19 @@ public class TaskScheduler
   }
 
   // Visible for testing
-  DatabaseEngine getDatabaseEngine() {
-    return DataSourceFactory.getDatabaseEngine(OperationalDataStoreProvider.getDataSource());
-  }
-
-  // Visible for testing
   Scheduler createScheduler() {
     try {
-      DBConnectionManager.getInstance().addConnectionProvider(DATA_SOURCE_NAME, new QuartzConnectionProvider());
+      DBConnectionManager.getInstance()
+          .addConnectionProvider(QuartzJobStoreTX.DATA_SOURCE_NAME, new QuartzConnectionProvider());
       String schedulerInstanceId = UUID.randomUUID().toString().replace("-", "");
-      ThreadPool threadPool = createThreadPool();
       // This reuses the schedulerName and schedulerInstanceId for the Scheduler, ThreadPool, and JobStore
       DirectSchedulerFactory.getInstance()
-          .createScheduler(schedulerName, schedulerInstanceId, threadPool, createJobStore(threadPool));
+          .createScheduler(schedulerName, schedulerInstanceId, createThreadPool(), quartzJobStoreTX);
       Scheduler scheduler = DirectSchedulerFactory.getInstance().getScheduler(schedulerName);
       scheduler.setJobFactory(jobFactory);
       return scheduler;
     }
-    catch (SchedulerException | InvalidConfigurationException e) {
+    catch (SchedulerException e) {
       throw new IllegalStateException("Could not create job scheduler", e);
     }
   }

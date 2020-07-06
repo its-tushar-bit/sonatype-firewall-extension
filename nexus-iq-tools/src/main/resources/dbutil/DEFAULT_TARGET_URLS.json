@@ -193,6 +193,14 @@
       "repeat": {
         "ifLongerThan": "20"
       }
+    },
+    {
+      "url": "api/v2/applications/{applicationPublicId}/reports/{scanId}/policy",
+      "type": "GET",
+      "repeat": {
+        "minRuns": "3",
+        "maxRuns": "3"
+      }
     }
   ]
 }

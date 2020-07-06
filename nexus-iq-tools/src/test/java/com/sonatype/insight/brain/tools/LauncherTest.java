@@ -18,6 +18,12 @@ public class LauncherTest
   }
 
   @Test
+  public void testLauncher_ReportGenerator() {
+    assertThat(new Launcher("reportgenerator").reportGenerator).isTrue();
+    assertThat(new Launcher("-reportgenerator").reportGenerator).isTrue();
+  }
+
+  @Test
   public void testLauncher_UrlRunner() {
     assertThat(new Launcher("urlrunner").runUrlRunner).isTrue();
     assertThat(new Launcher("-urlrunner").runUrlRunner).isTrue();

@@ -24,6 +24,7 @@ awsPerfRun_*/
 override.tf
 .terraform
 terraform.tfvars
+__pycache__
 nexus-iq-tools/automation/java/*.class
 nexus-iq-tools/automation/java/*.jar
 nexus-iq-tools/testsuite/iqperf.auto.tfvars

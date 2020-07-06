@@ -1,0 +1,20 @@
+{
+  "urls": [
+    {
+      "url": "rest/report/{applicationPublicId}/{scanId}/metadata",
+      "type": "GET"
+    },
+    {
+      "url": "api/v2/reports/applications",
+      "type": "GET"
+    },
+    {
+      "url": "api/v2/applications/{applicationPublicId}/reports/{scanId}/policy",
+      "type": "GET",
+      "repeat": {
+        "minRuns": "3",
+        "maxRuns": "3"
+      }
+    }
+  ]
+}

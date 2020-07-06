@@ -22,7 +22,7 @@ To configure the environment, do the following:
 
 # Test environment configuration
 Generate the JARs for Insight-Brain-Service and Nexus-IQ-Tools by building the project. Then run the
-following to test the configuration:
+following to test the configuration (replace `/path/to/license.lic` with the path to the license):
 ```bash
 python run_performance_eval.py \
     -p sample-profile.json \
@@ -81,26 +81,22 @@ This is the size of the database used. One of the following values should be use
 `medium`, and `large`.
 
 ### iq_data.data_path
-This is the path to where the datasets reside. This value can be a local path like
+This is the path where the datasets reside. This value can be a local path like
 `/home/some-user/datasets` or an S3 path like `S3://iq-perf-datasets`. When using a local path the
 following file structure should be followed:
 ```
 datasets
 +-- small
-|   +-- h2*.zip
-|   +-- postgres*.zip
+|   +-- *.zip
 +-- medium
-|   +-- h2*.zip
-|   +-- postgres*.zip
+|   +-- *.zip
 +-- large
-|   +-- h2*.zip
-|   +-- postgres*.zip
+|   +-- *.zip
 ```
-The folders inside `datasets` should be named `small`, `medium`, and `large`. The files inside these
-folders should follow the patterns `h2*.zip` or `postgres*.zip`. For the case of H2 the uncompressed
-content is the IQ Server data folder with the ODS database. For the case of PostgreSQL the
-uncompressed content is an SQL dump containing all schemas
-(ODS, aggregation, DM, third_party_scans).
+The folders inside `datasets` can be named `small`, `medium`, and `large`. The files inside these
+folders should follow the pattern `*.zip`. At the moment this script only supports a local H2
+database. The content of an uncompressed H2 database is the IQ Server data folder with the ODS
+database.
 
 **Note**: If the dataset targeted is on S3, environment variables or credentials file must be
 configured. For more information check

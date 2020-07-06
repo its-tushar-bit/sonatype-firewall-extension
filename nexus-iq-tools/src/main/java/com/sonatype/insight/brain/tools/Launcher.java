@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 import com.sonatype.insight.brain.tools.dbutil.DbUtil;
+import com.sonatype.insight.brain.tools.reportgenerator.ReportGenerator;
 import com.sonatype.insight.brain.tools.resultdiff.ResultDiff;
 import com.sonatype.insight.brain.tools.dbmodifier.DbModifierCli;
 import com.sonatype.insight.brain.tools.scanscrubber.ScanScrubber;
@@ -28,6 +29,10 @@ public class Launcher
 
   @Parameter(names = { "dbutil", "-dbutil" }, description = "Run DbUtil.")
   boolean runDbUtil;
+
+  @Parameter(names = { "reportgenerator", "-reportgenerator" },
+          description = "Run ReportGenerator.")
+  boolean reportGenerator;
 
   @Parameter(names = { "urlrunner", "-urlrunner" }, description = "Run UrlRunner.")
   boolean runUrlRunner;
@@ -53,6 +58,7 @@ public class Launcher
     String[] launchParams = Arrays.copyOfRange(args, 1, args.length);
     Optional<Consumer<String[]>> target = Optional.empty();
     target = runDbUtil ? Optional.of(DbUtil::main) : target;
+    target = reportGenerator ? Optional.of(ReportGenerator::main) : target;
     target = runUrlRunner ? Optional.of(UrlRunnerCli::main) : target;
     target = runResultDiff ? Optional.of(ResultDiff::main) : target;
     target = dbMod ? Optional.of(DbModifierCli::main) : target;

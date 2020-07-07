@@ -73,7 +73,7 @@ public class ApiReportDataServiceV2Test
 
   private void makeReport(String resource) throws Exception {
     String[] filenames = {Report.BOM_JSON_FILENAME, Report.SECURITY_JSON_FILENAME, Report.LICENSES_JSON_FILENAME,
-        Report.DATA_JSON_FILENAME};
+        Report.DATA_JSON_FILENAME, Report.DEPENDENCIES_JSON_FILENAME};
     for (String filename : filenames) {
       File file = Report.getCacheFile(reportFile, filename);
       FileUtils.copyURLToFile(getClass().getResource("/ApiReportDataServiceTest/" + resource + "/" + filename), file);

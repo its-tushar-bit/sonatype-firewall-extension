@@ -187,14 +187,16 @@ public class ScanPolicyEvaluator
     final ReportEntry licenseReportEntry = Report.getEntry(reportFile, Report.LICENSES_JSON_FILENAME);
     final ReportEntry securityReportEntry = Report.getEntry(reportFile, Report.SECURITY_JSON_FILENAME);
     final ReportEntry bomReportEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
+    final ReportEntry dependenciesReportEntry = Report.getEntry(reportFile, Report.DEPENDENCIES_JSON_FILENAME);
 
-    if (bomReportEntry == null || securityReportEntry == null || licenseReportEntry == null) {
+    if (bomReportEntry == null || securityReportEntry == null || licenseReportEntry == null ||
+        dependenciesReportEntry == null) {
       throw new BadRequestException("Unable to evaluate policy, the scan " + scanId + " could not be processed.");
     }
 
     // Load data about components
-    final List<Component> components =
-        new ComponentDAO(application).getAll(licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf);
+    final List<Component> components = new ComponentDAO(application)
+        .getAll(licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf, dependenciesReportEntry.buf);
 
     sendApplicationStageComponentCounts(application.getId(), stage.getStageTypeId(), components);
 

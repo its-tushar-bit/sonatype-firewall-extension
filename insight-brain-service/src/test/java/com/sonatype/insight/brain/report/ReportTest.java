@@ -127,6 +127,47 @@ public class ReportTest
   }
 
   @Test
+  public void testAugmentDependenciesGraph_WithoutDependencyGraphNode() throws Exception {
+    JsonNode dependenciesJson =
+        new ObjectMapper().readTree(getClass().getResource("/ReportTest/dependencies.json"));
+
+    JsonNode dependenciesJsonAugmented = dependenciesJson.deepCopy();
+    Report.augmentDependenciesGraph(dependenciesJsonAugmented);
+
+    assertThat(dependenciesJson).isEqualTo(dependenciesJsonAugmented);
+  }
+
+  @Test
+  public void testAugmentDependenciesGraph_WithDependencyGraphNode() throws Exception {
+    JsonNode dependenciesJson =
+        new ObjectMapper().readTree(getClass().getResource("/ReportTest/dependenciesWithGraph.json"));
+    JsonNode dependenciesJsonAugmented = dependenciesJson.deepCopy();
+
+    Report.augmentDependenciesGraph(dependenciesJsonAugmented);
+
+    assertThat(dependenciesJson).isNotEqualTo(dependenciesJsonAugmented);
+    JsonNode dependencyGraphNode = dependenciesJsonAugmented.get("dependencyGraph");
+
+    int expectedNumDirectDependencies = 15;
+    assertThat(dependencyGraphNode.get(0).get("children")).hasSize(expectedNumDirectDependencies);
+    assertThat(dependencyGraphNode.get(0).has("directDependency")).isFalse();
+    for (int i = 0; i < expectedNumDirectDependencies; i++) {
+      assertThat(dependencyGraphNode.get(0).get("children").get(i).get("directDependency").asBoolean()).isTrue();
+    }
+
+    int expectedTotalDependencies = 29;
+    assertThat(dependencyGraphNode).hasSize(expectedTotalDependencies);
+    int numDirect = 0;
+    for (int i = 1; i < dependencyGraphNode.size(); i++) {
+      assertThat(dependencyGraphNode.get(i).has("directDependency")).isTrue();
+      if (dependencyGraphNode.get(i).get("directDependency").asBoolean()) {
+        numDirect++;
+      }
+    }
+    assertThat(numDirect).isEqualTo(expectedNumDirectDependencies);
+  }
+
+  @Test
   public void testWriteLicenseThreatsToReportFile() throws Exception {
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());

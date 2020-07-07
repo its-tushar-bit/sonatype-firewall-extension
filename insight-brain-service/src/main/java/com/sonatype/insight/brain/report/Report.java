@@ -76,6 +76,8 @@ public final class Report
 
   public static final String LICENSES_JSON_FILENAME = "licenses.json";
 
+  public static final String DEPENDENCIES_JSON_FILENAME = "dependencies.json";
+
   public static final String CACHE_DIRECTORY_NAME = "report.cache";
 
   public static final List<String> THIRD_PARTY_CACHED_FILES = Arrays.asList(THIRD_PARTY_BOM_JSON_FILENAME,
@@ -190,7 +192,7 @@ public final class Report
     final ContainerNode<?> partialMatched = JsonUtils.parse(getEntry(reportFile, "partialmatched.json").buf);
 
     Map<ComponentIdentifier, Set<Integer>> depthsByIdentifier = parseDependencyDepths(JsonUtils.parse(extractEntry(
-        reportFile, "dependencies.json").buf));
+        reportFile, DEPENDENCIES_JSON_FILENAME).buf));
 
     final ObjectNode data = JsonUtils.parse(getEntry(reportFile, DATA_JSON_FILENAME).buf);
     final int[] securityCounts = getSecurityCounts(data);
@@ -602,7 +604,7 @@ public final class Report
   }
 
   /**
-   * Applies changes to component data (bom/license/security/partialmatched) including claiming components
+   * Applies changes to component data (bom/license/security/partialmatched/dependencies) including claiming components
    */
   private static void applyComponentRelatedChanges(final Application application,
                                                    final File reportFile) throws IOException
@@ -619,6 +621,7 @@ public final class Report
     // must start from un-edited data
     ContainerNode<?> licensesJsonData = loadReportEntry(reportFile, LICENSES_JSON_FILENAME);
     ContainerNode<?> securityJsonData = loadReportEntry(reportFile, SECURITY_JSON_FILENAME);
+    ContainerNode<?> dependenciesJsonData = loadReportEntry(reportFile, DEPENDENCIES_JSON_FILENAME);
     ThirdPartyComponentDAO thirdPartyComponentDAO = new ThirdPartyComponentDAO(null);
     thirdPartyComponentDAO.updateReport(bomJsonData, licensesJsonData, securityJsonData, dataJson, summaryJsonData,
         reportFile);
@@ -643,6 +646,9 @@ public final class Report
     applySecurityVulnerabilityOverrides(securityJsonData, application);
     saveReportEntry(reportFile, SECURITY_JSON_FILENAME, securityJsonData);
 
+    augmentDependenciesGraph(dependenciesJsonData);
+    saveReportEntry(reportFile, DEPENDENCIES_JSON_FILENAME, dependenciesJsonData);
+
     // must start from un-edited data
     ContainerNode<?> partialmatchedJsonData = loadReportEntry(reportFile, "partialmatched.json");
     removeClaimedComponentsFromPartialMatched(partialmatchedJsonData, claimedComponentsByHash);
@@ -659,6 +665,35 @@ public final class Report
       if (componentIdentifiersWithLicenseOverrides
           .contains(ComponentIdentifierAdapter.getComponentIdentifier(component))) {
         component.put("modified", true);
+      }
+    }
+  }
+
+  @VisibleForTesting
+  static void augmentDependenciesGraph(final JsonNode dependenciesJsonData) {
+    JsonNode dependencyGraphNode = dependenciesJsonData.get("dependencyGraph");
+    if (dependencyGraphNode == null) {
+      return;
+    }
+
+    // root node with component identifier 'null' contains all direct dependencies
+    List<ComponentIdentifier> directComponentIdentifiers = new ArrayList<>();
+    for (JsonNode child : dependencyGraphNode) {
+      ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(child);
+      if (componentIdentifier == null && child.has("children")) {
+        for (JsonNode rootChild : child.get("children")) {
+          ((ObjectNode) rootChild).put("directDependency", true);
+          directComponentIdentifiers.add(ComponentIdentifierAdapter.getComponentIdentifier(rootChild));
+        }
+        break;
+      }
+    }
+
+    // setting relevant component identifiers in the full component list
+    for (JsonNode child : dependencyGraphNode) {
+      ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(child);
+      if (componentIdentifier != null) {
+        ((ObjectNode) child).put("directDependency", directComponentIdentifiers.contains(componentIdentifier));
       }
     }
   }

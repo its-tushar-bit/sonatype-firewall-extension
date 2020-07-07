@@ -151,8 +151,9 @@ public class ReportServiceTest
     ReportEntry licenseReportEntry = Report.getEntry(reportFile, Report.LICENSES_JSON_FILENAME);
     ReportEntry securityReportEntry = Report.getEntry(reportFile, Report.SECURITY_JSON_FILENAME);
     ReportEntry bomReportEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
-    List<Component> components =
-        componentDAO.getAll(licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf);
+    ReportEntry dependenciesReportEntry = Report.getEntry(reportFile, Report.DEPENDENCIES_JSON_FILENAME);
+    List<Component> components = componentDAO
+        .getAll(licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf, dependenciesReportEntry.buf);
     assertThat(components).hasSize(3);
     assertComponent(components.get(0), "964cd74171f427720480",
         ComponentIdentifier.createMavenCoordinates("apache-httpclient", "commons-httpclient", "3.1", "", "jar"),

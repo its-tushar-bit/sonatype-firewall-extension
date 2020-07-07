@@ -74,6 +74,8 @@ public class Component
 
   private AnalyzerFeatures analyzerFeatures;
 
+  private Boolean directDependency;
+
   public Component() {
   }
 
@@ -370,5 +372,13 @@ public class Component
 
   public void setAnalyzerFeatures(final AnalyzerFeatures analyzerFeatures) {
     this.analyzerFeatures = analyzerFeatures;
+  }
+
+  public Boolean getDirectDependency() {
+    return directDependency;
+  }
+
+  public void setDirectDependency(final Boolean directDependency) {
+    this.directDependency = directDependency;
   }
 }

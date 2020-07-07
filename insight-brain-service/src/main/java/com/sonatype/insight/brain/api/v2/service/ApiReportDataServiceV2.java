@@ -267,12 +267,15 @@ public class ApiReportDataServiceV2
     ReportEntry securityEntry = Report.getEntry(reportFile, Report.SECURITY_JSON_FILENAME);
     ReportEntry licenseEntry = Report.getEntry(reportFile, Report.LICENSES_JSON_FILENAME);
     ReportEntry dataEntry = Report.getEntry(reportFile, Report.DATA_JSON_FILENAME);
+    ReportEntry dependenciesReportEntry = Report.getEntry(reportFile, Report.DEPENDENCIES_JSON_FILENAME);
 
-    if (bomEntry == null || securityEntry == null || licenseEntry == null || dataEntry == null) {
+    if (bomEntry == null || securityEntry == null || licenseEntry == null || dataEntry == null ||
+        dependenciesReportEntry == null) {
       throw new BadRequestException("The report with ID " + scanId + " contains no component data.");
     }
 
-    List<Component> components = new ComponentDAO(app).getAll(licenseEntry.buf, securityEntry.buf, bomEntry.buf);
+    List<Component> components =
+        new ComponentDAO(app).getAll(licenseEntry.buf, securityEntry.buf, bomEntry.buf, dependenciesReportEntry.buf);
 
     ApiReportRawDataDTOV2 data = new ApiReportRawDataDTOV2();
     for (Component comp : components) {

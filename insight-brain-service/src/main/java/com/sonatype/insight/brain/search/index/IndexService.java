@@ -386,11 +386,14 @@ public class IndexService
       ReportEntry licenseReportEntry = Report.getEntry(reportFile, Report.LICENSES_JSON_FILENAME);
       ReportEntry securityReportEntry = Report.getEntry(reportFile, Report.SECURITY_JSON_FILENAME);
       ReportEntry bomReportEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
-      if (licenseReportEntry == null || securityReportEntry == null || bomReportEntry == null) {
+      ReportEntry dependenciesReportEntry = Report.getEntry(reportFile, Report.DEPENDENCIES_JSON_FILENAME);
+      if (licenseReportEntry == null || securityReportEntry == null || bomReportEntry == null ||
+          dependenciesReportEntry == null) {
         return Collections.emptyList();
       }
 
-      return new ComponentDAO(application).getAll(licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf)
+      return new ComponentDAO(application).getAll(licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf,
+          dependenciesReportEntry.buf)
           .parallelStream().map(component -> buildApplicationComponentVulnerabilityDocuments(
               indexingContext,
               application,

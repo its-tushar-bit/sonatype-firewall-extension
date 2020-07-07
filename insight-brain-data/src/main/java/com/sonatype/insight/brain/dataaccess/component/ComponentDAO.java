@@ -282,7 +282,12 @@ public class ComponentDAO
    * WARNING! This method is used by the PolicyEvaluationMigrator to load data for migration, so it must remain
    * compatible with the data format(s) and source(s) at the time the PolicyEvaluationMigrator was introduced.
    */
-  public List<Component> getAll(final byte[] licenseData, final byte[] securityData, final byte[] bomData) {
+  public List<Component> getAll(
+      final byte[] licenseData,
+      final byte[] securityData,
+      final byte[] bomData,
+      final byte[] dependencyData)
+  {
     // Load bom data
     List<Component> bomComponents = getAll(bomData);
 
@@ -359,6 +364,20 @@ public class ComponentDAO
       }
     }
 
+    // Load dependency data
+    JsonNode dependencyJson = loadJson(dependencyData);
+    if (dependencyJson != null) {
+      Map<ComponentIdentifier, Boolean> componentDependencyType = getDependencyTypes(dependencyJson);
+      for (ComponentIdentifier componentIdentifier : componentsByIdentifier.keySet()) {
+        List<Component> components = componentsByIdentifier.get(componentIdentifier);
+        if (components != null) {
+          for (Component component : components) {
+            component.setDirectDependency(componentDependencyType.get(componentIdentifier));
+          }
+        }
+      }
+    }
+
     final List<Component> result = new ArrayList<>();
     result.addAll(componentsByHash.values());
     result.addAll(unhashedComponents);
@@ -373,6 +392,23 @@ public class ComponentDAO
       loadComponentLabels(component);
     }
     return result;
+  }
+
+  private Map<ComponentIdentifier, Boolean> getDependencyTypes(final JsonNode dependencyJson) {
+    JsonNode dependencyGraphNode = dependencyJson.path("dependencyGraph");
+    if (dependencyGraphNode == null) {
+      return Collections.emptyMap();
+    }
+
+    Map<ComponentIdentifier, Boolean> componentDependencyType = new HashMap<>();
+    for (JsonNode child : dependencyGraphNode) {
+      ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(child);
+      if (componentIdentifier != null && child.has("directDependency")) {
+        componentDependencyType.put(componentIdentifier, child.get("directDependency").asBoolean());
+      }
+    }
+
+    return componentDependencyType;
   }
 
   public Component getComponent(ComponentInfo componentInfo) {

@@ -64,6 +64,7 @@ import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.DataSourceConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.DependencyTypeConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.IdentificationSourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
@@ -179,7 +180,7 @@ public abstract class AbstractPolicyEditorTest
     assertThat(constraint.getName()).isEqualTo("New Constraint");
     assertThat(constraint.getOperator()).isEqualTo(LogicalOperator.OR);
 
-    assertThat(constraint.getConditions()).hasSize(24);
+    assertThat(constraint.getConditions()).hasSize(25);
     assertCondition(constraint.getConditions().get(0), AgeInDaysConditionType.ID, "older than",
         Integer.toString(3 * 365));
     assertCondition(constraint.getConditions().get(1), CoordinatesConditionType.ID, "match",
@@ -219,6 +220,7 @@ public abstract class AbstractPolicyEditorTest
         HygieneRating.getById("4").getId());
     assertCondition(constraint.getConditions().get(23), DataSourceConditionType.ID, HAS_NO_SUPPORT_FOR,
         ComponentDataSource.getById("identity").getId());
+    assertCondition(constraint.getConditions().get(24), DependencyTypeConditionType.ID, "is not", "transitive");
 
     assertThat(newPolicy.getActions().get(Stage.ID_BUILD)).isEqualTo("warn");
 
@@ -1261,6 +1263,16 @@ public abstract class AbstractPolicyEditorTest
     dataSourceCondition.value().selectedItem().shouldHave(text("license")).click();
     dataSourceCondition.value().listItem(1).shouldHave(text("identity")).click();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
+    newConstraint.addConditionButton().click();
+    DropdownConditionEditSection dependencyType = newConstraint.dropdownCondition(24);
+    dependencyType.type().chooseOption(conditionTypesOptionMap.get(DependencyTypeConditionType.class));
+    dependencyType.operator().selectedItem().shouldHave(text("is")).click();
+    dependencyType.operator().listItem(1).shouldHave(text("is not")).click();
+    dependencyType.value().selectedItem().shouldHave(text("Direct")).click();
+    dependencyType.value().listItem(1).shouldHave(text("Transitive")).click();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
     newConstraint.conditionUnsupportedMessages().shouldHaveSize(0);
   }
 

@@ -64,6 +64,8 @@ public class ConditionTypes
   public static final DataSourceConditionType
       DataSourceConditionType = new DataSourceConditionType();
 
+  public static final DependencyTypeConditionType DependencyTypeConditionType = new DependencyTypeConditionType();
+
   static {
     // Don't add DeprecatedSecurityVulnerabilityConditionType
     add(AgeInDaysConditionType);
@@ -83,6 +85,7 @@ public class ConditionTypes
     add(SecurityVulnerabilitySeverityConditionType);
     add(SecurityVulnerabilityStatusConditionType);
     add(DataSourceConditionType);
+    add(DependencyTypeConditionType);
   }
 
   public static Collection<ConditionType> getAll() {

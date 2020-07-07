@@ -62,6 +62,7 @@ import com.sonatype.insight.brain.model.policy.conditions.ComponentCategoryCondi
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.DataSourceConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.DependencyTypeConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.IdentificationSourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
@@ -1713,12 +1714,13 @@ public class ScanPolicyEvaluatorTest
     Condition componentCategoryCondition = new Condition(ComponentCategoryConditionType.ID, "is not", "113");
     Condition hygieneCondition = new Condition(HygieneRatingConditionType.ID, "is not", "1");
     Condition dataSourceCondition = new Condition(DataSourceConditionType.ID, "has support for", "identity");
+    Condition dependencyCondition = new Condition(DependencyTypeConditionType.ID, "is", "direct");
 
     List<Condition> conditions = Arrays.asList(ageCondition, coordinatesCondition, identificationSourceCondition,
         labelCondition, licenseCondition, licenseStatusCondition, licenseThreatGroupCondition,
         licenseThreatGroupLevelCondition, matchStateCondition, proprietaryCondition, relativePopularityCondition,
         securityVulnerabilitySeverityCondition, securityVulnerabilityStatusCondition, packageUrlCondition,
-        componentCategoryCondition, hygieneCondition, dataSourceCondition);
+        componentCategoryCondition, hygieneCondition, dataSourceCondition, dependencyCondition);
     ConditionTypes.enableConditionType(ConditionTypes.HygieneRatingConditionType);
     try {
       Set<String> expectedConditionTypeIds = ConditionTypes.getAll().stream().map(ConditionType::getId)
@@ -1749,8 +1751,10 @@ public class ScanPolicyEvaluatorTest
     Condition packageUrlCondition = new Condition(PackageUrlConditionType.ID, "matches", "pkg:maven/*/*@*");
     Condition componentCategoryCondition = new Condition(ComponentCategoryConditionType.ID, "is not", "113");
     Condition hygieneCondition = new Condition(HygieneRatingConditionType.ID, "is not", "1");
+    Condition dependencyCondition = new Condition(DependencyTypeConditionType.ID, "is", "direct");
 
-    List<Condition> conditions = Arrays.asList(packageUrlCondition, componentCategoryCondition, hygieneCondition);
+    List<Condition> conditions = Arrays.asList(packageUrlCondition, componentCategoryCondition, hygieneCondition,
+        dependencyCondition);
 
     Constraint constraint = new Constraint(null, "constraintName", LogicalOperator.OR);
     constraint.setConditions(conditions);
@@ -1764,10 +1768,9 @@ public class ScanPolicyEvaluatorTest
     // When evaluate policies
     scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD));
 
-    // Then there should be two policy violations, of which one is waived.
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
     List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getValue();
-    assertThat(telemetryDataList).hasSize(2);
+    assertThat(telemetryDataList).hasSize(3);
 
     boolean hasHygieneViolation = telemetryDataList.stream().anyMatch(telemetryData ->
         telemetryData.getAttributes().get(
@@ -1777,9 +1780,13 @@ public class ScanPolicyEvaluatorTest
         telemetryData.getAttributes().get(
             PolicyViolationTelemetryCollector.CONDITION_TYPE).equals(ComponentCategoryConditionType.ID));
 
+    boolean hasDependencyTypeViolation = telemetryDataList.stream().anyMatch(telemetryData ->
+        telemetryData.getAttributes().get(
+            PolicyViolationTelemetryCollector.CONDITION_TYPE).equals(DependencyTypeConditionType.ID));
+
     assertThat(hasHygieneViolation).isTrue();
     assertThat(hasComponentCategoryViolation).isTrue();
-
+    assertThat(hasDependencyTypeViolation).isTrue();
     clearInvocations(mockTelemetrySender);
   }
 

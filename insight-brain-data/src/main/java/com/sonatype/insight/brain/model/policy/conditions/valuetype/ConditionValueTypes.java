@@ -31,6 +31,7 @@ public class ConditionValueTypes
     allConditionValueTypes.add(new PercentageValueType());
     allConditionValueTypes.add(new SecurityVulnerabilityStatusValueType());
     allConditionValueTypes.add(new DataSourceValueType());
+    allConditionValueTypes.add(new DependencyTypeValueType());
     return allConditionValueTypes;
   }
 }

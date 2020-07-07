@@ -53,6 +53,7 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.ComponentCategoryConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.DependencyTypeConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingConditionType;
 import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
 import com.sonatype.insight.brain.policy.PolicyViolationPersistenceLocks;
@@ -96,7 +97,8 @@ public class ScanPolicyEvaluator
   public static final Set<String> TELEMETRY_CONDITION_TYPES = Collections.unmodifiableSet(
       new HashSet<>(Arrays.asList(
           HygieneRatingConditionType.ID,
-          ComponentCategoryConditionType.ID
+          ComponentCategoryConditionType.ID,
+          DependencyTypeConditionType.ID
       )));
 
   private final PolicyViolationPersistenceLocks policyViolationPersistenceLocks;

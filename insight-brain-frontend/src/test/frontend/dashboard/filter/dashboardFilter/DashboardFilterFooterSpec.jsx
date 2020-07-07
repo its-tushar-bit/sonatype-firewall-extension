@@ -158,7 +158,7 @@ describe('DashboardFilter footer', function() {
       expect(noErrorSaveButton).not.toExist();
     });
 
-    it('retries to apply filters if you click the filter error button', function() {
+    it('retries to apply filters if you click the filter error retry button', function() {
       const shallowRender = getShallowComponent({
         applyFilterError: true,
         filtersAreDirty: false,
@@ -176,6 +176,28 @@ describe('DashboardFilter footer', function() {
       expect(onApplyCurrentFilter).not.toHaveBeenCalled();
       errorButton.simulate('click');
       expect(onApplyCurrentFilter).toHaveBeenCalled();
+    });
+
+    it('calls the onCancel function if you click the filter error cancel button', function() {
+      const onApplyCancelSpy = jasmine.createSpy('onCancelApplyFilter');
+      const shallowRender = getShallowComponent({
+        applyFilterError: true,
+        filtersAreDirty: false,
+        needsAcknowledgement: true,
+        onApplyCurrentFilter,
+        onCancelApplyFilter: onApplyCancelSpy
+      });
+
+      const footer = shallowRender.find('.dashboard-filter-footer');
+      const noErrorSaveButton = footer.find('#dashboard-filter-save');
+      const errorFooter = footer.find(NxErrorAlert);
+
+      expect(errorFooter).toExist();
+      expect(noErrorSaveButton).not.toExist();
+      const cancelButton = errorFooter.find('#dashboard-filter-cancel-button');
+      expect(onApplyCancelSpy).not.toHaveBeenCalled();
+      cancelButton.simulate('click');
+      expect(onApplyCancelSpy).toHaveBeenCalled();
     });
 
     it('does not show the filter error buttons if applyFilterError is false', function() {

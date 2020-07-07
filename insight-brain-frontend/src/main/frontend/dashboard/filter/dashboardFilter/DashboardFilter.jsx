@@ -54,6 +54,7 @@ export default function DashboardFilter(props) {
 
     // actions
     applyFilter,
+    applyFilterCancelled,
     setDisplaySaveFilterModal,
     loadFilter,
     revert,
@@ -197,7 +198,8 @@ export default function DashboardFilter(props) {
         needsAcknowledgement,
         setDisplaySaveFilterModal,
         revert,
-        onApplyCurrentFilter: () => applyFilter(filterToJson(selected), appliedFilterName)
+        onApplyCurrentFilter: () => applyFilter(filterToJson(selected), appliedFilterName),
+        onCancelApplyFilter: applyFilterCancelled
       })} />
     </div>
   );

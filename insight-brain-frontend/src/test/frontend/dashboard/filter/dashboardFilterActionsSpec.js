@@ -8,7 +8,7 @@ import {
   loadFilter,
   applyFilter,
   applySavedFilter,
-  applyDefaultFilter
+  applyDefaultFilter, applyFilterCancelled
 } from '../../../../main/frontend/dashboard/filter/dashboardFilterActions';
 import {
   getApplicationsUrl,
@@ -371,6 +371,16 @@ describe('dashboardFilterActions: non-angular', function() {
     testSuccessfullyUpdatesFiltersAndLoadsResults(action, filter, null);
     testSuccessfullyUpdatesFiltersButFailsToLoadsResults(action, filter, null);
     testFailedToUpdateFilter(action, filter, null, expectedFailAction);
+  });
+
+  describe('applyFilterCancelled', function() {
+    it('dispatches an APPLY_FILTER_CANCELLED function', () => {
+      store = SpecUtil.mockReduxStore(initialState);
+
+      store.dispatch(applyFilterCancelled());
+      expect(store.getActions().length).toBe(1);
+      expect(store.getActions()[0]).toEqual({type: 'APPLY_FILTER_CANCELLED'});
+    });
   });
 
   function testFailedToUpdateFilter(action, expectedFilter, expectedFilterName, expectedFailAction) {

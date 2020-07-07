@@ -16,7 +16,8 @@ export default function DashboardFilterFooter(props) {
     needsAcknowledgement,
     setDisplaySaveFilterModal,
     revert,
-    onApplyCurrentFilter
+    onApplyCurrentFilter,
+    onCancelApplyFilter
   } = props;
 
   const filterFooterClassnames = classnames('dashboard-filter-footer', {'iq-apply-error-present': applyFilterError}),
@@ -86,6 +87,11 @@ export default function DashboardFilterFooter(props) {
             <span>Retry</span>
           </Fragment>
         </NxButton>
+        <NxButton id="dashboard-filter-cancel-button"
+                  type="button"
+                  onClick={onCancelApplyFilter}>
+          Cancel
+        </NxButton>
       </div>
     </NxErrorAlert>);
 
@@ -101,5 +107,6 @@ DashboardFilterFooter.propTypes = {
   needsAcknowledgement: PropTypes.bool,
   setDisplaySaveFilterModal: PropTypes.func.isRequired,
   revert: PropTypes.func.isRequired,
-  onApplyCurrentFilter: PropTypes.func.isRequired
+  onApplyCurrentFilter: PropTypes.func.isRequired,
+  onCancelApplyFilter: PropTypes.func.isRequired
 };

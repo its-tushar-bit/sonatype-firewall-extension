@@ -27,6 +27,7 @@ export const APPLY_SAVED_FILTER_FAILED = 'APPLY_SAVED_FILTER_FAILED';
 export const APPLY_FILTER_REQUESTED = 'APPLY_FILTER_REQUESTED';
 export const APPLY_FILTER_FULFILLED = 'APPLY_FILTER_FULFILLED';
 export const APPLY_FILTER_FAILED = 'APPLY_FILTER_FAILED';
+export const APPLY_FILTER_CANCELLED = 'APPLY_FILTER_CANCELLED';
 export const REFRESH_VIOLATION_DETAILS = 'REFRESH_VIOLATION_DETAILS';
 export const REFRESH_VIOLATION_DETAILS_FAILED = 'REFRESH_VIOLATION_DETAILS_FAILED';
 export const TOGGLE_FILTER = 'TOGGLE_FILTER';
@@ -128,6 +129,8 @@ export function applySavedFilter({ filter, name }) {
 }
 
 const applyFilterFailed = payloadParamActionCreator(APPLY_FILTER_FAILED);
+
+export const applyFilterCancelled = noPayloadActionCreator(APPLY_FILTER_CANCELLED);
 
 const applySavedFilterFailed = payloadParamActionCreator(APPLY_SAVED_FILTER_FAILED);
 

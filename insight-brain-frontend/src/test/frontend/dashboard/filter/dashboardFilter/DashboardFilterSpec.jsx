@@ -186,7 +186,8 @@ describe('DashboardFilter', function() {
           filtersAreDirty: true,
           needsAcknowledgement: true,
           setDisplaySaveFilterModal: jasmine.createSpy('setDisplaySaveFilterModal'),
-          revert: jasmine.createSpy('revert')
+          revert: jasmine.createSpy('revert'),
+          applyFilterCancelled: () => {}
         },
         fullFilter = getShallowComponent(props),
         filterFooter = fullFilter.find(DashboardFilterFooter);
@@ -198,6 +199,7 @@ describe('DashboardFilter', function() {
     expect(filterFooter).toHaveProp('revert', props.revert);
     expect(filterFooter).toHaveProp('setDisplaySaveFilterModal', props.setDisplaySaveFilterModal);
     expect(filterFooter).toHaveProp('onApplyCurrentFilter', jasmine.any(Function));
+    expect(filterFooter).toHaveProp('onCancelApplyFilter', jasmine.any(Function));
   });
 
   describe('DashboardFilter filter contents', function() {

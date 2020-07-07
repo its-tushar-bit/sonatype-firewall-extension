@@ -21,6 +21,7 @@ import {
   APPLY_FILTER_REQUESTED,
   APPLY_FILTER_FULFILLED,
   APPLY_FILTER_FAILED,
+  APPLY_FILTER_CANCELLED,
   APPLY_SAVED_FILTER_FAILED,
   TOGGLE_FILTER,
   TOGGLE_APPS_AND_ORGS,
@@ -100,6 +101,9 @@ export default function dashboardFilterReducer(state = initState, {type, payload
 
     case APPLY_SAVED_FILTER_FAILED:
       return {...state, loadErrorFilterName: payload};
+
+    case APPLY_FILTER_CANCELLED:
+      return {...state, applyFilterError: null};
 
     case TOGGLE_FILTER:
       return compose(

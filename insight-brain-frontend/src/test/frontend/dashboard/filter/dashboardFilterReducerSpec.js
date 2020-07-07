@@ -398,6 +398,19 @@ describe('dashboardFilterReducer', function() {
     });
   });
 
+  describe('APPLY_FILTER_CANCELLED action', function() {
+    it('resets applyFilterError', function() {
+      const state = Object.freeze({applyFilterError: 'Error', other: otherObject});
+      const action = {
+        type: 'APPLY_FILTER_CANCELLED'
+      };
+      expect(state.applyFilterError).toBe('Error');
+      const newState = reduce(state, action);
+      expect(newState.applyFilterError).toBeNull();
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
   describe('APPLY_FILTER_REQUESTED action', function() {
     it('resets applyFilterError and loadErrorFilterName', function() {
       var state = Object.freeze({

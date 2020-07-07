@@ -22,6 +22,7 @@ import {
 } from '@sonatype/react-shared-components';
 import LoadWrapper from '../../react/LoadWrapper';
 import MaximizedContainer from '../../react/MaximizedContainer';
+import NxExternalLink from '../../react/NxExternalLink';
 
 export default function MailConfig(props) {
   const {
@@ -266,9 +267,8 @@ export default function MailConfig(props) {
                   <p>
                     To receive email notifications for events enter the details of your SMTP Server here.
                     For further details see
-                    the <a className={'iq-external-link'}
-                           href='http://links.sonatype.com/products/nxiq/doc/email-configuration'>
-                    documentation.&nbsp;<i className="fa fa-external-link fa-fw"/></a>
+                    the <NxExternalLink href="http://links.sonatype.com/products/nxiq/doc/email-configuration">
+                    documentation</NxExternalLink>.
                   </p>
                   {submitMaskState !== null &&
                   <NxSubmitMask success={submitMaskState} message={submitMaskMessage} />}

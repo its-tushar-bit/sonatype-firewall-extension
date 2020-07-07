@@ -461,9 +461,10 @@ public class CLMLicenseManager
     stageTypes.add(StageTypes.PROXY);
 
     Set<LicensedFeature> hdsControlledFeatures = EnumSet.of( //
+        LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES, //
         LicensedFeature.EXTERNAL_DATABASE, //
         LicensedFeature.HYGIENE, //
-        LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES //
+        LicensedFeature.NODE_CLUSTERING //
     );
     for (LicensedFeature feature : hdsControlledFeatures) {
       if (licenseDetails.features.contains(feature.name())) {

@@ -624,6 +624,17 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testInstallLicense_NodeClusteringFeatureFromHds() throws Exception {
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).doesNotContain(LicensedFeature.NODE_CLUSTERING);
+
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.NODE_CLUSTERING));
+    installLicense();
+    assertThat(productLicense.getFeatures()).contains(LicensedFeature.NODE_CLUSTERING);
+  }
+
+  @Test
   public void testNotifyListener_LoadLicense() throws Exception {
     ProductLicenseListener listener = mock(ProductLicenseListener.class);
     clmLicenseManager.addListener(listener);

@@ -347,6 +347,7 @@ class ScrubberInsertMods
     insertModMap.put(h2OdsTable("source_control"), truncate);
     insertModMap.put(h2OdsTable("source_control_pull_request_comment"), truncate);
     insertModMap.put(h2OdsTable("source_control_default_branch_commit_history"), truncate);
+    insertModMap.put(h2OdsTable("source_control_event"), truncate);
     // user special
     insertModMap
         .put(h2OdsTable("user"), tableMod("username:user", "password:user", "first_name", "last_name", "email"));

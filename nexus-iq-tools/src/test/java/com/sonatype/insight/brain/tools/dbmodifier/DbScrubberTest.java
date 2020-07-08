@@ -45,6 +45,7 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
@@ -211,6 +212,22 @@ public class DbScrubberTest
 
     assertThat(getSqlDumpContent()).contains(sourceControlDefaultBranchCommitHistory.getId());
     assertThat(getScrubbedSqlContent()).doesNotContain(sourceControlDefaultBranchCommitHistory.getId());
+  }
+
+  @Test
+  public void testScrubDB_Table_source_control_event() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    PolicyEvaluation sourcePolicyEvaluation =
+        tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "sourceScan", "sourceCommit");
+    PolicyEvaluation targetPolicyEvaluation =
+        tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "targetScan", "targetCommit");
+    SourceControlEvent sourceControlEvent =
+        tempEntity.newSourceControlEvent(app, sourcePolicyEvaluation, targetPolicyEvaluation);
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(sourceControlEvent.getId());
+    assertThat(getScrubbedSqlContent()).doesNotContain(sourceControlEvent.getId());
   }
 
   private String getSqlDumpContent() throws IOException {

@@ -67,7 +67,7 @@ pipeline {
     }
     stage('Update nginx configuration') {
       steps {
-        updateNginxConfig()
+        updateNginxConfig(params.environment)
       }
     }
     stage('Purge Fastly Download Cache') {

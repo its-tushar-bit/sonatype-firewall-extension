@@ -27,10 +27,12 @@ import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
+import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.notification.UserViewedProductNotification;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -41,7 +43,10 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.model.security.MemberType;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
@@ -75,13 +80,18 @@ public class DbScrubberTest
 
   @Test
   public void testScrubDB_Table_dashboard_filter() throws Exception {
-    tempEntity.newDashboardFilter("TestUser", "testRealmId", "testFilterName", "testFilter");
-    tempEntity.newDashboardFilter("TestUser", "testRealmId", "", true, "testFilterName", "testFilter1");
+    DashboardFilter dashboardFilter1 =
+        tempEntity.newDashboardFilter("TestUser", "testRealmId", "testFilterName", "testFilter");
+    DashboardFilter dashboardFilter2 =
+        tempEntity.newDashboardFilter("TestUser", "testRealmId", "", true, "testFilterName", "testFilter1");
 
     scrubDb();
 
-    assertThat(getSqlDumpContent()).contains("TestUser", "testuser", "testFilterName");
-    assertThat(getScrubbedSqlContent()).doesNotContain("TestUser", "testuser", "testFilterName");
+    assertThat(getSqlDumpContent()).contains(dashboardFilter1.getId(), dashboardFilter2.getId(), "TestUser", "testuser",
+        "testFilterName");
+    String scrubbedSqlContent = getScrubbedSqlContent();
+    assertThat(scrubbedSqlContent).contains(dashboardFilter1.getId(), dashboardFilter2.getId());
+    assertThat(scrubbedSqlContent).doesNotContain("TestUser", "testuser", "testFilterName");
   }
 
   @Test
@@ -138,6 +148,34 @@ public class DbScrubberTest
   }
 
   @Test
+  public void testScrubDB_Table_membership_mapping() throws Exception {
+    User user = tempEntity.newUser("testUsername");
+    MembershipMapping membershipMapping = tempEntity.newMembershipMapping(Organization.ROOT_ORGANIZATION_ID,
+        Role.OWNER_ROLE_ID, user.getUsername(), MemberType.USER);
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(membershipMapping.getId(), "testUsername");
+    String scrubbedSqlContent = getScrubbedSqlContent();
+    assertThat(scrubbedSqlContent).contains(membershipMapping.getId());
+    assertThat(scrubbedSqlContent).doesNotContain("testUsername");
+  }
+
+  @Test
+  public void testScrubDB_Table_user() throws Exception {
+    User user = tempEntity.newUser("testUsername", "testFirstName", "testLastName", "testemail@example.com");
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(user.getId(), "testUsername", "testusername", "testFirstName",
+        "testLastName", "testemail@example.com");
+    String scrubbedSqlContent = getScrubbedSqlContent();
+    assertThat(scrubbedSqlContent).contains(user.getId());
+    assertThat(scrubbedSqlContent).doesNotContain("testUsername", "testusername", "testFirstName", "testLastName",
+        "testemail@example.com");
+  }
+
+  @Test
   public void testScrubDB_Table_user_token() throws Exception {
     UserToken userToken = tempEntity.newUserToken("testUsername", "testRealmId");
 
@@ -149,12 +187,15 @@ public class DbScrubberTest
 
   @Test
   public void testScrubDB_Table_user_viewed_product_notification() throws Exception {
-    tempEntity.newUserViewedProductNotification("TestUser", "testRealmId", "testNotificationId");
+    UserViewedProductNotification userViewedProductNotification =
+        tempEntity.newUserViewedProductNotification("TestUser", "testRealmId", "testNotificationId");
 
     scrubDb();
 
-    assertThat(getSqlDumpContent()).contains("TestUser", "testuser");
-    assertThat(getScrubbedSqlContent()).doesNotContain("TestUser", "testuser");
+    assertThat(getSqlDumpContent()).contains(userViewedProductNotification.getId(), "TestUser", "testuser");
+    String scrubbedSqlContent = getScrubbedSqlContent();
+    assertThat(scrubbedSqlContent).contains(userViewedProductNotification.getId());
+    assertThat(scrubbedSqlContent).doesNotContain("TestUser", "testuser");
   }
 
   @Test
@@ -266,14 +307,17 @@ public class DbScrubberTest
 
   @Test
   public void testScrubDB_Table_application() throws Exception {
-    Application app = tempEntity.newApplicationWithParent("TestPublicID", "Test app");
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication("Test app", "TestPublicID", org.getId(), "TestContactName");
 
     scrubDb();
 
-    assertThat(getSqlDumpContent()).contains(app.getId(), "TestPublicID", "testpublicid", "Test app", "testapp");
+    assertThat(getSqlDumpContent()).contains(app.getId(), "TestPublicID", "testpublicid", "Test app", "testapp",
+        "TestContactName");
     String scrubbedSqlContent = getScrubbedSqlContent();
     assertThat(scrubbedSqlContent).contains(app.getId());
-    assertThat(scrubbedSqlContent).doesNotContain("TestPublicID", "testpublicid", "Test app", "testapp");
+    assertThat(scrubbedSqlContent).doesNotContain("TestPublicID", "testpublicid", "Test app", "testapp",
+        "TestContactName");
   }
 
   @Test

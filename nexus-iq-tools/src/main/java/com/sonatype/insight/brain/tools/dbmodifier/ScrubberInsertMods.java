@@ -240,22 +240,6 @@ class ScrubberInsertMods
     };
   }
 
-  private static Function<SQLLine, List<SQLLine>> tableModFiltered(String filterCol,
-                                                                   String filterVal,
-                                                                   final String... targetCols)
-  {
-    Function<SQLLine, List<SQLLine>> conditionalOp = tableMod(targetCols);
-    return line -> {
-      if (line.cols.contains(filterCol)) {
-        int colIndex = line.cols.indexOf(filterCol);
-        if (line.vals.get(colIndex).equals(filterVal)) {
-          return conditionalOp.apply(line);
-        }
-      }
-      return noop.apply(line);
-    };
-  }
-
   private static Function<SQLLine, List<SQLLine>> tableMod(final String... targetCols) {
     return line -> {
       List<SQLLine> processed = new ArrayList<>();
@@ -351,7 +335,7 @@ class ScrubberInsertMods
     // user special
     insertModMap
         .put(h2OdsTable("user"), tableMod("username:user", "password:user", "first_name", "last_name", "email"));
-    insertModMap.put(h2OdsTable("membership_mapping"), tableModFiltered("member_type", "'USER'", "member_name:user"));
+    insertModMap.put(h2OdsTable("membership_mapping"), tableMod("member_name:user"));
     insertModMap.put(h2OdsTable("user_viewed_product_notification"), tableMod("username:user"));
     insertModMap.put(h2OdsTable("dashboard_filter"), tableMod("username:user", "name", "based_on_filter_name"));
     // tables with data to scrub

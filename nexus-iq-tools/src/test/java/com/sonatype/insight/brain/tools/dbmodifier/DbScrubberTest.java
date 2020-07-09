@@ -213,7 +213,7 @@ public class DbScrubberTest
     String repoUrl = "http://bitbucket.org/scm/org/repo";
     Application app = tempEntity.newApplicationWithParent();
     tempEntity.newOrganization();
-    SourceControl rootSourceControl = tempEntity.newSourceControl("ROOT_ORGANIZATION_ID", null, "testUser",
+    SourceControl rootSourceControl = tempEntity.newSourceControl(Organization.ROOT_ORGANIZATION_ID, null, "testUser",
         "testToken", SourceControlProvider.BITBUCKET, true, false, "master", null);
     SourceControl appSourceControl =
         tempEntity.newSourceControl(app.getId(), repoUrl, null, "TOKEN", null, null, true, null, null);

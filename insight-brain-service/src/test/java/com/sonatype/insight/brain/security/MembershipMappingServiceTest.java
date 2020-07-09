@@ -99,7 +99,7 @@ public class MembershipMappingServiceTest
     setupLdapWithDynamicGroupType("test server 2", true);
 
     ApplicableMembershipMappings actual = membershipMappingService
-        .getApplicableMembershipMappings(OwnerType.ORGANIZATION, "ROOT_ORGANIZATION_ID");
+        .getApplicableMembershipMappings(OwnerType.ORGANIZATION, ROOT_ORGANIZATION_ID);
 
     assertThat(actual.groupSearchEnabled).isTrue();
   }
@@ -110,7 +110,7 @@ public class MembershipMappingServiceTest
     setupLdapWithDynamicGroupType("test server 2", true);
 
     ApplicableMembershipMappings actual = membershipMappingService
-        .getApplicableMembershipMappings(OwnerType.ORGANIZATION, "ROOT_ORGANIZATION_ID");
+        .getApplicableMembershipMappings(OwnerType.ORGANIZATION, ROOT_ORGANIZATION_ID);
 
     assertThat(actual.groupSearchEnabled).isFalse();
   }
@@ -122,7 +122,7 @@ public class MembershipMappingServiceTest
     setupLdapWithDynamicGroupType("test server 3", false);
 
     ApplicableMembershipMappings actual = membershipMappingService
-        .getApplicableMembershipMappings(OwnerType.ORGANIZATION, "ROOT_ORGANIZATION_ID");
+        .getApplicableMembershipMappings(OwnerType.ORGANIZATION, ROOT_ORGANIZATION_ID);
 
     assertThat(actual.groupSearchEnabled).isFalse();
   }

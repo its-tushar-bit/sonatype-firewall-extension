@@ -14,6 +14,7 @@ import com.sonatype.clm.testing.functional.elements.OwnerSummaryTile;
 import com.sonatype.clm.testing.functional.elements.PolicyTile;
 import com.sonatype.clm.testing.functional.elements.SourceControlTile;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 
@@ -28,7 +29,7 @@ public class OwnerSummaryPage
   }
 
   public static String urlToRootOrg() {
-    return url(OwnerType.ORGANIZATION, "ROOT_ORGANIZATION_ID");
+    return url(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
   }
 
   public static String url(Owner owner) {

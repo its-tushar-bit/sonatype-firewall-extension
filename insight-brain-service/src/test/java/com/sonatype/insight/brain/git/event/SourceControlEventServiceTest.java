@@ -31,6 +31,7 @@ import static java.lang.String.format;
 import static java.lang.Thread.currentThread;
 import static java.lang.Thread.sleep;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -75,15 +76,14 @@ public class SourceControlEventServiceTest
   }
 
   @After
-  public void tearDown() throws InterruptedException {
+  public void tearDown() {
     if (null != eventService) {
       eventService.shutdown();
-      sleep(500);
     }
   }
 
   @Test
-  public void testProcessEvents_onApplicationEvaluationEvent() throws InterruptedException {
+  public void testProcessEvents_onApplicationEvaluationEvent() {
     // given: an event DAO setup to return an application evaluation event
     List<SourceControlEvent> events = generateEvents("1:app1:" + SourceControlEvent.APPLICATION_EVALUATION_EVENT);
     when(mockSourceControlEventDAO
@@ -92,23 +92,24 @@ public class SourceControlEventServiceTest
 
     // when: process the events and give a little time for the first event to be worked
     eventService.processEvents();
-    sleep(100);
 
     // then: pull request processing invoked for the given event
-    verify(mockSourceControlEventDAO, times(1))
-        .reserveEventsForInstance(eq(SourceControlEventService.INSTANCE_ID), anyInt());
-    verify(mockSourceControlEventDAO, times(1)).markEventInProgress(eq(events.get(0).getId()));
-    verify(mockPullRequestCommentingService, times(1)).onApplicationEvaluation(eq(events.get(0)));
-    verify(mockSourceControlEventDAO, times(1)).markEventComplete(eq(events.get(0).getId()));
+    await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+      verify(mockSourceControlEventDAO, times(1)).reserveEventsForInstance(eq(SourceControlEventService.INSTANCE_ID),
+          anyInt());
+      verify(mockSourceControlEventDAO, times(1)).markEventInProgress(eq(events.get(0).getId()));
+      verify(mockPullRequestCommentingService, times(1)).onApplicationEvaluation(eq(events.get(0)));
+      verify(mockSourceControlEventDAO, times(1)).markEventComplete(eq(events.get(0).getId()));
 
-    assertThatLogMessagesEqual(
-        debug("Requested " + SourceControlEventService.TASK_QUEUE_CAPACITY + " source control events, processing 1"),
-        debug(getProcessedEventMessage(events.get(0)))
-    );
+      assertThatLogMessagesEqual(
+          debug("Requested " + SourceControlEventService.TASK_QUEUE_CAPACITY + " source control events, processing 1"),
+          debug(getProcessedEventMessage(events.get(0)))
+      );
+    });
   }
 
   @Test
-  public void testProcessEvents_onDiscoveredPullRequestEvent() throws InterruptedException {
+  public void testProcessEvents_onDiscoveredPullRequestEvent() {
     // given: an event DAO setup to return an application evaluation event
     List<SourceControlEvent> events = generateEvents("1:app1:" + SourceControlEvent.DISCOVERED_PULL_REQUEST_EVENT);
     when(mockSourceControlEventDAO
@@ -117,23 +118,24 @@ public class SourceControlEventServiceTest
 
     // when: process the events and give a little time for the first event to be worked
     eventService.processEvents();
-    sleep(100);
 
     // then: pull request processing invoked for the given event
-    verify(mockSourceControlEventDAO, times(1))
-        .reserveEventsForInstance(eq(SourceControlEventService.INSTANCE_ID), anyInt());
-    verify(mockSourceControlEventDAO, times(1)).markEventInProgress(eq(events.get(0).getId()));
-    verify(mockPullRequestCommentingService, times(1)).onDiscoveredPullRequest(eq(events.get(0)));
-    verify(mockSourceControlEventDAO, times(1)).markEventComplete(eq(events.get(0).getId()));
+    await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+      verify(mockSourceControlEventDAO, times(1)).reserveEventsForInstance(eq(SourceControlEventService.INSTANCE_ID),
+          anyInt());
+      verify(mockSourceControlEventDAO, times(1)).markEventInProgress(eq(events.get(0).getId()));
+      verify(mockPullRequestCommentingService, times(1)).onDiscoveredPullRequest(eq(events.get(0)));
+      verify(mockSourceControlEventDAO, times(1)).markEventComplete(eq(events.get(0).getId()));
 
-    assertThatLogMessagesEqual(
-        debug("Requested " + SourceControlEventService.TASK_QUEUE_CAPACITY + " source control events, processing 1"),
-        debug(getProcessedEventMessage(events.get(0)))
-    );
+      assertThatLogMessagesEqual(
+          debug("Requested " + SourceControlEventService.TASK_QUEUE_CAPACITY + " source control events, processing 1"),
+          debug(getProcessedEventMessage(events.get(0)))
+      );
+    });
   }
 
   @Test
-  public void testProcessEvents_onErrorHandlingEvent() throws InterruptedException {
+  public void testProcessEvents_onErrorHandlingEvent() {
     // given: a list of events and the pull request commenting service configured to throw an exception on a certain
     //        event
     List<SourceControlEvent> events = generateEvents(
@@ -149,24 +151,23 @@ public class SourceControlEventServiceTest
     // when:
     eventService.processEvents();
 
-    // and when: give time to process events
-    sleep(100);
-
     // then:
-    verify(mockSourceControlEventDAO, times(1)).markEventComplete(eq(events.get(0).getId()));
-    verify(mockSourceControlEventDAO, times(1)).markEventHasError(eq(events.get(1).getId()), any());
-    verify(mockSourceControlEventDAO, times(1)).markEventComplete(eq(events.get(2).getId()));
+    await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+      verify(mockSourceControlEventDAO, times(1)).markEventComplete(eq(events.get(0).getId()));
+      verify(mockSourceControlEventDAO, times(1)).markEventHasError(eq(events.get(1).getId()), any());
+      verify(mockSourceControlEventDAO, times(1)).markEventComplete(eq(events.get(2).getId()));
 
-    assertThatLogMessagesEqual(
-        debug("Requested " + SourceControlEventService.TASK_QUEUE_CAPACITY + " source control events, processing 3"),
-        debug(getProcessedEventMessage(events.get(0))),
-        error(getProcessedEventErrorMessage(events.get(1), "simulated")),
-        debug(getProcessedEventMessage(events.get(2)))
-    );
+      assertThatLogMessagesContain(
+          debug("Requested " + SourceControlEventService.TASK_QUEUE_CAPACITY + " source control events, processing 3"),
+          debug(getProcessedEventMessage(events.get(0))),
+          error(getProcessedEventErrorMessage(events.get(1), "simulated")),
+          debug(getProcessedEventMessage(events.get(2)))
+      );
+    });
   }
 
   @Test
-  public void testProcessEvents_eventCounts() throws InterruptedException {
+  public void testProcessEvents_eventCounts() {
     // given: a list of events
     List<SourceControlEvent> events = generateEvents("12:app1:" + SourceControlEvent.APPLICATION_EVALUATION_EVENT);
 
@@ -185,7 +186,6 @@ public class SourceControlEventServiceTest
 
     // when: process events for an "unloaded" event service, which will load up the service
     eventService.processEvents();
-    sleep(100);
 
     // then: the maximum number of events was requested
     verify(mockSourceControlEventDAO, atLeast(1))
@@ -193,8 +193,11 @@ public class SourceControlEventServiceTest
     assertThat(requestCountCaptor.getValue()).isEqualTo(SourceControlEventService.TASK_QUEUE_CAPACITY);
 
     // and when: another request to process events is made (while n - 1 of the previous events are being processed)
+    await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+      assertThat(eventService.getNumberOfEventsToRequest())
+          .isEqualTo(SourceControlEventService.TASK_QUEUE_CAPACITY - 1);
+    });
     eventService.processEvents();
-    sleep(100);
 
     // then: the count of events requested = max load - those still in work from previous request
     final int expectedRequestCount = SourceControlEventService.MAX_LOAD - (events.size() - 1);
@@ -248,7 +251,7 @@ public class SourceControlEventServiceTest
   }
 
   @Test
-  public void testProcessEvents_eventOverload() throws InterruptedException {
+  public void testProcessEvents_eventOverload() {
     // given: DAO setup to return more events than the event service is expecting
     List<SourceControlEvent> events = generateEvents(
         2 * SourceControlEventService.TASK_QUEUE_CAPACITY + ":app1:" + SourceControlEvent.APPLICATION_EVALUATION_EVENT);
@@ -265,7 +268,6 @@ public class SourceControlEventServiceTest
 
     // when:
     int eventsProcessed = eventService.processEvents();
-    sleep(100);
 
     // then: we processed at least the 'desired load' number of events; absence of an error here indicates that we did
     //       not put more work in progress than the pool is configured to handle while at the same time ingesting as
@@ -274,15 +276,17 @@ public class SourceControlEventServiceTest
     //       of the work can complete while the events are being consumed, thus allowing us to process more events
     assertThat(eventsProcessed).isGreaterThanOrEqualTo(SourceControlEventService.TASK_QUEUE_CAPACITY);
 
-    assertThatLogMessagesEqual(
-        debug("Requested " + SourceControlEventService.TASK_QUEUE_CAPACITY + " source control events, processing "
-            + 2 * SourceControlEventService.TASK_QUEUE_CAPACITY),
-        debug(getProcessedEventMessage(events.get(0)))
-    );
+    await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+      assertThatLogMessagesEqual(
+          debug("Requested " + SourceControlEventService.TASK_QUEUE_CAPACITY + " source control events, processing "
+              + 2 * SourceControlEventService.TASK_QUEUE_CAPACITY),
+          debug(getProcessedEventMessage(events.get(0)))
+      );
+    });
   }
 
   @Test
-  public void testProcessEvents_invalidEventType() throws InterruptedException {
+  public void testProcessEvents_invalidEventType() {
     // given: DAO setup to return an event with an invalid type
     SourceControlEvent event = new SourceControlEvent()
         .setApplicationId("app1")
@@ -293,23 +297,24 @@ public class SourceControlEventServiceTest
 
     // when:
     eventService.processEvents();
-    sleep(100);
 
     // then:
-    verify(mockSourceControlEventDAO, times(1)).markEventInProgress(eq(event.getId()));
-    verify(mockPullRequestCommentingService, never()).onDiscoveredPullRequest(eq(event));
-    verify(mockPullRequestCommentingService, never()).onApplicationEvaluation(eq(event));
-    verify(mockSourceControlEventDAO, never()).markEventComplete(eq(event.getId()));
-    verify(mockSourceControlEventDAO, times(1)).markEventHasError(eq(event.getId()), any());
+    await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+      verify(mockSourceControlEventDAO, times(1)).markEventInProgress(eq(event.getId()));
+      verify(mockPullRequestCommentingService, never()).onDiscoveredPullRequest(eq(event));
+      verify(mockPullRequestCommentingService, never()).onApplicationEvaluation(eq(event));
+      verify(mockSourceControlEventDAO, never()).markEventComplete(eq(event.getId()));
+      verify(mockSourceControlEventDAO, times(1)).markEventHasError(eq(event.getId()), any());
 
-    assertThatLogMessagesEqual(
-        debug("Requested " + SourceControlEventService.TASK_QUEUE_CAPACITY + " source control events, processing 1"),
-        warn("Invalid source control event type 'invalid'")
-    );
+      assertThatLogMessagesEqual(
+          debug("Requested " + SourceControlEventService.TASK_QUEUE_CAPACITY + " source control events, processing 1"),
+          warn("Invalid source control event type 'invalid'")
+      );
+    });
   }
 
   @Test
-  public void testProcessEvents_unsupportedEventType() throws InterruptedException {
+  public void testProcessEvents_unsupportedEventType() {
     // given: DAO setup to return an event with an unsupported type
     SourceControlEvent event = new SourceControlEvent()
         .setApplicationId("app1")
@@ -320,23 +325,24 @@ public class SourceControlEventServiceTest
 
     // when:
     eventService.processEvents();
-    sleep(100);
 
     // then:
-    verify(mockSourceControlEventDAO, times(1)).markEventInProgress(eq(event.getId()));
-    verify(mockPullRequestCommentingService, never()).onDiscoveredPullRequest(eq(event));
-    verify(mockPullRequestCommentingService, never()).onApplicationEvaluation(eq(event));
-    verify(mockSourceControlEventDAO, never()).markEventComplete(eq(event.getId()));
-    verify(mockSourceControlEventDAO, times(1)).markEventHasError(eq(event.getId()), eq("unsupported"));
+    await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+      verify(mockSourceControlEventDAO, times(1)).markEventInProgress(eq(event.getId()));
+      verify(mockPullRequestCommentingService, never()).onDiscoveredPullRequest(eq(event));
+      verify(mockPullRequestCommentingService, never()).onApplicationEvaluation(eq(event));
+      verify(mockSourceControlEventDAO, never()).markEventComplete(eq(event.getId()));
+      verify(mockSourceControlEventDAO, times(1)).markEventHasError(eq(event.getId()), eq("unsupported"));
 
-    assertThatLogMessagesEqual(
-        debug("Requested " + SourceControlEventService.TASK_QUEUE_CAPACITY + " source control events, processing 1"),
-        warn("Unsupported source control event type 'remediation pull request'")
-    );
+      assertThatLogMessagesEqual(
+          debug("Requested " + SourceControlEventService.TASK_QUEUE_CAPACITY + " source control events, processing 1"),
+          warn("Unsupported source control event type 'remediation pull request'")
+      );
+    });
   }
 
   @Test
-  public void testProcessEvents_exceptionMarkingEventInProgress() throws InterruptedException {
+  public void testProcessEvents_exceptionMarkingEventInProgress() {
     // given: DAO setup to throw an exception
     SourceControlEvent event = new SourceControlEvent()
         .setApplicationId("app1")
@@ -350,7 +356,6 @@ public class SourceControlEventServiceTest
 
     // when:
     eventService.processEvents();
-    sleep(100);
 
     // then:
     verify(mockSourceControlEventDAO, times(1)).markEventInProgress(eq(event.getId()));
@@ -366,7 +371,7 @@ public class SourceControlEventServiceTest
   }
 
   @Test
-  public void testProcessEvents_exceptionMarkingEventComplete() throws InterruptedException {
+  public void testProcessEvents_exceptionMarkingEventComplete() {
     // given: DAO setup to throw an exception
     SourceControlEvent event = new SourceControlEvent()
         .setApplicationId("app1")
@@ -380,24 +385,26 @@ public class SourceControlEventServiceTest
 
     // when:
     eventService.processEvents();
-    sleep(100);
 
     // then:
-    verify(mockSourceControlEventDAO, times(1)).markEventInProgress(eq(event.getId()));
-    verify(mockPullRequestCommentingService, never()).onDiscoveredPullRequest(eq(event));
-    verify(mockPullRequestCommentingService, times(1)).onApplicationEvaluation(eq(event));
-    verify(mockSourceControlEventDAO, times(1)).markEventComplete(eq(event.getId()));
-    verify(mockSourceControlEventDAO, never()).markEventHasError(eq(event.getId()), any());
-    assertThatLogMessagesEqual(
-        debug("Requested " + SourceControlEventService.TASK_QUEUE_CAPACITY + " source control events, processing 1"),
-        debug(getProcessedEventMessage(event)),
-        error("Error updating event processing status for event 'c0c0babe' of type 'application evaluation' for" +
-            " application 'app1' : simulated")
-    );
+    await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+      verify(mockSourceControlEventDAO, times(1)).markEventInProgress(eq(event.getId()));
+      verify(mockPullRequestCommentingService, never()).onDiscoveredPullRequest(eq(event));
+      verify(mockPullRequestCommentingService, times(1)).onApplicationEvaluation(eq(event));
+      verify(mockSourceControlEventDAO, times(1)).markEventComplete(eq(event.getId()));
+      verify(mockSourceControlEventDAO, never()).markEventHasError(eq(event.getId()), any());
+
+      assertThatLogMessagesEqual(
+          debug("Requested " + SourceControlEventService.TASK_QUEUE_CAPACITY + " source control events, processing 1"),
+          debug(getProcessedEventMessage(event)),
+          error("Error updating event processing status for event 'c0c0babe' of type 'application evaluation' for" +
+              " application 'app1' : simulated")
+      );
+    });
   }
 
   @Test
-  public void testProcessEvents_exceptionMarkingEventHasError() throws InterruptedException {
+  public void testProcessEvents_exceptionMarkingEventHasError() {
     // given: DAO setup to throw an exception
     SourceControlEvent event = new SourceControlEvent()
         .setApplicationId("app1")
@@ -414,20 +421,23 @@ public class SourceControlEventServiceTest
 
     // when:
     eventService.processEvents();
-    sleep(100);
 
     // then:
-    verify(mockSourceControlEventDAO, times(1)).markEventInProgress(eq(event.getId()));
-    verify(mockPullRequestCommentingService, never()).onDiscoveredPullRequest(eq(event));
-    verify(mockPullRequestCommentingService, times(1)).onApplicationEvaluation(eq(event));
-    verify(mockSourceControlEventDAO, never()).markEventComplete(eq(event.getId()));
-    verify(mockSourceControlEventDAO, times(1)).markEventHasError(eq(event.getId()), any());
-    assertThatLogMessagesEqual(
-        debug("Requested " + SourceControlEventService.TASK_QUEUE_CAPACITY + " source control events, processing 1"),
-        error("Unable to process event 'c0c0babe' of type 'application evaluation' for application 'app1' : simulated"),
-        error("Error updating event processing status for event 'c0c0babe' of type 'application evaluation' for" +
-            " application 'app1' : simulated")
-    );
+    await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+      verify(mockSourceControlEventDAO, times(1)).markEventInProgress(eq(event.getId()));
+      verify(mockPullRequestCommentingService, never()).onDiscoveredPullRequest(eq(event));
+      verify(mockPullRequestCommentingService, times(1)).onApplicationEvaluation(eq(event));
+      verify(mockSourceControlEventDAO, never()).markEventComplete(eq(event.getId()));
+      verify(mockSourceControlEventDAO, times(1)).markEventHasError(eq(event.getId()), any());
+
+      assertThatLogMessagesEqual(
+          debug("Requested " + SourceControlEventService.TASK_QUEUE_CAPACITY + " source control events, processing 1"),
+          error(
+              "Unable to process event 'c0c0babe' of type 'application evaluation' for application 'app1' : simulated"),
+          error("Error updating event processing status for event 'c0c0babe' of type 'application evaluation' for"
+              + " application 'app1' : simulated")
+      );
+    });
   }
 
   @Test
@@ -446,7 +456,6 @@ public class SourceControlEventServiceTest
 
     // when:
     eventService.processEvents();
-    sleep(100);
 
     // then:
     verify(mockSourceControlEventDAO, times(1)).markEventInProgress(eq(event.getId()));
@@ -476,19 +485,21 @@ public class SourceControlEventServiceTest
 
     // when:
     eventService.processEvents();
-    sleep(100);
 
     // then:
-    verify(mockSourceControlEventDAO, times(1)).markEventInProgress(eq(event.getId()));
-    verify(mockPullRequestCommentingService, never()).onDiscoveredPullRequest(eq(event));
-    verify(mockPullRequestCommentingService, times(1)).onApplicationEvaluation(eq(event));
-    verify(mockSourceControlEventDAO, times(1)).markEventComplete(eq(event.getId()));
-    verify(mockSourceControlEventDAO, never()).markEventHasError(eq(event.getId()), any());
-    assertThatLogMessagesEqual(
-        debug("Requested " + SourceControlEventService.TASK_QUEUE_CAPACITY + " source control events, processing 1"),
-        debug(getProcessedEventMessage(event)),
-        error("Unable to release repo access for application 'app1'")
-    );
+    await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+      verify(mockSourceControlEventDAO, times(1)).markEventInProgress(eq(event.getId()));
+      verify(mockPullRequestCommentingService, never()).onDiscoveredPullRequest(eq(event));
+      verify(mockPullRequestCommentingService, times(1)).onApplicationEvaluation(eq(event));
+      verify(mockSourceControlEventDAO, times(1)).markEventComplete(eq(event.getId()));
+      verify(mockSourceControlEventDAO, never()).markEventHasError(eq(event.getId()), any());
+
+      assertThatLogMessagesEqual(
+          debug("Requested " + SourceControlEventService.TASK_QUEUE_CAPACITY + " source control events, processing 1"),
+          debug(getProcessedEventMessage(event)),
+          error("Unable to release repo access for application 'app1'")
+      );
+    });
   }
 
   @Test

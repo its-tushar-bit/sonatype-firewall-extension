@@ -283,7 +283,7 @@ public class SourceControlEventService
     return threadPoolExecutor;
   }
 
-  private int getNumberOfEventsToRequest() {
+  int getNumberOfEventsToRequest() {
     return getRemainingCapacity();
   }
 

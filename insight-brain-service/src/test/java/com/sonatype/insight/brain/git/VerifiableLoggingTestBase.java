@@ -55,4 +55,10 @@ public class VerifiableLoggingTestBase
         .extracting(ILoggingEvent::getFormattedMessage, ILoggingEvent::getLevel)
         .containsExactly(logMessageTuples);
   }
+
+  protected void assertThatLogMessagesContain(Tuple... logMessageTuples) {
+    assertThat(listAppender.list)
+        .extracting(ILoggingEvent::getFormattedMessage, ILoggingEvent::getLevel)
+        .contains(logMessageTuples);
+  }
 }

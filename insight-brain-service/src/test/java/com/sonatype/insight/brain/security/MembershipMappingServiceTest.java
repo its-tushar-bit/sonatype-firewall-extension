@@ -16,13 +16,21 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.api.v2.dto.ApiMemberDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingListDTO;
+import com.sonatype.insight.brain.configuration.ldap.LdapService;
+import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
+import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
+import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -30,12 +38,14 @@ import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.webhook.ManagementEvent.RoleEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.junit.Rule;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
@@ -60,6 +70,12 @@ public class MembershipMappingServiceTest
 
   @Inject
   private MembershipMappingDAO membershipMappingDAO;
+
+  @Inject
+  private LdapService ldapService;
+
+  @Rule
+  public TestLdapServer testLdapServer = new TestLdapServer();
 
   @Test
   public void testLoadMembersByRoleForNonGlobalContext_GlobalContext() {
@@ -91,6 +107,181 @@ public class MembershipMappingServiceTest
 
     assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
     assertThat(handler.getEvent().action).isEqualTo(UPDATED);
+  }
+
+  @Test
+  public void testGetApplicableMembershipMappings_ApplicationContext() throws Exception {
+    testGetApplicableMembershipMappings(tempEntity.newApplicationWithParent());
+  }
+
+  @Test
+  public void testGetApplicableMembershipMappings_OrganizationContext() throws Exception {
+    testGetApplicableMembershipMappings(tempEntity.newOrganization());
+  }
+
+  private void testGetApplicableMembershipMappings(Owner owner) throws Exception {
+    startLdapServer();
+
+    tempEntity.newMembershipMapping(owner.getId(), Role.DEVELOPER_ROLE_ID, "test_user1", MemberType.USER);
+    tempEntity.newMembershipMapping(owner.getId(), Role.COMPONENT_EVALUATOR_ROLE_ID, "test_group1", MemberType.GROUP);
+    User user = tempEntity.newUser("internal_user");
+    tempEntity.newMembershipMapping(owner.getId(), Role.APPLICATION_EVALUATOR_ROLE_ID, "internal_user",
+        MemberType.USER);
+
+    ApplicableMembershipMappings applicableMembershipMappings =
+        membershipMappingService.getApplicableMembershipMappings(OwnerType.APPLICATION, owner.getId());
+
+    assertThat(applicableMembershipMappings.membersByRole).hasSize(4);
+
+    MembersByRole membersByRoles = applicableMembershipMappings.membersByRole.get(0);
+    Member expectedMember = new Member(MemberType.USER, user.getUsername(), user.calculateDisplayName(),
+        user.getEmail(), InternalRealm.DISPLAY_NAME);
+    assertMembersByRoleOwner(membersByRoles, new RoleDAO().getById(Role.APPLICATION_EVALUATOR_ROLE_ID), owner,
+        expectedMember);
+
+    membersByRoles = applicableMembershipMappings.membersByRole.get(1);
+    expectedMember = new Member(MemberType.GROUP, "test_group1", "test_group1", null, null);
+    assertMembersByRoleOwner(membersByRoles, new RoleDAO().getById(Role.COMPONENT_EVALUATOR_ROLE_ID), owner,
+        expectedMember);
+
+    membersByRoles = applicableMembershipMappings.membersByRole.get(2);
+    expectedMember =
+        new Member(MemberType.USER, "test_user1", "Test User1", "test.user1@example.com", "Test LDAP Server");
+    assertMembersByRoleOwner(membersByRoles, new RoleDAO().getById(Role.DEVELOPER_ROLE_ID), owner, expectedMember);
+
+    membersByRoles = applicableMembershipMappings.membersByRole.get(3);
+    assertMembersByRoleOwner(membersByRoles, new RoleDAO().getById(Role.OWNER_ROLE_ID), owner, null);
+  }
+
+  @Test
+  public void testGetApplicableMembershipMappings_GlobalContext() throws Exception {
+    startLdapServer();
+
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, Role.SYSTEM_ADMIN_ROLE_ID, "test_user1",
+        MemberType.USER);
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, Role.POLICY_ADMIN_ROLE_ID, "test_group1",
+        MemberType.GROUP);
+
+    ApplicableMembershipMappings applicableMembershipMappings =
+        membershipMappingService.getApplicableMembershipMappings(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID);
+
+    assertThat(applicableMembershipMappings.membersByRole).hasSize(2);
+
+    MembersByRole membersByRoles = applicableMembershipMappings.membersByRole.get(0);
+    Member expectedMember = new Member(MemberType.GROUP, "test_group1", "test_group1", null, null);
+    assertMembersByRoleGlobal(membersByRoles, new RoleDAO().getById(Role.POLICY_ADMIN_ROLE_ID), expectedMember);
+
+    membersByRoles = applicableMembershipMappings.membersByRole.get(1);
+    expectedMember =
+        new Member(MemberType.USER, "test_user1", "Test User1", "test.user1@example.com", "Test LDAP Server");
+    assertMembersByRoleGlobal(membersByRoles, new RoleDAO().getById(Role.SYSTEM_ADMIN_ROLE_ID),
+        expectedMember);
+  }
+
+  private void assertMembersByRoleOwner(
+      MembersByRole membersByRoles,
+      Role expectedRole,
+      Owner expectedOwner,
+      Member expectedMember)
+  {
+    assertThat(membersByRoles.roleId).isEqualTo(expectedRole.getId());
+    assertThat(membersByRoles.roleName).isEqualTo(expectedRole.getName());
+    assertThat(membersByRoles.roleDescription).isEqualTo(expectedRole.getDescription());
+
+    int ownerHierarchyDepth = 0;
+    for (Owner owner : new OwnerDAO().walkHierarchy(expectedOwner)) {
+      MembersByOwner membersByOwner = membersByRoles.membersByOwner.get(ownerHierarchyDepth);
+      assertThat(membersByOwner.ownerId).isEqualTo(owner.getPublicId());
+      assertThat(membersByOwner.ownerName).isEqualTo(owner.getName());
+      assertThat(membersByOwner.ownerType).isEqualTo(owner.getType());
+
+      if (expectedOwner.getId().equals(owner.getId()) && expectedMember != null) {
+        assertThat(membersByOwner.members).hasSize(1);
+        Member member = membersByOwner.members.get(0);
+        assertThat(member.getType()).isEqualTo(expectedMember.getType());
+        assertThat(member.getInternalName()).isEqualTo(expectedMember.getInternalName());
+        assertThat(member.getDisplayName()).isEqualTo(expectedMember.getDisplayName());
+        assertThat(member.getEmail()).isEqualTo(expectedMember.getEmail());
+        assertThat(member.getRealm()).isEqualTo(expectedMember.getRealm());
+      }
+      else {
+        assertThat(membersByOwner.members).hasSize(0);
+      }
+
+      ownerHierarchyDepth++;
+    }
+    assertThat(membersByRoles.membersByOwner).hasSize(ownerHierarchyDepth);
+  }
+
+  private void assertMembersByRoleGlobal(
+      MembersByRole membersByRoles,
+      Role expectedRole,
+      Member expectedMember)
+  {
+    assertThat(membersByRoles.roleId).isEqualTo(expectedRole.getId());
+    assertThat(membersByRoles.roleName).isEqualTo(expectedRole.getName());
+    assertThat(membersByRoles.roleDescription).isEqualTo(expectedRole.getDescription());
+
+    assertThat(membersByRoles.membersByOwner).hasSize(1);
+    MembersByOwner membersByOwner = membersByRoles.membersByOwner.get(0);
+    assertThat(membersByOwner.ownerId).isEqualTo(MembershipMapping.GLOBAL_CONTEXT_ID);
+    assertThat(membersByOwner.ownerName).isEqualTo(MembershipMapping.GLOBAL_CONTEXT_NAME);
+    assertThat(membersByOwner.ownerType).isEqualTo(OwnerType.GLOBAL);
+
+    assertThat(membersByOwner.members).hasSize(2);
+    Member member = membersByOwner.members.get(0);
+    User admin = new UserDAO().getByUsername(User.ADMIN_USERNAME);
+    assertThat(member.getType()).isEqualTo(MemberType.USER);
+    assertThat(member.getInternalName()).isEqualTo(admin.getUsername());
+    assertThat(member.getDisplayName()).isEqualTo(admin.calculateDisplayName());
+    assertThat(member.getEmail()).isEqualTo(admin.getEmail());
+    assertThat(member.getRealm()).isEqualTo(InternalRealm.DISPLAY_NAME);
+    member = membersByOwner.members.get(1);
+    assertThat(member.getType()).isEqualTo(expectedMember.getType());
+    assertThat(member.getInternalName()).isEqualTo(expectedMember.getInternalName());
+    assertThat(member.getDisplayName()).isEqualTo(expectedMember.getDisplayName());
+    assertThat(member.getEmail()).isEqualTo(expectedMember.getEmail());
+    assertThat(member.getRealm()).isEqualTo(expectedMember.getRealm());
+  }
+
+  private void startLdapServer() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test LDAP Server");
+
+    testLdapServer.start();
+    testLdapServer.loadData("/" + getClass().getSimpleName() + "/ldap.ldif");
+
+    ldapService.upsertLdapConnection(createLdapConnection(ldapServer, testLdapServer));
+
+    new LdapUserMappingDAO().insert(createUserMapping(ldapServer));
+  }
+
+  private LdapConnection createLdapConnection(LdapServer ldapServer, TestLdapServer testLdapServer) {
+    LdapConnection ldapConnection = ldapService.getLdapConnection(ldapServer.getId());
+    ldapConnection.setServerId(ldapServer.getId());
+    ldapConnection.setProtocol(LdapProtocol.LDAP);
+    ldapConnection.setSearchBase("dc=company,dc=com");
+    if (testLdapServer != null) {
+      ldapConnection.setHostname(testLdapServer.getHostname());
+      ldapConnection.setPort(testLdapServer.getPort());
+    }
+    return ldapConnection;
+  }
+
+  private LdapUserMapping createUserMapping(LdapServer ldapServer) {
+    LdapUserMapping ldapUserMapping = new LdapUserMapping();
+    ldapUserMapping.setServerId(ldapServer.getId());
+    ldapUserMapping.setUserBaseDN("ou=users");
+    ldapUserMapping.setUserObjectClass("person");
+    ldapUserMapping.setUserIDAttribute("uid");
+    ldapUserMapping.setUserRealNameAttribute("cn");
+    ldapUserMapping.setUserEmailAttribute("mail");
+    ldapUserMapping.setUserSubtree(true);
+    ldapUserMapping.setGroupBaseDN("ou=groups");
+    ldapUserMapping.setGroupIDAttribute("cn");
+    ldapUserMapping.setGroupSubtree(true);
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    ldapUserMapping.setUserMemberOfGroupAttribute("departmentNumber");
+    return ldapUserMapping;
   }
 
   @Test

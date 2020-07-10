@@ -28,4 +28,9 @@ public class MembersByOwner
     this.ownerName = ownerName;
     this.ownerType = ownerType;
   }
+
+  @Override
+  public String toString() {
+    return "ownerName=" + ownerName + "(id=" + ownerId + ", type=" + ownerType + "), members=" + members;
+  }
 }

@@ -26,4 +26,9 @@ public class MembersByRole
     this.roleName = roleName;
     this.roleDescription = roleDescription;
   }
+
+  @Override
+  public String toString() {
+    return "Role=" + roleName + "(id=" + roleId + "), membersByOwner=" + membersByOwner;
+  }
 }

@@ -64,6 +64,9 @@ public class ApplicationAdapter
     return createApplicationDTO(application, contact);
   }
 
+  /**
+   * For performance reasons, the application contact details are not included in the result.
+   */
   public List<ApplicationDTO> convert(List<Application> applicationList) {
     if (applicationList == null || applicationList.isEmpty()) {
       return Collections.emptyList();
@@ -77,10 +80,8 @@ public class ApplicationAdapter
       internalNameList.add(internalName);
     }
 
-    final ContactDTO[] contacts = applicationContactLoader.getContacts(internalNameList);
-
     for (int i = 0; i < applicationList.size(); i++) {
-      final ApplicationDTO applicationDTO = createApplicationDTO(applicationList.get(i), contacts[i]);
+      final ApplicationDTO applicationDTO = createApplicationDTO(applicationList.get(i), null /* contact */);
       applicationDTOList.add(applicationDTO);
     }
 

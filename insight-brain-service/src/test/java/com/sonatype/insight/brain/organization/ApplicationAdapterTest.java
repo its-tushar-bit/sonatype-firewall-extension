@@ -148,31 +148,18 @@ public class ApplicationAdapterTest
   public void testConvert_Applications() {
     List<ApplicationDTO> expectedApplicationDTOs = new ArrayList<>();
     List<Application> applications = new ArrayList<>();
-    List<Member> members = new ArrayList<>();
-    Set<String> memberNames = new HashSet<>();
 
     for (int i = 1; i <= 5; i++) {
       String orgId = organizationId;
       String appName = applicationName + "-" + i;
       String appId = applicationId + "-" + i;
       String contactName = contactInternalName + "-" + i;
-      String firstName = userFirstName + "-" + i;
-      String lastName = userLastName + "-" + i;
-      String email = userEmail + "-" + i;
-      String displayName = firstName + " " + lastName;
 
       Application application = createApplication(orgId, appName, appId, contactName);
       applications.add(application);
 
-      ContactDTO expectedContactDTO = createExpectedContactDTO(contactName, displayName, InternalRealm.DISPLAY_NAME,
-          email);
-      ApplicationDTO expectedApplicationDTO = createExpectedApplicationDTO(appName, appId, expectedContactDTO);
+      ApplicationDTO expectedApplicationDTO = createExpectedApplicationDTO(appName, appId, null /* ContactDTO */);
       expectedApplicationDTOs.add(expectedApplicationDTO);
-
-      // These members will be returned by the user directory.
-      Member member = createMember(contactName, firstName, lastName, email);
-      members.add(member);
-      memberNames.add(contactName);
     }
 
     List<ApplicationDTO> actualApplicationDTOs = ApplicationAdapter.getInstance(userDirectory).convert(applications);

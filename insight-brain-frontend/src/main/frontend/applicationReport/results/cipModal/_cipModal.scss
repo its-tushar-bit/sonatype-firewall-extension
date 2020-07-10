@@ -23,6 +23,10 @@ $cip-modal-header-height: 37px;
 $cip-modal-tab-bar-height: 42px;
 $cip-modal-footer-height: 60px;
 $cip-modal-vertical-margins: 100px;
+
+// IE 11 does not support nested calc() functions. So in calculations below that should use the
+// $cip-modal-height variable we are required to repeat this calculation again. If you ever change
+// the $cip-modal-height calculation on the below line, make sure to change it in the 3 other places in this file
 $cip-modal-height: calc(100vh - #{$cip-modal-vertical-margins});
 $cip-modal-max-height: 550px;
 
@@ -37,7 +41,9 @@ $cip-modal-max-height: 550px;
     padding: 0;
 
     #informationPanel {
-      height: calc(#{$cip-modal-height} - #{$cip-modal-header-height} - #{$cip-modal-footer-height});
+      height: calc((100vh - #{$cip-modal-vertical-margins})
+                  - #{$cip-modal-header-height}
+                  - #{$cip-modal-footer-height});
       max-height: $cip-modal-max-height - $cip-modal-header-height - $cip-modal-footer-height;
 
       .tab-content {
@@ -137,7 +143,7 @@ cip-occurrences,
 .labelEditor.iq-load-wrapper,
 cip-audit,
 #claim-component-editor {
-  height: calc(#{$cip-modal-height}
+  height: calc(100vh - #{$cip-modal-vertical-margins}
                  - #{$cip-modal-header-height}
                  - #{$cip-modal-tab-bar-height}
                  - #{$cip-modal-footer-height}
@@ -150,7 +156,7 @@ cip-audit,
 }
 
 .cip-policy-wrapper {
-  height: calc(#{$cip-modal-height}
+  height: calc(100vh - #{$cip-modal-vertical-margins}
                  - #{$cip-modal-header-height}
                  - #{$cip-modal-tab-bar-height}
                  - #{$cip-modal-footer-height}

@@ -59,7 +59,7 @@ public class MembershipMappingService
 
   private final RoleDAO roleDAO;
 
-  private final MembershipMappingDAO memberMapDAO;
+  private final MembershipMappingDAO membershipMappingDAO;
 
   private final OwnerDAO ownerDAO;
 
@@ -70,19 +70,20 @@ public class MembershipMappingService
   private final ApiMemberMappingAdapter apiMemberMappingAdapter;
 
   @Inject
-  public MembershipMappingService(final ApplicationDAO appDAO,
-                                  OrganizationDAO orgDAO,
-                                  final RoleDAO roleDAO,
-                                  final MembershipMappingDAO memberMapDAO,
-                                  final OwnerDAO ownerDAO,
-                                  UserDirectory userDirectory,
-                                  final ManagementEventService managementEventService,
-                                  ApiMemberMappingAdapter apiMemberMappingAdapter)
+  public MembershipMappingService(
+      final ApplicationDAO appDAO,
+      OrganizationDAO orgDAO,
+      final RoleDAO roleDAO,
+      final MembershipMappingDAO membershipMappingDAO,
+      final OwnerDAO ownerDAO,
+      UserDirectory userDirectory,
+      final ManagementEventService managementEventService,
+      ApiMemberMappingAdapter apiMemberMappingAdapter)
   {
     this.appDAO = appDAO;
     this.orgDAO = orgDAO;
     this.roleDAO = roleDAO;
-    this.memberMapDAO = memberMapDAO;
+    this.membershipMappingDAO = membershipMappingDAO;
     this.ownerDAO = ownerDAO;
     this.userDirectory = userDirectory;
     this.managementEventService = managementEventService;
@@ -106,11 +107,11 @@ public class MembershipMappingService
       roles = roleDAO.getApplicationRoles();
     }
     for (final Role role : roles) {
-      final MembersByRole byRole = new MembersByRole();
-      byRole.roleId = role.getId();
-      byRole.roleName = role.getName();
-      byRole.roleDescription = role.getDescription();
-      membersByRoleByRoleId.put(byRole.roleId, byRole);
+      final MembersByRole membersByRole = new MembersByRole();
+      membersByRole.roleId = role.getId();
+      membersByRole.roleName = role.getName();
+      membersByRole.roleDescription = role.getDescription();
+      membersByRoleByRoleId.put(membersByRole.roleId, membersByRole);
     }
     final MemberAttributeResolver memberAttributeResolver = new MemberAttributeResolver(userDirectory);
     if (OwnerType.GLOBAL.equals(ownerType)) {
@@ -153,8 +154,8 @@ public class MembershipMappingService
     if (internalOwnerId == null) {
       internalOwnerId = getIdGlobalOrRepositoryContainer(ownerType);
     }
-    MembershipMapping existing =
-        memberMapDAO.getByContextIdAndRoleIdAndMemberNameAndMemberType(internalOwnerId, roleId, memberName, memberType);
+    MembershipMapping existing = membershipMappingDAO.getByContextIdAndRoleIdAndMemberNameAndMemberType(internalOwnerId,
+        roleId, memberName, memberType);
 
     if (existing != null) {
       return;  // Already granted
@@ -199,8 +200,8 @@ public class MembershipMappingService
     if (internalOwnerId == null) {
       internalOwnerId = getIdGlobalOrRepositoryContainer(ownerType);
     }
-    MembershipMapping membershipMapping =
-        memberMapDAO.getByContextIdAndRoleIdAndMemberNameAndMemberType(internalOwnerId, roleId, memberName, memberType);
+    MembershipMapping membershipMapping = membershipMappingDAO
+        .getByContextIdAndRoleIdAndMemberNameAndMemberType(internalOwnerId, roleId, memberName, memberType);
 
     Member member = new Member();
     member.setInternalName(memberName);
@@ -289,12 +290,12 @@ public class MembershipMappingService
       @SuppressWarnings("unused") @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
       MembershipMapping membershipMapping)
   {
-    memberMapDAO.insert(membershipMapping);
+    membershipMappingDAO.insert(membershipMapping);
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   void grantRoleMembershipForGlobalContext(MembershipMapping membershipMapping) {
-    memberMapDAO.insert(membershipMapping);
+    membershipMappingDAO.insert(membershipMapping);
   }
 
   @Authorize(permission = Permission.EDIT_ACCESS_CONTROL)
@@ -315,7 +316,7 @@ public class MembershipMappingService
     if (membershipMapping == null) {
       throw new NotFoundException("Role membership not found.");
     }
-    memberMapDAO.delete(membershipMapping);
+    membershipMappingDAO.delete(membershipMapping);
   }
 
   String getIdGlobalOrRepositoryContainer(OwnerType ownerType) {
@@ -335,7 +336,7 @@ public class MembershipMappingService
                                              String internalOwnerId,
                                              Map<String, List<Member>> roleToMembers)
   {
-    try (TransactionContext tx = memberMapDAO.createTransactionContext()) {
+    try (TransactionContext tx = membershipMappingDAO.createTransactionContext()) {
       tx.begin();
 
       for (Entry<String, List<Member>> entry : roleToMembers.entrySet()) {
@@ -369,16 +370,16 @@ public class MembershipMappingService
 
     validateContextId(ownerType, internalOwnerId);
 
-    final List<MembershipMapping> memberMaps = new ArrayList<>();
+    final List<MembershipMapping> membershipMappings = new ArrayList<>();
     for (final Member member : members) {
       validateMember(member);
-      final MembershipMapping memberMap = new MembershipMapping(member.getInternalName(), member.getType());
-      memberMaps.add(memberMap);
+      final MembershipMapping membershipMapping = new MembershipMapping(member.getInternalName(), member.getType());
+      membershipMappings.add(membershipMapping);
     }
 
     auditConfigureRoleMembership(role, members);
 
-    memberMapDAO.setMembershipMappingsForContextAndRole(tx, internalOwnerId, roleId, memberMaps);
+    membershipMappingDAO.setMembershipMappingsForContextAndRole(tx, internalOwnerId, roleId, membershipMappings);
   }
 
   private void auditConfigureRoleMembership(Role role, Collection<Member> members) {
@@ -430,30 +431,31 @@ public class MembershipMappingService
                                                   final MemberAttributeResolver memberAttributeResolver,
                                                   final List<Role> roles)
   {
-    final Map<String, MembersByOwner> byRole = new LinkedHashMap<>();
-    for (final MembershipMapping memberMap : memberMapDAO.getByContextId(ownerId)) {
-      MembersByOwner byOwner = byRole.get(memberMap.getRoleId());
-      if (byOwner == null) {
-        byOwner = new MembersByOwner(ownerId, ownerName, ownerType);
-        byRole.put(memberMap.getRoleId(), byOwner);
+    final Map<String, MembersByOwner> membersByOwnerByRoleId = new LinkedHashMap<>();
+    for (final MembershipMapping membershipMapping : membershipMappingDAO.getByContextId(ownerId)) {
+      MembersByOwner membersByOwner = membersByOwnerByRoleId.get(membershipMapping.getRoleId());
+      if (membersByOwner == null) {
+        membersByOwner = new MembersByOwner(ownerId, ownerName, ownerType);
+        membersByOwnerByRoleId.put(membershipMapping.getRoleId(), membersByOwner);
       }
-      final Member member = new Member(memberMap.getMemberType(), memberMap.getMemberName(), memberMap.getMemberName());
-      byOwner.members.add(member);
+      final Member member = new Member(membershipMapping.getMemberType(), membershipMapping.getMemberName(),
+          membershipMapping.getMemberName());
+      membersByOwner.members.add(member);
     }
 
     // go through and make sure each role contains the owner, even if its empty list
     for (final Role role : roles) {
-      MembersByOwner byOwner = byRole.get(role.getId());
-      if (byOwner == null) {
-        byOwner = new MembersByOwner(ownerId, ownerName, ownerType);
-        byRole.put(role.getId(), byOwner);
+      MembersByOwner membersByOwner = membersByOwnerByRoleId.get(role.getId());
+      if (membersByOwner == null) {
+        membersByOwner = new MembersByOwner(ownerId, ownerName, ownerType);
+        membersByOwnerByRoleId.put(role.getId(), membersByOwner);
       }
 
       // Fill in display names queried from userDAO and ldap
-      memberAttributeResolver.resolve(byOwner.members);
+      memberAttributeResolver.resolve(membersByOwner.members);
     }
 
-    return byRole;
+    return membersByOwnerByRoleId;
   }
 
   private void auditRoleMemberData(AuditData auditData, Role role, Member member) {

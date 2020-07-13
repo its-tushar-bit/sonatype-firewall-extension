@@ -13,7 +13,8 @@ export default function SourceControlService($http, CLMLocations) {
     deleteSourceControlRecord: deleteSourceControlRecord,
     getProviderTypesMap: getProviderTypesMap,
     getProviderTypes: getProviderTypes,
-    getCompositeSourceControlRecord: getCompositeSourceControlRecord
+    getCompositeSourceControlRecord: getCompositeSourceControlRecord,
+    validateCompositeSCMConfig: validateCompositeSCMConfig
   };
 
   /**
@@ -22,6 +23,10 @@ export default function SourceControlService($http, CLMLocations) {
    */
   function getCompositeSourceControlRecord(ownerType, ownerId) {
     return $http.get(CLMLocations.getCompositeSourceControlUrl(ownerType, ownerId)).then(prop('data'));
+  }
+
+  function validateCompositeSCMConfig(ownerType, ownerId) {
+    return $http.get(CLMLocations.getValidateScmConfigUrl(ownerType, ownerId)).then(prop('data'));
   }
 
   /**

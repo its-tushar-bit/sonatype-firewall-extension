@@ -41,8 +41,7 @@ public class GitApiFactory
         .requireNonNull(insightConfig.getSourceControl(), "sourceControl in InSightConfig cannot be null");
   }
 
-  @VisibleForTesting
-  GitApi createGitApi(final GitRepositoryInfo gitInfo) {
+  public GitApi createGitApi(final GitRepositoryInfo gitInfo) {
     String gitImplFromConfig = sourceControlConfig.getGitImplementation();
     String gitExecutable = sourceControlConfig.getGitExecutable();
     if (gitImplFromConfig != null) {

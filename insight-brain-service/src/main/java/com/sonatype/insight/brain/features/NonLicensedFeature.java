@@ -29,7 +29,10 @@ public enum NonLicensedFeature
 
   ROOT_ORG_MIGRATE,
 
-  REPORTS_LIST;
+  REPORTS_LIST,
+
+  // feature-flag for SCM Configuration validation development
+  SCM_CONFIG_VALIDATOR;
 
   @Override
   public String toString() {

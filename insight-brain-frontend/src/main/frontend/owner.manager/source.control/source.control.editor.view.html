@@ -272,6 +272,44 @@
                    ng-if="vm.isPullRequestsSupported()">
           </div>
         </div>
+        <div class="iq-form-row" ng-if="vm.showScmValidator">
+          <div class="iq-form-group">
+            <button type="button"
+                    class="iq-btn iq-btn--primary"
+                    ng-click="vm.validateScmConfig()"
+                    ng-disabled="vm.scmConfigValidationInProgress"
+                    >Validate Configuration
+            </button>
+            <div id="scm-config-results" class="floatRight" ng-if="vm.scmConfigValidationResult">
+              <table>
+                <tr class="iq-table-row">
+                  <td class="iq-cell iq-cell--label">Is configuration complete?</td>
+                  <td class="iq-cell iq-cell--icon">
+                    <i class="fa size-16px"
+                       ng-class="vm.getScmValidationClass(vm.scmConfigValidationResult.configurationComplete)"></i>
+                  </td>
+                  <td class="iq-cell">{{vm.scmConfigValidationResult.configurationComplete.message}}</td>
+                </tr>
+                <tr class="iq-table-row">
+                  <td class="iq-cell iq-cell--label">Is repo private?</td>
+                  <td class="iq-cell iq-cell--icon">
+                    <i class="fa size-16px"
+                       ng-class="vm.getScmValidationClass(vm.scmConfigValidationResult.repoPrivate)"></i>
+                  </td>
+                  <td class="iq-cell">{{vm.scmConfigValidationResult.repoPrivate.message}}</td>
+                </tr>
+                <tr class="iq-table-row">
+                  <td class="iq-cell iq-cell--label">Does token have sufficient permissions?</td>
+                  <td class="iq-cell iq-cell--icon">
+                    <i class="fa size-16px"
+                       ng-class="vm.getScmValidationClass(vm.scmConfigValidationResult.tokenPermissions)"></i>
+                  </td>
+                  <td class="iq-cell">{{vm.scmConfigValidationResult.tokenPermissions.message}}</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
       <div submit-wrapper="vm.submitError" retry="vm.save()" class="iq-tile-footer">
         <button type="submit"

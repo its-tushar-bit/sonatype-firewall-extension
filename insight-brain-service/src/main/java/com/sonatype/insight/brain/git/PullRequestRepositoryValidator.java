@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
  */
 @Named
 @Singleton
-class PullRequestRepositoryValidator
+public class PullRequestRepositoryValidator
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestRepositoryValidator.class);
 
@@ -68,7 +68,7 @@ class PullRequestRepositoryValidator
     return false;
   }
 
-  private boolean isPrivateRepository(final GitRepositoryInfo gitRepositoryInfo) {
+  public boolean isPrivateRepository(final GitRepositoryInfo gitRepositoryInfo) {
     GitApiClient client = gitClientFactory.createApiClient(gitRepositoryInfo);
     try {
       return client.isRepositoryPrivate();

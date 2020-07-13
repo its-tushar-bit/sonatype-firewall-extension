@@ -238,6 +238,28 @@ describe('SourceControlService', function() {
     });
   });
 
+  describe('getCompositeSourceControlTest_ForApp', function() {
+    const resultSourceControlValidationResult = {
+      isRepoPrivate: false,
+      urlValid: false,
+      tokenValid: false,
+      tokenPermissionsValid: false
+    };
+
+    it('returns the source control validation record for an application', function() {
+      SourceControlService.validateCompositeSCMConfig('application', 'APPLICATION_ID').then(
+          successSpy).catch(failSpy);
+
+      $httpBackend.expectGET(
+          CLMLocations.getValidateScmConfigUrl('application', 'APPLICATION_ID')).respond(
+          resultSourceControlValidationResult);
+      $httpBackend.flush();
+
+      expect(successSpy).toHaveBeenCalledWith(jasmine.objectContaining(resultSourceControlValidationResult));
+      expect(failSpy).not.toHaveBeenCalled();
+    });
+  });
+
   describe('addSourceControlRecord_ForApp', function() {
     const appRecord = {
       'id': '1234',

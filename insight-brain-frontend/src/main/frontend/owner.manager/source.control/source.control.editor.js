@@ -49,6 +49,16 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
   vm.isSshUrl = isSshUrl;
   vm.checkUrlFormat = checkUrlFormat;
   vm.providersSupportingPullRequests = ['github', 'bitbucket'];
+  // function reference to initiate the SCM Configuration validation
+  vm.validateScmConfig = validateScmConfig;
+  // result object of the SCM validation
+  vm.scmConfigValidationResult = undefined;
+  // flag to indicate SCM testing is in progress
+  vm.scmConfigValidationInProgress = false;
+  // feature flag to show/hide SCM testing while under development
+  vm.showScmValidator = false;
+  // helper function to generate the display classes
+  vm.getScmValidationClass = getScmValidationClass;
 
   /**
    * Matches any absolute HTTP(S) and SSH URL as per RFC 3986
@@ -96,6 +106,7 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
         let isNotificationsSupported = ProductFeatures.isAvailable('notifications');
         vm.isAutomationSupported = ProductFeatures.isAvailable('automation');
         vm.isSourceControlSupported = isNotificationsSupported || vm.isAutomationSupported;
+        vm.showScmValidator = vm.isApp && ProductFeatures.isAvailable('scm-config-validator');
         if (vm.isSourceControlSupported) {
           return getSourceControl();
         }
@@ -128,6 +139,28 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
       vm.baseBranchInheritText = getInheritText(vm.dirtySourceControl.baseBranchInheritFrom,
           vm.dirtySourceControl.baseBranchInheritedValue);
     });
+  }
+
+  /**
+   * Perform the source control configuration test
+   */
+  function validateScmConfig() {
+    vm.scmConfigValidationResult = undefined;
+    vm.scmConfigValidationInProgress = true;
+    return SourceControlService.validateCompositeSCMConfig(vm.ownerType, vm.ownerId).then(function(result) {
+      vm.scmConfigValidationResult = result;
+      vm.scmConfigValidationInProgress = false;
+    });
+  }
+
+  function getScmValidationClass(result) {
+    if (!result) {
+      return 'fa-question-circle warn';
+    }
+    if (!result.valid) {
+      return 'fa-exclamation-triangle warn';
+    }
+    return 'fa-check-circle text-success';
   }
 
   function deleteSourceControl() {

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -12,7 +13,6 @@ import java.util.Map;
 
 import com.sonatype.insight.brain.model.security.MemberType;
 
-import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,7 +71,7 @@ public class MemberAttributeResolver
    * @return Unresolved members, not found in the local cache.
    */
   private List<Member> resolveCachedMembers(Collection<Member> members) {
-    List<Member> unresolvedMembers = Lists.newArrayList(members);
+    List<Member> unresolvedMembers = new ArrayList<>(members);
 
     for (Member member : members) {
       MemberKey key = new MemberKey(member.getInternalName(), member.getType());

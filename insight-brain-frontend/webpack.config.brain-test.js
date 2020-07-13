@@ -53,6 +53,17 @@ module.exports = {
         }
       },
       {
+        test: /\.jsx?$/,
+        include: /node_modules[\/\\]fuse\.js/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: [['env']],
+            plugins: [transformObjectRestSpread]
+          }
+        }
+      },
+      {
         test: /\.html$/,
         use: {
           loader: 'html-loader',

@@ -89,7 +89,23 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
       ].concat(
           cssOutputPath ? getCssPlugins() : [],
           productionPlugins
-      );
+      ),
+      babelLoaderBaseRule = {
+        test: /\.jsx?$/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: [['env', { modules: false }]],
+            // NOTE: babel's transformRuntime and webpack's exports-loader cannot be used on the
+            // same files due to https://github.com/webpack/webpack/issues/4039#issuecomment-274094298
+            plugins: [
+              transformObjectRestSpread,
+              transformJsx,
+              [transformRuntime, { polyfill: false }]
+            ]
+          }
+        }
+      };
 
   return {
     context: path.resolve(__dirname, 'src/main/frontend'),
@@ -103,21 +119,11 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
     },
     module: {
       rules: [{
-        test: /\.jsx?$/,
-        // NOTE: babel's transformRuntime and webpack's exports-loader cannot be used on the
-        // same files due to https://github.com/webpack/webpack/issues/4039#issuecomment-274094298
-        exclude: /node_modules|src[\/\\]main[\/\\]frontend[\/\\]lib[\/\\](protovis|Base64)/,
-        use: {
-          loader: 'babel-loader',
-          options: {
-            presets: [['env', { modules: false }]],
-            plugins: [
-              transformObjectRestSpread,
-              transformJsx,
-              [transformRuntime, { polyfill: false }]
-            ]
-          }
-        }
+        ...babelLoaderBaseRule,
+        exclude: /node_modules|src[\/\\]main[\/\\]frontend[\/\\]lib[\/\\](protovis|Base64)/
+      }, {
+        ...babelLoaderBaseRule,
+        include: /node_modules[\/\\]fuse\.js/
       }, {
         test: /\.jsx?$/,
         enforce: 'pre',

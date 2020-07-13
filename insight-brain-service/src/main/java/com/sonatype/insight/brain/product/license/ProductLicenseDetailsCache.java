@@ -6,11 +6,13 @@
 package com.sonatype.insight.brain.product.license;
 
 import java.io.IOException;
-import java.util.prefs.Preferences;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.configuration.ProductLicenseDAO;
+import com.sonatype.insight.brain.model.configuration.ProductLicense;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
 
@@ -26,18 +28,25 @@ public class ProductLicenseDetailsCache
 {
   private static final Logger log = LoggerFactory.getLogger(ProductLicenseDetailsCache.class);
 
-  private static final String KEY_LICENSE_DETAILS = "licenseDetails";
+  private final ProductLicenseDAO productLicenseDAO;
 
-  private Preferences getPreferences() {
-    return Preferences.userRoot().node("com/sonatype/clm");
+  @Inject
+  public ProductLicenseDetailsCache(ProductLicenseDAO productLicenseDAO) {
+    this.productLicenseDAO = productLicenseDAO;
   }
 
   String loadJson() {
-    return getPreferences().get(KEY_LICENSE_DETAILS, null);
+    ProductLicense productLicense = productLicenseDAO.get();
+    if (productLicense == null) {
+      return null;
+    }
+    return productLicense.getLicenseDetails();
   }
 
   void saveJson(String json) {
-    getPreferences().put(KEY_LICENSE_DETAILS, json);
+    ProductLicense productLicense = productLicenseDAO.get();
+    productLicense.setLicenseDetails(json);
+    productLicenseDAO.update(productLicense);
   }
 
   public SignedProductLicenseDetailsDTO getProductLicenseDetails() {

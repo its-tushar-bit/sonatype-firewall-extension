@@ -742,4 +742,10 @@ CREATE INDEX source_control_event_create_time_idx ON source_control_event(create
 CREATE INDEX source_control_event_event_status_idx ON source_control_event(event_status);
 CREATE INDEX source_control_event_application_id_idx ON source_control_event(application_id);
 
-
+-- Since 1.96
+CREATE TABLE product_license (
+  product_license_id varchar(50) NOT NULL,
+  license_key varchar(8192) NOT NULL,
+  license_details varchar(8192),
+  CONSTRAINT product_license_pk PRIMARY KEY (product_license_id)
+);

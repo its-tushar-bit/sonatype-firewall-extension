@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -37,6 +38,7 @@ import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDA
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ProductLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
@@ -94,6 +96,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
+import com.sonatype.insight.brain.model.configuration.ProductLicense;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -306,6 +309,8 @@ public class TemporaryEntity
   private final SourceControlDefaultBranchCommitHistoryDAO sourceControlDefaultBranchCommitHistoryDAO =
       new SourceControlDefaultBranchCommitHistoryDAO();
 
+  private final ProductLicenseDAO productLicenseDAO = new ProductLicenseDAO();
+
   private MailConfiguration savedMailConfiguration;
 
   private Collection<MigrationTracker> migrationTrackers;
@@ -456,6 +461,7 @@ public class TemporaryEntity
     delete(thirdPartyVulnerabilities, thirdPartyVulnerabilityDAO);
     delete(componentLabels, componentLabelDAO);
     delete(sourceControlDefaultBranchCommitHistories, sourceControlDefaultBranchCommitHistoryDAO);
+    productLicenseDAO.delete();
 
     ProprietaryConfig config = proprietaryConfigDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
     if (config != null) {
@@ -2544,5 +2550,18 @@ public class TemporaryEntity
     thirdPartyVulnerabilityDAO.insert(vulnerability);
     thirdPartyVulnerabilities.add(vulnerability);
     return vulnerability;
+  }
+
+  public ProductLicense setProductLicense() {
+    return setProductLicense(Base64.getEncoder().encodeToString("LICENSE_KEY".getBytes(StandardCharsets.UTF_8)),
+        "LICENSE_DETAILS");
+  }
+
+  public ProductLicense setProductLicense(String licenseKey, String licenseDetails) {
+    ProductLicense productLicense = new ProductLicense();
+    productLicense.setLicenseKey(licenseKey);
+    productLicense.setLicenseDetails(licenseDetails);
+    productLicenseDAO.update(productLicense);
+    return productLicense;
   }
 }

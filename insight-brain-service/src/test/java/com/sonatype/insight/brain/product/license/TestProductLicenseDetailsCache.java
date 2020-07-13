@@ -9,8 +9,11 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+
+import com.sonatype.insight.brain.dataaccess.configuration.ProductLicenseDAO;
 
 import com.google.common.io.Resources;
 
@@ -21,7 +24,9 @@ public class TestProductLicenseDetailsCache
 {
   private String json;
 
-  public TestProductLicenseDetailsCache() {
+  @Inject
+  public TestProductLicenseDetailsCache(ProductLicenseDAO productLicenseDAO) {
+    super(productLicenseDAO);
     try {
       json = Resources.toString(getClass().getResource("/TestProductLicenseDetailsCache/productLicenseDetails.json"),
           StandardCharsets.UTF_8);

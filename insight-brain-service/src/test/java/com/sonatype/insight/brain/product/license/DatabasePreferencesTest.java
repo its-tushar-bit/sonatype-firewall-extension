@@ -1,0 +1,167 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.product.license;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
+import javax.inject.Inject;
+
+import com.sonatype.insight.brain.dataaccess.configuration.ProductLicenseDAO;
+import com.sonatype.insight.brain.model.configuration.ProductLicense;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
+public class DatabasePreferencesTest
+    extends AbstractComponentTest
+{
+  @Inject
+  private ProductLicenseDAO productLicenseDAO;
+
+  @Test
+  public void testPut_LicenseExists() {
+    ProductLicense expected = tempEntity.setProductLicense();
+    expected.setLicenseKey(expected.getLicenseKey() + "Different");
+    expected.setLicenseDetails(null);
+
+    new DatabasePreferences().put(DatabasePreferences.KEY, expected.getLicenseKey());
+
+    assertProductLicense(productLicenseDAO.get(), expected);
+  }
+
+  @Test
+  public void testPut_LicenseDoesNotExist() {
+    ProductLicense expected = new ProductLicense();
+    expected.setLicenseKey("LICENSE_KEY");
+
+    new DatabasePreferences().put(DatabasePreferences.KEY, expected.getLicenseKey());
+
+    assertProductLicense(productLicenseDAO.get(), expected);
+  }
+
+  @Test
+  public void testPut_InvalidKey() {
+    String invalidKey = "not-" + DatabasePreferences.KEY;
+
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> new DatabasePreferences().put(invalidKey, "anything"))
+        .withMessage("Invalid key name: " + invalidKey);
+  }
+
+  @Test
+  public void testGet_LicenseExists() {
+    ProductLicense expected = tempEntity.setProductLicense();
+
+    assertThat(new DatabasePreferences().get(DatabasePreferences.KEY, null)).isEqualTo(expected.getLicenseKey());
+  }
+
+  @Test
+  public void testGet_LicenseDoesNotExist() {
+    assertThat(new DatabasePreferences().get(DatabasePreferences.KEY, null)).isNull();
+  }
+
+  @Test
+  public void testGet_InvalidKey() {
+    String invalidKey = "not-" + DatabasePreferences.KEY;
+
+    assertThat(new DatabasePreferences().get(invalidKey, null)).isNull();
+  }
+
+  @Test
+  public void testRemove_LicenseExists() {
+    tempEntity.setProductLicense();
+
+    new DatabasePreferences().remove(DatabasePreferences.KEY);
+
+    assertThat(productLicenseDAO.get()).isNull();
+  }
+
+  @Test
+  public void testRemove_LicenseDoesNotExist() {
+    new DatabasePreferences().remove(DatabasePreferences.KEY);
+
+    assertThat(productLicenseDAO.get()).isNull();
+  }
+
+  @Test
+  public void testRemove_InvalidKey() {
+    String invalidKey = "not-" + DatabasePreferences.KEY;
+
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> new DatabasePreferences().remove(invalidKey))
+        .withMessage("Invalid key name: " + invalidKey);
+  }
+
+  @Test
+  public void testGetByteArray_LicenseExists() {
+    ProductLicense expected = tempEntity.setProductLicense();
+
+    assertThat(new DatabasePreferences().getByteArray(DatabasePreferences.KEY, null))
+        .isEqualTo(Base64.getDecoder().decode(expected.getLicenseKey()));
+  }
+
+  @Test
+  public void testGetByteArray_LicenseDoesNotExist() {
+    assertThat(new DatabasePreferences().getByteArray(DatabasePreferences.KEY, null)).isNull();
+  }
+
+  @Test
+  public void testGetByteArray_InvalidKey() {
+    String invalidKey = "not-" + DatabasePreferences.KEY;
+
+    assertThat(new DatabasePreferences().getByteArray(invalidKey, null)).isNull();
+  }
+
+  @Test
+  public void testPutByteArray_LicenseExists() {
+    ProductLicense expected = tempEntity.setProductLicense();
+    byte[] expectedLicenseKey =
+        (new String(Base64.getDecoder().decode(expected.getLicenseKey()), StandardCharsets.UTF_8) + "Different")
+            .getBytes(StandardCharsets.UTF_8);
+    expected.setLicenseKey(Base64.getEncoder().encodeToString(expectedLicenseKey));
+    expected.setLicenseDetails(null);
+
+    new DatabasePreferences().putByteArray(DatabasePreferences.KEY, expectedLicenseKey);
+
+    assertProductLicense(productLicenseDAO.get(), expected);
+  }
+
+  @Test
+  public void testPutByteArray_LicenseDoesNotExist() {
+    ProductLicense expected = new ProductLicense();
+    byte[] expectedLicenseKey = "LICENSE_KEY".getBytes(StandardCharsets.UTF_8);
+    expected.setLicenseKey(Base64.getEncoder().encodeToString(expectedLicenseKey));
+
+    new DatabasePreferences().putByteArray(DatabasePreferences.KEY, expectedLicenseKey);
+
+    assertProductLicense(productLicenseDAO.get(), expected);
+  }
+
+  @Test
+  public void testPutByteArray_InvalidKey() {
+    String invalidKey = "not-" + DatabasePreferences.KEY;
+
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> new DatabasePreferences().putByteArray(invalidKey, new byte[0]))
+        .withMessage("Invalid key name: " + invalidKey);
+  }
+
+  @Test
+  public void testIsUserNode() {
+    assertThat(new DatabasePreferences().isUserNode()).isTrue();
+  }
+
+  private void assertProductLicense(ProductLicense actual, ProductLicense expected) {
+    assertThat(actual).isNotNull();
+    assertThat(actual.getId()).isEqualTo(ProductLicenseDAO.SINGLETON_ENTITY_ID);
+    assertThat(actual.getLicenseKey()).isEqualTo(expected.getLicenseKey());
+    assertThat(actual.getLicenseDetails()).isEqualTo(expected.getLicenseDetails());
+  }
+}

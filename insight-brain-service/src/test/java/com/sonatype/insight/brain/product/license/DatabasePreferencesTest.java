@@ -31,7 +31,7 @@ public class DatabasePreferencesTest
     expected.setLicenseKey(expected.getLicenseKey() + "Different");
     expected.setLicenseDetails(null);
 
-    new DatabasePreferences().put(DatabasePreferences.KEY, expected.getLicenseKey());
+    new DatabasePreferences().put(DatabasePreferences.LICENSE_KEY, expected.getLicenseKey());
 
     assertProductLicense(productLicenseDAO.get(), expected);
   }
@@ -41,14 +41,14 @@ public class DatabasePreferencesTest
     ProductLicense expected = new ProductLicense();
     expected.setLicenseKey("LICENSE_KEY");
 
-    new DatabasePreferences().put(DatabasePreferences.KEY, expected.getLicenseKey());
+    new DatabasePreferences().put(DatabasePreferences.LICENSE_KEY, expected.getLicenseKey());
 
     assertProductLicense(productLicenseDAO.get(), expected);
   }
 
   @Test
   public void testPut_InvalidKey() {
-    String invalidKey = "not-" + DatabasePreferences.KEY;
+    String invalidKey = "not-" + DatabasePreferences.LICENSE_KEY;
 
     assertThatExceptionOfType(IllegalArgumentException.class)
         .isThrownBy(() -> new DatabasePreferences().put(invalidKey, "anything"))
@@ -59,17 +59,18 @@ public class DatabasePreferencesTest
   public void testGet_LicenseExists() {
     ProductLicense expected = tempEntity.setProductLicense();
 
-    assertThat(new DatabasePreferences().get(DatabasePreferences.KEY, null)).isEqualTo(expected.getLicenseKey());
+    assertThat(new DatabasePreferences().get(DatabasePreferences.LICENSE_KEY, null))
+        .isEqualTo(expected.getLicenseKey());
   }
 
   @Test
   public void testGet_LicenseDoesNotExist() {
-    assertThat(new DatabasePreferences().get(DatabasePreferences.KEY, null)).isNull();
+    assertThat(new DatabasePreferences().get(DatabasePreferences.LICENSE_KEY, null)).isNull();
   }
 
   @Test
   public void testGet_InvalidKey() {
-    String invalidKey = "not-" + DatabasePreferences.KEY;
+    String invalidKey = "not-" + DatabasePreferences.LICENSE_KEY;
 
     assertThat(new DatabasePreferences().get(invalidKey, null)).isNull();
   }
@@ -78,21 +79,21 @@ public class DatabasePreferencesTest
   public void testRemove_LicenseExists() {
     tempEntity.setProductLicense();
 
-    new DatabasePreferences().remove(DatabasePreferences.KEY);
+    new DatabasePreferences().remove(DatabasePreferences.LICENSE_KEY);
 
     assertThat(productLicenseDAO.get()).isNull();
   }
 
   @Test
   public void testRemove_LicenseDoesNotExist() {
-    new DatabasePreferences().remove(DatabasePreferences.KEY);
+    new DatabasePreferences().remove(DatabasePreferences.LICENSE_KEY);
 
     assertThat(productLicenseDAO.get()).isNull();
   }
 
   @Test
   public void testRemove_InvalidKey() {
-    String invalidKey = "not-" + DatabasePreferences.KEY;
+    String invalidKey = "not-" + DatabasePreferences.LICENSE_KEY;
 
     assertThatExceptionOfType(IllegalArgumentException.class)
         .isThrownBy(() -> new DatabasePreferences().remove(invalidKey))
@@ -103,18 +104,18 @@ public class DatabasePreferencesTest
   public void testGetByteArray_LicenseExists() {
     ProductLicense expected = tempEntity.setProductLicense();
 
-    assertThat(new DatabasePreferences().getByteArray(DatabasePreferences.KEY, null))
+    assertThat(new DatabasePreferences().getByteArray(DatabasePreferences.LICENSE_KEY, null))
         .isEqualTo(Base64.getDecoder().decode(expected.getLicenseKey()));
   }
 
   @Test
   public void testGetByteArray_LicenseDoesNotExist() {
-    assertThat(new DatabasePreferences().getByteArray(DatabasePreferences.KEY, null)).isNull();
+    assertThat(new DatabasePreferences().getByteArray(DatabasePreferences.LICENSE_KEY, null)).isNull();
   }
 
   @Test
   public void testGetByteArray_InvalidKey() {
-    String invalidKey = "not-" + DatabasePreferences.KEY;
+    String invalidKey = "not-" + DatabasePreferences.LICENSE_KEY;
 
     assertThat(new DatabasePreferences().getByteArray(invalidKey, null)).isNull();
   }
@@ -128,7 +129,7 @@ public class DatabasePreferencesTest
     expected.setLicenseKey(Base64.getEncoder().encodeToString(expectedLicenseKey));
     expected.setLicenseDetails(null);
 
-    new DatabasePreferences().putByteArray(DatabasePreferences.KEY, expectedLicenseKey);
+    new DatabasePreferences().putByteArray(DatabasePreferences.LICENSE_KEY, expectedLicenseKey);
 
     assertProductLicense(productLicenseDAO.get(), expected);
   }
@@ -139,14 +140,14 @@ public class DatabasePreferencesTest
     byte[] expectedLicenseKey = "LICENSE_KEY".getBytes(StandardCharsets.UTF_8);
     expected.setLicenseKey(Base64.getEncoder().encodeToString(expectedLicenseKey));
 
-    new DatabasePreferences().putByteArray(DatabasePreferences.KEY, expectedLicenseKey);
+    new DatabasePreferences().putByteArray(DatabasePreferences.LICENSE_KEY, expectedLicenseKey);
 
     assertProductLicense(productLicenseDAO.get(), expected);
   }
 
   @Test
   public void testPutByteArray_InvalidKey() {
-    String invalidKey = "not-" + DatabasePreferences.KEY;
+    String invalidKey = "not-" + DatabasePreferences.LICENSE_KEY;
 
     assertThatExceptionOfType(IllegalArgumentException.class)
         .isThrownBy(() -> new DatabasePreferences().putByteArray(invalidKey, new byte[0]))

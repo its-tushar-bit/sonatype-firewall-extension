@@ -13,9 +13,10 @@ import com.sonatype.insight.brain.model.configuration.ProductLicense;
 public class DatabasePreferences
     extends AbstractPreferences
 {
-  // Visible for testing
   // cf. de.schlichtherle.license.LicenseManager.PREFERENCES_KEY
-  static final String KEY = "license";
+  public static final String LICENSE_KEY = "license";
+  
+  public static final String LICENSE_DETAILS_KEY = "licenseDetails";
 
   private final ProductLicenseDAO productLicenseDAO = new ProductLicenseDAO();
 
@@ -29,7 +30,7 @@ public class DatabasePreferences
   }
 
   private void validateKey(String key) {
-    if (!KEY.equals(key)) {
+    if (!LICENSE_KEY.equals(key)) {
       throw new IllegalArgumentException("Invalid key name: " + key);
     }
   }

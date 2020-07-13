@@ -38,17 +38,21 @@ public class DataMigrator
 
   private final ProxyServerConfigurationMigrator proxyServerConfigurationMigrator;
 
+  private final ProductLicenseMigrator productLicenseMigrator;
+
   @Inject
-  public DataMigrator(PolicyJsonMigrator policyJsonMigrator,
-                      PolicyDroolsCodeMigrator policyDroolsCodeMigrator,
-                      RootOrganizationConfigMigrator rootOrganizationConfigMigrator,
-                      SecurityVulnerabilityOverrideMigrator securityVulnerabilityOverrideMigrator,
-                      ProprietaryConfigMigrator proprietaryConfigMigrator,
-                      PolicyCoordinatesConditionTypeMigrator policyCoordinatesConditionTypeMigrator,
-                      PolicySecurityVulnerabilityConditionTypeMigrator policySecurityVulnerabilityConditionTypeMigrator,
-                      MarkerFileMigrator markerFileMigrator,
-                      MailConfigurationMigrator mailConfigurationMigrator,
-                      ProxyServerConfigurationMigrator proxyServerConfigurationMigrator)
+  public DataMigrator(
+      PolicyJsonMigrator policyJsonMigrator,
+      PolicyDroolsCodeMigrator policyDroolsCodeMigrator,
+      RootOrganizationConfigMigrator rootOrganizationConfigMigrator,
+      SecurityVulnerabilityOverrideMigrator securityVulnerabilityOverrideMigrator,
+      ProprietaryConfigMigrator proprietaryConfigMigrator,
+      PolicyCoordinatesConditionTypeMigrator policyCoordinatesConditionTypeMigrator,
+      PolicySecurityVulnerabilityConditionTypeMigrator policySecurityVulnerabilityConditionTypeMigrator,
+      MarkerFileMigrator markerFileMigrator,
+      MailConfigurationMigrator mailConfigurationMigrator,
+      ProxyServerConfigurationMigrator proxyServerConfigurationMigrator,
+      ProductLicenseMigrator productLicenseMigrator)
   {
     this.policyJsonMigrator = policyJsonMigrator;
     this.policyDroolsCodeMigrator = policyDroolsCodeMigrator;
@@ -60,6 +64,7 @@ public class DataMigrator
     this.markerFileMigrator = markerFileMigrator;
     this.mailConfigurationMigrator = mailConfigurationMigrator;
     this.proxyServerConfigurationMigrator = proxyServerConfigurationMigrator;
+    this.productLicenseMigrator = productLicenseMigrator;
   }
 
   /**
@@ -76,5 +81,6 @@ public class DataMigrator
     policySecurityVulnerabilityConditionTypeMigrator.migrate();
     mailConfigurationMigrator.migrate();
     proxyServerConfigurationMigrator.migrate();
+    productLicenseMigrator.migrate();
   }
 }

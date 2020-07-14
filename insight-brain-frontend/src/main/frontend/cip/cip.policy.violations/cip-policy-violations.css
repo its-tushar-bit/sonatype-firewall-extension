@@ -162,7 +162,8 @@
   vertical-align: middle;
 }
 
-.component-waiver-comment {
-  max-width: 250px;
+.component-waiver-comment, .component-waiver-owner {
+  max-width: 150px;
   word-wrap: break-word;
+  overflow-wrap: anywhere;
 }

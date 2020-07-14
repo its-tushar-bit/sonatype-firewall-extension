@@ -190,6 +190,7 @@ public class DashboardViolationsTest
     ageFilter.twisty().click();
     ageFilter.past90days().click();
     ageFilter.past90days().shouldBe(selected);
+    eyesWatcher.eyesCheck("Violations tab with form-mask");
     ageFilter.counter().shouldHave(text("past 90 days"));
     DashboardFilters.apply();
     table.violations().shouldHaveSize(5);

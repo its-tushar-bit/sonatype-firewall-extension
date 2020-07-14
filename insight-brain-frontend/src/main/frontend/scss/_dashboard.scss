@@ -286,6 +286,8 @@ $iq-cell-affected-apps-width: 133px;
 
 // Cells in the <tbody> must adjust their size to accommodate wider space
 .iq-violations-results {
+  padding-top: 36px;
+
   .iq-table-row:first-child {
     border-top: none;
   }

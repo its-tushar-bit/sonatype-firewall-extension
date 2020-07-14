@@ -254,6 +254,7 @@ public class DashboardComponentsTest
     // CSV export - filter out threat level 1
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(2, 10);
+    eyesWatcher.eyesCheck("Components tab with form-mask");
     DashboardFilters.apply();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());

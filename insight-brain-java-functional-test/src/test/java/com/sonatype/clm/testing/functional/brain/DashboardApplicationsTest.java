@@ -288,6 +288,7 @@ public class DashboardApplicationsTest
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(2, 10);
     DashboardFilters.policyThreatLevelFilter().twisty().click();
+    eyesWatcher.eyesCheck("Applications tab with form-mask");
     DashboardFilters.apply();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());

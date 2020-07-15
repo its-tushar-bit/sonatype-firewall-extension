@@ -581,6 +581,17 @@ describe('source.control.editor.spec', function() {
       });
     });
 
+    describe('showScmValidator', function() {
+      it('should return false for root organization', function() {
+        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+        loadProductFeaturesDefer.resolve({});
+        getSourceControlDeferred.resolve(compositeSourceControl);
+
+        $scope.$digest();
+        expect(vm.showScmValidator).toBeFalsy();
+      });
+    });
+
     describe('shouldShowAccessTokenWarning', function() {
       it('should return false for root organization', function() {
         getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
@@ -1532,6 +1543,17 @@ describe('source.control.editor.spec', function() {
         expect(vm.baseBranchInheritText).toEqual('Inherit from Org (value)');
       });
     });
+
+    describe('showScmValidator', function() {
+      it('should return false for an organization', function() {
+        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+        loadProductFeaturesDefer.resolve({});
+        getSourceControlDeferred.resolve(compositeSourceControl);
+
+        $scope.$digest();
+        expect(vm.showScmValidator).toBeFalsy();
+      });
+    });
   });
 
   describe('application', function() {
@@ -2276,6 +2298,18 @@ describe('source.control.editor.spec', function() {
 
         $scope.$digest();
         expect(vm.isAccessTokenRequiredOnNode()).toBeTruthy();
+      });
+    });
+
+    describe('showScmValidator', function() {
+      it('should return false for an organization', function() {
+        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        loadProductFeaturesDefer.resolve({});
+        getSourceControlDeferred.resolve(compositeSourceControl);
+
+        $scope.$digest();
+        // this should be false until the feature is released and the feature flag is removed
+        expect(vm.showScmValidator).toBeFalsy();
       });
     });
 

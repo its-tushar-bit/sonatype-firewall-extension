@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 
 import javax.inject.Inject;
 
@@ -60,9 +61,11 @@ public class ApiCompositeSourceControlConfigValidatorService
       }
       result.setRepoPrivate(new ValidationResult(true));
     }
+    catch (UncheckedIOException e) {
+      result.setRepoPrivate(new ValidationResult(false, "Unable to connect to repo: " + e.getMessage()));
+    }
     catch (Exception e) {
       result.setRepoPrivate(new ValidationResult(false, "Unable to determine if repo is private: " + e.getMessage()));
-      return result;
     }
 
     try {

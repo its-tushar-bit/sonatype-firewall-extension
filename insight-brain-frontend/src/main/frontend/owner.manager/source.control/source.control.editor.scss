@@ -10,3 +10,11 @@
     text-transform: uppercase;
   }
 }
+
+.iq-list--scm-test-config-results {
+  margin-top: $nx-spacing-l;
+
+  .iq-list__item .fa {
+    margin-right: 8px;
+  }
+}

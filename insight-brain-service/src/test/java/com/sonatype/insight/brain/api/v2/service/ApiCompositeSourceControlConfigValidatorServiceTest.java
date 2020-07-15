@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+
 import com.sonatype.insight.brain.git.ConfigurationValidationResult;
 import com.sonatype.insight.brain.git.GitClientFactory;
 import com.sonatype.insight.brain.git.PullRequestRepositoryValidator;
@@ -89,6 +92,29 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
     assertThat(result.getRepoPrivate().isValid()).isFalse();
     assertThat(result.getRepoPrivate().getMessage()).isEqualTo("Repository must be private or internal");
     assertThat(result.getTokenPermissions()).isNull();
+  }
+
+  @Test
+  public void testValidateSourceControlConfig_privateRepoUncheckedException() throws Exception {
+    GitRepositoryInfo gitRepositoryInfo =
+        new GitRepositoryInfo(null, null, null, SourceControlProvider.GITHUB, null, true, true);
+    when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);
+    when(pullRequestRepositoryValidator.isInternalRepository(any())).thenReturn(false);
+    when(pullRequestRepositoryValidator.isPrivateRepository(any()))
+        .thenThrow(new UncheckedIOException(new IOException("Unauthorized")));
+    GitApiClient mockClient = mock(GitApiClient.class);
+    when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(mockClient);
+    when(mockClient.validateTokenPermissions()).thenReturn(new ValidationResult(false, "Invalid permissions"));
+
+    ConfigurationValidationResult result = service.validateSourceControlConfig("1234");
+
+    assertThat(result).isNotNull();
+    assertThat(result.getConfigurationComplete().isValid()).isTrue();
+    assertThat(result.getRepoPrivate().isValid()).isFalse();
+    assertThat(result.getRepoPrivate().getMessage())
+        .isEqualTo("Unable to connect to repo: java.io.IOException: Unauthorized");
+    assertThat(result.getTokenPermissions().isValid()).isFalse();
+    assertThat(result.getTokenPermissions().getMessage()).isEqualTo("Invalid permissions");
   }
 
   @Test

@@ -113,19 +113,30 @@ public class MembershipMappingService
       membersByRole.roleDescription = role.getDescription();
       membersByRoleByRoleId.put(membersByRole.roleId, membersByRole);
     }
-    final MemberAttributeResolver memberAttributeResolver = new MemberAttributeResolver(userDirectory);
     if (OwnerType.GLOBAL.equals(ownerType)) {
-      loadMembersByRoleForGlobalContext(memberAttributeResolver, roles, membersByRoleByRoleId);
+      loadMembersByRoleForGlobalContext(roles, membersByRoleByRoleId);
     }
     else {
-      loadMembersByRoleForNonGlobalContext(ownerType, internalOwnerId, memberAttributeResolver, roles,
-          membersByRoleByRoleId);
+      loadMembersByRoleForNonGlobalContext(ownerType, internalOwnerId, roles, membersByRoleByRoleId);
     }
+    loadMemberDetails(membersByRoleByRoleId);
 
     final ApplicableMembershipMappings result = new ApplicableMembershipMappings();
     result.membersByRole.addAll(membersByRoleByRoleId.values());
     result.groupSearchEnabled = !userDirectory.isDynamicGroupSearchDisabled();
     return result;
+  }
+
+  private void loadMemberDetails(Map<String, MembersByRole> membersByRoleByRoleId) {
+    List<Member> members = new ArrayList<>();
+    for (MembersByRole membersByRole : membersByRoleByRoleId.values()) {
+      for (MembersByOwner membersByOwner : membersByRole.membersByOwner) {
+        members.addAll(membersByOwner.members);
+      }
+    }
+
+    MemberAttributeResolver memberAttributeResolver = new MemberAttributeResolver(userDirectory);
+    memberAttributeResolver.resolve(members);
   }
 
   public ApiRoleMemberMappingListDTO getRoleMembershipsOmitEmpty(OwnerType ownerType, String internalOwnerId) {
@@ -226,7 +237,6 @@ public class MembershipMappingService
   @Authorize(permission = Permission.READ)
   protected void loadMembersByRoleForNonGlobalContext(@AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
                                                       @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
-                                                      MemberAttributeResolver memberAttributeResolver,
                                                       List<Role> roles,
                                                       Map<String, MembersByRole> membersByRoleByRoleId)
   {
@@ -235,8 +245,9 @@ public class MembershipMappingService
     }
 
     for (Owner owner : ownerDAO.walkHierarchy(internalOwnerId)) {
-      for (Map.Entry<String, MembersByOwner> entry : loadMembers(owner.getId(), owner.getName(), owner.getType(),
-          memberAttributeResolver, roles).entrySet()) {
+      Map<String, MembersByOwner> membersByOwnerByRoleId =
+          loadMembers(owner.getId(), owner.getName(), owner.getType(), roles);
+      for (Map.Entry<String, MembersByOwner> entry : membersByOwnerByRoleId.entrySet()) {
         entry.getValue().ownerId = owner.getPublicId();
         membersByRoleByRoleId.get(entry.getKey()).membersByOwner.add(entry.getValue());
       }
@@ -244,12 +255,10 @@ public class MembershipMappingService
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  protected void loadMembersByRoleForGlobalContext(MemberAttributeResolver memberAttributeResolver,
-                                                   List<Role> roles,
-                                                   Map<String, MembersByRole> membersByRoleByRoleId)
-  {
-    for (Map.Entry<String, MembersByOwner> entry : loadMembers(MembershipMapping.GLOBAL_CONTEXT_ID,
-        MembershipMapping.GLOBAL_CONTEXT_NAME, OwnerType.GLOBAL, memberAttributeResolver, roles).entrySet()) {
+  protected void loadMembersByRoleForGlobalContext(List<Role> roles, Map<String, MembersByRole> membersByRoleByRoleId) {
+    Map<String, MembersByOwner> membersByOwnerByRoleId = loadMembers(MembershipMapping.GLOBAL_CONTEXT_ID,
+        MembershipMapping.GLOBAL_CONTEXT_NAME, OwnerType.GLOBAL, roles);
+    for (Map.Entry<String, MembersByOwner> entry : membersByOwnerByRoleId.entrySet()) {
       membersByRoleByRoleId.get(entry.getKey()).membersByOwner.add(entry.getValue());
     }
   }
@@ -428,7 +437,6 @@ public class MembershipMappingService
   private Map<String, MembersByOwner> loadMembers(final String ownerId,
                                                   final String ownerName,
                                                   final OwnerType ownerType,
-                                                  final MemberAttributeResolver memberAttributeResolver,
                                                   final List<Role> roles)
   {
     final Map<String, MembersByOwner> membersByOwnerByRoleId = new LinkedHashMap<>();
@@ -450,9 +458,6 @@ public class MembershipMappingService
         membersByOwner = new MembersByOwner(ownerId, ownerName, ownerType);
         membersByOwnerByRoleId.put(role.getId(), membersByOwner);
       }
-
-      // Fill in display names queried from userDAO and ldap
-      memberAttributeResolver.resolve(membersByOwner.members);
     }
 
     return membersByOwnerByRoleId;

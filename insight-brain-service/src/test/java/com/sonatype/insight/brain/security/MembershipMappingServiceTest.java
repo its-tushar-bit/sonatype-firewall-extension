@@ -81,7 +81,7 @@ public class MembershipMappingServiceTest
   public void testLoadMembersByRoleForNonGlobalContext_GlobalContext() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       membershipMappingService.loadMembersByRoleForNonGlobalContext(OwnerType.GLOBAL, "ownerId",
-          null /* memberAttributeResolver */, null /* roles */, null/* membersByRoleByRoleId */);
+          null /* roles */, null/* membersByRoleByRoleId */);
     }).withMessage("The 'global' context is not allowed.");
   }
 

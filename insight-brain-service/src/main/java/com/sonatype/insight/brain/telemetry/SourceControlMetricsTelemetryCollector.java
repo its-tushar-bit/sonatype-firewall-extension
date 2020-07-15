@@ -38,6 +38,8 @@ public class SourceControlMetricsTelemetryCollector
   public static final String TOTAL_SC_APPLICATIONS_WITH_PRS =
       "total_daily_source_control_pull_requests_applications_with_prs";
 
+  public static final String TOTAL_SC_EXCEPTIONS_RAISED = "total_daily_source_control_pull_requests_exceptions_raised";
+
   private final SourceControlDAO sourceControlDAO;
 
   private final ApplicationDAO applicationDAO;
@@ -70,6 +72,7 @@ public class SourceControlMetricsTelemetryCollector
     attributes.put(TOTAL_SC_PRS_CREATED, String.valueOf(aggregatedPRStats.getSuccessfulPRs()));
     attributes.put(TOTAL_SC_PRS_SUGGESTED, String.valueOf(aggregatedPRStats.getTotalSuggestedPRs()));
     attributes.put(TOTAL_SC_APPLICATIONS_WITH_PRS, String.valueOf(aggregatedPRStats.getApplicationPRStats().size()));
+    attributes.put(TOTAL_SC_EXCEPTIONS_RAISED, String.valueOf(aggregatedPRStats.getTotalRaisedExceptions()));
 
     return telemetryData;
   }

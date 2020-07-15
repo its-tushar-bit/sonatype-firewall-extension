@@ -22,7 +22,6 @@ import com.sonatype.insight.test.LogOutput;
 import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.git.utils.api.GitException;
 import com.sonatype.nexus.iq.manager.PullRequestExecutor;
-import com.sonatype.nexus.iq.manager.PullRequestResult;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.PullRequestResponse;
@@ -142,7 +141,7 @@ public class PullRequestTaskTest
     verify(gitApi).cloneOrPullRepository(targetDirectory, INFO.baseBranch);
     verify(gitApi).branch(targetDirectory, BRANCH);
     verifyNoMoreInteractions(gitApi);
-    verify(metrics).addResult(anyString(), any(PullRequestResult.class));
+    verify(metrics).addResult(anyString(), any(EnhancedPullRequestResult.class));
     verifyNoInteractions(fileCleaner, gitClient);
   }
 
@@ -218,7 +217,7 @@ public class PullRequestTaskTest
     assertThat(targetDirectory).exists();
     assertThat(targetDirectory.getParentFile()).hasName(APP_INTERNAL_ID);
     verify(gitApi).cloneOrPullRepository(targetDirectory, INFO.baseBranch);
-    verify(metrics).addResult(anyString(), any(PullRequestResult.class));
+    verify(metrics).addResult(anyString(), any(EnhancedPullRequestResult.class));
     verifyNoInteractions(fileCleaner, gitClient);
   }
 
@@ -243,7 +242,7 @@ public class PullRequestTaskTest
     verify(gitApi).branch(targetDirectory, BRANCH);
     verify(gitApi).commit(targetDirectory, DEFAULT_COMMITTER, DEFAULT_COMMITTER_EMAIL, TITLE);
     verify(gitApi).push(targetDirectory);
-    verify(metrics).addResult(anyString(), any(PullRequestResult.class));
+    verify(metrics).addResult(anyString(), any(EnhancedPullRequestResult.class));
 
     assertThat(logOutput).atDebugLevel().contains("Using existing directory for pull request task");
     assertThat(logOutput).atInfoLevel().contains("Pull request task initiated for application");

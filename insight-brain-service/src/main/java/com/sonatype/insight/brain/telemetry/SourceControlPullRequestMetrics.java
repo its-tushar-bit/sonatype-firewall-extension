@@ -18,6 +18,7 @@ import java.util.stream.Stream;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.git.EnhancedPullRequestResult;
 import com.sonatype.nexus.iq.manager.PullRequestResult;
 
 import org.slf4j.Logger;
@@ -33,15 +34,16 @@ public class SourceControlPullRequestMetrics
 {
   private static final Logger log = LoggerFactory.getLogger(SourceControlPullRequestMetrics.class);
 
-  private final Map<String, List<PullRequestResult>> pullRequestResultMap = new ConcurrentHashMap<>();
+  private final Map<String, List<EnhancedPullRequestResult>> enhancedPullRequestResultMap = new ConcurrentHashMap<>();
 
-  public void addResult(String applicationId, PullRequestResult pullRequestResult) {
-    pullRequestResultMap.merge(applicationId, Collections.singletonList(pullRequestResult), (existing, adding) ->
-        Stream.of(existing, adding)
-            .flatMap(Collection::stream)
-            .collect(Collectors.toList()));
+  public void addResult(String applicationId, EnhancedPullRequestResult pullRequestResult) {
+    enhancedPullRequestResultMap
+        .merge(applicationId, Collections.singletonList(pullRequestResult), (existing, adding) ->
+            Stream.of(existing, adding)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList()));
   }
-
+  
   /**
    * Compute statistics of Pull Requests across all applications since last call to this method.
    * Results are cleared after computation.
@@ -49,60 +51,57 @@ public class SourceControlPullRequestMetrics
   public AggregatedPRStats computeStatsAndReset() {
     AggregatedPRStats stats = computeStats();
     log.debug("Since last metrics calculation: {}", stats);
-    pullRequestResultMap.clear();
+    enhancedPullRequestResultMap.clear();
     return stats;
   }
 
   private AggregatedPRStats computeStats() {
-    long totalTime = 0;
-    long totalSuccessfulPRs = 0;
-    long totalPossiblePRs = 0;
     List<ApplicationPRStats> applicationPRStats = new ArrayList<>();
-    for (Entry<String, List<PullRequestResult>> entry : pullRequestResultMap.entrySet()) {
-      long timeSpent = entry.getValue().stream().map(PullRequestResult::getTotalTime)
-          .mapToLong(Long::longValue).sum();
-      totalTime += timeSpent;
-      long successfulPRs = entry.getValue().stream().filter(PullRequestResult::isSuccessful).count();
-      totalSuccessfulPRs += successfulPRs;
-      int possiblePRs = entry.getValue().size();
-      totalPossiblePRs += possiblePRs;
-      applicationPRStats.add(new ApplicationPRStats(entry.getKey(), timeSpent, successfulPRs, possiblePRs));
+    for (Entry<String, List<EnhancedPullRequestResult>> entry : enhancedPullRequestResultMap.entrySet()) {
+      List<EnhancedPullRequestResult> result = entry.getValue();
+      long timeSpent = result.stream()
+          .map(EnhancedPullRequestResult::getTiming)
+          .map(PullRequestResult::getTotalTime)
+          .mapToLong(Long::longValue)
+          .sum();
+      
+      long successfulPRs = result.stream()
+          .map(EnhancedPullRequestResult::getTiming)
+          .filter(PullRequestResult::isSuccessful)
+          .count();
+      
+      int possiblePRs = result.size();
+      
+      long exceptionsRaised = result.stream().filter(EnhancedPullRequestResult::isExceptionThrown).count();
+
+      applicationPRStats
+          .add(new ApplicationPRStats(entry.getKey(), timeSpent, successfulPRs, possiblePRs, exceptionsRaised));
     }
-    return new AggregatedPRStats(totalTime, totalSuccessfulPRs, totalPossiblePRs, applicationPRStats);
+    return new AggregatedPRStats(applicationPRStats);
   }
 
   static class AggregatedPRStats
   {
-    private final long totalTime;
-
-    private final long successfulPRs;
-
-    private final long totalSuggestedPRs;
-
     private final List<ApplicationPRStats> applicationPRStats;
 
-    AggregatedPRStats(
-        final long totalTime,
-        final long successfulPRs,
-        final long totalSuggestedPRs,
-        final List<ApplicationPRStats> applicationPRStats)
-    {
-      this.totalTime = totalTime;
-      this.successfulPRs = successfulPRs;
-      this.totalSuggestedPRs = totalSuggestedPRs;
+    AggregatedPRStats(final List<ApplicationPRStats> applicationPRStats) {
       this.applicationPRStats = applicationPRStats;
     }
 
     public long getTotalTime() {
-      return totalTime;
+      return getApplicationPRStats().stream().mapToLong(ApplicationPRStats::getTotalTime).sum();
     }
 
     public long getSuccessfulPRs() {
-      return successfulPRs;
+      return getApplicationPRStats().stream().mapToLong(ApplicationPRStats::getSuccessfulPRs).sum();
     }
 
     public long getTotalSuggestedPRs() {
-      return totalSuggestedPRs;
+      return getApplicationPRStats().stream().mapToLong(ApplicationPRStats::getTotalSuggestedPRs).sum();
+    }
+    
+    public long getTotalRaisedExceptions() {
+      return getApplicationPRStats().stream().mapToLong(ApplicationPRStats::getExceptionsRaised).sum();
     }
 
     public List<ApplicationPRStats> getApplicationPRStats() {
@@ -112,9 +111,10 @@ public class SourceControlPullRequestMetrics
     @Override
     public String toString() {
       return "AggregatedPRStats{" +
-          "totalTime=" + totalTime +
-          ", successfulPRs=" + successfulPRs +
-          ", totalSuggestedPRs=" + totalSuggestedPRs +
+          "totalTime=" + getTotalTime() +
+          ", successfulPRs=" + getSuccessfulPRs() +
+          ", totalSuggestedPRs=" + getTotalSuggestedPRs() +
+          ", totalExceptionsRaised=" + getTotalRaisedExceptions() +
           ", applicationPRStats=" + applicationPRStats +
           '}';
     }
@@ -129,17 +129,21 @@ public class SourceControlPullRequestMetrics
     private final long successfulPRs;
 
     private final long totalSuggestedPRs;
+    
+    private final long exceptionsRaised;
 
     ApplicationPRStats(
         final String applicationId,
         final long totalTime,
         final long successfulPRs,
-        final long totalSuggestedPRs)
+        final long totalSuggestedPRs,
+        final long exceptionsRaised)
     {
       this.applicationId = applicationId;
       this.totalTime = totalTime;
       this.successfulPRs = successfulPRs;
       this.totalSuggestedPRs = totalSuggestedPRs;
+      this.exceptionsRaised = exceptionsRaised;
     }
 
     public String getApplicationId() {
@@ -158,13 +162,18 @@ public class SourceControlPullRequestMetrics
       return totalSuggestedPRs;
     }
 
+    public long getExceptionsRaised() {
+      return exceptionsRaised;
+    }
+
     @Override
     public String toString() {
-      return "AppResults{" +
+      return "ApplicationPRStats{" +
           "applicationId='" + applicationId + '\'' +
           ", totalTime=" + totalTime +
           ", successfulPRs=" + successfulPRs +
           ", totalSuggestedPRs=" + totalSuggestedPRs +
+          ", exceptionsRaised=" + exceptionsRaised +
           '}';
     }
   }

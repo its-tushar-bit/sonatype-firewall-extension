@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.git;
 
 import java.io.File;
+import java.util.Date;
 
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -89,6 +90,7 @@ public class PullRequestTask
       return;
     }
     File checkoutDir = null;
+    Date start = new Date();
     try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
       log.info("Pull request task initiated for application '{}'", applicationId);
 
@@ -111,7 +113,9 @@ public class PullRequestTask
           .build();
 
       PullRequestResult result = pullRequestExecutor.execute(command);
-      metrics.addResult(applicationId, result);
+      metrics.addResult(applicationId,
+          new EnhancedPullRequestResult(result, start, pullRequestRemediationDetails.getToBeRemediated(),
+              pullRequestRemediationDetails.getTitle(), false));
 
       try (AuditSession auditSession = auditRecorder.recordSystemEvent(AuditEvent.CREATE_PULL_REQUEST)) {
         AuditData.get()
@@ -126,6 +130,9 @@ public class PullRequestTask
     catch (Exception e) {
       log.error("Failed to execute pull request, cleaning pull request directory", e);
       cleanDirectory(checkoutDir);
+      metrics.addResult(applicationId, new EnhancedPullRequestResult(new PullRequestResult(), start,
+          pullRequestRemediationDetails.getToBeRemediated(),
+          pullRequestRemediationDetails.getTitle(), true));
     }
     catch (Throwable t) {
       // Try to log to stderr before trying the standard logging because the standard logging may not be operational at

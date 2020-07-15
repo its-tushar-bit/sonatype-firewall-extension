@@ -24,6 +24,7 @@ import org.mockito.Mock;
 import static com.sonatype.insight.brain.telemetry.SourceControlMetricsTelemetryCollector.TOTAL_APPLICATIONS;
 import static com.sonatype.insight.brain.telemetry.SourceControlMetricsTelemetryCollector.TOTAL_APPLICATION_SC_ENTRIES;
 import static com.sonatype.insight.brain.telemetry.SourceControlMetricsTelemetryCollector.TOTAL_SC_APPLICATIONS_WITH_PRS;
+import static com.sonatype.insight.brain.telemetry.SourceControlMetricsTelemetryCollector.TOTAL_SC_EXCEPTIONS_RAISED;
 import static com.sonatype.insight.brain.telemetry.SourceControlMetricsTelemetryCollector.TOTAL_SC_PRS_CREATED;
 import static com.sonatype.insight.brain.telemetry.SourceControlMetricsTelemetryCollector.TOTAL_SC_PRS_SUGGESTED;
 import static com.sonatype.insight.brain.telemetry.SourceControlMetricsTelemetryCollector.TOTAL_SC_PR_TIME_SPENT;
@@ -55,18 +56,19 @@ public class SourceControlMetricsTelemetryCollectorTest extends AbstractComponen
     when(sourceControlDAO.getApplicationsWithPullReqsEnabled()).thenReturn(new ArrayList<>());
     when(sourceControlDAO.getByApplication()).thenReturn(new ArrayList<>());
     when(applicationDAO.getAll()).thenReturn(new ArrayList<>());
-    when(metrics.computeStatsAndReset()).thenReturn(new AggregatedPRStats(0, 0, 0, Collections.emptyList()));
+    when(metrics.computeStatsAndReset()).thenReturn(new AggregatedPRStats(Collections.emptyList()));
 
     assertThat(collector.collectData().getAttributes())
         .isNotEmpty()
-        .hasSize(7)
+        .hasSize(8)
         .containsOnly(entry(TOTAL_SC_WITH_PR_ENABLED, "0"),
             entry(TOTAL_APPLICATION_SC_ENTRIES, "0"),
             entry(TOTAL_APPLICATIONS, "0"),
             entry(TOTAL_SC_PR_TIME_SPENT, "0"),
             entry(TOTAL_SC_PRS_CREATED, "0"),
             entry(TOTAL_SC_PRS_SUGGESTED, "0"),
-            entry(TOTAL_SC_APPLICATIONS_WITH_PRS, "0"));
+            entry(TOTAL_SC_APPLICATIONS_WITH_PRS, "0"),
+            entry(TOTAL_SC_EXCEPTIONS_RAISED, "0"));
   }
 
   @Test
@@ -86,17 +88,18 @@ public class SourceControlMetricsTelemetryCollectorTest extends AbstractComponen
         new Application(), new Application(), new Application(), new Application()
     ));
     when(metrics.computeStatsAndReset())
-        .thenReturn(new AggregatedPRStats(1, 2, 3, Collections.singletonList(new ApplicationPRStats("foo", 1, 2, 3))));
+        .thenReturn(new AggregatedPRStats(Collections.singletonList(new ApplicationPRStats("foo", 1, 2, 3, 1))));
 
     assertThat(collector.collectData().getAttributes())
         .isNotEmpty()
-        .hasSize(7)
+        .hasSize(8)
         .containsOnly(entry(TOTAL_SC_WITH_PR_ENABLED, "2"),
             entry(TOTAL_APPLICATION_SC_ENTRIES, "3"),
             entry(TOTAL_APPLICATIONS, "4"),
             entry(TOTAL_SC_PR_TIME_SPENT, "1"),
             entry(TOTAL_SC_PRS_CREATED, "2"),
             entry(TOTAL_SC_PRS_SUGGESTED, "3"),
-            entry(TOTAL_SC_APPLICATIONS_WITH_PRS, "1"));
+            entry(TOTAL_SC_APPLICATIONS_WITH_PRS, "1"),
+            entry(TOTAL_SC_EXCEPTIONS_RAISED, "1"));
   }
 }

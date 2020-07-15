@@ -232,6 +232,7 @@ class SupportService
     final List<SupportFile> filesToZip = new ArrayList<>();
     addLogFileIfExists(filesToZip, getServerLog(config), "clm-server.log");
     addLogFileIfExists(filesToZip, getRequestLog(config), "request.log");
+    addLogFileIfExists(filesToZip, new File("stderr.log"), "stderr.log");
 
     // audit and policy violation log files might have sensitive information, using this flag to control adding
     if (includeDb) {

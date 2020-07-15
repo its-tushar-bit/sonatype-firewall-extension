@@ -22,7 +22,7 @@
 
   <properties>
     <clm.server.jar>${project.artifactId}-${project.version}.jar</clm.server.jar>
-    <clm.server.demo.command>java -jar ${clm.server.jar} server config.yml</clm.server.demo.command>
+    <clm.server.demo.command>java -jar ${clm.server.jar} server config.yml 2> stderr.log</clm.server.demo.command>
   </properties>
 
   <dependencies>

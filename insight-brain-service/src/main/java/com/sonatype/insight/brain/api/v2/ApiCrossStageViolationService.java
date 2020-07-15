@@ -235,7 +235,7 @@ public class ApiCrossStageViolationService
     PolicyViolation firstViolation = policyViolations.iterator().next();
 
     Map<String, PolicyViolation> violationsByStageTypeId = policyViolations.stream()
-        .collect(Collectors.toMap(PolicyViolation::getStageTypeId, v -> v));
+        .collect(Collectors.toMap(PolicyViolation::getStageTypeId, v -> v, (first, later) -> later));
 
     dto.policyViolationId = firstViolation.getId();
     dto.applicationPublicId = app.getPublicId();
@@ -275,7 +275,8 @@ public class ApiCrossStageViolationService
     dto.stageData = policyEvaluations.stream()
         .collect(Collectors.toMap(
             PolicyEvaluation::getStageTypeId,
-            eval -> createStageData(eval, violationsByStageTypeId.get(eval.getStageTypeId()))
+            eval -> createStageData(eval, violationsByStageTypeId.get(eval.getStageTypeId())),
+            (first, later) -> later
         ));
 
     dto.constraintViolations = policyViolationAdapter.convert(firstViolation);

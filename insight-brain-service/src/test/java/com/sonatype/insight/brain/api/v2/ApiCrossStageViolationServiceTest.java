@@ -464,6 +464,47 @@ public class ApiCrossStageViolationServiceTest
     });
   }
 
+  @Test
+  public void testGetCrossStageViolationById_UnwaivedViolation() {
+    //A waived violation
+    PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
+    PolicyViolation buildStageViolation1 =
+        tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
+    buildStageViolation1.setWaiveTime(new Date(baseDate.getTime() + 3));
+
+    // equivalent, different stage, opened before violation1 is fixed
+    PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_RELEASE, "scan2",
+        new Date(baseDate.getTime() + 2));
+    PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, policy, componentIdentifier, "1234", "vuln1");
+
+    // The un-waived version of buildStageViolation1
+    PolicyEvaluation eval3 =
+        tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan3", new Date(baseDate.getTime() + 6));
+    PolicyViolation buildStageViolation2 =
+        tempEntity.newPolicyViolation(eval3, policy, componentIdentifier, "1234", "vuln1");
+    buildStageViolation1.setFixTime(new Date(baseDate.getTime() + 6));
+    policyViolationDAO.update(buildStageViolation1);
+
+    ApiCrossStageViolationDTOV2 result = service.getCrossStageViolationByConstituentId(buildStageViolation1.getId());
+    // The waive was rescinded, thus the violation isn't fixed.
+    assertThat(result.fixTime).isNull();
+    assertThat(result.policyViolationId).isEqualTo(buildStageViolation1.getId());
+    assertCrossStageData(result, Stage.ID_BUILD, eval3.getTime(), "scan3", null);
+    assertCrossStageData(result, Stage.ID_RELEASE, eval2.getTime(), "scan2", null);
+
+    ApiCrossStageViolationDTOV2 result2 = service.getCrossStageViolationByConstituentId(violation2.getId());
+    assertThat(result2.fixTime).isNull();
+    assertThat(result2.policyViolationId).isEqualTo(buildStageViolation1.getId());
+    assertCrossStageData(result2, Stage.ID_RELEASE, eval2.getTime(), "scan2", null);
+    assertCrossStageData(result2, Stage.ID_BUILD, eval3.getTime(), "scan3", null);
+
+    ApiCrossStageViolationDTOV2 result3 = service.getCrossStageViolationByConstituentId(buildStageViolation2.getId());
+    assertThat(result3.fixTime).isNull();
+    assertThat(result3.policyViolationId).isEqualTo(buildStageViolation1.getId());
+    assertCrossStageData(result3, Stage.ID_BUILD, eval3.getTime(), "scan3", null);
+    assertCrossStageData(result3, Stage.ID_RELEASE, eval2.getTime(), "scan2", null);
+  }
+
   private void assertCrossStageData(
       ApiCrossStageViolationDTOV2 result,
       String stageId,

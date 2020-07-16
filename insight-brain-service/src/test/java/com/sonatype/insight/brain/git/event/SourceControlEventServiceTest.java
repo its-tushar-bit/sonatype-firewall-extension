@@ -39,6 +39,7 @@ import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -458,6 +459,7 @@ public class SourceControlEventServiceTest
     eventService.processEvents();
 
     // then:
+    verify(mockRepoAccessController, timeout(5000)).acquire(eq(event.getApplicationId()));
     verify(mockSourceControlEventDAO, times(1)).markEventInProgress(eq(event.getId()));
     verify(mockPullRequestCommentingService, never()).onDiscoveredPullRequest(eq(event));
     verify(mockPullRequestCommentingService, never()).onApplicationEvaluation(eq(event));

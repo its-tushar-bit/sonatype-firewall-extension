@@ -135,7 +135,8 @@ public abstract class AbstractLTGEditorTest
 
     // no tooltip for short items
     picker.filter().val("Adobe");
-    picker.availableItem(0).shouldHave(exactText("(Adobe) Adobe")).hover();
+    picker.availableItem(0).shouldHave(exactText("(Adobe) Adobe Systems Incorporated Source Code License Agreement"))
+        .hover();
     Tooltip.get().shouldNot(exist);
     picker.availableItem(0).click();
     picker.pickCheckedItemsButton().hover().click();
@@ -152,7 +153,8 @@ public abstract class AbstractLTGEditorTest
 
     // check tooltips in the picked column too
     picker.filter().clear();
-    picker.pickedItem(0).shouldHave(exactText("(Adobe) Adobe")).hover();
+    picker.pickedItem(0).shouldHave(exactText("(Adobe) Adobe Systems Incorporated Source Code License Agreement"))
+        .hover();
     Tooltip.get().shouldNot(exist);
     picker.pickedItem(1).shouldHave(exactText("(AFL) AFL-Style License Not Identifiable by Sonatype")).hover();
     Tooltip.get().shouldHave(exactText("AFL-Style License Not Identifiable by Sonatype"));
@@ -219,9 +221,9 @@ public abstract class AbstractLTGEditorTest
 
     String filterText = "Adobe";
     picker.filter().val(filterText);
-    picker.availableItems().shouldHaveSize(4);
+    picker.availableItems().shouldHaveSize(6);
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 6; i++) {
       Item item = picker.availableItem(i);
       item.label().shouldBe(visible).shouldHave(text(filterText));
     }

@@ -31,6 +31,17 @@ pipeline {
   }
 
   stages {
+    stage('Load parameters') {
+      steps {
+        script {
+          if (env.BUILD_NUMBER.equals("1")) {
+            currentBuild.displayName = 'Parameter loading. Build again.'
+            currentBuild.result = 'ABORTED'
+            error('Stopping initial manually triggered build as we only want to get the parameters')
+          }
+        }
+      }
+    }
 
     stage('Build') {
       steps {

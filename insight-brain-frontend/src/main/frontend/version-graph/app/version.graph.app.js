@@ -142,6 +142,7 @@ $.extend(true, window, {
 
           if (Coordinates.getFormat() === 'maven') {
             var gav = Coordinates.get();
+            const hash = Coordinates.isOriginalVersion() ? Properties.getHash() : null;
 
             listener(OwnerContext.ownerId,
                     gav.groupId,
@@ -149,7 +150,7 @@ $.extend(true, window, {
                     version,
                     gav.classifier,
                     gav.extension,
-                    Properties.getHash(),
+                    hash,
                     Properties.getMatchState(),
                     Properties.getProprietary());
           }
@@ -160,6 +161,7 @@ $.extend(true, window, {
       waitOnInjector(['Coordinates', 'OwnerContext', 'Properties', '$rootScope', function (Coordinates, OwnerContext, Properties, $rootScope) {
         $rootScope.$on('viewDetails', function (event, version) {
           var coordinates = [];
+          const hash = Coordinates.isOriginalVersion() ? Properties.getHash() : null;
 
           angular.forEach(Coordinates.get(), function (value, field) {
             coordinates.push(field);
@@ -173,7 +175,7 @@ $.extend(true, window, {
           });
 
           listener(OwnerContext.ownerId, Coordinates.getFormat(), coordinates,
-                  Properties.getHash(),
+                  hash,
                   Properties.getMatchState(),
                   Properties.getProprietary());
         });

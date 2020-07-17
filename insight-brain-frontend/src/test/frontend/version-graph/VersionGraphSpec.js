@@ -1220,13 +1220,12 @@ var clmEndpointTemplate = {
         });
         scope.$apply(function() {
           Coordinates.setSelected({groupId: 'foo', artifactId: 'bar', version: '2'});
-          Properties.setHash('abcd');
           Properties.setIdentificationSource('Sonatype');
           OwnerContext.scanId = 'scanId';
         });
         $httpBackend.flush();
         expect(Brain[clmEndpoint.type].getComponentUrl).toHaveBeenCalledWith('application', 'myFirstApp', 'maven',
-            'abcd', null, true, {
+            null, null, true, {
               groupId: 'foo',
               artifactId: 'bar',
               version: '2'
@@ -1359,11 +1358,10 @@ var clmEndpointTemplate = {
             'similar', true);
       });
 
-      it('different version selected', inject(function(Coordinates, Properties) {
+      it('different version selected', inject(function(Coordinates) {
         Coordinates.setSelected({version: '2.0.0'});
-        Properties.setHash('1234');
         scope.$emit('viewDetails', '2.0.0');
-        expect(listener).toHaveBeenCalledWith('myapp', 'org.group', 'stuff', '2.0.0', 'sources', 'jar', '1234', null,
+        expect(listener).toHaveBeenCalledWith('myapp', 'org.group', 'stuff', '2.0.0', 'sources', 'jar', null, null,
             true);
       }));
     });
@@ -1386,13 +1384,12 @@ var clmEndpointTemplate = {
         ], 'abcd', 'similar', true);
       });
 
-      it('different version selected', inject(function(Coordinates, Properties) {
+      it('different version selected', inject(function(Coordinates) {
         Coordinates.setSelected({version: '2.0.0'});
-        Properties.setHash('1234');
         scope.$emit('viewDetails', '2.0.0');
         expect(listener).toHaveBeenCalledWith('myapp', 'maven', [
           'groupId', 'org.group', 'artifactId', 'stuff', 'classifier', 'sources', 'extension', 'jar', 'version', '2.0.0'
-        ], '1234', null, true);
+        ], null, null, true);
       }));
     });
 
@@ -1448,7 +1445,7 @@ var clmEndpointTemplate = {
     describe('graph', function() {
       var parentScope = null;
 
-      beforeEach(inject(function($compile, $rootScope, Coordinates, Properties) {
+      beforeEach(inject(function($compile, $rootScope, Coordinates) {
         spyOn(Insight, 'ComponentInformation').and.returnValue(undefined);
 
         parentScope = $rootScope.$new();
@@ -1614,7 +1611,6 @@ var clmEndpointTemplate = {
         Coordinates.set('maven', {
           version: '5.0.28'
         });
-        Properties.setHash('abcd');
 
         $compile('<div graph="componentDetails"></div>')(parentScope);
         parentScope.$apply();
@@ -1624,14 +1620,12 @@ var clmEndpointTemplate = {
         parentScope.$destroy();
       });
 
-      it('Version Click', inject(function(Coordinates, Properties) {
+      it('Version Click', inject(function(Coordinates) {
         Insight.ComponentInformation.calls.mostRecent().args[0].versionClick('5.5.23');
         expect(Coordinates.getSelected()).toEqual({'version': '5.5.23'});
-        expect(Properties.getHash()).toEqual('b98a1711908a4641301a');
 
         Insight.ComponentInformation.calls.mostRecent().args[0].versionClick('5.0.28');
         expect(Coordinates.getSelected()).toEqual({'version': '5.0.28'});
-        expect(Properties.getHash()).toEqual('abcd');
       }));
 
       it('Double Version Click - IDE', inject(function($rootScope) {

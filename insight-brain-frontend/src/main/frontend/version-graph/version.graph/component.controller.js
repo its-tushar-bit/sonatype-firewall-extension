@@ -26,8 +26,10 @@ export default function ComponentController($scope, Coordinates, OwnerContext, e
       $scope.coordinates = coordinates;
 
       if (coordinates && coordinates.appId && !Properties.isUnknown()) {
+        // only pass the hash if current version
+        const hash = Coordinates.isOriginalVersion() ? Properties.getHash() : null;
         $http.get(Brain[clmEndpoint.type].getComponentListUrl(OwnerContext.ownerType, OwnerContext.ownerId,
-            Coordinates.getFormat(), Properties.getHash(), Properties.getMatchState(), Properties.getProprietary(),
+            Coordinates.getFormat(), hash, Properties.getMatchState(), Properties.getProprietary(),
             Coordinates.get(), Properties.getPathname(), Properties.getIdentificationSource(), OwnerContext.scanId,
             Properties.getStageId()))
             .then(function(response) {

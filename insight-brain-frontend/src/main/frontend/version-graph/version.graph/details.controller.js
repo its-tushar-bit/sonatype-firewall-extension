@@ -18,8 +18,10 @@ export default function DetailsController($scope, $http, OwnerContext, Coordinat
       last = coordinates;
 
       if (coordinates && coordinates.appId && !Properties.isUnknown()) {
+        // only pass the hash if current version
+        const hash = Coordinates.isOriginalVersion() ? Properties.getHash() : null;
         $http.get(Brain[clmEndpoint.type].getComponentUrl(OwnerContext.ownerType, OwnerContext.ownerId,
-            Coordinates.getFormat(), Properties.getHash(), Properties.getMatchState(), Properties.getProprietary(),
+            Coordinates.getFormat(), hash, Properties.getMatchState(), Properties.getProprietary(),
             coordinates.coordinates, Properties.getPathname(), Properties.getIdentificationSource(),
             OwnerContext.scanId)).then(function(response) {
           var data = response.data;

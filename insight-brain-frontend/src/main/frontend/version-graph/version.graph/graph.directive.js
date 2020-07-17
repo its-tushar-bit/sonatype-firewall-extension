@@ -5,7 +5,7 @@
  */
 /*global Insight*/
 
-export default function graphDirective(Coordinates, Properties) {
+export default function graphDirective(Coordinates) {
   return {
     scope: {
       versions: '=graph'
@@ -19,13 +19,6 @@ export default function graphDirective(Coordinates, Properties) {
     link: function(scope) {
       scope.$watch('versions', function(versions) {
         if (versions) {
-          $.each(versions, function(index, component) {
-            if (component.componentIdentifier.coordinates.version === Coordinates.get().version) {
-              component.hash = Properties.getHash();
-              return false;
-            }
-          });
-
           Insight.ComponentInformation({
             data: {
               nextMajorRevisionIndex: versions.nextMajorRevisionIndex,
@@ -38,7 +31,6 @@ export default function graphDirective(Coordinates, Properties) {
                 $.each(versions, function(index, component) {
                   if (component.componentIdentifier.coordinates.version === version) {
                     Coordinates.setSelected(component.componentIdentifier.coordinates);
-                    Properties.setHash(component.hash);
                     return false;
                   }
                 });
@@ -56,4 +48,4 @@ export default function graphDirective(Coordinates, Properties) {
   };
 }
 
-graphDirective.$inject = ['Coordinates', 'Properties'];
+graphDirective.$inject = ['Coordinates'];

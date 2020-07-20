@@ -29,6 +29,7 @@ import org.quartz.impl.jdbcjobstore.InvalidConfigurationException;
 import org.quartz.impl.jdbcjobstore.JobStoreTX;
 import org.quartz.impl.jdbcjobstore.PostgreSQLDelegate;
 import org.quartz.impl.jdbcjobstore.SchedulerStateRecord;
+import org.quartz.utils.DBConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +49,7 @@ public class QuartzJobStoreTX
   static final String NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE =
       "Node clustering is not supported by the current license, shutting down this excess node.";
 
-  static final String DATA_SOURCE_NAME = "ods";
+  private static final String DATA_SOURCE_NAME = "ods";
 
   private final ProductLicense productLicense;
 
@@ -76,6 +77,7 @@ public class QuartzJobStoreTX
       setIsClustered(true);
       setDriverDelegateClass(PostgreSQLDelegate.class.getName());
     }
+    DBConnectionManager.getInstance().addConnectionProvider(getDataSource(), new QuartzConnectionProvider());
   }
 
   @Override

@@ -33,7 +33,6 @@ import org.quartz.TriggerKey;
 import org.quartz.impl.DirectSchedulerFactory;
 import org.quartz.simpl.SimpleThreadPool;
 import org.quartz.spi.JobFactory;
-import org.quartz.utils.DBConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,8 +76,6 @@ public class TaskScheduler
   // Visible for testing
   Scheduler createScheduler() {
     try {
-      DBConnectionManager.getInstance()
-          .addConnectionProvider(QuartzJobStoreTX.DATA_SOURCE_NAME, new QuartzConnectionProvider());
       String schedulerInstanceId = UUID.randomUUID().toString().replace("-", "");
       // This reuses the schedulerName and schedulerInstanceId for the Scheduler, ThreadPool, and JobStore
       DirectSchedulerFactory.getInstance()

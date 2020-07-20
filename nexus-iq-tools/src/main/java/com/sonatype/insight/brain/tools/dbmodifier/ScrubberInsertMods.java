@@ -312,6 +312,8 @@ class ScrubberInsertMods
 
   private static final Map<String, Function<SQLLine, List<SQLLine>>> insertModMap = new HashMap<>();
 
+  // The rules for scrubbing customer sensitive data are documented at:
+  // https://docs.sonatype.com/pages/viewpage.action?pageId=172133687
   static {
     // h2 - special
     insertModMap.put("SYSTEM_LOB_STREAM", ScrubberInsertMods::consumeClobChunk);

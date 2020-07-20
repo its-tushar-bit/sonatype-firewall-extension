@@ -27,6 +27,11 @@ import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.tools.dbmodifier.ScrubberInsertMods.scrubInputLine;
 
+/**
+ * Removes customer sensitive data from ODS databases.
+ * The rules for scrubbing customer sensitive data are documented at:
+ * https://docs.sonatype.com/pages/viewpage.action?pageId=172133687
+ */
 public class DbScrubber
 {
   static final String SQL_FILENAME_PREFIX = "dbmod_tmp-scrub-backup";

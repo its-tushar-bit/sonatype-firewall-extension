@@ -351,6 +351,7 @@ class ScrubberInsertMods
     insertModMap.put(h2OdsTable("license_threat_group"), tableMod("name"));
     insertModMap.put(h2OdsTable("organization"), tableMod("name"));
     insertModMap.put(h2OdsTable("policy"), tableMod("name", "content:json"));
+    insertModMap.put(h2OdsTable("policy_evaluation"), tableMod("commit_hash"));
     insertModMap.put(h2OdsTable("policy_violation"),
         tableMod("policy_name", "policy_waiver_comment", "component_id_coordinates_json:componentIdentifier",
             "filename:path"));

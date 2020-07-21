@@ -599,6 +599,20 @@ public class DbScrubberTest
   }
 
   @Test
+  public void testScrubDB_Table_policy_evaluation() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId", new Date(), "testCommitHash");
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(policyEvaluation.getId(), "testCommitHash");
+    String scrubbedSqlContent = getScrubbedSqlContent();
+    assertThat(scrubbedSqlContent).contains(policyEvaluation.getId());
+    assertThat(scrubbedSqlContent).doesNotContain("testCommitHash");
+  }
+
+  @Test
   public void testScrubDB_Table_policy_violation() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId");

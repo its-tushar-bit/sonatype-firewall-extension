@@ -406,6 +406,44 @@ public class PolicyViolationAggregationServiceTest
     }
   }
 
+  /**
+   * This test is for the situation that caused CLM-15728. This happens when a previous run of the aggregation service
+   * without includeLatestData results in the month aggregations being ahead of the week aggregations or vice-versa.
+   * To give a specific example, the test setup here has an evaluation on March 30th 2020. This would have been
+   * during the week of March 30th - April 4. When an aggregation is run during this week but after the evaluation
+   * (on April 2nd), this creates an aggregation record for the month of March, but not one for the week of March 30th
+   * (because the week isn't over yet). Then when another aggregation is done later on, in May, the aggregation
+   * generation logic tries to generate aggregations for the month of April, the week of March 30th, and a number of
+   * weeks thereafter. The bug was that the logic was getting a little bit mixed up here, and attributing that
+   * evaluation from March 30th to both the week of March 30th, and to the month of April.
+   */
+  @Test
+  public void testGeneratePolicyViolationAggregations_OverlappingNewAggregationUpdates() {
+
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app.getId(), "test policy", 10);
+
+    DateTime evalTime1 = new LocalDate(2020, 3, 30).toDateTimeAtStartOfDay();
+    DateTime aggregatingTime1 = new LocalDate(2020, 4, 2).toDateTimeAtStartOfDay();
+    DateTime aggregatingTime2 = new LocalDate(2020, 5, 2).toDateTimeAtStartOfDay();
+
+    PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan1",
+        evalTime1.toDate());
+
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, null, "hash1", "component 1");
+    violationDAO.update(violation1);
+
+    service.generatePolicyViolationAggregations(Collections.singleton(app.getId()), aggregatingTime1, false);
+
+    assertThat(aggregationDAO.getByTimePeriod(MONTH)).extracting("evaluationCount").containsExactly(1);
+    assertThat(aggregationDAO.getByTimePeriod(WEEK)).isEmpty();
+
+    service.generatePolicyViolationAggregations(Collections.singleton(app.getId()), aggregatingTime2, false);
+
+    assertThat(aggregationDAO.getByTimePeriod(MONTH)).extracting("evaluationCount").containsExactly(1, 0);
+    assertThat(aggregationDAO.getByTimePeriod(WEEK)).extracting("evaluationCount").containsExactly(1, 0, 0, 0);
+  }
+
   private void assertViolationOneWeekAgoFromMidMonth(PolicyViolationAggregation aggregation,
                                                      boolean violationExpected)
   {

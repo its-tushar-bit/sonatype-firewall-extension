@@ -219,16 +219,24 @@ public class PolicyViolationAggregationService
         ResultsWrapper result = results.get(timePeriod);
         if (!events.isEmpty()) {
           for (ProcessableEvaluationEvent event : events) {
-            while (new LocalDate(event.time).compareTo(startOfNextAggregation) >= 0) {
-              // event is too recent for the current aggregation record, start a new one
-              saveViolationAggregation(applicationId, startOfNewAggregation, null, result, timePeriod);
-              startOfNewAggregation = startOfNextAggregation;
-              startOfNextAggregation = plusTimePeriod(startOfNewAggregation, timePeriod, 1);
+            LocalDate eventTime = new LocalDate(event.time);
 
-              result = new ResultsWrapper(openCounts);
-              results.put(timePeriod, result);
+            if (eventTime.isBefore(startOfNewAggregation)) {
+              // event is from before the current aggregation, ignore
+              continue;
             }
-            event.process(result, timePeriod);
+            else {
+              while (eventTime.compareTo(startOfNextAggregation) >= 0) {
+                // event is too recent for the current aggregation record, start a new one
+                saveViolationAggregation(applicationId, startOfNewAggregation, null, result, timePeriod);
+                startOfNewAggregation = startOfNextAggregation;
+                startOfNextAggregation = plusTimePeriod(startOfNewAggregation, timePeriod, 1);
+
+                result = new ResultsWrapper(openCounts);
+                results.put(timePeriod, result);
+              }
+              event.process(result, timePeriod);
+            }
           }
         }
 

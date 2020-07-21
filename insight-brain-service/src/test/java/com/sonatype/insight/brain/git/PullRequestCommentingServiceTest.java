@@ -44,6 +44,8 @@ import com.sonatype.nexus.scm.api.model.PullRequestState;
 import com.sonatype.nexus.scm.github.dto.GithubPullRequest;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpResponseException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -240,6 +242,39 @@ public class PullRequestCommentingServiceTest
         debug("0 base branch commits to process for application 'app1'"),
         info("pull request comment '27' with version '84' updated for application 'app1' pull request '7'"),
         debug("pull request comment '27' for application 'app1' pull request '7' recorded in database")
+    );
+  }
+
+  @Test
+  public void testOnApplicationEvaluation_commentAlreadyExists_notFound() throws Exception {
+    // given : a pull request for a dev branch that already has our comment but deleted in SCM
+    String commentText = "at least one new policy violation";
+    PullRequestCommentingService commentingService = new TestablePullRequestCommentingServiceBuilder()
+        .withSourcePolicyEvaluation("pe1", "commit456", "app1")
+        .withBasePolicyEvaluation("basePe", "baseCommit", "app1")
+        .withDevBranchPullRequest("INT-2493-pr-commenting-immediate-flow", 7, "commit456", "baseCommit")
+        .withPolicyEvaluationDiffMarkup(commentText)
+        .expectApplicationId("app1")
+        .withCommentForPullRequest(7, 27, 83, "content-hash", "sourcePe", "targetPe")
+        .withGeneratedContentHash("new-content-hash")
+        .expectSourceCommit("commit456")
+        .build();
+
+    SourceControlEvent event = new SourceControlEvent()
+        .setApplicationId("app1")
+        .setPolicyEvaluationId("pe1")
+        .setCommitHash("commit456");
+
+    // when : process event
+    commentingService.onApplicationEvaluation(event);
+
+    // then : comment should not be created and telemetry not recorded
+    verify(mockPrCommentingMetricsService, times(0)).sendTelemetry(any());
+    verify(mockPrCommentingMetricsService, times(0)).addAuditRecord(any(), any(), any(), anyInt());
+    assertThatLogMessagesEqual(
+        debug("obtained CommitInfo from SCM for commit 'commit456' with 1 pull request(s) and 0 base branch commit(s)"),
+        debug("0 base branch commits to process for application 'app1'"),
+        warn("Updating pull request comment '27' for application 'app1' pull request '7' returned 404 NOT FOUND")
     );
   }
 
@@ -611,6 +646,37 @@ public class PullRequestCommentingServiceTest
   }
 
   @Test
+  public void testOnDiscoveredPullRequest_hasBaseBranchPolicyEvalCommentAlreadyExists_notFound()
+      throws Exception
+  {
+    // given : all the necessary pieces to create a PR comment, except the comment already exists, but is deleted on SCM
+    String commentText = "at least one new policy violation";
+    String applicationId = "app1";
+    PullRequestCommentingService commentingService = new TestablePullRequestCommentingServiceBuilder()
+        .withDevBranchPullRequest("INT-2493-pr-commenting-immediate-flow", 20, "sourceCommit", "baseCommit")
+        .withSourcePolicyEvaluation("sourcePe", "sourceCommit", applicationId)
+        .withBasePolicyEvaluation("basePe", "baseCommit", applicationId)
+        .withPolicyEvaluationDiffMarkup(commentText)
+        .expectApplicationId(applicationId)
+        .withCommentForPullRequest(20, 25, "content-hash", "sourcePe-0", "basePe")
+        .withGeneratedContentHash("new-content-hash")
+        .expectSourceCommit("sourceCommit")
+        .build();
+
+    SourceControlEvent event =
+        createDiscoveredPullRequestEvent(applicationId, "sourcePe", "sourceCommit", 20, "basePe");
+
+    // when : process event
+    commentingService.onDiscoveredPullRequest(event);
+
+    // then : comment should not be created and telemetry not recorded
+    verify(mockPrCommentingMetricsService, times(0)).sendTelemetry(any());
+    assertThatLogMessagesEqual(
+        warn("Updating pull request comment '25' for application 'app1' pull request '20' returned 404 NOT FOUND")
+    );
+  }
+
+  @Test
   public void testOnDiscoveredPullRequest_sameContentHash() throws Exception {
     // given : all the necessary pieces to create a PR comment, except the comment already exists
     PullRequestCommentingService commentingService = new TestablePullRequestCommentingServiceBuilder()
@@ -825,6 +891,8 @@ public class PullRequestCommentingServiceTest
 
       doReturn(mockGitApiClient).when(mockGitClientFactory).createApiClient(gitRepositoryInfo);
 
+      doThrow(new HttpResponseException(HttpStatus.SC_NOT_FOUND, "Not Found")).when(mockGitApiClient)
+          .updatePullRequestComment(any(), any(), any(), any());
       for (Entry<Integer, CommentResponse> entry : pullRequestCommentResponseMap.entrySet()) {
         Integer prId = entry.getKey();
         CommentResponse comment = entry.getValue();

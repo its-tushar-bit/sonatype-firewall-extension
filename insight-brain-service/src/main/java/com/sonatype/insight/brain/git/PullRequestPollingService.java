@@ -238,8 +238,8 @@ public class PullRequestPollingService
           }
           catch (Exception e) {
             String retryDelay = pollingTracker.onErrorProcessingPullRequests(sourceControl.getId());
-            log.error(
-                "Error fetching pull requests for org '{}' and repo '{}'; will retry in {}.  Please check that the" +
+            log.warn(
+                "Could not fetch pull requests for org '{}' and repo '{}'; will retry in {}.  Please check that the" +
                     " configured project url {} is correct, that it is for '{}' and that the API token is valid",
                 org,
                 null == repo ? "none specified" : repo,

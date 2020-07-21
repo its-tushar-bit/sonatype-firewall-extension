@@ -53,6 +53,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.Subscribe;
 import io.dropwizard.lifecycle.Managed;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpResponseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -384,19 +386,24 @@ public class PullRequestCommentingService
         sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation, telemetry);
 
     if (policyEvaluationDiffMarkup.isPresent()) {
-      CommentResponse response = createOrUpdateCommentInGitSCM(applicationId, gitRepositoryInfo, pullRequestNumber,
-          policyEvaluationDiffMarkup.get(), existingPullRequestComment, telemetry);
-      recordCommentInDatabase(applicationId, pullRequestNumber, response.getId(), response.getVersion(), contentHash,
-          sourceCommitPolicyEvaluation.getId(), baseBranchPolicyEvaluation.getId(), existingPullRequestComment);
-      invokePostCommentActions(gitRepositoryInfo, policyViolationDiff.get(),
-          sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation, branchName, locationDiscoveryResult);
+      Optional<CommentResponse> response =
+          createOrUpdateCommentInGitSCM(applicationId, gitRepositoryInfo, pullRequestNumber,
+              policyEvaluationDiffMarkup.get(), existingPullRequestComment, telemetry);
+      if (response.isPresent()) {
+        CommentResponse commentResponse = response.get();
+        recordCommentInDatabase(applicationId, pullRequestNumber, commentResponse.getId(), commentResponse.getVersion(),
+            contentHash, sourceCommitPolicyEvaluation.getId(), baseBranchPolicyEvaluation.getId(),
+            existingPullRequestComment);
+        invokePostCommentActions(gitRepositoryInfo, policyViolationDiff.get(),
+            sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation, branchName, locationDiscoveryResult);
 
-      prCommentingMetricsService.sendTelemetry(telemetry);
+        prCommentingMetricsService.sendTelemetry(telemetry);
 
-      AuditEvent auditEvent = existingPullRequestComment == null
-          ? AuditEvent.CREATE_PULL_REQUEST_COMMENT : AuditEvent.UPDATE_PULL_REQUEST_COMMENT;
-      prCommentingMetricsService.addAuditRecord(
-          auditEvent, applicationId, gitRepositoryInfo.repositoryUrl, pullRequestNumber);
+        AuditEvent auditEvent = existingPullRequestComment == null
+            ? AuditEvent.CREATE_PULL_REQUEST_COMMENT : AuditEvent.UPDATE_PULL_REQUEST_COMMENT;
+        prCommentingMetricsService.addAuditRecord(
+            auditEvent, applicationId, gitRepositoryInfo.repositoryUrl, pullRequestNumber);
+      }
     }
     else {
       log.info("generated feedback markup was empty for application '{}' pull request '{}'",
@@ -421,7 +428,7 @@ public class PullRequestCommentingService
   /**
    * creates or updates the pull request comment in GitHub for the given repo and pull request
    */
-  private CommentResponse createOrUpdateCommentInGitSCM(
+  private Optional<CommentResponse> createOrUpdateCommentInGitSCM(
       String applicationId,
       GitRepositoryInfo gitRepositoryInfo,
       int pullRequestNumber,
@@ -430,18 +437,36 @@ public class PullRequestCommentingService
       PullRequestCommentTelemetry telemetry)
       throws IOException
   {
-    CommentResponse commentResponse = null;
+    Optional<CommentResponse> response;
 
     GitApiClient gitApiClient = gitClientFactory.createApiClient(gitRepositoryInfo);
     if (existingPullRequestComment == null) {
-      commentResponse = gitApiClient.createPullRequestComment(pullRequestNumber, commentText);
+      CommentResponse commentResponse = gitApiClient.createPullRequestComment(pullRequestNumber, commentText);
       log.info("pull request comment '{}' created for application '{}' pull request '{}'",
           commentResponse.getId(), applicationId, pullRequestNumber);
       telemetry.action = ACTION_CREATED;
+      response = Optional.of(commentResponse);
     }
     else {
-      commentResponse =
-          gitApiClient.updatePullRequestComment(existingPullRequestComment.getPullRequestCommentId(), pullRequestNumber,
+      response = updateCommentInGitSCM(applicationId, pullRequestNumber, commentText, existingPullRequestComment,
+          gitApiClient);
+      telemetry.action = ACTION_UPDATED;
+    }
+    response.ifPresent(commentResponse -> telemetry.commentId = commentResponse.getId());
+    return response;
+  }
+
+  private Optional<CommentResponse> updateCommentInGitSCM(
+      final String applicationId,
+      final int pullRequestNumber,
+      final String commentText,
+      final SourceControlPullRequestComment existingPullRequestComment,
+      final GitApiClient gitApiClient) throws IOException
+  {
+    CommentResponse commentResponse = null;
+    try {
+      commentResponse = gitApiClient
+          .updatePullRequestComment(existingPullRequestComment.getPullRequestCommentId(), pullRequestNumber,
               existingPullRequestComment.getPullRequestCommentVersion(), commentText);
       if (commentResponse.getVersion() == null) {
         log.info("pull request comment '{}' updated for application '{}' pull request '{}'",
@@ -451,10 +476,17 @@ public class PullRequestCommentingService
         log.info("pull request comment '{}' with version '{}' updated for application '{}' pull request '{}'",
             commentResponse.getId(), commentResponse.getVersion(), applicationId, pullRequestNumber);
       }
-      telemetry.action = ACTION_UPDATED;
     }
-    telemetry.commentId = commentResponse.getId();
-    return commentResponse;
+    catch (HttpResponseException e) {
+      if (HttpStatus.SC_NOT_FOUND == e.getStatusCode()) {
+        log.warn("Updating pull request comment '{}' for application '{}' pull request '{}' returned 404 NOT FOUND",
+            existingPullRequestComment.getPullRequestCommentId(), applicationId, pullRequestNumber);
+      }
+      else {
+        throw e;
+      }
+    }
+    return Optional.ofNullable(commentResponse);
   }
 
   /**

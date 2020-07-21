@@ -245,8 +245,8 @@ public class PullRequestPollingServiceTest
     // then: no events emitted
     verify(mockSourceControlEventService, never()).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
-        error(
-            "Error fetching pull requests for org 'org' and repo 'none specified'; will retry in 5 minutes.  Please " +
+        warn(
+            "Could not fetch pull requests for org 'org' and repo 'none specified'; will retry in 5 minutes.  Please " +
                 "check that the configured project url https://domain.com/org/repo is correct, that it is for " +
                 "'github' and that the API token is valid")
     );

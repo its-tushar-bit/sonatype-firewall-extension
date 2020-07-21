@@ -19,6 +19,10 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseDetailsCache;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.product.license.TestProductLicenseDetailsCache;
+import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.scheduler.TestQuartzJobStoreTx;
+import com.sonatype.insight.brain.scheduler.TestTaskScheduler;
 import com.sonatype.insight.brain.security.InternalRealm;
 
 import org.sonatype.licensing.product.ProductLicenseManager;
@@ -165,6 +169,8 @@ public class AbstractComponentTest
     binder.bind(ProductLicenseDetailsCache.class).to(TestProductLicenseDetailsCache.class);
     binder.bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
     binder.bind(LicenseFingerprinter.class).to(TestLicenseFingerprinter.class);
+    binder.bind(QuartzJobStoreTX.class).to(TestQuartzJobStoreTx.class);
+    binder.bind(TaskScheduler.class).to(TestTaskScheduler.class);
   }
 
   protected void customizeConfig(@SuppressWarnings("unused") InsightConfig config) {

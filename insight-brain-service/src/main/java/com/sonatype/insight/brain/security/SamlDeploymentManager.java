@@ -17,6 +17,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 
 import io.dropwizard.lifecycle.Managed;
 import org.keycloak.adapters.saml.DefaultSamlDeployment;
@@ -36,6 +37,9 @@ import org.keycloak.saml.SignatureAlgorithm;
 import org.keycloak.saml.common.exceptions.ConfigurationException;
 import org.keycloak.saml.common.exceptions.ProcessingException;
 import org.keycloak.saml.processing.core.saml.v2.util.SAMLMetadataUtil;
+import org.quartz.DisallowConcurrentExecution;
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,10 +50,14 @@ import static java.util.stream.Collectors.toList;
  */
 @Named
 @Singleton
+@DisallowConcurrentExecution
 public class SamlDeploymentManager
-    implements Managed
+    implements Managed, Job
 {
   private static final Logger log = LoggerFactory.getLogger(SamlDeploymentManager.class);
+
+  // Visible for testing
+  static final String TASK_NAME = "SamlDeployment";
 
   // A SAML assertion may have a "Conditions" element that may contain "NotBefore" and "NotOnOrAfter" attributes.
   // These attributes restrict when the assertion is considered valid. It is possible that the Identity Provider's clock
@@ -62,12 +70,19 @@ public class SamlDeploymentManager
 
   private final SamlConfigurationDAO samlConfigurationDAO;
 
+  private final TaskScheduler taskScheduler;
+
   private volatile SamlDeployment samlDeployment;
 
   @Inject
-  public SamlDeploymentManager(SamlMetadataTool samlMetadataTool, SamlConfigurationDAO samlConfigurationDAO) {
+  public SamlDeploymentManager(
+      SamlMetadataTool samlMetadataTool,
+      SamlConfigurationDAO samlConfigurationDAO,
+      TaskScheduler taskScheduler)
+  {
     this.samlMetadataTool = samlMetadataTool;
     this.samlConfigurationDAO = samlConfigurationDAO;
+    this.taskScheduler = taskScheduler;
   }
 
   @Override
@@ -93,9 +108,15 @@ public class SamlDeploymentManager
     return samlDeployment;
   }
 
+  // Visible for testing
   public void updateFromConfiguration() {
     samlDeployment = parse(samlConfigurationDAO.get());
     log.info("SAML integration {}", samlDeployment != null ? "enabled" : "disabled");
+  }
+
+  public void updateAllClusterNodesFromConfiguration() {
+    updateFromConfiguration();
+    taskScheduler.scheduleOneTimeTaskForAllOtherNodes(this.getClass(), TASK_NAME);
   }
 
   public SamlDeployment parse(SamlConfiguration samlConfiguration) {
@@ -208,5 +229,22 @@ public class SamlDeploymentManager
       return Binding.REDIRECT;
     }
     return null;
+  }
+
+  @Override
+  public void execute(JobExecutionContext context) {
+    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
+      updateFromConfiguration();
+    }
+    catch (Exception e) {
+      log.error("SAML deployment error: {}", e.getMessage(), e);
+    }
+    catch (Throwable t) {
+      // Try to log to stderr before trying the standard logging because the standard logging may not be operational
+      // at this point.
+      t.printStackTrace();
+      log.error(t.getMessage(), t);
+      System.exit(1);
+    }
   }
 }

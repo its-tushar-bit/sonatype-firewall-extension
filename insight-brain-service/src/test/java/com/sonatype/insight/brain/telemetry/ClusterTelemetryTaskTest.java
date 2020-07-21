@@ -50,9 +50,9 @@ public class ClusterTelemetryTaskTest
 
   @Override
   public void configure(Binder binder) {
-    super.configure(binder);
     binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
     binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
+    super.configure(binder);
   }
 
   @Test

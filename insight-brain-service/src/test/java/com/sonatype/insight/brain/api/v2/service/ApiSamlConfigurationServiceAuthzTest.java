@@ -8,14 +8,17 @@ package com.sonatype.insight.brain.api.v2.service;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationDTO;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import com.google.inject.Binder;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
+import org.mockito.Mock;
 
 public class ApiSamlConfigurationServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -25,6 +28,15 @@ public class ApiSamlConfigurationServiceAuthzTest
 
   @Inject
   private InsightConfig config;
+
+  @Mock
+  private TaskScheduler taskSchedulerMock;
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
+    super.configure(binder);
+  }
 
   @Test
   public void testGetSamlConfiguration_Authorized() {

@@ -24,11 +24,11 @@ import com.sonatype.insight.db.H2DatabaseEngine;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.quartz.JobPersistenceException;
-import org.quartz.impl.jdbcjobstore.HSQLDBDelegate;
+import org.quartz.Trigger;
 import org.quartz.impl.jdbcjobstore.InvalidConfigurationException;
 import org.quartz.impl.jdbcjobstore.JobStoreTX;
-import org.quartz.impl.jdbcjobstore.PostgreSQLDelegate;
 import org.quartz.impl.jdbcjobstore.SchedulerStateRecord;
+import org.quartz.spi.OperableTrigger;
 import org.quartz.utils.DBConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +51,9 @@ public class QuartzJobStoreTX
 
   private static final String DATA_SOURCE_NAME = "ods";
 
+  // Visible for testing
+  static final String TABLE_PREFIX = OperationalDataStoreProvider.ID + ".QRTZ_";
+
   private final ProductLicense productLicense;
 
   private volatile boolean productLicenseLoaded;
@@ -71,11 +74,11 @@ public class QuartzJobStoreTX
     DatabaseEngine dbEngine = DataSourceFactory.getDatabaseEngine(OperationalDataStoreProvider.getDataSource());
     if (H2DatabaseEngine.INSTANCE.equals(dbEngine)) {
       setIsClustered(false);
-      setDriverDelegateClass(HSQLDBDelegate.class.getName());
+      setDriverDelegateClass(QuartzHSQLDBDelegate.class.getName());
     }
     else if (PostgresDatabaseEngine.INSTANCE.equals(dbEngine)) {
       setIsClustered(true);
-      setDriverDelegateClass(PostgreSQLDelegate.class.getName());
+      setDriverDelegateClass(QuartzPostgreSQLDelegate.class.getName());
     }
     DBConnectionManager.getInstance().addConnectionProvider(getDataSource(), new QuartzConnectionProvider());
   }
@@ -157,6 +160,24 @@ public class QuartzJobStoreTX
   // Visible for testing
   void exitInNewThread() {
     new Thread(() -> System.exit(NODE_CLUSTERING_NOT_SUPPORTED_EXIT_STATUS), SHUTDOWN_THREAD_NAME).start();
+  }
+
+  @Override
+  protected List<OperableTrigger> acquireNextTrigger(Connection conn, long noLaterThan, int maxCount, long timeWindow)
+      throws JobPersistenceException
+  {
+    List<OperableTrigger> operableTriggers = super.acquireNextTrigger(conn, noLaterThan, maxCount, timeWindow);
+    operableTriggers.forEach(this::vetoIfTriggerForOtherNode);
+    return operableTriggers;
+  }
+
+  private void vetoIfTriggerForOtherNode(Trigger trigger) {
+    // we don't want to actually execute the job meant for the other node, we just need to drive the trigger state
+    // to completion such that it and eventually the job get removed from the scheduler
+    String nodeId = trigger.getJobDataMap().getString(TaskScheduler.QUARTZ_NODE_ID);
+    if (nodeId != null && !instanceId.equals(nodeId)) {
+      trigger.getJobDataMap().putAsString(QuartzTriggerListener.QUARTZ_VETO, true);
+    }
   }
 
   @Override

@@ -43,7 +43,10 @@ import com.sonatype.insight.brain.jira.JiraClientFactory;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseResource;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.scheduler.TestQuartzJobStoreTx;
+import com.sonatype.insight.brain.scheduler.TestTaskScheduler;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ReportHelper;
@@ -200,7 +203,8 @@ public abstract class AbstractBrainServiceTest
       }
       TaskScheduler taskScheduler = testCLMServer.getCLMServer().getInstance(TaskScheduler.class);
       if (taskScheduler != null) {
-        taskScheduler.stop();
+        taskScheduler.standby();
+        taskScheduler.clear();
       }
       getCLMServer().resetDisableForTesting();
     }
@@ -221,6 +225,8 @@ public abstract class AbstractBrainServiceTest
         bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
         bind(TestProductLicenseManager.class).toInstance(licenseManager);
         bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);
+        bind(QuartzJobStoreTX.class).to(TestQuartzJobStoreTx.class);
+        bind(TaskScheduler.class).to(TestTaskScheduler.class);
 
         mockJiraClient = mock(JiraClient.class);
         JiraClientFactory jiraClientFactory = mock(JiraClientFactory.class);

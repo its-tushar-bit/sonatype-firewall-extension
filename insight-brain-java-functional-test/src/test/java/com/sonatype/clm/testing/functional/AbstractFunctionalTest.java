@@ -31,6 +31,10 @@ import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.scheduler.TestQuartzJobStoreTx;
+import com.sonatype.insight.brain.scheduler.TestTaskScheduler;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestCLMServer;
@@ -249,6 +253,11 @@ public abstract class AbstractFunctionalTest
   @After
   public final void afterTest() throws Exception {
     log.info("After: {}", testName.getMethodName());
+    TaskScheduler taskScheduler = testCLMServer.getCLMServer().getInstance(TaskScheduler.class);
+    if (taskScheduler != null) {
+      taskScheduler.standby();
+      taskScheduler.clear();
+    }
     initMocks();
     if (!testCLMServer.isRunning()) {
       testCLMServer.start();
@@ -290,6 +299,8 @@ public abstract class AbstractFunctionalTest
         bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);
         bind(RootOrganizationConfigMigrationUtils.class).toInstance(rootOrganizationConfigMigrationUtils);
         bind(JiraService.class).toInstance(jiraService);
+        bind(QuartzJobStoreTX.class).to(TestQuartzJobStoreTx.class);
+        bind(TaskScheduler.class).to(TestTaskScheduler.class);
       }
     });
   }

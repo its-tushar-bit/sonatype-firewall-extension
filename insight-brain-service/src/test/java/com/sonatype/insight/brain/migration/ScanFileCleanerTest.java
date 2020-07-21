@@ -65,8 +65,8 @@ public class ScanFileCleanerTest
 
   @Override
   public void configure(Binder binder) {
-    super.configure(binder);
     binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
+    super.configure(binder);
   }
 
   @Test

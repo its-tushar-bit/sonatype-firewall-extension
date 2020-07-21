@@ -10,7 +10,9 @@ import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -23,6 +25,7 @@ import org.quartz.Job;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
 import org.quartz.JobKey;
+import org.quartz.JobPersistenceException;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.SimpleScheduleBuilder;
@@ -31,6 +34,7 @@ import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
 import org.quartz.TriggerKey;
 import org.quartz.impl.DirectSchedulerFactory;
+import org.quartz.impl.jdbcjobstore.SchedulerStateRecord;
 import org.quartz.simpl.SimpleThreadPool;
 import org.quartz.spi.JobFactory;
 import org.slf4j.Logger;
@@ -44,6 +48,10 @@ public class TaskScheduler
   // Visible for testing
   static final String DEFAULT_SCHEDULER_NAME = "QuartzScheduler";
 
+  static final String QUARTZ_NODE_ID = "quartz.nodeId";
+
+  private static final long IDLE_WAIT_TIME = 5000;
+
   private static final Logger log = LoggerFactory.getLogger(TaskScheduler.class);
 
   private final QuartzJobStoreTX quartzJobStoreTX;
@@ -52,17 +60,21 @@ public class TaskScheduler
 
   private final String schedulerName;
 
+  private final QuartzTriggerListener quartzTriggerListener;
+
   public boolean disableForTesting;
 
   @Inject
   public TaskScheduler(
       QuartzJobStoreTX quartzJobStoreTX,
       JobFactory jobFactory,
-      @Named("${scheduler.name:-" + DEFAULT_SCHEDULER_NAME + "}") String schedulerName)
+      @Named("${scheduler.name:-" + DEFAULT_SCHEDULER_NAME + "}") String schedulerName,
+      QuartzTriggerListener quartzTriggerListener)
   {
     this.quartzJobStoreTX = quartzJobStoreTX;
     this.jobFactory = jobFactory;
     this.schedulerName = schedulerName;
+    this.quartzTriggerListener = quartzTriggerListener;
   }
 
   // Visible for testing
@@ -74,14 +86,15 @@ public class TaskScheduler
   }
 
   // Visible for testing
-  Scheduler createScheduler() {
+  public Scheduler createScheduler() {
     try {
       String schedulerInstanceId = UUID.randomUUID().toString().replace("-", "");
       // This reuses the schedulerName and schedulerInstanceId for the Scheduler, ThreadPool, and JobStore
-      DirectSchedulerFactory.getInstance()
-          .createScheduler(schedulerName, schedulerInstanceId, createThreadPool(), quartzJobStoreTX);
+      DirectSchedulerFactory.getInstance().createScheduler(schedulerName, schedulerInstanceId, createThreadPool(),
+          quartzJobStoreTX, null, 0, IDLE_WAIT_TIME, -1);
       Scheduler scheduler = DirectSchedulerFactory.getInstance().getScheduler(schedulerName);
       scheduler.setJobFactory(jobFactory);
+      scheduler.getListenerManager().addTriggerListener(quartzTriggerListener);
       return scheduler;
     }
     catch (SchedulerException e) {
@@ -91,12 +104,12 @@ public class TaskScheduler
 
   @Override
   public void start() throws Exception {
-    if (disableForTesting) {
-      return;
-    }
     Scheduler scheduler = getScheduler();
     if (scheduler == null) {
       scheduler = createScheduler();
+    }
+    if (disableForTesting) {
+      return;
     }
     if (!scheduler.isStarted()) {
       scheduler.start();
@@ -156,6 +169,46 @@ public class TaskScheduler
     scheduleTask(job, trigger);
   }
 
+  public void scheduleOneTimeTaskForAllOtherNodes(Class<? extends Job> jobClass, String name) {
+    JobDetail job = JobBuilder.newJob(jobClass) //
+        .withIdentity(name) //
+        // non-durable for automatic removal once last trigger is gone
+        // recovery/retry by another node doesn't make sense when binding execution to specific node
+        .build();
+    Set<Trigger> triggers = new HashSet<>();
+    SimpleScheduleBuilder rightNowSchedule =
+        // don't reschedule orphaned misfired triggers, somebody takes over ownership of them eventually
+        SimpleScheduleBuilder.simpleSchedule().withMisfireHandlingInstructionIgnoreMisfires();
+    Set<String> otherNodeIds = getOtherNodeIds();
+    // create one trigger for each node
+    log.debug("Scheduled {} to be executed once on nodes {}.", name, otherNodeIds);
+    for (String nodeId : otherNodeIds) {
+      Trigger trigger = TriggerBuilder.newTrigger() //
+          .withIdentity(job.getKey().getName() + "For" + nodeId, job.getKey().getGroup()) //
+          .usingJobData(QUARTZ_NODE_ID, nodeId) // bind to node
+          .withSchedule(rightNowSchedule) //
+          .startNow() //
+          .build();
+      triggers.add(trigger);
+    }
+    scheduleTask(job, triggers.toArray(new Trigger[0]));
+  }
+
+  // Visible for testing
+  Set<String> getOtherNodeIds() {
+    Set<String> otherNodeIds;
+    try {
+      otherNodeIds = quartzJobStoreTX.getSchedulerStateRecords().stream()
+          .map(SchedulerStateRecord::getSchedulerInstanceId)
+          .collect(Collectors.toSet());
+    }
+    catch (JobPersistenceException e) {
+      throw new RuntimeException(e.getMessage(), e);
+    }
+    otherNodeIds.remove(quartzJobStoreTX.getInstanceId());
+    return otherNodeIds;
+  }
+
   private void scheduleTask(JobDetail job, Trigger... triggers) {
     try {
       getScheduler().scheduleJob(job, new HashSet<>(Arrays.asList(triggers)), true);
@@ -201,12 +254,28 @@ public class TaskScheduler
   }
 
   // Visible for testing
-  Scheduler getScheduler() {
+  public Scheduler getScheduler() {
     try {
       return DirectSchedulerFactory.getInstance().getScheduler(schedulerName);
     }
     catch (SchedulerException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  // Visible for testing
+  public void clear() throws Exception {
+    Scheduler scheduler = getScheduler();
+    if (scheduler != null) {
+      scheduler.clear();
+    }
+  }
+
+  // Visible for testing
+  public void standby() throws Exception {
+    Scheduler scheduler = getScheduler();
+    if (scheduler != null) {
+      scheduler.standby();
     }
   }
 }

@@ -14,9 +14,11 @@ import java.util.Base64;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.google.common.io.Resources;
+import com.google.inject.Binder;
 import org.junit.Test;
 import org.keycloak.adapters.saml.SamlDeployment;
 import org.keycloak.adapters.saml.SamlDeployment.Binding;
@@ -25,15 +27,32 @@ import org.keycloak.adapters.saml.SamlDeployment.IDP.SingleLogoutService;
 import org.keycloak.adapters.saml.SamlDeployment.IDP.SingleSignOnService;
 import org.keycloak.common.enums.SslRequired;
 import org.keycloak.saml.SignatureAlgorithm;
+import org.mockito.Mock;
+import org.quartz.JobBuilder;
+import org.quartz.JobExecutionContext;
+import org.slf4j.MDC;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 public class SamlDeploymentManagerTest
     extends AbstractComponentTest
 {
   @Inject
   private SamlDeploymentManager samlDeploymentManager;
+
+  @Mock
+  private TaskScheduler taskSchedulerMock;
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
+    super.configure(binder);
+  }
 
   private String getSamlMetadata(String resourceName) {
     try {
@@ -290,5 +309,36 @@ public class SamlDeploymentManagerTest
 
     SamlDeployment samlDeployment = samlDeploymentManager.get();
     assertThat(samlDeployment.getIDP().getSingleLogoutService()).isNull();
+  }
+
+  @Test
+  public void testExecute() {
+    SamlDeploymentManager samlDeploymentManagerSpy = spy(samlDeploymentManager);
+    doAnswer(invocationOnMock -> {
+      assertThat(MDC.get(MDCUsernameScope.USERNAME)).isEqualTo(MDCUsernameScope.SYSTEM);
+      return null;
+    }).when(samlDeploymentManagerSpy).updateFromConfiguration();
+
+    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forUser("username")) {
+      samlDeploymentManagerSpy.execute(mock(JobExecutionContext.class));
+    }
+
+    verify(samlDeploymentManagerSpy).updateFromConfiguration();
+  }
+
+  @Test
+  public void testUpdateAllClusterNodesFromConfiguration() {
+    SamlDeploymentManager samlDeploymentManagerSpy = spy(samlDeploymentManager);
+
+    samlDeploymentManagerSpy.updateAllClusterNodesFromConfiguration();
+
+    verify(samlDeploymentManagerSpy).updateFromConfiguration();
+    verify(taskSchedulerMock).scheduleOneTimeTaskForAllOtherNodes(samlDeploymentManagerSpy.getClass(),
+        SamlDeploymentManager.TASK_NAME);
+  }
+
+  @Test
+  public void testDisallowConcurrentExecution() {
+    assertThat(JobBuilder.newJob(SamlDeploymentManager.class).build().isConcurrentExectionDisallowed()).isTrue();
   }
 }

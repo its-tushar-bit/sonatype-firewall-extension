@@ -131,7 +131,7 @@ public class ApiSamlConfigurationService
       samlConfigurationDAO.insert(samlConfiguration);
     }
 
-    samlDeploymentManager.updateFromConfiguration();
+    samlDeploymentManager.updateAllClusterNodesFromConfiguration();
     audit(samlConfiguration);
   }
 
@@ -144,7 +144,7 @@ public class ApiSamlConfigurationService
     catch (Exception e) {
       log.error("Forcing delete of SAML configuration.", e);
       samlConfigurationDAO.delete();
-      samlDeploymentManager.updateFromConfiguration();
+      samlDeploymentManager.updateAllClusterNodesFromConfiguration();
       return;
     }
 
@@ -153,7 +153,7 @@ public class ApiSamlConfigurationService
     }
 
     samlConfigurationDAO.delete();
-    samlDeploymentManager.updateFromConfiguration();
+    samlDeploymentManager.updateAllClusterNodesFromConfiguration();
     audit(samlConfiguration);
   }
 

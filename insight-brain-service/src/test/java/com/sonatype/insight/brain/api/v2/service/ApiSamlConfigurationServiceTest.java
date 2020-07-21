@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationResponseDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.SamlDeploymentManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -28,6 +29,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.test.LogOutput;
 
+import com.google.inject.Binder;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -39,6 +41,7 @@ import org.keycloak.dom.saml.v2.metadata.KeyTypes;
 import org.keycloak.dom.saml.v2.metadata.SPSSODescriptorType;
 import org.keycloak.saml.processing.core.parsers.saml.SAMLParser;
 import org.keycloak.saml.processing.core.util.JAXPValidationUtil;
+import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -58,6 +61,15 @@ public class ApiSamlConfigurationServiceTest
 
   @Inject
   private InsightConfig config;
+
+  @Mock
+  private TaskScheduler taskSchedulerMock;
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
+    super.configure(binder);
+  }
 
   @Before
   public void setBaseUrl() {
@@ -399,6 +411,7 @@ public class ApiSamlConfigurationServiceTest
     tempEntity.newSamlConfiguration("My Awesome IdP", validIdentityProviderXml(), "ent-id", "first-name", "last-name",
         "e-mail", "user-name", "teams", null, null);
     samlDeploymentManager.updateFromConfiguration();
+    assertThat(samlDeploymentManager.get()).isNotNull();
 
     apiSamlConfigurationService.deleteSamlConfiguration();
 

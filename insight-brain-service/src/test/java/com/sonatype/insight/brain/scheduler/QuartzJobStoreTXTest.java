@@ -7,7 +7,10 @@ package com.sonatype.insight.brain.scheduler;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.util.concurrent.TimeUnit;
+import java.util.Date;
+import java.util.List;
+import java.util.Properties;
+import java.util.UUID;
 
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
@@ -22,13 +25,14 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.quartz.Scheduler;
-import org.quartz.impl.jdbcjobstore.HSQLDBDelegate;
+import org.quartz.JobBuilder;
+import org.quartz.JobDetail;
+import org.quartz.SimpleScheduleBuilder;
+import org.quartz.TriggerBuilder;
 import org.quartz.impl.jdbcjobstore.JobStoreTX;
-import org.quartz.impl.jdbcjobstore.PostgreSQLDelegate;
+import org.quartz.spi.OperableTrigger;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
@@ -53,6 +57,11 @@ public class QuartzJobStoreTXTest
 
   private QuartzJobStoreTX quartzJobStoreTXSpy;
 
+  @Override
+  public void configure(Properties properties) {
+    properties.put("scheduler.name", TaskScheduler.DEFAULT_SCHEDULER_NAME + "-" + UUID.randomUUID());
+  }
+
   @Before
   public void before() throws Exception {
     taskScheduler.createScheduler();
@@ -61,26 +70,7 @@ public class QuartzJobStoreTXTest
 
   @After
   public void after() throws Exception {
-    tryCleanup(taskScheduler.getScheduler());
     deleteAllSchedulerStateRecords();
-  }
-
-  private void tryCleanup(Scheduler scheduler) {
-    if (scheduler != null) {
-      try {
-        scheduler.clear();
-      }
-      catch (Exception e) {
-        e.printStackTrace();
-      }
-      try {
-        scheduler.shutdown(false);
-        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> assertThat(taskScheduler.getScheduler()).isNull());
-      }
-      catch (Exception e) {
-        e.printStackTrace();
-      }
-    }
   }
 
   @Test
@@ -88,7 +78,7 @@ public class QuartzJobStoreTXTest
     quartzJobStoreTX.initialize();
 
     assertThat(quartzJobStoreTX.isClustered()).isFalse();
-    assertThat(quartzJobStoreTX.getDriverDelegateClass()).isEqualTo(HSQLDBDelegate.class.getName());
+    assertThat(quartzJobStoreTX.getDriverDelegateClass()).isEqualTo(QuartzHSQLDBDelegate.class.getName());
     assertJobStoreTX(quartzJobStoreTX);
   }
 
@@ -99,7 +89,7 @@ public class QuartzJobStoreTXTest
       OperationalDataStoreProvider.init(postgresServer.getDatabaseConfig(), false);
       quartzJobStoreTX.initialize();
 
-      assertThat(quartzJobStoreTX.getDriverDelegateClass()).isEqualTo(PostgreSQLDelegate.class.getName());
+      assertThat(quartzJobStoreTX.getDriverDelegateClass()).isEqualTo(QuartzPostgreSQLDelegate.class.getName());
       assertThat(quartzJobStoreTX.isClustered()).isTrue();
       assertJobStoreTX(quartzJobStoreTX);
     }
@@ -202,13 +192,50 @@ public class QuartzJobStoreTXTest
     verify(quartzJobStoreTXSpy).exitInNewThread();
   }
 
+  @Test
+  public void testAquireNextTrigger() throws Exception {
+    JobDetail job = JobBuilder.newJob(TestJob.class).build();
+    quartzJobStoreTXSpy.storeJob(job, true);
+    OperableTrigger triggerForMe = (OperableTrigger) TriggerBuilder.newTrigger().forJob(job)
+        .withSchedule(SimpleScheduleBuilder.simpleSchedule().withMisfireHandlingInstructionIgnoreMisfires())
+        .usingJobData(TaskScheduler.QUARTZ_NODE_ID, quartzJobStoreTXSpy.getInstanceId()).build();
+    triggerForMe.setNextFireTime(new Date());
+    quartzJobStoreTXSpy.storeTrigger(triggerForMe, true);
+    OperableTrigger triggerForOther = (OperableTrigger) TriggerBuilder.newTrigger().forJob(job)
+        .withSchedule(SimpleScheduleBuilder.simpleSchedule().withMisfireHandlingInstructionIgnoreMisfires())
+        .usingJobData(TaskScheduler.QUARTZ_NODE_ID, "other1").build();
+    triggerForOther.setNextFireTime(new Date());
+    quartzJobStoreTXSpy.storeTrigger(triggerForOther, true);
+    OperableTrigger staleTriggerForOther = (OperableTrigger) TriggerBuilder.newTrigger().forJob(job)
+        .withSchedule(SimpleScheduleBuilder.simpleSchedule().withMisfireHandlingInstructionIgnoreMisfires())
+        .usingJobData(TaskScheduler.QUARTZ_NODE_ID, "other2").build();
+    staleTriggerForOther
+        .setNextFireTime(new Date(System.currentTimeMillis() - (StdJDBCDelegateUtils.ORPHANED_MILLIS + 1)));
+    quartzJobStoreTXSpy.storeTrigger(staleTriggerForOther, true);
+
+    List<OperableTrigger> operableTriggers = quartzJobStoreTXSpy.acquireNextTrigger(
+        OperationalDataStoreProvider.getDataSource().getConnection(), Long.MAX_VALUE, 3, 0);
+
+    assertThat(operableTriggers).hasSize(2);
+    OperableTrigger actualTriggerForMe = operableTriggers.stream()
+        .filter(operableTrigger -> operableTrigger.getKey().getName().equals(triggerForMe.getKey().getName()))
+        .findFirst().orElse(null);
+    assertThat(actualTriggerForMe).isNotNull();
+    assertThat(actualTriggerForMe.getJobDataMap().getBoolean(QuartzTriggerListener.QUARTZ_VETO)).isFalse();
+    OperableTrigger actualStaleTriggerForOther = operableTriggers.stream()
+        .filter(operableTrigger -> operableTrigger.getKey().getName().equals(staleTriggerForOther.getKey().getName()))
+        .findFirst().orElse(null);
+    assertThat(actualStaleTriggerForOther).isNotNull();
+    assertThat(actualStaleTriggerForOther.getJobDataMap().getBoolean(QuartzTriggerListener.QUARTZ_VETO)).isTrue();
+  }
+
   private void createSchedulerStateRecord(String instanceId, long checkinTimestamp) throws Exception {
     String sQuery = "INSERT INTO QRTZ_SCHEDULER_STATE" + //
         " (SCHED_NAME, INSTANCE_NAME, LAST_CHECKIN_TIME, CHECKIN_INTERVAL) " + //
         " VALUES (?1, ?2, ?3, ?4)";
     try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
          PreparedStatement statement = connection.prepareStatement(sQuery)) {
-      statement.setString(1, TaskScheduler.DEFAULT_SCHEDULER_NAME);
+      statement.setString(1, taskScheduler.getScheduler().getSchedulerName());
       statement.setString(2, instanceId);
       statement.setLong(3, checkinTimestamp);
       statement.setLong(4, quartzJobStoreTXSpy.getClusterCheckinInterval());

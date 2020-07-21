@@ -16,6 +16,7 @@ import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
@@ -605,18 +606,20 @@ public class DbScrubberTest
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy,
         ComponentIdentifier.createNpmCoordinates("TestPackageId", "TestVersion"), "TestHash", "TestReason",
         "TestPath1/TestPath2/TestFileName");
+    policyViolation.setPolicyWaiverComment("testPolicyWaiverComment");
+    new PolicyViolationDAO().update(policyViolation);
     new PolicyDAO().delete(policy);
 
     scrubDb();
 
     assertThat(getSqlDumpContent()).contains(policyViolation.getId(), policy.getName(), "TestHash", "TestPackageId",
         "TestVersion", ComponentIdentifier.NPM_PACKAGE_ID, ComponentIdentifier.VERSION, policy.getName(),
-        "TestPath1/TestPath2/TestFileName");
+        "TestPath1/TestPath2/TestFileName", "testPolicyWaiverComment");
     String scrubbedSqlContent = getScrubbedSqlContent();
     assertThat(scrubbedSqlContent).contains(policyViolation.getId(), "TestHash", ComponentIdentifier.NPM_PACKAGE_ID,
         ComponentIdentifier.VERSION);
     assertThat(scrubbedSqlContent).doesNotContain("TestPackageId", "TestVersion", policy.getName(), "TestPath1",
-        "TestPath2", "TestFilename");
+        "TestPath2", "TestFilename", "testPolicyWaiverComment");
   }
 
   private void scrubDb() {

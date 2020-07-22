@@ -37,8 +37,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.Keys;
 
-import static com.codeborne.selenide.Condition.disabled;
-import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
@@ -187,7 +185,7 @@ public class ReportListTest
     List<Application> apps = new ArrayList<>();
     createAlphabeticalOrgsAndApps(new ArrayList<>(), apps);
     apps.sort(Comparator.comparing(Application::getName));
-    ReportListPage.load().shouldBe(disabled);
+    ReportListPage.load().shouldNotBe(visible);
     refresh();
 
     List<String> names = new ArrayList<>();
@@ -195,13 +193,14 @@ public class ReportListTest
     assertThat(names).isEqualTo(apps.subList(0, ReportListPage.RESULTS_PER_PAGE).stream().map(Application::getName)
         .collect(Collectors.toList()));
 
-    ScrollUtil.awaitEndOfScrolling(ReportListPage.load().scrollIntoView(false).shouldBe(enabled));
+    ScrollUtil.awaitEndOfScrolling(ReportListPage.load().scrollIntoView(false).shouldBe(visible));
     assertThat(ReportListPage.row(ReportListPage.rows().size()).applicationName().getText())
         .isNotEqualTo(apps.get(apps.size() - 1).getName());
 
     ReportListPage.load().click();
 
-    ScrollUtil.awaitEndOfScrolling(ReportListPage.load().scrollIntoView(false).shouldBe(disabled));
+    ReportListPage.scrollToBottom();
+    ReportListPage.load().shouldNotBe(visible);
     assertThat(ReportListPage.row(ReportListPage.rows().size()).applicationName().getText())
         .isEqualTo(apps.get(apps.size() - 1).getName());
   }

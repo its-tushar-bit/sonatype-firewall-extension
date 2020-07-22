@@ -136,9 +136,8 @@
                 </span>
                 <button id="iq-report-list-load-button"
                         class="btn btn-secondary"
-                        ng-if="!vm.loadingApps"
-                        ng-click="vm.loadMoreResults()"
-                        ng-disabled="!vm.hasMoreResults">
+                        ng-if="!vm.loadingApps && vm.hasMoreResults"
+                        ng-click="vm.loadMoreResults()">
                   Load More Results
                 </button>
               </td>

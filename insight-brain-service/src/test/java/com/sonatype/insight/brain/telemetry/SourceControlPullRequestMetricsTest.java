@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.telemetry;
 
 import java.util.Date;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -20,6 +21,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class SourceControlPullRequestMetricsTest
 {
+  private static final ComponentIdentifier MAVEN_COORDINATES =
+      ComponentIdentifier.createMavenCoordinates("foo", "bar", "1.0");
+
   private SourceControlPullRequestMetrics metrics = new SourceControlPullRequestMetrics();
   
   @Test
@@ -50,8 +54,7 @@ public class SourceControlPullRequestMetricsTest
     failure.setPushTime(1L);    
     failure.setSuccessful(false);
     EnhancedPullRequestResult enhancedFailure = new EnhancedPullRequestResult(failure, new Date(),
-        ComponentIdentifier.createMavenCoordinates("foo", "bar", "1.0"),
-        "Bump bar to 1.1", true);
+        MAVEN_COORDINATES, "Bump bar to 1.1", true);
     metrics.addResult("foo", enhancedFailure);
 
     PullRequestResult app2Success = new PullRequestResult();
@@ -61,8 +64,7 @@ public class SourceControlPullRequestMetricsTest
     app2Success.setPullRequestCreationTime(1L);
     app2Success.setSuccessful(true);
     EnhancedPullRequestResult app2EnhancedSuccess = new EnhancedPullRequestResult(app2Success, new Date(),
-        ComponentIdentifier.createMavenCoordinates("foo", "bar", "1.0"),
-        "Bump bar to 1.1", false);
+        MAVEN_COORDINATES, "Bump bar to 1.1", false);
     metrics.addResult("bar", app2EnhancedSuccess);
 
     AggregatedPRStats stats = metrics.computeStatsAndReset();
@@ -97,5 +99,39 @@ public class SourceControlPullRequestMetricsTest
     assertThat(cleared.getTotalSuggestedPRs()).isEqualTo(0L);
     assertThat(cleared.getSuccessfulPRs()).isEqualTo(0L);
     assertThat(cleared.getApplicationPRStats()).isEmpty();
+  }
+  
+  @Test
+  public void test_metricsForApplication() {
+    //given: an application with available metrics
+    PullRequestResult success = new PullRequestResult();
+    success.setCheckoutTime(1L);
+    success.setRemediationTime(1L);
+    success.setPushTime(1L);
+    success.setPullRequestCreationTime(1L);
+    success.setSuccessful(true);
+    Date start = new Date();
+    EnhancedPullRequestResult enhancedSuccess = new EnhancedPullRequestResult(success, start,
+        MAVEN_COORDINATES, "Bump bar to 1.1", false);
+    String applicationId = "foo";
+    metrics.addResult(applicationId, enhancedSuccess);
+
+    //when: we request metrics for that application
+    List<EnhancedPullRequestResult> results = metrics.metricsForApplication(applicationId);
+    
+    //then: results are returned as expected
+    assertThat(results).hasSize(1);
+    assertThat(results.get(0)).extracting(EnhancedPullRequestResult::getTarget).isEqualTo(MAVEN_COORDINATES);
+    assertThat(results.get(0)).extracting(EnhancedPullRequestResult::getStartTime).isEqualTo(start);
+  }
+
+  @Test
+  public void test_metricsForApplication_doesNotExist() {
+    //given: an application without available metrics
+    //when: we request metrics for that application
+    List<EnhancedPullRequestResult> results = metrics.metricsForApplication("foo");
+
+    //then: results are empty as expected
+    assertThat(results).isEmpty();
   }
 }

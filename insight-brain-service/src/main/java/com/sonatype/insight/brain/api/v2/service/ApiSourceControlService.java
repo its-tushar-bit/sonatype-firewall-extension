@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiPullRequestResults;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -29,6 +30,7 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -69,10 +71,14 @@ public class ApiSourceControlService
   private final AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO;
 
   private final ApiSourceControlAdapter apiSourceControlAdapter;
+  
+  private final ApiSourceControlMetricsAdapter apiSourceControlMetricsAdapter;
 
   private final ProductLicense productLicense;
 
   private final TelemetrySender telemetrySender;
+  
+  private final SourceControlPullRequestMetrics sourceControlPullRequestMetrics;
 
   @Inject
   public ApiSourceControlService(
@@ -81,16 +87,20 @@ public class ApiSourceControlService
       final ApplicationDAO applicationDAO,
       final AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO,
       final ApiSourceControlAdapter apiSourceControlAdapter,
+      final ApiSourceControlMetricsAdapter apiSourceControlMetricsAdapter,
       final ProductLicense productLicense,
-      final TelemetrySender telemetrySender)
+      final TelemetrySender telemetrySender,
+      final SourceControlPullRequestMetrics sourceControlPullRequestMetrics)
   {
     this.plexusCipher = plexusCipher;
     this.sourceControlDAO = sourceControlDAO;
     this.applicationDAO = applicationDAO;
     this.automaticSourceControlConfigurationDAO = automaticSourceControlConfigurationDAO;
     this.apiSourceControlAdapter = apiSourceControlAdapter;
+    this.apiSourceControlMetricsAdapter = apiSourceControlMetricsAdapter;
     this.productLicense = productLicense;
     this.telemetrySender = telemetrySender;
+    this.sourceControlPullRequestMetrics = sourceControlPullRequestMetrics;
   }
 
   @Authorize(permission = Permission.READ)
@@ -354,6 +364,16 @@ public class ApiSourceControlService
     if (isNotBlank(sourceControl.getRepositoryUrl())) {
       sourceControl.setRepositoryUrl(convertUrlIfNeeded(sourceControl.getRepositoryUrl()));
     }
+  }
+
+  @Authorize(permission = Permission.READ)
+  public ApiPullRequestResults getSourceControlMetricsForApplication(
+      @AuthzContext(Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(Key.INTERNAL_ID) final String ownerId)
+  {
+    checkLicense();
+
+    return apiSourceControlMetricsAdapter.convertToDTO(sourceControlPullRequestMetrics.metricsForApplication(ownerId));
   }
 
   enum METHOD

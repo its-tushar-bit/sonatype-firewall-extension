@@ -55,6 +55,13 @@ public class SourceControlPullRequestMetrics
     return stats;
   }
 
+  /**
+   * Retrieve recorded metrics for the given application within the last telemetry reporting window.
+   */
+  public List<EnhancedPullRequestResult> metricsForApplication(final String applicationId) {
+    return enhancedPullRequestResultMap.getOrDefault(applicationId, Collections.emptyList());
+  }
+
   private AggregatedPRStats computeStats() {
     List<ApplicationPRStats> applicationPRStats = new ArrayList<>();
     for (Entry<String, List<EnhancedPullRequestResult>> entry : enhancedPullRequestResultMap.entrySet()) {

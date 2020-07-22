@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiPullRequestResults;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -194,5 +195,24 @@ public class ApiSourceControlServiceAuthzTest
   public void testAddOrUpdateSourceControl_AutomaticScmDisabled_Unauthenticated() {
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(false);
     sourceControlService.addOrUpdateSourceControl(app.getPublicId(), VALID_URL);
+  }
+
+  @Test
+  public void testGetSourceControlMetricsForApplication() {
+    grantReadPermission(app.getId());
+    ApiPullRequestResults results =
+        sourceControlService.getSourceControlMetricsForApplication(OwnerType.APPLICATION, app.getId());
+    assertThat(results.results).hasSize(0);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetSourceControlMetricsForApplication_Unauthorized() {
+    login();
+    sourceControlService.getSourceControlMetricsForApplication(OwnerType.APPLICATION, app.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetSourceControlMetricsForApplication_Unauthenticated() {
+    sourceControlService.getSourceControlMetricsForApplication(OwnerType.APPLICATION, "any");
   }
 }

@@ -16,29 +16,46 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Named
 public class ApiProxyServerConfigurationService
+    implements Job
 {
+  private static final Logger log = LoggerFactory.getLogger(ApiProxyServerConfigurationService.class);
+
+  // Visible for testing
+  static final String TASK_NAME = "ProxyServerConfiguration";
+
   private final ProxyServerConfigurationDAO proxyServerConfigurationDAO;
 
   private final PasswordHandler passwordHandler;
 
   private final List<ProxyServerConfigurationListener> proxyServerConfigurationListeners;
 
+  private final TaskScheduler taskScheduler;
+
   @Inject
   public ApiProxyServerConfigurationService(
       ProxyServerConfigurationDAO proxyServerConfigurationDAO,
       PasswordHandler passwordHandler,
-      List<ProxyServerConfigurationListener> proxyServerConfigurationListeners)
+      List<ProxyServerConfigurationListener> proxyServerConfigurationListeners,
+      TaskScheduler taskScheduler)
   {
     this.proxyServerConfigurationDAO = proxyServerConfigurationDAO;
     this.passwordHandler = passwordHandler;
     this.proxyServerConfigurationListeners = proxyServerConfigurationListeners;
+    this.taskScheduler = taskScheduler;
   }
 
   private RuntimeException newNotFoundException() {
@@ -112,7 +129,7 @@ public class ApiProxyServerConfigurationService
 
     auditConfiguration(proxyServerConfiguration);
 
-    applyProxyServerConfigurationToClients();
+    updateAllClusterNodesFromConfiguration();
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -125,7 +142,7 @@ public class ApiProxyServerConfigurationService
 
     auditConfiguration(proxyServerConfiguration);
 
-    applyProxyServerConfigurationToClients();
+    updateAllClusterNodesFromConfiguration();
   }
 
   private void auditConfiguration(ProxyServerConfiguration proxyServerConfiguration) {
@@ -144,5 +161,28 @@ public class ApiProxyServerConfigurationService
 
   public void applyProxyServerConfigurationToClients() {
     proxyServerConfigurationListeners.forEach(ProxyServerConfigurationListener::proxyServerConfigurationChanged);
+  }
+
+  // Visible for testing
+  void updateAllClusterNodesFromConfiguration() {
+    applyProxyServerConfigurationToClients();
+    taskScheduler.scheduleOneTimeTaskForAllOtherNodes(getClass(), TASK_NAME);
+  }
+
+  @Override
+  public void execute(JobExecutionContext context) {
+    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
+      applyProxyServerConfigurationToClients();
+    }
+    catch (Exception e) {
+      log.error("Error when applying proxy server config: {}", e.getMessage(), e);
+    }
+    catch (Throwable t) {
+      // Try to log to stderr before trying the standard logging because the standard logging may not be operational
+      // at this point.
+      t.printStackTrace();
+      log.error(t.getMessage(), t);
+      System.exit(1);
+    }
   }
 }

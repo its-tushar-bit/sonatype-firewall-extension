@@ -13,6 +13,8 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.api.v2.dto.ApiProxyServerConfigurationDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -21,9 +23,14 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.google.inject.Binder;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.quartz.JobExecutionContext;
+import org.slf4j.MDC;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -41,9 +48,13 @@ public class ApiProxyServerConfigurationServiceTest
   @Mock
   private ProxyServerConfigurationListener proxyServerConfigurationListener;
 
+  @Mock
+  private TaskScheduler taskSchedulerMock;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(ProxyServerConfigurationListener.class).toInstance(proxyServerConfigurationListener);
+    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
     super.configure(binder);
   }
 
@@ -452,5 +463,31 @@ public class ApiProxyServerConfigurationServiceTest
     assertThat(proxyServerConfiguration.getExcludeHosts()).isNull();
 
     verify(proxyServerConfigurationListener).proxyServerConfigurationChanged();
+  }
+
+  @Test
+  public void testExecute() {
+    ApiProxyServerConfigurationService proxyServerConfigurationServiceSpy = spy(proxyServerConfigurationService);
+    doAnswer(invocationOnMock -> {
+      assertThat(MDC.get(MDCUsernameScope.USERNAME)).isEqualTo(MDCUsernameScope.SYSTEM);
+      return null;
+    }).when(proxyServerConfigurationServiceSpy).applyProxyServerConfigurationToClients();
+
+    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forUser("username")) {
+      proxyServerConfigurationServiceSpy.execute(mock(JobExecutionContext.class));
+    }
+
+    verify(proxyServerConfigurationServiceSpy).applyProxyServerConfigurationToClients();
+  }
+
+  @Test
+  public void testUpdateAllClusterNodesFromConfiguration() {
+    ApiProxyServerConfigurationService proxyServerConfigurationServiceSpy = spy(proxyServerConfigurationService);
+
+    proxyServerConfigurationServiceSpy.updateAllClusterNodesFromConfiguration();
+
+    verify(proxyServerConfigurationServiceSpy).applyProxyServerConfigurationToClients();
+    verify(taskSchedulerMock).scheduleOneTimeTaskForAllOtherNodes(proxyServerConfigurationServiceSpy.getClass(),
+        ApiProxyServerConfigurationService.TASK_NAME);
   }
 }

@@ -170,6 +170,11 @@ public class TaskScheduler
   }
 
   public void scheduleOneTimeTaskForAllOtherNodes(Class<? extends Job> jobClass, String name) {
+    Set<String> otherNodeIds = getOtherNodeIds();
+    if (otherNodeIds.isEmpty()) {
+      return;
+    }
+
     JobDetail job = JobBuilder.newJob(jobClass) //
         .withIdentity(name) //
         // non-durable for automatic removal once last trigger is gone
@@ -179,9 +184,9 @@ public class TaskScheduler
     SimpleScheduleBuilder rightNowSchedule =
         // don't reschedule orphaned misfired triggers, somebody takes over ownership of them eventually
         SimpleScheduleBuilder.simpleSchedule().withMisfireHandlingInstructionIgnoreMisfires();
-    Set<String> otherNodeIds = getOtherNodeIds();
+
     // create one trigger for each node
-    log.debug("Scheduled {} to be executed once on nodes {}.", name, otherNodeIds);
+    log.debug("Scheduling {} to be executed once on nodes {}.", name, otherNodeIds);
     for (String nodeId : otherNodeIds) {
       Trigger trigger = TriggerBuilder.newTrigger() //
           .withIdentity(job.getKey().getName() + "For" + nodeId, job.getKey().getGroup()) //

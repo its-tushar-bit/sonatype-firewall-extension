@@ -55,6 +55,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.ComponentCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.DependencyTypeConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
 import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
 import com.sonatype.insight.brain.policy.PolicyViolationPersistenceLocks;
 import com.sonatype.insight.brain.policy.violation.ApplicationPolicyViolationLogger;
@@ -98,7 +99,8 @@ public class ScanPolicyEvaluator
       new HashSet<>(Arrays.asList(
           HygieneRatingConditionType.ID,
           ComponentCategoryConditionType.ID,
-          DependencyTypeConditionType.ID
+          DependencyTypeConditionType.ID,
+          SecurityVulnerabilityCategoryConditionType.ID
       )));
 
   private final PolicyViolationPersistenceLocks policyViolationPersistenceLocks;

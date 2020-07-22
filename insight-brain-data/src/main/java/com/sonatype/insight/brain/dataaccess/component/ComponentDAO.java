@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.model.component.ComponentCategory;
 import com.sonatype.insight.brain.model.component.HygieneRating;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
+import com.sonatype.insight.brain.model.component.SecurityVulnerabilityCategory;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
@@ -348,6 +349,8 @@ public class ComponentDAO
           final String urlString = JsonUtils.getNullableString(securityVulnerabilityJson.get("url"));
           final SecurityVulnerabilityOverrideStatus status = SecurityVulnerabilityOverrideStatus
               .getByName(statusString);
+          final List<String> vulnerabilityCategories =
+              JsonUtils.getStringListFromArray(securityVulnerabilityJson.get("vulnerabilityCategories"));
 
           Component component = componentsByHash.get(hash);
           if (component != null) {
@@ -357,7 +360,12 @@ public class ComponentDAO
             securityVulnerability.setSeverity(severity);
             securityVulnerability.setStatus(status);
             securityVulnerability.setUrl(urlString);
-
+            if (vulnerabilityCategories != null) {
+              for (String categoryStr : vulnerabilityCategories) {
+                SecurityVulnerabilityCategory category = SecurityVulnerabilityCategory.getById(categoryStr);
+                securityVulnerability.addVulnerabilityCategory(category);
+              }
+            }
             component.addSecurityVulnerability(securityVulnerability);
           }
         }

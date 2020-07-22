@@ -66,6 +66,9 @@ public class ConditionTypes
 
   public static final DependencyTypeConditionType DependencyTypeConditionType = new DependencyTypeConditionType();
 
+  public static final SecurityVulnerabilityCategoryConditionType SecurityVulnerabilityCategoryConditionType =
+      new SecurityVulnerabilityCategoryConditionType();
+
   static {
     // Don't add DeprecatedSecurityVulnerabilityConditionType
     add(AgeInDaysConditionType);
@@ -86,6 +89,7 @@ public class ConditionTypes
     add(SecurityVulnerabilityStatusConditionType);
     add(DataSourceConditionType);
     add(DependencyTypeConditionType);
+    add(SecurityVulnerabilityCategoryConditionType);
   }
 
   public static Collection<ConditionType> getAll() {

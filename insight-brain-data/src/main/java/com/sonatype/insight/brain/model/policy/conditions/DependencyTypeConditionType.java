@@ -16,6 +16,9 @@ import com.sonatype.insight.brain.model.policy.conditions.valuetype.DependencyTy
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+/**
+ * @since 1.96
+ */
 public class DependencyTypeConditionType
     extends AbstractComponentConditionType<String>
 {

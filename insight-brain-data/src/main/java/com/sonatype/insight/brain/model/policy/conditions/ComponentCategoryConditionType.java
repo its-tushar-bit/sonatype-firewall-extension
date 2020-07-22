@@ -18,6 +18,9 @@ import com.sonatype.insight.brain.model.policy.conditions.valuetype.ComponentCat
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+/**
+ * @since 1.85
+ */
 public class ComponentCategoryConditionType
     extends AbstractComponentConditionType<String>
 {

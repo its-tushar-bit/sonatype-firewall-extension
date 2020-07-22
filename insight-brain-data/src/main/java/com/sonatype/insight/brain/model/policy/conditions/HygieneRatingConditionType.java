@@ -17,6 +17,9 @@ import com.sonatype.insight.brain.model.policy.conditions.valuetype.HygieneRatin
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+/**
+ * @since 1.85
+ */
 public class HygieneRatingConditionType
     extends AbstractComponentConditionType<String>
 {

@@ -76,6 +76,7 @@ import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionTyp
 import com.sonatype.insight.brain.model.policy.conditions.PackageUrlConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
@@ -180,7 +181,7 @@ public abstract class AbstractPolicyEditorTest
     assertThat(constraint.getName()).isEqualTo("New Constraint");
     assertThat(constraint.getOperator()).isEqualTo(LogicalOperator.OR);
 
-    assertThat(constraint.getConditions()).hasSize(25);
+    assertThat(constraint.getConditions()).hasSize(26);
     assertCondition(constraint.getConditions().get(0), AgeInDaysConditionType.ID, "older than",
         Integer.toString(3 * 365));
     assertCondition(constraint.getConditions().get(1), CoordinatesConditionType.ID, "match",
@@ -221,6 +222,8 @@ public abstract class AbstractPolicyEditorTest
     assertCondition(constraint.getConditions().get(23), DataSourceConditionType.ID, HAS_NO_SUPPORT_FOR,
         ComponentDataSource.getById("identity").getId());
     assertCondition(constraint.getConditions().get(24), DependencyTypeConditionType.ID, "is not", "transitive");
+    assertCondition(constraint.getConditions().get(25), SecurityVulnerabilityCategoryConditionType.ID, "is not",
+        "configuration");
 
     assertThat(newPolicy.getActions().get(Stage.ID_BUILD)).isEqualTo("warn");
 
@@ -1271,6 +1274,15 @@ public abstract class AbstractPolicyEditorTest
     dependencyType.operator().listItem(1).shouldHave(text("is not")).click();
     dependencyType.value().selectedItem().shouldHave(text("Direct")).click();
     dependencyType.value().listItem(1).shouldHave(text("Transitive")).click();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
+    newConstraint.addConditionButton().click();
+    DropdownConditionEditSection vulnerabilityCategory = newConstraint.dropdownCondition(25);
+    vulnerabilityCategory.type()
+        .chooseOption(conditionTypesOptionMap.get(SecurityVulnerabilityCategoryConditionType.class));
+    vulnerabilityCategory.operator().selectedItem().shouldHave(text("is")).click();
+    vulnerabilityCategory.operator().listItem(1).shouldHave(text("is not")).click();
+    vulnerabilityCategory.value().selectedItem().shouldHave(text("Configuration")).click();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
 
     newConstraint.conditionUnsupportedMessages().shouldHaveSize(0);

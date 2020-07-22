@@ -74,6 +74,7 @@ import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionTyp
 import com.sonatype.insight.brain.model.policy.conditions.PackageUrlConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
@@ -1715,12 +1716,15 @@ public class ScanPolicyEvaluatorTest
     Condition hygieneCondition = new Condition(HygieneRatingConditionType.ID, "is not", "1");
     Condition dataSourceCondition = new Condition(DataSourceConditionType.ID, "has support for", "identity");
     Condition dependencyCondition = new Condition(DependencyTypeConditionType.ID, "is", "direct");
+    Condition vulnerabilityCategoryCondition =
+        new Condition(SecurityVulnerabilityCategoryConditionType.ID, "is", "malicious_code");
 
     List<Condition> conditions = Arrays.asList(ageCondition, coordinatesCondition, identificationSourceCondition,
         labelCondition, licenseCondition, licenseStatusCondition, licenseThreatGroupCondition,
         licenseThreatGroupLevelCondition, matchStateCondition, proprietaryCondition, relativePopularityCondition,
         securityVulnerabilitySeverityCondition, securityVulnerabilityStatusCondition, packageUrlCondition,
-        componentCategoryCondition, hygieneCondition, dataSourceCondition, dependencyCondition);
+        componentCategoryCondition, hygieneCondition, dataSourceCondition, dependencyCondition,
+        vulnerabilityCategoryCondition);
     ConditionTypes.enableConditionType(ConditionTypes.HygieneRatingConditionType);
     try {
       Set<String> expectedConditionTypeIds = ConditionTypes.getAll().stream().map(ConditionType::getId)
@@ -1752,9 +1756,11 @@ public class ScanPolicyEvaluatorTest
     Condition componentCategoryCondition = new Condition(ComponentCategoryConditionType.ID, "is not", "113");
     Condition hygieneCondition = new Condition(HygieneRatingConditionType.ID, "is not", "1");
     Condition dependencyCondition = new Condition(DependencyTypeConditionType.ID, "is", "direct");
+    Condition vulnerabilityCategoryCondition =
+        new Condition(SecurityVulnerabilityCategoryConditionType.ID, "is", "malicious_code");
 
     List<Condition> conditions = Arrays.asList(packageUrlCondition, componentCategoryCondition, hygieneCondition,
-        dependencyCondition);
+        dependencyCondition, vulnerabilityCategoryCondition);
 
     Constraint constraint = new Constraint(null, "constraintName", LogicalOperator.OR);
     constraint.setConditions(conditions);
@@ -1770,7 +1776,8 @@ public class ScanPolicyEvaluatorTest
 
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
     List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getValue();
-    assertThat(telemetryDataList).hasSize(3);
+    // excluding the packageUrl condition, which is not included in telemetry
+    assertThat(telemetryDataList).hasSize(conditions.size() - 1);
 
     boolean hasHygieneViolation = telemetryDataList.stream().anyMatch(telemetryData ->
         telemetryData.getAttributes().get(
@@ -1784,9 +1791,14 @@ public class ScanPolicyEvaluatorTest
         telemetryData.getAttributes().get(
             PolicyViolationTelemetryCollector.CONDITION_TYPE).equals(DependencyTypeConditionType.ID));
 
+    boolean hasSVCategoryTypeViolation = telemetryDataList.stream().anyMatch(telemetryData ->
+        telemetryData.getAttributes().get(
+            PolicyViolationTelemetryCollector.CONDITION_TYPE).equals(SecurityVulnerabilityCategoryConditionType.ID));
+
     assertThat(hasHygieneViolation).isTrue();
     assertThat(hasComponentCategoryViolation).isTrue();
     assertThat(hasDependencyTypeViolation).isTrue();
+    assertThat(hasSVCategoryTypeViolation).isTrue();
     clearInvocations(mockTelemetrySender);
   }
 

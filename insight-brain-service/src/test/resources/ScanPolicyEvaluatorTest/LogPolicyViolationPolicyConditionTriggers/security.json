@@ -22,7 +22,8 @@
     "cvssVectorString" : null,
     "cvssVectorSource" : null,
     "matchState" : "exact",
-    "proprietary" : false
+    "proprietary" : false,
+    "vulnerabilityCategories" : ["malicious_code"]
   }, {
     "componentIdentifier" : {
       "format" : "maven",

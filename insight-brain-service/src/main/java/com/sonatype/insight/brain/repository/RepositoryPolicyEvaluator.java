@@ -48,7 +48,6 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
-import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -86,8 +85,6 @@ public class RepositoryPolicyEvaluator
 
   private final PolicyDAO policyDAO = new PolicyDAO();
 
-  private final PendingRepositoryPolicyNotifications pendingRepositoryPolicyNotifications;
-
   private final FirewallAuditHdsClient auditHdsClient;
 
   private final FirewallQuarantineHdsClient quarantineHdsClient;
@@ -98,30 +95,33 @@ public class RepositoryPolicyEvaluator
   
   private final RepositoryComponentDeleteService repositoryComponentDeleteService;
 
+  private final RepositoryPolicyAlertEmailer repositoryPolicyAlertEmailer;
+
   // CLM-13933
   private static final LoadingCache<String, Object> componentLock = CacheBuilder.newBuilder()
       .expireAfterAccess(10, TimeUnit.MINUTES).build(CacheLoader.from(Object::new));
 
   @Inject
-  public RepositoryPolicyEvaluator(ComponentPolicyEvaluator componentPolicyEvaluator,
-                                   RepositoryComponentDAO repositoryComponentDAO,
-                                   RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
-                                   FirewallAuditHdsClient auditHdsClient,
-                                   FirewallQuarantineHdsClient quarantineHdsClient,
-                                   PendingRepositoryPolicyNotifications pendingRepositoryPolicyNotifications,
-                                   PolicyViolationLoggerFactory policyViolationLoggerFactory,
-                                   FirewallIgnorePatternService firewallIgnorePatternService,
-                                   RepositoryComponentDeleteService repositoryComponentDeleteService)
+  public RepositoryPolicyEvaluator(
+      ComponentPolicyEvaluator componentPolicyEvaluator,
+      RepositoryComponentDAO repositoryComponentDAO,
+      RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      FirewallAuditHdsClient auditHdsClient,
+      FirewallQuarantineHdsClient quarantineHdsClient,
+      PolicyViolationLoggerFactory policyViolationLoggerFactory,
+      FirewallIgnorePatternService firewallIgnorePatternService,
+      RepositoryComponentDeleteService repositoryComponentDeleteService,
+      RepositoryPolicyAlertEmailer repositoryPolicyAlertEmailer)
   {
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.repositoryComponentDAO = repositoryComponentDAO;
     this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
     this.auditHdsClient = auditHdsClient;
     this.quarantineHdsClient = quarantineHdsClient;
-    this.pendingRepositoryPolicyNotifications = pendingRepositoryPolicyNotifications;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
     this.firewallIgnorePatternService = firewallIgnorePatternService;
     this.repositoryComponentDeleteService = repositoryComponentDeleteService;
+    this.repositoryPolicyAlertEmailer = repositoryPolicyAlertEmailer;
   }
 
   public RepositoryComponentEvaluationDataList evaluate(
@@ -209,9 +209,7 @@ public class RepositoryPolicyEvaluator
 
     // Only notify new component evaluation policy violations
     if (RepositoryComponentEvaluationDataRequestList.NEW_COMPONENT.equals(componentEvaluationDataRequestList.cause)) {
-      for (PolicyNotification policyNotification : policyResults.getActiveNotifications()) {
-        pendingRepositoryPolicyNotifications.add(repository.getId(), policyNotification);
-      }
+      repositoryPolicyAlertEmailer.sendNotifications(repository, policyResults.getActiveNotifications());
     }
 
     return componentEvaluationResultList;

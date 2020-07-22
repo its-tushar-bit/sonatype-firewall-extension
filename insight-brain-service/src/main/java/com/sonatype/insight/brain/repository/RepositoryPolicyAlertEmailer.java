@@ -8,6 +8,9 @@ package com.sonatype.insight.brain.repository;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -27,6 +30,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyAlertEmailResolver;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +47,8 @@ public class RepositoryPolicyAlertEmailer
 
   private final AuditRecorder auditRecorder;
 
+  private final ThreadPoolExecutor executor;
+
   @Inject
   public RepositoryPolicyAlertEmailer(final InsightMail mail,
                                       final PolicyAlertEmailResolver policyAlertEmailResolver,
@@ -52,29 +58,48 @@ public class RepositoryPolicyAlertEmailer
     super(mail, policyAlertEmailResolver);
     this.baseUrl = baseUrl;
     this.auditRecorder = auditRecorder;
+
+    executor = new ThreadPoolExecutor(1000, 1000, 1L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(),
+        new ThreadFactoryBuilder().setNameFormat("RepositoryPolicyAlertEmailNotifier-%d").build());
+    executor.allowCoreThreadTimeOut(true);
   }
 
   public void sendNotifications(Repository repository, List<PolicyNotification> notifications) {
-    Map<String, List<PolicyFact>> policyFactsByEmailAddress = getPolicyFactsByEmailAddress(repository, notifications);
-    for (final Entry<String, List<PolicyFact>> details : policyFactsByEmailAddress.entrySet()) {
-      try (AuditSession auditSession = auditRecorder.recordSystemEvent(AuditEvent.SEND_MAIL)) {
-        try {
-          log.debug("Sending notification email via {} to {} for repository {}", getMail().getServer(),
-              details.getKey(), repository.getId());
-          AuditData.get().setRepository(repository).setData("emailAddress", details.getKey());
-          PolicyAlertCounts policyAlertCounts = new PolicyAlertCounts(details.getValue());
-          AuditData.get().setData("totalPolicyViolationCount", policyAlertCounts.getTotal());
-          final String subject = createPolicyMailSubject(policyAlertCounts, repository.getName(), null);
-          final String body = createPolicyMailBody(createPolicyMailModel(repository, details.getValue()));
-          getMail().sendHtml(details.getKey(), subject, body);
-        }
-        catch (final Exception e) {
-          log.error("Unable to send notification email to {} for repository {}", details.getKey(), repository.getId(),
-              e);
-          AuditData.get().setException(e);
+    executor.execute(() -> {
+      try {
+        Map<String, List<PolicyFact>> policyFactsByEmailAddress =
+            getPolicyFactsByEmailAddress(repository, notifications);
+        for (final Entry<String, List<PolicyFact>> details : policyFactsByEmailAddress.entrySet()) {
+          try (AuditSession auditSession = auditRecorder.recordSystemEvent(AuditEvent.SEND_MAIL)) {
+            try {
+              log.debug("Sending notification email via {} to {} for repository {}", getMail().getServer(),
+                  details.getKey(), repository.getId());
+              AuditData.get().setRepository(repository).setData("emailAddress", details.getKey());
+              PolicyAlertCounts policyAlertCounts = new PolicyAlertCounts(details.getValue());
+              AuditData.get().setData("totalPolicyViolationCount", policyAlertCounts.getTotal());
+              final String subject = createPolicyMailSubject(policyAlertCounts, repository.getName(), null);
+              final String body = createPolicyMailBody(createPolicyMailModel(repository, details.getValue()));
+              getMail().sendHtml(details.getKey(), subject, body);
+            }
+            catch (final Exception e) {
+              log.error("Unable to send notification email to {} for repository {}", details.getKey(),
+                  repository.getId(), e);
+              AuditData.get().setException(e);
+            }
+          }
         }
       }
-    }
+      catch (RuntimeException e) {
+        log.error("Error while sending repository policy email notifications: {}", e.getMessage(), e);
+      }
+      catch (Throwable t) {
+        // Try to log to stderr before trying the standard logging because the standard logging may not be operational
+        // at this point.
+        t.printStackTrace();
+        log.error(t.getMessage(), t);
+        System.exit(1);
+      }
+    });
   }
 
   protected Map<String, Object> createPolicyMailModel(Repository repository, List<PolicyFact> policyFacts) {

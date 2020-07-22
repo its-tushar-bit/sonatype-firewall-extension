@@ -162,15 +162,6 @@ public class InsightConfig
   private boolean exitOnFatalError = true;
 
   /**
-   * @since 1.21
-   */
-  @NotNull
-  @JsonProperty
-  @Min(1)
-  @Max(24 * 60 * 60)
-  private int repositoryPolicyViolationNotificationInterval = 300;
-
-  /**
    * @since 1.25.0
    */
   @NotNull
@@ -540,12 +531,18 @@ public class InsightConfig
     this.exitOnFatalError = exitOnFatalError;
   }
 
-  public int getRepositoryPolicyViolationNotificationInterval() {
-    return repositoryPolicyViolationNotificationInterval;
-  }
-
-  public void setRepositoryPolicyViolationNotificationInterval(int repositoryPolicyViolationNotificationInterval) {
-    this.repositoryPolicyViolationNotificationInterval = repositoryPolicyViolationNotificationInterval;
+  /**
+   * @since 1.21
+   * 
+   * @deprecated Removed in 1.97.
+   */
+  @Deprecated
+  public void setRepositoryPolicyViolationNotificationInterval(
+      @SuppressWarnings("unused") int repositoryPolicyViolationNotificationInterval)
+  {
+    log.warn("The support for repository policy violation notification interval was removed in Nexus IQ Server 97. "
+        + "The repositoryPolicyViolationNotificationInterval configuration option should be removed from the "
+        + "config yml file.");
   }
 
   public EventBusConfig getEventBusConfig() {

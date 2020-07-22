@@ -46,6 +46,7 @@ import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -113,7 +114,7 @@ public class RepositoryPolicyAlertEmailerTest
   private void sendNotificationsAndVerify(Repository repository, User user, List<PolicyNotification> notifications) {
     emailer.sendNotifications(repository, notifications);
 
-    verify(mail).sendHtml(eq(user.getEmail()), anyString(), anyString());
+    verify(mail, Mockito.timeout(5000)).sendHtml(eq(user.getEmail()), anyString(), anyString());
   }
 
   @Test

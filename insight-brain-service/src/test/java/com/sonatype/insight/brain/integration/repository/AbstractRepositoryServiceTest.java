@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.inject.Inject;
+import javax.mail.Message;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -29,6 +31,7 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
@@ -39,6 +42,7 @@ import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -51,7 +55,6 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
-import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -64,9 +67,10 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.repository.PendingRepositoryPolicyNotifications;
+import com.sonatype.insight.brain.repository.RepositoryPolicyAlertEmailer;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.test.LogOutput;
@@ -76,10 +80,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.jvnet.mock_javamail.Mailbox;
 import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -99,11 +106,11 @@ public abstract class AbstractRepositoryServiceTest
   public LogOutput policyViolationLoggerOutput = new LogOutput(
       AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
 
-  @Inject
-  protected TestProductLicense testProductLicense;
+  @Rule
+  public LogOutput emailerLogOutput = new LogOutput(RepositoryPolicyAlertEmailer.class);
 
   @Inject
-  private PendingRepositoryPolicyNotifications pendingRepositoryPolicyNotifications;
+  protected TestProductLicense testProductLicense;
 
   private RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
 
@@ -139,6 +146,15 @@ public abstract class AbstractRepositoryServiceTest
     lenient().when(
         hdsClient.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternService.HDS_IGNORE_PATTERNS_PATH)))
         .thenReturn(hdsResult);
+
+    InsightConfig insightConfig = lookup(InsightConfig.class);
+    insightConfig.setBaseUrl("http://localhost");
+
+    MailConfiguration mailConfiguration = new MailConfiguration();
+    mailConfiguration.setHostname("127.0.0.1");
+    mailConfiguration.setPort(587);
+    mailConfiguration.setSystemEmail("NexusIQServer@localhost");
+    new MailConfigurationDAO().set(mailConfiguration);
   }
 
   @After
@@ -987,10 +1003,12 @@ public abstract class AbstractRepositoryServiceTest
   @Test
   public void testEvaluateComponents_NewComponentViolationNotifications() throws Exception {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+    String user1EmailAddress = "user1@sonatype.com";
+    String user2EmailAddress = "user2@sonatype.com";
     tempEntity.newPolicy(repository.getParentOwnerId(), "Test Policy", 10, null, null,
-        new Notifications(new UserNotification("test@sonatype.com", Stage.ID_PROXY)));
+        new Notifications(new UserNotification(user1EmailAddress, Stage.ID_PROXY)));
     Policy waivedPolicy = tempEntity.newPolicy(repository.getParentOwnerId(), "Waived Policy", 10, null, null,
-        new Notifications(new UserNotification("waived@sonatype.com", Stage.ID_PROXY)));
+        new Notifications(new UserNotification(user2EmailAddress, Stage.ID_PROXY)));
     tempEntity.newWaiver(waivedPolicy.getId(), repository.getId());
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
@@ -1018,6 +1036,11 @@ public abstract class AbstractRepositoryServiceTest
 
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
 
+    List<Message> notificationsUser1 = Mailbox.get(user1EmailAddress);
+    notificationsUser1.clear();
+    List<Message> notificationsUser2 = Mailbox.get(user2EmailAddress);
+    notificationsUser2.clear();
+
     // Call the service
     getRepositoryService()
         .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, false, null);
@@ -1026,28 +1049,54 @@ public abstract class AbstractRepositoryServiceTest
         .getByRepositoryId(repository.getId());
     assertThat(policyViolations).hasSize(4);
 
-    List<PolicyNotification> policyNotifications = pendingRepositoryPolicyNotifications.remove()
-        .get(repository.getId());
-    assertThat(policyNotifications).hasSize(2);
-    for (PolicyNotification policyNotification : policyNotifications) {
-      assertThat(policyNotification.getPolicyFact().getPolicyName()).isEqualTo("Test Policy");
+    // Notification message should have been sent
+    assertNotifications(notificationsUser1, 1, 5000);
+    assertNotifications(notificationsUser2, 0, 1000);
+  }
 
-      Notifications notifications = policyNotification.getNotifications();
-      assertThat(notifications.getUserNotifications()).hasSize(1);
-      assertThat(notifications.getRoleNotifications()).isEmpty();
-      assertThat(notifications.getJiraNotifications()).isEmpty();
+  @Test
+  public void testEvaluateComponents_NotificationFailuresDoNotFailTheEvaluation() throws Exception {
+    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+    String userEmailAddress = "user@sonatype.com";
+    tempEntity.newPolicy(repository.getParentOwnerId(), "Test Policy", 10, null, null,
+        new Notifications(new UserNotification(userEmailAddress, Stage.ID_PROXY)));
 
-      UserNotification userNotification = notifications.getUserNotifications().get(0);
-      assertThat(userNotification.getEmailAddress()).isEqualTo("test@sonatype.com");
-    }
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList(RepositoryComponentEvaluationDataRequestList.NEW_COMPONENT);
+
+    // Prepare request and mock the HDS request
+    List<SecurityVulnerability> securityVulnerabilities = createSecurityVulnerabilities();
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+
+    hdsResult.components = new ArrayList<>();
+    String hash = "hash";
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest("maven2", "pathname1", hash));
+    hdsResult.components.add(createComponentEvaluationData(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"),
+        hash, MatchState.EXACT, 0, null, null, securityVulnerabilities, 80));
+
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
+
+    // Remove the mail server configuration to trigger an error when notifications are sent.
+    new MailConfigurationDAO().delete();
+
+    // Call the service
+    getRepositoryService().evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
+        false, null);
+
+    await().atMost(Duration.ofMillis(5000)).untilAsserted(() -> {
+      assertThat(emailerLogOutput).atErrorLevel().contains(
+          "Unable to send notification email to " + userEmailAddress + " for repository " + repository.getId());
+    });
   }
 
   @Test
   public void testEvaluateComponents_ReevaluationViolationNotifications() throws Exception {
     // This test ensures that there are no notifications for the evaluation cause other than "new component"
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+    String userEmailAddress = "test@sonatype.com";
     tempEntity.newPolicy(repository.getParentOwnerId(), "Test Policy", 10, null, null,
-        new Notifications(new UserNotification("test@sonatype.com", Stage.ID_PROXY)));
+        new Notifications(new UserNotification(userEmailAddress, Stage.ID_PROXY)));
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         new RepositoryComponentEvaluationDataRequestList(
@@ -1068,6 +1117,9 @@ public abstract class AbstractRepositoryServiceTest
 
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
 
+    List<Message> notifications = Mailbox.get(userEmailAddress);
+    notifications.clear();
+
     // Call the service
     getRepositoryService()
         .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, false, null);
@@ -1076,9 +1128,7 @@ public abstract class AbstractRepositoryServiceTest
         .getByRepositoryId(repository.getId());
     assertThat(policyViolations).hasSize(1);
 
-    List<PolicyNotification> policyNotifications = pendingRepositoryPolicyNotifications.remove()
-        .get(repository.getId());
-    assertThat(policyNotifications).isNull();
+    assertNotifications(notifications, 0, 2000);
   }
 
   @Test

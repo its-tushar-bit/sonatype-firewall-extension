@@ -77,9 +77,6 @@ public class RepositoryReevaluationTaskTest
   private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
 
   @Inject
-  private PendingRepositoryPolicyNotifications pendingRepositoryPolicyNotifications;
-
-  @Inject
   private PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
   @Inject
@@ -87,6 +84,9 @@ public class RepositoryReevaluationTaskTest
 
   @Inject
   private RepositoryComponentDeleteService repositoryComponentDeleteService;
+
+  @Inject
+  private RepositoryPolicyAlertEmailer repositoryPolicyAlertEmailer;
 
   @Mock
   private FirewallAuditHdsClient auditHdsClient;
@@ -146,8 +146,8 @@ public class RepositoryReevaluationTaskTest
 
     task = new RepositoryReevaluationTask(repository, new RepositoryPolicyEvaluator(componentPolicyEvaluator,
         repositoryComponentDAO, repositoryPolicyViolationDAO, auditHdsClient, null,
-        pendingRepositoryPolicyNotifications, policyViolationLoggerFactory, firewallIgnorePatternService,
-        repositoryComponentDeleteService), executorService, activeReevaluations);
+        policyViolationLoggerFactory, firewallIgnorePatternService,
+        repositoryComponentDeleteService, repositoryPolicyAlertEmailer), executorService, activeReevaluations);
     createHdsResponse();
   }
 

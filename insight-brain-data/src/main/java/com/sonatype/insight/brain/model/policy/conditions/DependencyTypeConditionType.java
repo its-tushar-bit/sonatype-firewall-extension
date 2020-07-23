@@ -9,9 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.DependencyType;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
-import com.sonatype.insight.brain.model.component.DependencyType;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.DependencyTypeValueType;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -80,6 +80,12 @@ public class DependencyTypeConditionType
             .getName()) +
         ("is not".equals(condition.getOperator()) ?
             ", not " + DependencyType.getById(condition.getValue()).getName() : "");
+  }
+
+  @Override
+  public String explainCondition(final Condition condition) {
+    return getName() + ' ' + condition.getOperator() + ' ' +
+        DependencyType.getById(condition.getValue()).getName();
   }
 
   @Override

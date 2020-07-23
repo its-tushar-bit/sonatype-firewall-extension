@@ -50,6 +50,8 @@ export default function PolicyEditorConstraintsController(ConstraintStore) {
       case 'MatchState':
       case 'ComponentCategory':
       case 'HygieneRating':
+      case 'DependencyType':
+      case 'SecurityVulnerabilityCategory':
         value = getAvailableValue('name');
         break;
       default:

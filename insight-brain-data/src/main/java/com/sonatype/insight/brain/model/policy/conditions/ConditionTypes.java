@@ -87,9 +87,9 @@ public class ConditionTypes
     add(RelativePopularityConditionType);
     add(SecurityVulnerabilitySeverityConditionType);
     add(SecurityVulnerabilityStatusConditionType);
+    add(SecurityVulnerabilityCategoryConditionType);
     add(DataSourceConditionType);
     add(DependencyTypeConditionType);
-    add(SecurityVulnerabilityCategoryConditionType);
   }
 
   public static Collection<ConditionType> getAll() {

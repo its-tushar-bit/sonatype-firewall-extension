@@ -34,13 +34,7 @@ public class DependencyType
   }
 
   public static DependencyType getById(final String id) {
-    for (DependencyType dependencyType : byId.values()) {
-      if (dependencyType.getId().equals(id)) {
-        return dependencyType;
-      }
-    }
-
-    return null;
+    return byId.get(id);
   }
 
   public String getName() {

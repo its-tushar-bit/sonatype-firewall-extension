@@ -39,6 +39,8 @@ import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
@@ -53,12 +55,15 @@ import org.sonatype.licensing.util.LicensingUtil;
 
 import com.google.common.io.ByteStreams;
 import de.schlichtherle.license.NoLicenseInstalledException;
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
 public class CLMLicenseManager
+    implements Job
 {
   public static final String PRODUCT_PRO_PLUS = "Pro+";
 
@@ -73,6 +78,9 @@ public class CLMLicenseManager
   public static final String PRODUCT_AUDITOR = "Auditor";
 
   public static final String MIGRATION_TRACKER_EXTERNAL_DB = "external-database";
+
+  // Visible for testing
+  static final String TASK_NAME = "ProductLicenseLoad";
 
   private final InsightConfig config;
 
@@ -96,6 +104,8 @@ public class CLMLicenseManager
   
   private final AuditRecorder auditRecorder;
 
+  private final TaskScheduler taskScheduler;
+
   @Inject
   public CLMLicenseManager(
       final InsightConfig config,
@@ -106,7 +116,8 @@ public class CLMLicenseManager
       final LicenseFingerprinter licenseFingerprinter,
       final LicenseContent licenseContent,
       final HdsClient hdsClient,
-      final AuditRecorder auditRecorder)
+      final AuditRecorder auditRecorder,
+      final TaskScheduler taskScheduler)
   {
     this.config = config;
     this.migrationTrackerDAO = migrationTrackerDAO;
@@ -117,6 +128,7 @@ public class CLMLicenseManager
     this.licenseContent = licenseContent;
     this.hdsClient = hdsClient;
     this.auditRecorder = auditRecorder;
+    this.taskScheduler = taskScheduler;
   }
 
   public void loadLicense() {
@@ -207,6 +219,7 @@ public class CLMLicenseManager
     if (!config.isDatabaseEmbedded() && !migrationTrackerDAO.isTrackerPresent(MIGRATION_TRACKER_EXTERNAL_DB)) {
       recordSupportForExternalDatabase();
     }
+    loadProductLicenseOnAllOtherClusterNodes();
   }
 
   private SignedProductLicenseDetailsDTO queryLicenseDetailsFromHds(byte[] licenseData, String licenseFingerprint) {
@@ -260,6 +273,7 @@ public class CLMLicenseManager
     licenseManager.uninstallLicense();
     clearLicenseCache();
     log.info("License uninstalled successfully");
+    loadProductLicenseOnAllOtherClusterNodes();
   }
 
   void auditLicense(String filename) {
@@ -557,6 +571,28 @@ public class CLMLicenseManager
       catch (RuntimeException e) {
         log.warn("Failed to notify {} of license update", listener, e);
       }
+    }
+  }
+
+  // Visible for testing
+  void loadProductLicenseOnAllOtherClusterNodes() {
+    taskScheduler.scheduleOneTimeTaskForAllOtherNodes(getClass(), TASK_NAME);
+  }
+
+  @Override
+  public void execute(JobExecutionContext context) {
+    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
+      loadLicense();
+    }
+    catch (Exception e) {
+      log.error("Error when loading the product license: {}", e.getMessage(), e);
+    }
+    catch (Throwable t) {
+      // Try to log to stderr before trying the standard logging because the standard logging may not be operational
+      // at this point.
+      t.printStackTrace();
+      log.error(t.getMessage(), t);
+      System.exit(1);
     }
   }
 }

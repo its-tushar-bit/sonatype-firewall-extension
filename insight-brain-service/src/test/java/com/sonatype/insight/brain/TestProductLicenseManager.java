@@ -147,6 +147,11 @@ public class TestProductLicenseManager
     mockProductLicenseManager.setForceVerificationFailure(forceVerificationFailure);
   }
 
+  public void setForceUninstallFailure(boolean forceUninstallFailure) {
+    wasChanged = true;
+    mockProductLicenseManager.setForceUninstallFailure(forceUninstallFailure);
+  }
+
   public Set<String> getProducts() {
     if (mockProductLicenseManager.products == null) {
       return null;
@@ -194,6 +199,8 @@ public class TestProductLicenseManager
     private Map<String, String> properties = new HashMap<>();
 
     private boolean forceInstallIOFailure = false;
+    
+    private boolean forceUninstallFailure = false;
 
     private boolean forceVerificationFailure;
 
@@ -265,6 +272,9 @@ public class TestProductLicenseManager
 
     @Override
     public void uninstallLicense() {
+      if (forceUninstallFailure) {
+        throw new RuntimeException("Uninstall failed");
+      }
       valid = false;
       key = null;
       products = null;
@@ -373,6 +383,10 @@ public class TestProductLicenseManager
 
     public void setForceVerificationFailure(boolean forceVerificationFailure) {
       this.forceVerificationFailure = forceVerificationFailure;
+    }
+
+    public void setForceUninstallFailure(boolean forceUninstallFailure) {
+      this.forceUninstallFailure = forceUninstallFailure;
     }
 
     public void setProperty(String key, String value) {

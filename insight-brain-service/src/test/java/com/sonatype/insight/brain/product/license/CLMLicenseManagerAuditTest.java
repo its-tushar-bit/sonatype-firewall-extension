@@ -17,12 +17,15 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentAuditTest;
 import com.sonatype.insight.brain.service.HdsMockServerRule;
 import com.sonatype.insight.brain.service.InsightConfig;
 
+import com.google.inject.Binder;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -37,6 +40,15 @@ public class CLMLicenseManagerAuditTest
 
   @Inject
   private TestProductLicenseManager testProductLicenseManager;
+
+  @Mock
+  private TaskScheduler taskSchedulerMock;
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
+    super.configure(binder);
+  }
 
   @Override
   protected void customizeConfig(InsightConfig config) {

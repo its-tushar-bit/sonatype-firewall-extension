@@ -24,6 +24,8 @@ import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.DatabaseConfig;
 import com.sonatype.insight.brain.service.HdsMockServerRule;
@@ -43,10 +45,16 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.quartz.JobExecutionContext;
+import org.slf4j.MDC;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 public class CLMLicenseManagerTest
@@ -82,6 +90,9 @@ public class CLMLicenseManagerTest
   @Inject
   private MigrationTrackerDAO migrationTrackerDAO;
 
+  @Mock
+  private TaskScheduler taskSchedulerMock;
+
   @Before
   public void before() throws Exception {
     Files.copy(getClass().getResourceAsStream("/productlicense/licensing-keystore-hds.p12"),
@@ -95,6 +106,7 @@ public class CLMLicenseManagerTest
     productLicenseConfig.setKeyStorePath(new File(tempDir.getRoot(), "hds.p12").getAbsolutePath());
     productLicenseConfig.setKeyStoreAliasGroup("licensing-key-test");
     binder.bind(ProductLicenseConfig.class).toInstance(productLicenseConfig);
+    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
     super.configure(binder);
   }
 
@@ -944,5 +956,95 @@ public class CLMLicenseManagerTest
     });
     assertThat(logOutput).atInfoLevel().contains(licenseFilePath);
     assertThat(productLicense.getFingerprint()).isNull();
+  }
+
+  @Test
+  public void testExecute() {
+    CLMLicenseManager clmLicenseManagerSpy = spy(clmLicenseManager);
+    doAnswer(invocationOnMock -> {
+      assertThat(MDC.get(MDCUsernameScope.USERNAME)).isEqualTo(MDCUsernameScope.SYSTEM);
+      return null;
+    }).when(clmLicenseManagerSpy).loadLicense();
+
+    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forUser("username")) {
+      clmLicenseManagerSpy.execute(mock(JobExecutionContext.class));
+    }
+
+    verify(clmLicenseManagerSpy).loadLicense();
+  }
+
+  @Test
+  public void testLoadProductLicenseOnAllOtherClusterNodes() {
+    CLMLicenseManager clmLicenseManagerSpy = spy(clmLicenseManager);
+
+    clmLicenseManagerSpy.loadProductLicenseOnAllOtherClusterNodes();
+
+    verify(taskSchedulerMock)
+        .scheduleOneTimeTaskForAllOtherNodes(clmLicenseManagerSpy.getClass(), CLMLicenseManager.TASK_NAME);
+  }
+
+  @Test
+  public void testInstallLicense_UpdatesOtherNodes() throws Exception {
+    clmLicenseManager.uninstallLicense();
+    CLMLicenseManager clmLicenseManagerSpy = spy(clmLicenseManager);
+
+    clmLicenseManagerSpy.installLicense(new ByteArrayInputStream(new byte[1]));
+
+    verify(clmLicenseManagerSpy).loadProductLicenseOnAllOtherClusterNodes();
+  }
+
+  @Test
+  public void testInstallLicense_FailureDoesNotUpdateOtherNodes() {
+    licenseManager.setForceVerificationFailure(true);
+    clmLicenseManager.uninstallLicense();
+    CLMLicenseManager clmLicenseManagerSpy = spy(clmLicenseManager);
+
+    assertThatExceptionOfType(LicensingException.class)
+        .isThrownBy(() -> clmLicenseManagerSpy.installLicense(new ByteArrayInputStream(new byte[1])));
+
+    verify(clmLicenseManagerSpy, never()).loadProductLicenseOnAllOtherClusterNodes();
+  }
+
+  @Test
+  public void testInstallLicenseIfUnlicensed_UpdatesOtherNodes() throws Exception {
+    clmLicenseManager.uninstallLicense();
+    CLMLicenseManager clmLicenseManagerSpy = spy(clmLicenseManager);
+    String licenseFilePath = getClass().getClassLoader().getResource("CLMLicenseManagerTest/license.lic").getFile();
+
+    clmLicenseManagerSpy.installLicenseIfUnlicensed(licenseFilePath);
+
+    verify(clmLicenseManagerSpy).loadProductLicenseOnAllOtherClusterNodes();
+  }
+
+  @Test
+  public void testInstallLicenseIfUnlicensed_FailureDoesNotUpdateOtherNodes() {
+    licenseManager.setForceVerificationFailure(true);
+    clmLicenseManager.uninstallLicense();
+    CLMLicenseManager clmLicenseManagerSpy = spy(clmLicenseManager);
+    String licenseFilePath = getClass().getClassLoader().getResource("CLMLicenseManagerTest/license.lic").getFile();
+
+    assertThatExceptionOfType(LicensingException.class)
+        .isThrownBy(() -> clmLicenseManagerSpy.installLicenseIfUnlicensed(licenseFilePath));
+
+    verify(clmLicenseManagerSpy, never()).loadProductLicenseOnAllOtherClusterNodes();
+  }
+
+  @Test
+  public void testUninstallLicense_UpdatesOtherNodes() {
+    CLMLicenseManager clmLicenseManagerSpy = spy(clmLicenseManager);
+
+    clmLicenseManagerSpy.uninstallLicense();
+
+    verify(clmLicenseManagerSpy).loadProductLicenseOnAllOtherClusterNodes();
+  }
+
+  @Test
+  public void testUninstallLicense_FailureDoesNotUpdateOtherNodes() {
+    licenseManager.setForceUninstallFailure(true);
+    CLMLicenseManager clmLicenseManagerSpy = spy(clmLicenseManager);
+
+    assertThatExceptionOfType(RuntimeException.class).isThrownBy(clmLicenseManagerSpy::uninstallLicense);
+
+    verify(clmLicenseManagerSpy, never()).loadProductLicenseOnAllOtherClusterNodes();
   }
 }

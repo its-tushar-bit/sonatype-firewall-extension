@@ -24,10 +24,14 @@ import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.google.common.collect.Sets;
+import com.google.inject.Binder;
+import com.google.inject.matcher.Matchers;
+import org.aopalliance.intercept.MethodInterceptor;
 import org.junit.After;
 import org.junit.Test;
 import org.quartz.CronTrigger;
 import org.quartz.DailyTimeIntervalTrigger;
+import org.quartz.Job;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionException;
@@ -56,9 +60,20 @@ public class TaskSchedulerTest
   @Inject
   private QuartzJobStoreTX quartzJobStoreTX;
 
+  @Inject
+  private TestJob testJob;
+
   @Override
   public void configure(Properties properties) {
     properties.put("scheduler.name", TaskScheduler.DEFAULT_SCHEDULER_NAME + "-" + UUID.randomUUID());
+  }
+
+  @Override
+  public void configure(Binder binder) {
+    // add some AOP to the mix to more closely reflect the normal runtime setup
+    MethodInterceptor noop = invocation -> invocation.proceed();
+    binder.bindInterceptor(Matchers.subclassesOf(TestJob.class), Matchers.any(), noop);
+    super.configure(binder);
   }
 
   @After
@@ -129,6 +144,23 @@ public class TaskSchedulerTest
   }
 
   @Test
+  public void testNormalizeJobClass_NormalClass() {
+    assertThat(taskScheduler.normalizeJobClass(TestJob.class)).isEqualTo(TestJob.class);
+  }
+
+  @Test
+  public void testNormalizeJobClass_GuiceEnhancedClass() {
+    Class<? extends Job> jobClass = getTestJobClass();
+    assertThat(jobClass).hasSuperclass(TestJob.class);
+    assertThat(taskScheduler.normalizeJobClass(jobClass)).isEqualTo(TestJob.class);
+  }
+
+  private Class<? extends Job> getTestJobClass() {
+    // NOTE: unlike TestJob.class, this yields a bytecode enhanced class which is more interesting
+    return testJob.getClass();
+  }
+
+  @Test
   public void testTriggerTaskNow() throws Exception {
     taskScheduler.start();
     taskScheduler.scheduleDailyTask(TestJob.class, TestJob.NAME, LocalTime.now().plusHours(4));
@@ -144,7 +176,7 @@ public class TaskSchedulerTest
     String name = "TestJob";
     Scheduler scheduler = taskScheduler.createScheduler();
 
-    taskScheduler.scheduleDailyTask(TestJob.class, name, LocalTime.of(1, 0));
+    taskScheduler.scheduleDailyTask(getTestJobClass(), name, LocalTime.of(1, 0));
 
     JobKey jobKey = JobKey.jobKey(name);
     JobDetail job = scheduler.getJobDetail(jobKey);
@@ -210,7 +242,7 @@ public class TaskSchedulerTest
     Scheduler scheduler = taskScheduler.createScheduler();
     Date now = new Date();
 
-    taskScheduler.scheduleOneTimeTask(TestJob.class, TestJob.NAME, LocalTime.of(23, 0));
+    taskScheduler.scheduleOneTimeTask(getTestJobClass(), TestJob.NAME, LocalTime.of(23, 0));
 
     JobKey jobKey = JobKey.jobKey(TestJob.NAME);
     JobDetail job = scheduler.getJobDetail(jobKey);
@@ -232,7 +264,7 @@ public class TaskSchedulerTest
     Scheduler scheduler = taskScheduler.createScheduler();
     int intervalMillis = 10000;
 
-    taskScheduler.schedulePeriodicTask(TestJob.class, TestJob.NAME, Duration.ofMillis(intervalMillis));
+    taskScheduler.schedulePeriodicTask(getTestJobClass(), TestJob.NAME, Duration.ofMillis(intervalMillis));
 
     JobKey jobKey = JobKey.jobKey(TestJob.NAME);
     JobDetail job = scheduler.getJobDetail(jobKey);
@@ -298,7 +330,7 @@ public class TaskSchedulerTest
     Set<String> nodeIds = Sets.newHashSet("node1", "node2");
     when(taskSchedulerSpy.getOtherNodeIds()).thenReturn(nodeIds);
 
-    taskSchedulerSpy.scheduleOneTimeTaskForAllOtherNodes(TestJob.class, TestJob.NAME);
+    taskSchedulerSpy.scheduleOneTimeTaskForAllOtherNodes(getTestJobClass(), TestJob.NAME);
 
     JobKey jobKey = JobKey.jobKey(TestJob.NAME);
     JobDetail job = scheduler.getJobDetail(jobKey);

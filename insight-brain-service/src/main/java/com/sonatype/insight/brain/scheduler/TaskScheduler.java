@@ -126,11 +126,23 @@ public class TaskScheduler
     }
   }
 
+  Class<? extends Job> normalizeJobClass(Class<? extends Job> jobClass) {
+    if (jobClass.getName().contains("Guice$$")) {
+      // components employing AOP have runtime-generated subclasses, those aren't persistable for jobs
+      jobClass = jobClass.getSuperclass().asSubclass(Job.class);
+    }
+    return jobClass;
+  }
+
+  private JobBuilder newJob(Class<? extends Job> jobClass) {
+    return JobBuilder.newJob(normalizeJobClass(jobClass));
+  }
+
   public void scheduleDailyTask(Class<? extends Job> jobClass, String name, LocalTime localTime) {
     CronScheduleBuilder schedule = CronScheduleBuilder.dailyAtHourAndMinute(localTime.getHour(), localTime.getMinute())
         .withMisfireHandlingInstructionDoNothing();
 
-    JobDetail job = JobBuilder.newJob(jobClass) //
+    JobDetail job = newJob(jobClass) //
         .withIdentity(name) //
         .build();
 
@@ -142,7 +154,7 @@ public class TaskScheduler
   }
 
   public void scheduleOneTimeTask(Class<? extends Job> jobClass, String name, LocalTime localTime) {
-    JobDetail job = JobBuilder.newJob(jobClass) //
+    JobDetail job = newJob(jobClass) //
         .withIdentity(name) //
         .build();
     Trigger trigger = TriggerBuilder.newTrigger() //
@@ -156,7 +168,7 @@ public class TaskScheduler
   }
 
   public void schedulePeriodicTask(Class<? extends Job> jobClass, String name, Duration interval) {
-    JobDetail job = JobBuilder.newJob(jobClass) //
+    JobDetail job = newJob(jobClass) //
         .withIdentity(name) //
         .build();
     Trigger trigger = TriggerBuilder.newTrigger() //
@@ -175,7 +187,7 @@ public class TaskScheduler
       return;
     }
 
-    JobDetail job = JobBuilder.newJob(jobClass) //
+    JobDetail job = newJob(jobClass) //
         .withIdentity(name) //
         // non-durable for automatic removal once last trigger is gone
         // recovery/retry by another node doesn't make sense when binding execution to specific node

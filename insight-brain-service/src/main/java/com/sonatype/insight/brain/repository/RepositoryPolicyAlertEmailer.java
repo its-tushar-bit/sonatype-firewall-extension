@@ -72,8 +72,8 @@ public class RepositoryPolicyAlertEmailer
         for (final Entry<String, List<PolicyFact>> details : policyFactsByEmailAddress.entrySet()) {
           try (AuditSession auditSession = auditRecorder.recordSystemEvent(AuditEvent.SEND_MAIL)) {
             try {
-              log.debug("Sending notification email via {} to {} for repository {}", getMail().getServer(),
-                  details.getKey(), repository.getId());
+              log.debug("Sending notification email via {} to {} for repository {} ({})", getMail().getServer(),
+                  details.getKey(), repository.getPublicId(), repository.getId());
               AuditData.get().setRepository(repository).setData("emailAddress", details.getKey());
               PolicyAlertCounts policyAlertCounts = new PolicyAlertCounts(details.getValue());
               AuditData.get().setData("totalPolicyViolationCount", policyAlertCounts.getTotal());
@@ -82,8 +82,8 @@ public class RepositoryPolicyAlertEmailer
               getMail().sendHtml(details.getKey(), subject, body);
             }
             catch (final Exception e) {
-              log.error("Unable to send notification email to {} for repository {}", details.getKey(),
-                  repository.getId(), e);
+              log.error("Unable to send notification email to {} for repository {} ({})", details.getKey(),
+                  repository.getPublicId(), repository.getId(), e);
               AuditData.get().setException(e);
             }
           }

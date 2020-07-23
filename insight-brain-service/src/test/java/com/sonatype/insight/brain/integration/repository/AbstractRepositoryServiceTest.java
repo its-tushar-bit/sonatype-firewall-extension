@@ -1086,7 +1086,7 @@ public abstract class AbstractRepositoryServiceTest
 
     await().atMost(Duration.ofMillis(5000)).untilAsserted(() -> {
       assertThat(emailerLogOutput).atErrorLevel().contains(
-          "Unable to send notification email to " + userEmailAddress + " for repository " + repository.getId());
+          "Unable to send notification email to " + userEmailAddress + " for repository " + repository.getPublicId());
     });
   }
 

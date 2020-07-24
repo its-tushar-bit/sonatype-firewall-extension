@@ -55,6 +55,7 @@ import org.sonatype.licensing.util.LicensingUtil;
 
 import com.google.common.io.ByteStreams;
 import de.schlichtherle.license.NoLicenseInstalledException;
+import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -62,6 +63,7 @@ import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
+@DisallowConcurrentExecution
 public class CLMLicenseManager
     implements Job
 {

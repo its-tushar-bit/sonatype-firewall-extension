@@ -23,12 +23,14 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
+@DisallowConcurrentExecution
 public class ApiProxyServerConfigurationService
     implements Job
 {

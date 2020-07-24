@@ -275,9 +275,33 @@ public class TaskSchedulerTest
     assertThat(trigger).isInstanceOf(SimpleTrigger.class);
     SimpleTrigger simpleTrigger = (SimpleTrigger) trigger;
     assertThat(simpleTrigger.getMisfireInstruction())
-        .isEqualTo(SimpleTrigger.MISFIRE_INSTRUCTION_IGNORE_MISFIRE_POLICY);
+        .isEqualTo(SimpleTrigger.MISFIRE_INSTRUCTION_RESCHEDULE_NEXT_WITH_REMAINING_COUNT);
     assertThat(simpleTrigger.getRepeatCount()).isEqualTo(SimpleTrigger.REPEAT_INDEFINITELY);
     assertThat(simpleTrigger.getRepeatInterval()).isEqualTo(intervalMillis);
+  }
+
+  @Test
+  public void testSchedulePeriodicTask_DoesNothingOnMisfire() throws Exception {
+    quartzJobStoreTX.setMisfireThreshold(1);
+    assertThat(TestJob.getExecutions()).isEqualTo(0);
+    Scheduler scheduler = taskScheduler.createScheduler();
+    int intervalMillis = 100;
+    int desiredJobExecutions = 10;
+    scheduler.start();
+    scheduler.standby();
+    taskScheduler.schedulePeriodicTask(TestJob.class, TestJob.NAME, Duration.ofMillis(intervalMillis));
+    // we want to miss desiredJobExecutions in total
+    Thread.sleep(intervalMillis * (desiredJobExecutions - 1));
+
+    scheduler.start();
+
+    // we want to execute desiredJobExecutions in total
+    Thread.sleep(intervalMillis * desiredJobExecutions);
+    scheduler.standby();
+    // if we didn't ignore misfires, then we would expect 2 * desiredJobExecutions
+    // since we ignore misfires, we would expect desiredJobExecutions
+    // actually test it's less than desiredJobExecutions + 2 in case of random Thread slowness
+    assertThat(TestJob.getExecutions()).isLessThan(desiredJobExecutions + 2);
   }
 
   @Test

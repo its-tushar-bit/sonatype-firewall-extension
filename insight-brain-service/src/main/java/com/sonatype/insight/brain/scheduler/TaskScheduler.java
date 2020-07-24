@@ -176,7 +176,7 @@ public class TaskScheduler
         .withSchedule(SimpleScheduleBuilder.simpleSchedule() //
             .withIntervalInMilliseconds(interval.toMillis()) //
             .repeatForever() //
-            .withMisfireHandlingInstructionIgnoreMisfires()) //
+            .withMisfireHandlingInstructionNextWithRemainingCount()) //
         .build();
     scheduleTask(job, trigger);
   }

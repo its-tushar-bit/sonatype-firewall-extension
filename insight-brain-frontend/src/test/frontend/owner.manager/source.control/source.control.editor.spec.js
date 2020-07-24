@@ -59,7 +59,7 @@ describe('source.control.editor.spec', function() {
     mockSourceControlService = jasmine.createSpyObj('mockSourceControlService',
         [
           'getCompositeSourceControlRecord', 'getProviderTypes', 'deleteSourceControlRecord', 'addSourceControlRecord',
-          'updateSourceControlRecord', 'getProviderTypesMap'
+          'updateSourceControlRecord', 'getProviderTypesMap', 'getSourceControlMetrics'
         ]);
     $componentController = _$componentController_;
     $q = _$q_;
@@ -151,6 +151,9 @@ describe('source.control.editor.spec', function() {
       });
       mockSourceControlService.getCompositeSourceControlRecord.and.callFake(function(ownerType, id) {
         return ownerType === 'organization' && id === ROOT_ORGANIZATION_ID ? getSourceControlDeferred.promise : null;
+      });
+      mockSourceControlService.getSourceControlMetrics.and.callFake(function() {
+        return {'results': []};
       });
 
       vm = $componentController('sourceControlEditor', {

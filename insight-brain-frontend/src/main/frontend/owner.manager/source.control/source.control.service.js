@@ -14,7 +14,8 @@ export default function SourceControlService($http, CLMLocations) {
     getProviderTypesMap: getProviderTypesMap,
     getProviderTypes: getProviderTypes,
     getCompositeSourceControlRecord: getCompositeSourceControlRecord,
-    validateCompositeSCMConfig: validateCompositeSCMConfig
+    validateCompositeSCMConfig: validateCompositeSCMConfig,
+    getSourceControlMetrics: getSourceControlMetrics
   };
 
   /**
@@ -27,6 +28,15 @@ export default function SourceControlService($http, CLMLocations) {
 
   function validateCompositeSCMConfig(ownerType, ownerId) {
     return $http.get(CLMLocations.getValidateScmConfigUrl(ownerType, ownerId)).then(prop('data'));
+  }
+
+  /**
+   * @param ownerType   only applicable to APPLICATION
+   * @param ownerId
+   * @returns source control metrics associated with application
+   */
+  function getSourceControlMetrics(ownerType, ownerId) {
+    return $http.get(CLMLocations.getSourceControlMetricsUrl(ownerType, ownerId)).then(prop('data'));
   }
 
   /**

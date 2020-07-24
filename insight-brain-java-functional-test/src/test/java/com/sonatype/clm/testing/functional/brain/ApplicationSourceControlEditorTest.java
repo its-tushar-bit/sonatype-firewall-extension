@@ -5,13 +5,20 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.util.Date;
+
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.pages.SourceControlEditorPage;
+import com.sonatype.clm.testing.functional.pages.SourceControlEditorPage.MetricsTableRow;
+import com.sonatype.insight.brain.git.EnhancedPullRequestResult;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
+import com.sonatype.nexus.iq.manager.PullRequestResult;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.junit.Before;
@@ -24,8 +31,10 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
+import static com.sonatype.clm.testing.functional.pages.SourceControlEditorPage.metricsTable;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControl.FAKE_SECRET_KEY;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApplicationSourceControlEditorTest
     extends AbstractSourceControlEditorTest
@@ -60,6 +69,7 @@ public class ApplicationSourceControlEditorTest
     assertSourceControlDoesNotExist(rootOrganization.getId());
     assertSourceControlDoesNotExist(organization.getId());
     assertSourceControlDoesNotExist(application.getId());
+    metricsTable().shouldNotBe(visible);
   }
 
   @Test
@@ -312,6 +322,9 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.advancedSettings().shouldNotBe(visible);
     SourceControlEditorPage.advancedSettingsTree().click();
     SourceControlEditorPage.advancedSettings().shouldBe(visible);
+    metricsTable().shouldBe(visible);
+    assertThat(metricsTable().rowCount()).isEqualTo(1);
+    assertThat(metricsTable().getRow(0)).extracting(MetricsTableRow::isEmpty).isEqualTo(true);
 
     SourceControlEditorPage.tokenOverrideRadio().shouldBe(selected);
     SourceControlEditorPage.tokenInheritRadio().shouldNotBe(selected, disabled);
@@ -413,6 +426,7 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.credentialsOverrideRadio().shouldNotBe(selected);
     SourceControlEditorPage.credentialsInheritRadio().shouldBe(selected, enabled);
     SourceControlEditorPage.credentialsToken().shouldBe(disabled);
+    metricsTable().shouldBe(visible);
 
     eyesWatcher.eyesCheck("Source Control Editor Save State With Bitbucket and Overridden Credentials");
   }
@@ -710,6 +724,36 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.notSupported().shouldHave(text("Source Control is not supported by your license"));
     eyesWatcher.eyesCheck("Source Control Editor - No License");
   }
+  
+  @Test
+  public void testSourceControlEditor_metricsTable() {
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, "token", SourceControlProvider.GITHUB);
+    tempEntity.newSourceControl(application.getId(), REPOSITORY_URL, null, null);
+    addSourceControlPullRequestResults();
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
+    SourceControlEditorPage.advancedSettingsTree().click();
+    
+    metricsTable().scrollIntoView();
+    metricsTable().shouldBe(visible);
+    
+    assertThat(metricsTable().rowCount()).isEqualTo(2);
+
+    MetricsTableRow row1 = metricsTable().getRow(0);
+    assertThat(row1.isPopulated()).isTrue();
+    assertThat(row1.title()).isEqualTo("Bump bar to 1.1");
+    assertThat(row1.created()).isTrue();
+    assertThat(row1.errors()).isEqualTo("false");
+    assertThat(row1.totalTime()).isEqualTo("0");
+    assertThat(row1.started()).isNotEmpty();
+
+    MetricsTableRow row2 = metricsTable().getRow(1);
+    assertThat(row2.isPopulated()).isTrue();
+    assertThat(row2.title()).isEqualTo("Bump bar to 1.2");
+    assertThat(row2.created()).isFalse();
+    assertThat(row2.errors()).isEqualTo("true");
+    assertThat(row2.totalTime()).isEqualTo("0");
+    assertThat(row2.started()).isNotEmpty();
+  }
 
   @Override
   void verifyStartNoSourceControl() {
@@ -770,5 +814,20 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldNotBe(visible);
     SourceControlEditorPage.pullRequestNotSupportedAlert().shouldNotBe(visible);
     SourceControlEditorPage.advancedSectionRule().shouldNotBe(visible);
+  }
+  
+  private void addSourceControlPullRequestResults() {
+    SourceControlPullRequestMetrics metrics =
+        testCLMServer.getCLMServer().getInstance(SourceControlPullRequestMetrics.class);
+    PullRequestResult success = new PullRequestResult();
+    success.setSuccessful(true);
+    metrics.addResult(application.getId(),
+        new EnhancedPullRequestResult(success, new Date(), ComponentIdentifier
+            .createMavenCoordinates("foo", "bar", "1.0"), "Bump bar to 1.1", false));
+    PullRequestResult failure = new PullRequestResult();
+    failure.setSuccessful(false);
+    metrics.addResult(application.getId(),
+        new EnhancedPullRequestResult(failure, new Date(), ComponentIdentifier
+            .createMavenCoordinates("foo", "bar", "1.1"), "Bump bar to 1.2", true));
   }
 }

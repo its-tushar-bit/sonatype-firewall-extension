@@ -59,6 +59,8 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
   vm.showScmValidator = false;
   // helper function to generate the display classes
   vm.getScmValidationClass = getScmValidationClass;
+  // pull request metrics associated with application
+  vm.sourceControlMetrics = undefined;
 
   /**
    * Matches any absolute HTTP(S) and SSH URL as per RFC 3986
@@ -119,8 +121,12 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
   }
 
   function getSourceControl() {
-    return SourceControlService.getCompositeSourceControlRecord(vm.ownerType, vm.ownerId).then(function(result) {
-      let compositeSourceControl = typeof result !== 'undefined' && result !== null ? result : {};
+    var promises = [
+      SourceControlService.getCompositeSourceControlRecord(vm.ownerType, vm.ownerId),
+      SourceControlService.getSourceControlMetrics(vm.ownerType, vm.ownerId)
+    ];
+    return $q.all(promises).then(function(result) {
+      let compositeSourceControl = typeof result[0] !== 'undefined' && result[0] !== null ? result[0] : {};
       vm.dirtySourceControl = compositeSourceControlToModel(compositeSourceControl);
       vm.dirtySourceControl.usernameInherit = vm.dirtySourceControl.usernameInherit
           && !isUsernameRequiredOnNode() && vm.dirtySourceControl.provider === 'bitbucket';
@@ -138,6 +144,8 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
           vm.dirtySourceControl.enablePullRequestsInheritedValue ? 'Enabled' : 'Disabled');
       vm.baseBranchInheritText = getInheritText(vm.dirtySourceControl.baseBranchInheritFrom,
           vm.dirtySourceControl.baseBranchInheritedValue);
+
+      vm.sourceControlMetrics = result[1];
     });
   }
 

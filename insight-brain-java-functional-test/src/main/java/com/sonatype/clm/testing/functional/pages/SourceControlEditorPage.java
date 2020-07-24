@@ -11,6 +11,8 @@ import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.IqRadio;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
+import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
@@ -160,5 +162,81 @@ public class SourceControlEditorPage
 
   public static SelenideElement form() {
     return $(".iq-form");
+  }
+
+  public static MetricsTable metricsTable() {
+    return new MetricsTable();
+  }
+
+  /**
+   * Represents the table of Pull Request metrics.
+   */
+  public static class MetricsTable
+      extends BasicElement<MetricsTable>
+  {
+    public MetricsTable() {
+      super("#metricsTable");
+    }
+
+    public int rowCount() {
+      return rows().size();
+    }
+
+    public ElementsCollection rows() {
+      return children("table tbody tr");
+    }
+
+    public MetricsTableRow getRow(int index) {
+      return new MetricsTableRow(rows().get(index));
+    }
+
+    public void scrollIntoView() {
+      rows().last().scrollIntoView(true);
+    }
+  }
+
+  /**
+   * Represents a single row in the table.
+   */
+  public static class MetricsTableRow
+  {
+    private SelenideElement row;
+
+    public MetricsTableRow(final SelenideElement selenideElement) {
+      this.row = selenideElement;
+    }
+
+    public ElementsCollection columns() {
+      return row.findAll("td");
+    }
+
+    public boolean isPopulated() {
+      return !isEmpty();
+    }
+
+    public boolean isEmpty() {
+      ElementsCollection td = columns();
+      return td.size() == 1 && td.get(0).has(Condition.attribute("colspan", "5"));
+    }
+
+    public String title() {
+      return columns().get(0).text();
+    }
+
+    public boolean created() {
+      return columns().get(1).find("i").has(Condition.cssClass("fa-check-circle"));
+    }
+
+    public String totalTime() {
+      return columns().get(2).text();
+    }
+
+    public String errors() {
+      return columns().get(3).text();
+    }
+
+    public String started() {
+      return columns().get(4).text();
+    }
   }
 }

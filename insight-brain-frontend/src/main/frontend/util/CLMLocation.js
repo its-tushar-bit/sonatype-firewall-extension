@@ -483,6 +483,13 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
 
       getValidateScmConfigUrl: function(ownerType, ownerId) {
         return baseUrl.get() + `/api/v2/compositeSourceControlConfigValidator/${ownerType}/${ownerId}`;
+      },
+
+      /**
+       * @since 1.97.0
+       */
+      getSourceControlMetricsUrl: function(ownerType, ownerId) {
+        return baseUrl.get() + `/api/v2/sourceControlMetrics/${ownerType}/${ownerId}`;
       }
     };
   }

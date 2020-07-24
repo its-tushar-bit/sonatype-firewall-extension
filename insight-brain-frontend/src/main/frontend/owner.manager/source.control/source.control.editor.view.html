@@ -325,6 +325,54 @@
           Test Configuration
         </button>
       </div>
+      <div id="metricsTable" 
+           ng-if="vm.isApp && vm.originalSourceControl.repositoryUrl" 
+           class="iq-tile-footer">
+        <h2>Automated Pull Request Daily Activity</h2>
+        <table class="nx-table">
+          <thead>
+          <th class="nx-cell nx-cell--header">
+            <span>PR Title</span>
+          </th><!--
+         -->
+          <th class="nx-cell nx-cell--header">
+            <span>PR Created?</span>
+          </th><!--
+        -->
+          <th class="nx-cell nx-cell--header">
+            <span>Total Time Spent (ms)</span>
+          </th> <!--
+        -->
+          <th class="nx-cell nx-cell--header">
+            <span>Errors</span>
+          </th><!--
+         -->
+          <th class="nx-cell nx-cell--header">
+            <span>Started</span>
+          </th>
+          </thead>
+          <tbody>
+          <tr ng-repeat="result in vm.sourceControlMetrics.results"
+              class="nx-table-row"
+              tooltip="{{result.reasoning}}">
+            <td>{{result.title}}</td>
+            <td>
+              <i class="fa size-16px"
+                 ng-class="result.successful ? 'fa-check-circle text-success' : 'fa-exclamation-triangle warn'">
+              </i>
+            </td>
+            <td>{{result.totalTime}}</td>                                                                                      
+            <td>{{result.exceptionThrown}}</td>
+            <td>{{result.startTime | date: 'shortTime'}}</td>
+          </tr>
+          <tr class="nx-table-row" ng-if="!vm.sourceControlMetrics || vm.sourceControlMetrics.results.length == 0">
+            <td colspan="5" style="text-align:center;">
+              <i>No automated pull requests results available.</i>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
     </form>
   </div>
 </div>

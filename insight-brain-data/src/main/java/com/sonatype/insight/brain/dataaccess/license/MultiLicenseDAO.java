@@ -156,7 +156,8 @@ public class MultiLicenseDAO
       }
       licenseSetsById = newLicenseSetsById;
 
-      log.debug("Loaded all multi-licenses in {} ms.", System.currentTimeMillis() - start);
+      log.debug("Loaded all {} multi-licenses in {} ms.", newMultiLicensesById.size(),
+          System.currentTimeMillis() - start);
     }
   }
 }

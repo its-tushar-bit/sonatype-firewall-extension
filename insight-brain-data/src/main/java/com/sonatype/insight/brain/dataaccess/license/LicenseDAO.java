@@ -87,7 +87,7 @@ public class LicenseDAO
       licensesById = Collections.unmodifiableMap(newlicensesById);
       licensesByName = newLicensesByName;
 
-      log.debug("Loaded all licenses in {} ms.", System.currentTimeMillis() - start);
+      log.debug("Loaded all {} licenses in {} ms.", newlicensesById.size(), System.currentTimeMillis() - start);
     }
   }
 

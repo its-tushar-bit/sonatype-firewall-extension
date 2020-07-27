@@ -70,6 +70,7 @@ public class SqlDAOTest
     }
     finally {
       DataSourceFactory.clear_ForTestsOnly();
+      beforeDAO.load(); // also sync license cache with new db state
     }
   }
 

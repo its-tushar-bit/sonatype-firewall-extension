@@ -79,29 +79,4 @@ public class SourceControlTaskRunnerTest
     });
     verify(pullRequestTask).run();
   }
-
-  @Test
-  public void testIsFormatSupportedForPullRequestRemediation_notSupported() {
-    // given that no format is supported
-
-    // when we check format support
-    boolean supported = sourceControlTaskRunner
-        .isFormatSupportedForPullRequestRemediation(ComponentIdentifier.createNugetCoordinates("foo", "1.2.3"));
-
-    // then we see that the format is not supported
-    assertThat(supported).isFalse();
-  }
-
-  @Test
-  public void testIsFormatSupportedForPullRequestRemediation_mavenFormatSupported() {
-    // maven format is supported
-    when(pullRequestExecutor.isSupportedFormat(ComponentIdentifier.FORMAT_MAVEN)).thenReturn(true);
-
-    // when we check format support
-    boolean supported = sourceControlTaskRunner
-        .isFormatSupportedForPullRequestRemediation(ComponentIdentifier.createMavenCoordinates("bar", "foo", "1.2"));
-
-    // then we see that the format is not supported
-    assertThat(supported).isTrue();
-  }
 }

@@ -12,6 +12,8 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.model.HasComponentId;
 import com.sonatype.insight.model.HasStringId;
 
 /**
@@ -20,6 +22,7 @@ import com.sonatype.insight.model.HasStringId;
 @Entity
 @Table(name = "source_control_event")
 public class  SourceControlEvent
+    extends HasComponentId
     implements HasStringId
 {
   public static final String APPLICATION_EVALUATION_EVENT = "application evaluation";
@@ -64,6 +67,18 @@ public class  SourceControlEvent
   @Column(name = "target_policy_evaluation_id")
   private String targetPolicyEvaluationId;
 
+  @Column(name = "scan_id")
+  private String scanId;
+
+  @Column(name = "stage_type_id")
+  private String stageTypeId;
+
+  @Column(name = "remediation_version")
+  private String remediationVersion;
+
+  @Column(name = "pull_request_contents")
+  private String pullRequestContents;
+
   @Column(name = "branch_name")
   private String branchName;
 
@@ -98,6 +113,11 @@ public class  SourceControlEvent
   @Override
   public void setId(final String id) {
     this.id = id;
+  }
+
+  public SourceControlEvent withId(String id) {
+    this.id = id;
+    return this;
   }
 
   public String getInstanceId() {
@@ -169,6 +189,47 @@ public class  SourceControlEvent
 
   public SourceControlEvent setTargetPolicyEvaluationId(final String targetPolicyEvaluationId) {
     this.targetPolicyEvaluationId = targetPolicyEvaluationId;
+    return this;
+  }
+
+  public String getScanId() {
+    return scanId;
+  }
+
+  public SourceControlEvent setScanId(String scanId) {
+    this.scanId = scanId;
+    return this;
+  }
+
+  public String getStageTypeId() {
+    return stageTypeId;
+  }
+
+  public SourceControlEvent setStageTypeId(String stageTypeId) {
+    this.stageTypeId = stageTypeId;
+    return this;
+  }
+
+  public String getRemediationVersion() {
+    return remediationVersion;
+  }
+
+  public SourceControlEvent setRemediationVersion(String remediationVersion) {
+    this.remediationVersion = remediationVersion;
+    return this;
+  }
+
+  public String getPullRequestContents() {
+    return pullRequestContents;
+  }
+
+  public SourceControlEvent setPullRequestContents(String pullRequestContents) {
+    this.pullRequestContents = pullRequestContents;
+    return this;
+  }
+
+  public SourceControlEvent withComponentIdentifier(ComponentIdentifier componentIdentifier) {
+    super.setComponentIdentifier(componentIdentifier);
     return this;
   }
 

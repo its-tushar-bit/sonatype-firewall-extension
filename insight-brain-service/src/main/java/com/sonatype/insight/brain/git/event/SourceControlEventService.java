@@ -20,6 +20,7 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.concurrent.SemaphorePool;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.PullRequestCommentingService;
+import com.sonatype.insight.brain.git.PullRequestRemediationService;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -80,13 +81,17 @@ public class SourceControlEventService
 
   private ThreadPoolExecutor threadPoolExecutor;
 
+  private final PullRequestRemediationService pullRequestRemediationService;
+
   @Inject
   public SourceControlEventService(
       SourceControlEventDAO sourceControlEventDAO,
-      PullRequestCommentingService pullRequestCommentingService)
+      PullRequestCommentingService pullRequestCommentingService,
+      PullRequestRemediationService pullRequestRemediationService)
   {
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.pullRequestCommentingService = pullRequestCommentingService;
+    this.pullRequestRemediationService = pullRequestRemediationService;
   }
 
   /**
@@ -203,6 +208,17 @@ public class SourceControlEventService
             event.getEventType(), event.getApplicationId());
       }
     }
+    notifyFinishedProcessingEvent(event);
+  }
+
+  public boolean doesRemediationEventExistForBranch(String applicationId, String branchName) {
+    return sourceControlEventDAO.hasRemediationEventForBranch(applicationId, branchName);
+  }
+
+  @VisibleForTesting
+  void notifyFinishedProcessingEvent(SourceControlEvent event) {
+    // tests will 'spy' on this method to know when the processing of this event is finished and the test can start
+    // its validations (since this work occurs in a separate thread)
   }
 
   private boolean acquireRepoAccess(String applicationId) {
@@ -241,13 +257,11 @@ public class SourceControlEventService
           break;
 
         case SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT:
-          log.warn("Unsupported source control event type '{}'", event.getEventType());
-          success = false;
-          sourceControlEventDAO.markEventHasError(event.getId(), "unsupported");
+          pullRequestRemediationService.onRemediateComponent(event);
           break;
 
         default:
-          log.warn("Invalid source control event type '{}'", event.getEventType());
+          log.warn("Invalid source control event type '{}' for event '{}'", event.getEventType(), event.getId());
           success = false;
           sourceControlEventDAO.markEventHasError(event.getId(), "invalid event type");
       }

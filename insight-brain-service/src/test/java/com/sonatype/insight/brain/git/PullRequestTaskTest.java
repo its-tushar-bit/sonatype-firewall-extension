@@ -9,6 +9,7 @@ import java.io.File;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.model.Application;
@@ -41,6 +42,7 @@ import static com.sonatype.insight.brain.git.PullRequestTask.DEFAULT_COMMITTER_E
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -242,6 +244,7 @@ public class PullRequestTaskTest
     verify(gitApi).branch(targetDirectory, BRANCH);
     verify(gitApi).commit(targetDirectory, DEFAULT_COMMITTER, DEFAULT_COMMITTER_EMAIL, TITLE);
     verify(gitApi).push(targetDirectory);
+    verify(auditRecorder).recordSystemEvent(eq(AuditEvent.CREATE_PULL_REQUEST));
     verify(metrics).addResult(anyString(), any(EnhancedPullRequestResult.class));
 
     assertThat(logOutput).atDebugLevel().contains("Using existing directory for pull request task");

@@ -14,18 +14,20 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentRemediationService;
-import com.sonatype.insight.brain.git.GitClientFactory;
 import com.sonatype.insight.brain.git.PullRequestFeatureCheck;
-import com.sonatype.insight.brain.git.SourceControlTaskRunner;
+import com.sonatype.insight.brain.git.PullRequestRemediationService;
+import com.sonatype.insight.brain.git.event.SourceControlEventService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
@@ -49,9 +51,9 @@ public class PolicyAlertScmNotifier
 
   private static final String VERSION_KEY = "version";
 
-  private final PullRequestFeatureCheck pullRequestFeatureCheck;
+  private static final String POLICY_ALERT = "policy alert";
 
-  private final GitClientFactory gitClientFactory;
+  private final PullRequestFeatureCheck pullRequestFeatureCheck;
 
   private final ApiComponentRemediationService remediationService;
 
@@ -68,7 +70,9 @@ public class PolicyAlertScmNotifier
 
   private final SourceControlUtils sourceControlUtils;
 
-  private final SourceControlTaskRunner sourceControlTaskRunner;
+  private final PullRequestRemediationService pullRequestRemediationService;
+
+  private final SourceControlEventService sourceControlEventService;
 
   @VisibleForTesting
   PullRequestInvoker pullRequestInvoker = new PullRequestInvoker();
@@ -79,25 +83,24 @@ public class PolicyAlertScmNotifier
    * @param pullRequestFeatureCheck        service to check if pull request feature is enabled
    * @param remediationService             service to lookup suggested remediations
    * @param policyAlertSourceCodeOrganizer service to aggregate policy alerts
-   * @param gitClientFactory               factory to create a connection to git hosting service
    */
   @Inject
   public PolicyAlertScmNotifier(
       final PullRequestFeatureCheck pullRequestFeatureCheck,
       final ApiComponentRemediationService remediationService,
       final PolicyAlertSourceCodeOrganizer policyAlertSourceCodeOrganizer,
-      final GitClientFactory gitClientFactory,
       final BaseUrl baseUrl,
       final SourceControlUtils sourceControlUtils,
-      final SourceControlTaskRunner sourceControlTaskRunner)
+      final PullRequestRemediationService pullRequestRemediationService,
+      final SourceControlEventService sourceControlEventService)
   {
     this.pullRequestFeatureCheck = pullRequestFeatureCheck;
     this.remediationService = remediationService;
     this.policyAlertSourceCodeOrganizer = policyAlertSourceCodeOrganizer;
-    this.gitClientFactory = gitClientFactory;
     this.baseUrl = baseUrl;
     this.sourceControlUtils = sourceControlUtils;
-    this.sourceControlTaskRunner = sourceControlTaskRunner;
+    this.pullRequestRemediationService = pullRequestRemediationService;
+    this.sourceControlEventService = sourceControlEventService;
   }
 
   /**
@@ -144,8 +147,9 @@ public class PolicyAlertScmNotifier
     // aggregate by component and loop each one
     Map<ComponentIdentifier, List<PolicyNotification>> sortedComponentAlerts =
         policyAlertSourceCodeOrganizer.getNotificationsForScm(policyNotifications);
+
     for (Map.Entry<ComponentIdentifier, List<PolicyNotification>> entry : sortedComponentAlerts.entrySet()) {
-      if (!isFormatSupported(entry.getKey())) {
+      if (!isFormatSupported(entry.getKey().getFormat())) {
         log.debug("Format '{}' is not supported for automatic remediation", entry.getKey());
         continue;
       }
@@ -159,25 +163,33 @@ public class PolicyAlertScmNotifier
       String nextVersion = getNextVersion(remediationOptions);
       final String branchName = getBranchName(app, entry.getKey(), nextVersion);
 
-      if (isBranchOnServer(gitRepositoryInfo, branchName)) {
-        log.info("Branch already exists on remote server for remediation [{}]", branchName);
-        continue;
+      if (!sourceControlEventService.doesRemediationEventExistForBranch(app.getId(), branchName)) {
+        PullRequestRemediationDetails pullRequestRemediationDetails =
+            new PullRequestRemediationDetails(entry.getKey(), nextVersion, branchName, entry.getValue(), app, scanId,
+                stage.getStageTypeId(), baseUrl.getConfigured(), gitRepositoryInfo.provider);
+
+        publishRemediationPullRequestEvent(pullRequestRemediationDetails);
       }
-
-      PullRequestRemediationDetails pullRequestRemediationDetails =
-          new PullRequestRemediationDetails(entry.getKey(), nextVersion, branchName, entry.getValue(), app, scanId,
-              stage.getStageTypeId(), baseUrl.getConfigured(), gitRepositoryInfo.provider);
-
-      sourceControlTaskRunner.doPullRequestRemediation(pullRequestRemediationDetails);
     }
   }
 
-  private boolean isBranchOnServer(
-      final GitRepositoryInfo gitRepositoryInfo,
-      final String branchName)
-      throws IOException
-  {
-    return gitClientFactory.createApiClient(gitRepositoryInfo).isBranchOnServer(branchName);
+  private void publishRemediationPullRequestEvent(PullRequestRemediationDetails pullRequestRemediationDetails) {
+    SourceControlEvent event = new SourceControlEvent()
+        .withComponentIdentifier(pullRequestRemediationDetails.getToBeRemediated())
+        .setEventType(SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT)
+        .setApplicationId(pullRequestRemediationDetails.getApp().getId())
+        .setRemediationVersion(pullRequestRemediationDetails.getRemediatedVersion())
+        .setScanId(pullRequestRemediationDetails.getScanId())
+        .setStageTypeId(pullRequestRemediationDetails.getStage())
+        .setBranchName(pullRequestRemediationDetails.getPullRequestBranchName())
+        .setPullRequestContents(pullRequestRemediationDetails.getContents())
+        .setInitiator(POLICY_ALERT);
+
+    sourceControlEventService.publishEvent(event);
+
+    log.info("Sent remediation pull request event for application '{}' component '{}'",
+        pullRequestRemediationDetails.getApp().getId(),
+        ComponentDisplayNameUtil.fromIdentifier(pullRequestRemediationDetails.getToBeRemediated()));
   }
 
   private String getBranchName(
@@ -195,8 +207,8 @@ public class PolicyAlertScmNotifier
         .getComponent().componentIdentifier.getCoordinates().get(VERSION_KEY);
   }
 
-  private boolean isFormatSupported(final ComponentIdentifier componentIdentifier) {
-    return sourceControlTaskRunner.isFormatSupportedForPullRequestRemediation(componentIdentifier);
+  private boolean isFormatSupported(final String format) {
+    return pullRequestRemediationService.isFormatSupportedForPullRequestRemediation(format);
   }
 
   private List<ApiVersionChangeOptionDTO> getRemediationList(

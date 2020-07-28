@@ -52,7 +52,7 @@ public class PullRequestRemediationDetails
 
   private final String title;
 
-  private final String contents;
+  private String contents;
 
   private final ComponentIdentifier toBeRemediated;
 
@@ -74,15 +74,13 @@ public class PullRequestRemediationDetails
     }
   }
 
-  public PullRequestRemediationDetails(final ComponentIdentifier toBeRemediated,
-                                       final String remediatedVersion,
-                                       final String pullRequestBranchName,
-                                       final List<PolicyNotification> notifications,
-                                       final Application app,
-                                       final String scanId,
-                                       final String stage,
-                                       final String baseUrl,
-                                       final SourceControlProvider provider) throws IOException
+  private PullRequestRemediationDetails(
+      final ComponentIdentifier toBeRemediated,
+      final String remediatedVersion,
+      final String pullRequestBranchName,
+      final Application app,
+      final String scanId,
+      final String stage) throws IOException
   {
     if (policyThreatsMDEmbeddedHtmlTemplate == null) {
       throw new IOException(
@@ -100,7 +98,34 @@ public class PullRequestRemediationDetails
     this.app = app;
     this.scanId = scanId;
     this.stage = stage;
+  }
+
+  public PullRequestRemediationDetails(
+      final ComponentIdentifier toBeRemediated,
+      final String remediatedVersion,
+      final String pullRequestBranchName,
+      final List<PolicyNotification> notifications,
+      final Application app,
+      final String scanId,
+      final String stage,
+      final String baseUrl,
+      final SourceControlProvider provider) throws IOException
+  {
+    this(toBeRemediated, remediatedVersion, pullRequestBranchName, app, scanId, stage);
     this.contents = constructContents(notifications, baseUrl, provider);
+  }
+
+  public PullRequestRemediationDetails(
+      final ComponentIdentifier toBeRemediated,
+      final String remediatedVersion,
+      final String pullRequestBranchName,
+      final Application app,
+      final String scanId,
+      final String stage,
+      final String contents) throws IOException
+  {
+    this(toBeRemediated, remediatedVersion, pullRequestBranchName, app, scanId, stage);
+    this.contents = contents;
   }
 
   public String getTitle() {

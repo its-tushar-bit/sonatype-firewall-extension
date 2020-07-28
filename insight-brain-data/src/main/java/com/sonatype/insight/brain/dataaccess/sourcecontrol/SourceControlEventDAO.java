@@ -51,7 +51,7 @@ public class SourceControlEventDAO
   @VisibleForTesting
   List<SourceControlEvent> getAvailableEvents() {
     String sQuery = SELECT_ENTITY + "WHERE entity.instanceId IS NULL";
-    Query<SourceControlEvent> query = new Query<>(sQuery);
+    Query<SourceControlEvent> query = new Query<SourceControlEvent>(sQuery);
     return query.getList();
   }
 
@@ -59,7 +59,7 @@ public class SourceControlEventDAO
     String sQuery = SELECT_ENTITY +
         "WHERE entity.instanceId = ?1 AND entity.eventStatus = ?2 ORDER BY entity.createTime";
     Query<SourceControlEvent> query =
-        new Query<>(sQuery, instanceId, SourceControlEvent.EVENT_STATUS_NEW);
+        new Query<SourceControlEvent>(sQuery, instanceId, SourceControlEvent.EVENT_STATUS_NEW);
     query.setMaxResults(quantity);
     return query.getList();
   }
@@ -135,6 +135,13 @@ public class SourceControlEventDAO
           createQuery("DELETE FROM SourceControlEvent entity WHERE entity.id IN (?1)", ids)
               .executeUpdate();
     }
+  }
+
+  public boolean hasRemediationEventForBranch(String applicationId, String branchName) {
+    String sQuery = "SELECT count(entity) FROM SourceControlEvent entity" +
+        " WHERE entity.applicationId = ?1 AND entity.eventType = ?2 AND entity.branchName = ?3";
+    return 0 !=
+        getSingle(Long.class, sQuery, applicationId, SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT, branchName);
   }
 
   public List<SourceControlEvent> getAll() {

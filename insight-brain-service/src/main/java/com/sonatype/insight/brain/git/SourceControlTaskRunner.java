@@ -14,7 +14,6 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
 import com.sonatype.nexus.iq.manager.PullRequestExecutor;
 
@@ -56,9 +55,5 @@ public class SourceControlTaskRunner
         pullRequestRemediationDetails.getApp().getId(), executor.getQueue().size(),
         executor.getTaskCount()
     );
-  }
-
-  public boolean isFormatSupportedForPullRequestRemediation(final ComponentIdentifier componentIdentifier) {
-    return pullRequestExecutor.isSupportedFormat(componentIdentifier.getFormat());
   }
 }

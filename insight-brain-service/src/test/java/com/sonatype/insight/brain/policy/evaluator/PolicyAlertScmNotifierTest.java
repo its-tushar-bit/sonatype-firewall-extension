@@ -22,9 +22,9 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentCha
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentRemediationService;
-import com.sonatype.insight.brain.git.GitClientFactory;
 import com.sonatype.insight.brain.git.PullRequestFeatureCheck;
-import com.sonatype.insight.brain.git.SourceControlTaskRunner;
+import com.sonatype.insight.brain.git.PullRequestRemediationService;
+import com.sonatype.insight.brain.git.event.SourceControlEventService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -37,23 +37,21 @@ import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.test.LogOutput;
 import com.sonatype.nexus.scm.SourceControlProvider;
-import com.sonatype.nexus.scm.api.GitApiClient;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.policy.evaluator.PolicyAlertScmNotifier.APP_ID_BRANCH_TRUNCATE_INDEX;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -72,19 +70,16 @@ public class PolicyAlertScmNotifierTest
   private ApiComponentRemediationService remediationService;
 
   @Mock
-  private GitClientFactory gitClientFactory;
-
-  @Mock
   private GitRepositoryInfo gitRepositoryInfo;
-
-  @Mock
-  private GitApiClient gitApiClient;
 
   @Mock
   private BaseUrl baseUrl;
 
   @Mock
-  SourceControlTaskRunner sourceControlTaskRunner;
+  PullRequestRemediationService mockPullRequestRemediationService;
+
+  @Mock
+  SourceControlEventService mockSourceControlEventService;
 
   @Mock
   SourceControlUtils sourceControlUtils;
@@ -97,17 +92,16 @@ public class PolicyAlertScmNotifierTest
   public LogOutput logOutput = new LogOutput(PolicyAlertScmNotifier.class);
 
   @Before
-  public void setup() throws Exception {
-    scmNotifier = new PolicyAlertScmNotifier(pullRequestFeatureCheck,
-        remediationService, new PolicyAlertSourceCodeOrganizer(), gitClientFactory,
-        baseUrl, sourceControlUtils, sourceControlTaskRunner);
-    scmNotifier.pullRequestInvoker = spy(scmNotifier.pullRequestInvoker);
+  public void setup() {
+    scmNotifier =
+        new PolicyAlertScmNotifier(pullRequestFeatureCheck, remediationService, new PolicyAlertSourceCodeOrganizer(),
+            baseUrl, sourceControlUtils, mockPullRequestRemediationService, mockSourceControlEventService);
     Organization organization = tempEntity.newOrganization();
     application = tempEntity.newApplication(NAME, PUBLIC_ID, organization.getId());
   }
 
   @Test
-  public void test_featureIsDisabled() throws Exception {
+  public void test_featureIsDisabled() {
     // given we have repository info for an application
     when(sourceControlUtils.getGitRepositoryInfoForApplication(application.getId()))
         .thenReturn(gitRepositoryInfo);
@@ -118,12 +112,12 @@ public class PolicyAlertScmNotifierTest
     // when we send notifications
     scmNotifier.sendNotifications(application, "scanId", new Stage("build"), buildPolicyNotifications());
 
-    // then we see no calls to the PR engine
-    verifyNoInteractions(scmNotifier.pullRequestInvoker);
+    // then we see no interaction with the source control event service
+    verifyNoInteractions(mockSourceControlEventService);
   }
 
   @Test
-  public void test_developStageNotSupported() throws Exception {
+  public void test_developStageNotSupported() {
     // given we have repository info for an application
     when(sourceControlUtils.getGitRepositoryInfoForApplication(application.getId()))
         .thenReturn(gitRepositoryInfo);
@@ -134,22 +128,23 @@ public class PolicyAlertScmNotifierTest
     // then we see no calls to the PR engine
     assertThat(logOutput).atDebugLevel().contains(
         "Ignoring Pull Request notification for the 'develop' stage for application 'abc123' and scan 'scanId'");
-    verifyNoInteractions(scmNotifier.pullRequestInvoker);
+    verifyNoInteractions(mockSourceControlEventService);
   }
 
   @Test
-  public void test_formatNotSupported() throws Exception {
+  public void test_formatNotSupported() {
     // given we have repository info for an application
     when(sourceControlUtils.getGitRepositoryInfoForApplication(application.getId())).thenReturn(gitRepositoryInfo);
 
     // and feature is enabled
     when(pullRequestFeatureCheck.isPullRequestFeatureSupported(application, gitRepositoryInfo)).thenReturn(true);
 
-    // but the format is not supported
+    // and a component with an unsupported format
+    ComponentIdentifier componentWithUnsupportedFormat = ComponentIdentifier.createNugetCoordinates("foo", "1.2.3");
 
     // when we send policy notifications
     scmNotifier.sendNotifications(application, "scanId", new Stage("build"),
-        buildPolicyNotifications(ComponentIdentifier.createNugetCoordinates("foo", "1.2.3")));
+        buildPolicyNotifications(componentWithUnsupportedFormat));
 
     // then we see a message logged that the format is not supported
     await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
@@ -157,12 +152,12 @@ public class PolicyAlertScmNotifierTest
           "Format 'nuget: {packageId=foo, version=1.2.3}' is not supported for automatic remediation");
     });
 
-    // and the source control task runner didn't attempt a PR
-    verify(sourceControlTaskRunner, never()).doPullRequestRemediation(any());
+    // and the source control event service didn't publish an event
+    verify(mockSourceControlEventService, never()).publishEvent(any());
   }
 
   @Test
-  public void test_noRemediationOptions() throws Exception {
+  public void test_noRemediationOptions() {
     // given we have repository info for an application
     when(sourceControlUtils.getGitRepositoryInfoForApplication(application.getId()))
         .thenReturn(gitRepositoryInfo);
@@ -177,7 +172,7 @@ public class PolicyAlertScmNotifierTest
         any(ApiComponentDTOV2.class), eq(OwnerType.APPLICATION),
         eq(application.getId()), isNull(), isNull(), isNull())).thenReturn(emptyRemediationDTO);
 
-    when(sourceControlTaskRunner.isFormatSupportedForPullRequestRemediation(any())).thenReturn(true);
+    when(mockPullRequestRemediationService.isFormatSupportedForPullRequestRemediation(any())).thenReturn(true);
 
     // when we send policy notifications
     scmNotifier.sendNotifications(application, "scanId", new Stage("build"), buildPolicyNotifications());
@@ -188,48 +183,12 @@ public class PolicyAlertScmNotifierTest
           "No remediation options found for component [maven: {artifactId=Package1, groupId=groupid, version=1.2.3}]");
     });
 
-    // and the source control task runner didn't attempt a PR
-    verify(sourceControlTaskRunner, never()).doPullRequestRemediation(any());
+    // and the source control event service didn't have an event published to it
+    verify(mockSourceControlEventService, never()).publishEvent(any());
   }
 
   @Test
-  public void test_branchAlreadyExists_Stop() throws Exception {
-    // given we have repository info for an application
-    when(sourceControlUtils.getGitRepositoryInfoForApplication(application.getId()))
-        .thenReturn(gitRepositoryInfo);
-
-    // and feature is enabled
-    when(pullRequestFeatureCheck.isPullRequestFeatureSupported(
-        application, gitRepositoryInfo)).thenReturn(true);
-    when(sourceControlTaskRunner.isFormatSupportedForPullRequestRemediation(any())).thenReturn(true);
-
-    // and there are suggested remediations
-    ApiComponentRemediationDTO remediationDTO = buildRemediationDTOWithSuggestion();
-    when(remediationService.getSuggestedRemediationForComponentNoAuth(
-        any(ApiComponentDTOV2.class), eq(OwnerType.APPLICATION),
-        eq(application.getId()), isNull(), isNull(), isNull())).thenReturn(remediationDTO);
-
-    // and the branch already exists on the server
-    when(gitClientFactory.createApiClient(gitRepositoryInfo)).thenReturn(gitApiClient);
-    String truncatedAppId = application.getId().substring(0, APP_ID_BRANCH_TRUNCATE_INDEX);
-    when(gitApiClient.isBranchOnServer(truncatedAppId + "/groupid/Package1/1.2.3-to-2.0.1")).thenReturn(true);
-
-    // when we send notifications to our scm notifier
-    scmNotifier.sendNotifications(application, "scanId", new Stage("build"), buildPolicyNotifications());
-
-    // then we see a log that the branch already exists
-    await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
-      assertThat(logOutput).atInfoLevel().contains(
-          "Branch already exists on remote server for remediation [" + truncatedAppId +
-              "/groupid/Package1/1.2.3-to-2.0.1]");
-    });
-
-    // and the source control task runner didn't attempt a PR
-    verify(sourceControlTaskRunner, never()).doPullRequestRemediation(any());
-  }
-
-  @Test
-  public void test_invokePREngine() throws Exception {
+  public void test_remediationEventForBranchAlreadyExists() throws Exception {
     // given we have repository info for an application
     GitRepositoryInfo githubRepositoryInfo =
         new GitRepositoryInfo(null, null, null, SourceControlProvider.GITHUB, null, true, true);
@@ -246,37 +205,74 @@ public class PolicyAlertScmNotifierTest
         any(ApiComponentDTOV2.class), eq(OwnerType.APPLICATION),
         eq(application.getId()), isNull(), isNull(), isNull())).thenReturn(remediationDTO);
 
-    when(sourceControlTaskRunner.isFormatSupportedForPullRequestRemediation(any())).thenReturn(true);
+    when(mockPullRequestRemediationService.isFormatSupportedForPullRequestRemediation(any())).thenReturn(true);
 
-    // and the branch doesn't already exist on the server
-    when(gitClientFactory.createApiClient(githubRepositoryInfo)).thenReturn(gitApiClient);
     String truncatedAppId = application.getId().substring(0, APP_ID_BRANCH_TRUNCATE_INDEX);
-    when(gitApiClient.isBranchOnServer(truncatedAppId + "/groupid/Package1/1.2.3-to-2.0.1")).thenReturn(false);
-
     String branchName = truncatedAppId + "/groupid/Package1/1.2.3-to-2.0.1";
-    when(gitApiClient.isBranchOnServer(branchName)).thenReturn(false);
+
+    // and the branch already exists in the event table
+    CountDownLatch finished = new CountDownLatch(1);
+    doAnswer(invocation -> {
+      finished.countDown();
+      return true;
+    }).when(mockSourceControlEventService).doesRemediationEventExistForBranch(eq(application.getId()), eq(branchName));
+
+    // when we send policy notifications
+    scmNotifier.sendNotifications(application, "scanId", new Stage("build"), buildPolicyNotifications());
+
+    // then we DO NOT see an event created for a remediation PR
+    assertThat(finished.await(5, TimeUnit.SECONDS)).isTrue();
+    verify(mockSourceControlEventService, never()).publishEvent(any());
+  }
+
+  @Test
+  public void test_pullRequestEventCreated() throws Exception {
+    // given we have repository info for an application
+    GitRepositoryInfo githubRepositoryInfo =
+        new GitRepositoryInfo(null, null, null, SourceControlProvider.GITHUB, null, true, true);
+    when(sourceControlUtils.getGitRepositoryInfoForApplication(application.getId()))
+        .thenReturn(githubRepositoryInfo);
+
+    // and feature is enabled
+    when(pullRequestFeatureCheck.isPullRequestFeatureSupported(
+        application, githubRepositoryInfo)).thenReturn(true);
+
+    // and there are suggested remediations
+    ApiComponentRemediationDTO remediationDTO = buildRemediationDTOWithSuggestion();
+    when(remediationService.getSuggestedRemediationForComponentNoAuth(
+        any(ApiComponentDTOV2.class), eq(OwnerType.APPLICATION),
+        eq(application.getId()), isNull(), isNull(), isNull())).thenReturn(remediationDTO);
+
+    when(mockPullRequestRemediationService.isFormatSupportedForPullRequestRemediation(any())).thenReturn(true);
+
     when(baseUrl.getConfigured()).thenReturn("foo");
+    String truncatedAppId = application.getId().substring(0, APP_ID_BRANCH_TRUNCATE_INDEX);
+    final String branchName = truncatedAppId + "/groupid/Package1/1.2.3-to-2.0.1";
+
+    // and the branch does not yet exist in the event table
+    when(mockSourceControlEventService.doesRemediationEventExistForBranch(eq(application.getId()), eq(branchName)))
+        .thenReturn(false);
 
     CountDownLatch finished = new CountDownLatch(1);
     doAnswer(invocation -> {
       finished.countDown();
       return null;
-    }).when(sourceControlTaskRunner).doPullRequestRemediation(any());
+    }).when(mockSourceControlEventService).publishEvent(any());
 
     // when we send policy notifications
-    scmNotifier.sendNotifications(application,"scanId", new Stage("build"),  buildPolicyNotifications());
+    scmNotifier.sendNotifications(application, "scanId", new Stage("build"), buildPolicyNotifications());
 
-    // then we see the PR engine run for the component
-    await().atMost(5, TimeUnit.SECONDS).until( () -> finished.getCount() == 0);
+    // then we see an event created for a remediation PR
+    assertThat(finished.await(5, TimeUnit.SECONDS)).isTrue();
 
-    ArgumentCaptor<PullRequestRemediationDetails> captor =
-        ArgumentCaptor.forClass(PullRequestRemediationDetails.class);
-    verify(sourceControlTaskRunner).doPullRequestRemediation(captor.capture());
-    assertThat(captor.getValue().getToBeRemediated())
-        .isEqualTo(ComponentIdentifier.createMavenCoordinates("groupid", "Package1", "1.2.3"));
-    assertThat(captor.getValue().getRemediatedVersion()).isEqualTo("2.0.1");
-    assertThat(captor.getValue().getPullRequestBranchName()).isEqualTo(branchName);
-    assertThat(captor.getValue().getApp()).isEqualTo(application);
+    verify(mockSourceControlEventService).publishEvent(argThat(event -> {
+      assertThat(event.getComponentIdentifier())
+          .isEqualTo(ComponentIdentifier.createMavenCoordinates("groupid", "Package1", "1.2.3"));
+      assertThat(event.getRemediationVersion()).isEqualTo("2.0.1");
+      assertThat(event.getBranchName()).isEqualTo(branchName);
+      assertThat(event.getApplicationId()).isEqualTo(application.getId());
+      return true;
+    }));
   }
 
   private ApiComponentRemediationDTO buildRemediationDTOWithSuggestion() {

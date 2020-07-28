@@ -64,7 +64,7 @@ public class HdsProductNotificationServiceTest
   }
 
   @Test
-  public void testGetNotifications() throws Exception {
+  public void testGetNotifications() {
     HdsProductNotificationService hdsProductNotificationServiceSpy = spy(hdsNotificationService);
 
     ProductNotificationList expectedProductNotificationList = createNotifications();
@@ -76,29 +76,19 @@ public class HdsProductNotificationServiceTest
 
     List<ProductNotification> retrievedNotifications = hdsProductNotificationServiceSpy.getNotifications();
     assertNotifications(retrievedNotifications, expectedNotifications);
-    verify(hdsProductNotificationServiceSpy, times(1)).isCacheExpired();
     verify(mockHdsClient, times(1)).get(eq(ProductNotificationList.class),
         eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMap());
 
     reset(hdsProductNotificationServiceSpy);
     reset(mockHdsClient);
-
-    // Now verify cached values used
-    when(hdsProductNotificationServiceSpy.isCacheExpired()).thenReturn(false);
-    retrievedNotifications = hdsProductNotificationServiceSpy.getNotifications();
-    assertNotifications(retrievedNotifications, expectedNotifications);
-    verify(hdsProductNotificationServiceSpy, times(1)).isCacheExpired();
-    verify(mockHdsClient, times(0)).get(eq(ProductNotificationList.class),
-        eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMap());
   }
 
   @Test
-  public void testGetNotifications_NotificationsViewedUpdatedWhenCacheUpdated() throws Exception {
+  public void testGetNotifications_NotificationsViewedUpdated() {
     HdsProductNotificationService hdsProductNotificationServiceSpy = spy(hdsNotificationService);
 
     ProductNotificationList expectedProductNotificationList = createNotifications();
     List<ProductNotification> expectedNotifications = expectedProductNotificationList.getProductNotifications();
-    expectedProductNotificationList.setProductNotifications(expectedNotifications);
     when(mockHdsClient.get(eq(ProductNotificationList.class),
         eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMap()))
             .thenReturn(expectedProductNotificationList);
@@ -107,7 +97,6 @@ public class HdsProductNotificationServiceTest
 
     List<ProductNotification> retrievedNotifications = hdsProductNotificationServiceSpy.getNotifications();
     assertNotifications(retrievedNotifications, expectedNotifications);
-    verify(hdsProductNotificationServiceSpy, times(1)).isCacheExpired();
     verify(mockHdsClient, times(1)).get(eq(ProductNotificationList.class),
         eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMap());
 
@@ -118,49 +107,22 @@ public class HdsProductNotificationServiceTest
     reset(hdsProductNotificationServiceSpy);
     reset(mockHdsClient);
 
-    // Now verify cached is updated with new values
+    // Now verify old user viewed product notifications are removed
     expectedProductNotificationList = createNotifications();
+    expectedProductNotificationList.getProductNotifications().remove(0);
     expectedNotifications = expectedProductNotificationList.getProductNotifications();
-    expectedProductNotificationList.setProductNotifications(expectedNotifications);
     when(mockHdsClient.get(eq(ProductNotificationList.class),
         eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMap()))
             .thenReturn(expectedProductNotificationList);
-    when(hdsProductNotificationServiceSpy.isCacheExpired()).thenReturn(true);
 
     retrievedNotifications = hdsProductNotificationServiceSpy.getNotifications();
     assertNotifications(retrievedNotifications, expectedNotifications);
-    verify(hdsProductNotificationServiceSpy, times(1)).isCacheExpired();
     verify(mockHdsClient, times(1)).get(eq(ProductNotificationList.class),
         eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMap());
     // This should have been removed as part of the cache update
     userViewedProductNotifications =
         userViewedProductNotificationDAO.getByUsernameAndRealmId(USERNAME, InternalRealm.ID);
     assertThat(userViewedProductNotifications).isEmpty();
-  }
-
-  @Test
-  public void testGetNotifications_ErrorOnHdsClient() throws Exception {
-    HdsProductNotificationService hdsProductNotificationServiceSpy = spy(hdsNotificationService);
-
-    ProductNotificationList expectedProductNotificationList = createNotifications();
-    List<ProductNotification> expectedNotifications = expectedProductNotificationList.getProductNotifications();
-    expectedProductNotificationList.setProductNotifications(expectedNotifications);
-    when(mockHdsClient.get(eq(ProductNotificationList.class),
-        eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMap()))
-            .thenReturn(expectedProductNotificationList);
-
-    List<ProductNotification> retrievedNotifications = hdsProductNotificationServiceSpy.getNotifications();
-    assertNotifications(retrievedNotifications, expectedNotifications);
-
-    // Now verify cached not cleared on hds client errors
-    RuntimeException expectedException = new RuntimeException("Test Exception");
-    when(mockHdsClient.get(eq(ProductNotificationList.class),
-        eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMap())).thenThrow(expectedException);
-    when(hdsProductNotificationServiceSpy.isCacheExpired()).thenReturn(true);
-
-    retrievedNotifications = hdsProductNotificationServiceSpy.getNotifications();
-    assertNotifications(retrievedNotifications, expectedNotifications);
-    assertThat(logOutput).atErrorLevel().contains(expectedException.getMessage(), expectedException);
   }
 
   private ProductNotificationList createNotifications() {
@@ -175,6 +137,7 @@ public class HdsProductNotificationServiceTest
     notification.setDateCreated(dateCreated);
     expectedNotifications.add(notification);
 
+    notification = new ProductNotification();
     notification.setId(UUID.randomUUID().toString());
     notification.setSummaryText("Summary2");
     notification.setSummaryUrl("Summary Url2");

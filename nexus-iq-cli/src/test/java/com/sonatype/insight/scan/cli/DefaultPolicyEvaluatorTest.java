@@ -136,7 +136,7 @@ public class DefaultPolicyEvaluatorTest
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
     evaluator.run(params);
-    assertLogSummary(new PolicyEvaluationResult());
+    assertLogSummary(newPolicyEvaluationResultForOneComponent());
   }
 
   @Test
@@ -150,7 +150,7 @@ public class DefaultPolicyEvaluatorTest
     evaluator.run(params);
 
     assertThat(logOutput).atInfoLevel().contains("Policy Action: Warning");
-    PolicyEvaluationResult expectedPolicyEvaluationResult = new PolicyEvaluationResult();
+    PolicyEvaluationResult expectedPolicyEvaluationResult = newPolicyEvaluationResultForOneComponent();
     expectedPolicyEvaluationResult.setCriticalComponentCount(4);
     expectedPolicyEvaluationResult.setCriticalPolicyViolationCount(4);
     assertLogSummary(expectedPolicyEvaluationResult);
@@ -172,7 +172,7 @@ public class DefaultPolicyEvaluatorTest
       evaluator.run(params);
     }).satisfies(e -> assertThat(e.getExitCode()).isOne());
     assertThat(logOutput).atInfoLevel().contains("Policy Action: Failure");
-    PolicyEvaluationResult expectedPolicyEvaluationResult = new PolicyEvaluationResult();
+    PolicyEvaluationResult expectedPolicyEvaluationResult = newPolicyEvaluationResultForOneComponent();
     expectedPolicyEvaluationResult.setCriticalComponentCount(4);
     expectedPolicyEvaluationResult.setCriticalPolicyViolationCount(4);
     expectedPolicyEvaluationResult.setSeverePolicyViolationCount(4);
@@ -194,7 +194,7 @@ public class DefaultPolicyEvaluatorTest
         "src/test/data/artifact.jar");
     evaluator.run(params1);
     assertThat(logOutput).atInfoLevel().contains("Policy Action: Warning");
-    PolicyEvaluationResult expectedPolicyEvaluationResult = new PolicyEvaluationResult();
+    PolicyEvaluationResult expectedPolicyEvaluationResult = newPolicyEvaluationResultForOneComponent();
     expectedPolicyEvaluationResult.setCriticalComponentCount(4);
     expectedPolicyEvaluationResult.setCriticalPolicyViolationCount(4);
     assertLogSummary(expectedPolicyEvaluationResult);
@@ -387,6 +387,7 @@ public class DefaultPolicyEvaluatorTest
     assertThat(resultData.reportDataUrl).isNotNull();
     assertThat(resultData.reportHtmlUrl).isNotNull();
     assertThat(resultData.reportPdfUrl).isNotNull();
+    assertThat(resultData.policyEvaluationResult.getTotalComponentCount()).isEqualTo(1);
   }
 
   @Test
@@ -419,7 +420,7 @@ public class DefaultPolicyEvaluatorTest
         "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "@" + paramFile1.getAbsolutePath(), "@" + paramFile2.getAbsolutePath());
     evaluator.run(params);
-    assertLogSummary(new PolicyEvaluationResult());
+    assertLogSummary(newPolicyEvaluationResultForOneComponent());
   }
 
   @Test
@@ -440,7 +441,7 @@ public class DefaultPolicyEvaluatorTest
     assertThat(app).isNotNull();
     appDAO.delete(app);
 
-    assertLogSummary(new PolicyEvaluationResult());
+    assertLogSummary(newPolicyEvaluationResultForOneComponent());
   }
 
   @Test
@@ -578,5 +579,11 @@ public class DefaultPolicyEvaluatorTest
       return (Integer.valueOf(versionAsString.substring(0, dotAt)) + 1) + "." + versionAsString.substring(dotAt + 1);
     }
     return String.valueOf(Integer.valueOf(versionAsString) + 1);
+  }
+
+  private PolicyEvaluationResult newPolicyEvaluationResultForOneComponent() {
+    PolicyEvaluationResult expectedPolicyEvalutionResult = new PolicyEvaluationResult();
+    expectedPolicyEvalutionResult.setTotalComponentCount(1);
+    return expectedPolicyEvalutionResult;
   }
 }

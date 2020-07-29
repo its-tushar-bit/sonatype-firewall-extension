@@ -76,7 +76,7 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
 
     if (rutEnabled) {
       evaluator.run(params);
-      assertLogSummary(new PolicyEvaluationResult());
+      assertLogSummary(newPolicyEvaluationResultWithOneComponent());
     }
     else {
       assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
@@ -102,7 +102,13 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
     createAppAndAuthorizedUser("another_app", "mrbasic", "secret");
 
     evaluator.run(params);
-    assertLogSummary(new PolicyEvaluationResult());
+    assertLogSummary(newPolicyEvaluationResultWithOneComponent());
+  }
+
+  private PolicyEvaluationResult newPolicyEvaluationResultWithOneComponent() {
+    PolicyEvaluationResult result = new PolicyEvaluationResult();
+    result.setTotalComponentCount(1);
+    return result;
   }
 
   @Test

@@ -73,11 +73,13 @@ import com.sonatype.insight.brain.webhook.ApplicationEvaluationEventService;
 import com.sonatype.insight.brain.webhook.PolicyAlertEventService;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
@@ -709,6 +711,7 @@ public class ScanPolicyEvaluator
           activePolicyViolations);
       policyEvaluationResult.setAlerts(policyAlerts);
     }
+    policyEvaluationResult.setTotalComponentCount(getTotalComponentCount(policyEvaluation));
     return policyEvaluationResult;
   }
 
@@ -729,6 +732,22 @@ public class ScanPolicyEvaluator
         true);
     applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, commitHash, application);
     policyAlertEventService.postEvent(policyEvaluation, policyEvaluationResult, commitHash, application);
+  }
+
+  private int getTotalComponentCount(PolicyEvaluation policyEvaluation) {
+    try {
+      File reportFile = reportService.getReport(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
+      ReportEntry summaryEntry = Report.getEntry(reportFile, Report.SUMMARY_JSON_FILENAME);
+      if (summaryEntry != null) {
+        JsonNode content = JsonUtils.parse(summaryEntry.buf);
+        return content.get("totalArtifactCount").asInt();
+      }
+    }
+    catch (IOException | NotFoundException e) {
+      log.error("Could not get report for applicationId={} and scanId={}", policyEvaluation.getApplicationId(),
+          policyEvaluation.getScanId(), e);
+    }
+    return 0;
   }
 
   @VisibleForTesting

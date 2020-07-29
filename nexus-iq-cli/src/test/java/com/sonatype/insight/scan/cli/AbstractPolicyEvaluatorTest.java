@@ -160,6 +160,8 @@ public abstract class AbstractPolicyEvaluatorTest
             expectedPolicyEvalutionResult.getSeverePolicyViolationCount(),
             expectedPolicyEvalutionResult.getModeratePolicyViolationCount()))
         .contains(String.format("Number of grandfathered policy violations: %s",
-            expectedPolicyEvalutionResult.getGrandfatheredPolicyViolationCount()));
+            expectedPolicyEvalutionResult.getGrandfatheredPolicyViolationCount()))
+        .contains(String.format("Number of components: %s",
+            expectedPolicyEvalutionResult.getTotalComponentCount()));
   }
 }

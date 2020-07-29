@@ -51,6 +51,7 @@ abstract class PolicyEvaluator<P extends AbstractCliParameters>
         eval.getCriticalPolicyViolationCount(), eval.getSeverePolicyViolationCount(),
         eval.getModeratePolicyViolationCount());
     log.info("Number of grandfathered policy violations: {}", eval.getGrandfatheredPolicyViolationCount());
+    log.info("Number of components: {}", eval.getTotalComponentCount());
     log.info("The detailed report can be viewed online at {}", reportUrl);
     log.info("*********************************************************************************************");
 

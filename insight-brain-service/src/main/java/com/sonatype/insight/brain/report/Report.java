@@ -74,6 +74,8 @@ public final class Report
 
   public static final String SECURITY_JSON_FILENAME = "security.json";
 
+  public static final String SUMMARY_JSON_FILENAME = "summary.json";
+
   public static final String LICENSES_JSON_FILENAME = "licenses.json";
 
   public static final String DEPENDENCIES_JSON_FILENAME = "dependencies.json";
@@ -613,7 +615,7 @@ public final class Report
 
     ContainerNode<?> bomJsonData = loadReportEntry(reportFile, BOM_JSON_FILENAME);
     ContainerNode<?> dataJson = loadReportEntry(reportFile, DATA_JSON_FILENAME);
-    ContainerNode<?> summaryJsonData = loadReportEntry(reportFile, "summary.json");
+    ContainerNode<?> summaryJsonData = loadReportEntry(reportFile, SUMMARY_JSON_FILENAME);
 
     Map<String, HashComponentIdentifier> claimedComponentsByHash =
         applyClaimedComponents(bomJsonData, dataJson, summaryJsonData);
@@ -628,7 +630,7 @@ public final class Report
 
     Set<ComponentIdentifier> componentIdentifiers = fixBomComponentIdentifiers(bomJsonData);
     saveReportEntry(reportFile, DATA_JSON_FILENAME, dataJson);
-    saveReportEntry(reportFile, "summary.json", summaryJsonData);
+    saveReportEntry(reportFile, SUMMARY_JSON_FILENAME, summaryJsonData);
 
     fixComponentIdentifiers(licensesJsonData, componentIdentifiers);
     Set<ComponentIdentifier> componentIdentifiersWithLicenseOverrides = applyLicenseOverrides(licensesJsonData,

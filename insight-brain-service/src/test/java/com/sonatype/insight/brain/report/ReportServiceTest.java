@@ -185,7 +185,7 @@ public class ReportServiceTest
     assertLicenses(components.get(2), Collections.singleton("GPL-2.0"), Collections.emptySet());
 
     // Verify summary.json
-    ReportEntry summaryReportEntry = Report.getEntry(reportFile, "summary.json");
+    ReportEntry summaryReportEntry = Report.getEntry(reportFile, Report.SUMMARY_JSON_FILENAME);
     JsonNode summaryJsonNode = JsonUtils.parse(summaryReportEntry.buf);
     assertThat(summaryJsonNode.path("knownArtifactCount").asInt()).isEqualTo(3);
 

@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
 
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
@@ -18,6 +19,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,7 +53,7 @@ public class PullRequestRepositoryValidatorTest
 
   @Before
   public void setup() {
-    pullRequestRepositoryValidator = new PullRequestRepositoryValidator(gitClientFactory);
+    pullRequestRepositoryValidator = new PullRequestRepositoryValidator(gitClientFactory, getTestInsightConfig());
 
     Logger log = (Logger) LoggerFactory.getLogger(PullRequestRepositoryValidator.class);
     listAppender = new ListAppender<>();
@@ -86,6 +88,15 @@ public class PullRequestRepositoryValidatorTest
   }
 
   @Test
+  public void isPullRequestAllowed_GitLabEnterpriseFlow() {
+    String repoName = String.format(TEST_REPO_URL, "https://NOTgitlab.com/");
+    when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(gitApiClient);
+    assertThat(pullRequestRepositoryValidator
+        .isRepoValidForPRs(newGitRepositoryInfo(repoName, GITLAB)))
+        .isFalse();
+  }
+
+  @Test
   public void isPullRequestAllowed_BitBucketFlow() throws IOException {
     String repoName = String.format(TEST_REPO_URL, "https://foo.org/");
     when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(gitApiClient);
@@ -112,6 +123,19 @@ public class PullRequestRepositoryValidatorTest
   }
 
   @Test
+  public void isPullRequestAllowed_PrivateGitlab() throws IOException {
+    when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(gitApiClient);
+    String repoName = String.format(TEST_REPO_URL, "https://gitlab.com/");
+
+    boolean[] isPrivateValues = {true, false};
+    for (boolean isPrivate: isPrivateValues) {
+      when(gitApiClient.isRepositoryPrivate()).thenReturn(isPrivate);
+      assertThat(pullRequestRepositoryValidator.isRepoValidForPRs(newGitRepositoryInfo(repoName, GITLAB)))
+          .isEqualTo(isPrivate);
+    }
+  }
+
+  @Test
   public void isPullRequestAllowed_ClientError() throws IOException {
     when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(gitApiClient);
     when(gitApiClient.isRepositoryPrivate()).thenThrow(new IOException());
@@ -123,22 +147,19 @@ public class PullRequestRepositoryValidatorTest
   }
 
   @Test
-  public void isPullRequestAllowed_GitLabNotYetSupported() {
-    String repoName = String.format(TEST_REPO_URL, "https://NOTgithub.com/");
-
-    // TODO replace test when we support GitLab for PRs
-    assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
-      pullRequestRepositoryValidator
-          .isRepoValidForPRs(newGitRepositoryInfo(repoName, GITLAB));
-    }).withMessage("'GITLAB' not supported yet");
-  }
-
-  @Test
   public void isInternalRepository_GitHubEnterpriseFlow() {
     String repoName = String.format(TEST_REPO_URL, "https://NOTgithub.com/");
     assertThat(pullRequestRepositoryValidator
         .isInternalRepository(newGitRepositoryInfo(repoName, GITHUB)))
         .isTrue();
+  }
+
+  @Test
+  public void isInternalRepository_GitLabEnterpriseFlow() {
+    String repoName = String.format(TEST_REPO_URL, "https://NOTgitlab.com/");
+    assertThat(pullRequestRepositoryValidator
+        .isInternalRepository(newGitRepositoryInfo(repoName, GITLAB)))
+        .isFalse();
   }
 
   @Test
@@ -150,10 +171,18 @@ public class PullRequestRepositoryValidatorTest
   }
 
   @Test
-  public void isInternalRepository_NotGithub() {
+  public void isInternalRepository_GitLabCloudFlow() {
+    String repoName = String.format(TEST_REPO_URL, "https://gitlab.com/");
+    assertThat(pullRequestRepositoryValidator
+        .isInternalRepository(newGitRepositoryInfo(repoName, GITLAB)))
+        .isFalse();
+  }
+
+  @Test
+  public void isInternalRepository_NotGithubOrGitLab() {
     String repoName = String.format(TEST_REPO_URL, "https://repo.com/");
     Arrays.stream(SourceControlProvider.values())
-        .filter(sourceControlProvider -> sourceControlProvider != GITHUB)
+        .filter(sourceControlProvider -> sourceControlProvider != GITHUB && sourceControlProvider != GITLAB)
         .forEach(sourceControlProvider -> {
           assertThat(pullRequestRepositoryValidator
               .isInternalRepository(newGitRepositoryInfo(repoName, sourceControlProvider)))
@@ -167,5 +196,12 @@ public class PullRequestRepositoryValidatorTest
     String username = provider.requiresUsername() ? "username" : null;
     return new GitRepositoryInfo(repoUrl, username, "token", provider, "baseBranch", enablePullRequests,
         enableStatusChecks);
+  }
+
+  private InsightConfig getTestInsightConfig() {
+    InsightConfig insightConfig = new InsightConfig();
+    insightConfig.setExperimentalFeatures(
+        new ImmutableMap.Builder<String, Boolean>().put("automaticMergeRequests", true).build());
+    return insightConfig;
   }
 }

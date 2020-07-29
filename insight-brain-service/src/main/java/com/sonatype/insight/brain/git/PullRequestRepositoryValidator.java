@@ -13,6 +13,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
@@ -31,11 +32,16 @@ public class PullRequestRepositoryValidator
 
   static final String GITHUB_COM = "https://github.com";
 
+  static final String GITLAB_COM = "https://gitlab.com";
+
   private final GitClientFactory gitClientFactory;
 
+  private final InsightConfig insightConfig;
+
   @Inject
-  PullRequestRepositoryValidator(final GitClientFactory gitClientFactory) {
+  PullRequestRepositoryValidator(final GitClientFactory gitClientFactory, final InsightConfig insightConfig) {
     this.gitClientFactory = gitClientFactory;
+    this.insightConfig = insightConfig;
   }
 
   /**
@@ -55,17 +61,22 @@ public class PullRequestRepositoryValidator
           String.format("'%s' not supported yet", gitRepositoryInfo.provider.name()));
     }
 
-    return isInternalRepository(gitRepositoryInfo) || isPrivateRepository(gitRepositoryInfo);
+    return isFeatureFlagEnabled(gitRepositoryInfo) && // to be removed when auto MRs are ready for release
+        (isInternalRepository(gitRepositoryInfo) || isPrivateRepository(gitRepositoryInfo));
+  }
+
+  private boolean isFeatureFlagEnabled(final GitRepositoryInfo gitRepositoryInfo) {
+    if (SourceControlProvider.GITLAB == gitRepositoryInfo.provider) {
+      return insightConfig.isExperimentalFeatureEnabled("automaticMergeRequests");
+    }
+    return true;
   }
 
   /**
    * Returns {@code true} if a repository is internal only (e.g. GitHub Enterprise)
    */
   public boolean isInternalRepository(final GitRepositoryInfo gitRepositoryInfo) {
-    if (SourceControlProvider.GITHUB.equals(gitRepositoryInfo.provider)) {
-      return !isGitHubDotCom(gitRepositoryInfo);
-    }
-    return false;
+    return gitRepositoryInfo.provider.isScmSecured(gitRepositoryInfo.repositoryUrl);
   }
 
   public boolean isPrivateRepository(final GitRepositoryInfo gitRepositoryInfo) {
@@ -77,9 +88,5 @@ public class PullRequestRepositoryValidator
       log.error("Error when checking if repository is private", e);
       throw new UncheckedIOException("Unable to connect to the repository " + gitRepositoryInfo.repositoryUrl, e);
     }
-  }
-
-  private boolean isGitHubDotCom(final GitRepositoryInfo gitRepositoryInfo) {
-    return gitRepositoryInfo.repositoryUrl.startsWith(GITHUB_COM);
   }
 }

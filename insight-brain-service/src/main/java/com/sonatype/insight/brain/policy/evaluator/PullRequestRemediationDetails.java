@@ -192,6 +192,7 @@ public class PullRequestRemediationDetails
         .put("stage", stage)
         .put("detailedReportUrl", baseUrl + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), scanId))
         .put("baseIqUrl", baseUrl)
+        .put("provider", provider)
         .build();
 
     return TemplateUtils.render(getPolicyTemplate(provider), model);

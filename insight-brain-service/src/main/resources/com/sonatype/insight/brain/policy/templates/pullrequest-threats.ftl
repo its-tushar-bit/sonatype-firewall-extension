@@ -1,4 +1,4 @@
-## :shield: Automated pull request: Nexus IQ found ${threatList?size} Policy Violation<#if (threatList?size > 1)>s</#if>
+## :shield: Automated <#if provider.name() == "GITLAB">merge<#else>pull</#if> request: Nexus IQ found ${threatList?size} Policy Violation<#if (threatList?size > 1)>s</#if>
 
 ### Description
 
@@ -22,11 +22,11 @@ Threat (of 10) | Policy | Violation Details
 </#list>
 
 ### Nexus IQ Scan Detail
-**Application**: ${applicationName}
-**Organization**: ${organizationName}
-**Date**: ${date}
+**Application**: ${applicationName}<#if provider.name() == "GITLAB">\</#if>
+**Organization**: ${organizationName}<#if provider.name() == "GITLAB">\</#if>
+**Date**: ${date}<#if provider.name() == "GITLAB">\</#if>
 **Stage**: ${stage}
 
 [Review full report](${detailedReportUrl})
 
-_This PR was automatically created by your friendly neighbourhood [IQ Server](${baseIqUrl})_
+_This <#if provider.name() == "GITLAB">MR<#else>PR</#if> was automatically created by your friendly neighbourhood [IQ Server](${baseIqUrl})_

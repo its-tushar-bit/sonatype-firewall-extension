@@ -120,19 +120,6 @@ public class PullRequestFeatureCheckTest
   }
 
   @Test
-  public void testProviderNotSupported() {
-    when(productLicense.hasFeature(LicensedFeature.AUTOMATION)).thenReturn(true);
-
-    GitRepositoryInfo gitRepositoryInfo = newGitHubRepositoryInfo();
-    gitRepositoryInfo.provider = SourceControlProvider.GITLAB;
-    boolean result = pullRequestFeatureCheck
-        .isPullRequestFeatureSupported(new Application(PUBLIC_ID, NAME, ORGANIZATION_ID), gitRepositoryInfo);
-
-    assertThat(result).isFalse();
-    assertThat(logOutput).atDebugLevel().contains("Source provider 'gitlab' is not supported");
-  }
-
-  @Test
   public void testBitBucketSupported() {
     GitRepositoryInfo gitRepositoryInfo = newBitBucketRepositoryInfo();
 

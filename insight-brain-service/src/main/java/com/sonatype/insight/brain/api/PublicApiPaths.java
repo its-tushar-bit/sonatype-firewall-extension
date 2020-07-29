@@ -61,6 +61,8 @@ public class PublicApiPaths
   public static final String COMPONENT_REMEDIATION_PATH_V2 =
       API_VERSION_PATH_V2 + "components/remediation/{ownerType: application|organization}/{ownerId}";
 
+  public static final String SECURITY_VIOLATION_OVERRIDE_PATH_V2 = API_VERSION_PATH_V2 + "securityOverrides";
+
   /**
    * @deprecated Replaced by {@link #PROXY_SERVER_CONFIG_PATH_V2}
    */

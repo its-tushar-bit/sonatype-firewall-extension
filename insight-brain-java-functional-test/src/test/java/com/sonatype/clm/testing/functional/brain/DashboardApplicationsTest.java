@@ -288,7 +288,6 @@ public class DashboardApplicationsTest
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(2, 10);
     DashboardFilters.policyThreatLevelFilter().twisty().click();
-    eyesWatcher.eyesCheck("Applications tab with form-mask");
     DashboardFilters.apply();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
@@ -444,9 +443,6 @@ public class DashboardApplicationsTest
     table.firstApplication().lowRisk().shouldHave(text("0"));
     table.application(40).lowRisk().shouldHave(text("0"));
     table.lastApplication().lowRisk().shouldHave(text("0"));
-
-    // last but certainly not least
-    eyesWatcher.eyesCheck("Scrollbar-present styling");
   }
 
   private void assertApplicationsCsv(String csv, String[] expectedSortedResults) {

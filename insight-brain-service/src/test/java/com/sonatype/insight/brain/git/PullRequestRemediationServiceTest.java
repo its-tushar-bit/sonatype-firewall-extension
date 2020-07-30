@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
 
+import javax.inject.Provider;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -49,7 +51,10 @@ public class PullRequestRemediationServiceTest
   private SourceControlUtils mockSourceControlUtils;
 
   @Mock
-  private SourceControlTaskRunner mockSourceControlTaskRunner;
+  private PullRequestTask mockPullRequestTask;
+
+  @Mock
+  private Provider<PullRequestTask> mockPullRequestTaskProvider;
 
   // subject
   private PullRequestRemediationService pullRequestRemediationService;
@@ -64,7 +69,7 @@ public class PullRequestRemediationServiceTest
     MockitoAnnotations.initMocks(this);
     super.setup();
     pullRequestRemediationService = new PullRequestRemediationService(mockPullRequestExecutor, mockGitClientFactory,
-        mockApplicationDAO, mockSourceControlUtils, mockSourceControlTaskRunner);
+        mockApplicationDAO, mockSourceControlUtils, mockPullRequestTaskProvider);
   }
 
   private Application setupApplication(String appId) {
@@ -97,6 +102,8 @@ public class PullRequestRemediationServiceTest
     setupBranchExistence(branchName, false);
     setupGitRepositoryInfoForApp(appId);
 
+    when(mockPullRequestTaskProvider.get()).thenReturn(mockPullRequestTask);
+
     SourceControlEvent event = new SourceControlEvent()
         .withComponentIdentifier(componentId)
         .setApplicationId(application.getId())
@@ -112,7 +119,7 @@ public class PullRequestRemediationServiceTest
     // then: make sure the remediation details used for PR creation actually came from the event
     ArgumentCaptor<PullRequestRemediationDetails> remediationDetailsCaptor =
         ArgumentCaptor.forClass(PullRequestRemediationDetails.class);
-    verify(mockSourceControlTaskRunner).doPullRequestRemediation(remediationDetailsCaptor.capture());
+    verify(mockPullRequestTask).run(remediationDetailsCaptor.capture(), any());
 
     PullRequestRemediationDetails remediationDetails = remediationDetailsCaptor.getValue();
 

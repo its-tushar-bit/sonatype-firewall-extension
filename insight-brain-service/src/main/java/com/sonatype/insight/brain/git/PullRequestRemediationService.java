@@ -9,6 +9,7 @@ import java.io.IOException;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -38,8 +39,7 @@ public class PullRequestRemediationService
 
   private final SourceControlUtils sourceControlUtils;
 
-  // this will be replaced once PullRequestTask behavior is absorbed into here
-  private final SourceControlTaskRunner sourceControlTaskRunner;
+  private final Provider<PullRequestTask> pullRequestTaskProvider;
 
   @Inject
   public PullRequestRemediationService(
@@ -47,13 +47,13 @@ public class PullRequestRemediationService
       GitClientFactory gitClientFactory,
       ApplicationDAO applicationDAO,
       SourceControlUtils sourceControlUtils,
-      SourceControlTaskRunner sourceControlTaskRunner)
+      Provider<PullRequestTask> pullRequestTaskProvider)
   {
     this.pullRequestExecutor = pullRequestExecutor;
     this.gitClientFactory = gitClientFactory;
     this.applicationDAO = applicationDAO;
     this.sourceControlUtils = sourceControlUtils;
-    this.sourceControlTaskRunner = sourceControlTaskRunner;
+    this.pullRequestTaskProvider = pullRequestTaskProvider;
   }
 
   /**
@@ -78,7 +78,8 @@ public class PullRequestRemediationService
           event.getStageTypeId(),
           event.getPullRequestContents());
 
-      sourceControlTaskRunner.doPullRequestRemediation(pullRequestRemediationDetails);
+      PullRequestTask pullRequestTask = pullRequestTaskProvider.get();
+      pullRequestTask.run(pullRequestRemediationDetails, pullRequestExecutor);
     }
   }
 

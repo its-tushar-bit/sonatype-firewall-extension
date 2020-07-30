@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics;
 import com.sonatype.nexus.iq.manager.PullRequestCommand;
@@ -33,7 +34,6 @@ import org.slf4j.LoggerFactory;
  */
 public class PullRequestTask
     extends GitRepositoryTask
-    implements Runnable
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestTask.class);
 
@@ -47,11 +47,7 @@ public class PullRequestTask
 
   private final SourceControlPullRequestMetrics metrics;
 
-  private PullRequestRemediationDetails pullRequestRemediationDetails;
-
-  private AuditRecorder auditRecorder;
-
-  private PullRequestExecutor pullRequestExecutor;
+  private final AuditRecorder auditRecorder;
 
   private final SourceControlUtils sourceControlUtils;
 
@@ -73,26 +69,26 @@ public class PullRequestTask
     this.sourceControlUtils = sourceControlUtils;
   }
 
-  public void init(
+  public void run(
       PullRequestRemediationDetails pullRequestRemediationDetails,
       PullRequestExecutor pullRequestExecutor)
   {
-    this.pullRequestRemediationDetails = pullRequestRemediationDetails;
-    this.pullRequestExecutor = pullRequestExecutor;
-    applicationId = pullRequestRemediationDetails.getApp().getId();
-    gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
-  }
-
-  @Override
-  public void run() {
     if (pullRequestRemediationDetails == null) {
       log.error("Missing required PullRequestRemediationDetails");
       return;
     }
+    if (pullRequestExecutor == null) {
+      log.error("Missing required PullRequestExecutor");
+      return;
+    }
+    String applicationId = pullRequestRemediationDetails.getApp().getId();
+    GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
+
     File checkoutDir = null;
     Date start = new Date();
     try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
-      log.info("Pull request task initiated for application '{}'", applicationId);
+      log.info("Pull request task initiated for application '{}', remediation target: [{}]",
+          applicationId, pullRequestRemediationDetails.getToBeRemediated());
 
       checkoutDir = getCheckoutDirectory(pullRequestRemediationDetails.getApp().getPublicId(), applicationId,
           gitRepositoryInfo.baseBranch);

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.git;
 
 import java.io.File;
+import java.io.IOException;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -121,13 +122,18 @@ public class PullRequestTaskTest
   }
   
   @Test
-  public void test_run_notInited() {
-    pullRequestTask.run();
+  public void test_run_notInited() throws IOException {
+    pullRequestTask.run(null, null);
+    assertThat(logOutput).atErrorLevel().contains("Missing required PullRequestRemediationDetails");
+    verifyNoInteractions(sourceControlUtils, gitClientFactory, insightConfig, fileCleaner,
+        app, metrics, auditRecorder, pullRequestRemediationDetails);
+
+    pullRequestTask.run(pullRequestRemediationDetails, null);
     assertThat(logOutput).atErrorLevel().contains("Missing required PullRequestRemediationDetails");
     verifyNoInteractions(sourceControlUtils, gitClientFactory, insightConfig, fileCleaner,
         app, metrics, auditRecorder, pullRequestRemediationDetails);
   }
-  
+
   @Test
   public void test_run_nothing_remediated() throws Exception {
     SourceControlConfig config = new SourceControlConfig();
@@ -135,8 +141,7 @@ public class PullRequestTaskTest
     config.setSonatypeWorkDir(sonatypeWorkDir);
     configureExpectations(config);
 
-    pullRequestTask.init(pullRequestRemediationDetails, new PullRequestExecutor());
-    pullRequestTask.run();
+    pullRequestTask.run(pullRequestRemediationDetails, new PullRequestExecutor());
 
     File targetDirectory = new File(config.getCloneDirectory(), APP_PUBLIC_ID + "-" + INFO.baseBranch + APP_HASH);
     assertThat(targetDirectory).exists();
@@ -155,8 +160,7 @@ public class PullRequestTaskTest
     configureExpectations(config, new GitRepositoryInfo("localhost", null, "token", SourceControlProvider.GITHUB,
         "d\\e/v_", true, true));
 
-    pullRequestTask.init(pullRequestRemediationDetails, new PullRequestExecutor());
-    pullRequestTask.run();
+    pullRequestTask.run(pullRequestRemediationDetails, new PullRequestExecutor());
 
     // then directory is created without special characters
     File targetDirectory = new File(config.getCloneDirectory(), APP_PUBLIC_ID + "-dev" + APP_HASH);
@@ -176,8 +180,7 @@ public class PullRequestTaskTest
     String longName = StringUtils.repeat("long", 21);
     when(app.getPublicId()).thenReturn(longName);
 
-    pullRequestTask.init(pullRequestRemediationDetails, new PullRequestExecutor());
-    pullRequestTask.run();
+    pullRequestTask.run(pullRequestRemediationDetails, new PullRequestExecutor());
 
     // then directory is created with truncated name and hash appended
     File targetDirectory = new File(config.getCloneDirectory(), "longlonglonglonglonglongl-branchname" + APP_HASH);
@@ -194,8 +197,7 @@ public class PullRequestTaskTest
     configureExpectations(config, new GitRepositoryInfo("localhost", null, "token", SourceControlProvider.GITHUB,
         StringUtils.repeat("long", 21) + "branchname", true, true));
 
-    pullRequestTask.init(pullRequestRemediationDetails, new PullRequestExecutor());
-    pullRequestTask.run();
+    pullRequestTask.run(pullRequestRemediationDetails, new PullRequestExecutor());
 
     // then directory is created with truncated name and hash appended
     File targetDirectory = new File(config.getCloneDirectory(), APP_PUBLIC_ID + "-longlonglonglon" + APP_HASH);
@@ -212,8 +214,7 @@ public class PullRequestTaskTest
     config.setCloneDirectory(APP_INTERNAL_ID);
     configureExpectations(config);
 
-    pullRequestTask.init(pullRequestRemediationDetails, new PullRequestExecutor());
-    pullRequestTask.run();
+    pullRequestTask.run(pullRequestRemediationDetails, new PullRequestExecutor());
 
     File targetDirectory = new File(config.getCloneDirectory(), APP_PUBLIC_ID + "-" + INFO.baseBranch + APP_HASH);
     assertThat(targetDirectory).exists();
@@ -237,8 +238,7 @@ public class PullRequestTaskTest
     when(gitClient.createPullRequest(BRANCH, INFO.baseBranch, TITLE, CONTENT)).thenReturn(pullRequestResponse);
     when(pullRequestResponse.getUrl()).thenReturn(INFO.repositoryUrl);
 
-    pullRequestTask.init(pullRequestRemediationDetails, new PullRequestExecutor());
-    pullRequestTask.run();
+    pullRequestTask.run(pullRequestRemediationDetails, new PullRequestExecutor());
     
     verify(gitApi).cloneOrPullRepository(targetDirectory, INFO.baseBranch);
     verify(gitApi).branch(targetDirectory, BRANCH);
@@ -264,8 +264,7 @@ public class PullRequestTaskTest
     when(gitApi.cloneOrPullRepository(targetDirectory, INFO.baseBranch))
         .thenThrow(new GitException("Something bad happened"));
 
-    pullRequestTask.init(pullRequestRemediationDetails, new PullRequestExecutor());
-    pullRequestTask.run();
+    pullRequestTask.run(pullRequestRemediationDetails, new PullRequestExecutor());
 
     verify(fileCleaner).delete(targetDirectory);
     assertThat(logOutput).atErrorLevel().contains("Failed to execute pull request, cleaning pull request directory");

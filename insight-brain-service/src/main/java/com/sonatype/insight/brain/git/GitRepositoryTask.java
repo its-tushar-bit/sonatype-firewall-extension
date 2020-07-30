@@ -14,7 +14,6 @@ import java.util.Locale;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 
 import com.google.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
@@ -41,10 +40,6 @@ public abstract class GitRepositoryTask
   private final FileCleaner fileCleaner;
 
   private final InsightConfig insightConfig;
-
-  protected String applicationId;
-
-  protected GitRepositoryInfo gitRepositoryInfo;
 
   @Inject
   public GitRepositoryTask(

@@ -125,7 +125,6 @@ public class DashboardApplicationsTest
 
     refresh();
     showLowRiskViolations();
-    eyesWatcher.eyesCheck();
     DashboardPage.dashboardContainer().shouldBe(visible);
     ApplicationsResults table = DashboardPage.applicationsView().results();
 

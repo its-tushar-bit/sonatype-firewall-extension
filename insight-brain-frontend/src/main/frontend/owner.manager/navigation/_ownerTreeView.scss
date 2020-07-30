@@ -274,6 +274,10 @@ $child-row-left-padding: 40px;
   }
 }
 
+.iq-owner-tree-view__min-filter-message {
+  margin-left: $iq-spacing-xs;
+}
+
 #owner-editing-detail-tree-view {
   .iq-owner-tree-view__row--child {
     padding-left: $child-row-left-padding;

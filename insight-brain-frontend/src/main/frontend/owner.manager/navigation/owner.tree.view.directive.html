@@ -11,6 +11,9 @@
       </span>
       <input type="text" ng-model="vm.filter.value" autocomplete="off" placeholder="App or Org Name">
     </div>
+    <p class="iq-owner-tree-view__min-filter-message" ng-if="vm.filter.value && vm.filter.value.length < 3">
+      Enter at least three characters to begin filtering
+    </p>
     <h4 ng-if="vm.filter.value && vm.filter.value.length >= 3">
       Filter Results
     </h4>

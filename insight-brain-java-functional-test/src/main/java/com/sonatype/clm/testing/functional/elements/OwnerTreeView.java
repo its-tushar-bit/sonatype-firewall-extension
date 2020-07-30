@@ -23,6 +23,10 @@ public class OwnerTreeView
     return $(".iq-owner-tree-view__filter input");
   }
 
+  public static SelenideElement filterMinCharsMessage() {
+    return $(".iq-owner-tree-view__min-filter-message");
+  }
+
   public static ElementsCollection organizationElements() {
     return $$("#owner-tree-view-owner-rows > .iq-tree-view");
   }

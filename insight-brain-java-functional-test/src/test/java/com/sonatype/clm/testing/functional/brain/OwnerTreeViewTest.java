@@ -166,6 +166,25 @@ public class OwnerTreeViewTest
   }
 
   @Test
+  public void testFilterTooShort() {
+    OwnerTreeView.filterMinCharsMessage().shouldNotBe(visible);
+
+    OwnerTreeView.filter().setValue("G");
+    OwnerTreeView.filterMinCharsMessage().shouldBe(visible);
+    OwnerTreeView.organizationElements().shouldHaveSize(4);
+
+    OwnerTreeView.filter().setValue("Gr");
+    OwnerTreeView.filterMinCharsMessage().shouldBe(visible);
+    OwnerTreeView.organizationElements().shouldHaveSize(4);
+
+    eyesWatcher.eyesCheck();
+
+    OwnerTreeView.filter().setValue("Gre");
+    OwnerTreeView.filterMinCharsMessage().shouldNotBe(visible);
+    assertSingleOrganizationVisible("Green Squadron", 2);
+  }
+
+  @Test
   public void testOrganizationSubstringFilter() {
     OwnerTreeView.filter().setValue("Green Sq");
     assertSingleOrganizationVisible("Green Squadron", 2);

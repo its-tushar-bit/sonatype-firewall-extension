@@ -227,7 +227,7 @@ public abstract class AbstractFunctionalTest
     WebDriver driver = WebDriverRunner.getAndCheckWebDriver();
 
     // Enforcing specific view port size for stable applitools validations.
-    setViewPortSize(driver);
+    setViewportSize(driver);
 
     if (!(driver instanceof PageTweakingWebDriver)) {
       WebDriverRunner.setWebDriver(new PageTweakingWebDriver(driver));
@@ -277,7 +277,7 @@ public abstract class AbstractFunctionalTest
   }
 
   @SuppressWarnings("unchecked")
-  private static void setViewPortSize(WebDriver driver) {
+  protected static void setViewportSize(WebDriver driver) {
     JavascriptExecutor executor = (JavascriptExecutor) WebDriverRunner.getWebDriver();
     // get the windows size for the specified view port
     @SuppressWarnings("rawtypes")

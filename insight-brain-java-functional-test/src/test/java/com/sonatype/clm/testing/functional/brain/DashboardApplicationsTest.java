@@ -76,6 +76,7 @@ public class DashboardApplicationsTest
     componentCounter = 0;
     org = tempEntity.newOrganization("DashboardApplicationsTest");
     policy = tempEntity.newPolicy(org);
+    setViewportSize(WebDriverRunner.getWebDriver());
     refreshOrOpen(DashboardPage.urlToApplications());
   }
 
@@ -125,6 +126,7 @@ public class DashboardApplicationsTest
 
     refresh();
     showLowRiskViolations();
+    eyesWatcher.eyesCheck();
     DashboardPage.dashboardContainer().shouldBe(visible);
     ApplicationsResults table = DashboardPage.applicationsView().results();
 
@@ -283,10 +285,13 @@ public class DashboardApplicationsTest
     };
     assertApplicationsCsv(exportCsv, expectedResults);
 
+    setViewportSize(WebDriverRunner.getWebDriver());
+
     // CSV export - filter out threat level 1
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(2, 10);
     DashboardFilters.policyThreatLevelFilter().twisty().click();
+    eyesWatcher.eyesCheck("Applications tab with form-mask");
     DashboardFilters.apply();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
@@ -442,6 +447,9 @@ public class DashboardApplicationsTest
     table.firstApplication().lowRisk().shouldHave(text("0"));
     table.application(40).lowRisk().shouldHave(text("0"));
     table.lastApplication().lowRisk().shouldHave(text("0"));
+
+    // last but certainly not least
+    eyesWatcher.eyesCheck("Scrollbar-present styling");
   }
 
   private void assertApplicationsCsv(String csv, String[] expectedSortedResults) {

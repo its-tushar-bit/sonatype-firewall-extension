@@ -274,16 +274,20 @@ public class ApplicationService
     Comparator<ApplicationManagementSummaryDTO> comparator;
     switch (order) {
       case APP_NAME_ASC:
-        comparator = Comparator.comparing(ApplicationManagementSummaryDTO::getName);
+        comparator = Comparator.comparing(ApplicationManagementSummaryDTO::getName, String.CASE_INSENSITIVE_ORDER);
         break;
       case APP_NAME_DESC:
-        comparator = Comparator.comparing(ApplicationManagementSummaryDTO::getName).reversed();
+        comparator =
+            Comparator.comparing(ApplicationManagementSummaryDTO::getName, String.CASE_INSENSITIVE_ORDER).reversed();
         break;
       case ORG_NAME_ASC:
-        comparator = Comparator.comparing(ApplicationManagementSummaryDTO::getOrganizationName);
+        comparator =
+            Comparator.comparing(ApplicationManagementSummaryDTO::getOrganizationName, String.CASE_INSENSITIVE_ORDER);
         break;
       case ORG_NAME_DESC:
-        comparator = Comparator.comparing(ApplicationManagementSummaryDTO::getOrganizationName).reversed();
+        comparator =
+            Comparator.comparing(ApplicationManagementSummaryDTO::getOrganizationName, String.CASE_INSENSITIVE_ORDER)
+                .reversed();
         break;
       default:
         throw new IllegalArgumentException("Unknown ordering: " + order);

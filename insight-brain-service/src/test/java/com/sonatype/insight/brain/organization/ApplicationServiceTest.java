@@ -329,7 +329,7 @@ public class ApplicationServiceTest
     List<ApplicationManagementSummaryDTO> applicationManagementSummaries = applicationService
         .getApplicationManagementSummaries("", ApplicationManagementSummaryOrder.APP_NAME_ASC, 1, RESULTS_PER_PAGE);
 
-    apps.sort(Comparator.comparing(Application::getName));
+    apps.sort(Comparator.comparing(Application::getName, String.CASE_INSENSITIVE_ORDER));
     assertThat(applicationManagementSummaries).extracting(ApplicationManagementSummaryDTO::getName)
         .containsExactlyElementsOf(apps.subList(0, RESULTS_PER_PAGE).stream().map(Application::getName)
             .collect(Collectors.toList()));
@@ -343,7 +343,7 @@ public class ApplicationServiceTest
     List<ApplicationManagementSummaryDTO> applicationManagementSummaries = applicationService
         .getApplicationManagementSummaries("", ApplicationManagementSummaryOrder.APP_NAME_ASC, 2, RESULTS_PER_PAGE);
 
-    apps.sort(Comparator.comparing(Application::getName));
+    apps.sort(Comparator.comparing(Application::getName, String.CASE_INSENSITIVE_ORDER));
     assertThat(applicationManagementSummaries).extracting(ApplicationManagementSummaryDTO::getName)
         .containsExactly(apps.get(apps.size() - 1).getName());
   }
@@ -356,7 +356,7 @@ public class ApplicationServiceTest
     List<ApplicationManagementSummaryDTO> applicationManagementSummaries = applicationService
         .getApplicationManagementSummaries("", ApplicationManagementSummaryOrder.APP_NAME_ASC, 1, 1);
 
-    apps.sort(Comparator.comparing(Application::getName));
+    apps.sort(Comparator.comparing(Application::getName, String.CASE_INSENSITIVE_ORDER));
     assertThat(applicationManagementSummaries).extracting(ApplicationManagementSummaryDTO::getName)
         .containsExactly(apps.get(0).getName());
   }
@@ -413,7 +413,7 @@ public class ApplicationServiceTest
         .getApplicationManagementSummaries("", ApplicationManagementSummaryOrder.APP_NAME_ASC, 1,
             RESULTS_PER_PAGE + 1);
 
-    apps.sort(Comparator.comparing(Application::getName));
+    apps.sort(Comparator.comparing(Application::getName, String.CASE_INSENSITIVE_ORDER));
     assertThat(applicationManagementSummaries).extracting(ApplicationManagementSummaryDTO::getName)
         .containsExactlyElementsOf(apps.stream().map(Application::getName).collect(Collectors.toList()));
   }
@@ -427,7 +427,7 @@ public class ApplicationServiceTest
         .getApplicationManagementSummaries("", ApplicationManagementSummaryOrder.APP_NAME_DESC, 1,
             RESULTS_PER_PAGE + 1);
 
-    apps.sort(Comparator.comparing(Application::getName).reversed());
+    apps.sort(Comparator.comparing(Application::getName, String.CASE_INSENSITIVE_ORDER).reversed());
     assertThat(applicationManagementSummaries).extracting(ApplicationManagementSummaryDTO::getName)
         .containsExactlyElementsOf(apps.stream().map(Application::getName).collect(Collectors.toList()));
   }
@@ -441,7 +441,7 @@ public class ApplicationServiceTest
         .getApplicationManagementSummaries("", ApplicationManagementSummaryOrder.ORG_NAME_ASC, 1,
             RESULTS_PER_PAGE + 1);
 
-    orgs.sort(Comparator.comparing(Organization::getName));
+    orgs.sort(Comparator.comparing(Organization::getName, String.CASE_INSENSITIVE_ORDER));
     assertThat(applicationManagementSummaries).extracting(ApplicationManagementSummaryDTO::getOrganizationName)
         .containsExactlyElementsOf(orgs.stream().map(Organization::getName).collect(Collectors.toList()));
   }
@@ -455,7 +455,7 @@ public class ApplicationServiceTest
         .getApplicationManagementSummaries("", ApplicationManagementSummaryOrder.ORG_NAME_DESC, 1,
             RESULTS_PER_PAGE + 1);
 
-    orgs.sort(Comparator.comparing(Organization::getName).reversed());
+    orgs.sort(Comparator.comparing(Organization::getName, String.CASE_INSENSITIVE_ORDER).reversed());
     assertThat(applicationManagementSummaries).extracting(ApplicationManagementSummaryDTO::getOrganizationName)
         .containsExactlyElementsOf(orgs.stream().map(Organization::getName).collect(Collectors.toList()));
   }

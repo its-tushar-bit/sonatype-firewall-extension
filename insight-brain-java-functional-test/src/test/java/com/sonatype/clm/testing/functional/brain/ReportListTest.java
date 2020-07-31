@@ -184,7 +184,7 @@ public class ReportListTest
   public void testLoad() {
     List<Application> apps = new ArrayList<>();
     createAlphabeticalOrgsAndApps(new ArrayList<>(), apps);
-    apps.sort(Comparator.comparing(Application::getName));
+    apps.sort(Comparator.comparing(Application::getName, String.CASE_INSENSITIVE_ORDER));
     ReportListPage.load().shouldNotBe(visible);
     refresh();
 
@@ -216,7 +216,7 @@ public class ReportListTest
     ReportListPage.sortAscending(ReportListPage.applicationNameHeader());
     List<String> names = new ArrayList<>();
     ReportListPage.consumeAllRows(row -> names.add(row.applicationName().getText()));
-    apps.sort(Comparator.comparing(Application::getName));
+    apps.sort(Comparator.comparing(Application::getName, String.CASE_INSENSITIVE_ORDER));
     assertThat(names).isEqualTo(apps.subList(0, ReportListPage.RESULTS_PER_PAGE).stream().map(Application::getName)
         .collect(Collectors.toList()));
 
@@ -224,7 +224,7 @@ public class ReportListTest
     ReportListPage.sortDescending(ReportListPage.applicationNameHeader());
     names.clear();
     ReportListPage.consumeAllRows(row -> names.add(row.applicationName().getText()));
-    apps.sort(Comparator.comparing(Application::getName).reversed());
+    apps.sort(Comparator.comparing(Application::getName, String.CASE_INSENSITIVE_ORDER).reversed());
     assertThat(names).isEqualTo(apps.subList(0, ReportListPage.RESULTS_PER_PAGE).stream().map(Application::getName)
         .collect(Collectors.toList()));
 
@@ -232,7 +232,7 @@ public class ReportListTest
     ReportListPage.sortAscending(ReportListPage.organizationNameHeader());
     names.clear();
     ReportListPage.consumeAllRows(row -> names.add(row.organizationName().getText()));
-    orgs.sort(Comparator.comparing(Organization::getName));
+    orgs.sort(Comparator.comparing(Organization::getName, String.CASE_INSENSITIVE_ORDER));
     assertThat(names).isEqualTo(orgs.subList(0, ReportListPage.RESULTS_PER_PAGE).stream().map(Organization::getName)
         .collect(Collectors.toList()));
 
@@ -240,7 +240,7 @@ public class ReportListTest
     ReportListPage.sortDescending(ReportListPage.organizationNameHeader());
     names.clear();
     ReportListPage.consumeAllRows(row -> names.add(row.organizationName().getText()));
-    orgs.sort(Comparator.comparing(Organization::getName).reversed());
+    orgs.sort(Comparator.comparing(Organization::getName, String.CASE_INSENSITIVE_ORDER).reversed());
     assertThat(names).isEqualTo(orgs.subList(0, ReportListPage.RESULTS_PER_PAGE).stream().map(Organization::getName)
         .collect(Collectors.toList()));
   }

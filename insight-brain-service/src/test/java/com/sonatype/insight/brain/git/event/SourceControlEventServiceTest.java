@@ -33,7 +33,6 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.Stubber;
 
 import static java.lang.String.format;
-import static java.lang.Thread.currentThread;
 import static java.lang.Thread.sleep;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -73,12 +72,6 @@ public class SourceControlEventServiceTest
   @Before
   @Override
   public void setup() {
-    try {
-      sleep(500);
-    }
-    catch (InterruptedException e) {
-      currentThread().interrupt();
-    }
     MockitoAnnotations.initMocks(this);
     super.setup();
     eventService = spy(new SourceControlEventService(mockSourceControlEventDAO, mockPullRequestCommentingService,
@@ -88,7 +81,14 @@ public class SourceControlEventServiceTest
   @After
   public void tearDown() {
     if (null != eventService) {
+      CountDownLatch shutdownLatch = createOnShutdownCompleteLatch(100);
       eventService.shutdown();
+      try {
+        verifyUnlatched(shutdownLatch);
+      }
+      catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
     }
   }
 
@@ -260,9 +260,14 @@ public class SourceControlEventServiceTest
         .selectEventsForInstance(eq(SourceControlEventService.INSTANCE_ID), requestCountCaptor.capture());
     assertThat(requestCountCaptor.getValue()).isEqualTo(expectedRequestCount);
 
+    // and then: logs are correct based on whichever event was actually picked up for processing first
+    ArgumentCaptor<SourceControlEvent> eventCaptor = ArgumentCaptor.forClass(SourceControlEvent.class);
+    verify(eventService, times(1)).notifyFinishedProcessingEvent(eventCaptor.capture());
+    SourceControlEvent completedEvent = eventCaptor.getValue();
+
     assertThatLogMessagesEqual(
         debug("Requested " + SourceControlEventService.TASK_QUEUE_CAPACITY + " source control events, processing 12"),
-        debug(getProcessedEventMessage(events.get(0))),
+        debug(getProcessedEventMessage(completedEvent)),
         debug("Requested " + (SourceControlEventService.TASK_QUEUE_CAPACITY - 1) +
             " source control events, processing 12")
     );
@@ -298,7 +303,7 @@ public class SourceControlEventServiceTest
   }
 
   @Test
-  public void testProcessEvents_eventOverload() {
+  public void testProcessEvents_eventOverload() throws Exception {
     // given: DAO setup to return more events than the event service is expecting
     List<SourceControlEvent> events = generateEvents(
         2 * SourceControlEventService.TASK_QUEUE_CAPACITY + ":app1:" + SourceControlEvent.APPLICATION_EVALUATION_EVENT);
@@ -330,6 +335,12 @@ public class SourceControlEventServiceTest
           debug(getProcessedEventMessage(events.get(0)))
       );
     });
+
+    // special cleanup for this test to keep its log messages from bleeding over into other tests
+    CountDownLatch shutdownLatch = createOnShutdownCompleteLatch(3000);
+    eventService.shutdown();
+    eventService = null;
+    verifyUnlatched(shutdownLatch);
   }
 
   @Test
@@ -584,6 +595,12 @@ public class SourceControlEventServiceTest
   private CountDownLatch createOnEventFinishedLatch(SourceControlEvent event) {
     CountDownLatch latch = new CountDownLatch(1);
     unlatch(latch).when(eventService).notifyFinishedProcessingEvent(eq(event));
+    return latch;
+  }
+
+  private CountDownLatch createOnShutdownCompleteLatch(long delayMilliseconds) {
+    CountDownLatch latch = new CountDownLatch(1);
+    unlatchWithDelay(latch, delayMilliseconds).when(eventService).notifyShutdownComplete();
     return latch;
   }
 

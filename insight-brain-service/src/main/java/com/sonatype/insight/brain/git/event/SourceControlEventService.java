@@ -323,17 +323,28 @@ public class SourceControlEventService
 
   @VisibleForTesting
   void shutdown() {
-    if (null != threadPoolExecutor) {
-      threadPoolExecutor.shutdownNow();
-      while (!threadPoolExecutor.isShutdown()) {
-        try {
-          sleep(100);
-        }
-        catch (InterruptedException e) {
-          currentThread().interrupt();
-          break;
+    try {
+      if (null != threadPoolExecutor) {
+        threadPoolExecutor.shutdownNow();
+        while (!threadPoolExecutor.isShutdown()) {
+          try {
+            sleep(100);
+          }
+          catch (InterruptedException e) {
+            currentThread().interrupt();
+            break;
+          }
         }
       }
     }
+    finally {
+      notifyShutdownComplete();
+    }
+  }
+
+  @VisibleForTesting
+  void notifyShutdownComplete() {
+    // tests will 'spy' on this method to know when the the threads have been shutdown and this service has no more
+    // work pending
   }
 }

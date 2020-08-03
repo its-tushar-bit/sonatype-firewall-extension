@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.policy.PolicyExportResult;
 @Named
 public class ReferencePolicyFetcher
 {
-  public static final int REFERENCE_POLICY_VERSION = 4;
+  public static final int REFERENCE_POLICY_VERSION = 5;
 
   public static final String REFERENCE_POLICY_PATH = "rest/referencePolicies/v" + REFERENCE_POLICY_VERSION;
 

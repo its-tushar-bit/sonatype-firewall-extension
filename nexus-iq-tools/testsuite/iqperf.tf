@@ -3,6 +3,7 @@
 # "Sonatype" is a trademark of Sonatype, Inc.
 
 provider "aws" {
+  version = "~> 2.70"
   region = var.aws_region
   assume_role {
     role_arn     = var.assume_role_arn

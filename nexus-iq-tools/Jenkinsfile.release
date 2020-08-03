@@ -88,8 +88,8 @@ pipeline {
              '''
           withDockerContainer(image: 'hashicorp/terraform:0.12.24', args: "--entrypoint=''") {
             sh '''
-               terraform init
-               terraform apply -auto-approve
+               terraform init -no-color
+               terraform apply -auto-approve -no-color
                '''
           }
         }
@@ -99,7 +99,7 @@ pipeline {
           dir('nexus-iq-tools/testsuite') {
             withDockerContainer(image: 'hashicorp/terraform:0.12.24', args: "--entrypoint=''") {
               retry(3) {
-                sh 'terraform destroy --force'
+                sh 'terraform destroy --force -no-color'
               }
             }
           }
@@ -118,7 +118,7 @@ pipeline {
           dir('nexus-iq-tools/testsuite') {
             withDockerContainer(image: 'hashicorp/terraform:0.12.24', args: "--entrypoint=''") {
               retry(3) {
-                sh 'terraform destroy --force'
+                sh 'terraform destroy --force -no-color'
               }
             }
           }
@@ -149,8 +149,8 @@ pipeline {
              '''
           withDockerContainer(image: 'hashicorp/terraform:0.12.24', args: "--entrypoint=''") {
             sh '''
-               terraform init
-               terraform apply -auto-approve
+               terraform init -no-color
+               terraform apply -auto-approve -no-color
                '''
           }
         }
@@ -160,7 +160,7 @@ pipeline {
           dir('nexus-iq-tools/testsuite') {
             withDockerContainer(image: 'hashicorp/terraform:0.12.24', args: "--entrypoint=''") {
               retry(3) {
-                sh 'terraform destroy --force'
+                sh 'terraform destroy --force -no-color'
               }
             }
           }
@@ -179,7 +179,7 @@ pipeline {
           dir('nexus-iq-tools/testsuite') {
             withDockerContainer(image: 'hashicorp/terraform:0.12.24', args: "--entrypoint=''") {
               retry(3) {
-                sh 'terraform destroy --force'
+                sh 'terraform destroy --force -no-color'
               }
             }
           }
@@ -210,8 +210,8 @@ pipeline {
              '''
           withDockerContainer(image: 'hashicorp/terraform:0.12.24', args: "--entrypoint=''") {
             sh '''
-               terraform init
-               terraform apply -auto-approve
+               terraform init -no-color
+               terraform apply -auto-approve -no-color
                '''
           }
         }
@@ -221,7 +221,7 @@ pipeline {
           dir('nexus-iq-tools/testsuite') {
             withDockerContainer(image: 'hashicorp/terraform:0.12.24', args: "--entrypoint=''") {
               retry(3) {
-                sh 'terraform destroy --force'
+                sh 'terraform destroy --force -no-color'
               }
             }
           }
@@ -240,7 +240,7 @@ pipeline {
           dir('nexus-iq-tools/testsuite') {
             withDockerContainer(image: 'hashicorp/terraform:0.12.24', args: "--entrypoint=''") {
               retry(3) {
-                sh 'terraform destroy --force'
+                sh 'terraform destroy --force -no-color'
               }
             }
           }

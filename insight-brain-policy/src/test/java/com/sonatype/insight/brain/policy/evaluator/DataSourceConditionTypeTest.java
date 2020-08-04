@@ -43,42 +43,42 @@ public class DataSourceConditionTypeTest
   public void testEvaluatehasSupportForIdentity_HDS() {
     Constraint constraint = createConstraint(HAS_SUPPORT_FOR, IDENTITY.getId());
     testEvaluateDataSource(ComponentIdentifier.FORMAT_MAVEN, constraint, fromHds(),
-        fromThirdParty(), "Data source has support for Identity");
+        fromThirdParty(), "Data Source has support for Identity");
   }
 
   @Test
   public void testEvaluatehasNoSupportForIdentity_LQA() {
     Constraint constraint = createConstraint(HAS_NO_SUPPORT_FOR, IDENTITY.getId());
     testEvaluateDataSource("composer", constraint, fromLqa(),
-        fromHds(), "Data source has no support for Identity");
+        fromHds(), "Data Source has no support for Identity");
   }
 
   @Test
   public void testEvaluatehasNoSupportForIdentity_ThirdParty() {
     Constraint constraint = createConstraint(HAS_NO_SUPPORT_FOR, IDENTITY.getId());
     testEvaluateDataSource("composer", constraint, fromThirdParty(),
-        fromHds(), "Data source has no support for Identity");
+        fromHds(), "Data Source has no support for Identity");
   }
 
   @Test
   public void testEvaluatehasSupportForLicense_HDS() {
     Constraint constraint = createConstraint(HAS_SUPPORT_FOR, LICENSE.getId());
     testEvaluateDataSource(ComponentIdentifier.FORMAT_MAVEN, constraint, fromHds(), fromThirdParty(),
-        "Data source has support for License");
+        "Data Source has support for License");
   }
 
   @Test
   public void testEvaluatehasNoSupportForLicense_LQA() {
     Constraint constraint = createConstraint(HAS_NO_SUPPORT_FOR, LICENSE.getId());
     testEvaluateDataSource(ComponentIdentifier.FORMAT_MAVEN, constraint, fromLqa(),
-        fromHds(), "Data source has no support for License");
+        fromHds(), "Data Source has no support for License");
   }
 
   @Test
   public void testEvaluatehasNoSupportForLicense_ThirdParty() {
     Constraint constraint = createConstraint(HAS_NO_SUPPORT_FOR, LICENSE.getId());
     testEvaluateDataSource(ComponentIdentifier.FORMAT_MAVEN, constraint, fromThirdParty(), fromHds(),
-        "Data source has no support for License");
+        "Data Source has no support for License");
   }
 
   @Test
@@ -116,7 +116,7 @@ public class DataSourceConditionTypeTest
 
     String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts().get(0).getReason();
-    assertThat(actualReason).isEqualTo("Data source has support for Identity");
+    assertThat(actualReason).isEqualTo("Data Source has support for Identity");
   }
 
   @Test

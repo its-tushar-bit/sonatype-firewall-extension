@@ -37,7 +37,7 @@ public class DataSourceConditionType
 
   @Override
   public String getName() {
-    return "Data source";
+    return "Data Source";
   }
 
   @Override

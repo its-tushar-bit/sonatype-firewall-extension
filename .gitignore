@@ -32,3 +32,6 @@ nexus-iq-tools/testsuite/run_aws_test.config
 
 # config file for tsc-based javascript editing plugins
 jsconfig.json
+
+# dep tree that is created as part of IQ for vsCode
+dependency_tree.txt

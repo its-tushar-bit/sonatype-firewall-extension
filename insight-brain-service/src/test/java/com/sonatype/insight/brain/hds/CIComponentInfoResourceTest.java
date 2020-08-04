@@ -34,7 +34,9 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.hds.ComponentInfoResourceTestUtils.convertToHdsUrl;
 import static com.sonatype.insight.brain.hds.ComponentInfoResourceTestUtils.toLicenseDTO;
+import static com.sonatype.insight.brain.model.license.License.UNSPECIFIED_ID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 public class CIComponentInfoResourceTest
     extends AbstractComponentInfoResourceTest
@@ -151,7 +153,11 @@ public class CIComponentInfoResourceTest
     assertThat(licenses.declaredlicenses).hasSize(1);
     assertThat(licenses.declaredlicenses).extracting(license -> license.license.getLicenseId())
         .containsExactlyInAnyOrder("Apache-2.0");
-    assertThat(licenses.observedlicenses).isEmpty();
+    assertThat(licenses.observedlicenses).hasSize(1);
+    assertThat(licenses.observedlicenses)
+        .extracting(licenseWithThreatLevel -> licenseWithThreatLevel.license.getLicenseId(),
+            licenseWithThreatLevel -> licenseWithThreatLevel.license.getLicenseName())
+        .containsExactlyInAnyOrder(tuple(UNSPECIFIED_ID, "Not Provided"));
   }
 
   @Test
@@ -173,7 +179,11 @@ public class CIComponentInfoResourceTest
     ComponentLicenses licenses = response.getBody(ComponentLicenses.class);
     assertThat(licenses.declaredlicenses).extracting(license -> license.license.getLicenseId())
         .containsExactlyInAnyOrder("Apache-2.0");
-    assertThat(licenses.observedlicenses).isEmpty();
+    assertThat(licenses.observedlicenses)
+        .extracting(licenseWithThreatLevel -> licenseWithThreatLevel.license.getLicenseId(),
+            licenseWithThreatLevel -> licenseWithThreatLevel.license.getLicenseName())
+        .containsExactlyInAnyOrder(tuple(UNSPECIFIED_ID, "Not Provided"));
+
   }
 
   private Set<License> toLicenseSet(String... licenseIds) {

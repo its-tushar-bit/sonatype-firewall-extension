@@ -80,6 +80,8 @@ public class ComponentInfoService
 
   private LicenseDAO licenseDAO = new LicenseDAO();
 
+  private License unspecifiedLicense;
+
   private final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
 
   private final HdsClient hdsClient;
@@ -103,6 +105,7 @@ public class ComponentInfoService
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.componentRemediationService = componentRemediationService;
     this.thirdPartyComponentDAO = thirdPartyComponentDAO;
+    initUnspecifiedLicense();
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
@@ -172,6 +175,7 @@ public class ComponentInfoService
       else {
         componentDetails = getComponentDetailsFromHDS(matchState, hash, identifier, httpRequest, identificationSource);
       }
+      augmentEmptyLicensesAsUnspecified(componentDetails);
     }
     else {
       // See CLM-4195
@@ -245,6 +249,23 @@ public class ComponentInfoService
     details.setMatchState(MatchState.EXACT.getId());
     details.setIdentificationSource(IdentificationSource.PACKAGE_MANIFEST.getId());
     return details;
+  }
+
+  private void initUnspecifiedLicense() {
+    final com.sonatype.insight.brain.model.license.License
+        licenseNotProvided = licenseDAO.getByIdNotNull(com.sonatype.insight.brain.model.license.License.UNSPECIFIED_ID);
+    unspecifiedLicense = new License(licenseNotProvided.getId(), licenseNotProvided.getShortDisplayName());
+  }
+
+  private void augmentEmptyLicensesAsUnspecified(ComponentDetails componentDetails) {
+    if (componentDetails != null) {
+      if (componentDetails.getDeclaredLicenses().isEmpty()) {
+        componentDetails.getDeclaredLicenses().add(unspecifiedLicense);
+      }
+      if (componentDetails.getObservedLicenses().isEmpty()) {
+        componentDetails.getObservedLicenses().add(unspecifiedLicense);
+      }
+    }
   }
 
   private String generateFakeHash(ComponentIdentifier componentIdentifier) {
@@ -485,6 +506,7 @@ public class ComponentInfoService
           && isPackageManifestIdentificationSource(identificationSource)) {
         String hash = generateFakeHash(identifier);
         NamedComponentDetails details = createComponentDetailsFromPackageManifest(hash, identifier);
+        augmentEmptyLicensesAsUnspecified(details);
         componentDetailsList = new ComponentDetailsList();
         componentDetailsList.setList(Collections.singletonList(details));
       }
@@ -525,14 +547,13 @@ public class ComponentInfoService
     else {
       componentDetails = getComponentDetailsFromHDS(null, null, componentIdentifier, httpRequest, identificationSource);
     }
-
+    augmentEmptyLicensesAsUnspecified(componentDetails);
     new ComponentDetailsLoader(owner).augmentComponentDetails(componentDetails);
     result.declaredlicenses = getLicensesWithThreatLevels(owner, componentDetails.getDeclaredLicenses());
     result.observedlicenses = getLicensesWithThreatLevels(owner, componentDetails.getObservedLicenses());
     result.effectiveLicenses = getLicensesWithThreatLevels(owner, componentDetails.getEffectiveLicenses());
     result.selectableLicenses = new ArrayList<>(getSelectableLicenses(componentDetails.getDeclaredLicenses(),
         componentDetails.getObservedLicenses()));
-
     return result;
   }
 

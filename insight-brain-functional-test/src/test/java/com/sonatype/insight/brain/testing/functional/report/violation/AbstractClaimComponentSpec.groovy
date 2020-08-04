@@ -192,7 +192,7 @@ extends BaseSpec {
     then: 'the form is shown and empty, with a disabled update button'
     waitFor { cip.licenses.form.displayed }
     LicenseModule licenses = cip.licenses as LicenseModule
-    licenses.validateLicense('', '', '', app.name, 'Open', '', '', false)
+      licenses.validateLicense('Not Provided', 'Not Provided', 'Not Provided', app.name, 'Open', '', '', false)
 
     when: 'Selecting to override the license'
     licenses.status = 'Overridden'
@@ -224,7 +224,7 @@ extends BaseSpec {
 
     then:
     waitFor { cip.licenses.form.displayed }
-    licenses.validateLicense('', '', 'Beerware', app.name, 'Overridden', 'Beerware', '', false)
+    licenses.validateLicense('Not Provided', 'Not Provided', 'Beerware', app.name, 'Overridden', 'Beerware', '', false)
 
     when: 'We go to the component info page'
     mockHdsComponentDetailsListResponse(UCID);

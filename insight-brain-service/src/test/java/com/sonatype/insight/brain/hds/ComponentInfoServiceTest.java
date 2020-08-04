@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediation
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentLicenses;
@@ -84,6 +85,7 @@ import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersi
 import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES;
 import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS;
 import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES;
+import static com.sonatype.insight.brain.model.license.License.UNSPECIFIED_ID;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -128,11 +130,15 @@ public class ComponentInfoServiceTest
   @Mock
   private ThirdPartyComponentDAO thirdPartyComponentDAO;
 
+  @Mock
+  private LicenseDAO licenseDAO;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(ProductLicense.class).toInstance(productLicenseMock);
     binder.bind(HdsClient.class).toInstance(hdsClientMock);
     binder.bind(ThirdPartyComponentDAO.class).toInstance(thirdPartyComponentDAO);
+    binder.bind(LicenseDAO.class).toInstance(licenseDAO);
     super.configure(binder);
   }
 
@@ -265,10 +271,9 @@ public class ComponentInfoServiceTest
         componentInfoService.getLicenses(OwnerType.APPLICATION, applicationPublicId, MAVEN_A1_COORDINATES,
             httpRequestMock, identificationSource, scanId);
 
-    assertThat(licenses.declaredlicenses).isEmpty();
-    assertThat(licenses.observedlicenses).isEmpty();
-    assertThat(licenses.effectiveLicenses).isEmpty();
-    assertThat(licenses.selectableLicenses).isEmpty();
+    assertLicenses(licenses.declaredlicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
+    assertLicenses(licenses.observedlicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
+    assertLicenses(licenses.effectiveLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
   }
 
   @Test
@@ -284,9 +289,9 @@ public class ComponentInfoServiceTest
     ComponentLicenses licenses = componentInfoService.getLicenses(OwnerType.APPLICATION, applicationPublicId,
         MAVEN_A1_COORDINATES, httpRequestMock, identificationSource, scanId);
 
-    assertThat(licenses.declaredlicenses).isEmpty();
-    assertThat(licenses.observedlicenses).isEmpty();
-    assertThat(licenses.effectiveLicenses).isEmpty();
+    assertLicenses(licenses.declaredlicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
+    assertLicenses(licenses.observedlicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
+    assertLicenses(licenses.effectiveLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
     assertThat(licenses.selectableLicenses).isEmpty();
   }
 
@@ -297,9 +302,9 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetails(hdsComponentDetails);
     ComponentLicenses licenses = componentInfoService.getLicenses(ownerType, ownerId, MAVEN_A1_COORDINATES,
         httpRequestMock, null, null);
-    assertThat(licenses.declaredlicenses).isEmpty();
-    assertThat(licenses.observedlicenses).isEmpty();
-    assertThat(licenses.effectiveLicenses).isEmpty();
+    assertLicenses(licenses.declaredlicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
+    assertLicenses(licenses.observedlicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
+    assertLicenses(licenses.effectiveLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
     assertThat(licenses.selectableLicenses).isEmpty();
 
     final String privateOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
@@ -310,6 +315,7 @@ public class ComponentInfoServiceTest
         OwnerType.APPLICATION.equals(ownerType) ? privateOwnerId : Organization.ROOT_ORGANIZATION_ID,
         "ComponentInfoServiceTest", 5, "LGPL-2.0", "BSD-3-Clause");
 
+    hdsComponentDetails.getEffectiveLicenses().clear();
     hdsComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-2.0", "LGPL-2.0-MPL-1.1"));
     hdsComponentDetails.setObservedLicenses(toLicenseSet("GPL-2.0", "AFL-2.1-BSD-3-Clause"));
     mockHdsGetComponentDetails(hdsComponentDetails);
@@ -489,8 +495,9 @@ public class ComponentInfoServiceTest
     ComponentLicenses licenses = componentInfoService.getLicenses(ownerType, ownerId, MAVEN_A1_COORDINATES,
         httpRequestMock, null, null);
     // if we got here, we are good, but let's do some sanity check
-    assertThat(licenses.declaredlicenses).isEmpty();
-    assertThat(licenses.observedlicenses).isEmpty();
+    assertLicenses(licenses.declaredlicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
+    assertLicenses(licenses.observedlicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
+    assertLicenses(licenses.effectiveLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
   }
 
   private void assertLicenses(Iterable<LicenseWithThreatLevel> actual, Tuple... tuples) {
@@ -1192,7 +1199,12 @@ public class ComponentInfoServiceTest
     assertThat(resultComponentDetails.identificationSource).isEqualTo(identificationSource);
     assertThat(resultComponentDetails.policyMaxThreatLevelsByCategory).isEmpty();
     assertThat(resultComponentDetails.violatedPolicyCount).isEqualTo(0);
-    assertThat(resultComponentDetails.declaredLicenses).isEmpty();
+    assertThat(resultComponentDetails.declaredLicenses).extracting("licenseId", "licenseName")
+        .contains(tuple(UNSPECIFIED_ID, "Not Provided"));
+    assertThat(resultComponentDetails.observedLicenses).extracting("licenseId", "licenseName")
+        .contains(tuple(UNSPECIFIED_ID, "Not Provided"));
+    assertThat(resultComponentDetails.effectiveLicenses).extracting("licenseId", "licenseName")
+        .contains(tuple(UNSPECIFIED_ID, "Not Provided"));
   }
 
   @Test

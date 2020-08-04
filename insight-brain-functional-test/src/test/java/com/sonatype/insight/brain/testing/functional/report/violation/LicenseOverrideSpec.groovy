@@ -60,7 +60,7 @@ extends BaseSpec {
     then: 'the form is shown and empty, with a disabled update button'
     waitFor { cip.licenses.form.displayed }
     LicenseModule licenses = cip.licenses as LicenseModule
-    licenses.validateLicense('', '', '', app.name, 'Open', '', '', false)
+    licenses.validateLicense('Not Provided', 'Not Provided', 'Not Provided', app.name, 'Open', '', '', false)
   }
 
   def "Should have an empty Audit Log"() {
@@ -113,6 +113,6 @@ extends BaseSpec {
 
     then:
     waitFor { cip.licenses.form.displayed }
-    licenses.validateLicense('', '', 'Beerware\nBSL-1.0', app.name, 'Overridden', 'Beerware, BSL-1.0', '', false)
+    licenses.validateLicense('Not Provided', 'Not Provided', 'Beerware\nBSL-1.0', app.name, 'Overridden', 'Beerware, BSL-1.0', '', false)
   }
 }

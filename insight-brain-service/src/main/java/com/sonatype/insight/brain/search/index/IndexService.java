@@ -8,8 +8,6 @@ package com.sonatype.insight.brain.search.index;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -59,7 +57,6 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.FSDirectory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -204,12 +201,9 @@ public class IndexService
     log.info("creating search index...");
     long start = System.currentTimeMillis();
 
-    Path indexPath = insightWork.getSearchIndexDir().toPath();
-    Files.createDirectories(indexPath);
-
     IndexWriterConfig indexWriterConfig = new IndexWriterConfig(luceneComponents.newAnalyzerForSearch());
     indexWriterConfig.setOpenMode(OpenMode.CREATE);
-    try (Directory directory = FSDirectory.open(indexPath);
+    try (Directory directory = luceneComponents.openSearchIndex(false);
         IndexWriter indexWriter = new IndexWriter(directory, indexWriterConfig)) {
       log.info("begin indexing");
 
@@ -264,10 +258,12 @@ public class IndexService
   }
 
   public long getIndexSize() {
-    try (Directory indexDir = FSDirectory.open(insightWork.getSearchIndexDir().toPath())) {
+    try (Directory indexDir = luceneComponents.openSearchIndex(true)) {
       long bytes = 0;
-      for (String filename : indexDir.listAll()) {
-        bytes += indexDir.fileLength(filename);
+      if (indexDir != null) {
+        for (String filename : indexDir.listAll()) {
+          bytes += indexDir.fileLength(filename);
+        }
       }
       return bytes;
     }

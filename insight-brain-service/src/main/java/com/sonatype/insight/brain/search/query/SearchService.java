@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.search.query;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -36,7 +35,6 @@ import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.PermissionService;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryMetrics;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
@@ -55,7 +53,7 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TotalHits.Relation;
-import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.store.Directory;
 import org.codehaus.plexus.util.StringUtils;
 
 import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.*;
@@ -70,8 +68,6 @@ public class SearchService
   private static final String NO_INDEX_ERROR_MESSAGE =
       "Index does not exist or is unreadable, please (re)create your index.";
 
-  private final InsightWork insightWork;
-
   private final LuceneComponents luceneComponents;
 
   private final AdvancedSearchTelemetryMetrics advancedSearchTelemetryMetrics;
@@ -82,13 +78,11 @@ public class SearchService
 
   @Inject
   public SearchService(
-      InsightWork insightWork,
       LuceneComponents luceneComponents,
       AdvancedSearchTelemetryMetrics advancedSearchTelemetryMetrics,
       PermissionService permissionService,
       CurrentUser currentUser)
   {
-    this.insightWork = insightWork;
     this.luceneComponents = luceneComponents;
     this.advancedSearchTelemetryMetrics = advancedSearchTelemetryMetrics;
     this.permissionService = permissionService;
@@ -109,9 +103,7 @@ public class SearchService
         .setData("searchPageSize", pageSize) //
         .setData("searchPageIndex", page - 1);
 
-    Path searchIndexPath = insightWork.getSearchIndexDir().toPath();
-    validateIndex(searchIndexPath);
-    try (IndexReader indexReader = DirectoryReader.open(FSDirectory.open(searchIndexPath))) {
+    try (IndexReader indexReader = DirectoryReader.open(openSearchIndex())) {
       SearchResultDTO searchResultDTO = new SearchResultDTO();
       searchResultDTO.searchQuery = searchQuery;
       searchResultDTO.page = page;
@@ -196,11 +188,16 @@ public class SearchService
     }
   }
 
-  private void validateIndex(Path indexPath) {
-    try (FSDirectory fsDirectory = FSDirectory.open(indexPath)) {
-      if (!DirectoryReader.indexExists(fsDirectory)) {
+  private Directory openSearchIndex() {
+    try {
+      Directory directory = luceneComponents.openSearchIndex(true);
+      if (directory == null || !DirectoryReader.indexExists(directory)) {
+        if (directory != null) {
+          directory.close();
+        }
         throw new ConflictException(NO_INDEX_ERROR_MESSAGE);
       }
+      return directory;
     }
     catch (IOException e) {
       throw new ConflictException(NO_INDEX_ERROR_MESSAGE, e);

@@ -19,7 +19,7 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.service.InsightWork;
 
 import org.apache.lucene.index.SegmentInfos;
-import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.store.Directory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,10 +32,17 @@ public class AdvancedSearchService
 
   private final InsightWork insightWork;
 
+  private final LuceneComponents luceneComponents;
+
   @Inject
-  public AdvancedSearchService(SystemConfigurationPropertyDAO systemConfigurationPropertyDAO, InsightWork insightWork) {
+  public AdvancedSearchService(
+      SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
+      InsightWork insightWork,
+      LuceneComponents luceneComponents)
+  {
     this.dao = systemConfigurationPropertyDAO;
     this.insightWork = insightWork;
+    this.luceneComponents = luceneComponents;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -56,16 +63,15 @@ public class AdvancedSearchService
   }
 
   private Long getLastIndexTime() {
-    File searchIndexDirectory = insightWork.getSearchIndexDir();
-    if (!searchIndexDirectory.exists()) {
-      return null;
-    }
-    try (FSDirectory fsDirectory = FSDirectory.open(searchIndexDirectory.toPath())) {
-      String lastCommitSegmentsFileName = SegmentInfos.getLastCommitSegmentsFileName(fsDirectory);
+    try (Directory directory = luceneComponents.openSearchIndex(true)) {
+      if (directory == null) {
+        return null;
+      }
+      String lastCommitSegmentsFileName = SegmentInfos.getLastCommitSegmentsFileName(directory);
       if (lastCommitSegmentsFileName == null) {
         return null;
       }
-      return new File(searchIndexDirectory, lastCommitSegmentsFileName).lastModified();
+      return new File(insightWork.getSearchIndexDir(), lastCommitSegmentsFileName).lastModified();
     }
     catch (IOException e) {
       log.error(e.getMessage(), e);

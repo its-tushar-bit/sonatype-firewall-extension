@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.search;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Locale;
@@ -16,6 +19,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -24,6 +28,8 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser;
 import org.apache.lucene.queryparser.flexible.standard.config.PointsConfig;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.FSDirectory;
 
 @Named
 @Singleton
@@ -31,9 +37,20 @@ public class LuceneComponents
 {
   private final NumberFormat numberFormat;
 
+  private final InsightWork insightWork;
+
   @Inject
-  public LuceneComponents() {
+  public LuceneComponents(InsightWork insightWork) {
+    this.insightWork = insightWork;
     numberFormat = NumberFormat.getNumberInstance(Locale.ROOT);
+  }
+
+  public Directory openSearchIndex(boolean readOnly) throws IOException {
+    Path searchIndexDirectory = insightWork.getSearchIndexDir().toPath();
+    if (readOnly && !Files.exists(searchIndexDirectory)) {
+      return null;
+    }
+    return FSDirectory.open(searchIndexDirectory);
   }
 
   public Analyzer newAnalyzerForSearch() {

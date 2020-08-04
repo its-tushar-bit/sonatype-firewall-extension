@@ -172,6 +172,10 @@ public class SourceControlEditorPage
     return new MetricsTable();
   }
 
+  public static SelenideElement testResultsElement() {
+    return $("#scm-config-results");
+  }
+
   public static TestResults testResults() {
     return new TestResults("#scm-config-results");
   }

@@ -31,6 +31,7 @@ import org.junit.Test;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.matchText;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
@@ -330,6 +331,15 @@ public class ApplicationSourceControlEditorTest
     completeTestResults.rows().get(2).shouldHave(text("unknown host"));
 
     eyesWatcher.eyesCheck("Source Control Editor Test Config Results");
+
+    // when: we make a change and save
+    SourceControlEditorPage.repositoryUrl().setValue(REPOSITORY_URL + "-changed");
+    SourceControlEditorPage.saveButton().shouldBe(enabled);
+    SourceControlEditorPage.saveButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    // then the test results are hidden
+    SourceControlEditorPage.testResultsElement().shouldNot(exist);
   }
 
   @Test

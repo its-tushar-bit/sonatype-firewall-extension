@@ -185,6 +185,7 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
 
   function save() {
     vm.submitError = undefined;
+    vm.scmConfigValidationResult = undefined;
     let savePromise;
     let sourceControl = modelToSourceControl(vm.dirtySourceControl);
 

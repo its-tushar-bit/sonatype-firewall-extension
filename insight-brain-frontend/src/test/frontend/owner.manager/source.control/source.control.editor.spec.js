@@ -1987,6 +1987,22 @@ describe('source.control.editor.spec', function() {
         expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
       });
+
+      it('clears any SCM test results after a save', function() {
+        let sourceControlModelCopy = angular.copy(sourceControlModel);
+        vm.dirtySourceControl = sourceControlModelCopy;
+        vm.dirtySourceControl.enablePullRequests = true;
+        vm.dirtySourceControl.repositoryUrl = REPOSITORY_URL + '-changed';
+
+        vm.scmConfigValidationResult = {'body': 'sample'};
+
+        // when
+        vm.save();
+        $scope.$digest();
+
+        // then
+        expect(vm.scmConfigValidationResult).toBeUndefined();
+      });
     });
 
     describe('isDirty', function() {

@@ -275,9 +275,9 @@
       </div>
       <div id="scm-config-results"
            class="iq-list iq-list--scm-test-config-results"
-           ng-if="vm.showScmValidator && vm.scmConfigValidationResult">
+           ng-if="vm.isApp && vm.scmConfigValidationResult">
         <h4 class="iq-list__title">
-          Configuration test results
+          Configuration Test Results
         </h4>
         <ul>
           <li class="iq-list__item">
@@ -317,7 +317,8 @@
           <i class="fa fa-trash"></i>Delete Source Control
         </button><!--
      --><button type="button"
-                   ng-if="vm.showScmValidator"
+                   id="test-source-control-config-button"
+                   ng-if="vm.isApp"
                    class="iq-btn iq-btn--tertiary"
                    ng-click="vm.validateScmConfig()"
                    ng-disabled="vm.scmConfigValidationInProgress || vm.isDirty()"

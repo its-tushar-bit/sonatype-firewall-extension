@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.features;
 
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -19,7 +18,6 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.inject.Binder;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -157,20 +155,5 @@ public class FeaturesServiceTest
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.DASHBOARD_DISABLED, "true");
 
     assertThat(featuresService.getFeatures()).doesNotContain(LicensedFeature.DASHBOARD);
-  }
-
-  @Test
-  public void testGetFeatures_WithoutScmConfig() {
-    when(productLicense.isValid()).thenReturn(true);
-    insightConfig.setExperimentalFeatures(new HashMap<>());
-    assertThat(featuresService.getFeatures()).doesNotContain(NonLicensedFeature.SCM_CONFIG_VALIDATOR);
-  }
-
-  @Test
-  public void testGetFeatures_WithScmConfig() {
-    when(productLicense.isValid()).thenReturn(true);
-    insightConfig
-        .setExperimentalFeatures(new ImmutableMap.Builder<String, Boolean>().put("scmConfigValidator", true).build());
-    assertThat(featuresService.getFeatures()).contains(NonLicensedFeature.SCM_CONFIG_VALIDATOR);
   }
 }

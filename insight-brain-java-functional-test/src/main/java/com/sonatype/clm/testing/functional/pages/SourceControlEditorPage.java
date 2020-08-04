@@ -11,10 +11,10 @@ import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.IqRadio;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.$;
 
 public class SourceControlEditorPage
@@ -82,6 +82,10 @@ public class SourceControlEditorPage
 
   public static SelenideElement deleteButton() {
     return $("#delete-source-control-button");
+  }
+
+  public static SelenideElement testConfigButton() {
+    return $("#test-source-control-config-button");
   }
 
   public ErrorBox error() {
@@ -168,6 +172,27 @@ public class SourceControlEditorPage
     return new MetricsTable();
   }
 
+  public static TestResults testResults() {
+    return new TestResults("#scm-config-results");
+  }
+
+  public static class TestResults
+      extends BasicElement<TestResults>
+  {
+    public TestResults(String selector)  {
+      super(selector);
+      $(selector).scrollIntoView(false);
+    }
+
+    public SelenideElement title() {
+      return child("h4");
+    }
+
+    public ElementsCollection rows() {
+      return children("ul li.iq-list__item");
+    }
+  }
+
   /**
    * Represents the table of Pull Request metrics.
    */
@@ -216,7 +241,7 @@ public class SourceControlEditorPage
 
     public boolean isEmpty() {
       ElementsCollection td = columns();
-      return td.size() == 1 && td.get(0).has(Condition.attribute("colspan", "5"));
+      return td.size() == 1 && td.get(0).has(attribute("colspan", "5"));
     }
 
     public String title() {
@@ -224,7 +249,7 @@ public class SourceControlEditorPage
     }
 
     public boolean created() {
-      return columns().get(1).find("i").has(Condition.cssClass("fa-check-circle"));
+      return columns().get(1).find("i").has(cssClass("fa-check-circle"));
     }
 
     public String totalTime() {

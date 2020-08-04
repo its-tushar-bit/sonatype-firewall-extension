@@ -13,7 +13,11 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.nexus.scm.SourceControlProvider;
+
+import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
+import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
 import org.junit.After;
 import org.junit.Before;
@@ -28,7 +32,7 @@ public abstract class AbstractSourceControlEditorTest
 {
   static final SourceControlEditorPage PAGE = new SourceControlEditorPage();
 
-  static String TOKEN = "secret_key";
+  static String TOKEN;
 
   protected final SourceControlDAO sourceControlDAO = new SourceControlDAO();
 
@@ -43,7 +47,8 @@ public abstract class AbstractSourceControlEditorTest
   protected static final String YE_OLE_ORGANIZATION = "Ye Ole Organization";
 
   @Before
-  public void init() {
+  public void init() throws PlexusCipherException {
+    TOKEN = new String(new PasswordHandler(new DefaultPlexusCipher()).encryptPassword("secret_key".toCharArray()));
     rootOrganization = organizationDAO.getById(ROOT_ORGANIZATION_ID);
   }
 

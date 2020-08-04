@@ -12,6 +12,7 @@ import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.pages.SourceControlEditorPage;
 import com.sonatype.clm.testing.functional.pages.SourceControlEditorPage.MetricsTableRow;
+import com.sonatype.clm.testing.functional.pages.SourceControlEditorPage.TestResults;
 import com.sonatype.insight.brain.git.EnhancedPullRequestResult;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -21,11 +22,16 @@ import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.nexus.iq.manager.PullRequestResult;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
+import org.sonatype.plexus.components.cipher.PlexusCipherException;
+
+import com.codeborne.selenide.CollectionCondition;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.matchText;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
@@ -39,6 +45,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApplicationSourceControlEditorTest
     extends AbstractSourceControlEditorTest
 {
+  public static final CollectionCondition CONFIG_TEST_NAMES = texts(
+      "Is the configuration complete?",
+      "Is the repository private?",
+      "Does the token have sufficient permissions?");
+
   private Application application;
 
   private static final String REPOSITORY_URL = "https://a.com/b/c";
@@ -51,7 +62,7 @@ public class ApplicationSourceControlEditorTest
 
   @Override
   @Before
-  public void init() {
+  public void init() throws PlexusCipherException {
     super.init();
     application = tempEntity.newApplicationWithParent(getClass().getSimpleName() + "ȧpp", YE_OLE_APPLICATION,
         YE_OLE_ORGANIZATION);
@@ -284,6 +295,41 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.tokenOverrideRadio().shouldBe(selected);
     SourceControlEditorPage.providerWarning().shouldNotBe(visible);
     SourceControlEditorPage.repositoryUrl().shouldHave(value(REPOSITORY_URL));
+  }
+
+  @Test
+  public void testSourceControlEditor_testConfiguration() {
+    // given: we go to the source control editor
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
+
+    // when: we click the test config
+    SourceControlEditorPage.testConfigButton().click();
+
+    // then: we see the test results
+    final TestResults testResults = SourceControlEditorPage.testResults();
+    testResults.title().shouldHave(text("Configuration Test Results"));
+    testResults.rows().shouldHave(CONFIG_TEST_NAMES);
+    // and: the config is incomplete
+    testResults.rows().get(0).shouldHave(matchText("required.*missing"));
+
+    // when: we add source control configs
+    tempEntity.newSourceControl(rootOrganization.getId(), null, TOKEN, SourceControlProvider.GITHUB);
+    tempEntity.newSourceControl(organization.getId(), null, TOKEN, null);
+    tempEntity.newSourceControl(application.getId(), REPOSITORY_URL, TOKEN, null);
+    refresh();
+
+    // and: we test configs again
+    SourceControlEditorPage.testConfigButton().click();
+
+    // then: we see new test results
+    final TestResults completeTestResults = SourceControlEditorPage.testResults();
+    completeTestResults.title().shouldHave(text("Configuration Test Results"));
+    completeTestResults.rows().shouldHave(CONFIG_TEST_NAMES);
+
+    // and: the token failed to checkout due to a bad host in url
+    completeTestResults.rows().get(2).shouldHave(text("unknown host"));
+
+    eyesWatcher.eyesCheck("Source Control Editor Test Config Results");
   }
 
   @Test
@@ -769,6 +815,7 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.deleteButton().shouldNotBe(visible);
     SourceControlEditorPage.saveButton().hover();
     assertToolTip("There are no changes to update.");
+    SourceControlEditorPage.testConfigButton().shouldBe(visible, enabled);
     SourceControlEditorPage.tokenInheritRadio().label().shouldHave(text("Inherit (Not Configured)"));
     SourceControlEditorPage.tokenInheritRadio().shouldBe(visible, disabled);
     SourceControlEditorPage.tokenInheritRadio().shouldNotBe(selected);
@@ -808,6 +855,7 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.deleteButton().shouldNotBe(visible);
     SourceControlEditorPage.saveButton().hover();
     assertToolTip("There are no changes to update.");
+    SourceControlEditorPage.testConfigButton().shouldBe(visible);
     SourceControlEditorPage.providerWarning().shouldNotBe(visible);
     SourceControlEditorPage.advancedSettingsTree().shouldBe(visible);
     SourceControlEditorPage.repositoryUrl().shouldBe(visible, enabled);

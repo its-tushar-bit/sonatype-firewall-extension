@@ -55,8 +55,6 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
   vm.scmConfigValidationResult = undefined;
   // flag to indicate SCM testing is in progress
   vm.scmConfigValidationInProgress = false;
-  // feature flag to show/hide SCM testing while under development
-  vm.showScmValidator = false;
   // helper function to generate the display classes
   vm.getScmValidationClass = getScmValidationClass;
   // pull request metrics associated with application
@@ -108,7 +106,6 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
         let isNotificationsSupported = ProductFeatures.isAvailable('notifications');
         vm.isAutomationSupported = ProductFeatures.isAvailable('automation');
         vm.isSourceControlSupported = isNotificationsSupported || vm.isAutomationSupported;
-        vm.showScmValidator = vm.isApp && ProductFeatures.isAvailable('scm-config-validator');
         if (vm.isSourceControlSupported) {
           return getSourceControl();
         }

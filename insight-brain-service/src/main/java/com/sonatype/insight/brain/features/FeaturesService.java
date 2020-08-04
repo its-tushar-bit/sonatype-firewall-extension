@@ -74,11 +74,6 @@ public class FeaturesService
         features.add(NonLicensedFeature.ALLOW_EXTERNAL_HYPERLINKS);
       }
 
-      // expose the scm configuration setting to the front-end
-      if (insightConfig.isExperimentalFeatureEnabled("scmConfigValidator")) {
-        features.add(NonLicensedFeature.SCM_CONFIG_VALIDATOR);
-      }
-
       removeDisabledFeatures(features);
     }
     log.debug("Found features: {}", features);

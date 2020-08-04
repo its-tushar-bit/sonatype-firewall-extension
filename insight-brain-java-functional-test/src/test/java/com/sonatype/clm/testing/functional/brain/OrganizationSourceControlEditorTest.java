@@ -13,6 +13,8 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
+import org.sonatype.plexus.components.cipher.PlexusCipherException;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -31,7 +33,7 @@ public class OrganizationSourceControlEditorTest
 {
   @Override
   @Before
-  public void init() {
+  public void init() throws PlexusCipherException {
     super.init();
     organization = tempEntity.newOrganization(YE_OLE_ORGANIZATION);
   }

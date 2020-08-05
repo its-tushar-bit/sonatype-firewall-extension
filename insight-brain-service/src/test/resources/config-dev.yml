@@ -24,6 +24,8 @@ logging:
     "org.quartz.impl.jdbcjobstore.SimpleSemaphore": INFO
     "org.quartz.impl.jdbcjobstore.StdRowLockSemaphore": INFO
     "com.sonatype.insight.brain.git.event": INFO
+    "com.sonatype.nexus.git.utils.api.NativeGitUtils" : INFO
+    "org.zeroturnaround.exec" : INFO
     "com.sonatype.insight.audit":
       appenders:
       - type: console

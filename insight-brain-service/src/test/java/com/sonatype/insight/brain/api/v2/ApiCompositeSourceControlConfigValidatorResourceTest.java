@@ -7,10 +7,8 @@ package com.sonatype.insight.brain.api.v2;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.git.ConfigurationValidationResult;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -18,6 +16,7 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.api.PublicApiPaths.COMPOSITE_SOURCE_CONTROL_CONFIG_VALIDATOR_PATH_V2;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -42,14 +41,13 @@ public class ApiCompositeSourceControlConfigValidatorResourceTest
 
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(PublicApiPaths.COMPOSITE_SOURCE_CONTROL_CONFIG_VALIDATOR_PATH_V2).auth();
+    return super.restRequest().path(COMPOSITE_SOURCE_CONTROL_CONFIG_VALIDATOR_PATH_V2).auth();
   }
 
   @Test
   public void testValidateSourceControlConfig_ValidApplication() throws Exception {
     final HttpResponse response = restRequest()
-        .path(ApiCompositeSourceControlResource.BY_OWNER)
-        .parameter(OwnerType.APPLICATION, app.getId())
+        .parameter(app.getId())
         .get();
     assertResponseStatus(200, response);
     final ConfigurationValidationResult result = response.getBody(ConfigurationValidationResult.class);
@@ -61,8 +59,7 @@ public class ApiCompositeSourceControlConfigValidatorResourceTest
   @Test
   public void testValidateSourceControlConfig_Incomplete() throws Exception {
     final HttpResponse response = restRequest()
-        .path(ApiCompositeSourceControlResource.BY_OWNER)
-        .parameter(OwnerType.APPLICATION, "1234")
+        .parameter("1234")
         .get();
     assertResponseStatus(200, response);
     final ConfigurationValidationResult result = response.getBody(ConfigurationValidationResult.class);
@@ -81,8 +78,7 @@ public class ApiCompositeSourceControlConfigValidatorResourceTest
 
     // retrieving the GitRepositoryInfo will throw an exception
     final HttpResponse response = restRequest()
-        .path(ApiCompositeSourceControlResource.BY_OWNER)
-        .parameter(OwnerType.APPLICATION, appWithBrokenToken.getId())
+        .parameter(appWithBrokenToken.getId())
         .get();
     assertResponseStatus(500, response);
   }

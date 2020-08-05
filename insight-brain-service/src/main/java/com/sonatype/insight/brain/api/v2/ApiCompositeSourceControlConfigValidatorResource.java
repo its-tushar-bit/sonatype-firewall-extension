@@ -16,7 +16,6 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.service.ApiCompositeSourceControlConfigValidatorService;
 import com.sonatype.insight.brain.git.ConfigurationValidationResult;
-import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 
@@ -31,13 +30,6 @@ import com.codahale.metrics.annotation.Timed;
 @Path(value = PublicApiPaths.COMPOSITE_SOURCE_CONTROL_CONFIG_VALIDATOR_PATH_V2)
 public class ApiCompositeSourceControlConfigValidatorResource
 {
-  private static final String OWNER_TYPE = "{ownerType:application}";
-
-  private static final String OWNER_ID = "{internalOwnerId}";
-
-  /* paths are package private for use in tests */
-  static final String BY_OWNER = OWNER_TYPE + "/" + OWNER_ID;
-
   private final ApiCompositeSourceControlConfigValidatorService service;
 
   @Inject
@@ -47,12 +39,10 @@ public class ApiCompositeSourceControlConfigValidatorResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  @Path(BY_OWNER)
   @Authorize(permission = Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION)
   public ConfigurationValidationResult validateSourceControlConfig(
-      @PathParam("ownerType") OwnerType ownerType,
-      @PathParam("internalOwnerId") String internalOwnerId)
+      @PathParam("applicationId") String applicationId)
   {
-    return service.validateSourceControlConfig(internalOwnerId);
+    return service.validateSourceControlConfig(applicationId);
   }
 }

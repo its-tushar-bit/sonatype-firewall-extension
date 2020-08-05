@@ -95,7 +95,7 @@ public class PublicApiPaths
   public static final String CLAIM_PATH_V2 = API_VERSION_PATH_V2 + "claim/components";
 
   public static final String COMPOSITE_SOURCE_CONTROL_CONFIG_VALIDATOR_PATH_V2 =
-      API_VERSION_PATH_V2 + "compositeSourceControlConfigValidator";
+      API_VERSION_PATH_V2 + "compositeSourceControlConfigValidator/application/{applicationId}";
 
   public static final String ADVANCED_SEARCH_RESOURCE_PATH = EXPERIMENTAL_PATH + "search/advanced";
 

@@ -44,9 +44,9 @@ public class ApiCompositeSourceControlConfigValidatorService
   }
 
   @Authorize(permission = Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION)
-  public ConfigurationValidationResult validateSourceControlConfig(String internalOwnerId) {
+  public ConfigurationValidationResult validateSourceControlConfig(String applicationId) {
     ConfigurationValidationResult result = new ConfigurationValidationResult();
-    GitRepositoryInfo gitInfo = sourceControlUtils.getGitRepositoryInfoForApplication(internalOwnerId);
+    GitRepositoryInfo gitInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
     if (gitInfo == null) {
       result.setConfigurationComplete(new ValidationResult(false, "Some required values are missing or unsaved"));
       return result;

@@ -34,7 +34,7 @@ import com.sonatype.insight.brain.dto.repository.RepositoryDTO;
 import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
 import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternService;
+import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternUpdater;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -113,7 +113,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
     FirewallIgnorePatterns firewallIgnorePatterns = new FirewallIgnorePatterns();
     firewallIgnorePatterns.regexpsByRepositoryFormat = new HashMap<>();
     lenient().when(hdsClient.get(eq(FirewallIgnorePatterns.class),
-        eq(FirewallIgnorePatternService.HDS_IGNORE_PATTERNS_PATH))).thenReturn(firewallIgnorePatterns);
+        eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH))).thenReturn(firewallIgnorePatterns);
   }
 
   @After

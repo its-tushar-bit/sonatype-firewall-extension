@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternService;
+import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternUpdater;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -142,7 +143,7 @@ public class RepositoryReevaluationTaskTest
     FirewallIgnorePatterns firewallIgnorePatterns = new FirewallIgnorePatterns();
     firewallIgnorePatterns.regexpsByRepositoryFormat = new HashMap<>();
     lenient().when(mockHdsClient.get(eq(FirewallIgnorePatterns.class),
-        eq(FirewallIgnorePatternService.HDS_IGNORE_PATTERNS_PATH))).thenReturn(firewallIgnorePatterns);
+        eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH))).thenReturn(firewallIgnorePatterns);
 
     task = new RepositoryReevaluationTask(repository, new RepositoryPolicyEvaluator(componentPolicyEvaluator,
         repositoryComponentDAO, repositoryPolicyViolationDAO, auditHdsClient, null,

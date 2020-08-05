@@ -144,7 +144,7 @@ public abstract class AbstractRepositoryServiceTest
     FirewallIgnorePatterns hdsResult = new FirewallIgnorePatterns();
     hdsResult.regexpsByRepositoryFormat = new HashMap<>();
     lenient().when(
-        hdsClient.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternService.HDS_IGNORE_PATTERNS_PATH)))
+        hdsClient.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
         .thenReturn(hdsResult);
 
     InsightConfig insightConfig = lookup(InsightConfig.class);

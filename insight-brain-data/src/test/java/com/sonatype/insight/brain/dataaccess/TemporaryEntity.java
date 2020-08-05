@@ -37,6 +37,7 @@ import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.FirewallIgnorePatternsDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProductLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
@@ -95,6 +96,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.configuration.FirewallIgnorePatterns;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.configuration.ProductLicense;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
@@ -311,6 +313,8 @@ public class TemporaryEntity
 
   private final ProductLicenseDAO productLicenseDAO = new ProductLicenseDAO();
 
+  private final FirewallIgnorePatternsDAO firewallIgnorePatternsDAO = new FirewallIgnorePatternsDAO();
+
   private MailConfiguration savedMailConfiguration;
 
   private Collection<MigrationTracker> migrationTrackers;
@@ -462,6 +466,7 @@ public class TemporaryEntity
     delete(componentLabels, componentLabelDAO);
     delete(sourceControlDefaultBranchCommitHistories, sourceControlDefaultBranchCommitHistoryDAO);
     productLicenseDAO.delete();
+    firewallIgnorePatternsDAO.delete();
 
     ProprietaryConfig config = proprietaryConfigDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
     if (config != null) {
@@ -2563,5 +2568,13 @@ public class TemporaryEntity
     productLicense.setLicenseDetails(licenseDetails);
     productLicenseDAO.update(productLicense);
     return productLicense;
+  }
+
+  public FirewallIgnorePatterns setFirewallIgnorePatterns(
+      com.sonatype.clm.dto.model.component.FirewallIgnorePatterns ignorePatterns)
+  {
+    FirewallIgnorePatterns firewallIgnorePatterns = new FirewallIgnorePatterns(ignorePatterns);
+    firewallIgnorePatternsDAO.update(firewallIgnorePatterns);
+    return firewallIgnorePatterns;
   }
 }

@@ -59,6 +59,7 @@
     <class>com.sonatype.insight.brain.model.security.UserToken</class>
     <class>com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration</class>
     <class>com.sonatype.insight.brain.model.configuration.ProductLicense</class>
+    <class>com.sonatype.insight.brain.model.configuration.FirewallIgnorePatterns</class>
     <properties>
       <!--
       <property name="openjpa.ConnectionURL" value="jdbc:hsqldb:tutorial_database"/>

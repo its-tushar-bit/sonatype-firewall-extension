@@ -6,9 +6,7 @@
 package com.sonatype.insight.brain.integration.repository;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -17,28 +15,24 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
-import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.dataaccess.configuration.FirewallIgnorePatternsDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.error.exception.BadGatewayException;
-
-import com.google.common.base.Suppliers;
 
 @Named
 @Singleton
 public class FirewallIgnorePatternService
 {
-  public static final String HDS_IGNORE_PATTERNS_PATH = "rest/component/details/firewall/ignorePatterns";
+  private final FirewallIgnorePatternsDAO firewallIgnorePatternsDAO;
 
-  private final Supplier<FirewallIgnorePatterns> ignorePatternsCache;
-
-  private final HdsClient hdsClient;
-
-  public boolean disableCacheForTesting;
+  private final FirewallIgnorePatternUpdater firewallIgnorePatternUpdater;
 
   @Inject
-  public FirewallIgnorePatternService(HdsClient hdsClient) {
-    this.hdsClient = hdsClient;
-    this.ignorePatternsCache = Suppliers.memoizeWithExpiration(this::fetchFirewallIgnorePatterns, 6, TimeUnit.HOURS);
+  public FirewallIgnorePatternService(
+      FirewallIgnorePatternsDAO firewallIgnorePatternsDAO,
+      FirewallIgnorePatternUpdater firewallIgnorePatternUpdater)
+  {
+    this.firewallIgnorePatternsDAO = firewallIgnorePatternsDAO;
+    this.firewallIgnorePatternUpdater = firewallIgnorePatternUpdater;
   }
 
   public Predicate<String> componentPathnameMatchesIgnorePattern(Repository repository) {
@@ -54,15 +48,12 @@ public class FirewallIgnorePatternService
   }
 
   public FirewallIgnorePatterns getIgnorePatterns() {
-    return disableCacheForTesting ? fetchFirewallIgnorePatterns() : ignorePatternsCache.get();
-  }
-
-  private FirewallIgnorePatterns fetchFirewallIgnorePatterns() {
-    try {
-      return hdsClient.get(FirewallIgnorePatterns.class, HDS_IGNORE_PATTERNS_PATH);
+    com.sonatype.insight.brain.model.configuration.FirewallIgnorePatterns firewallIgnorePatterns =
+        firewallIgnorePatternsDAO.get();
+    if (firewallIgnorePatterns == null) {
+      firewallIgnorePatternUpdater.updateFirewallIgnorePatterns();
+      firewallIgnorePatterns = firewallIgnorePatternsDAO.get();
     }
-    catch (BadGatewayException e) {
-      throw new RuntimeException("Failed to get ignore patterns from remote: " + e.getMessage(), e);
-    }
+    return firewallIgnorePatterns.getFirewallIgnorePatterns();
   }
 }

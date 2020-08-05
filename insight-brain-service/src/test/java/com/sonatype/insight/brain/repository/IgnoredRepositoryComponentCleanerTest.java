@@ -13,7 +13,7 @@ import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternService;
+import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternUpdater;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -58,7 +58,7 @@ public class IgnoredRepositoryComponentCleanerTest
     FirewallIgnorePatterns hdsResult = new FirewallIgnorePatterns();
     hdsResult.regexpsByRepositoryFormat = new HashMap<>();
     hdsResult.regexpsByRepositoryFormat.put(repository.getFormat(), asList(".*sha$"));
-    when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternService.HDS_IGNORE_PATTERNS_PATH)))
+    when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
         .thenReturn(hdsResult);
 
     assertThat(migrationTrackerDAO.getById(IgnoredRepositoryComponentCleaner.MIGRATION_ID)).isNull();
@@ -75,7 +75,7 @@ public class IgnoredRepositoryComponentCleanerTest
     new MigrationTrackerDAO().deleteById(IgnoredRepositoryComponentCleaner.MIGRATION_ID);
     tempEntity.newRepository("rm1", "r1", "maven2");
 
-    when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternService.HDS_IGNORE_PATTERNS_PATH)))
+    when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
         .thenThrow(new BadGatewayException("ERROR"));
 
     ignoredRepositoryComponentMigrator.start();

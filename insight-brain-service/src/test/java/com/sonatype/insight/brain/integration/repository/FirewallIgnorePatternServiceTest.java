@@ -12,16 +12,21 @@ import java.util.HashMap;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
+import com.sonatype.insight.brain.dataaccess.configuration.FirewallIgnorePatternsDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.error.exception.BadGatewayException;
 
 import com.google.inject.Binder;
 import org.junit.Test;
 import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -33,35 +38,77 @@ public class FirewallIgnorePatternServiceTest
   @Inject
   private FirewallIgnorePatternService firewallIgnorePatternService;
 
+  @Inject
+  private FirewallIgnorePatternsDAO firewallIgnorePatternsDAO;
+
   @Mock
-  private HdsClient hdsClient;
+  private HdsClient hdsClientMock;
 
   @Override
   public void configure(Binder binder) {
-    binder.bind(HdsClient.class).toInstance(hdsClient);
+    binder.bind(HdsClient.class).toInstance(hdsClientMock);
+
     super.configure(binder);
   }
 
   @Test
-  public void testGetIgnorePatterns() throws Exception {
-    // Prepare request and mock the HDS request
-    FirewallIgnorePatterns hdsResult = new FirewallIgnorePatterns();
-    hdsResult.regexpsByRepositoryFormat = new HashMap<>();
-    hdsResult.regexpsByRepositoryFormat.put("foo", Collections.singletonList("bar"));
-    when(hdsClient.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternService.HDS_IGNORE_PATTERNS_PATH)))
-        .thenReturn(hdsResult);
+  public void testGetIgnorePatterns_Null_Updates() {
+    FirewallIgnorePatterns expectedFirewallIgnorePatterns = createFirewallIgnorePatterns();
+    when(hdsClientMock.get(FirewallIgnorePatterns.class, FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH))
+        .thenReturn(expectedFirewallIgnorePatterns);
+    assertThat(firewallIgnorePatternsDAO.get()).isNull();
 
-    // Call the service
-    FirewallIgnorePatterns firewallIgnorePatterns = firewallIgnorePatternService.getIgnorePatterns();
+    assertThat(firewallIgnorePatternService.getIgnorePatterns()).usingRecursiveComparison()
+        .isEqualTo(expectedFirewallIgnorePatterns);
+    com.sonatype.insight.brain.model.configuration.FirewallIgnorePatterns firewallIgnorePatterns =
+        firewallIgnorePatternsDAO.get();
+    assertThat(firewallIgnorePatterns).isNotNull();
+    assertThat(firewallIgnorePatterns.getFirewallIgnorePatterns()).usingRecursiveComparison()
+        .isEqualTo(expectedFirewallIgnorePatterns);
+  }
 
-    assertThat(firewallIgnorePatterns).isEqualTo(hdsResult);
+  @Test
+  public void testGetIgnorePatterns_NotNull_DoesNotUpdate() {
+    when(hdsClientMock.get(FirewallIgnorePatterns.class, FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH))
+        .thenReturn(new FirewallIgnorePatterns());
+    firewallIgnorePatternService.getIgnorePatterns();
+    verify(hdsClientMock).get(FirewallIgnorePatterns.class, FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH);
+    firewallIgnorePatternsDAO.delete();
+    tempEntity.setFirewallIgnorePatterns(createFirewallIgnorePatterns());
+
+    assertThat(firewallIgnorePatternService.getIgnorePatterns()).usingRecursiveComparison()
+        .isEqualTo(firewallIgnorePatternsDAO.get().getFirewallIgnorePatterns());
+    verify(hdsClientMock, times(1))
+        .get(FirewallIgnorePatterns.class, FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH);
+  }
+
+  @Test
+  public void testGetIgnorePatterns_HDS_Fails_StillUpdates() {
+    FirewallIgnorePatterns expectedFirewallIgnorePatterns = createFirewallIgnorePatterns();
+    when(hdsClientMock.get(FirewallIgnorePatterns.class, FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH))
+        .thenThrow(new BadGatewayException("ERROR")).thenReturn(expectedFirewallIgnorePatterns);
+    assertThatExceptionOfType(RuntimeException.class)
+        .isThrownBy(() -> firewallIgnorePatternService.getIgnorePatterns())
+        .withMessageContaining("Failed to get ignore patterns from remote");
+    assertThat(firewallIgnorePatternsDAO.get()).isNull();
+    verify(hdsClientMock).get(FirewallIgnorePatterns.class, FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH);
+
+    assertThat(firewallIgnorePatternService.getIgnorePatterns()).usingRecursiveComparison()
+        .isEqualTo(expectedFirewallIgnorePatterns);
+    com.sonatype.insight.brain.model.configuration.FirewallIgnorePatterns firewallIgnorePatterns =
+        firewallIgnorePatternsDAO.get();
+    assertThat(firewallIgnorePatterns).isNotNull();
+    assertThat(firewallIgnorePatterns.getFirewallIgnorePatterns()).usingRecursiveComparison()
+        .isEqualTo(expectedFirewallIgnorePatterns);
+    verify(hdsClientMock, times(2))
+        .get(FirewallIgnorePatterns.class, FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH);
   }
 
   @Test
   public void testComponentPathnameMatchesIgnorePattern_NullRepositoryFormat() {
     FirewallIgnorePatterns firewallIgnorePatterns = new FirewallIgnorePatterns();
     firewallIgnorePatterns.regexpsByRepositoryFormat = new HashMap<>();
-    when(hdsClient.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternService.HDS_IGNORE_PATTERNS_PATH)))
+    when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
         .thenReturn(firewallIgnorePatterns);
     assertThat(firewallIgnorePatternService.componentPathnameMatchesIgnorePattern(new Repository())).rejects("any");
   }
@@ -72,7 +119,7 @@ public class FirewallIgnorePatternServiceTest
     repository.setFormat("maven2");
     FirewallIgnorePatterns firewallIgnorePatterns = new FirewallIgnorePatterns();
     firewallIgnorePatterns.regexpsByRepositoryFormat = new HashMap<>();
-    when(hdsClient.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternService.HDS_IGNORE_PATTERNS_PATH)))
+    when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
         .thenReturn(firewallIgnorePatterns);
 
     assertThat(firewallIgnorePatternService.componentPathnameMatchesIgnorePattern(repository)).rejects("any");
@@ -85,7 +132,7 @@ public class FirewallIgnorePatternServiceTest
     FirewallIgnorePatterns firewallIgnorePatterns = new FirewallIgnorePatterns();
     firewallIgnorePatterns.regexpsByRepositoryFormat = new HashMap<>();
     firewallIgnorePatterns.regexpsByRepositoryFormat.put("maven2", Arrays.asList("a", "b"));
-    when(hdsClient.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternService.HDS_IGNORE_PATTERNS_PATH)))
+    when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
         .thenReturn(firewallIgnorePatterns);
 
     assertThat(firewallIgnorePatternService.componentPathnameMatchesIgnorePattern(repository)).rejects("a", "b", "any");
@@ -99,10 +146,17 @@ public class FirewallIgnorePatternServiceTest
     firewallIgnorePatterns.regexpsByRepositoryFormat = new HashMap<>();
     firewallIgnorePatterns.regexpsByRepositoryFormat.put("maven2", Arrays.asList("a", "b"));
     firewallIgnorePatterns.regexpsByRepositoryFormat.put("other", Collections.singletonList("c"));
-    when(hdsClient.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternService.HDS_IGNORE_PATTERNS_PATH)))
+    when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
         .thenReturn(firewallIgnorePatterns);
 
     assertThat(firewallIgnorePatternService.componentPathnameMatchesIgnorePattern(repository)).accepts("a", "b")
         .rejects("c");
+  }
+
+  private FirewallIgnorePatterns createFirewallIgnorePatterns() {
+    FirewallIgnorePatterns firewallIgnorePatterns = new FirewallIgnorePatterns();
+    firewallIgnorePatterns.regexpsByRepositoryFormat.put("format1", Arrays.asList("a", "b"));
+    firewallIgnorePatterns.regexpsByRepositoryFormat.put("format2", Collections.singletonList("c"));
+    return firewallIgnorePatterns;
   }
 }

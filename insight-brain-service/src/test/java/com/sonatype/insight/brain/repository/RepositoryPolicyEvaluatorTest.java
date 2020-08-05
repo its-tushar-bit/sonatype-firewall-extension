@@ -37,7 +37,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
 import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternService;
+import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternUpdater;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.ComponentDataSource;
@@ -118,7 +118,7 @@ public class RepositoryPolicyEvaluatorTest
     FirewallIgnorePatterns firewallIgnorePatterns = new FirewallIgnorePatterns();
     firewallIgnorePatterns.regexpsByRepositoryFormat = new HashMap<>();
     lenient().when(mockHdsClient.get(eq(FirewallIgnorePatterns.class),
-        eq(FirewallIgnorePatternService.HDS_IGNORE_PATTERNS_PATH))).thenReturn(firewallIgnorePatterns);
+        eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH))).thenReturn(firewallIgnorePatterns);
   }
 
   private void mockHdsRequest(RepositoryComponentEvaluationDataRequestList serviceRequest,
@@ -519,7 +519,7 @@ public class RepositoryPolicyEvaluatorTest
     firewallIgnorePatterns.regexpsByRepositoryFormat.put(repository.getFormat(), Collections.singletonList(".*sha"));
     firewallIgnorePatterns.regexpsByRepositoryFormat
         .put(repository.getFormat() + "other", Collections.singletonList(".*"));
-    when(mockHdsClient.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternService.HDS_IGNORE_PATTERNS_PATH)))
+    when(mockHdsClient.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
         .thenReturn(firewallIgnorePatterns);
 
     RepositoryComponentEvaluationDataRequestList requestList =

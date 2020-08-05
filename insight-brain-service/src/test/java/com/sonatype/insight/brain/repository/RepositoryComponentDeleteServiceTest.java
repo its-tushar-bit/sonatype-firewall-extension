@@ -17,7 +17,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternService;
+import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternUpdater;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
@@ -77,7 +77,7 @@ public class RepositoryComponentDeleteServiceTest
     FirewallIgnorePatterns hdsResult = new FirewallIgnorePatterns();
     hdsResult.regexpsByRepositoryFormat = new HashMap<>();
     hdsResult.regexpsByRepositoryFormat.put(repository.getFormat(), asList(".*sha$"));
-    when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternService.HDS_IGNORE_PATTERNS_PATH)))
+    when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
         .thenReturn(hdsResult);
 
     // The following component is unknown and matches the ignore patterns from HDS.
@@ -121,7 +121,7 @@ public class RepositoryComponentDeleteServiceTest
     FirewallIgnorePatterns hdsResult = new FirewallIgnorePatterns();
     hdsResult.regexpsByRepositoryFormat = new HashMap<>();
     hdsResult.regexpsByRepositoryFormat.put(repository.getFormat(), asList(".*sha$"));
-    when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternService.HDS_IGNORE_PATTERNS_PATH)))
+    when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
         .thenReturn(hdsResult);
 
     RepositoryComponent component = tempEntity.newRepositoryComponent(repository, "unknown/sha", EXACT, "hash");
@@ -146,7 +146,7 @@ public class RepositoryComponentDeleteServiceTest
     FirewallIgnorePatterns hdsResult = new FirewallIgnorePatterns();
     hdsResult.regexpsByRepositoryFormat = new HashMap<>();
     hdsResult.regexpsByRepositoryFormat.put(repository.getFormat(), asList(".*sha$"));
-    when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternService.HDS_IGNORE_PATTERNS_PATH)))
+    when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
         .thenReturn(hdsResult);
 
     RepositoryComponent component = tempEntity.newRepositoryComponent(repository, "unknown/jar", UNKNOWN, "hash");
@@ -171,7 +171,7 @@ public class RepositoryComponentDeleteServiceTest
     FirewallIgnorePatterns hdsResult = new FirewallIgnorePatterns();
     hdsResult.regexpsByRepositoryFormat = new HashMap<>();
     hdsResult.regexpsByRepositoryFormat.put(repository.getFormat(), asList(".*sha$"));
-    when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternService.HDS_IGNORE_PATTERNS_PATH)))
+    when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
         .thenReturn(hdsResult);
 
     RepositoryComponent component = tempEntity.newRepositoryComponent(repository, "unknown/jar", EXACT, "hash");
@@ -195,7 +195,7 @@ public class RepositoryComponentDeleteServiceTest
     FirewallIgnorePatterns hdsResult = new FirewallIgnorePatterns();
     hdsResult.regexpsByRepositoryFormat = new HashMap<>();
     hdsResult.regexpsByRepositoryFormat.put("some_format_different_than_our_repos_format", asList(".*sha"));
-    when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternService.HDS_IGNORE_PATTERNS_PATH)))
+    when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
         .thenReturn(hdsResult);
 
     // The following component is unknown and matches the ignore patterns,
@@ -223,7 +223,7 @@ public class RepositoryComponentDeleteServiceTest
     FirewallIgnorePatterns hdsResult = new FirewallIgnorePatterns();
     hdsResult.regexpsByRepositoryFormat = new HashMap<>();
     hdsResult.regexpsByRepositoryFormat.put(repository.getFormat(), new ArrayList<>());
-    when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternService.HDS_IGNORE_PATTERNS_PATH)))
+    when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
         .thenReturn(hdsResult);
 
     // For this repository format, there are no ignore patterns.
@@ -249,7 +249,7 @@ public class RepositoryComponentDeleteServiceTest
     // For null repository format, there are no ignore patterns.
     FirewallIgnorePatterns hdsResult = new FirewallIgnorePatterns();
     hdsResult.regexpsByRepositoryFormat = new HashMap<>();
-    when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternService.HDS_IGNORE_PATTERNS_PATH)))
+    when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
         .thenReturn(hdsResult);
     RepositoryComponent unknownSha = tempEntity.newRepositoryComponent(repository, "unknown/sha", UNKNOWN, "hash");
     RepositoryPolicyViolation unknownShaViolation =

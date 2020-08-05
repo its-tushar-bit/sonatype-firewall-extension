@@ -1,10 +1,6 @@
 {
   "urls": [
     {
-      "url": "rest/report/{applicationPublicId}/{scanId}/metadata",
-      "type": "GET"
-    },
-    {
       "url": "api/v2/reports/applications",
       "type": "GET"
     },

@@ -15,6 +15,7 @@ import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ApiCompositeSourceControlConfigValidatorServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -24,7 +25,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceAuthzTest
   @Inject
   public ApiCompositeSourceControlConfigValidatorService service;
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void testGetCompositeSourceControlByOwner_Authorized() {
     grantManageAutomaticSourceControlPermission();
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, "TOKEN",
@@ -32,7 +33,9 @@ public class ApiCompositeSourceControlConfigValidatorServiceAuthzTest
             "BASE_BRANCH", null);
     tempEntity.newSourceControl(app.getId(), VALID_URL, null, null);
     // should pass auth stage and promptly throw an exception because TOKEN can't be decrypted
-    service.validateSourceControlConfig(app.getId());
+    assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
+      service.validateSourceControlConfig(app.getId());
+    }).withMessageContaining("org.sonatype.plexus.components.cipher.PlexusCipherException");
   }
 
   @Test(expected = UnauthenticatedException.class)

@@ -32,28 +32,24 @@ import com.codahale.metrics.annotation.Timed;
 /**
  * @since 1.69
  */
-@Path(ApplicationEvaluationResource.RESOURCE_PATH)
+@Path(ApplicationEvaluationResourceConstants.RESOURCE_PATH)
 @Named
 @Timed
-public class ApplicationEvaluationResource
+public class DefaultApplicationEvaluationResource
+    implements ApplicationEvaluationResource
 {
-  public static final String RESOURCE_PATH = "rest/integration/applications/{applicationPublicId}/evaluations";
-
-  public static final String EVALUATE_PATH = "{integrationType: ci|cli|rm}/stages/{stageId}";
-
-  public static final String STATUS_PATH = "status/{statusId}";
-
   private final PolicyEvaluateService policyEvaluateService;
 
   @Inject
-  public ApplicationEvaluationResource(PolicyEvaluateService policyEvaluateService) {
+  public DefaultApplicationEvaluationResource(PolicyEvaluateService policyEvaluateService) {
     this.policyEvaluateService = policyEvaluateService;
   }
 
   @POST
   @Produces(MediaType.APPLICATION_JSON)
-  @Path(EVALUATE_PATH)
+  @Path(ApplicationEvaluationResourceConstants.EVALUATE_PATH)
   @Audited(AuditEvent.EVALUATE_APPLICATION)
+  @Override
   public PolicyEvaluationReceipt evaluateWithPolling(
       @PathParam("applicationPublicId") final String applicationPublicId,
       @PathParam("integrationType") final IntegrationType integrationType,
@@ -61,13 +57,14 @@ public class ApplicationEvaluationResource
       @QueryParam("scanType") ClientScanType clientScanType,
       @Context HttpServletRequest req) throws IOException
   {
-
-    return policyEvaluateService.evaluateWithPolling(integrationType, applicationPublicId, clientScanType, req, stage);
+    return policyEvaluateService
+        .evaluateWithPolling(integrationType, applicationPublicId, clientScanType, req, stage);
   }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  @Path(STATUS_PATH)
+  @Path(ApplicationEvaluationResourceConstants.STATUS_PATH)
+  @Override
   public PolicyEvaluationPollingResult pollEvaluationResult(
       @PathParam("applicationPublicId") final String applicationPublicId,
       @PathParam("statusId") final String statusId)

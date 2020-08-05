@@ -162,7 +162,12 @@
       <groupId>com.sonatype.nexus.iq</groupId>
       <artifactId>nexus-dependency-management</artifactId>
     </dependency>
-    
+
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-service-common</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-compress</artifactId>
@@ -607,6 +612,7 @@
         </exclusion>
       </exclusions>
     </dependency>
+
   </dependencies>
 
   <build>

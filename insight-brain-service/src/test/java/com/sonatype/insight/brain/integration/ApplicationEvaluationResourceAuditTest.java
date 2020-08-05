@@ -69,7 +69,8 @@ public class ApplicationEvaluationResourceAuditTest
       throws Exception
   {
     return restRequest().with(user)
-        .path(ApplicationEvaluationResource.RESOURCE_PATH, ApplicationEvaluationResource.EVALUATE_PATH)
+        .path(ApplicationEvaluationResourceConstants.RESOURCE_PATH,
+              ApplicationEvaluationResourceConstants.EVALUATE_PATH)
         .query("scanType", ClientScanType.SONATYPE).parameter(applicationPublicId, IntegrationType.CLI, stageId).post();
   }
 }

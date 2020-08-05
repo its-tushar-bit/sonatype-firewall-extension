@@ -38,12 +38,15 @@ public class ApplicationEvaluationResourceTest
                                                  String stageId)
   {
     return restRequest()
-        .path(ApplicationEvaluationResource.RESOURCE_PATH, ApplicationEvaluationResource.EVALUATE_PATH)
+        .path(ApplicationEvaluationResourceConstants.RESOURCE_PATH,
+              ApplicationEvaluationResourceConstants.EVALUATE_PATH)
         .query("scanType", ClientScanType.SONATYPE).parameter(applicationPublicId, integrationType, stageId);
   }
 
   private HttpRequest pollEvaluationResultRequest(String appId, String statusId) {
-    return restRequest().path(ApplicationEvaluationResource.RESOURCE_PATH, ApplicationEvaluationResource.STATUS_PATH)
+    return restRequest()
+        .path(ApplicationEvaluationResourceConstants.RESOURCE_PATH,
+              ApplicationEvaluationResourceConstants.STATUS_PATH)
         .parameter(appId, statusId);
   }
 

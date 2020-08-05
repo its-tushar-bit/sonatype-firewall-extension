@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -71,6 +72,66 @@ public class ApiPolicyWaiverServiceAuthzTest
   public void testAddWaiver_Organization_UnauthorizedButAuthenticated() {
     login();
     apiPolicyWaiverService.addPolicyWaiver(policyViolation.getId(), OwnerType.ORGANIZATION, "waiver comment");
+  }
+
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_Application_Authorized() {
+    grantPermission(app.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
+    apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
+        policyViolation.getId(), null, false);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testAddPolicyWaiverByPolicyViolationId_Application_Unauthenticated() {
+    apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
+        policyViolation.getId(), null, false);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testAddPolicyWaiverByPolicyViolationId_Application_UnauthorizedButAuthenticated() {
+    login();
+    apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
+        policyViolation.getId(), null, false);
+  }
+
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_Organization_Authorized() {
+    grantPermission(org.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
+    apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.ORGANIZATION, org.getId(),
+        policyViolation.getId(), null, false);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testAddPolicyWaiverByPolicyViolationId_Organization_Unauthenticated() {
+    apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.ORGANIZATION, org.getId(),
+        policyViolation.getId(), null, false);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testAddPolicyWaiverByPolicyViolationId_Organization_UnauthorizedButAuthenticated() {
+    login();
+    apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.ORGANIZATION, org.getId(),
+        policyViolation.getId(), null, false);
+  }
+
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_RootOrganization_Authorized() {
+    grantPermission(Organization.ROOT_ORGANIZATION_ID, Permission.WAIVE_POLICY_VIOLATIONS);
+    apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID,
+        policyViolation.getId(), null, false);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testAddPolicyWaiverByPolicyViolationId_RootOrganization_Unauthenticated() {
+    apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID,
+        policyViolation.getId(), null, false);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testAddPolicyWaiverByPolicyViolationId_RootOrganization_UnauthorizedButAuthenticated() {
+    login();
+    apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID,
+        policyViolation.getId(), null, false);
   }
 
   @Test

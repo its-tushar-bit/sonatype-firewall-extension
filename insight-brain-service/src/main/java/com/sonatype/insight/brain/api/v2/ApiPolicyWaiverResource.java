@@ -9,8 +9,10 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -18,6 +20,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -37,9 +40,28 @@ public class ApiPolicyWaiverResource
 
   static final String BY_POLICY_WAIVER_ID_PATH = "{policyWaiverId}";
 
+  static final String BY_POLICY_VIOLATION_ID_PATH = "{policyViolationId}";
+
   @Inject
   public ApiPolicyWaiverResource(ApiPolicyWaiverService apiPolicyWaiverService) {
     this.apiPolicyWaiverService = apiPolicyWaiverService;
+  }
+
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CREATE_WAIVER)
+  @Path(BY_POLICY_VIOLATION_ID_PATH)
+  public void addPolicyWaiverByPolicyViolationId(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId,
+      @PathParam("policyViolationId") String policyViolationId,
+      ApiWaiverOptionsDTO waiverOptionsDTO)
+  {
+    String comment = waiverOptionsDTO == null ? null : waiverOptionsDTO.comment;
+    boolean applyToAllComponents = waiverOptionsDTO != null && waiverOptionsDTO.applyToAllComponents;
+
+    apiPolicyWaiverService
+        .addPolicyWaiverByPolicyViolationId(ownerType, ownerId, policyViolationId, comment, applyToAllComponents);
   }
 
   @DELETE

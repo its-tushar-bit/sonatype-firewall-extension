@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
@@ -33,6 +34,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.IdUtils;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -55,19 +57,28 @@ public class ApiPolicyWaiverService
 
   private final ApplicationDAO applicationDAO;
 
+  private final OwnerDAO ownerDAO;
+
   @Inject
   public ApiPolicyWaiverService(
       TelemetrySender telemetrySender,
       PolicyWaiverDAO policyWaiverDAO,
       PolicyDAO policyDAO,
-      ApplicationDAO applicationDAO)
+      ApplicationDAO applicationDAO,
+      OwnerDAO ownerDAO)
   {
     this.telemetrySender = telemetrySender;
     this.policyWaiverDAO = policyWaiverDAO;
     this.policyDAO = policyDAO;
     this.applicationDAO = applicationDAO;
+    this.ownerDAO = ownerDAO;
   }
 
+  /**
+   * This is currently used in "request waiver"
+   *
+   * @deprecated Use {@link #addPolicyWaiverByPolicyViolationId(OwnerType, String, String, String, boolean)}
+   */
   public void addPolicyWaiver(final String policyViolationId,
                               final OwnerType ownerType,
                               final String comment)
@@ -92,7 +103,38 @@ public class ApiPolicyWaiverService
         throw new IllegalStateException("Unknown owner type: " + ownerType);
     }
 
-    addPolicyWaiver(ownerType, ownerId, policyViolation, comment);
+    addPolicyWaiver(ownerType, ownerId, policyViolation, comment, false);
+  }
+
+  public void addPolicyWaiverByPolicyViolationId(
+      final OwnerType ownerType,
+      final String ownerId,
+      final String policyViolationId,
+      final String comment,
+      final boolean applyToAllComponents)
+  {
+    // disable adding repository waivers (for now)
+    switch (ownerType) {
+      case APPLICATION:
+      case ORGANIZATION:
+        break;
+      default:
+        throw new BadRequestException("Invalid owner type: " + ownerType);
+    }
+
+    PolicyViolation policyViolation = new PolicyViolationDAO().getById(policyViolationId);
+
+    if (policyViolation == null) {
+      throw new NotFoundException("Could not find policy violation with ID " + policyViolationId + ".");
+    }
+
+    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+
+    if (!isViolationOwnerId(policyViolation, internalOwnerId)) {
+      throw new BadRequestException("Invalid owner id: " + ownerId);
+    }
+
+    addPolicyWaiver(ownerType, internalOwnerId, policyViolation, comment, applyToAllComponents);
   }
 
   @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
@@ -101,10 +143,11 @@ public class ApiPolicyWaiverService
       @AuthzContext(Key.TYPE) @SuppressWarnings("unused") final OwnerType ownerType,
       @AuthzContext(Key.INTERNAL_ID) final String ownerId,
       final PolicyViolation policyViolation,
-      final String comment)
+      final String comment,
+      final boolean applyToAllComponents)
   {
-    PolicyWaiver policyWaiver =
-        new PolicyWaiver(policyViolation.getHash(), policyViolation.getPolicyId(), ownerId, comment);
+    String hash = applyToAllComponents ? null : policyViolation.getHash();
+    PolicyWaiver policyWaiver = new PolicyWaiver(hash, policyViolation.getPolicyId(), ownerId, comment);
     policyWaiver.setConstraintFactsJson(policyViolation.getConstraintFactsJson());
 
     policyWaiverDAO.insert(policyWaiver);
@@ -168,5 +211,14 @@ public class ApiPolicyWaiverService
     telemetryData.getAttributes().put(OWNER_TYPE_ATTR, ownerType.toString());
     telemetryData.getAttributes().put(OWNER_ID_ATTR, HdsClientAnalytics.obfuscate(ownerId));
     telemetrySender.send(telemetryData);
+  }
+
+  private boolean isViolationOwnerId(PolicyViolation policyViolation, String internalId) {
+    for (Owner owner : ownerDAO.walkHierarchy(policyViolation.getApplicationId())) {
+      if (owner.getId().equals(internalId)) {
+        return true;
+      }
+    }
+    return false;
   }
 }

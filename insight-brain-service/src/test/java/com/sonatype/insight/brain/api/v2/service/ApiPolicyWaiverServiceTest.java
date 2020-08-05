@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -78,21 +79,21 @@ public class ApiPolicyWaiverServiceTest
   @Test
   public void testAddPolicyWaiver_Application() {
     apiPolicyWaiverService.addPolicyWaiver(policyViolation.getId(), OwnerType.APPLICATION, "waiver comment");
-    assertPolicyWaiver(app.getId(), "waiver comment");
+    assertPolicyWaiver(app.getId(), "waiver comment", policyViolation.getHash());
     assertTelemetry(OwnerType.APPLICATION, app.getId());
   }
 
   @Test
   public void testAddPolicyWaiver_Organization() {
     apiPolicyWaiverService.addPolicyWaiver(policyViolation.getId(), OwnerType.ORGANIZATION, "waiver comment");
-    assertPolicyWaiver(org.getId(), "waiver comment");
+    assertPolicyWaiver(org.getId(), "waiver comment", policyViolation.getHash());
     assertTelemetry(OwnerType.ORGANIZATION, org.getId());
   }
 
   @Test
   public void testAddPolicyWaiver_AcceptsNoComment() {
     apiPolicyWaiverService.addPolicyWaiver(policyViolation.getId(), OwnerType.APPLICATION, null);
-    assertPolicyWaiver(app.getId(), null);
+    assertPolicyWaiver(app.getId(), null, policyViolation.getHash());
   }
 
   @Test
@@ -109,6 +110,109 @@ public class ApiPolicyWaiverServiceTest
         apiPolicyWaiverService.addPolicyWaiver(policyViolation.getId(), OwnerType.REPOSITORY, "waiver comment")
     ).isInstanceOf(IllegalStateException.class)
         .hasMessage("Unknown owner type: repository");
+  }
+
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_Application() {
+    apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
+        policyViolation.getId(), "waiver comment", false);
+
+    assertPolicyWaiver(app.getId(), "waiver comment", policyViolation.getHash());
+    assertTelemetry(OwnerType.APPLICATION, app.getId());
+  }
+
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_ApplicationPublicId() {
+    apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getPublicId(),
+        policyViolation.getId(), "waiver comment", false);
+
+    assertPolicyWaiver(app.getId(), "waiver comment", policyViolation.getHash());
+    assertTelemetry(OwnerType.APPLICATION, app.getId());
+  }
+
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_NonParentApplication() {
+    Application otherApp = tempEntity.newApplication(org.getId());
+
+    assertThatThrownBy(() ->
+        apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, otherApp.getId(),
+            policyViolation.getId(), "waiver comment", false)
+    ).isInstanceOf(BadRequestException.class)
+        .hasMessage("Invalid owner id: " + otherApp.getId());
+  }
+
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_NonParentApplicationPublicId() {
+    Application otherApp = tempEntity.newApplication(org.getId());
+
+    assertThatThrownBy(() ->
+        apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, otherApp.getPublicId(),
+            policyViolation.getId(), "waiver comment", false)
+    ).isInstanceOf(BadRequestException.class)
+        .hasMessage("Invalid owner id: " + otherApp.getPublicId());
+  }
+
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_Organization() {
+    apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.ORGANIZATION, org.getId(),
+        policyViolation.getId(), "waiver comment", false);
+
+    assertPolicyWaiver(org.getId(), "waiver comment", policyViolation.getHash());
+    assertTelemetry(OwnerType.ORGANIZATION, org.getId());
+  }
+
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_NonParentOrganization() {
+    Organization otherOrg = tempEntity.newOrganization();
+
+    assertThatThrownBy(() ->
+    apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.ORGANIZATION, otherOrg.getId(),
+        policyViolation.getId(), "waiver comment", false)
+    ).isInstanceOf(BadRequestException.class)
+        .hasMessage("Invalid owner id: " + otherOrg.getId());
+  }
+
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_RootOrganization() {
+    apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID,
+        policyViolation.getId(), "waiver comment", false);
+
+    assertPolicyWaiver(Organization.ROOT_ORGANIZATION_ID, "waiver comment", policyViolation.getHash());
+    assertTelemetry(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
+  }
+
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_NullComment() {
+    apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
+        policyViolation.getId(), null, false);
+
+    assertPolicyWaiver(app.getId(), null, policyViolation.getHash());
+  }
+
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_ApplyToAllComponents() {
+    apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
+        policyViolation.getId(), "waiver comment", true);
+
+    assertPolicyWaiver(app.getId(), "waiver comment", null);
+  }
+
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_InvalidPolicyViolationId() {
+    assertThatThrownBy(() ->
+        apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
+            "invalid-policyViolationId", null, false)
+    ).isInstanceOf(NotFoundException.class)
+        .hasMessage("Could not find policy violation with ID invalid-policyViolationId.");
+  }
+
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_InvalidOwnerType() {
+    assertThatThrownBy(() ->
+        apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID,
+            policyViolation.getId(), null, false)
+    ).isInstanceOf(BadRequestException.class)
+        .hasMessage("Invalid owner type: repository_container");
   }
 
   @Test
@@ -283,14 +387,14 @@ public class ApiPolicyWaiverServiceTest
     assertThat(actual.scopeOwnerType).isEqualTo("all_repositories");
   }
 
-  private void assertPolicyWaiver(String ownerId, String comment) {
+  private void assertPolicyWaiver(String ownerId, String comment, String hash) {
     List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getByOwnerId(ownerId);
     assertThat(policyWaivers).hasSize(1);
     PolicyWaiver policyWaiver = policyWaivers.get(0);
     assertThat(policyWaiver).isNotNull();
     assertThat(policyWaiver.getId()).isNotNull();
     assertThat(policyWaiver.getOwnerId()).isEqualTo(ownerId);
-    assertThat(policyWaiver.getHash()).isEqualTo(policyViolation.getHash());
+    assertThat(policyWaiver.getHash()).isEqualTo(hash);
     assertThat(policyWaiver.getComment()).isEqualTo(comment);
     assertThat(policyWaiver.getPolicyId()).isEqualTo(policy.getId());
     assertThat(policyWaiver.getCreateTime()).isNotNull();

@@ -14,6 +14,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -36,6 +37,12 @@ public class ApiPolicyViolationWaiverResource
     this.apiPolicyWaiverService = apiPolicyWaiverService;
   }
 
+  /**
+   * This is currently used in "request waiver"
+   *
+   * @deprecated Use
+   * {@link ApiPolicyWaiverResource#addPolicyWaiverByPolicyViolationId(OwnerType, String, String, ApiWaiverOptionsDTO)}
+   */
   @POST
   @Consumes(MediaType.TEXT_PLAIN)
   @Audited(AuditEvent.CREATE_WAIVER)

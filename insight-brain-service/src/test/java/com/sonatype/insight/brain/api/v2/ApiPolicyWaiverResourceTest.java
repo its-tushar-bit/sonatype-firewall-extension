@@ -8,21 +8,28 @@ package com.sonatype.insight.brain.api.v2;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.ws.rs.core.MediaType;
+
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.api.v2.ApiPolicyWaiverResource.BY_POLICY_VIOLATION_ID_PATH;
 import static com.sonatype.insight.brain.api.v2.ApiPolicyWaiverResource.BY_POLICY_WAIVER_ID_PATH;
 import static com.sonatype.insight.brain.model.repository.RepositoryContainer.REPOSITORY_CONTAINER_ID;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -140,8 +147,126 @@ public class ApiPolicyWaiverResourceTest
     assertThat(apiPolicyWaiverDTO.scopeOwnerType).isEqualTo("all_repositories");
   }
 
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_Application() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app);
+
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId1App1");
+    PolicyViolation policyViolation = tempEntity
+        .newPolicyViolation(policyEvaluation, policy, "g1", "a1", "v1", "h1", "r1");
+
+    ApiWaiverOptionsDTO waiverOptionsDTO = new ApiWaiverOptionsDTO();
+    waiverOptionsDTO.comment = "waiver comment";
+    HttpResponse response = restRequest().path(BY_POLICY_VIOLATION_ID_PATH)
+        .parameter(OwnerType.APPLICATION, app.getId(), policyViolation.getId())
+        .body(waiverOptionsDTO, MediaType.APPLICATION_JSON)
+        .post();
+
+    assertResponseStatus(204, response);
+    assertPolicyWaiver(app.getId(), policy, policyViolation, "waiver comment", policyViolation.getHash());
+  }
+
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_Organization() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    Policy policy = tempEntity.newPolicy(app);
+
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId1App1");
+    PolicyViolation policyViolation = tempEntity
+        .newPolicyViolation(policyEvaluation, policy, "g1", "a1", "v1", "h1", "r1");
+
+    ApiWaiverOptionsDTO waiverOptionsDTO = new ApiWaiverOptionsDTO();
+    waiverOptionsDTO.comment = "waiver comment";
+    HttpResponse response = restRequest().path(BY_POLICY_VIOLATION_ID_PATH)
+        .parameter(OwnerType.ORGANIZATION, org.getId(), policyViolation.getId())
+        .body(waiverOptionsDTO, MediaType.APPLICATION_JSON)
+        .post();
+
+    assertResponseStatus(204, response);
+    assertPolicyWaiver(org.getId(), policy, policyViolation, "waiver comment", policyViolation.getHash());
+  }
+
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_RootOrganization() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app);
+
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId1App1");
+    PolicyViolation policyViolation = tempEntity
+        .newPolicyViolation(policyEvaluation, policy, "g1", "a1", "v1", "h1", "r1");
+
+    ApiWaiverOptionsDTO waiverOptionsDTO = new ApiWaiverOptionsDTO();
+    waiverOptionsDTO.comment = "waiver comment";
+    HttpResponse response = restRequest().path(BY_POLICY_VIOLATION_ID_PATH)
+        .parameter(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID, policyViolation.getId())
+        .body(waiverOptionsDTO, MediaType.APPLICATION_JSON)
+        .post();
+
+    assertResponseStatus(204, response);
+    assertPolicyWaiver(Organization.ROOT_ORGANIZATION_ID, policy, policyViolation, "waiver comment",
+        policyViolation.getHash());
+  }
+
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_ApplyToAllComponents() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app);
+
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId1App1");
+    PolicyViolation policyViolation = tempEntity
+        .newPolicyViolation(policyEvaluation, policy, "g1", "a1", "v1", "h1", "r1");
+
+    ApiWaiverOptionsDTO waiverOptionsDTO = new ApiWaiverOptionsDTO();
+    waiverOptionsDTO.comment = "waiver comment";
+    waiverOptionsDTO.applyToAllComponents = true;
+    HttpResponse response = restRequest().path(BY_POLICY_VIOLATION_ID_PATH)
+        .parameter(OwnerType.APPLICATION, app.getId(), policyViolation.getId())
+        .body(waiverOptionsDTO, MediaType.APPLICATION_JSON)
+        .post();
+
+    assertResponseStatus(204, response);
+    assertPolicyWaiver(app.getId(), policy, policyViolation, "waiver comment", null);
+  }
+
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_NoRequestBody() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app);
+
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId1App1");
+    PolicyViolation policyViolation = tempEntity
+        .newPolicyViolation(policyEvaluation, policy, "g1", "a1", "v1", "h1", "r1");
+
+    HttpResponse response = restRequest().path(BY_POLICY_VIOLATION_ID_PATH)
+        .parameter(OwnerType.APPLICATION, app.getId(), policyViolation.getId())
+        .post();
+
+    assertResponseStatus(204, response);
+    assertPolicyWaiver(app.getId(), policy, policyViolation, null, policyViolation.getHash());
+  }
+
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(PublicApiPaths.POLICY_WAIVER_PATH);
+  }
+
+  private void assertPolicyWaiver(String ownerId,
+                                  Policy policy,
+                                  PolicyViolation policyViolation,
+                                  String comment,
+                                  String hash)
+  {
+    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getByOwnerId(ownerId);
+    assertThat(policyWaivers).hasSize(1);
+    PolicyWaiver policyWaiver = policyWaivers.get(0);
+    assertThat(policyWaiver.getId()).isNotNull();
+    assertThat(policyWaiver.getOwnerId()).isEqualTo(ownerId);
+    assertThat(policyWaiver.getHash()).isEqualTo(hash);
+    assertThat(policyWaiver.getComment()).isEqualTo(comment);
+    assertThat(policyWaiver.getPolicyId()).isEqualTo(policy.getId());
+    assertThat(policyWaiver.getCreateTime()).isNotNull();
+    assertThat(policyWaiver.getConstraintFactsJson()).isEqualTo(policyViolation.getConstraintFactsJson());
   }
 }

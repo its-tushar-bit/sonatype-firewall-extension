@@ -28,6 +28,9 @@ import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemNotice;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
@@ -199,6 +202,38 @@ public class DbScrubberTest
 
     assertThat(getSqlDumpContent()).contains(systemNotice.getId(), "testSystemNotice");
     assertThat(getScrubbedSqlContent()).doesNotContain(systemNotice.getId(), "testSystemNotice");
+  }
+
+  @Test
+  public void testScrubDB_Table_ldap_server() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("testLdapServer");
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(ldapServer.getId(), "testLdapServer");
+    assertThat(getScrubbedSqlContent()).doesNotContain(ldapServer.getId(), "testLdapServer");
+  }
+
+  @Test
+  public void testScrubDB_Table_ldap_connection() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("testLdapServer");
+    LdapConnection ldapConnection = tempEntity.newLdapConnection(ldapServer.getId());
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(ldapConnection.getId(), ldapConnection.getHostname());
+    assertThat(getScrubbedSqlContent()).doesNotContain(ldapConnection.getId(), ldapConnection.getHostname());
+  }
+
+  @Test
+  public void testScrubDB_Table_ldap_usermapping() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("testLdapServer");
+    LdapUserMapping ldapUserMapping = tempEntity.newLdapUserMapping(ldapServer.getId());
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(ldapUserMapping.getId(), ldapUserMapping.getUserBaseDN());
+    assertThat(getScrubbedSqlContent()).doesNotContain(ldapUserMapping.getId(), ldapUserMapping.getUserBaseDN());
   }
 
   @Test

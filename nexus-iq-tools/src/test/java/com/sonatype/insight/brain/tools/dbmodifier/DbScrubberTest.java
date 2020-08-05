@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
+import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.model.configuration.SystemNotice;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
@@ -234,6 +235,16 @@ public class DbScrubberTest
 
     assertThat(getSqlDumpContent()).contains(ldapUserMapping.getId(), ldapUserMapping.getUserBaseDN());
     assertThat(getScrubbedSqlContent()).doesNotContain(ldapUserMapping.getId(), ldapUserMapping.getUserBaseDN());
+  }
+
+  @Test
+  public void testScrubDB_Table_proprietary_config() throws Exception {
+    ProprietaryConfig proprietaryConfig = tempEntity.newProprietaryConfig("testOwnerId");
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(proprietaryConfig.getId(), "testOwnerId");
+    assertThat(getScrubbedSqlContent()).doesNotContain(proprietaryConfig.getId(), "testOwnerId");
   }
 
   @Test

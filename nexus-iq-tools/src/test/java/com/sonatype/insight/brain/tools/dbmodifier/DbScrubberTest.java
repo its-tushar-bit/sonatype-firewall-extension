@@ -15,6 +15,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemNoticeDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
@@ -26,6 +27,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
+import com.sonatype.insight.brain.model.configuration.SystemNotice;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
@@ -184,6 +186,19 @@ public class DbScrubberTest
 
     assertThat(getSqlDumpContent()).contains(userToken.getId(), "testUsername", "testRealmId");
     assertThat(getScrubbedSqlContent()).doesNotContain(userToken.getId(), "testUsername", "testRealmId");
+  }
+
+  @Test
+  public void testScrubDB_Table_system_notice() throws Exception {
+    SystemNoticeDAO systemNoticeDAO = new SystemNoticeDAO();
+    SystemNotice systemNotice = systemNoticeDAO.get();
+    systemNotice.setMessage("testSystemNotice");
+    systemNoticeDAO.update(systemNotice);
+
+    scrubDb();
+
+    assertThat(getSqlDumpContent()).contains(systemNotice.getId(), "testSystemNotice");
+    assertThat(getScrubbedSqlContent()).doesNotContain(systemNotice.getId(), "testSystemNotice");
   }
 
   @Test

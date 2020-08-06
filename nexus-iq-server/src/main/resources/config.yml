@@ -146,7 +146,6 @@ logging:
   # Logger-specific settings.
   loggers:
     "com.sonatype.insight.scan": INFO
-    "com.sonatype.nexus.git.utils.api.NativeGitUtils" : INFO
     "eu.medsea.mimeutil.MimeUtil2": INFO
     "org.apache.http": INFO
     "org.apache.http.wire": ERROR
@@ -155,7 +154,6 @@ logging:
     "org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter": INFO   # WARNING: This reveals credentials at DEBUG level
     "org.quartz.impl.jdbcjobstore.SimpleSemaphore": INFO
     "org.quartz.impl.jdbcjobstore.StdRowLockSemaphore": INFO
-    "org.zeroturnaround.exec" : INFO
     "com.sonatype.insight.audit":
       appenders:
       - type: file

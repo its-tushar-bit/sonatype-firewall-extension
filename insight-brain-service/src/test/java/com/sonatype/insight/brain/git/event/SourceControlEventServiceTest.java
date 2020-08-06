@@ -344,6 +344,34 @@ public class SourceControlEventServiceTest
   }
 
   @Test
+  /*
+    The purpose of this test is to ensure there are no concurrency issues when processing a burst of event messages
+    for the same application;  load testing revealed a race condition that allowed multiple events for the same
+    application to execute in parallel;  a symptom of this was the WARN messages that appeared in the logs when repo
+    access was released multiple times for same application
+   */
+  public void testProcessEvents_burstLoadSameApplication() throws Exception {
+    // given: DAO setup to return max number of events that can be processed in one cycle
+    final int eventCount = SourceControlEventService.TASK_QUEUE_CAPACITY;
+    List<SourceControlEvent> events =
+        generateEvents(eventCount + ":app1:" + SourceControlEvent.APPLICATION_EVALUATION_EVENT);
+    when(mockSourceControlEventDAO
+        .selectEventsForInstance(eq(SourceControlEventService.INSTANCE_ID), anyInt()))
+        .thenReturn(events);
+
+    CountDownLatch eventBurstCompleteLatch = createEventBurstCompleteLatch(eventCount);
+
+    // when: process the events
+    int eventsProcessed = eventService.processEvents();
+
+    // then: all events processed and no warnings or errors in the logs
+    assertThat(eventsProcessed).isEqualTo(eventCount);
+    verifyUnlatched(eventBurstCompleteLatch);
+    assertNoWarningsInLogs();
+    assertNoErrorsInLogs();
+  }
+
+  @Test
   public void testProcessEvents_invalidEventType() throws Exception {
     // given: DAO setup to return an event with an unsupported type
     final String eventId = "event-id-1";
@@ -591,6 +619,12 @@ public class SourceControlEventServiceTest
   /*
     Helpers for synchronizing the test code with the multi-threaded code being tested
    */
+
+  private CountDownLatch createEventBurstCompleteLatch(int burstCount) {
+    CountDownLatch latch = new CountDownLatch(burstCount);
+    unlatch(latch).when(eventService).notifyFinishedProcessingEvent(any(SourceControlEvent.class));
+    return latch;
+  }
 
   private CountDownLatch createOnEventFinishedLatch(SourceControlEvent event) {
     CountDownLatch latch = new CountDownLatch(1);

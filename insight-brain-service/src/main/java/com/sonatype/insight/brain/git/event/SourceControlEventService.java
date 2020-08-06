@@ -72,8 +72,7 @@ public class SourceControlEventService
   /*
     work for the same repo/application should be done sequentially; work for different apps can be done in parallel
    */
-  @VisibleForTesting
-  SemaphorePool repoAccessController;
+  private SemaphorePool repoAccessController = new SemaphorePool(THREAD_POOL_SIZE);
 
   private final SourceControlEventDAO sourceControlEventDAO;
 
@@ -223,7 +222,7 @@ public class SourceControlEventService
 
   private boolean acquireRepoAccess(String applicationId) {
     try {
-      getRepoAccessController().acquire(applicationId);
+      repoAccessController.acquire(applicationId);
       return true;
     }
     catch (InterruptedException e) {
@@ -235,7 +234,7 @@ public class SourceControlEventService
 
   private void releaseRepoAccess(String applicationId) {
     try {
-      getRepoAccessController().release(applicationId);
+      repoAccessController.release(applicationId);
     }
     catch (InterruptedException e) {
       log.error("Unable to release repo access for application '{}'", applicationId, e);
@@ -307,13 +306,6 @@ public class SourceControlEventService
 
   private boolean hasCapacity() {
     return getRemainingCapacity() > 0;
-  }
-
-  private SemaphorePool getRepoAccessController() {
-    if (null == repoAccessController) {
-      repoAccessController = new SemaphorePool(THREAD_POOL_SIZE);
-    }
-    return repoAccessController;
   }
 
   @VisibleForTesting

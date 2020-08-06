@@ -61,4 +61,18 @@ public class VerifiableLoggingTestBase
         .extracting(ILoggingEvent::getFormattedMessage, ILoggingEvent::getLevel)
         .contains(logMessageTuples);
   }
+
+  protected void assertNoErrorsInLogs() {
+    assertNoLogEntriesAtLevel(Level.ERROR);
+  }
+
+  protected void assertNoWarningsInLogs() {
+    assertNoLogEntriesAtLevel(Level.WARN);
+  }
+
+  private void assertNoLogEntriesAtLevel(Level level) {
+    for (ILoggingEvent log : listAppender.list) {
+      assertThat(log.getLevel()).isNotEqualTo(level);
+    }
+  }
 }

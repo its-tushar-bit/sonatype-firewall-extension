@@ -13,9 +13,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
-import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 
 import org.slf4j.Logger;
@@ -32,16 +30,11 @@ public class PullRequestRepositoryValidator
 
   static final String GITHUB_COM = "https://github.com";
 
-  static final String GITLAB_COM = "https://gitlab.com";
-
   private final GitClientFactory gitClientFactory;
 
-  private final InsightConfig insightConfig;
-
   @Inject
-  PullRequestRepositoryValidator(final GitClientFactory gitClientFactory, final InsightConfig insightConfig) {
+  PullRequestRepositoryValidator(final GitClientFactory gitClientFactory) {
     this.gitClientFactory = gitClientFactory;
-    this.insightConfig = insightConfig;
   }
 
   /**
@@ -61,15 +54,7 @@ public class PullRequestRepositoryValidator
           String.format("'%s' not supported yet", gitRepositoryInfo.provider.name()));
     }
 
-    return isFeatureFlagEnabled(gitRepositoryInfo) && // to be removed when auto MRs are ready for release
-        (isInternalRepository(gitRepositoryInfo) || isPrivateRepository(gitRepositoryInfo));
-  }
-
-  private boolean isFeatureFlagEnabled(final GitRepositoryInfo gitRepositoryInfo) {
-    if (SourceControlProvider.GITLAB == gitRepositoryInfo.provider) {
-      return insightConfig.isExperimentalFeatureEnabled("automaticMergeRequests");
-    }
-    return true;
+    return isInternalRepository(gitRepositoryInfo) || isPrivateRepository(gitRepositoryInfo);
   }
 
   /**

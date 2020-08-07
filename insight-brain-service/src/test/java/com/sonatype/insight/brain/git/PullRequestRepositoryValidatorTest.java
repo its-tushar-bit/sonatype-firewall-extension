@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
 
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
@@ -19,7 +18,6 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,7 +51,7 @@ public class PullRequestRepositoryValidatorTest
 
   @Before
   public void setup() {
-    pullRequestRepositoryValidator = new PullRequestRepositoryValidator(gitClientFactory, getTestInsightConfig());
+    pullRequestRepositoryValidator = new PullRequestRepositoryValidator(gitClientFactory);
 
     Logger log = (Logger) LoggerFactory.getLogger(PullRequestRepositoryValidator.class);
     listAppender = new ListAppender<>();
@@ -196,12 +194,5 @@ public class PullRequestRepositoryValidatorTest
     String username = provider.requiresUsername() ? "username" : null;
     return new GitRepositoryInfo(repoUrl, username, "token", provider, "baseBranch", enablePullRequests,
         enableStatusChecks);
-  }
-
-  private InsightConfig getTestInsightConfig() {
-    InsightConfig insightConfig = new InsightConfig();
-    insightConfig.setExperimentalFeatures(
-        new ImmutableMap.Builder<String, Boolean>().put("automaticMergeRequests", true).build());
-    return insightConfig;
   }
 }

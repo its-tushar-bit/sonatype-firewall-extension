@@ -79,6 +79,7 @@ public class ApiPolicyWaiverService
    *
    * @deprecated Use {@link #addPolicyWaiverByPolicyViolationId(OwnerType, String, String, String, boolean)}
    */
+  @Deprecated
   public void addPolicyWaiver(final String policyViolationId,
                               final OwnerType ownerType,
                               final String comment)

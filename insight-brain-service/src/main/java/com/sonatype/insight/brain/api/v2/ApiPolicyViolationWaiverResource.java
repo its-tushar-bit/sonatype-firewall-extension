@@ -46,6 +46,7 @@ public class ApiPolicyViolationWaiverResource
   @POST
   @Consumes(MediaType.TEXT_PLAIN)
   @Audited(AuditEvent.CREATE_WAIVER)
+  @Deprecated
   public void addPolicyWaiver(@PathParam("policyViolationId") String policyViolationId,
                               @PathParam("ownerType") OwnerType ownerType,
                               String comment)

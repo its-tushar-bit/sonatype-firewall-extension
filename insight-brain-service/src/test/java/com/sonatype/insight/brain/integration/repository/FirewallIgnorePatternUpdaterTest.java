@@ -88,7 +88,8 @@ public class FirewallIgnorePatternUpdaterTest
         createFirewallIgnorePatterns();
     when(hdsClientMock.get(FirewallIgnorePatterns.class, FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH))
         .thenReturn(expectedFirewallIgnorePatterns.getFirewallIgnorePatterns());
-    assertThat(firewallIgnorePatternsDAO.get()).isNull();
+    assertFirewallIgnorePatterns(firewallIgnorePatternsDAO.get(),
+        new com.sonatype.insight.brain.model.configuration.FirewallIgnorePatterns());
 
     firewallIgnorePatternUpdater.updateFirewallIgnorePatterns();
 

@@ -50,7 +50,7 @@ public class FirewallIgnorePatternService
   public FirewallIgnorePatterns getIgnorePatterns() {
     com.sonatype.insight.brain.model.configuration.FirewallIgnorePatterns firewallIgnorePatterns =
         firewallIgnorePatternsDAO.get();
-    if (firewallIgnorePatterns == null) {
+    if (firewallIgnorePatterns.getFirewallIgnorePatterns() == null) {
       firewallIgnorePatternUpdater.updateFirewallIgnorePatterns();
       firewallIgnorePatterns = firewallIgnorePatternsDAO.get();
     }

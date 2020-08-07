@@ -466,7 +466,7 @@ public class TemporaryEntity
     delete(componentLabels, componentLabelDAO);
     delete(sourceControlDefaultBranchCommitHistories, sourceControlDefaultBranchCommitHistoryDAO);
     productLicenseDAO.delete();
-    firewallIgnorePatternsDAO.delete();
+    firewallIgnorePatternsDAO.update(new FirewallIgnorePatterns());
 
     ProprietaryConfig config = proprietaryConfigDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
     if (config != null) {

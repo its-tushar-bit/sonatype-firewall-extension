@@ -27,8 +27,7 @@ public class FirewallIgnorePatternsDAO
 
   @Override
   public void insert(TransactionContext tx, FirewallIgnorePatterns firewallIgnorePatterns) {
-    firewallIgnorePatterns.setId(SINGLETON_ENTITY_ID);
-    super.insert(tx, firewallIgnorePatterns);
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -37,10 +36,8 @@ public class FirewallIgnorePatternsDAO
     super.update(tx, firewallIgnorePatterns);
   }
 
-  public void delete() {
-    FirewallIgnorePatterns firewallIgnorePatterns = get();
-    if (firewallIgnorePatterns != null) {
-      delete(firewallIgnorePatterns);
-    }
+  @Override
+  public void delete(TransactionContext tx, FirewallIgnorePatterns firewallIgnorePatterns) {
+    throw new UnsupportedOperationException();
   }
 }

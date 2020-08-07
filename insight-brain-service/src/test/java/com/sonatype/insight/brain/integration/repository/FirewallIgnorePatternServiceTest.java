@@ -25,6 +25,7 @@ import org.mockito.Mock;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -52,11 +53,12 @@ public class FirewallIgnorePatternServiceTest
   }
 
   @Test
-  public void testGetIgnorePatterns_Null_Updates() {
+  public void testGetIgnorePatterns_NullPatterns_Updates() {
+    assertFirewallIgnorePatterns(firewallIgnorePatternsDAO.get(),
+        new com.sonatype.insight.brain.model.configuration.FirewallIgnorePatterns());
     FirewallIgnorePatterns expectedFirewallIgnorePatterns = createFirewallIgnorePatterns();
     when(hdsClientMock.get(FirewallIgnorePatterns.class, FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH))
         .thenReturn(expectedFirewallIgnorePatterns);
-    assertThat(firewallIgnorePatternsDAO.get()).isNull();
 
     assertThat(firewallIgnorePatternService.getIgnorePatterns()).usingRecursiveComparison()
         .isEqualTo(expectedFirewallIgnorePatterns);
@@ -65,20 +67,16 @@ public class FirewallIgnorePatternServiceTest
     assertThat(firewallIgnorePatterns).isNotNull();
     assertThat(firewallIgnorePatterns.getFirewallIgnorePatterns()).usingRecursiveComparison()
         .isEqualTo(expectedFirewallIgnorePatterns);
+    verify(hdsClientMock).get(FirewallIgnorePatterns.class, FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH);
   }
 
   @Test
-  public void testGetIgnorePatterns_NotNull_DoesNotUpdate() {
-    when(hdsClientMock.get(FirewallIgnorePatterns.class, FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH))
-        .thenReturn(new FirewallIgnorePatterns());
-    firewallIgnorePatternService.getIgnorePatterns();
-    verify(hdsClientMock).get(FirewallIgnorePatterns.class, FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH);
-    firewallIgnorePatternsDAO.delete();
+  public void testGetIgnorePatterns_NotNullPatterns_DoesNotUpdate() {
     tempEntity.setFirewallIgnorePatterns(createFirewallIgnorePatterns());
 
     assertThat(firewallIgnorePatternService.getIgnorePatterns()).usingRecursiveComparison()
         .isEqualTo(firewallIgnorePatternsDAO.get().getFirewallIgnorePatterns());
-    verify(hdsClientMock, times(1))
+    verify(hdsClientMock, never())
         .get(FirewallIgnorePatterns.class, FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH);
   }
 
@@ -90,7 +88,8 @@ public class FirewallIgnorePatternServiceTest
     assertThatExceptionOfType(RuntimeException.class)
         .isThrownBy(() -> firewallIgnorePatternService.getIgnorePatterns())
         .withMessageContaining("Failed to get ignore patterns from remote");
-    assertThat(firewallIgnorePatternsDAO.get()).isNull();
+    assertFirewallIgnorePatterns(firewallIgnorePatternsDAO.get(),
+        new com.sonatype.insight.brain.model.configuration.FirewallIgnorePatterns());
     verify(hdsClientMock).get(FirewallIgnorePatterns.class, FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH);
 
     assertThat(firewallIgnorePatternService.getIgnorePatterns()).usingRecursiveComparison()
@@ -158,5 +157,15 @@ public class FirewallIgnorePatternServiceTest
     firewallIgnorePatterns.regexpsByRepositoryFormat.put("format1", Arrays.asList("a", "b"));
     firewallIgnorePatterns.regexpsByRepositoryFormat.put("format2", Collections.singletonList("c"));
     return firewallIgnorePatterns;
+  }
+
+  private void assertFirewallIgnorePatterns(
+      com.sonatype.insight.brain.model.configuration.FirewallIgnorePatterns actual,
+      com.sonatype.insight.brain.model.configuration.FirewallIgnorePatterns expected)
+  {
+    assertThat(actual).isNotNull();
+    assertThat(actual.getId()).isEqualTo(FirewallIgnorePatternsDAO.SINGLETON_ENTITY_ID);
+    assertThat(actual.getFirewallIgnorePatterns()).usingRecursiveComparison()
+        .isEqualTo(expected.getFirewallIgnorePatterns());
   }
 }

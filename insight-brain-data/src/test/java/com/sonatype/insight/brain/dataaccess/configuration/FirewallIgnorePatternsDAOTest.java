@@ -8,9 +8,6 @@ package com.sonatype.insight.brain.dataaccess.configuration;
 import java.util.Arrays;
 import java.util.Collections;
 
-import javax.persistence.EntityExistsException;
-import javax.persistence.PersistenceException;
-
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.configuration.FirewallIgnorePatterns;
 
@@ -25,62 +22,43 @@ public class FirewallIgnorePatternsDAOTest
   private final FirewallIgnorePatternsDAO dao = new FirewallIgnorePatternsDAO();
 
   @Test
-  public void testCRUD() {
-    assertThat(dao.get()).isNull();
+  public void testReadUpdate() {
+    assertFirewallIgnorePatterns(dao.get(), new FirewallIgnorePatterns());
 
     FirewallIgnorePatterns expectedFirewallIgnorePatterns = createFirewallIgnorePatterns();
-
-    dao.insert(expectedFirewallIgnorePatterns);
-
-    assertFirewallIgnorePatterns(dao.get(), expectedFirewallIgnorePatterns);
-
-    com.sonatype.clm.dto.model.component.FirewallIgnorePatterns firewallIgnorePatterns =
-        expectedFirewallIgnorePatterns.getFirewallIgnorePatterns();
-    firewallIgnorePatterns.regexpsByRepositoryFormat.put("conda", Collections.singletonList(".*\\.json"));
-    expectedFirewallIgnorePatterns.setFirewallIgnorePatterns(firewallIgnorePatterns);
 
     dao.update(expectedFirewallIgnorePatterns);
 
     assertFirewallIgnorePatterns(dao.get(), expectedFirewallIgnorePatterns);
-
-    dao.delete();
-
-    assertThat(dao.get()).isNull();
   }
 
   @Test
-  public void testInsert_EnforceSingleton() {
-    dao.insert(createFirewallIgnorePatterns());
-
-    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> {
+  public void testInsert_Unsupported() {
+    assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
       dao.insert(createFirewallIgnorePatterns());
-    }).withCauseInstanceOf(EntityExistsException.class);
-
-    FirewallIgnorePatterns firewallIgnorePatterns = createFirewallIgnorePatterns();
-    firewallIgnorePatterns.setId("not-" + FirewallIgnorePatternsDAO.SINGLETON_ENTITY_ID);
-
-    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> {
-      dao.insert(firewallIgnorePatterns);
-    }).withCauseInstanceOf(EntityExistsException.class);
+    });
   }
 
   @Test
   public void testUpdate_EnforceSingleton() {
-    FirewallIgnorePatterns expectedFirewallIgnorePatterns = createFirewallIgnorePatterns();
-    dao.insert(expectedFirewallIgnorePatterns);
+    FirewallIgnorePatterns expectedFirewallIgnorePatterns = dao.get();
+    assertFirewallIgnorePatterns(expectedFirewallIgnorePatterns, new FirewallIgnorePatterns());
 
     String notSingletonEntityId = "not-" + FirewallIgnorePatternsDAO.SINGLETON_ENTITY_ID;
-    expectedFirewallIgnorePatterns.setId(notSingletonEntityId);
-    com.sonatype.clm.dto.model.component.FirewallIgnorePatterns firewallIgnorePatterns =
-        expectedFirewallIgnorePatterns.getFirewallIgnorePatterns();
-    firewallIgnorePatterns.regexpsByRepositoryFormat.put("conda", Collections.singletonList(".*\\.json"));
-    expectedFirewallIgnorePatterns.setFirewallIgnorePatterns(firewallIgnorePatterns);
+    expectedFirewallIgnorePatterns
+        .setFirewallIgnorePatterns(createFirewallIgnorePatterns().getFirewallIgnorePatterns());
 
     dao.update(expectedFirewallIgnorePatterns);
 
     assertThat(dao.getById(notSingletonEntityId)).isNull();
-    FirewallIgnorePatterns actual = dao.get();
-    assertFirewallIgnorePatterns(actual, expectedFirewallIgnorePatterns);
+    assertFirewallIgnorePatterns(dao.get(), expectedFirewallIgnorePatterns);
+  }
+
+  @Test
+  public void testDelete_Unsupported() {
+    assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
+      dao.delete(dao.get());
+    });
   }
 
   private FirewallIgnorePatterns createFirewallIgnorePatterns() {

@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.git;
 
 import java.io.File;
-import java.io.IOException;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -122,7 +121,7 @@ public class PullRequestTaskTest
   }
   
   @Test
-  public void test_run_notInited() throws IOException {
+  public void test_run_notInited() {
     pullRequestTask.run(null, null);
     assertThat(logOutput).atErrorLevel().contains("Missing required PullRequestRemediationDetails");
     verifyNoInteractions(sourceControlUtils, gitClientFactory, insightConfig, fileCleaner,

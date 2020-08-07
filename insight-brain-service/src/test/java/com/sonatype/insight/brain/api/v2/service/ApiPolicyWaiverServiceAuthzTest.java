@@ -40,34 +40,58 @@ public class ApiPolicyWaiverServiceAuthzTest
     policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy, "g1", "a1", "v1", "h1", "r1");
   }
 
+  /**
+   * @deprecated The tested method is deprecated
+   */
+  @Deprecated
   @Test
   public void testAddPolicyWaiver_Application_Authorized() {
     grantPermission(app.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
     apiPolicyWaiverService.addPolicyWaiver(policyViolation.getId(), OwnerType.APPLICATION, "waiver comment");
   }
 
+  /**
+   * @deprecated The tested method is deprecated
+   */
+  @Deprecated
   @Test(expected = UnauthenticatedException.class)
   public void testAddPolicyWaiver_Application_Unauthenticated() {
     apiPolicyWaiverService.addPolicyWaiver(policyViolation.getId(), OwnerType.APPLICATION, "waiver comment");
   }
 
+  /**
+   * @deprecated The tested method is deprecated
+   */
+  @Deprecated
   @Test(expected = UnauthorizedException.class)
   public void testAddPolicyWaiver_Application_UnauthorizedButAuthenticated() {
     login();
     apiPolicyWaiverService.addPolicyWaiver(policyViolation.getId(), OwnerType.APPLICATION, "waiver comment");
   }
 
+  /**
+   * @deprecated The tested method is deprecated
+   */
+  @Deprecated
   @Test
   public void testAddPolicyWaiver_Organization_Authorized() {
     grantPermission(org.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
     apiPolicyWaiverService.addPolicyWaiver(policyViolation.getId(), OwnerType.ORGANIZATION, "waiver comment");
   }
 
+  /**
+   * @deprecated The tested method is deprecated
+   */
+  @Deprecated
   @Test(expected = UnauthenticatedException.class)
   public void testAddPolicyWaiver_Organization_Unauthenticated() {
     apiPolicyWaiverService.addPolicyWaiver(policyViolation.getId(), OwnerType.ORGANIZATION, "waiver comment");
   }
 
+  /**
+   * @deprecated The tested method is deprecated
+   */
+  @Deprecated
   @Test(expected = UnauthorizedException.class)
   public void testAddWaiver_Organization_UnauthorizedButAuthenticated() {
     login();

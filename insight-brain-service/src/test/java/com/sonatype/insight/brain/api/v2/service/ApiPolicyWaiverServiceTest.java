@@ -76,6 +76,10 @@ public class ApiPolicyWaiverServiceTest
     policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy, "g1", "a1", "v1", "h1", "r1");
   }
 
+  /**
+   * @deprecated The tested method is deprecated
+   */
+  @Deprecated
   @Test
   public void testAddPolicyWaiver_Application() {
     apiPolicyWaiverService.addPolicyWaiver(policyViolation.getId(), OwnerType.APPLICATION, "waiver comment");
@@ -83,6 +87,10 @@ public class ApiPolicyWaiverServiceTest
     assertTelemetry(OwnerType.APPLICATION, app.getId());
   }
 
+  /**
+   * @deprecated The tested method is deprecated
+   */
+  @Deprecated
   @Test
   public void testAddPolicyWaiver_Organization() {
     apiPolicyWaiverService.addPolicyWaiver(policyViolation.getId(), OwnerType.ORGANIZATION, "waiver comment");
@@ -90,12 +98,21 @@ public class ApiPolicyWaiverServiceTest
     assertTelemetry(OwnerType.ORGANIZATION, org.getId());
   }
 
+  /**
+   * @deprecated The tested method is deprecated
+   */
+  @Deprecated
   @Test
   public void testAddPolicyWaiver_AcceptsNoComment() {
     apiPolicyWaiverService.addPolicyWaiver(policyViolation.getId(), OwnerType.APPLICATION, null);
     assertPolicyWaiver(app.getId(), null, policyViolation.getHash());
   }
 
+  /**
+   * @deprecated The tested method is deprecated
+   */
+  @SuppressWarnings("deprecation")
+  @Deprecated
   @Test
   public void testAddPolicyWaiver_InvalidPolicyViolationId() {
     assertThatThrownBy(() ->
@@ -104,6 +121,11 @@ public class ApiPolicyWaiverServiceTest
         .hasMessage("Could not find policy violation with ID invalid-policyViolationId.");
   }
 
+  /**
+   * @deprecated The tested method is deprecated
+   */
+  @SuppressWarnings("deprecation")
+  @Deprecated
   @Test
   public void testAddPolicyWaiver_InvalidOwnerType() {
     assertThatThrownBy(() ->

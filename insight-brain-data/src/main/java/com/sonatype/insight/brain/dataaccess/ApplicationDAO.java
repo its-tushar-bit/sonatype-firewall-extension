@@ -352,6 +352,9 @@ public class ApplicationDAO
     // Cascade to SourceControl events
     new SourceControlEventDAO().deleteByApplicationId(tx, application.getId());
 
+    // Cascade to locks
+    LockedTransactionContext.deleteForPolicyViolations(tx, application);
+
     super.delete(tx, application);
 
     // Cascade to aggregation tables. These are in a separate database and therefore use a separate transaction.

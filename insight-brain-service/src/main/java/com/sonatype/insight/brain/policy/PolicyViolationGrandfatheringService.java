@@ -13,6 +13,7 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.LockedTransactionContext;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -49,26 +50,23 @@ public class PolicyViolationGrandfatheringService
 
   private final PolicyViolationDAO policyViolationDAO;
 
-  private final PolicyViolationPersistenceLocks policyViolationPersistenceLocks;
-
   private final ProductLicense productLicense;
 
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
   @Inject
-  public PolicyViolationGrandfatheringService(ApplicationDAO applicationDAO,
-                                              OrganizationDAO organizationDAO,
-                                              PolicyDAO policyDAO,
-                                              PolicyViolationDAO policyViolationDAO,
-                                              PolicyViolationPersistenceLocks policyViolationPersistenceLocks,
-                                              ProductLicense productLicense,
-                                              PolicyViolationLoggerFactory policyViolationLoggerFactory)
+  public PolicyViolationGrandfatheringService(
+      ApplicationDAO applicationDAO,
+      OrganizationDAO organizationDAO,
+      PolicyDAO policyDAO,
+      PolicyViolationDAO policyViolationDAO,
+      ProductLicense productLicense,
+      PolicyViolationLoggerFactory policyViolationLoggerFactory)
   {
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
     this.policyDAO = policyDAO;
     this.policyViolationDAO = policyViolationDAO;
-    this.policyViolationPersistenceLocks = policyViolationPersistenceLocks;
     this.productLicense = productLicense;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
   }
@@ -86,28 +84,24 @@ public class PolicyViolationGrandfatheringService
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     log.info("Revoking grandfathered policy violations for application '{}' (ID: {}).", app.getName(), app.getId());
 
-    Object lock = policyViolationPersistenceLocks.getLock(app.getId());
-    synchronized (lock) {
-      Date now = new Date();
-      ApplicationPolicyViolationLogger policyViolationLogger = policyViolationLoggerFactory.newLogger(now, app);
+    Date now = new Date();
+    ApplicationPolicyViolationLogger policyViolationLogger = policyViolationLoggerFactory.newLogger(now, app);
 
-      try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
-        tx.begin();
+    try (TransactionContext tx = LockedTransactionContext.createForPolicyViolations(app)) {
+      tx.begin();
+      List<PolicyViolation> grandfatheredPolicyViolations = policyViolationDAO
+          .getUnfixedGrandfatheredByApplicationId(tx, app.getId());
+      for (PolicyViolation grandfatheredPolicyViolation : grandfatheredPolicyViolations) {
+        grandfatheredPolicyViolation.setGrandfatherTime(null);
+        policyViolationDAO.update(tx, grandfatheredPolicyViolation);
 
-        List<PolicyViolation> grandfatheredPolicyViolations = policyViolationDAO
-            .getUnfixedGrandfatheredByApplicationId(tx, app.getId());
-        for (PolicyViolation grandfatheredPolicyViolation : grandfatheredPolicyViolations) {
-          grandfatheredPolicyViolation.setGrandfatherTime(null);
-          policyViolationDAO.update(tx, grandfatheredPolicyViolation);
-
-          policyViolationLogger.add(PolicyViolationLogEvent.UNGRANDFATHER, grandfatheredPolicyViolation);
-        }
-
-        tx.commit();
-
-        policyViolationLogger.log();
-        auditChangedPolicyViolationCount(grandfatheredPolicyViolations.size());
+        policyViolationLogger.add(PolicyViolationLogEvent.UNGRANDFATHER, grandfatheredPolicyViolation);
       }
+
+      tx.commit();
+
+      policyViolationLogger.log();
+      auditChangedPolicyViolationCount(grandfatheredPolicyViolations.size());
     }
   }
 
@@ -123,35 +117,31 @@ public class PolicyViolationGrandfatheringService
 
     log.info("Grandfathering policy violations for application '{}' (ID: {}).", app.getName(), app.getId());
 
-    Object lock = policyViolationPersistenceLocks.getLock(app.getId());
-    synchronized (lock) {
-      Date now = new Date();
-      ApplicationPolicyViolationLogger policyViolationLogger = policyViolationLoggerFactory.newLogger(now, app);
+    Date now = new Date();
+    ApplicationPolicyViolationLogger policyViolationLogger = policyViolationLoggerFactory.newLogger(now, app);
 
-      try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
-        tx.begin();
+    try (TransactionContext tx = LockedTransactionContext.createForPolicyViolations(app)) {
+      tx.begin();
+      List<PolicyViolation> policyViolations = policyViolationDAO.getUnfixedByApplicationId(tx, app.getId());
+      int changedPolicyViolationCount = 0;
+      for (PolicyViolation policyViolation : policyViolations) {
+        if (!policyViolation.isGrandfathered()) {
+          Policy policy = policyDAO.getById(tx, policyViolation.getPolicyId());
+          if (policy == null || policy.isPolicyViolationGrandfatheringAllowed()) {
+            policyViolation.setGrandfatherTime(now);
+            policyViolationDAO.update(tx, policyViolation);
 
-        List<PolicyViolation> policyViolations = policyViolationDAO.getUnfixedByApplicationId(tx, app.getId());
-        int changedPolicyViolationCount = 0;
-        for (PolicyViolation policyViolation : policyViolations) {
-          if (!policyViolation.isGrandfathered()) {
-            Policy policy = policyDAO.getById(tx, policyViolation.getPolicyId());
-            if (policy == null || policy.isPolicyViolationGrandfatheringAllowed()) {
-              policyViolation.setGrandfatherTime(now);
-              policyViolationDAO.update(tx, policyViolation);
+            policyViolationLogger.add(PolicyViolationLogEvent.GRANDFATHER, policyViolation);
 
-              policyViolationLogger.add(PolicyViolationLogEvent.GRANDFATHER, policyViolation);
-
-              changedPolicyViolationCount++;
-            }
+            changedPolicyViolationCount++;
           }
         }
-
-        tx.commit();
-
-        policyViolationLogger.log();
-        auditChangedPolicyViolationCount(changedPolicyViolationCount);
       }
+
+      tx.commit();
+
+      policyViolationLogger.log();
+      auditChangedPolicyViolationCount(changedPolicyViolationCount);
     }
   }
 

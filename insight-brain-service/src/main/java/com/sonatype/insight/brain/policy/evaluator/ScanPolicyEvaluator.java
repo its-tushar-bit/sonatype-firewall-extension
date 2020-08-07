@@ -37,6 +37,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentDisplayFilename;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
+import com.sonatype.insight.brain.dataaccess.LockedTransactionContext;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -57,7 +58,6 @@ import com.sonatype.insight.brain.model.policy.conditions.DependencyTypeConditio
 import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
 import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
-import com.sonatype.insight.brain.policy.PolicyViolationPersistenceLocks;
 import com.sonatype.insight.brain.policy.violation.ApplicationPolicyViolationLogger;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
@@ -105,8 +105,6 @@ public class ScanPolicyEvaluator
           SecurityVulnerabilityCategoryConditionType.ID
       )));
 
-  private final PolicyViolationPersistenceLocks policyViolationPersistenceLocks;
-
   private static final String UNKNOWN = "unknown";
 
   private final InsightWork work;
@@ -145,7 +143,6 @@ public class ScanPolicyEvaluator
       final PolicyViolationGrandfatheringService policyViolationGrandfatheringService,
       final PolicyAlertEventService policyAlertEventService,
       final TelemetrySender telemetrySender,
-      final PolicyViolationPersistenceLocks policyViolationPersistenceLocks,
       final PolicyViolationLoggerFactory policyViolationLoggerFactory,
       final ProductLicense productLicense,
       final SourceControlUtils sourceControlUtils)
@@ -158,7 +155,6 @@ public class ScanPolicyEvaluator
     this.policyViolationGrandfatheringService = policyViolationGrandfatheringService;
     this.policyAlertEventService = policyAlertEventService;
     this.telemetrySender = telemetrySender;
-    this.policyViolationPersistenceLocks = policyViolationPersistenceLocks;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
     this.productLicense = productLicense;
     this.sourceControlUtils = sourceControlUtils;
@@ -307,179 +303,175 @@ public class ScanPolicyEvaluator
                                                           String commitHash)
   {
     String appId = app.getId();
-    Object lock = policyViolationPersistenceLocks.getLock(appId);
-    synchronized (lock) {
-      long start = System.currentTimeMillis();
-      PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
-      try (TransactionContext tx = policyEvaluationDAO.createTransactionContext()) {
-        tx.begin();
+    long start = System.currentTimeMillis();
+    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
+    try (TransactionContext tx = LockedTransactionContext.createForPolicyViolations(app)) {
+      tx.begin();
+      // Persist the policy evaluation
+      boolean isReevaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, appId, scanId) != null;
+      AuditData.get().setIsReevaluation(isReevaluation);
+      PolicyEvaluation policyEvaluation = new PolicyEvaluation(appId, stage.getStageTypeId(), scanId, isReevaluation,
+          forMonitoring);
+      policyEvaluation.setCommitHash(commitHash);
+      PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(tx,
+          appId, stage.getStageTypeId());
+      boolean isForLatestScan = true;
+      if (isReevaluation) {
+        isForLatestScan = lastPrimaryPolicyEvaluation.getScanId().equals(scanId);
+        policyEvaluation.setForObsoleteScan(!isForLatestScan);
+      }
+      policyEvaluationDAO.insert(tx, policyEvaluation);
 
-        // Persist the policy evaluation
-        boolean isReevaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, appId, scanId) != null;
-        AuditData.get().setIsReevaluation(isReevaluation);
-        PolicyEvaluation policyEvaluation = new PolicyEvaluation(appId, stage.getStageTypeId(), scanId, isReevaluation,
-            forMonitoring);
-        policyEvaluation.setCommitHash(commitHash);
-        PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(tx,
-            appId, stage.getStageTypeId());
-        boolean isForLatestScan = true;
-        if (isReevaluation) {
-          isForLatestScan = lastPrimaryPolicyEvaluation.getScanId().equals(scanId);
-          policyEvaluation.setForObsoleteScan(!isForLatestScan);
+      ScanPolicyEvaluatorResults results = new ScanPolicyEvaluatorResults();
+      results.evaluation = policyEvaluation;
+      results.allViolations = new ArrayList<>();
+      results.notifiableViolations = new ArrayList<>();
+
+      // Convert the policy alerts into policy violations
+      List<PolicyAlert> allPolicyAlerts = new ArrayList<>();
+      allPolicyAlerts.addAll(policyResults.getActiveAlerts());
+      allPolicyAlerts.addAll(policyResults.getWaivedAlerts());
+      for (PolicyAlert policyAlert : allPolicyAlerts) {
+        PolicyFact policyFact = policyAlert.getTrigger();
+        Policy policy = policyDAO.getByIdNotNull(policyFact.getPolicyId());
+        PolicyThreatCategory threatCategory = policy.getThreatCategory();
+        for (ComponentFact componentFact : policyFact.getComponentFacts()) {
+          PolicyViolation policyViolation = new PolicyViolation(policyEvaluation, policy.getId(), policy.getName(),
+              policyFact.getThreatLevel(), threatCategory, componentFact.getHash(),
+              componentFact.getComponentIdentifier(), componentFact.getConstraintFacts(),
+              getFilename(componentFact));
+          for (Action action : policyAlert.getActions()) {
+            // Don't save notification data into policy violations here because at this point we don't really know if
+            // the notifications will be sent or not.
+            // The notifier component will take care of saving the notification data.
+            if (!Action.ID_NOTIFY.equals(action.getActionTypeId())) {
+              policyViolation.setActionTypeId(action.getActionTypeId());
+              break;
+            }
+          }
+          if (forMonitoring) {
+            policyViolation.setSeenByMonitoringEvaluation(true);
+          }
+          else if (!isReevaluation) {
+            policyViolation.setSeenByPrimaryEvaluation(true);
+          }
+          PolicyWaiver policyWaiver = policyResults.getPolicyWaiver(componentFact);
+          if (policyWaiver != null) {
+            policyViolation.setWaiveTime(policyEvaluation.getTime());
+            policyViolation.setPolicyWaiverId(policyWaiver.getId());
+            policyViolation.setPolicyWaiverComment(policyWaiver.getComment());
+          }
+          results.allViolations.add(policyViolation);
         }
-        policyEvaluationDAO.insert(tx, policyEvaluation);
+      }
 
-        ScanPolicyEvaluatorResults results = new ScanPolicyEvaluatorResults();
-        results.evaluation = policyEvaluation;
-        results.allViolations = new ArrayList<>();
-        results.notifiableViolations = new ArrayList<>();
+      setGrandfatheredPolicyViolations(tx, app, policies, policyEvaluation.getTime(), results.allViolations);
 
-        // Convert the policy alerts into policy violations
-        List<PolicyAlert> allPolicyAlerts = new ArrayList<>();
-        allPolicyAlerts.addAll(policyResults.getActiveAlerts());
-        allPolicyAlerts.addAll(policyResults.getWaivedAlerts());
-        for (PolicyAlert policyAlert : allPolicyAlerts) {
-          PolicyFact policyFact = policyAlert.getTrigger();
-          Policy policy = policyDAO.getByIdNotNull(policyFact.getPolicyId());
-          PolicyThreatCategory threatCategory = policy.getThreatCategory();
-          for (ComponentFact componentFact : policyFact.getComponentFacts()) {
-            PolicyViolation policyViolation = new PolicyViolation(policyEvaluation, policy.getId(), policy.getName(),
-                policyFact.getThreatLevel(), threatCategory, componentFact.getHash(),
-                componentFact.getComponentIdentifier(), componentFact.getConstraintFacts(),
-                getFilename(componentFact));
-            for (Action action : policyAlert.getActions()) {
-              // Don't save notification data into policy violations here because at this point we don't really know if
-              // the notifications will be sent or not.
-              // The notifier component will take care of saving the notification data.
-              if (!Action.ID_NOTIFY.equals(action.getActionTypeId())) {
-                policyViolation.setActionTypeId(action.getActionTypeId());
-                break;
-              }
-            }
-            if (forMonitoring) {
-              policyViolation.setSeenByMonitoringEvaluation(true);
-            }
-            else if (!isReevaluation) {
-              policyViolation.setSeenByPrimaryEvaluation(true);
-            }
-            PolicyWaiver policyWaiver = policyResults.getPolicyWaiver(componentFact);
-            if (policyWaiver != null) {
-              policyViolation.setWaiveTime(policyEvaluation.getTime());
-              policyViolation.setPolicyWaiverId(policyWaiver.getId());
-              policyViolation.setPolicyWaiverComment(policyWaiver.getComment());
-            }
-            results.allViolations.add(policyViolation);
+      ApplicationPolicyViolationLogger policyViolationLogger =
+          policyViolationLoggerFactory.newLogger(policyEvaluation.getTime(), app);
+
+      // Persist the PolicyViolations and ApplicationComponents only if there isn't a more recent
+      // primary policy evaluation, since any reevaluation (even for monitoring) may be for an older scan.
+      if (isForLatestScan) {
+        List<PolicyViolation> oldPolicyViolations = policyViolationDAO.getUnfixedByApplicationIdAndStageId(tx, appId,
+            stage.getStageTypeId());
+        PolicyViolationDiff<PolicyViolation> policyViolationDiff = PolicyViolationDigester
+            .digestPolicyViolations(oldPolicyViolations, results.allViolations);
+
+        telemetryCollector.setTimeOfPolicyEvaluation(policyEvaluation.getTime());
+
+        // New policy violations.
+        List<PolicyViolation> newPolicyViolations = policyViolationDiff.getAppeared();
+        logPolicyViolations(newPolicyViolations, "new");
+
+        for (PolicyViolation newPolicyViolation : newPolicyViolations) {
+          if (isNotifiable(null, newPolicyViolation, forMonitoring, isReevaluation)) {
+            results.notifiableViolations.add(newPolicyViolation);
+          }
+
+          policyViolationDAO.insert(tx, newPolicyViolation);
+
+          recordConditionTypeViolationTelemetry(telemetryCollector, newPolicyViolation);
+
+          policyViolationLogger.add(PolicyViolationLogEvent.CREATE, newPolicyViolation);
+          if (newPolicyViolation.isWaived()) {
+            policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, newPolicyViolation);
+            telemetryCollector.addTelemetryForWaivedViolation(newPolicyViolation);
+          }
+          if (newPolicyViolation.isGrandfathered()) {
+            policyViolationLogger.add(PolicyViolationLogEvent.GRANDFATHER, newPolicyViolation);
           }
         }
-
-        setGrandfatheredPolicyViolations(tx, app, policies, policyEvaluation.getTime(), results.allViolations);
-
-        ApplicationPolicyViolationLogger policyViolationLogger =
-            policyViolationLoggerFactory.newLogger(policyEvaluation.getTime(), app);
-
-        // Persist the PolicyViolations and ApplicationComponents only if there isn't a more recent
-        // primary policy evaluation, since any reevaluation (even for monitoring) may be for an older scan.
-        if (isForLatestScan) {
-          List<PolicyViolation> oldPolicyViolations = policyViolationDAO.getUnfixedByApplicationIdAndStageId(tx, appId,
-              stage.getStageTypeId());
-          PolicyViolationDiff<PolicyViolation> policyViolationDiff = PolicyViolationDigester
-              .digestPolicyViolations(oldPolicyViolations, results.allViolations);
-
-          telemetryCollector.setTimeOfPolicyEvaluation(policyEvaluation.getTime());
-
-          // New policy violations.
-          List<PolicyViolation> newPolicyViolations = policyViolationDiff.getAppeared();
-          logPolicyViolations(newPolicyViolations, "new");
-
-          for (PolicyViolation newPolicyViolation : newPolicyViolations) {
+        // Fixed policy violations.
+        for (PolicyViolation oldPolicyViolation : policyViolationDiff.getCleared()) {
+          oldPolicyViolation.setFixTime(policyEvaluation.getTime());
+          policyViolationDAO.update(tx, oldPolicyViolation);
+          policyViolationLogger.add(PolicyViolationLogEvent.FIX, oldPolicyViolation);
+          telemetryCollector.addTelemetryForFixedViolation(oldPolicyViolation);
+        }
+        // Existing policy violations.
+        List<PolicyViolation> existing = new ArrayList<>();
+        for (Map.Entry<PolicyViolation, PolicyViolation> entry : policyViolationDiff.getSame().entrySet()) {
+          PolicyViolation oldPolicyViolation = entry.getKey();
+          existing.add(oldPolicyViolation);
+          PolicyViolation newPolicyViolation = entry.getValue();
+          if (!newPolicyViolation.isWaived() && oldPolicyViolation.isWaived()) {
+            // The policy violation was un-waived.
+            oldPolicyViolation.setFixTime(policyEvaluation.getTime());
+            policyViolationDAO.update(tx, oldPolicyViolation);
             if (isNotifiable(null, newPolicyViolation, forMonitoring, isReevaluation)) {
               results.notifiableViolations.add(newPolicyViolation);
             }
-
             policyViolationDAO.insert(tx, newPolicyViolation);
 
-            recordConditionTypeViolationTelemetry(telemetryCollector, newPolicyViolation);
-
-            policyViolationLogger.add(PolicyViolationLogEvent.CREATE, newPolicyViolation);
-            if (newPolicyViolation.isWaived()) {
-              policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, newPolicyViolation);
-              telemetryCollector.addTelemetryForWaivedViolation(newPolicyViolation);
-            }
-            if (newPolicyViolation.isGrandfathered()) {
-              policyViolationLogger.add(PolicyViolationLogEvent.GRANDFATHER, newPolicyViolation);
-            }
+            policyViolationLogger.add(PolicyViolationLogEvent.UNWAIVE, newPolicyViolation);
+            telemetryCollector.addTelemetryForUnwaivedViolation(newPolicyViolation);
           }
-          // Fixed policy violations.
-          for (PolicyViolation oldPolicyViolation : policyViolationDiff.getCleared()) {
-            oldPolicyViolation.setFixTime(policyEvaluation.getTime());
+          else {
+            if (isNotifiable(oldPolicyViolation, newPolicyViolation, forMonitoring, isReevaluation)) {
+              results.notifiableViolations.add(oldPolicyViolation);
+            }
+            oldPolicyViolation.setThreatCategory(newPolicyViolation.getThreatCategory());
+            oldPolicyViolation.setActionTypeId(newPolicyViolation.getActionTypeId());
+            oldPolicyViolation.setConstraintFactsJson(newPolicyViolation.getConstraintFactsJson());
+            oldPolicyViolation.setFilename(newPolicyViolation.getFilename());
+            oldPolicyViolation.setPolicyName(newPolicyViolation.getPolicyName());
+            if (!oldPolicyViolation.isWaived() && newPolicyViolation.isWaived()) {
+              // The policy violation was waived.
+              oldPolicyViolation.setWaiveTime(newPolicyViolation.getWaiveTime());
+              oldPolicyViolation.setPolicyWaiverId(newPolicyViolation.getPolicyWaiverId());
+              oldPolicyViolation.setPolicyWaiverComment(newPolicyViolation.getPolicyWaiverComment());
+
+              policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, oldPolicyViolation);
+              telemetryCollector.addTelemetryForWaivedViolation(oldPolicyViolation);
+            }
             policyViolationDAO.update(tx, oldPolicyViolation);
-            policyViolationLogger.add(PolicyViolationLogEvent.FIX, oldPolicyViolation);
-            telemetryCollector.addTelemetryForFixedViolation(oldPolicyViolation);
+
+            // Update the violation in the list of all violation to be the one actually saved to the db.
+            results.allViolations.remove(newPolicyViolation);
+            results.allViolations.add(oldPolicyViolation);
           }
-          // Existing policy violations.
-          List<PolicyViolation> existing = new ArrayList<>();
-          for (Map.Entry<PolicyViolation, PolicyViolation> entry : policyViolationDiff.getSame().entrySet()) {
-            PolicyViolation oldPolicyViolation = entry.getKey();
-            existing.add(oldPolicyViolation);
-            PolicyViolation newPolicyViolation = entry.getValue();
-            if (!newPolicyViolation.isWaived() && oldPolicyViolation.isWaived()) {
-              // The policy violation was un-waived.
-              oldPolicyViolation.setFixTime(policyEvaluation.getTime());
-              policyViolationDAO.update(tx, oldPolicyViolation);
-              if (isNotifiable(null, newPolicyViolation, forMonitoring, isReevaluation)) {
-                results.notifiableViolations.add(newPolicyViolation);
-              }
-              policyViolationDAO.insert(tx, newPolicyViolation);
-
-              policyViolationLogger.add(PolicyViolationLogEvent.UNWAIVE, newPolicyViolation);
-              telemetryCollector.addTelemetryForUnwaivedViolation(newPolicyViolation);
-            }
-            else {
-              if (isNotifiable(oldPolicyViolation, newPolicyViolation, forMonitoring, isReevaluation)) {
-                results.notifiableViolations.add(oldPolicyViolation);
-              }
-              oldPolicyViolation.setThreatCategory(newPolicyViolation.getThreatCategory());
-              oldPolicyViolation.setActionTypeId(newPolicyViolation.getActionTypeId());
-              oldPolicyViolation.setConstraintFactsJson(newPolicyViolation.getConstraintFactsJson());
-              oldPolicyViolation.setFilename(newPolicyViolation.getFilename());
-              oldPolicyViolation.setPolicyName(newPolicyViolation.getPolicyName());
-              if (!oldPolicyViolation.isWaived() && newPolicyViolation.isWaived()) {
-                // The policy violation was waived.
-                oldPolicyViolation.setWaiveTime(newPolicyViolation.getWaiveTime());
-                oldPolicyViolation.setPolicyWaiverId(newPolicyViolation.getPolicyWaiverId());
-                oldPolicyViolation.setPolicyWaiverComment(newPolicyViolation.getPolicyWaiverComment());
-
-                policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, oldPolicyViolation);
-                telemetryCollector.addTelemetryForWaivedViolation(oldPolicyViolation);
-              }
-              policyViolationDAO.update(tx, oldPolicyViolation);
-
-              // Update the violation in the list of all violation to be the one actually saved to the db.
-              results.allViolations.remove(newPolicyViolation);
-              results.allViolations.add(oldPolicyViolation);
-            }
-          }
-          logPolicyViolations(existing, "previously seen");
-          persistApplicationComponents(tx, appId, stage, policyEvaluation.getTime(), components);
         }
-
-        tx.commit();
-
-        policyViolationLogger.log();
-
-        results.activeViolations = filterActivePolicyViolations(results.allViolations);
-
-        if (!isReevaluation && lastPrimaryPolicyEvaluation != null) {
-          String previousScanId = lastPrimaryPolicyEvaluation.getScanId();
-          deletePreviousScanFile(appId, stage, previousScanId);
-        }
-
-        log.debug(
-            "Persisted policy evaluation results (active={}, waived={}) for application {} from stage {} in {} ms",
-            policyResults.getActiveAlerts().size(), policyResults.getWaivedAlerts().size(), appId,
-            stage.getStageTypeId(), System.currentTimeMillis() - start);
-        return results;
+        logPolicyViolations(existing, "previously seen");
+        persistApplicationComponents(tx, appId, stage, policyEvaluation.getTime(), components);
       }
+
+      tx.commit();
+
+      policyViolationLogger.log();
+
+      results.activeViolations = filterActivePolicyViolations(results.allViolations);
+
+      if (!isReevaluation && lastPrimaryPolicyEvaluation != null) {
+        String previousScanId = lastPrimaryPolicyEvaluation.getScanId();
+        deletePreviousScanFile(appId, stage, previousScanId);
+      }
+
+      log.debug(
+          "Persisted policy evaluation results (active={}, waived={}) for application {} from stage {} in {} ms",
+          policyResults.getActiveAlerts().size(), policyResults.getWaivedAlerts().size(), appId,
+          stage.getStageTypeId(), System.currentTimeMillis() - start);
+      return results;
     }
   }
 

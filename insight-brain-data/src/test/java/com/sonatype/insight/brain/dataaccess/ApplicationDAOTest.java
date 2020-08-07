@@ -35,6 +35,8 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
+import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Color;
@@ -61,6 +63,7 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.postgres.PostgresServer;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.collect.Lists;
@@ -855,6 +858,44 @@ public class ApplicationDAOTest
 
     SourceControlDefaultBranchCommitHistoryDAO dao = new SourceControlDefaultBranchCommitHistoryDAO();
     assertThat(dao.getById(defaultBranchCommitHistory.getId())).isNull();
+  }
+
+  @Test
+  public void testCascadeDeleteToLocks_H2() {
+    try (TransactionContext tx = LockedTransactionContext.createForPolicyViolations(application)) {
+      tx.begin();
+    }
+    assertThat(
+        LockedTransactionContext.LOCKS_BY_ID.get(LockedTransactionContext.getLockIdForPolicyViolations(application)))
+        .isNotNull();
+
+    applicationDAO.delete(application);
+
+    assertThat(
+        LockedTransactionContext.LOCKS_BY_ID.get(LockedTransactionContext.getLockIdForPolicyViolations(application)))
+        .isNull();
+  }
+
+  @Test
+  public void testCascadeDeleteToLocks_Postgres() {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      LockDAO dao = new LockDAO();
+      ApplicationDAO applicationDAO = new ApplicationDAO();
+      Application application = tempEntity.newApplicationWithParent();
+      try (TransactionContext tx = LockedTransactionContext.createForPolicyViolations(application)) {
+        tx.begin();
+      }
+      assertThat(dao.getById(LockedTransactionContext.getLockIdForPolicyViolations(application))).isNotNull();
+
+      applicationDAO.delete(application);
+
+      assertThat(dao.getById(LockedTransactionContext.getLockIdForPolicyViolations(application))).isNull();
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
   }
 
   @Test

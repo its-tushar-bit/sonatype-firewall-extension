@@ -763,3 +763,9 @@ CREATE TABLE firewall_ignore_patterns (
   CONSTRAINT firewall_ignore_patterns_pk PRIMARY KEY (firewall_ignore_patterns_id)
 );
 INSERT INTO firewall_ignore_patterns(firewall_ignore_patterns_id) VALUES ('firewall-ignore-patterns');
+
+-- Since 1.97
+CREATE TABLE lock (
+  lock_id varchar(100) NOT NULL,
+  CONSTRAINT lock_pk PRIMARY KEY (lock_id)
+);

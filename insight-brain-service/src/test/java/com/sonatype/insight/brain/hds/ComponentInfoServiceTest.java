@@ -616,6 +616,7 @@ public class ComponentInfoServiceTest
         MatchState.SIMILAR.getId(), hash, false /* proprietary */, httpRequestMock);
     assertThat(componentDetails).isNotNull();
     assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_A1_COORDINATES);
+    assertCategories(componentDetails);
     List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
     assertThat(policyAlerts).hasSize(1);
     assertThat(policyAlerts.get(0).getTrigger().getPolicyName()).isEqualTo("Policy1");
@@ -645,6 +646,7 @@ public class ComponentInfoServiceTest
     assertThat(effectiveLicense.getLicenseId()).isEqualTo("GPL-2.0");
     assertThat(effectiveLicense.getLicenseName()).isEqualTo("GPL-2.0");
     assertThat(componentDetails.getEffectiveLicenseStatus()).isEqualTo(LicenseStatus.Overridden);
+    assertCategories(componentDetails);
   }
 
   @Test
@@ -671,6 +673,7 @@ public class ComponentInfoServiceTest
     assertThat(effectiveLicense.getLicenseId()).isEqualTo("GPL-2.0");
     assertThat(effectiveLicense.getLicenseName()).isEqualTo("GPL-2.0");
     assertThat(componentDetails.getEffectiveLicenseStatus()).isEqualTo(LicenseStatus.Selected);
+    assertCategories(componentDetails);
   }
 
   @Test
@@ -924,6 +927,7 @@ public class ComponentInfoServiceTest
     assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_A1_COORDINATES);
     assertThat(componentDetails.getMatchState()).isEqualTo(MatchState.EXACT.getId());
     assertThat(componentDetails.getIdentificationSource()).isEqualTo(identificationSource);
+    assertCategories(componentDetails);
   }
 
   @Test
@@ -943,6 +947,7 @@ public class ComponentInfoServiceTest
     assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_A1_COORDINATES);
     assertThat(componentDetails.getMatchState()).isEqualTo(MatchState.EXACT.getId());
     assertThat(componentDetails.getIdentificationSource()).isEqualTo(identificationSource);
+    assertCategories(componentDetails);
   }
 
   @Deprecated
@@ -1388,5 +1393,10 @@ public class ComponentInfoServiceTest
     assertThat(retrievedVulnerability.getSummary()).isEqualTo(vulnerability.getSummary());
     assertThat(retrievedVulnerability.getStatus())
         .isEqualTo(SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED.getName());
+  }
+
+  private void assertCategories(ComponentDetails componentDetails) {
+    assertThat(componentDetails.getComponentCategories()).hasSize(1).extracting("componentCategoryId", "path")
+        .containsOnly(Tuple.tuple(113, "Other"));
   }
 }

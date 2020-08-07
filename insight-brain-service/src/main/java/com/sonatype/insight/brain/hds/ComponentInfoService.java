@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
+import com.sonatype.clm.dto.model.component.ComponentCategory;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -37,6 +38,7 @@ import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.ComponentCategoryDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
@@ -80,7 +82,11 @@ public class ComponentInfoService
 
   private LicenseDAO licenseDAO = new LicenseDAO();
 
+  private ComponentCategoryDAO componentCategoryDAO = new ComponentCategoryDAO();
+
   private License unspecifiedLicense;
+
+  private List<ComponentCategory> otherComponentCategories;
 
   private final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
 
@@ -91,6 +97,8 @@ public class ComponentInfoService
   private final ComponentRemediationService componentRemediationService;
 
   private final ThirdPartyComponentDAO thirdPartyComponentDAO;
+
+  private static final String OTHER_CATEGORY_ID = "113";
 
   private String toolName;
 
@@ -106,6 +114,7 @@ public class ComponentInfoService
     this.componentRemediationService = componentRemediationService;
     this.thirdPartyComponentDAO = thirdPartyComponentDAO;
     initUnspecifiedLicense();
+    initOtherCategory();
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
@@ -176,6 +185,7 @@ public class ComponentInfoService
         componentDetails = getComponentDetailsFromHDS(matchState, hash, identifier, httpRequest, identificationSource);
       }
       augmentEmptyLicensesAsUnspecified(componentDetails);
+      augmentEmptyCategoriesAsOther(componentDetails);
     }
     else {
       // See CLM-4195
@@ -257,6 +267,13 @@ public class ComponentInfoService
     unspecifiedLicense = new License(licenseNotProvided.getId(), licenseNotProvided.getShortDisplayName());
   }
 
+  private void initOtherCategory() {
+    com.sonatype.insight.brain.model.component.ComponentCategory otherComponentCategory =
+        componentCategoryDAO.getById(OTHER_CATEGORY_ID);
+    otherComponentCategories = Collections.singletonList(
+        new ComponentCategory(Integer.parseInt(otherComponentCategory.getId()), otherComponentCategory.getPath()));
+  }
+
   private void augmentEmptyLicensesAsUnspecified(ComponentDetails componentDetails) {
     if (componentDetails != null) {
       if (componentDetails.getDeclaredLicenses().isEmpty()) {
@@ -265,6 +282,12 @@ public class ComponentInfoService
       if (componentDetails.getObservedLicenses().isEmpty()) {
         componentDetails.getObservedLicenses().add(unspecifiedLicense);
       }
+    }
+  }
+
+  private void augmentEmptyCategoriesAsOther(ComponentDetails componentDetails) {
+    if (componentDetails != null && CollectionUtils.isEmpty(componentDetails.getComponentCategories())) {
+      componentDetails.setComponentCategories(otherComponentCategories);
     }
   }
 

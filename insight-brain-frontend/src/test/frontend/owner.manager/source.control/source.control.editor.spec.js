@@ -343,7 +343,7 @@ describe('source.control.editor.spec', function() {
           ownerId: ROOT_ORGANIZATION_ID,
           id: 'ID',
           baseBranch: 'BASE_BRANCH',
-          enablePullRequests: true,
+          enablePullRequests: null,
           enableStatusChecks: true
         };
 
@@ -390,7 +390,7 @@ describe('source.control.editor.spec', function() {
           ownerId: ROOT_ORGANIZATION_ID,
           id: 'ID',
           baseBranch: 'BASE_BRANCH',
-          enablePullRequests: true,
+          enablePullRequests: null,
           enableStatusChecks: true
         };
 
@@ -624,10 +624,8 @@ describe('source.control.editor.spec', function() {
         getSourceControlDeferred.resolve(compositeSourceControl);
 
         $scope.$digest();
+        vm.dirtySourceControl.provider = 'bitbucket';
         expect(vm.isPullRequestsSupported()).toBeTruthy();
-
-        vm.dirtySourceControl.provider = 'gitlab';
-        expect(vm.isPullRequestsSupported()).toBeFalsy();
       });
 
       it('should return true if licence supports automation and provider is bitbucket', function() {
@@ -637,8 +635,15 @@ describe('source.control.editor.spec', function() {
 
         $scope.$digest();
         expect(vm.isPullRequestsSupported()).toBeTruthy();
+      });
 
-        vm.dirtySourceControl.provider = 'bitbucket';
+      it('should return true if licence supports automation and provider is gitlab', function() {
+        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+        loadProductFeaturesDefer.resolve({});
+        getSourceControlDeferred.resolve(compositeSourceControl);
+
+        $scope.$digest();
+        vm.dirtySourceControl.provider = 'gitlab';
         expect(vm.isPullRequestsSupported()).toBeTruthy();
       });
 
@@ -668,7 +673,7 @@ describe('source.control.editor.spec', function() {
         expect(vm.getPullRequestsNotAvailableMessage()).toEqual('');
 
         vm.dirtySourceControl.provider = 'gitlab';
-        expect(vm.getPullRequestsNotAvailableMessage()).toEqual('This feature is not currently supported for GitLab');
+        expect(vm.getPullRequestsNotAvailableMessage()).toEqual('');
 
         vm.dirtySourceControl.provider = 'bitbucket';
         expect(vm.getPullRequestsNotAvailableMessage()).toEqual('');
@@ -700,7 +705,7 @@ describe('source.control.editor.spec', function() {
         expect(vm.isProviderSpecifiedAndPullRequestsSupported()).toBeTruthy();
 
         vm.dirtySourceControl.provider = 'gitlab';
-        expect(vm.isProviderSpecifiedAndPullRequestsSupported()).toBeFalsy();
+        expect(vm.isProviderSpecifiedAndPullRequestsSupported()).toBeTruthy();
 
         vm.dirtySourceControl.provider = 'bitbucket';
         expect(vm.isProviderSpecifiedAndPullRequestsSupported()).toBeTruthy();

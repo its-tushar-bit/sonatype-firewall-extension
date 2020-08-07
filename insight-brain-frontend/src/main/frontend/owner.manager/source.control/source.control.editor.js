@@ -48,7 +48,7 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
   vm.showSshUrlInfo = false;
   vm.isSshUrl = isSshUrl;
   vm.checkUrlFormat = checkUrlFormat;
-  vm.providersSupportingPullRequests = ['github', 'bitbucket'];
+  vm.providersSupportingPullRequests = ['github', 'gitlab', 'bitbucket'];
   // function reference to initiate the SCM Configuration validation
   vm.validateScmConfig = validateScmConfig;
   // result object of the SCM validation

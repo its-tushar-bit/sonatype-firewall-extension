@@ -9,7 +9,6 @@ import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.pages.SourceControlEditorPage;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
@@ -303,33 +302,6 @@ public class OrganizationSourceControlEditorTest
 
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
     SourceControlEditorPage.baseBranchInput().shouldHave(value("develop"));
-  }
-
-  @Test
-  public void testSourceControlEditor_gitlabDisablePRFeature() {
-    SourceControl rootSourceControl = tempEntity
-        .newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITHUB, true, true, "master");
-
-    refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
-
-    verifyStartWithSourceControl();
-
-    rootSourceControl.setProvider(SourceControlProvider.GITLAB);
-    sourceControlDAO.update(rootSourceControl);
-
-    refresh();
-    SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldBe(visible);
-    SourceControlEditorPage.defaultBranchNotSupportedAlert()
-        .shouldHave(text("This feature is not currently supported for GitLab"));
-    SourceControlEditorPage.pullRequestNotSupportedAlert().shouldBe(visible);
-    SourceControlEditorPage.pullRequestNotSupportedAlert()
-        .shouldHave(text("This feature is not currently supported for GitLab"));
-    SourceControlEditorPage.pullRequestsInheritRadio().shouldNotBe(visible);
-    SourceControlEditorPage.pullRequestsEnableRadio().shouldNotBe(visible);
-    SourceControlEditorPage.pullRequestsDisableRadio().shouldNotBe(visible);
-    SourceControlEditorPage.saveButton().shouldHave(DISABLED);
-
-    eyesWatcher.eyesCheck("Source Control Editor - Pull requests disabled for gitlab");
   }
 
   @Test

@@ -159,8 +159,8 @@ public class RootOrganizationSourceControlEditorTest
     verifyStartWithSourceControl();
     SourceControlEditorPage.provider().chooseOption(new Option(1, "GitLab"));
     SourceControlEditorPage.token().shouldBe(enabled);
-    SourceControlEditorPage.pullRequestsDisableRadio().shouldNotBe(visible);
-    SourceControlEditorPage.pullRequestsEnableRadio().shouldNotBe(visible);
+    SourceControlEditorPage.pullRequestsDisableRadio().shouldBe(visible);
+    SourceControlEditorPage.pullRequestsEnableRadio().shouldBe(visible);
     SourceControlEditorPage.saveButton().shouldNotHave(DISABLED);
 
     //Delete the entry to create the failure
@@ -275,44 +275,6 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
     SourceControlEditorPage.deleteButton().shouldBe(visible);
     SourceControlEditorPage.baseBranchInput().shouldHave(value("develop"));
-  }
-
-  @Test
-  public void testSourceControlEditor_gitlabDisablePRFeature() {
-    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITHUB, true, true, "master");
-
-    refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
-
-    verifyStartWithSourceControl();
-    SourceControlEditorPage.provider().chooseOption(new Option(1, "gitlab"));
-
-    SourceControlEditorPage.pullRequestsEnableRadio().shouldNotBe(visible);
-    SourceControlEditorPage.pullRequestsDisableRadio().shouldNotBe(visible);
-    SourceControlEditorPage.saveButton().shouldNotHave(DISABLED);
-    SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldBe(visible);
-    SourceControlEditorPage.defaultBranchNotSupportedAlert()
-        .shouldHave(text("This feature is not currently supported for GitLab"));
-    SourceControlEditorPage.pullRequestNotSupportedAlert().shouldBe(visible);
-    SourceControlEditorPage.pullRequestNotSupportedAlert()
-        .shouldHave(text("This feature is not currently supported for GitLab"));
-
-    eyesWatcher.eyesCheck("Source Control Editor - Pull requests disabled for gitlab");
-
-    SourceControlEditorPage.saveButton().click();
-    FormMask.seeAndWaitForDismissal();
-
-    SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
-    SourceControlEditorPage.deleteButton().shouldBe(visible);
-    SourceControlEditorPage.token().shouldHave(value(FAKE_SECRET_KEY));
-    assertSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITLAB);
-    SourceControlEditorPage.pullRequestsEnableRadio().shouldNotBe(visible);
-    SourceControlEditorPage.pullRequestsDisableRadio().shouldNotBe(visible);
-    SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldBe(visible);
-    SourceControlEditorPage.defaultBranchNotSupportedAlert()
-        .shouldHave(text("This feature is not currently supported for GitLab"));
-    SourceControlEditorPage.pullRequestNotSupportedAlert().shouldBe(visible);
-    SourceControlEditorPage.pullRequestNotSupportedAlert()
-        .shouldHave(text("This feature is not currently supported for GitLab"));
   }
 
   @Test

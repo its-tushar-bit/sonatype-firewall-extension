@@ -1,7 +1,7 @@
 ### :thinking: Nexus IQ found multiple policy violations introduced by this PR:
 
 <details>
-<summary title="Threat Level: 10 of 10"><img alt="T10" src="http://cdn.sonatype.com/iq-for-scm/1.0/red-bar.png"> 
+<summary title="Threat Level: 10 of 10"><img alt="T10" src="https://cdn.sonatype.com/iq-for-scm/1.0/red-bar.png"> 
 <b>10&nbsp;&nbsp; com.h2database : h2 : 1.4.190</b> - <a href="https://github.com/sonatype/enhanced-commit-information/pull/10#discussion_r12345">line comment</a></summary>
 <p></p>
 
@@ -15,7 +15,7 @@ Threat (of 10) | Policy | Violation Details
 </details>
 
 <details>
-<summary title="Threat Level: 10 of 10"><img alt="T10" src="http://cdn.sonatype.com/iq-for-scm/1.0/red-bar.png"> 
+<summary title="Threat Level: 10 of 10"><img alt="T10" src="https://cdn.sonatype.com/iq-for-scm/1.0/red-bar.png"> 
 <b>10&nbsp;&nbsp; org.springframework.security : spring-security-web : 4.2.3.RELEASE</b></summary>
 <p></p>
 
@@ -31,7 +31,7 @@ Threat (of 10) | Policy | Violation Details
 </details>
 
 <details>
-<summary title="Threat Level: 2 of 10"><img alt="T2" src="http://cdn.sonatype.com/iq-for-scm/1.0/yellow-bar.png"> 
+<summary title="Threat Level: 2 of 10"><img alt="T2" src="https://cdn.sonatype.com/iq-for-scm/1.0/yellow-bar.png"> 
 <b>2&nbsp;&nbsp;&nbsp; webgoat-server-8.0.0.M1.jar</b></summary>
 <p></p>
 
@@ -44,7 +44,7 @@ Threat (of 10) | Policy | Violation Details
 </details>
 
 <details>
-<summary title="Threat Level: 2 of 10"><img alt="T2" src="http://cdn.sonatype.com/iq-for-scm/1.0/yellow-bar.png"> 
+<summary title="Threat Level: 2 of 10"><img alt="T2" src="https://cdn.sonatype.com/iq-for-scm/1.0/yellow-bar.png"> 
 <b>2&nbsp;&nbsp;&nbsp; html-tampering-8.0.0.M1.jar</b></summary>
 <p></p>
 

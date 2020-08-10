@@ -53,7 +53,7 @@ public class BitbucketCodeInsightsService
 
   @VisibleForTesting
   static final URI CODE_INSIGHT_LOGO_URL = URI
-      .create("http://cdn.sonatype.com/iq-for-scm/1.0/bitbucket-code-insights.png");
+      .create("https://cdn.sonatype.com/iq-for-scm/1.0/bitbucket-code-insights.png");
 
   @VisibleForTesting
   static final BitbucketCodeInsightReportType CODE_INSIGHT_REPORT_TYPE = BitbucketCodeInsightReportType.BUG;

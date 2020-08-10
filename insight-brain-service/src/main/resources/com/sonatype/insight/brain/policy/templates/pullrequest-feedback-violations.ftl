@@ -5,7 +5,7 @@
 <details>
   <#assign threatImage="${threatImageArray[component.highestThreatLevel]}">
   <summary title="Threat Level: ${component.highestThreatLevel} of 10"><#t>
-    <img alt="T${component.highestThreatLevel}" src="http://cdn.sonatype.com/iq-for-scm/1.0/${threatImage}"> <#lt>
+    <img alt="T${component.highestThreatLevel}" src="https://cdn.sonatype.com/iq-for-scm/1.0/${threatImage}"> <#lt>
     <b>${component.highestThreatLevel}<#if ( component.highestThreatLevel < 10 )>&nbsp;</#if>&nbsp;&nbsp; ${component.componentNameAndVersion}</b><#t>
     <#if component.lineCommentLink?has_content> - <a href="${component.lineCommentLink}">line comment</a></#if><#t>
   </summary><#lt>

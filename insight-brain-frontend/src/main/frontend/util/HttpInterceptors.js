@@ -8,6 +8,8 @@ import angularCommonModule from './AngularCommon';
 import CLMLocationModule from './CLMLocation';
 import utilityServicesModule from '../utility/services/utility.services.module';
 
+import isIqIframe from './isIqFrame';
+
 export var httpInterceptors = angular.module('HttpInterceptors', []);
 
 httpInterceptors.factory('unauthenticatedResponseHttpInterceptor', ['$window', '$q', '$rootScope',
@@ -18,7 +20,7 @@ httpInterceptors.factory('unauthenticatedResponseHttpInterceptor', ['$window', '
           // $rootScope.username will be present if this is the top frame and login had already succeeded previously.
           // If we are in a child frame (for a report), the username won't be available but we can still detect that
           // we are in a child frame.
-          if ($rootScope.username || $window.top !== $window) {
+          if ($rootScope.username || isIqIframe($window)) {
             // session expired - tell SessionSecurityService of the main IQ UI, which resides in the top frame of
             // the page.
             $window.top.sessionExpired();

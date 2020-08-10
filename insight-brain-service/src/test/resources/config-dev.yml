@@ -22,8 +22,7 @@ logging:
     "org.apache.shiro": INFO
     "org.eclipse.birt.report.engine.layout.pdf.font.FontConfigReader": WARN
     "org.eclipse.jetty": INFO
-    "org.quartz.impl.jdbcjobstore.SimpleSemaphore": INFO
-    "org.quartz.impl.jdbcjobstore.StdRowLockSemaphore": INFO
+    "org.quartz": INFO
     "org.springframework.jdbc.datasource.init.ResourceDatabasePopulator": INFO
     "org.zeroturnaround.exec" : INFO
     "com.sonatype.insight.audit":

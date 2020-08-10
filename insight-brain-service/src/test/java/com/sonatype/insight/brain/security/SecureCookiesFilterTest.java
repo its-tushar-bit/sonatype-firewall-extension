@@ -32,10 +32,10 @@ public class SecureCookiesFilterTest
   private static final String COOKIE_2_INSECURE = "simple=cookie";
 
   private static final String COOKIE_3_SECURE = SecurityModule.SESSION_COOKIE_NAME
-      + "=98a766bc-bc33-4b3c-9d9f-d3bb85b0cf00; Path=/; HttpOnly" + SecureCookiesFilter.SECURE_FLAGS;
+      + "=98a766bc-bc33-4b3c-9d9f-d3bb85b0cf00; Path=/; HttpOnly" + SecureCookiesFilter.SECURE_FLAG;
 
   private static final String COOKIE_4_SECURE =
-      "rememberMe=deleteMe; Path=/; HttpOnly" + SecureCookiesFilter.SECURE_FLAGS;
+      "rememberMe=deleteMe; Path=/; HttpOnly" + SecureCookiesFilter.SECURE_FLAG;
 
   @Rule
   public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
@@ -67,8 +67,8 @@ public class SecureCookiesFilterTest
 
     cookieFilter.doFilter(request, response, filterChain);
 
-    verify(response).setHeader("Set-Cookie", COOKIE_1_INSECURE + SecureCookiesFilter.SECURE_FLAGS);
-    verify(response).addHeader("Set-Cookie", COOKIE_2_INSECURE + SecureCookiesFilter.SECURE_FLAGS);
+    verify(response).setHeader("Set-Cookie", COOKIE_1_INSECURE + SecureCookiesFilter.SECURE_FLAG);
+    verify(response).addHeader("Set-Cookie", COOKIE_2_INSECURE + SecureCookiesFilter.SECURE_FLAG);
     verify(response).addHeader("Set-Cookie", COOKIE_3_SECURE);
     verify(response).addHeader("Set-Cookie", COOKIE_4_SECURE);
   }

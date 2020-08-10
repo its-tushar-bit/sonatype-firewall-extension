@@ -25,7 +25,7 @@ import static com.google.common.net.HttpHeaders.SET_COOKIE;
 public class SecureCookiesFilter
     extends AdviceFilter
 {
-  public static final String SECURE_FLAGS = "; Secure; SameSite=None";
+  public static final String SECURE_FLAG = "; Secure";
 
   @Override
   protected boolean preHandle(final ServletRequest request, final ServletResponse response) throws Exception {
@@ -50,7 +50,7 @@ public class SecureCookiesFilter
     final Collection<String> cookies = response.getHeaders(SET_COOKIE);
     boolean mustAdd = false;
     for (final String cookie : cookies) {
-      final String cookieVal = cookie.lastIndexOf(SECURE_FLAGS) == -1 ? cookie + SECURE_FLAGS : cookie;
+      final String cookieVal = cookie.lastIndexOf(SECURE_FLAG) == -1 ? cookie + SECURE_FLAG : cookie;
       if (mustAdd) {
         response.addHeader(SET_COOKIE, cookieVal);
       }

@@ -81,6 +81,7 @@ public class VersionGraphVsTest
     VersionsCIP.viewDetailsButton().shouldBe(visible);
     VersionsCIP.migrateButton().shouldNotBe(visible);
     VersionsCIP.noVersionsAvailable().shouldNotBe(visible);
+    VersionsCIP.componentCategory().shouldHave(text("Other"));
 
     VersionsCIP.showDetailsLink().shouldBe(visible).click();
     VersionsCIP.hideDetailsLink().shouldBe(visible);
@@ -159,6 +160,7 @@ public class VersionGraphVsTest
     VersionsCIP.viewDetailsButton().shouldBe(visible);
     VersionsCIP.migrateButton().shouldNotBe(visible);
     VersionsCIP.noVersionsAvailable().shouldBe(visible);
+    VersionsCIP.componentCategory().shouldHave(text("Other"));
 
     VersionsCIP.showDetailsLink().shouldBe(visible).click();
     VersionsCIP.hideDetailsLink().shouldBe(visible);
@@ -175,6 +177,7 @@ public class VersionGraphVsTest
     VersionsCIP.version().shouldHave(text("4.3.0"));
     VersionsCIP.viewDetailsButton().shouldBe(visible);
     VersionsCIP.migrateButton().shouldNotBe(visible);
+    VersionsCIP.componentCategory().shouldHave(text("Other"));
 
     executeJavaScript("Insight.setCapabilities({viewDetails: false, migrate: false})");
     VersionsCIP.viewDetailsButton().shouldNotBe(visible);

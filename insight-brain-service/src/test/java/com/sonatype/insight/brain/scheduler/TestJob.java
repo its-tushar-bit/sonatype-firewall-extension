@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.scheduler;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.IntUnaryOperator;
 
 import javax.inject.Named;
 
@@ -22,20 +23,30 @@ public class TestJob
 
   private static AtomicInteger executions = new AtomicInteger();
 
+  private static IntUnaryOperator durations;
+
   @Override
   public void execute(JobExecutionContext context) {
-    try {
-      if (shouldThrowException) {
-        throw new RuntimeException(NAME + " exception");
+    int execution = executions.getAndIncrement();
+    if (durations != null) {
+      int duration = durations.applyAsInt(execution);
+      if (duration > 0) {
+        for (long start = System.currentTimeMillis(); System.currentTimeMillis() - start < duration;) {
+          Thread.yield();
+        }
       }
     }
-    finally {
-      executions.incrementAndGet();
+    if (shouldThrowException) {
+      throw new RuntimeException(NAME + " exception");
     }
   }
 
   public static void setShouldThrowException(boolean shouldThrowException) {
     TestJob.shouldThrowException = shouldThrowException;
+  }
+
+  public static void setDurations(IntUnaryOperator durations) {
+    TestJob.durations = durations;
   }
 
   public static int getExecutions() {
@@ -45,5 +56,6 @@ public class TestJob
   public static void reset() {
     shouldThrowException = false;
     executions.set(0);
+    durations = null;
   }
 }

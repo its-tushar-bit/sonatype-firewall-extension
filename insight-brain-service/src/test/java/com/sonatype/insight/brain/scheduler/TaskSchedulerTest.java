@@ -305,6 +305,19 @@ public class TaskSchedulerTest
   }
 
   @Test
+  public void testSchedulePeriodicTask_NoRapidCatchUpFiringAfterOverlongExecution() throws Exception {
+    int intervalMillis = 3000;
+    int overlongExecution = 8000;
+    TestJob.setDurations(execution -> execution == 0 ? overlongExecution : 0);
+    Scheduler scheduler = taskScheduler.createScheduler();
+    scheduler.start();
+    taskScheduler.schedulePeriodicTask(NonConcurrentTestJob.class, TestJob.NAME, Duration.ofMillis(intervalMillis));
+    await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> assertThat(TestJob.getExecutions()).isGreaterThan(1));
+    scheduler.standby();
+    assertThat(TestJob.getExecutions()).isEqualTo(2);
+  }
+
+  @Test
   public void testSchedulePeriodicTask_RefireAfterError() throws Exception {
     Scheduler scheduler = taskScheduler.createScheduler();
     TestJob.setShouldThrowException(true);

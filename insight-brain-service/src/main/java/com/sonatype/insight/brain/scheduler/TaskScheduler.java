@@ -94,6 +94,7 @@ public class TaskScheduler
           quartzJobStoreTX, null, 0, IDLE_WAIT_TIME, -1);
       Scheduler scheduler = DirectSchedulerFactory.getInstance().getScheduler(schedulerName);
       scheduler.setJobFactory(jobFactory);
+      scheduler.addCalendar(NeverPastCalendar.CALENDAR_NAME, new NeverPastCalendar(), true, false);
       scheduler.getListenerManager().addTriggerListener(quartzTriggerListener);
       return scheduler;
     }
@@ -177,6 +178,7 @@ public class TaskScheduler
             .withIntervalInMilliseconds(interval.toMillis()) //
             .repeatForever() //
             .withMisfireHandlingInstructionNextWithRemainingCount()) //
+        .modifiedByCalendar(NeverPastCalendar.CALENDAR_NAME) //
         .build();
     scheduleTask(job, trigger);
   }

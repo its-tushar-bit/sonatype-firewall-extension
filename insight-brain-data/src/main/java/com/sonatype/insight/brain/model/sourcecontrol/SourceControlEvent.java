@@ -31,6 +31,8 @@ public class  SourceControlEvent
 
   public static final String REMEDIATION_PULL_REQUEST_EVENT = "remediation pull request";
 
+  public static final String MANIFEST_SCAN_EVENT = "manifest scan";
+
   public static final String EVENT_STATUS_NEW = "new";
 
   public static final String EVENT_STATUS_IN_PROGRESS = "in progress";

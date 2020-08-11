@@ -68,7 +68,7 @@ public class SecurityModule
   private void configureFilterChains(FilterChainManager manager) {
     configureFilterChainsForIntegrations(manager);
 
-    String anonFilters = "anon, sessionExpirationCookie";
+    String anonFilters = "anon, sessionExpirationCookie, secureCookies";
     // Activate the antiCsrf filter for static assets so that the first resource loaded for any given page sets the CSRF
     // token cookie. We want the cookie to be available for the front-end code as soon as possible so that subsequent
     // requests that are unsafe can access it.
@@ -106,13 +106,14 @@ public class SecurityModule
 
     // internal REST API
     manager.createChain("/**/*",
-        "noSessionCreation, antiCsrf, reverseProxy, authcBasic, saml, requireAuth, sessionExpirationCookie");
+        "noSessionCreation, antiCsrf, reverseProxy, authcBasic, saml, requireAuth, sessionExpirationCookie, " +
+        "secureCookies");
   }
 
   private void configureFilterChainsForNonAjaxFormSubmissions(FilterChainManager manager) {
     // old-school (i.e. non-AJAX) form submissions as done by IE9 can't use CSRF header
     String filters = "noSessionCreation, antiCsrf[" + AntiCsrfFilter.FORM_POST_ALLOWED
-        + "], reverseProxy, authcBasic, saml, requireAuth, sessionExpirationCookie";
+        + "], reverseProxy, authcBasic, saml, requireAuth, sessionExpirationCookie, secureCookies";
     manager.createChain("/rest/application/icon/*", filters);
     manager.createChain("/rest/application/icon/sync", filters);
     manager.createChain("/rest/organization/icon/*", filters);
@@ -129,7 +130,7 @@ public class SecurityModule
   private void configureFilterChainsForIntegrations(FilterChainManager manager) {
     // client integrations don't have CSRF tokens and need access via explicit auth
     String filters = "noSessionCreation, antiCsrf[" + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED
-        + "], reverseProxy, sessionExpirationCookie, authcBasic, requireAuth";
+        + "], reverseProxy, sessionExpirationCookie, secureCookies, authcBasic, requireAuth";
     manager.createChain("/rest/ide/scan/**", filters);
     manager.createChain("/rest/integration/repositories/**", filters);
     manager.createChain("/rest/quality/evaluations/*/*", filters);
@@ -189,6 +190,10 @@ public class SecurityModule
     public void customizeSessionCookie(DefaultWebSessionManager sessionManager) {
       // customize cookie name to avoid clash with other webapps running on same host+contextRoot
       sessionManager.getSessionIdCookie().setName(SESSION_COOKIE_NAME);
+
+      // Disable Shiro's default of adding SameSite=LAX. We want to add SameSite=NONE, but for https requests only
+      // since it only works in conjunction with the Secure flag. This is done in SecureCookiesFilter
+      sessionManager.getSessionIdCookie().setSameSite(null);
     }
 
     @Inject

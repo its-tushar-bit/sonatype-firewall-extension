@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import pendoModule from './pendo/module';
+import isIqIframe from '../util/isIqFrame';
 
 /* global $, window, CLM, document, Insight, angular, Base64, Brain */
 (function() {
@@ -115,8 +116,13 @@ import pendoModule from './pendo/module';
               function(jqXHR) {
                 // 401 error, time to force them to login
                 if (jqXHR.status === 401) {
-                  // signal to the SessionSecurityService in the IQ UI that the session seems to have expired
-                  window.top.sessionExpired();
+                  if (isIqIframe(window)) {
+                    // signal to the SessionSecurityService in the IQ UI that the session seems to have expired
+                    window.top.sessionExpired();
+                  }
+                  else {
+                    window.location.reload();
+                  }
                 } else {
                   // non auth error, again nothing funky, just reject
                   deferred.rejectWith(context, Array.prototype.slice.apply(arguments));

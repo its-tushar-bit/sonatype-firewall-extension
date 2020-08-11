@@ -5,6 +5,7 @@
  */
 /* global angular, window, clmBuildTimestamp, jQuery, $ */
 import CommonServicesModule from './CommonServices';
+import escapeHtmlString from './escapeHtmlString';
 
 export let maximizeHeightServiceInstance;
 
@@ -498,7 +499,7 @@ angularCommon.service('ErrorDialog', ['Dialog', 'Messages', function (Dialog, Me
       return Dialog.open({
         keyboard: true,
         title: title || 'Error',
-        body: body,
+        body: escapeHtmlString(body),
         buttons: [{
           name: 'Close'
         }]

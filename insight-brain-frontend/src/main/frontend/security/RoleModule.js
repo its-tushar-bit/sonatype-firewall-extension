@@ -11,6 +11,7 @@ import resourceModule from '../Resource';
 import CLMLocationModule from '../util/CLMLocation';
 import BootstrapAddonsModule from '../util/BootstrapAddonsModule';
 import {SecurityModule} from './UserModule';
+import escapeHtmlString from '../util/escapeHtmlString';
 
 const module = angular.module('RoleModule', [
   'ui.router', 'ui.router.state', BootstrapAddonsModule.name, SecurityModule.name, CLMLocationModule.name,
@@ -169,7 +170,7 @@ module.controller('DeleteRoleController', [
     function error() {
       Dialog.open({
         title: 'Failed to Delete',
-        body: Messages.getHttpErrorMessage(arguments),
+        body: escapeHtmlString(Messages.getHttpErrorMessage(arguments)),
         buttons: [{
           name: 'Close',
           dismiss: true
@@ -180,7 +181,7 @@ module.controller('DeleteRoleController', [
     $scope.deleteRole = function () {
       Dialog.open({
         title: 'Delete Role',
-        body: 'Are you sure you want to delete the Role <strong>' + $('<div/>').text($scope.role.name).html() +
+        body: 'Are you sure you want to delete the Role <strong>' + escapeHtmlString($scope.role.name) +
                '</strong>?',
         buttons: [{
           name: 'Delete',

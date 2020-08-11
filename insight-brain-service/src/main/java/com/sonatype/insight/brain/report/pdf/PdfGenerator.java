@@ -199,7 +199,7 @@ public class PdfGenerator
       this.pdf = pdDocument;
       initFontStyles(pdf);
       setDocumentMetadata();
-      DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_STRING);
+      DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_STRING, Locale.ENGLISH);
       createdOnDateTime = dateFormat.format(new Date());
       analyzedOnDateTime = dateFormat.format(policyData.reportTime);
       addPolicyViolationsSection();

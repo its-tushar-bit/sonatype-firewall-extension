@@ -17,6 +17,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import com.sonatype.insight.brain.concurrent.SemaphorePool;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.git.ManifestScanService;
 import com.sonatype.insight.brain.git.PullRequestCommentingService;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
 import com.sonatype.insight.brain.git.VerifiableLoggingTestBase;
@@ -46,6 +47,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class SourceControlEventServiceTest
@@ -59,6 +61,9 @@ public class SourceControlEventServiceTest
 
   @Mock
   private PullRequestRemediationService mockPullRequestRemediationService;
+
+  @Mock
+  private ManifestScanService mockManifestScanService;
 
   @Mock
   private SemaphorePool mockRepoAccessController;
@@ -75,7 +80,7 @@ public class SourceControlEventServiceTest
     MockitoAnnotations.initMocks(this);
     super.setup();
     eventService = spy(new SourceControlEventService(mockSourceControlEventDAO, mockPullRequestCommentingService,
-        mockPullRequestRemediationService));
+        mockPullRequestRemediationService, mockManifestScanService));
   }
 
   @After
@@ -162,6 +167,32 @@ public class SourceControlEventServiceTest
     verifyProcessEventsActions(events.get(0),
         EventProcessAction.markedInProgress,
         EventProcessAction.onComponentRemediation,
+        EventProcessAction.markedComplete);
+
+    assertThatLogMessagesEqual(
+        debug("Requested " + SourceControlEventService.TASK_QUEUE_CAPACITY + " source control events, processing 1"),
+        debug(getProcessedEventMessage(events.get(0)))
+    );
+  }
+
+  @Test
+  public void testProcessEvents_onManifestScanEvent() throws Exception {
+    // given: an event DAO setup to return an application evaluation event
+    List<SourceControlEvent> events = generateEvents("1:app1:" + SourceControlEvent.MANIFEST_SCAN_EVENT);
+    when(mockSourceControlEventDAO
+        .selectEventsForInstance(eq(SourceControlEventService.INSTANCE_ID), anyInt()))
+        .thenReturn(events);
+
+    CountDownLatch eventsProcessedLatch = createOnEventFinishedLatch(events.get(0));
+
+    // when: process the events
+    eventService.processEvents();
+
+    // then: manifest scan invoked for the given event
+    verifyUnlatched(eventsProcessedLatch);
+    verifyProcessEventsActions(events.get(0),
+        EventProcessAction.markedInProgress,
+        EventProcessAction.onManifestScan,
         EventProcessAction.markedComplete);
 
     assertThatLogMessagesEqual(
@@ -667,7 +698,8 @@ public class SourceControlEventServiceTest
 
   private enum EventProcessAction
   {
-    noPropagation, markedInProgress, markedComplete, markedHasError, onAppEval, onPrDiscovered, onComponentRemediation
+    noPropagation, markedInProgress, markedComplete, markedHasError, onAppEval, onPrDiscovered, onComponentRemediation,
+    onManifestScan
   }
 
   private void verifyProcessEventsActions(SourceControlEvent event, EventProcessAction... conditions)
@@ -709,21 +741,29 @@ public class SourceControlEventServiceTest
       verify(mockPullRequestCommentingService, never()).onDiscoveredPullRequest(eq(event));
       verify(mockPullRequestCommentingService, never()).onApplicationEvaluation(eq(event));
       verify(mockPullRequestRemediationService, never()).onRemediateComponent(eq(event));
+      verify(mockManifestScanService, never()).onManifestScan(any(SourceControlEvent.class));
     }
     else if (actionSet.contains(EventProcessAction.onAppEval)) {
       verify(mockPullRequestCommentingService, times(1)).onApplicationEvaluation(eq(event));
       verify(mockPullRequestCommentingService, never()).onDiscoveredPullRequest(eq(event));
       verify(mockPullRequestRemediationService, never()).onRemediateComponent(eq(event));
+      verify(mockManifestScanService, never()).onManifestScan(any(SourceControlEvent.class));
     }
     else if (actionSet.contains(EventProcessAction.onPrDiscovered)) {
       verify(mockPullRequestCommentingService, times(1)).onDiscoveredPullRequest(eq(event));
       verify(mockPullRequestCommentingService, never()).onApplicationEvaluation(eq(event));
       verify(mockPullRequestRemediationService, never()).onRemediateComponent(eq(event));
+      verify(mockManifestScanService, never()).onManifestScan(any(SourceControlEvent.class));
     }
     else if (actionSet.contains(EventProcessAction.onComponentRemediation)) {
       verify(mockPullRequestRemediationService, times(1)).onRemediateComponent(eq(event));
       verify(mockPullRequestCommentingService, never()).onDiscoveredPullRequest(eq(event));
       verify(mockPullRequestCommentingService, never()).onApplicationEvaluation(eq(event));
+      verify(mockManifestScanService, never()).onManifestScan(any(SourceControlEvent.class));
+    }
+    else if (actionSet.contains(EventProcessAction.onManifestScan)) {
+      verify(mockManifestScanService, times(1)).onManifestScan(eq(event));
+      verifyNoMoreInteractions(mockPullRequestCommentingService, mockPullRequestRemediationService);
     }
   }
 }

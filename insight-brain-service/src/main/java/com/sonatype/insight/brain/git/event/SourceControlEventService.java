@@ -19,6 +19,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.concurrent.SemaphorePool;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.git.ManifestScanService;
 import com.sonatype.insight.brain.git.PullRequestCommentingService;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
@@ -82,15 +83,19 @@ public class SourceControlEventService
 
   private final PullRequestRemediationService pullRequestRemediationService;
 
+  private final ManifestScanService manifestScanService;
+
   @Inject
   public SourceControlEventService(
       SourceControlEventDAO sourceControlEventDAO,
       PullRequestCommentingService pullRequestCommentingService,
-      PullRequestRemediationService pullRequestRemediationService)
+      PullRequestRemediationService pullRequestRemediationService,
+      ManifestScanService manifestScanService)
   {
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.pullRequestCommentingService = pullRequestCommentingService;
     this.pullRequestRemediationService = pullRequestRemediationService;
+    this.manifestScanService = manifestScanService;
   }
 
   /**
@@ -257,6 +262,10 @@ public class SourceControlEventService
 
         case SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT:
           pullRequestRemediationService.onRemediateComponent(event);
+          break;
+
+        case SourceControlEvent.MANIFEST_SCAN_EVENT:
+          manifestScanService.onManifestScan(event);
           break;
 
         default:

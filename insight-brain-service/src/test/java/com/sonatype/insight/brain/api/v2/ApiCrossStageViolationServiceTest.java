@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -503,6 +504,32 @@ public class ApiCrossStageViolationServiceTest
     assertThat(result3.policyViolationId).isEqualTo(buildStageViolation1.getId());
     assertCrossStageData(result3, Stage.ID_BUILD, eval3.getTime(), "scan3", null);
     assertCrossStageData(result3, Stage.ID_RELEASE, eval2.getTime(), "scan2", null);
+  }
+
+  /**
+   * This test verifies that a waived violation for a component as soon as it appears
+   * behaves correctly and does not cause an NPE due to the pre-existing matching waiver.
+   */
+  @Test
+  public void testGetCrossStageViolationByConstituentId_PreExistingWaivedViolation() {
+    // waived violation as soon as it appears
+    Date time1 = new Date(baseDate.getTime());
+    PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", time1);
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
+    PolicyWaiver waiver1 = tempEntity.newWaiver(policy.getId(), policy.getOwnerId());
+
+    violation1.setApplicationId(app.getId());
+    violation1.setPolicyWaiverId(waiver1.getId());
+    violation1.setOpenTime(time1);
+    violation1.setWaiveTime(time1);
+    policyViolationDAO.update(violation1);
+
+    ApiCrossStageViolationDTOV2 result1 = service.getCrossStageViolationByConstituentId(violation1.getId());
+    assertThat(result1.openTime).isEqualTo(time1);
+    assertThat(result1.fixTime).isEqualTo(time1);
+    assertThat(result1.policyViolationId).isEqualTo(violation1.getId());
+    assertThat(result1.stageData).isNotNull();
+    assertThat(result1.stageData).doesNotContainKey(Stage.ID_BUILD);
   }
 
   private void assertCrossStageData(

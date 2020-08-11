@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -129,6 +130,7 @@ public class ApiCrossStageViolationService
   private Collection<PolicyEvaluation> getEvaluationsForViolations(Collection<PolicyViolation> violations) {
     return violations.stream()
         .map(this::getLatestEvaluationForViolation)
+        .filter(Objects::nonNull)
         .collect(Collectors.toList());
   }
 

@@ -30,15 +30,18 @@ public class ApplicationLifecycleAuditTest
 
   private File configFile;
 
+  private File originalConfigFile;
+
   @Before
   public void before() throws Exception {
+    originalConfigFile = InsightBrainService.getConfigFile();
     configFile = tempDir.newFile("config.yml");
     InsightBrainService.setConfigFile(configFile);
   }
 
   @After
   public void after() {
-    InsightBrainService.setConfigFile(null);
+    InsightBrainService.setConfigFile(originalConfigFile);
   }
 
   @Override

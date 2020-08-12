@@ -28,6 +28,7 @@
 @import "roles";
 @import "threatBars";
 @import "nx-overrides";
+@import "iq-threat-levels";
 
 // Components
 @import "../components/components";
@@ -75,6 +76,7 @@
 @import "../owner.manager/source.control/source.control.editor.scss";
 @import "../report/report/_report.scss";
 @import "../violation/violationPage";
+@import "../waivers/addWaiver";
 
 // CIP
 @import "../version-graph/icons.css";

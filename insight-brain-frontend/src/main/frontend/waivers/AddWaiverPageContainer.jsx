@@ -5,19 +5,31 @@
  */
 
 import { connect } from 'react-redux';
+import { pick } from 'ramda';
 
 import AddWaiverPage from './AddWaiverPage';
-import { addWaiver } from './addWaiverActions';
+import {
+  loadAddWaiverData,
+  saveWaiver,
+  setWaiverComment,
+  setWaiverScope,
+  setApplyToAllComponents
+} from './addWaiverActions';
 
-function mapStateToProps({ router }) {
+function mapStateToProps({ addWaiver, violationPage, router }) {
   return {
-    stateParams: router.currentParams
+    ...addWaiver,
+    ...pick(['violationDetails'], violationPage),
+    ...pick(['violationId'], router.currentParams)
   };
 }
 
 const mapDispatchToProps = {
-  // ToDo: replace with real actions
-  addWaiver
+  loadAddWaiverData,
+  saveWaiver,
+  setWaiverComment,
+  setWaiverScope,
+  setApplyToAllComponents
 };
 
 const AddWaiverPageContainer = connect(mapStateToProps, mapDispatchToProps)(AddWaiverPage);

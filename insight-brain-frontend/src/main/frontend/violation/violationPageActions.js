@@ -18,14 +18,30 @@ export const LOAD_VULNERABILITY_DETAILS_REQUESTED = 'LOAD_VULNERABILITY_DETAILS_
 export const LOAD_VULNERABILITY_DETAILS_FULFILLED = 'LOAD_VULNERABILITY_DETAILS_FULFILLED';
 export const LOAD_VULNERABILITY_DETAILS_FAILED = 'LOAD_VULNERABILITY_DETAILS_FAILED';
 
+function isViolationLoaded(requestedViolationId, currentState) {
+  const { violationPage } = currentState,
+      { violationDetails } = violationPage;
+
+  return violationDetails && violationDetails.policyViolationId === requestedViolationId;
+}
+
 export function loadViolation(id) {
-  return function(dispatch) {
+  return function(dispatch, getState) {
+
+    const currentState = getState();
+    if (isViolationLoaded(id, currentState)) {
+      return Promise.resolve();
+    }
+
     dispatch(loadViolationRequested());
 
     return axios.get(getViolationDetailsUrl(id))
         .then(({ data }) => dispatch(loadViolationFulfilled(data)))
         .then(({ payload }) => dispatch(loadVulnerabilityDetails(payload)))
-        .catch(err => dispatch(loadViolationFailed(err)));
+        .catch(err => {
+          dispatch(loadViolationFailed(err));
+          return Promise.reject(err);
+        });
   };
 }
 

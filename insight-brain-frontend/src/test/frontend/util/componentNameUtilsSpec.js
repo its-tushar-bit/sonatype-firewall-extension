@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { getComponentName } from '../../../main/frontend/util/componentNameUtils';
+import { getComponentName, getArtifactName } from '../../../main/frontend/util/componentNameUtils';
 
 describe('componentNameUtils', function() {
   describe('getComponentName', function() {
@@ -43,6 +43,68 @@ describe('componentNameUtils', function() {
       };
       const componentName = getComponentName(component);
       expect(componentName).toEqual('foo.jar, bar.jar');
+    });
+
+    it('assigns unknown to components without any identification', function() {
+      const component = {};
+      const componentName = getComponentName(component);
+      expect(componentName).toEqual('Unknown');
+    });
+  });
+
+  describe('getArtifactName', function() {
+    it('sets up an artifact name from displayName using the `Artifact` field', function() {
+      const component = {
+        displayName: {
+          parts: [
+            {field: 'Group', value: 'Foo'},
+            {value: ' : '},
+            {field: 'Artifact', value: 'Bar'},
+            {value: ' : '},
+            {field: 'Version', value: '1.0'}
+          ]
+        },
+        filename: 'foo.js'
+      };
+      const artifactName = getArtifactName(component);
+      expect(artifactName).toEqual('Bar');
+    });
+
+    it('sets up an artifact name from displayName using the `Name` field', function() {
+      const component = {
+        displayName: {
+          parts: [
+            {field: 'Name', value: 'Foo'},
+            {value: ' : '},
+            {field: 'Version', value: '1.0'}
+          ]
+        },
+        filename: 'foo.js'
+      };
+      const artifactName = getArtifactName(component);
+      expect(artifactName).toEqual('Foo');
+    });
+
+    it('sets up an artifact name from displayName using the `packageId` field', function() {
+      const component = {
+        displayName: {
+          parts: [
+            {field: 'packageId', value: 'Foo'}
+          ]
+        },
+        filename: 'foo.js'
+      };
+      const artifactName = getArtifactName(component);
+      expect(artifactName).toEqual('Foo');
+    });
+
+    it('sets up an artifact name from filename', function() {
+      const component = {
+        displayName: null,
+        filename: 'foo.js'
+      };
+      const artifactName = getArtifactName(component);
+      expect(artifactName).toEqual('foo.js');
     });
 
     it('assigns unknown to components without any identification', function() {

@@ -44,36 +44,6 @@
     margin-top: $nx-spacing-xs;
   }
 
-  .iq-threat-level {
-    @include semi-bold;
-
-    font-size: 16px;
-  }
-
-  .iq-threat-level--unspecified {
-    color: $nx-threat-color-unspecified;
-  }
-
-  .iq-threat-level--none {
-    color: $nx-threat-color-none;
-  }
-
-  .iq-threat-level--low {
-    color: $nx-threat-color-low;
-  }
-
-  .iq-threat-level--moderate {
-    color: $nx-threat-color-moderate;
-  }
-
-  .iq-threat-level--severe {
-    color: $nx-threat-color-severe;
-  }
-
-  .iq-threat-level--critical {
-    color: $nx-threat-color-critical;
-  }
-
   .nx-grid-col {
     display: grid;
 

@@ -11,24 +11,56 @@ import AddWaiverPage from '../../../main/frontend/waivers/AddWaiverPage';
 
 describe('AddWaiverPageContainer', function() {
   let AddWaiverPageContainer,
-      addWaiverMock,
+      saveWaiverMock,
+      loadAddWaiverDataMock,
+      setWaiverCommentMock,
+      setWaiverScopeMock,
+      setApplyToAllComponentsMock,
       store,
       state,
       vdom;
 
   beforeEach(function() {
-    addWaiverMock = jasmine.createSpy('addWaiver').and.returnValue({ type: 'ADD_WAIVER' });
+    loadAddWaiverDataMock = jasmine.createSpy('loadAddWaiverData').and.returnValue({
+      type: 'LOAD_ADD_WAIVER_DATA'
+    });
+    saveWaiverMock = jasmine.createSpy('saveWaiver').and.returnValue({
+      type: 'SAVE_WAIVER'
+    });
+    setWaiverCommentMock = jasmine.createSpy('setWaiverComment').and.returnValue({
+      type: 'SET_WAIVER_COMMENT'
+    });
+    setWaiverScopeMock = jasmine.createSpy('setWaiverScope').and.returnValue({
+      type: 'SET_WAIVER_SCOPE'
+    });
+    setApplyToAllComponentsMock = jasmine.createSpy('setApplyToAllComponents').and.returnValue({
+      type: 'SET_APPLY_TO_ALL_COMPONENTS'
+    });
 
     AddWaiverPageContainer =
         require('inject-loader!../../../main/frontend/waivers/AddWaiverPageContainer')({
           './addWaiverActions': {
-            addWaiver: addWaiverMock
+            loadAddWaiverData: loadAddWaiverDataMock,
+            saveWaiver: saveWaiverMock,
+            setWaiverComment: setWaiverCommentMock,
+            setWaiverScope: setWaiverScopeMock,
+            setApplyToAllComponents: setApplyToAllComponentsMock
           }
         }).default;
 
     state = {
+      addWaiver: {
+        loading: false,
+        waiverComments: {
+          value: '',
+          isPristine: true
+        }
+      },
+      violationPage: {
+        violationDetails: {}
+      },
       router: {
-        currentParams: 'foo'
+        currentParams: { violationId: 'foo' }
       }
     };
 
@@ -39,32 +71,80 @@ describe('AddWaiverPageContainer', function() {
   it('maps the state slice to props', () => {
     let wrapper = shallow(vdom).dive();
 
-    expect(wrapper).toHaveProp('stateParams', 'foo');
-
+    expect(wrapper).toHaveProp('loading', false);
+    expect(wrapper).toHaveProp('violationId', 'foo');
+    expect(wrapper).toHaveProp('violationDetails', {});
     state = {
-      router: {
-        currentParams: 'bar'
+      ...state,
+      addWaiver: {
+        loading: true
+      },
+      violationPage: {
+        violationDetails: {
+          id: 'bar'
+        }
       }
     };
-    store.dispatch({ type: 'FOO' });
     wrapper = shallow(vdom).dive();
 
-    expect(wrapper).toHaveProp('stateParams', 'bar');
+    expect(wrapper).toHaveProp('loading', true);
+    expect(wrapper).toHaveProp('violationId', 'foo');
+    expect(wrapper).toHaveProp('violationDetails', { id: 'bar' });
   });
 
   it('maps action creators to props', function() {
     const wrapper = shallow(vdom).dive(),
-        addWaiver = wrapper.prop('addWaiver');
+        loadAddWaiverDataActionCreator = wrapper.prop('loadAddWaiverData'),
+        saveWaiverActionCreator = wrapper.prop('saveWaiver'),
+        setApplyToAllComponentsActionCreator = wrapper.prop('setApplyToAllComponents'),
+        setWaiverScopeActionCreator = wrapper.prop('setWaiverScope'),
+        setWaiverCommentActionCreator = wrapper.prop('setWaiverComment');
 
-    expect(addWaiver).toEqual(jasmine.any(Function));
+    expect(loadAddWaiverDataActionCreator).toEqual(jasmine.any(Function));
+    expect(saveWaiverActionCreator).toEqual(jasmine.any(Function));
+    expect(setApplyToAllComponentsActionCreator).toEqual(jasmine.any(Function));
+    expect(setWaiverScopeActionCreator).toEqual(jasmine.any(Function));
+    expect(setWaiverCommentActionCreator).toEqual(jasmine.any(Function));
+
     expect(store.getActions()).toEqual([]);
 
-    addWaiver();
-    expect(store.getActions()).toEqual([{ type: 'ADD_WAIVER' }]);
+    loadAddWaiverDataActionCreator();
+    expect(store.getActions()).toEqual([{ type: 'LOAD_ADD_WAIVER_DATA' }]);
+
+    saveWaiverActionCreator();
+    expect(store.getActions()).toEqual([
+      { type: 'LOAD_ADD_WAIVER_DATA' },
+      { type: 'SAVE_WAIVER' }
+    ]);
+
+    setApplyToAllComponentsActionCreator();
+    expect(store.getActions()).toEqual([
+      { type: 'LOAD_ADD_WAIVER_DATA' },
+      { type: 'SAVE_WAIVER' },
+      { type: 'SET_APPLY_TO_ALL_COMPONENTS' }
+    ]);
+
+    setWaiverScopeActionCreator();
+    expect(store.getActions()).toEqual([
+      { type: 'LOAD_ADD_WAIVER_DATA' },
+      { type: 'SAVE_WAIVER' },
+      { type: 'SET_APPLY_TO_ALL_COMPONENTS' },
+      { type: 'SET_WAIVER_SCOPE' }
+    ]);
+
+    setWaiverCommentActionCreator();
+    expect(store.getActions()).toEqual([
+      { type: 'LOAD_ADD_WAIVER_DATA' },
+      { type: 'SAVE_WAIVER' },
+      { type: 'SET_APPLY_TO_ALL_COMPONENTS' },
+      { type: 'SET_WAIVER_SCOPE' },
+      { type: 'SET_WAIVER_COMMENT' }
+    ]);
   });
 
   it('renders AddWaiverPage component', function() {
     const addWaiverPageComponent = shallow(vdom).find(AddWaiverPage);
     expect(addWaiverPageComponent).toExist();
+    expect(addWaiverPageComponent).toHaveProp('violationId', 'foo');
   });
 });

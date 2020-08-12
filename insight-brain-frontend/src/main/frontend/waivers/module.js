@@ -13,12 +13,12 @@ export default angular.module('waivers', [])
 
 function routes($stateProvider) {
   $stateProvider
-      .state('/addWaiver', {
+      .state('addWaiver', {
         component: 'addWaiverPage',
         data: {
           title: 'Add Waiver'
         },
-        url: '/addWaiver?policyViolationId'
+        url: '/addWaiver/{violationId}'
       });
 }
 

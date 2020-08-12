@@ -1,0 +1,36 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
+@import '~@sonatype/react-shared-components/scss-shared/nx-colors';
+
+.iq-add-waiver-form .iq-read-only-data {
+  @include container-horizontal;
+}
+
+.iq-add-waiver-form__component .nx-icon {
+  color: $iq-blue-dark;
+}
+
+.iq-add-waiver-form__scope .nx-radio {
+  @include truncate-ellipsis;
+  max-width: 1024px;
+}
+
+.iq-add-waiver-form__comments .nx-text-input {
+  box-sizing: border-box;
+  min-height: 200px;
+  width: 100%;
+}
+
+.iq-add-waiver-form .iq-read-only > .iq-read-only-data {
+  padding-left: $nx-spacing-l;
+}
+
+.iq-add-waiver-form .nx-btn-bar {
+  @include container-vertical;
+}

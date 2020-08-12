@@ -3,41 +3,103 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
-import React from 'react';
+import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxInfoAlert, NxButton } from '@sonatype/react-shared-components';
+import { map, prop } from 'ramda';
+import { NxSubmitMask } from '@sonatype/react-shared-components';
+import { categoryByPolicyThreatLevel } from '@sonatype/react-shared-components/util/threatLevels';
 
 import MaximizedContainer from '../react/MaximizedContainer';
+import LoadWrapper from '../react/LoadWrapper';
+import { getComponentName, getArtifactName } from '../util/componentNameUtils';
+import { violationDetailsPropTypes } from '../violation/ViolationDetailsTile';
+import { constraintViolationsPropType } from '../violation/PolicyViolationConstraintInfoTile';
+import AddWaiverForm, { waiverScopePropTypes } from './AddWaiverForm';
 
 export default function AddWaiverPage(props) {
   const {
-    addWaiver,
-    stateParams: { policyViolationId }
+    // page state
+    violationId,
+    loading,
+    loadError,
+    submitMaskState,
+    submitError,
+    //data
+    waiverComments,
+    availableWaiverScopes,
+    selectedWaiverScope,
+    applyToAllComponents,
+    violationDetails,
+    //actions
+    loadAddWaiverData,
+    saveWaiver,
+    setWaiverComment,
+    setWaiverScope,
+    setApplyToAllComponents
   } = props;
 
-  const warningText = 'You are currently viewing a temporary page for adding waivers. ';
-  const policyViolationText = `The current policyViolationId associated with this page is ${policyViolationId}`;
+  useEffect(() => {
+    if (violationId) {
+      loadAddWaiverData(violationId);
+    }
+  }, [violationId]);
+
+  const getFormProps = () => {
+    if (!violationDetails) {
+      return null;
+    }
+
+    const {
+      constraintViolations,
+      policyName,
+      policyViolationId,
+      threatLevel
+    } = violationDetails;
+
+    const { constraintName, reasons } = constraintViolations[0],
+        threatLevelCategory = categoryByPolicyThreatLevel[threatLevel],
+        componentName = getComponentName(violationDetails),
+        artifactName = getArtifactName(violationDetails);
+
+    return {
+      applyToAllComponents,
+      artifactName,
+      componentName,
+      constraintName,
+      policyName,
+      policyViolationId,
+      reasons: map(prop('reason'), reasons),
+      threatLevelCategory,
+      waiverComments,
+      availableWaiverScopes,
+      selectedWaiverScope,
+      submitError,
+      setWaiverScope,
+      setWaiverComment,
+      setApplyToAllComponents,
+      saveWaiver
+    };
+  };
 
   return (
-    <MaximizedContainer id="timed-waivers" className="nx-page-content">
-      { /** ToDo: replace with actual content */ }
+    <MaximizedContainer id="add-waiver-page" className="nx-page-content">
       <div className="nx-page-main">
         <div className="nx-page-title">
           <h1 className="nx-h1">Add Waiver</h1>
         </div>
 
-        <div className="nx-tile iq-timed-waivers">
-          <NxInfoAlert id="temporary-content">
-            <span>
-              { warningText }
-              { policyViolationId && policyViolationText }
-            </span>
-          </NxInfoAlert>
-          <NxButton id="temporary-button"
-                    onClick={() => addWaiver()}>
-            Mock Add Waiver
-          </NxButton>
+        <div className="nx-tile">
+          { submitMaskState !== null &&
+            <NxSubmitMask success={ submitMaskState }
+                          message="Creating waiver…"
+                          successMessage="Success!" />
+          }
+
+          <LoadWrapper loading={ loading || !violationDetails || !availableWaiverScopes } error={loadError}>
+            {() =>
+              <AddWaiverForm {...getFormProps()} />
+            }
+          </LoadWrapper>
         </div>
       </div>
     </MaximizedContainer>
@@ -45,8 +107,30 @@ export default function AddWaiverPage(props) {
 }
 
 AddWaiverPage.propTypes = {
-  addWaiver: PropTypes.func.isRequired,
-  stateParams: PropTypes.shape({
-    policyViolationId: PropTypes.string
-  }).isRequired
+  violationId: PropTypes.string,
+  loading: PropTypes.bool.isRequired,
+  loadError: LoadWrapper.propTypes.error,
+  submitMaskState: PropTypes.bool,
+  submitError: PropTypes.string,
+  violationDetails: PropTypes.shape({
+    ...violationDetailsPropTypes,
+    constraintViolations: constraintViolationsPropType.isRequired,
+    displayName: PropTypes.shape({
+      parts: PropTypes.arrayOf(PropTypes.object)
+    }),
+    filename: PropTypes.string,
+    policyViolationId: PropTypes.string.isRequired
+  }),
+  waiverComments: PropTypes.shape({
+    value: PropTypes.string.isRequired,
+    isPristine: PropTypes.bool.isRequired
+  }).isRequired,
+  availableWaiverScopes: PropTypes.arrayOf(PropTypes.shape(waiverScopePropTypes)),
+  selectedWaiverScope: PropTypes.shape(waiverScopePropTypes),
+  applyToAllComponents: PropTypes.bool,
+  loadAddWaiverData: PropTypes.func.isRequired,
+  saveWaiver: PropTypes.func.isRequired,
+  setWaiverComment: PropTypes.func.isRequired,
+  setWaiverScope: PropTypes.func.isRequired,
+  setApplyToAllComponents: PropTypes.func.isRequired
 };

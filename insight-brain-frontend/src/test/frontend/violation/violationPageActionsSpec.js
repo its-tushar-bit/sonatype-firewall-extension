@@ -21,10 +21,22 @@ describe('violationPageActions', function() {
     let store;
 
     beforeEach(function() {
-      store = SpecUtil.mockReduxStore({});
+      const state = {
+        violationPage: {
+          violationDetails: {
+            policyViolationId: 'bar'
+          }
+        }
+      };
+      store = SpecUtil.mockReduxStore(state);
     });
 
-    it('dispatches LOAD_VIOLATION_REQUESTED immediately', function() {
+    it('dispatches nothing if the violation is already loaded', function() {
+      store.dispatch(loadViolation('bar'));
+      expect(store.getActions().length).toBe(0);
+    });
+
+    it('dispatches LOAD_VIOLATION_REQUESTED immediately if the violation is not already loaded', function() {
       spyOn(axios, 'get').and.returnValue(Promise.resolve());
 
       store.dispatch(loadViolation('foo'));
@@ -55,11 +67,10 @@ describe('violationPageActions', function() {
 
       spyOn(axios, 'get').and.returnValue(Promise.reject(responseError));
 
-      store.dispatch(loadViolation()).then(() => {
+      store.dispatch(loadViolation()).catch(() => {
         expect(store.getActions().length).toBe(2);
         expect(store.getActions()[1].type).toEqual(LOAD_VIOLATION_FAILED);
         expect(store.getActions()[1].payload).toEqual(responseError);
-
         done();
       });
 

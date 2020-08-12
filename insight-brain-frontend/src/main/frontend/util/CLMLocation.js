@@ -113,6 +113,35 @@ export function getDashboardDeleteFilterUrl(filterName) {
   return `${getBaseUrl(window.location.href)}/rest/dashboard/filters/named/delete?filterName=${filterName}`;
 }
 
+/**
+ * @param waiverScope {string} application|organization
+ * @param ownerId {string}
+ * @param policyViolationId {string}
+ */
+export function getAddPolicyViolationWaiverUrl(waiverScope, ownerId, policyViolationId) {
+  const encodedPolicyViolationId = encodeURIComponent(policyViolationId),
+      encodedScope = encodeURIComponent(waiverScope),
+      encodedOwnerId = encodeURIComponent(ownerId),
+      base = `${getBaseUrl(window.location.href)}/api/v2/policyWaivers/`;
+
+  return `${base}${encodedScope}/${encodedOwnerId}/${encodedPolicyViolationId}`;
+}
+
+/**
+ * @param {string} ownerType
+ * @param {string} ownerId
+ * @param {string} policyId
+ * @returns {string}
+ */
+export function getOwnerContextHierarchyUrl(ownerType, ownerId, policyId) {
+  const encodedOwnerType = encodeURIComponent(ownerType),
+      encodedOwnerId = encodeURIComponent(ownerId),
+      encodedPolicyId = encodeURIComponent(policyId),
+      base = `${getBaseUrl(window.location.href)}/rest/policyWaiver`;
+
+  return `${base}/${encodedOwnerType}/${encodedOwnerId}/applicable/context/${encodedPolicyId}`;
+}
+
 export default
 angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl', '$window', function(baseUrl, $window) {

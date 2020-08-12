@@ -3,22 +3,79 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { initialState, userInput } from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
 
-import { createReducerFromActionMap } from '../util/reduxUtil';
-import { ADD_WAIVER } from './addWaiverActions';
+import { createReducerFromActionMap, propSetConst } from '../util/reduxUtil';
+import {
+  ADD_WAIVER_LOAD_DATA_REQUESTED,
+  ADD_WAIVER_LOAD_DATA_FULFILLED,
+  ADD_WAIVER_LOAD_DATA_FAILED,
+  ADD_WAIVER_SAVE_REQUESTED,
+  ADD_WAIVER_SAVE_FULFILLED,
+  ADD_WAIVER_SAVE_FAILED,
+  ADD_WAIVER_SUBMIT_MASK_TIMER_DONE,
+  ADD_WAIVER_SET_WAIVER_COMMENT,
+  ADD_WAIVER_SET_WAIVER_SCOPE,
+  ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS
+} from './addWaiverActions';
+import { propSet } from '../util/jsUtil';
 
-// ToDo: Use real actions and derive proper state
-const initialState = Object.freeze({
-  waivers: []
+const initState = Object.freeze({
+  loading: false,
+  loadError: null,
+  submitMaskState: null,
+  submitError: null,
+  // data
+  waiverComments: Object.freeze(initialState('')),
+  availableWaiverScopes: null,
+  selectedWaiverScope: null,
+  applyToAllComponents: false
+});
+
+const loadDataFailed = (payload, state) => ({
+  ...state,
+  loading: false,
+  loadError: payload
+});
+
+const setWaiverData = (payload, state) => ({
+  ...state,
+  loading: false,
+  loadError: null,
+  submitError: null,
+  availableWaiverScopes: payload,
+  selectedWaiverScope: payload[0] // automatically set selectedWaiverScope with the owner
+});
+
+const saveWaiverRequested = (payload, state) => ({
+  ...state,
+  submitMaskState: false,
+  submitError: null
+});
+
+const saveWaiverFailed = (payload, state) => ({
+  ...state,
+  submitMaskState: null,
+  submitError: payload
+});
+
+const setWaiverComment = (payload, state) => ({
+  ...state,
+  waiverComments: userInput(null, payload)
 });
 
 const reducerActionMap = {
-  [ADD_WAIVER]: addWaiver
+  [ADD_WAIVER_LOAD_DATA_REQUESTED]: propSetConst('loading', true),
+  [ADD_WAIVER_LOAD_DATA_FULFILLED]: setWaiverData,
+  [ADD_WAIVER_LOAD_DATA_FAILED]: loadDataFailed,
+  [ADD_WAIVER_SAVE_REQUESTED]: saveWaiverRequested,
+  [ADD_WAIVER_SAVE_FULFILLED]: propSetConst('submitMaskState', true),
+  [ADD_WAIVER_SAVE_FAILED]: saveWaiverFailed,
+  [ADD_WAIVER_SUBMIT_MASK_TIMER_DONE]: propSetConst('submitMaskState', null),
+  [ADD_WAIVER_SET_WAIVER_COMMENT]: setWaiverComment,
+  [ADD_WAIVER_SET_WAIVER_SCOPE]: propSet('selectedWaiverScope'),
+  [ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS]: propSet('applyToAllComponents')
 };
 
-function addWaiver() {
-  return initialState;
-}
-
-const addWaiverReducer = createReducerFromActionMap(reducerActionMap, initialState);
+const addWaiverReducer = createReducerFromActionMap(reducerActionMap, initState);
 export default addWaiverReducer;

@@ -25,6 +25,7 @@ import {
 
 import {
   APPLY_FILTER_FULFILLED,
+  APPLY_FILTER_REQUESTED,
   FETCH_CURRENT_FILTER_FULFILLED,
   SET_DISPLAY_SAVE_FILTER_MODAL
 } from './dashboardFilterActions';
@@ -70,7 +71,8 @@ const reducerActionMap = {
   [TOGGLE_FILTERS_DROPDOWN]: propSet('filtersDropdownOpen'),
   [SELECT_FILTER_TO_DELETE]: selectFilterToDelete,
   [HIDE_DELETE_FILTER_MODAL]: resetProps(['filterToDelete']),
-  [DOCUMENT_CLICKED]: closeFiltersMenuIfNeeded
+  [DOCUMENT_CLICKED]: closeFiltersMenuIfNeeded,
+  [APPLY_FILTER_REQUESTED]: closeFiltersMenuIfNeeded
 };
 
 function closeFiltersMenuIfNeeded(payload, state) {

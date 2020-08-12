@@ -6,13 +6,18 @@
       </div>
       <div class="iq-tile iq-tile--report-list-filter">
         <div class="iq-form-group">
-          <input id="iq-report-list-filter"
-                 type="text"
-                 ng-model="vm.appFilter"
-                 autocomplete="off"
-                 placeholder="Search by Application or Organization name"
-                 class="iq-text-input--long"
-                 enter-key-call="vm.sortAndFilter()"/>
+          <div class="search input-prepend">
+            <span class="add-on">
+              <i class="fa fa-filter"></i>
+            </span>
+            <input id="iq-report-list-filter"
+                   type="text"
+                   ng-model="vm.appFilter"
+                   autocomplete="off"
+                   placeholder="Search by Application or Organization name"
+                   class="iq-text-input--long"
+                   enter-key-call="vm.sortAndFilter()">
+          </div>
           <button id="iq-report-list-search-button" class="btn btn-primary" ng-click="vm.sortAndFilter()">
             Search
           </button>

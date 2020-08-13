@@ -13,9 +13,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
@@ -64,11 +62,6 @@ public class TaskSchedulerTest
   private TestJob testJob;
 
   @Override
-  public void configure(Properties properties) {
-    properties.put("scheduler.name", TaskScheduler.DEFAULT_SCHEDULER_NAME + "-" + UUID.randomUUID());
-  }
-
-  @Override
   public void configure(Binder binder) {
     // add some AOP to the mix to more closely reflect the normal runtime setup
     MethodInterceptor noop = invocation -> invocation.proceed();
@@ -98,7 +91,7 @@ public class TaskSchedulerTest
     try (Connection connection = DBConnectionManager.getInstance().getConnection("ods")) {
       assertThat(connection.getSchema()).isEqualTo(OperationalDataStoreProvider.ID);
     }
-    assertThat(scheduler.getSchedulerName()).startsWith("QuartzScheduler");
+    assertThat(scheduler.getSchedulerName()).isNotBlank();
     assertThat(scheduler.getSchedulerInstanceId()).isNotNull();
     assertThat(scheduler.getMetaData().getThreadPoolClass()).isEqualTo(SimpleThreadPool.class);
     assertThat(QuartzJobStoreTX.class).isAssignableFrom(scheduler.getMetaData().getJobStoreClass());

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.scheduler;
 
+import java.util.UUID;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -21,10 +23,14 @@ public class TestTaskScheduler
   public TestTaskScheduler(
       QuartzJobStoreTX quartzJobStoreTX,
       JobFactory jobFactory,
-      @Named("${scheduler.name:-" + DEFAULT_SCHEDULER_NAME + "}") String schedulerName,
       QuartzTriggerListener quartzTriggerListener)
   {
-    super(quartzJobStoreTX, jobFactory, schedulerName, quartzTriggerListener);
+    super(quartzJobStoreTX, jobFactory, getUniqueSchedulerName(), quartzTriggerListener);
+  }
+
+  private static String getUniqueSchedulerName() {
+    // ensure we don't reuse/hijack a pre-existing scheduler from another test out of the SchedulerRepository
+    return TestTaskScheduler.class.getSimpleName() + "-" + UUID.randomUUID().toString();
   }
 
   @Override

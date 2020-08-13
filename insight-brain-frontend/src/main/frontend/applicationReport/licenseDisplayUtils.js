@@ -25,6 +25,8 @@ function renderLicenses(licenses) {
  */
 function dedupLicenses(licenses1, licenses2) {
   const deduped = [];
+  licenses1 = isNil(licenses1) ? [] : licenses1;
+  licenses2 = isNil(licenses2) ? [] : licenses2;
 
   for (let i = 0; i < licenses2.length; i++) {
     if ('Not Provided' === licenses2[i] || licenses1.indexOf(licenses2[i]) === -1) {

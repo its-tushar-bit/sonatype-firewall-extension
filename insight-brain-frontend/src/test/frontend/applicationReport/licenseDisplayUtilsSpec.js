@@ -55,5 +55,41 @@ describe('licenseDisplayUtils', function() {
 
       expect(licenseDisplayUtils.getObservedLicensesDisplay(licenseObj)).toBe('Not Provided');
     });
+
+    it('returns null when no observed licenses are passed as argument', () => {
+      const licenseObj = {
+        declaredLicenses: ['Not Provided'],
+        observedLicenses: undefined
+      };
+
+      expect(licenseDisplayUtils.getObservedLicensesDisplay(licenseObj)).toBe(null);
+    });
+
+    it('returns null when null is passed as observed licenses array', () => {
+      const licenseObj = {
+        declaredLicenses: ['Not Provided'],
+        observedLicenses: null
+      };
+
+      expect(licenseDisplayUtils.getObservedLicensesDisplay(licenseObj)).toBe(null);
+    });
+
+    it('returns observed licenses if no declared licenses are passed on', () => {
+      const licenseObj = {
+        declaredLicenses: undefined,
+        observedLicenses: ['foo', 'bar', 'baz']
+      };
+
+      expect(licenseDisplayUtils.getObservedLicensesDisplay(licenseObj)).toBe('foo, bar, baz');
+    });
+
+    it('returns observed licenses if null is passes as declared licenses array', () => {
+      const licenseObj = {
+        declaredLicenses: null,
+        observedLicenses: ['foo', 'bar', 'baz']
+      };
+
+      expect(licenseDisplayUtils.getObservedLicensesDisplay(licenseObj)).toBe('foo, bar, baz');
+    });
   });
 });

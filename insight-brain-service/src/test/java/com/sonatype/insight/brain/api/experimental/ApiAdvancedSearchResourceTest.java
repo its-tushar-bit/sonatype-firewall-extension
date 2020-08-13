@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.search.results.GroupingByDTO;
@@ -34,8 +35,22 @@ public class ApiAdvancedSearchResourceTest
     extends AbstractResourceTest
 {
   @Before
+  public void before() throws Exception {
+    cleanSearchIndexDir();
+    TaskScheduler taskScheduler = getCLMServer().getInstance(TaskScheduler.class);
+    taskScheduler.disableForTesting = false;
+    taskScheduler.start();
+    IndexService indexService = getCLMServer().getInstance(IndexService.class);
+    indexService.disableForTesting = false;
+    indexService.start();
+  }
+
   @After
-  public void beforeAndAfter() throws Exception {
+  public void after() throws Exception {
+    cleanSearchIndexDir();
+  }
+
+  private void cleanSearchIndexDir() throws Exception {
     InsightWork insightWork = getCLMServer().getInstance(InsightWork.class);
     FileUtils.deleteDirectory(insightWork.getSearchIndexDir());
   }
@@ -88,6 +103,7 @@ public class ApiAdvancedSearchResourceTest
   }
 
   private void awaitIndexCompletion() {
-    await().atMost(10, TimeUnit.SECONDS).until(() -> !getCLMServer().getInstance(IndexService.class).isRunning());
+    await().atMost(10, TimeUnit.SECONDS)
+        .until(() -> !getCLMServer().getInstance(IndexService.class).isFullIndexRunning());
   }
 }

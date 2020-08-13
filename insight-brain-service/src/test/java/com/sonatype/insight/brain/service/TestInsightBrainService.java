@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
 import com.sonatype.insight.brain.product.notifications.HdsProductNotificationService;
 import com.sonatype.insight.brain.report.ReportPurger;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.security.PasswordService;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsPurger;
@@ -296,6 +297,7 @@ public class TestInsightBrainService
     getInstance(HdsProductNotificationService.class).disableCacheForTesting = true;
     getInstance(ClusterTelemetryTask.class).disableForTesting = true;
     getInstance(FirewallIgnorePatternUpdater.class).disableForTesting = true;
+    getInstance(IndexService.class).disableForTesting = true;
   }
 
   @Override

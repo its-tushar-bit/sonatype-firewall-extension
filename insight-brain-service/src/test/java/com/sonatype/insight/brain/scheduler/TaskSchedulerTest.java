@@ -11,8 +11,10 @@ import java.time.Duration;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -158,9 +160,22 @@ public class TaskSchedulerTest
     taskScheduler.start();
     taskScheduler.scheduleDailyTask(TestJob.class, TestJob.NAME, LocalTime.now().plusHours(4));
     assertThat(TestJob.getExecutions()).isZero();
-    taskScheduler.triggerTaskNow(TestJob.NAME);
+    taskScheduler.triggerTaskNow(TestJob.NAME, null);
     await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
       assertThat(TestJob.getExecutions()).isOne();
+    });
+  }
+
+  @Test
+  public void testTriggerTaskNow_WithParameters() throws Exception {
+    taskScheduler.start();
+    taskScheduler.scheduleDailyTask(TestJob.class, TestJob.NAME, LocalTime.now().plusHours(4));
+    assertThat(TestJob.getExecutions()).isZero();
+    Map<String, String> params = Collections.singletonMap("testKey", "testValue");
+    taskScheduler.triggerTaskNow(TestJob.NAME, params);
+    await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
+      assertThat(TestJob.getExecutions()).isOne();
+      assertThat(TestJob.getJobParameters(0)).containsAllEntriesOf(params);
     });
   }
 

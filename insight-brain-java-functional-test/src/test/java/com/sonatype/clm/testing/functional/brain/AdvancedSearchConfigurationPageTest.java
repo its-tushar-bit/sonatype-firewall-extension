@@ -13,6 +13,8 @@ import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.search.index.IndexService;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -95,7 +97,14 @@ public class AdvancedSearchConfigurationPageTest
   }
 
   @Test
-  public void testReindex() {
+  public void testReindex() throws Exception {
+    TaskScheduler taskScheduler = testCLMServer.getCLMServer().getInstance(TaskScheduler.class);
+    taskScheduler.disableForTesting = false;
+    taskScheduler.start();
+    IndexService indexService = testCLMServer.getCLMServer().getInstance(IndexService.class);
+    indexService.disableForTesting = false;
+    indexService.start();
+
     dao.update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "true"));
     refreshOrOpen(AdvancedSearchConfigurationPage.url());
 

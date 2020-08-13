@@ -7,17 +7,29 @@ package com.sonatype.insight.brain.search.index;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
+import com.google.inject.Binder;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
+import org.mockito.Mock;
 
 public class IndexServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
   @Inject
   private IndexService indexService;
+
+  @Mock
+  private TaskScheduler taskSchedulerMock;
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
+    super.configure(binder);
+  }
 
   @Test(expected = UnauthenticatedException.class)
   public void testCreateSearchIndex__Unauthenticated() {

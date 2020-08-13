@@ -10,6 +10,7 @@ import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -23,6 +24,7 @@ import org.quartz.CronScheduleBuilder;
 import org.quartz.DailyTimeIntervalScheduleBuilder;
 import org.quartz.Job;
 import org.quartz.JobBuilder;
+import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.JobKey;
 import org.quartz.JobPersistenceException;
@@ -112,15 +114,15 @@ public class TaskScheduler
     if (disableForTesting) {
       return;
     }
-    if (!scheduler.isStarted()) {
+    if (!scheduler.isStarted() || scheduler.isInStandbyMode()) {
       scheduler.start();
       log.info("Started task scheduler");
     }
   }
 
-  public void triggerTaskNow(String name) {
+  public void triggerTaskNow(String name, Map<String, String> parameters) {
     try {
-      getScheduler().triggerJob(JobKey.jobKey(name));
+      getScheduler().triggerJob(JobKey.jobKey(name), parameters != null ? new JobDataMap(parameters) : null);
     }
     catch (SchedulerException e) {
       throw new RuntimeException(e);

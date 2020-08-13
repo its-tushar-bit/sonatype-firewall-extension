@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.scheduler;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntUnaryOperator;
 
@@ -23,11 +26,14 @@ public class TestJob
 
   private static AtomicInteger executions = new AtomicInteger();
 
+  private static ConcurrentMap<Integer, Map<String, Object>> jobParamsByExecution = new ConcurrentHashMap<>();
+
   private static IntUnaryOperator durations;
 
   @Override
   public void execute(JobExecutionContext context) {
     int execution = executions.getAndIncrement();
+    jobParamsByExecution.put(execution, context.getMergedJobDataMap());
     if (durations != null) {
       int duration = durations.applyAsInt(execution);
       if (duration > 0) {
@@ -53,9 +59,14 @@ public class TestJob
     return executions.get();
   }
 
+  public static Map<String, Object> getJobParameters(int execution) {
+    return jobParamsByExecution.get(execution);
+  }
+
   public static void reset() {
     shouldThrowException = false;
     executions.set(0);
+    jobParamsByExecution.clear();
     durations = null;
   }
 }

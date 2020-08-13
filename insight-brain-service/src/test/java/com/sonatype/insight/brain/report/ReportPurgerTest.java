@@ -381,6 +381,6 @@ public class ReportPurgerTest
   @Test
   public void testExecute_AdminTask() {
     reportPurger.execute(null, new PrintWriter(new StringWriter()));
-    verify(taskSchedulerMock).triggerTaskNow(ReportPurger.NAME);
+    verify(taskSchedulerMock).triggerTaskNow(ReportPurger.NAME, null);
   }
 }

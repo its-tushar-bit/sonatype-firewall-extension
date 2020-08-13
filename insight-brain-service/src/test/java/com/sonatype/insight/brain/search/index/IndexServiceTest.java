@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.search.index;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.util.Collections;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
@@ -20,9 +22,11 @@ import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
 import com.sonatype.insight.brain.search.index.IndexService.IndexingContext;
+import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -40,9 +44,17 @@ import org.assertj.core.groups.Tuple;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.quartz.JobBuilder;
+import org.quartz.JobDataMap;
+import org.quartz.JobExecutionContext;
+import org.slf4j.MDC;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -61,10 +73,14 @@ public class IndexServiceTest
   @Mock
   private TelemetrySender telemetrySenderMock;
 
+  @Mock
+  private TaskScheduler taskSchedulerMock;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(VulnerabilityDescriptionFetcher.class).toInstance(vulnerabilityDescriptionFetcher);
     binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
+    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
     super.configure(binder);
   }
 
@@ -216,5 +232,48 @@ public class IndexServiceTest
     assertThat((Long) telemetryData.getAttributes().get(IndexService.SEARCH_INDEX_DURATION_SECONDS))
         .isGreaterThanOrEqualTo(0).isLessThanOrEqualTo(duration);
     assertThat((Long) telemetryData.getAttributes().get(IndexService.SEARCH_INDEX_SIZE_BYTES)).isEqualTo(size);
+  }
+
+  @Test
+  public void testDisallowConcurrentExecution() {
+    assertThat(JobBuilder.newJob(IndexService.class).build().isConcurrentExectionDisallowed()).isTrue();
+  }
+
+  @Test
+  public void testExecute_IncrementalIndexing() throws Exception {
+    IndexService indexServiceSpy = spy(indexService);
+
+    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forUser("username")) {
+      JobExecutionContext jobExecutionContext = mock(JobExecutionContext.class);
+      when(jobExecutionContext.getMergedJobDataMap()).thenReturn(new JobDataMap());
+      indexServiceSpy.execute(jobExecutionContext);
+    }
+
+    verify(indexServiceSpy, never()).createSearchIndex();
+  }
+
+  @Test
+  public void testExecute_FullIndexing() throws Exception {
+    IndexService indexServiceSpy = spy(indexService);
+    doAnswer(invocationOnMock -> {
+      assertThat(MDC.get(MDCUsernameScope.USERNAME)).isEqualTo(MDCUsernameScope.SYSTEM);
+      return null;
+    }).when(indexServiceSpy).createSearchIndex();
+
+    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forUser("username")) {
+      JobExecutionContext jobExecutionContext = mock(JobExecutionContext.class);
+      when(jobExecutionContext.getMergedJobDataMap())
+          .thenReturn(new JobDataMap(Collections.singletonMap(IndexService.TASK_PARAM_INDEX_ALL, "true")));
+      indexServiceSpy.execute(jobExecutionContext);
+    }
+
+    verify(indexServiceSpy).createSearchIndex();
+  }
+
+  @Test
+  public void testStart() {
+    indexService.start();
+
+    verify(taskSchedulerMock).schedulePeriodicTask(IndexService.class, IndexService.TASK_NAME, Duration.ofSeconds(3));
   }
 }

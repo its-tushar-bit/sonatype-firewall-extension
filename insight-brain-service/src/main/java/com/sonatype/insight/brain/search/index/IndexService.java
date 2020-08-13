@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.search.index;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -41,10 +42,12 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.LuceneComponents;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
 import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -52,11 +55,15 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.common.annotations.VisibleForTesting;
+import io.dropwizard.lifecycle.Managed;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.store.Directory;
+import org.quartz.DisallowConcurrentExecution;
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,8 +74,14 @@ import static java.util.stream.Collectors.toList;
  */
 @Named
 @Singleton
+@DisallowConcurrentExecution
 public class IndexService
+    implements Managed, Job
 {
+  static final String TASK_NAME = "SearchIndexUpdate";
+
+  static final String TASK_PARAM_INDEX_ALL = "indexAll";
+
   static final String SEARCH_INDEX_DURATION_SECONDS = "search_index_duration_seconds";
 
   public static final String SEARCH_INDEX_SIZE_BYTES = "search_index_size_bytes";
@@ -97,9 +110,13 @@ public class IndexService
 
   private final VulnerabilityDescriptionFetcher vulnerabilityDescriptionFetcher;
 
+  private final TaskScheduler taskScheduler;
+
   private final LuceneComponents luceneComponents;
 
-  private volatile boolean running = false;
+  private volatile boolean fullIndexRunning;
+
+  public boolean disableForTesting;
 
   class IndexingContext
   {
@@ -140,6 +157,7 @@ public class IndexService
       InsightWork insightWork,
       TelemetrySender telemetrySender,
       VulnerabilityDescriptionFetcher vulnerabilityDescriptionFetcher,
+      TaskScheduler taskScheduler,
       LuceneComponents luceneComponents)
   {
     this.organizationDAO = organizationDAO;
@@ -152,49 +170,59 @@ public class IndexService
     this.insightWork = insightWork;
     this.telemetrySender = telemetrySender;
     this.vulnerabilityDescriptionFetcher = vulnerabilityDescriptionFetcher;
+    this.taskScheduler = taskScheduler;
     this.luceneComponents = luceneComponents;
   }
 
-  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public synchronized void createSearchIndexAsync() {
-    if (!running) {
-      running = true;
-      new IndexThread().start();
+  @Override
+  public void start() {
+    if (disableForTesting) {
+      return;
     }
+    taskScheduler.schedulePeriodicTask(IndexService.class, TASK_NAME, Duration.ofSeconds(3));
   }
 
-  private class IndexThread
-      extends Thread
-  {
-    IndexThread() {
-      super("IndexService-0");
-      setDaemon(true);
-    }
+  @Override
+  public void stop() {
+    // noop
+  }
 
-    @Override
-    public void run() {
-      try {
-        createSearchIndex();
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public void createSearchIndexAsync() {
+    fullIndexRunning = true;
+    taskScheduler.triggerTaskNow(TASK_NAME, Collections.singletonMap(TASK_PARAM_INDEX_ALL, "true"));
+  }
+
+  @Override
+  public void execute(JobExecutionContext context) {
+    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
+      if (context.getMergedJobDataMap().containsKey(TASK_PARAM_INDEX_ALL)) {
+        try {
+          createSearchIndex();
+        }
+        finally {
+          fullIndexRunning = false;
+        }
       }
-      catch (Exception e) {
-        log.error(e.getMessage(), e);
+      else {
+        // check for incremental changes
       }
-      catch (Throwable t) {
-        // Try to log to stderr before trying the standard logging because the standard logging may not be operational
-        // at this point.
-        t.printStackTrace();
-        log.error(t.getMessage(), t);
-        System.exit(2);
-      }
-      finally {
-        running = false;
-      }
+    }
+    catch (Exception e) {
+      log.error("Failed to update search index: {}", e.getMessage(), e);
+    }
+    catch (Throwable t) {
+      // Try to log to stderr before trying the standard logging because the standard logging may not be operational
+      // at this point.
+      t.printStackTrace();
+      log.error(t.getMessage(), t);
+      System.exit(2);
     }
   }
 
   @VisibleForTesting
-  public boolean isRunning() {
-    return running;
+  public boolean isFullIndexRunning() {
+    return fullIndexRunning;
   }
 
   public void createSearchIndex() throws IOException {

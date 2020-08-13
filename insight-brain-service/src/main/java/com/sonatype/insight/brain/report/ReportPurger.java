@@ -159,7 +159,7 @@ public class ReportPurger
   @Override
   public void execute(ImmutableMultimap<String, String> parameters, PrintWriter output) {
     log.debug("Triggering purging of obsolete reports");
-    taskScheduler.triggerTaskNow(NAME);
+    taskScheduler.triggerTaskNow(NAME, null);
     output.println("Triggered purging of obsolete reports");
   }
 

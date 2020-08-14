@@ -22,11 +22,11 @@ public class ApplicationSummaryResourceTest
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(ApplicationSummaryResource.RESOURCE_PATH);
+    return super.restRequest().path(ApplicationSummaryResourceConstants.RESOURCE_PATH);
   }
 
   private HttpRequest summaryRequest(Goal goal) {
-    return restRequest().query(ApplicationSummaryResource.GOAL_PARAM, goal);
+    return restRequest().query(ApplicationSummaryResourceConstants.GOAL_PARAM, goal);
   }
 
   @Test
@@ -78,8 +78,11 @@ public class ApplicationSummaryResourceTest
   public void testVerifyOrCreateApplication_EvaluateApplication() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
 
-    HttpResponse response = restRequest().path(ApplicationSummaryResource.VERIFY_OR_CREATE_APPLICATION_PATH)
-        .parameter(app.getPublicId()).query(ApplicationSummaryResource.GOAL_PARAM, Goal.EVALUATE_APPLICATION).post();
+    HttpResponse response = restRequest()
+        .path(ApplicationSummaryResourceConstants.VERIFY_OR_CREATE_APPLICATION_PATH)
+        .parameter(app.getPublicId())
+        .query(ApplicationSummaryResourceConstants.GOAL_PARAM, Goal.EVALUATE_APPLICATION)
+        .post();
     assertResponseStatus(200, response);
 
     assertThat(response.getBody(String.class)).isEqualTo("true");

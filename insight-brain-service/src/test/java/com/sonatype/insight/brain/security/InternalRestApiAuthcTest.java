@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.hds.CIResource;
 import com.sonatype.insight.brain.hds.CLIResource;
 import com.sonatype.insight.brain.hds.RepoManResource;
 import com.sonatype.insight.brain.ide.IdeResource;
-import com.sonatype.insight.brain.integration.ApplicationSummaryResource;
+import com.sonatype.insight.brain.integration.ApplicationSummaryResourceConstants;
 import com.sonatype.insight.brain.integration.PolicyEvaluationSummaryResource;
 import com.sonatype.insight.brain.integration.ProprietaryConfigResource;
 import com.sonatype.insight.brain.integration.repository.RepositoryResource;
@@ -186,7 +186,7 @@ public class InternalRestApiAuthcTest
     assertResponseStatus(404, response);
     assertThat(response.getSessionCookie()).isNull();
 
-    response = request.subpath(ApplicationSummaryResource.RESOURCE_PATH).get();
+    response = request.subpath(ApplicationSummaryResourceConstants.RESOURCE_PATH).get();
     assertResponseStatus(200, response);
     assertThat(response.getSessionCookie()).isNull();
 

@@ -24,6 +24,9 @@ import com.codahale.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.integration.ApplicationSummaryResourceConstants.GOAL_PARAM;
+import static com.sonatype.insight.brain.integration.ApplicationSummaryResourceConstants.VERIFY_OR_CREATE_APPLICATION_PATH;
+
 /**
  * Application rest resource for integration with other tools such as Sonar
  *
@@ -31,58 +34,38 @@ import org.slf4j.LoggerFactory;
  */
 @Named
 @Timed
-@Path(ApplicationSummaryResource.RESOURCE_PATH)
-public class ApplicationSummaryResource
+@Path(ApplicationSummaryResourceConstants.RESOURCE_PATH)
+public class DefaultApplicationSummaryResource
+    implements ApplicationSummaryResource
 {
-  private static final Logger log = LoggerFactory.getLogger(ApplicationSummaryResource.class);
-
-  public static final String RESOURCE_PATH = "rest/integration/applications";
-
-  public static final String VERIFY_OR_CREATE_APPLICATION_PATH = "verifyOrCreate/{applicationPublicId}";
-
-  static final String GOAL_PARAM = "goal";
+  private static final Logger log = LoggerFactory.getLogger(DefaultApplicationSummaryResource.class);
 
   private final ApplicationSummaryService applicationSummaryService;
 
   @Inject
-  public ApplicationSummaryResource(final ApplicationSummaryService applicationSummaryService) {
+  public DefaultApplicationSummaryResource(final ApplicationSummaryService applicationSummaryService) {
     this.applicationSummaryService = applicationSummaryService;
   }
 
-  /**
-   * Gets all applications for which the current user has permissions required for the specified goal, sorted by
-   * (case-insensitive) name.
-   * 
-   * @param goal The goal for getting the list of applications. Defaults to READ permission for backward compatibility
-   *          (Jenkins/Hudson plugin <= 2.12.1, Bamboo plugin <=1.0.0, Eclipse plugin <= 2.8.0, SonarQube plugin <=
-   *          1.0.2, Nexus plugins <= 3.0.0).
-   */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
+  @Override
   public ApplicationSummaryList getApplications(@QueryParam(GOAL_PARAM) Goal goal) {
     log.debug("Received request to get applications for goal {}", goal);
     return applicationSummaryService.getApplications(goal);
   }
-  
-  /**
-   * Verifies if the user can access the application identified by applicationPublicId for the specified goal.
-   * If an application with the specified applicationPublicId already exists, then the method checks access for the
-   * current user and the specified goal to that application.
-   * If such an application does not exist and automatic application creation is enabled, then the method creates the
-   * new application and returns true to indicate the application will now be available.
-   * 
-   * @since 1.45
-   */
+
   @POST
   @Path(VERIFY_OR_CREATE_APPLICATION_PATH)
   @Produces("text/plain")
+  @Override
   public boolean verifyOrCreateApplication(@PathParam("applicationPublicId") String applicationPublicId,
                                            @QueryParam(GOAL_PARAM) Goal goal,
                                            @Context HttpServletRequest request)
   {
     log.debug("Received request to verify access for or create application with public ID {} and goal {}.",
         applicationPublicId, goal);
-    return applicationSummaryService.verifyOrCreateApplication(applicationPublicId, goal,
-        HdsClient.getClientUserAgent(request));
+    return applicationSummaryService
+        .verifyOrCreateApplication(applicationPublicId, goal, HdsClient.getClientUserAgent(request));
   }
 }

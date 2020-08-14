@@ -81,10 +81,6 @@ describe('addWaiverActions', function() {
 
     describe('after a succesful POST', function() {
       it('dispatches the ADD_WAIVER_SUBMIT_MASK_TIMER_DONE action once the timer is done', function(done) {
-        spyOn(window, 'setTimeout').and.callFake((callback) => {
-          callback();
-        });
-
         const url = getAddPolicyViolationWaiverUrl('application', 'ownerId', 'policyViolationId'),
             expectedPayload = {
               comment: '',
@@ -99,13 +95,13 @@ describe('addWaiverActions', function() {
 
         store.dispatch(saveWaiver('policyViolationId', 'application', 'ownerId', '', false))
             .then(() => {
-              expect(axios.post).toHaveBeenCalledWith(url, expectedPayload);
-              expect(window.setTimeout)
-                  .toHaveBeenCalledWith(jasmine.any(Function), SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
-              expect(store.getActions().length).toBe(3);
-              expect(store.getActions()[2].type).toBe(ADD_WAIVER_SAVE_FULFILLED);
-              expect(store.getActions()[1].type).toBe(ADD_WAIVER_SUBMIT_MASK_TIMER_DONE);
-              done();
+              setTimeout(() => {
+                expect(axios.post).toHaveBeenCalledWith(url, expectedPayload);
+                expect(store.getActions().length).toBe(3);
+                expect(store.getActions()[1].type).toBe(ADD_WAIVER_SAVE_FULFILLED);
+                expect(store.getActions()[2].type).toBe(ADD_WAIVER_SUBMIT_MASK_TIMER_DONE);
+                done();
+              }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
             });
 
         expect(store.getActions().length).toBe(1);

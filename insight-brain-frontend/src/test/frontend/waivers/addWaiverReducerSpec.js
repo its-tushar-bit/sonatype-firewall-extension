@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import reducer from '../../../main/frontend/waivers/addWaiverReducer';
+import {initialState as initState} from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
 
 describe('addWaiverReducer', function() {
   describe('unknown action', function() {
@@ -341,6 +342,37 @@ describe('addWaiverReducer', function() {
 
       expect(newState.applyToAllComponents).toBe(false);
       expect(newState.otherProp).toBe(initialState.otherProp);
+    });
+  });
+
+  describe('UI_ROUTER_ON_FINISH action', function() {
+    it('clears state on onFinish', function() {
+      const currentState = {
+        loading: true,
+        loadError: 'load error',
+        submitMaskState: true,
+        submitError: 'submit error',
+        waiverComments: initState('A comment'),
+        availableWaiverScopes: 'abc',
+        selectedWaiverScope: 'pqr',
+        applyToAllComponents: true,
+        violationDetails: 'xyz',
+        otherProp: { prop: 'foo' }
+      };
+
+      const newState = reducer(currentState, {
+        type: '@@reduxUiRouter/onFinish'
+      });
+
+      expect(newState.loading).toBe(false);
+      expect(newState.loadError).toBeNull();
+      expect(newState.submitMaskState).toBeNull();
+      expect(newState.submitError).toBeNull();
+      expect(newState.availableWaiverScopes).toBeNull();
+      expect(newState.selectedWaiverScope).toBeNull();
+      expect(newState.applyToAllComponents).toBe(false);
+      expect(newState.waiverComments).toEqual(initState(''));
+      expect(newState.otherProp).toBeUndefined();
     });
   });
 });

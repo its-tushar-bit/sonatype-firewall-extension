@@ -4,6 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { initialState, userInput } from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
+import { always } from 'ramda';
+
+import { UI_ROUTER_ON_FINISH } from '../reduxUiRouter/routerActions';
 
 import { createReducerFromActionMap, propSetConst } from '../util/reduxUtil';
 import {
@@ -74,7 +77,8 @@ const reducerActionMap = {
   [ADD_WAIVER_SUBMIT_MASK_TIMER_DONE]: propSetConst('submitMaskState', null),
   [ADD_WAIVER_SET_WAIVER_COMMENT]: setWaiverComment,
   [ADD_WAIVER_SET_WAIVER_SCOPE]: propSet('selectedWaiverScope'),
-  [ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS]: propSet('applyToAllComponents')
+  [ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS]: propSet('applyToAllComponents'),
+  [UI_ROUTER_ON_FINISH]: always(initState)
 };
 
 const addWaiverReducer = createReducerFromActionMap(reducerActionMap, initState);

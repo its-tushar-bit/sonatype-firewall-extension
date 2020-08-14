@@ -7,36 +7,29 @@
 @import "../dashboard/filter/manageFiltersDropdown/manageFiltersDropdown";
 
 .dashboard-filter-container {
-  $filter-header-height: 61px;
-  $filter-header-padding: 8px;
-  $filter-header-total-height: $iq-spacing-xl + $filter-header-height + $filter-header-padding + 1px;
-  $filter-footer-height: $iq-spacing-xl + 12px + 12px + 1px;
-  $filter-footer-error-height: 100px;
+  display: flex;
+  flex-direction: column;
 
   height: 100%;
   margin: $iq-spacing-xl 0 0 0;
   position: relative;
 
   .dashboard-filter {
+    flex: 1;
     box-sizing: border-box;
-    height: calc(100% - #{$filter-header-total-height + $filter-footer-height - $iq-spacing-xl});
     overflow-x: visible;
     overflow-y: auto;
     padding: 7px 0 0 8px;
   }
 
-  .dashboard-filter.iq-apply-error-present {
-    height: calc(100% - #{$filter-header-total-height} - #{$filter-footer-error-height} + #{$iq-spacing-xl});
-  }
-
   .dashboard-filter-footer {
+    @include container-vertical;
     $footer-side-margin: 8px;
 
     border-top: 1px solid $iq-grey-4;
     margin: 0 $footer-side-margin;
     padding: 12px 0;
     position: relative; // needed for box-shadow to render
-    width: calc(100% - #{2 * $footer-side-margin});
 
     .nx-btn {
       margin-left: 0;
@@ -44,7 +37,6 @@
     }
 
     &.iq-apply-error-present {
-      height: $filter-footer-error-height;
       padding-top: 4px;
     }
   }
@@ -56,9 +48,8 @@
   .dashboard-filter-header {
     @include container-vertical;
     border-bottom: 1px $iq-grey-4 solid;
-    height: $filter-header-height; // to prevent footer from shifting when loading
     margin: 0px 8px;
-    padding-bottom: $filter-header-padding;
+    padding-bottom: $nx-spacing-xs;
     position: relative; // needed for box-shadow to render
     z-index: 1;
   }

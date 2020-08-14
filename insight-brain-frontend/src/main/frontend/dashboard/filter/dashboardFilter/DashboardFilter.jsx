@@ -4,7 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect, Fragment } from 'react';
-import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
 import { map, curryN } from 'ramda';
 import {
@@ -93,8 +92,6 @@ export default function DashboardFilter(props) {
 
   const applicationCategoryTooltip = (prop) => prop && prop.owner && `in ${prop.owner}` || '';
 
-  const filterContentClassnames = classnames('dashboard-filter', { 'iq-apply-error-present': applyFilterError });
-
   return (
     <div className="dashboard-filter-container">
       { showSaveFilterModal && <SaveFilterModalContainer/> }
@@ -117,13 +114,10 @@ export default function DashboardFilter(props) {
             handleDocumentClick
           }}/>
         }
+        {loadErrorFilterName && <NxErrorAlert>Failed to load {loadErrorFilterName}</NxErrorAlert>}
       </div>
 
-      <div className={filterContentClassnames}>
-        {
-          loadErrorFilterName &&
-          <NxErrorAlert>Failed to load {loadErrorFilterName}</NxErrorAlert>
-        }
+      <div className="dashboard-filter">
         <LoadWrapper loading={loading} error={loadError} retryHandler={loadFilter}>
           {() =>
             <Fragment>

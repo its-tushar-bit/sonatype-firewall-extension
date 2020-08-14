@@ -20,8 +20,7 @@ export default function DashboardFilterFooter(props) {
     onCancelApplyFilter
   } = props;
 
-  const filterFooterClassnames = classnames('dashboard-filter-footer', {'iq-apply-error-present': applyFilterError}),
-      applyBtnDisabled = !filtersAreDirty && !needsAcknowledgement,
+  const applyBtnDisabled = !filtersAreDirty && !needsAcknowledgement,
       revertBtnClassnames = classnames({'disabled': !filtersAreDirty}),
       applyBtnClassnames = classnames({'disabled': applyBtnDisabled}),
       saveBtnClassnames = classnames({'disabled': filtersAreDirty}),
@@ -96,7 +95,7 @@ export default function DashboardFilterFooter(props) {
     </NxErrorAlert>);
 
   return (
-    <div className={filterFooterClassnames}>
+    <div className="dashboard-filter-footer">
       {applyFilterError ? footerErrorHTML : footerHTML}
     </div>
   );

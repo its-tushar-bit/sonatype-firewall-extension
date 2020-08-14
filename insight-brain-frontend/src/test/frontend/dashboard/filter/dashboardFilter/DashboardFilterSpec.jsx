@@ -115,12 +115,12 @@ describe('DashboardFilter', function() {
   });
 
   describe('apply named filter error', function() {
-    it('is rendered within scrollable section if loadErrorFilterName is not null', function() {
+    it('is rendered within the header if loadErrorFilterName is not null', function() {
       const props = { loadErrorFilterName: 'filter 1234' },
           shallowRender = getShallowComponent(props),
-          filter = shallowRender.find('.dashboard-filter');
+          header = shallowRender.find('.dashboard-filter-header');
 
-      expect(filter).toContainReact(<NxErrorAlert>Failed to load filter 1234</NxErrorAlert>);
+      expect(header).toContainReact(<NxErrorAlert>Failed to load filter 1234</NxErrorAlert>);
     });
 
     it('is not rendered if loadErrorFilterName is null', function() {

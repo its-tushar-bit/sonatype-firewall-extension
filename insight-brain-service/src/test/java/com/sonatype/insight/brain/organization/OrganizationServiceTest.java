@@ -14,7 +14,6 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
-import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
@@ -30,7 +29,6 @@ import com.sonatype.insight.test.LogOutput;
 
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
 import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
@@ -81,19 +79,10 @@ public class OrganizationServiceTest
 
   @Test
   public void testGetAll() throws Exception {
-    RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils = Mockito
-        .mock(RootOrganizationConfigMigrationUtils.class);
-    Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
+    OrganizationService organizationService =
+        new OrganizationService(null, null, null, new OrganizationDAO(), null, policyViolationLoggerFactory);
 
-    List<Organization> orgs = new OrganizationService(null, null, null, new OrganizationDAO(),
-        rootOrganizationConfigMigrationUtils, null, policyViolationLoggerFactory).getAll();
-    assertThat(orgs).isEmpty();
-
-    Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
-    OrganizationService organizationService = new OrganizationService(null, null, null, new OrganizationDAO(),
-        rootOrganizationConfigMigrationUtils, null, policyViolationLoggerFactory);
-
-    orgs = organizationService.getAll();
+    List<Organization> orgs = organizationService.getAll();
     assertThat(orgs).hasSize(1);
   }
 

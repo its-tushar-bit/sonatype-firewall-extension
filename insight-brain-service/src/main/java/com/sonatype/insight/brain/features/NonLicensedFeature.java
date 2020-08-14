@@ -25,10 +25,6 @@ public enum NonLicensedFeature
 
   RELEASE_GRAPH,
 
-  ROOT_ORG,
-
-  ROOT_ORG_MIGRATE,
-
   REPORTS_LIST;
 
   @Override

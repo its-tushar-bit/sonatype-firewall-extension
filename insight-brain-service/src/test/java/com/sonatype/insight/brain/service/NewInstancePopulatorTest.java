@@ -187,17 +187,17 @@ public class NewInstancePopulatorTest
   }
 
   private void assertSampleDataCreated(boolean shouldHaveBeenCreated) {
-    List<Organization> organizations = organizationDAO.getAll(false);
+    List<Organization> organizations = organizationDAO.getAll();
     Set<String> organizationNames = getUniqueStrings(organizations, Organization::getName);
     List<Application> applications = applicationDAO.getAll();
 
     if (shouldHaveBeenCreated) {
-      assertThat(organizationNames).containsExactlyInAnyOrder(SampleDataCreator.SAMPLE_ORGANIZATION_NAME);
+      assertThat(organizationNames).contains(SampleDataCreator.SAMPLE_ORGANIZATION_NAME);
 
       assertThat(applications).hasSize(1);
       Application sampleApplication = applications.get(0);
       assertThat(sampleApplication.getName()).isEqualTo(SampleDataCreator.SAMPLE_APPLICATION_NAME);
-      assertThat(sampleApplication.getParentOwnerId()).isEqualTo(organizations.get(0).getId());
+      assertThat(sampleApplication.getParentOwnerId()).isEqualTo(organizations.get(1).getId());
       assertThat(sampleApplication.getPublicId()).isEqualTo(SampleDataCreator.SAMPLE_APPLICATION_PUBLIC_ID);
     }
     else {

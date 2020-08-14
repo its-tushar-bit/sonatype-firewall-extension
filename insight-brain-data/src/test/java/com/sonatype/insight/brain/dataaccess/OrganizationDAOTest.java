@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.dataaccess;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Predicate;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -105,22 +104,6 @@ public class OrganizationDAOTest
 
     // getAll should return orgCount + 2, to account for org created by AbstractDbDAOTest and one for the root org
     assertThat(dao.getAll()).hasSize(orgCount + 2);
-  }
-
-  @Test
-  public void testGetAll_showRoot() throws Exception {
-    // Create a few orgs
-    int orgCount = 3;
-    tempEntity.newOrganizations(orgCount);
-
-    Predicate<Organization> rootOrg = org -> org.getParentOrganizationId() == null;
-
-    // getAll should return orgCount + 2, to account for org created by AbstractDbDAOTest and one for the root org
-    assertThat(dao.getAll(true)).hasSize(orgCount + 2).anyMatch(rootOrg);
-
-    // getAll should return orgCount + 2, to account for org created by AbstractDbDAOTest
-    assertThat(dao.getAll(false)).hasSize(orgCount + 1).noneMatch(rootOrg);
-
   }
 
   @Test

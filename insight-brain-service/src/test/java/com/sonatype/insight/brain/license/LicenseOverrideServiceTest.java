@@ -19,7 +19,6 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.license.LicenseOverrideService.AppliedLicenseOverrides;
-import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -63,8 +62,6 @@ public class LicenseOverrideServiceTest
   @Inject
   private LicenseOverrideEventService licenseOverrideEventService;
 
-  private RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
-
   private TestEventHandler<LicenseOverrideEvent> handler;
 
   @After
@@ -88,35 +85,8 @@ public class LicenseOverrideServiceTest
 
   @Before
   public void setup() {
-    rootOrganizationConfigMigrationUtils = mock(RootOrganizationConfigMigrationUtils.class);
     service = new LicenseOverrideService(work, new OwnerDAO(), currentUser, new LicenseOverrideDAO(), new LicenseDAO(),
-        rootOrganizationConfigMigrationUtils, licenseOverrideEventService);
-  }
-
-  @Test
-  public void testGetAppliedLicenseOverrides_hierarchyHideRoot_App() {
-    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
-
-    final Application app = tempEntity.newApplicationWithParent("test");
-    testGetAppliedLicenseOverrides_hierarchyHideRoot(app, app.getPublicId());
-  }
-
-  @Test
-  public void testGetAppliedLicenseOverrides_hierarchyHideRoot_Repository() {
-    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
-
-    testGetAppliedLicenseOverrides_hierarchyHideRoot(tempEntity.newRepository());
-  }
-
-  @Test
-  public void testGetAppliedLicenseOverrides_hierarchyHideRoot_RepositoryContainer() {
-    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
-    Owner owner = RepositoryContainer.SINGLETON;
-    final AppliedLicenseOverrides overrides = service.getAppliedLicenseOverrides(owner.getType(), owner.getId(),
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
-    assertThat(overrides.licenseOverridesByOwner).hasSize(1)
-        .extracting(licenseOverrideByOwner -> licenseOverrideByOwner.ownerId).containsExactlyInAnyOrder(owner.getId())
-        .doesNotContain(Organization.ROOT_ORGANIZATION_ID);
+        licenseOverrideEventService);
   }
 
   private void testGetAppliedLicenseOverrides_hierarchy(final Owner owner) {
@@ -133,22 +103,17 @@ public class LicenseOverrideServiceTest
 
   @Test
   public void testGetAppliedLicenseOverrides_hierarchy_App() {
-    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
-
     final Application app = tempEntity.newApplicationWithParent("test");
     testGetAppliedLicenseOverrides_hierarchy(app, app.getPublicId());
   }
 
   @Test
   public void testGetAppliedLicenseOverrides_hierarchy_Repository() {
-    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
-
     testGetAppliedLicenseOverrides_hierarchy(tempEntity.newRepository());
   }
 
   @Test
   public void testGetAppliedLicenseOverrides_hierarchy_RepositoryContainer() {
-    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
     Owner owner = RepositoryContainer.SINGLETON;
     final AppliedLicenseOverrides overrides = service.getAppliedLicenseOverrides(owner.getType(), owner.getId(),
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"));

@@ -140,13 +140,6 @@ public class InsightConfig
   private ReverseProxyAuthenticationConfig reverseProxyAuthentication = new ReverseProxyAuthenticationConfig();
 
   /**
-   * @since 1.17.0
-   */
-  @NotNull
-  @JsonProperty
-  private boolean showRootOrganization;
-
-  /**
    * @since 1.21.0
    */
   @Valid
@@ -486,14 +479,12 @@ public class InsightConfig
   }
 
   /**
-   * @since 1.17.0
+   * @deprecated Removed in 1.98.
    */
-  public boolean isShowRootOrganization() {
-    return showRootOrganization;
-  }
-
-  public void setShowRootOrganization(boolean showRootOrganization) {
-    this.showRootOrganization = showRootOrganization;
+  @Deprecated
+  public void setShowRootOrganization(@SuppressWarnings("unused") boolean showRootOrganization) {
+    log.warn("The support for hiding the root organization was removed in Nexus IQ Server 98. "
+        + "The showRootOrganization configuration option should be removed from the config yml file.");
   }
 
   void setDbBackupDir(String dbBackupDir) {

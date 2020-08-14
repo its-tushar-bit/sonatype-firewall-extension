@@ -6,18 +6,14 @@
 package com.sonatype.insight.brain.migration;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
-import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,7 +67,6 @@ public class MarkerFileMigrator
           ProprietaryConfigMigrator.MIGRATION_ID, tx);
       migrateOne(new File(insightWork.getAuditDir(""), SECURITY_VULNERABILITY_OVERRIDE_MARKER_FILE),
           SecurityVulnerabilityOverrideMigrator.MIGRATION_ID, tx);
-      migrateRootOrganizationMarkerOrConfig(tx);
 
       // Track `this` so it does not run again
       migrationTrackerDAO.insertTracker(tx, MARKER_FILE_MIGRATOR_ID);
@@ -84,28 +79,5 @@ public class MarkerFileMigrator
       migrationTrackerDAO.insertTracker(tx, migrationId);
       log.info("Migration state moved to database for: {}", migrationId);
     }
-  }
-
-  private void migrateRootOrganizationMarkerOrConfig(TransactionContext tx) {
-    File markerFile = new File(insightWork.getWorkDir(), ROOT_ORGANIZATION_CONFIG_MARKER_FILE);
-    File configFile = new File(insightWork.getWorkDir(), ROOT_ORGANIZATION_CONFIG_FILE);
-    if (markerFile.exists()) {
-      migrationTrackerDAO.insertTracker(tx, RootOrganizationConfigMigrationUtils.MIGRATION_ID);
-    }
-    else if (configFile.exists()) {
-      MigrationTracker migrationTracker =
-          new MigrationTracker(RootOrganizationConfigMigrationUtils.MIGRATION_CONFIG_ID);
-      String sourceOrganizationId;
-      try {
-        sourceOrganizationId = FileUtils.fileRead(configFile);
-      }
-      catch (IOException e) {
-        throw new UncheckedIOException(
-            "Cannot load the source organization ID from file: " + configFile.getAbsolutePath(), e);
-      }
-      migrationTracker.setConfiguration(sourceOrganizationId);
-      migrationTrackerDAO.insert(tx, migrationTracker);
-    }
-    log.info("Migration state moved to database for: {}", RootOrganizationConfigMigrationUtils.MIGRATION_ID);
   }
 }

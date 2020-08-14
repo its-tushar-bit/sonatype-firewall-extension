@@ -24,8 +24,6 @@ public class DataMigrator
 
   private final PolicyDroolsCodeMigrator policyDroolsCodeMigrator;
 
-  private final RootOrganizationConfigMigrator rootOrganizationConfigMigrator;
-
   private final ProprietaryConfigMigrator proprietaryConfigMigrator;
 
   private final PolicyCoordinatesConditionTypeMigrator policyCoordinatesConditionTypeMigrator;
@@ -44,7 +42,6 @@ public class DataMigrator
   public DataMigrator(
       PolicyJsonMigrator policyJsonMigrator,
       PolicyDroolsCodeMigrator policyDroolsCodeMigrator,
-      RootOrganizationConfigMigrator rootOrganizationConfigMigrator,
       SecurityVulnerabilityOverrideMigrator securityVulnerabilityOverrideMigrator,
       ProprietaryConfigMigrator proprietaryConfigMigrator,
       PolicyCoordinatesConditionTypeMigrator policyCoordinatesConditionTypeMigrator,
@@ -56,7 +53,6 @@ public class DataMigrator
   {
     this.policyJsonMigrator = policyJsonMigrator;
     this.policyDroolsCodeMigrator = policyDroolsCodeMigrator;
-    this.rootOrganizationConfigMigrator = rootOrganizationConfigMigrator;
     this.securityVulnerabilityOverrideMigrator = securityVulnerabilityOverrideMigrator;
     this.proprietaryConfigMigrator = proprietaryConfigMigrator;
     this.policyCoordinatesConditionTypeMigrator = policyCoordinatesConditionTypeMigrator;
@@ -74,7 +70,6 @@ public class DataMigrator
     markerFileMigrator.migrate();
     policyJsonMigrator.migrate();
     policyDroolsCodeMigrator.migrate();
-    rootOrganizationConfigMigrator.migrate();
     securityVulnerabilityOverrideMigrator.migrate();
     proprietaryConfigMigrator.migrate();
     policyCoordinatesConditionTypeMigrator.migrate();

@@ -21,7 +21,6 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dto.audit.LicenseOverrideAudit;
-import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.License;
@@ -58,8 +57,6 @@ public class LicenseOverrideService
 
   private final LicenseDAO licenseDAO;
 
-  private RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
-
   private final LicenseOverrideEventService licenseOverrideEventService;
 
   @Inject
@@ -68,7 +65,6 @@ public class LicenseOverrideService
                                 final CurrentUser currentUser,
                                 final LicenseOverrideDAO licenseOverrideDAO,
                                 final LicenseDAO licenseDAO,
-                                final RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils,
                                 final LicenseOverrideEventService licenseOverrideEventService)
   {
     this.work = work;
@@ -76,7 +72,6 @@ public class LicenseOverrideService
     this.licenseOverrideDAO = licenseOverrideDAO;
     this.ownerDAO = ownerDAO;
     this.licenseDAO = licenseDAO;
-    this.rootOrganizationConfigMigrationUtils = rootOrganizationConfigMigrationUtils;
     this.licenseOverrideEventService = licenseOverrideEventService;
   }
 
@@ -189,9 +184,6 @@ public class LicenseOverrideService
     result.licenseOverridesByOwner = new ArrayList<>();
 
     for (Owner owner : ownerDAO.walkHierarchy(internalOwnerId)) {
-      if (owner.getParentOwnerId() == null && !rootOrganizationConfigMigrationUtils.isMigrated()) {
-        break;
-      }
       LicenseOverrideByOwner licenseOverrideByOwner = new LicenseOverrideByOwner();
       licenseOverrideByOwner.ownerId = OwnerType.REPOSITORY.equals(ownerType) ? owner.getId() : owner.getPublicId();
       licenseOverrideByOwner.ownerName = owner.getName();

@@ -11,7 +11,6 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
-import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -23,7 +22,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class FeaturesServiceTest
@@ -41,13 +39,9 @@ public class FeaturesServiceTest
   @Inject
   private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
-  private RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
-
   @Override
   public void configure(Binder binder) {
-    rootOrganizationConfigMigrationUtils = mock(RootOrganizationConfigMigrationUtils.class);
     binder.bind(ProductLicense.class).toInstance(productLicense);
-    binder.bind(RootOrganizationConfigMigrationUtils.class).toInstance(rootOrganizationConfigMigrationUtils);
     super.configure(binder);
   }
 
@@ -73,31 +67,6 @@ public class FeaturesServiceTest
     when(productLicense.isValid()).thenReturn(true);
     when(productLicense.getFeatures()).thenReturn(features);
     assertThat(featuresService.getFeatures()).containsAll(features);
-  }
-
-  @Test
-  public void testGetFeatures_WithRootMigrated() {
-    when(productLicense.isValid()).thenReturn(true);
-    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
-    assertThat(featuresService.getFeatures()).contains(NonLicensedFeature.ROOT_ORG)
-        .doesNotContain(NonLicensedFeature.ROOT_ORG_MIGRATE);
-  }
-
-  @Test
-  public void testGetFeatures_WithoutRootMigrated() {
-    when(productLicense.isValid()).thenReturn(true);
-    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
-    assertThat(featuresService.getFeatures()).contains(NonLicensedFeature.ROOT_ORG_MIGRATE)
-        .doesNotContain(NonLicensedFeature.ROOT_ORG);
-  }
-
-  @Test
-  public void testGetFeatures_WithRootMigratedScheduled() {
-    when(productLicense.isValid()).thenReturn(true);
-    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
-    when(rootOrganizationConfigMigrationUtils.isMigrationScheduled()).thenReturn(true);
-    assertThat(featuresService.getFeatures()).doesNotContain(NonLicensedFeature.ROOT_ORG_MIGRATE,
-        NonLicensedFeature.ROOT_ORG);
   }
 
   @Test

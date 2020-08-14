@@ -15,7 +15,6 @@ import ownerManagerModule from './owner.manager/owner.manager.module';
 import {MainModule} from './MainModule';
 import {UserModule} from './security/UserModule';
 import RoleModule from './security/RoleModule';
-import rootOrganizationMigrateModule from './root.organization.migrate/root.organization.migrate.module';
 import systemNoticeModule from './systemNotice/systemNoticeModule';
 import labsModule from './labs/module';
 import vulnerabilitySearchModule from './vulnerabilitySearch/module';
@@ -27,8 +26,8 @@ import waiversModule from './waivers/module';
 
 export default angular.module('managementApp',
     [
-      MainModule.name, UserModule.name, RoleModule.name, ownerManagerModule.name, rootOrganizationMigrateModule.name,
-      systemNoticeModule.name, componentsModule.name, directivesModule.name, labsModule.name, configurationModule.name,
+      MainModule.name, UserModule.name, RoleModule.name, ownerManagerModule.name, systemNoticeModule.name,
+      componentsModule.name, directivesModule.name, labsModule.name, configurationModule.name,
       legacyConfigurationModule.name, dashboardModule.name, reduxConfigModule.name,
       changeDefaultAdminPasswordModule.name, applicationReportModule.name, vulnerabilitySearchModule.name,
       violationPageModule.name, waiversModule.name

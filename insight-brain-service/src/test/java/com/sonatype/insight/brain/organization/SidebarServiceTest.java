@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.organization;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
-import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -25,8 +24,6 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class SidebarServiceTest
     extends AbstractComponentTest
@@ -34,12 +31,8 @@ public class SidebarServiceTest
   @Inject
   private SidebarService sidebarService;
 
-  private RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
-
   @Override
   public void configure(Binder binder) {
-    rootOrganizationConfigMigrationUtils = mock(RootOrganizationConfigMigrationUtils.class);
-    binder.bind(RootOrganizationConfigMigrationUtils.class).toInstance(rootOrganizationConfigMigrationUtils);
     super.configure(binder);
   }
 
@@ -91,27 +84,13 @@ public class SidebarServiceTest
   }
 
   @Test
-  public void testGetOwnerList_WithoutRootOrganization() {
+  public void testGetOwnerList() {
     Organization orgOne = tempEntity.newOrganization();
     Application appOne = tempEntity.newApplication(orgOne.getId());
     Application appTwo = tempEntity.newApplication(orgOne.getId());
     Organization orgTwo = tempEntity.newOrganization();
     Application appThree = tempEntity.newApplication(orgTwo.getId());
 
-    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
-    OwnerListDTO ownerListDTO = sidebarService.getOwnerList();
-    assertOwnerListDTO(ownerListDTO, orgOne, appOne, appTwo, orgTwo, appThree, false);
-  }
-
-  @Test
-  public void testGetOwnerList_WithRootOrganization() {
-    Organization orgOne = tempEntity.newOrganization();
-    Application appOne = tempEntity.newApplication(orgOne.getId());
-    Application appTwo = tempEntity.newApplication(orgOne.getId());
-    Organization orgTwo = tempEntity.newOrganization();
-    Application appThree = tempEntity.newApplication(orgTwo.getId());
-
-    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
     OwnerListDTO ownerListDTO = sidebarService.getOwnerList();
     assertOwnerListDTO(ownerListDTO, orgOne, appOne, appTwo, orgTwo, appThree, true);
   }

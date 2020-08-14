@@ -179,4 +179,19 @@ public class InsightConfigTest
         .contains("The support for anonymous client access was removed in Nexus IQ Server 72. "
             + "The anonymousClientAccessAllowed configuration option should be removed from the config yml file.");
   }
+
+  /**
+   * @deprecated The tested method is deprecated.
+   */
+  @Test
+  @Deprecated
+  public void testsetShowRootOrganization() {
+    InsightConfig config = new InsightConfig();
+
+    config.setShowRootOrganization(true);
+
+    assertThat(logOutput).atWarnLevel()
+        .contains("The support for hiding the root organization was removed in Nexus IQ Server 98. "
+            + "The showRootOrganization configuration option should be removed from the config yml file.");
+  }
 }

@@ -23,7 +23,6 @@ import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.jira.JiraService;
-import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
@@ -104,8 +103,6 @@ public abstract class AbstractFunctionalTest
 
   protected static final TestProductLicense testProductLicense;
 
-  protected static final RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
-
   protected static final JiraService jiraService;
 
   protected static TestCLMServer testCLMServer;
@@ -132,7 +129,6 @@ public abstract class AbstractFunctionalTest
     productLicenseManager = new TestProductLicenseManager();
     licenseFingerprinter = new TestLicenseFingerprinter();
     testProductLicense = new TestProductLicense(productLicenseManager);
-    rootOrganizationConfigMigrationUtils = Mockito.mock(RootOrganizationConfigMigrationUtils.class);
     jiraService = Mockito.mock(JiraService.class);
     initMocks();
 
@@ -189,9 +185,7 @@ public abstract class AbstractFunctionalTest
 
   private static void initMocks() {
     try {
-      Mockito.reset(rootOrganizationConfigMigrationUtils, jiraService);
-      Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
-      Mockito.when(rootOrganizationConfigMigrationUtils.isMigrationScheduled()).thenReturn(false);
+      Mockito.reset(jiraService);
       Mockito.when(jiraService.isEnabled()).thenReturn(false);
       Mockito.doThrow(new IllegalStateException()).when(jiraService).getProjectsWithAcceptableIssueTypes();
     }
@@ -297,7 +291,6 @@ public abstract class AbstractFunctionalTest
         bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
         bind(TestProductLicenseManager.class).toInstance(productLicenseManager);
         bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);
-        bind(RootOrganizationConfigMigrationUtils.class).toInstance(rootOrganizationConfigMigrationUtils);
         bind(JiraService.class).toInstance(jiraService);
         bind(QuartzJobStoreTX.class).to(TestQuartzJobStoreTx.class);
         bind(TaskScheduler.class).to(TestTaskScheduler.class);

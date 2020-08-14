@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -56,8 +55,6 @@ public class OrganizationService
 
   private final FileCleaner fileCleaner;
 
-  private RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
-
   private final ManagementEventService managementEventService;
 
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
@@ -67,7 +64,6 @@ public class OrganizationService
                              final ApplicationCleaner applicationCleaner,
                              final FileCleaner fileCleaner,
                              final OrganizationDAO organizationDAO,
-                             final RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils,
                              final ManagementEventService managementEventService,
                              final PolicyViolationLoggerFactory policyViolationLoggerFactory)
   {
@@ -75,14 +71,13 @@ public class OrganizationService
     this.applicationCleaner = applicationCleaner;
     this.fileCleaner = fileCleaner;
     this.organizationDAO = organizationDAO;
-    this.rootOrganizationConfigMigrationUtils = rootOrganizationConfigMigrationUtils;
     this.managementEventService = managementEventService;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
   }
 
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.ORGANIZATION)
   public List<Organization> getAll() {
-    return organizationDAO.getAll(rootOrganizationConfigMigrationUtils.isMigrated());
+    return organizationDAO.getAll();
   }
 
   @Authorize(permission = Permission.WRITE)

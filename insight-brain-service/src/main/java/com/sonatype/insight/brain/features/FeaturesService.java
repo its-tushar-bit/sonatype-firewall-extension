@@ -12,7 +12,6 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
-import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -24,7 +23,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Provides means to inspect the available features of the server.
- * 
+ *
  * @since 1.9
  */
 public class FeaturesService
@@ -33,8 +32,6 @@ public class FeaturesService
 
   private final ProductLicense productLicense;
 
-  private RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
-
   private final InsightConfig insightConfig;
 
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
@@ -42,12 +39,10 @@ public class FeaturesService
   @Inject
   public FeaturesService(
       ProductLicense productLicense,
-      RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils,
       InsightConfig insightConfig,
       SystemConfigurationPropertyDAO systemConfigurationPropertyDAO)
   {
     this.productLicense = productLicense;
-    this.rootOrganizationConfigMigrationUtils = rootOrganizationConfigMigrationUtils;
     this.insightConfig = insightConfig;
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
   }
@@ -62,13 +57,6 @@ public class FeaturesService
       addVersionSpecificFeatures(features);
       addLicenseSpecificFeatures(features);
       features.add(NonLicensedFeature.REPORTS_LIST);
-
-      if (rootOrganizationConfigMigrationUtils.isMigrated()) {
-        features.add(NonLicensedFeature.ROOT_ORG);
-      }
-      else if (!rootOrganizationConfigMigrationUtils.isMigrationScheduled()) {
-        features.add(NonLicensedFeature.ROOT_ORG_MIGRATE);
-      }
 
       if (insightConfig.isExternalHyperlinksAllowed()) {
         features.add(NonLicensedFeature.ALLOW_EXTERNAL_HYPERLINKS);

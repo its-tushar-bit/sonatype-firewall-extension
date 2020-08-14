@@ -13,6 +13,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -192,7 +193,9 @@ public class ApplicationMoveService
 
   @AuthzFilter(permission = Permission.ADD_APPLICATION, context = AuthzFilter.Context.ORGANIZATION)
   List<Organization> getPermittedDestinationOrganizations() {
-    return organizationDAO.getAll(false);
+    return organizationDAO.getAll().stream()
+        .filter(organization -> !organization.getId().equals(Organization.ROOT_ORGANIZATION_ID))
+        .collect(Collectors.toList());
   }
 
   /**

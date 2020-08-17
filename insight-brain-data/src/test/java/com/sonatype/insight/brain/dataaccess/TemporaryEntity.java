@@ -315,6 +315,8 @@ public class TemporaryEntity
 
   private final FirewallIgnorePatternsDAO firewallIgnorePatternsDAO = new FirewallIgnorePatternsDAO();
 
+  private final SearchIndexChangeDAO searchIndexChangeDAO = new SearchIndexChangeDAO();
+
   private MailConfiguration savedMailConfiguration;
 
   private Collection<MigrationTracker> migrationTrackers;
@@ -474,7 +476,7 @@ public class TemporaryEntity
     }
     migrationTrackerDAO.getAll().forEach(migrationTrackerDAO::delete);
     migrationTrackers.forEach(migrationTrackerDAO::insert);
-
+    searchIndexChangeDAO.getAll().forEach(searchIndexChangeDAO::delete);
     delete(userTokens, userTokenDAO);
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(false);
     if (savedMailConfiguration == null) {

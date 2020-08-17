@@ -15,11 +15,13 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -92,10 +94,16 @@ public class IndexSearchingTest
     UserPrincipal userPrincipal = (UserPrincipal) subject.getPrincipal();
     Role role = tempEntity.newRole(true, Permission.READ);
     tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), userPrincipal.getUsername());
+    new SystemConfigurationPropertyDAO()
+        .update(new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true"));
   }
 
   private void index() throws Exception {
     indexService.createSearchIndex();
+  }
+
+  private void indexChanges() throws Exception {
+    indexService.updateIndex();
   }
 
   private List<SearchResultItemDTO> search(String query) throws Exception {
@@ -108,8 +116,11 @@ public class IndexSearchingTest
   }
 
   private PolicyEvaluation newAppReport(String stageId, String reportId) throws Exception {
-    PolicyEvaluation policyEval =
-        tempEntity.newPolicyEvaluation(tempEntity.newApplicationWithParent().getId(), stageId, reportId);
+    return newAppReport(tempEntity.newApplicationWithParent().getId(), stageId, reportId);
+  }
+
+  private PolicyEvaluation newAppReport(String appId, String stageId, String reportId) throws Exception {
+    PolicyEvaluation policyEval = tempEntity.newPolicyEvaluation(appId, stageId, reportId);
     ReportTestUtils.createReportFile(policyEval.getApplicationId(), policyEval.getScanId(),
         ReportTestUtils.zipReportDir("/IndexSearchingTest/report", tempDir), insightWork);
     return policyEval;
@@ -508,7 +519,7 @@ public class IndexSearchingTest
     index();
     assertThat(search(FieldIdentifier.POLICY_EVALUATION_STAGE, "relEASE")).extracting(dto -> dto.reportId)
         .containsOnly(eval1.getScanId());
-    assertThat(search(FieldIdentifier.POLICY_EVALUATION_STAGE, "\"STAGE release\"")).extracting(dto -> dto.reportId)
+    assertThat(search(FieldIdentifier.POLICY_EVALUATION_STAGE, "STAGE-release")).extracting(dto -> dto.reportId)
         .containsOnly(eval2.getScanId());
     assertThat(search(FieldIdentifier.POLICY_EVALUATION_STAGE, "STAGE")).isEmpty();
   }
@@ -665,5 +676,23 @@ public class IndexSearchingTest
     assertThat(search(FieldIdentifier.POLICY_ID + ":" + policy.getId() + " " + FieldIdentifier.APPLICATION_CATEGORY_ID
         + ":" + tag.getId())).extracting(dto -> dto.itemType).containsExactlyInAnyOrder(ItemType.POLICY.name(),
             ItemType.APPLICATION_CATEGORY.name());
+  }
+
+  @Test
+  public void testIncrementalUpdate_NewPolicyEvaluation() throws Exception {
+    index();
+
+    PolicyEvaluation eval = newAppReport(Stage.ID_BUILD, "old-report-id");
+    indexChanges();
+    assertThat(search(FieldIdentifier.POLICY_EVALUATION_STAGE, eval.getStageTypeId())).extracting(dto -> dto.reportId)
+        .containsOnly(eval.getScanId());
+
+    PolicyEvaluation newEval1 = newAppReport(eval.getApplicationId(), eval.getStageTypeId(), "new-report-id-1");
+    PolicyEvaluation newEval2 = newAppReport(eval.getApplicationId(), Stage.ID_RELEASE, "new-report-id-2");
+    indexChanges();
+    assertThat(search(FieldIdentifier.POLICY_EVALUATION_STAGE, newEval1.getStageTypeId()))
+        .extracting(dto -> dto.reportId).containsOnly(newEval1.getScanId());
+    assertThat(search(FieldIdentifier.POLICY_EVALUATION_STAGE, newEval2.getStageTypeId()))
+        .extracting(dto -> dto.reportId).containsOnly(newEval2.getScanId());
   }
 }

@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.model.SearchIndexChange;
+import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.policy.LastPolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -58,5 +60,11 @@ public class LastPolicyEvaluationDAO
   @Override
   public void update(TransactionContext tx, LastPolicyEvaluation entity) {
     throw new UnsupportedOperationException("The LastPolicyEvaluation table does not support update operations");
+  }
+
+  @Override
+  protected SearchIndexChange newSearchIndexChangeForInsert(LastPolicyEvaluation entity) {
+    return new SearchIndexChange(ChangeType.LAST_POLICY_EVALUATION,
+        entity.getApplicationId() + ':' + entity.getStageTypeId());
   }
 }

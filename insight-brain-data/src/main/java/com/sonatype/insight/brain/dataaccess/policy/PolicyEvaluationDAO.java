@@ -262,6 +262,7 @@ public class PolicyEvaluationDAO
     }
   }
 
+  @SuppressWarnings("PMD.MissingOverride") // maybe a future PMD version gets smarter, until then...
   public void delete(PolicyEvaluation policyEvaluation, boolean updateLastPolicyEvaluation) {
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();

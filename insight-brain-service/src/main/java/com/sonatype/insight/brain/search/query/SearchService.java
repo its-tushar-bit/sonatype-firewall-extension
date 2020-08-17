@@ -24,6 +24,7 @@ import javax.inject.Singleton;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.search.LuceneComponents;
@@ -282,6 +283,10 @@ public class SearchService
     searchResultItemDTO.applicationPublicId = document.get(APPLICATION_PUBLIC_ID.label);
     searchResultItemDTO.applicationName = document.get(APPLICATION_NAME.label);
     searchResultItemDTO.policyEvaluationStage = document.get(POLICY_EVALUATION_STAGE.label);
+    if (searchResultItemDTO.policyEvaluationStage != null) {
+      searchResultItemDTO.policyEvaluationStage =
+          StageTypes.getById(searchResultItemDTO.policyEvaluationStage).getName();
+    }
     searchResultItemDTO.reportId = document.get(REPORT_ID.label);
     searchResultItemDTO.componentHash = document.get(COMPONENT_HASH.label);
     String format = document.get(COMPONENT_FORMAT.label);

@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.model.policy.StageType;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -178,8 +179,9 @@ public class DocumentBuilder
     return this;
   }
 
-  public DocumentBuilder setPolicyEvaluationStage(final String stageTypeName) {
-    this.policyEvaluationStage = Optional.of(new TextField(POLICY_EVALUATION_STAGE.label, stageTypeName, Store.YES));
+  public DocumentBuilder setPolicyEvaluationStage(final StageType stageType) {
+    this.policyEvaluationStage =
+        Optional.of(new TextField(POLICY_EVALUATION_STAGE.label, stageType.getId(), Store.YES));
     return this;
   }
 

@@ -11,8 +11,10 @@ import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -23,6 +25,7 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -31,6 +34,7 @@ import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.label.Label;
@@ -45,6 +49,7 @@ import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.LuceneComponents;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder;
+import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
@@ -60,6 +65,11 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.search.BooleanClause.Occur;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.store.Directory;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
@@ -104,6 +114,8 @@ public class IndexService
 
   private final PolicyDAO policyDAO;
 
+  private final SearchIndexChangeDAO searchIndexChangeDAO;
+
   private final InsightWork insightWork;
 
   private final TelemetrySender telemetrySender;
@@ -120,19 +132,23 @@ public class IndexService
 
   class IndexingContext
   {
-    final List<Organization> organizations;
-
-    final List<Application> applications;
+    final IndexWriter indexWriter;
 
     private final Map<String, Owner> ownersById = new ConcurrentHashMap<>();
 
     private final Map<String, String> vulnDescByVulnId = new ConcurrentHashMap<>();
 
-    public IndexingContext() {
-      organizations = organizationDAO.getAll();
-      organizations.forEach(org -> ownersById.put(org.getId(), org));
-      applications = applicationDAO.getAll();
-      applications.forEach(app -> ownersById.put(app.getId(), app));
+    public IndexingContext(IndexWriter indexWriter) {
+      this.indexWriter = indexWriter;
+    }
+
+    public Query newQuery(FieldIdentifier fieldIdentifer, String fieldValue) {
+      return new TermQuery(
+          new Term(fieldIdentifer.label, indexWriter.getAnalyzer().normalize(fieldIdentifer.label, fieldValue)));
+    }
+
+    public void addOwners(Collection<? extends Owner> owners) {
+      owners.forEach(owner -> ownersById.put(owner.getId(), owner));
     }
 
     public Owner getOwner(String id) {
@@ -154,6 +170,7 @@ public class IndexService
       LabelDAO labelDAO,
       OwnerDAO ownerDAO,
       PolicyDAO policyDAO,
+      SearchIndexChangeDAO searchIndexChangeDAO,
       InsightWork insightWork,
       TelemetrySender telemetrySender,
       VulnerabilityDescriptionFetcher vulnerabilityDescriptionFetcher,
@@ -167,6 +184,7 @@ public class IndexService
     this.labelDAO = labelDAO;
     this.ownerDAO = ownerDAO;
     this.policyDAO = policyDAO;
+    this.searchIndexChangeDAO = searchIndexChangeDAO;
     this.insightWork = insightWork;
     this.telemetrySender = telemetrySender;
     this.vulnerabilityDescriptionFetcher = vulnerabilityDescriptionFetcher;
@@ -205,7 +223,7 @@ public class IndexService
         }
       }
       else {
-        // check for incremental changes
+        updateIndex();
       }
     }
     catch (Exception e) {
@@ -229,22 +247,26 @@ public class IndexService
     log.info("creating search index...");
     long start = System.currentTimeMillis();
 
-    IndexWriterConfig indexWriterConfig = new IndexWriterConfig(luceneComponents.newAnalyzerForSearch());
-    indexWriterConfig.setOpenMode(OpenMode.CREATE);
     try (Directory directory = luceneComponents.openSearchIndex(false);
-        IndexWriter indexWriter = new IndexWriter(directory, indexWriterConfig)) {
+        IndexWriter indexWriter = newIndexWriter(directory, OpenMode.CREATE)) {
       log.info("begin indexing");
 
-      IndexingContext indexingContext = new IndexingContext();
+      List<Organization> organizations = organizationDAO.getAll();
+      List<Application> applications = applicationDAO.getAll();
+
+      IndexingContext indexingContext = new IndexingContext(indexWriter);
+      indexingContext.addOwners(organizations);
+      indexingContext.addOwners(applications);
 
       CompletableFuture<Void> orgDocs =
-          CompletableFuture.supplyAsync(() -> buildOrganizationDocs(indexingContext))
+          CompletableFuture.supplyAsync(() -> buildOrganizationDocs(indexingContext, organizations))
               .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
-      CompletableFuture<Void> appDocs = CompletableFuture.supplyAsync(() -> buildApplicationDocs(indexingContext))
-          .thenAccept(docs -> addDocsWithException(indexWriter, docs));
+      CompletableFuture<Void> appDocs =
+          CompletableFuture.supplyAsync(() -> buildApplicationDocs(indexingContext, applications))
+              .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
-      List<CompletableFuture<Void>> appSVDocs = indexingContext.applications
+      List<CompletableFuture<Void>> appSVDocs = applications
           .parallelStream()
           .map(application -> CompletableFuture
               .supplyAsync(() -> buildApplicationSVDocs(indexingContext, application))
@@ -300,6 +322,57 @@ public class IndexService
     }
   }
 
+  public void updateIndex() throws IOException {
+    List<SearchIndexChange> changes = searchIndexChangeDAO.getAll();
+    if (changes.isEmpty()) {
+      return;
+    }
+    log.debug("Updating search index with {} changes", changes.size());
+    try (Directory directory = luceneComponents.openSearchIndex(false);
+        IndexWriter indexWriter = newIndexWriter(directory, OpenMode.CREATE_OR_APPEND)) {
+      IndexingContext indexingContext = new IndexingContext(indexWriter);
+      Set<String> alreadyApplied = new HashSet<>();
+      for (SearchIndexChange change : changes) {
+        if (alreadyApplied.add(change.getChangeType() + "\t" + change.getChangeData())) {
+          updateIndex(change, indexingContext);
+          log.debug("Updated search index with change {}", change);
+        }
+        searchIndexChangeDAO.delete(change);
+      }
+    }
+    log.debug("Updated search index");
+  }
+
+  private IndexWriter newIndexWriter(Directory directory, OpenMode openMode) throws IOException {
+    return new IndexWriter(directory,
+        new IndexWriterConfig(luceneComponents.newAnalyzerForSearch()).setOpenMode(openMode));
+  }
+
+  private void updateIndex(SearchIndexChange change, IndexingContext indexingContext) throws IOException {
+    switch (change.getChangeType()) {
+      case LAST_POLICY_EVALUATION:
+        String[] ids = change.getChangeData().split(":");
+        updateIndexForPolicyEvaluation(ids[0], ids[1], indexingContext);
+        break;
+      default:
+        throw new IllegalArgumentException("Unknown change type: " + change.getChangeType());
+    }
+  }
+
+  private void updateIndexForPolicyEvaluation(String applicationId, String stageTypeId, IndexingContext indexingContext)
+      throws IOException
+  {
+    Query queryForObsoleteDocs = new BooleanQuery.Builder() //
+        .add(indexingContext.newQuery(FieldIdentifier.APPLICATION_ID, applicationId), Occur.MUST) //
+        .add(indexingContext.newQuery(FieldIdentifier.POLICY_EVALUATION_STAGE, stageTypeId), Occur.MUST) //
+        .build();
+    indexingContext.indexWriter.deleteDocuments(queryForObsoleteDocs);
+    Application application = applicationDAO.getById(applicationId);
+    StageType stageType = StageTypes.getById(stageTypeId);
+    addDocsWithException(indexingContext.indexWriter,
+        buildApplicationStageSVDocs(indexingContext, application, stageType));
+  }
+
   private static void addDocsWithException(IndexWriter writer, List<Document> docs) {
     try {
       writer.addDocuments(docs);
@@ -309,8 +382,11 @@ public class IndexService
     }
   }
 
-  private List<Document> buildOrganizationDocs(IndexingContext indexingContext) {
-    return indexingContext.organizations.stream().map(org -> {
+  private List<Document> buildOrganizationDocs(
+      IndexingContext indexingContext,
+      Collection<Organization> organizations)
+  {
+    return organizations.stream().map(org -> {
       return buildDocument(indexingContext, org);
     }).collect(toList());
   }
@@ -321,8 +397,8 @@ public class IndexService
         .build();
   }
 
-  private List<Document> buildApplicationDocs(IndexingContext indexingContext) {
-    return indexingContext.applications.stream().map(app -> {
+  private List<Document> buildApplicationDocs(IndexingContext indexingContext, Collection<Application> applications) {
+    return applications.stream().map(app -> {
       return buildDocument(indexingContext, app);
     }).collect(toList());
   }
@@ -453,7 +529,7 @@ public class IndexService
   {
     return new DocumentBuilder(ItemType.SECURITY_VULNERABILITY) //
         .setOwner(application) //
-        .setPolicyEvaluationStage(stageType.getName()) //
+        .setPolicyEvaluationStage(stageType) //
         .setReportId(reportId) //
         .setComponentHash(component.getHash()) //
         .setComponentFormat(component.getComponentIdentifier().getFormat()) //

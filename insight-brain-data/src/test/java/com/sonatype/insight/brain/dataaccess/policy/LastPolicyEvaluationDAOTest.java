@@ -6,8 +6,14 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.util.Date;
+import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.model.SearchIndexChange;
+import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.LastPolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
@@ -89,5 +95,19 @@ public class LastPolicyEvaluationDAOTest
     final LastPolicyEvaluation fifthPolicyEvaluation =
         dao.getByApplicationIdAndStageTypeId(application.getId(), stageTypeId);
     assertThat(fifthPolicyEvaluation.getId()).isEqualTo(eval1.getId());
+  }
+
+  @Test
+  public void testInsert_RecordSearchIndexChange() {
+    new SystemConfigurationPropertyDAO()
+        .update(new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true"));
+    PolicyEvaluation eval =
+        tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, "scanId", new Date());
+
+    List<SearchIndexChange> searchIndexChanges = new SearchIndexChangeDAO().getAll();
+    assertThat(searchIndexChanges).hasSize(1);
+    assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.LAST_POLICY_EVALUATION);
+    assertThat(searchIndexChanges.get(0).getChangeData())
+        .isEqualTo(eval.getApplicationId() + ':' + eval.getStageTypeId());
   }
 }

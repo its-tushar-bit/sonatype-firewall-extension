@@ -39,6 +39,7 @@ import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.TextField;
+import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexableField;
 import org.assertj.core.groups.Tuple;
 import org.junit.Test;
@@ -53,7 +54,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -76,6 +76,9 @@ public class IndexServiceTest
   @Mock
   private TaskScheduler taskSchedulerMock;
 
+  @Mock
+  private IndexWriter indexWriterMock;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(VulnerabilityDescriptionFetcher.class).toInstance(vulnerabilityDescriptionFetcher);
@@ -85,7 +88,7 @@ public class IndexServiceTest
   }
 
   private IndexingContext newIndexingContext() {
-    return indexService.new IndexingContext();
+    return indexService.new IndexingContext(indexWriterMock);
   }
 
   private Object fieldValue(IndexableField field) {
@@ -207,7 +210,7 @@ public class IndexServiceTest
         field(FieldIdentifier.VULNERABILITY_SEVERITY, vuln.getSeverity(), StoredField.class, true),
         field(FieldIdentifier.VULNERABILITY_STATUS, vuln.getStatus().getName(), TextField.class, true),
         field(FieldIdentifier.VULNERABILITY_DESCRIPTION, vulnDescription, TextField.class, true),
-        field(FieldIdentifier.POLICY_EVALUATION_STAGE, StageTypes.BUILD.getName(), TextField.class, true),
+        field(FieldIdentifier.POLICY_EVALUATION_STAGE, StageTypes.BUILD.getId(), TextField.class, true),
         field(FieldIdentifier.REPORT_ID, reportId, TextField.class, true),
         field(FieldIdentifier.APPLICATION_ID, app.getId(), TextField.class, true),
         field(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId(), TextField.class, true),
@@ -249,7 +252,7 @@ public class IndexServiceTest
       indexServiceSpy.execute(jobExecutionContext);
     }
 
-    verify(indexServiceSpy, never()).createSearchIndex();
+    verify(indexServiceSpy).updateIndex();
   }
 
   @Test

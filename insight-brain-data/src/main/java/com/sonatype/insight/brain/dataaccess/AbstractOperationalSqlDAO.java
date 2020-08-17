@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.model.HasStringId;
 
@@ -21,5 +22,46 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
 
   public boolean isDatabaseEmbedded() {
     return OperationalDataStoreProvider.isDatabaseEmbedded();
+  }
+
+  @Override
+  public void insert(TransactionContext tx, T entity) {
+    super.insert(tx, entity);
+    insertSearchIndexChange(tx, newSearchIndexChangeForInsert(entity));
+  }
+
+  @Override
+  public void update(TransactionContext tx, T entity) {
+    super.update(tx, entity);
+    insertSearchIndexChange(tx, newSearchIndexChangeForUpdate(entity));
+  }
+
+  @Override
+  public void delete(TransactionContext tx, T entity) {
+    super.delete(tx, entity);
+    insertSearchIndexChange(tx, newSearchIndexChangeForDelete(entity));
+  }
+
+  protected void insertSearchIndexChange(TransactionContext tx, SearchIndexChange searchIndexChange) {
+    if (searchIndexChange != null) {
+      new SearchIndexChangeDAO().insert(tx, searchIndexChange);
+    }
+  }
+
+  protected SearchIndexChange newSearchIndexChangeForInsert(T entity) {
+    return newSearchIndexChange(entity);
+  }
+
+  protected SearchIndexChange newSearchIndexChangeForUpdate(T entity) {
+    return newSearchIndexChange(entity);
+  }
+
+  protected SearchIndexChange newSearchIndexChangeForDelete(T entity) {
+    return newSearchIndexChange(entity);
+  }
+
+  protected SearchIndexChange newSearchIndexChange(T entity) {
+    // by default, no contribution to the search index
+    return null;
   }
 }

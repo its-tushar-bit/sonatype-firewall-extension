@@ -630,6 +630,13 @@ INSERT INTO migration_tracker(migration_tracker_id) VALUES('inactive-repository-
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('mail-config');
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('proxy-server-configuration');
 
+CREATE TABLE search_index_change (
+  search_index_change_id varchar(50) NOT NULL,
+  change_type varchar(100) NOT NULL,
+  change_data varchar(2000) NOT NULL,
+  CONSTRAINT search_index_change_pk PRIMARY KEY (search_index_change_id)
+);
+
 -- Since 1.72.0
 CREATE TABLE saml_configuration (
   saml_configuration_id varchar(50) NOT NULL,

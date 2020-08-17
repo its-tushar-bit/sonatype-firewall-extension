@@ -263,7 +263,7 @@ public class TaskSchedulerTest
     assertThat(dailyTimeIntervalTrigger.getMisfireInstruction())
         .isEqualTo(DailyTimeIntervalTrigger.MISFIRE_INSTRUCTION_DO_NOTHING);
     Date nextFireTime = dailyTimeIntervalTrigger.getNextFireTime();
-    assertThat(nextFireTime).isAfterOrEqualTo(now);
+    assertThat(nextFireTime.toInstant()).isAfterOrEqualTo(now.toInstant().minusSeconds(1));
     assertThat(nextFireTime).hasHourOfDay(23);
   }
 

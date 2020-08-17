@@ -9,6 +9,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.persistence.EntityNotFoundException;
+
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -38,6 +40,9 @@ public class LockedTransactionContext
   static final String POLICY_VIOLATIONS_LOCK_PREFIX = "policy-violations-";
 
   // Visible for testing
+  static final String REPOSITORY_COMPONENT_LOCK_PREFIX = "repository-component-";
+
+  // Visible for testing
   final String lockId;
 
   // Visible for testing
@@ -59,6 +64,40 @@ public class LockedTransactionContext
 
   public static String getLockIdForPolicyViolations(Application application) {
     return POLICY_VIOLATIONS_LOCK_PREFIX + application.getId();
+  }
+
+  public static LockedTransactionContext createForRepositoryComponent(String repositoryId, String componentPathname) {
+    return new LockedTransactionContext(getLockIdForRepositoryComponent(repositoryId, componentPathname));
+  }
+
+  public static void deleteForRepositoryComponent(String repositoryId, String componentPathname) {
+    try (TransactionContext tx = new LockDAO().createTransactionContext()) {
+      tx.begin();
+      deleteForRepositoryComponent(tx, repositoryId, componentPathname);
+      tx.commit();
+    }
+  }
+
+  public static void deleteForRepositoryComponent(
+      TransactionContext tx,
+      String repositoryId,
+      String componentPathname)
+  {
+    deleteLock(tx, getLockIdForRepositoryComponent(repositoryId, componentPathname));
+  }
+
+  public static void deleteForRepository(TransactionContext tx, String repositoryId) {
+    String prefix = getLockIdForRepositoryComponent(repositoryId, "");
+    if (OperationalDataStoreProvider.isDatabaseEmbedded()) {
+      LOCKS_BY_ID.keySet().stream().filter(key -> key.startsWith(prefix)).forEach(lockId -> deleteLockH2(lockId));
+    }
+    else {
+      new LockDAO().deleteByPrefix(tx, prefix);
+    }
+  }
+
+  public static String getLockIdForRepositoryComponent(String repositoryId, String componentPathname) {
+    return REPOSITORY_COMPONENT_LOCK_PREFIX + repositoryId + "-" + componentPathname;
   }
 
   @Override
@@ -100,6 +139,11 @@ public class LockedTransactionContext
   private void lock() {
     if (OperationalDataStoreProvider.isDatabaseEmbedded()) {
       reentrantLock.lock();
+      // Locking prevents removal/replacement, but check that it wasn't removed/replaced before locking
+      if (LOCKS_BY_ID.get(lockId) != reentrantLock) {
+        reentrantLock.unlock();
+        throw new EntityNotFoundException("Could not acquire lock " + lockId);
+      }
     }
     else {
       new LockDAO().acquireLock(this, lockId);
@@ -114,15 +158,28 @@ public class LockedTransactionContext
 
   public static void deleteLock(TransactionContext tx, String lockId) {
     if (OperationalDataStoreProvider.isDatabaseEmbedded()) {
-      ReentrantLock lock = LOCKS_BY_ID.get(lockId);
-      if (lock != null) {
-        lock.lock();
-        LOCKS_BY_ID.remove(lockId);
-        lock.unlock();
-      }
+      deleteLockH2(lockId);
     }
     else {
       new LockDAO().deleteLock(tx, lockId);
+    }
+  }
+
+  private static void deleteLockH2(String lockId) {
+    ReentrantLock lock = LOCKS_BY_ID.get(lockId);
+    if (lock != null) {
+      lock.lock();
+      LOCKS_BY_ID.remove(lockId);
+      lock.unlock();
+    }
+  }
+
+  public static boolean lockExists(String lockId) {
+    if (OperationalDataStoreProvider.isDatabaseEmbedded()) {
+      return LockedTransactionContext.LOCKS_BY_ID.containsKey(lockId);
+    }
+    else {
+      return new LockDAO().getById(lockId) != null;
     }
   }
 }

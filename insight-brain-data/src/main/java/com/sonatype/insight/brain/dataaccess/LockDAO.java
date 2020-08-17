@@ -52,4 +52,10 @@ public class LockDAO
   public void deleteLock(TransactionContext tx, String lockId) {
     delete(tx, getById(lockId));
   }
+
+  public void deleteByPrefix(TransactionContext tx, String prefix) {
+    String sQuery = "DELETE FROM Lock entity WHERE entity.id >= ?1 AND entity.id < ?2";
+    createQuery(sQuery, prefix, prefix.substring(0, prefix.length() - 1) + (prefix.charAt(prefix.length() - 1) + 1))
+        .executeUpdate(tx);
+  }
 }

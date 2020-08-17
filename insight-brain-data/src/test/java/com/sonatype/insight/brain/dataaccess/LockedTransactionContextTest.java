@@ -9,6 +9,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.persistence.EntityNotFoundException;
+
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
@@ -20,6 +22,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class LockedTransactionContextTest
 {
@@ -171,6 +174,27 @@ public class LockedTransactionContextTest
     }
   }
 
+  @Test
+  public void testGetLockIdForRepositoryComponent() {
+    String repositoryId = "repositoryId";
+    String componentPathname = "componentPathname";
+
+    assertThat(LockedTransactionContext.getLockIdForRepositoryComponent(repositoryId, componentPathname))
+        .isEqualTo(LockedTransactionContext.REPOSITORY_COMPONENT_LOCK_PREFIX + repositoryId + "-" + componentPathname);
+  }
+
+  @Test
+  public void testCreateLockForRepositoryComponent() {
+    String repositoryId = "repositoryId";
+    String componentPathname = "componentPathname";
+
+    try (LockedTransactionContext tx = LockedTransactionContext
+        .createForRepositoryComponent(repositoryId, componentPathname)) {
+      assertThat(tx.lockId)
+          .isEqualTo(LockedTransactionContext.getLockIdForRepositoryComponent(repositoryId, componentPathname));
+    }
+  }
+
   private CountDownLatch startConcurrentDeleteLockThread(String lockId) {
     CountDownLatch commitLatch = new CountDownLatch(1);
     Thread other = new Thread(() -> {
@@ -238,6 +262,35 @@ public class LockedTransactionContextTest
     }
     finally {
       DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
+  @Test
+  public void testCannotLockIfDeleted_H2() {
+    testCannotLockIfDeleted();
+  }
+
+  @Test
+  public void testCannotLockIfDeleted_Postgres() {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      testCannotLockIfDeleted();
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
+  private void testCannotLockIfDeleted() {
+    String lockId = "test-lock";
+    try (TransactionContext tx1 = new LockedTransactionContext(lockId)) {
+      try (TransactionContext tx2 = dao.createTransactionContext()) {
+        tx2.begin();
+        LockedTransactionContext.deleteLock(tx2, lockId);
+        tx2.commit();
+      }
+      assertThatExceptionOfType(EntityNotFoundException.class).isThrownBy(tx1::begin);
     }
   }
 }

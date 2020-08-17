@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.LockedTransactionContext;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -130,13 +131,18 @@ public class RepositoryComponentDAO
 
   @Override
   public final void delete(TransactionContext tx, RepositoryComponent entity) {
-    // WARNING: Don't add any business logic to this method because, for performance reasons,
+    // WARNING: Be careful adding business logic to this method because, for performance reasons,
     // we bypass this method when deleting all components for a repository.
     // See https://issues.sonatype.org/browse/CLM-15648 for details
+    LockedTransactionContext.deleteForRepositoryComponent(tx, entity.getRepositoryId(), entity.getPathname());
     super.delete(tx, entity);
   }
 
   public void deleteByRepositoryId(TransactionContext tx, String repositoryId) {
+    // For H2 locks would normally be deleted by calling delete > LockedTransactionContext.deleteForRepositoryComponent
+    // on each repository component, but there may be orphaned locks that were created without a corresponding
+    // repository component, this will also delete those orphaned locks as well as the locks for postgres
+    LockedTransactionContext.deleteForRepository(tx, repositoryId);
     if (isDatabaseEmbedded()) {
       // We do not enroll the deletions in the transaction on purpose.
       // This improves performance and keeps db operations (including commits) reasonably short, which means other

@@ -164,4 +164,44 @@ public class LockDAOTest
     assertThat(dao.getById(lockId)).isNull();
     assertThat(dao.getById(otherLockId)).isNotNull();
   }
+
+  @Test
+  public void testDeleteByPrefix_H2() {
+    testDeleteByPrefix();
+  }
+
+  @Test
+  public void testDeleteByPrefix_Postgres() {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      testDeleteByPrefix();
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
+  private void testDeleteByPrefix() {
+    dao = new LockDAO();
+    String lockId0 = "test0-lock1";
+    String lockId1 = "test1-lock1";
+    String lockId2 = "test1-lock2";
+    String lockId3 = "test2-lock1";
+    dao.createLock(lockId0);
+    dao.createLock(lockId1);
+    dao.createLock(lockId2);
+    dao.createLock(lockId3);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.deleteByPrefix(tx, "test1-");
+      tx.commit();
+    }
+
+    assertThat(dao.getById(lockId0)).isNotNull();
+    assertThat(dao.getById(lockId1)).isNull();
+    assertThat(dao.getById(lockId2)).isNull();
+    assertThat(dao.getById(lockId3)).isNotNull();
+  }
 }

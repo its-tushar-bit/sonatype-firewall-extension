@@ -13,6 +13,7 @@ import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.LockedTransactionContext;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -174,11 +175,26 @@ public class RepositoryComponentDAOTest
   public void testDeleteByRepositoryId_H2() {
     assertThat(dao.isDatabaseEmbedded()).isTrue();
 
+    RepositoryComponent repositoryComponent1 =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
+    RepositoryComponent repositoryComponent2 =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
-    tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
+    LockedTransactionContext
+        .createForRepositoryComponent(repository.getId(), repositoryComponent1.getPathname()).close();
+    LockedTransactionContext
+        .createForRepositoryComponent(repository.getId(), repositoryComponent2.getPathname()).close();
+    assertThat(LockedTransactionContext.lockExists(LockedTransactionContext
+        .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent1.getPathname()))).isTrue();
+    assertThat(LockedTransactionContext.lockExists(LockedTransactionContext
+        .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent2.getPathname()))).isTrue();
 
     dao.deleteByRepositoryId(null /* TransactionContext */, repository.getId());
 
+    assertThat(LockedTransactionContext.lockExists(LockedTransactionContext
+        .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent1.getPathname()))).isFalse();
+    assertThat(LockedTransactionContext.lockExists(LockedTransactionContext
+        .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent2.getPathname()))).isFalse();
     assertThat(dao.getByRepositoryId(repository.getId())).isEmpty();
   }
 
@@ -193,9 +209,20 @@ public class RepositoryComponentDAOTest
       assertThat(dao.isDatabaseEmbedded()).isFalse();
 
       repository = tempEntity.newRepository();
+      RepositoryComponent repositoryComponent1 =
+          tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
+      RepositoryComponent repositoryComponent2 =
+          tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
       tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
-      tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
-      assertThat(dao.getByRepositoryId(repository.getId())).hasSize(2);
+      assertThat(dao.getByRepositoryId(repository.getId())).hasSize(3);
+      LockedTransactionContext
+          .createForRepositoryComponent(repository.getId(), repositoryComponent1.getPathname()).close();
+      LockedTransactionContext
+          .createForRepositoryComponent(repository.getId(), repositoryComponent2.getPathname()).close();
+      assertThat(LockedTransactionContext.lockExists(LockedTransactionContext
+          .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent1.getPathname()))).isTrue();
+      assertThat(LockedTransactionContext.lockExists(LockedTransactionContext
+          .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent2.getPathname()))).isTrue();
 
       try (TransactionContext tx = dao.createTransactionContext()) {
         tx.begin();
@@ -203,6 +230,10 @@ public class RepositoryComponentDAOTest
         tx.commit();
       }
 
+      assertThat(LockedTransactionContext.lockExists(LockedTransactionContext
+          .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent1.getPathname()))).isFalse();
+      assertThat(LockedTransactionContext.lockExists(LockedTransactionContext
+          .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent2.getPathname()))).isFalse();
       assertThat(dao.getByRepositoryId(repository.getId())).isEmpty();
     }
     finally {

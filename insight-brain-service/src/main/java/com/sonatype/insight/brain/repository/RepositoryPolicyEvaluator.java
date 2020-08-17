@@ -10,7 +10,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -34,6 +33,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.component.ComponentDetailsAdapter;
+import com.sonatype.insight.brain.dataaccess.LockedTransactionContext;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
@@ -61,9 +61,6 @@ import com.sonatype.insight.brain.policy.violation.RepositoryPolicyViolationLogg
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,10 +93,6 @@ public class RepositoryPolicyEvaluator
   private final RepositoryComponentDeleteService repositoryComponentDeleteService;
 
   private final RepositoryPolicyAlertEmailer repositoryPolicyAlertEmailer;
-
-  // CLM-13933
-  private static final LoadingCache<String, Object> componentLock = CacheBuilder.newBuilder()
-      .expireAfterAccess(10, TimeUnit.MINUTES).build(CacheLoader.from(Object::new));
 
   @Inject
   public RepositoryPolicyEvaluator(
@@ -227,25 +220,24 @@ public class RepositoryPolicyEvaluator
                                                        PolicyResults policyResults,
                                                        boolean canBeQuarantined)
   {
-    synchronized (componentLock.getUnchecked(repository.getId().concat(component.getPathnames().get(0)))) {
-      RepositoryComponent repositoryComponent;
-      try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
-        tx.begin();
+    RepositoryComponent repositoryComponent;
+    try (TransactionContext tx = LockedTransactionContext
+        .createForRepositoryComponent(repository.getId(), component.getPathnames().get(0))) {
+      tx.begin();
 
-        RepositoryPolicyViolationLogger policyViolationLogger =
-            policyViolationLoggerFactory.newLogger(evaluationTime, repository);
+      RepositoryPolicyViolationLogger policyViolationLogger =
+          policyViolationLoggerFactory.newLogger(evaluationTime, repository);
 
-        // The order of the following calls are important and must not be changed. See: CLM-13853
-        persistPolicyViolations(tx, repository, evaluationTime, component, policyResults, policyViolationLogger);
-        repositoryComponent = persistRepositoryComponent(tx, repository, evaluationTime, component,
-            canBeQuarantined, policyResults);
+      // The order of the following calls are important and must not be changed. See: CLM-13853
+      persistPolicyViolations(tx, repository, evaluationTime, component, policyResults, policyViolationLogger);
+      repositoryComponent = persistRepositoryComponent(tx, repository, evaluationTime, component,
+          canBeQuarantined, policyResults);
 
-        tx.commit();
-        AuditData.get().commitSubEvents();
-        policyViolationLogger.log();
-      }
-      return repositoryComponent;
+      tx.commit();
+      AuditData.get().commitSubEvents();
+      policyViolationLogger.log();
     }
+    return repositoryComponent;
   }
 
   private RepositoryComponent persistRepositoryComponent(TransactionContext tx,

@@ -53,7 +53,7 @@ describe('componentNameUtils', function() {
   });
 
   describe('getArtifactName', function() {
-    it('sets up an artifact name from displayName using the `Artifact` field', function() {
+    it('sets up an artifact name from displayName using the name prop', function() {
       const component = {
         displayName: {
           parts: [
@@ -62,40 +62,13 @@ describe('componentNameUtils', function() {
             {field: 'Artifact', value: 'Bar'},
             {value: ' : '},
             {field: 'Version', value: '1.0'}
-          ]
+          ],
+          name: 'Baz'
         },
         filename: 'foo.js'
       };
       const artifactName = getArtifactName(component);
-      expect(artifactName).toEqual('Bar');
-    });
-
-    it('sets up an artifact name from displayName using the `Name` field', function() {
-      const component = {
-        displayName: {
-          parts: [
-            {field: 'Name', value: 'Foo'},
-            {value: ' : '},
-            {field: 'Version', value: '1.0'}
-          ]
-        },
-        filename: 'foo.js'
-      };
-      const artifactName = getArtifactName(component);
-      expect(artifactName).toEqual('Foo');
-    });
-
-    it('sets up an artifact name from displayName using the `packageId` field', function() {
-      const component = {
-        displayName: {
-          parts: [
-            {field: 'packageId', value: 'Foo'}
-          ]
-        },
-        filename: 'foo.js'
-      };
-      const artifactName = getArtifactName(component);
-      expect(artifactName).toEqual('Foo');
+      expect(artifactName).toEqual('Baz');
     });
 
     it('sets up an artifact name from filename', function() {

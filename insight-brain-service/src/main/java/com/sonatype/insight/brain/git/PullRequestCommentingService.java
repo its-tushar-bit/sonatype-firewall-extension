@@ -39,6 +39,7 @@ import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
 import com.sonatype.nexus.scm.GitApiClientFactory;
+import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.GitApiClientUtils;
 import com.sonatype.nexus.scm.api.PullRequestInfoProvider;
@@ -185,7 +186,9 @@ public class PullRequestCommentingService
       String applicationId = event.ownerId;
       GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
 
-      if (!gitRepositoryInfo.provider.supportsPullRequestCommenting()) {
+      if (!gitRepositoryInfo.provider.supportsPullRequestCommenting() ||
+          (gitRepositoryInfo.provider == SourceControlProvider.GITLAB && // will be removed when MR commenting is ready
+              !insightConfig.isExperimentalFeatureEnabled("mrCommenting"))) {
         log.debug("'{}' not currently supported for pull request commenting", gitRepositoryInfo.provider.toString());
       }
       else {

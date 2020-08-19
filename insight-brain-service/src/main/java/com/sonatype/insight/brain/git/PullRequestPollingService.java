@@ -22,8 +22,10 @@ import com.sonatype.insight.brain.git.event.SourceControlEventService;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
+import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.PullRequestInfoProvider;
 import com.sonatype.nexus.scm.api.model.ProjectUri;
@@ -64,6 +66,8 @@ public class PullRequestPollingService
 
   private final PullRequestRepositoryValidator pullRequestRepositoryValidator;
 
+  private final InsightConfig insightConfig;
+
   @Inject
   public PullRequestPollingService(
       SourceControlDAO sourceControlDAO,
@@ -72,7 +76,8 @@ public class PullRequestPollingService
       GitCommitHistoryService gitCommitHistoryService,
       SourceControlUtils sourceControlUtils,
       GitClientFactory gitClientFactory,
-      PullRequestRepositoryValidator pullRequestRepositoryValidator)
+      PullRequestRepositoryValidator pullRequestRepositoryValidator,
+      InsightConfig insightConfig)
   {
     this.sourceControlDAO = sourceControlDAO;
     this.sourceControlEventService = sourceControlEventService;
@@ -81,6 +86,7 @@ public class PullRequestPollingService
     this.sourceControlUtils = sourceControlUtils;
     this.gitClientFactory = gitClientFactory;
     this.pullRequestRepositoryValidator = pullRequestRepositoryValidator;
+    this.insightConfig = insightConfig;
   }
 
   public void fetchAndSendPullRequestsForCommenting() throws IOException {
@@ -261,7 +267,9 @@ public class PullRequestPollingService
     if (null == gitRepositoryInfo || null == gitRepositoryInfo.provider) {
       return false;
     }
-    if (!gitRepositoryInfo.provider.supportsPullRequestCommenting() || isBitbucketCloud(gitRepositoryInfo)) {
+    if (!gitRepositoryInfo.provider.supportsPullRequestCommenting() || isBitbucketCloud(gitRepositoryInfo) ||
+        (gitRepositoryInfo.provider == SourceControlProvider.GITLAB && // will be removed when MR commenting is ready
+            !insightConfig.isExperimentalFeatureEnabled("mrCommenting"))) {
       if (log.isDebugEnabled()) {
         log.debug("{} is not currently supported for pull request commenting on repository {}",
             gitRepositoryInfo.provider.toString().toUpperCase(), gitRepositoryInfo.repositoryUrl);

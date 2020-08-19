@@ -9,7 +9,9 @@ import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -18,6 +20,7 @@ import com.sonatype.insight.brain.git.event.SourceControlEventService;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -167,10 +170,11 @@ public class PullRequestPollingServiceTest
   }
 
   @Test
-  public void testFetchAndSendPullRequestsForCommenting_gitLabNotSupported() throws IOException {
+  public void testFetchAndSendPullRequestsForCommenting_featureFlagOff() throws Exception {
     // given:
     PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
         .forRepository("app1", "org/repo", SourceControlProvider.GITLAB)
+        .withExperimentalFeatureFlag(false)
         .build();
 
     // when: fetch and send
@@ -291,6 +295,8 @@ public class PullRequestPollingServiceTest
 
     private boolean isGitRepositoryInternal = false;
 
+    private boolean mrCommenting = true;
+
     private Class<? extends Exception> thrownException;
 
     PullRequestPollingService build() throws IOException {
@@ -334,7 +340,7 @@ public class PullRequestPollingServiceTest
 
       return new PullRequestPollingService(mockSourceControlDAO, mockSourceControlEventService, mockPolicyEvaluationDAO,
           mockGitCommitHistoryService, mockSourceControlUtils, mockGitClientFactory,
-          mockPullRequestRepositoryValidator);
+          mockPullRequestRepositoryValidator, getInsightConfig());
     }
 
     private List<SourceControl> buildSourceControlList() {
@@ -401,6 +407,19 @@ public class PullRequestPollingServiceTest
     TestablePullRequestPollingServiceBuilder withGitRepositoryInternal(boolean isGitRepositoryInternal) {
       this.isGitRepositoryInternal = isGitRepositoryInternal;
       return this;
+    }
+
+    TestablePullRequestPollingServiceBuilder withExperimentalFeatureFlag(boolean mrCommenting) {
+      this.mrCommenting = mrCommenting;
+      return this;
+    }
+
+    private InsightConfig getInsightConfig() {
+      InsightConfig insightConfig = new InsightConfig();
+      Map<String, Boolean> experimentalFeatures = new HashMap<>();
+      experimentalFeatures.put("mrCommenting", mrCommenting);
+      insightConfig.setExperimentalFeatures(experimentalFeatures);
+      return insightConfig;
     }
   }
 }

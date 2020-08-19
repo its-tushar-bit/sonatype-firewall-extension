@@ -718,8 +718,29 @@ public class PullRequestCommentingServiceTest
     // when : process event
     commentingService.onApplicationEvaluation(event);
 
-    // then : no comment should be created
-    verify(mockPrCommentingMetricsService, never()).sendTelemetry(any());
+    // then : no source control event should be created
+    verify(mockSourceControlEventDAO, never()).insert(any());
+  }
+
+  @Test
+  public void testOnApplicationEvaluation_experimentalFeatureFlagOff() throws Exception {
+    // given : all the necessary pieces to create a PR comment
+    PullRequestCommentingService commentingService = new TestablePullRequestCommentingServiceBuilder()
+        .withProvider(SourceControlProvider.GITLAB)
+        .withExperimentalFeatureFlagEnabled(false)
+        .build();
+
+    ApplicationEvaluationEvent event = new ApplicationEvaluationEventBuilder()
+        .withApplicationId("app1")
+        .withPolicyEvaluationId("sourcePe")
+        .withCommitHash("sourceCommit")
+        .build();
+
+    // when : process event
+    commentingService.onApplicationEvaluation(event);
+
+    // then : no source control event should be created
+    verify(mockSourceControlEventDAO, never()).insert(any());
   }
 
   @Test
@@ -876,6 +897,8 @@ public class PullRequestCommentingServiceTest
 
     private boolean featureFlagEnabled = true;
 
+    private boolean experimentalFeatureFlag = true;
+
     private LocationDiscoveryResult locationDiscoveryResult = new LocationDiscoveryResult();
 
     PullRequestCommentingService build() throws Exception {
@@ -961,7 +984,7 @@ public class PullRequestCommentingServiceTest
           testProductLicense,
           mockPullRequestRepositoryValidator,
           mockPolicyEvaluationDiffService,
-          getInsightConfig(featureFlagEnabled),
+          getInsightConfig(featureFlagEnabled, experimentalFeatureFlag),
           pullRequestLineCommentingService,
           mockHashBuilderProvider,
           pullRequestPostCommentActionList,
@@ -971,6 +994,11 @@ public class PullRequestCommentingServiceTest
 
     TestablePullRequestCommentingServiceBuilder withFeatureFlagEnabled(boolean featureFlagEnabled) {
       this.featureFlagEnabled = featureFlagEnabled;
+      return this;
+    }
+
+    TestablePullRequestCommentingServiceBuilder withExperimentalFeatureFlagEnabled(boolean experimentalFeatureFlag) {
+      this.experimentalFeatureFlag = experimentalFeatureFlag;
       return this;
     }
 
@@ -1146,11 +1174,14 @@ public class PullRequestCommentingServiceTest
       return this;
     }
 
-    private InsightConfig getInsightConfig(boolean enableFeatureFlag) {
+    private InsightConfig getInsightConfig(boolean enableFeatureFlag, boolean enableExperimentalFeatureFlag) {
       InsightConfig config = new InsightConfig();
       Map<String, Boolean> features = new HashMap<>();
       features.put(Feature.PR_COMMENTING.getFlag(), enableFeatureFlag);
       config.setFeatures(features);
+      Map<String, Boolean> experimentalFeatures = new HashMap<>();
+      experimentalFeatures.put("mrCommenting", enableExperimentalFeatureFlag);
+      config.setExperimentalFeatures(experimentalFeatures);
       return config;
     }
   }

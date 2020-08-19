@@ -445,6 +445,7 @@ public class PullRequestCommentingServiceTest
     PullRequestCommentingService commentingService = new TestablePullRequestCommentingServiceBuilder()
         .withProvider(sourceControlProvider)
         .withGitRepositoryEffectivelyPrivateThrows(UnsupportedOperationException.class)
+        .withExperimentalFeatureFlagEnabled(false)
         .build();
 
     ApplicationEvaluationEvent event = new ApplicationEvaluationEventBuilder()

@@ -38,7 +38,8 @@ public class ApiManifestScanService
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
   public void performManifestScan(
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
-      final String stage)
+      final String stage,
+      final String branchName)
   {
     if (!insightConfig.isExperimentalFeatureEnabled(Feature.MANIFEST_SCAN)) {
       return;
@@ -46,7 +47,8 @@ public class ApiManifestScanService
     SourceControlEvent sourceControlEvent = new SourceControlEvent()
         .setApplicationId(applicationId)
         .setEventType(SourceControlEvent.MANIFEST_SCAN_EVENT)
-        .setStageTypeId(stage);
+        .setStageTypeId(stage)
+        .setBranchName(branchName);
 
     sourceControlEventService.publishEvent(sourceControlEvent);
   }

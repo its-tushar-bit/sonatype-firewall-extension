@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.git.PullRequestCommentingService;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
 import com.sonatype.insight.brain.git.VerifiableLoggingTestBase;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.nexus.git.utils.api.GitException;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
@@ -463,7 +464,7 @@ public class SourceControlEventServiceTest
   }
 
   @Test
-  public void testProcessEvents_exceptionMarkingEventInProgress() throws IOException {
+  public void testProcessEvents_exceptionMarkingEventInProgress() throws IOException, GitException {
     // given: DAO setup to throw an exception
     SourceControlEvent event = new SourceControlEvent()
         .setApplicationId("app1")
@@ -733,7 +734,7 @@ public class SourceControlEventServiceTest
   }
 
   private void verifyProcessEventsActions(SourceControlEvent event, EventProcessAction... conditions)
-      throws IOException
+      throws IOException, GitException
   {
     verifyProcessEventsActions(event, "no message specified", conditions);
   }
@@ -742,7 +743,7 @@ public class SourceControlEventServiceTest
       SourceControlEvent event,
       String message,
       EventProcessAction... actions)
-      throws IOException
+      throws IOException, GitException
   {
     Set<EventProcessAction> actionSet = Sets.newHashSet(actions);
 

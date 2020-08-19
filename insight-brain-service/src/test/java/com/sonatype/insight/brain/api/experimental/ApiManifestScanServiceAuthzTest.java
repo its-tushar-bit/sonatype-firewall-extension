@@ -20,20 +20,20 @@ public class ApiManifestScanServiceAuthzTest
   public ApiManifestScanService apiManifestScanService;
 
   @Test
-  public void testGetCompositeSourceControlByOwner_Authorized() throws Exception {
+  public void testPerformManifestScan_Authorized() {
     grantEvaluateApplicationPermission(app.getId());
 
-    apiManifestScanService.performManifestScan(app.getId(), "stage");
+    apiManifestScanService.performManifestScan(app.getId(), "stage", "a-branch");
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetCompositeSourceControlByOwner_Unauthenticated() {
-    apiManifestScanService.performManifestScan(app.getId(), "stage");
+  public void testPerformManifestScan_Unauthenticated() {
+    apiManifestScanService.performManifestScan(app.getId(), "stage", "a-branch");
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetCompositeSourceControlByOwner_Unauthorized() {
+  public void testPerformManifestScan_Unauthorized() {
     login();
-    apiManifestScanService.performManifestScan(app.getId(), "stage");
+    apiManifestScanService.performManifestScan(app.getId(), "stage", "a-branch");
   }
 }

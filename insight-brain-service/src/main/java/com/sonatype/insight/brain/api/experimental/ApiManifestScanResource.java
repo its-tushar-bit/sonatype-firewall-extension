@@ -44,9 +44,10 @@ public class ApiManifestScanResource
   @Produces(MediaType.APPLICATION_JSON)
   public Response scanManifest(
       @PathParam("applicationId") String applicationId,
-      @DefaultValue("develop") @QueryParam("stage") String stage)
+      @DefaultValue("develop") @QueryParam("stage") String stage,
+      @QueryParam("branch") String branchName)
   {
-    apiManifestScanService.performManifestScan(applicationId, stage);
+    apiManifestScanService.performManifestScan(applicationId, stage, branchName);
     return Response.noContent().build();
   }
 }

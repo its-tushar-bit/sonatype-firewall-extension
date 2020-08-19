@@ -40,13 +40,14 @@ public class ApiManifestScanServiceTest
   public void testApiManifestScanService() {
     Application app = tempEntity.newApplicationWithParent();
 
-    apiManifestScanService.performManifestScan(app.getId(), "stage");
+    apiManifestScanService.performManifestScan(app.getId(), "stage", "a-branch");
 
     List<SourceControlEvent> sourceControlEvents = new SourceControlEventDAO().getAll();
     assertThat(sourceControlEvents.size()).isOne();
     SourceControlEvent sourceControlEvent = sourceControlEvents.get(0);
     assertThat(sourceControlEvent.getApplicationId()).isEqualTo(app.getId());
     assertThat(sourceControlEvent.getStageTypeId()).isEqualTo("stage");
+    assertThat(sourceControlEvent.getBranchName()).isEqualTo("a-branch");
     assertThat(sourceControlEvent.getEventType()).isEqualTo(SourceControlEvent.MANIFEST_SCAN_EVENT);
   }
 }

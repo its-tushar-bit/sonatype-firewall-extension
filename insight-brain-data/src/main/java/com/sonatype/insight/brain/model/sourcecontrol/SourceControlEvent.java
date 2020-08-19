@@ -29,9 +29,11 @@ public class  SourceControlEvent
 
   public static final String DISCOVERED_PULL_REQUEST_EVENT = "discovered pull request";
 
+  public static final String MANIFEST_SCAN_EVENT = "manifest scan";
+
   public static final String REMEDIATION_PULL_REQUEST_EVENT = "remediation pull request";
 
-  public static final String MANIFEST_SCAN_EVENT = "manifest scan";
+  public static final String STATUS_UPDATE_EVENT = "status update";
 
   public static final String EVENT_STATUS_NEW = "new";
 
@@ -40,6 +42,12 @@ public class  SourceControlEvent
   public static final String EVENT_STATUS_COMPLETE = "complete";
 
   public static final String EVENT_STATUS_ERROR = "error";
+
+  public static final int EVENT_PRIORITY_HIGHER = 1;
+
+  public static final int EVENT_PRIORITY_NORMAL = 2;
+
+  public static final int EVENT_PRIORITY_LOWER = 3;
 
   @Id
   @Column(name = "source_control_event_id")
@@ -54,6 +62,9 @@ public class  SourceControlEvent
   @Column(name = "event_type")
   private String eventType;
 
+  @Column(name = "event_priority")
+  private int eventPriority = EVENT_PRIORITY_NORMAL;
+
   @Column(name = "event_status")
   private String eventStatus;
 
@@ -65,6 +76,18 @@ public class  SourceControlEvent
 
   @Column(name = "policy_evaluation_id")
   private String policyEvaluationId;
+
+  @Column(name = "policy_evaluation_outcome")
+  private String policyEvaluationOutcome;
+
+  @Column(name = "critical_component_count")
+  private int criticalComponentCount;
+
+  @Column(name = "severe_component_count")
+  private int severeComponentCount;
+
+  @Column(name = "moderate_component_count")
+  private int moderateComponentCount;
 
   @Column(name = "target_policy_evaluation_id")
   private String targetPolicyEvaluationId;
@@ -149,6 +172,15 @@ public class  SourceControlEvent
     return this;
   }
 
+  public int getEventPriority() {
+    return eventPriority;
+  }
+
+  public SourceControlEvent setEventPriority(int eventPriority) {
+    this.eventPriority = eventPriority;
+    return this;
+  }
+
   public String getEventStatus() {
     return eventStatus;
   }
@@ -182,6 +214,49 @@ public class  SourceControlEvent
 
   public SourceControlEvent setPolicyEvaluationId(final String policyEvaluationId) {
     this.policyEvaluationId = policyEvaluationId;
+    return this;
+  }
+
+  public String getPolicyEvaluationOutcome() {
+    return policyEvaluationOutcome;
+  }
+
+  public SourceControlEvent setPolicyEvaluationOutcome(String policyEvaluationOutcome) {
+    this.policyEvaluationOutcome = policyEvaluationOutcome;
+    return this;
+  }
+
+  public int getCriticalComponentCount() {
+    return criticalComponentCount;
+  }
+
+  public SourceControlEvent setCriticalComponentCount(int criticalComponentCount) {
+    this.criticalComponentCount = criticalComponentCount;
+    return this;
+  }
+
+  public int getSevereComponentCount() {
+    return severeComponentCount;
+  }
+
+  public SourceControlEvent setSevereComponentCount(int severeComponentCount) {
+    this.severeComponentCount = severeComponentCount;
+    return this;
+  }
+
+  public int getModerateComponentCount() {
+    return moderateComponentCount;
+  }
+
+  public SourceControlEvent setModerateComponentCount(int moderateComponentCount) {
+    this.moderateComponentCount = moderateComponentCount;
+    return this;
+  }
+
+  public SourceControlEvent withComponentCounts(int critical, int severe, int moderate) {
+    this.criticalComponentCount = critical;
+    this.severeComponentCount = severe;
+    this.moderateComponentCount = moderate;
     return this;
   }
 

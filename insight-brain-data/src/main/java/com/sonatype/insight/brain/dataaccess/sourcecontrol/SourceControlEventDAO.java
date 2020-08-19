@@ -33,10 +33,9 @@ public class SourceControlEventDAO
   private static final String UPDATED_EVENT_WITH_STATUS = "updated event {} with status {}";
 
   public int reserveEventsForInstance(final String instanceId, final int quantity) {
-    String sQuery =
-        "SELECT entity.id FROM SourceControlEvent entity WHERE entity.instanceId IS NULL ORDER BY entity.createTime";
-    List<String> ids =
-        new Query<String>(sQuery).setMaxResults(quantity).getList();
+    String sQuery = "SELECT entity.id FROM SourceControlEvent entity"
+        + " WHERE entity.instanceId IS NULL ORDER BY entity.eventPriority, entity.createTime";
+    List<String> ids = new Query<String>(sQuery).setMaxResults(quantity).getList();
     return createQuery("UPDATE SourceControlEvent entity SET entity.instanceId=?2 WHERE entity.id IN (?1)", ids,
         instanceId).executeUpdate();
   }
@@ -57,7 +56,7 @@ public class SourceControlEventDAO
 
   public List<SourceControlEvent> selectEventsForInstance(final String instanceId, final int quantity) {
     String sQuery = SELECT_ENTITY +
-        "WHERE entity.instanceId = ?1 AND entity.eventStatus = ?2 ORDER BY entity.createTime";
+        "WHERE entity.instanceId = ?1 AND entity.eventStatus = ?2 ORDER BY entity.eventPriority, entity.createTime";
     Query<SourceControlEvent> query = new Query<>(sQuery, instanceId, SourceControlEvent.EVENT_STATUS_NEW);
     query.setMaxResults(quantity);
     return query.getList();

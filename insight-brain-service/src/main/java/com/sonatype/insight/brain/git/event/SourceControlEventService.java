@@ -19,6 +19,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.concurrent.SemaphorePool;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.git.GitCommitStatusService;
 import com.sonatype.insight.brain.git.ManifestScanService;
 import com.sonatype.insight.brain.git.PullRequestCommentingService;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
@@ -85,17 +86,21 @@ public class SourceControlEventService
 
   private final ManifestScanService manifestScanService;
 
+  private final GitCommitStatusService gitCommitStatusService;
+
   @Inject
   public SourceControlEventService(
       SourceControlEventDAO sourceControlEventDAO,
       PullRequestCommentingService pullRequestCommentingService,
       PullRequestRemediationService pullRequestRemediationService,
-      ManifestScanService manifestScanService)
+      ManifestScanService manifestScanService,
+      GitCommitStatusService gitCommitStatusService)
   {
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.pullRequestCommentingService = pullRequestCommentingService;
     this.pullRequestRemediationService = pullRequestRemediationService;
     this.manifestScanService = manifestScanService;
+    this.gitCommitStatusService = gitCommitStatusService;
   }
 
   /**
@@ -260,12 +265,16 @@ public class SourceControlEventService
           pullRequestCommentingService.onDiscoveredPullRequest(event);
           break;
 
+        case SourceControlEvent.MANIFEST_SCAN_EVENT:
+          manifestScanService.onManifestScan(event);
+          break;
+
         case SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT:
           pullRequestRemediationService.onRemediateComponent(event);
           break;
 
-        case SourceControlEvent.MANIFEST_SCAN_EVENT:
-          manifestScanService.onManifestScan(event);
+        case SourceControlEvent.STATUS_UPDATE_EVENT:
+          gitCommitStatusService.onSendCommitStatus(event);
           break;
 
         default:

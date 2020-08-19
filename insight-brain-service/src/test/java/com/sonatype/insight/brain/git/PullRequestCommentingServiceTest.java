@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
+import com.sonatype.insight.brain.git.helper.ApplicationEvaluationEventBuilder;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
@@ -1151,34 +1152,6 @@ public class PullRequestCommentingServiceTest
       features.put(Feature.PR_COMMENTING.getFlag(), enableFeatureFlag);
       config.setFeatures(features);
       return config;
-    }
-  }
-
-  private class ApplicationEvaluationEventBuilder
-  {
-    private ApplicationEvaluationEvent applicationEvaluationEvent;
-
-    private ApplicationEvaluationEventBuilder() {
-      applicationEvaluationEvent = new ApplicationEvaluationEvent();
-    }
-
-    ApplicationEvaluationEventBuilder withApplicationId(String applicationId) {
-      applicationEvaluationEvent.ownerId = applicationId;
-      return this;
-    }
-
-    ApplicationEvaluationEventBuilder withPolicyEvaluationId(String policyEvaluationId) {
-      applicationEvaluationEvent.policyEvaluationId = policyEvaluationId;
-      return this;
-    }
-
-    ApplicationEvaluationEventBuilder withCommitHash(String commitHash) {
-      applicationEvaluationEvent.commitHash = commitHash;
-      return this;
-    }
-
-    ApplicationEvaluationEvent build() {
-      return applicationEvaluationEvent;
     }
   }
 }

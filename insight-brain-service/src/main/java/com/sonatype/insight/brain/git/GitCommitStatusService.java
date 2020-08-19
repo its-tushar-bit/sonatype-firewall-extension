@@ -13,8 +13,11 @@ import javax.ws.rs.core.UriBuilder;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
@@ -28,14 +31,17 @@ import com.sonatype.nexus.scm.api.model.Status;
 import com.sonatype.nexus.scm.api.model.StatusRequest;
 
 import com.google.common.base.Strings;
+import com.google.common.eventbus.Subscribe;
+import io.dropwizard.lifecycle.Managed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
-public class GitApiService
+public class GitCommitStatusService
+    implements Managed
 {
-  private static final Logger log = LoggerFactory.getLogger(GitApiService.class);
+  private static final Logger log = LoggerFactory.getLogger(GitCommitStatusService.class);
 
   private static final String IQ_POLICY_EVALUATION = "IQ Policy Evaluation";
 
@@ -49,26 +55,31 @@ public class GitApiService
 
   private final SourceControlUtils sourceControlUtils;
 
+  private final SourceControlEventDAO sourceControlEventDAO;
+
+  private final AsyncEventBus asyncEventBus;
+
   @Inject
-  public GitApiService(
+  public GitCommitStatusService(
       final SourceControlUtils sourceControlUtils,
       final BaseUrl baseUrl,
       final ApplicationDAO applicationDAO,
       final GitClientFactory gitClientFactory,
-      ProductLicense productLicense)
+      ProductLicense productLicense,
+      SourceControlEventDAO sourceControlEventDAO,
+      AsyncEventBus asyncEventBus)
   {
     this.baseUrl = baseUrl;
     this.applicationDAO = applicationDAO;
     this.gitClientFactory = gitClientFactory;
     this.productLicense = productLicense;
     this.sourceControlUtils = sourceControlUtils;
+    this.sourceControlEventDAO = sourceControlEventDAO;
+    this.asyncEventBus = asyncEventBus;
   }
 
-  /**
-   * Responds to the application evaluation event by sending a SCM provider specific status message indicating
-   * the evaluation outcome and component counts if a commit hash was send with the policy evaluation request.
-   */
-  public void maybeRespond(final ApplicationEvaluationEvent event) {
+  @Subscribe
+  public void onApplicationEvaluation(final ApplicationEvaluationEvent event) {
     if (!productLicense.hasFeature(LicensedFeature.NOTIFICATIONS)) {
       log.debug("License does not support Source Control notifications feature");
       return;
@@ -81,41 +92,76 @@ public class GitApiService
 
     if (null == gitRepositoryInfo || null == gitRepositoryInfo.provider ||
         Strings.isNullOrEmpty(gitRepositoryInfo.token)) {
-      log.debug("The git repository information could not be found for application with id {}, " +
+      log.debug("The git repository information could not be found for application with id {}. " +
           "scm status could not be created.", event.ownerId);
       return;
     }
 
+    sourceControlEventDAO.insert(
+        new SourceControlEvent()
+            .setEventType(SourceControlEvent.STATUS_UPDATE_EVENT)
+            .setEventPriority(SourceControlEvent.EVENT_PRIORITY_HIGHER)
+            .setApplicationId(event.ownerId)
+            .setPolicyEvaluationId(event.policyEvaluationId)
+            .setPolicyEvaluationOutcome(event.outcome)
+            .setCommitHash(event.commitHash)
+            .setScanId(event.reportId)
+            .withComponentCounts(event.criticalComponentCount, event.severeComponentCount, event.moderateComponentCount)
+            .setInitiator(event.initiator)
+            .setStageTypeId(event.stageTypeId)
+    );
+  }
+
+  public void onSendCommitStatus(SourceControlEvent event) {
+    GitRepositoryInfo gitRepositoryInfo =
+        sourceControlUtils.getGitRepositoryInfoForApplication(event.getApplicationId());
+
+    if (null == gitRepositoryInfo || null == gitRepositoryInfo.provider ||
+        Strings.isNullOrEmpty(gitRepositoryInfo.token)) {
+      log.debug("The git repository information could not be found for application with id {}, " +
+          "scm status could not be created.", event.getApplicationId());
+      return;
+    }
+
     GitApiClient gitApiClient = gitClientFactory.createApiClient(gitRepositoryInfo);
+
     StatusRequest statusRequest = createStatusRequest(event, gitApiClient, gitRepositoryInfo.provider);
+
     log.debug("Creating a {} commit status for repository: {}, commit hash: {}, with outcome: {}, state: {}",
         gitRepositoryInfo.provider, gitApiClient.getProjectUri().getUrl(),
-        event.commitHash, event.outcome, statusRequest.getState());
+        event.getCommitHash(), event.getPolicyEvaluationOutcome(), statusRequest.getState());
     try {
-      Status status = gitApiClient.createStatus(event.commitHash, statusRequest);
-      log.debug("Commit status response: {}", status);
+      Status status = gitApiClient.createStatus(event.getCommitHash(), statusRequest);
+      log.info(
+          "Commit status sent for repository: {}, commit hash: {}, evaluation outcome: {}, state: {}, response: {}",
+          gitApiClient.getProjectUri().getUrl(), event.getCommitHash(), event.getPolicyEvaluationOutcome(),
+          statusRequest.getState(), status
+      );
     }
     catch (Exception e) {
       log.error("Failed to update status for applicationId: {}, repository: {}, commitHash: {}, " +
-              "triggered by policyEvaluationId: {}",
-          event.ownerId, gitRepositoryInfo.repositoryUrl, event.commitHash, event.policyEvaluationId, e);
+              "triggered by policyEvaluationId: {}, reason: {}",
+          event.getApplicationId(), gitRepositoryInfo.repositoryUrl, event.getCommitHash(),
+          event.getPolicyEvaluationId(), e.getMessage(), e);
     }
   }
 
-  private StatusRequest createStatusRequest(final ApplicationEvaluationEvent event,
-                                            final GitApiClient gitApiClient,
-                                            final SourceControlProvider provider)
+  private StatusRequest createStatusRequest(
+      final SourceControlEvent event,
+      final GitApiClient gitApiClient,
+      final SourceControlProvider provider)
   {
     return gitApiClient.createStatusRequest(
         getState(event, gitApiClient),
         IQ_POLICY_EVALUATION,
         createStatusMessage(event),
-        getReportUrl(event.ownerId, event.reportId, provider));
+        getReportUrl(event.getApplicationId(), event.getScanId(), provider));
   }
 
-  private String getReportUrl(final String ownerId,
-                              final String scanId,
-                              final SourceControlProvider provider)
+  private String getReportUrl(
+      final String ownerId,
+      final String scanId,
+      final SourceControlProvider provider)
   {
     Application application = applicationDAO.getByIdNotNull(ownerId);
     String reportPath = UserInterfaceLinksResource.getReportUrl(application.getPublicId(), scanId);
@@ -125,16 +171,18 @@ public class GitApiService
     return scanReceipt.resolveReportUrl(baseUrl.get());
   }
 
-  private String addSourceQuery(final String reportPath,
-                                final SourceControlProvider provider)
+  private String addSourceQuery(
+      final String reportPath,
+      final SourceControlProvider provider)
   {
     return UriBuilder.fromPath(reportPath).queryParam("source", provider.toString()).toString();
   }
 
-  private static String getState(final ApplicationEvaluationEvent event,
-                                 final GitApiClient gitApiClient)
+  private static String getState(
+      final SourceControlEvent event,
+      final GitApiClient gitApiClient)
   {
-    switch (event.outcome) {
+    switch (event.getPolicyEvaluationOutcome()) {
       case ApplicationEvaluationEvent.ACTION_ID_NONE:
       case Action.ID_WARN:
         return gitApiClient.getState(StateType.SUCCESS);
@@ -143,8 +191,18 @@ public class GitApiService
     }
   }
 
-  private static String createStatusMessage(final ApplicationEvaluationEvent event) {
-    return String.format("Components: Critical: %d, Severe: %d, Moderate: %d", event.criticalComponentCount,
-        event.severeComponentCount, event.moderateComponentCount);
+  private static String createStatusMessage(final SourceControlEvent event) {
+    return String.format("Components: Critical: %d, Severe: %d, Moderate: %d", event.getCriticalComponentCount(),
+        event.getSevereComponentCount(), event.getModerateComponentCount());
+  }
+
+  @Override
+  public void start() throws Exception {
+    asyncEventBus.register(this);
+  }
+
+  @Override
+  public void stop() throws Exception {
+    asyncEventBus.unregister(this);
   }
 }

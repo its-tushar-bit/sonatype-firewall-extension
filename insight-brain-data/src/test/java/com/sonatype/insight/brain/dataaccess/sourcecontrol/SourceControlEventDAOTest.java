@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -178,6 +180,33 @@ public class SourceControlEventDAOTest
   }
 
   @Test
+  public void testReserveEventsForInstance_eventPriority() {
+    // given: a set of prioritized events
+    createNewPrioritizedSourceControlEvents(app.getId(), 2, 2, 1, 3, 2);
+
+    // when: reserve the events
+    int reserved = sourceControlEventDAO.reserveEventsForInstance("instance-1", 5);
+
+    // then:
+    assertThat(reserved).isEqualTo(5);
+    List<SourceControlEvent> events = sourceControlEventDAO.selectEventsForInstance("instance-1", 5);
+    int priority = 0;
+    for (SourceControlEvent event : events) {
+      assertThat(event.getEventPriority()).isGreaterThanOrEqualTo(priority);
+      priority = event.getEventPriority();
+    }
+
+    // when: clear reservations and reserve single event
+    sourceControlEventDAO.clearEventReservations();
+    reserved = sourceControlEventDAO.reserveEventsForInstance("instance-2", 1);
+
+    // then: reserved event is the only priorty 1 event
+    assertThat(reserved).isEqualTo(1);
+    events = sourceControlEventDAO.selectEventsForInstance("instance-2", 1);
+    assertThat(events.get(0).getEventPriority()).isEqualTo(1);
+  }
+
+  @Test
   public void testMarkEventInProgress() {
     // given 4 new source control events
     createNewSourceControlEvents(4);
@@ -339,6 +368,22 @@ public class SourceControlEventDAOTest
       SourceControlEvent newSourceControlEvent = getNewSourceControlEvent(applicationId);
       sourceControlEventDAO.insert(newSourceControlEvent);
     }
+  }
+
+  private List<SourceControlEvent> createNewPrioritizedSourceControlEvents(
+      final String applicationId,
+      int... priorities)
+  {
+    final List<SourceControlEvent> result = new ArrayList<>();
+    LocalDateTime created = LocalDateTime.now();
+    for (int priority : priorities) {
+      SourceControlEvent sourceControlEvent = getNewSourceControlEvent(applicationId)
+          .setEventPriority(priority)
+          .setCreateTime(Date.from(created.toInstant(ZoneOffset.UTC)));
+      sourceControlEventDAO.insert(sourceControlEvent);
+      created = created.plusMinutes(1);
+    }
+    return result;
   }
 
   private Date toDate(final LocalDateTime localDateTime) {

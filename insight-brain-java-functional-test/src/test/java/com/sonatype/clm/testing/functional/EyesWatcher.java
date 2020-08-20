@@ -5,8 +5,6 @@
  */
 package com.sonatype.clm.testing.functional;
 
-import java.util.Locale;
-
 import com.applitools.eyes.BatchInfo;
 import com.applitools.eyes.selenium.Eyes;
 import com.applitools.eyes.selenium.fluent.SeleniumCheckSettings;
@@ -136,6 +134,6 @@ public class EyesWatcher
   }
 
   private static boolean isApplitoolsEnabled() {
-    return isMaster() || localBranchName.toLowerCase(Locale.ENGLISH).contains("_ui");
+    return isMaster() || new VisualTestBranchEnabler().isVisualTestingEnabledForBranch(localBranchName);
   }
 }

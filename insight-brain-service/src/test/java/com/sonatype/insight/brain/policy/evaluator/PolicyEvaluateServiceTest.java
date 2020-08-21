@@ -453,7 +453,7 @@ public class PolicyEvaluateServiceTest
     assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.COMPLETED);
     assertThat(policyEvaluationPollingResult.getReason()).isNull();
     assertThat(policyEvaluationPollingResult.getResult()).isNotNull();
-    assertThat(policyEvaluationPollingResult.getScanReceipt()).isEqualTo(scanReceipt);
+    assertThat(policyEvaluationPollingResult.getScanReceipt()).usingRecursiveComparison().isEqualTo(scanReceipt);
 
     assertEvaluate(scanId, stage, policyEvaluationResult, policy1, mockJiraClient, appComponentDAO, mailA, mailB);
   }
@@ -543,7 +543,7 @@ public class PolicyEvaluateServiceTest
     assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.PENDING);
     assertThat(policyEvaluationPollingResult.getReason()).isNull();
     assertThat(policyEvaluationPollingResult.getResult()).isNull();
-    assertThat(policyEvaluationPollingResult.getScanReceipt()).isEqualTo(scanReceipt);
+    assertThat(policyEvaluationPollingResult.getScanReceipt()).usingRecursiveComparison().isEqualTo(scanReceipt);
   }
 
   private PolicyEvaluationPollingResult waitForResult(String appId, String scanId,
@@ -645,7 +645,7 @@ public class PolicyEvaluateServiceTest
     assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.COMPLETED);
     assertThat(policyEvaluationPollingResult.getReason()).isNull();
     assertThat(policyEvaluationPollingResult.getResult()).isNotNull();
-    assertThat(policyEvaluationPollingResult.getScanReceipt()).isEqualTo(scanReceipt);
+    assertThat(policyEvaluationPollingResult.getScanReceipt()).usingRecursiveComparison().isEqualTo(scanReceipt);
   }
 
   @Test
@@ -710,7 +710,7 @@ public class PolicyEvaluateServiceTest
     assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.COMPLETED);
     assertThat(policyEvaluationPollingResult.getReason()).isNull();
     assertThat(policyEvaluationPollingResult.getResult()).isNotNull();
-    assertThat(policyEvaluationPollingResult.getScanReceipt()).isEqualTo(scanReceipt);
+    assertThat(policyEvaluationPollingResult.getScanReceipt()).usingRecursiveComparison().isEqualTo(scanReceipt);
   }
 
   /**

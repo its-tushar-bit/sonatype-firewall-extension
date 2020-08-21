@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternUp
 import com.sonatype.insight.brain.migration.ScanFileCleaner;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
+import com.sonatype.insight.brain.policy.evaluator.PersistedPolicyEvaluationPollingResultCleaner;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
 import com.sonatype.insight.brain.product.notifications.HdsProductNotificationService;
 import com.sonatype.insight.brain.report.ReportPurger;
@@ -298,6 +299,7 @@ public class TestInsightBrainService
     getInstance(ClusterTelemetryTask.class).disableForTesting = true;
     getInstance(FirewallIgnorePatternUpdater.class).disableForTesting = true;
     getInstance(IndexService.class).disableForTesting = true;
+    getInstance(PersistedPolicyEvaluationPollingResultCleaner.class).disableForTesting = true;
   }
 
   @Override

@@ -62,6 +62,7 @@
     <class>com.sonatype.insight.brain.model.configuration.ProductLicense</class>
     <class>com.sonatype.insight.brain.model.configuration.FirewallIgnorePatterns</class>
     <class>com.sonatype.insight.brain.model.Lock</class>
+    <class>com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult</class>
     <properties>
       <!--
       <property name="openjpa.ConnectionURL" value="jdbc:hsqldb:tutorial_database"/>

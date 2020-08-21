@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -23,11 +22,13 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
+import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.StageTypeService;
@@ -42,9 +43,6 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import io.dropwizard.lifecycle.Managed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,10 +76,7 @@ public class PolicyEvaluateService
   
   private final StageTypeService stageTypeService;
 
-  @VisibleForTesting
-  final Cache<String, PolicyEvaluationPollingResult> policyEvaluationPollingResults =
-      CacheBuilder.newBuilder().expireAfterWrite(2, TimeUnit.HOURS)
-          .build();
+  private final PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO;
 
   @Inject
   public PolicyEvaluateService(ScanPolicyEvaluator scanPolicyEvaluator,
@@ -89,7 +84,8 @@ public class PolicyEvaluateService
                                ErrorResponseGenerator errorResponseGenerator,
                                ScanHandler scanHandler,
                                ProductLicense productLicense,
-                               StageTypeService stageTypeService)
+                               StageTypeService stageTypeService,
+                               PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO)
   {
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyAlertNotifier = policyAlertNotifier;
@@ -97,6 +93,7 @@ public class PolicyEvaluateService
     this.scanHandler = scanHandler;
     this.productLicense = productLicense;
     this.stageTypeService = stageTypeService;
+    this.persistedPolicyEvaluationPollingResultDAO = persistedPolicyEvaluationPollingResultDAO;
 
     executor = new PolicyEvaluationThreadPoolExecutor();
   }
@@ -108,10 +105,6 @@ public class PolicyEvaluateService
   @Override
   public void stop() throws Exception {
     executor.shutdown();
-  }
-
-  private String getPolicyEvaluationKey(String applicationPublicId, String statusId) {
-    return ApplicationDAO.normalizePublicId(applicationPublicId) + ":" + statusId;
   }
 
   // default access for testing
@@ -201,13 +194,13 @@ public class PolicyEvaluateService
       String thirdPartyScanType,
       String userAgent)
   {
-    String policyEvaluationKey = getPolicyEvaluationKey(app.getPublicId(), statusId);
-
     // to avoid any race condition when the following task attempts to update
     PolicyEvaluationPollingResult initialResult = new PolicyEvaluationPollingResult();
     initialResult.setStatus(PolicyEvaluationStatus.PENDING);
     initialResult.setNextPollingIntervalInSeconds(getNextPollingInterval());
-    policyEvaluationPollingResults.put(policyEvaluationKey, initialResult);
+    PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
+        new PersistedPolicyEvaluationPollingResult(app.getId(), statusId, initialResult);
+    persistedPolicyEvaluationPollingResultDAO.insert(persistedPolicyEvaluationPollingResult);
 
     log.debug(
         "Submitting policy evaluation task for app public id {}, clientScanType {}, stageTypeId {}. "
@@ -215,7 +208,8 @@ public class PolicyEvaluateService
         app.getPublicId(), clientScanType, stage.getStageTypeId(), statusId);
     AuditData.get().continueAsync(
         new EvaluationTask(app, clientScanType, statusId, stage, tempScanFile,
-            buildThirdPartyScanTelemetryData(app.getPublicId(), stage, thirdPartyScanType, userAgent)),
+            buildThirdPartyScanTelemetryData(app.getPublicId(), stage, thirdPartyScanType, userAgent),
+            persistedPolicyEvaluationPollingResult),
         executor::submit);
   }
 
@@ -227,14 +221,15 @@ public class PolicyEvaluateService
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
       String statusId)
   {
-    PolicyEvaluationPollingResult policyEvaluationPollingResult =
-        policyEvaluationPollingResults.getIfPresent(getPolicyEvaluationKey(applicationPublicId, statusId));
-    if (policyEvaluationPollingResult == null) {
+    PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
+        persistedPolicyEvaluationPollingResultDAO
+            .getByApplicationIdAndStatusId(new ApplicationDAO().getByPublicId(applicationPublicId).getId(), statusId);
+    if (persistedPolicyEvaluationPollingResult == null) {
       throw new NotFoundException(String
           .format("Policy evaluation status with id %s for public application id %s was not found.", statusId,
               applicationPublicId));
     }
-    return policyEvaluationPollingResult;
+    return persistedPolicyEvaluationPollingResult.getPolicyEvaluationPollingResult();
   }
 
   /**
@@ -256,6 +251,8 @@ public class PolicyEvaluateService
     private final TelemetryData telemetryData;
 
     private final long taskCreateTime = System.currentTimeMillis();
+    
+    private final PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult;
 
     EvaluationTask(
         final Application app,
@@ -263,7 +260,8 @@ public class PolicyEvaluateService
         final String statusId,
         final Stage stage,
         final File tempScanFile,
-        final TelemetryData telemetryData)
+        final TelemetryData telemetryData,
+        final PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult)
     {
       this.app = app;
       this.clientScanType = clientScanType;
@@ -271,6 +269,7 @@ public class PolicyEvaluateService
       this.stage = stage;
       this.tempScanFile = tempScanFile;
       this.telemetryData = telemetryData;
+      this.persistedPolicyEvaluationPollingResult = persistedPolicyEvaluationPollingResult;
     }
 
     @Override
@@ -284,15 +283,14 @@ public class PolicyEvaluateService
       policyEvaluationPollingResult.setStatus(PolicyEvaluationStatus.PENDING);
       policyEvaluationPollingResult.setNextPollingIntervalInSeconds(getNextPollingInterval());
 
-      String policyEvaluationKey = getPolicyEvaluationKey(app.getPublicId(), statusId);
-
       try {
         ScanReceipt scanReceipt = scanHandler.handle(tempScanFile, app, clientScanType, telemetryData,
             stage.getStageTypeId());
         scanId = scanReceipt.getScanId();
 
         policyEvaluationPollingResult.setScanReceipt(scanReceipt);
-        policyEvaluationPollingResults.put(policyEvaluationKey, policyEvaluationPollingResult);
+        persistedPolicyEvaluationPollingResult.setPolicyEvaluationPollingResult(policyEvaluationPollingResult);
+        persistedPolicyEvaluationPollingResultDAO.update(persistedPolicyEvaluationPollingResult);
 
         final long start = System.currentTimeMillis();
 
@@ -321,11 +319,11 @@ public class PolicyEvaluateService
         policyEvaluationPollingResult = makeCopy(policyEvaluationPollingResult);
         policyEvaluationPollingResult.setStatus(PolicyEvaluationStatus.FAILED);
         policyEvaluationPollingResult.setReason(errorResponseGenerator.mapExceptionAndLog(e).getMessageBody());
-        policyEvaluationPollingResults.put(policyEvaluationKey, policyEvaluationPollingResult);
         AuditData.get()
             .setException(new RuntimeException(errorResponseGenerator.mapExceptionAndLog(e).getMessageBody(), e));
       }
-      policyEvaluationPollingResults.put(policyEvaluationKey, policyEvaluationPollingResult);
+      persistedPolicyEvaluationPollingResult.setPolicyEvaluationPollingResult(policyEvaluationPollingResult);
+      persistedPolicyEvaluationPollingResultDAO.update(persistedPolicyEvaluationPollingResult);
     }
 
     private PolicyEvaluationPollingResult makeCopy(PolicyEvaluationPollingResult from) {

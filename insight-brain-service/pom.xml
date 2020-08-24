@@ -683,7 +683,8 @@
               <shadedClassifierName>server</shadedClassifierName>
               <artifactSet>
                 <excludes>
-                  <exclude>com.sonatype.insight.scan:insight-scanner-hashing</exclude>
+                  <exclude>com.sonatype.insight.scan:insight-scanner-hashing*</exclude>
+                  <exclude>org.ow2.asm:asm*</exclude>
                 </excludes>
               </artifactSet>
               <filters>

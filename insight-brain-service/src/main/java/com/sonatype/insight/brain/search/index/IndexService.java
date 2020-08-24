@@ -350,6 +350,9 @@ public class IndexService
 
   private void updateIndex(SearchIndexChange change, IndexingContext indexingContext) throws IOException {
     switch (change.getChangeType()) {
+      case APPLICATION:
+        updateIndexForApplication(change.getChangeData(), indexingContext);
+        break;
       case LAST_POLICY_EVALUATION:
         String[] ids = change.getChangeData().split(":");
         updateIndexForPolicyEvaluation(ids[0], ids[1], indexingContext);
@@ -371,6 +374,29 @@ public class IndexService
     StageType stageType = StageTypes.getById(stageTypeId);
     addDocsWithException(indexingContext.indexWriter,
         buildApplicationStageSVDocs(indexingContext, application, stageType));
+  }
+
+  private void updateIndexForApplication(String applicationId, IndexingContext indexingContext) throws IOException {
+    Query queryForObsoleteDocs = indexingContext.newQuery(FieldIdentifier.APPLICATION_ID, applicationId);
+    indexingContext.indexWriter.deleteDocuments(queryForObsoleteDocs);
+    
+    Application app = applicationDAO.getById(applicationId);
+    if (app == null) {
+      return;
+    }
+
+    // Index the app itself
+    addDocsWithException(indexingContext.indexWriter, Collections.singletonList(buildDocument(indexingContext, app)));
+    // Index the app labels
+    List<Document> appLabelDocs = labelDAO.getByOwnerId(app.getId()).stream()
+        .map(label -> buildDocument(indexingContext, label)).collect(toList());
+    addDocsWithException(indexingContext.indexWriter, appLabelDocs);
+    // Index the app policy
+    List<Document> appPolicyDocs = policyDAO.getByOwnerId(app.getId()).stream()
+        .map(policy -> buildDocument(indexingContext, policy)).collect(toList());
+    addDocsWithException(indexingContext.indexWriter, appPolicyDocs);
+    // Index the app SVs
+    addDocsWithException(indexingContext.indexWriter, buildApplicationSVDocs(indexingContext, app));
   }
 
   private static void addDocsWithException(IndexWriter writer, List<Document> docs) {

@@ -20,6 +20,7 @@ import java.util.Set;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -44,6 +45,9 @@ import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.SearchIndexChange;
+import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
@@ -966,5 +970,31 @@ public class ApplicationDAOTest
     app = applicationDAO.getById(app.getId());
     assertThat(app.getName()).isEqualTo(newName);
     assertThat(app.getPublicId()).isEqualTo(invalidAppId);
+  }
+
+  @Test
+  public void testCRUD_RecordSearchIndexChange() {
+    new SystemConfigurationPropertyDAO()
+        .update(new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true"));
+    Application app = tempEntity.newApplicationWithParent();
+
+    List<SearchIndexChange> searchIndexChanges = new SearchIndexChangeDAO().getAll();
+    assertThat(searchIndexChanges).hasSize(1);
+    assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.APPLICATION);
+    assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(app.getId());
+    new SearchIndexChangeDAO().delete(searchIndexChanges.get(0));
+
+    applicationDAO.update(app);
+    searchIndexChanges = new SearchIndexChangeDAO().getAll();
+    assertThat(searchIndexChanges).hasSize(1);
+    assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.APPLICATION);
+    assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(app.getId());
+    new SearchIndexChangeDAO().delete(searchIndexChanges.get(0));
+
+    applicationDAO.delete(app);
+    searchIndexChanges = new SearchIndexChangeDAO().getAll();
+    assertThat(searchIndexChanges).hasSize(1);
+    assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.APPLICATION);
+    assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(app.getId());
   }
 }

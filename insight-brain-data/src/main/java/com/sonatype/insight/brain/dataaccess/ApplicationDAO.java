@@ -29,6 +29,8 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.SearchIndexChange;
+import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -399,5 +401,10 @@ public class ApplicationDAO
 
   public static String normalizePublicId(String publicId) {
     return publicId.trim().toLowerCase(Locale.ENGLISH);
+  }
+
+  @Override
+  protected SearchIndexChange newSearchIndexChange(Application entity) {
+    return new SearchIndexChange(ChangeType.APPLICATION, entity.getId());
   }
 }

@@ -695,4 +695,49 @@ public class IndexSearchingTest
     assertThat(search(FieldIdentifier.POLICY_EVALUATION_STAGE, newEval2.getStageTypeId()))
         .extracting(dto -> dto.reportId).containsOnly(newEval2.getScanId());
   }
+
+  @Test
+  public void testIncrementalUpdate_Application() throws Exception {
+    index();
+
+    // Add application
+    Application app = tempEntity.newApplicationWithParent();
+    indexChanges();
+    List<SearchResultItemDTO> searchResults = search(FieldIdentifier.APPLICATION_NAME, app.getName());
+    assertThat(searchResults).hasSize(1);
+    assertApplicationData(searchResults.get(0), app);
+
+    // Add app related entities and re-index everything.
+    // The docs for these new entities should be updated when the app is updated.
+    tempEntity.newLabel(app.getId());
+    tempEntity.newPolicy(app);
+    newAppReport(app.getId(), Stage.ID_BUILD, "testReportId");
+    index();
+    searchResults = search(FieldIdentifier.APPLICATION_NAME, app.getName());
+    // There should be 5 results: app, label, policy, 2 SVs
+    assertThat(searchResults).hasSize(5);
+    searchResults.forEach(searchResult -> assertApplicationData(searchResult, app));
+
+    // Update application
+    String oldAppName = app.getName();
+    String oldAppPublicId = app.getPublicId();
+    app.setName("NewAppName");
+    app.setPublicId("NewAppPublicId");
+    new ApplicationDAO().update(app);
+    indexChanges();
+    // Verify the new values are in the index
+    searchResults = search(FieldIdentifier.APPLICATION_NAME, app.getName());
+    assertThat(searchResults).hasSize(5);
+    searchResults.forEach(searchResult -> assertApplicationData(searchResult, app));
+    // Verify the old values were removed from the index
+    assertThat(search(FieldIdentifier.APPLICATION_NAME, oldAppName)).isEmpty();
+    assertThat(search(FieldIdentifier.APPLICATION_PUBLIC_ID, oldAppPublicId)).isEmpty();
+
+    // Delete application
+    new ApplicationDAO().delete(app);
+    indexChanges();
+    assertThat(search(FieldIdentifier.APPLICATION_ID, app.getId())).isEmpty();
+    assertThat(search(FieldIdentifier.APPLICATION_NAME, app.getName())).isEmpty();
+    assertThat(search(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId())).isEmpty();
+  }
 }

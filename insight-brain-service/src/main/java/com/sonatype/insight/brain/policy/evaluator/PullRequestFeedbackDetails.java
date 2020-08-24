@@ -180,7 +180,7 @@ public class PullRequestFeedbackDetails
 
     //Get a map containing all model values to be used in the template
     final Map<String, Object> modelMap =
-        getModelMap(newComponentFeedbackList, fixedComponentFeedbackList, baseUrl);
+        getModelMap(newComponentFeedbackList, fixedComponentFeedbackList, gitRepositoryInfo.provider, baseUrl);
 
     return TemplateUtils.render(getPolicyTemplate(), modelMap);
   }
@@ -379,6 +379,7 @@ public class PullRequestFeedbackDetails
   private Map<String, Object> getModelMap(
       final List<Map<String, Object>> newComponentFeedbackList,
       final List<Map<String, Object>> fixedComponentFeedbackList,
+      final SourceControlProvider provider,
       final String baseUrl)
   {
     return ImmutableMap.<String, Object>builder()
@@ -401,6 +402,7 @@ public class PullRequestFeedbackDetails
             fixedComponentFeedbackList.stream().mapToInt(item -> ((List<?>) item.get("policiesViolated")).size()).sum()
         )
         .put("threatImageArray", THREAT_IMAGE_ARRAY)
+        .put("provider", provider)
         .build();
   }
 

@@ -82,6 +82,8 @@ public class PullRequestFeedbackDetailsTest
   
   private GitRepositoryInfo githubGitRepositoryInfo;
 
+  private GitRepositoryInfo gitlabGitRepositoryInfo;
+
   private GitRepositoryInfo bitbucketGitRepositoryInfo;
 
   private int pullRequestNumber = 10;
@@ -160,6 +162,24 @@ public class PullRequestFeedbackDetailsTest
   }
 
   @Test
+  public void testPullRequestFeedback_addedOnly_GitLab() throws Exception {
+    //setup test data
+    setupTestData();
+
+    //when
+    final PullRequestFeedbackDetails details =
+        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
+            remediationVersionMap, pullRequestLineComments, gitlabGitRepositoryInfo, pullRequestNumber, app,
+            lookup(BaseUrl.class).getConfigured());
+
+    //then assert that created contents match expected
+    final String expectedContent = readResource("PullRequestFeedback_Added_GitLab.md");
+    final Optional<String> contents = details.renderTemplateAndGetContents();
+    assertThat(contents).isNotEmpty();
+    assertThat(contents.get()).isEqualTo(expectedContent);
+  }
+
+  @Test
   public void testPullRequestFeedback_clearedOnly() throws Exception {
     //setup test data
     setupTestData("/PullRequestFeedbackDetailsTest/to-report", "/PullRequestFeedbackDetailsTest/from-report");
@@ -196,18 +216,29 @@ public class PullRequestFeedbackDetailsTest
   }
 
   @Test
+  public void testPullRequestFeedback_clearedOnly_GitLab() throws Exception {
+    //setup test data
+    setupTestData("/PullRequestFeedbackDetailsTest/to-report", "/PullRequestFeedbackDetailsTest/from-report");
+
+    //when
+    final PullRequestFeedbackDetails details =
+        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
+            remediationVersionMap, pullRequestLineComments, gitlabGitRepositoryInfo, pullRequestNumber, app,
+            lookup(BaseUrl.class).getConfigured());
+
+    //then assert that created contents match expected
+    final String expectedContent = readResource("PullRequestFeedback_Cleared_GitLab.md");
+    final Optional<String> contents = details.renderTemplateAndGetContents();
+    assertThat(contents).isNotEmpty();
+    assertThat(contents.get()).isEqualTo(expectedContent);
+  }
+
+  @Test
   public void testPullRequestFeedback_addedAndCleared() throws Exception {
     //setup test data
     setupTestData();
     // create cleared policy violation that does not exist in the bom file
-    PolicyViolation existingViolation = diff.getAppeared().get(0);
-    PolicyViolation policyViolation = new PolicyViolation();
-    policyViolation.setHash("12345678abcd12345678");
-    policyViolation.setComponentIdentifier(
-        ComponentIdentifier.createMavenCoordinates("org.group.fixed", "fixed-artifact", "1.0"));
-    policyViolation.setConstraintFacts(existingViolation.getConstraintFacts());
-    policyViolation.setPolicyId(existingViolation.getPolicyId());
-    policyViolation.setPolicyName(existingViolation.getPolicyName());
+    PolicyViolation policyViolation = createClearedPolicyViolation();
     diff.getCleared().add(policyViolation);
 
     //when
@@ -237,6 +268,27 @@ public class PullRequestFeedbackDetailsTest
 
     //then assert that created contents match expected
     final String expectedContent = readResource("PullRequestFeedback_AddedAndCleared_noEmbeddedHtml.md");
+    final Optional<String> contents = details.renderTemplateAndGetContents();
+    assertThat(contents).isNotEmpty();
+    assertThat(contents.get()).isEqualTo(expectedContent);
+  }
+
+  @Test
+  public void testPullRequestFeedback_addedAndCleared_GitLab() throws Exception {
+    //setup test data
+    setupTestData();
+    // create cleared policy violation that does not exist in the bom file
+    PolicyViolation policyViolation = createClearedPolicyViolation();
+    diff.getCleared().add(policyViolation);
+
+    //when
+    final PullRequestFeedbackDetails details =
+        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
+            remediationVersionMap, pullRequestLineComments, gitlabGitRepositoryInfo, pullRequestNumber, app,
+            lookup(BaseUrl.class).getConfigured());
+
+    //then assert that created contents match expected
+    final String expectedContent = readResource("PullRequestFeedback_AddedAndCleared_GitLab.md");
     final Optional<String> contents = details.renderTemplateAndGetContents();
     assertThat(contents).isNotEmpty();
     assertThat(contents.get()).isEqualTo(expectedContent);
@@ -275,6 +327,25 @@ public class PullRequestFeedbackDetailsTest
 
     //then assert that created contents match expected
     final String expectedContent = readResource("PullRequestFeedback_NoAddedOrCleared_noEmbeddedHtml.md");
+    final Optional<String> contents = details.renderTemplateAndGetContents();
+    assertThat(contents).isNotEmpty();
+    assertThat(contents.get()).isEqualTo(expectedContent);
+  }
+
+  @Test
+  public void testPullRequestFeedback_noAddedOrCleared_GitLab() throws Exception {
+    //setup test data
+    setupTestData();
+    diff.getAppeared().clear();
+
+    //when
+    final PullRequestFeedbackDetails details =
+        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
+            remediationVersionMap, pullRequestLineComments, gitlabGitRepositoryInfo, pullRequestNumber, app,
+            lookup(BaseUrl.class).getConfigured());
+
+    //then assert that created contents match expected
+    final String expectedContent = readResource("PullRequestFeedback_NoAddedOrCleared_GitLab.md");
     final Optional<String> contents = details.renderTemplateAndGetContents();
     assertThat(contents).isNotEmpty();
     assertThat(contents.get()).isEqualTo(expectedContent);
@@ -548,6 +619,18 @@ public class PullRequestFeedbackDetailsTest
     assertThat(result).isEmpty();
   }
 
+  private PolicyViolation createClearedPolicyViolation() {
+    PolicyViolation existingViolation = diff.getAppeared().get(0);
+    PolicyViolation policyViolation = new PolicyViolation();
+    policyViolation.setHash("12345678abcd12345678");
+    policyViolation.setComponentIdentifier(
+        ComponentIdentifier.createMavenCoordinates("org.group.fixed", "fixed-artifact", "1.0"));
+    policyViolation.setConstraintFacts(existingViolation.getConstraintFacts());
+    policyViolation.setPolicyId(existingViolation.getPolicyId());
+    policyViolation.setPolicyName(existingViolation.getPolicyName());
+    return policyViolation;
+  }
+
   private void setupTestData() throws IOException, URISyntaxException {
     setupTestData("/PullRequestFeedbackDetailsTest/from-report", "/PullRequestFeedbackDetailsTest/to-report");
   }
@@ -585,6 +668,10 @@ public class PullRequestFeedbackDetailsTest
     githubGitRepositoryInfo =
         new GitRepositoryInfo("https://github.com/sonatype/enhanced-commit-information", null, "token",
             SourceControlProvider.GITHUB, "master", true, true);
+
+    gitlabGitRepositoryInfo =
+        new GitRepositoryInfo("https://gitlab.com/sonatype/enhanced-commit-information", null, "token",
+            SourceControlProvider.GITLAB, "master", true, true);
 
     bitbucketGitRepositoryInfo =
         new GitRepositoryInfo("https://bitbucket.com/scm/sonatype/enhanced-commit-information", "user", "token",

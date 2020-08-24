@@ -71,18 +71,6 @@ public class LicenseOverrideServiceTest
     }
   }
 
-  private void testGetAppliedLicenseOverrides_hierarchyHideRoot(final Owner owner) {
-    testGetAppliedLicenseOverrides_hierarchyHideRoot(owner, owner.getId());
-  }
-
-  private void testGetAppliedLicenseOverrides_hierarchyHideRoot(final Owner owner, final String ownerId) {
-    final AppliedLicenseOverrides overrides = service.getAppliedLicenseOverrides(owner.getType(), ownerId,
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
-
-    assertThat(overrides.licenseOverridesByOwner).extracting(licenseOverrideByOwner -> licenseOverrideByOwner.ownerId)
-        .containsExactlyInAnyOrder(ownerId, owner.getParentOwnerId()).doesNotContain(Organization.ROOT_ORGANIZATION_ID);
-  }
-
   @Before
   public void setup() {
     service = new LicenseOverrideService(work, new OwnerDAO(), currentUser, new LicenseOverrideDAO(), new LicenseDAO(),

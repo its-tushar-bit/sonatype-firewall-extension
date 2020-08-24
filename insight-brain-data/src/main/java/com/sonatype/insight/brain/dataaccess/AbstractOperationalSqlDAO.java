@@ -60,7 +60,7 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     return newSearchIndexChange(entity);
   }
 
-  protected SearchIndexChange newSearchIndexChange(T entity) {
+  protected SearchIndexChange newSearchIndexChange(@SuppressWarnings("unused") T entity) {
     // by default, no contribution to the search index
     return null;
   }

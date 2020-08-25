@@ -368,7 +368,7 @@ public class ApiSourceControlService
 
   @Authorize(permission = Permission.READ)
   public ApiPullRequestResults getSourceControlMetricsForApplication(
-      @AuthzContext(Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(Key.TYPE) @SuppressWarnings("unused") final OwnerType ownerType,
       @AuthzContext(Key.INTERNAL_ID) final String ownerId)
   {
     checkLicense();

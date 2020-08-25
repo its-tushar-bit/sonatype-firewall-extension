@@ -15,6 +15,7 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
@@ -739,5 +740,48 @@ public class IndexSearchingTest
     assertThat(search(FieldIdentifier.APPLICATION_ID, app.getId())).isEmpty();
     assertThat(search(FieldIdentifier.APPLICATION_NAME, app.getName())).isEmpty();
     assertThat(search(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId())).isEmpty();
+  }
+
+  @Test
+  public void testIncrementalUpdate_Organization() throws Exception {
+    index();
+
+    // Add organization
+    Organization org = tempEntity.newOrganization("TestOrgName");
+    indexChanges();
+    List<SearchResultItemDTO> searchResults = search(FieldIdentifier.ORGANIZATION_NAME, org.getName());
+    assertThat(searchResults).hasSize(1);
+    assertOrganizationData(searchResults.get(0), org);
+
+    // Add org related entities and re-index everything.
+    // The docs for these new entities should be updated when the org is updated.
+    Application app = tempEntity.newApplication(org.getId());
+    tempEntity.newTag(org.getId());
+    tempEntity.newLabel(org.getId());
+    tempEntity.newPolicy(org);
+    index();
+    searchResults = search(FieldIdentifier.ORGANIZATION_NAME, org.getName());
+    // There should be 5 results: org, app category, label, policy
+    assertThat(searchResults).hasSize(5);
+    searchResults.forEach(searchResult -> assertOrganizationData(searchResult, org));
+
+    // Update organization
+    String oldOrgName = org.getName();
+    org.setName("NewOrgName");
+    new OrganizationDAO().update(org);
+    indexChanges();
+    // Verify the new values are in the index
+    searchResults = search(FieldIdentifier.ORGANIZATION_NAME, org.getName());
+    assertThat(searchResults).hasSize(5);
+    searchResults.forEach(searchResult -> assertOrganizationData(searchResult, org));
+    // Verify the old values were removed from the index
+    assertThat(search(FieldIdentifier.ORGANIZATION_NAME, oldOrgName)).isEmpty();
+
+    // Delete organization
+    new ApplicationDAO().delete(app);
+    new OrganizationDAO().delete(org);
+    indexChanges();
+    assertThat(search(FieldIdentifier.ORGANIZATION_ID, org.getId())).isEmpty();
+    assertThat(search(FieldIdentifier.ORGANIZATION_NAME, org.getName())).isEmpty();
   }
 }

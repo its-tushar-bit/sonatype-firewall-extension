@@ -21,6 +21,8 @@ import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.SearchIndexChange;
+import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -229,5 +231,10 @@ public class OrganizationDAO
     String sQuery = "SELECT entity FROM Organization entity" + //
         " WHERE entity.parentOrganizationId=?1";
     return getList(tx, sQuery, parentOrganizationId);
+  }
+
+  @Override
+  protected SearchIndexChange newSearchIndexChange(Organization entity) {
+    return new SearchIndexChange(ChangeType.ORGANIZATION, entity.getId());
   }
 }

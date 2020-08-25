@@ -976,23 +976,27 @@ public class ApplicationDAOTest
   public void testCRUD_RecordSearchIndexChange() {
     new SystemConfigurationPropertyDAO()
         .update(new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true"));
-    Application app = tempEntity.newApplicationWithParent();
+    SearchIndexChangeDAO searchIndexChangeDAO = new SearchIndexChangeDAO();
+    Organization org = tempEntity.newOrganization();
+    searchIndexChangeDAO.getAll().forEach(searchIndexChangeDAO::delete);
 
-    List<SearchIndexChange> searchIndexChanges = new SearchIndexChangeDAO().getAll();
+    Application app = tempEntity.newApplication(org.getId());
+
+    List<SearchIndexChange> searchIndexChanges = searchIndexChangeDAO.getAll();
     assertThat(searchIndexChanges).hasSize(1);
     assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.APPLICATION);
     assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(app.getId());
-    new SearchIndexChangeDAO().delete(searchIndexChanges.get(0));
+    searchIndexChangeDAO.delete(searchIndexChanges.get(0));
 
     applicationDAO.update(app);
-    searchIndexChanges = new SearchIndexChangeDAO().getAll();
+    searchIndexChanges = searchIndexChangeDAO.getAll();
     assertThat(searchIndexChanges).hasSize(1);
     assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.APPLICATION);
     assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(app.getId());
-    new SearchIndexChangeDAO().delete(searchIndexChanges.get(0));
+    searchIndexChangeDAO.delete(searchIndexChanges.get(0));
 
     applicationDAO.delete(app);
-    searchIndexChanges = new SearchIndexChangeDAO().getAll();
+    searchIndexChanges = searchIndexChangeDAO.getAll();
     assertThat(searchIndexChanges).hasSize(1);
     assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.APPLICATION);
     assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(app.getId());

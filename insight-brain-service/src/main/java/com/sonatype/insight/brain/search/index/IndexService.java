@@ -357,6 +357,9 @@ public class IndexService
         String[] ids = change.getChangeData().split(":");
         updateIndexForPolicyEvaluation(ids[0], ids[1], indexingContext);
         break;
+      case ORGANIZATION:
+        updateIndexForOrganization(change.getChangeData(), indexingContext);
+        break;
       default:
         throw new IllegalArgumentException("Unknown change type: " + change.getChangeType());
     }
@@ -391,12 +394,41 @@ public class IndexService
     List<Document> appLabelDocs = labelDAO.getByOwnerId(app.getId()).stream()
         .map(label -> buildDocument(indexingContext, label)).collect(toList());
     addDocsWithException(indexingContext.indexWriter, appLabelDocs);
-    // Index the app policy
+    // Index the app policies
     List<Document> appPolicyDocs = policyDAO.getByOwnerId(app.getId()).stream()
         .map(policy -> buildDocument(indexingContext, policy)).collect(toList());
     addDocsWithException(indexingContext.indexWriter, appPolicyDocs);
     // Index the app SVs
     addDocsWithException(indexingContext.indexWriter, buildApplicationSVDocs(indexingContext, app));
+  }
+
+  private void updateIndexForOrganization(String organizationId, IndexingContext indexingContext) throws IOException {
+    Query queryForObsoleteDocs = indexingContext.newQuery(FieldIdentifier.ORGANIZATION_ID, organizationId);
+    indexingContext.indexWriter.deleteDocuments(queryForObsoleteDocs);
+
+    Organization org = organizationDAO.getById(organizationId);
+    if (org == null) {
+      return;
+    }
+
+    // Index the org itself
+    addDocsWithException(indexingContext.indexWriter, Collections.singletonList(buildDocument(indexingContext, org)));
+    // Index the org apps
+    List<Document> orgAppDocs = applicationDAO.getByOrganizationId(org.getId()).stream()
+        .map(app -> buildDocument(indexingContext, app)).collect(toList());
+    addDocsWithException(indexingContext.indexWriter, orgAppDocs);
+    // Index the org app categories
+    List<Document> orgAppCategoryDocs = tagDAO.getByOrganizationId(org.getId()).stream()
+        .map(appCategory -> buildDocument(indexingContext, appCategory)).collect(toList());
+    addDocsWithException(indexingContext.indexWriter, orgAppCategoryDocs);
+    // Index the org labels
+    List<Document> orgLabelDocs = labelDAO.getByOwnerId(org.getId()).stream()
+        .map(label -> buildDocument(indexingContext, label)).collect(toList());
+    addDocsWithException(indexingContext.indexWriter, orgLabelDocs);
+    // Index the org policies
+    List<Document> orgPolicyDocs = policyDAO.getByOwnerId(org.getId()).stream()
+        .map(policy -> buildDocument(indexingContext, policy)).collect(toList());
+    addDocsWithException(indexingContext.indexWriter, orgPolicyDocs);
   }
 
   private static void addDocsWithException(IndexWriter writer, List<Document> docs) {

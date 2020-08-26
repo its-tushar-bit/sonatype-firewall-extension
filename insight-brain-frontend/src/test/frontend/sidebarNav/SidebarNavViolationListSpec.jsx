@@ -6,6 +6,7 @@
 import React from 'react';
 import { mount } from 'enzyme';
 import * as enzymeUtils from '../enzymeUtils';
+import { NxThreatBar } from '@sonatype/react-shared-components';
 
 describe('SidebarNavViolationList', function() {
   let minimalProps,
@@ -34,36 +35,42 @@ describe('SidebarNavViolationList', function() {
   });
 
   function validateNavListItems(ulChild, violation) {
+    const { policyName, threatLevel, displayName } = violation,
+        { name } = displayName;
+
     ulChild.prop('onClick')();
     expect(onClickSpy).toHaveBeenCalledWith(violation.policyViolationId);
 
-    let listItem = ulChild.find('li');
+    const listItem = ulChild.find('li');
     expect(listItem).toMatchSelector('.nx-list__item');
     expect(listItem.children().length).toEqual(3);
 
-    let threatBar = listItem.childAt(0);
-    expect(threatBar).toMatchSelector('NxThreatBar');
+    const threatBar = listItem.childAt(0);
+    expect(threatBar).toMatchSelector(NxThreatBar);
     expect(threatBar.prop('policyThreatLevel')).toEqual(violation.threatLevel);
 
-    let threatLevelSpan = listItem.childAt(1);
-    expect(threatLevelSpan).toMatchSelector('span.iq-threat-number');
-    expect(threatLevelSpan).toMatchSelector('span.iq-threat-number--sidebar-nav');
-    expect(threatLevelSpan.text()).toEqual(violation.threatLevel.toString());
+    const policyNameElement = listItem.childAt(1);
+    expect(policyNameElement.text()).toEqual(`${threatLevel} ${policyName}`);
 
-    let policyNameSpan = listItem.childAt(2);
-    expect(policyNameSpan).toMatchSelector('span');
-    expect(policyNameSpan.text()).toEqual(violation.policyName);
+    const artifactName = listItem.childAt(2);
+    expect(artifactName.text()).toEqual(name);
   }
 
   it('properly renders a list of violations', function() {
     let violations = [{
       policyViolationId: 'aaa',
       threatLevel: 1,
-      policyName: 'fooName'
+      policyName: 'fooName',
+      displayName: {
+        name: 'artifact1'
+      }
     }, {
       policyViolationId: 'bbb',
       threatLevel: 2,
-      policyName: 'barName'
+      policyName: 'barName',
+      displayName: {
+        name: 'artifact2'
+      }
     }];
     let wrappingList = getShallowComponent({ violations }).find('ul');
     expect(wrappingList.children().length).toEqual(2);

@@ -5,10 +5,11 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import NxThreatBar from '@sonatype/react-shared-components/components/NxThreatBar/NxThreatBar';
+import { NxThreatBar } from '@sonatype/react-shared-components';
 import classnames from 'classnames';
 
 import { MAXIMIZE_HEIGHT_TIMEOUT, UPDATE_DIMENSIONS_TIMEOUT } from '../util/AngularCommon';
+import { getArtifactName } from '../util/componentNameUtils';
 
 export default function SidebarNavViolationList(props) {
   const {
@@ -44,14 +45,18 @@ export default function SidebarNavViolationList(props) {
     selected: isItemSelected(item)
   });
 
+  const getFullPolicyName = (item) => `${item.threatLevel} ${item.policyName}`;
+
   const listItems = violations.map((item) =>
     <li key = {item.policyViolationId}
         onClick={() => onClick(item.policyViolationId)}
         className={listClass(item)}
         ref={isItemSelected(item) ? selectedElementRef : null}>
       <NxThreatBar policyThreatLevel={item.threatLevel}></NxThreatBar>
-      <span className="iq-threat-number iq-threat-number--sidebar-nav">{item.threatLevel}</span>
-      <span className="test-sidebar-nav-violation-policy-name">{item.policyName}</span>
+      <span className="iq-sidebar-nav-violation--policy">{ getFullPolicyName(item) }</span>
+      <div className="nx-list__subtext">
+        { getArtifactName(item) }
+      </div>
     </li>
   );
 

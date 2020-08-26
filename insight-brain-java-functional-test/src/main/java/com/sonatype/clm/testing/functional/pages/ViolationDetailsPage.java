@@ -74,12 +74,12 @@ public class ViolationDetailsPage
       return child(".nx-threat-bar");
     }
 
-    public SelenideElement threatNumberSpan() {
-      return child(".iq-threat-number.iq-threat-number--sidebar-nav");
+    public SelenideElement policyName() {
+      return child(".iq-sidebar-nav-violation--policy");
     }
 
-    public SelenideElement threatText() {
-      return child(".test-sidebar-nav-violation-policy-name");
+    public SelenideElement artifactName() {
+      return child(".nx-list__subtext");
     }
   }
 

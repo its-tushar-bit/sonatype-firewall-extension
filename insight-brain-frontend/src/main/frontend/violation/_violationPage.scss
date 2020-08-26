@@ -15,6 +15,18 @@
 
 .nx-list.sidebar-nav-list {
   margin-bottom: 0;
+
+  .nx-list__item .nx-threat-bar {
+    min-height: 90px;
+    margin: -28px 12px -40px -8px;
+  }
+
+  .nx-list__subtext {
+    @include truncate-ellipsis();
+    line-height: 20px;
+    margin-left: $nx-spacing-sm;
+    width: auto;
+  }
 }
 
 .nx-page-sidebar.nx-page-sidebar--nav-sidebar {

@@ -215,14 +215,14 @@ public class ViolationDetailsTest
 
     SidebarNavListItem item1 = sidebarNav.navItem(0);
     item1.shouldHave(cssClass("selected"));
-    item1.threatNumberSpan().shouldHave(text("7"));
-    item1.threatText().shouldHave(text("Policy 1"));
+    item1.policyName().shouldHave(text("7 Policy 1"));
     item1.threatBar().shouldHave(cssClass("nx-threat-bar--severe"));
+    item1.artifactName().shouldHave(text("Artifact1"));
 
     SidebarNavListItem item2 = sidebarNav.navItem(1);
-    item2.threatNumberSpan().shouldHave(text("3"));
-    item2.threatText().shouldHave(text("Policy 2"));
+    item2.policyName().shouldHave(text("3 Policy 2"));
     item2.threatBar().shouldHave(cssClass("nx-threat-bar--moderate"));
+    item1.artifactName().shouldHave(text("Artifact1"));
   }
 
   @Test
@@ -237,8 +237,8 @@ public class ViolationDetailsTest
 
     SidebarNavListItem item1 = sidebarNav.navItem(0);
     item1.shouldHave(cssClass("selected"));
-    item1.threatNumberSpan().shouldHave(text("7"));
-    item1.threatText().shouldHave(text("Policy 1"));
+    item1.policyName().shouldHave(text("7 Policy 1"));
+    item1.artifactName().shouldHave(text("Artifact1"));
     item1.threatBar().shouldHave(cssClass("nx-threat-bar--severe"));
   }
 

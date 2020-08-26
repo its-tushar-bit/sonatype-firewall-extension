@@ -866,6 +866,7 @@ public class ApplicationDAOTest
 
   @Test
   public void testCascadeDeleteToLocks_H2() {
+    // Lock for policy violations
     try (TransactionContext tx = LockedTransactionContext.createForPolicyViolations(application)) {
       tx.begin();
     }
@@ -873,11 +874,20 @@ public class ApplicationDAOTest
         LockedTransactionContext.LOCKS_BY_ID.get(LockedTransactionContext.getLockIdForPolicyViolations(application)))
         .isNotNull();
 
+    // Lock for policy violation aggregations
+    try (TransactionContext tx = LockedTransactionContext.createForPolicyViolationAggregations(application.getId())) {
+      tx.begin();
+    }
+    assertThat(LockedTransactionContext.LOCKS_BY_ID
+        .get(LockedTransactionContext.getLockIdForPolicyViolationAggregations(application.getId()))).isNotNull();
+
     applicationDAO.delete(application);
 
     assertThat(
         LockedTransactionContext.LOCKS_BY_ID.get(LockedTransactionContext.getLockIdForPolicyViolations(application)))
         .isNull();
+    assertThat(LockedTransactionContext.LOCKS_BY_ID
+        .get(LockedTransactionContext.getLockIdForPolicyViolationAggregations(application.getId()))).isNull();
   }
 
   @Test
@@ -888,14 +898,25 @@ public class ApplicationDAOTest
       LockDAO dao = new LockDAO();
       ApplicationDAO applicationDAO = new ApplicationDAO();
       Application application = tempEntity.newApplicationWithParent();
+
+      // Lock for policy violations
       try (TransactionContext tx = LockedTransactionContext.createForPolicyViolations(application)) {
         tx.begin();
       }
       assertThat(dao.getById(LockedTransactionContext.getLockIdForPolicyViolations(application))).isNotNull();
 
+      // Lock for policy violation aggregations
+      try (TransactionContext tx = LockedTransactionContext.createForPolicyViolationAggregations(application.getId())) {
+        tx.begin();
+      }
+      assertThat(dao.getById(LockedTransactionContext.getLockIdForPolicyViolationAggregations(application.getId())))
+          .isNotNull();
+
       applicationDAO.delete(application);
 
       assertThat(dao.getById(LockedTransactionContext.getLockIdForPolicyViolations(application))).isNull();
+      assertThat(dao.getById(LockedTransactionContext.getLockIdForPolicyViolationAggregations(application.getId())))
+          .isNull();
     }
     finally {
       DataSourceFactory.clear_ForTestsOnly();

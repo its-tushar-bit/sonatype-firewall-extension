@@ -356,6 +356,7 @@ public class ApplicationDAO
 
     // Cascade to locks
     LockedTransactionContext.deleteForPolicyViolations(tx, application);
+    LockedTransactionContext.deleteForPolicyViolationAggregations(tx, application.getId());
 
     super.delete(tx, application);
 

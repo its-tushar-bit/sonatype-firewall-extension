@@ -175,6 +175,16 @@ public class LockedTransactionContextTest
   }
 
   @Test
+  public void testCreateForPolicyViolationAggregations() {
+    String appId = "app-id";
+    try (LockedTransactionContext tx = LockedTransactionContext.createForPolicyViolationAggregations(appId)) {
+      tx.begin();
+
+      assertThat(tx.lockId).isEqualTo(LockedTransactionContext.getLockIdForPolicyViolationAggregations(appId));
+    }
+  }
+
+  @Test
   public void testGetLockIdForRepositoryComponent() {
     String repositoryId = "repositoryId";
     String componentPathname = "componentPathname";

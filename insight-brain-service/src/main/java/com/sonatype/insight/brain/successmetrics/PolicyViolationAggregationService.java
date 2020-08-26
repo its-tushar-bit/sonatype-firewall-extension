@@ -18,9 +18,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -28,6 +25,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dashboard.DashboardUtils;
+import com.sonatype.insight.brain.dataaccess.LockedTransactionContext;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
@@ -43,8 +41,8 @@ import com.sonatype.insight.brain.model.successmetrics.TimePeriod;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationComparator;
 import com.sonatype.insight.brain.utils.ThreatLevel;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
-import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Table;
@@ -75,9 +73,6 @@ public class PolicyViolationAggregationService
   private final StageTypeService stageTypeService;
 
   private final DashboardUtils dashboardUtils;
-
-  private final ConcurrentMap<String, Lock> applicationIdLocks = CacheBuilder.newBuilder().weakValues()
-      .<String, Lock> build().asMap();
 
   @Inject
   public PolicyViolationAggregationService(StageTypeService stageTypeService,
@@ -120,33 +115,16 @@ public class PolicyViolationAggregationService
     Set<String> stageTypeIds = getStageTypeIds();
 
     for (String applicationId : applicationIds) {
-      Lock lock = acquireLockForApplication(applicationId);
+      try (TransactionContext tx = LockedTransactionContext.createForPolicyViolationAggregations(applicationId)) {
+        // Begin the transaction only to acquire the lock
+        tx.begin();
 
-      try {
         generatePolicyViolationAggregations(applicationId, currentDateTime, stageTypeIds, includeLatestData);
-      }
-      finally {
-        lock.unlock();
       }
     }
 
     long finish = System.currentTimeMillis();
     log.debug("Finished update of Policy Violation Aggregations in {} ms", finish - start);
-  }
-
-  private Lock acquireLockForApplication(String applicationId) {
-    Lock lock = applicationIdLocks.get(applicationId);
-    if (lock == null) {
-      final Lock newLock = new ReentrantLock();
-      lock = applicationIdLocks.putIfAbsent(applicationId, newLock);
-      if (lock == null) {
-        lock = newLock;
-      }
-    }
-
-    lock.lock();
-
-    return lock;
   }
 
   /**

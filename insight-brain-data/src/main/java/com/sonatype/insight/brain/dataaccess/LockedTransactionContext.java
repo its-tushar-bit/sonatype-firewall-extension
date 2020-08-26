@@ -40,6 +40,9 @@ public class LockedTransactionContext
   static final String POLICY_VIOLATIONS_LOCK_PREFIX = "policy-violations-";
 
   // Visible for testing
+  static final String POLICY_VIOLATION_AGGREGATIONS_LOCK_PREFIX = "policy-violation-aggregations-";
+
+  // Visible for testing
   static final String REPOSITORY_COMPONENT_LOCK_PREFIX = "repository-component-";
 
   // Visible for testing
@@ -64,6 +67,18 @@ public class LockedTransactionContext
 
   public static String getLockIdForPolicyViolations(Application application) {
     return POLICY_VIOLATIONS_LOCK_PREFIX + application.getId();
+  }
+
+  public static LockedTransactionContext createForPolicyViolationAggregations(String applicationId) {
+    return new LockedTransactionContext(getLockIdForPolicyViolationAggregations(applicationId));
+  }
+
+  public static void deleteForPolicyViolationAggregations(TransactionContext tx, String applicationId) {
+    deleteLock(tx, getLockIdForPolicyViolationAggregations(applicationId));
+  }
+
+  public static String getLockIdForPolicyViolationAggregations(String applicationId) {
+    return POLICY_VIOLATION_AGGREGATIONS_LOCK_PREFIX + applicationId;
   }
 
   public static LockedTransactionContext createForRepositoryComponent(String repositoryId, String componentPathname) {

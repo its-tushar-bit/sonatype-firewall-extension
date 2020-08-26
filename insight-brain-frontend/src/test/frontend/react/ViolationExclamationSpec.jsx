@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { faExclamation } from '@fortawesome/free-solid-svg-icons';
+import { faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
 import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 
 import ViolationExclamation from '../../../main/frontend/react/ViolationExclamation';
@@ -18,7 +18,7 @@ describe('ViolationExclamation', function() {
 
     expect(component).toMatchSelector(NxFontAwesomeIcon);
     expect(component).toHaveProp('fixedWidth');
-    expect(component).toHaveProp('icon', faExclamation);
+    expect(component).toHaveProp('icon', faExclamationCircle);
   });
 
   it('has a iq-violation-exclamation class', function() {

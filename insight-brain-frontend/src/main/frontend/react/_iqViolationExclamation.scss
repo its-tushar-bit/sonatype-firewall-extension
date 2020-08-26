@@ -17,26 +17,8 @@
   vertical-align: #{-0.125em - $padding};
 }
 
-.iq-violation-exclamation--unspecified {
-  background-color: $nx-threat-color-unspecified;
-}
-
-.iq-violation-exclamation--none {
-  background-color: $nx-threat-color-none;
-}
-
-.iq-violation-exclamation--low {
-  background-color: $nx-threat-color-low;
-}
-
-.iq-violation-exclamation--moderate {
-  background-color: $nx-threat-color-moderate;
-}
-
-.iq-violation-exclamation--severe {
-  background-color: $nx-threat-color-severe;
-}
-
-.iq-violation-exclamation--critical {
-  background-color: $nx-threat-color-critical;
+@each $threat in $nx-threat-levels {
+  .iq-violation-exclamation--#{nth($threat, 1)} {
+    color: nth($threat, 2);
+  }
 }

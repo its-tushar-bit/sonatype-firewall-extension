@@ -7,14 +7,14 @@ import React from 'react';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
 
-import { faExclamation } from '@fortawesome/free-solid-svg-icons';
+import { faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
 import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { allThreatLevelCategories } from '@sonatype/react-shared-components/util/threatLevels';
 
 export default function ViolationExclamation({ threatLevelCategory }) {
   const iconClassName = classnames('iq-violation-exclamation', `iq-violation-exclamation--${threatLevelCategory}`);
 
-  return <NxFontAwesomeIcon className={iconClassName} icon={faExclamation} fixedWidth/>;
+  return <NxFontAwesomeIcon className={iconClassName} icon={faExclamationCircle} fixedWidth/>;
 }
 
 ViolationExclamation.propTypes = {

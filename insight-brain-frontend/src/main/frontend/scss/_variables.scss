@@ -112,6 +112,14 @@ $threat-bars:
   ("ignore", #FFF, $iq-threat-color-ignore),
   ("unspecified", #FFF, $iq-threat-color-unspecified);
 
+$nx-threat-levels:
+  ("unspecified", $nx-threat-color-unspecified)
+  ("none",  $nx-threat-color-none),
+  ("low",  $nx-threat-color-low),
+  ("moderate", $nx-threat-color-moderate),
+  ("severe", $nx-threat-color-severe),
+  ("critical", $nx-threat-color-critical);
+
 /*
   #Content color variables
 */

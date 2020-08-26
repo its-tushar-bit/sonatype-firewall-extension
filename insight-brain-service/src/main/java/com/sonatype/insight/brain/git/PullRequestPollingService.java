@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.nexus.scm.SourceControlProvider.BITBUCKET;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Named
 @Singleton
@@ -228,9 +229,21 @@ public class PullRequestPollingService
                 currentCutoffTime.toInstant().atOffset(ZoneOffset.UTC),
                 PULL_REQUESTS_PER_MONITOR_CYCLE);
 
+            if (isNotBlank(repo)) {
+              log.debug("Fetched {} pull request(s) for org '{}' repo '{}' since {}", pullRequestResults.size(),
+                  org, repo, currentCutoffTime);
+            }
+            else {
+              log.debug("Fetched {} pull request(s) for org '{}' since {}", pullRequestResults.size(), org,
+                  currentCutoffTime);
+            }
+
             pullRequests.addAll(pullRequestResults);
 
-            if (pullRequestResults.isEmpty()) {
+            // if we've gotten back fewer than requested that means we've exhausted the available PRs and are now
+            // 'up to date';  thus, advance the poll time to now;  this is especially important for SCM providers
+            // that don't support org-wide PR fetching by token (see INT-3398)
+            if (pullRequestResults.isEmpty() || pullRequestResults.size() < PULL_REQUESTS_PER_MONITOR_CYCLE) {
               pollingTracker.onPullRequestProcessed(sourceControl.getId(), org, repo, token, now);
             }
             else {
@@ -239,19 +252,21 @@ public class PullRequestPollingService
             }
 
             apiCallCount++;
-            log.debug("Fetched {} pull request(s) for org '{}' and repo '{}' since {}", pullRequests.size(),
-                org, null == repo ? "none specified" : repo, currentCutoffTime);
           }
           catch (Exception e) {
             String retryDelay = pollingTracker.onErrorProcessingPullRequests(sourceControl.getId());
-            log.warn(
-                "Could not fetch pull requests for org '{}' and repo '{}'; will retry in {}.  Please check that the" +
-                    " configured project url {} is correct, that it is for '{}' and that the API token is valid",
-                org,
-                null == repo ? "none specified" : repo,
-                retryDelay,
-                gitRepositoryInfo.repositoryUrl,
-                gitRepositoryInfo.provider, e);
+            if (isNotBlank(repo)) {
+              log.warn(
+                  "Could not fetch pull requests for org '{}' repo '{}'; will retry in {}.  Please check that the" +
+                      " configured project url {} is correct, that it is for '{}' and that the API token is valid",
+                  org, repo, retryDelay,gitRepositoryInfo.repositoryUrl, gitRepositoryInfo.provider, e);
+            }
+            else {
+              log.warn(
+                  "Could not fetch pull requests for org '{}'; will retry in {}.  Please check that the" +
+                      " configured project url {} is correct, that it is for '{}' and that the API token is valid",
+                  org, retryDelay, gitRepositoryInfo.repositoryUrl, gitRepositoryInfo.provider, e);
+            }
           }
         }
       }

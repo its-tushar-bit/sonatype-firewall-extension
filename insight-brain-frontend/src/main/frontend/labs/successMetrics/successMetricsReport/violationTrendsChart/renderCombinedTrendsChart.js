@@ -3,7 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import Plottable from 'plottable';
+import { Scales, Components, Interactions } from 'plottable';
+import $ from 'jquery';
 import TrendsTooltip from './trendsTooltip';
 import {
   generateBarPlot,
@@ -33,7 +34,7 @@ export default function renderCombinedTrendsChartDirective() {
 
 function renderCombinedTrendsChart(el, {delta, discovered, waived, fixed}, statistics) {
 
-  const xScale = new Plottable.Scales.Linear().padProportion(0);
+  const xScale = new Scales.Linear().padProportion(0);
 
   const deltaBarClass = d => `iq-violation-trends__bar--delta-${d.violations > 0 ? 'up' : 'down'}`;
 
@@ -42,27 +43,27 @@ function renderCombinedTrendsChart(el, {delta, discovered, waived, fixed}, stati
   const waivedBar = generateBarPlot(xScale, waived, 'iq-violation-trends__bar--waived', statistics.waivedMax);
   const fixedBar = generateBarPlot(xScale, fixed, 'iq-violation-trends__bar--fixed', statistics.fixedMax);
   const guidelineChart = generateGuidelinePlot(xScale, discovered);
-  const guideline = new Plottable.Components.GuideLineLayer(Plottable.Components.GuideLineLayer.ORIENTATION_VERTICAL)
+  const guideline = new Components.GuideLineLayer(Components.GuideLineLayer.ORIENTATION_VERTICAL)
       .addClass('iq-violation-trends__guideline')
       .scale(xScale);
-  const guidelineGroup = new Plottable.Components.Group([guidelineChart, guideline]);
+  const guidelineGroup = new Components.Group([guidelineChart, guideline]);
 
-  const table = new Plottable.Components.Table([
+  const table = new Components.Table([
     // Empty label as a 24px spacer.
-    [new Plottable.Components.Label('').padding(CHART_PADDING / 2)],
+    [new Components.Label('').padding(CHART_PADDING / 2)],
     [deltaBar],
     // Empty label as a 48px spacer.
-    [new Plottable.Components.Label('').padding(CHART_PADDING)],
+    [new Components.Label('').padding(CHART_PADDING)],
     [newBar],
     // Empty label as a 48px spacer.
-    [new Plottable.Components.Label('').padding(CHART_PADDING)],
+    [new Components.Label('').padding(CHART_PADDING)],
     [waivedBar],
     // Empty label as a 48px spacer.
-    [new Plottable.Components.Label('').padding(CHART_PADDING)],
+    [new Components.Label('').padding(CHART_PADDING)],
     [fixedBar]
   ]);
 
-  const combinedChart = new Plottable.Components.Group([table, guidelineGroup]);
+  const combinedChart = new Components.Group([table, guidelineGroup]);
 
   // rendered chart before attaching interactions
   combinedChart.renderTo(el);
@@ -78,7 +79,7 @@ function renderCombinedTrendsChart(el, {delta, discovered, waived, fixed}, stati
 
   hideGuideline();
 
-  const interaction = new Plottable.Interactions.Pointer();
+  const interaction = new Interactions.Pointer();
   interaction
       .onPointerMove(point => {
         const nearestEntity = guidelineChart.entityNearest(point);

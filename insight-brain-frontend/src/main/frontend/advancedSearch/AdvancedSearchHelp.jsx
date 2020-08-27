@@ -52,8 +52,10 @@ export default function AdvancedSearchHelp(props) {
             href="https://links.sonatype.com/products/nxiq/doc/advanced-search">documentation</NxExternalLink>
         </span>
         <span className="nx-adv-search-help__explanation">
-          Send feedback to the <NxExternalLink href="https://links.sonatype.com/products/nxiq/feedback/advanced-search">
-          community board</NxExternalLink>
+          Send feedback to the{' '}
+          <NxExternalLink href="https://links.sonatype.com/products/nxiq/feedback/advanced-search">
+            community board
+          </NxExternalLink>
         </span>
       </p>
     </div>

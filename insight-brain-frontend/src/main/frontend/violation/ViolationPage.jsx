@@ -32,6 +32,7 @@ export default function ViolationPage(props) {
 
   const constraintViolations = violationDetails ? violationDetails.constraintViolations : [];
 
+  // eslint-disable-next-line react/prop-types
   const isSecurityVulnerability = violationDetails && violationDetails.policyThreatCategory === 'security';
 
   useEffect(() => { load(); }, [id]);

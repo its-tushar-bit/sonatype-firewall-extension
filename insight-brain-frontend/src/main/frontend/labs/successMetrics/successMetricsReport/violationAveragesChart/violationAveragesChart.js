@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import Plottable from 'plottable';
+import { Dataset, Plots, Scales } from 'plottable';
 import template from './violationAveragesChart.html';
 
 export default {
@@ -48,11 +48,11 @@ var columns = {
 };
 
 function makeChart(data) {
-  var criticalDataset = new Plottable.Dataset(Object.keys(columns).map(function(field) {
+  var criticalDataset = new Dataset(Object.keys(columns).map(function(field) {
         return {y: field, x: Math.round(data[field].averageDiscoveredCritical)};
       }), {className: 'iq-chart__dataset--critical'}),
 
-      overallDataset = new Plottable.Dataset(Object.keys(columns).map(function(field) {
+      overallDataset = new Dataset(Object.keys(columns).map(function(field) {
         return {y: field, x: Math.round(data[field].averageDiscovered)};
       }), {className: 'iq-chart__dataset--overall'}),
 
@@ -64,15 +64,15 @@ function makeChart(data) {
             return Math.max(a, b);
           }, 0),
 
-      plot = new Plottable.Plots.Bar('horizontal')
+      plot = new Plots.Bar('horizontal')
           .addDataset(overallDataset)
           .addDataset(criticalDataset)
           .y(function(data) {
             return data.y;
-          }, new Plottable.Scales.Category())
+          }, new Scales.Category())
           .x(function(data) {
             return data.x;
-          }, new Plottable.Scales.Linear().domain([0, max]))
+          }, new Scales.Linear().domain([0, max]))
           .attr('class', function(d, i, dataset) {
             return dataset.metadata().className;
           })

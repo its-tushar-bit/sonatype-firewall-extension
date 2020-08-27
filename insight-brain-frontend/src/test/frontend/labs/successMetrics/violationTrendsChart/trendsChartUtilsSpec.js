@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global describe, beforeEach, it, expect */
-import Plottable from 'plottable';
+import { Plots, Scales } from 'plottable';
 import generateDataset from './mockTrendsChartDataset';
 import {
   generateBarPlot,
@@ -17,20 +17,20 @@ import {
 describe('trendsChartUtils', function() {
   describe('generateBarPlot', function() {
     it('creates Bar chart with passed data', function() {
-      const plot = generateBarPlot(new Plottable.Scales.Linear(), generateDataset(), 'foo', 10, -5);
-      expect(plot).toEqual(jasmine.any(Plottable.Plots.Bar));
+      const plot = generateBarPlot(new Scales.Linear(), generateDataset(), 'foo', 10, -5);
+      expect(plot).toEqual(jasmine.any(Plots.Bar));
     });
 
     it('creates Bar chart with passed data when min value is not provided', function() {
-      const plot = generateBarPlot(new Plottable.Scales.Linear(), generateDataset(), 'foo', 10);
-      expect(plot).toEqual(jasmine.any(Plottable.Plots.Bar));
+      const plot = generateBarPlot(new Scales.Linear(), generateDataset(), 'foo', 10);
+      expect(plot).toEqual(jasmine.any(Plots.Bar));
     });
   });
 
   describe('generateGuidelinePlot', function() {
     it('creates Line chart with passed data', function() {
-      const plot = generateGuidelinePlot(new Plottable.Scales.Linear(), generateDataset());
-      expect(plot).toEqual(jasmine.any(Plottable.Plots.Line));
+      const plot = generateGuidelinePlot(new Scales.Linear(), generateDataset());
+      expect(plot).toEqual(jasmine.any(Plots.Line));
     });
   });
 

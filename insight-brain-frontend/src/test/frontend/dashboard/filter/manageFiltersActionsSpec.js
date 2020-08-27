@@ -99,7 +99,7 @@ describe('manageFilterActions', function() {
       filterJsonSpy.and.returnValue(expectedPUTBody.filter);
     });
 
-    it('immediately sends a SAVE_FILTER_REQUESTED action', function() {
+    it('immediately sends a SAVE_FILTER_REQUESTED action', function(done) {
       mockAxiosCalls({
         get: {
           [dashboardSavedFiltersUrl]: Promise.resolve({ data: {} })
@@ -109,7 +109,7 @@ describe('manageFilterActions', function() {
         }
       });
 
-      store.dispatch(saveFilter('foo'));
+      store.dispatch(saveFilter('foo')).then(done);
 
       var actions = store.getActions();
 
@@ -209,7 +209,7 @@ describe('manageFilterActions', function() {
       store = SpecUtil.mockReduxStore(initialState);
     });
 
-    it('immediately dispatches a DELETE_FILTER_REQUESTED action with no payload', function() {
+    it('immediately dispatches a DELETE_FILTER_REQUESTED action with no payload', function(done) {
       mockAxiosCalls({
         post: {
           [deleteFiltersUrl]: Promise.resolve({})
@@ -219,7 +219,7 @@ describe('manageFilterActions', function() {
         }
       });
 
-      store.dispatch(deleteFilter(filterToDelete));
+      store.dispatch(deleteFilter(filterToDelete)).then(done);
 
       const actions = store.getActions();
 
@@ -310,7 +310,7 @@ describe('manageFilterActions', function() {
       expect(store.getActions().length).toBe(1);
     });
 
-    it('dispatches DELETE_FILTER_FAILED and rejects the promise if deleteSavedFilter fails', function() {
+    it('dispatches DELETE_FILTER_FAILED and rejects the promise if deleteSavedFilter fails', function(done) {
       mockAxiosCalls({
         post: {
           [deleteFiltersUrl]: Promise.reject('error!')
@@ -323,6 +323,7 @@ describe('manageFilterActions', function() {
             expect(actions.length).toBe(2);
             expect(actions[1].type).toBe('DELETE_FILTER_FAILED');
             expect(actions[1].payload).toEqual('error!');
+            done();
           });
 
       expect(store.getActions().length).toBe(1);

@@ -123,7 +123,7 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
         exclude: /node_modules|src[\/\\]main[\/\\]frontend[\/\\]lib[\/\\](protovis|Base64)/
       }, {
         ...babelLoaderBaseRule,
-        include: /node_modules[\/\\]fuse\.js/
+        include: /node_modules[\/\\](fuse\.js|asn1.js|@uirouter)/
       }, {
         test: /\.jsx?$/,
         enforce: 'pre',
@@ -156,7 +156,12 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
             {
               loader: 'sass-loader',
               options: {
-                sourceMap: true
+                sourceMap: true,
+
+                // for unknown reasons this fixes a build error relating to css source maps and
+                // resolve-url-loader. It is mentioned in the sass-loader docs
+                // https://webpack.js.org/loaders/sass-loader/
+                outputStyle: 'compressed'
               }
             }
           ]

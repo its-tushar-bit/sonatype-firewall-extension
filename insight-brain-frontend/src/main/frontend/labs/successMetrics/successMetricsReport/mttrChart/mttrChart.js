@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import Plottable from 'plottable';
+import { Axes, Scales } from 'plottable';
 import template from './mttrChart.html';
 
 import { createScatterPlotChart } from '../../chartUtils';
@@ -29,7 +29,7 @@ function controller() {
   vm.mttrChart = makeMttrChart(vm.mttrData);
 
   function makeMttrChart(dataset) {
-    const xScale = new Plottable.Scales.Category();
+    const xScale = new Scales.Category();
 
     const lineConfigs = [{
       name: 'Critical',
@@ -52,7 +52,7 @@ function controller() {
       return d.timePeriodName;
     }
 
-    const xAxis = new Plottable.Axes.Category(xScale, 'bottom');
+    const xAxis = new Axes.Category(xScale, 'bottom');
     const yAxisLabelText = 'Days to Resolve';
 
     return createScatterPlotChart(xAccessor, xScale, xAxis, null, yAxisLabelText, lineConfigs, dataset);

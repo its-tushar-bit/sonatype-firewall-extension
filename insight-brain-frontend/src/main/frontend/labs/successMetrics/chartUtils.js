@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { pipe, map, prop, apply, applyTo, xprod, reject, prepend, curry, reverse } from 'ramda';
-import Plottable from 'plottable';
+import { Axes, Components, Dataset, Plots, Scales } from 'plottable';
 
 // This is needed to avoid truncation of max and min scatter points.
 // It's equivalent to calling yScale.padProportion(0.08),
@@ -74,16 +74,16 @@ export const getMaxAccessedValue = pipe(
  * @param data the array of objects making up the data set
  */
 export function createScatterPlotChart(xAccessor, xScale, xAxis, xAxisLabelText, yAxisLabelText, lineConfigs, data) {
-  const colorScale = new Plottable.Scales.Color().domain(map(prop('name'), lineConfigs)),
+  const colorScale = new Scales.Color().domain(map(prop('name'), lineConfigs)),
 
       yAccessors = map(prop('yAccessor'), lineConfigs),
 
       maxValue = getMaxAccessedValue(data, yAccessors),
       padding = Y_SCALE_PADDING_FACTOR * maxValue,
 
-      yScaleTickGenerator = Plottable.Scales.TickGenerators.intervalTickGenerator(calculateTickInterval(maxValue)),
+      yScaleTickGenerator = Scales.TickGenerators.intervalTickGenerator(calculateTickInterval(maxValue)),
       yDomainMax = Math.max(1, maxValue) + padding,
-      yScale = new Plottable.Scales.Linear()
+      yScale = new Scales.Linear()
           .domainMin(0 - padding)
           .tickGenerator(yScaleTickGenerator)
           .domainMax(yDomainMax),
@@ -94,12 +94,12 @@ export function createScatterPlotChart(xAccessor, xScale, xAxis, xAxisLabelText,
       getPlotForLineConfig = ({ name, yAccessor, className }) => getPlot(yAccessor, name, className),
 
       plots = map(getPlotForLineConfig, reverse(lineConfigs)),
-      plotGroup = new Plottable.Components.Group(plots),
+      plotGroup = new Components.Group(plots),
 
-      legend = new Plottable.Components.Legend(colorScale).maxEntriesPerRow(Infinity),
-      yAxis = new Plottable.Axes.Numeric(yScale, 'left').endTickLength(0),
-      xAxisLabel = xAxisLabelText ? new Plottable.Components.AxisLabel(xAxisLabelText) : null,
-      yAxisLabel = new Plottable.Components.AxisLabel(yAxisLabelText)
+      legend = new Components.Legend(colorScale).maxEntriesPerRow(Infinity),
+      yAxis = new Axes.Numeric(yScale, 'left').endTickLength(0),
+      xAxisLabel = xAxisLabelText ? new Components.AxisLabel(xAxisLabelText) : null,
+      yAxisLabel = new Components.AxisLabel(yAxisLabelText)
           .yAlignment('center')
           .angle(-90),
       tableRows = [
@@ -108,13 +108,13 @@ export function createScatterPlotChart(xAccessor, xScale, xAxis, xAxisLabelText,
         [null, null, xAxis]
       ].concat(xAxisLabel ? [[null, null, xAxisLabel]] : []);
 
-  return new Plottable.Components.Table(tableRows);
+  return new Components.Table(tableRows);
 }
 
 const getScatterPlot = curry(function getScatterPlot(data, colorScale, xScale, yScale, xAccessor, yAccessor,
                                                      colorDomain, className) {
-  const scatterPlot = new Plottable.Plots.Scatter()
-          .addDataset(new Plottable.Dataset(data))
+  const scatterPlot = new Plots.Scatter()
+          .addDataset(new Dataset(data))
           .x(xAccessor, xScale)
           .y(yAccessor, yScale)
           .attr('fill', colorDomain, colorScale)
@@ -122,8 +122,8 @@ const getScatterPlot = curry(function getScatterPlot(data, colorScale, xScale, y
           .attr('opacity', 1)
           .attr('class', className),
 
-      linePlot = new Plottable.Plots.Line()
-          .addDataset(new Plottable.Dataset(data))
+      linePlot = new Plots.Line()
+          .addDataset(new Dataset(data))
           .x(xAccessor, xScale)
           .y(yAccessor, yScale)
           .attr('stroke', colorDomain, colorScale)
@@ -131,5 +131,5 @@ const getScatterPlot = curry(function getScatterPlot(data, colorScale, xScale, y
           .attr('opacity', 1)
           .attr('class', className);
 
-  return new Plottable.Components.Group([linePlot, scatterPlot]);
+  return new Components.Group([linePlot, scatterPlot]);
 });

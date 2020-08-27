@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import Plottable from 'plottable';
+import { Dataset, Plots, Scales } from 'plottable';
 import template from './componentCountsChart.html';
 
 export default {
@@ -36,7 +36,7 @@ function componentCountsChartController(successMetricsDataService) {
 componentCountsChartController.$inject = ['successMetricsDataService'];
 
 function makeDataset(data, type, datasetClassName) {
-  return new Plottable.Dataset(data[type].map(function(element) {
+  return new Dataset(data[type].map(function(element) {
     return {y: element.hash, x: element.count};
   }), {className: datasetClassName});
 }
@@ -44,10 +44,10 @@ function makeDataset(data, type, datasetClassName) {
 function makeChart(data, type, datasetClassName) {
   const dataset = makeDataset(data, type, datasetClassName),
       max = dataset.data().map(d => d.x).reduce((a, b) => Math.max(a, b), 0),
-      plot = new Plottable.Plots.Bar('horizontal')
+      plot = new Plots.Bar('horizontal')
           .addDataset(dataset)
-          .y(({y}) => y, new Plottable.Scales.Category())
-          .x(({x}) => x, new Plottable.Scales.Linear().domain([0, max]))
+          .y(({y}) => y, new Scales.Category())
+          .x(({x}) => x, new Scales.Linear().domain([0, max]))
           .attr('class', (d, i, dataset) => dataset.metadata().className)
           .attr('fill', () => undefined);
 

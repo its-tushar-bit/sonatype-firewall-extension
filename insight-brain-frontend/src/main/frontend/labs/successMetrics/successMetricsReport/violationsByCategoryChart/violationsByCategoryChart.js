@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import {defaultTo, filter, isEmpty, not, pipe, prop, props, sum, without} from 'ramda';
-import Plottable from 'plottable';
+import { Scales, Axes } from 'plottable';
 
 import { createScatterPlotChart } from '../../chartUtils';
 import template from './violationsByCategoryChart.html';
@@ -28,8 +28,8 @@ function ViolationsByCategoryChartController() {
       weekCount = filter(pipe(getNotNullValues, isEmpty, not), dataset).length,
       xAccessor = prop('timePeriodName'),
 
-      xScale = new Plottable.Scales.Category(),
-      xAxis = new Plottable.Axes.Category(xScale, 'bottom'),
+      xScale = new Scales.Category(),
+      xAxis = new Axes.Category(xScale, 'bottom'),
 
       yAxisLabelText = 'Policy Violations',
 

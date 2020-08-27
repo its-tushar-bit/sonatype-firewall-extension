@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import Plottable from 'plottable';
+import { Dataset, Plots, Scales } from 'plottable';
 import template from './applicationCountsChart.html';
 
 export default {
@@ -43,7 +43,7 @@ function makeDataset(data, valueProp, datasetClassName) {
         return { y: field, x: data[field][valueProp] };
       });
 
-  return new Plottable.Dataset(columns, { className: datasetClassName });
+  return new Dataset(columns, { className: datasetClassName });
 }
 
 function makeChart(data) {
@@ -58,15 +58,15 @@ function makeChart(data) {
             return Math.max(a, b);
           }, 0),
 
-      plot = new Plottable.Plots.Bar('horizontal')
+      plot = new Plots.Bar('horizontal')
           .addDataset(overallDataset)
           .addDataset(criticalDataset)
           .y(function(data) {
             return data.y;
-          }, new Plottable.Scales.Category())
+          }, new Scales.Category())
           .x(function(data) {
             return data.x;
-          }, new Plottable.Scales.Linear().domain([0, max]))
+          }, new Scales.Linear().domain([0, max]))
           .attr('class', function(d, i, dataset) {
             return dataset.metadata().className;
           })

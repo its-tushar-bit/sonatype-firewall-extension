@@ -54,7 +54,7 @@ module.exports = {
       },
       {
         test: /\.jsx?$/,
-        include: /node_modules[\/\\]fuse\.js/,
+        include: /node_modules[\/\\](fuse\.js|asn1.js|@uirouter|enzyme-matchers)/,
         use: {
           loader: 'babel-loader',
           options: {

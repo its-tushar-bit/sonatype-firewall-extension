@@ -18,7 +18,7 @@
         * [ Building and monitoring the front-end ](#building-and-monitoring-the-front-end)
         * [ Building and monitoring front-end assets outside the main bundle ](#building-and-monitoring-front-end-assets-outside-the-main-bundle)
         * [ Running tests ](#running-tests)
-        * [ Re-installing packages with npm ](#re-installing-packages-with-npm)
+        * [ Re-installing packages with yarn ](#re-installing-packages-with-yarn)
 * [ Supported browsers and resolution ](#supported-browsers-and-resolution)
 * [ Helpful Utilities ](#helpful-utilities)
 * [ Notes on Angular, Redux, & React ](#notes-on-angular-redux--react)
@@ -33,16 +33,14 @@
 
 The following tools should be installed locally to enable front-end development:
 
-* **[Node.js](https://nodejs.org/)** is required to run webpack and npm.
+* **[Node.js](https://nodejs.org/)** is required to run webpack and yarn.
     * The Maven build downloads its own copy of Node.  For best results, match the version used by Maven. Look for the `node.version` property in [insight-brain-frontend/pom.xml](./pom.xml).
     * Homebrew users can install via: `brew install node`
     * If you do a lot of front-end development and need to switch Node versions frequently, you might also consider using [Node Version Manager (nvm)](https://github.com/nvm-sh/nvm) as an alternative route to installation.
 
-* **[npm (Node Package Manager)](https://www.npmjs.com/)** is required if you want to add or remove dependencies from the project.
-    * The Maven build downloads its own copy of npm.  For best results, match the version used by Maven. Look for the `npm.version` property in [insight-brain-frontend/pom.xml](./pom.xml).
-    * npm comes installed with Node, but it might not be the exact version we want.
-    * To install an exact version: `npm install -g npm@<version>`
-    * As with Node, you can gain more control over your npm installation(s) by using [nvm](https://github.com/nvm-sh/nvm).
+* **[yarn](https://classic.yarnpkg.com/en/)** is required if you want to add or remove dependencies from the project.
+    * The Maven build downloads its own copy of yarn.  For best results, match the version used by Maven. Look for the `yarn.version` property in [insight-brain-frontend/pom.xml](./pom.xml).
+    * A different node package manager, npm, comes installed with Node. You can use npm to install yarn: `npm install -g yarn@<version>`
 
 ### Workflow
 
@@ -58,19 +56,19 @@ You will probably notice that this is the same command that's used to normally [
 
 Webpack will monitor your front-end assets and automatically compile them for you when you make changes. This allows for short feedback loops.
 
-With your back-end server running on port 8072, you can launch the front-end on port 8070 by running npm start task, like so:
+With your back-end server running on port 8072, you can launch the front-end on port 8070 by running the yarn start task, like so:
 
-`npm start`
+`yarn start`
 
 Note that when you navigate to `http://localhost:8070`, you will see a mostly-blank page with a link labelled "assets". This is normal; simply click the link to access the IQ Server login page.
 
 #### Building and monitoring front-end assets outside the main bundle
 
-Under the default npm start task, webpack will build and monitor the **main** front-end bundle. There are some other bundles that get deployed with IQ, such as e.g. [`cip-loader.js`](./src/main/frontend/cip/cip-loader-index.js), which powers the legacy application report. (For a full list of bundles that are deployed, see: [`webpack.config.js`](./webpack.config.js))
+Under the default yarn start task, webpack will build and monitor the **main** front-end bundle. There are some other bundles that get deployed with IQ, such as e.g. [`cip-loader.js`](./src/main/frontend/cip/cip-loader-index.js), which powers the legacy application report. (For a full list of bundles that are deployed, see: [`webpack.config.js`](./webpack.config.js))
 
 If you are developing these bundles, you'll want to use the following command:
 
-`npm run start-all`
+`yarn run start-all`
 
 #### Running tests
 
@@ -78,11 +76,11 @@ Unit tests are written using the [Jasmine](https://jasmine.github.io/) BDD frame
 
 To run all JavaScript unit tests in the CLI and see the results there, simply run the `test` task:
 
-`npm run test`
+`yarn run test`
 
 You can also run tests in 'watch' mode and view the reports in your browser (we use the [Jasmine Webpack Plugin](https://www.npmjs.com/package/jasmine-webpack-plugin) for this). To do so, use the `test-watch` task (note that you do NOT need a back-end server running):
 
-`npm run test-watch`
+`yarn run test-watch`
 
 You can then launch your browser, point it at `http://localhost:8235/`, and enjoy an interactive test runner environment. This means that as you make changes to your tests, the runner will automagically re-run your tests, and update the test report in the browser in real time.
 
@@ -90,11 +88,11 @@ In the browser, you can additionally filter the tests that you see by adding a m
 
 `http://localhost:8235/?spec=dashboard`
 
-#### Re-installing packages with npm
+#### Re-installing packages with yarn
 
-If you've already run the Maven build, you **don't** need to explicitly install npm dependencies - they've already been installed!
+If you've already run the Maven build, you **don't** need to explicitly install yarn dependencies - they've already been installed!
 
-However, if you've been adding or removing packages, or if you just need a clean start for some reason, then you can always clear out `node_modules` and start fresh. Example syntax for a Unix based OS: `rm -rf node_modules && npm i`
+However, if you've been adding or removing packages, or if you just need a clean start for some reason, then you can always clear out `node_modules` and start fresh. Example syntax for a Unix based OS: `rm -rf node_modules && yarn install`.  Alternatively, if you don't want to delete `node_modules` and have to re-install everything, `yarn install --check-files` _should_ bring everything up to date as-needed.
 
 ## Supported browsers and resolution
 

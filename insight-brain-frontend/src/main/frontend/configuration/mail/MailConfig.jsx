@@ -266,9 +266,10 @@ export default function MailConfig(props) {
                 <div>
                   <p>
                     To receive email notifications for events enter the details of your SMTP Server here.
-                    For further details see
-                    the <NxExternalLink href="http://links.sonatype.com/products/nxiq/doc/email-configuration">
-                    documentation</NxExternalLink>.
+                    For further details see the{' '}
+                    <NxExternalLink href="http://links.sonatype.com/products/nxiq/doc/email-configuration">
+                      documentation
+                    </NxExternalLink>.
                   </p>
                   {submitMaskState !== null &&
                   <NxSubmitMask success={submitMaskState} message={submitMaskMessage} />}

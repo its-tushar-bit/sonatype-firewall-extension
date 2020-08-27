@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global describe, beforeEach, it, expect, inject */
-import Plottable from 'plottable';
+import { Component } from 'plottable';
 import successMetricsModule from '../../../../../main/frontend/labs/successMetrics/module';
 import legacyConfigurationModule from '../../../../../main/frontend/LegacyConfigurationModule';
 
@@ -82,6 +82,6 @@ describe('violation-averages-chart component', function() {
         },
         vm = getVm(averagesData);
 
-    expect(vm.chart instanceof Plottable.Component).toBe(true);
+    expect(vm.chart instanceof Component).toBe(true);
   });
 });

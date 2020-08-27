@@ -32,7 +32,11 @@ export default function ApplicationReportVulnerabilities({ $ngRedux, $state, app
 }
 
 ApplicationReportVulnerabilities.propTypes = {
-  $ngRedux: Provider.propTypes.store,
+  $ngRedux: PropTypes.shape({
+    subscribe: PropTypes.func.isRequired,
+    dispatch: PropTypes.func.isRequired,
+    getState: PropTypes.func.isRequired
+  }),
   $state: ApplicationReportVulnerabilitiesPage.propTypes.$state,
   applicationReportActions: PropTypes.shape({
     loadReportAllData: PropTypes.func.isRequired

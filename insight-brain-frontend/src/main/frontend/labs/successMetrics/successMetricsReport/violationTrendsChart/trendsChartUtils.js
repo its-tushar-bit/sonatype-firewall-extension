@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import Plottable from 'plottable';
+import { Scales, Plots, Dataset } from 'plottable';
 import {prop} from 'ramda';
 
 export const GUIDELINE_TOOLTIP_OFFSET_VERTICAL = -25;
@@ -56,14 +56,14 @@ function getGuidelineTooltipPosition(el, nearestEntity, tooltipWidth) {
 }
 
 export function generateBarPlot(xScale, data, barClass, max, min) {
-  const yScale = new Plottable.Scales.Linear();
+  const yScale = new Scales.Linear();
   if (max) {
     yScale.domainMax(max);
   }
   yScale.domainMin(min || 0);
 
-  return new Plottable.Plots.Bar()
-      .addDataset(new Plottable.Dataset(data))
+  return new Plots.Bar()
+      .addDataset(new Dataset(data))
       .x(prop('timePeriodIndex'), xScale)
       .y(prop('violations'), yScale)
       .attr('width', 7)
@@ -71,10 +71,10 @@ export function generateBarPlot(xScale, data, barClass, max, min) {
 }
 
 export function generateGuidelinePlot(xScale, data) {
-  return new Plottable.Plots.Line()
-      .addDataset(new Plottable.Dataset(data))
+  return new Plots.Line()
+      .addDataset(new Dataset(data))
       .x(prop('timePeriodIndex'), xScale)
-      .y(0, new Plottable.Scales.Linear())
+      .y(0, new Scales.Linear())
       .attr('opacity', 0);
 }
 

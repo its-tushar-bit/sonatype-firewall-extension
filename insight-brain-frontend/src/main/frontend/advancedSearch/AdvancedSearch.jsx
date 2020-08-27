@@ -96,8 +96,11 @@ export default function AdvancedSearch(props) {
           {
             (groupIdentifier === 'VULNERABILITY_ID' || groupIdentifier === 'VULNERABILITY_DESCRIPTION') &&
             <div className="nx-tile-header__subtitle">
-              Click <a href={$state.href($state.get('vulnerabilitySearchDetail'), {id: groupBy})}>
-              here</a> for detailed information.
+              Click{' '}
+              <a href={$state.href($state.get('vulnerabilitySearchDetail'), {id: groupBy})}>
+                here
+              </a>
+              {' '}for detailed information.
             </div>
           }
         </div>

@@ -40,7 +40,6 @@ import pv from './lib/protovis/protovis.min';
 
 import Fuse from 'fuse.js';
 import ClassyBrew from 'classybrew/src/classybrew';
-import Plottable from 'plottable';
 
 import './utility/axiosConfig';
 import './utility/Polyfills';
@@ -52,7 +51,6 @@ import Base64 from './lib/Base64';
 window.Base64 = Base64;
 window.Fuse = Fuse;
 window.d3 = d3;
-window.Plottable = Plottable;
 window.classyBrew = ClassyBrew;
 window.pv = pv;
 polyfill();

@@ -18,7 +18,7 @@
 
   <properties>
     <node.version>v12.18.0</node.version>
-    <npm.version>6.13.4</npm.version>
+    <yarn.version>v1.22.5</yarn.version>
     <sonar.sources>src/main/frontend</sonar.sources>
     <sonar.exclusions>src/main/frontend/lib/**/*,src/main/frontend/audit-report/lib/**/*</sonar.exclusions>
     <sonar.coverage.exclusions>
@@ -36,25 +36,28 @@
         <artifactId>frontend-maven-plugin</artifactId>
         <executions>
           <execution>
-            <id>install-node-and-npm</id>
+            <id>install-node-and-yarn</id>
             <goals>
-              <goal>install-node-and-npm</goal>
+              <goal>install-node-and-yarn</goal>
             </goals>
             <configuration>
               <nodeVersion>${node.version}</nodeVersion>
-              <npmVersion>${npm.version}</npmVersion>
+              <yarnVersion>${yarn.version}</yarnVersion>
             </configuration>
           </execution>
           <execution>
-            <id>npm-install</id>
+            <id>yarn-install</id>
             <goals>
-              <goal>npm</goal>
+              <goal>yarn</goal>
             </goals>
+            <configuration>
+              <arguments>install --check-files --frozen-lockfile</arguments>
+            </configuration>
           </execution>
           <execution>
             <id>build</id>
             <goals>
-              <goal>npm</goal>
+              <goal>yarn</goal>
             </goals>
             <configuration>
               <arguments>run build</arguments>
@@ -64,7 +67,7 @@
             <id>test-compile</id>
             <phase>test-compile</phase>
             <goals>
-              <goal>npm</goal>
+              <goal>yarn</goal>
             </goals>
             <configuration>
               <skip>${jasmine.tests.skip}</skip>
@@ -75,7 +78,7 @@
             <id>test</id>
             <phase>test</phase>
             <goals>
-              <goal>npm</goal>
+              <goal>yarn</goal>
             </goals>
             <configuration>
               <skip>${jasmine.tests.skip}</skip>

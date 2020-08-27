@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import Plottable from 'plottable';
+import { Scales, Axes, Component } from 'plottable';
 import * as chartUtils from '../../../../main/frontend/labs/successMetrics/chartUtils';
 
 describe('chartUtils', function() {
@@ -32,8 +32,8 @@ describe('chartUtils', function() {
   describe('createScatterPlotChart', function() {
     it('returns a Plottable Component when given a category scale and axis', function() {
       const xAccessor = x => x,
-          xScale = new Plottable.Scales.Category(),
-          xAxis = new Plottable.Axes.Category(xScale, 'bottom'),
+          xScale = new Scales.Category(),
+          xAxis = new Axes.Category(xScale, 'bottom'),
           xAxisLabelText = 'foo',
           yAxisLabelText = 'bar',
           lineConfigs = [{
@@ -51,13 +51,13 @@ describe('chartUtils', function() {
           result = chartUtils.createScatterPlotChart(xAccessor, xScale, xAxis, xAxisLabelText, yAxisLabelText,
               lineConfigs, legendOrder, data);
 
-      expect(result).toEqual(jasmine.any(Plottable.Component));
+      expect(result).toEqual(jasmine.any(Component));
     });
 
     it('returns a Plottable Component when given a linear scale and numeric axis', function() {
       const xAccessor = x => x,
-          xScale = new Plottable.Scales.Linear().domain([0, 1]),
-          xAxis = new Plottable.Axes.Numeric(xScale, 'bottom'),
+          xScale = new Scales.Linear().domain([0, 1]),
+          xAxis = new Axes.Numeric(xScale, 'bottom'),
           xAxisLabelText = 'foo',
           yAxisLabelText = 'bar',
           lineConfigs = [{
@@ -75,7 +75,7 @@ describe('chartUtils', function() {
           result = chartUtils.createScatterPlotChart(xAccessor, xScale, xAxis, xAxisLabelText, yAxisLabelText,
               lineConfigs, legendOrder, data);
 
-      expect(result).toEqual(jasmine.any(Plottable.Component));
+      expect(result).toEqual(jasmine.any(Component));
     });
   });
 

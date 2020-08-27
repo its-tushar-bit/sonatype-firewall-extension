@@ -168,6 +168,16 @@ public abstract class AbstractFunctionalTest
       super.after();
       afterDatabaseReset();
     }
+
+    @Override
+    public void initializePersistedUserSessions() {
+      // noop
+    }
+
+    @Override
+    public void cleanupPersistedUserSessions() {
+      // noop
+    }
   };
 
   protected void afterDatabaseReset() {
@@ -314,6 +324,7 @@ public abstract class AbstractFunctionalTest
     loginModal.loginButton().click();
     FormMask.seeAndWaitForDismissal();
     loginModal.shouldBe(hidden);
+    staticTempEntity.initializePersistedUserSessions();
   }
 
   protected static void logout() {

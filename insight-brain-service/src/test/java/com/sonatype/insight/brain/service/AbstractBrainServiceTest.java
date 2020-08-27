@@ -314,6 +314,10 @@ public abstract class AbstractBrainServiceTest
     return testCLMServer.getCLMServer();
   }
 
+  protected TestCLMServer getTestCLMServer() {
+    return testCLMServer;
+  }
+
   protected HdsMockServerRule getHdsServer() {
     return hdsMockServer;
   }

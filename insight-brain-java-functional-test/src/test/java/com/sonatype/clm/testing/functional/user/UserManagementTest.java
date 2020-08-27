@@ -29,6 +29,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.Keys;
 
+import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.empty;
@@ -37,7 +38,6 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
 import static com.sonatype.clm.testing.functional.elements.DeleteModal.headerText;
 import static com.sonatype.clm.testing.functional.elements.PopoverViolations.on;
 import static java.util.Arrays.asList;
@@ -299,6 +299,7 @@ public class UserManagementTest
     DeleteModal.continueButton().click();
     DeleteModal.error().shouldBe(visible);
     DeleteModal.body().shouldBe(visible);
+    staticTempEntity.cleanupAllPersistedUserSessions();
     // Start the server again, and log back in
     testCLMServer.start();
 

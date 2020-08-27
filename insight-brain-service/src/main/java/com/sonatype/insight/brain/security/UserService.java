@@ -31,8 +31,11 @@ import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.session.Session;
+import org.apache.shiro.session.mgt.DefaultSessionKey;
+import org.apache.shiro.session.mgt.DelegatingSession;
 import org.apache.shiro.session.mgt.eis.SessionDAO;
 import org.apache.shiro.subject.Subject;
+import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,6 +64,8 @@ public class UserService
   private final UserDAO userDAO = new UserDAO();
 
   private final CurrentUser currentUser;
+  
+  private final DefaultWebSessionManager defaultWebSessionManager;
 
   @Inject
   public UserService(
@@ -69,7 +74,8 @@ public class UserService
       SessionDAO sessionDAO,
       UserDirectory userDirectory,
       InsightConfig insightConfig,
-      CurrentUser currentUser)
+      CurrentUser currentUser,
+      DefaultWebSessionManager defaultWebSessionManager)
   {
     this.clmRealm = clmRealm;
     this.passwordService = passwordService;
@@ -77,6 +83,7 @@ public class UserService
     this.userDirectory = userDirectory;
     this.insightConfig = insightConfig;
     this.currentUser = currentUser;
+    this.defaultWebSessionManager = defaultWebSessionManager;
   }
 
   // Authorization is checked in findMembersForNonGlobalRoles and findMembersForGlobalRoles
@@ -203,7 +210,10 @@ public class UserService
     }
 
     for (Session session : sessionDAO.getActiveSessions()) {
-      Subject subject = new Subject.Builder().session(session).buildSubject();
+      // Use a delegating session to ensure the session manager handles and persists session changes
+      DelegatingSession delegatingSession =
+          new DelegatingSession(defaultWebSessionManager, new DefaultSessionKey(session.getId()));
+      Subject subject = new Subject.Builder().session(delegatingSession).buildSubject();
       Object principal = subject.getPrincipal();
       // if the principal is null, then session either has an anonymous Subject,
       // or the subject has already been invalidated by shiro

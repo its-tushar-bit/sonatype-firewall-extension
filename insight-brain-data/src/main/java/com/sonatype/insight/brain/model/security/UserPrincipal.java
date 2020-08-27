@@ -8,6 +8,9 @@ package com.sonatype.insight.brain.model.security;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class UserPrincipal
 {
   private final String username;
@@ -26,7 +29,13 @@ public class UserPrincipal
     this(username, displayName, realmId, null);
   }
 
-  public UserPrincipal(String username, String displayName, String realmId, Set<String> membership) {
+  @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
+  public UserPrincipal(
+      @JsonProperty("username") String username,
+      @JsonProperty("displayName") String displayName,
+      @JsonProperty("realmId") String realmId,
+      @JsonProperty("membership") Set<String> membership)
+  {
     this.username = username;
     this.displayName = displayName;
     this.membership = new LinkedHashSet<>();

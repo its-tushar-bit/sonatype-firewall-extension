@@ -793,3 +793,10 @@ CREATE TABLE persisted_policy_evaluation_polling_result (
   CONSTRAINT persisted_policy_evaluation_polling_result_uk UNIQUE (application_id, status_id)
 );
 CREATE INDEX persisted_policy_evaluation_polling_result_create_time_idx ON persisted_policy_evaluation_polling_result(create_time);
+
+-- Since 1.98
+CREATE TABLE persisted_user_session (
+  persisted_user_session_id varchar(50) NOT NULL,
+  session_json text NOT NULL,
+  CONSTRAINT persisted_user_session_pk PRIMARY KEY (persisted_user_session_id)
+);

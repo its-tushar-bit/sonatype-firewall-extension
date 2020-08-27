@@ -143,6 +143,7 @@ public class ProductLicenseTest
     uninstallModal.uninstallBtn().click();
     uninstallModal.errorMessage().shouldBe(visible);
     uninstallModal.retryBtn().shouldBe(visible);
+    staticTempEntity.cleanupAllPersistedUserSessions();
     // restart the server and log back in
     testCLMServer.start();
     beforeClass();

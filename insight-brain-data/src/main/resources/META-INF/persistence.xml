@@ -63,6 +63,7 @@
     <class>com.sonatype.insight.brain.model.configuration.FirewallIgnorePatterns</class>
     <class>com.sonatype.insight.brain.model.Lock</class>
     <class>com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult</class>
+    <class>com.sonatype.insight.brain.model.security.PersistedUserSession</class>
     <properties>
       <!--
       <property name="openjpa.ConnectionURL" value="jdbc:hsqldb:tutorial_database"/>

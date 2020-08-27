@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -55,9 +56,9 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
@@ -66,8 +67,10 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
+import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
+import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
@@ -139,6 +142,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.PersistedUserSession;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
 import com.sonatype.insight.brain.model.security.User;
@@ -321,6 +325,10 @@ public class TemporaryEntity
   private final PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO =
       new PersistedPolicyEvaluationPollingResultDAO();
 
+  private final PersistedUserSessionDAO persistedUserSessionDAO = new PersistedUserSessionDAO();
+
+  private final ShiroSessionDAO shiroSessionDAO = new ShiroSessionDAO();
+
   private MailConfiguration savedMailConfiguration;
 
   private Collection<MigrationTracker> migrationTrackers;
@@ -387,6 +395,8 @@ public class TemporaryEntity
 
   private Collection<SourceControlDefaultBranchCommitHistory> sourceControlDefaultBranchCommitHistories;
 
+  private Collection<String> persistedUserSessionIds;
+
   @Override
   public void before() {
     migrationTrackers = migrationTrackerDAO.getAll().stream().map(this::copyMigrationTracker).collect(toList());
@@ -423,6 +433,7 @@ public class TemporaryEntity
     savedMailConfiguration = mailConfigurationDAO.get();
     savedProxyServerConfiguration = proxyServerConfigurationDAO.get();
     sourceControlDefaultBranchCommitHistories = new ArrayList<>();
+    initializePersistedUserSessions();
   }
 
   private MigrationTracker copyMigrationTracker(MigrationTracker migrationTracker) {
@@ -482,6 +493,7 @@ public class TemporaryEntity
     migrationTrackerDAO.getAll().forEach(migrationTrackerDAO::delete);
     migrationTrackers.forEach(migrationTrackerDAO::insert);
     searchIndexChangeDAO.getAll().forEach(searchIndexChangeDAO::delete);
+    cleanupPersistedUserSessions();
     delete(userTokens, userTokenDAO);
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(false);
     if (savedMailConfiguration == null) {
@@ -508,6 +520,20 @@ public class TemporaryEntity
         systemConfigurationPropertyDAO.delete(property);
       }
     }
+  }
+
+  public void initializePersistedUserSessions() {
+    persistedUserSessionIds =
+        persistedUserSessionDAO.getAll().stream().map(PersistedUserSession::getId).collect(Collectors.toSet());
+  }
+
+  public void cleanupPersistedUserSessions() {
+    persistedUserSessionDAO.getAll().stream().map(PersistedUserSession::getId)
+        .filter(id -> !persistedUserSessionIds.contains(id)).forEach(shiroSessionDAO::deleteById);
+  }
+
+  public void cleanupAllPersistedUserSessions() {
+    persistedUserSessionDAO.getAll().stream().map(PersistedUserSession::getId).forEach(shiroSessionDAO::deleteById);
   }
 
   private <T extends HasStringId> void delete(Collection<T> entities, AbstractDAO<T> dao) {

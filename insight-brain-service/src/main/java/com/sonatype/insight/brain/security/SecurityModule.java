@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.configuration.ldap.LdapRealm;
+import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
 
 import com.google.inject.TypeLiteral;
 import com.google.inject.binder.AnnotatedBindingBuilder;
@@ -20,7 +21,6 @@ import org.apache.shiro.guice.ShiroModule;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.session.SessionListener;
 import org.apache.shiro.session.mgt.SessionManager;
-import org.apache.shiro.session.mgt.eis.MemorySessionDAO;
 import org.apache.shiro.session.mgt.eis.SessionDAO;
 import org.apache.shiro.web.filter.mgt.DefaultFilterChainManager;
 import org.apache.shiro.web.filter.mgt.FilterChainManager;
@@ -154,7 +154,7 @@ public class SecurityModule
     bind(WebSessionManager.class).to(DefaultWebSessionManager.class);
     bind(DefaultWebSessionManager.class).in(Singleton.class);
     expose(DefaultWebSessionManager.class);
-    bind(SessionDAO.class).to(MemorySessionDAO.class).in(Singleton.class);
+    bind(SessionDAO.class).to(ShiroSessionDAO.class).in(Singleton.class);
     expose(SessionDAO.class);
   }
 

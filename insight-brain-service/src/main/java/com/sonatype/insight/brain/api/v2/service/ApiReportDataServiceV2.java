@@ -137,6 +137,7 @@ public class ApiReportDataServiceV2
     data.reportTitle = metadata.getReportTitle();
     data.commitHash = metadata.getCommitHash();
     data.application = getApplicationMetadata(metadata.getApplication());
+    data.initiator = metadata.getInitiator();
     data.counts = getReportCounts(countsEntry.buf);
     data.components = getComponents(bomEntry.buf, policyThreats);
 

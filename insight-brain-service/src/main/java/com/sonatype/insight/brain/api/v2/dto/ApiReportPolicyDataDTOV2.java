@@ -29,6 +29,11 @@ public class ApiReportPolicyDataDTOV2
    */
   public String commitHash;
 
+  /**
+   * @since 1.98
+   */
+  public String initiator;
+
   public ApiApplicationBaseDTO application;
 
   @JsonInclude(content = Include.NON_NULL, value = Include.NON_EMPTY)

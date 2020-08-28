@@ -51,26 +51,35 @@ public class PolicyEvaluation
   @Column(name = "commit_hash")
   private String commitHash;
 
+  /**
+   * @since 1.98
+   */
+  @Column(name = "initiator")
+  private String initiator;
+
   public PolicyEvaluation() {
   }
 
-  public PolicyEvaluation(String applicationId, String stageTypeId, String scanId) {
+  public PolicyEvaluation(String applicationId, String stageTypeId, String scanId, String initiator) {
     this.applicationId = applicationId;
     this.stageTypeId = stageTypeId;
     this.scanId = scanId;
+    this.initiator = initiator;
   }
 
   public PolicyEvaluation(String applicationId,
                           String stageTypeId,
                           String scanId,
                           boolean isReevaluation,
-                          boolean isForMonitoring)
+                          boolean isForMonitoring,
+                          String initiator)
   {
     this.applicationId = applicationId;
     this.stageTypeId = stageTypeId;
     this.scanId = scanId;
     this.isReevaluation = isReevaluation;
     this.isForMonitoring = isForMonitoring;
+    this.initiator = initiator;
   }
 
   @Override
@@ -147,6 +156,14 @@ public class PolicyEvaluation
     this.commitHash = commitHash;
   }
 
+  public String getInitiator() {
+    return initiator;
+  }
+
+  public void setInitiator(final String initiator) {
+    this.initiator = initiator;
+  }
+
   @Override
   public String toString() {
     return "PolicyEvaluation{" + //
@@ -159,6 +176,7 @@ public class PolicyEvaluation
         ", isForObsoleteScan=" + isForObsoleteScan + //
         ", time=" + time + " (" + (time == null ? "" : time.getTime()) + ")" + //
         ", commitHash='" + commitHash + '\'' + //
+        ", initiator='" + initiator + '\'' + //
         '}';
   }
 }

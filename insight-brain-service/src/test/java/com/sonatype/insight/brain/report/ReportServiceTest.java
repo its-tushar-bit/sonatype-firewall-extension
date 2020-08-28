@@ -291,6 +291,7 @@ public class ReportServiceTest
     assertThat(metadata.getReportTime()).isEqualTo(eval1.getTime());
     assertThat(metadata.getStageId()).isEqualTo("build");
     assertThat(metadata.getCommitHash()).isNull();
+    assertThat(metadata.getInitiator()).isEqualTo("system");
 
     // Verify Response for scan 2
     metadata = reportService.getReportMetadata(app.getPublicId(), scanId2);
@@ -299,6 +300,7 @@ public class ReportServiceTest
     assertThat(metadata.getReportTime()).isEqualTo(eval2.getTime());
     assertThat(metadata.getStageId()).isEqualTo("release");
     assertThat(metadata.getCommitHash()).isEqualTo(commitHash);
+    assertThat(metadata.getInitiator()).isEqualTo("system");
 
     // Unknown scan id
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
@@ -400,7 +402,7 @@ public class ReportServiceTest
 
   @Test
   public void testGetBomForPolicyEvaluation_NoPolicyEvaluation() {
-    PolicyEvaluation policyEvaluation = new PolicyEvaluation(app.getId(), BuildStageType.ID, "SCAN_ID");
+    PolicyEvaluation policyEvaluation = new PolicyEvaluation(app.getId(), BuildStageType.ID, "SCAN_ID", "system");
 
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> createReportService().getBomForPolicyEvaluation(policyEvaluation));

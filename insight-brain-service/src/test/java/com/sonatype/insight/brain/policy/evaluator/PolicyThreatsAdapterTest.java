@@ -224,7 +224,7 @@ public class PolicyThreatsAdapterTest
                                                boolean grandfathered,
                                                String actionType)
   {
-    PolicyEvaluation evaluation = new PolicyEvaluation("applicationId1", "stageId1", "scanId1");
+    PolicyEvaluation evaluation = new PolicyEvaluation("applicationId1", "stageId1", "scanId1", "system");
     evaluation.setTime(new Date());
 
     PolicyViolation violation = new PolicyViolation(evaluation, policyId, policyId, threatLevel,

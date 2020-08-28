@@ -65,6 +65,7 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -133,6 +134,8 @@ public class ScanPolicyEvaluator
 
   private final SourceControlUtils sourceControlUtils;
 
+  private final CurrentUser currentUser;
+
   @Inject
   public ScanPolicyEvaluator(
       final InsightWork insightWork,
@@ -145,7 +148,8 @@ public class ScanPolicyEvaluator
       final TelemetrySender telemetrySender,
       final PolicyViolationLoggerFactory policyViolationLoggerFactory,
       final ProductLicense productLicense,
-      final SourceControlUtils sourceControlUtils)
+      final SourceControlUtils sourceControlUtils,
+      final CurrentUser currentUser)
   {
     this.work = insightWork;
     this.reportService = reportService;
@@ -158,6 +162,7 @@ public class ScanPolicyEvaluator
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
     this.productLicense = productLicense;
     this.sourceControlUtils = sourceControlUtils;
+    this.currentUser = currentUser;
   }
 
   public ScanPolicyEvaluatorResults evaluate(final Application application, final String scanId, final Stage stage)
@@ -311,7 +316,7 @@ public class ScanPolicyEvaluator
       boolean isReevaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, appId, scanId) != null;
       AuditData.get().setIsReevaluation(isReevaluation);
       PolicyEvaluation policyEvaluation = new PolicyEvaluation(appId, stage.getStageTypeId(), scanId, isReevaluation,
-          forMonitoring);
+          forMonitoring, currentUser.getUsernameOrSystem());
       policyEvaluation.setCommitHash(commitHash);
       PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(tx,
           appId, stage.getStageTypeId());

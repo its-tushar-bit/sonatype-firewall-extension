@@ -198,6 +198,7 @@ public class ApiReportDataServiceV2Test
     assertThat(data.reportTime).isEqualTo(policyEvaluation.getTime());
     assertThat(data.reportTitle).isEqualTo("Release Report");
     assertThat(data.commitHash).isEqualTo(policyEvaluation.getCommitHash());
+    assertThat(data.initiator).isEqualTo("system");
     assertThat(data.application.id).isEqualTo(app.getId());
     assertThat(data.application.publicId).isEqualTo("app-id");
     assertThat(data.application.name).isEqualTo(app.getName());

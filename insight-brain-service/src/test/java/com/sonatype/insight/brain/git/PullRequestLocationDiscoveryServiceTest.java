@@ -68,7 +68,7 @@ public class PullRequestLocationDiscoveryServiceTest
 
   private String applicationId = "appId";
 
-  private PolicyEvaluation evaluation = new PolicyEvaluation(applicationId, "stage-type-id", "scan-id");
+  private PolicyEvaluation evaluation = new PolicyEvaluation(applicationId, "stage-type-id", "scan-id", "system");
 
   // Subject
   private PullRequestLocationDiscoveryService locationDiscoveryService;

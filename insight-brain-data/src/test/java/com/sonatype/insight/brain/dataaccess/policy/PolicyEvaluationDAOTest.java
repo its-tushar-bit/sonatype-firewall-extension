@@ -46,7 +46,7 @@ public class PolicyEvaluationDAOTest
     String scanId = "PolicyEvaluationDAOTest";
 
     // Create
-    PolicyEvaluation policyEvaluation = new PolicyEvaluation(application.getId(), stageTypeId, scanId);
+    PolicyEvaluation policyEvaluation = new PolicyEvaluation(application.getId(), stageTypeId, scanId, "system");
     assertThat(policyEvaluation.getId()).isNull();
     dao.insert(policyEvaluation);
     assertThat(policyEvaluation.getId()).isNotNull();
@@ -56,7 +56,7 @@ public class PolicyEvaluationDAOTest
     // Read
     policyEvaluation = dao.getById(policyEvaluation.getId());
     assertThat(policyEvaluation).isNotNull();
-    assertPolicyEvaluation(application.getId(), stageTypeId, scanId, false, false, policyEvaluation);
+    assertPolicyEvaluation(application.getId(), stageTypeId, scanId, false, false, "system", policyEvaluation);
 
     // Update is not allowed
     PolicyEvaluation policyEvaluationToUpdate = policyEvaluation;
@@ -176,6 +176,7 @@ public class PolicyEvaluationDAOTest
       String scanId,
       boolean reevaluation,
       boolean forMonitoring,
+      String initiator,
       PolicyEvaluation actual)
   {
     assertThat(actual.getApplicationId()).isEqualTo(applicationId);
@@ -183,6 +184,7 @@ public class PolicyEvaluationDAOTest
     assertThat(actual.getScanId()).isEqualTo(scanId);
     assertThat(actual.isReevaluation()).isEqualTo(reevaluation);
     assertThat(actual.isForMonitoring()).isEqualTo(forMonitoring);
+    assertThat(actual.getInitiator()).isEqualTo(initiator);
   }
 
   @Test
@@ -373,7 +375,8 @@ public class PolicyEvaluationDAOTest
   public void testValidateForObsoleteScan_Insert() {
     PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
 
-    PolicyEvaluation policyEvaluation = new PolicyEvaluation(application.getId(), ReleaseStageType.ID, "scanId");
+    PolicyEvaluation policyEvaluation =
+        new PolicyEvaluation(application.getId(), ReleaseStageType.ID, "scanId", "system");
     policyEvaluation.setForObsoleteScan(true);
     assertThatThrownBy(() -> {
       dao.insert(policyEvaluation);

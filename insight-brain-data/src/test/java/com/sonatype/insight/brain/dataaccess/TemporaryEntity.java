@@ -1196,7 +1196,7 @@ public class TemporaryEntity
   }
 
   public PolicyEvaluation newPolicyEvaluation(String applicationId, String stageTypeId, String scanId, Date time) {
-    PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId);
+    PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId, "system");
     policyEvaluation.setTime(time);
     policyEvaluationDAO.insert(policyEvaluation);
     return policyEvaluation;
@@ -1265,14 +1265,14 @@ public class TemporaryEntity
       String scanId,
       String commitHash)
   {
-    PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId);
+    PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId, "system");
     policyEvaluation.setCommitHash(commitHash);
     policyEvaluationDAO.insert(policyEvaluation);
     return policyEvaluation;
   }
 
   public PolicyEvaluation newPolicyEvaluation(String applicationId, String stageTypeId, String scanId) {
-    PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId);
+    PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId, "system");
     policyEvaluationDAO.insert(policyEvaluation);
     return policyEvaluation;
   }
@@ -1284,7 +1284,7 @@ public class TemporaryEntity
       Date time,
       String commitHash)
   {
-    PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId);
+    PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId, "system");
     policyEvaluation.setTime(time);
     policyEvaluation.setCommitHash(commitHash);
     policyEvaluationDAO.insert(policyEvaluation);
@@ -1299,7 +1299,7 @@ public class TemporaryEntity
                                               Date time)
   {
     PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId, isReevaluation,
-        isForMonitoring);
+        isForMonitoring, "system");
     policyEvaluation.setTime(time);
     policyEvaluationDAO.insert(policyEvaluation);
     return policyEvaluation;
@@ -1327,7 +1327,7 @@ public class TemporaryEntity
                                               String commitHash)
   {
     PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId, isReevaluation,
-        isForMonitoring);
+        isForMonitoring, "system");
     policyEvaluation.setCommitHash(commitHash);
     policyEvaluation.setTime(time);
     policyEvaluation.setForObsoleteScan(isForObsoleteScan);

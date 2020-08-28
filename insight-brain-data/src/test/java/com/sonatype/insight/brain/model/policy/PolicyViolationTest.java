@@ -31,7 +31,7 @@ public class PolicyViolationTest
 
   @Before
   public void setUp() {
-    evaluation = new PolicyEvaluation("app-id", "stage-type-id", "scan-id");
+    evaluation = new PolicyEvaluation("app-id", "stage-type-id", "scan-id", "system");
     evaluation.setTime(new Date(System.currentTimeMillis() - 12345));
   }
 

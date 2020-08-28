@@ -352,6 +352,7 @@ CREATE TABLE policy_evaluation (
   for_obsolete_scan bool DEFAULT false NOT NULL,
   time timestamp NOT NULL,
   commit_hash varchar(128),
+  initiator varchar(50) DEFAULT '' NOT NULL,
   CONSTRAINT policy_evaluation_pk PRIMARY KEY (policy_evaluation_id),
   CONSTRAINT policy_evaluation_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id)
 );

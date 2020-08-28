@@ -35,7 +35,8 @@ public class PolicyViolationTelemetryCollectorTest
 
   private static final String TEST_STAGE = "testStage";
 
-  private static final PolicyEvaluation policyEvaluation = new PolicyEvaluation(TEST_APP_ID, TEST_STAGE, "scanId123");
+  private static final PolicyEvaluation policyEvaluation =
+      new PolicyEvaluation(TEST_APP_ID, TEST_STAGE, "scanId123", "system");
 
   private static final ComponentIdentifier commonsLang3 = ComponentIdentifier.createMavenCoordinates(
       "org.apache.commons", "commons-lang3", "3.8.1");

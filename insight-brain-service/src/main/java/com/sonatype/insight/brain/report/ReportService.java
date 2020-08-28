@@ -206,6 +206,7 @@ public class ReportService
       metadata.setReportTitle(StageTypes.getById(evaluation.getStageTypeId()).getName() + " Report");
       metadata.setStageId(evaluation.getStageTypeId());
       metadata.setCommitHash(evaluation.getCommitHash());
+      metadata.setInitiator(evaluation.getInitiator());
     }
 
     // For NVS where a scanLabel is set for the application name and the stage name doesn't matter

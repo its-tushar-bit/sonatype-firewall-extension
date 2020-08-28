@@ -23,6 +23,8 @@ public class ReportMetadataDTO
 
   private String commitHash;
 
+  private String initiator;
+
   public boolean isExpandedCoverage() {
     return expandedCoverage;
   }
@@ -69,5 +71,13 @@ public class ReportMetadataDTO
 
   public void setCommitHash(String commitHash) {
     this.commitHash = commitHash;
+  }
+
+  public String getInitiator() {
+    return initiator;
+  }
+
+  public void setInitiator(final String initiator) {
+    this.initiator = initiator;
   }
 }

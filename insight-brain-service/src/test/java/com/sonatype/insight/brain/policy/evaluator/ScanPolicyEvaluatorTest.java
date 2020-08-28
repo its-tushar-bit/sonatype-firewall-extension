@@ -748,7 +748,7 @@ public class ScanPolicyEvaluatorTest
     application.setPolicyViolationGrandfatheringEnabled(true);
     new ApplicationDAO().update(application);
 
-    PolicyEvaluation policyEvaluation = new PolicyEvaluation(application.getId(), "stageId", "scanId");
+    PolicyEvaluation policyEvaluation = new PolicyEvaluation(application.getId(), "stageId", "scanId", "system");
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(policyViolation(policyEvaluation, 1, PolicyThreatCategory.LICENSE, false));
     policyViolations.add(policyViolation(policyEvaluation, 3, PolicyThreatCategory.SECURITY, false));
@@ -771,7 +771,7 @@ public class ScanPolicyEvaluatorTest
     application.setPolicyViolationGrandfatheringEnabled(true);
     new ApplicationDAO().update(application);
 
-    PolicyEvaluation policyEvaluation = new PolicyEvaluation(application.getId(), "stageId", "scanId");
+    PolicyEvaluation policyEvaluation = new PolicyEvaluation(application.getId(), "stageId", "scanId", "system");
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(policyViolation(policyEvaluation, 1, PolicyThreatCategory.LICENSE, true));
     policyViolations.add(policyViolation(policyEvaluation, 3, PolicyThreatCategory.SECURITY, true));

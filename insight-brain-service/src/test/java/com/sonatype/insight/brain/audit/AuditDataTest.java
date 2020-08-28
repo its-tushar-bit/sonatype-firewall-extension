@@ -117,9 +117,7 @@ public class AuditDataTest
     verify(auditData).continueAsync(functionArgumentCaptor.capture());
     Function<AuditData, Void> wrappedTaskSubmitter = functionArgumentCaptor.getValue();
     assertThat(wrappedTaskSubmitter).isNotNull();
-    assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> {
-      wrappedTaskSubmitter.apply(auditData);
-    }).isSameAs(t);
+    wrappedTaskSubmitter.apply(auditData);
     verify(auditData).setException(t);
     verify(auditData).commit();
     assertThat(AuditData.get()).isEqualTo(NoopAuditData.INSTANCE);

@@ -28,12 +28,17 @@ import com.sonatype.insight.brain.policy.ActionDTO;
 import com.sonatype.insight.brain.policy.ConstraintDTO;
 import com.sonatype.insight.brain.policy.NotificationDTO;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * The data for one audit record. Code populates audit data for the current operation/event using
  * {@link AuditData#get()}.
  */
 public abstract class AuditData
 {
+  private static final Logger log = LoggerFactory.getLogger(AuditData.class);
+
   /**
    * Gets the data for the current audit event. Note that this method can safely be called from anywhere in the code and
    * from any thread: It never returns {@code null}.
@@ -89,9 +94,15 @@ public abstract class AuditData
           try {
             task.run();
           }
-          catch (Throwable e) {
+          catch (Exception e) {
             auditData.setException(e);
-            throw e;
+          }
+          catch (Throwable t) {
+            // Try to log to stderr before trying the standard logging because the standard logging may not be
+            // operational at this point.
+            t.printStackTrace();
+            log.error(t.getMessage(), t);
+            System.exit(1);
           }
         }
       };
@@ -110,9 +121,17 @@ public abstract class AuditData
           try {
             return task.call();
           }
-          catch (Throwable e) {
+          catch (Exception e) {
             auditData.setException(e);
             throw e;
+          }
+          catch (Throwable t) {
+            // Try to log to stderr before trying the standard logging because the standard logging may not be
+            // operational at this point.
+            t.printStackTrace();
+            log.error(t.getMessage(), t);
+            System.exit(1);
+            return null;
           }
         }
       };
@@ -127,9 +146,17 @@ public abstract class AuditData
           try {
             return task.get();
           }
-          catch (Throwable e) {
+          catch (Exception e) {
             auditData.setException(e);
             throw e;
+          }
+          catch (Throwable t) {
+            // Try to log to stderr before trying the standard logging because the standard logging may not be
+            // operational at this point.
+            t.printStackTrace();
+            log.error(t.getMessage(), t);
+            System.exit(1);
+            return null;
           }
         }
       };

@@ -567,7 +567,7 @@ public class PolicyEvaluateServiceTest
     Application app = tempEntity.newApplicationWithParent();
 
     CountDownLatch countDownLatch = new CountDownLatch(1);
-    doAnswer(invocation -> {
+    lenient().doAnswer(invocation -> {
       countDownLatch.await(1, TimeUnit.MINUTES);
       return null;
     }).when(mockScanHandler).handle(any(), any(Application.class), any(ClientScanType.class), any(TelemetryData.class),

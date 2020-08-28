@@ -90,7 +90,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.internal.stubbing.answers.CallsRealMethods;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -565,22 +564,21 @@ public class PolicyEvaluateServiceTest
   @Test
   public void testEvaluateWithPolling_PollEvaluationResult_Pending() throws Exception {
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scanid");
-
-    PolicyEvaluateService policyEvaluationServiceSpy = spy(policyEvaluateService);
+    Application app = tempEntity.newApplicationWithParent();
 
     CountDownLatch countDownLatch = new CountDownLatch(1);
-    lenient().doAnswer((Answer<PolicyEvaluationResult>) invocationOnSpy -> {
+    doAnswer(invocation -> {
       countDownLatch.await(1, TimeUnit.MINUTES);
       return null;
-    }).when(policyEvaluationServiceSpy).evaluate(any(Application.class), any(String.class), any(Stage.class));
+    }).when(mockScanHandler).handle(any(), any(Application.class), any(ClientScanType.class), any(TelemetryData.class),
+        anyString());
 
-    Application app = tempEntity.newApplicationWithParent();
-    PolicyEvaluationReceipt receipt = policyEvaluationServiceSpy
-        .evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null,
-            new Stage(Stage.ID_BUILD));
+    PolicyEvaluationReceipt receipt = policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(),
+        ClientScanType.SONATYPE, null, new Stage(Stage.ID_BUILD));
 
     PolicyEvaluationPollingResult policyEvaluationPollingResult =
         policyEvaluateService.pollEvaluationResult(app.getPublicId(), receipt.getStatusId());
+    countDownLatch.countDown();
     assertThat(policyEvaluationPollingResult).isNotNull();
     assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.PENDING);
     assertThat(policyEvaluationPollingResult.getReason()).isNull();

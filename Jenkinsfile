@@ -38,5 +38,6 @@ make(
         ]
     ],
     usePMD: true,
-    useCheckstyle: true
+    useCheckstyle: true,
+    releaseRetentionPolicy: RetentionPolicy.TEN_BUILDS
 )

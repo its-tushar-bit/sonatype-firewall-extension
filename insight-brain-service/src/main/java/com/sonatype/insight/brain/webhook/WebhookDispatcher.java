@@ -296,6 +296,7 @@ public class WebhookDispatcher
     payload.applicationEvaluation.moderateComponentCount = event.applicationEvaluation.moderateComponentCount;
     payload.applicationEvaluation.outcome = event.applicationEvaluation.outcome;
     payload.applicationEvaluation.reportId = event.applicationEvaluation.reportId;
+    payload.applicationEvaluation.isForLatestScan = event.applicationEvaluation.isForLatestScan;
 
     payload.application.id = event.application.id;
     payload.application.name = event.application.name;
@@ -351,6 +352,7 @@ public class WebhookDispatcher
     applicationEvaluationDTO.outcome = event.outcome;
     applicationEvaluationDTO.reportId = event.reportId;
     applicationEvaluationDTO.application = event.application;
+    applicationEvaluationDTO.isForLatestScan = event.isForLatestScan;
 
     ApplicationEvaluationPayload payload = new ApplicationEvaluationPayload();
     payload.timestamp = new Date();

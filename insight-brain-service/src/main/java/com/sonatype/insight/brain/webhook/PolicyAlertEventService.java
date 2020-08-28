@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.webhook;
 
 import java.util.AbstractMap.SimpleEntry;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -61,10 +62,12 @@ public class PolicyAlertEventService
   }
 
   public void postEvent(
-      final PolicyEvaluation policyEvaluation, 
+      final PolicyEvaluation policyEvaluation,
       final PolicyEvaluationResult policyEvaluationResult,
       final String commitHash,
-      final Application application)
+      final Application application,
+      final List<PolicyAlert> waivedAlerts,
+      final List<PolicyAlert> fixedAlerts)
   {
     try {
       final ApplicationSummary applicationSummary = populateApplicationSummary(policyEvaluation);
@@ -76,6 +79,17 @@ public class PolicyAlertEventService
       Map<String, List<PolicyFact>> groupedAlerts = policyEvaluationResult.getAlerts().stream()
           .flatMap(this::getPolicyFactsByWebhookTarget)
           .collect(groupingBy(SimpleEntry::getKey, mapping(SimpleEntry::getValue, toList())));
+
+      Map<String, List<PolicyFact>> groupedWaivedAlerts = waivedAlerts.stream()
+          .flatMap(this::getPolicyFactsByWebhookTarget)
+          .collect(groupingBy(SimpleEntry::getKey, mapping(SimpleEntry::getValue, toList())));
+
+      Map<String, List<PolicyFact>> groupedFixedAlerts = fixedAlerts.stream()
+          .flatMap(this::getPolicyFactsByWebhookTarget)
+          .collect(groupingBy(SimpleEntry::getKey, mapping(SimpleEntry::getValue, toList())));
+
+      groupedWaivedAlerts.forEach((key, value) -> groupedAlerts.putIfAbsent(key, Collections.emptyList()));
+      groupedFixedAlerts.forEach((key, value) -> groupedAlerts.putIfAbsent(key, Collections.emptyList()));
 
       // post events
       groupedAlerts.entrySet().stream()

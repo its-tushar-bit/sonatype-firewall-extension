@@ -40,7 +40,8 @@ public class ApplicationEvaluationEvent
 
   /**
    * Set only if available from underlying data
-   * @since 1.67.0 
+   *
+   * @since 1.67.0
    */
   public String commitHash;
 
@@ -48,6 +49,11 @@ public class ApplicationEvaluationEvent
    * @since 1.91
    */
   public ApplicationSummary application = new ApplicationSummary();
+
+  /**
+   * @since 1.98
+   */
+  public boolean isForLatestScan;
 
   @Override
   public String toString() {

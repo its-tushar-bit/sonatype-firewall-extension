@@ -70,6 +70,7 @@ public class ApplicationEvaluationEventService
     event.initiator = currentUser.getUsernameOrSystem();
     event.reportId = policyEvaluation.getScanId();
     event.commitHash = commitHash;
+    event.isForLatestScan = !policyEvaluation.isForObsoleteScan();
               
     event.affectedComponentCount = policyEvaluationResult.getAffectedComponentCount();
     event.criticalComponentCount = policyEvaluationResult.getCriticalComponentCount();

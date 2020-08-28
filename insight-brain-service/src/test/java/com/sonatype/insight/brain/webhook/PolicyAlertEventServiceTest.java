@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.webhook;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -70,7 +71,9 @@ public class PolicyAlertEventServiceTest
     TestEventHandler<PolicyAlertEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
     asyncEventBus.register(handler);
 
-    policyAlertEventService.postEvent(policyEvaluation, policyEvaluationResult, "commitHash", application);
+    policyAlertEventService
+        .postEvent(policyEvaluation, policyEvaluationResult, "commitHash", application, Collections.emptyList(),
+            Collections.emptyList());
 
     // policyAlertEvent is posted
     assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
@@ -79,6 +82,7 @@ public class PolicyAlertEventServiceTest
     assertThat(event.applicationEvaluation.policyEvaluationId).isEqualTo(policyEvaluation.getId());
     assertThat(event.applicationEvaluation.stageTypeId).isEqualTo(policyEvaluation.getStageTypeId());
     assertThat(event.applicationEvaluation.ownerId).isEqualTo(policyEvaluation.getApplicationId());
+    assertThat(event.applicationEvaluation.isForLatestScan).isEqualTo(!policyEvaluation.isForObsoleteScan());
     assertThat(event.applicationEvaluation.evaluationDate).isEqualTo(time);
     assertThat(event.applicationEvaluation.affectedComponentCount).isEqualTo(1);
     assertThat(event.applicationEvaluation.criticalComponentCount).isEqualTo(3);
@@ -103,7 +107,9 @@ public class PolicyAlertEventServiceTest
     TestEventHandler<PolicyAlertEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
     asyncEventBus.register(handler);
 
-    policyAlertEventService.postEvent(policyEvaluation, policyEvaluationResult, null, application);
+    policyAlertEventService
+        .postEvent(policyEvaluation, policyEvaluationResult, null, application, Collections.emptyList(),
+            Collections.emptyList());
 
     // no event is posted
     assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isFalse();
@@ -119,7 +125,9 @@ public class PolicyAlertEventServiceTest
     TestEventHandler<PolicyAlertEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
     asyncEventBus.register(handler);
 
-    policyAlertEventService.postEvent(policyEvaluation, policyEvaluationResult, null, application);
+    policyAlertEventService
+        .postEvent(policyEvaluation, policyEvaluationResult, null, application, Collections.emptyList(),
+            Collections.emptyList());
 
     // events for target1 are grouped into a single event
     assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
@@ -139,12 +147,57 @@ public class PolicyAlertEventServiceTest
     TestEventHandler<PolicyAlertEvent> handler = new TestEventHandler<>(new CountDownLatch(3));
     asyncEventBus.register(handler);
 
-    policyAlertEventService.postEvent(policyEvaluation, policyEvaluationResult, null, application);
+    policyAlertEventService
+        .postEvent(policyEvaluation, policyEvaluationResult, null, application, Collections.emptyList(),
+            Collections.emptyList());
 
     // 3 events are received
     assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
     PolicyAlertEvent event = handler.getEvent();
     assertThat(event).isNotNull();
+  }
+
+  @Test
+  public void testPostEvent_NoViolationsWithFixedViolations() throws InterruptedException {
+    // evaluation result without webhook alerts
+    final Date time = new Date();
+    final PolicyEvaluation policyEvaluation = createPolicyEvaluation(time);
+    final List<PolicyAlert> alerts = createAlerts(TARGET_TYPE_WEBHOOK, "target1", "target2", "target3");
+    final PolicyEvaluationResult policyEvaluationResult = createPolicyEvaluationResult(Collections.emptyList());
+    TestEventHandler<PolicyAlertEvent> handler = new TestEventHandler<>(new CountDownLatch(3));
+    asyncEventBus.register(handler);
+
+    // Post event for eval with no active violations, but some fixed violations
+    policyAlertEventService
+        .postEvent(policyEvaluation, policyEvaluationResult, null, application, Collections.emptyList(),
+            alerts);
+
+    // Event without any policy facts is received
+    assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
+    PolicyAlertEvent event = handler.getEvent();
+    assertThat(event).isNotNull();
+    assertThat(event.policyFacts).hasSize(0);
+  }
+
+  @Test
+  public void testPostEvent_NoViolationsWithWaivedViolations() throws InterruptedException {
+    // evaluation result without webhook alerts
+    final Date time = new Date();
+    final PolicyEvaluation policyEvaluation = createPolicyEvaluation(time);
+    final List<PolicyAlert> alerts = createAlerts(TARGET_TYPE_WEBHOOK, "target1", "target2", "target3");
+    final PolicyEvaluationResult policyEvaluationResult = createPolicyEvaluationResult(Collections.emptyList());
+    TestEventHandler<PolicyAlertEvent> handler = new TestEventHandler<>(new CountDownLatch(3));
+    asyncEventBus.register(handler);
+
+    // Post event for eval with no active violations, but some waived violations
+    policyAlertEventService
+        .postEvent(policyEvaluation, policyEvaluationResult, null, application, alerts, Collections.emptyList());
+
+    // Event without any policy facts is received
+    assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
+    PolicyAlertEvent event = handler.getEvent();
+    assertThat(event).isNotNull();
+    assertThat(event.policyFacts).hasSize(0);
   }
 
   private List<PolicyAlert> createAlerts(String targetType, String... targets) {

@@ -43,5 +43,7 @@ public class ApplicationEvaluationPayload
     public String outcome;
 
     public String reportId;
+
+    public boolean isForLatestScan;
   }
 }

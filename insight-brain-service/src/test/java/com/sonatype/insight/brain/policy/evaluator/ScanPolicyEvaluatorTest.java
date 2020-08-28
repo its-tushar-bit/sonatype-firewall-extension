@@ -1906,9 +1906,60 @@ public class ScanPolicyEvaluatorTest
     clearInvocations(mockTelemetrySender);
   }
 
-  private void assertPolicyViolationsLogged(PolicyViolationLogEvent policyViolationLogEvent,
-                                            Date evaluationTime,
-                                            List<PolicyViolation> policyViolations) throws Exception
+  @Test
+  public void testEvaluate_Results_FixedViolationsCount() throws Exception {
+    // Given
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("report");
+    Policy policy = newSecurityPolicy();
+
+    // When running the first evaluation
+    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = scanPolicyEvaluator.evaluate(application, scanId, stage);
+
+    // Then new violations are created
+    assertThat(scanPolicyEvaluatorResults.activeViolations).hasSize(36);
+    assertThat(scanPolicyEvaluatorResults.fixedViolations).hasSize(0);
+
+    // When removing the policy
+    new PolicyDAO().delete(policy);
+    clearInvocations(mockTelemetrySender);
+    // And running the second evaluation to have all policy violations fixed
+    scanPolicyEvaluatorResults = scanPolicyEvaluator.evaluate(application, scanId, stage);
+
+    // Then all policy violations are reported as fixed and no active
+    assertThat(scanPolicyEvaluatorResults.activeViolations).hasSize(0);
+    assertThat(scanPolicyEvaluatorResults.fixedViolations).hasSize(36);
+  }
+
+  @Test
+  public void testEvaluate_Results_WaivedViolationsCount() throws Exception {
+    // Create two policies that will cause policy violations and waive one policy.
+    Policy securityPolicy = newSecurityPolicy();
+    tempEntity.newWaiver(securityPolicy.getId(), application.getId());
+    Policy licensePolicy = newPolicy(new Condition(LicenseConditionType.ID, "is", "Apache-2.0"));
+    String scanId = simulateReportIsAvailable("testEvaluate_PolicyViolationLogger_WaivePolicyViolations/report");
+
+    // When evaluate policies
+    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
+        scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD));
+
+    // There should be one waived violation
+    assertThat(scanPolicyEvaluatorResults.waivedViolations).hasSize(1);
+    assertThat(scanPolicyEvaluatorResults.waivedViolations.get(0).getPolicyId()).isEqualTo(securityPolicy.getId());
+
+    // When waive the other policy and evaluate policies again
+    tempEntity.newWaiver(licensePolicy.getId(), application.getId());
+    scanPolicyEvaluatorResults = scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD));
+
+    // The second violation should be reported as waived
+    assertThat(scanPolicyEvaluatorResults.waivedViolations).hasSize(1);
+    assertThat(scanPolicyEvaluatorResults.waivedViolations.get(0).getPolicyId()).isEqualTo(licensePolicy.getId());
+  }
+
+  private void assertPolicyViolationsLogged(
+      PolicyViolationLogEvent policyViolationLogEvent,
+      Date evaluationTime,
+      List<PolicyViolation> policyViolations) throws Exception
   {
     List<PolicyViolationLogDTO> policyViolationLogDTOs =
         PolicyViolationLogDTOAssert.assertPolicyViolationLogDTOs(policyViolationLoggerOutput, policyViolationLogEvent,

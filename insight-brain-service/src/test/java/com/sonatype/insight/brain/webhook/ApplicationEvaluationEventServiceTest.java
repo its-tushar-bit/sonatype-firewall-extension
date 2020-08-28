@@ -65,6 +65,7 @@ public class ApplicationEvaluationEventServiceTest
     assertThat(event.policyEvaluationId).isEqualTo(policyEvaluation.getId());
     assertThat(event.stageTypeId).isEqualTo(policyEvaluation.getStageTypeId());
     assertThat(event.ownerId).isEqualTo(policyEvaluation.getApplicationId());
+    assertThat(event.isForLatestScan).isEqualTo(!policyEvaluation.isForObsoleteScan());
     assertThat(event.evaluationDate).isEqualTo(time);
     assertThat(event.affectedComponentCount).isEqualTo(1);
     assertThat(event.criticalComponentCount).isEqualTo(3);

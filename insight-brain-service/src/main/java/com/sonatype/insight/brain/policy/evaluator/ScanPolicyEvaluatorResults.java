@@ -19,4 +19,8 @@ public class ScanPolicyEvaluatorResults
   public List<PolicyViolation> activeViolations;
 
   public List<PolicyViolation> notifiableViolations;
+
+  public List<PolicyViolation> waivedViolations;
+
+  public List<PolicyViolation> fixedViolations;
 }

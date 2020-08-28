@@ -126,6 +126,7 @@ public class WebhookDispatcherTest
     event.moderateComponentCount = 7;
     event.outcome = "outcome";
     event.reportId = "reportId";
+    event.isForLatestScan = true;
 
     event.application.id = "ownerId";
     event.application.publicId = "app-public-id";
@@ -160,6 +161,7 @@ public class WebhookDispatcherTest
     assertThat(applicationEvaluationDTO.moderateComponentCount).isEqualTo(7);
     assertThat(applicationEvaluationDTO.outcome).isEqualTo("outcome");
     assertThat(applicationEvaluationDTO.reportId).isEqualTo("reportId");
+    assertThat(applicationEvaluationDTO.isForLatestScan).isEqualTo(true);
 
     assertThat(applicationEvaluationDTO.application.id).isEqualTo("ownerId");
     assertThat(applicationEvaluationDTO.application.publicId).isEqualTo("app-public-id");
@@ -462,6 +464,7 @@ public class WebhookDispatcherTest
     evaluationEvent.moderateComponentCount = 7;
     evaluationEvent.outcome = "outcome";
     evaluationEvent.reportId = "reportId";
+    evaluationEvent.isForLatestScan = true;
     PolicyAlertEvent event = new PolicyAlertEvent(target.getId());
     event.initiator = "initiator";
     event.targetId = target.getId();
@@ -504,6 +507,7 @@ public class WebhookDispatcherTest
     assertThat(webhookPayload.applicationEvaluation.reportId).isEqualTo("reportId");
     assertThat(webhookPayload.applicationEvaluation.stage).isEqualTo("stage");
     assertThat(webhookPayload.applicationEvaluation.ownerId).isEqualTo("ownerId");
+    assertThat(webhookPayload.applicationEvaluation.isForLatestScan).isEqualTo(true);
     ApiComponentIdentifierDTOV2 componentIdentifier = policyAlertDTO.componentFacts.get(0).componentIdentifier;
     assertThat(ApiComponentIdentifierDTOV2.toComponentIdentifier(componentIdentifier)).isEqualTo(mavenCoordinates);
   }

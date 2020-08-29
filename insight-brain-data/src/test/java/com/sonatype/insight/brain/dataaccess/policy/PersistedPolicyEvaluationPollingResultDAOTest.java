@@ -34,14 +34,15 @@ public class PersistedPolicyEvaluationPollingResultDAOTest
 
     // Read
     assertThat(dao.getByApplicationIdAndStatusId(application.getId(), statusId)).usingRecursiveComparison()
-        .ignoringFields(JPA.IGNORE_FIELDS).ignoringCollectionOrder().isEqualTo(expected);
+        .usingOverriddenEquals().ignoringFields(JPA.IGNORE_FIELDS).ignoringCollectionOrder().isEqualTo(expected);
 
     // Update
     policyEvaluationPollingResult.setReason("other reason");
     expected.setPolicyEvaluationPollingResult(policyEvaluationPollingResult);
     dao.update(expected);
     assertThat(dao.getByApplicationIdAndStatusId(expected.getApplicationId(), expected.getStatusId()))
-        .usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS).ignoringCollectionOrder().isEqualTo(expected);
+        .usingRecursiveComparison().usingOverriddenEquals().ignoringFields(JPA.IGNORE_FIELDS).ignoringCollectionOrder()
+        .isEqualTo(expected);
 
     // Delete
     dao.delete(expected);

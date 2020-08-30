@@ -253,7 +253,7 @@ public class SamlConfigurationPageTest
     // Downloading saves the metadata.xml file directly as expected.
     File download = SamlConfigurationPage.downloadIqMetadataButton().download();
     String content = FileUtils.readFileToString(download, StandardCharsets.UTF_8);
-    assertThat(content.trim()).startsWith("<?xml").endsWith("</EntityDescriptor>");
+    assertThat(content.trim()).startsWith("<?xml").endsWith("EntityDescriptor>");
 
     // Save/Update are only enabled if valid changes are made.
     SamlConfigurationPage.scrollToBottom();

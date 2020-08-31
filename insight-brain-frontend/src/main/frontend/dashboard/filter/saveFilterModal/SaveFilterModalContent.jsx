@@ -21,6 +21,7 @@ import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
 import {validateMaxLength, validateNonEmpty, hasValidationErrors} from '../../../util/validationUtil';
 import { isNil, reject } from 'ramda';
+import { DEFAULT_FILTER_NAME } from '../defaultFilter';
 
 const SAVE_MODE_OVERWRITE = 'overwrite';
 const SAVE_MODE_SAVE_AS = 'saveAs';
@@ -71,7 +72,10 @@ export default function SaveFilterModalContent(props) {
     }
   };
 
-  const validateNameChange = (val) => reject(isNil, [validateNonEmpty(val), validateMaxLength(60, val)]);
+  const validateIsNotDefault = val => val === DEFAULT_FILTER_NAME ? 'Can not overwrite Default filter' : null;
+
+  const validateNameChange = (val) => reject(isNil,
+      [validateNonEmpty(val), validateMaxLength(60, val), validateIsNotDefault(val)]);
 
   const filterNameChangeHandler =
       (newValue) => setFilterName(userInput(validateNameChange, newValue));

@@ -11,6 +11,7 @@ import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/index';
 import { NxDropdown, NxFontAwesomeIcon, NxButton } from '@sonatype/react-shared-components';
 
 import DocumentClickListenerWrapper from '../../../react/DocumentClickListenerWrapper';
+import { DEFAULT_FILTER_NAME } from '../defaultFilter';
 
 export default function ManageFiltersDropdown(props) {
   const {
@@ -24,7 +25,7 @@ export default function ManageFiltersDropdown(props) {
   } = props;
 
   const savedFilters = props.savedFilters || [],
-      appliedFilterName = props.appliedFilterName || 'Default';
+      appliedFilterName = props.appliedFilterName || DEFAULT_FILTER_NAME;
 
   const handleKeyPress = event => {
     if ((event.key === 'Escape' || event.key === 'Esc') && filtersDropdownOpen) {
@@ -86,7 +87,7 @@ export default function ManageFiltersDropdown(props) {
                 tabIndex={0}
                 variant="secondary">
       <DocumentClickListenerWrapper onDocumentClick={handleDocumentClick}>
-        <div key='Default' className={getOptionClassNames('Default' === appliedFilterName)}>
+        <div key='Default' className={getOptionClassNames(DEFAULT_FILTER_NAME === appliedFilterName)}>
           <button onClick={applyDefaultFilter}
                   className="nx-dropdown-button nx-dropdown-button--select-filter">
             <span>Default</span>

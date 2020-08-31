@@ -288,4 +288,22 @@ describe('SaveFilterModalContent component', function() {
     submitButton = wrapper.find('#save-filter-modal-continue-button');
     expect(submitButton).toHaveProp('disabled', true);
   });
+
+  it('disables the save button if the value in the save as text box is "Default"', () => {
+    const wrapper = getShallowComponent();
+
+    expect(wrapper.find('#dashboard-filter-save-as')).toHaveProp('isChecked', true);
+    const saveAsTextBox = wrapper.find(NxTextInput);
+    expect(saveAsTextBox).toExist();
+    let submitButton = wrapper.find('#save-filter-modal-continue-button');
+    expect(submitButton).toHaveProp('disabled', true);
+
+    saveAsTextBox.simulate('change', 'Default.');
+    submitButton = wrapper.find('#save-filter-modal-continue-button');
+    expect(submitButton).toHaveProp('disabled', false);
+
+    saveAsTextBox.simulate('change', 'Default');
+    submitButton = wrapper.find('#save-filter-modal-continue-button');
+    expect(submitButton).toHaveProp('disabled', true);
+  });
 });

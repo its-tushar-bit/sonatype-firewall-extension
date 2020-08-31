@@ -15,3 +15,5 @@ export default Object.freeze({
   maxDaysOld: defaultMaxDaysOld,
   policyThreatLevels: [2, 10]
 });
+
+export const DEFAULT_FILTER_NAME = 'Default';

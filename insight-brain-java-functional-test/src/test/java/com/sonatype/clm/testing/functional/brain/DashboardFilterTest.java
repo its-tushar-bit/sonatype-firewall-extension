@@ -614,6 +614,15 @@ public class DashboardFilterTest
     manage.selectedFilterLabel().shouldHave(exactText("Initial"));
     manage.selectedFilterDirtyAsterisk().shouldBe(hidden);
     table.violations().shouldHaveSize(1);
+
+    // save as Default filter name should be disallowed
+    DashboardFilters.saveButton().shouldNotBe(disabled).click();
+    SaveFilterDialog saveDialog = DashboardFilters.saveFilterDialog();
+    saveDialog.shouldBe(visible).saveAsRadio().click();
+    saveDialog.nameInput().val("Default");
+    saveDialog.saveButton().shouldBe(disabled);
+    saveDialog.cancelButton().click();
+    saveDialog.shouldNotBe(visible);
   }
 
   @Test

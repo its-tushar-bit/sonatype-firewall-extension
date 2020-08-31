@@ -63,12 +63,6 @@ public class PublicApiPaths
 
   public static final String SECURITY_VIOLATION_OVERRIDE_PATH_V2 = API_VERSION_PATH_V2 + "securityOverrides";
 
-  /**
-   * @deprecated Replaced by {@link #PROXY_SERVER_CONFIG_PATH_V2}
-   */
-  @Deprecated
-  public static final String DEPRECATED_PROXY_CONFIG_PATH_V2 = API_VERSION_PATH_V2 + "config/proxy";
-
   public static final String PROXY_SERVER_CONFIG_PATH_V2 = API_VERSION_PATH_V2 + "config/httpProxyServer";
 
   public static final String SOURCE_CONTROL_PATH_V2 = API_VERSION_PATH_V2 + "sourceControl";

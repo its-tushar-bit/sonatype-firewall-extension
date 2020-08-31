@@ -82,7 +82,7 @@ public class SourceControlEventServiceTest
   @Before
   @Override
   public void setup() {
-    MockitoAnnotations.initMocks(this);
+    MockitoAnnotations.openMocks(this);
     super.setup();
     eventService = spy(new SourceControlEventService(mockSourceControlEventDAO, mockPullRequestCommentingService,
         mockPullRequestRemediationService, mockManifestScanService, mockGitCommitStatusService));

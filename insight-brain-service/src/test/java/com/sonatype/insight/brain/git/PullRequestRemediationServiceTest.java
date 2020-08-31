@@ -66,7 +66,7 @@ public class PullRequestRemediationServiceTest
   @Before
   @Override
   public void setup() {
-    MockitoAnnotations.initMocks(this);
+    MockitoAnnotations.openMocks(this);
     super.setup();
     pullRequestRemediationService = new PullRequestRemediationService(mockPullRequestExecutor, mockGitClientFactory,
         mockApplicationDAO, mockSourceControlUtils, mockPullRequestTaskProvider);

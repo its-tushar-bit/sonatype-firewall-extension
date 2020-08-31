@@ -25,7 +25,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
+import static org.mockito.MockitoAnnotations.openMocks;
 
 /**
  * @since 1.21
@@ -179,7 +179,7 @@ public class HttpHeaderValidatorFilterTest
 
   @Before
   public void setUp() throws Exception {
-    initMocks(this);
+    openMocks(this);
     filter = new HttpHeaderValidatorFilter();
     when(response.getWriter()).thenReturn(writer);
   }

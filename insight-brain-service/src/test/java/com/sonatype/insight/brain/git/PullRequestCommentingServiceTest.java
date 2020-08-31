@@ -88,7 +88,7 @@ public class PullRequestCommentingServiceTest
   @Before
   @Override
   public void setup() {
-    MockitoAnnotations.initMocks(this);
+    MockitoAnnotations.openMocks(this);
     super.setup();
 
     TestProductLicenseManager productLicenseManager = new TestProductLicenseManager();
@@ -903,7 +903,7 @@ public class PullRequestCommentingServiceTest
     private LocationDiscoveryResult locationDiscoveryResult = new LocationDiscoveryResult();
 
     PullRequestCommentingService build() throws Exception {
-      MockitoAnnotations.initMocks(this);
+      MockitoAnnotations.openMocks(this);
 
       doReturn(scmEnabled).when(mockSourceControlUtils).isScmEnabled(any(String.class));
       doReturn(scmEnabled).when(mockSourceControlUtils).isScmEnabled(any(GitRepositoryInfo.class));

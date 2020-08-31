@@ -97,7 +97,7 @@ public class PullRequestLineCommentingServiceTest
   @Before
   @Override
   public void setup() {
-    MockitoAnnotations.initMocks(this);
+    MockitoAnnotations.openMocks(this);
     super.setup();
     when(gitRepositoryInfo.getProvider()).thenReturn(SourceControlProvider.GITHUB);
     locationDiscoveryResult = new LocationDiscoveryResult();
@@ -352,7 +352,7 @@ public class PullRequestLineCommentingServiceTest
     private Integer commentVersion = null;
 
     PullRequestLineCommentingService build() throws Exception {
-      MockitoAnnotations.initMocks(this);
+      MockitoAnnotations.openMocks(this);
 
       if (featureFlagEnabled) {
         when(mockGitClientFactory.createApiClient(gitRepositoryInfo)).thenReturn(mockGitApiClient);

@@ -69,7 +69,7 @@ public class GitCommitStatusServiceTest
   @Before
   @Override
   public void setup() {
-    MockitoAnnotations.initMocks(this);
+    MockitoAnnotations.openMocks(this);
     super.setup();
 
     TestProductLicenseManager productLicenseManager = new TestProductLicenseManager();
@@ -515,7 +515,7 @@ public class GitCommitStatusServiceTest
     }
 
     GitCommitStatusService build() throws IOException {
-      MockitoAnnotations.initMocks(this);
+      MockitoAnnotations.openMocks(this);
 
       if (!skipRepositoryInfo) {
         String repositoryUrl = format("http://%s.com/%s/%s", null != provider ? provider.toString() : null, org, repo);

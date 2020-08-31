@@ -79,7 +79,7 @@ public class PullRequestLocationDiscoveryServiceTest
 
   @Before
   public void setUp() {
-    MockitoAnnotations.initMocks(this);
+    MockitoAnnotations.openMocks(this);
     super.setup();
 
     when(gitApiFactory.createGitApi(gitRepositoryInfo)).thenReturn(gitApi);

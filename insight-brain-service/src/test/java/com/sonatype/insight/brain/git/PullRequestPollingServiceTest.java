@@ -64,7 +64,7 @@ public class PullRequestPollingServiceTest
   @Before
   @Override
   public void setup() {
-    MockitoAnnotations.initMocks(this);
+    MockitoAnnotations.openMocks(this);
     super.setup();
   }
 
@@ -399,7 +399,7 @@ public class PullRequestPollingServiceTest
     private Class<? extends Exception> thrownException;
 
     PullRequestPollingService build() throws IOException {
-      MockitoAnnotations.initMocks(this);
+      MockitoAnnotations.openMocks(this);
 
       List<PullRequest> allPullRequests = new ArrayList<>();
 

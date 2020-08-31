@@ -192,6 +192,9 @@ public class ShiroSessionDAOTest
     persistedUserSession.setId("id");
     SimpleSession badSession = new SimpleSession()
     {
+      private static final long serialVersionUID = -5966186720431447054L;
+
+      @SuppressWarnings("unused")
       public String newField;
     };
     badSession.setId(persistedUserSession.getId());
@@ -319,6 +322,9 @@ public class ShiroSessionDAOTest
     persistedUserSession.setId("id");
     SimpleSession badSession = new SimpleSession()
     {
+      private static final long serialVersionUID = 2775238914868763211L;
+
+      @SuppressWarnings("unused")
       public String newField;
     };
     badSession.setId(persistedUserSession.getId());

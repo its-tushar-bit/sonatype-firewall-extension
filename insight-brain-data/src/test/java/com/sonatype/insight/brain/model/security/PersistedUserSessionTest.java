@@ -48,6 +48,9 @@ public class PersistedUserSessionTest
   public void testGetSession_UnknownProperty() {
     SimpleSession badSession = new SimpleSession()
     {
+      private static final long serialVersionUID = 69763569812217857L;
+
+      @SuppressWarnings("unused")
       public String newField;
     };
     PersistedUserSession persistedUserSession = new PersistedUserSession(badSession);

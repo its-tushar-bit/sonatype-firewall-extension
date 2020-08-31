@@ -60,9 +60,9 @@ public class LdapResourceTest
     assertThat(addedLdapServer.getId()).isNotNull();
     tempEntity.register(ldapServer);
     ldapServer.setId(addedLdapServer.getId());
-    assertThat(addedLdapServer).isEqualToIgnoringGivenFields(ldapServer, JPA.IGNORE_FIELDS);
+    assertThat(addedLdapServer).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(ldapServer);
     LdapServer persistedLdapServer = ldapServerDAO.getById(ldapServer.getId());
-    assertThat(persistedLdapServer).isEqualToIgnoringGivenFields(ldapServer, JPA.IGNORE_FIELDS);
+    assertThat(persistedLdapServer).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(ldapServer);
 
     // Get all
     response = restRequest().get();
@@ -76,9 +76,9 @@ public class LdapResourceTest
     response = restRequest().body(ldapServer).put();
     assertResponseStatus(200, response);
     LdapServer updatedLdapServer = response.getBody(LdapServer.class);
-    assertThat(updatedLdapServer).isEqualToIgnoringGivenFields(ldapServer, JPA.IGNORE_FIELDS);
+    assertThat(updatedLdapServer).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(ldapServer);
     persistedLdapServer = ldapServerDAO.getById(ldapServer.getId());
-    assertThat(persistedLdapServer).isEqualToIgnoringGivenFields(ldapServer, JPA.IGNORE_FIELDS);
+    assertThat(persistedLdapServer).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(ldapServer);
 
     // Delete
     response = restRequest().path(ldapServer.getId()).delete();
@@ -109,23 +109,27 @@ public class LdapResourceTest
     LdapUserMapping addedLdapUserMapping = response.getBody(LdapUserMapping.class);
     assertThat(addedLdapUserMapping.getId()).isNotNull();
     expectedLdapUserMapping.setId(addedLdapUserMapping.getId());
-    assertThat(addedLdapUserMapping).isEqualToIgnoringGivenFields(expectedLdapUserMapping, JPA.IGNORE_FIELDS);
+    assertThat(addedLdapUserMapping).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(expectedLdapUserMapping);
 
     LdapUserMapping persistedLdapUserMapping = new LdapUserMappingDAO().getById(expectedLdapUserMapping.getId());
-    assertThat(persistedLdapUserMapping).isEqualToIgnoringGivenFields(expectedLdapUserMapping, JPA.IGNORE_FIELDS);
+    assertThat(persistedLdapUserMapping).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(expectedLdapUserMapping);
 
     // Get
     response = request.get();
     assertResponseStatus(200, response);
     LdapUserMapping ldapUserMapping = response.getBody(LdapUserMapping.class);
-    assertThat(ldapUserMapping).isEqualToIgnoringGivenFields(expectedLdapUserMapping, JPA.IGNORE_FIELDS);
+    assertThat(ldapUserMapping).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(expectedLdapUserMapping);
 
     // Update
     expectedLdapUserMapping.setUserEmailAttribute(expectedLdapUserMapping.getUserEmailAttribute() + "changed");
     response = request.body(expectedLdapUserMapping).put();
     assertResponseStatus(200, response);
     ldapUserMapping = response.getBody(LdapUserMapping.class);
-    assertThat(ldapUserMapping).isEqualToIgnoringGivenFields(expectedLdapUserMapping, JPA.IGNORE_FIELDS);
+    assertThat(ldapUserMapping).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(expectedLdapUserMapping);
   }
 
   @Test
@@ -144,20 +148,23 @@ public class LdapResourceTest
     assertThat(addedLdapConnection.getId()).isNotNull();
     expectedLdapConnection.setId(addedLdapConnection.getId());
     expectedLdapConnection.setSystemPassword(LdapService.FAKE_PASSWORD);
-    assertThat(addedLdapConnection).isEqualToIgnoringGivenFields(expectedLdapConnection, JPA.IGNORE_FIELDS);
+    assertThat(addedLdapConnection).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(expectedLdapConnection);
 
     LdapConnection persistedLdapConnection = new LdapConnectionDAO().getById(expectedLdapConnection.getId());
     assertThat(passwordHandler.decryptPassword(persistedLdapConnection.getSystemPassword()))
         .isEqualTo(expectedSystemPassword);
     expectedLdapConnection.setSystemPassword(persistedLdapConnection.getSystemPassword());
-    assertThat(persistedLdapConnection).isEqualToIgnoringGivenFields(expectedLdapConnection, JPA.IGNORE_FIELDS);
+    assertThat(persistedLdapConnection).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(expectedLdapConnection);
 
     // Get by serverId
     response = request.get();
     assertResponseStatus(200, response);
     LdapConnection ldapConnection = response.getBody(LdapConnection.class);
     expectedLdapConnection.setSystemPassword(LdapService.FAKE_PASSWORD);
-    assertThat(ldapConnection).isEqualToIgnoringGivenFields(expectedLdapConnection, JPA.IGNORE_FIELDS);
+    assertThat(ldapConnection).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(expectedLdapConnection);
 
     // Update
     expectedLdapConnection.setPort(expectedLdapConnection.getPort() + 1);
@@ -165,12 +172,14 @@ public class LdapResourceTest
     response = request.body(expectedLdapConnection).put();
     assertResponseStatus(200, response);
     ldapConnection = response.getBody(LdapConnection.class);
-    assertThat(ldapConnection).isEqualToIgnoringGivenFields(expectedLdapConnection, JPA.IGNORE_FIELDS);
+    assertThat(ldapConnection).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(expectedLdapConnection);
     persistedLdapConnection = new LdapConnectionDAO().getById(expectedLdapConnection.getId());
     assertThat(passwordHandler.decryptPassword(persistedLdapConnection.getSystemPassword()))
         .isEqualTo(expectedSystemPassword);
     expectedLdapConnection.setSystemPassword(persistedLdapConnection.getSystemPassword());
-    assertThat(persistedLdapConnection).isEqualToIgnoringGivenFields(expectedLdapConnection, JPA.IGNORE_FIELDS);
+    assertThat(persistedLdapConnection).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(expectedLdapConnection);
   }
 
   @Test

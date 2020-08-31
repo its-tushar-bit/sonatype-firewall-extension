@@ -1721,7 +1721,7 @@ public class LdapServiceTest
     assertThat(ldapServer.getName()).isEqualTo("test");
 
     LdapServer persistedLdapServer = new LdapServerDAO().getById(ldapServer.getId());
-    assertThat(persistedLdapServer).isEqualToIgnoringGivenFields(ldapServer, JPA.IGNORE_FIELDS);
+    assertThat(persistedLdapServer).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(ldapServer);
   }
 
   @Test
@@ -1729,10 +1729,10 @@ public class LdapServiceTest
     LdapServer ldapServer = tempEntity.newLdapServer("test");
     ldapServer.setName("test updated");
     LdapServer updatedLdapServer = ldapService.updateLdapServer(ldapServer);
-    assertThat(updatedLdapServer).isEqualToIgnoringGivenFields(ldapServer, JPA.IGNORE_FIELDS);
+    assertThat(updatedLdapServer).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(ldapServer);
 
     LdapServer persistedLdapServer = new LdapServerDAO().getById(ldapServer.getId());
-    assertThat(persistedLdapServer).isEqualToIgnoringGivenFields(ldapServer, JPA.IGNORE_FIELDS);
+    assertThat(persistedLdapServer).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(ldapServer);
   }
 
   @Test
@@ -1761,7 +1761,8 @@ public class LdapServiceTest
 
     LdapConnection ldapConnection = ldapService.getLdapConnection(ldapServer.getId());
     expectedLdapConnection.setSystemPassword(LdapService.FAKE_PASSWORD);
-    assertThat(ldapConnection).isEqualToIgnoringGivenFields(expectedLdapConnection, JPA.IGNORE_FIELDS);
+    assertThat(ldapConnection).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(expectedLdapConnection);
   }
 
   @Test
@@ -1783,13 +1784,15 @@ public class LdapServiceTest
     assertThat(addedLdapConnection.getId()).isNotNull();
     expectedLdapConnection.setId(addedLdapConnection.getId());
     expectedLdapConnection.setSystemPassword(LdapService.FAKE_PASSWORD);
-    assertThat(addedLdapConnection).isEqualToIgnoringGivenFields(expectedLdapConnection, JPA.IGNORE_FIELDS);
+    assertThat(addedLdapConnection).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    .isEqualTo(expectedLdapConnection);
 
     LdapConnection persistedLdapConnection = new LdapConnectionDAO().getById(expectedLdapConnection.getId());
     assertThat(passwordHandler.decryptPassword(persistedLdapConnection.getSystemPassword()))
         .isEqualTo(expectedSystemPassword);
     expectedLdapConnection.setSystemPassword(persistedLdapConnection.getSystemPassword());
-    assertThat(persistedLdapConnection).isEqualToIgnoringGivenFields(expectedLdapConnection, JPA.IGNORE_FIELDS);
+    assertThat(persistedLdapConnection).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(expectedLdapConnection);
   }
 
   @Test
@@ -1802,13 +1805,15 @@ public class LdapServiceTest
     char[] expectedSystemPassword = expectedLdapConnection.getSystemPassword();
     LdapConnection updatedLdapConnection = ldapService.upsertLdapConnection(ldapServer.getId(), expectedLdapConnection);
     expectedLdapConnection.setSystemPassword(LdapService.FAKE_PASSWORD);
-    assertThat(updatedLdapConnection).isEqualToIgnoringGivenFields(expectedLdapConnection, JPA.IGNORE_FIELDS);
+    assertThat(updatedLdapConnection).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(expectedLdapConnection);
 
     LdapConnection persistedLdapConnection = new LdapConnectionDAO().getById(expectedLdapConnection.getId());
     assertThat(passwordHandler.decryptPassword(persistedLdapConnection.getSystemPassword()))
         .isEqualTo(expectedSystemPassword);
     expectedLdapConnection.setSystemPassword(persistedLdapConnection.getSystemPassword());
-    assertThat(persistedLdapConnection).isEqualToIgnoringGivenFields(expectedLdapConnection, JPA.IGNORE_FIELDS);
+    assertThat(persistedLdapConnection).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(expectedLdapConnection);
   }
 
   @Test
@@ -1896,7 +1901,8 @@ public class LdapServiceTest
     LdapUserMapping expectedLdapUserMapping = createUserMapping(ldapServer);
 
     LdapUserMapping ldapUserMapping = ldapService.getLdapUserMapping(ldapServer.getId());
-    assertThat(ldapUserMapping).isEqualToIgnoringGivenFields(expectedLdapUserMapping, JPA.IGNORE_FIELDS);
+    assertThat(ldapUserMapping).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(expectedLdapUserMapping);
   }
 
   @Test
@@ -1917,10 +1923,12 @@ public class LdapServiceTest
         ldapService.upsertLdapUserMapping(ldapServer.getId(), expectedLdapUserMapping);
     assertThat(addedLdapUserMapping.getId()).isNotNull();
     expectedLdapUserMapping.setId(addedLdapUserMapping.getId());
-    assertThat(addedLdapUserMapping).isEqualToIgnoringGivenFields(expectedLdapUserMapping, JPA.IGNORE_FIELDS);
+    assertThat(addedLdapUserMapping).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(expectedLdapUserMapping);
 
     LdapUserMapping persistedLdapUserMapping = new LdapUserMappingDAO().getById(expectedLdapUserMapping.getId());
-    assertThat(persistedLdapUserMapping).isEqualToIgnoringGivenFields(expectedLdapUserMapping, JPA.IGNORE_FIELDS);
+    assertThat(persistedLdapUserMapping).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(expectedLdapUserMapping);
   }
 
   @Test
@@ -1931,10 +1939,12 @@ public class LdapServiceTest
     expectedLdapUserMapping.setUserEmailAttribute(expectedLdapUserMapping.getUserEmailAttribute() + "changed");
     LdapUserMapping updatedLdapUserMapping =
         ldapService.upsertLdapUserMapping(ldapServer.getId(), expectedLdapUserMapping);
-    assertThat(updatedLdapUserMapping).isEqualToIgnoringGivenFields(expectedLdapUserMapping, JPA.IGNORE_FIELDS);
+    assertThat(updatedLdapUserMapping).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(expectedLdapUserMapping);
 
     LdapUserMapping persistedLdapUserMapping = new LdapUserMappingDAO().getById(expectedLdapUserMapping.getId());
-    assertThat(persistedLdapUserMapping).isEqualToIgnoringGivenFields(expectedLdapUserMapping, JPA.IGNORE_FIELDS);
+    assertThat(persistedLdapUserMapping).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(expectedLdapUserMapping);
   }
 
   @Test

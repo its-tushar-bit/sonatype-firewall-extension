@@ -158,17 +158,17 @@ public class ReportServiceTest
     assertComponent(components.get(0), "964cd74171f427720480",
         ComponentIdentifier.createMavenCoordinates("apache-httpclient", "commons-httpclient", "3.1", "", "jar"),
         "test/commons-httpclient-3.1.jar", IdentificationSource.SONATYPE);
-    assertThat(components.get(0).getAnalyzerFeatures()).isEqualToComparingFieldByField(
-        new AnalyzerFeatures(AnalysisSource.SDS, AnalysisType.HASH, "cli", true, true, true));
+    assertThat(components.get(0).getAnalyzerFeatures()).usingRecursiveComparison()
+        .isEqualTo(new AnalyzerFeatures(AnalysisSource.SDS, AnalysisType.HASH, "cli", true, true, true));
     assertComponent(components.get(1), "37b3ce40791bc2dd8068",
         new ComponentIdentifier("debian-9", ImmutableMap.of("name", "glibc", "version", "2.24-11+deb9u3")),
         "dependency:/test/clair-scanner-output.json/glibc:2.24-11+deb9u3", IdentificationSource.CLAIR);
-    assertThat(components.get(1).getAnalyzerFeatures()).isEqualToComparingFieldByField(
+    assertThat(components.get(1).getAnalyzerFeatures()).usingRecursiveComparison().isEqualTo(
         new AnalyzerFeatures(AnalysisSource.THIRD_PARTY, AnalysisType.COORDINATE, "cli", false, false, false));
     assertComponent(components.get(2), "cf085cd08ee27334c573",
         ComponentIdentifier.createPypiCoordinates("altgraph", "0.10.2", null, null),
         "dependency:/pkg:pypi\\altgraph@0.10.2", IdentificationSource.getOrMake("cyclonedx"));
-    assertThat(components.get(2).getAnalyzerFeatures()).isEqualToComparingFieldByField(
+    assertThat(components.get(2).getAnalyzerFeatures()).usingRecursiveComparison().isEqualTo(
         new AnalyzerFeatures(AnalysisSource.THIRD_PARTY, AnalysisType.COORDINATE, "cli", false, false, false));
 
     // Verify security.json

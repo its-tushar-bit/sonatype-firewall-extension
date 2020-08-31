@@ -81,8 +81,8 @@ public class DbDataTest
     @SuppressWarnings({"unchecked"})
     List<SourceControl> sourceControls = (List<SourceControl>) dbData.getSourceControl().getValue();
 
-    assertThat(sourceControls).hasOnlyOneElementSatisfying(sourceControl ->
-        assertThat(sourceControl.getToken()).isEqualTo(SystemInfo.MASK));
+    assertThat(sourceControls).singleElement()
+        .satisfies(sourceControl -> assertThat(sourceControl.getToken()).isEqualTo(SystemInfo.MASK));
   }
 
   @Test
@@ -93,8 +93,8 @@ public class DbDataTest
     @SuppressWarnings({"unchecked"})
     List<SourceControl> sourceControls = (List<SourceControl>) dbData.getSourceControl().getValue();
 
-    assertThat(sourceControls).hasOnlyOneElementSatisfying(sourceControl ->
-        assertThat(sourceControl.getToken()).isEqualTo(""));
+    assertThat(sourceControls).singleElement()
+        .satisfies(sourceControl -> assertThat(sourceControl.getToken()).isEqualTo(""));
   }
 
   @Test
@@ -105,8 +105,8 @@ public class DbDataTest
     @SuppressWarnings({"unchecked"})
     List<SourceControl> sourceControls = (List<SourceControl>) dbData.getSourceControl().getValue();
 
-    assertThat(sourceControls).hasOnlyOneElementSatisfying(sourceControl ->
-        assertThat(sourceControl.getToken()).isNull());
+    assertThat(sourceControls).singleElement()
+        .satisfies(sourceControl -> assertThat(sourceControl.getToken()).isNull());
   }
 
   @Test

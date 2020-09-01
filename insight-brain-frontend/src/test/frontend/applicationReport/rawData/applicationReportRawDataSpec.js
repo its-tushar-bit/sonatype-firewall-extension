@@ -8,7 +8,7 @@ import { mapStateToThis } from '../../../../main/frontend/applicationReport/rawD
 
 describe('applicationReportRawData', function() {
 
-  let vm, SelectedComponent;
+  let vm, SelectedComponent, OwnerContext, Properties;
 
   beforeEach(angular.mock.module(applicationReportModule.name));
 
@@ -18,8 +18,18 @@ describe('applicationReportRawData', function() {
 
   beforeEach(inject(function(_$componentController_) {
     SelectedComponent = jasmine.createSpyObj('SelectedComponent', ['toggle']);
+    OwnerContext = {
+      scanId: 'scanId',
+      ownerId: 'ownerId',
+      ownerType: 'ownerType'
+    };
+    Properties = {
+      'getIdentificationSource': jasmine.createSpy().and.returnValue('identificationSource')
+    };
     vm = _$componentController_('applicationReportRawData', {
-      SelectedComponent
+      SelectedComponent,
+      OwnerContext,
+      Properties
     });
     vm.$onInit();
   }));
@@ -292,7 +302,13 @@ describe('applicationReportRawData', function() {
       expect(SelectedComponent.toggle).toHaveBeenCalledWith(mockRawDataEntry);
       expect(vm.openVulnerabilityDetailsModal).toHaveBeenCalledWith({
         vulnerabilityId: securityCode,
-        componentIdentifier
+        componentIdentifier,
+        thirdPartyScanParameters: {
+          identificationSource: 'identificationSource',
+          scanId: 'scanId',
+          ownerId: 'ownerId',
+          ownerType: 'ownerType'
+        }
       });
     });
   });

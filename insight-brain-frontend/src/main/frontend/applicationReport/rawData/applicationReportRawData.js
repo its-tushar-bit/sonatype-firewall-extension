@@ -14,7 +14,8 @@ export default {
   controller: ApplicationReportRawController
 };
 
-function ApplicationReportRawController($ngRedux, applicationReportActions, SelectedComponent) {
+function ApplicationReportRawController($ngRedux, applicationReportActions, SelectedComponent, OwnerContext,
+                                        Properties) {
   const vm = this;
 
   Object.assign(vm, {
@@ -78,10 +79,17 @@ function ApplicationReportRawController($ngRedux, applicationReportActions, Sele
 
     openVulnerabilitiesModal(rawDataEntry) {
       const { securityCode, componentIdentifier } = rawDataEntry;
+      const { scanId, ownerType, ownerId } = OwnerContext;
       SelectedComponent.toggle(rawDataEntry);
       vm.openVulnerabilityDetailsModal({
         vulnerabilityId: securityCode,
-        componentIdentifier
+        componentIdentifier,
+        thirdPartyScanParameters: {
+          identificationSource: Properties.getIdentificationSource() || '',
+          scanId,
+          ownerId,
+          ownerType
+        }
       });
     }
   });
@@ -112,5 +120,7 @@ export function mapStateToThis({applicationReport, vulnerabilityDetailsModal}) {
 ApplicationReportRawController.$inject = [
   '$ngRedux',
   'applicationReportActions',
-  'SelectedComponent'
+  'SelectedComponent',
+  'OwnerContext',
+  'Properties'
 ];

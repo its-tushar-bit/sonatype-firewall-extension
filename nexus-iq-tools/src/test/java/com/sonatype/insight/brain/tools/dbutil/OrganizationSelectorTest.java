@@ -22,22 +22,22 @@ public class OrganizationSelectorTest
 
   // VALUES("", "", "", "", Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, "");
   private static final String[] POLICY_EVAL_COLS = new String[] { "policy_evaluation_id", "application_id",
-      "stage_type_id", "scan_id", "reevaluation", "for_monitoring", "for_obsolete_scan", "time" };
+      "stage_type_id", "scan_id", "reevaluation", "for_monitoring", "for_obsolete_scan", "time", "initiator" };
 
   private void defaults() throws Exception {
     insert("application", APPLICATION_COLS, new Object[] { "app1", "a1", "a1", "a1", "a1", "org1", "smitty" });
     insert("application", APPLICATION_COLS, new Object[] { "app2", "a2", "a2", "a2", "a2", "org2", "smitty" });
     insert("application", APPLICATION_COLS, new Object[] { "app3", "a3", "a3", "a3", "a3", "org3", "smitty" });
     insert("policy_evaluation", POLICY_EVAL_COLS, new Object[] { "peval1", "app1", "build", "scan1", Boolean.FALSE,
-        Boolean.FALSE, Boolean.FALSE, "2018-01-01 00:00:00" });
+        Boolean.FALSE, Boolean.FALSE, "2018-01-01 00:00:00", "system" });
     insert("policy_evaluation", POLICY_EVAL_COLS, new Object[] { "peval2", "app2", "build", "scan2", Boolean.FALSE,
-        Boolean.FALSE, Boolean.FALSE, "2018-01-01 00:00:00" });
+        Boolean.FALSE, Boolean.FALSE, "2018-01-01 00:00:00", "system" });
     insert("policy_evaluation", POLICY_EVAL_COLS, new Object[] { "peval3", "app2", "build", "scan3", Boolean.FALSE,
-        Boolean.FALSE, Boolean.FALSE, "2018-01-01 00:00:00" });
+        Boolean.FALSE, Boolean.FALSE, "2018-01-01 00:00:00", "system" });
     insert("policy_evaluation", POLICY_EVAL_COLS, new Object[] { "peval4", "app3", "release", "scan4", Boolean.FALSE,
-        Boolean.FALSE, Boolean.FALSE, "2018-01-01 00:00:00" });
+        Boolean.FALSE, Boolean.FALSE, "2018-01-01 00:00:00", "system" });
     insert("policy_evaluation", POLICY_EVAL_COLS, new Object[] { "peval5", "app1", "build", "scan5", Boolean.FALSE,
-        Boolean.FALSE, Boolean.FALSE, "2018-01-01 00:00:00" });
+        Boolean.FALSE, Boolean.FALSE, "2018-01-01 00:00:00", "system" });
   }
 
   @Test

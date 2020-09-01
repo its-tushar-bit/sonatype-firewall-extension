@@ -22,7 +22,7 @@ public class ApplicationEvalSelectorTest
 
   // VALUES("", "", "", "", Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, "");
   private static final String[] POLICY_EVAL_COLS = new String[] { "policy_evaluation_id", "application_id",
-      "stage_type_id", "scan_id", "reevaluation", "for_monitoring", "for_obsolete_scan", "time" };
+      "stage_type_id", "scan_id", "reevaluation", "for_monitoring", "for_obsolete_scan", "time", "initiator" };
 
   // VALUES('', '', '', '', '', 0, '', '', TS, TS, TS, false, false);
   private static final String[] POLICY_VIOLATION_COLS = new String[] { "policy_violation_id", "application_id",
@@ -36,17 +36,17 @@ public class ApplicationEvalSelectorTest
     insert("application", APPLICATION_COLS, new Object[] { "app3", "a3", "a3", "a3", "a3", "org3", "smitty" });
     // evaluations
     insert("policy_evaluation", POLICY_EVAL_COLS, new Object[] { "peval1", "app1", "build", "scan1", Boolean.FALSE,
-        Boolean.FALSE, Boolean.FALSE, "2001-01-01 00:00:00" });
+        Boolean.FALSE, Boolean.FALSE, "2001-01-01 00:00:00", "system" });
     insert("policy_evaluation", POLICY_EVAL_COLS, new Object[] { "peval2", "app2", "build", "scan2", Boolean.FALSE,
-        Boolean.FALSE, Boolean.FALSE, "2002-02-02 00:00:00" });
+        Boolean.FALSE, Boolean.FALSE, "2002-02-02 00:00:00", "system" });
     insert("policy_evaluation", POLICY_EVAL_COLS, new Object[] { "peval3", "app2", "build", "scan3", Boolean.FALSE,
-        Boolean.FALSE, Boolean.FALSE, "2003-03-03 00:00:00" });
+        Boolean.FALSE, Boolean.FALSE, "2003-03-03 00:00:00", "system" });
     insert("policy_evaluation", POLICY_EVAL_COLS, new Object[] { "peval4", "app3", "release", "scan4", Boolean.FALSE,
-        Boolean.FALSE, Boolean.FALSE, "2004-04-04 00:00:00" });
+        Boolean.FALSE, Boolean.FALSE, "2004-04-04 00:00:00", "system" });
     insert("policy_evaluation", POLICY_EVAL_COLS, new Object[] { "peval5", "app1", "build", "scan5", Boolean.FALSE,
-        Boolean.FALSE, Boolean.FALSE, "2005-05-05 00:00:00" });
+        Boolean.FALSE, Boolean.FALSE, "2005-05-05 00:00:00", "system" });
     insert("policy_evaluation", POLICY_EVAL_COLS, new Object[] { "peval6", "app1", "build", "scan6", Boolean.FALSE,
-        Boolean.FALSE, Boolean.FALSE, "2006-06-06 00:00:00" });
+        Boolean.FALSE, Boolean.FALSE, "2006-06-06 00:00:00", "system" });
     // violations
     // open
     insert("policy_violation", POLICY_VIOLATION_COLS, new Object[] { "v1", "a1", "build", "p1", "pn1", 0, "test", "",

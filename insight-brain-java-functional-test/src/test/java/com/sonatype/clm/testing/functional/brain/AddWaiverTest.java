@@ -13,6 +13,7 @@ import java.util.List;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NxRadio;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
+import com.sonatype.clm.testing.functional.elements.NxVulnerabilityModal;
 import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
@@ -24,9 +25,11 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
+import com.codeborne.selenide.SelenideElement;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -59,7 +62,7 @@ public class AddWaiverTest
         StageTypes.BUILD.getId(), "scan1", false, false, Date.from(twoDaysAgo));
 
     policyViolation = staticTempEntity.newPolicyViolation(policyEvaluation1, securityPolicy1, "Group1",
-        "Artifact1", "Version1", "hash1", "sonatype-2018-0666");
+        "Artifact1", "Version1", "hash1", "sonatype-2017-0507");
 
     otherViolation = staticTempEntity.newPolicyViolation(policyEvaluation1, securityPolicy2, "Group2",
         "Artifact2", "Version2", "hash2", "sonatype-2018-0777");
@@ -78,7 +81,8 @@ public class AddWaiverTest
     addWaiverPage.policyName().shouldHave(text("Policy 1"));
     addWaiverPage.constraintName().shouldHave(text("Test Constraint"));
     addWaiverPage.conditions().shouldHaveSize(1);
-    addWaiverPage.condition(1).shouldHave(text("sonatype-2018-0666"));
+    addWaiverPage.condition(1).shouldHave(text("sonatype-2017-0507"));
+    addWaiverPage.vulnerabilityDetailsLink().shouldHave(text("See Security Vulnerability Details"));
     addWaiverPage.availableScopes().shouldHaveSize(3);
     addWaiverPage.scope(0).label().shouldHave(text("Application - App 1"));
     addWaiverPage.scope(1).label().shouldHave(text("Organization - Org 1"));
@@ -89,6 +93,31 @@ public class AddWaiverTest
     addWaiverPage.comments().shouldHave(text(""));
     
     eyesWatcher.eyesCheck();
+  }
+
+  @Test
+  public void testVulnerabilityDetailsModal() {
+    testCLMServer.getHdsServer().respondWith(getClass().getResource("/vulnerabilityDetails/vulnerabilityDetails2.json"))
+        .atUri("rest/vulnerability/details/json/sonatype-2017-0507");
+    refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
+
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.vulnerabilityDetailsLink().shouldHave(text("See Security Vulnerability Details"));
+    addWaiverPage.vulnerabilityDetailsLink().click();
+
+    NxVulnerabilityModal vulnerabilityModal = addWaiverPage.vulnerabilityModal();
+    vulnerabilityModal.shouldBe(visible);
+    SelenideElement vulnerabilityDetails = vulnerabilityModal.vulnerabilityDetails();
+    vulnerabilityDetails.shouldHave(text("sonatype-2017-0507"));
+    vulnerabilityDetails.shouldHave(text("Sonatype CVSS 3:5.4"));
+    vulnerabilityDetails.shouldHave(text("Sonatype Data Research"));
+    vulnerabilityDetails.shouldHave(text("There is no non vulnerable version of this package. We recommend " +
+        "investigating alternative components or a potential mitigating control."));
+    vulnerabilityDetails.shouldHave(text("Root Cause " +
+        "org.webjars:bootstrap:3.1.1META-INF/resources/webjars/bootstrap/3.1.1/js/bootstrap.js[3.1.1-1,3.1.1-2]"));
+    eyesWatcher.eyesCheck();
+    vulnerabilityModal.closeButton().shouldHave(text("Close")).click();
+    vulnerabilityModal.shouldNot(exist);
   }
 
   @Test

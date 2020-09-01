@@ -13,6 +13,7 @@ describe('AddWaiverPage', function() {
   let minimalProps,
       AddWaiverPage,
       MaximizedContainerMock,
+      openVulnerabilityDetailsModalMock,
       loadAddWaiverDataSpy,
       getShallowComponent,
       getMountedComponent;
@@ -26,6 +27,10 @@ describe('AddWaiverPage', function() {
     }).default;
 
     loadAddWaiverDataSpy = jasmine.createSpy('loadAddWaiverDataSpy');
+
+    openVulnerabilityDetailsModalMock = jasmine.createSpy('openVulnerabilityDetailsModal').and.returnValue({
+      type: 'OPEN_VULNERABILITY_DETAILS_MODAL'
+    });
 
     minimalProps = {
       loading: false,
@@ -80,12 +85,18 @@ describe('AddWaiverPage', function() {
         filename: 'filename',
         constraintViolations: [{
           constraintName: 'constraint name',
-          reasons: [{ reason: 'reason' }]
+          reasons: [{
+            reason: 'reason',
+            reference: {
+              value: 'CVE-67890'
+            }
+          }]
         }],
         policyName: 'policyName',
         policyViolationId: 'policyViolationId',
         threatLevel: 5
       },
+      openVulnerabilityDetailsModal: openVulnerabilityDetailsModalMock,
       applyToAllComponents: true,
       availableWaiverScopes: [
         { id: 'id', name: 'name', label: 'Application', type: 'application' }
@@ -110,6 +121,8 @@ describe('AddWaiverPage', function() {
     expect(addWaiverForm).toHaveProp('setWaiverComment', minimalProps.setWaiverComment);
     expect(addWaiverForm).toHaveProp('setApplyToAllComponents', minimalProps.setApplyToAllComponents);
     expect(addWaiverForm).toHaveProp('saveWaiver', minimalProps.saveWaiver);
+    expect(addWaiverForm).toHaveProp('openVulnerabilityDetailsModal', openVulnerabilityDetailsModalMock);
+    expect(addWaiverForm).toHaveProp('vulnerabilityId', 'CVE-67890');
   });
 
   it('renders NxSubmitMask with success message when submitMaskState is true', function() {

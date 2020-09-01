@@ -14,6 +14,8 @@ import * as enzymeUtils from '../enzymeUtils';
 import AddWaiverForm from '../../../main/frontend/waivers/AddWaiverForm';
 import ArtifactNameDisplay from '../../../main/frontend/react/ArtifactNameDisplay';
 import ViolationExclamation from '../../../main/frontend/react/ViolationExclamation';
+import VulnerabilityDetailsModalContainer
+  from '../../../main/frontend/vulnerabilityDetails/VulnerabilityDetailsModalContainer';
 
 describe('AddWaiverForm', function() {
   let minimalProps,
@@ -21,13 +23,15 @@ describe('AddWaiverForm', function() {
       saveWaiverSpy,
       setWaiverCommentSpy,
       setWaiverScopeSpy,
-      setApplyToAllComponentsSpy;
+      setApplyToAllComponentsSpy,
+      openVulnerabilityDetailsModalSpy;
 
   beforeEach(function() {
     saveWaiverSpy = jasmine.createSpy('saveWaiver');
     setWaiverCommentSpy = jasmine.createSpy('setWaiverComment');
     setWaiverScopeSpy = jasmine.createSpy('setWaiverScope');
     setApplyToAllComponentsSpy = jasmine.createSpy('setApplyToAllComponents');
+    openVulnerabilityDetailsModalSpy = jasmine.createSpy('loadAddWaiverDataSpy');
 
     minimalProps = {
       applyToAllComponents: false,
@@ -65,7 +69,9 @@ describe('AddWaiverForm', function() {
       setWaiverScope: setWaiverScopeSpy,
       setApplyToAllComponents: setApplyToAllComponentsSpy,
       setWaiverComment: setWaiverCommentSpy,
-      saveWaiver: saveWaiverSpy
+      saveWaiver: saveWaiverSpy,
+      openVulnerabilityDetailsModal: openVulnerabilityDetailsModalSpy,
+      vulnerabilityId: 'CVE-12345'
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(AddWaiverForm, minimalProps);
@@ -115,6 +121,28 @@ describe('AddWaiverForm', function() {
     expect(reasons.prop('children').length).toBe(minimalProps.reasons.length);
     expect(reasons.childAt(0)).toHaveText('reason1');
     expect(reasons.childAt(1)).toHaveText('reason2');
+  });
+
+  it('renders a link to see vulnerability details and opens the modal on click', function() {
+    const component = getShallowComponent(),
+        vulnerabilityDetailsSection = component.find('.iq-add-waiver-form__vulnerability_details_link'),
+        vulnerabilityDetailsLink = vulnerabilityDetailsSection.find('a');
+
+    expect(vulnerabilityDetailsLink).toHaveText('See Security Vulnerability Details');
+    expect(openVulnerabilityDetailsModalSpy).not.toHaveBeenCalled();
+    vulnerabilityDetailsLink.simulate('click');
+    expect(openVulnerabilityDetailsModalSpy).toHaveBeenCalledWith({
+      vulnerabilityId: 'CVE-12345'
+    });
+  });
+
+  it('renders a VulnerabilityDetailsModalContainer IFF vulnerabilityId is truthy', function() {
+    let component = getShallowComponent();
+    expect(component.find(VulnerabilityDetailsModalContainer)).toExist();
+
+    component = getShallowComponent({vulnerabilityId: null});
+    expect(component.find(VulnerabilityDetailsModalContainer)).not.toExist();
+    expect(component.find('.iq-add-waiver-form__vulnerability_details_link')).not.toExist();
   });
 
   it('renders a fieldset with NxRadios for the WaiverTargets', function() {

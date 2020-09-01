@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.pages;
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.Button;
 import com.sonatype.clm.testing.functional.elements.NxRadio;
+import com.sonatype.clm.testing.functional.elements.NxVulnerabilityModal;
 import com.sonatype.clm.testing.functional.elements.ReactTextInput;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
@@ -51,6 +52,14 @@ public class AddWaiverPage
 
   public SelenideElement condition(int index) {
     return child(".iq-add-waiver-form__conditions span", nthChild(index));
+  }
+
+  public SelenideElement vulnerabilityDetailsLink() {
+    return child(".iq-add-waiver-form__vulnerability_details_link a");
+  }
+
+  public NxVulnerabilityModal vulnerabilityModal() {
+    return new NxVulnerabilityModal("#vulnerability-details-modal");
   }
 
   public ElementsCollection availableScopes() {

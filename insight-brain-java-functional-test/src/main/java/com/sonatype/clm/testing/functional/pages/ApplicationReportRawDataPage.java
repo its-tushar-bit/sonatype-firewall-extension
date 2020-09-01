@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.pages;
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.IqBackButton;
 import com.sonatype.clm.testing.functional.elements.IqSortingHeader;
+import com.sonatype.clm.testing.functional.elements.NxVulnerabilityModal;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Application;
 
@@ -49,32 +50,12 @@ public class ApplicationReportRawDataPage
     return child(".iq-cell--empty");
   }
 
-  public VulnerabilityModal vulnerabilityModal() {
-    return new VulnerabilityModal();
+  public NxVulnerabilityModal vulnerabilityModal() {
+    return new NxVulnerabilityModal("#vulnerability-details-modal");
   }
 
   public AppReportRawDataHeaders headers() {
     return new AppReportRawDataHeaders();
-  }
-
-  public static class VulnerabilityModal
-      extends BasicElement<VulnerabilityModal>
-  {
-    VulnerabilityModal() {
-      super("#vulnerability-details-modal");
-    }
-
-    public SelenideElement header() {
-      return child(".nx-modal-header");
-    }
-
-    public SelenideElement content() {
-      return child(".nx-modal-content");
-    }
-
-    public SelenideElement closeButton() {
-      return child(".nx-modal-footer .nx-btn-bar .nx-btn");
-    }
   }
 
   public static class ResultTable

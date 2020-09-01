@@ -15,6 +15,7 @@ import {
   setWaiverScope,
   setApplyToAllComponents
 } from './addWaiverActions';
+import { openVulnerabilityDetailsModal } from '../vulnerabilityDetails/vulnerabilityDetailsModalActions';
 
 function mapStateToProps({ addWaiver, violationPage, router }) {
   return {
@@ -26,6 +27,7 @@ function mapStateToProps({ addWaiver, violationPage, router }) {
 
 const mapDispatchToProps = {
   loadAddWaiverData,
+  openVulnerabilityDetailsModal,
   saveWaiver,
   setWaiverComment,
   setWaiverScope,

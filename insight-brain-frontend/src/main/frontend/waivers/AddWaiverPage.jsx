@@ -5,7 +5,7 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { map, prop } from 'ramda';
+import { map, path, prop } from 'ramda';
 import { NxSubmitMask } from '@sonatype/react-shared-components';
 import { categoryByPolicyThreatLevel } from '@sonatype/react-shared-components/util/threatLevels';
 
@@ -32,6 +32,7 @@ export default function AddWaiverPage(props) {
     violationDetails,
     //actions
     loadAddWaiverData,
+    openVulnerabilityDetailsModal,
     saveWaiver,
     setWaiverComment,
     setWaiverScope,
@@ -57,6 +58,7 @@ export default function AddWaiverPage(props) {
     } = violationDetails;
 
     const { constraintName, reasons } = constraintViolations[0],
+        vulnerabilityId = path([0, 'reference', 'value'], reasons),
         threatLevelCategory = categoryByPolicyThreatLevel[threatLevel],
         componentName = getComponentName(violationDetails),
         artifactName = getArtifactName(violationDetails);
@@ -72,12 +74,14 @@ export default function AddWaiverPage(props) {
       threatLevelCategory,
       waiverComments,
       availableWaiverScopes,
+      openVulnerabilityDetailsModal,
       selectedWaiverScope,
       submitError,
       setWaiverScope,
       setWaiverComment,
       setApplyToAllComponents,
-      saveWaiver
+      saveWaiver,
+      vulnerabilityId
     };
   };
 
@@ -129,6 +133,7 @@ AddWaiverPage.propTypes = {
   selectedWaiverScope: PropTypes.shape(waiverScopePropTypes),
   applyToAllComponents: PropTypes.bool,
   loadAddWaiverData: PropTypes.func.isRequired,
+  openVulnerabilityDetailsModal: PropTypes.func.isRequired,
   saveWaiver: PropTypes.func.isRequired,
   setWaiverComment: PropTypes.func.isRequired,
   setWaiverScope: PropTypes.func.isRequired,

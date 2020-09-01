@@ -16,6 +16,7 @@ import {
 
 import ViolationExclamation from '../react/ViolationExclamation';
 import ArtifactNameDisplay from '../react/ArtifactNameDisplay';
+import VulnerabilityDetailsModalContainer from '../vulnerabilityDetails/VulnerabilityDetailsModalContainer';
 
 const ALL_COMPONENTS = 'ALL_COMPONENTS';
 
@@ -33,10 +34,12 @@ export default function AddWaiverForm(props) {
     availableWaiverScopes,
     selectedWaiverScope,
     submitError,
+    openVulnerabilityDetailsModal,
     setWaiverScope,
     setWaiverComment,
     setApplyToAllComponents,
-    saveWaiver
+    saveWaiver,
+    vulnerabilityId
   } = props;
 
   const onSubmit = (evt) => {
@@ -46,6 +49,12 @@ export default function AddWaiverForm(props) {
     const { value } = waiverComments;
 
     saveWaiver(policyViolationId, type, id, value, applyToAllComponents);
+  };
+
+  const onVulnerabilityDetailsClick = () => {
+    openVulnerabilityDetailsModal({
+      vulnerabilityId: vulnerabilityId
+    });
   };
 
   const handleComponentsChange = (value) => {
@@ -96,6 +105,15 @@ export default function AddWaiverForm(props) {
           )}
         </div>
       </div>
+
+      { vulnerabilityId &&
+      <div className="nx-form-group iq-add-waiver-form__vulnerability_details_link">
+        <a onClick={ onVulnerabilityDetailsClick }>
+          See Security Vulnerability Details
+        </a>
+        <VulnerabilityDetailsModalContainer />
+      </div>
+      }
 
       { /* Scope */ }
       <fieldset className="nx-fieldset iq-add-waiver-form__scope">
@@ -181,5 +199,7 @@ AddWaiverForm.propTypes = {
   setWaiverScope: PropTypes.func.isRequired,
   setApplyToAllComponents: PropTypes.func.isRequired,
   setWaiverComment: PropTypes.func.isRequired,
-  saveWaiver: PropTypes.func.isRequired
+  saveWaiver: PropTypes.func.isRequired,
+  openVulnerabilityDetailsModal: PropTypes.func.isRequired,
+  vulnerabilityId: PropTypes.string
 };

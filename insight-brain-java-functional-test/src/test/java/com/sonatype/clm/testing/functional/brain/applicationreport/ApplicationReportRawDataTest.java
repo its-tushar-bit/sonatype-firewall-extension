@@ -16,7 +16,7 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportRawDataPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportRawDataPage.ResultRow;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportRawDataPage.ResultTable;
-import com.sonatype.clm.testing.functional.pages.ApplicationReportRawDataPage.VulnerabilityModal;
+import com.sonatype.clm.testing.functional.elements.NxVulnerabilityModal;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
@@ -142,10 +142,10 @@ public class ApplicationReportRawDataTest
     ScrollUtil.scrollIntoView(springSecurity.getElement());
     springSecurity.securityIssue().shouldHave(exactText("sonatype-2017-0507")).click();
 
-    VulnerabilityModal vulnerabilityModal = rawDataPage.vulnerabilityModal();
+    NxVulnerabilityModal vulnerabilityModal = rawDataPage.vulnerabilityModal();
     vulnerabilityModal.shouldBe(visible);
     vulnerabilityModal.header().shouldHave(text("Vulnerability Information"));
-    SelenideElement vulnerabilityDetails = vulnerabilityModal.content().$(".nx-vulnerability-details");
+    SelenideElement vulnerabilityDetails = vulnerabilityModal.vulnerabilityDetails();
     vulnerabilityDetails.shouldHave(text("sonatype-2017-0507"));
     vulnerabilityDetails.shouldHave(text("Sonatype CVSS 3:5.4"));
     vulnerabilityDetails.shouldHave(text("Sonatype Data Research"));

@@ -56,7 +56,8 @@ import { sortItemsByFields } from '../util/sortUtils';
 import {
   aggregateReportEntries,
   filterReportEntries,
-  getVulnerabilities
+  getVulnerabilities,
+  isInnerSourceEnabled
 } from './applicationReportService';
 import { pathSet } from '../util/jsUtil';
 
@@ -289,9 +290,14 @@ function updateRawDataDisplayedEntries(state) {
  * based on `allEntries` and the various sorting, filtering, and aggregation settings stored in the state
  */
 function updateDisplayedEntries(state) {
-  const { selectedReport, sortFields, aggregate, exactValueFilters, substringFilters } = state;
+  let { selectedReport, sortFields, aggregate, exactValueFilters, substringFilters } = state;
 
   if (selectedReport) {
+    if (isInnerSourceEnabled) {
+      sortFields = [
+        'ownerApplicationName', 'dependencyType', '-policyThreatLevel', 'policyName', 'derivedComponentName'
+      ];
+    }
     const { allEntries } = selectedReport,
         processEntries = pipe(
             aggregate ? aggregateReportEntries : identity,

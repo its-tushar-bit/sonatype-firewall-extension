@@ -50,6 +50,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingD
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
+import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
@@ -117,6 +118,7 @@ import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
+import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
@@ -333,6 +335,8 @@ public class TemporaryEntity
 
   private final PersistedPromoteScanResultDAO persistedPromoteScanResultDAO = new PersistedPromoteScanResultDAO();
 
+  private final InnerSourceComponentDAO innerSourceComponentDAO = new InnerSourceComponentDAO();
+
   private MailConfiguration savedMailConfiguration;
 
   private Collection<MigrationTracker> migrationTrackers;
@@ -401,6 +405,8 @@ public class TemporaryEntity
 
   private Collection<String> persistedUserSessionIds;
 
+  private Collection<InnerSourceComponent> innerSourceComponents;
+
   @Override
   public void before() {
     migrationTrackers = migrationTrackerDAO.getAll().stream().map(this::copyMigrationTracker).collect(toList());
@@ -438,6 +444,7 @@ public class TemporaryEntity
     savedProxyServerConfiguration = proxyServerConfigurationDAO.get();
     sourceControlDefaultBranchCommitHistories = new ArrayList<>();
     initializePersistedUserSessions();
+    innerSourceComponents = new ArrayList<>();
   }
 
   private MigrationTracker copyMigrationTracker(MigrationTracker migrationTracker) {
@@ -452,6 +459,7 @@ public class TemporaryEntity
     automaticApplicationsConfigurationDAO.setEnabled(false);
     automaticApplicationsConfigurationDAO.setOrganizationId("");
     systemConfigurationPropertyDAO.update(new SystemConfigurationProperty("SUCCESS_METRICS_ENABLED", "true"));
+    delete(innerSourceComponents, innerSourceComponentDAO);
     delete(membershipMappings, membershipMappingDAO);
     delete(dashboardFilters, dashboardFilterDAO);
     delete(policyTags, policyTagDAO);
@@ -2622,5 +2630,12 @@ public class TemporaryEntity
     persistedPromoteScanResult.setCreateTime(createTime);
     persistedPromoteScanResultDAO.insert(persistedPromoteScanResult);
     return persistedPromoteScanResult;
+  }
+
+  public InnerSourceComponent newInnerSourceComponent(String purl, Application application) {
+    InnerSourceComponent innerSourceComponent = new InnerSourceComponent(application.getId(), purl);
+    innerSourceComponentDAO.insert(innerSourceComponent);
+    innerSourceComponents.add(innerSourceComponent);
+    return innerSourceComponent;
   }
 }

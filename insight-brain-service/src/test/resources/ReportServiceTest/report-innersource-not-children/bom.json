@@ -1,0 +1,227 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-annotations",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.0"
+      }
+    },
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-annotations",
+    "version" : "2.9.0",
+    "filenames" : [ "jackson-annotations-2.9.0.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.innersource.main:innersource-main:jar:1.0.0/com.fasterxml.jackson.core:jackson-annotations:jar:2.9.0" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "07c10d545325e3a6e72e",
+    "relativePopularity" : 1.0,
+    "createTime" : 1501386820000,
+    "lastModifiedTime" : 1573693430000,
+    "lastModifiedEntryTime" : 1501379606000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.fasterxml.jackson.core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jackson-annotations"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.9.0"
+      } ],
+      "name" : "jackson-annotations"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.8"
+      }
+    },
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-core",
+    "version" : "2.9.8",
+    "filenames" : [ "jackson-core-2.9.8.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.innersource.main:innersource-main:jar:1.0.0/com.fasterxml.jackson.core:jackson-core:jar:2.9.8" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "0f5a654e4675769c716e",
+    "relativePopularity" : 1.0,
+    "createTime" : 1544908773000,
+    "lastModifiedTime" : 1573693430000,
+    "lastModifiedEntryTime" : 1544897952000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.fasterxml.jackson.core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jackson-core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.9.8"
+      } ],
+      "name" : "jackson-core"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.8"
+      }
+    },
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-databind",
+    "version" : "2.9.8",
+    "filenames" : [ "jackson-databind-2.9.8.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.innersource.main:innersource-main:jar:1.0.0/com.fasterxml.jackson.core:jackson-databind:jar:2.9.8" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "11283f21cc480aa86c4d",
+    "relativePopularity" : 1.0,
+    "createTime" : 1544911179000,
+    "lastModifiedTime" : 1573693432000,
+    "lastModifiedEntryTime" : 1544929146000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.fasterxml.jackson.core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jackson-databind"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.9.8"
+      } ],
+      "name" : "jackson-databind"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "innersource-data",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.sonatype.innersource.data",
+        "version" : "1.0.0-SNAPSHOT"
+      }
+    },
+    "groupId" : "com.sonatype.innersource.data",
+    "artifactId" : "innersource-data",
+    "version" : "1.0.0-SNAPSHOT",
+    "filenames" : [ "innersource-data-1.0.0-SNAPSHOT.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.innersource.main:innersource-main:jar:1.0.0/com.sonatype.innersource.data:innersource-data:jar:1.0.0-SNAPSHOT" ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "8f509b06e1e3b792bf3b",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1598890658000,
+    "lastModifiedEntryTime" : 1598890620000,
+    "website" : null,
+    "identificationSource" : "Package Manifest",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "mvn",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.sonatype.innersource.data"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "innersource-data"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.0.0-SNAPSHOT"
+      } ],
+      "name" : "innersource-data"
+    }
+  } ]
+}

@@ -1,0 +1,202 @@
+{
+  "dependencyGraph": [
+    {
+      "children": [
+        {
+          "componentIdentifier": {
+            "format": "maven",
+            "coordinates": {
+              "artifactId": "jackson-databind",
+              "classifier": "",
+              "extension": "jar",
+              "groupId": "com.fasterxml.jackson.core",
+              "version": "2.9.8"
+            }
+          },
+          "directDependency": true
+        }
+      ]
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "jackson-databind",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.fasterxml.jackson.core",
+          "version": "2.9.8"
+        }
+      },
+      "children": [
+      ],
+      "directDependency": true
+    }
+  ],
+  "gavDepths": {
+    "commons-codec:commons-codec:1.11": [
+      2
+    ],
+    "org.apache.commons:commons-io:1.3.2": [
+      1
+    ],
+    "com.fasterxml.jackson.core:jackson-databind:2.9.8": [
+      1
+    ],
+    "org.apache.commons:commons-csv:1.4": [
+      2
+    ],
+    "com.fasterxml.jackson.core:jackson-annotations:2.9.0": [
+      2
+    ],
+    "com.fasterxml.jackson.core:jackson-core:2.9.8": [
+      2
+    ],
+    "commons-io:commons-io:1.3.2": [
+      2
+    ],
+    "org.apache.commons:commons-lang3:3.8.1": [
+      3
+    ],
+    "org.apache.commons:commons-text:1.5": [
+      2
+    ]
+  },
+  "componentDepths": [
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "jackson-databind",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.fasterxml.jackson.core",
+          "version": "2.9.8"
+        }
+      },
+      "depths": [
+        1
+      ]
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "jackson-annotations",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.fasterxml.jackson.core",
+          "version": "2.9.0"
+        }
+      },
+      "depths": [
+        2
+      ]
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "jackson-core",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.fasterxml.jackson.core",
+          "version": "2.9.8"
+        }
+      },
+      "depths": [
+        2
+      ]
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "commons-io",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.apache.commons",
+          "version": "1.3.2"
+        }
+      },
+      "depths": [
+        1
+      ]
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "commons-io",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "commons-io",
+          "version": "1.3.2"
+        }
+      },
+      "depths": [
+        2
+      ]
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "commons-codec",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "commons-codec",
+          "version": "1.11"
+        }
+      },
+      "depths": [
+        2
+      ]
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "commons-csv",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.apache.commons",
+          "version": "1.4"
+        }
+      },
+      "depths": [
+        2
+      ]
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "commons-text",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.apache.commons",
+          "version": "1.5"
+        }
+      },
+      "depths": [
+        2
+      ]
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "commons-lang3",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.apache.commons",
+          "version": "3.8.1"
+        }
+      },
+      "depths": [
+        3
+      ]
+    }
+  ]
+}

@@ -785,7 +785,8 @@ public class InsightConfig
     PR_COMMENTING("prCommenting"),
     PR_LINE_COMMENTING("prLineCommenting"),
     CODE_INSIGHTS("codeInsights"),
-    MANIFEST_SCAN("manifestScan");
+    MANIFEST_SCAN("manifestScan"),
+    INNER_SOURCE("innerSource");
 
     private String flag;
 

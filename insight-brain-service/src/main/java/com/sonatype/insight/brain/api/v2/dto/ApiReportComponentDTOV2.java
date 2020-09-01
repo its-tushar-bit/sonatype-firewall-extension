@@ -26,4 +26,6 @@ public class ApiReportComponentDTOV2
   public ApiLicenseDataDTOV2 licenseData;
 
   public ApiSecurityDataDTO securityData;
+
+  public ApiInnerSourceDataDTO innerSourceData;
 }

@@ -13,6 +13,8 @@
     "createTime" : 1201589122000,
     "lastModifiedTime" : 1201148356000,
     "lastModifiedEntryTime" : 1173079498000,
+    "innerSource": true,
+    "ownerApplicationName" : "owningApplicationName",
     "displayName" : {
       "parts" : [ {
         "field" : "Group",

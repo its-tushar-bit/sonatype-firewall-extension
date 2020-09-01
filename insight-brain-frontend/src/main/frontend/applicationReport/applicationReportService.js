@@ -174,6 +174,29 @@ const addPartialMatchData = curry(function(partialMatchesByKey, entry) {
   return partialMatches ? { ...entry, matchDetails: partialMatches.matchDetails } : entry;
 });
 
+export let isInnerSourceEnabled = false;
+
+function augmentInnerSourceIndicator(components) {
+  let result = [];
+  const isIndicators = ['is-0', 'is-1', 'is-2', 'is-3'];
+  const groupedResult = groupBy(c => c.ownerApplicationName || '', components);
+  Object.entries(groupedResult).forEach(([app, entries], index) => {
+    if (app !== '') {
+      const indicator = isIndicators [index % 4];
+      entries.forEach(entry => {
+        entry.innerSourceIndicator = indicator;
+        entry.dependencyType = entry.innerSource ? 'D' : 'TD';
+        isInnerSourceEnabled = true;
+        result.push(entry);
+      });
+    }
+    else {
+      result = result.concat(entries);
+    }
+  });
+  return result;
+}
+
 function addSerializedComponentIdentifier(entry) {
   const { componentIdentifier } = entry;
   if (!componentIdentifier) {
@@ -240,7 +263,7 @@ export function createReportEntries(policyResult = defaultParamValue, bomResult 
       ),
       nonViolatingComponentEntries = into([], nonViolatingEntriesTransducer, nonViolatingBomData);
 
-  return concat(augmentedViolationEntries, nonViolatingComponentEntries);
+  return augmentInnerSourceIndicator(concat(augmentedViolationEntries, nonViolatingComponentEntries));
 }
 
 export function createRawDataEntries(securityResult = defaultParamValue, licensesResult = defaultParamValue,

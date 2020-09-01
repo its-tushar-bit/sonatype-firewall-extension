@@ -155,7 +155,10 @@
                 <span class="iq-threat-number">{{component.policyThreatLevel}}</span>
               </td><!--
            --><td class="iq-cell iq-cell--application-report-policy-name">{{component.policyName}}</td><!--
-           --><td class="iq-cell iq-cell--application-report-component-display">
+              --><td class="iq-cell iq-cell--application-report-component-display {{component.ownerApplicationName ? 'iq-innersource-indicator' : ''}}"
+                     data-tooltip="{{component.ownerApplicationName ? component.ownerApplicationName : ''}}"
+                     data-tooltip-append-to-body="true"
+                  ng-class="component.ownerApplicationName ? component.innerSourceIndicator : ''">
                 <span class="iq-text-indicator iq-text-indicator--waived iq-pull-right" ng-show="component.waived">
                   Waived<i class="fa fa-check"></i>
                 </span>
@@ -171,7 +174,12 @@
                   <span ng-if="component.dependencyInfo.isDirectDependency">D</span>
                   <span ng-if="!component.dependencyInfo.isDirectDependency">T</span>
                 </div><!--
-             --><component-display component="component" truncate="true"></component-display>
+             --><component-display component="component" truncate="true"></component-display><!--
+             --><div ng-if="component.innerSource"
+                     class="iq-dependency-indicator"
+                     ng-class="component.dependencyInfo.isDirectDependency ? 'direct' : 'transitive'">
+              <span ng-if="component.innerSource">IS</span>
+              </div>
               </td>
             </tr>
             <tr ng-if="vm.selectedReport.displayedEntries.length === 0" class="iq-table-row">

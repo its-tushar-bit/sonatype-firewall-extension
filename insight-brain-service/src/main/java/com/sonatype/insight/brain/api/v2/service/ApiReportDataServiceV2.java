@@ -45,6 +45,8 @@ import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -78,17 +80,25 @@ public class ApiReportDataServiceV2
 
   private final ApiSecurityDataAdapter securityDataAdapter;
 
+  private final ApiInnerSourceDataAdapter innerSourceDataAdapter;
+
+  private final InsightConfig insightConfig;
+
   @Inject
   public ApiReportDataServiceV2(
       ApplicationDAO appDAO,
       ReportService reportService,
       ApiLicenseDataAdapter licenseDataAdapter,
-      ApiSecurityDataAdapter securityDataAdapter)
+      ApiSecurityDataAdapter securityDataAdapter,
+      ApiInnerSourceDataAdapter innerSourceDataAdapter,
+      InsightConfig insightConfig)
   {
     this.appDAO = appDAO;
     this.reportService = reportService;
     this.licenseDataAdapter = licenseDataAdapter;
     this.securityDataAdapter = securityDataAdapter;
+    this.innerSourceDataAdapter = innerSourceDataAdapter;
+    this.insightConfig = insightConfig;
   }
 
   @Authorize(permission = Permission.READ)
@@ -294,7 +304,12 @@ public class ApiReportDataServiceV2
         component.securityData = securityDataAdapter.convertToDTO(comp);
         component.licenseData = licenseDataAdapter.convertToDTOV2(comp);
       }
-
+      boolean isEnableInnerSource = insightConfig.getExperimentalFeatures() != null &&
+          !insightConfig.getExperimentalFeatures().isEmpty() ? insightConfig.getExperimentalFeatures().getOrDefault(
+          Feature.INNER_SOURCE.getFlag(), false) : false;
+      if (isEnableInnerSource) {
+        component.innerSourceData = innerSourceDataAdapter.convertToDTO(comp);
+      }
       data.components.add(component);
     }
 

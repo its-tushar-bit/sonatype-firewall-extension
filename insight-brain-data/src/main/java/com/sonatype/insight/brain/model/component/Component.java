@@ -76,6 +76,10 @@ public class Component
 
   private Boolean directDependency;
 
+  private Boolean innerSource;
+
+  private String ownerApplicationName;
+
   public Component() {
   }
 
@@ -380,5 +384,21 @@ public class Component
 
   public void setDirectDependency(final Boolean directDependency) {
     this.directDependency = directDependency;
+  }
+
+  public String getOwnerApplicationName() {
+    return ownerApplicationName;
+  }
+
+  public void setOwnerApplicationName(final String ownerApplicationName) {
+    this.ownerApplicationName = ownerApplicationName;
+  }
+
+  public Boolean getInnerSource() {
+    return innerSource;
+  }
+
+  public void  setInnerSource(final Boolean innerSource) {
+    this.innerSource = innerSource;
   }
 }

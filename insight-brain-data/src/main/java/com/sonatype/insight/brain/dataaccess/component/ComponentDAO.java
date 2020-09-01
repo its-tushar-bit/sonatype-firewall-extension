@@ -245,6 +245,16 @@ public class ComponentDAO
           JsonNode analyzerFeaturesNode = componentJson.get("analyzerFeatures");
           setAnalyzerFeatures(analyzerFeaturesNode, component);
 
+          JsonNode innerSourceNode = componentJson.get("innerSource");
+          if (innerSourceNode != null) {
+            component.setInnerSource(innerSourceNode.asBoolean());
+          }
+
+          JsonNode ownerApplicationNameNode = componentJson.get("ownerApplicationName");
+          if (ownerApplicationNameNode != null) {
+            component.setOwnerApplicationName(ownerApplicationNameNode.asText());
+          }
+
           components.add(component);
         }
       }

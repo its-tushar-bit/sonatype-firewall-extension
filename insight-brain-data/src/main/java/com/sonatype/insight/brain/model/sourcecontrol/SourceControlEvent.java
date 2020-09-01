@@ -125,6 +125,12 @@ public class  SourceControlEvent
   @Column(name = "complete_time")
   private Date completeTime;
 
+  @Column(name = "status_id")
+  private String statusId;
+
+  @Column(name = "user_agent")
+  private String userAgent;
+
   public SourceControlEvent() {
     eventStatus = EVENT_STATUS_NEW;
     createTime = new Date();
@@ -287,6 +293,15 @@ public class  SourceControlEvent
     return this;
   }
 
+  public String getStatusId() {
+    return statusId;
+  }
+
+  public SourceControlEvent setStatusId(String statusId) {
+    this.statusId = statusId;
+    return this;
+  }
+
   public String getRemediationVersion() {
     return remediationVersion;
   }
@@ -370,6 +385,15 @@ public class  SourceControlEvent
 
   public SourceControlEvent setCompleteTime(final Date completeTime) {
     this.completeTime = completeTime;
+    return this;
+  }
+
+  public String getUserAgent() {
+    return userAgent;
+  }
+
+  public SourceControlEvent setUserAgent(final String userAgent) {
+    this.userAgent = userAgent;
     return this;
   }
 }

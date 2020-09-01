@@ -64,7 +64,7 @@ public abstract class GitRepositoryTask
   /**
    * Checks whether the checkout directory exists. If so, it is returned; otherwise it is created.
    */
-  static File getCheckoutDirectory(
+  public static File getCheckoutDirectory(
       final InsightConfig insightConfig,
       final String applicationPublicId,
       final String applicationId,

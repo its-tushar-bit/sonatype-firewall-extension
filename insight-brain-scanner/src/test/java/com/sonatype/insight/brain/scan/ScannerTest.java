@@ -112,4 +112,21 @@ public class ScannerTest extends InjectedTest
 
     assertThat(item.getSha1()).isEqualTo("395849f1c53dac640ca8");
   }
+
+  @Test
+  public void testManifestScan() throws Exception {
+    File scanDir = new File("src/test/resources/ScannerTest/manifestScan");
+    ProprietaryConfig proprietaryConfig = new ProprietaryConfig();
+    ScanResult scanResult = scanner.scan(scanDir, null, tempDir.getRoot(), proprietaryConfig);
+    assertThat(scanResult.getScanFile()).isFile();
+
+    Scan scan = scanReader.read(scanResult.getScanFile());
+    assertThat(scan).isNotNull();
+    assertThat(scan.getItems()).hasSize(1);
+    ScanItem item = scan.getItems().get(0);
+    assertThat(item.getPath()).contains("requirements.txt");
+    assertThat(item.getItems()).hasSize(0);
+    assertThat(item.isProprietary()).isNull();
+    assertThat(item.getContentType()).isEqualTo(ItemContentType.PYTHON_REQUIREMENTS);
+  }
 }

@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
 import com.sonatype.insight.brain.eventbus.EventBusConfig;
+import com.sonatype.insight.brain.git.ManifestScanService;
 import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
 import com.sonatype.insight.brain.metrics.CustomMetrics;
 import com.sonatype.insight.brain.security.AuthenticationLoggingFilter;
@@ -425,6 +426,7 @@ public class InsightBrainService
         bind(com.sonatype.insight.jaxrs.error.ErrorResponseGenerator.class).to(ErrorResponseGenerator.class);
         bind(EventBusConfig.class).toInstance(config.getEventBusConfig());
         bind(CsvMapper.class).toInstance(configureObjectMapper(new CsvMapper()));
+        bind(ManifestScanService.class).asEagerSingleton();
       }
     };
     Module authc = new SecurityModule();

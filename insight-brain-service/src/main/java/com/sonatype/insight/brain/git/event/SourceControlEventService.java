@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.git.event;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -20,7 +21,6 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.concurrent.SemaphorePool;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.GitCommitStatusService;
-import com.sonatype.insight.brain.git.ManifestScanService;
 import com.sonatype.insight.brain.git.PullRequestCommentingService;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
@@ -71,6 +71,8 @@ public class SourceControlEventService
 
   private final AtomicBoolean inProcessing = new AtomicBoolean();
 
+  private final List<SourceControlEventListener> listeners;
+
   /*
     work for the same repo/application should be done sequentially; work for different apps can be done in parallel
    */
@@ -84,8 +86,6 @@ public class SourceControlEventService
 
   private final PullRequestRemediationService pullRequestRemediationService;
 
-  private final ManifestScanService manifestScanService;
-
   private final GitCommitStatusService gitCommitStatusService;
 
   @Inject
@@ -93,14 +93,17 @@ public class SourceControlEventService
       SourceControlEventDAO sourceControlEventDAO,
       PullRequestCommentingService pullRequestCommentingService,
       PullRequestRemediationService pullRequestRemediationService,
-      ManifestScanService manifestScanService,
       GitCommitStatusService gitCommitStatusService)
   {
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.pullRequestCommentingService = pullRequestCommentingService;
     this.pullRequestRemediationService = pullRequestRemediationService;
-    this.manifestScanService = manifestScanService;
     this.gitCommitStatusService = gitCommitStatusService;
+    this.listeners = new ArrayList<>();
+  }
+
+  public void registerEventListener(SourceControlEventListener listener) {
+    this.listeners.add(listener);
   }
 
   /**
@@ -256,6 +259,13 @@ public class SourceControlEventService
     boolean success = true;
 
     try {
+      for (SourceControlEventListener listener : listeners) {
+        if (listener.executeEvent(event)) {
+          log.trace("Event {} handled by listener class {}", event, listener.getClass());
+          return true;
+        }
+      }
+
       switch (event.getEventType()) {
         case SourceControlEvent.APPLICATION_EVALUATION_EVENT:
           pullRequestCommentingService.onApplicationEvaluation(event);
@@ -263,10 +273,6 @@ public class SourceControlEventService
 
         case SourceControlEvent.DISCOVERED_PULL_REQUEST_EVENT:
           pullRequestCommentingService.onDiscoveredPullRequest(event);
-          break;
-
-        case SourceControlEvent.MANIFEST_SCAN_EVENT:
-          manifestScanService.onManifestScan(event);
           break;
 
         case SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT:

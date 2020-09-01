@@ -20,20 +20,20 @@ public class ApiManifestScanServiceAuthzTest
   public ApiManifestScanService apiManifestScanService;
 
   @Test
-  public void testPerformManifestScan_Authorized() {
+  public void testPerformManifestScan_Authorized() throws Exception {
     grantEvaluateApplicationPermission(app.getId());
 
-    apiManifestScanService.performManifestScan(app.getId(), "stage", "a-branch");
+    apiManifestScanService.performManifestScan(app.getId(), "stage", "a-branch", "useragent");
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testPerformManifestScan_Unauthenticated() {
-    apiManifestScanService.performManifestScan(app.getId(), "stage", "a-branch");
+  public void testPerformManifestScan_Unauthenticated() throws Exception {
+    apiManifestScanService.performManifestScan(app.getId(), "stage", "a-branch", "useragent");
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testPerformManifestScan_Unauthorized() {
+  public void testPerformManifestScan_Unauthorized() throws Exception {
     login();
-    apiManifestScanService.performManifestScan(app.getId(), "stage", "a-branch");
+    apiManifestScanService.performManifestScan(app.getId(), "stage", "a-branch", "useragent");
   }
 }

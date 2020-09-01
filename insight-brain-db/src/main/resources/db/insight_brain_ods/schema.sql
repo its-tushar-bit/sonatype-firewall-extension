@@ -751,6 +751,8 @@ CREATE TABLE source_control_event (
   create_time timestamp NOT NULL,
   start_time timestamp,
   complete_time timestamp,
+  status_id varchar(50),
+  user_agent varchar(255),
   CONSTRAINT source_control_event_pk PRIMARY KEY (source_control_event_id),
   CONSTRAINT source_control_event_application_fk FOREIGN KEY (application_id) REFERENCES application (application_id),
   CONSTRAINT source_control_event_policy_evaluation_fk FOREIGN KEY (policy_evaluation_id) REFERENCES policy_evaluation (policy_evaluation_id),

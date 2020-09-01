@@ -6,14 +6,27 @@
 package com.sonatype.insight.brain.git;
 
 import java.io.File;
+import java.io.IOException;
 
 import javax.inject.Singleton;
 
+import com.sonatype.clm.dto.model.ProprietaryConfig;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.git.event.SourceControlEventListener;
+import com.sonatype.insight.brain.git.event.SourceControlEventService;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
+import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
+import com.sonatype.insight.brain.scan.ScanResult;
+import com.sonatype.insight.brain.scan.Scanner;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
+import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.git.utils.api.GitException;
 import com.sonatype.nexus.iq.manager.RepositorySyncCommand;
@@ -28,7 +41,7 @@ import org.slf4j.LoggerFactory;
  * service for doing internal scans of manifest files of a project.
  */
 @Singleton
-public class ManifestScanService
+public class ManifestScanService implements SourceControlEventListener
 {
   private static final Logger log = LoggerFactory.getLogger(ManifestScanService.class);
 
@@ -40,24 +53,47 @@ public class ManifestScanService
 
   private final ApplicationDAO applicationDAO;
 
+  private final PolicyEvaluateService policyEvaluateService;
+
+  private ProprietaryConfigService proprietaryConfigService;
+
+  private final InsightWork work;
+
+  private final Scanner scanner;
+
   /**
-   * constructor for the manifast scan service
-   * @param insightConfig an insight config
-   * @param gitApiFactory a factory for the GitApi
-   * @param sourceControlUtils utils for source control
-   * @param applicationDAO DAO for retrieving application info
+   * constructor for the manifest scan service
    */
   @Inject
   public ManifestScanService(
       final InsightConfig insightConfig,
       final GitApiFactory gitApiFactory,
       final SourceControlUtils sourceControlUtils,
-      final ApplicationDAO applicationDAO)
+      final ApplicationDAO applicationDAO,
+      final SourceControlEventService sourceControlEventService,
+      final ProprietaryConfigService proprietaryConfigService,
+      final PolicyEvaluateService policyEvaluateService,
+      final InsightWork work,
+      final Scanner scanner)
   {
     this.gitApiFactory = gitApiFactory;
     this.insightConfig = insightConfig;
     this.sourceControlUtils = sourceControlUtils;
     this.applicationDAO = applicationDAO;
+    this.proprietaryConfigService = proprietaryConfigService;
+    this.policyEvaluateService = policyEvaluateService;
+    this.work = work;
+    this.scanner = scanner;
+    sourceControlEventService.registerEventListener(this);
+  }
+
+  @Override
+  public boolean executeEvent(final SourceControlEvent event) throws GitException, IOException {
+    if (SourceControlEvent.MANIFEST_SCAN_EVENT.equals(event.getEventType())) {
+      onManifestScan(event);
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -65,17 +101,17 @@ public class ManifestScanService
    * @param event a SourceControlEvent providing application id, branch, and stage
    * @throws GitException when a git operation fails
    */
-  public void onManifestScan(final SourceControlEvent event) throws GitException {
+  public void onManifestScan(final SourceControlEvent event) throws GitException, IOException {
+    String applicationId = event.getApplicationId();
+    String statusId = event.getStatusId();
     final GitRepositoryInfo gitRepositoryInfo =
-        sourceControlUtils.getGitRepositoryInfoForApplication(event.getApplicationId());
+        sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
 
     if (gitRepositoryInfo == null) {
       return;
     }
 
-    final String branch = (event.getBranchName() != null)
-        ? event.getBranchName()
-        : gitRepositoryInfo.getBaseBranch();
+    final String branch = event.getBranchName();
 
     log.trace("Manifest scan initiated for application '{}' on branch '{}'",
         event.getApplicationId(), branch);
@@ -89,6 +125,16 @@ public class ManifestScanService
 
     final RepositorySyncResult result = new RepositorySyncExecutor().execute(
         new RepositorySyncCommand(gitApi, branch, repositoryDirectory));
+
+    Application application = applicationDAO.getByIdNotNull(applicationId);
+
+    ProprietaryConfig proprietaryConfig = proprietaryConfigService.getProprietaryConfig(OwnerType.APPLICATION,
+        application.getPublicId());
+    ScanResult scanResult = scanner.scan(repositoryDirectory, null, work.getScanDir(applicationId), proprietaryConfig);
+
+    policyEvaluateService.evaluateWithPolling(statusId, application, ClientScanType.SONATYPE,
+        new Stage(event.getStageTypeId()), scanResult.getScanFile(), "api",
+        event.getUserAgent());
 
     log.trace("Manifest scan completed for application '{}': {}", event.getApplicationId(), result);
   }

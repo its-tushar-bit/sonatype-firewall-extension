@@ -48,6 +48,12 @@ public class Scanner
 {
   private static final Logger log = LoggerFactory.getLogger(Scanner.class);
 
+  private static final String TEMP_SCAN_PREFIX = "temp-";
+
+  private static final String SCAN_SUFFIX = ".xml.gz";
+
+  private static final String COULD_NOT_DELETE_SCAN_FILE = "Could not delete scan file: {}";
+
   private final ScanPropertiesLoader configLoader;
 
   private final ClientScanner clientScanner;
@@ -74,12 +80,13 @@ public class Scanner
 
   /**
    * Scans the specified target file and returns the resulting scan file, using the given directory as parent.
+   * If scanning manifests, `target` is the repository directory
    */
   public ScanResult scan(File target, String filename, File scanDir, ProprietaryConfig proprietaryConfig)
       throws IOException
   {
     Files.createDirectories(scanDir.toPath());
-    File scanFile = File.createTempFile("temp-", ".xml.gz", scanDir);
+    File scanFile = File.createTempFile(TEMP_SCAN_PREFIX, SCAN_SUFFIX, scanDir);
     log.debug("Saving scan of {} to {}", target, scanFile);
     ScanResult scanResult = new ScanResult();
     scanResult.setScanFile(scanFile);
@@ -92,7 +99,13 @@ public class Scanner
         scan.getSummary().setStartTime();
         ScanSession scanSession = new ScanSession(scan, writer);
         clientScanner.scan(new ClientScanRequest(scan));
-        fileScanner.scan(new FileScanRequest(scanSession).addFile(target, filename, null));
+        if (filename == null || target.isDirectory()) {
+          // for manifest scan: use all files in the folder
+          fileScanner.scan(new FileScanRequest(scanSession).addFiles(target));
+        }
+        else {
+          fileScanner.scan(new FileScanRequest(scanSession).addFile(target, filename, null));
+        }
         scan.getSummary().setEndTime();
         writer.writeSummary(scan.getSummary());
         writer.closeScan();
@@ -104,11 +117,10 @@ public class Scanner
         fileCleaner.delete(scanFile);
       }
       catch (FileDeletionException fde) {
-        log.error("Could not delete scan file: {}", scanFile, fde);
+        log.error(COULD_NOT_DELETE_SCAN_FILE, scanFile, fde);
       }
       throw e;
     }
-
     return scanResult;
   }
 
@@ -121,7 +133,7 @@ public class Scanner
       String scannerDriver) throws IOException
   {
     Files.createDirectories(scanDir.toPath());
-    File scanFile = File.createTempFile("temp-", ".xml.gz", scanDir);
+    File scanFile = File.createTempFile(TEMP_SCAN_PREFIX, SCAN_SUFFIX, scanDir);
     log.debug("Adding Sbom file to {}", scanFile);
     ScanResult scanResult = new ScanResult();
     scanResult.setScanFile(scanFile);
@@ -156,7 +168,7 @@ public class Scanner
         fileCleaner.delete(scanFile);
       }
       catch (FileDeletionException fde) {
-        log.error("Could not delete scan file: {}", scanFile, fde);
+        log.error(COULD_NOT_DELETE_SCAN_FILE, scanFile, fde);
       }
       throw e;
     }

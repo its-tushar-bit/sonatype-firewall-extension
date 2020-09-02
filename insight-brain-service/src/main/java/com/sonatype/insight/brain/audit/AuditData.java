@@ -8,10 +8,8 @@ package com.sonatype.insight.brain.audit;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.Application;
@@ -103,60 +101,6 @@ public abstract class AuditData
             t.printStackTrace();
             log.error(t.getMessage(), t);
             System.exit(1);
-          }
-        }
-      };
-      return taskSubmitter.apply(auditedTask);
-    });
-  }
-
-  /**
-   * Continue audit logging of asynchronous task scheduled using
-   * {@link java.util.concurrent.ExecutorService#submit(Callable)} or similar.
-   */
-  public final <F, V> F continueAsync(Callable<V> task, Function<Callable<V>, F> taskSubmitter) {
-    return continueAsync(auditData -> {
-      Callable<V> auditedTask = () -> {
-        try (AuditSession auditSession = new AuditSession(auditData)) {
-          try {
-            return task.call();
-          }
-          catch (Exception e) {
-            auditData.setException(e);
-            throw e;
-          }
-          catch (Throwable t) {
-            // Try to log to stderr before trying the standard logging because the standard logging may not be
-            // operational at this point.
-            t.printStackTrace();
-            log.error(t.getMessage(), t);
-            System.exit(1);
-            return null;
-          }
-        }
-      };
-      return taskSubmitter.apply(auditedTask);
-    });
-  }
-
-  public final <F, V> F continueAsync(Supplier<V> task, Function<Supplier<V>, F> taskSubmitter) {
-    return continueAsync(auditData -> {
-      Supplier<V> auditedTask = () -> {
-        try (AuditSession auditSession = new AuditSession(auditData)) {
-          try {
-            return task.get();
-          }
-          catch (Exception e) {
-            auditData.setException(e);
-            throw e;
-          }
-          catch (Throwable t) {
-            // Try to log to stderr before trying the standard logging because the standard logging may not be
-            // operational at this point.
-            t.printStackTrace();
-            log.error(t.getMessage(), t);
-            System.exit(1);
-            return null;
           }
         }
       };

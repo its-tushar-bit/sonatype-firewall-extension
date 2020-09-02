@@ -6,9 +6,7 @@
 package com.sonatype.insight.brain.audit;
 
 import java.lang.annotation.ElementType;
-import java.util.concurrent.Callable;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -25,7 +23,6 @@ import org.mockito.junit.MockitoRule;
 import org.mockito.quality.Strictness;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -124,84 +121,6 @@ public class AuditDataTest
   }
 
   @Test
-  public void testContinueAsync_Callable() {
-    String[] result = new String[1];
-    Callable<Void> callable = () -> {
-      result[0] = "result";
-      return null;
-    };
-
-    auditData.continueAsync(callable, callableSubmitter());
-
-    verify(auditData).continueAsync(functionArgumentCaptor.capture());
-    Function<AuditData, Void> wrappedTaskSubmitter = functionArgumentCaptor.getValue();
-    assertThat(wrappedTaskSubmitter).isNotNull();
-    wrappedTaskSubmitter.apply(auditData);
-    assertThat(result[0]).isEqualTo("result");
-    verify(auditData, never()).setException(any());
-    verify(auditData).commit();
-    assertThat(AuditData.get()).isEqualTo(NoopAuditData.INSTANCE);
-  }
-
-  @Test
-  public void testContinueAsync_Callable_Throwable() {
-    Exception t = new RuntimeException("message");
-    Callable<Void> callable = () -> {
-      throw t;
-    };
-
-    auditData.continueAsync(callable, callableSubmitter());
-
-    verify(auditData).continueAsync(functionArgumentCaptor.capture());
-    Function<AuditData, Void> wrappedTaskSubmitter = functionArgumentCaptor.getValue();
-    assertThat(wrappedTaskSubmitter).isNotNull();
-    wrappedTaskSubmitter.apply(auditData);
-    verify(auditData).setException(t);
-    verify(auditData).commit();
-    assertThat(AuditData.get()).isEqualTo(NoopAuditData.INSTANCE);
-  }
-
-  @Test
-  public void testContinueAsync_Supplier() {
-    String[] result = new String[1];
-    Supplier<Void> supplier = () -> {
-      result[0] = "result";
-      return null;
-    };
-
-    auditData.continueAsync(supplier, supplierSubmitter());
-
-    verify(auditData).continueAsync(functionArgumentCaptor.capture());
-    Function<AuditData, Void> wrappedTaskSubmitter = functionArgumentCaptor.getValue();
-    assertThat(wrappedTaskSubmitter).isNotNull();
-    wrappedTaskSubmitter.apply(auditData);
-    assertThat(result[0]).isEqualTo("result");
-    verify(auditData, never()).setException(any());
-    verify(auditData).commit();
-    assertThat(AuditData.get()).isEqualTo(NoopAuditData.INSTANCE);
-  }
-
-  @Test
-  public void testContinueAsync_Supplier_Throwable() {
-    RuntimeException t = new RuntimeException("message");
-    Supplier<Void> supplier = () -> {
-      throw t;
-    };
-
-    auditData.continueAsync(supplier, supplierSubmitter());
-
-    verify(auditData).continueAsync(functionArgumentCaptor.capture());
-    Function<AuditData, Void> wrappedTaskSubmitter = functionArgumentCaptor.getValue();
-    assertThat(wrappedTaskSubmitter).isNotNull();
-    assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> {
-      wrappedTaskSubmitter.apply(auditData);
-    }).isSameAs(t);
-    verify(auditData).setException(t);
-    verify(auditData).commit();
-    assertThat(AuditData.get()).isEqualTo(NoopAuditData.INSTANCE);
-  }
-
-  @Test
   public void testSetEnum_NonNullValue() {
     auditData.setEnum("key", ElementType.ANNOTATION_TYPE);
     verify(auditData).setData("key", "annotation-type");
@@ -289,25 +208,6 @@ public class AuditDataTest
   private Function<Runnable, Void> runnableSubmitter() {
     return wrappedRunnable -> {
       wrappedRunnable.run();
-      return null;
-    };
-  }
-
-  private Function<Callable<Void>, Void> callableSubmitter() {
-    return wrappedCallable -> {
-      try {
-        wrappedCallable.call();
-      }
-      catch (Exception e) {
-        // do nothing
-      }
-      return null;
-    };
-  }
-
-  private Function<Supplier<Void>, Void> supplierSubmitter() {
-    return wrappedSupplier -> {
-      wrappedSupplier.get();
       return null;
     };
   }

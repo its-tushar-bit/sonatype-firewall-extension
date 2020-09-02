@@ -19,7 +19,7 @@ pipeline {
   environment {
     TF_VAR_build_key = "${env.BUILD_TAG}"
     TF_VAR_owner = "nightly"
-    LICENSE_FILE_PATH = credentials('2019-sonatype-internal-nxrm-firewall-lifecycle-1000-users')
+    LICENSE_FILE_PATH = credentials('sonatype-internal-nxrm-firewall-lifecycle-1000-users')
     DATABASE_TYPE = "H2"
   }
 
@@ -215,9 +215,9 @@ pipeline {
              export AWS_SESSION_TOKEN=`jq -r .Credentials.SessionToken temp_role.json`
              set -x
 
-             aws s3 cp smallAWSPerfRun/perf_results* "s3://iq-perf-results/nightly/$(date '+%Y-%m-%d')/nightly-$(date '+%Y-%m-%d')-small.out"
-             aws s3 cp mediumAWSPerfRun/perf_results* "s3://iq-perf-results/nightly/$(date '+%Y-%m-%d')/nightly-$(date '+%Y-%m-%d')-medium.out"
-             aws s3 cp largeAWSPerfRun/perf_results* "s3://iq-perf-results/nightly/$(date '+%Y-%m-%d')/nightly-$(date '+%Y-%m-%d')-large.out"
+             aws s3 cp smallAWSPerfRun/perf_results* "s3://iq-perf-results/nightly/$(date '+%Y-%m-%d')/$DATABASE_TYPE/nightly-$(date '+%Y-%m-%d')-$DATABASE_TYPE-small.out"
+             aws s3 cp mediumAWSPerfRun/perf_results* "s3://iq-perf-results/nightly/$(date '+%Y-%m-%d')/$DATABASE_TYPE/nightly-$(date '+%Y-%m-%d')-$DATABASE_TYPE-medium.out"
+             aws s3 cp largeAWSPerfRun/perf_results* "s3://iq-perf-results/nightly/$(date '+%Y-%m-%d')/$DATABASE_TYPE/nightly-$(date '+%Y-%m-%d')-$DATABASE_TYPE-large.out"
 
              rm temp_role.json
              unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN

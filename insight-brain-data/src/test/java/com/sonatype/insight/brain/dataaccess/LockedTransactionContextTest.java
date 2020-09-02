@@ -6,14 +6,17 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.persistence.EntityNotFoundException;
 
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.postgres.PostgresServer;
 
@@ -43,9 +46,9 @@ public class LockedTransactionContextTest
     String lockId = "test-lock";
     try (LockedTransactionContext tx = new LockedTransactionContext(lockId)) {
       assertThat(tx.lockId).isEqualTo(lockId);
-      ReentrantLock reentrantLock = LockedTransactionContext.LOCKS_BY_ID.get(tx.lockId);
-      assertThat(reentrantLock).isNotNull();
-      assertThat(tx.reentrantLock).isEqualTo(reentrantLock);
+      Semaphore lock = LockedTransactionContext.LOCKS_BY_ID.get(tx.lockId);
+      assertThat(lock).isNotNull();
+      assertThat(tx.lock).isEqualTo(lock);
       assertThat(dao.getById(lockId)).isNull();
     }
   }
@@ -58,9 +61,9 @@ public class LockedTransactionContextTest
       OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
       try (LockedTransactionContext tx = new LockedTransactionContext(lockId)) {
         assertThat(tx.lockId).isEqualTo(lockId);
-        ReentrantLock reentrantLock = LockedTransactionContext.LOCKS_BY_ID.get(tx.lockId);
-        assertThat(reentrantLock).isNull();
-        assertThat(tx.reentrantLock).isNull();
+        Semaphore lock = LockedTransactionContext.LOCKS_BY_ID.get(tx.lockId);
+        assertThat(lock).isNull();
+        assertThat(tx.lock).isNull();
         assertThat(dao.getById(lockId)).isNotNull();
       }
     }
@@ -112,17 +115,6 @@ public class LockedTransactionContextTest
       tx.commit();
     }
     assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
-  }
-
-  @Test
-  public void testReentrant_H2() {
-    String lockId = "test-lock";
-    try (TransactionContext tx1 = new LockedTransactionContext(lockId)) {
-      tx1.begin();
-      try (TransactionContext tx2 = new LockedTransactionContext(lockId)) {
-        tx2.begin();
-      }
-    }
   }
 
   @Test
@@ -205,6 +197,24 @@ public class LockedTransactionContextTest
     }
   }
 
+  @Test
+  public void testGetLockIdForRepositoryReevaluation() {
+    Repository repository = new Repository();
+    repository.setId("repositoryId");
+
+    assertThat(LockedTransactionContext.getLockIdForRepositoryReevaluation(repository))
+        .isEqualTo(LockedTransactionContext.REPOSITORY_REEVALUATION_LOCK_PREFIX + repository.getId());
+  }
+
+  @Test
+  public void testCreateLockForRepositoryReevaluation() {
+    Repository repository = new Repository();
+    repository.setId("repositoryId");
+
+    assertThat(LockedTransactionContext.createForRepositoryReevaluation(repository).lockId)
+        .isEqualTo(LockedTransactionContext.getLockIdForRepositoryReevaluation(repository));
+  }
+
   private CountDownLatch startConcurrentDeleteLockThread(String lockId) {
     CountDownLatch commitLatch = new CountDownLatch(1);
     Thread other = new Thread(() -> {
@@ -219,7 +229,64 @@ public class LockedTransactionContextTest
     return commitLatch;
   }
 
-  private void testDeleteLock() throws Exception {
+  private void testDeleteLock_TransactionContext() {
+    String lockId = "test-lock";
+    new LockedTransactionContext(lockId);
+    assertThat(LockedTransactionContext.lockExists(lockId)).isTrue();
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      LockedTransactionContext.deleteLock(tx, lockId);
+      tx.commit();
+    }
+    assertThat(LockedTransactionContext.lockExists(lockId)).isFalse();
+  }
+
+  @Test
+  public void testDeleteLock_TransactionContext_H2() {
+    testDeleteLock_TransactionContext();
+  }
+
+  @Test
+  public void testDeleteLock_TransactionContext_Postgres() {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      testDeleteLock_TransactionContext();
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
+  private void testDeleteLock_LockedTransactionContext() {
+    String lockId = "test-lock";
+    try (TransactionContext tx = new LockedTransactionContext(lockId)) {
+      assertThat(LockedTransactionContext.lockExists(lockId)).isTrue();
+      tx.begin();
+      LockedTransactionContext.deleteLock(tx, lockId);
+      tx.commit();
+    }
+    assertThat(LockedTransactionContext.lockExists(lockId)).isFalse();
+  }
+
+  @Test
+  public void testDeleteLock_LockedTransactionContext_H2() {
+    testDeleteLock_LockedTransactionContext();
+  }
+
+  @Test
+  public void testDeleteLock_LockedTransactionContext_Postgres() {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      testDeleteLock_LockedTransactionContext();
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
+  private void testDeleteLock_WaitsForOpenTransactions() throws Exception {
     String lockId = "test-lock";
     CountDownLatch latch;
     try (TransactionContext tx = new LockedTransactionContext(lockId)) {
@@ -233,16 +300,16 @@ public class LockedTransactionContextTest
   }
 
   @Test
-  public void testDeleteLock_H2() throws Exception {
-    testDeleteLock();
+  public void testDeleteLock_WaitsForOpenTransactions_H2() throws Exception {
+    testDeleteLock_WaitsForOpenTransactions();
   }
 
   @Test
-  public void testDeleteLock_Postgres() throws Exception {
+  public void testDeleteLock_WaitsForOpenTransactions_Postgres() throws Exception {
     DataSourceFactory.clear_ForTestsOnly();
     try (PostgresServer postgres = new PostgresServer()) {
       OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
-      testDeleteLock();
+      testDeleteLock_WaitsForOpenTransactions();
     }
     finally {
       DataSourceFactory.clear_ForTestsOnly();
@@ -302,5 +369,99 @@ public class LockedTransactionContextTest
       }
       assertThatExceptionOfType(EntityNotFoundException.class).isThrownBy(tx1::begin);
     }
+  }
+
+  @Test
+  public void testCloseLockInOtherThread_H2() throws Exception {
+    testCloseLockInOtherThread();
+  }
+
+  @Test
+  public void testCloseLockInOtherThread_Postgres() throws Exception {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      testCloseLockInOtherThread();
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
+  private void testCloseLockInOtherThread() throws Exception {
+    String lockId = "test-lock";
+    AtomicReference<LockedTransactionContext> txReference = new AtomicReference<>();
+    CountDownLatch lockInitializerAndTakerEnd = new CountDownLatch(1);
+    Thread lockInitializerAndTaker = new Thread(() -> {
+      LockedTransactionContext tx = new LockedTransactionContext(lockId);
+      txReference.set(tx);
+      tx.begin();
+      lockInitializerAndTakerEnd.countDown();
+    });
+    CountDownLatch lockWaiterEnd = new CountDownLatch(1);
+    Thread lockWaiter = new Thread(() -> {
+      try (LockedTransactionContext tx = new LockedTransactionContext(lockId)) {
+        tx.begin();
+        lockWaiterEnd.countDown();
+      }
+    });
+    CountDownLatch lockCloserEnd = new CountDownLatch(1);
+    Thread lockCloser = new Thread(() -> {
+      txReference.get().close();
+      lockCloserEnd.countDown();
+    });
+
+    lockInitializerAndTaker.start();
+    assertThat(lockInitializerAndTakerEnd.await(3, TimeUnit.SECONDS)).isTrue();
+    lockWaiter.start();
+    assertThat(lockWaiterEnd.await(3, TimeUnit.SECONDS)).isFalse();
+    lockCloser.start();
+    assertThat(lockCloserEnd.await(3, TimeUnit.SECONDS)).isTrue();
+    assertThat(lockWaiterEnd.await(3, TimeUnit.SECONDS)).isTrue();
+  }
+
+  @Test
+  public void testLockWithNoWait_H2() throws Exception {
+    testLockWithNoWait();
+  }
+
+  @Test
+  public void testLockWithNoWait_Postgres() throws Exception {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      testLockWithNoWait();
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
+  private void testLockWithNoWait() throws Exception {
+    String lockId = "test-lock";
+    try (TransactionContext tx = new LockedTransactionContext(lockId)) {
+      tx.begin(); // Take the lock in the main thread
+      AtomicBoolean failedToBegin = new AtomicBoolean();
+      assertThat(startConcurrentLockWithNoWait(failedToBegin, lockId).await(3, TimeUnit.SECONDS)).isTrue();
+      assertThat(failedToBegin.get()).isTrue();
+      failedToBegin = new AtomicBoolean();
+      assertThat(startConcurrentLockWithNoWait(failedToBegin, lockId).await(3, TimeUnit.SECONDS)).isTrue();
+      assertThat(failedToBegin.get()).isTrue();
+    }
+  }
+
+  private CountDownLatch startConcurrentLockWithNoWait(AtomicBoolean failedToBegin, String lockId) {
+    CountDownLatch concurrentThreadEnd = new CountDownLatch(1);
+    Thread concurrentThread = new Thread(() -> {
+      try (LockedTransactionContext tx2 = new LockedTransactionContext(lockId)) {
+        // Try to take the lock in the concurrent thread without waiting
+        failedToBegin.set(!tx2.tryBegin());
+      }
+      finally {
+        concurrentThreadEnd.countDown();
+      }
+    });
+    concurrentThread.start();
+    return concurrentThreadEnd;
   }
 }

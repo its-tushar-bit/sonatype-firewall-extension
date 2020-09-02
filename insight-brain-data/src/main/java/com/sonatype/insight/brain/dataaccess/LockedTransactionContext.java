@@ -7,12 +7,13 @@ package com.sonatype.insight.brain.dataaccess;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.Semaphore;
 
 import javax.persistence.EntityNotFoundException;
 
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
@@ -34,7 +35,7 @@ public class LockedTransactionContext
     extends TransactionContext
 {
   // Visible for testing
-  public static final ConcurrentMap<String, ReentrantLock> LOCKS_BY_ID = new ConcurrentHashMap<>();
+  public static final ConcurrentMap<String, Semaphore> LOCKS_BY_ID = new ConcurrentHashMap<>();
 
   // Visible for testing
   static final String POLICY_VIOLATIONS_LOCK_PREFIX = "policy-violations-";
@@ -46,15 +47,20 @@ public class LockedTransactionContext
   static final String REPOSITORY_COMPONENT_LOCK_PREFIX = "repository-component-";
 
   // Visible for testing
+  static final String REPOSITORY_REEVALUATION_LOCK_PREFIX = "repository-reevaluation-";
+
+  // Visible for testing
   final String lockId;
 
   // Visible for testing
-  final ReentrantLock reentrantLock;
+  final Semaphore lock;
+
+  private volatile boolean acquired;
 
   public LockedTransactionContext(String lockId) {
     super(OperationalDataStoreProvider.getJPAEntityManagerFactory().createEntityManager());
     this.lockId = lockId;
-    reentrantLock = createLock(lockId);
+    lock = createLock(lockId);
   }
 
   public static LockedTransactionContext createForPolicyViolations(Application application) {
@@ -104,7 +110,7 @@ public class LockedTransactionContext
   public static void deleteForRepository(TransactionContext tx, String repositoryId) {
     String prefix = getLockIdForRepositoryComponent(repositoryId, "");
     if (OperationalDataStoreProvider.isDatabaseEmbedded()) {
-      LOCKS_BY_ID.keySet().stream().filter(key -> key.startsWith(prefix)).forEach(lockId -> deleteLockH2(lockId));
+      LOCKS_BY_ID.keySet().stream().filter(key -> key.startsWith(prefix)).forEach(lockId -> deleteLockH2(tx, lockId));
     }
     else {
       new LockDAO().deleteByPrefix(tx, prefix);
@@ -115,10 +121,28 @@ public class LockedTransactionContext
     return REPOSITORY_COMPONENT_LOCK_PREFIX + repositoryId + "-" + componentPathname;
   }
 
+  public static LockedTransactionContext createForRepositoryReevaluation(Repository repository) {
+    return new LockedTransactionContext(getLockIdForRepositoryReevaluation(repository));
+  }
+
+  public static void deleteForRepositoryReevaluation(TransactionContext tx, Repository repository) {
+    deleteLock(tx, getLockIdForRepositoryReevaluation(repository));
+  }
+
+  public static String getLockIdForRepositoryReevaluation(Repository repository) {
+    return REPOSITORY_REEVALUATION_LOCK_PREFIX + repository.getId();
+  }
+
   @Override
   public void begin() {
     super.begin();
-    lock();
+    lock(true);
+  }
+
+  public boolean tryBegin() {
+    super.begin();
+    lock(false);
+    return acquired;
   }
 
   @Override
@@ -141,9 +165,9 @@ public class LockedTransactionContext
     }
   }
 
-  private ReentrantLock createLock(String lockId) {
+  private Semaphore createLock(String lockId) {
     if (OperationalDataStoreProvider.isDatabaseEmbedded()) {
-      return LOCKS_BY_ID.computeIfAbsent(lockId, key -> new ReentrantLock());
+      return LOCKS_BY_ID.computeIfAbsent(lockId, key -> new Semaphore(1));
     }
     else {
       new LockDAO().createLock(lockId);
@@ -151,41 +175,77 @@ public class LockedTransactionContext
     }
   }
 
-  private void lock() {
+  private void lock(boolean waitForLock) {
     if (OperationalDataStoreProvider.isDatabaseEmbedded()) {
-      reentrantLock.lock();
+      acquired = acquire(lock, waitForLock);
       // Locking prevents removal/replacement, but check that it wasn't removed/replaced before locking
-      if (LOCKS_BY_ID.get(lockId) != reentrantLock) {
-        reentrantLock.unlock();
+      if (LOCKS_BY_ID.get(lockId) != lock) {
+        lock.release();
+        acquired = false;
         throw new EntityNotFoundException("Could not acquire lock " + lockId);
       }
     }
     else {
-      new LockDAO().acquireLock(this, lockId);
+      acquired = acquire(this, waitForLock);
+    }
+  }
+
+  private static boolean acquire(Semaphore lock, boolean waitForLock) {
+    if (waitForLock) {
+      lock.acquireUninterruptibly();
+      return true;
+    }
+    else {
+      return lock.tryAcquire();
+    }
+  }
+
+  private static boolean acquire(LockedTransactionContext tx, boolean waitForLock) {
+    if (waitForLock) {
+      new LockDAO().acquireLock(tx, tx.lockId);
+      return true;
+    }
+    else {
+      return new LockDAO().tryAcquireLock(tx, tx.lockId);
     }
   }
 
   private void unlock() {
-    if (reentrantLock != null && reentrantLock.getHoldCount() > 0) {
-      reentrantLock.unlock();
+    if (OperationalDataStoreProvider.isDatabaseEmbedded()) {
+      if (acquired && lock != null && lock.availablePermits() < 1) {
+        lock.release();
+        acquired = false;
+      }
+    }
+    else {
+      acquired = false;
     }
   }
 
   public static void deleteLock(TransactionContext tx, String lockId) {
     if (OperationalDataStoreProvider.isDatabaseEmbedded()) {
-      deleteLockH2(lockId);
+      deleteLockH2(tx, lockId);
     }
     else {
       new LockDAO().deleteLock(tx, lockId);
     }
   }
 
-  private static void deleteLockH2(String lockId) {
-    ReentrantLock lock = LOCKS_BY_ID.get(lockId);
+  private static void deleteLockH2(TransactionContext tx, String lockId) {
+    Semaphore lock = LOCKS_BY_ID.get(lockId);
     if (lock != null) {
-      lock.lock();
+      LockedTransactionContext lockedTransactionContext;
+      if (tx instanceof LockedTransactionContext) {
+        lockedTransactionContext = (LockedTransactionContext) tx;
+      }
+      else {
+        lockedTransactionContext = new LockedTransactionContext(lockId);
+      }
+      if (!lockedTransactionContext.acquired) {
+        lockedTransactionContext.lock(true);
+      }
       LOCKS_BY_ID.remove(lockId);
-      lock.unlock();
+      lockedTransactionContext.unlock();
     }
   }
 

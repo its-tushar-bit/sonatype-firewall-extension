@@ -12,13 +12,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -342,21 +339,11 @@ public class RepositoryService
 
   private final Executor reevalExecutor = createReevaluationExecutor();
 
-  private final ConcurrentMap<String, AtomicInteger> reevaluations = new ConcurrentHashMap<>();
-
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
   public void reevaluateRepository(@AuthzContext(Key.REPOSITORY_ID) String repositoryId) {
     Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
-    if (reevaluations.putIfAbsent(repositoryId, new AtomicInteger()) == null) {
-      log.debug("Starting re-evaluation for repository {}:{} ({})", repository.getRepositoryManagerId(),
-          repository.getPublicId(), repositoryId);
-      AuditData.get().continueAsync(reevalExecutor,
-          new RepositoryReevaluationTask(repository, repositoryPolicyEvaluator, reevalExecutor, reevaluations));
-    }
-    else {
-      log.debug("Skipping, re-evaluation for repository {}:{} ({}) is already in progress",
-          repository.getRepositoryManagerId(), repository.getPublicId(), repositoryId);
-    }
+    AuditData.get().continueAsync(reevalExecutor, new RepositoryReevaluationTask(repository, repositoryPolicyEvaluator,
+        reevalExecutor));
   }
 
   private static Executor createReevaluationExecutor() {

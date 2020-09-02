@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.repository;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -16,6 +15,7 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
+import com.sonatype.insight.brain.dataaccess.LockedTransactionContext;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -39,50 +39,65 @@ public class RepositoryReevaluationTask
 
   private final Executor executor;
 
-  private final Map<String, AtomicInteger> reevaluations;
-
-  public RepositoryReevaluationTask(Repository repository,
-                                    RepositoryPolicyEvaluator repositoryPolicyEvaluator,
-                                    Executor executor,
-                                    Map<String, AtomicInteger> reevaluations)
+  public RepositoryReevaluationTask(
+      Repository repository,
+      RepositoryPolicyEvaluator repositoryPolicyEvaluator,
+      Executor executor)
   {
     this.repository = repository;
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.executor = executor;
-    this.reevaluations = reevaluations;
   }
 
   @Override
   public void run() {
+    LockedTransactionContext tx = null;
     try {
-      List<RepositoryComponent> repositoryComponentsList = repositoryComponentDAO.getByRepositoryId(repository.getId());
-      Iterator<RepositoryComponent> repositoryComponents = repositoryComponentsList.iterator();
+      tx = LockedTransactionContext.createForRepositoryReevaluation(repository);
+      if (tx.tryBegin()) {
+        log.debug("Starting re-evaluation for repository {}:{} ({})", repository.getRepositoryManagerId(),
+            repository.getPublicId(), repository.getId());
+        List<RepositoryComponent> repositoryComponentsList =
+            repositoryComponentDAO.getByRepositoryId(repository.getId());
+        Iterator<RepositoryComponent> repositoryComponents = repositoryComponentsList.iterator();
 
-      AuditData.get().setData("componentCount", repositoryComponentsList.size())
-          .setData("evaluationCause", RepositoryComponentEvaluationDataRequestList.REEVALUATION);
+        AuditData.get().setData("componentCount", repositoryComponentsList.size())
+            .setData("evaluationCause", RepositoryComponentEvaluationDataRequestList.REEVALUATION);
 
-      int componentCount = 0;
-      final AtomicInteger activeTasks = reevaluations.get(repository.getId());
-      while (repositoryComponents.hasNext()) {
-        RepositoryComponentEvaluationDataRequestList request = createEvaluationRequest(repositoryComponents);
-        componentCount += request.components.size();
-
-        activeTasks.incrementAndGet();
-
-        try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.EVALUATE_REPOSITORY, true)) {
-          AuditData.get().setRepository(repository).setData("componentCount", request.components.size())
-              .setData("evaluationCause", RepositoryComponentEvaluationDataRequestList.REEVALUATION)
-              .continueAsync(executor, new PolicyEvaluationTask(request, activeTasks));
+        if (!repositoryComponents.hasNext()) {
+          tx.close();
         }
+
+        int componentCount = 0;
+        final AtomicInteger activeTasks = new AtomicInteger();
+        while (repositoryComponents.hasNext()) {
+          RepositoryComponentEvaluationDataRequestList request = createEvaluationRequest(repositoryComponents);
+          componentCount += request.components.size();
+
+          activeTasks.incrementAndGet();
+
+          try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.EVALUATE_REPOSITORY, true)) {
+            AuditData.get().setRepository(repository).setData("componentCount", request.components.size())
+                .setData("evaluationCause", RepositoryComponentEvaluationDataRequestList.REEVALUATION)
+                .continueAsync(executor, new PolicyEvaluationTask(request, activeTasks, tx));
+          }
+        }
+        log.debug("Enqueued {} components of repository {}:{} ({}) for re-evaluation", componentCount,
+            repository.getRepositoryManagerId(), repository.getPublicId(), repository.getId());
       }
-      log.debug("Enqueued {} components of repository {}:{} ({}) for re-evaluation", componentCount,
-          repository.getRepositoryManagerId(), repository.getPublicId(), repository.getId());
+      else {
+        log.debug("Skipping, re-evaluation for repository {}:{} ({}) is already in progress",
+            repository.getRepositoryManagerId(), repository.getPublicId(), repository.getId());
+        tx.close();
+      }
     }
     catch (Exception e) {
-      AuditData.get().setException(e);
-      reevaluations.remove(repository.getId());
       log.error("An error occurred while re-evaluating repository {}:{} ({})", repository.getRepositoryManagerId(),
           repository.getPublicId(), repository.getId(), e);
+      AuditData.get().setException(e);
+      if (tx != null) {
+        tx.close();
+      }
     }
   }
 
@@ -108,9 +123,16 @@ public class RepositoryReevaluationTask
 
     private final AtomicInteger activeTasks;
 
-    PolicyEvaluationTask(RepositoryComponentEvaluationDataRequestList request, AtomicInteger activeTasks) {
+    private final LockedTransactionContext tx;
+
+    PolicyEvaluationTask(
+        RepositoryComponentEvaluationDataRequestList request,
+        AtomicInteger activeTasks,
+        LockedTransactionContext tx)
+    {
       this.request = request;
       this.activeTasks = activeTasks;
+      this.tx = tx;
     }
 
     @Override
@@ -127,9 +149,9 @@ public class RepositoryReevaluationTask
       }
       finally {
         if (activeTasks.decrementAndGet() == 0) {
-          reevaluations.remove(repository.getId());
           log.debug("Completed re-evaluation of repository {}:{} ({})", repository.getRepositoryManagerId(),
               repository.getPublicId(), repository.getId());
+          tx.close();
         }
       }
     }

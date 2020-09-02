@@ -9,11 +9,9 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.inject.Inject;
 
@@ -105,8 +103,6 @@ public class RepositoryReevaluationTaskTest
 
   private ExecutorService executorService = Executors.newFixedThreadPool(1);
 
-  private Map<String, AtomicInteger> activeReevaluations;
-
   @Override
   public void configure(Binder binder) {
     binder.bind(HdsClient.class).toInstance(mockHdsClient);
@@ -137,9 +133,6 @@ public class RepositoryReevaluationTaskTest
     tempEntity.newClaimedComponent(component.getHash(), claimedIdentifier);
     tempEntity.newWaiver(unknownComponent.getHash(), policy.getId(), Organization.ROOT_ORGANIZATION_ID);
 
-    activeReevaluations = new HashMap<>();
-    activeReevaluations.put(repository.getId(), new AtomicInteger());
-
     FirewallIgnorePatterns firewallIgnorePatterns = new FirewallIgnorePatterns();
     firewallIgnorePatterns.regexpsByRepositoryFormat = new HashMap<>();
     lenient().when(mockHdsClient.get(eq(FirewallIgnorePatterns.class),
@@ -148,7 +141,7 @@ public class RepositoryReevaluationTaskTest
     task = new RepositoryReevaluationTask(repository, new RepositoryPolicyEvaluator(componentPolicyEvaluator,
         repositoryComponentDAO, repositoryPolicyViolationDAO, auditHdsClient, null,
         policyViolationLoggerFactory, firewallIgnorePatternService,
-        repositoryComponentDeleteService, repositoryPolicyAlertEmailer), executorService, activeReevaluations);
+        repositoryComponentDeleteService, repositoryPolicyAlertEmailer), executorService);
     createHdsResponse();
   }
 

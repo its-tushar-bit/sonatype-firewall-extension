@@ -216,6 +216,35 @@ public class RepositoryDAOTest
   }
 
   @Test
+  public void testCascadeDeleteToRepositoryReevaluationLocks_H2() {
+    testCascadeDeleteToRepositoryReevaluationLocks();
+  }
+
+  @Test
+  public void testCascadeDeleteToRepositoryReevaluationLocks_Postgres() {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      testCascadeDeleteToRepositoryReevaluationLocks();
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
+  private void testCascadeDeleteToRepositoryReevaluationLocks() {
+    Repository repository = tempEntity.newRepository();
+    LockedTransactionContext.createForRepositoryReevaluation(repository);
+    assertThat(LockedTransactionContext
+        .lockExists(LockedTransactionContext.getLockIdForRepositoryReevaluation(repository))).isTrue();
+
+    new RepositoryDAO().delete(repository);
+
+    assertThat(LockedTransactionContext
+        .lockExists(LockedTransactionContext.getLockIdForRepositoryReevaluation(repository))).isFalse();
+  }
+
+  @Test
   public void testGetByRepositoryManagerInstanceIdAndPublicIdNotNull() throws Exception {
     final String repositoryManagerInstanceId = "repositoryManagerInstanceId";
     final String publicId = "publicId";

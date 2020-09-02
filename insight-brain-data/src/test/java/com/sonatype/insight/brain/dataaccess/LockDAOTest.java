@@ -24,24 +24,47 @@ public class LockDAOTest
 {
   private LockDAO dao;
 
-  private CountDownLatch startConcurrentLockThread(String lockId) throws Exception {
-    CountDownLatch beginLatch = new CountDownLatch(1);
-    CountDownLatch commitLatch = new CountDownLatch(1);
-    Thread other = new Thread(() -> {
+  private class LockThread
+      extends Thread
+  {
+    final String lockId;
+
+    final CountDownLatch beginLatch = new CountDownLatch(1);
+
+    final CountDownLatch acquireLatch = new CountDownLatch(1);
+
+    final CountDownLatch preCommitLatch = new CountDownLatch(1);
+
+    final CountDownLatch commitLatch = new CountDownLatch(1);
+
+    public LockThread(String lockId, boolean waitBeforeCommit) {
+      this.lockId = lockId;
+      if (!waitBeforeCommit) {
+        preCommitLatch.countDown();
+      }
+    }
+
+    public LockThread startAndWaitUntilBegin() throws Exception {
+      this.start();
+      assertThat(beginLatch.await(10, TimeUnit.SECONDS)).isTrue();
+      return this;
+    }
+
+    @Override
+    public void run() {
       try (TransactionContext tx = dao.createTransactionContext()) {
         tx.begin();
         beginLatch.countDown();
         dao.acquireLock(tx, lockId);
+        acquireLatch.countDown();
+        preCommitLatch.await(10, TimeUnit.SECONDS);
         tx.commit();
         commitLatch.countDown();
       }
       catch (Exception e) {
         e.printStackTrace();
       }
-    });
-    other.start();
-    assertThat(beginLatch.await(10, TimeUnit.SECONDS)).isTrue();
-    return commitLatch;
+    }
   }
 
   private void init(DatabaseConfig dbConfig) {
@@ -98,15 +121,42 @@ public class LockDAOTest
     init(dbConfig);
     String lockId = "test-lock";
     dao.createLock(lockId);
-    CountDownLatch latch;
+    LockThread other;
     try (TransactionContext tx = dao.createTransactionContext()) {
       tx.begin();
       dao.acquireLock(tx, lockId);
-      latch = startConcurrentLockThread(lockId);
-      assertThat(latch.await(3, TimeUnit.SECONDS)).isFalse();
+      other = new LockThread(lockId, false).startAndWaitUntilBegin();
+      assertThat(other.commitLatch.await(3, TimeUnit.SECONDS)).isFalse();
       tx.commit();
     }
-    assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
+    assertThat(other.commitLatch.await(3, TimeUnit.SECONDS)).isTrue();
+  }
+
+  @Test
+  public void testTryAcquireLock_BlockingOnSameLock_H2() throws Exception {
+    testTryAcquireLock_BlockingOnSameLock(null);
+  }
+
+  @Test
+  public void testTryAcquireLock_BlockingOnSameLock_Postgres() throws Exception {
+    try (PostgresServer postgres = new PostgresServer()) {
+      testTryAcquireLock_BlockingOnSameLock(postgres.getDatabaseConfig());
+    }
+  }
+
+  private void testTryAcquireLock_BlockingOnSameLock(DatabaseConfig dbConfig) throws Exception {
+    init(dbConfig);
+    String lockId = "test-lock";
+    dao.createLock(lockId);
+    LockThread other;
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.tryAcquireLock(tx, lockId);
+      other = new LockThread(lockId, false).startAndWaitUntilBegin();
+      assertThat(other.commitLatch.await(3, TimeUnit.SECONDS)).isFalse();
+      tx.commit();
+    }
+    assertThat(other.commitLatch.await(3, TimeUnit.SECONDS)).isTrue();
   }
 
   @Test
@@ -117,13 +167,51 @@ public class LockDAOTest
       String lockId2 = "test-lock-2";
       dao.createLock(lockId1);
       dao.createLock(lockId2);
-      CountDownLatch latch;
       try (TransactionContext tx = dao.createTransactionContext()) {
         tx.begin();
         dao.acquireLock(tx, lockId1);
-        latch = startConcurrentLockThread(lockId2);
-        assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
+        LockThread other = new LockThread(lockId2, false).startAndWaitUntilBegin();
+        assertThat(other.commitLatch.await(3, TimeUnit.SECONDS)).isTrue();
         tx.commit();
+      }
+    }
+  }
+
+  @Test
+  public void testTryAcquireLock_NonBlockingOnDifferentLock_Postgres() throws Exception {
+    try (PostgresServer postgres = new PostgresServer()) {
+      init(postgres.getDatabaseConfig());
+      String lockId1 = "test-lock-1";
+      String lockId2 = "test-lock-2";
+      dao.createLock(lockId1);
+      dao.createLock(lockId2);
+      try (TransactionContext tx = dao.createTransactionContext()) {
+        tx.begin();
+        dao.tryAcquireLock(tx, lockId1);
+        LockThread other = new LockThread(lockId2, false).startAndWaitUntilBegin();
+        assertThat(other.commitLatch.await(3, TimeUnit.SECONDS)).isTrue();
+        tx.commit();
+      }
+    }
+  }
+
+  @Test
+  public void testTryAcquireLock_NonBlockingOnAcquiredLock_Postgres() throws Exception {
+    try (PostgresServer postgres = new PostgresServer()) {
+      init(postgres.getDatabaseConfig());
+      String lockId = "test-lock";
+      dao.createLock(lockId);
+      LockThread other = new LockThread(lockId, true).startAndWaitUntilBegin();
+      try (TransactionContext tx = dao.createTransactionContext()) {
+        tx.begin();
+        assertThat(other.acquireLatch.await(3, TimeUnit.SECONDS)).isTrue();
+        assertThat(dao.tryAcquireLock(tx, lockId)).isFalse();
+      }
+      other.preCommitLatch.countDown();
+      try (TransactionContext tx = dao.createTransactionContext()) {
+        tx.begin();
+        assertThat(other.commitLatch.await(3, TimeUnit.SECONDS)).isTrue();
+        assertThat(dao.tryAcquireLock(tx, lockId)).isTrue();
       }
     }
   }

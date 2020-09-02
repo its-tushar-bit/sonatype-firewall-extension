@@ -14,7 +14,7 @@ import { allThreatLevelCategories } from '@sonatype/react-shared-components/util
 export default function ViolationExclamation({ threatLevelCategory }) {
   const iconClassName = classnames('iq-violation-exclamation', `iq-violation-exclamation--${threatLevelCategory}`);
 
-  return <NxFontAwesomeIcon className={iconClassName} icon={faExclamationCircle} fixedWidth/>;
+  return <NxFontAwesomeIcon className={iconClassName} icon={faExclamationCircle}/>;
 }
 
 ViolationExclamation.propTypes = {

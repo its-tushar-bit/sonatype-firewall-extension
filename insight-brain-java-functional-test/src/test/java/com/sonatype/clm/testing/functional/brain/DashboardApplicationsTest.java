@@ -151,7 +151,7 @@ public class DashboardApplicationsTest
     ElementsCollection app5Totals = app5.getTotalsInRow(0);
     app5Totals.shouldHave(texts("14", "8", "4", "2", "0"), allHaveClass("iq-cell--heatmap"))
         .shouldHave(cssValues("background-color", "rgba(40, 69, 91, 1)", "rgba(83, 139, 183, 1)", // heatmap
-            "rgba(121, 165, 198, 1)", "rgba(190, 212, 228, 1)", "rgba(247, 251, 255, 1)"));
+            "rgba(157, 189, 214, 1)", "rgba(222, 233, 242, 1)", "rgba(247, 251, 255, 1)"));
     app5Totals.get(0).shouldHave(cssClass("white-text"));
     app5Totals.get(1).shouldHave(cssClass("white-text"));
     app5Totals.get(2).shouldNotHave(cssClass("white-text"));

@@ -14,12 +14,24 @@ export default function ScrollSpy($timeout, EventNameConstant, StableBodyService
 
       var eventHandlerFn = function() {
         pauseScrollspy(scrollspyObject.$scrollElement);
-        var me = $(this);
+
         //note the offset is 8 here, as using a higher number will occasionally push us into the next section
         //and select the wrong pill
-        element.animate({
-          scrollTop: $(me.attr('data-target')).position().top + element.scrollTop() - 8
-        }, 300, 'easeInOutSine');
+        const me = $(this),
+            targetEl = $(me.attr('data-target')),
+            scrollPosition = targetEl.position().top + element.scrollTop() - 8;
+
+        try {
+          element[0].scrollTo({
+            top: scrollPosition,
+            behavior: 'smooth'
+          });
+        }
+        catch (e) {
+          // IE is as IE does
+          element[0].scrollTop = scrollPosition;
+        }
+
         $($scope.scrollspy + ' .nav li').removeClass('active');
         me.parent().addClass('active');
         $timeout(function() {

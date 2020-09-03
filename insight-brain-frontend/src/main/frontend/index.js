@@ -27,7 +27,6 @@ import '@uirouter/angularjs';
 import '@uirouter/angularjs/release/stateEvents';
 import 'angular-vs-repeat';
 import 'angular-xeditable';
-import 'ngUpload/ng-upload';
 import './lib/bootstrap-loader';
 import 'es6-collections';
 import {polyfill} from 'es6-promise';
@@ -40,7 +39,6 @@ import * as d3 from 'd3/index.js';
 import pv from './lib/protovis/protovis.min';
 
 import Fuse from 'fuse.js';
-import 'jquery-ui/ui/effect';
 import ClassyBrew from 'classybrew/src/classybrew';
 import Plottable from 'plottable';
 

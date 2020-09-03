@@ -305,28 +305,6 @@ describe('ProductLicense', function() {
         })
     );
 
-    it('Should hide the eula and reload the page when license is installed - IE9',
-        inject(function($window, $timeout) {
-          $window.FormData = false; // disable
-
-          scope.clearValue = angular.noop;
-          spyOn(scope, 'clearValue');
-
-          vm.onFileChanged();
-          expect(modalOpenSpy).toHaveBeenCalled();
-
-          // trigger success
-          modalResultSpy.calls.mostRecent().args[0]();
-
-          // ng-upload does this
-          vm.uploadCompleted();
-          $timeout.flush();
-
-          expect(vm.submitError).toBeUndefined();
-          expect(scope.clearValue).not.toHaveBeenCalled();
-          expect($window.location.reload).toHaveBeenCalled();
-        }));
-
     it('Should hide the eula, clear file value and show an error if license install fails',
         inject(function($window, $httpBackend) {
           scope.clearValue = angular.noop;
@@ -341,29 +319,6 @@ describe('ProductLicense', function() {
           $httpBackend.flush();
 
           expect(vm.submitError).toBe('failure');
-        })
-    );
-
-    it('Should hide the eula, clear file value and show an error if license install fails - IE9',
-        inject(function($window, $timeout) {
-          $window.FormData = false; // disable
-
-          scope.clearValue = angular.noop;
-          spyOn(scope, 'clearValue');
-
-          vm.onFileChanged();
-          expect(modalOpenSpy).toHaveBeenCalled();
-
-          // trigger success
-          modalResultSpy.calls.mostRecent().args[0]();
-
-          // ng-upload does this
-          vm.uploadCompleted('fail');
-
-          $timeout.flush();
-
-          expect(vm.submitError).toBe('fail');
-          expect(scope.clearValue).toHaveBeenCalled();
         })
     );
 

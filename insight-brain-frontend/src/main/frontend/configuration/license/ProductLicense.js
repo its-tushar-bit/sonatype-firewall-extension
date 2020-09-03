@@ -96,36 +96,15 @@ function ProductLicenseController($http, $scope, clmLocations, $timeout, $window
         keyboard: false,
         templateUrl: 'eula-modal-template'
       }).result.then(function() {
-        if ($window.FormData) {
-          var form = new FormData();
-          form.append('file', $('#license-input')[0].files[0]);
+        var form = new FormData();
+        form.append('file', $('#license-input')[0].files[0]);
 
-          vm.formMask.wrap($http.post(vm.uploadUrl, form)).then(vm.postInstall, function(error) {
-            vm.submitError = Messages.getHttpErrorMessage(error);
-          });
-        }
-        else {
-          $timeout(function() {
-            $('#license-form').submit();
-          });
-        }
+        vm.formMask.wrap($http.post(vm.uploadUrl, form)).then(vm.postInstall, function(error) {
+          vm.submitError = Messages.getHttpErrorMessage(error);
+        });
       }, function() {
         $window.location.reload();
       });
-    },
-
-    uploadCompleted(content) {
-      if (angular.isString(content) && content) {
-        if ($scope.clearValue) {
-          $scope.clearValue();
-        }
-        $timeout(function() {
-          vm.submitError = content;
-        }, 0);
-      }
-      else {
-        vm.formMask.showSuccessMaskBriefly().then(vm.postInstall);
-      }
     },
 
     isLoaded() {

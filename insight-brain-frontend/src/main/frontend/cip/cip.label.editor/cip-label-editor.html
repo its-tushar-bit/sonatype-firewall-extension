@@ -1,7 +1,7 @@
 <div style='padding:5px' class='labelEditor' load-wrapper="error" reload="doLoad()" error-message="Unable to load labels." loading="!error && !itemLabels">
   <div clm-alerts='alerts'></div>
   <div id="available-labels">
-    <h5>Available <i class='icon-refresh tm-refresh' ng-click='doLoad()' spinner></i></h5>
+    <h5>Available <i class='icon-refresh tm-refresh' ng-click='doLoad()'></i></h5>
     <div class='cip-label-container'>
       <span ng-repeat="label in availableLabels | filter:isApplied | orderBy:'label'"
             class='clmLabel tm-label {{label.color}}'>
@@ -11,7 +11,7 @@
     </div>
   </div>
   <div id="applied-labels">
-    <h5>Applied <i class='icon-refresh tm-refresh' ng-click='doLoad()' spinner></i></h5>
+    <h5>Applied <i class='icon-refresh tm-refresh' ng-click='doLoad()'></i></h5>
     <div class='cip-label-container'>
       <span ng-repeat="label in itemLabels | orderBy:'label'" class='clmLabel tm-label {{label.color}}'>
         <span tooltip='{{label.description || label.label}}' tooltip-placement="top">{{label.label}}</span>&nbsp;

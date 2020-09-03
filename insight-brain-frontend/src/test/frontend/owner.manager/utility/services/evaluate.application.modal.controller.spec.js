@@ -214,17 +214,5 @@ describe('evaluate.application.modal.controller.spec.js', function() {
       expect(vm.pollingUrl).toEqual(CLMLocations.getEvaluationStatusUrl(mockSelectedApplication.publicId, 'ticket'));
       expect(vm.error).toEqual('something aint right');
     });
-
-    it('uses proper URL for state polling by IE9', function() {
-      vm.uploaded({ticketId: 'ticket'}, true);
-      $httpBackend.expectGET(CLMLocations.getEvaluationStatusUrl(mockSelectedApplication.publicId,
-          'ticket')).respond({
-        ticketId: 'ticket',
-        scanId: 'scanId',
-        currentStep: 2,
-        totalSteps: 2
-      });
-      $httpBackend.flush();
-    });
   });
 });

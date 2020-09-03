@@ -59,10 +59,7 @@
   <div ng-show="vm.evaluationState != 'loading' && vm.evaluationState != 'polling'">
     <form class="iq-form iq-form--no-padding iq-form--no-border"
           name="evaluateBundle"
-          action="{{vm.uploadBundleUrl()}}"
-          enctype="multipart/form-data" 
-          method="post"
-          ng-upload="vm.uploaded(content)">
+          ng-submit="vm.doSubmit($event)">
       <div class="iq-modal-content">
         <div class="iq-form-group">
           <label class="iq-label" for="bundle-file">Select the file you want evaluated</label>
@@ -102,9 +99,8 @@
         <button ng-if="!vm.error"
                 id="evaluate-bundle-upload"
                 class="iq-btn iq-btn--primary"
-                type="button"
-                ng-disabled="vm.evaluationState != 'ready' || !vm.isFormValid()"
-                ng-click="vm.doSubmit()">
+                type="submit"
+                ng-disabled="vm.evaluationState != 'ready' || !vm.isFormValid()">
           Upload
         </button><!--
      --><button ng-if="vm.error" class="iq-btn iq-btn--error" type="submit" ng-click="vm.retry()">

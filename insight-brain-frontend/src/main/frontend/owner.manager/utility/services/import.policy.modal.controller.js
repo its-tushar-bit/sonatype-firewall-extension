@@ -6,15 +6,13 @@
 export default
 function ImportPolicyModalController($rootScope, $scope, $q, $http, $window, $cookies, Messages, CLMContextLocations,
                                      PolicyHierarchyStore) {
-  var vm = this,
-      ieDeferred;
+  var vm = this;
 
   vm.importFile = undefined;
   vm.csrfTokenName = $http.defaults.xsrfHeaderName;
   vm.csrfTokenValue = $cookies.get($http.defaults.xsrfCookieName);
   vm.doSubmit = doSubmit;
   vm.error = undefined;
-  vm.uploaded = uploaded;
   vm.importPolicyMask = undefined;
   vm.importPolicyUrl = importPolicyUrl;
 
@@ -39,42 +37,20 @@ function ImportPolicyModalController($rootScope, $scope, $q, $http, $window, $co
     }
   }
 
-  function doSubmit() {
+  function doSubmit(evt) {
+    evt.preventDefault();
+
     delete vm.error;
     var form = $('form[name=importPolicy]');
 
-    if ($window.FormData) {
-      var formData = new FormData(form[0]);
-      vm.importPolicyMask.wrap($http.post(CLMContextLocations.getImportPolicyUrl(), formData)).then(function() {
-        PolicyHierarchyStore.refresh();
-        $rootScope.$broadcast('policy.imported');
-        $scope.$close();
-      }, function(error) {
-        setError(Messages.getHttpErrorMessage(error), doSubmit);
-      });
-    }
-    else {
-      // IE9 case, trigger ng-upload
-      ieDeferred = $q.defer();
-      vm.importPolicyMask.wrap(ieDeferred.promise).then(function() {
-        PolicyHierarchyStore.refresh();
-        $rootScope.$broadcast('policy.imported');
-        $scope.$close();
-      }, function(error) {
-        setError(Messages.getHttpErrorMessage(error), doSubmit);
-      });
-      form.submit();
-    }
-  }
-
-  // Handler for ng-upload progress
-  function uploaded(content) {
-    if (angular.isString(content)) {
-      ieDeferred.reject(content);
-    }
-    else {
-      ieDeferred.resolve();
-    }
+    var formData = new FormData(form[0]);
+    vm.importPolicyMask.wrap($http.post(CLMContextLocations.getImportPolicyUrl(), formData)).then(function() {
+      PolicyHierarchyStore.refresh();
+      $rootScope.$broadcast('policy.imported');
+      $scope.$close();
+    }, function(error) {
+      setError(Messages.getHttpErrorMessage(error), doSubmit);
+    });
   }
 }
 

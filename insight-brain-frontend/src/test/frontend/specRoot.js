@@ -16,7 +16,6 @@ import '@uirouter/angularjs';
 import '@uirouter/angularjs/release/stateEvents';
 import 'angular-vs-repeat';
 import 'angular-xeditable';
-import 'ngUpload/ng-upload';
 import 'es6-collections';
 import '../../main/frontend/lib/bootstrap-loader';
 import '../../main/frontend/utility/Polyfills';

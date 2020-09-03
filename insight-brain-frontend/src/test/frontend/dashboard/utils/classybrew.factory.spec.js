@@ -49,8 +49,8 @@ describe('classybrew.factory.spec', function() {
     expect(brew.isWhiteText(7)).toBe(true);
   });
 
-  it('sets series with a higher number so that the last entry in supplied series gets included', function() {
-    expect(brew.setSeries).toHaveBeenCalledWith([1, 2, 3, Number.MAX_VALUE]);
+  it('sets series', function() {
+    expect(brew.setSeries).toHaveBeenCalledWith([1, 2, 3]);
   });
 
   it('returns fixed color code for 0', function() {

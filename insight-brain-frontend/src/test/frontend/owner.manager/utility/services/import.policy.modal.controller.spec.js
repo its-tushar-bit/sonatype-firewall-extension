@@ -9,7 +9,6 @@ describe('import.policy.modal.controller.spec.js', function() {
   var scope,
       vm,
       $httpBackend,
-      $timeout,
       CLMContextLocations;
 
   beforeEach(angular.mock.module(ownerManagerModule.name, function($provide) {
@@ -18,12 +17,11 @@ describe('import.policy.modal.controller.spec.js', function() {
     });
   }));
 
-  beforeEach(inject(function($rootScope, $q, $controller, _$httpBackend_, _$timeout_, _CLMContextLocations_) {
+  beforeEach(inject(function($rootScope, $q, $controller, _$httpBackend_, _CLMContextLocations_) {
     scope = $rootScope.$new();
     scope.$dismiss = jasmine.createSpy('$dismiss');
 
     $httpBackend = _$httpBackend_;
-    $timeout = _$timeout_;
     CLMContextLocations = _CLMContextLocations_;
 
     vm = $controller('import.policy.modal.controller',
@@ -42,11 +40,13 @@ describe('import.policy.modal.controller.spec.js', function() {
   }));
 
   describe('Policy Import', function() {
-    let originalFormData;
+    let originalFormData,
+        submitEvent;
 
     beforeEach(inject(function($window) {
       originalFormData = $window.FormData;
       $window.FormData = angular.noop;
+      submitEvent = jasmine.createSpyObj(['preventDefault']);
     }));
 
     afterEach(inject(function($window) {
@@ -63,10 +63,11 @@ describe('import.policy.modal.controller.spec.js', function() {
 
       $httpBackend.expectPOST(CLMContextLocations.getImportPolicyUrl()).respond(500, 'Some failure');
 
-      vm.doSubmit();
+      vm.doSubmit(submitEvent);
       $httpBackend.flush();
 
       expect(vm.error).toBeDefined();
+      expect(submitEvent.preventDefault).toHaveBeenCalled();
     });
 
     it('Test import success', inject(function(PolicyHierarchyStore) {
@@ -78,43 +79,13 @@ describe('import.policy.modal.controller.spec.js', function() {
       });
       spyOn(PolicyHierarchyStore, 'refresh');
 
-      vm.doSubmit();
+      vm.doSubmit(submitEvent);
       $httpBackend.flush();
 
       expect(scope.$close).toHaveBeenCalled();
       expect(PolicyHierarchyStore.refresh).toHaveBeenCalled();
       expect(vm.error).toBeUndefined();
+      expect(submitEvent.preventDefault).toHaveBeenCalled();
     }));
-
-    describe('IE9', function () {
-      it('Error', inject(function ($window) {
-        $window.FormData = null;
-        validateInitialState();
-
-        vm.doSubmit();
-
-        vm.uploaded('Error');
-        scope.$apply();
-
-        expect(vm.error).toEqual('Error');
-      }));
-
-      it('Successful', inject(function ($window, PolicyHierarchyStore) {
-        scope.$close = jasmine.createSpy('close');
-        $window.FormData = null;
-        validateInitialState();
-        spyOn(PolicyHierarchyStore, 'refresh');
-
-        vm.doSubmit();
-
-        vm.uploaded();
-        scope.$apply();
-        $timeout.flush();
-
-        expect(scope.$close).toHaveBeenCalled();
-        expect(PolicyHierarchyStore.refresh).toHaveBeenCalled();
-        expect(vm.error).toBeFalsy();
-      }));
-    });
   });
 });

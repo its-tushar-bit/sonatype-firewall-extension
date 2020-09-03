@@ -4,10 +4,7 @@
   </div>
   <form class="iq-form iq-form--no-padding iq-form--no-border"
         name="importPolicy"
-        action="{{vm.importPolicyUrl()}}"
-        enctype="multipart/form-data"
-        method="post"
-        ng-upload="vm.uploaded(content)"
+        ng-submit="vm.doSubmit($event)"
         form-mask="vm.importPolicyMask"
         mask-message="Importing">
     <div class="iq-modal-content">
@@ -26,9 +23,8 @@
       <button ng-if="!vm.error"
               id="import-policy-upload"
               class="iq-btn iq-btn--primary"
-              type="button"
-              ng-disabled="!vm.importFile"
-              ng-click="vm.doSubmit()">
+              type="submit"
+              ng-disabled="!vm.importFile">
         Import
       </button><!--
    --><button ng-if="vm.error" class="iq-btn iq-btn--error" type="submit" ng-click="vm.retry()">

@@ -6,7 +6,6 @@
 import '../webpackGlobals';
 import './clmEndpoint';
 
-import './jquery/jquery-ui.css';
 import './lib/slickgrid/slick.grid.css';
 import './slickgrid/slick.grid.custom.css';
 import './lib/slickgrid/slick.pager.css';

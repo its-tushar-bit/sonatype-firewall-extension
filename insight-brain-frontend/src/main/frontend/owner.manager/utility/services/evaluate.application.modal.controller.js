@@ -24,7 +24,6 @@ function EvaluateApplicationModalController($rootScope, $scope, $http, $state, $
   vm.retry = doLoad;
   vm.stages = [];
   vm.uploadBundleUrl = uploadBundleUrl;
-  vm.uploaded = uploaded;
   vm.isNotificationsSupported = undefined;
 
   doLoad();
@@ -104,25 +103,19 @@ function EvaluateApplicationModalController($rootScope, $scope, $http, $state, $
     vm.error = null;
     vm.pollingUrl = null;
 
-    if ($window.FormData) {
-      var form = new FormData();
-      form.append('file', fileElement.files[0]);
-      // Explicitly add the filename as a form parameter since there is an encoding mismatch between the browsers and
-      // server in the Content-Disposition filename header.
-      form.append('filename', fileElement.files[0].name);
-      $http.post(vm.uploadBundleUrl(), form).then(function(response) {
-        vm.pollingUrl = CLMLocations.getEvaluationStatusUrl(vm.bundle.applicationPublicId, response.data.ticketId);
-        doPoll();
-      }, function(errorResponse) {
-        vm.evaluationStatus.error = Messages.getHttpErrorMessage(errorResponse);
-        vm.evaluationStatus.currentStepName = 'Done';
-        setError(vm.evaluationStatus.error, doSubmit);
-      });
-    }
-    else {
-      // IE9 case, trigger ng-upload
-      $('form[name=evaluateBundle]').submit();
-    }
+    var form = new FormData();
+    form.append('file', fileElement.files[0]);
+    // Explicitly add the filename as a form parameter since there is an encoding mismatch between the browsers and
+    // server in the Content-Disposition filename header.
+    form.append('filename', fileElement.files[0].name);
+    $http.post(vm.uploadBundleUrl(), form).then(function(response) {
+      vm.pollingUrl = CLMLocations.getEvaluationStatusUrl(vm.bundle.applicationPublicId, response.data.ticketId);
+      doPoll();
+    }, function(errorResponse) {
+      vm.evaluationStatus.error = Messages.getHttpErrorMessage(errorResponse);
+      vm.evaluationStatus.currentStepName = 'Done';
+      setError(vm.evaluationStatus.error, doSubmit);
+    });
   }
 
   function getProgressWidth() {
@@ -168,18 +161,6 @@ function EvaluateApplicationModalController($rootScope, $scope, $http, $state, $
     if (isFormValid()) {
       return CLMLocations.getBundleUploadUrl(vm.bundle.applicationPublicId, vm.bundle.stage.stageTypeId,
           vm.bundle.notify);
-    }
-  }
-
-  // Handler for ng-upload progress
-  function uploaded(content) {
-    if (angular.isString(content)) {
-      vm.evaluationState = 'ready';
-      setError(content, doSubmit);
-    }
-    else {
-      vm.pollingUrl = CLMLocations.getEvaluationStatusUrl(vm.bundle.applicationPublicId, content.ticketId);
-      doPoll();
     }
   }
 }

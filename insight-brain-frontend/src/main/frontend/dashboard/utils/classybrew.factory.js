@@ -60,9 +60,7 @@ function getClassyBrew(win) {
       return brew.getColorInRange(score);
     };
 
-    var seriesInclusive = series.slice();
-    seriesInclusive.push(Number.MAX_VALUE);
-    brew.setSeries(seriesInclusive);
+    brew.setSeries(series);
 
     brew.setNumClasses(Math.min(7, series.length));
     brew.classify('quantile');

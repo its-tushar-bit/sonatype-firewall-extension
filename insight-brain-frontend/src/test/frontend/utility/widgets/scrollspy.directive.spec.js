@@ -47,16 +47,20 @@ describe('scrollspy.directive.spec.js', function() {
   }));
 
   it('Validate pill click causes scroll', inject(function($compile, $timeout) {
-    var element = getFullElement();
+    const element = getFullElement(),
+        scroller = element.find('#scroller')[0],
+        spy = spyOn(scroller, 'scrollTo');
+
     $compile(element)(controllerScope);
     $timeout.flush();
-    var spy = spyOn($.fn, 'animate');
+
     expect(spy).not.toHaveBeenCalled();
     element.find('#pills .nav li > a').click();
     $timeout.flush();
 
-    expect(spy.calls.count()).toBe(1);
-    expect(spy.calls.count()).toBe(1);
+    expect(spy).toHaveBeenCalledWith(jasmine.objectContaining({
+      behavior: 'smooth'
+    }));
   }));
 
   it('Validate scrollspy applied when dom inserted after initialization', inject(function($compile, $timeout) {
@@ -74,26 +78,28 @@ describe('scrollspy.directive.spec.js', function() {
   it('Validate events are handled as expected',
       inject(['$compile', '$rootScope', 'event.name.constant', '$timeout',
         function($compile, $rootScope, EventNameConstant, $timeout) {
-          var scrollspyObj = {
-            refresh: jasmine.createSpy()
-          };
+          const scrollspyObj = {
+                refresh: jasmine.createSpy()
+              },
+              element = getFullElement(),
+              scroller = element.find('#scroller')[0];
 
           spyOn($.fn.scrollspy, 'Constructor').and.returnValue(scrollspyObj);
-          spyOn($.fn, 'animate');
+          spyOn(scroller, 'scrollTo');
 
-          $compile(getFullElement())(controllerScope);
+          $compile(element)(controllerScope);
           $timeout.flush();
 
           expect(scrollspyObj.refresh).not.toHaveBeenCalled();
           $rootScope.$broadcast(EventNameConstant.UPDATE_SCROLLSPY);
           expect(scrollspyObj.refresh).toHaveBeenCalled();
-          expect($.fn.animate).not.toHaveBeenCalled();
+          expect(scroller.scrollTo).not.toHaveBeenCalled();
           scrollspyObj.refresh.calls.reset();
-          $.fn.animate.calls.reset();
-          expect($.fn.animate).not.toHaveBeenCalled();
+          scroller.scrollTo.calls.reset();
+          expect(scroller.scrollTo).not.toHaveBeenCalled();
           $rootScope.$broadcast(EventNameConstant.UPDATE_SCROLLSPY, {resetScroll: true});
           expect(scrollspyObj.refresh).not.toHaveBeenCalled();
-          expect($.fn.animate).toHaveBeenCalled();
+          expect(scroller.scrollTo).toHaveBeenCalled();
         }
       ])
   );

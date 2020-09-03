@@ -85,7 +85,7 @@ describe('move.application.service.js', function() {
   });
 
   describe('moveApplication()', function() {
-    it('refreshes application cache and returns data on success', function() {
+    it('refreshes application cache and returns data on success', function(done) {
       $httpBackend.expectPOST(CLMLocations.getMoveApplicationUrl(1, 2)).respond({'warnings': ['message1', 'message2']});
 
       applicationStore.refresh.and.returnValue($q.resolve());
@@ -93,13 +93,15 @@ describe('move.application.service.js', function() {
       moveApplicationService.moveApplication(1, 2).then(function(messages) {
         expect(messages).toEqual(['message1', 'message2']);
         expect(applicationStore.refresh).toHaveBeenCalled();
+        done();
       });
 
       $httpBackend.flush();
 
     });
 
-    it('refreshes application cache and returns nothing on success if provided array of messages is empty', function() {
+    it('refreshes application cache and returns nothing on success' +
+        'if provided array of messages is empty', function(done) {
       $httpBackend.expectPOST(CLMLocations.getMoveApplicationUrl(1, 2)).respond({});
 
       applicationStore.refresh.and.returnValue($q.resolve());
@@ -107,6 +109,7 @@ describe('move.application.service.js', function() {
       moveApplicationService.moveApplication(1, 2).then(function(messages) {
         expect(messages).toBeNull();
         expect(applicationStore.refresh).toHaveBeenCalled();
+        done();
       });
 
       $httpBackend.flush();
@@ -123,7 +126,7 @@ describe('move.application.service.js', function() {
         throw 'promise should not have been resolved';
       });
 
-      $httpBackend.flush();
+      expect($httpBackend.flush).not.toThrow();
     });
 
     it('handles 409 response with incompatibilities list', function() {

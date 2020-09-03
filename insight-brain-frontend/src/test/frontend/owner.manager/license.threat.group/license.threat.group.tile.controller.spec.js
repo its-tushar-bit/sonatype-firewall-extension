@@ -43,12 +43,12 @@ describe('license.threat.group.tile.controller.js', function() {
   it('Reloads on broadcasted owner summary reload event', function() {
 
     $httpBackend.expectGET(CLMContextLocations.getApplicableLicenseGroupsUrl()).respond(responseMock);
-    $httpBackend.flush();
+    expect($httpBackend.flush).not.toThrow();
 
     $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
 
     $httpBackend.expectGET(CLMContextLocations.getApplicableLicenseGroupsUrl()).respond(responseMock);
-    $httpBackend.flush();
+    expect($httpBackend.flush).not.toThrow();
   });
 
   it('Updates Owner name on broadcasted updated owner event', function() {

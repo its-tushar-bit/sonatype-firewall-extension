@@ -6,7 +6,7 @@
 import ownerManagerModule from '../../main/frontend/owner.manager/owner.manager.module';
 import legacyConfigurationModule from '../../main/frontend/LegacyConfigurationModule';
 
-describe('owner.tree-view.directive.spec.js', function() {
+describe('owner.tree.view.directive.spec.js', function() {
   var scope, $httpBackend, $state, $timeout, CLMLocations, CLMContextLocations, EventNameConstant;
 
   beforeEach(angular.mock.module(function($provide) {
@@ -384,7 +384,7 @@ describe('owner.tree-view.directive.spec.js', function() {
         $httpBackend.expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container'))
             .respond(permissions);
         scope.$digest();
-        $httpBackend.flush();
+        expect($httpBackend.flush).not.toThrow();
         $timeout.flush();
       }));
 

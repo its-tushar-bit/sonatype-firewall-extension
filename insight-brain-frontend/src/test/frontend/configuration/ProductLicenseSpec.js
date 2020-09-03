@@ -260,7 +260,7 @@ describe('ProductLicense', function() {
     }));
 
     it('should not issue http requests', function() {
-      $httpBackend.verifyNoOutstandingRequest();
+      expect($httpBackend.verifyNoOutstandingRequest).not.toThrow();
     });
 
     it('should not set any license data', function() {

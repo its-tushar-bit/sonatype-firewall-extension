@@ -65,12 +65,12 @@ describe('access.tile.controller.spec.js', function() {
 
   it('Reloads on broadcasted owner summary reload event', function() {
     $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(accessMockData.getRoleMappings());
-    $httpBackend.flush();
+    expect($httpBackend.flush).not.toThrow();
 
     $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
 
     $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(accessMockData.getRoleMappings());
-    $httpBackend.flush();
+    expect($httpBackend.flush).not.toThrow();
   });
 
   it('Updates Owner name on broadcasted updated owner event', function() {

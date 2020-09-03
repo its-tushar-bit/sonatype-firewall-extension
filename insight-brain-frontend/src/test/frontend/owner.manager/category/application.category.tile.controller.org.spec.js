@@ -86,13 +86,13 @@ describe('application.category.tile.controller.org.spec.js', function() {
       it('Reloads on broadcasted owner summary reload event', inject(function(CLMContextLocations) {
         $httpBackend.expectGET(CLMContextLocations.getApplicationCategoriesUrl() + '/applicable').respond(
             TagResourceMockData.getApplicationCategoriesUrl());
-        $httpBackend.flush();
+        expect($httpBackend.flush).not.toThrow();
 
         $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
 
         $httpBackend.expectGET(CLMContextLocations.getApplicationCategoriesUrl() + '/applicable').respond(
             TagResourceMockData.getApplicationCategoriesUrl());
-        $httpBackend.flush();
+        expect($httpBackend.flush).not.toThrow();
       }));
 
       it('Updates Owner name on broadcasted updated owner event', inject(function(CLMContextLocations) {

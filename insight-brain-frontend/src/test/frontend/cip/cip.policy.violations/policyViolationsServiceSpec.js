@@ -32,7 +32,7 @@ describe('PolicyViolationsService', function() {
     it('uses "policythreats.json" relative to current url when called from within an iframe in report', function() {
       $httpBackend.expectGET(/^policythreats\.json\?timestamp=[0-9]+/).respond(200, {version: 3});
       policyViolationsService.get();
-      $httpBackend.flush();
+      expect($httpBackend.flush).not.toThrow();
     });
 
     it('uses absolute-path url when called from IQ application', function() {
@@ -42,7 +42,7 @@ describe('PolicyViolationsService', function() {
           /^\/rest\/report\/testPublicId\/testScanId\/browseReport\/policythreats\.json\?timestamp=[0-9]+/
       ).respond(200, {version: 3});
       policyViolationsService.get();
-      $httpBackend.flush();
+      expect($httpBackend.flush).not.toThrow();
     });
   });
 });

@@ -33,7 +33,7 @@ describe('proprietary.matchers.service.spec', function() {
       };
       $httpBackend.expectPOST(expectedUrl, expectedPayload).respond(200, '');
       proprietaryMatchersService.addComponentMatchers('testApp123', ['foo', 'bar'], '(testRegex)');
-      $httpBackend.flush();
+      expect($httpBackend.flush).not.toThrow();
     });
 
     it('returns response json', function() {

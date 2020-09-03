@@ -79,7 +79,7 @@ describe('HttpInterceptors.js', function() {
     $http.put('/rest/test');
     $http['delete']('/rest/test');
 
-    $httpBackend.flush();
+    expect($httpBackend.flush).not.toThrow();
   }));
 
   it('Validate that window.sessionExpired is called if a 401 happens when $rootScope.username is already defined',
@@ -171,7 +171,7 @@ describe('HttpInterceptors.js', function() {
     $http.get('/api/test');
     $http.post('/test/api/test');
 
-    $httpBackend.flush();
+    expect($httpBackend.flush).not.toThrow();
   }));
 
   it('Validate that failed requests are retried and cleared out of the queue after the modal promise fires success',

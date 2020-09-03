@@ -167,35 +167,35 @@ describe('reportApp', function() {
 
     it('has an initial size of 50', function() {
       $httpBackend.expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50').respond([]);
-      $httpBackend.flush();
+      expect($httpBackend.flush).not.toThrow();
     });
 
     describe('when load more results is pressed', function() {
       it('increases the pages', function() {
         $httpBackend.expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50').respond([]);
-        $httpBackend.flush();
+        expect($httpBackend.flush).not.toThrow();
 
         vm.loadMoreResults();
 
         $httpBackend.expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=2&pageSize=50').respond([]);
-        $httpBackend.flush();
+        expect($httpBackend.flush).not.toThrow();
       });
     });
 
     describe('when sorting or filtering', function() {
       it('resets the pages to 1', function() {
         $httpBackend.expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50').respond([]);
-        $httpBackend.flush();
+        expect($httpBackend.flush).not.toThrow();
 
         vm.loadMoreResults();
 
         $httpBackend.expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=2&pageSize=50').respond([]);
-        $httpBackend.flush();
+        expect($httpBackend.flush).not.toThrow();
 
         vm.sortAndFilter();
 
         $httpBackend.expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50').respond([]);
-        $httpBackend.flush();
+        expect($httpBackend.flush).not.toThrow();
       });
     });
 

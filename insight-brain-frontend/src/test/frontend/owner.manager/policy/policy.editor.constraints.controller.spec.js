@@ -17,11 +17,13 @@ describe('policy.editor.constraints.controller.spec.js', function() {
 
   var vm,
       $timeout,
-      constraintStoreDefer;
+      constraintStoreDefer,
+      ConstraintStore;
 
-  beforeEach(inject(function($q, _$timeout_, $controller, ConstraintStore) {
+  beforeEach(inject(function($q, _$timeout_, $controller, _ConstraintStore_) {
     $timeout = _$timeout_;
 
+    ConstraintStore = _ConstraintStore_;
     constraintStoreDefer = $q.defer();
 
     spyOn(constraintStoreDefer.promise, 'then').and.callThrough();
@@ -38,10 +40,9 @@ describe('policy.editor.constraints.controller.spec.js', function() {
 
     resolveLoadData();
 
+    expect(ConstraintStore.get).toHaveBeenCalled();
     Object.keys(vm.conditionTypes).forEach(function(type) {
-      if (vm.conditionTypes[type].valueTypeId) {
-        expect(vm.conditionTypes[type].valueType).toEqual(conditionTypeValues[vm.conditionTypes[type].valueTypeId]);
-      }
+      expect(vm.conditionTypes[type].valueType).toEqual(conditionTypeValues[vm.conditionTypes[type].valueTypeId]);
     });
   });
 

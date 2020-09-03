@@ -67,7 +67,7 @@ describe('cip.label.editor tests', function() {
       $httpBackend.expectGET(SpecUtil.toRegExp('../brain/api/v2/labels/application/bom1-12345678/applicable'))
           .respond({'labelsByOwner': []});
       scope.doLoad();
-      $httpBackend.flush();
+      expect($httpBackend.flush).not.toThrow();
 
     }));
 

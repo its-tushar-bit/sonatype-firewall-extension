@@ -28,7 +28,7 @@ module.exports = function(config) {
 
     // test results reporter to use
     // possible values: 'dots', 'progress', plus those at https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['spec', 'junit', 'coverage-istanbul'],
+    reporters: ['summary', 'junit', 'coverage-istanbul'],
 
     client: {
       // remove or switch to true to see console logging from the tests in the output

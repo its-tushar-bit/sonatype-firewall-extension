@@ -51,6 +51,7 @@ describe('cipModal', function() {
         spyOn(Properties, 'setProprietary');
         spyOn(Properties, 'setMatchState');
         spyOn(Properties, 'setIdentificationSource');
+        spyOn(Properties, 'setDependencyType');
 
         component = {
           hash: '1249e25aebb15358bedd',
@@ -59,7 +60,8 @@ describe('cipModal', function() {
           componentIdentifier: {
             coordinates: 'coordinates',
             format: 'format'
-          }
+          },
+          dependencyInfo: { isDirectDependency: false }
         };
       });
 
@@ -119,6 +121,27 @@ describe('cipModal', function() {
         vm.selectedComponent = component;
         scope.$digest();
         expect(Properties.setIdentificationSource).toHaveBeenCalledWith('test-identification-source');
+      });
+
+      it('calls Properties.setDependencyType with "transitive" when isDirectDependency is false', function() {
+        vm.selectedComponent = component;
+        scope.$digest();
+        expect(Properties.setDependencyType).toHaveBeenCalledWith('transitive');
+      });
+
+      it('calls Properties.setDependencyType with "direct" when isDirectDependency is true', function() {
+        vm.selectedComponent = {
+          ...component,
+          dependencyInfo: { isDirectDependency: true }
+        };
+        scope.$digest();
+        expect(Properties.setDependencyType).toHaveBeenCalledWith('direct');
+      });
+
+      it('calls Properties.setDependencyType with undefined when dependencyInfo is undefined', function() {
+        vm.selectedComponent = { ...component, dependencyInfo: undefined };
+        scope.$digest();
+        expect(Properties.setDependencyType).toHaveBeenCalledWith(undefined);
       });
 
       it('enhances legacy report data with component identifier', function() {

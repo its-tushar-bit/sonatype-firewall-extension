@@ -76,6 +76,8 @@ function CipModalController($ngRedux, $scope, applicationReportActions, Selected
     Properties.setProprietary(selectedComponent.proprietary || false);
     Properties.setMatchState(selectedComponent.matchState);
     Properties.setIdentificationSource(selectedComponent.identificationSource);
+    Properties.setDependencyType(selectedComponent.dependencyInfo &&
+        (selectedComponent.dependencyInfo.isDirectDependency ? 'direct' : 'transitive'));
 
     if (selectedComponent.componentIdentifier) {
       const {coordinates, format} = selectedComponent.componentIdentifier;

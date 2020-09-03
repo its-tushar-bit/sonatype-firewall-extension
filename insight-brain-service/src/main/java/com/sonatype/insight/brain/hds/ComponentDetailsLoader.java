@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.DependencyType;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
@@ -134,17 +135,19 @@ public class ComponentDetailsLoader
    *
    * @param componentDetailsList the list of ComponentDetails objects to be augmented
    * @param matchState the MatchState to set
+   * @param dependencyType the DependencyType to set
    * @return List<Component> augmented list of Component objects
    */
   public List<Component> augmentComponentDetails(
       Collection<ComponentDetails> componentDetailsList,
-      String matchState)
+      String matchState,
+      DependencyType dependencyType)
   {
     long start = System.currentTimeMillis();
 
     List<Component> components = new ArrayList<>(componentDetailsList.size());
     for (ComponentDetails componentDetails : componentDetailsList) {
-      components.add(augmentComponentDetails(componentDetails, matchState));
+      components.add(augmentComponentDetails(componentDetails, matchState, dependencyType));
     }
 
     log.debug("Augmented component details for {} components in {} ms.", componentDetailsList.size(),
@@ -165,13 +168,29 @@ public class ComponentDetailsLoader
    * @param matchState the MatchState to set
    * @return Component augmented Component object
    */
-  public Component augmentComponentDetails(ComponentDetails componentDetails, String matchState) {
+  public Component augmentComponentDetails(
+      ComponentDetails componentDetails,
+      String matchState,
+      DependencyType dependencyType)
+  {
     componentDetails.setMatchState(StringUtils.isEmpty(matchState) ? MatchState.EXACT.getId() : matchState);
+
     if (!isThirdPartyIdentificationSource(componentDetails.getIdentificationSource())
         && !IdentificationSource.PACKAGE_MANIFEST.getId().equals(componentDetails.getIdentificationSource())) {
       componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
     }
-    return augmentComponentDetails(componentDetails);
+
+    return augmentComponentDetails(componentDetails, dependencyType);
+  }
+
+  public Component augmentComponentDetails(ComponentDetails componentDetails, DependencyType dependencyType) {
+    Component component = augmentComponentDetails(componentDetails);
+
+    if (dependencyType != null) {
+      component.setDirectDependency(dependencyType == DependencyType.DIRECT);
+    }
+
+    return component;
   }
 
   /**

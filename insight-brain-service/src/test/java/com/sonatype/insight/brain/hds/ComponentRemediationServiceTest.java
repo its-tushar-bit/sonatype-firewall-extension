@@ -24,12 +24,14 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediation
 import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentChangeActionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.DependencyTypeConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -193,6 +195,8 @@ public class ComponentRemediationServiceTest
 
   private ComponentDetails detailsA2V11 = new ComponentDetails();
 
+  private Policy policyG1A2V1;
+
   @Before
   public void before() {
     org = tempEntity.newOrganization();
@@ -247,17 +251,17 @@ public class ComponentRemediationServiceTest
     detailsA2V5 = buildComponentDetails(MAVEN_COORDINATES_A2_V5, Collections.singletonList(warnAlert));
     detailsA2V11 = buildComponentDetails(MAVEN_COORDINATES_A2_V11, Collections.emptyList());
 
-    Policy policy = new Policy("policyG1A2V1", "policyG1A2V1");
-    policy.setOwnerId(org.getParentOwnerId());
-    policy.setThreatLevel(10);
+    policyG1A2V1 = new Policy("policyG1A2V1", "policyG1A2V1");
+    policyG1A2V1.setOwnerId(org.getParentOwnerId());
+    policyG1A2V1.setThreatLevel(10);
     Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
     constraint.addCondition(new Condition(CoordinatesConditionType.ID, "match", "maven:g1:a2:v1"));
-    policy.addConstraint(constraint);
-    policy.setAction(DevelopStageType.ID, Action.ID_FAIL);
-    policy.setAction(BuildStageType.ID, Action.ID_WARN);
-    tempEntity.newPolicy(policy);
+    policyG1A2V1.addConstraint(constraint);
+    policyG1A2V1.setAction(DevelopStageType.ID, Action.ID_FAIL);
+    policyG1A2V1.setAction(BuildStageType.ID, Action.ID_WARN);
+    tempEntity.newPolicy(policyG1A2V1);
 
-    policy = new Policy("policyG1A2V2", "policyG1A2V2");
+    Policy policy = new Policy("policyG1A2V2", "policyG1A2V2");
     policy.setOwnerId(org.getParentOwnerId());
     policy.setThreatLevel(5);
     constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
@@ -820,6 +824,45 @@ public class ComponentRemediationServiceTest
     assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING, componentDtoA1V11));
     assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING_WITH_DEPENDENCIES, componentDtoA1V11));
     assertThat(dto.versionChanges).hasSize(4);
+  }
+
+  /**
+   * Test with advanced strategies flag as true, with dependencies.
+   * Looking up single version a1v3 with a1v3 being the current version.
+   * a1v3 dependencies: a2v1
+   * a1v3 has no alerts, and a2v1 has failing alert on transitive-only policy.
+   */
+  @Test
+  public void testAdvanced_DependencyTypePolicy() {
+    new PolicyDAO().delete(policyG1A2V1);
+    Policy policy = new Policy("policyG1A2V1", "policyG1A2V1");
+    policy.setOwnerId(org.getParentOwnerId());
+    policy.setThreatLevel(10);
+    Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(CoordinatesConditionType.ID, "match", "maven:g1:a2:v1"));
+    constraint.addCondition(new Condition(DependencyTypeConditionType.ID, "is", "transitive"));
+    policy.addConstraint(constraint);
+    policy.setAction(DevelopStageType.ID, Action.ID_FAIL);
+    policy.setAction(BuildStageType.ID, Action.ID_WARN);
+    tempEntity.newPolicy(policy);
+
+    Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
+    Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
+
+    dependenciesMap.put(purlA1V3, Collections.singletonList(purlA2V1));
+
+    detailsMap.put(purlA2V1,  detailsA2V1);
+
+    ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
+    List<ComponentDetailsDTO> allVersions = Arrays.asList(detailsDtoA1V3);
+    mockHdsGetComponentDependencies(returnDto);
+    mockLicenseFeature(true);
+    ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V3,
+        allVersions, org.getType(), org.getId(), DevelopStageType.ID);
+
+    assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS, componentDtoA1V3));
+    assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING, componentDtoA1V3));
+    assertThat(dto.versionChanges).hasSize(2);
   }
 
   private ApiVersionChangeOptionDTO buildChangeDto(ApiVersionChangeOptionType type, ApiComponentDTOV2 dto) {

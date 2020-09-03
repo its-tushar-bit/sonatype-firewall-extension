@@ -27,6 +27,9 @@ export default function PropertiesService(Coordinates) {
     getStageId: function () {
       return properties.stageId;
     },
+    getDependencyType: function() {
+      return properties.dependencyType;
+    },
     reset: function () {
       properties = {};
     },
@@ -50,6 +53,9 @@ export default function PropertiesService(Coordinates) {
     },
     setStageId: function (stageId) {
       properties.stageId = stageId;
+    },
+    setDependencyType: function(dependencyType) {
+      properties.dependencyType = dependencyType;
     },
     isUnknown: function () {
       return (properties.matchState || '').toLowerCase() === 'unknown';

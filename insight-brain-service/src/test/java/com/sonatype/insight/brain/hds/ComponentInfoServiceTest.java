@@ -41,6 +41,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.component.DependencyType;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.label.Label;
@@ -54,6 +55,7 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.DependencyTypeConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
@@ -543,7 +545,7 @@ public class ComponentInfoServiceTest
     ComponentDetailsList componentDetailsList =
         componentInfoService.getComponentDetailsList(componentIdentifier1, null, null, null);
     new ComponentDetailsLoader(application).augmentComponentDetails(componentDetailsList.getList(),
-        MatchState.EXACT.getId());
+        MatchState.EXACT.getId(), null);
 
     assertThat(componentDetailsList).isNotNull();
     assertThat(componentDetailsList.getList()).hasSize(3);
@@ -620,6 +622,44 @@ public class ComponentInfoServiceTest
     List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
     assertThat(policyAlerts).hasSize(1);
     assertThat(policyAlerts.get(0).getTrigger().getPolicyName()).isEqualTo("Policy1");
+  }
+
+  @Test
+  public void testGetComponentDetails_PolicyAlerts_DependencyType() throws Exception {
+    String hash = "01234567890123456789";
+
+    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
+    constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    constraint1.addCondition(new Condition(DependencyTypeConditionType.ID, "is", "direct"));
+    Policy policy1 = new Policy("PolicyId1", "Policy1");
+    policy1.setThreatLevel(8);
+    policy1.addConstraint(constraint1);
+    policy1.setAction(BuildStageType.ID, FailActionType.ID);
+    addPolicy(applicationPublicId, policy1);
+
+    Constraint constraint2 = new Constraint("C2", "Constraint 2", LogicalOperator.AND);
+    constraint2.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    constraint2.addCondition(new Condition(DependencyTypeConditionType.ID, "is", "transitive"));
+    Policy policy2 = new Policy("PolicyId2", "Policy2");
+    policy2.setThreatLevel(7);
+    policy2.addConstraint(constraint2);
+    policy2.setAction(BuildStageType.ID, FailActionType.ID);
+    addPolicy(applicationPublicId, policy2);
+
+    NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
+    hdsComponentDetails.setHash(hash);
+    hdsComponentDetails.addSecurityVulnerability(new SecurityVulnerability("Test Ref Id", "Test Source", 7.5F));
+    mockHdsGetComponentDetails(hdsComponentDetails);
+
+    ComponentDetails componentDetails = componentInfoService.getComponentDetails(application, MAVEN_A1_COORDINATES,
+        MatchState.SIMILAR.getId(), hash, false /* proprietary */, httpRequestMock, null, null,
+        DependencyType.DIRECT);
+
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_A1_COORDINATES);
+    assertCategories(componentDetails);
+    List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
+    assertThat(policyAlerts).extracting("trigger").extracting("policyName").containsExactly("Policy1");
   }
 
   @Test
@@ -891,7 +931,7 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetails(hdsComponentDetails);
     ComponentDetails componentDetails = componentInfoService
         .getComponentDetails_ReadPermission(owner.getType(), ownerId, MAVEN_A1_COORDINATES, MatchState.EXACT.getId(),
-            null /* hash */, false /* proprietary */, httpRequestMock, null, null);
+            null /* hash */, false /* proprietary */, httpRequestMock, null, null, null);
     assertThat(componentDetails).isNotNull();
     assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_A1_COORDINATES);
     assertThat(componentDetails.getMatchState()).isEqualTo(MatchState.EXACT.getId());
@@ -922,7 +962,7 @@ public class ComponentInfoServiceTest
     ComponentDetails componentDetails = componentInfoService
         .getComponentDetails_ReadPermission(application.getType(), applicationPublicId, MAVEN_A1_COORDINATES,
             MatchState.EXACT.getId(), null /* hash */, false /* proprietary */, httpRequestMock, identificationSource,
-            scanId);
+            scanId, null);
     assertThat(componentDetails).isNotNull();
     assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_A1_COORDINATES);
     assertThat(componentDetails.getMatchState()).isEqualTo(MatchState.EXACT.getId());
@@ -942,7 +982,7 @@ public class ComponentInfoServiceTest
 
     ComponentDetails componentDetails = componentInfoService.getComponentDetails_ReadPermission(application.getType(),
         applicationPublicId, MAVEN_A1_COORDINATES, MatchState.EXACT.getId(), null /* hash */, false /* proprietary */,
-        httpRequestMock, identificationSource, scanId);
+        httpRequestMock, identificationSource, scanId, null);
     assertThat(componentDetails).isNotNull();
     assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_A1_COORDINATES);
     assertThat(componentDetails.getMatchState()).isEqualTo(MatchState.EXACT.getId());
@@ -996,7 +1036,8 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetailsList(hdsComponentDetailsList, MAVEN_A1_COORDINATES);
 
     ComponentVersionInfoDTO dto = componentInfoService
-        .getComponentVersionInfo_ReadPermission(owner.getType(), ownerId, MAVEN_A1_COORDINATES, stageId, null, null);
+        .getComponentVersionInfo_ReadPermission(owner.getType(), ownerId, MAVEN_A1_COORDINATES, stageId, null, null,
+            null);
 
     List<ComponentDetailsDTO> componentDetailsList = dto.allVersions;
 
@@ -1120,9 +1161,10 @@ public class ComponentInfoServiceTest
   }
 
   @Test
-  public void testGetComponentVersionInfo_ReadPermission_ThirdParty() throws Exception {
+  public void testGetComponentVersionInfo_ReadPermission_ExtraParams() throws Exception {
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "8"));
+    constraint1.addCondition(new Condition(DependencyTypeConditionType.ID, "is", "transitive"));
     Policy policy1 = new Policy("security-high", "Security-High");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
@@ -1131,6 +1173,7 @@ public class ComponentInfoServiceTest
 
     final String identificationSource = "Clair";
     final String scanId = "scanId";
+    final DependencyType dependencyType = DependencyType.TRANSITIVE;
 
     ComponentDetails tpComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
     tpComponentDetails.setIdentificationSource(identificationSource);
@@ -1148,7 +1191,7 @@ public class ComponentInfoServiceTest
 
     ComponentVersionInfoDTO dto = componentInfoService
         .getComponentVersionInfo_ReadPermission(application.getType(), application.getPublicId(),
-            MAVEN_A1_COORDINATES, null, identificationSource, scanId);
+            MAVEN_A1_COORDINATES, null, identificationSource, scanId, dependencyType);
 
     List<ComponentDetailsDTO> componentDetailsList = dto.allVersions;
 
@@ -1184,7 +1227,7 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetailsList(new ComponentDetailsList(), componentDetails.getComponentIdentifier());
 
     ComponentVersionInfoDTO dto = componentInfoService.getComponentVersionInfo_ReadPermission(application.getType(),
-        application.getPublicId(), MAVEN_A1_COORDINATES, null, identificationSource, scanId);
+        application.getPublicId(), MAVEN_A1_COORDINATES, null, identificationSource, scanId, null);
 
     List<ComponentDetailsDTO> resultComponentDetailsList = dto.allVersions;
 

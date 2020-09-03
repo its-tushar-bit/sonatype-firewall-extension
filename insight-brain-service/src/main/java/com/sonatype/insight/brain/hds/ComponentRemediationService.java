@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChang
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.DependencyType;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
@@ -206,8 +207,10 @@ public class ComponentRemediationService
 
     // evaluate flattened dependencies
     // Fix match state to exact as there's no point propagating it to other versions.
+    // Assume the dependencies are only transitive
     List<Component> components =
-        new ComponentDetailsLoader(owner).augmentComponentDetails(componentDetailsList, MatchState.EXACT.getId());
+        new ComponentDetailsLoader(owner).augmentComponentDetails(componentDetailsList, MatchState.EXACT.getId(),
+            DependencyType.TRANSITIVE);
     Map<PackageUrlIdentifier, List<PolicyAlert>> policyAlertsByComponent =
         evaluateAndGetPolicyAlertsByComponent(owner.getId(), stage, components);
 

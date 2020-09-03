@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentLicenses;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentSecurityVulnerabilities;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.component.DependencyType;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -65,10 +66,11 @@ public class CIComponentInfoResource
       @QueryParam("hash") String hash,
       @QueryParam("proprietary") boolean proprietary,
       @QueryParam("identificationSource") String identificationSource,
-      @QueryParam("scanId") String scanId) throws IOException
+      @QueryParam("scanId") String scanId,
+      @QueryParam("dependencyType") String dependencyType) throws IOException
   {
     return componentInfoService.getComponentDetails_ReadPermission(ownerType, ownerId, identifier, matchState, hash,
-        proprietary, httpRequest, identificationSource, scanId);
+        proprietary, httpRequest, identificationSource, scanId, DependencyType.getById(dependencyType));
   }
 
   /**
@@ -101,10 +103,11 @@ public class CIComponentInfoResource
       @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier,
       @QueryParam("stageId") String stageId,
       @QueryParam("identificationSource") String identificationSource,
-      @QueryParam("scanId") String scanId)
+      @QueryParam("scanId") String scanId,
+      @QueryParam("dependencyType") String dependencyTypeId)
   {
     return componentInfoService.getComponentVersionInfo_ReadPermission(ownerType, ownerId,
-        componentIdentifier, stageId, identificationSource, scanId);
+        componentIdentifier, stageId, identificationSource, scanId, DependencyType.getById(dependencyTypeId));
   }
 
   @GET

@@ -26,17 +26,17 @@ window.Brain = {
   // used by Component Info tab
   ci: {
     getComponentListUrl(ownerType, ownerId, componentType, hash, matchState, proprietary, coordinates, pathname,
-                        identificationSource, scanId, stageId) {
+                        identificationSource, scanId, stageId, dependencyType) {
       const url = window.CLM.path + 'rest/ci/componentDetails/' + ownerType + '/' + encodeURIComponent(ownerId) +
           '/allVersions';
       return url + '?' + toParams(componentType, hash, matchState, proprietary, coordinates, pathname,
-          identificationSource, scanId, stageId);
+          identificationSource, scanId, stageId, dependencyType);
     },
     getComponentUrl(ownerType, ownerId, componentType, hash, matchState, proprietary, coordinates, pathname,
-                    identificationSource, scanId) {
+                    identificationSource, scanId, dependencyType) {
       const url = window.CLM.path + 'rest/ci/componentDetails/' + ownerType + '/' + encodeURIComponent(ownerId);
       return url + '?' + toParams(componentType, hash, matchState, proprietary, coordinates, pathname,
-          identificationSource, scanId);
+          identificationSource, scanId, undefined, dependencyType);
     }
   },
 
@@ -62,7 +62,7 @@ window.Brain = {
 };
 
 function toParams(componentType, hash, matchState, proprietary, coordinates, pathname, identificationSource, scanId,
-                  stageId) {
+                  stageId, dependencyType) {
   const componentIdentifier = coordinates && JSON.stringify({ format: componentType, coordinates });
   return toURIParams({
     componentIdentifier,
@@ -72,6 +72,7 @@ function toParams(componentType, hash, matchState, proprietary, coordinates, pat
     pathname,
     identificationSource,
     scanId,
-    stageId
+    stageId,
+    dependencyType
   });
 }

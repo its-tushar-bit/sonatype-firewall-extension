@@ -174,7 +174,7 @@ public class ComponentInfoServiceAuthzTest
     grantReadPermission(owner.getId());
     componentInfoService.getComponentDetails_ReadPermission(owner.getType(), ownerId, COMPONENT_IDENTIFIER,
         MatchState.EXACT.getId(), "hash", false /* proprietary */, null /* httpRequest */,
-        null /* identificationSource */, null /* scanId */);
+        null /* identificationSource */, null /* scanId */, null /* dependencyType */);
   }
 
   @Test
@@ -193,7 +193,7 @@ public class ComponentInfoServiceAuthzTest
     login();
     componentInfoService.getComponentDetails_ReadPermission(owner.getType(), ownerId, COMPONENT_IDENTIFIER,
         MatchState.EXACT.getId(), "hash", false /* proprietary */, null /* httpRequest */,
-        null /* identificationSource */, null /* scanId */);
+        null /* identificationSource */, null /* scanId */, null /* dependencyType */);
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -211,7 +211,7 @@ public class ComponentInfoServiceAuthzTest
   {
     componentInfoService.getComponentDetails_ReadPermission(owner.getType(), ownerId, COMPONENT_IDENTIFIER,
         MatchState.EXACT.getId(), "hash", false /* proprietary */, null /* httpRequest */,
-        null /* identificationSource */, null /* scanId */);
+        null /* identificationSource */, null /* scanId */, null /* dependencyType */);
   }
 
   @Test(expected = UnauthenticatedException.class)
@@ -314,7 +314,7 @@ public class ComponentInfoServiceAuthzTest
     configureHdsClientMock();
     grantReadPermission(owner.getId());
     componentInfoService
-        .getComponentVersionInfo_ReadPermission(owner.getType(), ownerId, COMPONENT_IDENTIFIER, null, null, null);
+        .getComponentVersionInfo_ReadPermission(owner.getType(), ownerId, COMPONENT_IDENTIFIER, null, null, null, null);
   }
 
   @Test
@@ -332,7 +332,7 @@ public class ComponentInfoServiceAuthzTest
   {
     login();
     componentInfoService.getComponentVersionInfo_ReadPermission(owner.getType(), ownerId,
-        COMPONENT_IDENTIFIER, null, null, null);
+        COMPONENT_IDENTIFIER, null, null, null, null);
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -349,7 +349,7 @@ public class ComponentInfoServiceAuthzTest
                                                                                     final String ownerId)
   {
     componentInfoService.getComponentVersionInfo_ReadPermission(owner.getType(), ownerId,
-        COMPONENT_IDENTIFIER, null, null, null);
+        COMPONENT_IDENTIFIER, null, null, null, null);
   }
 
   @Test(expected = UnauthenticatedException.class)

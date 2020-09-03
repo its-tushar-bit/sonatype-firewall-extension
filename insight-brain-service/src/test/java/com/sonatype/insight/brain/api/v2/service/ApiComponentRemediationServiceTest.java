@@ -63,6 +63,7 @@ import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.isNull;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -229,7 +230,7 @@ public class ApiComponentRemediationServiceTest
   public void testGetSuggestedRemediationForComponent_BadOwnerId() throws Exception {
     doCallRealMethod().when(componentInfoServiceMock)
         .getComponentDetailsForAllVersionsNoAuth(any(OwnerType.class), any(String.class),
-            any(ComponentIdentifier.class), any(String.class), any(), any());
+            any(ComponentIdentifier.class), any(String.class), any(), any(), any());
     testGetSuggestedRemediationForComponent_BadOwnerId(OwnerType.APPLICATION, "Could not find an application with ID ");
     testGetSuggestedRemediationForComponent_BadOwnerId(OwnerType.ORGANIZATION, "Cannot find organization with ID ");
   }
@@ -397,7 +398,7 @@ public class ApiComponentRemediationServiceTest
         componentIdentifier, scanId);
     doReturn(Collections.singletonList(componentDetailsDTO)).when(componentInfoServiceMock)
         .getComponentDetailsForAllVersionsNoAuth(OwnerType.APPLICATION, app.getPublicId(), componentIdentifier,
-            DevelopStageType.ID, identificationSource, scanId);
+            DevelopStageType.ID, identificationSource, scanId, null);
     ApiComponentRemediationDTO retVal = service
         .getSuggestedRemediationForComponent(component, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID,
             identificationSource, scanId);
@@ -656,7 +657,7 @@ public class ApiComponentRemediationServiceTest
   private void mockHdsGetComponentDetailsList(List<ComponentDetailsDTO> list, ComponentIdentifier componentIdentifier) {
     doReturn(list).when(componentInfoServiceMock)
         .getComponentDetailsForAllVersionsNoAuth(eq(OwnerType.APPLICATION), eq(app.getPublicId()),
-            eq(componentIdentifier), any(), any(), any());
+            eq(componentIdentifier), any(), any(), any(), isNull());
   }
 
   private void mockHdsGetComponentDependencies(ComponentDependenciesDTO dependenciesDto) {

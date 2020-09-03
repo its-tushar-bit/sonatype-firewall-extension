@@ -302,7 +302,7 @@ public class ReportResourceTest
     assertResponseStatus(404, response);
 
     response = request.subpath("%2E%2E%5Crestricted.txt").get();
-    assertResponseStatus(404, response);
+    assertResponseStatus(400, response);
   }
 
   @Test

@@ -276,6 +276,31 @@ public class InsightConfig
   @JsonProperty
   private Map<String, Boolean> experimentalFeatures;
 
+  /**
+   * This configuration blocks requests containing semicolons in the path to avoid malicious attacks.
+   * 
+   * @since 1.98
+   */
+  @JsonProperty
+  private boolean blockSemicolonInPath = true;
+
+  /**
+   * This configuration blocks requests containing backslash in the path to avoid malicious attacks.
+   * 
+   * @since 1.98
+   */
+
+  @JsonProperty
+  private boolean blockBackslashInPath = true;
+
+  /**
+   * This configuration blocks requests containing non-ASCII characters in the path to avoid malicious attacks.
+   * 
+   * @since 1.98
+   */
+  @JsonProperty
+  private boolean blockNonAsciiInPath = true;
+
   public ProxyServerConfigurationMigrator.ProxyConfig getProxyConfig() {
     return proxy;
   }
@@ -778,6 +803,30 @@ public class InsightConfig
 
   public void setExperimentalFeatures(final Map<String, Boolean> experimentalFeatures) {
     this.experimentalFeatures = experimentalFeatures;
+  }
+
+  public boolean isBlockSemicolonInPath() {
+    return blockSemicolonInPath;
+  }
+
+  public void setBlockSemicolonInPath(boolean blockSemicolonInPath) {
+    this.blockSemicolonInPath = blockSemicolonInPath;
+  }
+
+  public boolean isBlockBackslashInPath() {
+    return blockBackslashInPath;
+  }
+
+  public void setBlockBackslashInPath(boolean blockBackslashInPath) {
+    this.blockBackslashInPath = blockBackslashInPath;
+  }
+
+  public boolean isBlockNonAsciiInPath() {
+    return blockNonAsciiInPath;
+  }
+
+  public void setBlockNonAsciiInPath(boolean blockNonAsciiInPath) {
+    this.blockNonAsciiInPath = blockNonAsciiInPath;
   }
 
   public enum Feature

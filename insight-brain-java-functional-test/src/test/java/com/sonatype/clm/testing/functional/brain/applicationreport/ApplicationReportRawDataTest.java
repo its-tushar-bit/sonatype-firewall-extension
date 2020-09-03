@@ -11,12 +11,12 @@ import java.util.Date;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.IqBackButton;
+import com.sonatype.clm.testing.functional.elements.NxVulnerabilityModal;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportRawDataPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportRawDataPage.ResultRow;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportRawDataPage.ResultTable;
-import com.sonatype.clm.testing.functional.elements.NxVulnerabilityModal;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
@@ -132,10 +132,7 @@ public class ApplicationReportRawDataTest
   @Test
   public void testVulnerabilityModal() {
     testCLMServer.getHdsServer().respondWith(getClass().getResource("/vulnerabilityDetails/vulnerabilityDetails2.json"))
-        .atUri("rest/vulnerability/details/json/sonatype-2017-0507?componentIdentifier=%7B%22format%22%3A%22maven%22" +
-            "%2C%22coordinates%22%3A%7B%22artifactId%22%3A%22spring-security-web%22%2C%22classifier%22%3A%22%22%2C%2" +
-            "2extension%22%3A%22jar%22%2C%22groupId%22%3A%22org.springframework.security%22%2C%22version%22%3A%223.2" +
-            ".4.RELEASE%22%7D%7D");
+        .atUri("rest/vulnerability/details/json/sonatype-2017-0507");
 
     ResultTable resultTable = rawDataPage.resultTable();
     ResultRow springSecurity = resultTable.resultRow(94);

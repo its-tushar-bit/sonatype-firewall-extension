@@ -13,11 +13,11 @@ describe('ViolationExclamation', function() {
   const minimalProps = { threatLevelCategory: 'unspecified' },
       getShallowComponent = enzymeUtils.getShallowComponent(ViolationExclamation, minimalProps);
 
-  it('renders a fixed width exclamation NxFontAwesomeIcon', function() {
+  it('renders a non-fixed width exclamation NxFontAwesomeIcon', function() {
     const component = getShallowComponent();
 
     expect(component).toMatchSelector(NxFontAwesomeIcon);
-    expect(component).toHaveProp('fixedWidth');
+    expect(component).not.toHaveProp('fixedWidth');
     expect(component).toHaveProp('icon', faExclamationCircle);
   });
 

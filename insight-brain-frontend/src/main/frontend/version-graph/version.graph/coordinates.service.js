@@ -7,13 +7,20 @@
 export default function() {
   var selected = null,
       coordinates = null,
-      format = null;
+      format = null,
+      identificationSource = null;
   return {
     get: function () {
       return coordinates;
     },
     getFormat: function () {
       return format;
+    },
+    getIdentificationSource: function () {
+      return identificationSource;
+    },
+    setIdentificationSource: function (is) {
+      identificationSource = is;
     },
     set: function (t, c) {
       coordinates = c;

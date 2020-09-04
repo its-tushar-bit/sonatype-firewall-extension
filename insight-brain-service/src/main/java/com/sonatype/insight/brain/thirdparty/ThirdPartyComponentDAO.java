@@ -149,6 +149,14 @@ public class ThirdPartyComponentDAO
     return componentDetailsList;
   }
 
+  public ComponentDetails resolveComponentDetails(
+      final String appId,
+      final ComponentIdentifier identifier,
+      final String scanId)
+  {
+    return resolveComponentDetails(findComponent(appId, identifier, scanId));
+  }
+
   public NamedComponentDetails getComponentDetailsByIdentifier(
       final ComponentIdentifier identifier,
       final String appId,

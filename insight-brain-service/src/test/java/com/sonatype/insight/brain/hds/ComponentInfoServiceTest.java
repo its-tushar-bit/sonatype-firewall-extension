@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.hds;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -73,6 +74,7 @@ import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.lqa.LqaFormat;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.common.collect.ImmutableMap;
@@ -90,6 +92,7 @@ import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersi
 import static com.sonatype.insight.brain.model.license.License.UNSPECIFIED_ID;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.anyCollection;
@@ -1175,7 +1178,12 @@ public class ComponentInfoServiceTest
     final String scanId = "scanId";
     final DependencyType dependencyType = DependencyType.TRANSITIVE;
 
-    ComponentDetails tpComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
+    Map<String, String> coordinates = new HashMap<>();
+    coordinates.put("name", "test");
+    coordinates.put("version", "2.0.0");
+    ComponentIdentifier componentIdentifier1 = new ComponentIdentifier("debian:9", coordinates);
+
+    ComponentDetails tpComponentDetails = newNamedComponentDetails(componentIdentifier1);
     tpComponentDetails.setIdentificationSource(identificationSource);
     tpComponentDetails.setSecurityVulnerabilities(asList(
         new SecurityVulnerability("cve-8", "cve", 8.1f),
@@ -1184,14 +1192,14 @@ public class ComponentInfoServiceTest
     ComponentDetailsList thirdPartyComponentDetailsList = new ComponentDetailsList();
     thirdPartyComponentDetailsList.setList(Collections.singletonList(tpComponentDetails));
 
-    when(thirdPartyComponentDAO.getAllVersions(application.getId(), MAVEN_A1_COORDINATES, scanId))
+    when(thirdPartyComponentDAO.getAllVersions(application.getId(), componentIdentifier1, scanId))
         .thenReturn(thirdPartyComponentDetailsList);
-    when(thirdPartyComponentDAO.getSuggestedRemmediation(application.getId(), MAVEN_A1_COORDINATES, scanId))
+    when(thirdPartyComponentDAO.getSuggestedRemmediation(application.getId(), componentIdentifier1, scanId))
         .thenReturn(new ApiComponentRemediationValueDTO());
 
     ComponentVersionInfoDTO dto = componentInfoService
         .getComponentVersionInfo_ReadPermission(application.getType(), application.getPublicId(),
-            MAVEN_A1_COORDINATES, null, identificationSource, scanId, dependencyType);
+            componentIdentifier1, null, identificationSource, scanId, dependencyType);
 
     List<ComponentDetailsDTO> componentDetailsList = dto.allVersions;
 
@@ -1201,7 +1209,7 @@ public class ComponentInfoServiceTest
 
     ComponentDetailsDTO componentDetails = componentDetailsList.get(0);
     assertThat(componentDetails.displayName)
-        .hasToString(ComponentDisplayNameUtil.fromIdentifier(MAVEN_A1_COORDINATES).toString());
+        .hasToString(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier1).toString());
     assertThat(componentDetails.matchState).isEqualTo(MatchState.EXACT.getId());
     assertThat(componentDetails.componentIdentifier).isEqualTo(tpComponentDetails.getComponentIdentifier());
     assertThat(componentDetails.highestSecurityVulnerabilitySeverity).isEqualTo(8.1f);
@@ -1253,6 +1261,66 @@ public class ComponentInfoServiceTest
         .contains(tuple(UNSPECIFIED_ID, "Not Provided"));
     assertThat(resultComponentDetails.effectiveLicenses).extracting("licenseId", "licenseName")
         .contains(tuple(UNSPECIFIED_ID, "Not Provided"));
+  }
+
+  @Test
+  public void testGetComponentDetailsList_UnknownHdsComponent() {
+    String scanId = "test";
+    String identificationSource = "cyclone";
+
+    // Create the mocked hds response
+    Map<String, String> coordinates = new HashMap<>();
+    coordinates.put("name", "test");
+    coordinates.put("version", "2.0.0");
+    ComponentIdentifier componentIdentifier1 = new ComponentIdentifier(LqaFormat.CARGO.format, coordinates);
+    ComponentDetails hdsComponentDetails1 = newNamedComponentDetails(componentIdentifier1);
+
+    coordinates.put("version", "1.0.0");
+    ComponentIdentifier componentIdentifier2 = new ComponentIdentifier(LqaFormat.CARGO.format, coordinates);
+    ComponentDetails hdsComponentDetails2 = newNamedComponentDetails(componentIdentifier2);
+    ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
+
+    hdsComponentDetailsList.setList(Arrays.asList(hdsComponentDetails1, hdsComponentDetails2));
+    mockHdsGetComponentDetailsList(hdsComponentDetailsList, componentIdentifier1);
+
+    ComponentDetails tpComponentDetails = newNamedComponentDetails(componentIdentifier1);
+    tpComponentDetails.setIdentificationSource(identificationSource);
+    tpComponentDetails.setSecurityVulnerabilities(asList(
+        new SecurityVulnerability("cve-8", "cve", 8.1f),
+        new SecurityVulnerability("cve-4", "cve", 4f)));
+    tpComponentDetails.setDeclaredLicenses(Collections.singleton(new License("Apache-2.0", "Apache License 2.0")));
+
+    when(thirdPartyComponentDAO.resolveComponentDetails(application.getId(), componentIdentifier1, scanId))
+        .thenReturn(tpComponentDetails);
+
+    ComponentDetailsList componentDetailsList =
+        componentInfoService.getComponentDetailsList(componentIdentifier1, application, identificationSource, scanId);
+
+    assertThat(componentDetailsList).isNotNull();
+    assertThat(componentDetailsList.getList()).hasSize(2);
+
+    ComponentDetails componentDetails = componentDetailsList.getList().get(0);
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(componentIdentifier1);
+    assertThat(componentDetails.getSecurityVulnerabilities()).hasSize(2);
+    assertThat(componentDetails.getDeclaredLicenses()).extracting("licenseId", "licenseName")
+        .contains(tuple("Apache-2.0", "Apache License 2.0"));
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(componentIdentifier1);
+
+    componentDetails = componentDetailsList.getList().get(1);
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(componentIdentifier2);
+  }
+
+  @Test
+  public void testGetComponentDetailsList_InvalidComponent() {
+    Map<String, String> coordinates = new HashMap<>();
+    coordinates.put("name", "test");
+    coordinates.put("version", "2.0.0");
+    ComponentIdentifier componentIdentifier1 = new ComponentIdentifier("unknown", coordinates);
+
+    assertThatThrownBy(
+        () -> componentInfoService.getComponentDetailsList(componentIdentifier1, application, null, null))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Invalid format: unknown");
   }
 
   @Test

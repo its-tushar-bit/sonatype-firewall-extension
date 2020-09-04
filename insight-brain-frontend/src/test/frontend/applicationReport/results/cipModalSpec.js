@@ -50,7 +50,6 @@ describe('cipModal', function() {
         spyOn(Properties, 'setFilename');
         spyOn(Properties, 'setProprietary');
         spyOn(Properties, 'setMatchState');
-        spyOn(Properties, 'setIdentificationSource');
         spyOn(Properties, 'setDependencyType');
 
         component = {
@@ -115,12 +114,6 @@ describe('cipModal', function() {
         vm.selectedComponent = component;
         scope.$digest();
         expect(Properties.setMatchState).toHaveBeenCalledWith('test-match-state');
-      });
-
-      it('calls Properties.setIdentificationSource', function() {
-        vm.selectedComponent = component;
-        scope.$digest();
-        expect(Properties.setIdentificationSource).toHaveBeenCalledWith('test-identification-source');
       });
 
       it('calls Properties.setDependencyType with "transitive" when isDirectDependency is false', function() {

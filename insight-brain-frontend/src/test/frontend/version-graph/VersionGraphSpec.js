@@ -1211,7 +1211,7 @@ var clmEndpointTemplate = {
               groupId: 'foo',
               artifactId: 'bar',
               version: '1'
-            }, undefined, undefined, undefined, undefined);
+            }, undefined, null, undefined, undefined);
 
         // Another version selected
         $httpBackend.expectGET('foo').respond({
@@ -1220,7 +1220,7 @@ var clmEndpointTemplate = {
         });
         scope.$apply(function() {
           Coordinates.setSelected({groupId: 'foo', artifactId: 'bar', version: '2'});
-          Properties.setIdentificationSource('Sonatype');
+          Coordinates.setIdentificationSource('Sonatype');
           Properties.setDependencyType('transitive');
           OwnerContext.scanId = 'scanId';
         });

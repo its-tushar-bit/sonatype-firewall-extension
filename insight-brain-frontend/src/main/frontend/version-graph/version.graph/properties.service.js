@@ -21,9 +21,6 @@ export default function PropertiesService(Coordinates) {
     getProprietary: function () {
       return properties.proprietary;
     },
-    getIdentificationSource: function () {
-      return properties.identificationSource;
-    },
     getStageId: function () {
       return properties.stageId;
     },
@@ -47,9 +44,6 @@ export default function PropertiesService(Coordinates) {
     },
     setProprietary: function (proprietary) {
       properties.proprietary = proprietary;
-    },
-    setIdentificationSource: function (identificationSource) {
-      properties.identificationSource = identificationSource;
     },
     setStageId: function (stageId) {
       properties.stageId = stageId;

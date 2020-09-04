@@ -8,7 +8,7 @@ import { mapStateToThis } from '../../../../main/frontend/applicationReport/rawD
 
 describe('applicationReportRawData', function() {
 
-  let vm, SelectedComponent, OwnerContext, Properties;
+  let vm, SelectedComponent, OwnerContext;
 
   beforeEach(angular.mock.module(applicationReportModule.name));
 
@@ -23,13 +23,9 @@ describe('applicationReportRawData', function() {
       ownerId: 'ownerId',
       ownerType: 'ownerType'
     };
-    Properties = {
-      'getIdentificationSource': jasmine.createSpy().and.returnValue('identificationSource')
-    };
     vm = _$componentController_('applicationReportRawData', {
       SelectedComponent,
-      OwnerContext,
-      Properties
+      OwnerContext
     });
     vm.$onInit();
   }));
@@ -291,7 +287,8 @@ describe('applicationReportRawData', function() {
             'qualifier': '',
             'version': '3.1.1'
           }
-        }
+        },
+        identificationSource: 'identificationSource'
       };
     });
 

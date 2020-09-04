@@ -210,7 +210,7 @@ $.extend(true, window, {
           Properties.setProprietary(properties.proprietary);
           Properties.setFilename(properties.filename);
           Properties.setHash(properties.hash);
-          Properties.setIdentificationSource(properties.identificationSource);
+          Coordinates.setIdentificationSource(properties.identificationSource);
 
           if (properties.appId) {
             OwnerContext.setApplicationId(properties.appId);

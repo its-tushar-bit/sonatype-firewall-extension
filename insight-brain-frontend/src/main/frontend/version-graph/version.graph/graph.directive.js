@@ -31,6 +31,7 @@ export default function graphDirective(Coordinates) {
                 $.each(versions, function(index, component) {
                   if (component.componentIdentifier.coordinates.version === version) {
                     Coordinates.setSelected(component.componentIdentifier.coordinates);
+                    Coordinates.setIdentificationSource(component.identificationSource);
                     return false;
                   }
                 });

@@ -30,7 +30,7 @@ export default function ComponentController($scope, Coordinates, OwnerContext, e
         const hash = Coordinates.isOriginalVersion() ? Properties.getHash() : null;
         $http.get(Brain[clmEndpoint.type].getComponentListUrl(OwnerContext.ownerType, OwnerContext.ownerId,
             Coordinates.getFormat(), hash, Properties.getMatchState(), Properties.getProprietary(),
-            Coordinates.get(), Properties.getPathname(), Properties.getIdentificationSource(), OwnerContext.scanId,
+            Coordinates.get(), Properties.getPathname(), Coordinates.getIdentificationSource(), OwnerContext.scanId,
             Properties.getStageId(), Properties.getDependencyType()))
             .then(function(response) {
               $scope.componentDetailsList = response.data.allVersions || response.data.list || response.data;

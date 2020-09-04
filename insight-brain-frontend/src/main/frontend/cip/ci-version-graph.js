@@ -40,7 +40,7 @@ import proprietaryMatchersModule from './proprietary.matchers.modal/proprietary.
           Properties.setFilename(component.matchState === 'unknown' ? component.coordinates : null);
           Properties.setProprietary(component.proprietary || false);
           Properties.setMatchState(component.matchState);
-          Properties.setIdentificationSource(component.identificationSource);
+          Coordinates.setIdentificationSource(component.identificationSource);
 
           if (component.componentIdentifier) {
             Coordinates.set(component.componentIdentifier.format, component.componentIdentifier.coordinates); //coordinates may be null for unknown

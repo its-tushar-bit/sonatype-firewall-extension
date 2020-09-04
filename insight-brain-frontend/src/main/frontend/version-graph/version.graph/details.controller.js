@@ -22,7 +22,7 @@ export default function DetailsController($scope, $http, OwnerContext, Coordinat
         const hash = Coordinates.isOriginalVersion() ? Properties.getHash() : null;
         $http.get(Brain[clmEndpoint.type].getComponentUrl(OwnerContext.ownerType, OwnerContext.ownerId,
             Coordinates.getFormat(), hash, Properties.getMatchState(), Properties.getProprietary(),
-            coordinates.coordinates, Properties.getPathname(), Properties.getIdentificationSource(),
+            coordinates.coordinates, Properties.getPathname(), Coordinates.getIdentificationSource(),
             OwnerContext.scanId, Properties.getDependencyType())).then(function(response) {
           var data = response.data;
           if (data.matchState === 'unknown') {

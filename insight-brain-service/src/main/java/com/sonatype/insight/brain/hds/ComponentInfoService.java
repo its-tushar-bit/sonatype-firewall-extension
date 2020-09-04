@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.OptionalDouble;
 import java.util.Set;
 import java.util.function.Function;
@@ -66,6 +67,7 @@ import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.lqa.LqaFormat;
 import com.sonatype.insight.scan.util.HashUtils;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -526,28 +528,65 @@ public class ComponentInfoService
 
     ComponentDetailsList componentDetailsList;
 
-    if (isThirdPartyIdentificationSource(identificationSource)) {
+    if (isKnownFormat(identifier.getFormat())) {
+      componentDetailsList = getInformationVersionsHds(identifier, identificationSource);
+      //In case it's a third-party component, the data must be replace with the local information
+      updateThirdPartyInformation(identifier, identificationSource, componentDetailsList, owner, scanId);
+    }
+    else if (isThirdPartyIdentificationSource(identificationSource)) {
       componentDetailsList = thirdPartyComponentDAO.getAllVersions(owner.getId(), identifier, scanId);
     }
     else {
-      String url = "rest/" + toolName + "/componentDetails/list";
-      componentDetailsList = hdsClient.get(ComponentDetailsList.class, url,
-          Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(identifier)));
-
-      if (CollectionUtils.isEmpty(componentDetailsList.getList())
-          && isPackageManifestIdentificationSource(identificationSource)) {
-        String hash = generateFakeHash(identifier);
-        NamedComponentDetails details = createComponentDetailsFromPackageManifest(hash, identifier);
-        augmentEmptyLicensesAsUnspecified(details);
-        componentDetailsList = new ComponentDetailsList();
-        componentDetailsList.setList(Collections.singletonList(details));
-      }
+      throw new BadRequestException("Invalid format: " + identifier.getFormat());
     }
 
     log.debug("Loaded component details list for {} versions of component identifier {} in {} ms.",
         componentDetailsList.getList().size(), identifier, System.currentTimeMillis() - start);
 
     return componentDetailsList;
+  }
+
+  private void updateThirdPartyInformation(
+      final ComponentIdentifier identifier,
+      final String identificationSource,
+      final ComponentDetailsList componentDetailsList,
+      final Owner owner,
+      final String scanId)
+  {
+    if (isThirdPartyIdentificationSource(identificationSource)) {
+      for (int i = 0; i < componentDetailsList.getList().size(); i++) {
+        ComponentDetails componentDetails = componentDetailsList.getList().get(i);
+
+        if (Objects.equals(identifier, componentDetails.getComponentIdentifier())) {
+          componentDetailsList.getList()
+              .set(i, thirdPartyComponentDAO.resolveComponentDetails(owner.getId(), identifier, scanId));
+          break;
+        }
+      }
+    }
+  }
+
+  private ComponentDetailsList getInformationVersionsHds(
+      final ComponentIdentifier identifier,
+      final String identificationSource)
+  {
+    String url = "rest/" + toolName + "/componentDetails/list";
+    ComponentDetailsList componentDetailsList = hdsClient.get(ComponentDetailsList.class, url,
+        Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(identifier)));
+
+    if (CollectionUtils.isEmpty(componentDetailsList.getList()) &&
+        isPackageManifestIdentificationSource(identificationSource)) {
+      String hash = generateFakeHash(identifier);
+      NamedComponentDetails details = createComponentDetailsFromPackageManifest(hash, identifier);
+      augmentEmptyLicensesAsUnspecified(details);
+      componentDetailsList = new ComponentDetailsList();
+      componentDetailsList.setList(Collections.singletonList(details));
+    }
+    return componentDetailsList;
+  }
+
+  private boolean isKnownFormat(String format) {
+    return ComponentIdentifier.getSupportedFormats().contains(format) || LqaFormat.isLqaFormat(format);
   }
 
   /**

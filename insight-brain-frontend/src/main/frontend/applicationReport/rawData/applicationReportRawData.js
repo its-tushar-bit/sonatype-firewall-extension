@@ -14,8 +14,7 @@ export default {
   controller: ApplicationReportRawController
 };
 
-function ApplicationReportRawController($ngRedux, applicationReportActions, SelectedComponent, OwnerContext,
-                                        Properties) {
+function ApplicationReportRawController($ngRedux, applicationReportActions, SelectedComponent, OwnerContext) {
   const vm = this;
 
   Object.assign(vm, {
@@ -85,7 +84,7 @@ function ApplicationReportRawController($ngRedux, applicationReportActions, Sele
         vulnerabilityId: securityCode,
         componentIdentifier,
         thirdPartyScanParameters: {
-          identificationSource: Properties.getIdentificationSource() || '',
+          identificationSource: rawDataEntry.identificationSource || '',
           scanId,
           ownerId,
           ownerType
@@ -121,6 +120,5 @@ ApplicationReportRawController.$inject = [
   '$ngRedux',
   'applicationReportActions',
   'SelectedComponent',
-  'OwnerContext',
-  'Properties'
+  'OwnerContext'
 ];

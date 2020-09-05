@@ -1,3 +1,11 @@
+<!--
+
+    Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+    Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+    "Sonatype" is a trademark of Sonatype, Inc.
+
+-->
+
 **Directions on how to write an Opsdoc, as well as links to examples, found [here](https://docs.sonatype.com/display/SRE/Opsdoc+Guide).**
 # Overview
 _Description of the service/application._

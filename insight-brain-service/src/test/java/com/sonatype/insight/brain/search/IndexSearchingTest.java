@@ -17,6 +17,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
@@ -783,5 +784,46 @@ public class IndexSearchingTest
     indexChanges();
     assertThat(search(FieldIdentifier.ORGANIZATION_ID, org.getId())).isEmpty();
     assertThat(search(FieldIdentifier.ORGANIZATION_NAME, org.getName())).isEmpty();
+  }
+
+  @Test
+  public void testIncrementalUpdate_Label() throws Exception {
+    index();
+    String labelName = "labelName";
+    String labelDescription = "labelDescription";
+    Color labelColor = Color.dark_blue;
+
+    // Add label
+    Label label = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, labelName, labelDescription, labelColor);
+    indexChanges();
+    List<SearchResultItemDTO> searchResults = search(FieldIdentifier.COMPONENT_LABEL_NAME, label.getLabel());
+    assertThat(searchResults).hasSize(1);
+    assertComponentLabelData(searchResults.get(0), label);
+
+    // Update label
+    String oldLabelName = label.getLabel();
+    Color oldLabelColor = label.getColor();
+    String oldLabelDescription = label.getDescription();
+    label.setLabel("NewLabelName");
+    label.setDescription("NewLabelDescription");
+    label.setColor(Color.dark_green);
+    new LabelDAO().update(label);
+    indexChanges();
+    // Verify the new values are in the index
+    searchResults = search(FieldIdentifier.COMPONENT_LABEL_NAME, label.getLabel());
+    assertThat(searchResults).hasSize(1);
+    assertComponentLabelData(searchResults.get(0), label);
+    // Verify the old values were removed from the index
+    assertThat(search(FieldIdentifier.COMPONENT_LABEL_NAME, oldLabelName)).isEmpty();
+    assertThat(search(FieldIdentifier.COMPONENT_LABEL_COLOR, oldLabelColor.toValue())).isEmpty();
+    assertThat(search(FieldIdentifier.COMPONENT_LABEL_DESCRIPTION, oldLabelDescription)).isEmpty();
+
+    // Delete label
+    new LabelDAO().delete(label);
+    indexChanges();
+    assertThat(search(FieldIdentifier.COMPONENT_LABEL_ID, label.getId())).isEmpty();
+    assertThat(search(FieldIdentifier.COMPONENT_LABEL_NAME, label.getLabel())).isEmpty();
+    assertThat(search(FieldIdentifier.COMPONENT_LABEL_DESCRIPTION, label.getDescription())).isEmpty();
+    assertThat(search(FieldIdentifier.COMPONENT_LABEL_COLOR, label.getColor().toValue())).isEmpty();
   }
 }

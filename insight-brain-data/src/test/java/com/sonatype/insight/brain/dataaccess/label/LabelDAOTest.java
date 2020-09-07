@@ -8,14 +8,20 @@ package com.sonatype.insight.brain.dataaccess.label;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.SearchIndexChange;
+import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -523,6 +529,33 @@ public class LabelDAOTest
     assertThatThrownBy(() -> {
       labelDAO.update(label);
     }).isInstanceOf(InvalidLabelException.class).hasMessageStartingWith("The label description can't be longer than");
+  }
+
+  @Test
+  public void testCRUD_RecordSearchIndexChange() {
+    LabelDAO labelDAO = new LabelDAO();
+    new SystemConfigurationPropertyDAO()
+        .update(new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true"));
+    Label label = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID);
+
+    List<SearchIndexChange> searchIndexChanges = new SearchIndexChangeDAO().getAll();
+    assertThat(searchIndexChanges).hasSize(1);
+    assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.LABEL);
+    assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(label.getId());
+    new SearchIndexChangeDAO().delete(searchIndexChanges.get(0));
+
+    labelDAO.update(label);
+    searchIndexChanges = new SearchIndexChangeDAO().getAll();
+    assertThat(searchIndexChanges).hasSize(1);
+    assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.LABEL);
+    assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(label.getId());
+    new SearchIndexChangeDAO().delete(searchIndexChanges.get(0));
+
+    labelDAO.delete(label);
+    searchIndexChanges = new SearchIndexChangeDAO().getAll();
+    assertThat(searchIndexChanges).hasSize(1);
+    assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.LABEL);
+    assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(label.getId());
   }
 
   private void assertLabels(Collection<Label> expected, Collection<Label> actual) {

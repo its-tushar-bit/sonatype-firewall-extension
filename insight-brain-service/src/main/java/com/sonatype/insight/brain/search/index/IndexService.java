@@ -360,6 +360,9 @@ public class IndexService
       case ORGANIZATION:
         updateIndexForOrganization(change.getChangeData(), indexingContext);
         break;
+      case LABEL:
+        updateIndexForLabel(change.getChangeData(), indexingContext);
+        break;
       default:
         throw new IllegalArgumentException("Unknown change type: " + change.getChangeType());
     }
@@ -377,6 +380,21 @@ public class IndexService
     StageType stageType = StageTypes.getById(stageTypeId);
     addDocsWithException(indexingContext.indexWriter,
         buildApplicationStageSVDocs(indexingContext, application, stageType));
+  }
+
+  private void updateIndexForLabel(String labelId, IndexingContext indexingContext)
+      throws IOException
+  {
+    Query queryForObsoleteDocs = new BooleanQuery.Builder() //
+        .add(indexingContext.newQuery(FieldIdentifier.COMPONENT_LABEL_ID, labelId), Occur.MUST) //
+        .build();
+    indexingContext.indexWriter.deleteDocuments(queryForObsoleteDocs);
+    Label label = labelDAO.getById(labelId);
+
+    if (label == null) {
+      return;
+    }
+    addDocsWithException(indexingContext.indexWriter, Collections.singletonList(buildDocument(indexingContext, label)));
   }
 
   private void updateIndexForApplication(String applicationId, IndexingContext indexingContext) throws IOException {

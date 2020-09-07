@@ -22,6 +22,8 @@ import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.SearchIndexChange;
+import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -261,5 +263,10 @@ public class LabelDAO
     validateLabelDescription(label.getDescription());
     validateLabelColor(label.getColor());
     super.update(tx, label);
+  }
+
+  @Override
+  protected SearchIndexChange newSearchIndexChange(Label entity) {
+    return new SearchIndexChange(ChangeType.LABEL, entity.getId());
   }
 }

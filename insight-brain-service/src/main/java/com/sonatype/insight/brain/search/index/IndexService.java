@@ -363,6 +363,9 @@ public class IndexService
       case LABEL:
         updateIndexForLabel(change.getChangeData(), indexingContext);
         break;
+      case POLICY:
+        updateIndexForPolicy(change.getChangeData(), indexingContext);
+        break;
       default:
         throw new IllegalArgumentException("Unknown change type: " + change.getChangeType());
     }
@@ -395,6 +398,22 @@ public class IndexService
       return;
     }
     addDocsWithException(indexingContext.indexWriter, Collections.singletonList(buildDocument(indexingContext, label)));
+  }
+
+  private void updateIndexForPolicy(String policyId, IndexingContext indexingContext)
+      throws IOException
+  {
+    Query queryForObsoleteDocs = new BooleanQuery.Builder() //
+        .add(indexingContext.newQuery(FieldIdentifier.POLICY_ID, policyId), Occur.MUST) //
+        .build();
+    indexingContext.indexWriter.deleteDocuments(queryForObsoleteDocs);
+    Policy policy = policyDAO.getById(policyId);
+
+    if (policy == null) {
+      return;
+    }
+    addDocsWithException(indexingContext.indexWriter,
+        Collections.singletonList(buildDocument(indexingContext, policy)));
   }
 
   private void updateIndexForApplication(String applicationId, IndexingContext indexingContext) throws IOException {

@@ -12,9 +12,14 @@ import java.util.Locale;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.SearchIndexChange;
+import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
@@ -490,5 +495,31 @@ public class PolicyDAOTest
       assertThat(policy).isNotNull();
       assertThat(policy.getId()).isEqualTo(policy2.getId());
     }
+  }
+
+  @Test
+  public void testCRUD_RecordSearchIndexChange() {
+    new SystemConfigurationPropertyDAO()
+        .update(new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true"));
+    Policy policy = tempEntity.newPolicy(application);
+
+    List<SearchIndexChange> searchIndexChanges = new SearchIndexChangeDAO().getAll();
+    assertThat(searchIndexChanges).hasSize(1);
+    assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.POLICY);
+    assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(policy.getId());
+    new SearchIndexChangeDAO().delete(searchIndexChanges.get(0));
+
+    policyDAO.update(policy);
+    searchIndexChanges = new SearchIndexChangeDAO().getAll();
+    assertThat(searchIndexChanges).hasSize(1);
+    assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.POLICY);
+    assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(policy.getId());
+    new SearchIndexChangeDAO().delete(searchIndexChanges.get(0));
+
+    policyDAO.delete(policy);
+    searchIndexChanges = new SearchIndexChangeDAO().getAll();
+    assertThat(searchIndexChanges).hasSize(1);
+    assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.POLICY);
+    assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(policy.getId());
   }
 }

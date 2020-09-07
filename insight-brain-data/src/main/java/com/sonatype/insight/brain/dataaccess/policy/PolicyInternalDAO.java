@@ -11,6 +11,8 @@ import java.util.List;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.SearchIndexChange;
+import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -99,5 +101,10 @@ public class PolicyInternalDAO
     }
 
     super.delete(tx, policy);
+  }
+
+  @Override
+  protected SearchIndexChange newSearchIndexChange(PolicyInternal entity) {
+    return new SearchIndexChange(ChangeType.POLICY, entity.getId());
   }
 }

@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
@@ -825,5 +826,36 @@ public class IndexSearchingTest
     assertThat(search(FieldIdentifier.COMPONENT_LABEL_NAME, label.getLabel())).isEmpty();
     assertThat(search(FieldIdentifier.COMPONENT_LABEL_DESCRIPTION, label.getDescription())).isEmpty();
     assertThat(search(FieldIdentifier.COMPONENT_LABEL_COLOR, label.getColor().toValue())).isEmpty();
+  }
+
+  @Test
+  public void testIncrementalUpdate_Policy() throws Exception {
+    index();
+
+    // Add policy
+    String policyName = "policyName";
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, policyName);
+
+    indexChanges();
+    List<SearchResultItemDTO> searchResults = search(FieldIdentifier.POLICY_NAME, policyName);
+    assertThat(searchResults).hasSize(1);
+    assertPolicyData(searchResults.get(0), policy);
+
+    // Update policy
+    policy.setName("NewPolicyName");
+    new PolicyDAO().update(policy);
+    indexChanges();
+    // Verify the new values are in the index
+    searchResults = search(FieldIdentifier.POLICY_NAME, policy.getName());
+    assertThat(searchResults).hasSize(1);
+    assertPolicyData(searchResults.get(0), policy);
+    // Verify the old values were removed from the index
+    assertThat(search(FieldIdentifier.POLICY_NAME, policyName)).isEmpty();
+
+    // Delete policy
+    new PolicyDAO().delete(policy);
+    indexChanges();
+    assertThat(search(FieldIdentifier.POLICY_ID, policy.getId())).isEmpty();
+    assertThat(search(FieldIdentifier.POLICY_NAME, policy.getName())).isEmpty();
   }
 }

@@ -54,6 +54,7 @@ resource "aws_instance" "perftest" {
   ]
 
   instance_type = "m5d.2xlarge"
+  tenancy = "dedicated"
 
   tags = {
     Name           = "perf-eng-lifecycle-test"

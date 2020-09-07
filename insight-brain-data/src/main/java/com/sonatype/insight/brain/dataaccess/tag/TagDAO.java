@@ -19,6 +19,8 @@ import com.sonatype.insight.brain.model.DescriptionHelper;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.SearchIndexChange;
+import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -225,5 +227,10 @@ public class TagDAO
     }
 
     super.delete(tx, tag);
+  }
+
+  @Override
+  protected SearchIndexChange newSearchIndexChange(Tag entity) {
+    return new SearchIndexChange(ChangeType.APPLICATION_CATEGORY, entity.getId());
   }
 }

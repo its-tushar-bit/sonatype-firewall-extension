@@ -15,6 +15,8 @@ import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
@@ -24,6 +26,9 @@ import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.SearchIndexChange;
+import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -541,6 +546,32 @@ public class TagDAOTest
   @Test
   public void testGetByApplicationIds_Empty() {
     assertThat(dao.getByApplicationIds(Collections.emptyList())).isEmpty();
+  }
+
+  @Test
+  public void testCRUD_RecordSearchIndexChange() {
+    new SystemConfigurationPropertyDAO()
+        .update(new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true"));
+    Tag tag = tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID);
+
+    List<SearchIndexChange> searchIndexChanges = new SearchIndexChangeDAO().getAll();
+    assertThat(searchIndexChanges).hasSize(1);
+    assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.APPLICATION_CATEGORY);
+    assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(tag.getId());
+    new SearchIndexChangeDAO().delete(searchIndexChanges.get(0));
+
+    dao.update(tag);
+    searchIndexChanges = new SearchIndexChangeDAO().getAll();
+    assertThat(searchIndexChanges).hasSize(1);
+    assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.APPLICATION_CATEGORY);
+    assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(tag.getId());
+    new SearchIndexChangeDAO().delete(searchIndexChanges.get(0));
+
+    dao.delete(tag);
+    searchIndexChanges = new SearchIndexChangeDAO().getAll();
+    assertThat(searchIndexChanges).hasSize(1);
+    assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.APPLICATION_CATEGORY);
+    assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(tag.getId());
   }
 
   private void assertInsertTagWithDuplicateName(String orgId, String tagName, Organization expectedOrg) {

@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
@@ -857,5 +858,46 @@ public class IndexSearchingTest
     indexChanges();
     assertThat(search(FieldIdentifier.POLICY_ID, policy.getId())).isEmpty();
     assertThat(search(FieldIdentifier.POLICY_NAME, policy.getName())).isEmpty();
+  }
+
+  @Test
+  public void testIncrementalUpdate_Tag() throws Exception {
+    index();
+    String tagName = "tagName";
+    String tagDescription = "tagDescription";
+    Color tagColor = Color.dark_blue;
+
+    // Add application category
+    Tag tag = tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID, tagName, tagDescription, tagColor);
+    indexChanges();
+    List<SearchResultItemDTO> searchResults = search(FieldIdentifier.APPLICATION_CATEGORY_NAME, tag.getName());
+    assertThat(searchResults).hasSize(1);
+    assertApplicationCategoryData(searchResults.get(0), tag);
+
+    // Update application category
+    String oldTagName = tag.getName();
+    Color oldTagColor = tag.getColor();
+    String oldTagDescription = tag.getDescription();
+    tag.setName("NewTagName");
+    tag.setDescription("NewTagDescription");
+    tag.setColor(Color.dark_green);
+    new TagDAO().update(tag);
+    indexChanges();
+    // Verify the new values are in the index
+    searchResults = search(FieldIdentifier.APPLICATION_CATEGORY_NAME, tag.getName());
+    assertThat(searchResults).hasSize(1);
+    assertApplicationCategoryData(searchResults.get(0), tag);
+    // Verify the old values were removed from the index
+    assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_NAME, oldTagName)).isEmpty();
+    assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_COLOR, oldTagColor.toValue())).isEmpty();
+    assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_DESCRIPTION, oldTagDescription)).isEmpty();
+
+    // Delete application category
+    new TagDAO().delete(tag);
+    indexChanges();
+    assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_ID, tag.getId())).isEmpty();
+    assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_NAME, tag.getName())).isEmpty();
+    assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_DESCRIPTION, tag.getDescription())).isEmpty();
+    assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_COLOR, tag.getColor().toValue())).isEmpty();
   }
 }

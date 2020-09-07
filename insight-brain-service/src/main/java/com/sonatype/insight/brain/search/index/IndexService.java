@@ -366,6 +366,9 @@ public class IndexService
       case POLICY:
         updateIndexForPolicy(change.getChangeData(), indexingContext);
         break;
+      case APPLICATION_CATEGORY:
+        updateIndexForApplicationCategory(change.getChangeData(), indexingContext);
+        break;
       default:
         throw new IllegalArgumentException("Unknown change type: " + change.getChangeType());
     }
@@ -414,6 +417,21 @@ public class IndexService
     }
     addDocsWithException(indexingContext.indexWriter,
         Collections.singletonList(buildDocument(indexingContext, policy)));
+  }
+
+  private void updateIndexForApplicationCategory(String tagId, IndexingContext indexingContext)
+      throws IOException
+  {
+    Query queryForObsoleteDocs = new BooleanQuery.Builder() //
+        .add(indexingContext.newQuery(FieldIdentifier.APPLICATION_CATEGORY_ID, tagId), Occur.MUST) //
+        .build();
+    indexingContext.indexWriter.deleteDocuments(queryForObsoleteDocs);
+    Tag tag = tagDAO.getById(tagId);
+
+    if (tag == null) {
+      return;
+    }
+    addDocsWithException(indexingContext.indexWriter, Collections.singletonList(buildDocument(indexingContext, tag)));
   }
 
   private void updateIndexForApplication(String applicationId, IndexingContext indexingContext) throws IOException {

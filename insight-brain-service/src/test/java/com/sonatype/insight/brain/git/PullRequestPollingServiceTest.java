@@ -21,7 +21,6 @@ import com.sonatype.insight.brain.git.event.SourceControlEventService;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -176,25 +175,6 @@ public class PullRequestPollingServiceTest
         debug("Fetched 1 pull request(s) for org 'orgInt' since " + pullRequestPollingTime),
         info("Sent pull request discovered event for application 'app1' with PR# '10' and policy evaluation 'spe1'"),
         debug("Pull request polling time updated for 'orgInt/repoInt'")
-    );
-  }
-
-  @Test
-  public void testFetchAndSendPullRequestsForCommenting_featureFlagOff() throws Exception {
-    // given:
-    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
-        .forRepository("app1", "orgFfo/repoFfo", SourceControlProvider.GITLAB)
-        .withExperimentalFeatureFlag(false)
-        .build();
-
-    // when: fetch and send
-    pollingService.fetchAndSendPullRequestsForCommenting();
-
-    // then: no events emitted
-    verify(mockSourceControlEventService, never()).publishEvent(any(SourceControlEvent.class));
-    assertThatLogMessagesEqual(
-        debug("GITLAB is not currently supported for pull request commenting on repository"
-            + " https://domain.com/orgFfo/repoFfo")
     );
   }
 
@@ -394,8 +374,6 @@ public class PullRequestPollingServiceTest
     @Mock
     private PullRequestRepositoryValidator mockPullRequestRepositoryValidator;
 
-    boolean mrCommenting = true;
-
     private Class<? extends Exception> thrownException;
 
     PullRequestPollingService build() throws IOException {
@@ -467,7 +445,7 @@ public class PullRequestPollingServiceTest
 
       return new PullRequestPollingService(mockSourceControlDAO, mockSourceControlEventService, mockPolicyEvaluationDAO,
           mockGitCommitHistoryService, mockSourceControlUtils, mockGitClientFactory,
-          mockPullRequestRepositoryValidator, getInsightConfig());
+          mockPullRequestRepositoryValidator);
     }
 
     private List<SourceControl> buildSourceControlList(MockRepo mockRepo) {
@@ -556,19 +534,6 @@ public class PullRequestPollingServiceTest
     TestablePullRequestPollingServiceBuilder withGitRepositoryInternal(boolean isGitRepositoryInternal) {
       currentMockRepo.isGitRepositoryInternal = isGitRepositoryInternal;
       return this;
-    }
-
-    TestablePullRequestPollingServiceBuilder withExperimentalFeatureFlag(boolean mrCommenting) {
-      this.mrCommenting = mrCommenting;
-      return this;
-    }
-
-    private InsightConfig getInsightConfig() {
-      InsightConfig insightConfig = new InsightConfig();
-      Map<String, Boolean> experimentalFeatures = new HashMap<>();
-      experimentalFeatures.put("mrCommenting", mrCommenting);
-      insightConfig.setExperimentalFeatures(experimentalFeatures);
-      return insightConfig;
     }
   }
 

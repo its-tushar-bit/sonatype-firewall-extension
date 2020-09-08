@@ -436,34 +436,6 @@ public class PullRequestCommentingServiceTest
   }
 
   @Test
-  public void testOnApplicationEvaluation_GitLabUnsupported() throws Exception {
-    testUnsupported(SourceControlProvider.GITLAB);
-  }
-
-  private void testUnsupported(final SourceControlProvider sourceControlProvider) throws Exception {
-    // given : app source control provider
-    PullRequestCommentingService commentingService = new TestablePullRequestCommentingServiceBuilder()
-        .withProvider(sourceControlProvider)
-        .withGitRepositoryEffectivelyPrivateThrows(UnsupportedOperationException.class)
-        .withExperimentalFeatureFlagEnabled(false)
-        .build();
-
-    ApplicationEvaluationEvent event = new ApplicationEvaluationEventBuilder()
-        .withApplicationId("app1")
-        .withPolicyEvaluationId("pe1")
-        .withCommitHash("commit789")
-        .build();
-
-    // when : process event
-    commentingService.onApplicationEvaluation(event);
-
-    // then : GitLab not supported yet
-    verify(mockPrCommentingMetricsService, never()).sendTelemetry(any());
-    assertThatLogMessagesEqual(debug(
-        String.format("'%s' not currently supported for pull request commenting", sourceControlProvider.toString())));
-  }
-
-  @Test
   public void testOnApplicationEvaluation_RepositoryNotPrivate() throws Exception {
     // given : all the necessary pieces to create a PR comment
     String commentText = "at least one new policy violation";
@@ -724,27 +696,6 @@ public class PullRequestCommentingServiceTest
   }
 
   @Test
-  public void testOnApplicationEvaluation_experimentalFeatureFlagOff() throws Exception {
-    // given : all the necessary pieces to create a PR comment
-    PullRequestCommentingService commentingService = new TestablePullRequestCommentingServiceBuilder()
-        .withProvider(SourceControlProvider.GITLAB)
-        .withExperimentalFeatureFlagEnabled(false)
-        .build();
-
-    ApplicationEvaluationEvent event = new ApplicationEvaluationEventBuilder()
-        .withApplicationId("app1")
-        .withPolicyEvaluationId("sourcePe")
-        .withCommitHash("sourceCommit")
-        .build();
-
-    // when : process event
-    commentingService.onApplicationEvaluation(event);
-
-    // then : no source control event should be created
-    verify(mockSourceControlEventDAO, never()).insert(any());
-  }
-
-  @Test
   public void testPostCommentActionsInvoked() throws Exception {
     // given : all the necessary pieces to create a PR comment with post comment actions
     PullRequestPostCommentAction postAction1 = mock(PullRequestPostCommentAction.class);
@@ -898,8 +849,6 @@ public class PullRequestCommentingServiceTest
 
     private boolean featureFlagEnabled = true;
 
-    private boolean experimentalFeatureFlag = true;
-
     private LocationDiscoveryResult locationDiscoveryResult = new LocationDiscoveryResult();
 
     PullRequestCommentingService build() throws Exception {
@@ -985,7 +934,7 @@ public class PullRequestCommentingServiceTest
           testProductLicense,
           mockPullRequestRepositoryValidator,
           mockPolicyEvaluationDiffService,
-          getInsightConfig(featureFlagEnabled, experimentalFeatureFlag),
+          getInsightConfig(featureFlagEnabled),
           pullRequestLineCommentingService,
           mockHashBuilderProvider,
           pullRequestPostCommentActionList,
@@ -995,11 +944,6 @@ public class PullRequestCommentingServiceTest
 
     TestablePullRequestCommentingServiceBuilder withFeatureFlagEnabled(boolean featureFlagEnabled) {
       this.featureFlagEnabled = featureFlagEnabled;
-      return this;
-    }
-
-    TestablePullRequestCommentingServiceBuilder withExperimentalFeatureFlagEnabled(boolean experimentalFeatureFlag) {
-      this.experimentalFeatureFlag = experimentalFeatureFlag;
       return this;
     }
 
@@ -1175,14 +1119,11 @@ public class PullRequestCommentingServiceTest
       return this;
     }
 
-    private InsightConfig getInsightConfig(boolean enableFeatureFlag, boolean enableExperimentalFeatureFlag) {
+    private InsightConfig getInsightConfig(boolean enableFeatureFlag) {
       InsightConfig config = new InsightConfig();
       Map<String, Boolean> features = new HashMap<>();
       features.put(Feature.PR_COMMENTING.getFlag(), enableFeatureFlag);
       config.setFeatures(features);
-      Map<String, Boolean> experimentalFeatures = new HashMap<>();
-      experimentalFeatures.put("mrCommenting", enableExperimentalFeatureFlag);
-      config.setExperimentalFeatures(experimentalFeatures);
       return config;
     }
   }

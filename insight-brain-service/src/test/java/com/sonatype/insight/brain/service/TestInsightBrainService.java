@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
 import com.sonatype.insight.brain.product.notifications.HdsProductNotificationService;
 import com.sonatype.insight.brain.report.ReportPurger;
+import com.sonatype.insight.brain.scan.PersistedScanTicketCleaner;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.security.PasswordHandler;
@@ -302,6 +303,7 @@ public class TestInsightBrainService
     getInstance(IndexService.class).disableForTesting = true;
     getInstance(PersistedPolicyEvaluationPollingResultCleaner.class).disableForTesting = true;
     getInstance(PersistedPromoteScanResultCleaner.class).disableForTesting = true;
+    getInstance(PersistedScanTicketCleaner.class).disableForTesting = true;
   }
 
   @Override

@@ -11,16 +11,13 @@ import java.io.InputStream;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import com.google.inject.Binder;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 public class ScanServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -30,13 +27,6 @@ public class ScanServiceAuthzTest
 
   private InputStream getBundle() {
     return new ByteArrayInputStream(new byte[0]);
-  }
-
-  @Override
-  public void configure(Binder binder) {
-    super.configure(binder);
-    binder.bind(ScanUploader.class).toInstance(Mockito.mock(ScanUploader.class));
-    binder.bind(ScanTask.class).toProvider(() -> Mockito.mock(ScanTask.class, Mockito.RETURNS_SMART_NULLS));
   }
 
   @Test(expected = UnauthenticatedException.class)

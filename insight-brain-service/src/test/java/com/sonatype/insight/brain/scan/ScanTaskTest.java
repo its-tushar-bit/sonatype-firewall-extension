@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.brain.dataaccess.scan.PersistedScanTicketDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
@@ -66,7 +67,7 @@ public class ScanTaskTest
 
   private ScanTask task =
       new ScanTask(scanner, uploader, scanPolicyEvaluator, notifier, work, fileCleaner, proprietaryConfigService,
-           thirdPartyScanService);
+           thirdPartyScanService, new PersistedScanTicketDAO());
 
   private Application app = newApp("public-app-id");
 
@@ -146,22 +147,20 @@ public class ScanTaskTest
    * hence interrupt the app (reloading the page) and browser history.
    */
   @Test
-  public void successfulTaskHasTicketWithIdsForUiToRouteToReport() {
+  public void successfulTaskHasIdsForUiToRouteToReport() {
     task.init(app, bundleFile, bundleFilename, stage, false, null, null);
     task.run();
 
     assertThatTaskCompletedSuccessfully(task);
 
-    ScanTicket ticket = task.getTicket();
-    assertThat(ticket.error).isNull();
-    assertThat(ticket.applicationPublicId).isEqualTo(app.getPublicId());
-    assertThat(ticket.scanId).isEqualTo(scanReceipt.getScanId());
-    assertThat(ticket.currentStep).isEqualTo(ticket.totalSteps);
-    assertThat(ticket.currentStepName).isEqualTo("Done");
+    assertThat(task.getError()).isNull();
+    assertThat(task.getErrorId()).isNull();
+    assertThat(task.getScanId()).isEqualTo(scanReceipt.getScanId());
+    assertThat(task.getState()).isEqualTo(State.DONE);
   }
 
   @Test
-  public void erorredTaskHasTicketWithErrorMessage() throws IOException {
+  public void erorredTaskHasErrorMessage() throws IOException {
     task.init(app, bundleFile, bundleFilename, stage, false, null, null);
 
     when(scanner.scan(any(File.class), any(String.class), any(File.class), eq(null)))
@@ -172,11 +171,10 @@ public class ScanTaskTest
 
     assertThatTaskCompletedUnsuccessfully(task);
 
-    ScanTicket ticket = task.getTicket();
-    assertThat(ticket.error).isNotNull();
-    assertThat(ticket.scanId).isNull();
-    assertThat(ticket.currentStep).isEqualTo(ticket.totalSteps);
-    assertThat(ticket.currentStepName).isEqualTo("Done");
+    assertThat(task.getError()).isNotNull();
+    assertThat(task.getErrorId()).isNotNull();
+    assertThat(task.getScanId()).isNull();
+    assertThat(task.getState()).isEqualTo(State.DONE);
   }
 
   @Test

@@ -66,6 +66,7 @@
     <class>com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult</class>
     <class>com.sonatype.insight.brain.model.security.PersistedUserSession</class>
     <class>com.sonatype.insight.brain.model.policy.PersistedPromoteScanResult</class>
+    <class>com.sonatype.insight.brain.model.scan.PersistedScanTicket</class>
     <properties>
       <!--
       <property name="openjpa.ConnectionURL" value="jdbc:hsqldb:tutorial_database"/>

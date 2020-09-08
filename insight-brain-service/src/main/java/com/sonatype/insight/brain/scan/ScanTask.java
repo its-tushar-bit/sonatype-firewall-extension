@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.scan;
 
 import java.io.File;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -18,9 +17,11 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
+import com.sonatype.insight.brain.dataaccess.scan.PersistedScanTicketDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.scan.PersistedScanTicket;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluatorResults;
@@ -37,7 +38,7 @@ import static com.sonatype.insight.brain.telemetry.TelemetryUtils.buildThirdPart
 
 /**
  * Worker task to process a single application bundle.
- * 
+ *
  * @since 1.8
  */
 @Named
@@ -49,7 +50,7 @@ class ScanTask
     PENDING("Queued"), SCANNING_COMPONENTS("Fingerprinting components"),
     // Treat uploading and waiting as the same state for user display
     UPLOADING_SCAN("Analyzing components"), WAITING_FOR_REPORT("Analyzing components"), EVALUATING_POLICY(
-        "Evaluating policy"), DONE("Done");
+      "Evaluating policy"), DONE("Done");
 
     private final String displayText;
 
@@ -85,6 +86,8 @@ class ScanTask
 
   private final InsightWork work;
 
+  private final PersistedScanTicketDAO persistedScanTicketDAO;
+
   private FileCleaner fileCleaner;
 
   private final ProprietaryConfigService proprietaryConfigService;
@@ -115,8 +118,6 @@ class ScanTask
 
   private volatile String scanId;
 
-  private volatile long touched;
-
   @Inject
   public ScanTask(
       Scanner scanner,
@@ -126,7 +127,8 @@ class ScanTask
       InsightWork work,
       FileCleaner fileCleaner,
       ProprietaryConfigService proprietaryConfigService,
-      ThirdPartyScanService thirdPartyScanService)
+      ThirdPartyScanService thirdPartyScanService,
+      PersistedScanTicketDAO persistedScanTicketDAO)
   {
     this.scanner = scanner;
     this.uploader = uploader;
@@ -136,6 +138,7 @@ class ScanTask
     this.fileCleaner = fileCleaner;
     this.proprietaryConfigService = proprietaryConfigService;
     this.thirdPartyScanService = thirdPartyScanService;
+    this.persistedScanTicketDAO = persistedScanTicketDAO;
     id = UUID.randomUUID().toString().replace("-", "");
   }
 
@@ -164,39 +167,34 @@ class ScanTask
     return id;
   }
 
+  public Application getApp() {
+    return app;
+  }
+
   public State getState() {
     return state;
   }
 
-  /**
-   * Creates a {@link ScanTicket} representing the current state of the task.
-   */
-  public ScanTicket getTicket() {
-    ScanTicket ticket = new ScanTicket();
-
-    state.provideStepInfo(ticket);
-
-    ticket.ticketId = id;
-    ticket.applicationPublicId = app.getPublicId();
-    ticket.scanId = scanId;
-
-    if (error != null) {
-      ticket.error = "An error occurred, and the application you uploaded has not been evaluated. "
-          + "Please contact your IT Administrator for troubleshooting options. Error ID " + errorId
-          + " - Access Nexus IQ Server log for details.";
-    }
-
-    touched = System.currentTimeMillis();
-
-    return ticket;
+  public String getScanId() {
+    return scanId;
   }
 
   public Exception getError() {
     return error;
   }
 
-  public boolean isObsolete() {
-    return System.currentTimeMillis() - touched > TimeUnit.MINUTES.toMillis(30);
+  public String getErrorId() {
+    return errorId;
+  }
+
+  public PersistedScanTicket toPersistedScanTicket() {
+    PersistedScanTicket persistedScanTicket = new PersistedScanTicket();
+    persistedScanTicket.setId(id);
+    persistedScanTicket.setApplicationId(app.getId());
+    persistedScanTicket.setScanId(scanId);
+    persistedScanTicket.setStateId(state.name());
+    persistedScanTicket.setErrorId(errorId);
+    return persistedScanTicket;
   }
 
   @Override
@@ -212,12 +210,14 @@ class ScanTask
 
       // create the scan data
       state = State.SCANNING_COMPONENTS;
+      persistedScanTicketDAO.update(toPersistedScanTicket());
       ProprietaryConfig proprietaryConfig = proprietaryConfigService.getProprietaryConfig(OwnerType.APPLICATION,
           app.getPublicId());
       ScanResult scanResult = scanner.scan(binFile, filename, work.getScanDir(app.getId()), proprietaryConfig);
 
       // upload the scan
       state = State.UPLOADING_SCAN;
+      persistedScanTicketDAO.update(toPersistedScanTicket());
 
       ScanReceipt scanReceipt;
       if (scanResult != null && scanResult.hasThirdPartyScanContent()) {
@@ -234,10 +234,12 @@ class ScanTask
 
       // wait for the report
       state = State.WAITING_FOR_REPORT;
+      persistedScanTicketDAO.update(toPersistedScanTicket());
       scanReceipt.waitForReport();
 
       // get report/perform evaluation
       state = State.EVALUATING_POLICY;
+      persistedScanTicketDAO.update(toPersistedScanTicket());
       // The ScanPolicyEvaluator will fetch the report if it's not there
       ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(app, scanReceipt.getScanId(), stage);
       if (sendNotifications) {
@@ -246,11 +248,13 @@ class ScanTask
 
       // provide report/scanId once evaluation is completed successfully
       scanId = scanReceipt.getScanId();
+      persistedScanTicketDAO.update(toPersistedScanTicket());
     }
     catch (Exception e) {
       AuditData.get().setException(e);
       error = e;
       errorId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+      persistedScanTicketDAO.update(toPersistedScanTicket());
 
       log.error("Failed to evaluate policies on uploaded binary for application {} (Error ID {})", appPublicId,
           errorId, e);
@@ -264,6 +268,7 @@ class ScanTask
     }
     finally {
       state = State.DONE;
+      persistedScanTicketDAO.update(toPersistedScanTicket());
 
       // remove the uploaded scanned app binary, user can resubmit if there was an error
       try {

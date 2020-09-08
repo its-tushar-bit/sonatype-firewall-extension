@@ -68,6 +68,7 @@ import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.dataaccess.scan.PersistedScanTicketDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
@@ -337,6 +338,8 @@ public class TemporaryEntity
 
   private final InnerSourceComponentDAO innerSourceComponentDAO = new InnerSourceComponentDAO();
 
+  private final PersistedScanTicketDAO persistedScanTicketDAO = new PersistedScanTicketDAO();
+
   private MailConfiguration savedMailConfiguration;
 
   private Collection<MigrationTracker> migrationTrackers;
@@ -498,6 +501,7 @@ public class TemporaryEntity
     firewallIgnorePatternsDAO.update(new FirewallIgnorePatterns());
     persistedPolicyEvaluationPollingResultDAO.deleteAll();
     persistedPromoteScanResultDAO.getAll().forEach(persistedPromoteScanResultDAO::delete);
+    persistedScanTicketDAO.getAll().forEach(persistedScanTicketDAO::delete);
 
     ProprietaryConfig config = proprietaryConfigDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
     if (config != null) {

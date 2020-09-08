@@ -12,6 +12,7 @@ import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.brain.dataaccess.scan.PersistedScanTicketDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
@@ -59,21 +60,22 @@ public class ScanTaskStateTest
   private ThirdPartyScanService thirdPartyScanService = mock(ThirdPartyScanService.class);
 
   ScanTask task = new ScanTask(scanner, uploader, scanPolicyEvaluator, notifier, work, fileCleaner,
-      proprietaryConfigService, thirdPartyScanService);
+      proprietaryConfigService, thirdPartyScanService, new PersistedScanTicketDAO());
 
   TaskStateCapturer captureState = new TaskStateCapturer();
 
   @Before
   public void init() throws Exception {
     File binFile = new File("any");
-    task.init(new Application("any", "MyApp", null), binFile, "any", new Stage(Stage.ID_BUILD), false, "", "");
+    Application application = new Application("any", "MyApp", null);
+    application.setId("appId");
+    task.init(application, binFile, "any", new Stage(Stage.ID_BUILD), false, "", "");
     when(scanner.scan(any(), any(), any(), any())).thenReturn(new ScanResult(binFile, false));
   }
 
   @Test
   public void notStarted() {
     assertThat(task.getState()).as("ScanTask state when not started").isEqualTo(ScanTask.State.PENDING);
-    assertThat(task.getTicket().currentStep).isEqualTo(0);
   }
 
   @Test

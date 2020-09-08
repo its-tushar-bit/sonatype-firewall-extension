@@ -13,12 +13,16 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.dataaccess.scan.PersistedScanTicketDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
+import com.sonatype.insight.brain.model.scan.PersistedScanTicket;
 import com.sonatype.insight.brain.report.ReportDownloader;
+import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.utils.ReportHelper;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.inject.Binder;
 import org.codehaus.plexus.util.FileUtils;
@@ -37,14 +41,14 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 
-/**
- * Also see {@link ScanServiceUnitTest}.
- */
 public class ScanServiceTest
     extends AbstractComponentTest
 {
   @Inject
   private ScanService scanService;
+
+  @Inject
+  private PersistedScanTicketDAO persistedScanTicketDAO;
 
   @Mock
   private ScanUploader scanUploader;
@@ -147,5 +151,24 @@ public class ScanServiceTest
       scanService
           .scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage("invalid-stage-id"), false, null, null);
     }).withMessageContaining("invalid-stage-id");
+  }
+
+  @Test
+  public void testGetTicket_NotFound() {
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> scanService.getTicket("appPublicId", "doesNotExist"))
+        .withMessageContaining("Cannot find ScanTicket with ID doesNotExist.");
+  }
+
+  @Test
+  public void testGetTicket_DeletesIfDone() {
+    PersistedScanTicket persistedScanTicket = new PersistedScanTicket();
+    persistedScanTicket.setApplicationId(app.getId());
+    persistedScanTicket.setStateId(State.DONE.name());
+    persistedScanTicketDAO.insert(persistedScanTicket);
+
+    scanService.getTicket(app.getPublicId(), persistedScanTicket.getId());
+
+    assertThat(persistedScanTicketDAO.getById(persistedScanTicket.getId())).isNull();
   }
 }

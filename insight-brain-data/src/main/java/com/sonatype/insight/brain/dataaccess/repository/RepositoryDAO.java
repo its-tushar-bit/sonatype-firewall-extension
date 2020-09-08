@@ -9,7 +9,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
-import com.sonatype.insight.brain.dataaccess.LockedTransactionContext;
+import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -190,7 +190,7 @@ public class RepositoryDAO
     new RepositoryComponentDAO().deleteByRepositoryId(tx, repository.getId());
 
     // Cascade to repository reevaluation locks
-    LockedTransactionContext.deleteForRepositoryReevaluation(tx, repository);
+    ClusterLock.deleteForRepositoryReevaluation(tx, repository);
 
     long duration = System.currentTimeMillis() - start;
     if (duration > 1000) {

@@ -10,7 +10,7 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
-import com.sonatype.insight.brain.dataaccess.LockedTransactionContext;
+import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
@@ -198,20 +198,20 @@ public class RepositoryDAOTest
   private void testCascadeDeleteToRepositoryComponentLocks() {
     Repository repository = tempEntity.newRepository();
     RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
-    LockedTransactionContext.createForRepositoryComponent(repository.getId(), repositoryComponent.getPathname())
+    ClusterLock.createForRepositoryComponent(repository.getId(), repositoryComponent.getPathname())
         .close();
     String orphanComponentPathname = "orphanComponentPathname";
-    LockedTransactionContext.createForRepositoryComponent(repository.getId(), orphanComponentPathname).close();
-    assertThat(LockedTransactionContext.lockExists(LockedTransactionContext
+    ClusterLock.createForRepositoryComponent(repository.getId(), orphanComponentPathname).close();
+    assertThat(ClusterLock.lockExists(ClusterLock
         .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent.getPathname()))).isTrue();
-    assertThat(LockedTransactionContext.lockExists(LockedTransactionContext
+    assertThat(ClusterLock.lockExists(ClusterLock
         .getLockIdForRepositoryComponent(repository.getId(), orphanComponentPathname))).isTrue();
 
     new RepositoryDAO().delete(repository);
 
-    assertThat(LockedTransactionContext.lockExists(LockedTransactionContext
+    assertThat(ClusterLock.lockExists(ClusterLock
         .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent.getPathname()))).isFalse();
-    assertThat(LockedTransactionContext.lockExists(LockedTransactionContext
+    assertThat(ClusterLock.lockExists(ClusterLock
         .getLockIdForRepositoryComponent(repository.getId(), orphanComponentPathname))).isFalse();
   }
 
@@ -234,14 +234,14 @@ public class RepositoryDAOTest
 
   private void testCascadeDeleteToRepositoryReevaluationLocks() {
     Repository repository = tempEntity.newRepository();
-    LockedTransactionContext.createForRepositoryReevaluation(repository);
-    assertThat(LockedTransactionContext
-        .lockExists(LockedTransactionContext.getLockIdForRepositoryReevaluation(repository))).isTrue();
+    ClusterLock.createForRepositoryReevaluation(repository);
+    assertThat(ClusterLock
+        .lockExists(ClusterLock.getLockIdForRepositoryReevaluation(repository))).isTrue();
 
     new RepositoryDAO().delete(repository);
 
-    assertThat(LockedTransactionContext
-        .lockExists(LockedTransactionContext.getLockIdForRepositoryReevaluation(repository))).isFalse();
+    assertThat(ClusterLock
+        .lockExists(ClusterLock.getLockIdForRepositoryReevaluation(repository))).isFalse();
   }
 
   @Test

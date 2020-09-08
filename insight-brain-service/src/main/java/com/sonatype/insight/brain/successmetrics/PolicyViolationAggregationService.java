@@ -25,7 +25,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dashboard.DashboardUtils;
-import com.sonatype.insight.brain.dataaccess.LockedTransactionContext;
+import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
@@ -41,7 +41,6 @@ import com.sonatype.insight.brain.model.successmetrics.TimePeriod;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationComparator;
 import com.sonatype.insight.brain.utils.ThreatLevel;
-import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
@@ -115,9 +114,8 @@ public class PolicyViolationAggregationService
     Set<String> stageTypeIds = getStageTypeIds();
 
     for (String applicationId : applicationIds) {
-      try (TransactionContext tx = LockedTransactionContext.createForPolicyViolationAggregations(applicationId)) {
-        // Begin the transaction only to acquire the lock
-        tx.begin();
+      try (ClusterLock clusterLock = ClusterLock.createForPolicyViolationAggregations(applicationId)) {
+        clusterLock.lock();
 
         generatePolicyViolationAggregations(applicationId, currentDateTime, stageTypeIds, includeLatestData);
       }

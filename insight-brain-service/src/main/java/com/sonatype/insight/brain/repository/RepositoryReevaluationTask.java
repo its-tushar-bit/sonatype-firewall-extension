@@ -15,7 +15,7 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
-import com.sonatype.insight.brain.dataaccess.LockedTransactionContext;
+import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -51,10 +51,10 @@ public class RepositoryReevaluationTask
 
   @Override
   public void run() {
-    LockedTransactionContext tx = null;
+    ClusterLock clusterLock = null;
     try {
-      tx = LockedTransactionContext.createForRepositoryReevaluation(repository);
-      if (tx.tryBegin()) {
+      clusterLock = ClusterLock.createForRepositoryReevaluation(repository);
+      if (clusterLock.tryLock()) {
         log.debug("Starting re-evaluation for repository {}:{} ({})", repository.getRepositoryManagerId(),
             repository.getPublicId(), repository.getId());
         List<RepositoryComponent> repositoryComponentsList =
@@ -65,7 +65,7 @@ public class RepositoryReevaluationTask
             .setData("evaluationCause", RepositoryComponentEvaluationDataRequestList.REEVALUATION);
 
         if (!repositoryComponents.hasNext()) {
-          tx.close();
+          clusterLock.unlock();
         }
 
         int componentCount = 0;
@@ -79,7 +79,7 @@ public class RepositoryReevaluationTask
           try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.EVALUATE_REPOSITORY, true)) {
             AuditData.get().setRepository(repository).setData("componentCount", request.components.size())
                 .setData("evaluationCause", RepositoryComponentEvaluationDataRequestList.REEVALUATION)
-                .continueAsync(executor, new PolicyEvaluationTask(request, activeTasks, tx));
+                .continueAsync(executor, new PolicyEvaluationTask(request, activeTasks, clusterLock));
           }
         }
         log.debug("Enqueued {} components of repository {}:{} ({}) for re-evaluation", componentCount,
@@ -88,15 +88,15 @@ public class RepositoryReevaluationTask
       else {
         log.debug("Skipping, re-evaluation for repository {}:{} ({}) is already in progress",
             repository.getRepositoryManagerId(), repository.getPublicId(), repository.getId());
-        tx.close();
+        clusterLock.unlock();
       }
     }
     catch (Exception e) {
       log.error("An error occurred while re-evaluating repository {}:{} ({})", repository.getRepositoryManagerId(),
           repository.getPublicId(), repository.getId(), e);
       AuditData.get().setException(e);
-      if (tx != null) {
-        tx.close();
+      if (clusterLock != null) {
+        clusterLock.unlock();
       }
     }
   }
@@ -123,16 +123,16 @@ public class RepositoryReevaluationTask
 
     private final AtomicInteger activeTasks;
 
-    private final LockedTransactionContext tx;
+    private final ClusterLock clusterLock;
 
     PolicyEvaluationTask(
         RepositoryComponentEvaluationDataRequestList request,
         AtomicInteger activeTasks,
-        LockedTransactionContext tx)
+        ClusterLock clusterLock)
     {
       this.request = request;
       this.activeTasks = activeTasks;
-      this.tx = tx;
+      this.clusterLock = clusterLock;
     }
 
     @Override
@@ -151,7 +151,7 @@ public class RepositoryReevaluationTask
         if (activeTasks.decrementAndGet() == 0) {
           log.debug("Completed re-evaluation of repository {}:{} ({})", repository.getRepositoryManagerId(),
               repository.getPublicId(), repository.getId());
-          tx.close();
+          clusterLock.unlock();
         }
       }
     }

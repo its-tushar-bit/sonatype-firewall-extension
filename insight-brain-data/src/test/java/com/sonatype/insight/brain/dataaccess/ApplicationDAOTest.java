@@ -867,27 +867,27 @@ public class ApplicationDAOTest
   @Test
   public void testCascadeDeleteToLocks_H2() {
     // Lock for policy violations
-    try (TransactionContext tx = LockedTransactionContext.createForPolicyViolations(application)) {
-      tx.begin();
+    try (ClusterLock clusterLock = ClusterLock.createForPolicyViolations(application)) {
+      clusterLock.lock();
     }
     assertThat(
-        LockedTransactionContext.LOCKS_BY_ID.get(LockedTransactionContext.getLockIdForPolicyViolations(application)))
+        ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForPolicyViolations(application)))
         .isNotNull();
 
     // Lock for policy violation aggregations
-    try (TransactionContext tx = LockedTransactionContext.createForPolicyViolationAggregations(application.getId())) {
-      tx.begin();
+    try (ClusterLock clusterLock = ClusterLock.createForPolicyViolationAggregations(application.getId())) {
+      clusterLock.lock();
     }
-    assertThat(LockedTransactionContext.LOCKS_BY_ID
-        .get(LockedTransactionContext.getLockIdForPolicyViolationAggregations(application.getId()))).isNotNull();
+    assertThat(ClusterLock.LOCKS_BY_ID
+        .get(ClusterLock.getLockIdForPolicyViolationAggregations(application.getId()))).isNotNull();
 
     applicationDAO.delete(application);
 
     assertThat(
-        LockedTransactionContext.LOCKS_BY_ID.get(LockedTransactionContext.getLockIdForPolicyViolations(application)))
+        ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForPolicyViolations(application)))
         .isNull();
-    assertThat(LockedTransactionContext.LOCKS_BY_ID
-        .get(LockedTransactionContext.getLockIdForPolicyViolationAggregations(application.getId()))).isNull();
+    assertThat(ClusterLock.LOCKS_BY_ID
+        .get(ClusterLock.getLockIdForPolicyViolationAggregations(application.getId()))).isNull();
   }
 
   @Test
@@ -900,22 +900,22 @@ public class ApplicationDAOTest
       Application application = tempEntity.newApplicationWithParent();
 
       // Lock for policy violations
-      try (TransactionContext tx = LockedTransactionContext.createForPolicyViolations(application)) {
-        tx.begin();
+      try (ClusterLock clusterLock = ClusterLock.createForPolicyViolations(application)) {
+        clusterLock.lock();
       }
-      assertThat(dao.getById(LockedTransactionContext.getLockIdForPolicyViolations(application))).isNotNull();
+      assertThat(dao.getById(ClusterLock.getLockIdForPolicyViolations(application))).isNotNull();
 
       // Lock for policy violation aggregations
-      try (TransactionContext tx = LockedTransactionContext.createForPolicyViolationAggregations(application.getId())) {
-        tx.begin();
+      try (ClusterLock clusterLock = ClusterLock.createForPolicyViolationAggregations(application.getId())) {
+        clusterLock.lock();
       }
-      assertThat(dao.getById(LockedTransactionContext.getLockIdForPolicyViolationAggregations(application.getId())))
+      assertThat(dao.getById(ClusterLock.getLockIdForPolicyViolationAggregations(application.getId())))
           .isNotNull();
 
       applicationDAO.delete(application);
 
-      assertThat(dao.getById(LockedTransactionContext.getLockIdForPolicyViolations(application))).isNull();
-      assertThat(dao.getById(LockedTransactionContext.getLockIdForPolicyViolationAggregations(application.getId())))
+      assertThat(dao.getById(ClusterLock.getLockIdForPolicyViolations(application))).isNull();
+      assertThat(dao.getById(ClusterLock.getLockIdForPolicyViolationAggregations(application.getId())))
           .isNull();
     }
     finally {

@@ -33,7 +33,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.component.ComponentDetailsAdapter;
-import com.sonatype.insight.brain.dataaccess.LockedTransactionContext;
+import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
@@ -221,8 +221,11 @@ public class RepositoryPolicyEvaluator
                                                        boolean canBeQuarantined)
   {
     RepositoryComponent repositoryComponent;
-    try (TransactionContext tx = LockedTransactionContext
-        .createForRepositoryComponent(repository.getId(), component.getPathnames().get(0))) {
+    try (
+        ClusterLock clusterLock =
+            ClusterLock.createForRepositoryComponent(repository.getId(), component.getPathnames().get(0));
+        TransactionContext tx = policyDAO.createTransactionContext()) {
+      clusterLock.lock();
       tx.begin();
 
       RepositoryPolicyViolationLogger policyViolationLogger =
@@ -250,6 +253,7 @@ public class RepositoryPolicyEvaluator
     String pathname = component.getPathnames().get(0);
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(tx,
         repository.getId(), pathname);
+    String repositoryComponentId = repositoryComponent == null ? null : repositoryComponent.getId();
     if (repositoryComponent != null && !repositoryComponent.getHash().equals(component.getHash())) {
       if (repositoryComponent.isQuarantined()) {
         try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.RESET_QUARANTINE, false)) {
@@ -257,10 +261,8 @@ public class RepositoryPolicyEvaluator
               .setData("componentPathname", repositoryComponent.getPathname());
         }
       }
-      repositoryComponentDAO.delete(tx, repositoryComponent);
-      repositoryComponent = null;
     }
-    if (repositoryComponent == null) {
+    if (repositoryComponent == null || !repositoryComponent.getHash().equals(component.getHash())) {
       boolean quarantine = canBeQuarantined && shouldQuarantine(policyResults.getActiveAlerts(), component);
       if (quarantine) {
         log.debug("Component {} in repository {}:{} ({}) was quarantined", pathname,
@@ -276,7 +278,13 @@ public class RepositoryPolicyEvaluator
               .getId(), evaluationTime);
       repositoryComponent.setQuarantineTime(quarantineTime);
       repositoryComponent.setAnalyzerFeaturesJson(JsonUtils.format(component.getAnalyzerFeatures()));
-      repositoryComponentDAO.insert(tx, repositoryComponent);
+      if (repositoryComponentId == null) {
+        repositoryComponentDAO.insert(tx, repositoryComponent);
+      }
+      else {
+        repositoryComponent.setId(repositoryComponentId);
+        repositoryComponentDAO.update(tx, repositoryComponent);
+      }
     }
     else {
       repositoryComponent.setHash(component.getHash());

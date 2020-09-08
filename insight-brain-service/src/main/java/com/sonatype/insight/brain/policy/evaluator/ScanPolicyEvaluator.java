@@ -37,7 +37,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentDisplayFilename;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
-import com.sonatype.insight.brain.dataaccess.LockedTransactionContext;
+import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -310,7 +310,9 @@ public class ScanPolicyEvaluator
     String appId = app.getId();
     long start = System.currentTimeMillis();
     PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
-    try (TransactionContext tx = LockedTransactionContext.createForPolicyViolations(app)) {
+    try (ClusterLock clusterLock = ClusterLock.createForPolicyViolations(app);
+        TransactionContext tx = policyEvaluationDAO.createTransactionContext()) {
+      clusterLock.lock();
       tx.begin();
       // Persist the policy evaluation
       boolean isReevaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, appId, scanId) != null;

@@ -355,8 +355,8 @@ public class ApplicationDAO
     new SourceControlEventDAO().deleteByApplicationId(tx, application.getId());
 
     // Cascade to locks
-    LockedTransactionContext.deleteForPolicyViolations(tx, application);
-    LockedTransactionContext.deleteForPolicyViolationAggregations(tx, application.getId());
+    ClusterLock.deleteForPolicyViolations(tx, application);
+    ClusterLock.deleteForPolicyViolationAggregations(tx, application.getId());
 
     super.delete(tx, application);
 

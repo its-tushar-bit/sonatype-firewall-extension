@@ -13,7 +13,7 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.LockedTransactionContext;
+import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -87,7 +87,9 @@ public class PolicyViolationGrandfatheringService
     Date now = new Date();
     ApplicationPolicyViolationLogger policyViolationLogger = policyViolationLoggerFactory.newLogger(now, app);
 
-    try (TransactionContext tx = LockedTransactionContext.createForPolicyViolations(app)) {
+    try (ClusterLock clusterLock = ClusterLock.createForPolicyViolations(app);
+        TransactionContext tx = policyViolationDAO.createTransactionContext()) {
+      clusterLock.lock();
       tx.begin();
       List<PolicyViolation> grandfatheredPolicyViolations = policyViolationDAO
           .getUnfixedGrandfatheredByApplicationId(tx, app.getId());
@@ -120,7 +122,9 @@ public class PolicyViolationGrandfatheringService
     Date now = new Date();
     ApplicationPolicyViolationLogger policyViolationLogger = policyViolationLoggerFactory.newLogger(now, app);
 
-    try (TransactionContext tx = LockedTransactionContext.createForPolicyViolations(app)) {
+    try (ClusterLock clusterLock = ClusterLock.createForPolicyViolations(app);
+        TransactionContext tx = policyViolationDAO.createTransactionContext()) {
+      clusterLock.lock();
       tx.begin();
       List<PolicyViolation> policyViolations = policyViolationDAO.getUnfixedByApplicationId(tx, app.getId());
       int changedPolicyViolationCount = 0;

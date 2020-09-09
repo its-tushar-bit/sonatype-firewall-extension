@@ -122,7 +122,8 @@ public class ApiCycloneDxServiceV2Test
     component.addComponent(createComponent(null, "jQuery", "3.2.1", "pkg:nuget/jQuery@3.2.1", "0babbbd2c221d24484f5",
         "CC0-1.0", "MIT", "Not-Supported"));
     component.addComponent(createComponent(null, "knockout.validation", "2.0.0-Pre",
-        "pkg:a-name/knockout.validation@2.0.0-Pre", "7c9933a349f37d5f3131", "MIT", "Not-Supported"));
+        "pkg:a-name/knockout.validation@2.0.0-Pre", "7c9933a349f37d5f3131", "MPL-1.1", "LGPL-2.1", "Apache-1.1",
+        "Apache-1.0", "LGPL-3.0", "Apache-2.0"));
 
     assertThat(bom.getComponents()).contains(component);
   }

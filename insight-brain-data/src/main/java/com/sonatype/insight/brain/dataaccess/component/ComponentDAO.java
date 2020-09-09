@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.ComponentInfo;
 import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
@@ -43,6 +44,7 @@ import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
+import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -141,9 +143,21 @@ public class ComponentDAO
 
   private void processJsonLicenseData(Component component, JsonNode jsonLicenseData) {
     List<String> declaredLicenseNames = JsonUtils.getStringListFromArray(jsonLicenseData.get("declaredLicenses"));
-    component.setDeclaredLicenseIds(multiLicenseNamesToLicenseIds(declaredLicenseNames));
+    Set<String> declaredMultiLicenseIds = getMultiLicenseIdsByNames(declaredLicenseNames);
+    component.setDeclaredMultiLicenseIds(declaredMultiLicenseIds);
+    component.setDeclaredLicenseIds(multiLicenseIdsToLicenseIds(declaredMultiLicenseIds));
+
     List<String> observedLicenseNames = JsonUtils.getStringListFromArray(jsonLicenseData.get("observedLicenses"));
-    component.setObservedLicenseIds(multiLicenseNamesToLicenseIds(observedLicenseNames));
+    Set<String> observedMultiLicenseIds = getMultiLicenseIdsByNames(observedLicenseNames);
+    component.setObservedMultiLicenseIds(observedMultiLicenseIds);
+    component.setObservedLicenseIds(multiLicenseIdsToLicenseIds(observedMultiLicenseIds));
+  }
+
+  private Set<String> getMultiLicenseIdsByNames(List<String> multiLicenseNames) {
+    return multiLicenseNames == null ? Collections.emptySet() : multiLicenseNames.stream()
+        .map(multiLicenseDAO::getByNameNotNull)
+        .map(MultiLicense::getId)
+        .collect(Collectors.toSet());
   }
 
   private void loadLicenseOverride(Component component) {
@@ -447,8 +461,14 @@ public class ComponentDAO
 
     if (component.getComponentIdentifier() != null) {
       loadLicenseOverride(component);
-      component.setDeclaredLicenseIds(multiLicenseIdsToLicenseIds(componentInfo.getDeclaredLicenseIds()));
-      component.setObservedLicenseIds(multiLicenseIdsToLicenseIds(componentInfo.getObservedLicenseIds()));
+
+      Set<String> declaredMultiLicenseIds = componentInfo.getDeclaredLicenseIds();
+      Set<String> observedMultiLicenseIds = componentInfo.getObservedLicenseIds();
+
+      component.setDeclaredMultiLicenseIds(declaredMultiLicenseIds);
+      component.setObservedMultiLicenseIds(observedMultiLicenseIds);
+      component.setDeclaredLicenseIds(multiLicenseIdsToLicenseIds(declaredMultiLicenseIds));
+      component.setObservedLicenseIds(multiLicenseIdsToLicenseIds(observedMultiLicenseIds));
       loadLicenseThreatGroups(component);
     }
 
@@ -514,21 +534,6 @@ public class ComponentDAO
     // Add license threat groups
     Map<String, LicenseThreatGroup> licenseThreatGroupsById = getLicenseThreatGroups();
     licenseThreatGroupIds.stream().map(licenseThreatGroupsById::get).forEach(component::addLicenseThreatGroup);
-  }
-
-  private Set<String> multiLicenseNamesToLicenseIds(List<String> multiLicenseNames) {
-    if (multiLicenseNames == null) {
-      return null;
-    }
-    Set<String> licenseIds = new LinkedHashSet<>();
-    for (String multiLicenseName : multiLicenseNames) {
-      String multiLicenseId = multiLicenseDAO.getByNameNotNull(multiLicenseName).getId();
-      Set<License> licenses = multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(multiLicenseId);
-      for (License license : licenses) {
-        licenseIds.add(license.getId());
-      }
-    }
-    return licenseIds;
   }
 
   private Set<String> multiLicenseIdsToLicenseIds(Set<String> multiLicenseIds) {

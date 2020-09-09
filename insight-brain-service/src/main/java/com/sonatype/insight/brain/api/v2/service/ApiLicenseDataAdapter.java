@@ -84,12 +84,20 @@ public class ApiLicenseDataAdapter
   }
 
   private void convert(final Component component, final ApiLicenseDataDTO licenseDataDTO) {
+    // For display purposes, multi-license names should always be used as they make the distinction
+    // between AND and OR clear. Using only the individual license names loses that distinction and customers
+    // tend to assume AND is meant even though for multi-licenses it's generally (always?) OR.
+    // CLM-16638
+    Set<String> declaredLicenses = component.getDeclaredMultiLicenseIds();
+    Set<String> observedLicenses = component.getObservedMultiLicenseIds();
+
     licenseDataDTO.status = component.getLicenseOverrideStatus().getName();
-    convertLicenses(licenseDataDTO.declaredLicenses, component.getDeclaredLicenseIds());
-    convertLicenses(licenseDataDTO.observedLicenses, component.getObservedLicenseIds());
+
+    convertLicenses(licenseDataDTO.declaredLicenses, declaredLicenses);
+    convertLicenses(licenseDataDTO.observedLicenses, observedLicenses);
     convertLicenses(licenseDataDTO.overriddenLicenses, component.getLicenseOverrideIds());
     convertLicenses(licenseDataDTO.effectiveLicenses, ComponentDetailsLoader.calculateEffectiveLicenses(
-        component.getDeclaredLicenseIds(), component.getObservedLicenseIds(), component.getLicenseOverrideIds()));
+        declaredLicenses, observedLicenses, component.getLicenseOverrideIds()));
   }
 
   private void convert(ComponentEvaluationData componentDetailsFromHds, ApiLicenseDataDTO licenseDataDTO) {

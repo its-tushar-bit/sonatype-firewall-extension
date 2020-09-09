@@ -37,9 +37,9 @@
     "artifactId" : null,
     "version" : null,
     "hash" : "7c9933a349f37d5f3131",
-    "declaredLicenses" : [ "MIT" ],
-    "observedLicenses" : [ "Not Supported" ],
-    "effectiveLicenses" : [ "MIT" ],
+    "declaredLicenses" : [ "Apache-1.0", "Apache-1.1", "Apache-2.0", "LGPL-2.1", "MPL-1.1" ],
+    "observedLicenses" : [ "Apache-2.0 or LGPL-2.1+ or MPL-1.1" ],
+    "effectiveLicenses" : [ "LGPL-2.1", "MPL-1.1" ],
     "securityCounters" : {
       "Critical" : 0,
       "Severe" : 0,

@@ -34,6 +34,10 @@ public class Component
 {
   private String hash;
 
+  private Set<String> declaredMultiLicenseIds = new LinkedHashSet<>();
+
+  private Set<String> observedMultiLicenseIds = new LinkedHashSet<>();
+
   private Set<String> declaredLicenseIds = new LinkedHashSet<>();
 
   private Set<String> observedLicenseIds = new LinkedHashSet<>();
@@ -129,6 +133,34 @@ public class Component
 
   public void setDisplayName(String displayName) {
     this.displayName = displayName;
+  }
+
+  public Set<String> getDeclaredMultiLicenseIds() {
+    return declaredMultiLicenseIds;
+  }
+
+  public void setDeclaredMultiLicenseIds(Set<String> declaredMultiLicenseIds) {
+    this.declaredMultiLicenseIds.clear();
+
+    if (declaredMultiLicenseIds == null) {
+      return;
+    }
+
+    this.declaredMultiLicenseIds.addAll(declaredMultiLicenseIds);
+  }
+
+  public Set<String> getObservedMultiLicenseIds() {
+    return observedMultiLicenseIds;
+  }
+
+  public void setObservedMultiLicenseIds(Set<String> observedMultiLicenseIds) {
+    this.observedMultiLicenseIds.clear();
+
+    if (observedMultiLicenseIds == null) {
+      return;
+    }
+
+    this.observedMultiLicenseIds.addAll(observedMultiLicenseIds);
   }
 
   public Set<String> getDeclaredLicenseIds() {

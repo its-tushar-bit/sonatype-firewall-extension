@@ -166,8 +166,10 @@ public class ApiReportDataServiceV2Test
     assertThat(component.displayName).isEqualTo("tomcat : tomcat-util : 5.5.23");
     assertThat(component.licenseData).isNotNull();
     assertThat(component.licenseData.status).isEqualTo("Overridden");
-    assertLicenses(component.licenseData.declaredLicenses, "Not-Declared");
-    assertLicenses(component.licenseData.observedLicenses, "No-Sources");
+    assertLicenses(component.licenseData.declaredLicenses, "LGPL-2.1", "MPL-1.1", "Apache-1.1", "Apache-2.0",
+        "Apache-1.0");
+    assertLicenses(component.licenseData.observedLicenses, "Apache-2.0-LGPL-2.1+-MPL-1.1");
+    assertLicenses(component.licenseData.effectiveLicenses, "Apache-2.0");
     assertLicenses(component.licenseData.overriddenLicenses, "Apache-2.0");
     assertThat(component.securityData).isNotNull();
     assertThat(component.securityData.securityIssues).hasSize(2);

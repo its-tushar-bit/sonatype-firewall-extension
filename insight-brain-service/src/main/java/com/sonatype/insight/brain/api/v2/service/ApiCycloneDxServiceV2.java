@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
@@ -198,11 +199,13 @@ public class ApiCycloneDxServiceV2
     return reference;
   }
 
-  private static License convert(ApiLicenseDTO apiLicense) {
-    License license = new License();
-    license.setId(apiLicense.licenseId);
-    license.setName(apiLicense.licenseName);
-    return license;
+  private static Set<License> convert(ApiLicenseDTO apiLicense) {
+    return new MultiLicenseDAO().getLicensesByMultiLicenseIdNotNull(apiLicense.licenseId).stream().map(l -> {
+      License license = new License();
+      license.setId(l.getId());
+      license.setName(l.getShortDisplayName());
+      return license;
+    }).collect(Collectors.toSet());
   }
 
   private static Component createComponent(ApiReportComponentDTOV2 reportComponent) {
@@ -228,13 +231,13 @@ public class ApiCycloneDxServiceV2
       if (reportComponent.licenseData.overriddenLicenses != null
           && !reportComponent.licenseData.overriddenLicenses.isEmpty()) {
         reportComponent.licenseData.overriddenLicenses.stream().map(ApiCycloneDxServiceV2::convert)
-            .forEach(licenses::add);
+            .forEach(licenses::addAll);
       }
       else if (reportComponent.licenseData.declaredLicenses != null) {
         reportComponent.licenseData.declaredLicenses.stream().map(ApiCycloneDxServiceV2::convert)
-            .forEach(licenses::add);
+            .forEach(licenses::addAll);
         reportComponent.licenseData.observedLicenses.stream().map(ApiCycloneDxServiceV2::convert)
-            .forEach(licenses::add);
+            .forEach(licenses::addAll);
       }
       bomComponent.setLicenseChoice(new LicenseChoice());
       bomComponent.getLicenseChoice().setLicenses(new ArrayList<>(licenses));

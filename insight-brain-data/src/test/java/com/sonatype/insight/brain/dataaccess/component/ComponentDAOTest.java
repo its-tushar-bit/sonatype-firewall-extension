@@ -108,6 +108,8 @@ public class ComponentDAOTest
     assertThat(component.getRelativePopularity()).isEqualTo(matchedComponent.getRelativePopularity());
     assertThat(component.getDeclaredLicenseIds()).isEqualTo(matchedComponent.getDeclaredLicenseIds());
     assertThat(component.getObservedLicenseIds()).isEqualTo(matchedComponent.getObservedLicenseIds());
+    assertThat(component.getDeclaredMultiLicenseIds()).isEqualTo(matchedComponent.getDeclaredLicenseIds());
+    assertThat(component.getObservedMultiLicenseIds()).isEqualTo(matchedComponent.getObservedLicenseIds());
 
     assertThat(component.getLicenseOverrideIds()).isEmpty();
     assertLicenseThreatGroups(component.getLicenseThreatGroups(), "My group 1");
@@ -186,6 +188,8 @@ public class ComponentDAOTest
     Component component = new ComponentDAO(application).getComponent(matchedComponent);
     assertThat(component).isNotNull();
     assertThat(component.getDeclaredLicenseIds()).containsExactlyInAnyOrder("Apache-2.0", "GPL-2.0", "GPL-3.0");
+    assertThat(component.getDeclaredMultiLicenseIds())
+        .containsExactlyInAnyOrder("Apache-2.0-GPL-3.0", "Apache-2.0-GPL-2.0");
     assertLicenseThreatGroups(component.getLicenseThreatGroups(), "My group 1", "My group 2", "My group 3");
   }
 
@@ -199,6 +203,8 @@ public class ComponentDAOTest
     Component component = new ComponentDAO(application).getComponent(matchedComponent);
     assertThat(component).isNotNull();
     assertThat(component.getObservedLicenseIds()).containsExactlyInAnyOrder("Apache-2.0", "GPL-2.0", "GPL-3.0");
+    assertThat(component.getObservedMultiLicenseIds())
+        .containsExactlyInAnyOrder("Apache-2.0-GPL-3.0", "Apache-2.0-GPL-2.0");
     assertLicenseThreatGroups(component.getLicenseThreatGroups(), "My group 1", "My group 2", "My group 3");
   }
 }

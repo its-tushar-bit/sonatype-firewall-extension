@@ -85,9 +85,10 @@ public class ApiComponentEvaluationServiceV2Test
 
   @Test
   public void testEvaluateComponents_chunked() throws Exception {
-    LinkedHashSet<License> declaredLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("Apache-2.0",
-        "Apache-2.0")));
-    LinkedHashSet<License> observedLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("ATT", "ATT")));
+    LinkedHashSet<License> declaredLicenseSet = new LinkedHashSet<>(
+        Arrays.asList(new License("Apache-2.0-LGPL-2.1+-MPL-1.1", "Apache-2.0 or LGPL-2.1+ or MPL-1.1")));
+    LinkedHashSet<License> observedLicenseSet = new LinkedHashSet<>(
+        Arrays.asList(new License("Apache-2.0-GPL-2.0+-LGPL-2.0+", "Apache-2.0 or GPL-2.0+ or LGPL-2.0+")));
     List<SecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper.createSecurityVulnerabilities();
 
     Map<String, Policy> policies = componentEvaluationV2Helper.createPolicies(org, app);

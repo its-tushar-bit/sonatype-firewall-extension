@@ -10,7 +10,6 @@ import { capitalize } from '../util/jsUtil';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
 import { getAddPolicyViolationWaiverUrl, getOwnerContextHierarchyUrl } from '../util/CLMLocation';
 import { loadViolation } from '../violation/violationPageActions';
-import { Messages } from '../util/CommonServices';
 
 export const ADD_WAIVER_LOAD_DATA_REQUESTED = 'ADD_WAIVER_LOAD_DATA_REQUESTED';
 export const ADD_WAIVER_LOAD_DATA_FULFILLED = 'ADD_WAIVER_LOAD_DATA_FULFILLED';
@@ -59,9 +58,8 @@ export function saveWaiver(policyViolationId, waiverScope, ownerId, comment, app
           return dispatch(saveWaiverFulfilled());
         })
         .catch((err) => {
-          const errorMessage = Messages.getHttpErrorMessage(err);
-          dispatch(saveWaiverFailed(errorMessage));
-          return Promise.reject(errorMessage);
+          dispatch(saveWaiverFailed(err));
+          return Promise.reject(err);
         });
   };
 }

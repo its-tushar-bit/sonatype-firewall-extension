@@ -115,7 +115,7 @@ AddWaiverPage.propTypes = {
   loading: PropTypes.bool.isRequired,
   loadError: LoadWrapper.propTypes.error,
   submitMaskState: PropTypes.bool,
-  submitError: PropTypes.string,
+  submitError: PropTypes.instanceOf(Error),
   violationDetails: PropTypes.shape({
     ...violationDetailsPropTypes,
     constraintViolations: constraintViolationsPropType.isRequired,

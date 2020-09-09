@@ -10,13 +10,13 @@ import classnames from 'classnames';
 import {
   NxButton,
   NxTextInput,
-  NxRadio,
-  NxLoadError
+  NxRadio
 } from '@sonatype/react-shared-components';
 
 import ViolationExclamation from '../react/ViolationExclamation';
 import ArtifactNameDisplay from '../react/ArtifactNameDisplay';
 import VulnerabilityDetailsModalContainer from '../vulnerabilityDetails/VulnerabilityDetailsModalContainer';
+import LoadError from '../react/LoadError';
 
 const ALL_COMPONENTS = 'ALL_COMPONENTS';
 
@@ -158,8 +158,8 @@ export default function AddWaiverForm(props) {
 
       { /* Actions */ }
       <div className="nx-btn-bar nx-btn-bar--forms">
-        { /* use zero-width space to discard title message in NxLoadError */
-          submitError && <NxLoadError error={submitError} titleMessage="An error occurred saving the waiver." />
+        {
+          submitError && <LoadError error={submitError} titleMessage="An error occurred saving the waiver." />
         }
         <NxButton type="button" id="id-waiver-cancel" onClick={() => {}}>
           Cancel
@@ -195,7 +195,7 @@ AddWaiverForm.propTypes = {
   }).isRequired,
   availableWaiverScopes: PropTypes.arrayOf(PropTypes.shape(waiverScopePropTypes)).isRequired,
   selectedWaiverScope: PropTypes.shape(waiverScopePropTypes).isRequired,
-  submitError: PropTypes.string,
+  submitError: PropTypes.instanceOf(Error),
   setWaiverScope: PropTypes.func.isRequired,
   setApplyToAllComponents: PropTypes.func.isRequired,
   setWaiverComment: PropTypes.func.isRequired,

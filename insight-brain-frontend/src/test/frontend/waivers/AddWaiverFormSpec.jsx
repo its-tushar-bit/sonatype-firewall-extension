@@ -6,8 +6,7 @@
 import {
   NxButton,
   NxTextInput,
-  NxRadio,
-  NxLoadError
+  NxRadio
 } from '@sonatype/react-shared-components';
 
 import * as enzymeUtils from '../enzymeUtils';
@@ -16,6 +15,7 @@ import ArtifactNameDisplay from '../../../main/frontend/react/ArtifactNameDispla
 import ViolationExclamation from '../../../main/frontend/react/ViolationExclamation';
 import VulnerabilityDetailsModalContainer
   from '../../../main/frontend/vulnerabilityDetails/VulnerabilityDetailsModalContainer';
+import LoadError from '../../../main/frontend/react/LoadError';
 
 describe('AddWaiverForm', function() {
   let minimalProps,
@@ -279,11 +279,12 @@ describe('AddWaiverForm', function() {
     expect(saveWaiverSpy).toHaveBeenCalledWith('violationId', 'organization', 'idOrg', 'waiver comments', false);
   });
 
-  it('renders an NxLoadError when submitError is present', function() {
-    const component = getShallowComponent({ submitError: 'an error' }),
+  it('renders an LoadError when submitError is present', function() {
+    const submitErrorObject = new Error('an error');
+    const component = getShallowComponent({ submitError: submitErrorObject }),
         buttonBar = component.find('.nx-btn-bar'),
-        loadError = buttonBar.find(NxLoadError);
+        loadError = buttonBar.find(LoadError);
 
-    expect(loadError).toHaveProp('error', 'an error');
+    expect(loadError).toHaveProp('error', submitErrorObject);
   });
 });

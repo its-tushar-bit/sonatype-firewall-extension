@@ -259,21 +259,28 @@ pipeline {
               cp smallAWSPerfRun/perf_results* "zzz-nightly-$DATABASE_TYPE-small.out"
               java -jar -Dlogback.configurationFile="$(pwd)/logback.xml" \
                   $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*SNAPSHOT.jar \
-                  resultdiff "$PREVIOUS_RELEASE_TAG-$DATABASE_TYPE-small.out" "zzz-nightly-$DATABASE_TYPE-small.out" | tee temp.out
-              python3 resultdiff_validator.py -f temp.out
+                  resultdiff "$PREVIOUS_RELEASE_TAG-$DATABASE_TYPE-small.out" "zzz-nightly-$DATABASE_TYPE-small.out" | tee resultdiff-small.out
+              python3 resultdiff_validator.py -f resultdiff-small.out
 
               cp mediumAWSPerfRun/perf_results* "zzz-nightly-$DATABASE_TYPE-medium.out"
               java -jar -Dlogback.configurationFile="$(pwd)/logback.xml" \
                   $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*SNAPSHOT.jar \
-                  resultdiff "$PREVIOUS_RELEASE_TAG-$DATABASE_TYPE-medium.out" "zzz-nightly-$DATABASE_TYPE-medium.out" | tee temp.out
-              python3 resultdiff_validator.py -f temp.out
+                  resultdiff "$PREVIOUS_RELEASE_TAG-$DATABASE_TYPE-medium.out" "zzz-nightly-$DATABASE_TYPE-medium.out" | tee resultdiff-medium.out
+              python3 resultdiff_validator.py -f resultdiff-medium.out
 
               cp largeAWSPerfRun/perf_results* "zzz-nightly-$DATABASE_TYPE-large.out"
               java -jar -Dlogback.configurationFile="$(pwd)/logback.xml" \
                   $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*SNAPSHOT.jar \
-                  resultdiff "$PREVIOUS_RELEASE_TAG-$DATABASE_TYPE-large.out" "zzz-nightly-$DATABASE_TYPE-large.out" | tee temp.out
-              python3 resultdiff_validator.py -f temp.out
+                  resultdiff "$PREVIOUS_RELEASE_TAG-$DATABASE_TYPE-large.out" "zzz-nightly-$DATABASE_TYPE-large.out" | tee resultdiff-large.out
+              python3 resultdiff_validator.py -f resultdiff-large.out
              '''
+        }
+      }
+      post {
+        always {
+          dir('nexus-iq-tools/testsuite') {
+            archiveArtifacts artifacts: 'resultdiff-*.out', fingerprint: true
+          }
         }
       }
     }

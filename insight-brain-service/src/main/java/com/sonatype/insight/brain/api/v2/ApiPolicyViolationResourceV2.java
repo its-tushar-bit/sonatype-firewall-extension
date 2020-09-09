@@ -20,7 +20,9 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiCrossStageViolationDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolationDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyViolationServiceV2;
+import com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 
@@ -38,17 +40,23 @@ public class ApiPolicyViolationResourceV2
 
   public static final String VIOLATIONID = "/{violationId}";
 
+  public static final String APPLICABLE_WAIVERS_PATH = "/applicableWaivers";
+
   private ApiPolicyViolationServiceV2 apiPolicyViolationService;
 
   private final ApiCrossStageViolationService apiCrossStageViolationService;
 
+  private final ApiPolicyWaiverService apiPolicyWaiverService;
+
   @Inject
   public ApiPolicyViolationResourceV2(
       final ApiPolicyViolationServiceV2 apiPolicyViolationService,
-      final ApiCrossStageViolationService apiCrossStageViolationService)
+      final ApiCrossStageViolationService apiCrossStageViolationService,
+      final ApiPolicyWaiverService apiPolicyWaiverService)
   {
     this.apiPolicyViolationService = apiPolicyViolationService;
     this.apiCrossStageViolationService = apiCrossStageViolationService;
+    this.apiPolicyWaiverService = apiPolicyWaiverService;
   }
 
   @GET
@@ -82,5 +90,19 @@ public class ApiPolicyViolationResourceV2
       @QueryParam("constituentId") final String constituentId)
   {
     return apiCrossStageViolationService.getCrossStageViolationByConstituentId(constituentId);
+  }
+
+  /**
+   * @since 1.98
+   */
+  @GET
+  @Path(VIOLATIONID + APPLICABLE_WAIVERS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.VIEW_COMPONENTS_WITH_WAIVERS)
+  public ApiPolicyWaiversApplicableToViolationDTO getApplicableWaivers(
+      @PathParam("violationId") final String violationId)
+  {
+    return apiPolicyWaiverService.getApplicableWaivers(violationId);
   }
 }

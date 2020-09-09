@@ -5,8 +5,13 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;
@@ -15,6 +20,9 @@ import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationReasonDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiCrossStageViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiEnhancedPolicyViolationDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolationDTO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -26,6 +34,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverDTOTestUtils.assertApiPolicyWaiverDTO;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiPolicyViolationResourceV2Test
@@ -149,5 +158,51 @@ public class ApiPolicyViolationResourceV2Test
             .containsExactly(baseDate, "scanId1App1");
     assertThat(resultDTO.stageData.get(DevelopStageType.ID)).extracting("mostRecentEvaluationTime", "mostRecentScanId")
             .containsExactly(new Date(baseDate.getTime() + 1), "scanId2App1");
+  }
+
+  @Test
+  public void testGetApplicableWaivers() throws Exception {
+    Date baseDate = new Date();
+    List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
+    Organization newOrg = tempEntity.newOrganization("NewOrg");
+    Application newApp = tempEntity.newApplication("NewApp", "AppPublicId", newOrg.getId());
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(newApp.getId(), BuildStageType.ID, "scanId");
+    Policy policy = tempEntity.newPolicy(newOrg);
+    Policy policy2 = tempEntity.newPolicy(newApp);
+    ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("group", "artifact", "id");
+    PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, policy, identifier, "hash");
+    violation.setConstraintFacts(constraintFacts);
+    new PolicyViolationDAO().update(violation);
+
+    String policyId = policy.getId();
+    String policy2Id = policy2.getId();
+    String orgId = newOrg.getId();
+    String appId = newApp.getId();
+
+    tempEntity.newWaiver("hash", policyId, orgId, constraintFacts, "", baseDate);
+    tempEntity.newWaiver(null, policyId, orgId, constraintFacts, "", new Date(baseDate.getTime() + 1));
+    tempEntity.newWaiver("hash", policyId, appId, constraintFacts, "", new Date(baseDate.getTime() + 2));
+    tempEntity.newWaiver(null, policyId, appId, constraintFacts, "", new Date(baseDate.getTime() + 3));
+    tempEntity.newWaiver("hash2", policy2Id, appId, null, "", new Date(baseDate.getTime() + 4));
+    tempEntity.newWaiver(null, policy2Id, appId, null, "", new Date(baseDate.getTime() + 5));
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
+        .path(ApiPolicyViolationResourceV2.VIOLATIONID + ApiPolicyViolationResourceV2.APPLICABLE_WAIVERS_PATH)
+        .parameter(violation.getId())
+        .get();
+
+    assertResponseStatus(200, response);
+    ApiPolicyWaiversApplicableToViolationDTO apiPolicyWaivers =
+        response.getBody(ApiPolicyWaiversApplicableToViolationDTO.class);
+    List<ApiPolicyWaiverDTO> applicableWaivers = apiPolicyWaivers.activeWaivers.stream()
+        .sorted(Comparator.comparing(apiPolicyWaiverDTO -> apiPolicyWaiverDTO.createTime))
+        .collect(Collectors.toList());
+
+    assertThat(applicableWaivers.size()).isEqualTo(4);
+    assertApiPolicyWaiverDTO("hash", policyId, orgId, "NewOrg", "", applicableWaivers.get(0));
+    assertApiPolicyWaiverDTO(null, policyId, orgId, "NewOrg", "", applicableWaivers.get(1));
+    assertApiPolicyWaiverDTO("hash", policyId, appId, "NewApp", "", applicableWaivers.get(2));
+    assertApiPolicyWaiverDTO(null, policyId, appId, "NewApp", "", applicableWaivers.get(3));
   }
 }

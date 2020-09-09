@@ -13,6 +13,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolationDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
@@ -221,5 +222,49 @@ public class ApiPolicyWaiverService
       }
     }
     return false;
+  }
+
+  /**
+   * @since 1.98
+   */
+  public ApiPolicyWaiversApplicableToViolationDTO getApplicableWaivers(final String violationId) {
+    ApiPolicyWaiversApplicableToViolationDTO apiPolicyWaivers = new ApiPolicyWaiversApplicableToViolationDTO();
+    PolicyViolation policyViolation = new PolicyViolationDAO().getById(violationId);
+    if (policyViolation == null) {
+      throw new NotFoundException("Could not find policy violation with ID " + violationId + ".");
+    }
+
+    String policyId = policyViolation.getPolicyId();
+    String constraintFactsJson = policyViolation.getConstraintFactsJson();
+    String hash = policyViolation.getHash();
+    String applicationId = policyViolation.getApplicationId();
+
+    Owner owner = ownerDAO.getById(applicationId);
+
+    List<ApiPolicyWaiverDTO> applicableWaivers = getApplicableWaiversWithAuthzCheck(owner).stream()
+        .filter(policyWaiver -> filterWaiverByCriteria(policyId, constraintFactsJson, hash, policyWaiver))
+        .map(policyWaiver -> ApiPolicyWaiverDTO.toDto(policyWaiver, ownerDAO.getById(policyWaiver.getOwnerId())))
+        .collect(Collectors.toList());
+
+    apiPolicyWaivers.activeWaivers = applicableWaivers;
+    return apiPolicyWaivers;
+  }
+
+  private boolean filterWaiverByCriteria(String policyId,
+                                         String constraintFactsJson,
+                                         String hash,
+                                         PolicyWaiver policyWaiver)
+  {
+    return policyWaiver.getPolicyId().equals(policyId) &&
+        (policyWaiver.getHash() == null || policyWaiver.getHash().equals(hash)) &&
+        policyWaiver.getConstraintFactsJson() != null &&
+        policyWaiver.getConstraintFactsJson().equals(constraintFactsJson);
+  }
+
+  @Authorize(permission = Permission.READ)
+  List<PolicyWaiver> getApplicableWaiversWithAuthzCheck(
+      @AuthzContext(Key.OWNER) Owner owner)
+  {
+    return policyWaiverDAO.getApplicableByOwnerId(owner.getId());
   }
 }

@@ -33,6 +33,13 @@ public class ApiPolicyWaiverServiceAuthzTest
 
   private PolicyViolation policyViolation;
 
+  private String setUpParameterizePolicyViolation(String ownerId) {
+    Policy policy = tempEntity.newPolicy(ownerId);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId1App1");
+    PolicyViolation violation = tempEntity.newPolicyViolation(policyEvaluation, policy, "g1", "a1", "v1", "h1", "r1");
+    return violation.getId();
+  }
+
   @Before
   public void setUpPolicyViolation() {
     Policy policy = tempEntity.newPolicy(org.getId());
@@ -317,6 +324,64 @@ public class ApiPolicyWaiverServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetPolicyWaivers_RepositoryContainer_Unauthenticated() {
+
     apiPolicyWaiverService.getPolicyWaivers(REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetApplicableWaivers_RootOrganization_Unauthenticated() {
+    String policyViolationId = setUpParameterizePolicyViolation(Organization.ROOT_ORGANIZATION_ID);
+    apiPolicyWaiverService.getApplicableWaivers(policyViolationId);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetApplicableWaivers_RootOrganization_Unauthorized() {
+    String policyViolationId = setUpParameterizePolicyViolation(Organization.ROOT_ORGANIZATION_ID);
+    login();
+    apiPolicyWaiverService.getApplicableWaivers(policyViolationId);
+  }
+
+  @Test
+  public void testGetApplicableWaivers_RootOrganization_Authorized() {
+    grantPermission(Organization.ROOT_ORGANIZATION_ID, Permission.READ);
+    String policyViolationId = setUpParameterizePolicyViolation(Organization.ROOT_ORGANIZATION_ID);
+    apiPolicyWaiverService.getApplicableWaivers(policyViolationId);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetApplicableWaivers_Organization_Unauthenticated() {
+    apiPolicyWaiverService.getApplicableWaivers(policyViolation.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetApplicableWaivers_Organization_Unauthorized() {
+    login();
+    apiPolicyWaiverService.getApplicableWaivers(policyViolation.getId());
+  }
+
+  @Test
+  public void testGetApplicableWaivers_Organization_Authorized() {
+    grantPermission(org.getId(), Permission.READ);
+    apiPolicyWaiverService.getApplicableWaivers(policyViolation.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetApplicableWaivers_Application_Unauthenticated() {
+    String policyViolationId = setUpParameterizePolicyViolation(app.getId());
+    apiPolicyWaiverService.getApplicableWaivers(policyViolationId);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetApplicableWaiver_Application_Unauthorized() {
+    String policyViolationId = setUpParameterizePolicyViolation(app.getId());
+    login();
+    apiPolicyWaiverService.getApplicableWaivers(policyViolationId);
+  }
+
+  @Test
+  public void testGetApplicableWaiver_Application_Authorized() {
+    grantPermission(app.getId(), Permission.READ);
+    String policyViolationId = setUpParameterizePolicyViolation(app.getId());
+    apiPolicyWaiverService.getApplicableWaivers(policyViolationId);
   }
 }

@@ -53,7 +53,6 @@ public class ApiPolicyWaiverDTO
   /**
    * @since 1.92
    */
-  @JsonInclude(Include.NON_NULL)
   public String hash;
 
   /**

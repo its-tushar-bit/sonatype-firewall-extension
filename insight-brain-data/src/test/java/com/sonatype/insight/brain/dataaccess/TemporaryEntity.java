@@ -2636,6 +2636,17 @@ public class TemporaryEntity
     return persistedPromoteScanResult;
   }
 
+  public List<ConstraintFact> createArbitraryConstraintFacts() {
+    ConditionFact conditionFact = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
+        0 /* conditionIndex */, "test summary", "test reason");
+    conditionFact.setTriggerJson(
+        "{\"conditionIndex\":1,\"trigger\":{\"refId\":\"" + UUID.randomUUID() + "\",\"severity\":5.7}}");
+    ConstraintFact constraintFact = new ConstraintFact("constraint Id", "constraint Name",
+        LogicalOperator.AND.toString());
+    constraintFact.addConditionFact(conditionFact);
+    return Collections.singletonList(constraintFact);
+  }
+
   public InnerSourceComponent newInnerSourceComponent(String purl, Application application) {
     InnerSourceComponent innerSourceComponent = new InnerSourceComponent(application.getId(), purl);
     innerSourceComponentDAO.insert(innerSourceComponent);

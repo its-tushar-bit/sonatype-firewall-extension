@@ -5,13 +5,20 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolationDTO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
@@ -36,6 +43,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverDTOTestUtils.assertApiPolicyWaiverDTO;
 import static com.sonatype.insight.brain.model.OwnerType.REPOSITORY_CONTAINER;
 import static com.sonatype.insight.brain.model.repository.RepositoryContainer.REPOSITORY_CONTAINER_ID;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -407,6 +415,77 @@ public class ApiPolicyWaiverServiceTest
     assertThat(actual.scopeOwnerId).isEqualTo(REPOSITORY_CONTAINER_ID);
     assertThat(actual.scopeOwnerName).isEqualTo("All Repositories");
     assertThat(actual.scopeOwnerType).isEqualTo("all_repositories");
+  }
+
+  @Test
+  public void testGetApplicableWaivers_NullId() {
+    assertThatThrownBy(() ->
+        apiPolicyWaiverService.getApplicableWaivers(null)
+    ).isInstanceOf(NotFoundException.class)
+        .hasMessage("Could not find policy violation with ID null.");
+  }
+
+  @Test
+  public void testGetApplicableWaivers_InvalidId() {
+    assertThatThrownBy(() ->
+        apiPolicyWaiverService.getApplicableWaivers("InvalidPolicyViolationId")
+    ).isInstanceOf(NotFoundException.class)
+        .hasMessage("Could not find policy violation with ID InvalidPolicyViolationId.");
+  }
+
+  @Test
+  public void testGetApplicableWaivers_NoWaivers() {
+    ApiPolicyWaiversApplicableToViolationDTO results =
+        apiPolicyWaiverService.getApplicableWaivers(policyViolation.getId());
+    List<ApiPolicyWaiverDTO> applicableWaivers = results.activeWaivers;
+    assertThat(applicableWaivers).isEmpty();
+  }
+
+  @Test
+  public void testGetApplicableWaivers() {
+    Date baseDate = new Date();
+    List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
+    List<ConstraintFact> constraintFacts2 = tempEntity.createArbitraryConstraintFacts();
+    Organization newOrg = tempEntity.newOrganization("NewOrg");
+    Application newApp = tempEntity.newApplication("NewApp", "AppPublicId", newOrg.getId());
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(newApp.getId(), BuildStageType.ID, "scanId");
+    Policy policy = tempEntity.newPolicy(newOrg);
+    Policy policy2 = tempEntity.newPolicy(newApp);
+    ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("group", "artifact", "id");
+    PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, policy, identifier, "hash");
+    violation.setConstraintFacts(constraintFacts);
+    new PolicyViolationDAO().update(violation);
+
+    String policyId = policy.getId();
+    String policy2Id = policy2.getId();
+    String orgId = newOrg.getId();
+    String appId = newApp.getId();
+
+    // applicable waivers that the service should return for the given violation
+    tempEntity.newWaiver("hash", policyId, orgId, constraintFacts, "", baseDate);
+    tempEntity.newWaiver(null, policyId, orgId, constraintFacts, "", new Date(baseDate.getTime() + 1));
+    tempEntity.newWaiver("hash", policyId, appId, constraintFacts, "", new Date(baseDate.getTime() + 2));
+    tempEntity.newWaiver(null, policyId, appId, constraintFacts, "A comment", new Date(baseDate.getTime() + 3));
+    // add more waivers with different attributes — for diversity
+    tempEntity.newWaiver("hash", policyId, appId, null, "", new Date(baseDate.getTime() + 4));
+    tempEntity.newWaiver(null, policyId, appId, null, "", new Date(baseDate.getTime() + 5));
+    tempEntity.newWaiver("hashX", policyId, appId, constraintFacts, "", new Date(baseDate.getTime() + 6));
+    tempEntity.newWaiver("hash", policyId, appId, constraintFacts2, "", new Date(baseDate.getTime() + 7));
+    tempEntity.newWaiver("hash2", policy2Id, appId, null, "", new Date(baseDate.getTime() + 8));
+    tempEntity.newWaiver(null, policy2Id, appId, null, "", new Date(baseDate.getTime() + 9));
+    tempEntity.newWaiver("hash", policy2Id, appId, constraintFacts, "", new Date(baseDate.getTime() + 10));
+
+    // results sorted to have deterministic ordering in the test
+    List<ApiPolicyWaiverDTO> applicableWaivers = apiPolicyWaiverService.getApplicableWaivers(violation.getId())
+        .activeWaivers.stream()
+        .sorted(Comparator.comparing(apiPolicyWaiverDTO -> apiPolicyWaiverDTO.createTime))
+        .collect(Collectors.toList());
+
+    assertThat(applicableWaivers.size()).isEqualTo(4);
+    assertApiPolicyWaiverDTO("hash", policyId, orgId, "NewOrg", "", applicableWaivers.get(0));
+    assertApiPolicyWaiverDTO(null, policyId, orgId, "NewOrg", "", applicableWaivers.get(1));
+    assertApiPolicyWaiverDTO("hash", policyId, appId, "NewApp", "", applicableWaivers.get(2));
+    assertApiPolicyWaiverDTO(null, policyId, appId, "NewApp", "A comment", applicableWaivers.get(3));
   }
 
   private void assertPolicyWaiver(String ownerId, String comment, String hash) {

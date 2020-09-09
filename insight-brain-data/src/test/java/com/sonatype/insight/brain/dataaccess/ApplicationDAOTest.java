@@ -21,6 +21,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -48,6 +49,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
@@ -1021,5 +1023,16 @@ public class ApplicationDAOTest
     assertThat(searchIndexChanges).hasSize(1);
     assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.APPLICATION);
     assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(app.getId());
+  }
+
+  @Test
+  public void testCascadeDeleteToInnerSource() {
+    Application applicationTest = tempEntity.newApplication(organization.getId());
+    InnerSourceComponent innerSourceComponent = tempEntity.newInnerSourceComponent("pkg:test/name", applicationTest);
+
+    applicationDAO.delete(applicationTest);
+
+    InnerSourceComponentDAO innerSourceComponentDAO = new InnerSourceComponentDAO();
+    assertThat(innerSourceComponentDAO.getById(innerSourceComponent.getId())).isNull();
   }
 }

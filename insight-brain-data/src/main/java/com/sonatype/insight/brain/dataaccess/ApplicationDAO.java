@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
+import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -357,6 +358,9 @@ public class ApplicationDAO
     // Cascade to locks
     ClusterLock.deleteForPolicyViolations(tx, application);
     ClusterLock.deleteForPolicyViolationAggregations(tx, application.getId());
+
+    // Cascade to Inner Source components
+    new InnerSourceComponentDAO().deleteByApplicationId(tx, application.getId());
 
     super.delete(tx, application);
 

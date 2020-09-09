@@ -43,4 +43,10 @@ public class InnerSourceComponentDAO
       return get(tx, sQuery, packageUrl.getPackageUrl());
     }
   }
+
+  public int deleteByApplicationId(TransactionContext tx, String applicationId) {
+    String sQuery = "DELETE from InnerSourceComponent entity WHERE entity.applicationId=?1";
+    Query<InnerSourceComponent> query = createQuery(sQuery, applicationId);
+    return query.executeUpdate(tx);
+  }
 }

@@ -18,6 +18,7 @@ import automaticSourceControlConfigurationModule
   from './automaticSourceControlConfiguration/automaticSourceControlConfigurationModule';
 import MailConfigContainer from './mail/MailConfigContainer';
 import ProxyConfigContainer from './proxy/ProxyConfigContainer';
+import ScmOnboardingContainer from './scmOnboarding/ScmOnboardingContainer';
 import withStoreProvider from '../reactAdapter/StoreProvider';
 import { always } from 'ramda';
 import AdvancedSearchConfigContainer from './advancedSearch/AdvancedSearchConfigContainer';
@@ -31,6 +32,8 @@ export default angular.module('configurationModule',
     .component('proxyConfig', react2angular(withStoreProvider(ProxyConfigContainer), ['isAuthorized', 'licensed'],
         ['$ngRedux', '$state']))
     .component('advancedSearchConfig', react2angular(withStoreProvider(AdvancedSearchConfigContainer), ['isAuthorized'],
+        ['$ngRedux']))
+    .component('scmOnboarding', react2angular(withStoreProvider(ScmOnboardingContainer), ['isAuthorized'],
         ['$ngRedux']))
     .config(routes);
 
@@ -76,6 +79,20 @@ function routes($stateProvider) {
         url: '/advancedSearchConfig',
         data: {
           title: 'Advanced Search Config'
+        },
+        resolve: {
+          isAuthorized: [
+            'PermissionService', function(PermissionService) {
+              return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
+            }
+          ]
+        }
+      })
+      .state('scmOnboarding', {
+        component: 'scmOnboarding',
+        url: '/onboarding',
+        data: {
+          title: 'Onboarding'
         },
         resolve: {
           isAuthorized: [

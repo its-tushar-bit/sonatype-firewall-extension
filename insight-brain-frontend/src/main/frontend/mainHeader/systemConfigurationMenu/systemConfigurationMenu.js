@@ -6,14 +6,22 @@
 import { faCog } from '@fortawesome/pro-regular-svg-icons';
 import template from './systemConfigurationMenu.html';
 
-function SystemConfigurationMenuController($state) {
+function SystemConfigurationMenuController($state, systemConfigurationPropertyService) {
   var vm = this;
   vm.state = $state;
+  vm.$onInit = doLoad;
 
   vm.faCog = faCog;
+  vm.isManifestScanFeatureEnabled = false;
+
+  function doLoad() {
+    systemConfigurationPropertyService.isManifestScanFeatureEnabled().then(function(data) {
+      vm.isManifestScanFeatureEnabled = data;
+    });
+  }
 }
 
-SystemConfigurationMenuController.$inject = ['$state'];
+SystemConfigurationMenuController.$inject = ['$state', 'systemConfigurationPropertyService'];
 
 export default {
   template,

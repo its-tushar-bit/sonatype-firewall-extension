@@ -109,6 +109,10 @@ export function getAdvancedSearchQuerySuggesterUrl(query) {
   return `${getBaseUrl(window.location.href)}/api/experimental/search/advanced/suggester?search=${query}`;
 }
 
+export function getManifestScanConfigUrl() {
+  return `${getBaseUrl(window.location.href)}/api/experimental/config/manifest-scan`;
+}
+
 export function getDashboardDeleteFilterUrl(filterName) {
   return `${getBaseUrl(window.location.href)}/rest/dashboard/filters/named/delete?filterName=${filterName}`;
 }

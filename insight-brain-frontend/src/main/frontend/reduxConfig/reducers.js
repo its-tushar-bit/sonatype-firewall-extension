@@ -20,6 +20,7 @@ import advancedSearchConfigReducer from '../configuration/advancedSearch/advance
 import advancedSearchReducer from '../advancedSearch/advancedSearchReducer';
 import sidebarNavListReducer from '../sidebarNav/sidebarNavListReducer';
 import addWaiverReducer from '../waivers/addWaiverReducer';
+import scmOnboardingReducer from '../configuration/scmOnboarding/scmOnboardingReducer';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -37,5 +38,6 @@ export default combineReducers({
   proxyConfig: proxyConfigReducer,
   advancedSearchConfig: advancedSearchConfigReducer,
   advancedSearch: advancedSearchReducer,
-  addWaiver: addWaiverReducer
+  addWaiver: addWaiverReducer,
+  scmOnboarding: scmOnboardingReducer
 });

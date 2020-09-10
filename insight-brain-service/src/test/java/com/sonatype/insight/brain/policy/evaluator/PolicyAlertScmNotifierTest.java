@@ -24,7 +24,7 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChang
 import com.sonatype.insight.brain.api.v2.service.ApiComponentRemediationService;
 import com.sonatype.insight.brain.git.PullRequestFeatureCheck;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
-import com.sonatype.insight.brain.git.event.SourceControlEventService;
+import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -79,7 +79,7 @@ public class PolicyAlertScmNotifierTest
   PullRequestRemediationService mockPullRequestRemediationService;
 
   @Mock
-  SourceControlEventService mockSourceControlEventService;
+  SourceControlEventPublisher mockSourceControlEventPublisher;
 
   @Mock
   SourceControlUtils sourceControlUtils;
@@ -95,7 +95,7 @@ public class PolicyAlertScmNotifierTest
   public void setup() {
     scmNotifier =
         new PolicyAlertScmNotifier(pullRequestFeatureCheck, remediationService, new PolicyAlertSourceCodeOrganizer(),
-            baseUrl, sourceControlUtils, mockPullRequestRemediationService, mockSourceControlEventService);
+            baseUrl, sourceControlUtils, mockPullRequestRemediationService, mockSourceControlEventPublisher);
     Organization organization = tempEntity.newOrganization();
     application = tempEntity.newApplication(NAME, PUBLIC_ID, organization.getId());
   }
@@ -113,7 +113,7 @@ public class PolicyAlertScmNotifierTest
     scmNotifier.sendNotifications(application, "scanId", new Stage("build"), buildPolicyNotifications());
 
     // then we see no interaction with the source control event service
-    verifyNoInteractions(mockSourceControlEventService);
+    verifyNoInteractions(mockSourceControlEventPublisher);
   }
 
   @Test
@@ -128,7 +128,7 @@ public class PolicyAlertScmNotifierTest
     // then we see no calls to the PR engine
     assertThat(logOutput).atDebugLevel().contains(
         "Ignoring Pull Request notification for the 'develop' stage for application 'abc123' and scan 'scanId'");
-    verifyNoInteractions(mockSourceControlEventService);
+    verifyNoInteractions(mockSourceControlEventPublisher);
   }
 
   @Test
@@ -153,7 +153,7 @@ public class PolicyAlertScmNotifierTest
     });
 
     // and the source control event service didn't publish an event
-    verify(mockSourceControlEventService, never()).publishEvent(any());
+    verify(mockSourceControlEventPublisher, never()).publishEvent(any());
   }
 
   @Test
@@ -184,7 +184,7 @@ public class PolicyAlertScmNotifierTest
     });
 
     // and the source control event service didn't have an event published to it
-    verify(mockSourceControlEventService, never()).publishEvent(any());
+    verify(mockSourceControlEventPublisher, never()).publishEvent(any());
   }
 
   @Test
@@ -215,14 +215,15 @@ public class PolicyAlertScmNotifierTest
     doAnswer(invocation -> {
       finished.countDown();
       return true;
-    }).when(mockSourceControlEventService).doesRemediationEventExistForBranch(eq(application.getId()), eq(branchName));
+    }).when(mockSourceControlEventPublisher)
+        .doesRemediationEventExistForBranch(eq(application.getId()), eq(branchName));
 
     // when we send policy notifications
     scmNotifier.sendNotifications(application, "scanId", new Stage("build"), buildPolicyNotifications());
 
     // then we DO NOT see an event created for a remediation PR
     assertThat(finished.await(5, TimeUnit.SECONDS)).isTrue();
-    verify(mockSourceControlEventService, never()).publishEvent(any());
+    verify(mockSourceControlEventPublisher, never()).publishEvent(any());
   }
 
   @Test
@@ -250,14 +251,14 @@ public class PolicyAlertScmNotifierTest
     final String branchName = truncatedAppId + "/groupid/Package1/1.2.3-to-2.0.1";
 
     // and the branch does not yet exist in the event table
-    when(mockSourceControlEventService.doesRemediationEventExistForBranch(eq(application.getId()), eq(branchName)))
+    when(mockSourceControlEventPublisher.doesRemediationEventExistForBranch(eq(application.getId()), eq(branchName)))
         .thenReturn(false);
 
     CountDownLatch finished = new CountDownLatch(1);
     doAnswer(invocation -> {
       finished.countDown();
       return null;
-    }).when(mockSourceControlEventService).publishEvent(any());
+    }).when(mockSourceControlEventPublisher).publishEvent(any());
 
     // when we send policy notifications
     scmNotifier.sendNotifications(application, "scanId", new Stage("build"), buildPolicyNotifications());
@@ -265,7 +266,7 @@ public class PolicyAlertScmNotifierTest
     // then we see an event created for a remediation PR
     assertThat(finished.await(5, TimeUnit.SECONDS)).isTrue();
 
-    verify(mockSourceControlEventService).publishEvent(argThat(event -> {
+    verify(mockSourceControlEventPublisher).publishEvent(argThat(event -> {
       assertThat(event.getComponentIdentifier())
           .isEqualTo(ComponentIdentifier.createMavenCoordinates("groupid", "Package1", "1.2.3"));
       assertThat(event.getRemediationVersion()).isEqualTo("2.0.1");

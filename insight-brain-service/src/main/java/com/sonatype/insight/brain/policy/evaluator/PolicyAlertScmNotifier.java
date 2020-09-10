@@ -23,7 +23,7 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChang
 import com.sonatype.insight.brain.api.v2.service.ApiComponentRemediationService;
 import com.sonatype.insight.brain.git.PullRequestFeatureCheck;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
-import com.sonatype.insight.brain.git.event.SourceControlEventService;
+import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
@@ -72,7 +72,7 @@ public class PolicyAlertScmNotifier
 
   private final PullRequestRemediationService pullRequestRemediationService;
 
-  private final SourceControlEventService sourceControlEventService;
+  private final SourceControlEventPublisher sourceControlEventPublisher;
 
   @VisibleForTesting
   PullRequestInvoker pullRequestInvoker = new PullRequestInvoker();
@@ -92,7 +92,7 @@ public class PolicyAlertScmNotifier
       final BaseUrl baseUrl,
       final SourceControlUtils sourceControlUtils,
       final PullRequestRemediationService pullRequestRemediationService,
-      final SourceControlEventService sourceControlEventService)
+      final SourceControlEventPublisher sourceControlEventPublisher)
   {
     this.pullRequestFeatureCheck = pullRequestFeatureCheck;
     this.remediationService = remediationService;
@@ -100,7 +100,7 @@ public class PolicyAlertScmNotifier
     this.baseUrl = baseUrl;
     this.sourceControlUtils = sourceControlUtils;
     this.pullRequestRemediationService = pullRequestRemediationService;
-    this.sourceControlEventService = sourceControlEventService;
+    this.sourceControlEventPublisher = sourceControlEventPublisher;
   }
 
   /**
@@ -163,7 +163,7 @@ public class PolicyAlertScmNotifier
       String nextVersion = getNextVersion(remediationOptions);
       final String branchName = getBranchName(app, entry.getKey(), nextVersion);
 
-      if (!sourceControlEventService.doesRemediationEventExistForBranch(app.getId(), branchName)) {
+      if (!sourceControlEventPublisher.doesRemediationEventExistForBranch(app.getId(), branchName)) {
         PullRequestRemediationDetails pullRequestRemediationDetails =
             new PullRequestRemediationDetails(entry.getKey(), nextVersion, branchName, entry.getValue(), app, scanId,
                 stage.getStageTypeId(), baseUrl.getConfigured(), gitRepositoryInfo.provider);
@@ -185,7 +185,7 @@ public class PolicyAlertScmNotifier
         .setPullRequestContents(pullRequestRemediationDetails.getContents())
         .setInitiator(POLICY_ALERT);
 
-    sourceControlEventService.publishEvent(event);
+    sourceControlEventPublisher.publishEvent(event);
 
     log.info("Sent remediation pull request event for application '{}' component '{}'",
         pullRequestRemediationDetails.getApp().getId(),

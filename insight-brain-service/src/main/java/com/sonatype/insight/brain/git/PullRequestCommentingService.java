@@ -20,9 +20,9 @@ import javax.inject.Singleton;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
+import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
@@ -85,7 +85,7 @@ public class PullRequestCommentingService
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
-  private final SourceControlEventDAO sourceControlEventDAO;
+  private final SourceControlEventPublisher sourceControlEventPublisher;
 
   private final PullRequestFeedbackMarkupService pullRequestFeedbackMarkupService;
 
@@ -119,7 +119,7 @@ public class PullRequestCommentingService
       final GitClientFactory gitClientFactory,
       final SourceControlPullRequestCommentDAO pullRequestCommentDAO,
       final PolicyEvaluationDAO policyEvaluationDAO,
-      final SourceControlEventDAO sourceControlEventDAO,
+      final SourceControlEventPublisher sourceControlEventPublisher,
       final PullRequestFeedbackMarkupService pullRequestFeedbackMarkupService,
       final GitCommitHistoryService gitCommitHistoryService,
       final PullRequestCommentingMetricsService prCommentingMetricsService,
@@ -138,7 +138,7 @@ public class PullRequestCommentingService
     this.gitClientFactory = gitClientFactory;
     this.pullRequestCommentDAO = pullRequestCommentDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
-    this.sourceControlEventDAO = sourceControlEventDAO;
+    this.sourceControlEventPublisher = sourceControlEventPublisher;
     this.pullRequestFeedbackMarkupService = pullRequestFeedbackMarkupService;
     this.gitCommitHistoryService = gitCommitHistoryService;
     this.prCommentingMetricsService = prCommentingMetricsService;
@@ -197,7 +197,7 @@ public class PullRequestCommentingService
             .setInitiator(event.initiator)
             .setCreateTime(new Date());
 
-        sourceControlEventDAO.insert(sourceControlEvent);
+        sourceControlEventPublisher.publishEvent(sourceControlEvent);
         log.debug("Persisted source control event '{}' for application '{}' and commit '{}'",
             sourceControlEvent.getEventType(), applicationId, event.commitHash);
       }

@@ -39,9 +39,16 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 public class SourceControlEventServiceTest
     extends VerifiableLoggingTestBase
@@ -76,7 +83,7 @@ public class SourceControlEventServiceTest
     MockitoAnnotations.openMocks(this);
     super.setup();
     eventService = spy(new SourceControlEventService(mockSourceControlEventDAO, mockPullRequestCommentingService,
-        mockPullRequestRemediationService, mockGitCommitStatusService));
+        mockPullRequestRemediationService, mockGitCommitStatusService, mockManifestScanService));
   }
 
   @After
@@ -199,15 +206,11 @@ public class SourceControlEventServiceTest
 
   @Test
   public void testProcessEvents_onManifestScanEvent() throws Exception {
-    // given: an event DAO setup to return an application evaluation event
+    // given: an event DAO setup to return a manifest scan event
     List<SourceControlEvent> events = generateEvents("1:app1:" + SourceControlEvent.MANIFEST_SCAN_EVENT);
-    when(mockManifestScanService.executeEvent(
-        argThat(e -> e.getEventType().equals(SourceControlEvent.MANIFEST_SCAN_EVENT))))
-        .thenReturn(true);
     when(mockSourceControlEventDAO
         .selectEventsForInstance(eq(SourceControlEventService.INSTANCE_ID), anyInt()))
         .thenReturn(events);
-    eventService.registerEventListener(mockManifestScanService);
 
     CountDownLatch eventsProcessedLatch = createOnEventFinishedLatch(events.get(0));
 
@@ -225,42 +228,6 @@ public class SourceControlEventServiceTest
         debug("Requested " + SourceControlEventService.TASK_QUEUE_CAPACITY + " source control events, processing 1"),
         debug(getProcessedEventMessage(events.get(0)))
     );
-  }
-
-  @Test
-  public void testProcessEvents_multipleListeners() throws Exception {
-    // given: an event DAO setup to return an application evaluation event
-    List<SourceControlEvent> events = generateEvents("1:app1:" + SourceControlEvent.MANIFEST_SCAN_EVENT);
-    when(mockManifestScanService.executeEvent(
-        argThat(e -> e.getEventType().equals(SourceControlEvent.MANIFEST_SCAN_EVENT))))
-        .thenReturn(true);
-    when(mockSourceControlEventDAO
-        .selectEventsForInstance(eq(SourceControlEventService.INSTANCE_ID), anyInt()))
-        .thenReturn(events);
-
-    // and the manivest scan registers to handle the event
-    eventService.registerEventListener(mockManifestScanService);
-
-    // and a second listener for manifest scan events
-    SourceControlEventListener mockEventListener = mock(SourceControlEventListener.class);
-    eventService.registerEventListener(mockEventListener);
-
-    // when: the event processing is triggered
-    CountDownLatch eventsProcessedLatch = createOnEventFinishedLatch(events.get(0));
-    eventService.processEvents();
-
-    // then: manifest scan invoked for the given event
-    verifyUnlatched(eventsProcessedLatch);
-    verifyProcessEventsActions(events.get(0),
-        EventProcessAction.markedInProgress,
-        EventProcessAction.onManifestScan,
-        EventProcessAction.markedComplete);
-
-    // and then: second event service got no events
-    verify(mockEventListener, times(0)).executeEvent(any());
-
-    // and initial scan service got called
-    verify(mockManifestScanService,times(1)).executeEvent(any());
   }
 
   @Test
@@ -653,26 +620,6 @@ public class SourceControlEventServiceTest
   }
 
   @Test
-  public void testPublishEvent() {
-    // when: publish a null event
-    eventService.publishEvent(null);
-
-    // then: nothing saved to DB
-    verify(mockSourceControlEventDAO, never()).insert(any());
-
-    // and when: publish an event
-    final String appId = "xyz-012";
-    SourceControlEvent event = new SourceControlEvent().setApplicationId(appId);
-    eventService.publishEvent(event);
-
-    // then: DAO tries to save event
-    ArgumentCaptor<SourceControlEvent> eventCaptor = ArgumentCaptor.forClass(SourceControlEvent.class);
-    verify(mockSourceControlEventDAO, times(1)).insert(eventCaptor.capture());
-    SourceControlEvent persistedEvent = eventCaptor.getValue();
-    assertThat(persistedEvent.getApplicationId()).isEqualTo(appId);
-  }
-
-  @Test
   public void testInitializeEvents() {
     // when: call to initialize events
     eventService.initializeEvents();
@@ -803,32 +750,32 @@ public class SourceControlEventServiceTest
       verify(mockPullRequestCommentingService, never()).onDiscoveredPullRequest(eq(event));
       verify(mockPullRequestCommentingService, never()).onApplicationEvaluation(eq(event));
       verify(mockPullRequestRemediationService, never()).onRemediateComponent(eq(event));
-      verify(mockManifestScanService, never()).executeEvent(any(SourceControlEvent.class));
+      verify(mockManifestScanService, never()).onManifestScan(any(SourceControlEvent.class));
       verify(mockGitCommitStatusService, never()).onSendCommitStatus(eq(event));
     }
     else if (actionSet.contains(EventProcessAction.onAppEval)) {
       verify(mockPullRequestCommentingService, times(1)).onApplicationEvaluation(eq(event));
       verify(mockPullRequestCommentingService, never()).onDiscoveredPullRequest(eq(event));
       verify(mockPullRequestRemediationService, never()).onRemediateComponent(eq(event));
-      verify(mockManifestScanService, never()).executeEvent(any(SourceControlEvent.class));
+      verify(mockManifestScanService, never()).onManifestScan(any(SourceControlEvent.class));
       verify(mockGitCommitStatusService, never()).onSendCommitStatus(eq(event));
     }
     else if (actionSet.contains(EventProcessAction.onPrDiscovered)) {
       verify(mockPullRequestCommentingService, times(1)).onDiscoveredPullRequest(eq(event));
       verify(mockPullRequestCommentingService, never()).onApplicationEvaluation(eq(event));
       verify(mockPullRequestRemediationService, never()).onRemediateComponent(eq(event));
-      verify(mockManifestScanService, never()).executeEvent(any(SourceControlEvent.class));
+      verify(mockManifestScanService, never()).onManifestScan(any(SourceControlEvent.class));
       verify(mockGitCommitStatusService, never()).onSendCommitStatus(eq(event));
     }
     else if (actionSet.contains(EventProcessAction.onComponentRemediation)) {
       verify(mockPullRequestRemediationService, times(1)).onRemediateComponent(eq(event));
       verify(mockPullRequestCommentingService, never()).onDiscoveredPullRequest(eq(event));
       verify(mockPullRequestCommentingService, never()).onApplicationEvaluation(eq(event));
-      verify(mockManifestScanService, never()).executeEvent(any(SourceControlEvent.class));
+      verify(mockManifestScanService, never()).onManifestScan(any(SourceControlEvent.class));
       verify(mockGitCommitStatusService, never()).onSendCommitStatus(eq(event));
     }
     else if (actionSet.contains(EventProcessAction.onManifestScan)) {
-      verify(mockManifestScanService, times(1)).executeEvent(eq(event));
+      verify(mockManifestScanService, times(1)).onManifestScan(eq(event));
       verifyNoMoreInteractions(mockPullRequestCommentingService, mockPullRequestRemediationService,
           mockGitCommitStatusService);
     }

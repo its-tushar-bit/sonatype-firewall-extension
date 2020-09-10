@@ -16,9 +16,9 @@ import javax.inject.Provider;
 
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
+import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.git.helper.ApplicationEvaluationEventBuilder;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -77,7 +77,7 @@ public class PullRequestCommentingServiceTest
   private PullRequestCommentingMetricsService mockPrCommentingMetricsService;
 
   @Mock
-  private SourceControlEventDAO mockSourceControlEventDAO;
+  private SourceControlEventPublisher mockSourceControlEventPublisher;
 
   public PullRequestCommentingServiceTest() {
     super(PullRequestCommentingService.class);
@@ -364,7 +364,7 @@ public class PullRequestCommentingServiceTest
 
     // then : source control event should be created
     ArgumentCaptor<SourceControlEvent> eventCaptor = ArgumentCaptor.forClass(SourceControlEvent.class);
-    verify(mockSourceControlEventDAO).insert(eventCaptor.capture());
+    verify(mockSourceControlEventPublisher).publishEvent(eventCaptor.capture());
     SourceControlEvent generatedEvent = eventCaptor.getValue();
     assertThat(generatedEvent).isNotNull();
     assertThat(generatedEvent.getApplicationId()).isEqualTo(event.ownerId);
@@ -692,7 +692,7 @@ public class PullRequestCommentingServiceTest
     commentingService.onApplicationEvaluation(event);
 
     // then : no source control event should be created
-    verify(mockSourceControlEventDAO, never()).insert(any());
+    verify(mockSourceControlEventPublisher, never()).publishEvent(any());
   }
 
   @Test
@@ -925,7 +925,7 @@ public class PullRequestCommentingServiceTest
           mockGitClientFactory,
           mockPullRequestCommentDAO,
           mockPolicyEvaluationDAO,
-          mockSourceControlEventDAO,
+          mockSourceControlEventPublisher,
           mockPullRequestFeedbackMarkupService,
           mockGitCommitHistoryService,
           mockPrCommentingMetricsService,

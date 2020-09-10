@@ -10,7 +10,7 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.git.event.SourceControlEventService;
+import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.security.Authorize;
@@ -27,7 +27,7 @@ import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
  */
 public class ApiManifestScanService
 {
-  private final SourceControlEventService sourceControlEventService;
+  private final SourceControlEventPublisher sourceControlEventPublisher;
 
   private final InsightConfig insightConfig;
 
@@ -35,11 +35,11 @@ public class ApiManifestScanService
 
   @Inject
   public ApiManifestScanService(
-      final SourceControlEventService sourceControlEventService,
+      final SourceControlEventPublisher sourceControlEventPublisher,
       final InsightConfig insightConfig,
       final SourceControlUtils sourceControlUtils)
   {
-    this.sourceControlEventService = sourceControlEventService;
+    this.sourceControlEventPublisher = sourceControlEventPublisher;
     this.insightConfig = insightConfig;
     this.sourceControlUtils = sourceControlUtils;
   }
@@ -75,7 +75,7 @@ public class ApiManifestScanService
         .setBranchName(branch)
         .setUserAgent(userAgent);
 
-    sourceControlEventService.publishEvent(sourceControlEvent);
+    sourceControlEventPublisher.publishEvent(sourceControlEvent);
 
     return statusId;
   }

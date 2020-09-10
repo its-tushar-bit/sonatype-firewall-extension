@@ -17,7 +17,7 @@ import java.util.UUID;
 
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
-import com.sonatype.insight.brain.git.event.SourceControlEventService;
+import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
@@ -52,7 +52,7 @@ public class PullRequestPollingServiceTest
     extends VerifiableLoggingTestBase
 {
   @Mock
-  SourceControlEventService mockSourceControlEventService;
+  SourceControlEventPublisher sourceControlEventPublisher;
 
   private Map<String, PullRequestInfoProvider> mockClientMap = new HashMap<>();
 
@@ -77,7 +77,7 @@ public class PullRequestPollingServiceTest
     pollingService.fetchAndSendPullRequestsForCommenting();
 
     // then: no events emitted
-    verify(mockSourceControlEventService, never()).publishEvent(any(SourceControlEvent.class));
+    verify(sourceControlEventPublisher, never()).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual();
   }
 
@@ -96,7 +96,7 @@ public class PullRequestPollingServiceTest
     pollingService.fetchAndSendPullRequestsForCommenting();
 
     // then: event emitted
-    verify(mockSourceControlEventService, never()).publishEvent(any(SourceControlEvent.class));
+    verify(sourceControlEventPublisher, never()).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
         debug("Fetched 1 pull request(s) for org 'orgNspe' since " + pullRequestPollingTime),
         debug("Policy evaluation not yet available for 'orgNspe/repoNspe' pull request '10'"),
@@ -120,7 +120,7 @@ public class PullRequestPollingServiceTest
     pollingService.fetchAndSendPullRequestsForCommenting();
 
     // then: event emitted
-    verify(mockSourceControlEventService, never()).publishEvent(any(SourceControlEvent.class));
+    verify(sourceControlEventPublisher, never()).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
         debug("Fetched 1 pull request(s) for org 'orgBb' since " + pullRequestPollingTime),
         debug("application 'app1' pull request '10' is for the base branch, skipping commenting for this PR"),
@@ -144,7 +144,7 @@ public class PullRequestPollingServiceTest
     pollingService.fetchAndSendPullRequestsForCommenting();
 
     // then: event emitted
-    verify(mockSourceControlEventService, times(1)).publishEvent(any(SourceControlEvent.class));
+    verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
         debug("Fetched 1 pull request(s) for org 'orgOk' since " + pullRequestPollingTime),
         info("Sent pull request discovered event for application 'app1' with PR# '10' and policy evaluation 'spe1'"),
@@ -170,7 +170,7 @@ public class PullRequestPollingServiceTest
     pollingService.fetchAndSendPullRequestsForCommenting();
 
     // then: event emitted
-    verify(mockSourceControlEventService, times(1)).publishEvent(any(SourceControlEvent.class));
+    verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
         debug("Fetched 1 pull request(s) for org 'orgInt' since " + pullRequestPollingTime),
         info("Sent pull request discovered event for application 'app1' with PR# '10' and policy evaluation 'spe1'"),
@@ -190,7 +190,7 @@ public class PullRequestPollingServiceTest
     pollingService.fetchAndSendPullRequestsForCommenting();
 
     // then: no events emitted
-    verify(mockSourceControlEventService, never()).publishEvent(any(SourceControlEvent.class));
+    verify(sourceControlEventPublisher, never()).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
         debug("BITBUCKET is not currently supported for pull request commenting on repository " + repositoryUrl)
     );
@@ -213,7 +213,7 @@ public class PullRequestPollingServiceTest
     pollingService.fetchAndSendPullRequestsForCommenting();
 
     // then: no events emitted
-    verify(mockSourceControlEventService, never()).publishEvent(any(SourceControlEvent.class));
+    verify(sourceControlEventPublisher, never()).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
         debug("Fetched 1 pull request(s) for org 'orgNp' since " + pullRequestPollingTime),
         debug("Repository is not valid for pull requests, check that it is private: https://domain.com/orgNp/repoNp"),
@@ -241,7 +241,7 @@ public class PullRequestPollingServiceTest
     pollingService.fetchAndSendPullRequestsForCommenting();
 
     // then: no events emitted
-    verify(mockSourceControlEventService, never()).publishEvent(any(SourceControlEvent.class));
+    verify(sourceControlEventPublisher, never()).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
         warn(
             "Could not fetch pull requests for org 'orgErr'; will retry in 5 minutes.  Please " +
@@ -270,7 +270,7 @@ public class PullRequestPollingServiceTest
     pollingService.fetchAndSendPullRequestsForCommenting();
 
     // then: no events emitted
-    verify(mockSourceControlEventService, never()).publishEvent(any(SourceControlEvent.class));
+    verify(sourceControlEventPublisher, never()).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
         warn(
             "Could not fetch pull requests for org 'orgErr' repo 'repoErr'; will retry in 5 minutes.  Please " +
@@ -304,7 +304,7 @@ public class PullRequestPollingServiceTest
     pollingService.fetchAndSendPullRequestsForCommenting();
 
     // then:
-    verify(mockSourceControlEventService, times(2)).publishEvent(any(SourceControlEvent.class));
+    verify(sourceControlEventPublisher, times(2)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
         debug("Fetched 1 pull request(s) for org 'org' repo 'multi-1' since " + repo1pullRequestPollingTime),
         debug("Fetched 1 pull request(s) for org 'org' repo 'multi-2' since " + repo2pullRequestPollingTime),
@@ -340,7 +340,7 @@ public class PullRequestPollingServiceTest
     pollingService.fetchAndSendPullRequestsForCommenting();
 
     // then:
-    verify(mockSourceControlEventService, times(2)).publishEvent(any(SourceControlEvent.class));
+    verify(sourceControlEventPublisher, times(2)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
         debug("Fetched 2 pull request(s) for org 'githubOrg' since " + repo1pullRequestPollingTime),
         info("Sent pull request discovered event for application 'app1' with PR# '10' and policy evaluation 'spe1'"),
@@ -443,7 +443,7 @@ public class PullRequestPollingServiceTest
         doReturn(sourceControlList.get(0)).when(mockSourceControlDAO).getNextRepositoryToPoll();
       }
 
-      return new PullRequestPollingService(mockSourceControlDAO, mockSourceControlEventService, mockPolicyEvaluationDAO,
+      return new PullRequestPollingService(mockSourceControlDAO, sourceControlEventPublisher, mockPolicyEvaluationDAO,
           mockGitCommitHistoryService, mockSourceControlUtils, mockGitClientFactory,
           mockPullRequestRepositoryValidator);
     }

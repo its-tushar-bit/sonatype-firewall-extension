@@ -13,8 +13,8 @@ import javax.ws.rs.core.UriBuilder;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
+import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
@@ -55,7 +55,7 @@ public class GitCommitStatusService
 
   private final SourceControlUtils sourceControlUtils;
 
-  private final SourceControlEventDAO sourceControlEventDAO;
+  private final SourceControlEventPublisher sourceControlEventPublisher;
 
   private final AsyncEventBus asyncEventBus;
 
@@ -66,7 +66,7 @@ public class GitCommitStatusService
       final ApplicationDAO applicationDAO,
       final GitClientFactory gitClientFactory,
       ProductLicense productLicense,
-      SourceControlEventDAO sourceControlEventDAO,
+      SourceControlEventPublisher sourceControlEventPublisher,
       AsyncEventBus asyncEventBus)
   {
     this.baseUrl = baseUrl;
@@ -74,7 +74,7 @@ public class GitCommitStatusService
     this.gitClientFactory = gitClientFactory;
     this.productLicense = productLicense;
     this.sourceControlUtils = sourceControlUtils;
-    this.sourceControlEventDAO = sourceControlEventDAO;
+    this.sourceControlEventPublisher = sourceControlEventPublisher;
     this.asyncEventBus = asyncEventBus;
   }
 
@@ -97,7 +97,7 @@ public class GitCommitStatusService
       return;
     }
 
-    sourceControlEventDAO.insert(
+    sourceControlEventPublisher.publishEvent(
         new SourceControlEvent()
             .setEventType(SourceControlEvent.STATUS_UPDATE_EVENT)
             .setEventPriority(SourceControlEvent.EVENT_PRIORITY_HIGHER)

@@ -10,8 +10,8 @@ import java.io.IOException;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
+import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.git.helper.ApplicationEvaluationEventBuilder;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -55,7 +55,7 @@ public class GitCommitStatusServiceTest
   GitApiClient mockGitApiClient;
 
   @Mock
-  private SourceControlEventDAO mockSourceControlEventDAO;
+  private SourceControlEventPublisher mockSourceControlEventPublisher;
 
   @Mock
   private AsyncEventBus mockAsyncEventBus;
@@ -162,7 +162,7 @@ public class GitCommitStatusServiceTest
 
     // then: a source control event was created
     ArgumentCaptor<SourceControlEvent> eventCaptor = ArgumentCaptor.forClass(SourceControlEvent.class);
-    verify(mockSourceControlEventDAO).insert(eventCaptor.capture());
+    verify(mockSourceControlEventPublisher).publishEvent(eventCaptor.capture());
     SourceControlEvent generatedEvent = eventCaptor.getValue();
 
     assertThat(generatedEvent.getEventType()).isEqualTo(SourceControlEvent.STATUS_UPDATE_EVENT);
@@ -423,8 +423,7 @@ public class GitCommitStatusServiceTest
   }
 
   private void verifyNoSourceControlEventCreated() {
-    verify(mockSourceControlEventDAO, never()).insert(any());
-    verify(mockSourceControlEventDAO, never()).insert(any(), any());
+    verify(mockSourceControlEventPublisher, never()).publishEvent(any());
   }
 
   private class TestableGitCommitStatusServiceBuilder
@@ -557,7 +556,7 @@ public class GitCommitStatusServiceTest
           mockApplicationDAO,
           mockGitClientFactory,
           testProductLicense,
-          mockSourceControlEventDAO,
+          mockSourceControlEventPublisher,
           mockAsyncEventBus
       );
     }

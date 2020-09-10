@@ -8,13 +8,11 @@ package com.sonatype.insight.brain.git;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.git.event.SourceControlEventService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
@@ -38,11 +36,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.APPLICATION_EVALUATION_EVENT;
-import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.DISCOVERED_PULL_REQUEST_EVENT;
-import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.MANIFEST_SCAN_EVENT;
-import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT;
-import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.STATUS_UPDATE_EVENT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -82,9 +75,6 @@ public class ManifestScanServiceTest
   private GitApi mockGitApi;
 
   @Mock
-  private SourceControlEventService sourceControlEventService;
-
-  @Mock
   private PolicyEvaluateService policyEvaluateService;
 
   @Mock
@@ -121,8 +111,8 @@ public class ManifestScanServiceTest
     super.setup();
 
     service = new ManifestScanService(
-        mockInsightConfig, mockGitApiFactory, mockSourceControlUtils, mockApplicationDAO, sourceControlEventService,
-        proprietaryConfigService, policyEvaluateService, work, scanner);
+        mockInsightConfig, mockGitApiFactory, mockSourceControlUtils, mockApplicationDAO, proprietaryConfigService,
+        policyEvaluateService, work, scanner);
 
     try {
       sourceControlDir = tmpDir.newFolder();
@@ -202,33 +192,6 @@ public class ManifestScanServiceTest
         isA(Application.class), eq(ClientScanType.SONATYPE), argThat(s -> s.getStageTypeId().equals(Stage.ID_DEVELOP)),
         isA(File.class), eq("api"),
         eq("userAgent"));
-  }
-
-  @Test
-  public void testExecuteEvent_skips() throws Exception {
-    // given a list of all event types to skip
-    List<String> skipEventTypes = Arrays.asList(APPLICATION_EVALUATION_EVENT, DISCOVERED_PULL_REQUEST_EVENT,
-        REMEDIATION_PULL_REQUEST_EVENT, STATUS_UPDATE_EVENT);
-
-    // when we receive a manifest scan event that we do not handle, receive false
-    for (String eventType : skipEventTypes) {
-      SourceControlEvent event = new SourceControlEvent();
-      event.setEventType(eventType);
-      assertThat(service.executeEvent(event)).isFalse();
-    }
-  }
-
-  @Test
-  public void testExecuteEvent_handles() throws Exception {
-    // given a list of all event types to respond to
-    List<String> handleEventTypes = Arrays.asList(MANIFEST_SCAN_EVENT);
-
-    // then ensure that executeEvent is true
-    for (String eventType : handleEventTypes) {
-      SourceControlEvent event = new SourceControlEvent();
-      event.setEventType(eventType);
-      assertThat(service.executeEvent(event)).isTrue();
-    }
   }
 }
 

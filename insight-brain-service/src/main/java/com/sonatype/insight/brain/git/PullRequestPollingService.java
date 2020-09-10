@@ -17,7 +17,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
-import com.sonatype.insight.brain.git.event.SourceControlEventService;
+import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
@@ -52,7 +52,7 @@ public class PullRequestPollingService
 
   private final SourceControlDAO sourceControlDAO;
 
-  private final SourceControlEventService sourceControlEventService;
+  private final SourceControlEventPublisher sourceControlEventPublisher;
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
@@ -67,7 +67,7 @@ public class PullRequestPollingService
   @Inject
   public PullRequestPollingService(
       SourceControlDAO sourceControlDAO,
-      SourceControlEventService sourceControlEventService,
+      SourceControlEventPublisher sourceControlEventPublisher,
       PolicyEvaluationDAO policyEvaluationDAO,
       GitCommitHistoryService gitCommitHistoryService,
       SourceControlUtils sourceControlUtils,
@@ -75,7 +75,7 @@ public class PullRequestPollingService
       PullRequestRepositoryValidator pullRequestRepositoryValidator)
   {
     this.sourceControlDAO = sourceControlDAO;
-    this.sourceControlEventService = sourceControlEventService;
+    this.sourceControlEventPublisher = sourceControlEventPublisher;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.gitCommitHistoryService = gitCommitHistoryService;
     this.sourceControlUtils = sourceControlUtils;
@@ -158,7 +158,7 @@ public class PullRequestPollingService
     if (null != targetPolicyEvaluation) {
       event.setTargetPolicyEvaluationId(targetPolicyEvaluation.getId());
     }
-    sourceControlEventService.publishEvent(event);
+    sourceControlEventPublisher.publishEvent(event);
     log.info("Sent pull request discovered event for application '{}' with PR# '{}' and policy evaluation '{}'",
         applicationId, pullRequestNumber, event.getPolicyEvaluationId());
   }

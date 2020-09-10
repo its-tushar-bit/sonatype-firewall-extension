@@ -17,10 +17,15 @@
         * [ Setup ](#setup)
         * [ Building and monitoring the front-end ](#building-and-monitoring-the-front-end)
         * [ Building and monitoring front-end assets outside the main bundle ](#building-and-monitoring-front-end-assets-outside-the-main-bundle)
-        * [ Running tests for the main bundle ](#running-tests-for-the-main-bundle)
-        * [ Running tests for assets outside the main bundle ](#running-tests-for-assets-outside-the-main-bundle)
+        * [ Running tests ](#running-tests)
         * [ Re-installing packages with npm ](#re-installing-packages-with-npm)
-* [ Note on Angular, Redux, & React ](#notes-on-angular-redux--react)
+* [ Supported browsers and resolution ](#supported-browsers-and-resolution)
+* [ Helpful Utilities ](#helpful-utilities)
+* [ Notes on Angular, Redux, & React ](#notes-on-angular-redux--react)
+    * [Redux and React conventions in the IQ frontend project](#redux-and-react-conventions-in-the-iq-frontend-project)
+* [ React Sample component ](#react-sample-component)
+    * [Writing tests for React components](#writing-tests-for-react-components)
+
 
 ## Front-end development
 
@@ -87,9 +92,61 @@ If you've already run the Maven build, you **don't** need to explicitly install 
 
 However, if you've been adding or removing packages, or if you just need a clean start for some reason, then you can always clear out `node_modules` and start fresh. Example syntax for a Unix based OS: `rm -rf node_modules && npm i`
 
+## Supported browsers and resolution
+
+As of September 2020, we currently support the latest desktop versions of Chrome, Firefox, Safari and Edge. We also support Internet Explorer 11. When developing on the front end, make sure to test in all of these browsers and multiple operating systems (Linux, Windows, MacOS). [BrowserStack](https://www.browserstack.com) is a helpful utility for this, and there are BrowserStack licenses available for all IQ devs. 
+
+Our current minimum screen resolution is 1024 pixels, though there are plans in place to enact a minimum resolution of 1366px.
+
+## Helpful Utilities
+
+There are several helpful utility files and functions that have been implemented to help with IQ front-end development. Here is a listing of some of them, all located in the `insight-brain-frontend/src/main/frontend/util` directory
+
+* `jsUtil.js` - Helper functions for basic JavaScript manipulation and conversion. Capitalization, converting Sets to Arrays, and setting and looking up properties in nested objects
+* `reduxUtil.js` - Several helper functions for creating Redux actions and reducers
+* `urlUtil.js` - functions to help with getting and setting URLs and their parameters
+* `validationUtil.js` - validation functions for form elements
+* `componentIdentifierUtils.js` - Helper function to serialize component identifiers
+
+If you find yourself implementing a simple pattern that is or may be reusable, please consider exporting it to a helper file in this directory.
+
 ## Notes on Angular, Redux, & React
 
-* Historically, this front-end was built using AngularJS.
-* In 2017, we introduced Redux for state management by way of [`ng-redux`](https://github.com/angular-redux/ng-redux).
-* As of 2019, we have started migrating UI components from AngularJS to React. Brand new UI components should be implemented in React and backed with Redux.
-* As of Feb 2020, we are working on a robust guide to make this transition, as well as front-end development in general, easier for all contributors to the IQ project. Stay tuned!
+Historically, the front-end of IQ was built using AngularJS. In 2017, we introduced Redux for state management by way of [`ng-redux`](https://github.com/angular-redux/ng-redux).
+
+In 2018/2019, several developers from across Sonatype researched several different front-end frameworks to decide the company direction going forward. The consensus of that summit was to use React. Since then we have started migrating UI components in IQ from AngularJS to React.
+
+If you want to become more familiar with React and/or Redux, consider any of the following tutorials:
+* [Tutorial: Intro to React on reactjs.org](https://reactjs.org/tutorial/tutorial.html)
+* [Redux basic tutorial](https://redux.js.org/basics/basic-tutorial)
+* [React and Redux Tutorials on freecodecamp.org](https://www.freecodecamp.org/)
+
+### Redux and React conventions in the IQ frontend project
+
+* When naming Redux action types, you should prefix them with an appropriate context. For example, `ADVANCED_SEARCH_CONFIG_LOAD_REQUESTED` in `advancedSearchConfigActions.js`
+* All new UI components should be implemented in React and backed with Redux. Any changes to existing pages should follow the patterns of the modified code.
+* All React components should be Capitalized (`const AddWaiverPageContainer` in `AddWaiverPageContainer.jsx`) while actions and reducers should use camelCase (`export function loadAddWaiverData` in `addWaiverActions.js`)
+
+## React Sample component
+
+One example or template that you can use when creating new React components is the Add Waiver Page. There are other React examples in the IQ codebase that you can also inspect.
+* First, a container component such as `AddWaiverPageContainer` is created. This container component is responsible for wiring any external state (most typically state stored in redux) and callbacks into the UI. Two important functions that should be created are [mapStateToProps](https://react-redux.js.org/using-react-redux/connect-mapstate) and [mapDispatchToProps](https://react-redux.js.org/using-react-redux/connect-mapdispatch). Here we use the [react-redux](https://react-redux.js.org/) library to follow a standard pattern for passing state to and from React components. These methods, along with the [connect](https://react-redux.js.org/api/connect) method from the same library, allow us to pass state between the Redux store and our React components in a conventional way. The container component then passes the needed properties to the presentational component, with code similar to `const AddWaiverPageContainer = connect(mapStateToProps, mapDispatchToProps)(AddWaiverPage);`
+* The presentational component (`AddWaiverPage`) may have internal logic that helps it decide what to render. But it should not directly interact with the global state or actions. Instead, it should receive all data it needs, and all callbacks for user interaction that it supports, as React props. It is up to the container component to set these props to the correct data from the redux store and the correct action creators. 
+* Relevant actions (`addWaiverActions.js`) and reducers (`addWaiverReducer.js`) for the component are also created in separate files. Any new reducers should be added to `insight-brain-frontend/src/main/frontend/reduxConfig/reducers.js`
+* Finally, in `waivers/module.js`, an Angular module is created pointing to the `AddWaiverPageContainer` component using [react2angular](https://www.npmjs.com/package/react2angular). This is what converts the React component into something that the rest of IQ (AngularJS) can interact with. There is a helper function called `withStoreProvider` that provides the redux store to the React components. It is wired into angular with code similar to
+`.component('addWaiverPage', react2angular(withStoreProvider(AddWaiverPageContainer), [], ['$ngRedux', '$state']))`
+         
+We implement runtime type-safety in React components using the [prop-types](https://www.npmjs.com/package/prop-types) library and all properties should be appropriately typed. This is usually done at the bottom of each component, by specifying various `PropTypes` from the `prop-types` project.
+
+### Writing tests for React components
+It is IMPERATIVE that JavaScript unit tests be written for all front end code. Java integration and functional tests alone do not sufficiently ensure proper functionality.
+
+JavaScript unit tests should be created for the container component, the presentational component, and all actions and reducers. Examples of how to wire up mock state and properties can be found in the tests for the Add Waiver Page.
+
+There are several helper functions in `insight-brain-frontend/src/test/frontend/SpecUtil.js` to help you with writing unit tests for React components. Here are some of the most common:
+
+* `mockNgRedux` and `mockReduxStore` provide helpful interfaces for interacting with a mock Redux store / state
+* `axiosMockerGenerator` can help to interact with the various Axios HTTP verbs (get / post / put / delete)
+* You should typically use [enzyme's](https://enzymejs.github.io/enzyme/docs/api/shallow.html) `shallow` and `mount` functions to test the DOM that your React component renders
+
+For any questions about front-end development, reach out to the `@iq-laurel-team` in `#iq-laurel` in Slack

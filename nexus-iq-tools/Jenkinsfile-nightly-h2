@@ -55,7 +55,7 @@ pipeline {
                   -l logback.xml
               ln -s $(ls -t | grep awsPerfRun | head -1) smallAWSPerfRun
              '''
-          withDockerContainer(image: 'hashicorp/terraform:0.12.24', args: "--entrypoint=''") {
+          withDockerContainer(image: 'hashicorp/terraform:0.13.2', args: "--entrypoint=''") {
             sh '''
                terraform init -no-color
                terraform apply -auto-approve -no-color
@@ -66,7 +66,7 @@ pipeline {
       post {
         failure {
           dir('nexus-iq-tools/testsuite') {
-            withDockerContainer(image: 'hashicorp/terraform:0.12.24', args: "--entrypoint=''") {
+            withDockerContainer(image: 'hashicorp/terraform:0.13.2', args: "--entrypoint=''") {
               retry(3) {
                 sh 'terraform destroy --force -no-color'
               }
@@ -85,7 +85,7 @@ pipeline {
       post {
         always {
           dir('nexus-iq-tools/testsuite') {
-            withDockerContainer(image: 'hashicorp/terraform:0.12.24', args: "--entrypoint=''") {
+            withDockerContainer(image: 'hashicorp/terraform:0.13.2', args: "--entrypoint=''") {
               retry(3) {
                 sh 'terraform destroy --force -no-color'
               }
@@ -109,7 +109,7 @@ pipeline {
                   -l logback.xml
               ln -s $(ls -t | grep awsPerfRun | head -1) mediumAWSPerfRun
              '''
-          withDockerContainer(image: 'hashicorp/terraform:0.12.24', args: "--entrypoint=''") {
+          withDockerContainer(image: 'hashicorp/terraform:0.13.2', args: "--entrypoint=''") {
             sh '''
                terraform init -no-color
                terraform apply -auto-approve -no-color
@@ -120,7 +120,7 @@ pipeline {
       post {
         failure {
           dir('nexus-iq-tools/testsuite') {
-            withDockerContainer(image: 'hashicorp/terraform:0.12.24', args: "--entrypoint=''") {
+            withDockerContainer(image: 'hashicorp/terraform:0.13.2', args: "--entrypoint=''") {
               retry(3) {
                 sh 'terraform destroy --force -no-color'
               }
@@ -139,7 +139,7 @@ pipeline {
       post {
         always {
           dir('nexus-iq-tools/testsuite') {
-            withDockerContainer(image: 'hashicorp/terraform:0.12.24', args: "--entrypoint=''") {
+            withDockerContainer(image: 'hashicorp/terraform:0.13.2', args: "--entrypoint=''") {
               retry(3) {
                 sh 'terraform destroy --force -no-color'
               }
@@ -163,7 +163,7 @@ pipeline {
                   -l logback.xml
               ln -s $(ls -t | grep awsPerfRun | head -1) largeAWSPerfRun
              '''
-          withDockerContainer(image: 'hashicorp/terraform:0.12.24', args: "--entrypoint=''") {
+          withDockerContainer(image: 'hashicorp/terraform:0.13.2', args: "--entrypoint=''") {
             sh '''
                terraform init -no-color
                terraform apply -auto-approve -no-color
@@ -174,7 +174,7 @@ pipeline {
       post {
         failure {
           dir('nexus-iq-tools/testsuite') {
-            withDockerContainer(image: 'hashicorp/terraform:0.12.24', args: "--entrypoint=''") {
+            withDockerContainer(image: 'hashicorp/terraform:0.13.2', args: "--entrypoint=''") {
               retry(3) {
                 sh 'terraform destroy --force -no-color'
               }
@@ -193,7 +193,7 @@ pipeline {
       post {
         always {
           dir('nexus-iq-tools/testsuite') {
-            withDockerContainer(image: 'hashicorp/terraform:0.12.24', args: "--entrypoint=''") {
+            withDockerContainer(image: 'hashicorp/terraform:0.13.2', args: "--entrypoint=''") {
               retry(3) {
                 sh 'terraform destroy --force -no-color'
               }

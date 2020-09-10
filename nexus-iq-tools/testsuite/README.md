@@ -19,7 +19,7 @@ macOS and Linux run the scripts without issues.
 
 To provision an AWS EC2 instance and execute a performance evaluation for IQ, you'll need:
 
-1. [Terraform](https://www.terraform.io/) (version v0.12)
+1. [Terraform](https://www.terraform.io/) (version v0.13)
 2. AWS CLI
 3. Python 3.7
 4. Bash shell

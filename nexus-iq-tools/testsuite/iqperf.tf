@@ -3,7 +3,6 @@
 # "Sonatype" is a trademark of Sonatype, Inc.
 
 provider "aws" {
-  version = "~> 2.70"
   region = var.aws_region
   assume_role {
     role_arn     = var.assume_role_arn
@@ -14,7 +13,7 @@ provider "aws" {
 
 data "aws_availability_zones" "available" {
   state             = "available"
-  blacklisted_names = ["us-east-1e"] # this zone doesn't support "m5d.2xlarge" at the moment of writing this comment
+  exclude_names = ["us-east-1e"] # this zone doesn't support "m5d.2xlarge" at the moment of writing this comment
 }
 
 data "http" "current_ip" {

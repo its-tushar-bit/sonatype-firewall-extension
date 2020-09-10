@@ -43,8 +43,8 @@ export default function AdvancedSearchResultCard({searchResultItem, groupIdentif
 
       vulnerabilityDescription = searchResultItem.vulnerabilityId && groupIdentifier !== 'VULNERABILITY_ID',
 
-      policy = searchResultItem.policyId &&
-        searchResultItem.policyName && searchResultItem.policyThreatLevel && searchResultItem.policyThreatCategory;
+      policy = searchResultItem.policyId && searchResultItem.policyName
+          && searchResultItem.policyThreatLevel !== undefined && searchResultItem.policyThreatCategory;
 
   return (
     <Fragment>

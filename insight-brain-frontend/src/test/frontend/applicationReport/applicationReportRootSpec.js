@@ -16,14 +16,15 @@ describe('applicationReportRoot', function() {
   }));
 
   beforeEach(inject(function($componentController) {
-    createController = function(publicId, scanId, unknownJs, embeddable) {
+    createController = function(publicId, scanId, unknownJs, embeddable, policyViolationId) {
       const vm = $componentController('applicationReportRoot', {
         $state: {
           params: {
             publicId,
             scanId,
             unknownJs,
-            embeddable
+            embeddable,
+            policyViolationId
           }
         }
       });
@@ -42,9 +43,14 @@ describe('applicationReportRoot', function() {
     });
 
     it('calls setReportParameters with the correct parameters', function() {
-      const vm = createController('testApp', 'testReport', false, true);
+      const vm = createController('testApp', 'testReport', false, true, undefined);
+      expect(vm.setReportParameters).toHaveBeenCalledWith('testApp', 'testReport', false, true, undefined);
+    });
 
-      expect(vm.setReportParameters).toHaveBeenCalledWith('testApp', 'testReport', false, true);
+    it('calls setReportParameters with the correct parameters when returning from addWaiver', function() {
+      const vm = createController('testApp', 'testReport', false, true, 'policyViolationId');
+
+      expect(vm.setReportParameters).toHaveBeenCalledWith('testApp', 'testReport', false, true, 'policyViolationId');
     });
   });
 

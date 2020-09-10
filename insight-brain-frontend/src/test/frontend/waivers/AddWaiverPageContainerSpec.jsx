@@ -17,6 +17,7 @@ describe('AddWaiverPageContainer', function() {
       setWaiverScopeMock,
       setApplyToAllComponentsMock,
       openVulnerabilityDetailsModalMock,
+      cancelActionMock,
       store,
       state,
       vdom;
@@ -40,6 +41,9 @@ describe('AddWaiverPageContainer', function() {
     openVulnerabilityDetailsModalMock = jasmine.createSpy('openVulnerabilityDetailsModal').and.returnValue({
       type: 'OPEN_VULNERABILITY_DETAILS_MODAL'
     });
+    cancelActionMock = jasmine.createSpy('cancelAction').and.returnValue({
+      type: '@@reduxUiRouter/stateGo'
+    });
 
     AddWaiverPageContainer =
         require('inject-loader!../../../main/frontend/waivers/AddWaiverPageContainer')({
@@ -48,7 +52,8 @@ describe('AddWaiverPageContainer', function() {
             saveWaiver: saveWaiverMock,
             setWaiverComment: setWaiverCommentMock,
             setWaiverScope: setWaiverScopeMock,
-            setApplyToAllComponents: setApplyToAllComponentsMock
+            setApplyToAllComponents: setApplyToAllComponentsMock,
+            returnToAddWaiverOriginPage: cancelActionMock
           },
           '../vulnerabilityDetails/vulnerabilityDetailsModalActions': {
             openVulnerabilityDetailsModal: openVulnerabilityDetailsModalMock
@@ -109,7 +114,8 @@ describe('AddWaiverPageContainer', function() {
         setApplyToAllComponentsActionCreator = wrapper.prop('setApplyToAllComponents'),
         setWaiverScopeActionCreator = wrapper.prop('setWaiverScope'),
         setWaiverCommentActionCreator = wrapper.prop('setWaiverComment'),
-        openVulnerabilityDetailsModalActionCreator = wrapper.prop('openVulnerabilityDetailsModal');
+        openVulnerabilityDetailsModalActionCreator = wrapper.prop('openVulnerabilityDetailsModal'),
+        returnToAddWaiverOriginPageActionCreator = wrapper.prop('cancelAction');
 
     expect(loadAddWaiverDataActionCreator).toEqual(jasmine.any(Function));
     expect(saveWaiverActionCreator).toEqual(jasmine.any(Function));
@@ -117,6 +123,7 @@ describe('AddWaiverPageContainer', function() {
     expect(setWaiverScopeActionCreator).toEqual(jasmine.any(Function));
     expect(setWaiverCommentActionCreator).toEqual(jasmine.any(Function));
     expect(openVulnerabilityDetailsModalActionCreator).toEqual(jasmine.any(Function));
+    expect(returnToAddWaiverOriginPageActionCreator).toEqual(jasmine.any(Function));
 
     expect(store.getActions()).toEqual([]);
 
@@ -161,6 +168,17 @@ describe('AddWaiverPageContainer', function() {
       { type: 'SET_WAIVER_SCOPE' },
       { type: 'SET_WAIVER_COMMENT' },
       { type: 'OPEN_VULNERABILITY_DETAILS_MODAL' }
+    ]);
+
+    returnToAddWaiverOriginPageActionCreator();
+    expect(store.getActions()).toEqual([
+      { type: 'LOAD_ADD_WAIVER_DATA' },
+      { type: 'SAVE_WAIVER' },
+      { type: 'SET_APPLY_TO_ALL_COMPONENTS' },
+      { type: 'SET_WAIVER_SCOPE' },
+      { type: 'SET_WAIVER_COMMENT' },
+      { type: 'OPEN_VULNERABILITY_DETAILS_MODAL' },
+      { type: '@@reduxUiRouter/stateGo' }
     ]);
   });
 

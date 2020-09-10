@@ -57,7 +57,8 @@ describe('applicationReportActions', function() {
   describe('setReportParameters', () => {
     it('dispatches SET_REPORT_PARAMETERS action', () => {
       const store = SpecUtil.mockReduxStore({});
-      store.dispatch(applicationReportActions.setReportParameters('appId', 'scanId', true, false));
+      store.dispatch(
+          applicationReportActions.setReportParameters('appId', 'scanId', true, false, 'policyViolationId'));
 
       expect(store.getActions().length).toBe(1);
       expect(store.getActions()[0]).toEqual({
@@ -66,7 +67,22 @@ describe('applicationReportActions', function() {
           appId: 'appId',
           scanId: 'scanId',
           isUnknownJs: true,
-          embeddable: false
+          embeddable: false,
+          policyViolationId: 'policyViolationId'
+        }
+      });
+
+      store.dispatch(
+          applicationReportActions.setReportParameters('appId', 'scanId', true, false));
+      expect(store.getActions().length).toBe(2);
+      expect(store.getActions()[1]).toEqual({
+        type: 'SET_REPORT_PARAMETERS',
+        payload: {
+          appId: 'appId',
+          scanId: 'scanId',
+          isUnknownJs: true,
+          embeddable: false,
+          policyViolationId: undefined
         }
       });
     });

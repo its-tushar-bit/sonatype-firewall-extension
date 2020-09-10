@@ -32,6 +32,7 @@ import {
   LOAD_VIOLATION_FULFILLED,
   LOAD_VIOLATION_FAILED
 } from '../../../main/frontend/violation/violationPageActions';
+import { STATE_GO } from '../../../main/frontend/reduxUiRouter/routerActions';
 
 describe('addWaiverActions', function() {
   let store, mockAxiosCalls;
@@ -43,7 +44,8 @@ describe('addWaiverActions', function() {
           applicationPublicId: 'appPublicId',
           policyId: 'policyId'
         }
-      }
+      },
+      router: {}
     };
     store = SpecUtil.mockReduxStore(state);
     mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
@@ -97,9 +99,10 @@ describe('addWaiverActions', function() {
             .then(() => {
               setTimeout(() => {
                 expect(axios.post).toHaveBeenCalledWith(url, expectedPayload);
-                expect(store.getActions().length).toBe(3);
+                expect(store.getActions().length).toBe(4);
                 expect(store.getActions()[1].type).toBe(ADD_WAIVER_SAVE_FULFILLED);
-                expect(store.getActions()[2].type).toBe(ADD_WAIVER_SUBMIT_MASK_TIMER_DONE);
+                expect(store.getActions()[2].type).toBe(STATE_GO);
+                expect(store.getActions()[3].type).toBe(ADD_WAIVER_SUBMIT_MASK_TIMER_DONE);
                 done();
               }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
             });
@@ -124,8 +127,9 @@ describe('addWaiverActions', function() {
         store.dispatch(saveWaiver('policyViolationId', 'application', 'ownerId', '', false))
             .then(() => {
               expect(axios.post).toHaveBeenCalledWith(url, expectedPayload);
-              expect(store.getActions().length).toBe(2);
+              expect(store.getActions().length).toBe(3);
               expect(store.getActions()[1].type).toBe(ADD_WAIVER_SAVE_FULFILLED);
+              expect(store.getActions()[2].type).toBe(STATE_GO);
               done();
             });
 

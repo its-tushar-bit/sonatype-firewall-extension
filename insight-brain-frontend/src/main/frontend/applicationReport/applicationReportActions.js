@@ -42,10 +42,10 @@ export const SET_SORTING_RAW_DATA = 'SET_SORTING_RAW_DATA';
 
 export default function applicationReportActions($http, $q, $state, $window, CLMLocations, Messages) {
 
-  function setReportParameters(appId, scanId, isUnknownJs, embeddable) {
+  function setReportParameters(appId, scanId, isUnknownJs, embeddable, policyViolationId) {
     return {
       type: SET_REPORT_PARAMETERS,
-      payload: { appId, scanId, isUnknownJs, embeddable }
+      payload: { appId, scanId, isUnknownJs, embeddable, policyViolationId }
     };
   }
 

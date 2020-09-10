@@ -10,6 +10,7 @@ import { capitalize } from '../util/jsUtil';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
 import { getAddPolicyViolationWaiverUrl, getOwnerContextHierarchyUrl } from '../util/CLMLocation';
 import { loadViolation } from '../violation/violationPageActions';
+import { stateGo } from '../reduxUiRouter/routerActions';
 
 export const ADD_WAIVER_LOAD_DATA_REQUESTED = 'ADD_WAIVER_LOAD_DATA_REQUESTED';
 export const ADD_WAIVER_LOAD_DATA_FULFILLED = 'ADD_WAIVER_LOAD_DATA_FULFILLED';
@@ -55,7 +56,8 @@ export function saveWaiver(policyViolationId, waiverScope, ownerId, comment, app
     return axios.post(url, payload)
         .then(() => {
           startSubmitMaskTimer(dispatch);
-          return dispatch(saveWaiverFulfilled());
+          dispatch(saveWaiverFulfilled());
+          return dispatch(returnToAddWaiverOriginPage(policyViolationId));
         })
         .catch((err) => {
           dispatch(saveWaiverFailed(err));
@@ -82,6 +84,27 @@ export function loadAddWaiverData(violationId) {
         })
         .then((waiverTargets) => dispatch(loadAddWaiverDataFulfilled(waiverTargets)))
         .catch((err) => dispatch(loadAddWaiverDataFailed(err)));
+  };
+}
+
+export function returnToAddWaiverOriginPage(violationId) {
+  return (dispatch, getState) => {
+    const { prevParams, prevState } = getState().router;
+    let destinationPage, destinationParams;
+
+    if (prevState && prevState.name) {
+      destinationPage = prevState.name;
+      destinationParams = prevParams;
+      if (prevState.name.indexOf('applicationReport') > -1) {
+        destinationParams = { ...prevParams, policyViolationId: violationId };
+      }
+    }
+    else {
+      destinationPage = 'sidebarView.violation';
+      destinationParams = { id: violationId };
+    }
+    dispatch(stateGo(destinationPage, destinationParams));
+
   };
 }
 

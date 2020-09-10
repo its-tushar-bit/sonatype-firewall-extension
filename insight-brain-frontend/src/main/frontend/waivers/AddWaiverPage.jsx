@@ -36,7 +36,8 @@ export default function AddWaiverPage(props) {
     saveWaiver,
     setWaiverComment,
     setWaiverScope,
-    setApplyToAllComponents
+    setApplyToAllComponents,
+    cancelAction
   } = props;
 
   useEffect(() => {
@@ -81,7 +82,8 @@ export default function AddWaiverPage(props) {
       setWaiverComment,
       setApplyToAllComponents,
       saveWaiver,
-      vulnerabilityId
+      vulnerabilityId,
+      cancelAction
     };
   };
 
@@ -137,5 +139,6 @@ AddWaiverPage.propTypes = {
   saveWaiver: PropTypes.func.isRequired,
   setWaiverComment: PropTypes.func.isRequired,
   setWaiverScope: PropTypes.func.isRequired,
-  setApplyToAllComponents: PropTypes.func.isRequired
+  setApplyToAllComponents: PropTypes.func.isRequired,
+  cancelAction: PropTypes.func.isRequired
 };

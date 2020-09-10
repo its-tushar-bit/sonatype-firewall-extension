@@ -24,7 +24,10 @@ describe('applicationReportResults', function() {
     $q = _$q_;
     mockModal = jasmine.createSpyObj('Modal', ['open']);
     vm = _$componentController_('applicationReportResults', {
-      $state: {params: {publicId: 'testApp', scanId: 'testReport'}},
+      $state: {
+        params: {publicId: 'testApp', scanId: 'testReport'},
+        current: {name: 'applicationReport.policy'}
+      },
       $scope: scope,
       Modal: mockModal
     });
@@ -142,6 +145,96 @@ describe('applicationReportResults', function() {
       scope.$digest();
       expect(vm.renderedEntries).toEqual([]);
     });
+
+    it('opens CIP when rendering and the appropiate index for the policvyViolationId is found', function() {
+      vm.refreshReportUrlRemovePolicyViolationId = jasmine.createSpy('refreshReportUrlRemovePolicyViolationId');
+      vm.openCipModal = jasmine.createSpy('openCipModal');
+
+      // Ensure the previous displayed entries are not defined (opening the report for the first time)
+      vm.selectedReport = undefined;
+      scope.$digest();
+
+      vm.aggregate = true;
+      vm.reportParameters = {
+        policyViolationId: 'policyViolation99'
+      };
+      const numberToHashedComponentFunction = (number) => {
+        return {policyViolationId: `policyViolation${number}`};
+      };
+
+      vm.selectedReport = {displayedEntries: range(0, 100).map(numberToHashedComponentFunction)};
+      scope.$digest();
+      expect(vm.refreshReportUrlRemovePolicyViolationId).toHaveBeenCalled();
+      expect(vm.openCipModal).toHaveBeenCalledWith(99);
+    });
+
+    it('opens CIP when rendering and the violation is not found in displayedEntries but exists in allEntries ' +
+        'with a matching component hash', function() {
+      vm.refreshReportUrlRemovePolicyViolationId = jasmine.createSpy('refreshReportUrlRemovePolicyViolationId');
+      vm.openCipModal = jasmine.createSpy('openCipModal');
+
+      // Ensure the previous displayed entries are not defined (opening the report for the first time)
+      vm.selectedReport = undefined;
+      scope.$digest();
+
+      vm.aggregate = true;
+      vm.reportParameters = {
+        policyViolationId: 'policyViolation150'
+      };
+      const numberToHashedComponentFunction = (number) => {
+        return {
+          policyViolationId: `policyViolation${number}`,
+          hash: `hash${number - 100}`
+        };
+      };
+      const numberToHashedComponentFunctionForDisplayed = (number) => {
+        return {
+          policyViolationId: `policyViolation${number}`,
+          hash: `hash${number}`
+        };
+      };
+
+      vm.selectedReport = {
+        displayedEntries: range(0, 100).map(numberToHashedComponentFunctionForDisplayed),
+        allEntries: range(0, 200).map(numberToHashedComponentFunction)
+      };
+      scope.$digest();
+      expect(vm.refreshReportUrlRemovePolicyViolationId).toHaveBeenCalled();
+      expect(vm.openCipModal).toHaveBeenCalledWith(50);
+    });
+
+    it('does not open CIP when rendering violation is not found in displayedEntries and the component hash is in ' +
+        'allEntries but has no match in displayed entries', function() {
+      vm.openCipModal = jasmine.createSpy('openCipModal');
+
+      // Ensure the previous displayed entries are not defined (opening the report for the first time)
+      vm.selectedReport = undefined;
+      scope.$digest();
+
+      vm.aggregate = true;
+      vm.reportParameters = {
+        policyViolationId: 'policyViolation150'
+      };
+      const numberToHashedComponentFunction = (number) => {
+        return {
+          policyViolationId: `policyViolation${number}`,
+          hash: `hash${number - 100}`
+        };
+      };
+      const numberToHashedComponentFunctionForDisplayed = (number) => {
+        return {
+          policyViolationId: `policyViolation${number}`,
+          hash: `hash${number}`
+        };
+      };
+
+      vm.selectedReport = {
+        displayedEntries: range(0, 20).map(numberToHashedComponentFunctionForDisplayed),
+        allEntries: range(0, 200).map(numberToHashedComponentFunction)
+      };
+      scope.$digest();
+      expect(vm.openCipModal).not.toHaveBeenCalled();
+    });
   });
 
   describe('$onDestroy()', function() {
@@ -233,8 +326,16 @@ describe('applicationReportResults', function() {
       mockModal.open.and.returnValue({
         result: $q.resolve('foo')
       });
-      vm.openCipModal(42);
-      expect(vm.selectComponent).toHaveBeenCalledWith(42);
+      vm.selectedReport = {
+        displayedEntries: [
+          {policyViolationId: 'policyViolationIndex0'}, {policyViolationId: 'policyViolationIndex1'},
+          {policyViolationId: 'policyViolationIndex2'}, {policyViolationId: 'policyViolationIndex3'},
+          {policyViolationId: 'policyViolationIndex4'}
+        ]
+      };
+
+      vm.openCipModal(3);
+      expect(vm.selectComponent).toHaveBeenCalledWith(3);
       expect(mockModal.open).toHaveBeenCalled();
     });
   });

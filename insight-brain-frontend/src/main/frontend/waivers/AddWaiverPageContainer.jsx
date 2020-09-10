@@ -13,7 +13,8 @@ import {
   saveWaiver,
   setWaiverComment,
   setWaiverScope,
-  setApplyToAllComponents
+  setApplyToAllComponents,
+  returnToAddWaiverOriginPage
 } from './addWaiverActions';
 import { openVulnerabilityDetailsModal } from '../vulnerabilityDetails/vulnerabilityDetailsModalActions';
 
@@ -31,7 +32,8 @@ const mapDispatchToProps = {
   saveWaiver,
   setWaiverComment,
   setWaiverScope,
-  setApplyToAllComponents
+  setApplyToAllComponents,
+  cancelAction: returnToAddWaiverOriginPage
 };
 
 const AddWaiverPageContainer = connect(mapStateToProps, mapDispatchToProps)(AddWaiverPage);

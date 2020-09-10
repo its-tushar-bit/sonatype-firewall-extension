@@ -86,6 +86,10 @@ public class AddWaiverPage
     return new Button("#add-waiver-submit");
   }
 
+  public Button cancelButton() {
+    return new Button("#add-waiver-cancel");
+  }
+
   public SelenideElement submitError() {
     return child(".nx-btn-bar .nx-alert");
   }

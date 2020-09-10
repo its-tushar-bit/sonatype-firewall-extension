@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.brain;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -16,6 +17,7 @@ import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.NxVulnerabilityModal;
 import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -29,6 +31,7 @@ import com.codeborne.selenide.SelenideElement;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -57,7 +60,7 @@ public class AddWaiverTest
     application = staticTempEntity.newApplication("App 1", "app1", organization.getId());
     Policy securityPolicy1 = staticTempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 1", 7);
     Policy securityPolicy2 = staticTempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 2", 8);
-  
+
     PolicyEvaluation policyEvaluation1 = staticTempEntity.newPolicyEvaluation(application.getId(),
         StageTypes.BUILD.getId(), "scan1", false, false, Date.from(twoDaysAgo));
 
@@ -91,7 +94,7 @@ public class AddWaiverTest
     addWaiverPage.component(0).label().shouldHave(text("Group1 : Artifact1 : Version1"));
     addWaiverPage.component(1).label().shouldHave(text("All Components"));
     addWaiverPage.comments().shouldHave(text(""));
-    
+
     eyesWatcher.eyesCheck();
   }
 
@@ -122,157 +125,179 @@ public class AddWaiverTest
 
   @Test
   public void testSubmit_ApplicationWaiver_SingleComponent() {
-    refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
+    List<PolicyWaiver> waivers = Collections.emptyList();
+    try {
+      refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
 
-    AddWaiverPage addWaiverPage = new AddWaiverPage();
-    addWaiverPage.availableScopes().shouldHaveSize(3);
-    NxRadio chosenScope = addWaiverPage.scope(0);
-    chosenScope.label().shouldHave(text("Application - App 1"));
-    chosenScope.click();
-    addWaiverPage.availableComponents().shouldHaveSize(2);
-    NxRadio chosenComponent = addWaiverPage.component(0);
-    chosenComponent.label().shouldHave(text("Group1 : Artifact1 : Version1"));
-    chosenComponent.click();
-    addWaiverPage.comments().setValue("Some comments");
-    addWaiverPage.saveButton().click();
-    NxSubmitMask.seeAndWaitForDismissal();
-    addWaiverPage.submitError().shouldNotBe(visible);
+      AddWaiverPage addWaiverPage = new AddWaiverPage();
+      addWaiverPage.availableScopes().shouldHaveSize(3);
+      NxRadio chosenScope = addWaiverPage.scope(0);
+      chosenScope.label().shouldHave(text("Application - App 1"));
+      chosenScope.click();
+      addWaiverPage.availableComponents().shouldHaveSize(2);
+      NxRadio chosenComponent = addWaiverPage.component(0);
+      chosenComponent.label().shouldHave(text("Group1 : Artifact1 : Version1"));
+      chosenComponent.click();
+      addWaiverPage.comments().setValue("Some comments");
+      addWaiverPage.saveButton().click();
+      NxSubmitMask.seeAndWaitForDismissal();
+      addWaiverPage.submitError().shouldNotBe(visible);
 
-    List<PolicyWaiver> waivers = policyWaiverDAO.getByOwnerIdAndHash(application.getId(), "hash1");
-    assertThat(waivers.size()).isEqualTo(1);
-    assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
-
-    // clean up the DAO
-    policyWaiverDAO.delete(waivers.get(0));
+      waivers = policyWaiverDAO.getByOwnerIdAndHash(application.getId(), "hash1");
+      assertThat(waivers.size()).isEqualTo(1);
+      assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
+    }
+    finally {
+      cleanupCreatedWaivers(waivers);
+    }
   }
 
   @Test
   public void testSubmit_ApplicationWaiver_AllComponents() {
-    refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
+    List<PolicyWaiver> waivers = Collections.emptyList();
+    try {
+      refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
 
-    AddWaiverPage addWaiverPage = new AddWaiverPage();
-    addWaiverPage.availableScopes().shouldHaveSize(3);
-    NxRadio chosenScope = addWaiverPage.scope(0);
-    chosenScope.label().shouldHave(text("Application - App 1"));
-    chosenScope.click();
-    addWaiverPage.availableComponents().shouldHaveSize(2);
-    NxRadio chosenComponent = addWaiverPage.component(1);
-    chosenComponent.label().shouldHave(text("All Components"));
-    chosenComponent.click();
-    addWaiverPage.comments().setValue("Some comments");
-    addWaiverPage.saveButton().click();
-    NxSubmitMask.seeAndWaitForDismissal();
-    addWaiverPage.submitError().shouldNotBe(visible);
+      AddWaiverPage addWaiverPage = new AddWaiverPage();
+      addWaiverPage.availableScopes().shouldHaveSize(3);
+      NxRadio chosenScope = addWaiverPage.scope(0);
+      chosenScope.label().shouldHave(text("Application - App 1"));
+      chosenScope.click();
+      addWaiverPage.availableComponents().shouldHaveSize(2);
+      NxRadio chosenComponent = addWaiverPage.component(1);
+      chosenComponent.label().shouldHave(text("All Components"));
+      chosenComponent.click();
+      addWaiverPage.comments().setValue("Some comments");
+      addWaiverPage.saveButton().click();
+      NxSubmitMask.seeAndWaitForDismissal();
+      addWaiverPage.submitError().shouldNotBe(visible);
 
-    List<PolicyWaiver> waivers = policyWaiverDAO.getByOwnerId(application.getId());
-    assertThat(waivers.size()).isEqualTo(1);
-    assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
-    assertThat(waivers.get(0).getHash()).isNull();
-
-    policyWaiverDAO.delete(waivers.get(0));
-    // ToDo update this and all submit tests after success-redirection is introduced
+      waivers = policyWaiverDAO.getByOwnerId(application.getId());
+      assertThat(waivers.size()).isEqualTo(1);
+      assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
+      assertThat(waivers.get(0).getHash()).isNull();
+    }
+    finally {
+      cleanupCreatedWaivers(waivers);
+    }
   }
 
   @Test
   public void testSubmit_OrgWaiver_SingleComponent() {
-    refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
+    List<PolicyWaiver> waivers = Collections.emptyList();
+    try {
+      refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
 
-    AddWaiverPage addWaiverPage = new AddWaiverPage();
-    addWaiverPage.availableScopes().shouldHaveSize(3);
-    NxRadio chosenScope = addWaiverPage.scope(1);
-    chosenScope.label().shouldHave(text("Organization - Org 1"));
-    chosenScope.click();
-    addWaiverPage.availableComponents().shouldHaveSize(2);
-    NxRadio chosenComponent = addWaiverPage.component(0);
-    chosenComponent.label().shouldHave(text("Group1 : Artifact1 : Version1"));
-    chosenComponent.click();
-    addWaiverPage.comments().setValue("Some comments");
-    addWaiverPage.saveButton().click();
-    NxSubmitMask.seeAndWaitForDismissal();
-    addWaiverPage.submitError().shouldNotBe(visible);
+      AddWaiverPage addWaiverPage = new AddWaiverPage();
+      addWaiverPage.availableScopes().shouldHaveSize(3);
+      NxRadio chosenScope = addWaiverPage.scope(1);
+      chosenScope.label().shouldHave(text("Organization - Org 1"));
+      chosenScope.click();
+      addWaiverPage.availableComponents().shouldHaveSize(2);
+      NxRadio chosenComponent = addWaiverPage.component(0);
+      chosenComponent.label().shouldHave(text("Group1 : Artifact1 : Version1"));
+      chosenComponent.click();
+      addWaiverPage.comments().setValue("Some comments");
+      addWaiverPage.saveButton().click();
+      NxSubmitMask.seeAndWaitForDismissal();
+      addWaiverPage.submitError().shouldNotBe(visible);
 
-    List<PolicyWaiver> waivers = policyWaiverDAO.getByOwnerIdAndHash(organization.getId(), "hash1");
-    assertThat(waivers.size()).isEqualTo(1);
-    assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
-
-    policyWaiverDAO.delete(waivers.get(0));
+      waivers = policyWaiverDAO.getByOwnerIdAndHash(organization.getId(), "hash1");
+      assertThat(waivers.size()).isEqualTo(1);
+      assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
+    }
+    finally {
+      cleanupCreatedWaivers(waivers);
+    }
   }
 
   @Test
   public void testSubmit_OrgWaiver_AllComponents() {
-    refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
+    List<PolicyWaiver> waivers = Collections.emptyList();
+    try {
+      refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
 
-    AddWaiverPage addWaiverPage = new AddWaiverPage();
-    addWaiverPage.availableScopes().shouldHaveSize(3);
-    NxRadio chosenScope = addWaiverPage.scope(1);
-    chosenScope.label().shouldHave(text("Organization - Org 1"));
-    chosenScope.click();
-    addWaiverPage.availableComponents().shouldHaveSize(2);
-    NxRadio chosenComponent = addWaiverPage.component(1);
-    chosenComponent.label().shouldHave(text("All Components"));
-    chosenComponent.click();
-    addWaiverPage.comments().setValue("Some comments");
-    addWaiverPage.saveButton().click();
-    NxSubmitMask.seeAndWaitForDismissal();
-    addWaiverPage.submitError().shouldNotBe(visible);
+      AddWaiverPage addWaiverPage = new AddWaiverPage();
+      addWaiverPage.availableScopes().shouldHaveSize(3);
+      NxRadio chosenScope = addWaiverPage.scope(1);
+      chosenScope.label().shouldHave(text("Organization - Org 1"));
+      chosenScope.click();
+      addWaiverPage.availableComponents().shouldHaveSize(2);
+      NxRadio chosenComponent = addWaiverPage.component(1);
+      chosenComponent.label().shouldHave(text("All Components"));
+      chosenComponent.click();
+      addWaiverPage.comments().setValue("Some comments");
+      addWaiverPage.saveButton().click();
+      NxSubmitMask.seeAndWaitForDismissal();
+      addWaiverPage.submitError().shouldNotBe(visible);
 
-    List<PolicyWaiver> waivers = policyWaiverDAO.getByOwnerId(organization.getId());
-    assertThat(waivers.size()).isEqualTo(1);
-    assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
-    assertThat(waivers.get(0).getHash()).isNull();
-
-    policyWaiverDAO.delete(waivers.get(0));
+      waivers = policyWaiverDAO.getByOwnerId(organization.getId());
+      assertThat(waivers.size()).isEqualTo(1);
+      assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
+      assertThat(waivers.get(0).getHash()).isNull();
+    }
+    finally {
+      cleanupCreatedWaivers(waivers);
+    }
   }
 
   @Test
   public void testSubmit_RootOrgWaiver_SingleComponent() {
-    refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
+    List<PolicyWaiver> waivers = Collections.emptyList();
+    try {
+      refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
 
-    AddWaiverPage addWaiverPage = new AddWaiverPage();
-    addWaiverPage.availableScopes().shouldHaveSize(3);
-    NxRadio chosenScope = addWaiverPage.scope(2);
-    chosenScope.label().shouldHave(text("Organization - Root Organization"));
-    chosenScope.click();
-    addWaiverPage.availableComponents().shouldHaveSize(2);
-    NxRadio chosenComponent = addWaiverPage.component(0);
-    chosenComponent.label().shouldHave(text("Group1 : Artifact1 : Version1"));
-    chosenComponent.click();
-    addWaiverPage.comments().setValue("Some comments");
-    addWaiverPage.saveButton().click();
-    NxSubmitMask.seeAndWaitForDismissal();
-    addWaiverPage.submitError().shouldNotBe(visible);
+      AddWaiverPage addWaiverPage = new AddWaiverPage();
+      addWaiverPage.availableScopes().shouldHaveSize(3);
+      NxRadio chosenScope = addWaiverPage.scope(2);
+      chosenScope.label().shouldHave(text("Organization - Root Organization"));
+      chosenScope.click();
+      addWaiverPage.availableComponents().shouldHaveSize(2);
+      NxRadio chosenComponent = addWaiverPage.component(0);
+      chosenComponent.label().shouldHave(text("Group1 : Artifact1 : Version1"));
+      chosenComponent.click();
+      addWaiverPage.comments().setValue("Some comments");
+      addWaiverPage.saveButton().click();
+      NxSubmitMask.seeAndWaitForDismissal();
+      addWaiverPage.submitError().shouldNotBe(visible);
 
-    List<PolicyWaiver> waivers = policyWaiverDAO.getByOwnerIdAndHash(Organization.ROOT_ORGANIZATION_ID, "hash1");
-    assertThat(waivers.size()).isEqualTo(1);
-    assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
-
-    policyWaiverDAO.delete(waivers.get(0));
+      waivers = policyWaiverDAO.getByOwnerIdAndHash(Organization.ROOT_ORGANIZATION_ID, "hash1");
+      assertThat(waivers.size()).isEqualTo(1);
+      assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
+    }
+    finally {
+      cleanupCreatedWaivers(waivers);
+    }
   }
 
   @Test
   public void testSubmit_RootOrgWaiver_AllComponents() {
-    refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
+    List<PolicyWaiver> waivers = Collections.emptyList();
+    try {
+      refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
 
-    AddWaiverPage addWaiverPage = new AddWaiverPage();
-    addWaiverPage.availableScopes().shouldHaveSize(3);
-    NxRadio chosenScope = addWaiverPage.scope(2);
-    chosenScope.label().shouldHave(text("Organization - Root Organization"));
-    chosenScope.click();
-    addWaiverPage.availableComponents().shouldHaveSize(2);
-    NxRadio chosenComponent = addWaiverPage.component(1);
-    chosenComponent.label().shouldHave(text("All Components"));
-    chosenComponent.click();
-    addWaiverPage.comments().setValue("Some comments");
-    addWaiverPage.saveButton().click();
-    NxSubmitMask.seeAndWaitForDismissal();
-    addWaiverPage.submitError().shouldNotBe(visible);
+      AddWaiverPage addWaiverPage = new AddWaiverPage();
+      addWaiverPage.availableScopes().shouldHaveSize(3);
+      NxRadio chosenScope = addWaiverPage.scope(2);
+      chosenScope.label().shouldHave(text("Organization - Root Organization"));
+      chosenScope.click();
+      addWaiverPage.availableComponents().shouldHaveSize(2);
+      NxRadio chosenComponent = addWaiverPage.component(1);
+      chosenComponent.label().shouldHave(text("All Components"));
+      chosenComponent.click();
+      addWaiverPage.comments().setValue("Some comments");
+      addWaiverPage.saveButton().click();
+      NxSubmitMask.seeAndWaitForDismissal();
+      addWaiverPage.submitError().shouldNotBe(visible);
 
-    List<PolicyWaiver> waivers = policyWaiverDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
-    assertThat(waivers.size()).isEqualTo(1);
-    assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
-    assertThat(waivers.get(0).getHash()).isNull();
-
-    policyWaiverDAO.delete(waivers.get(0));
+      waivers = policyWaiverDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
+      assertThat(waivers.size()).isEqualTo(1);
+      assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
+      assertThat(waivers.get(0).getHash()).isNull();
+    }
+    finally {
+      cleanupCreatedWaivers(waivers);
+    }
   }
 
   @Test
@@ -297,62 +322,168 @@ public class AddWaiverTest
 
   @Test
   public void testApplicationPolicyCanOnlyBeScopedToApplication() {
-    Instant now = Instant.now();
-    Instant twoDaysAgo = now.minus(2, ChronoUnit.DAYS);
+    List<PolicyWaiver> waivers = Collections.emptyList();
+    try {
+      Instant now = Instant.now();
+      Instant twoDaysAgo = now.minus(2, ChronoUnit.DAYS);
 
-    Policy appPolicy = staticTempEntity.newPolicy(application.getId(), "Application Policy", 8);
-    PolicyEvaluation policyEval = staticTempEntity.newPolicyEvaluation(application.getId(),
-        StageTypes.BUILD.getId(), "scan3", false, false, Date.from(twoDaysAgo));
-    PolicyViolation appLevelPolicyViolation = staticTempEntity.newPolicyViolation(policyEval, appPolicy, "Group3",
-        "Artifact3", "Version3", "hash3", "sonatype-2019-0666");
+      Policy appPolicy = staticTempEntity.newPolicy(application.getId(), "Application Policy", 8);
+      PolicyEvaluation policyEval = staticTempEntity.newPolicyEvaluation(application.getId(),
+          StageTypes.BUILD.getId(), "scan3", false, false, Date.from(twoDaysAgo));
+      PolicyViolation appLevelPolicyViolation = staticTempEntity.newPolicyViolation(policyEval, appPolicy, "Group3",
+          "Artifact3", "Version3", "hash3", "sonatype-2019-0666");
 
-    refreshOrOpen(AddWaiverPage.url(appLevelPolicyViolation.getId()));
+      refreshOrOpen(AddWaiverPage.url(appLevelPolicyViolation.getId()));
 
-    AddWaiverPage addWaiverPage = new AddWaiverPage();
-    // there's only one possible scope for an application-policy: application
-    addWaiverPage.availableScopes().shouldHaveSize(1);
-    NxRadio chosenScope = addWaiverPage.scope(0);
-    chosenScope.label().shouldHave(text("Application - App 1"));
-    addWaiverPage.saveButton().click();
-    NxSubmitMask.seeAndWaitForDismissal();
-    addWaiverPage.submitError().shouldNotBe(visible);
+      AddWaiverPage addWaiverPage = new AddWaiverPage();
+      // there's only one possible scope for an application-policy: application
+      addWaiverPage.availableScopes().shouldHaveSize(1);
+      NxRadio chosenScope = addWaiverPage.scope(0);
+      chosenScope.label().shouldHave(text("Application - App 1"));
+      addWaiverPage.saveButton().click();
+      NxSubmitMask.seeAndWaitForDismissal();
+      addWaiverPage.submitError().shouldNotBe(visible);
 
-    List<PolicyWaiver> waivers = policyWaiverDAO.getByOwnerId(application.getId());
-    assertThat(waivers.size()).isEqualTo(1);
-    assertThat(waivers.get(0).getPolicyId()).isEqualTo(appPolicy.getId());
-
-    policyWaiverDAO.delete(waivers.get(0));
+      waivers = policyWaiverDAO.getByOwnerId(application.getId());
+      assertThat(waivers.size()).isEqualTo(1);
+      assertThat(waivers.get(0).getPolicyId()).isEqualTo(appPolicy.getId());
+    }
+    finally {
+      cleanupCreatedWaivers(waivers);
+    }
   }
 
   @Test
   public void testOrganizationPolicyCanBeScopedToOrganization() {
-    Instant now = Instant.now();
-    Instant twoDaysAgo = now.minus(2, ChronoUnit.DAYS);
+    List<PolicyWaiver> waivers = Collections.emptyList();
+    try {
+      Instant now = Instant.now();
+      Instant twoDaysAgo = now.minus(2, ChronoUnit.DAYS);
 
-    Policy orgPolicy = staticTempEntity.newPolicy(organization.getId(), "Org Policy", 8);
-    PolicyEvaluation policyEval = staticTempEntity.newPolicyEvaluation(application.getId(),
-        StageTypes.BUILD.getId(), "scan4", false, false, Date.from(twoDaysAgo));
-    PolicyViolation orgLevelPolicyViolation = staticTempEntity.newPolicyViolation(policyEval, orgPolicy, "Group4",
-        "Artifact4", "Version4", "hash4", "sonatype-2020-0666");
+      Policy orgPolicy = staticTempEntity.newPolicy(organization.getId(), "Org Policy", 8);
+      PolicyEvaluation policyEval = staticTempEntity.newPolicyEvaluation(application.getId(),
+          StageTypes.BUILD.getId(), "scan4", false, false, Date.from(twoDaysAgo));
+      PolicyViolation orgLevelPolicyViolation = staticTempEntity.newPolicyViolation(policyEval, orgPolicy, "Group4",
+          "Artifact4", "Version4", "hash4", "sonatype-2020-0666");
 
-    refreshOrOpen(AddWaiverPage.url(orgLevelPolicyViolation.getId()));
+      refreshOrOpen(AddWaiverPage.url(orgLevelPolicyViolation.getId()));
+
+      AddWaiverPage addWaiverPage = new AddWaiverPage();
+      // root-org shouldn't be available for org-level policies
+      addWaiverPage.availableScopes().shouldHaveSize(2);
+      NxRadio appScope = addWaiverPage.scope(0);
+      appScope.label().shouldHave(text("Application - App 1"));
+      NxRadio orgScope = addWaiverPage.scope(1);
+      orgScope.label().shouldHave(text("Organization - Org 1"));
+      orgScope.click();
+      addWaiverPage.saveButton().click();
+      NxSubmitMask.seeAndWaitForDismissal();
+      addWaiverPage.submitError().shouldNotBe(visible);
+
+      waivers = policyWaiverDAO.getByOwnerId(organization.getId());
+      assertThat(waivers.size()).isEqualTo(1);
+      assertThat(waivers.get(0).getPolicyId()).isEqualTo(orgPolicy.getId());
+    }
+    finally {
+      cleanupCreatedWaivers(waivers);
+    }
+  }
+
+  @Test
+  public void testOpenPageDirectly_cancelReturnsToViolationDetails() {
+    refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
+    refresh(); // refresh to ensure there is no previous page/routing information
 
     AddWaiverPage addWaiverPage = new AddWaiverPage();
-    // root-org shouldn't be available for org-level policies
-    addWaiverPage.availableScopes().shouldHaveSize(2);
-    NxRadio appScope = addWaiverPage.scope(0);
-    appScope.label().shouldHave(text("Application - App 1"));
-    NxRadio orgScope = addWaiverPage.scope(1);
-    orgScope.label().shouldHave(text("Organization - Org 1"));
-    orgScope.click();
-    addWaiverPage.saveButton().click();
+    addWaiverPage.availableScopes().shouldHaveSize(3);
+
+    addWaiverPage.cancelButton().click();
     NxSubmitMask.seeAndWaitForDismissal();
-    addWaiverPage.submitError().shouldNotBe(visible);
 
-    List<PolicyWaiver> waivers = policyWaiverDAO.getByOwnerId(organization.getId());
-    assertThat(waivers.size()).isEqualTo(1);
-    assertThat(waivers.get(0).getPolicyId()).isEqualTo(orgPolicy.getId());
+    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+    violationDetailsPage.detailsTile().shouldBe(visible);
+    violationDetailsPage.sidebarNav().sidebarNavItems().shouldHaveSize(1);
+  }
 
-    policyWaiverDAO.delete(waivers.get(0));
+  @Test
+  public void testOpenPageDirectly_submitReturnsToViolationDetails() {
+    try {
+      refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
+      refresh(); // refresh to ensure there is no previous page/routing information
+
+      AddWaiverPage addWaiverPage = new AddWaiverPage();
+      addWaiverPage.availableScopes().shouldHaveSize(3);
+      NxRadio chosenScope = addWaiverPage.scope(0);
+      chosenScope.label().shouldHave(text("Application - App 1"));
+      chosenScope.click();
+      addWaiverPage.availableComponents().shouldHaveSize(2);
+      NxRadio chosenComponent = addWaiverPage.component(1);
+      chosenComponent.label().shouldHave(text("All Components"));
+      chosenComponent.click();
+      addWaiverPage.comments().setValue("Some comments");
+      addWaiverPage.saveButton().click();
+      NxSubmitMask.seeAndWaitForDismissal();
+
+      ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+      violationDetailsPage.detailsTile().shouldBe(visible);
+      violationDetailsPage.sidebarNav().sidebarNavItems().shouldHaveSize(1);
+    }
+    finally {
+      cleanupCreatedWaivers(policyWaiverDAO.getByOwnerId(application.getId()));
+    }
+  }
+
+  @Test
+  public void testOpenPageFromViolationDetails_cancelReturnsToViolationDetails() {
+    refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(policyViolation.getId(), "violation", "filter"));
+    // TODO open add waiver from header link/action in violation details page
+    refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
+
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.availableScopes().shouldHaveSize(3);
+
+    addWaiverPage.cancelButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+
+    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+    violationDetailsPage.detailsTile().shouldBe(visible);
+    violationDetailsPage.sidebarNav().sidebarNavItems().shouldHaveSize(3);
+    violationDetailsPage.sidebarNav().navItem(2).shouldHave(cssClass("selected"));
+  }
+
+  @Test
+  public void testOpenPageFromViolationDetails_submitReturnsToViolationDetails() {
+    try {
+      refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(policyViolation.getId(), "violation", "filter"));
+      // TODO open add waiver from header link/action in violation details page
+      refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
+
+      AddWaiverPage addWaiverPage = new AddWaiverPage();
+      addWaiverPage.availableScopes().shouldHaveSize(3);
+      NxRadio chosenScope = addWaiverPage.scope(0);
+      chosenScope.label().shouldHave(text("Application - App 1"));
+      chosenScope.click();
+      addWaiverPage.availableComponents().shouldHaveSize(2);
+      NxRadio chosenComponent = addWaiverPage.component(1);
+      chosenComponent.label().shouldHave(text("All Components"));
+      chosenComponent.click();
+      addWaiverPage.comments().setValue("Some comments");
+      addWaiverPage.saveButton().click();
+      NxSubmitMask.seeAndWaitForDismissal();
+
+      ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+      violationDetailsPage.detailsTile().shouldBe(visible);
+      violationDetailsPage.sidebarNav().sidebarNavItems().shouldHaveSize(3);
+      violationDetailsPage.sidebarNav().navItem(2).shouldHave(cssClass("selected"));
+    }
+    finally {
+      cleanupCreatedWaivers(policyWaiverDAO.getByOwnerId(application.getId()));
+    }
+  }
+
+  private void cleanupCreatedWaivers(List<PolicyWaiver> waivers) {
+    if (waivers != null && !waivers.isEmpty()) {
+      waivers.forEach(policyWaiverDAO::delete);
+    }
   }
 }

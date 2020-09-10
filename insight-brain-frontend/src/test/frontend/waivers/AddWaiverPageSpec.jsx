@@ -43,7 +43,8 @@ describe('AddWaiverPage', function() {
       saveWaiver: () => {},
       setWaiverComment: () => {},
       setWaiverScope: () => {},
-      setApplyToAllComponents: () => {}
+      setApplyToAllComponents: () => {},
+      cancelAction: () => {}
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(AddWaiverPage, minimalProps);
@@ -123,6 +124,7 @@ describe('AddWaiverPage', function() {
     expect(addWaiverForm).toHaveProp('saveWaiver', minimalProps.saveWaiver);
     expect(addWaiverForm).toHaveProp('openVulnerabilityDetailsModal', openVulnerabilityDetailsModalMock);
     expect(addWaiverForm).toHaveProp('vulnerabilityId', 'CVE-67890');
+    expect(addWaiverForm).toHaveProp('cancelAction', minimalProps.cancelAction);
   });
 
   it('renders NxSubmitMask with success message when submitMaskState is true', function() {

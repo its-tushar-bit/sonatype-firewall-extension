@@ -77,7 +77,8 @@ function makeViolationEntriesV3Plus(policyResult, bomDataByKey) {
           const { waived, grandfathered } = violation;
 
           return {
-            ...pick(['policyThreatLevel', 'policyName', 'policyThreatCategory', 'constraints'], violation),
+            ...pick(['policyThreatLevel', 'policyName', 'policyThreatCategory', 'policyViolationId', 'constraints'],
+                violation),
             ...bomComponent,
             waived,
             grandfathered,

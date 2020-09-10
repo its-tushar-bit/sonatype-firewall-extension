@@ -39,7 +39,8 @@ export default function AddWaiverForm(props) {
     setWaiverComment,
     setApplyToAllComponents,
     saveWaiver,
-    vulnerabilityId
+    vulnerabilityId,
+    cancelAction
   } = props;
 
   const onSubmit = (evt) => {
@@ -64,6 +65,10 @@ export default function AddWaiverForm(props) {
   const handleScopeChange = (selectedId) => {
     const target = find(propEq('id', selectedId), availableWaiverScopes);
     setWaiverScope(target);
+  };
+
+  const cancelAddWaiver = () => {
+    cancelAction(policyViolationId);
   };
 
   const policyClassnames = classnames('iq-threat-level', `iq-threat-level--${threatLevelCategory}`);
@@ -161,7 +166,7 @@ export default function AddWaiverForm(props) {
         {
           submitError && <LoadError error={submitError} titleMessage="An error occurred saving the waiver." />
         }
-        <NxButton type="button" id="id-waiver-cancel" onClick={() => {}}>
+        <NxButton type="button" id="add-waiver-cancel" onClick={cancelAddWaiver}>
           Cancel
         </NxButton>
 
@@ -201,5 +206,6 @@ AddWaiverForm.propTypes = {
   setWaiverComment: PropTypes.func.isRequired,
   saveWaiver: PropTypes.func.isRequired,
   openVulnerabilityDetailsModal: PropTypes.func.isRequired,
-  vulnerabilityId: PropTypes.string
+  vulnerabilityId: PropTypes.string,
+  cancelAction: PropTypes.func.isRequired
 };

@@ -3,10 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { isNil, splitAt } from 'ramda';
+import { findIndex, isNil, propEq, splitAt } from 'ramda';
 
 import template from './applicationReportResults.html';
 import cipModalWrapper from './cipModalWrapper.html';
+import { stateGo } from '../../reduxUiRouter/routerActions';
 
 export default {
   template,
@@ -32,7 +33,12 @@ function ApplicationReportResultsController($state, $ngRedux, $scope, $timeout, 
         }
       });
 
-      $scope.$watch('vm.selectedReport.displayedEntries', updateRenderedEntries);
+      $scope.$watch('vm.selectedReport.displayedEntries', function(newValue, oldValue) {
+        updateRenderedEntries();
+        if (newValue && !oldValue) {
+          showCipModalIfNecessary();
+        }
+      });
     },
 
     $onDestroy() {
@@ -56,6 +62,13 @@ function ApplicationReportResultsController($state, $ngRedux, $scope, $timeout, 
         windowClass: 'iq-modal iq-modal__cip',
         backdropClass: 'iq-modal-backdrop'
       });
+    },
+
+    refreshReportUrlRemovePolicyViolationId() {
+      $ngRedux.dispatch(stateGo($state.current.name, {
+        ...$state.params,
+        policyViolationId: undefined
+      }));
     },
 
     onDerivedComponentNameFilterChange() {
@@ -95,6 +108,35 @@ function ApplicationReportResultsController($state, $ngRedux, $scope, $timeout, 
       // of $timeout gets confused when everything has a delay of zero and flushes chained timeouts as
       // opposed to only timeouts that existed at the time flush was called
       vm.updateRenderedEntriesPromise = $timeout(doUpdateStep, 1, true, furtherRemainingEntries);
+    }
+  }
+
+  function showCipModalIfNecessary() {
+    const { policyViolationId } = vm.reportParameters || {};
+    if (!vm.selectedComponentIndex && policyViolationId) {
+      const findPredicate = propEq('policyViolationId', policyViolationId);
+      let selectedComponentIndex = findIndex(findPredicate, vm.selectedReport.displayedEntries);
+      if (selectedComponentIndex >= 0) {
+        vm.openCipModal(selectedComponentIndex);
+        vm.refreshReportUrlRemovePolicyViolationId();
+      }
+      else {
+        // attempt to find in all entries in case it's not currently displayed
+        selectedComponentIndex = findIndex(findPredicate, vm.selectedReport.allEntries);
+        if (selectedComponentIndex >= 0) {
+          showCipModalForIndexResolvedFromAllEntries(selectedComponentIndex);
+        }
+      }
+    }
+  }
+
+  function showCipModalForIndexResolvedFromAllEntries(selectedComponentIndex) {
+    const foundEntryWithOriginPolicyViolationId = vm.selectedReport.allEntries[selectedComponentIndex];
+    const findPredicateByHash = propEq('hash', foundEntryWithOriginPolicyViolationId.hash);
+    const componentIndexByHash = findIndex(findPredicateByHash, vm.selectedReport.displayedEntries);
+    if (componentIndexByHash >= 0) {
+      vm.openCipModal(componentIndexByHash);
+      vm.refreshReportUrlRemovePolicyViolationId();
     }
   }
 }

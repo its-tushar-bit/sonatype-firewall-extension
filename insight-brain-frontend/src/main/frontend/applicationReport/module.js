@@ -40,9 +40,12 @@ export default angular.module('applicationReportModule',
 function routes($stateProvider, $urlRouterProvider) {
   $stateProvider
       .state('applicationReport', {
-        url: '/applicationReport/{publicId}/{scanId}?unknownjs&embeddable',
+        url: '/applicationReport/{publicId}/{scanId}?unknownjs&embeddable&policyViolationId',
         abstract: true,
-        component: 'applicationReportRoot'
+        component: 'applicationReportRoot',
+        params: {
+          policyViolationId: { dynamic: true }
+        }
       })
       .state('applicationReport.policy', {
         url: '/policy',

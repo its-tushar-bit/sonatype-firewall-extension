@@ -24,7 +24,8 @@ describe('AddWaiverForm', function() {
       setWaiverCommentSpy,
       setWaiverScopeSpy,
       setApplyToAllComponentsSpy,
-      openVulnerabilityDetailsModalSpy;
+      openVulnerabilityDetailsModalSpy,
+      cancelActionSpy;
 
   beforeEach(function() {
     saveWaiverSpy = jasmine.createSpy('saveWaiver');
@@ -32,6 +33,7 @@ describe('AddWaiverForm', function() {
     setWaiverScopeSpy = jasmine.createSpy('setWaiverScope');
     setApplyToAllComponentsSpy = jasmine.createSpy('setApplyToAllComponents');
     openVulnerabilityDetailsModalSpy = jasmine.createSpy('loadAddWaiverDataSpy');
+    cancelActionSpy = jasmine.createSpy('cancelAction');
 
     minimalProps = {
       applyToAllComponents: false,
@@ -71,7 +73,8 @@ describe('AddWaiverForm', function() {
       setWaiverComment: setWaiverCommentSpy,
       saveWaiver: saveWaiverSpy,
       openVulnerabilityDetailsModal: openVulnerabilityDetailsModalSpy,
-      vulnerabilityId: 'CVE-12345'
+      vulnerabilityId: 'CVE-12345',
+      cancelAction: cancelActionSpy
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(AddWaiverForm, minimalProps);
@@ -247,7 +250,7 @@ describe('AddWaiverForm', function() {
     expect(buttonBar).toHaveClassName('.nx-btn-bar--forms');
     expect(buttons.length).toBe(2);
 
-    expect(buttons.at(0)).toHaveProp('id', 'id-waiver-cancel');
+    expect(buttons.at(0)).toHaveProp('id', 'add-waiver-cancel');
     expect(buttons.at(0)).toHaveProp('onClick', jasmine.any(Function));
     expect(buttons.at(0)).toHaveText('Cancel');
 
@@ -277,6 +280,15 @@ describe('AddWaiverForm', function() {
     form = component.find('.nx-form');
     form.simulate('submit', { preventDefault: preventDefaultSpy });
     expect(saveWaiverSpy).toHaveBeenCalledWith('violationId', 'organization', 'idOrg', 'waiver comments', false);
+  });
+
+  it('calls `cancelAction` when cancel button is clicked', function() {
+    const preventDefaultSpy = jasmine.createSpy('preventDefault');
+    const component = getShallowComponent();
+    const cancelButton = component.find('#add-waiver-cancel');
+
+    cancelButton.simulate('click', { preventDefault: preventDefaultSpy });
+    expect(cancelActionSpy).toHaveBeenCalledWith('violationId');
   });
 
   it('renders an LoadError when submitError is present', function() {

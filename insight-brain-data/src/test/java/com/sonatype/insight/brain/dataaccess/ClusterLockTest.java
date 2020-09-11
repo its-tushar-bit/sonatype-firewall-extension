@@ -488,4 +488,24 @@ public class ClusterLockTest
       assertThat(clusterLock.tryLock()).isTrue();
     }
   }
+
+  @Test
+  public void testGetLockIdForReport() {
+    Application application = new Application();
+    application.setId("appId");
+    String scanId = "scanId";
+
+    assertThat(ClusterLock.getLockIdForReport(application, scanId))
+        .isEqualTo(ClusterLock.REPORT_LOCK_PREFIX + application.getId() + "-" + scanId);
+  }
+
+  @Test
+  public void testCreateForReport() {
+    Application application = new Application();
+    application.setId("appId");
+    String scanId = "scanId";
+
+    assertThat(ClusterLock.createForReport(application, scanId).lockId)
+        .isEqualTo(ClusterLock.getLockIdForReport(application, scanId));
+  }
 }

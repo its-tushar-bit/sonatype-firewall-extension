@@ -45,6 +45,9 @@ public class ClusterLock
   static final String REPOSITORY_REEVALUATION_LOCK_PREFIX = "repository-reevaluation-";
 
   // Visible for testing
+  static final String REPORT_LOCK_PREFIX = "report-";
+
+  // Visible for testing
   final String lockId;
 
   // Visible for testing
@@ -104,13 +107,7 @@ public class ClusterLock
   }
 
   public static void deleteForRepository(TransactionContext tx, String repositoryId) {
-    String prefix = getLockIdForRepositoryComponent(repositoryId, "");
-    if (OperationalDataStoreProvider.isDatabaseEmbedded()) {
-      LOCKS_BY_ID.keySet().stream().filter(key -> key.startsWith(prefix)).forEach(lockId -> deleteLockH2(lockId));
-    }
-    else {
-      new LockDAO().deleteByPrefix(tx, prefix);
-    }
+    deleteLocksByPrefix(tx, getLockIdForRepositoryComponent(repositoryId, ""));
   }
 
   public static String getLockIdForRepositoryComponent(String repositoryId, String componentPathname) {
@@ -127,6 +124,26 @@ public class ClusterLock
 
   public static String getLockIdForRepositoryReevaluation(Repository repository) {
     return REPOSITORY_REEVALUATION_LOCK_PREFIX + repository.getId();
+  }
+
+  public static ClusterLock createForReport(Application application, String scanId) {
+    return new ClusterLock(getLockIdForReport(application, scanId));
+  }
+
+  public static void deleteForReport(Application application, String scanId) {
+    try (TransactionContext tx = new LockDAO().createTransactionContext()) {
+      tx.begin();
+      deleteLock(tx, getLockIdForReport(application, scanId));
+      tx.commit();
+    }
+  }
+
+  public static void deleteForReports(TransactionContext tx, Application application) {
+    deleteLocksByPrefix(tx, getLockIdForReport(application, ""));
+  }
+
+  public static String getLockIdForReport(Application application, String scanId) {
+    return REPORT_LOCK_PREFIX + application.getId() + "-" + scanId;
   }
 
   public void lock() {
@@ -226,6 +243,15 @@ public class ClusterLock
         clusterLock.lock(true);
         LOCKS_BY_ID.remove(lockId);
       }
+    }
+  }
+
+  private static void deleteLocksByPrefix(TransactionContext tx, String prefix) {
+    if (OperationalDataStoreProvider.isDatabaseEmbedded()) {
+      LOCKS_BY_ID.keySet().stream().filter(key -> key.startsWith(prefix)).forEach(ClusterLock::deleteLockH2);
+    }
+    else {
+      new LockDAO().deleteByPrefix(tx, prefix);
     }
   }
 

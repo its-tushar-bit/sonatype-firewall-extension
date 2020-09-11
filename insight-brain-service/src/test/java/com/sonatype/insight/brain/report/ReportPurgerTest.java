@@ -28,6 +28,7 @@ import javax.persistence.LockModeType;
 import javax.persistence.OptimisticLockException;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.db.DataSourceFactory;
@@ -41,6 +42,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.db.DatabaseConfig;
+import com.sonatype.insight.postgres.PostgresServer;
 
 import com.google.inject.Binder;
 import org.junit.Before;
@@ -382,5 +384,49 @@ public class ReportPurgerTest
   public void testExecute_AdminTask() {
     reportPurger.execute(null, new PrintWriter(new StringWriter()));
     verify(taskSchedulerMock).triggerTaskNow(ReportPurger.NAME, null);
+  }
+
+  @Test
+  public void testPurgeReports_DeletesClusterLocks_H2() {
+    testPurgeReports_DeletesClusterLocks();
+  }
+
+  @Test
+  public void testPurgeReports_DeletesClusterLocks_Postgres() {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      init();
+      testPurgeReports_DeletesClusterLocks();
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
+  private void testPurgeReports_DeletesClusterLocks() {
+    dataRetentionPolicyDAO.insert(new DataRetentionPolicy(org.getId(), Stage.ID_BUILD, true, 1, null));
+    PolicyEvaluation policyEvaluation1 =
+        tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-1", daysAgo(0));
+    PolicyEvaluation policyEvaluation2 =
+        tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-2", daysAgo(0));
+    PolicyEvaluation policyEvaluation3 =
+        tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-3", daysAgo(0));
+    // policyEvaluation1 has no report files
+    mockReport(policyEvaluation2);
+    mockReport(policyEvaluation3);
+    ClusterLock.createForReport(app, policyEvaluation1.getScanId());
+    ClusterLock.createForReport(app, policyEvaluation2.getScanId());
+    ClusterLock.createForReport(app, policyEvaluation3.getScanId());
+    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForReport(app, policyEvaluation1.getScanId()))).isTrue();
+    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForReport(app, policyEvaluation2.getScanId()))).isTrue();
+    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForReport(app, policyEvaluation3.getScanId()))).isTrue();
+
+    reportPurger.purgeReports();
+
+    assertThat(work.getReportDir(app.getId()).list()).containsExactlyInAnyOrder("report-3");
+    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForReport(app, policyEvaluation1.getScanId()))).isFalse();
+    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForReport(app, policyEvaluation2.getScanId()))).isFalse();
+    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForReport(app, policyEvaluation3.getScanId()))).isTrue();
   }
 }

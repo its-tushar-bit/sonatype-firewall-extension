@@ -36,6 +36,7 @@ import javax.persistence.OptimisticLockException;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -317,6 +318,7 @@ public class ReportPurger
   private boolean purgeReport(Application application, String reportId) throws IOException {
     Path reportDir = work.getReportDir(application.getId(), reportId).toPath();
     if (!Files.exists(reportDir)) {
+      ClusterLock.deleteForReport(application, reportId);
       return false;
     }
     List<Path> reportFiles;
@@ -361,6 +363,7 @@ public class ReportPurger
       Files.delete(reportFile);
     }
 
+    ClusterLock.deleteForReport(application, reportId);
     log.info("Purged report {} from application {} to {}", reportDir, application.getName(), trashFile);
     return true;
   }

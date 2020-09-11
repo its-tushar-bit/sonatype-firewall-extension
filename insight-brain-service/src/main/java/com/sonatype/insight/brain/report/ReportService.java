@@ -19,14 +19,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -45,7 +43,6 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
-import com.google.common.cache.CacheBuilder;
 import org.codehaus.plexus.util.FileUtils;
 
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME;
@@ -58,9 +55,6 @@ public class ReportService
   private final InsightWork work;
 
   private final ReportDownloader reportDownloader;
-
-  private static final ConcurrentMap<String, Lock> LOCK_TABLE = CacheBuilder.newBuilder().weakValues()
-      .<String, Lock> build().asMap();
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
@@ -92,9 +86,8 @@ public class ReportService
   {
     String appId = app.getId();
     final File reportFile = work.getReportFile(appId, scanId);
-    final Lock lock = lockFor(appId, scanId);
-    lock.lock();
-    try {
+    try (ClusterLock clusterLock = ClusterLock.createForReport(app, scanId)) {
+      clusterLock.lock();
       if (!reportFile.exists()) {
         int reportTimeoutInSeconds = insightConfig.getReportTimeoutInSeconds();
         final File tempFile = FileUtils.createTempFile("temp-", ".zip", reportFile.getParentFile());
@@ -111,9 +104,6 @@ public class ReportService
       Report.applyChanges(app, reportFile, isEnableInnerSource);
 
       return reportFile;
-    }
-    finally {
-      lock.unlock();
     }
   }
 
@@ -142,18 +132,6 @@ public class ReportService
     try (Writer writer = Files.newBufferedWriter(newFile, StandardCharsets.UTF_8, StandardOpenOption.CREATE)) {
       writer.write(new String(JsonUtils.generate(JsonUtils.aaData(data)), StandardCharsets.UTF_8));
     }
-  }
-
-  private static Lock lockFor(final String appId, final String scanId) {
-    Lock lock = LOCK_TABLE.get(appId + '-' + scanId);
-    if (lock == null) {
-      final Lock newLock = new ReentrantLock();
-      lock = LOCK_TABLE.putIfAbsent(appId + '-' + scanId, newLock);
-      if (lock == null) {
-        lock = newLock;
-      }
-    }
-    return lock;
   }
 
   private void processThirdPartyData(final String scanId, final File tempFile) throws IOException {

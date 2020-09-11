@@ -181,7 +181,7 @@ function augmentInnerSourceIndicator(components) {
   let result = [];
   const isIndicators = ['is-0', 'is-1', 'is-2', 'is-3'];
   const groupedResult = groupBy(c => c.ownerApplicationName || '', components);
-  Object.entries(groupedResult).forEach(([app, entries], index) => {
+  toPairs(groupedResult).forEach(([app, entries], index) => {
     if (app !== '') {
       const indicator = isIndicators [index % 4];
       entries.forEach(entry => {

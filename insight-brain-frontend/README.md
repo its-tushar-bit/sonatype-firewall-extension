@@ -94,7 +94,7 @@ However, if you've been adding or removing packages, or if you just need a clean
 
 ## Supported browsers and resolution
 
-As of September 2020, we currently support the latest desktop versions of Chrome, Firefox, Safari and Edge. We also support Internet Explorer 11. When developing on the front end, make sure to test in all of these browsers and multiple operating systems (Linux, Windows, MacOS). [BrowserStack](https://www.browserstack.com) is a helpful utility for this, and there are BrowserStack licenses available for all IQ devs. 
+As of September 2020, we currently support the latest desktop versions of Chrome, Firefox, Safari and Edge. We also support Internet Explorer 11. See the [support help docs reference](https://help.sonatype.com/iqserver/product-information/system-requirements#SystemRequirements-BrowserRequirements) for the most up to date versions that are supported. When developing on the front end, make sure to test in all of these browsers and multiple operating systems (Linux, Windows, MacOS). [BrowserStack](https://www.browserstack.com) is a helpful utility for this, and there are BrowserStack licenses available for all IQ devs.
 
 Our current minimum screen resolution is 1024 pixels, though there are plans in place to enact a minimum resolution of 1366px.
 

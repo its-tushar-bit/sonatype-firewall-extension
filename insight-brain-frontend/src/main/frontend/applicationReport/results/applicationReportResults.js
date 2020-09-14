@@ -113,7 +113,7 @@ function ApplicationReportResultsController($state, $ngRedux, $scope, $timeout, 
 
   function showCipModalIfNecessary() {
     const { policyViolationId } = vm.reportParameters || {};
-    if (!vm.selectedComponentIndex && policyViolationId) {
+    if (isNil(vm.selectedComponentIndex) && policyViolationId) {
       const findPredicate = propEq('policyViolationId', policyViolationId);
       let selectedComponentIndex = findIndex(findPredicate, vm.selectedReport.displayedEntries);
       if (selectedComponentIndex >= 0) {

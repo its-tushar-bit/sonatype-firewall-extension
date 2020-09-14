@@ -159,7 +159,7 @@ describe('applicationReportResults', function() {
         policyViolationId: 'policyViolation99'
       };
       const numberToHashedComponentFunction = (number) => {
-        return {policyViolationId: `policyViolation${number}`};
+        return { policyViolationId: `policyViolation${number}` };
       };
 
       vm.selectedReport = {displayedEntries: range(0, 100).map(numberToHashedComponentFunction)};
@@ -233,6 +233,28 @@ describe('applicationReportResults', function() {
         allEntries: range(0, 200).map(numberToHashedComponentFunction)
       };
       scope.$digest();
+      expect(vm.openCipModal).not.toHaveBeenCalled();
+    });
+
+    it('does not open CIP when rendering and there is a selected index already in place (reevaluation)', function() {
+      vm.refreshReportUrlRemovePolicyViolationId = jasmine.createSpy('refreshReportUrlRemovePolicyViolationId');
+      vm.openCipModal = jasmine.createSpy('openCipModal');
+
+      // Ensure the previous displayed entries are not defined (report reevaluation)
+      vm.selectedReport = undefined;
+      scope.$digest();
+
+      vm.selectedComponentIndex = 0;
+      vm.reportParameters = {
+        policyViolationId: 'policyViolation99'
+      };
+      const numberToHashedComponentFunction = (number) => {
+        return { policyViolationId: `policyViolation${number}` };
+      };
+
+      vm.selectedReport = {displayedEntries: range(0, 10).map(numberToHashedComponentFunction)};
+      scope.$digest();
+      expect(vm.refreshReportUrlRemovePolicyViolationId).not.toHaveBeenCalled();
       expect(vm.openCipModal).not.toHaveBeenCalled();
     });
   });

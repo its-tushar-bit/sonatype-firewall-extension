@@ -673,11 +673,6 @@ public class ApplicationReportTest
     reportPage.shouldBe(visible);
     reportPage.reevaluateButton().click();
     FormMask.seeAndWaitForDismissal();
-
-    // TODO: CIP modal is opening up automatically after re-evaluating the report (only on the first component)
-    // TODO: To be addressed in a subsequent ticket, remove the below statement once that is merged
-    cipModal.shouldBe(visible).closeButton().click();
-
     violations.shouldHaveSize(64);
 
     violationStateFilter.multiSelectList().shouldBe(empty);

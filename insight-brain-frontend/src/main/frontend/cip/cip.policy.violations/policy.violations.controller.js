@@ -5,11 +5,10 @@
  */
 /*global angular */
 import requestWaiverTemplate from './cip-request-waiver-modal.html';
-import getThreatColor from "./threatColorUtil";
+import getThreatColor from './threatColorUtil';
 
 export default function PolicyViolationsController($http, $scope, $q, Modal, SelectedComponent, OwnerContext,
-                                                   PolicyViolations, Messages) {
-
+                                                   PolicyViolations, Messages, $state) {
   $scope.getThreatColor = getThreatColor;
 
   function sortPolicyAlerts() {
@@ -39,17 +38,24 @@ export default function PolicyViolationsController($http, $scope, $q, Modal, Sel
   };
 
   $scope.waiveComponent = function(policyAlert) {
-    Modal.open({
-      templateUrl: 'add-waiver-modal-tmpl',
-      controller: 'AddWaiverController',
-      backdrop: 'static',
-      keyboard: false,
-      resolve: {
-        policy: function() {
-          return policyAlert;
+    // if in new policy centric report
+    if ($scope.useNewWaiverPages) {
+      $scope.closeCipModal();
+      $state.go('addWaiver', { violationId: policyAlert.policyViolationId });
+    }
+    else {
+      Modal.open({
+        templateUrl: 'add-waiver-modal-tmpl',
+        controller: 'AddWaiverController',
+        backdrop: 'static',
+        keyboard: false,
+        resolve: {
+          policy: function() {
+            return policyAlert;
+          }
         }
-      }
-    });
+      });
+    }
   };
 
   $scope.releaseQuarantine = function() {
@@ -101,5 +107,5 @@ export default function PolicyViolationsController($http, $scope, $q, Modal, Sel
 }
 
 PolicyViolationsController.$inject = [
-  '$http', '$scope', '$q', 'Modal', 'SelectedComponent', 'OwnerContext', 'PolicyViolations', 'Messages'
+  '$http', '$scope', '$q', 'Modal', 'SelectedComponent', 'OwnerContext', 'PolicyViolations', 'Messages', '$state'
 ];

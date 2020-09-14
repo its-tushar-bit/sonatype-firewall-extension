@@ -234,7 +234,23 @@
                   tooltip-append-to-body="true">
             Request
           </button>
-          <button type="none" class="btn btn-primary tm-waive-button" ng-click="waiveComponent(policyAlert)">
+
+          <button ng-if="!useNewWaiverPages"
+                  type="button"
+                  class="btn btn-primary tm-waive-button"
+                  ng-click="waiveComponent(policyAlert)">
+            Waive
+          </button>
+
+          <button ng-if="useNewWaiverPages"
+                  type="button"
+                  class="btn btn-primary tm-waive-button"
+                  ng-click="policyAlert.policyViolationId && waiveComponent(policyAlert)"
+                  ng-class="{'disabled': !policyAlert.policyViolationId}"
+                  tooltip="{{!policyAlert.policyViolationId ?
+                             'The feature to waive is not available on old reports.
+                              Re-evaluate this report to make it available' : ''}}"
+                  tooltip-append-to-body="true">
             Waive
           </button>
         </td>

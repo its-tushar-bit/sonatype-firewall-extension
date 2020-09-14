@@ -21,7 +21,8 @@ export default {
     selectedComponent: '<',
     scanId: '<',
     applicationPublicId: '<',
-    reloadReport: '&'
+    reloadReport: '&',
+    closeCipModal: '&'
   }
 };
 

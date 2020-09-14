@@ -9,12 +9,14 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
+import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.WaiverCip;
-import com.sonatype.clm.testing.functional.pages.WaiverCip.AddWaiverDialog;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.ConfirmRemoveWaiverDialog;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.ExistingWaiver;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.ViewWaiversDialog;
@@ -32,6 +34,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 
 import com.codeborne.selenide.Configuration;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -64,6 +67,8 @@ public class PolicyCentricReportWaiverTest
 
   private TestReportEvaluator evaluator;
 
+  private final PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+
   @BeforeClass
   public static void startup() {
     refreshOrOpen(ReportListPage.url());
@@ -84,8 +89,10 @@ public class PolicyCentricReportWaiverTest
 
     evaluator.evaluatePolicy();
     waiveComponent();
-    AddWaiverDialog.saveButton().shouldBe(visible, enabled).click();
-    AddWaiverDialog.root().should(disappear);
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.saveButton().shouldBe(visible, enabled).click();
+    NxSubmitMask.seeAndWaitForDismissal();
+    addWaiverPage.should(disappear);
 
     List<PolicyViolation> policyViolations = new PolicyViolationDAO().getByApplicationId(app.getId());
     assertThat(policyViolations).hasSize(7);
@@ -117,11 +124,21 @@ public class PolicyCentricReportWaiverTest
 
     evaluator.evaluatePolicy();
     waiveComponent();
-    AddWaiverDialog.comment().setValue("TEST COMMENT");
-    AddWaiverDialog.saveButton().shouldBe(visible, enabled).click();
-    AddWaiverDialog.root().should(disappear);
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.comments().setValue("TEST COMMENT");
+    addWaiverPage.saveButton().shouldBe(visible, enabled).click();
+    NxSubmitMask.seeAndWaitForDismissal();
+    addWaiverPage.should(disappear);
 
-    WaiverCip.viewWaivers().click();
+    waitUntilUrl(ApplicationReportPage.url(app, scanId));
+    reportPage.shouldBe(visible);
+
+    CipModal cipModal = reportPage.cipModal();
+    cipModal.shouldBe(visible);
+
+    switchCipToPolicyTab();
+
+    WaiverCip.viewWaivers().shouldBe(visible).click();
 
     ViewWaiversDialog.rows().shouldHaveSize(1);
 
@@ -139,10 +156,25 @@ public class PolicyCentricReportWaiverTest
     String truncatedLongComment = longComment.substring(0, 1000);
 
     WaiverCip.row(0).waiveButton().click();
-    AddWaiverDialog.comment().setValue(longComment);
+
+    // get policy violation id
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(
+        "ch.qos.logback", "logback-access", "0.6", "", "jar");
+    String policyViolationId = getViolationForPolicyComponent(policyName, componentIdentifier);
+    waitUntilUrl(AddWaiverPage.url(policyViolationId));
+
+    addWaiverPage.should(appear);
+    addWaiverPage.comments().setValue(longComment);
     eyesWatcher.eyesCheck("Add waiver");
-    AddWaiverDialog.saveButton().shouldBe(visible, enabled).click();
-    AddWaiverDialog.root().should(disappear);
+    addWaiverPage.saveButton().shouldBe(visible, enabled).click();
+    NxSubmitMask.seeAndWaitForDismissal();
+    addWaiverPage.should(disappear);
+
+    waitUntilUrl(ApplicationReportPage.url(app, scanId));
+    reportPage.shouldBe(visible);
+
+    cipModal.shouldBe(visible);
+    switchCipToPolicyTab();
 
     WaiverCip.viewWaivers().shouldBe(visible).click();
 
@@ -168,12 +200,11 @@ public class PolicyCentricReportWaiverTest
     evaluator.evaluatePolicy();
 
     waiveComponent();
-    AddWaiverDialog.scopedWaiver().click();
-    AddWaiverDialog.scopeContainer().shouldBe(visible);
 
-    AddWaiverDialog.waiverOwner().shouldHave(text("Application - " + app.getName()));
-    AddWaiverDialog.waiverOwnerOptions().shouldHaveSize(1);
-
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.availableScopes().shouldHaveSize(1);
+    addWaiverPage.scope(0).click();
+    addWaiverPage.scope(0).shouldHave(text("Application - " + app.getName()));
   }
 
   @Test
@@ -183,12 +214,11 @@ public class PolicyCentricReportWaiverTest
     evaluator.evaluatePolicy();
 
     waiveComponent();
-    AddWaiverDialog.scopedWaiver().click();
-    AddWaiverDialog.scopeContainer().shouldBe(visible);
-
-    AddWaiverDialog.waiverOwnerOptions().shouldHaveSize(2);
-    AddWaiverDialog.waiverOwnerOptions()
-        .shouldHave(texts(new String[]{"Application - " + app.getName(), "Organization - Waiver Test Org"}));
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.availableScopes().shouldHaveSize(2);
+    addWaiverPage.scope(0).click();
+    addWaiverPage.scope(0).shouldHave(text("Application - " + app.getName()));
+    addWaiverPage.scope(1).shouldHave(text("Organization - Waiver Test Org"));
   }
 
   @Test
@@ -198,15 +228,20 @@ public class PolicyCentricReportWaiverTest
     evaluator.evaluatePolicy();
 
     waiveComponent();
-    AddWaiverDialog.scopedWaiver().click();
-    AddWaiverDialog.scopeContainer().shouldBe(visible);
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.availableScopes().shouldHaveSize(2);
+    addWaiverPage.scope(1).shouldHave(text("Organization - Waiver Test Org"));
+    addWaiverPage.scope(1).click();
 
-    AddWaiverDialog.waiverOwner().selectOptionContainingText("Organization - Waiver Test Org");
+    addWaiverPage.availableComponents().shouldHaveSize(2);
+    addWaiverPage.component(0).label().shouldHave(text("ch.qos.logback : logback-access : 0.6"));
+    addWaiverPage.component(0).shouldBe(selected);
+    addWaiverPage.component(1).label().shouldHave(text("All Components"));
+    addWaiverPage.component(1).shouldNotBe(selected);
 
-    AddWaiverDialog.selectedComponent().shouldBe(selected);
-
-    AddWaiverDialog.saveButton().shouldBe(visible, enabled).click();
-    AddWaiverDialog.root().should(disappear);
+    addWaiverPage.saveButton().shouldBe(visible, enabled).click();
+    NxSubmitMask.seeAndWaitForDismissal();
+    addWaiverPage.should(disappear);
 
     evaluator.reevaluatePolicy();
 
@@ -223,12 +258,15 @@ public class PolicyCentricReportWaiverTest
     evaluator.evaluatePolicy();
 
     waiveComponent();
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.scope(0).click();
+    addWaiverPage.availableComponents().shouldHaveSize(2);
+    addWaiverPage.component(1).label().shouldHave(text("All Components"));
+    addWaiverPage.component(1).shouldNotBe(selected).click();
 
-    AddWaiverDialog.scopedWaiver().click();
-    AddWaiverDialog.allComponents().shouldBe(visible).shouldNotBe(selected).click();
-
-    AddWaiverDialog.saveButton().shouldBe(visible, enabled).click();
-    AddWaiverDialog.root().should(disappear);
+    addWaiverPage.saveButton().shouldBe(visible, enabled).click();
+    NxSubmitMask.seeAndWaitForDismissal();
+    addWaiverPage.should(disappear);
 
     evaluator.reevaluatePolicy();
 
@@ -256,10 +294,23 @@ public class PolicyCentricReportWaiverTest
     reportPage.resultRow(2).click();
     cipModal.tabLink(2).click();
     WaiverCip.row(0).waiveButton().shouldBe(visible).click();
-    AddWaiverDialog.root().should(appear);
-    AddWaiverDialog.comment().shouldBe(visible);
-    AddWaiverDialog.waiveViolationOnly().shouldBe(visible);
-    AddWaiverDialog.waiveViolationOnly().shouldBe(selected);
+
+    // get policy violation id
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(
+        "ch.qos.logback", "logback-access", "0.6", "", "jar");
+    String policyViolationId = getViolationForPolicyComponent(policyName, componentIdentifier);
+    waitUntilUrl(AddWaiverPage.url(policyViolationId));
+
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.should(appear);
+    addWaiverPage.comments().shouldBe(visible);
+    addWaiverPage.scope(0).label().shouldHave(text("Application - " + app.getName()));
+    addWaiverPage.scope(0).shouldBe(visible, selected);
+  }
+
+  private void switchCipToPolicyTab() {
+    CipModal cipModal = reportPage.cipModal();
+    cipModal.tabLink(2).click();
   }
 
   private void createGavViolatingPolicy(String ownerId) {
@@ -275,5 +326,20 @@ public class PolicyCentricReportWaiverTest
 
     // add policy
     tempEntity.newPolicy(policy);
+  }
+
+  private String getViolationForPolicyComponent(String policyName, ComponentIdentifier componentIdentifier) {
+    List<PolicyViolation> policyViolations = policyViolationDAO.getByApplicationId(app.getId());
+
+    if (CollectionUtils.isNotEmpty(policyViolations)) {
+      return policyViolations.stream()
+          .filter(pv -> pv.getPolicyName().equals(policyName)
+              && pv.getComponentIdentifier().equals(componentIdentifier))
+          .findFirst()
+          .map(PolicyViolation::getId)
+          .orElse(null);
+    }
+
+    return null;
   }
 }

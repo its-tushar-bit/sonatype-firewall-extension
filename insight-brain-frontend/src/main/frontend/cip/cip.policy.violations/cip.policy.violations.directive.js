@@ -9,7 +9,10 @@ import template from './cip-policy-violations.html';
 export default function cipPolicyViolationsDirective() {
   return {
     template,
-    controllerAs: 'vm',
-    controller: 'PolicyViolationsController'
+    controller: 'PolicyViolationsController',
+    scope: {
+      useNewWaiverPages: '<?',
+      closeCipModal: '&?'
+    }
   };
 }

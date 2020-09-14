@@ -15,7 +15,8 @@
                  scan-id="vm.selectedReport.scanId"
                  application-public-id="vm.metadata.application.publicId"
                  selected-component="vm.selectedComponent"
-                 reload-report="vm.reloadReportAndHandleError()">
+                 reload-report="vm.reloadReportAndHandleError()"
+                 close-cip-modal="vm.dismiss()">
   </cip-tab-panel>
   <footer class="iq-modal-footer">
     <button id="cip-modal-close-button" type="button" class="iq-btn" ng-click="vm.dismiss()">

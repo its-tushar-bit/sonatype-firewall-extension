@@ -156,6 +156,7 @@ export default function AddWaiverForm(props) {
         <label className="nx-label nx-label--optional">
           <span className="nx-label__text">Comments</span>
           <NxTextInput type="textarea"
+                       maxLength={1000}
                        { ...waiverComments }
                        onChange={ setWaiverComment } />
         </label>

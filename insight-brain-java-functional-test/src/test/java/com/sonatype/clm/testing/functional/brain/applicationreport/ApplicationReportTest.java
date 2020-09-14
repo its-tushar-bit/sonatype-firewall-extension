@@ -10,15 +10,19 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Date;
+import java.util.List;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.IQDropdown;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.PolicyThreatLevelFilter;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
+import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.AppReportHeaders;
@@ -36,16 +40,17 @@ import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.ExpandedCoverageReportPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.WaiverCip;
-import com.sonatype.clm.testing.functional.pages.WaiverCip.AddWaiverDialog;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.policy.PolicyImportExport;
@@ -58,6 +63,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.joda.time.format.DateTimeFormat;
@@ -89,6 +95,8 @@ public class ApplicationReportTest
   private PolicyDAO policyDAO = new PolicyDAO();
 
   private PolicyViolationGrandfatheringService policyViolationGrandfatheringService;
+
+  private final PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
 
   @BeforeClass
   public static void startup() {
@@ -648,12 +656,37 @@ public class ApplicationReportTest
     CipModal cipModal = reportPage.cipModal();
     cipModal.shouldBe(visible);
     cipModal.tabLink(2).shouldHave(text("Policy")).click();
-    WaiverCip.row(0).waiveButton().click();
-    AddWaiverDialog.saveButton().click();
+    WaiverCip.row(0).waiveButton().shouldBe(visible, enabled).click();
+
+    // get policy violation id
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(
+        "com.mycila", "license-maven-plugin", "2.11", "", "jar");
+    String policyViolationId = getViolationForPolicyComponent("License-Banned", componentIdentifier);
+    waitUntilUrl(AddWaiverPage.url(policyViolationId));
+
+    cipModal.shouldNotBe(visible);
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.saveButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+    cipModal.shouldBe(visible);
     cipModal.closeButton().click();
+    reportPage.shouldBe(visible);
     reportPage.reevaluateButton().click();
     FormMask.seeAndWaitForDismissal();
 
+    // TODO: CIP modal is opening up automatically after re-evaluating the report (only on the first component)
+    // TODO: To be addressed in a subsequent ticket, remove the below statement once that is merged
+    cipModal.shouldBe(visible).closeButton().click();
+
+    violations.shouldHaveSize(64);
+
+    violationStateFilter.multiSelectList().shouldBe(empty);
+    violationStateFilter.twisty().click();
+    violationStateFilter.multiSelectList().shouldHaveSize(5);
+
+    violationStateFilter.open().click();
+    violationStateFilter.open().shouldBe(selected);
+    violationStateFilter.counter().shouldHave(exactText("1 of 4"));
     // waived violation filtered out
     violations.shouldHaveSize(27);
 
@@ -857,5 +890,20 @@ public class ApplicationReportTest
     policyViolationGrandfatheringService.grandfather(app.getPublicId());
     evaluator.reevaluatePolicy();
     refresh();
+  }
+
+  private String getViolationForPolicyComponent(String policyName, ComponentIdentifier componentIdentifier) {
+    List<PolicyViolation> policyViolations = policyViolationDAO.getByApplicationId(app.getId());
+
+    if (CollectionUtils.isNotEmpty(policyViolations)) {
+      return policyViolations.stream()
+          .filter(pv -> pv.getPolicyName().equals(policyName)
+              && pv.getComponentIdentifier().equals(componentIdentifier))
+          .findFirst()
+          .map(PolicyViolation::getId)
+          .orElse(null);
+    }
+
+    return null;
   }
 }

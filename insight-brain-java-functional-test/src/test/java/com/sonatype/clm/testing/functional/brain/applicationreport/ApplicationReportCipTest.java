@@ -19,6 +19,7 @@ import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.LabelsCIP;
 import com.sonatype.clm.testing.functional.elements.LabelsCIP.AddLabelModal;
 import com.sonatype.clm.testing.functional.elements.LabelsCIP.RemoveLabelModal;
+import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.VersionsCIP;
 import com.sonatype.clm.testing.functional.elements.VulnerabilityCIP;
 import com.sonatype.clm.testing.functional.elements.VulnerabilityCIP.SVDetailModal;
@@ -26,6 +27,7 @@ import com.sonatype.clm.testing.functional.elements.VulnerabilityCIP.SVTableRow;
 import com.sonatype.clm.testing.functional.elements.reports.ClaimComponentCIP;
 import com.sonatype.clm.testing.functional.elements.reports.ClaimComponentCIP.ConfirmRevokeClaimDialog;
 import com.sonatype.clm.testing.functional.elements.reports.LicenseCIP;
+import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipAuditTab;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
@@ -34,7 +36,6 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipSimila
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportPage;
 import com.sonatype.clm.testing.functional.pages.WaiverCip;
-import com.sonatype.clm.testing.functional.pages.WaiverCip.AddWaiverDialog;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.ConfirmRemoveWaiverDialog;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.ExistingWaiver;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.RequestWaiverDialog;
@@ -334,8 +335,8 @@ public class ApplicationReportCipTest
     RequestWaiverDialog.waiverConditions().shouldHave(exactText(conditions));
     RequestWaiverDialog.policyViolationId().shouldNotBe(empty);
 
-    String requestWaiverUrl = Configuration.baseUrl + "api/v2/policyWaiver/" +
-        RequestWaiverDialog.policyViolationId().getText() + "/application";
+    String policyViolationId = RequestWaiverDialog.policyViolationId().getText();
+    String requestWaiverUrl = Configuration.baseUrl + "api/v2/policyWaiver/" + policyViolationId + "/application";
     assertThat(RequestWaiverDialog.policyCurlExample().getText()).contains(requestWaiverUrl);
 
     eyesWatcher.eyesCheck("Request Waiver");
@@ -344,28 +345,40 @@ public class ApplicationReportCipTest
 
     // Waive violation
     WaiverCip.row(1).waiveButton().shouldBe(visible).click();
-    AddWaiverDialog.policyName().shouldHave(exactText(policyName));
-    AddWaiverDialog.constraintName().shouldHave(exactText(constraintName));
-    AddWaiverDialog.waiverConditions().shouldHave(exactText(conditions));
-    AddWaiverDialog.waiveViolationOnly().shouldBe(selected);
-    AddWaiverDialog.scopeContainer().shouldBe(hidden);
 
-    AddWaiverDialog.scopedWaiver().click();
-    AddWaiverDialog.scopeContainer().shouldBe(visible);
+    // loads the new add waiver page
+    waitUntilUrl(AddWaiverPage.url(policyViolationId));
 
-    AddWaiverDialog.waiverOwnerOptions().shouldHaveSize(3);
-    AddWaiverDialog.waiverOwnerOptions()
-        .shouldHave(texts(new String[]{
-            "Application - " + app.getName(), "Organization - " + app.getName(), "Organization - Root Organization"
-        }));
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.policyName().shouldHave(exactText(policyName));
+    addWaiverPage.constraintName().shouldHave(exactText(constraintName));
+    addWaiverPage.conditions().shouldHaveSize(1);
+    addWaiverPage.condition(1).shouldHave(exactText(conditions));
+    addWaiverPage.availableScopes().shouldHaveSize(3);
+    addWaiverPage.scope(0).label().shouldHave(text("Application - " + app.getName()));
+    addWaiverPage.scope(1).label().shouldHave(text("Organization - " + app.getName()));
+    addWaiverPage.scope(2).label().shouldHave(text("Organization - Root Organization"));
 
     eyesWatcher.eyesCheck("Policy Tab");
 
-    AddWaiverDialog.waiveViolationOnly().click();
-    AddWaiverDialog.scopeContainer().shouldBe(hidden);
+    addWaiverPage.scope(0).click();
 
-    AddWaiverDialog.comment().setValue("TEST COMMENT");
-    AddWaiverDialog.saveButton().shouldBe(visible, enabled).click();
+    addWaiverPage.comments().setValue("TEST COMMENT");
+    // click save
+    addWaiverPage.saveButton().shouldBe(visible, enabled).click();
+    NxSubmitMask.seeAndWaitForDismissal();
+    // should redirect back to report, with the cip modal open
+    reportPage.shouldBe(visible);
+
+    cipModal.tabLink(2).shouldNotHave(ACTIVE_CLASS).click();
+    cipModal.tabLink(2).shouldHave(ACTIVE_CLASS);
+    cipModal.tabLink(1).shouldNotHave(ACTIVE_CLASS);
+    WaiverCip.rows().shouldHaveSize(2);
+    WaiverCip.row(1).shouldBe(
+        policyCssClass,
+        policyName,
+        new String[]{constraintName},
+        new String[]{conditions});
 
     // check that there is new waiver
     WaiverCip.viewWaivers().shouldBe(visible).click();
@@ -405,7 +418,6 @@ public class ApplicationReportCipTest
     mockHdsResponseForSecondComponent();
     cipModal.nextButton().shouldBe(enabled).click();
     WaiverCip.rows().shouldHaveSize(1);
-
     cipModal.closeButton().click();
   }
 

@@ -178,6 +178,7 @@ describe('addWaiverActions', function() {
     describe('when loadViolation succeeds', function() {
       it('calls loadOwnerContextHierarchy', function(done) {
         const loadViolationDetailsUrl = '/api/v2/policyViolations/crossStage/?constituentId=foo',
+            applicableWaiversUrl = '/api/v2/policyViolations/foo/applicableWaivers',
             ownerContextHierarchyUrl = getOwnerContextHierarchyUrl('application', 'appPublicId', 'policyId'),
             violationDetails = {
               applicationPublicId: 'appPublicId',
@@ -187,13 +188,14 @@ describe('addWaiverActions', function() {
         mockAxiosCalls({
           get: {
             [loadViolationDetailsUrl]: Promise.resolve({ data: violationDetails }),
+            [applicableWaiversUrl]: Promise.resolve({ data: 'applicableWaivers' }),
             [ownerContextHierarchyUrl]: Promise.resolve()
           }
         });
 
         store.dispatch(loadAddWaiverData('foo'))
             .then(() => {
-              expect(axios.get.calls.argsFor(1)).toEqual([ownerContextHierarchyUrl]);
+              expect(axios.get.calls.argsFor(2)).toEqual([ownerContextHierarchyUrl]);
               expect(store.getActions().length).toBe(4);
               expect(store.getActions()[1].type).toBe(LOAD_VIOLATION_REQUESTED);
               expect(store.getActions()[2].type).toBe(LOAD_VIOLATION_FULFILLED);
@@ -207,6 +209,7 @@ describe('addWaiverActions', function() {
       describe('when loadOwnerContextHierarchy succeeds', function() {
         it('dispatches LOAD_OWNER_CONTEXT_HIERARCHY_FULFILLED', function(done) {
           const loadViolationDetailsUrl = '/api/v2/policyViolations/crossStage/?constituentId=foo',
+              applicableWaiversUrl = '/api/v2/policyViolations/foo/applicableWaivers',
               ownerContextHierarchyUrl = getOwnerContextHierarchyUrl('application', 'appPublicId', 'policyId'),
               violationDetails = {
                 applicationPublicId: 'appPublicId',
@@ -216,6 +219,7 @@ describe('addWaiverActions', function() {
           mockAxiosCalls({
             get: {
               [loadViolationDetailsUrl]: Promise.resolve({ data: violationDetails }),
+              [applicableWaiversUrl]: Promise.resolve({ data: 'applicableWaivers' }),
               [ownerContextHierarchyUrl]: Promise.resolve({
                 data: {
                   type: 'type',
@@ -228,7 +232,7 @@ describe('addWaiverActions', function() {
 
           store.dispatch(loadAddWaiverData('foo'))
               .then(() => {
-                expect(axios.get.calls.argsFor(1)).toEqual([ownerContextHierarchyUrl]);
+                expect(axios.get.calls.argsFor(2)).toEqual([ownerContextHierarchyUrl]);
                 expect(store.getActions().length).toBe(4);
                 expect(store.getActions()[1].type).toBe(LOAD_VIOLATION_REQUESTED);
                 expect(store.getActions()[2].type).toBe(LOAD_VIOLATION_FULFILLED);
@@ -245,6 +249,7 @@ describe('addWaiverActions', function() {
       describe('when loadOwnerContextHierarchy fails', function() {
         it('dispatches ADD_WAIVER_LOAD_DATA_FAILED', function(done) {
           const loadViolationDetailsUrl = '/api/v2/policyViolations/crossStage/?constituentId=foo',
+              applicableWaiversUrl = '/api/v2/policyViolations/foo/applicableWaivers',
               ownerContextHierarchyUrl = getOwnerContextHierarchyUrl('application', 'appPublicId', 'policyId'),
               violationDetails = {
                 applicationPublicId: 'appPublicId',
@@ -254,13 +259,14 @@ describe('addWaiverActions', function() {
           mockAxiosCalls({
             get: {
               [loadViolationDetailsUrl]: Promise.resolve({ data: violationDetails }),
+              [applicableWaiversUrl]: Promise.resolve({ data: 'applicableWaivers' }),
               [ownerContextHierarchyUrl]: Promise.reject('err')
             }
           });
 
           store.dispatch(loadAddWaiverData('foo'))
               .then(() => {
-                expect(axios.get.calls.argsFor(1)).toEqual([ownerContextHierarchyUrl]);
+                expect(axios.get.calls.argsFor(2)).toEqual([ownerContextHierarchyUrl]);
                 expect(store.getActions().length).toBe(4);
                 expect(store.getActions()[1].type).toBe(LOAD_VIOLATION_REQUESTED);
                 expect(store.getActions()[2].type).toBe(LOAD_VIOLATION_FULFILLED);

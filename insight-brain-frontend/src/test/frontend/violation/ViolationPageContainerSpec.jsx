@@ -11,6 +11,7 @@ describe('ViolationPageContainer', function() {
 
   let ViolationPageContainer,
       loadViolationActionMock,
+      stateGoMock,
       fetchStageTypesMock,
       state,
       store,
@@ -21,6 +22,7 @@ describe('ViolationPageContainer', function() {
 
     loadViolationActionMock = jasmine.createSpy('loadViolation').and.returnValue({ type: 'LOAD_VIOLATION' });
     fetchStageTypesMock = jasmine.createSpy('fetchStageTypes').and.returnValue({ type: 'FETCH_STAGE_TYPES' });
+    stateGoMock = jasmine.createSpy('stateGo').and.returnValue({ type: 'STATE_GO' });
 
     ViolationPageContainer =
         require('inject-loader!../../../main/frontend/violation/ViolationPageContainer')({
@@ -29,6 +31,9 @@ describe('ViolationPageContainer', function() {
           },
           '../stages/stagesActions': {
             fetchStageTypes: fetchStageTypesMock
+          },
+          '../reduxUiRouter/routerActions': {
+            stateGo: stateGoMock
           }
         }).default;
 
@@ -100,10 +105,12 @@ describe('ViolationPageContainer', function() {
   it('maps action creators to ViolationPageContainer props', function() {
     const wrapper = shallow(vdom).dive(),
         loadViolationActionCreator = wrapper.prop('loadViolation'),
-        fetchStageTypesActionCreator = wrapper.prop('fetchStageTypes');
+        fetchStageTypesActionCreator = wrapper.prop('fetchStageTypes'),
+        stateGoActionCreator = wrapper.prop('stateGo');
 
     expect(loadViolationActionCreator).toEqual(jasmine.any(Function));
     expect(fetchStageTypesActionCreator).toEqual(jasmine.any(Function));
+    expect(stateGoActionCreator).toEqual(jasmine.any(Function));
 
     expect(store.getActions()).toEqual([]);
 
@@ -113,5 +120,13 @@ describe('ViolationPageContainer', function() {
     fetchStageTypesActionCreator();
 
     expect(store.getActions()).toEqual([{ type: 'LOAD_VIOLATION' }, { type: 'FETCH_STAGE_TYPES' }]);
+
+    stateGoActionCreator();
+
+    expect(store.getActions()).toEqual([
+      { type: 'LOAD_VIOLATION' },
+      { type: 'FETCH_STAGE_TYPES' },
+      { type: 'STATE_GO' }
+    ]);
   });
 });

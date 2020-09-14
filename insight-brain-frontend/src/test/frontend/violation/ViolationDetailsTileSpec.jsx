@@ -3,11 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { faFlag } from '@fortawesome/pro-solid-svg-icons';
+
 import * as enzymeUtils from '../enzymeUtils';
 import ViolationExclamation from '../../../main/frontend/react/ViolationExclamation';
 import ViolationDetailsSubtitle from '../../../main/frontend/violation/ViolationDetailsSubtitle';
 import StageDisplay from '../../../main/frontend/violation/StageDisplay';
 import { pathSet } from '../../../main/frontend/util/jsUtil';
+import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 
 describe('ViolationDetailsTile', function() {
   let timeAgoMock,
@@ -18,6 +21,7 @@ describe('ViolationDetailsTile', function() {
       stateGetMock,
       stateHrefMock,
       minimalProps,
+      stateGoMock,
       getShallowComponent;
 
   beforeEach(function() {
@@ -32,6 +36,7 @@ describe('ViolationDetailsTile', function() {
 
     mockDate = new Date();
     dateCreatorMock = spyOn(window, 'Date').and.returnValue(mockDate);
+    stateGoMock = jasmine.createSpy('stateGo');
 
     getOwnerImageUrlMock = jasmine.createSpy('getOwnerImageUrl').and.returnValue('/rest/icon');
     stateGetMock = jasmine.createSpy('$state.get').and.returnValue('theState');
@@ -42,6 +47,7 @@ describe('ViolationDetailsTile', function() {
         href: stateHrefMock
       },
       violationDetails: {
+        policyViolationId: 'policyViolationId',
         policyName: 'pol',
         policyThreatCategory: 'security',
         policyOwner: {
@@ -74,7 +80,9 @@ describe('ViolationDetailsTile', function() {
         { stageTypeId: 'stage-release', shortName: 'Stage' },
         { stageTypeId: 'release', shortName: 'Release' }
       ],
-      applicationPublicId: 'app1'
+      applicationPublicId: 'app1',
+      stateGo: stateGoMock,
+      activeWaivers: []
     };
 
     ViolationDetailsTile = require('inject-loader!../../../main/frontend/violation/ViolationDetailsTile')({
@@ -138,6 +146,30 @@ describe('ViolationDetailsTile', function() {
       expect(subtitle).toHaveProp('applicationName', minimalProps.violationDetails.applicationName);
       expect(subtitle).toHaveProp('displayName', minimalProps.violationDetails.displayName);
       expect(subtitle).toHaveProp('filenames', minimalProps.violationDetails.filenames);
+    });
+
+    it('renders an nx-tile__actions section with an action button if there are no active waivers', function() {
+      const actions = getShallowComponent().find('.nx-tile__actions'),
+          button = actions.find(NxButton);
+
+      expect(actions).toExist();
+      expect(button).toExist();
+
+      button.simulate('click');
+      expect(stateGoMock).toHaveBeenCalledWith('addWaiver', { violationId: 'policyViolationId'});
+    });
+
+    it('renders an nx-tile__actions section with a waived indicator when there are active waivers ', function() {
+      const component = getShallowComponent({ activeWaivers: ['an active waiver'] }),
+          actions = component.find('.nx-tile__actions'),
+          indicator = actions.find('.violation-details-tile__waiver-indicator'),
+          icon = indicator.find(NxFontAwesomeIcon),
+          text = indicator.find('span');
+
+      expect(actions).toExist();
+      expect(indicator).toExist();
+      expect(icon).toHaveProp('icon', faFlag);
+      expect(text).toHaveText('Waived');
     });
   });
 

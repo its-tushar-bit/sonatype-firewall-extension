@@ -424,6 +424,7 @@ public class AddWaiverTest
       addWaiverPage.saveButton().click();
       NxSubmitMask.seeAndWaitForDismissal();
 
+      waitUntilUrl(ViolationDetailsPage.url(policyViolation.getId()));
       ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
       violationDetailsPage.detailsTile().shouldBe(visible);
       violationDetailsPage.sidebarNav().sidebarNavItems().shouldHaveSize(1);
@@ -436,8 +437,8 @@ public class AddWaiverTest
   @Test
   public void testOpenPageFromViolationDetails_cancelReturnsToViolationDetails() {
     refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(policyViolation.getId(), "violation", "filter"));
-    // TODO open add waiver from header link/action in violation details page
-    refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
+    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+    violationDetailsPage.detailsTile().addWaiverButton().click();
 
     AddWaiverPage addWaiverPage = new AddWaiverPage();
     addWaiverPage.availableScopes().shouldHaveSize(3);
@@ -445,8 +446,7 @@ public class AddWaiverTest
     addWaiverPage.cancelButton().click();
     NxSubmitMask.seeAndWaitForDismissal();
 
-    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
-    violationDetailsPage.detailsTile().shouldBe(visible);
+    violationDetailsPage.detailsTile().addWaiverButton().shouldBe(visible);
     violationDetailsPage.sidebarNav().sidebarNavItems().shouldHaveSize(3);
     violationDetailsPage.sidebarNav().navItem(2).shouldHave(cssClass("selected"));
   }
@@ -455,8 +455,8 @@ public class AddWaiverTest
   public void testOpenPageFromViolationDetails_submitReturnsToViolationDetails() {
     try {
       refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(policyViolation.getId(), "violation", "filter"));
-      // TODO open add waiver from header link/action in violation details page
-      refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
+      ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+      violationDetailsPage.detailsTile().addWaiverButton().click();
 
       AddWaiverPage addWaiverPage = new AddWaiverPage();
       addWaiverPage.availableScopes().shouldHaveSize(3);
@@ -471,8 +471,9 @@ public class AddWaiverTest
       addWaiverPage.saveButton().click();
       NxSubmitMask.seeAndWaitForDismissal();
 
-      ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
       violationDetailsPage.detailsTile().shouldBe(visible);
+      violationDetailsPage.detailsTile().addWaiverButton().shouldNotBe(visible);
+      violationDetailsPage.detailsTile().waivedIndicator().shouldBe(visible);
       violationDetailsPage.sidebarNav().sidebarNavItems().shouldHaveSize(3);
       violationDetailsPage.sidebarNav().navItem(2).shouldHave(cssClass("selected"));
     }

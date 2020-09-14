@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.Button;
 import com.sonatype.clm.testing.functional.elements.NxBackButton;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
@@ -137,6 +138,14 @@ public class ViolationDetailsPage
 
     public SelenideElement policyOwner() {
       return child(".iq-violation-details__policy-owner dd a");
+    }
+
+    public Button addWaiverButton() {
+      return new Button("#violation-page-add-waiver");
+    }
+
+    public SelenideElement waivedIndicator() {
+      return child(".violation-details-tile__waiver-indicator");
     }
   }
 

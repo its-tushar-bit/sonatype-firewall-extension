@@ -117,6 +117,10 @@ export function getDashboardDeleteFilterUrl(filterName) {
   return `${getBaseUrl(window.location.href)}/rest/dashboard/filters/named/delete?filterName=${filterName}`;
 }
 
+export function getApplicableWaiversUrl(policyViolationId) {
+  return `${getBaseUrl(window.location.href)}/api/v2/policyViolations/${policyViolationId}/applicableWaivers`;
+}
+
 /**
  * @param waiverScope {string} application|organization
  * @param ownerId {string}

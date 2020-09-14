@@ -7,7 +7,9 @@ import React from 'react';
 import * as PropTypes from 'prop-types';
 import { compose, keys, map, max, prop, reduce, values } from 'ramda';
 import classnames from 'classnames';
+import { faFlag } from '@fortawesome/pro-solid-svg-icons';
 import { categoryByPolicyThreatLevel } from '@sonatype/react-shared-components/util/threatLevels';
+import { NxButton, NxFontAwesomeIcon} from '@sonatype/react-shared-components';
 
 import ViolationExclamation from '../react/ViolationExclamation';
 import { timeAgo } from '../util/CommonServices';
@@ -21,8 +23,9 @@ const ownerIdTypeMap = {
   organization: 'organizationId'
 };
 
-export default function ViolationDetailsTile({ $state, violationDetails, stageTypes }) {
-  const { applicationPublicId, policyName, threatLevel, policyOwner, stageData } = violationDetails,
+export default function ViolationDetailsTile(props) {
+  const { $state, violationDetails, stageTypes, stateGo, activeWaivers } = props,
+      { applicationPublicId, policyName, threatLevel, policyOwner, stageData, policyViolationId } = violationDetails,
       { ownerName, ownerType } = policyOwner,
       ownerId = policyOwner.ownerPublicId || policyOwner.ownerId,
 
@@ -50,10 +53,32 @@ export default function ViolationDetailsTile({ $state, violationDetails, stageTy
         <dd key={stageType.stageTypeId}>
           <StageDisplay { ...({ $state, stageType, stageData, applicationPublicId }) } />
         </dd>
+      ),
+
+      onAddWaiverClick = () => {
+        stateGo('addWaiver', { violationId: policyViolationId });
+      },
+
+      addWaiverButton = (
+        <NxButton id="violation-page-add-waiver"
+                  variant="tertiary"
+                  onClick={onAddWaiverClick}>
+          Add Waiver
+        </NxButton>
+      ),
+
+      waivedIndicator = (
+        <div className="violation-details-tile__waiver-indicator">
+          <NxFontAwesomeIcon icon={faFlag} />
+          <span>Waived</span>
+        </div>
       );
 
   return (
     <div id="violation-details-tile" className="nx-tile iq-violation-details">
+      <div className="nx-tile__actions">
+        { activeWaivers.length ? waivedIndicator : addWaiverButton }
+      </div>
       <div className="nx-tile-header">
         <div className="nx-tile-header__title">
           <h2 className="nx-h2">
@@ -101,6 +126,7 @@ export default function ViolationDetailsTile({ $state, violationDetails, stageTy
 }
 
 export const violationDetailsPropTypes = {
+  policyViolationId: PropTypes.string.isRequired,
   policyName: PropTypes.string.isRequired,
   policyThreatCategory: PropTypes.string.isRequired,
   policyOwner: PropTypes.shape({
@@ -119,6 +145,16 @@ export const violationDetailsPropTypes = {
   filenames: PropTypes.array
 };
 
+export const applicableWaiverPropTypes = {
+  policyWaiverId: PropTypes.string.isRequired,
+  comment: PropTypes.string,
+  scopeOwnerType: PropTypes.string.isRequired,
+  scopeOwnerId: PropTypes.string.isRequired,
+  scopeOwnerName: PropTypes.string.isRequired,
+  hash: PropTypes.string,
+  policyId: PropTypes.string.isRequired
+};
+
 ViolationDetailsTile.propTypes = {
   $state: PropTypes.shape({
     get: PropTypes.func.isRequired,
@@ -128,5 +164,7 @@ ViolationDetailsTile.propTypes = {
   stageTypes: PropTypes.arrayOf(PropTypes.shape({
     stageTypeId: PropTypes.string.isRequired,
     shortName: PropTypes.string.isRequired
-  }).isRequired)
+  }).isRequired),
+  stateGo: PropTypes.func.isRequired,
+  activeWaivers: PropTypes.arrayOf(PropTypes.shape(applicableWaiverPropTypes))
 };

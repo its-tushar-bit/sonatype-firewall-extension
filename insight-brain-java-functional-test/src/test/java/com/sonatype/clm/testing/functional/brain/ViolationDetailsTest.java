@@ -8,14 +8,17 @@ package com.sonatype.clm.testing.functional.brain;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.AgeFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.ManageFiltersDropdown;
 import com.sonatype.clm.testing.functional.elements.NxPolicyThreatLevelFilter;
 import com.sonatype.clm.testing.functional.elements.NxTreeViewMultiSelect;
+import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
@@ -361,5 +364,39 @@ public class ViolationDetailsTest
     testCLMServer.getHdsServer()
         .respondWith(getClass().getClassLoader().getResource("vulnerabilityDetails/vulnerabilityDetails2.json"))
         .atUri("rest/vulnerability/details/json/sonatype-2017-0507");
+  }
+
+  @Test
+  public void testAddWaiverButton() {
+    refreshOrOpen(ViolationDetailsPage.url(securityPolicyViolation.getId()));
+    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+    ViolationDetailsTile detailsTile = violationDetailsPage.detailsTile();
+    
+    detailsTile.addWaiverButton().shouldBe(visible);
+    detailsTile.addWaiverButton().click();
+
+    waitUntilUrl(AddWaiverPage.url(securityPolicyViolation.getId()));
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.artifactName().shouldHave(text("Artifact1"));
+    addWaiverPage.policyName().shouldHave(text("Policy 1"));
+    addWaiverPage.constraintName().shouldHave(text("Test Constraint"));
+  }
+
+  @Test
+  public void testWaivedIndicator() {
+    // Set up a waiver
+    List<ConstraintFact> constraintFacts = otherPolicyViolation.getConstraintFacts();
+    String policyId = otherPolicyViolation.getPolicyId();
+    String orgId = application.getParentOwnerId();
+    tempEntity.newWaiver(otherPolicyViolation.getHash(), policyId, orgId, constraintFacts, "A waiver comment");
+
+    refreshOrOpen(ViolationDetailsPage.url(otherPolicyViolation.getId()));
+
+    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+    ViolationDetailsTile detailsTile = violationDetailsPage.detailsTile();
+
+    detailsTile.waivedIndicator().shouldBe(visible);
+    detailsTile.addWaiverButton().shouldNotBe(visible);
+
   }
 }

@@ -168,3 +168,15 @@
 
   vertical-align: -3px;
 }
+
+.violation-details-tile__waiver-indicator {
+  color: #1a832b;
+  font-style: italic;
+  height: 32px;
+
+  padding-right: $nx-spacing-sm;
+
+  & > svg {
+    margin-top: $nx-spacing-xs;
+  }
+}

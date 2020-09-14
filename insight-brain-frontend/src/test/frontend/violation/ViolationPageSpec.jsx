@@ -27,6 +27,7 @@ describe('ViolationPage', function() {
   let minimalProps,
       loadViolationSpy,
       fetchStageTypesSpy,
+      stateGoSpy,
       ViolationPage,
       getShallowComponent,
       getMountedComponent;
@@ -39,6 +40,7 @@ describe('ViolationPage', function() {
 
     loadViolationSpy = jasmine.createSpy('loadViolation');
     fetchStageTypesSpy = jasmine.createSpy('fetchStageTypes');
+    stateGoSpy = jasmine.createSpy('stateGo');
 
     minimalProps = {
       $state: {
@@ -52,6 +54,7 @@ describe('ViolationPage', function() {
       },
       loadViolation: loadViolationSpy,
       fetchStageTypes: fetchStageTypesSpy,
+      stateGo: stateGoSpy,
       loading: false
     };
 
@@ -109,16 +112,19 @@ describe('ViolationPage', function() {
     expect(loadViolationSpy).toHaveBeenCalledWith('bar');
   });
 
-  it('renders a ViolationDetailsTile within the LoadWrapper with the $state, stageTypes, and violationDetails',
+  it('renders a ViolationDetailsTile within the LoadWrapper with $state, stageTypes, violationDetails & stateGo',
       function() {
         const violationDetails = {},
             stageTypes = {},
-            tile = getShallowComponent({ violationDetails, stageTypes }).find(LoadWrapper).find(ViolationDetailsTile);
+            stateGo = () => {},
+            component = getShallowComponent({ violationDetails, stageTypes, stateGo }),
+            tile = component.find(LoadWrapper).find(ViolationDetailsTile);
 
         expect(tile).toExist();
         expect(tile.prop('$state')).toBe(minimalProps.$state);
         expect(tile.prop('violationDetails')).toBe(violationDetails);
         expect(tile.prop('stageTypes')).toBe(stageTypes);
+        expect(tile.prop('stateGo')).toBe(stateGo);
       }
   );
 

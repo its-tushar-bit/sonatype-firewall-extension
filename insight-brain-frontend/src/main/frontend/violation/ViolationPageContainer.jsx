@@ -7,6 +7,7 @@ import {connect} from 'react-redux';
 import {pick} from 'ramda';
 
 import { loadViolation } from './violationPageActions';
+import { stateGo } from '../reduxUiRouter/routerActions';
 import { fetchStageTypes } from '../stages/stagesActions';
 import ViolationPage from './ViolationPage';
 
@@ -20,14 +21,15 @@ function mapStateToProps({ stages, violationPage }) {
       'violationDetails',
       'vulnerabilityDetailsLoading',
       'vulnerabilityDetails',
-      'vulnerabilityDetailsError'
+      'vulnerabilityDetailsError',
+      'activeWaivers'
     ], violationPage),
     stageTypes: stageData.stageTypes,
     stageTypesError: stageData.error
   };
 }
 
-const mapDispatchToProps = { loadViolation, fetchStageTypes };
+const mapDispatchToProps = { loadViolation, fetchStageTypes, stateGo };
 
 const ViolationPageContainer = connect(mapStateToProps, mapDispatchToProps)(ViolationPage);
 export default ViolationPageContainer;

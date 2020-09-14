@@ -7,7 +7,11 @@ import axios from 'axios';
 import { both, complement, find, isNil, propEq, propSatisfies } from 'ramda';
 
 import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
-import { getViolationDetailsUrl, getVulnerabilityJsonDetailUrl } from '../util/CLMLocation';
+import {
+  getViolationDetailsUrl,
+  getVulnerabilityJsonDetailUrl,
+  getApplicableWaiversUrl
+} from '../util/CLMLocation';
 import { isNilOrEmpty } from '../util/jsUtil';
 
 export const LOAD_VIOLATION_REQUESTED = 'LOAD_VIOLATION_REQUESTED';
@@ -18,25 +22,35 @@ export const LOAD_VULNERABILITY_DETAILS_REQUESTED = 'LOAD_VULNERABILITY_DETAILS_
 export const LOAD_VULNERABILITY_DETAILS_FULFILLED = 'LOAD_VULNERABILITY_DETAILS_FULFILLED';
 export const LOAD_VULNERABILITY_DETAILS_FAILED = 'LOAD_VULNERABILITY_DETAILS_FAILED';
 
-function isViolationLoaded(requestedViolationId, currentState) {
-  const { violationPage } = currentState,
-      { violationDetails } = violationPage;
-
+function isViolationLoaded(requestedViolationId, violationDetails) {
   return violationDetails && violationDetails.policyViolationId === requestedViolationId;
 }
 
 export function loadViolation(id) {
   return function(dispatch, getState) {
 
-    const currentState = getState();
-    if (isViolationLoaded(id, currentState)) {
-      return Promise.resolve();
-    }
+    const { violationPage } = getState(),
+        { violationDetails } = violationPage;
+
+    // avoid requesting an already loaded violation but request waivers every time as they may have changed
+    const violationDetailsRequest = isViolationLoaded(id, violationDetails)
+      ? Promise.resolve({ data: violationDetails })
+      : axios.get(getViolationDetailsUrl(id));
 
     dispatch(loadViolationRequested());
 
-    return axios.get(getViolationDetailsUrl(id))
-        .then(({ data }) => dispatch(loadViolationFulfilled(data)))
+    const parallelRequests = [
+      violationDetailsRequest,
+      axios.get(getApplicableWaiversUrl(id))
+    ];
+
+    return axios.all(parallelRequests)
+        .then(([violationDetailsResponse, applicableWaiversResponse]) => {
+          return dispatch(loadViolationFulfilled({
+            violationDetails: violationDetailsResponse.data,
+            applicableWaivers: applicableWaiversResponse.data
+          }));
+        })
         .then(({ payload }) => dispatch(loadVulnerabilityDetails(payload)))
         .catch(err => {
           dispatch(loadViolationFailed(err));
@@ -53,7 +67,7 @@ const isNotNil = complement(isNil),
     isSecurityReference = both(isNotNil, propEq('type', 'SECURITY_VULNERABILITY_REFID')),
     hasSecurityReference = propSatisfies(isSecurityReference, 'reference');
 
-function loadVulnerabilityDetails(violationDetails) {
+function loadVulnerabilityDetails({ violationDetails }) {
   return function(dispatch) {
     const { constraintViolations, componentIdentifier } = violationDetails;
 

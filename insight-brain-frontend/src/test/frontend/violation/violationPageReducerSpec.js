@@ -31,6 +31,7 @@ describe('violationPageReducer', function() {
       expect(newState.vulnerabilityDetailsLoading).toBe(false);
       expect(newState.vulnerabilityDetails).toBe(null);
       expect(newState.vulnerabilityDetailsError).toBe(null);
+      expect(newState.activeWaivers).toEqual([]);
     });
 
     it('is immutable', function() {
@@ -53,6 +54,10 @@ describe('violationPageReducer', function() {
 
       expect(() => {
         state.violationDetailsError = 'Broke';
+      }).toThrowError(TypeError);
+
+      expect(() => {
+        state.activeWaivers.push({});
       }).toThrowError(TypeError);
     });
   });
@@ -77,13 +82,14 @@ describe('violationPageReducer', function() {
         violationDetails: null,
         vulnerabilityDetailsLoading: false,
         vulnerabilityDetails: null,
-        vulnerabilityDetailsError: null
+        vulnerabilityDetailsError: null,
+        activeWaivers: []
       });
     });
   });
 
   describe('LOAD_VIOLATION_FULFILLED', function() {
-    it('unsets loading and violationDetailsError and sets violationDetails to the payload', function() {
+    it('unsets loading and violationDetailsError and sets violationDetails & activeWaivers to the payload', function() {
       const initialState = {
         violationDetails: {},
         violationDetailsError: 'baz',
@@ -93,14 +99,18 @@ describe('violationPageReducer', function() {
 
       const newState = reducer(initialState, {
         type: 'LOAD_VIOLATION_FULFILLED',
-        payload: { foo: 'bar' }
+        payload: {
+          violationDetails: { foo: 'bar' },
+          applicableWaivers: { activeWaivers: ['activeWaiver'] }
+        }
       });
 
       expect(newState).toEqual({
         loading: false,
         violationDetailsError: null,
         violationDetails: { foo: 'bar' },
-        otherProp: 'asdf'
+        otherProp: 'asdf',
+        activeWaivers: ['activeWaiver']
       });
     });
   });

@@ -245,6 +245,17 @@ public class RepositoryDAOTest
   }
 
   @Test
+  public void testCascadeDeleteToRepositoryMigration() {
+    Repository repository = tempEntity.newRepository();
+    tempEntity.newRepositoryMigration(repository);
+    assertThat(new RepositoryMigrationDAO().getByRepositoryId(repository.getId())).isNotNull();
+
+    new RepositoryDAO().delete(repository);
+
+    assertThat(new RepositoryMigrationDAO().getByRepositoryId(repository.getId())).isNull();
+  }
+
+  @Test
   public void testGetByRepositoryManagerInstanceIdAndPublicIdNotNull() throws Exception {
     final String repositoryManagerInstanceId = "repositoryManagerInstanceId";
     final String publicId = "publicId";

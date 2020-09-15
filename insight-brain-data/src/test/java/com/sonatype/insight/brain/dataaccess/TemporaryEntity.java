@@ -34,6 +34,7 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.clm.dto.model.policy.TriggerReference.Type;
+import com.sonatype.clm.dto.model.repository.migration.MigrationState;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
@@ -68,6 +69,7 @@ import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
 import com.sonatype.insight.brain.dataaccess.scan.PersistedScanTicketDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;
@@ -144,6 +146,7 @@ import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.model.repository.RepositoryMigration;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -340,6 +343,8 @@ public class TemporaryEntity
 
   private final PersistedScanTicketDAO persistedScanTicketDAO = new PersistedScanTicketDAO();
 
+  private final RepositoryMigrationDAO repositoryMigrationDAO = new RepositoryMigrationDAO();
+
   private MailConfiguration savedMailConfiguration;
 
   private Collection<MigrationTracker> migrationTrackers;
@@ -502,6 +507,7 @@ public class TemporaryEntity
     persistedPolicyEvaluationPollingResultDAO.deleteAll();
     persistedPromoteScanResultDAO.getAll().forEach(persistedPromoteScanResultDAO::delete);
     persistedScanTicketDAO.getAll().forEach(persistedScanTicketDAO::delete);
+    repositoryMigrationDAO.getAll().forEach(repositoryMigrationDAO::delete);
 
     ProprietaryConfig config = proprietaryConfigDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
     if (config != null) {
@@ -2652,5 +2658,13 @@ public class TemporaryEntity
     innerSourceComponentDAO.insert(innerSourceComponent);
     innerSourceComponents.add(innerSourceComponent);
     return innerSourceComponent;
+  }
+
+  public RepositoryMigration newRepositoryMigration(Repository repository) {
+    RepositoryMigration repositoryMigration = new RepositoryMigration();
+    repositoryMigration.setRepositoryId(repository.getId());
+    repositoryMigration.setState(MigrationState.RUNNING);
+    repositoryMigrationDAO.insert(repositoryMigration);
+    return repositoryMigration;
   }
 }

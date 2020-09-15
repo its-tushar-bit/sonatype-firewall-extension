@@ -7,18 +7,20 @@ package com.sonatype.insight.brain.integration.repository;
 
 import java.util.List;
 
-import com.sonatype.clm.dto.model.repository.migration.MigrationDetails;
+import com.sonatype.clm.dto.model.repository.migration.MigrationState;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.RepositoryMigration;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.model.HasStringId;
 
@@ -47,16 +49,22 @@ public class FirewallMigrationWorker
 
   private static final PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
 
+  private static final RepositoryMigrationDAO repositoryMigrationDAO = new RepositoryMigrationDAO();
+
   private final Repository sourceRepository;
 
   private final Repository targetRepository;
 
-  private final MigrationDetails migrationDetails;
+  private final RepositoryMigration repositoryMigration;
 
-  FirewallMigrationWorker(Repository sourceRepository, Repository targetRepository, MigrationDetails migrationDetails) {
+  FirewallMigrationWorker(
+      Repository sourceRepository,
+      Repository targetRepository,
+      RepositoryMigration repositoryMigration)
+  {
     this.sourceRepository = sourceRepository;
     this.targetRepository = targetRepository;
-    this.migrationDetails = migrationDetails;
+    this.repositoryMigration = repositoryMigration;
   }
 
   @Override
@@ -65,13 +73,14 @@ public class FirewallMigrationWorker
       log.info("Starting history migration for repository {}:{} ({})", targetRepository.getRepositoryManagerId(),
           targetRepository.getPublicId(), targetRepository.getId());
 
-      repositoryDAO.cascadeDelete(targetRepository);
+      repositoryDAO.cascadeDelete(targetRepository, false /* includeRepositoryMigration */);
       migrateRepositoryComponents();
       migratePolicyViolations();
       migrateLicenseOverrides();
       migrateSecurityVulnerabilityOverrides();
       migratePolicyWaivers();
-      migrationDetails.success();
+      repositoryMigration.setState(MigrationState.COMPLETED);
+      repositoryMigrationDAO.update(repositoryMigration);
 
       log.info("History migration completed for repository {}:{} ({})", targetRepository.getRepositoryManagerId(),
           targetRepository.getPublicId(), targetRepository.getId());
@@ -80,7 +89,8 @@ public class FirewallMigrationWorker
       log.error("Failed to migrate repository history {}:{} ({}); {}", targetRepository.getRepositoryManagerId(),
           targetRepository.getPublicId(), targetRepository.getId(), e.getMessage(), e);
 
-      migrationDetails.failure();
+      repositoryMigration.setState(MigrationState.FAILED);
+      repositoryMigrationDAO.update(repositoryMigration);
     }
     catch (Throwable t) {
       // Try to log to stderr before trying the standard logging because the standard logging may not be operational at

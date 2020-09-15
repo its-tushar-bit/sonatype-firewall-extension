@@ -160,20 +160,20 @@ public class RepositoryDAO
 
   @Override
   public void delete(TransactionContext tx, Repository repository) {
-    cascadeDelete(tx, repository);
+    cascadeDelete(tx, repository, true /* includeRepositoryMigration */);
 
     super.delete(tx, repository);
   }
 
-  public void cascadeDelete(Repository repository) {
+  public void cascadeDelete(Repository repository, boolean includeRepositoryMigration) {
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();
-      cascadeDelete(tx, repository);
+      cascadeDelete(tx, repository, includeRepositoryMigration);
       tx.commit();
     }
   }
 
-  private void cascadeDelete(TransactionContext tx, Repository repository) {
+  private void cascadeDelete(TransactionContext tx, Repository repository, boolean includeRepositoryMigration) {
     long start = System.currentTimeMillis();
 
     // Cascade to owned entities
@@ -191,6 +191,12 @@ public class RepositoryDAO
 
     // Cascade to repository reevaluation locks
     ClusterLock.deleteForRepositoryReevaluation(tx, repository);
+
+    // Cascade to repository migration (if any)
+    if (includeRepositoryMigration) {
+      RepositoryMigrationDAO repositoryMigrationDAO = new RepositoryMigrationDAO();
+      repositoryMigrationDAO.delete(tx, repositoryMigrationDAO.getByRepositoryId(tx, repository.getId()));
+    }
 
     long duration = System.currentTimeMillis() - start;
     if (duration > 1000) {

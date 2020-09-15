@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -29,6 +30,7 @@ import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.model.repository.RepositoryMigration;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
@@ -155,8 +157,10 @@ public class FirewallMigrationServiceTest
     Repository sourceRepository = createSourceRepository();
     GeneratedRepositoryData data = generateRepositoryData(sourceRepository);
 
-    MigrationDetails migrationDetails = new MigrationDetails(migrationState);
-    assertThat(migrationService.putIfAbsent(repository.getId(), migrationDetails)).isTrue();
+    RepositoryMigration repositoryMigration = new RepositoryMigration();
+    repositoryMigration.setRepositoryId(repository.getId());
+    repositoryMigration.setState(migrationState);
+    assertThat(new RepositoryMigrationDAO().tryInsert(repositoryMigration)).isTrue();
 
     testMigrateRepositoryHistory(repository, previousRunData, sourceRepository, data);
   }
@@ -292,8 +296,10 @@ public class FirewallMigrationServiceTest
   public void testMigrateRepositoryHistory_AlreadyRunning() throws Exception {
     createSourceRepository();
     Repository targetRepository = createTargetRepository();
-    MigrationDetails migrationDetails = new MigrationDetails();
-    assertThat(migrationService.putIfAbsent(targetRepository.getId(), migrationDetails)).isTrue();
+    RepositoryMigration repositoryMigration = new RepositoryMigration();
+    repositoryMigration.setRepositoryId(targetRepository.getId());
+    repositoryMigration.setState(MigrationState.RUNNING);
+    assertThat(new RepositoryMigrationDAO().tryInsert(repositoryMigration)).isTrue();
 
     // The migration request is ignored and the migration continues.
     migrationService.migrateRepositoryHistory(SOURCE_REPOSITORY_MANAGER_INSTANCE_ID, SOURCE_REPOSITORY_PUBLIC_ID,

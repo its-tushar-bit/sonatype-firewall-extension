@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -20,8 +18,10 @@ import com.sonatype.clm.dto.model.repository.migration.MigrationState;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.model.repository.RepositoryMigration;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
@@ -31,7 +31,6 @@ import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,10 +52,10 @@ public class FirewallMigrationService
 
   private static final RepositoryDAO repositoryDAO = new RepositoryDAO();
 
+  private static final RepositoryMigrationDAO repositoryMigrationDAO = new RepositoryMigrationDAO();
+
   private final ThreadPoolExecutor executor = new ThreadPoolExecutor(1, 1, 3, TimeUnit.SECONDS,
       new LinkedBlockingQueue<Runnable>(), new ThreadFactoryBuilder().setNameFormat("FirewallMigration-%d").build());
-
-  private final ConcurrentMap<String, MigrationDetails> migrationDetailsMap = new ConcurrentHashMap<>();
 
   private final VersionService versionService;
 
@@ -150,9 +149,9 @@ public class FirewallMigrationService
   void migrateRepositoryHistory(Repository sourceRepository,
                                 @AuthzContext(Key.REPOSITORY) Repository targetRepository)
   {
-    MigrationDetails migrationDetails = migrationDetailsMap.get(targetRepository.getId());
-    if (migrationDetails != null) {
-      if (RUNNING == migrationDetails.getState()) {
+    RepositoryMigration repositoryMigration = repositoryMigrationDAO.getByRepositoryId(targetRepository.getId());
+    if (repositoryMigration != null) {
+      if (RUNNING == repositoryMigration.getState()) {
         log.warn("Ignoring migration request for repository {}:{} ({}) because the migration is already running.",
             targetRepository.getRepositoryManagerId(), targetRepository.getPublicId(), targetRepository.getId());
         return;
@@ -160,14 +159,16 @@ public class FirewallMigrationService
       else {
         log.info("Retrying migration attempt of repository {}:{} ({}), previous attempt's state was {}.",
             targetRepository.getRepositoryManagerId(), targetRepository.getPublicId(), targetRepository.getId(),
-            migrationDetails.getState());
-        migrationDetailsMap.remove(targetRepository.getId());
+            repositoryMigration.getState());
+        repositoryMigrationDAO.delete(repositoryMigration);
       }
     }
 
-    migrationDetails = new MigrationDetails();
-    if (putIfAbsent(targetRepository.getId(), migrationDetails)) {
-      executor.submit(new FirewallMigrationWorker(sourceRepository, targetRepository, migrationDetails));
+    repositoryMigration = new RepositoryMigration();
+    repositoryMigration.setRepositoryId(targetRepository.getId());
+    repositoryMigration.setState(RUNNING);
+    if (repositoryMigrationDAO.tryInsert(repositoryMigration)) {
+      executor.submit(new FirewallMigrationWorker(sourceRepository, targetRepository, repositoryMigration));
       log.info("Scheduled the history migration from {}:{} ({}) to {}:{} ({}).",
           sourceRepository.getRepositoryManagerId(), sourceRepository.getPublicId(), sourceRepository.getId(),
           targetRepository.getRepositoryManagerId(), targetRepository.getPublicId(), targetRepository.getId());
@@ -175,11 +176,6 @@ public class FirewallMigrationService
     else {
       throw new IllegalStateException("Unable to add MigrationDetails for repository " + targetRepository.getId());
     }
-  }
-
-  @VisibleForTesting
-  boolean putIfAbsent(String targetRepositoryId, MigrationDetails migrationDetails) {
-    return migrationDetailsMap.putIfAbsent(targetRepositoryId, migrationDetails) == null;
   }
 
   MigrationDetails getRepositoryMigrationState(String targetRepositoryManagerInstanceId,
@@ -198,14 +194,14 @@ public class FirewallMigrationService
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
   MigrationDetails getRepositoryMigrationState(@AuthzContext(Key.REPOSITORY) Repository targetRepository) {
-    MigrationDetails migrationDetails = migrationDetailsMap.get(targetRepository.getId());
-    if (migrationDetails == null) {
+    RepositoryMigration repositoryMigration = repositoryMigrationDAO.getByRepositoryId(targetRepository.getId());
+    if (repositoryMigration == null) {
       RepositoryManager targetRepositoryManager = new RepositoryManagerDAO()
           .getById(targetRepository.getRepositoryManagerId());
       log.error("Migration was not started for repository {}:{} ({}).", targetRepositoryManager.getInstanceId(),
           targetRepository.getPublicId(), targetRepository.getId());
       return new MigrationDetails(MigrationState.FAILED);
     }
-    return migrationDetails;
+    return new MigrationDetails(repositoryMigration.getState());
   }
 }

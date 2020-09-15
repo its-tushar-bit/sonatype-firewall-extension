@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
+import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -361,7 +362,12 @@ public class ApplicationDAO
     ClusterLock.deleteForReports(tx, application);
 
     // Cascade to Inner Source components
-    new InnerSourceComponentDAO().deleteByApplicationId(tx, application.getId());
+    InnerSourceComponentDAO innerSourceComponentDAO = new InnerSourceComponentDAO();
+    List<InnerSourceComponent> innerSourceComponents =
+        innerSourceComponentDAO.getByApplicationId(tx, application.getId());
+    for (InnerSourceComponent innerSourceComponent : innerSourceComponents) {
+      innerSourceComponentDAO.delete(tx, innerSourceComponent);
+    }
 
     super.delete(tx, application);
 

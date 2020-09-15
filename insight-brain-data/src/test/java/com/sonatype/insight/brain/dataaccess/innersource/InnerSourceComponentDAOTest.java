@@ -11,7 +11,6 @@ import java.util.List;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
-import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.junit.Test;
@@ -82,27 +81,6 @@ public class InnerSourceComponentDAOTest
     InnerSourceComponent innerSourceComponent = dao.getByPackageUrl(purl);
     assertThat(innerSourceComponent).isNotNull();
     assertInnerSourceComponent(innerSourceComponent1, innerSourceComponent);
-  }
-
-  @Test
-  public void testDeleteByApplicationId() {
-    Application applicationTest1 = tempEntity.newApplication(organization.getId());
-    Application applicationTest2 = tempEntity.newApplication(organization.getId());
-
-    tempEntity.newInnerSourceComponent("pkg:maven/inner/source@1.0.0", applicationTest1);
-    tempEntity.newInnerSourceComponent("pkg:maven/inner/source@2.0.0", applicationTest1);
-    tempEntity.newInnerSourceComponent("pkg:maven/inner/source@3.0.0", applicationTest2);
-
-    int deletedRows = 0;
-    try (TransactionContext tx = dao.createTransactionContext()) {
-      tx.begin();
-      deletedRows = dao.deleteByApplicationId(tx, applicationTest1.getId());
-      tx.commit();
-    }
-
-    assertThat(deletedRows).isEqualTo(2);
-    assertThat(dao.getByApplicationId(applicationTest1.getId())).isEmpty();
-    assertThat(dao.getByApplicationId(applicationTest2.getId())).hasSize(1);
   }
 
   private void assertInnerSourceComponent(

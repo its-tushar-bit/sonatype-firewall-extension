@@ -28,11 +28,15 @@ public class InnerSourceComponentDAO
     return get(tx, sQuery, id);
   }
 
+  public List<InnerSourceComponent> getByApplicationId(TransactionContext tx, String appId) {
+    String sQuery = SELECT_ENTITY_FROM_INNER_SOURCE_COMPONENT + //
+        " WHERE entity.applicationId=?1";
+    return getList(tx, sQuery, appId);
+  }
+
   public List<InnerSourceComponent> getByApplicationId(String appId) {
     try (TransactionContext tx = createTransactionContext()) {
-      String sQuery = SELECT_ENTITY_FROM_INNER_SOURCE_COMPONENT + //
-          " WHERE entity.applicationId=?1";
-      return getList(tx, sQuery, appId);
+      return getByApplicationId(tx, appId);
     }
   }
 
@@ -42,11 +46,5 @@ public class InnerSourceComponentDAO
           " WHERE entity.packageUrl=?1";
       return get(tx, sQuery, packageUrl.getPackageUrl());
     }
-  }
-
-  public int deleteByApplicationId(TransactionContext tx, String applicationId) {
-    String sQuery = "DELETE from InnerSourceComponent entity WHERE entity.applicationId=?1";
-    Query<InnerSourceComponent> query = createQuery(sQuery, applicationId);
-    return query.executeUpdate(tx);
   }
 }

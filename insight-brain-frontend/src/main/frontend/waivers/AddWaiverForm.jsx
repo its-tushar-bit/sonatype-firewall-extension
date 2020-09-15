@@ -68,7 +68,7 @@ export default function AddWaiverForm(props) {
   };
 
   const cancelAddWaiver = () => {
-    cancelAction(policyViolationId);
+    cancelAction();
   };
 
   const policyClassnames = classnames('iq-threat-level', `iq-threat-level--${threatLevelCategory}`);

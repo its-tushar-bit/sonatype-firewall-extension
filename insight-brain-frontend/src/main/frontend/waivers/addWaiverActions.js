@@ -57,7 +57,7 @@ export function saveWaiver(policyViolationId, waiverScope, ownerId, comment, app
         .then(() => {
           startSubmitMaskTimer(dispatch);
           dispatch(saveWaiverFulfilled());
-          return dispatch(returnToAddWaiverOriginPage(policyViolationId));
+          return dispatch(returnToAddWaiverOriginPage());
         })
         .catch((err) => {
           dispatch(saveWaiverFailed(err));
@@ -87,21 +87,21 @@ export function loadAddWaiverData(violationId) {
   };
 }
 
-export function returnToAddWaiverOriginPage(violationId) {
+export function returnToAddWaiverOriginPage() {
   return (dispatch, getState) => {
-    const { prevParams, prevState } = getState().router;
+    const { prevParams, prevState, currentParams } = getState().router;
     let destinationPage, destinationParams;
 
     if (prevState && prevState.name) {
       destinationPage = prevState.name;
       destinationParams = prevParams;
       if (prevState.name.indexOf('applicationReport') > -1) {
-        destinationParams = { ...prevParams, policyViolationId: violationId };
+        destinationParams = { ...prevParams, policyViolationId: currentParams.violationId };
       }
     }
     else {
       destinationPage = 'sidebarView.violation';
-      destinationParams = { id: violationId };
+      destinationParams = { id: currentParams.violationId };
     }
     dispatch(stateGo(destinationPage, destinationParams));
 

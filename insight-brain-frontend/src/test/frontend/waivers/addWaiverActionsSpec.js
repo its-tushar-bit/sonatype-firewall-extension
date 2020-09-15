@@ -25,7 +25,8 @@ import {
   loadAddWaiverData,
   setWaiverComment,
   setApplyToAllComponents,
-  setWaiverScope
+  setWaiverScope,
+  returnToAddWaiverOriginPage
 } from '../../../main/frontend/waivers/addWaiverActions';
 import {
   LOAD_VIOLATION_REQUESTED,
@@ -45,7 +46,7 @@ describe('addWaiverActions', function() {
           policyId: 'policyId'
         }
       },
-      router: {}
+      router: { currentParams: { violationId: 'policyViolationId' } }
     };
     store = SpecUtil.mockReduxStore(state);
     mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
@@ -334,6 +335,46 @@ describe('addWaiverActions', function() {
       expect(store.getActions().length).toBe(2);
       expect(store.getActions()[1].type).toBe(ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS);
       expect(store.getActions()[1].payload).toBe(false);
+    });
+  });
+
+  describe('returnToAddWaiverOriginPage', function() {
+    it('dispatches STATE_GO with the policyViolationId obtained from the url', function() {
+      store.dispatch(returnToAddWaiverOriginPage());
+      expect(store.getActions().length).toBe(1);
+      expect(store.getActions()[0].type).toBe(STATE_GO);
+      expect(store.getActions()[0].payload).toEqual({
+        to: 'sidebarView.violation',
+        params: { id: 'policyViolationId' },
+        options: undefined
+      });
+    });
+
+    it('dispatches STATE_GO with the route to the application report when router comes from CIP', function() {
+      const state = {
+        router: {
+          prevState: { name: 'applicationReport.policy' },
+          prevParams: {
+            applicationPublicId: 'appPublicId',
+            scanId: 'scanId'
+          },
+          currentParams: { violationId: 'policyViolationId' }
+        }
+      };
+      store = SpecUtil.mockReduxStore(state);
+
+      store.dispatch(returnToAddWaiverOriginPage());
+      expect(store.getActions().length).toBe(1);
+      expect(store.getActions()[0].type).toBe(STATE_GO);
+      expect(store.getActions()[0].payload).toEqual({
+        to: 'applicationReport.policy',
+        params: {
+          applicationPublicId: 'appPublicId',
+          scanId: 'scanId',
+          policyViolationId: 'policyViolationId'
+        },
+        options: undefined
+      });
     });
   });
 });

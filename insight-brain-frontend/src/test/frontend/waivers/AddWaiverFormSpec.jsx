@@ -288,7 +288,7 @@ describe('AddWaiverForm', function() {
     const cancelButton = component.find('#add-waiver-cancel');
 
     cancelButton.simulate('click', { preventDefault: preventDefaultSpy });
-    expect(cancelActionSpy).toHaveBeenCalledWith('violationId');
+    expect(cancelActionSpy).toHaveBeenCalled();
   });
 
   it('renders an LoadError when submitError is present', function() {

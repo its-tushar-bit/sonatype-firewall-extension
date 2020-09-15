@@ -407,9 +407,9 @@ public class ReportPurgerTest
   private void testPurgeReports_DeletesClusterLocks() {
     dataRetentionPolicyDAO.insert(new DataRetentionPolicy(org.getId(), Stage.ID_BUILD, true, 1, null));
     PolicyEvaluation policyEvaluation1 =
-        tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-1", daysAgo(0));
+        tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-1", daysAgo(2));
     PolicyEvaluation policyEvaluation2 =
-        tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-2", daysAgo(0));
+        tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-2", daysAgo(1));
     PolicyEvaluation policyEvaluation3 =
         tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-3", daysAgo(0));
     // policyEvaluation1 has no report files

@@ -24,17 +24,18 @@ describe('scmOnboardingReducer', function() {
     });
   });
 
-  describe('SCM_ONBOARDING_LOAD_FULFILLED action', function() {
+  describe('SCM_ONBOARDING_LOAD_CONFIG_FULFILLED action', function() {
     it('populates state from configuration', function() {
       // given SCM configuration from IQ server
       const state = Object.freeze({
         other: otherObject,
+        loadingConfig: true,
         manifestScanFeatureEnabled: false
       });
 
       // when reduce is invoked
       const newState = reduce(state, {
-        type: 'SCM_ONBOARDING_LOAD_FULFILLED',
+        type: 'SCM_ONBOARDING_LOAD_CONFIG_FULFILLED',
         payload: {
           manifestScanFeatureEnabled: true
         }
@@ -42,6 +43,94 @@ describe('scmOnboardingReducer', function() {
 
       // then state is updated
       expect(newState.isManifestScanFeatureEnabled).toBe(true);
+      expect(newState.loadingConfig).toBe(false);
+
+      // and other properties are not modified
+      expect(newState.other).toBe(otherObject);
+    });
+  });
+
+  describe('SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED action', function() {
+    it('populates state repositories list', function() {
+      // given empty repositories list
+      const state = Object.freeze({
+        other: otherObject,
+        loadingRepositories: true,
+        repositories: []
+      });
+
+      const repositoriesPayload = [{
+        'project': 'project',
+        'namespace': 'namespace',
+        'description': 'description'
+      }];
+
+      // when reduce is invoked
+      const newState = reduce(state, {
+        type: 'SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED',
+        payload: repositoriesPayload
+      });
+
+      // then state is updated
+      expect(newState.repositories).toBe(repositoriesPayload);
+      expect(newState.loadingRepositories).toBe(false);
+
+      // and other properties are not modified
+      expect(newState.other).toBe(otherObject);
+    });
+  });
+
+  describe('SCM_ONBOARDING_LOAD_ORGANIZATIONS_FULFILLED action', function() {
+    it('populates state organizations list', function() {
+      // given empty organizations list
+      const state = Object.freeze({
+        other: otherObject,
+        loadingOrganizations: true,
+        organizations: []
+      });
+
+      const organizationsPayload = [{
+        'name': 'name',
+        'id': 'id'
+      }];
+
+      // when reduce is invoked
+      const newState = reduce(state, {
+        type: 'SCM_ONBOARDING_LOAD_ORGANIZATIONS_FULFILLED',
+        payload: organizationsPayload
+      });
+
+      // then state is updated
+      expect(newState.organizations).toBe(organizationsPayload);
+      expect(newState.loadingOrganizations).toBe(false);
+
+      // and other properties are not modified
+      expect(newState.other).toBe(otherObject);
+    });
+  });
+
+  describe('SCM_ONBOARDING_SET_TARGET_ORGANIZATION action', function() {
+    it('populates selected organization', function() {
+      // given no organization is selected
+      const state = Object.freeze({
+        other: otherObject,
+        selectedOrganization: null
+      });
+
+      const selectedOrganization = {
+        'project': 'project',
+        'namespace': 'namespace',
+        'description': 'description'
+      };
+
+      // when reduce is invoked
+      const newState = reduce(state, {
+        type: 'SCM_ONBOARDING_SET_TARGET_ORGANIZATION',
+        payload: selectedOrganization
+      });
+
+      // then state is updated
+      expect(newState.selectedOrganization).toBe(selectedOrganization);
 
       // and other properties are not modified
       expect(newState.other).toBe(otherObject);

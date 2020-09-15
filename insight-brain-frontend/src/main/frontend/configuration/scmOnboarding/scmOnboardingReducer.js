@@ -5,44 +5,129 @@
  */
 import {createReducerFromActionMap} from '../../util/reduxUtil';
 import {
-  SCM_ONBOARDING_LOAD_FAILED,
-  SCM_ONBOARDING_LOAD_FULFILLED,
-  SCM_ONBOARDING_LOAD_REQUESTED
+  SCM_ONBOARDING_LOAD_CONFIG_REQUESTED,
+  SCM_ONBOARDING_LOAD_CONFIG_FULFILLED,
+  SCM_ONBOARDING_LOAD_CONFIG_FAILED,
+
+  SCM_ONBOARDING_LOAD_ORGANIZATIONS_REQUESTED,
+  SCM_ONBOARDING_LOAD_ORGANIZATIONS_FULFILLED,
+  SCM_ONBOARDING_LOAD_ORGANIZATIONS_FAILED,
+  SCM_ONBOARDING_SET_TARGET_ORGANIZATION,
+
+  SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED,
+  SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED,
+  SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED
 } from './scmOnboardingActions';
 import {Messages} from '../../util/CommonServices';
 
 const initialState = {
-  loading: false,
-  isManifestScanFeatureEnabled: false
+  loadingConfig: true,
+  isManifestScanFeatureEnabled: false,
+
+  loadingOrganizations: false,
+  organizations: [],
+  selectedOrganization: null,
+
+  loadingRepositories: false,
+  repositories: [],
+
+  defaultHostUrlState: {
+    isPristine: true,
+    value: ''
+  }
 };
 
-function loadRequested() {
+function loadConfigRequested() {
   return {
     ...initialState,
-    loading: true
+    loadingConfig: true
   };
 }
 
-function loadFulfilled(payload, state) {
+function loadConfigFulfilled(payload, state) {
   return {
     ...state,
     isManifestScanFeatureEnabled: payload.manifestScanFeatureEnabled,
-    loading: false
+    loadingConfig: false
   };
 }
 
-function loadFailed(payload) {
+function loadConfigFailed(payload) {
   return {
     ...initialState,
-    loading: false,
+    loadingConfig: false,
+    error: payload.response && payload.response.status === 404 ? null : Messages.getHttpErrorMessage(payload)
+  };
+}
+
+function loadOrganizationsRequested(payload, state) {
+  return {
+    ...state,
+    loadingOrganizations: true
+  };
+}
+
+function loadOrganizationsFulfilled(payload, state) {
+  return {
+    ...state,
+    loadingOrganizations: false,
+    organizations: payload
+  };
+}
+
+function loadOrganizationsFailed(payload, state) {
+  return {
+    ...state,
+    loadingOrganizations: false,
+    error: payload.response && payload.response.status === 404 ? null : Messages.getHttpErrorMessage(payload)
+  };
+}
+
+function setSelectedOrganization(payload, state) {
+  return {
+    ...state,
+    selectedOrganization: payload
+  };
+}
+
+function loadRepositoriesRequested(payload, state) {
+  return {
+    ...state,
+    repositories: [],
+    loadingRepositories: true
+  };
+}
+
+function loadRepositoriesFulfilled(payload, state) {
+  return {
+    ...state,
+    loadingRepositories: false,
+    repositories: payload
+  };
+}
+
+function loadRepositoriesFailed(payload, state) {
+  return {
+    ...state,
+    loadingRepositories: false,
     error: payload.response && payload.response.status === 404 ? null : Messages.getHttpErrorMessage(payload)
   };
 }
 
 const reducerActionMap = {
-  [SCM_ONBOARDING_LOAD_REQUESTED]: loadRequested,
-  [SCM_ONBOARDING_LOAD_FULFILLED]: loadFulfilled,
-  [SCM_ONBOARDING_LOAD_FAILED]: loadFailed
+  [SCM_ONBOARDING_LOAD_CONFIG_REQUESTED]: loadConfigRequested,
+  [SCM_ONBOARDING_LOAD_CONFIG_FULFILLED]: loadConfigFulfilled,
+  [SCM_ONBOARDING_LOAD_CONFIG_FAILED]: loadConfigFailed,
+
+  [SCM_ONBOARDING_LOAD_ORGANIZATIONS_REQUESTED]: loadOrganizationsRequested,
+  [SCM_ONBOARDING_LOAD_ORGANIZATIONS_FULFILLED]: loadOrganizationsFulfilled,
+  [SCM_ONBOARDING_LOAD_ORGANIZATIONS_FAILED]: loadOrganizationsFailed,
+
+  [SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED]: loadRepositoriesRequested,
+  [SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED]: loadRepositoriesFulfilled,
+  [SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED]: loadRepositoriesFailed,
+
+  [SCM_ONBOARDING_SET_TARGET_ORGANIZATION]: setSelectedOrganization
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

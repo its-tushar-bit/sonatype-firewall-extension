@@ -10,8 +10,20 @@ import ScmOnboarding from '../scmOnboarding/ScmOnboarding';
 
 function mapStateToProps({scmOnboarding}) {
   return {
-    loading: scmOnboarding.loading,
-    isManifestScanFeatureEnabled: scmOnboarding.isManifestScanFeatureEnabled
+    // config
+    loadingConfig: scmOnboarding.loadingConfig,
+    isManifestScanFeatureEnabled: scmOnboarding.isManifestScanFeatureEnabled,
+    defaultHostUrlState: scmOnboarding.defaultHostUrlState,
+
+    // organizations
+    loadingOrganizations: scmOnboarding.loadingOrganizations,
+    organizations: scmOnboarding.organizations,
+    selectedOrganization: scmOnboarding.selectedOrganization,
+    setSelectedOrganization: scmOnboarding.setSelectedOrganization,
+
+    // repositories
+    loadingRepositories: scmOnboarding.loadingRepositories,
+    repositories: scmOnboarding.repositories
   };
 }
 

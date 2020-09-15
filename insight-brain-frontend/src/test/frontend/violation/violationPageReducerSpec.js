@@ -26,7 +26,7 @@ describe('violationPageReducer', function() {
       const action = {type: 'UNKNOWN'};
       const newState = reducer(undefined, action);
       expect(newState.violationDetails).toBe(null);
-      expect(newState.loading).toBe(false);
+      expect(newState.loading).toBe(true);
       expect(newState.violationDetailsError).toBe(null);
       expect(newState.vulnerabilityDetailsLoading).toBe(false);
       expect(newState.vulnerabilityDetails).toBe(null);
@@ -205,6 +205,22 @@ describe('violationPageReducer', function() {
         vulnerabilityDetails: null,
         otherProp: 'asdf'
       });
+    });
+  });
+
+  describe('UI_ROUTER_ON_FINISH', function() {
+    it('resets loading to true but keeps violationDetails', function() {
+      const currentState = {
+        loading: false,
+        violationDetails: { prop: 'foo' }
+      };
+
+      const newState = reducer(currentState, {
+        type: '@@reduxUiRouter/onFinish'
+      });
+
+      expect(newState.loading).toBe(true);
+      expect(newState.violationDetails).toBe(currentState.violationDetails);
     });
   });
 });

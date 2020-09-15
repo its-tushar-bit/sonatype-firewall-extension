@@ -12,10 +12,11 @@ import {
   LOAD_VULNERABILITY_DETAILS_FULFILLED,
   LOAD_VULNERABILITY_DETAILS_FAILED
 } from './violationPageActions';
+import { UI_ROUTER_ON_FINISH } from '../reduxUiRouter/routerActions';
 
 const initialState = Object.freeze({
   violationDetails: null,
-  loading: false,
+  loading: true,
   violationDetailsError: null,
   vulnerabilityDetailsLoading: false,
   vulnerabilityDetails: null,
@@ -29,7 +30,8 @@ const reducerActionMap = {
   [LOAD_VIOLATION_FAILED]: loadViolationFailed,
   [LOAD_VULNERABILITY_DETAILS_REQUESTED]: propSetConst('vulnerabilityDetailsLoading', true),
   [LOAD_VULNERABILITY_DETAILS_FULFILLED]: loadVulnerabilityDetailsFulfilled,
-  [LOAD_VULNERABILITY_DETAILS_FAILED]: loadVulnerabilityDetailsFailed
+  [LOAD_VULNERABILITY_DETAILS_FAILED]: loadVulnerabilityDetailsFailed,
+  [UI_ROUTER_ON_FINISH]: propSetConst('loading', true)
 };
 
 function loadViolationRequested() {

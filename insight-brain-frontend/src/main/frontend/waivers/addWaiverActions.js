@@ -90,21 +90,20 @@ export function loadAddWaiverData(violationId) {
 export function returnToAddWaiverOriginPage() {
   return (dispatch, getState) => {
     const { prevParams, prevState, currentParams } = getState().router;
-    let destinationPage, destinationParams;
+    const originNameForViolationDetails = 'sidebarView.violation';
+    const originNameForCip = 'applicationReport.policy';
 
-    if (prevState && prevState.name) {
-      destinationPage = prevState.name;
-      destinationParams = prevParams;
-      if (prevState.name.indexOf('applicationReport') > -1) {
-        destinationParams = { ...prevParams, policyViolationId: currentParams.violationId };
-      }
-    }
-    else {
-      destinationPage = 'sidebarView.violation';
-      destinationParams = { id: currentParams.violationId };
-    }
-    dispatch(stateGo(destinationPage, destinationParams));
+    const prevStateName = prevState && prevState.name;
+    switch (prevStateName) {
+      case originNameForViolationDetails:
+        return dispatch(stateGo(originNameForViolationDetails, prevParams));
 
+      case originNameForCip:
+        return dispatch(stateGo(prevState.name, { ...prevParams, policyViolationId: currentParams.violationId }));
+
+      default:
+        return dispatch(stateGo(originNameForViolationDetails, {id: currentParams.violationId}));
+    }
   };
 }
 

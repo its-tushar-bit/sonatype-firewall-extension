@@ -376,5 +376,56 @@ describe('addWaiverActions', function() {
         options: undefined
       });
     });
+
+    it('dispatches STATE_GO with the route to the violation details when router comes from a detail', function() {
+      const state = {
+        router: {
+          prevState: { name: 'sidebarView.violation' },
+          prevParams: {
+            id: 'policyViolationId',
+            sidebarId: undefined,
+            sidebarReference: 'filter',
+            type: 'violation'
+          },
+          currentParams: { violationId: 'policyViolationId' }
+        }
+      };
+      store = SpecUtil.mockReduxStore(state);
+
+      store.dispatch(returnToAddWaiverOriginPage());
+      expect(store.getActions().length).toBe(1);
+      expect(store.getActions()[0].type).toBe(STATE_GO);
+      expect(store.getActions()[0].payload).toEqual({
+        to: 'sidebarView.violation',
+        params: {
+          id: 'policyViolationId',
+          sidebarId: undefined,
+          sidebarReference: 'filter',
+          type: 'violation'
+        },
+        options: undefined
+      });
+    });
+
+    it('dispatches STATE_GO with the route to the violation details when router comes from a ' +
+        'different page than expected workflows', function() {
+      const state = {
+        router: {
+          prevState: { name: 'management.view.organization' },
+          prevParams: { organizationId: 'ROOT_ORGANIZATION_ID' },
+          currentParams: { violationId: 'policyViolationId' }
+        }
+      };
+      store = SpecUtil.mockReduxStore(state);
+
+      store.dispatch(returnToAddWaiverOriginPage());
+      expect(store.getActions().length).toBe(1);
+      expect(store.getActions()[0].type).toBe(STATE_GO);
+      expect(store.getActions()[0].payload).toEqual({
+        to: 'sidebarView.violation',
+        params: { id: 'policyViolationId' },
+        options: undefined
+      });
+    });
   });
 });

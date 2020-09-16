@@ -14,7 +14,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -50,6 +49,7 @@ import com.sonatype.insight.brain.scheduler.TestTaskScheduler;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ReportHelper;
+import com.sonatype.insight.brain.utils.ScanHelper;
 import com.sonatype.insight.client.utils.Authentication;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -393,14 +393,7 @@ public abstract class AbstractBrainServiceTest
   }
 
   protected void createScanFile(String applicationId, String scanId) {
-    File scanFile = getCLMServer().getInstance(InsightWork.class).getScanFile(applicationId, scanId);
-    try {
-      Files.createDirectories(scanFile.getParentFile().toPath());
-      Files.write(scanFile.toPath(), new byte[0]);
-    }
-    catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
+    ScanHelper.createDummyScanFile(getCLMServer().getInstance(InsightWork.class), applicationId, scanId);
   }
 
   protected File createReportFile(String applicationId, String scanId, String sourceReportDir) throws IOException {

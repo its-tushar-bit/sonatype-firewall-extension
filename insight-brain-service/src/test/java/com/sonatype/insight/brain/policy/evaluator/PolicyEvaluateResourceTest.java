@@ -44,6 +44,7 @@ public class PolicyEvaluateResourceTest
 
     // Simulate that the report is available
     String scanId = mockReport("/" + getClass().getSimpleName() + "/report");
+    createScanFile(app.getId(), scanId);
 
     // evaluate policy
     HttpResponse response = evaluateRequest(app.getPublicId(), scanId, new Stage(Stage.ID_BUILD)).post();
@@ -80,6 +81,7 @@ public class PolicyEvaluateResourceTest
 
     // Simulate that the report is available
     String scanId = mockReport("/" + getClass().getSimpleName() + "/report");
+    createScanFile(app.getId(), scanId);
 
     // evaluate policy
     HttpResponse response = evaluateRequest(app.getPublicId(), scanId, new Stage(Stage.ID_BUILD)).post();

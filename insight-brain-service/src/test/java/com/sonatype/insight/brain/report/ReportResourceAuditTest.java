@@ -42,6 +42,7 @@ public class ReportResourceAuditTest
   @Test
   public void testReevaluatePolicy() throws Exception {
     mockReport(SCAN_ID, "/AbstractAuditTest/report");
+    createScanFile(app.getId(), SCAN_ID);
 
     final Stage stage = new Stage(Stage.ID_BUILD);
 
@@ -120,6 +121,7 @@ public class ReportResourceAuditTest
   @Test
   public void testDownloadBundle() throws Exception {
     mockReport(SCAN_ID, "/ReportResourceTest/report");
+    createScanFile(app.getId(), SCAN_ID);
 
     restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
         .query("scanId", SCAN_ID).body(new Stage(Stage.ID_BUILD)).post();

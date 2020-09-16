@@ -770,6 +770,7 @@
                 <include>**/HttpRequest*</include>
                 <include>**/HttpResponse*</include>
                 <include>**/ReportHelper*</include>
+                <include>**/ScanHelper*</include>
                 <include>**/Zipper*</include>
                 <include>**/EmbeddedLdapServer*</include>
                 <include>**/TestLdapServer*</include>

@@ -32,6 +32,7 @@ public class PolicyEvaluateResourceAuditTest
   @Test
   public void testEvaluate() throws Exception {
     String scanId = mockReport("/AbstractAuditTest/report");
+    createScanFile(app.getId(), scanId);
     assertResponseStatus(200, evaluate(null, app.getPublicId(), scanId, Stage.ID_BUILD));
     assertEvaluationAuditLog(null, app.getId(), app.getPublicId(), app.getName(), Stage.ID_BUILD, scanId, false);
   }
@@ -39,6 +40,7 @@ public class PolicyEvaluateResourceAuditTest
   @Test
   public void testEvaluate_Reevaluation() throws Exception {
     String scanId = mockReport("/AbstractAuditTest/report");
+    createScanFile(app.getId(), scanId);
     assertResponseStatus(200, evaluate(null, app.getPublicId(), scanId, Stage.ID_BUILD));
     assertResponseStatus(200, evaluate(null, app.getPublicId(), scanId, Stage.ID_BUILD));
     assertEvaluationAuditLog(awaitLogEntries(AuditEvent.EVALUATE_APPLICATION, 2).get(1), null, app.getId(),
@@ -53,12 +55,14 @@ public class PolicyEvaluateResourceAuditTest
 
   @Test
   public void testEvaluate_BadStageId() throws Exception {
+    createScanFile(app.getId(), SCAN_ID);
     assertResponseStatus(400, evaluate(null, app.getPublicId(), SCAN_ID, "badStageId"));
     assertEvaluationAuditLog("bad-request", app.getId(), app.getPublicId(), app.getName(), null, SCAN_ID, null);
   }
 
   @Test
   public void testEvaluate_BadScanId() throws Exception {
+    createScanFile(app.getId(), SCAN_ID);
     assertResponseStatus(404, evaluate(null, app.getPublicId(), SCAN_ID, Stage.ID_BUILD));
     assertEvaluationAuditLog("not-found", app.getId(), app.getPublicId(), app.getName(), Stage.ID_BUILD, SCAN_ID, null);
   }

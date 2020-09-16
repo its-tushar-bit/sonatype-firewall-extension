@@ -241,6 +241,9 @@ public class ApplicationResourceTest
     final String scanId1 = "ScanId1";
     final String scanId2 = "ScanId2";
     final String scanId3 = "ScanId3";
+    createScanFile(application.getId(), scanId1);
+    createScanFile(application.getId(), scanId2);
+    createScanFile(application.getId(), scanId3);
     mockReport(scanId1, "/" + getClass().getSimpleName() + "/report");
     mockReport(scanId2, "/" + getClass().getSimpleName() + "/report");
     mockReport(scanId3, "/" + getClass().getSimpleName() + "/report");

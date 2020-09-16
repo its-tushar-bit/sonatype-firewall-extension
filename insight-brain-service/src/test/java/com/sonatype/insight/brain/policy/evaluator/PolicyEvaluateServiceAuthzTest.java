@@ -15,7 +15,9 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.utils.ScanHelper;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.scan.model.ClientScanType;
 
@@ -55,6 +57,7 @@ public class PolicyEvaluateServiceAuthzTest
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
 
     String scanId = mockReportDownloader.mockDownloadReport("/PolicyEvaluateServiceTest/report");
+    ScanHelper.createDummyScanFile(lookup(InsightWork.class), app.getId(), scanId);
 
     policyEvaluateService.evaluate(app.getPublicId(), scanId, new Stage(BuildStageType.ID));
   }

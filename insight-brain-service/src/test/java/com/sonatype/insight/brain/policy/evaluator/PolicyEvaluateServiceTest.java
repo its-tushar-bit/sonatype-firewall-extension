@@ -75,6 +75,8 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.utils.ScanHelper;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -95,6 +97,7 @@ import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -194,6 +197,7 @@ public class PolicyEvaluateServiceTest
     final Stage stage = new Stage(Stage.ID_BUILD);
 
     String scanId = simulateReportIsAvailable();
+    ScanHelper.createDummyScanFile(lookup(InsightWork.class), app.getId(), scanId);
 
     ApplicationComponentDAO appComponentDAO = new ApplicationComponentDAO();
     assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId())).isEmpty();
@@ -204,13 +208,31 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
+  public void testEvaluate_ChecksTheScanBelongsToApplication() throws Exception {
+    String scanId = simulateReportIsAvailable();
+    ScanHelper.createDummyScanFile(lookup(InsightWork.class), app.getId(), scanId);
+
+    // Verify that policy evaluation is successful for the app owning the scan.
+    Stage stage = new Stage(Stage.ID_BUILD);
+    policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
+
+    // Verify that policy evaluation fails for a different app (doesn't own the scan).
+    Application app1 = tempEntity.newApplicationWithParent();
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
+      policyEvaluateService.evaluate(app1.getPublicId(), scanId, stage);
+    }).withMessage("Cannot find scan with ID " + scanId);
+  }
+
+  @Test
   public void testEvaluate_PolicyThreatLevelCounts() throws Exception {
     Policy policy = tempEntity.newPolicy(app, 1, LogicalOperator.AND,
         new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
 
     final Stage stage = new Stage(Stage.ID_BUILD);
 
+    InsightWork insightWork = lookup(InsightWork.class);
     String scanId = simulateReportIsAvailable();
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId);
 
     PolicyEvaluationResult policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
 
@@ -227,6 +249,7 @@ public class PolicyEvaluateServiceTest
     policy.setThreatLevel(2);
     policyDAO.update(policy);
     scanId = simulateReportIsAvailable();
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId);
 
     // Threat Level 2 should show up as moderate
     policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
@@ -242,6 +265,7 @@ public class PolicyEvaluateServiceTest
     policy.setThreatLevel(4);
     policyDAO.update(policy);
     scanId = simulateReportIsAvailable();
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId);
 
     // Threat Level 4 should show up as severe
     policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
@@ -257,6 +281,7 @@ public class PolicyEvaluateServiceTest
     policy.setThreatLevel(8);
     policyDAO.update(policy);
     scanId = simulateReportIsAvailable();
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId);
 
     // Threat Level 8 should show up as severe
     policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
@@ -276,6 +301,7 @@ public class PolicyEvaluateServiceTest
     policyViolation.setGrandfatherTime(new Date());
     policyViolationDAO.update(policyViolation);
     scanId = simulateReportIsAvailable();
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId);
     policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
     assertThat(policyEvaluationResult.getAffectedComponentCount()).isEqualTo(7);
     assertThat(policyEvaluationResult.getCriticalComponentCount()).isEqualTo(7);
@@ -301,6 +327,7 @@ public class PolicyEvaluateServiceTest
     final Stage stage = new Stage(Stage.ID_BUILD);
 
     String scanId = simulateReportIsAvailable();
+    ScanHelper.createDummyScanFile(lookup(InsightWork.class), app.getId(), scanId);
 
     PolicyEvaluationResult policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
 
@@ -353,6 +380,7 @@ public class PolicyEvaluateServiceTest
 
     // Evaluate policy
     String scanId = simulateReportIsAvailable();
+    ScanHelper.createDummyScanFile(lookup(InsightWork.class), app.getId(), scanId);
     PolicyEvaluationResult policyEvaluationResult = policyEvaluateService.evaluate(app.getPublicId(), scanId, stage);
 
     List<PolicyAlert> policyAlerts = policyEvaluationResult.getAlerts();
@@ -426,6 +454,7 @@ public class PolicyEvaluateServiceTest
     final Stage stage = new Stage(Stage.ID_BUILD);
 
     String scanId = simulateReportIsAvailable();
+    ScanHelper.createDummyScanFile(lookup(InsightWork.class), app.getId(), scanId);
 
     ApplicationComponentDAO appComponentDAO = new ApplicationComponentDAO();
     assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId())).isEmpty();

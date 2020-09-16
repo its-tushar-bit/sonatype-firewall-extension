@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.ScanHelper;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -95,6 +96,9 @@ public class ApiReportServiceV2Test
     final String scanId1 = "ScanId1";
     final String scanId2 = "ScanId2";
     final String scanId3 = "ScanId3";
+    ScanHelper.createDummyScanFile(insightWork, appOne.getId(), scanId1);
+    ScanHelper.createDummyScanFile(insightWork, appOne.getId(), scanId2);
+    ScanHelper.createDummyScanFile(insightWork, appOne.getId(), scanId3);
     createReportFile(appOne.getId(), scanId1, zipReportDir("/ApiReportResourceV2Test/report", tempDir), insightWork);
     createReportFile(appOne.getId(), scanId2, zipReportDir("/ApiReportResourceV2Test/report", tempDir), insightWork);
     createReportFile(appOne.getId(), scanId3, zipReportDir("/ApiReportResourceV2Test/report", tempDir), insightWork);

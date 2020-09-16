@@ -14,6 +14,7 @@ import java.util.Base64;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.ScanHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.apache.http.HttpResponse;
@@ -68,6 +69,7 @@ public class TestReportEvaluator
   }
 
   public void evaluatePolicy() throws IOException {
+    ScanHelper.createDummyScanFile(workStorage, app.getId(), scanId);
     addTestReport();
     evaluatePolicyForScanId();
   }

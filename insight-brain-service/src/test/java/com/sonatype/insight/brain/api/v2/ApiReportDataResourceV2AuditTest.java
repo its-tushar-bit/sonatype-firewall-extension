@@ -33,6 +33,7 @@ public class ApiReportDataResourceV2AuditTest
 
   @Test
   public void testGetRawData() throws Exception {
+    createScanFile(app.getId(), SCAN_ID);
     mockReport(SCAN_ID, "/ReportResourceTest/report");
     restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
         .query("scanId", SCAN_ID).body(new Stage(Stage.ID_BUILD)).post();
@@ -54,6 +55,7 @@ public class ApiReportDataResourceV2AuditTest
 
   @Test
   public void testGetPolicyViolations() throws Exception {
+    createScanFile(app.getId(), SCAN_ID);
     mockReport(SCAN_ID, "/ReportResourceTest/report");
     restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
         .query("scanId", SCAN_ID).body(new Stage(Stage.ID_BUILD)).post();

@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -78,14 +79,18 @@ public class PolicyEvaluateService
 
   private final PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO;
 
+  private final InsightWork insightWork;
+
   @Inject
-  public PolicyEvaluateService(ScanPolicyEvaluator scanPolicyEvaluator,
-                               PolicyAlertNotifier policyAlertNotifier,
-                               ErrorResponseGenerator errorResponseGenerator,
-                               ScanHandler scanHandler,
-                               ProductLicense productLicense,
-                               StageTypeService stageTypeService,
-                               PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO)
+  public PolicyEvaluateService(
+      ScanPolicyEvaluator scanPolicyEvaluator,
+      PolicyAlertNotifier policyAlertNotifier,
+      ErrorResponseGenerator errorResponseGenerator,
+      ScanHandler scanHandler,
+      ProductLicense productLicense,
+      StageTypeService stageTypeService,
+      PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO,
+      InsightWork insightWork)
   {
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyAlertNotifier = policyAlertNotifier;
@@ -94,6 +99,7 @@ public class PolicyEvaluateService
     this.productLicense = productLicense;
     this.stageTypeService = stageTypeService;
     this.persistedPolicyEvaluationPollingResultDAO = persistedPolicyEvaluationPollingResultDAO;
+    this.insightWork = insightWork;
 
     executor = new PolicyEvaluationThreadPoolExecutor();
   }
@@ -132,6 +138,11 @@ public class PolicyEvaluateService
         applicationPublicId, scanId, stage.getStageTypeId());
 
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    File scanFile = insightWork.getScanFile(app.getId(), scanId);
+    if (!scanFile.exists()) {
+      throw new NotFoundException("Cannot find scan with ID " + scanId);
+    }
+
     return evaluate(app, scanId, stage);
   }
 

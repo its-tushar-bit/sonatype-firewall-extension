@@ -182,6 +182,7 @@ public class ReportResourceTest
 
     String reportResource = "/ReportResourceTest/report";
     mockReport(scanId, reportResource);
+    createScanFile(app.getId(), scanId);
 
     //This will trigger two grandfathered policy violations upon evaluation.
     app.setPolicyViolationGrandfatheringEnabled(true);
@@ -358,6 +359,7 @@ public class ReportResourceTest
 
     String scanId = "ReportResourceTest_ScanId";
     mockReport(scanId, "/ReportResourceTest/report");
+    createScanFile(app.getId(), scanId);
 
     PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     PolicyEvaluation policyEvaluation = policyEvaluationDAO
@@ -415,6 +417,7 @@ public class ReportResourceTest
     // reevaluation.
     scanId = "ReportResourceTest_ScanId1";
     mockReport(scanId, "/ReportResourceTest/report");
+    createScanFile(app.getId(), scanId);
     response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
         .query("scanId", scanId).body(stage).post();
     assertResponseStatus(200, response);
@@ -442,6 +445,7 @@ public class ReportResourceTest
     final String scanId = "ReportResourceTest_ScanId";
 
     mockReport(scanId, "/ReportResourceTest/standalone-legacy");
+    createScanFile(app.getId(), scanId);
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("commons-httpclient",
         "commons-httpclient", "3.1.SONATYPE");
@@ -529,6 +533,7 @@ public class ReportResourceTest
   public void testDownloadBundle_v2() throws Exception {
     final String scanId = "ReportResourceTest_ScanId";
     mockReport(scanId, "/ReportResourceTest/standalone-v2");
+    createScanFile(app.getId(), scanId);
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("commons-httpclient",
         "commons-httpclient", "3.1.SONATYPE", "", "jar");
@@ -624,6 +629,7 @@ public class ReportResourceTest
   public void testDownloadBundle_v3() throws Exception {
     final String scanId = "ReportResourceTest_ScanId";
     mockReport(scanId, "/ReportResourceTest/standalone-v3/");
+    createScanFile(app.getId(), scanId);
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("org.webjars.npm",
         "reactivex:rxjs", "5.0.0-alpha.7", "", "jar");

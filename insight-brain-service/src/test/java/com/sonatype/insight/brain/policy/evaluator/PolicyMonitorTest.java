@@ -486,6 +486,7 @@ public class PolicyMonitorTest
     String scanId = "PolicyMonitorTest_scanId";
 
     // Simulate that the report is available and evaluate policies
+    createScanFile(app.getId(), scanId);
     mockScanReceiptAndReport(scanId);
     evaluatePolicy(app.getPublicId(), scanId, stage);
 

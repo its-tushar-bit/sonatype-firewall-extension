@@ -59,7 +59,8 @@ public class ApiManifestScanResourceTest
 
     // the response contains status ID
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK_200);
-    Map responseMap = response.getBody(Map.class);
+    @SuppressWarnings("unchecked")
+    Map<String, String> responseMap = response.getBody(Map.class);
     assertThat(responseMap.containsKey("statusId")).isTrue();
 
     // and the event was published

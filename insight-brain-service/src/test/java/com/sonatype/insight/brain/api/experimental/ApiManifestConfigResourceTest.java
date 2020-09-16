@@ -28,7 +28,8 @@ public class ApiManifestConfigResourceTest
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK_200);
 
     // and value is present
-    Map responseMap = response.getBody(Map.class);
+    @SuppressWarnings("unchecked")
+    Map<String, Object> responseMap = response.getBody(Map.class);
     assertThat(responseMap).containsEntry("manifestScanFeatureEnabled", false);
   }
 }

@@ -21,6 +21,7 @@ import advancedSearchReducer from '../advancedSearch/advancedSearchReducer';
 import sidebarNavListReducer from '../sidebarNav/sidebarNavListReducer';
 import addWaiverReducer from '../waivers/addWaiverReducer';
 import scmOnboardingReducer from '../configuration/scmOnboarding/scmOnboardingReducer';
+import reportReducer from '../applicationReport/react/reportReducer';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -39,5 +40,6 @@ export default combineReducers({
   advancedSearchConfig: advancedSearchConfigReducer,
   advancedSearch: advancedSearchReducer,
   addWaiver: addWaiverReducer,
-  scmOnboarding: scmOnboardingReducer
+  scmOnboarding: scmOnboardingReducer,
+  appReport: reportReducer
 });

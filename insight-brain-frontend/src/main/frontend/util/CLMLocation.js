@@ -121,6 +121,12 @@ export function getApplicableWaiversUrl(policyViolationId) {
   return `${getBaseUrl(window.location.href)}/api/v2/policyViolations/${policyViolationId}/applicableWaivers`;
 }
 
+export function getReportMetadataUrl(applicationPublicId, scanId) {
+  const encodedAppId = encodeURIComponent(applicationPublicId),
+      encodedScanId = encodeURIComponent(scanId);
+  return `${getBaseUrl(window.location.href)}/rest/report/${encodedAppId}/${encodedScanId}/metadata`;
+}
+
 /**
  * @param waiverScope {string} application|organization
  * @param ownerId {string}

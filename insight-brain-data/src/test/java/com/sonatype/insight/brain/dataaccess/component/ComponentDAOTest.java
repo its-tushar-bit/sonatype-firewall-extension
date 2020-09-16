@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.component;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -66,6 +67,7 @@ public class ComponentDAOTest
     assertThat(actual.getSource()).isEqualTo(expected.getSource());
     assertThat(actual.getSeverity()).isEqualTo(expected.getSeverity());
     assertThat(actual.getStatus()).isEqualTo(expected.getStatus());
+    assertThat(actual.getVulnerabilityCategories()).isEqualTo(expected.getVulnerabilityCategories());
   }
 
   private void assertLicenseThreatGroups(Set<LicenseThreatGroup> actual, String... expected) {
@@ -96,8 +98,17 @@ public class ComponentDAOTest
     matchedComponent.setRelativePopularity(42);
     matchedComponent.addDeclaredLicenseId("Apache-2.0");
     matchedComponent.addObservedLicenseId("MIT");
+    com.sonatype.clm.dto.model.component.HygieneRating hygieneRating =
+        new com.sonatype.clm.dto.model.component.HygieneRating(1, "HygieneRating");
+    matchedComponent.setHygieneRating(hygieneRating);
+    com.sonatype.clm.dto.model.component.ComponentCategory componentCategory =
+        new com.sonatype.clm.dto.model.component.ComponentCategory(1, "ComponentCategory");
+    matchedComponent.setComponentCategories(Collections.singletonList(componentCategory));
+    com.sonatype.clm.dto.model.SecurityVulnerability sv =
+        new com.sonatype.clm.dto.model.SecurityVulnerability("12345", "osvdb", 4f);
+    sv.setVulnerabilityCategories(Collections.singletonList("cat1"));
     matchedComponent
-        .addSecurityVulnerability(new com.sonatype.clm.dto.model.SecurityVulnerability("12345", "osvdb", 4f));
+        .addSecurityVulnerability(sv);
     Component component = new ComponentDAO(application).getComponent(matchedComponent);
     assertThat(component).isNotNull();
     assertThat(component.getHash()).isEqualTo(matchedComponent.getHash());
@@ -117,6 +128,10 @@ public class ComponentDAOTest
         newSV("12345", "osvdb", 4f, SecurityVulnerabilityOverrideStatus.OPEN));
 
     assertThat(component.getLabelIds()).containsExactlyInAnyOrder(appLabel.getId(), orgLabel.getId());
+    assertThat(component.getHygieneRating().getId()).isEqualTo(String.valueOf(hygieneRating.getId()));
+    assertThat(component.getComponentCategories()).hasSize(1);
+    assertThat(component.getComponentCategories().get(0).getId())
+        .isEqualTo(String.valueOf(componentCategory.getComponentCategoryId()));
   }
 
   @Test

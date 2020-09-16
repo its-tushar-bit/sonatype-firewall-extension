@@ -20,6 +20,8 @@ public class ComponentDetailsAdapter
     componentDetails.setObservedLicenses(componentEvaluationData.observedLicenses);
     componentDetails.setSecurityVulnerabilities(componentEvaluationData.securityVulnerabilities);
     componentDetails.setRelativePopularity(componentEvaluationData.relativePopularity);
+    componentDetails.setComponentCategories(componentEvaluationData.componentCategories);
+    componentDetails.setHygieneRating(componentEvaluationData.hygieneRating);
     return componentDetails;
   }
 }

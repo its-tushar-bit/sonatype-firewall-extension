@@ -473,10 +473,28 @@ public class ComponentDAO
     }
 
     if (componentInfo.getSecurityVulnerabilities() != null) {
-      for (com.sonatype.clm.dto.model.SecurityVulnerability sv : componentInfo.getSecurityVulnerabilities()) {
-        component.addSecurityVulnerability(new SecurityVulnerability(sv.getSource(), sv.getRefId(), sv.getSeverity()));
+      for (com.sonatype.clm.dto.model.SecurityVulnerability dtoSv : componentInfo.getSecurityVulnerabilities()) {
+        SecurityVulnerability sv = new SecurityVulnerability(dtoSv.getSource(), dtoSv.getRefId(), dtoSv.getSeverity());
+        if (dtoSv.getVulnerabilityCategories() != null) {
+          for (String vulnCategory : dtoSv.getVulnerabilityCategories()) {
+            sv.addVulnerabilityCategory(SecurityVulnerabilityCategory.getById(vulnCategory));
+          }
+        }
+        component.addSecurityVulnerability(sv);
       }
       loadSVOverrides(component);
+    }
+
+    if (componentInfo.getHygieneRating() != null) {
+      component.setHygieneRating(new HygieneRating(String.valueOf(componentInfo.getHygieneRating().getId()),
+          componentInfo.getHygieneRating().getLabel()));
+    }
+    if (componentInfo.getComponentCategories() != null) {
+      for (com.sonatype.clm.dto.model.component.ComponentCategory componentCategory : componentInfo
+          .getComponentCategories()) {
+        component.addComponentCategory(new ComponentCategory(String.valueOf(componentCategory.getComponentCategoryId()),
+            componentCategory.getPath()));
+      }
     }
 
     loadComponentLabels(component);

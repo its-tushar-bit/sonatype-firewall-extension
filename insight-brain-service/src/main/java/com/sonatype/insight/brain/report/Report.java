@@ -873,7 +873,7 @@ public final class Report
       final JsonNode bomJson,
       final JsonNode dataJson,
       final JsonNode summaryJson,
-      final Application application) throws IOException
+      final Application application)
   {
     if (dependenciesJson != null) {
       InnerSourceComponentDAO innerSourceComponentDAO = new InnerSourceComponentDAO();
@@ -942,7 +942,7 @@ public final class Report
       final JsonNode dependenciesJson,
       final JsonNode dataJson,
       final JsonNode summaryJson,
-      final InnerSourceComponentDAO innerSourceComponentDAO) throws IOException
+      final InnerSourceComponentDAO innerSourceComponentDAO)
   {
     String dependencyGraph = "dependencyGraph";
     if (dependenciesJson.has(dependencyGraph)) {

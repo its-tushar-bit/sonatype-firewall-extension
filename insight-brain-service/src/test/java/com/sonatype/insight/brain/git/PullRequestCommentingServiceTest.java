@@ -1080,11 +1080,6 @@ public class PullRequestCommentingServiceTest
       return this;
     }
 
-    TestablePullRequestCommentingServiceBuilder withProvider(SourceControlProvider provider) {
-      this.provider = provider;
-      return this;
-    }
-
     TestablePullRequestCommentingServiceBuilder withGitRepositoryPrivate(boolean isGitRepositoryPrivate) {
       this.isGitRepositoryPrivate = isGitRepositoryPrivate;
       return this;
@@ -1092,13 +1087,6 @@ public class PullRequestCommentingServiceTest
 
     TestablePullRequestCommentingServiceBuilder withGitRepositoryInternal(boolean isGitRepositoryInternal) {
       this.isGitRepositoryInternal = isGitRepositoryInternal;
-      return this;
-    }
-
-    TestablePullRequestCommentingServiceBuilder withGitRepositoryEffectivelyPrivateThrows(
-        Class<? extends Exception> gitRepositoryEffectivelyPrivateThrows)
-    {
-      this.gitRepositoryEffectivelyPrivateThrows = gitRepositoryEffectivelyPrivateThrows;
       return this;
     }
 

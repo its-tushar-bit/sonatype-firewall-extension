@@ -551,7 +551,7 @@ public class ReportTest
         JsonUtils.asPojo(bomInnerSource.get("analyzerFeatures"), AnalyzerFeatures.class);
     AnalyzerFeatures analyzerFeaturesExpected =
         new AnalyzerFeatures(AnalysisSource.THIRD_PARTY, AnalysisType.COORDINATE, "mvn");
-    assertThat(analyzerFeaturesInBom).isEqualToComparingFieldByField(analyzerFeaturesExpected);
+    assertThat(analyzerFeaturesInBom).usingRecursiveComparison().isEqualTo(analyzerFeaturesExpected);
 
     assertThat(bomInnerSource.get("ownerApplicationName").asText()).isEqualTo(app.getName());
   }

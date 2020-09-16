@@ -19,8 +19,8 @@ import com.sonatype.insight.brain.git.event.SourceControlEventProcessingSchedule
 import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternUpdater;
 import com.sonatype.insight.brain.migration.ScanFileCleaner;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
+import com.sonatype.insight.brain.policy.evaluator.DefaultPolicyEvaluateService;
 import com.sonatype.insight.brain.policy.evaluator.PersistedPolicyEvaluationPollingResultCleaner;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
 import com.sonatype.insight.brain.product.notifications.HdsProductNotificationService;
 import com.sonatype.insight.brain.report.ReportPurger;
@@ -296,7 +296,7 @@ public class TestInsightBrainService
     getInstance(PullRequestPollingScheduler.class).disableForTesting = true;
     getInstance(SourceControlEventProcessingScheduler.class).disableForTesting = true;
     getInstance(ScanFileCleaner.class).disableForTesting = true;
-    getInstance(PolicyEvaluateService.class).disablePollingIntervalForTesting = true;
+    getInstance(DefaultPolicyEvaluateService.class).disablePollingIntervalForTesting = true;
     getInstance(HdsProductNotificationService.class).disableCacheForTesting = true;
     getInstance(ClusterTelemetryTask.class).disableForTesting = true;
     getInstance(FirewallIgnorePatternUpdater.class).disableForTesting = true;

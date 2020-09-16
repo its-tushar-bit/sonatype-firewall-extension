@@ -106,7 +106,7 @@ public class PolicyEvaluateServiceTest
     extends AbstractComponentTest
 {
   @Inject
-  private PolicyEvaluateService policyEvaluateService;
+  private DefaultPolicyEvaluateService policyEvaluateService;
 
   @Inject
   private TestProductLicenseManager productLicenseManager;
@@ -547,7 +547,7 @@ public class PolicyEvaluateServiceTest
 
     // using the spy to put a delay into the real service so we make sure the Polling Result does not
     // reach COMPLETED before we have a chance to see it PENDING with a scan receipt
-    PolicyEvaluateService spyService = spy(policyEvaluateService);
+    DefaultPolicyEvaluateService spyService = spy(policyEvaluateService);
 
     doAnswer(new CallsRealMethods()
     {

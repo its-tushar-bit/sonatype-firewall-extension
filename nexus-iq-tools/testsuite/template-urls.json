@@ -243,6 +243,78 @@
         "minRuns": "3",
         "maxRuns": "3"
       }
+    },
+    {
+      "url": "api/v2/applicationCategories/organization/{organizationId}",
+      "type": "GET",
+      "repeat": {
+        "minRuns": "2",
+        "maxRuns": "2"
+      }
+    },
+    {
+      "url": "api/v2/organizations",
+      "type": "GET",
+      "repeat": {
+        "minRuns": 3,
+        "maxRuns": 3
+      }
+    },
+    {
+      "url": "api/v2/claim/components",
+      "type": "GET",
+      "repeat": {
+        "minRuns": 3,
+        "maxRuns": 3
+      }
+    },
+    {
+      "url": "api/v2/reports/components/quarantined",
+      "type": "GET",
+      "repeat": {
+        "minRuns": 3,
+        "maxRuns": 3
+      }
+    },
+    {
+      "url": "api/v2/reports/components/waivers",
+      "type": "GET",
+      "repeat": {
+        "minRuns": 3,
+        "maxRuns": 3
+      }
+    },
+    {
+      "url": "api/v2/dataRetentionPolicies/organizations/{organizationId}",
+      "type": "GET",
+      "repeat": {
+        "minRuns": 2,
+        "maxRuns": 2
+      }
+    },
+    {
+      "url": "api/v2/policies",
+      "type": "GET",
+      "repeat": {
+        "minRuns": 3,
+        "maxRuns": 3
+      }
+    },
+    {
+      "url": "api/v2/roles",
+      "type": "GET",
+      "repeat": {
+        "minRuns": 3,
+        "maxRuns": 3
+      }
+    },
+    {
+      "url": "api/v2/reports/waivers/stale",
+      "type": "GET",
+      "repeat": {
+        "minRuns": 3,
+        "maxRuns": 3
+      }
     }
   ]
 }

@@ -15,7 +15,7 @@
             "java_opts" : ["-Xms16g", "-Xmx16g"]
         },
         "generate_urls" : {
-            "params" : ["-u", "../../target_urls.json"],
+            "params" : ["-u", "../../template-urls.json"],
             "java_opts" : ["-Xms16g", "-Xmx16g"]
         },
         "run_test" : {

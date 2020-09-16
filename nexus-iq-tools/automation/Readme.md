@@ -57,7 +57,7 @@ The profile has the following structure:
             "java_opts" : ["-Xms16g", "-Xmx16g"]
         },
         "generate_urls" : {
-            "params" : ["-u", "target_urls.json"],
+            "params" : ["-u", "template-urls.json"],
             "java_opts" : ["-Xms16g", "-Xmx16g"]
         },
         "run_test" : {
@@ -115,7 +115,7 @@ These are parameters passed to IQ Tools when running a date shifting operation.
 ### iq_tools.generate_urls
 These are parameters passed to IQ Tools when generating the URLs for testing. Here the `params`
 field allows to set the parameter `-u` for custom URLs to test. Follow the example here:
-`nexus-iq-tools/testsuite/target_urls.json`. To have consistent results set the values `minRuns` and
+`nexus-iq-tools/testsuite/template-urls.json`. To have consistent results set the values `minRuns` and
 `maxRuns` equal.
 
 ### iq_tools.run_test

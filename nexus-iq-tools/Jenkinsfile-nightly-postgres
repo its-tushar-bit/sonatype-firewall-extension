@@ -51,7 +51,7 @@ pipeline {
                   -tools $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*SNAPSHOT.jar \
                   -auto $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*-automation.zip \
                   -lic $LICENSE_FILE_PATH \
-                  -u target_urls.json \
+                  -u template-urls.json \
                   -l logback.xml \
                   --use-postgres --config-yaml postgres-config-dev.yml
               ln -s $(ls -t | grep awsPerfRun | head -1) smallAWSPerfRun
@@ -106,7 +106,7 @@ pipeline {
                   -tools $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*SNAPSHOT.jar \
                   -auto $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*-automation.zip \
                   -lic $LICENSE_FILE_PATH \
-                  -u target_urls.json \
+                  -u template-urls.json \
                   -l logback.xml \
                   --use-postgres --config-yaml postgres-config-dev.yml
               ln -s $(ls -t | grep awsPerfRun | head -1) mediumAWSPerfRun
@@ -161,7 +161,7 @@ pipeline {
                   -tools $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*SNAPSHOT.jar \
                   -auto $WORKSPACE/nexus-iq-tools/target/nexus-iq-tools-*-automation.zip \
                   -lic $LICENSE_FILE_PATH \
-                  -u target_urls.json \
+                  -u template-urls.json \
                   -l logback.xml \
                   --use-postgres --config-yaml postgres-config-dev.yml
               ln -s $(ls -t | grep awsPerfRun | head -1) largeAWSPerfRun

@@ -101,7 +101,7 @@ Here is a template for the command. Replace `<license.lic>` with the path to the
     -tools ../target/nexus-iq-tools-*-SNAPSHOT.jar \
     -auto ../target/nexus-iq-tools-*-automation.zip \
     -lic <license.lic> \
-    -u target_urls.json
+    -u template-urls.json
 ```
 A folder with the `awsPerfRun_` prefix should be created.
 

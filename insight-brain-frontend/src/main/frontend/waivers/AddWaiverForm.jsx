@@ -67,10 +67,6 @@ export default function AddWaiverForm(props) {
     setWaiverScope(target);
   };
 
-  const cancelAddWaiver = () => {
-    cancelAction();
-  };
-
   const policyClassnames = classnames('iq-threat-level', `iq-threat-level--${threatLevelCategory}`);
 
   return (
@@ -167,7 +163,7 @@ export default function AddWaiverForm(props) {
         {
           submitError && <LoadError error={submitError} titleMessage="An error occurred saving the waiver." />
         }
-        <NxButton type="button" id="add-waiver-cancel" onClick={cancelAddWaiver}>
+        <NxButton type="button" id="add-waiver-cancel" onClick={cancelAction}>
           Cancel
         </NxButton>
 

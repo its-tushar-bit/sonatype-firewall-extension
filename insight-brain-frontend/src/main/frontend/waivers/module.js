@@ -8,7 +8,7 @@ import AddWaiverPageContainer from './AddWaiverPageContainer';
 import withStoreProvider from '../reactAdapter/StoreProvider';
 
 export default angular.module('waivers', [])
-    .component('addWaiverPage', react2angular(withStoreProvider(AddWaiverPageContainer), [], ['$ngRedux', '$state']))
+    .component('addWaiverPage', react2angular(withStoreProvider(AddWaiverPageContainer), [], ['$ngRedux']))
     .config(routes);
 
 function routes($stateProvider) {

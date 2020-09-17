@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.version.VersionService;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
@@ -238,7 +239,7 @@ public class PdfGenerator
   private void setDocumentMetadata() {
     PDDocumentInformation docInfo = new PDDocumentInformation();
     docInfo.setTitle(policyData.application.name + " " + policyData.reportTitle);
-    docInfo.setCreator("Nexus IQ Server");
+    docInfo.setCreator("Nexus IQ Server release " + new VersionService().getLogDisplayVersion());
     docInfo.setProducer(docInfo.getCreator());
     docInfo.setCreationDate(new GregorianCalendar());
     pdf.setDocumentInformation(docInfo);
@@ -665,6 +666,7 @@ public class PdfGenerator
     addText(contentStream, analyzedOnDateStartX, analyzedOnDateStartY, dateFontStyle, analyzedOnDateTime);
 
     addCommitHash(contentStream, pageRec, createdOnDescriptorStartY);
+    addIQServerVersion(contentStream, pageRec, analyzedOnDateStartY);
 
     return analyzedOnDateStartY;
   }
@@ -678,6 +680,18 @@ public class PdfGenerator
       commitHashStartX -= dateDescriptorFontStyle.getStringWidth(commitLabel);
       addText(contentStream, commitHashStartX, commitHashStartY, dateDescriptorFontStyle, commitLabel);
     }
+  }
+
+  private void addIQServerVersion(PDPageContentStream contentStream, PDRectangle pageRec, float startY)
+      throws IOException
+  {
+    String iqVersionLabel = "IQ Server release: ";
+    String iqVersion = new VersionService().getLogDisplayVersion();
+    float iqVersionStartX = pageRec.getUpperRightX() - MARGIN - dateFontStyle.getStringWidth(iqVersion);
+    float iqVersionStartY = startY;
+    addText(contentStream, iqVersionStartX, iqVersionStartY, dateFontStyle, iqVersion);
+    iqVersionStartX -= dateDescriptorFontStyle.getStringWidth(iqVersionLabel);
+    addText(contentStream, iqVersionStartX, iqVersionStartY, dateDescriptorFontStyle, iqVersionLabel);
   }
 
   private void addPageNumbers() throws IOException {

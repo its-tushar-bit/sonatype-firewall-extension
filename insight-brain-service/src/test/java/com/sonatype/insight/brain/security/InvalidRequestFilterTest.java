@@ -9,15 +9,13 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.client.utils.Authentication;
 
-import com.ning.http.util.Base64;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
+import com.google.common.net.HttpHeaders;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,12 +37,8 @@ public class InvalidRequestFilterTest
   @Test
   @ManualServerInit
   public void testBackslashEnabled() throws Exception {
-    initServer(new Configurator()
-    {
-      @Override
-      public void configure(InsightConfig config) {
-        config.setBlockBackslashInPath(false);
-      }
+    initServer(config -> {
+      config.setBlockBackslashInPath(false);
     });
 
     HttpResponse response = restRequest().path("any/thing/\\after-backslash").get();
@@ -54,12 +48,8 @@ public class InvalidRequestFilterTest
   @Test
   @ManualServerInit
   public void testNonAsciiEnabled() throws Exception {
-    initServer(new Configurator()
-    {
-      @Override
-      public void configure(InsightConfig config) {
-        config.setBlockNonAsciiInPath(false);
-      }
+    initServer(config -> {
+      config.setBlockNonAsciiInPath(false);
     });
 
     assertThat(doRequestWithNonAsciiCharacters()).isEqualTo(404);
@@ -68,12 +58,8 @@ public class InvalidRequestFilterTest
   @Test
   @ManualServerInit
   public void testSemicolonEnabled() throws Exception {
-    initServer(new Configurator()
-    {
-      @Override
-      public void configure(InsightConfig config) {
-        config.setBlockSemicolonInPath(false);
-      }
+    initServer(config -> {
+      config.setBlockSemicolonInPath(false);
     });
 
     HttpResponse response = restRequest().path("any/thing/;after-backslash").get();
@@ -88,8 +74,9 @@ public class InvalidRequestFilterTest
 
     Authentication authentication = getCLMServer().getClientConfiguration().getServerAuth();
     String authenticationString = authentication.getUsername() + ":" + new String(authentication.getPassword());
-    String encodedAuthentication = Base64.encode(authenticationString.getBytes(StandardCharsets.UTF_8));
-    connection.setRequestProperty(HttpHeaders.Names.AUTHORIZATION, "Basic " + encodedAuthentication);
+    String encodedAuthentication =
+        Base64.getEncoder().encodeToString(authenticationString.getBytes(StandardCharsets.UTF_8));
+    connection.setRequestProperty(HttpHeaders.AUTHORIZATION, "Basic " + encodedAuthentication);
 
     return connection.getResponseCode();
   }

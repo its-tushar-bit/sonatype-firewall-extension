@@ -1,7 +1,5 @@
 baseUrl: http://localhost
 
-showRootOrganization: true
-
 importReferencePoliciesFromHDS: false
 
 logging:

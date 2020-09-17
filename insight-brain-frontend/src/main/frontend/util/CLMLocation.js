@@ -7,10 +7,10 @@
 import {pick} from 'ramda';
 
 import commonServicesModule from '../util/CommonServices';
-import {getBaseUrl, toURIParams} from './urlUtil';
+import {toURIParams, uriTemplate} from './urlUtil';
 
 export function getVulnerabilityJsonDetailUrl(refId, componentIdentifier, thirdPartyScanParameters) {
-  const urlWithPath = `${getBaseUrl(window.location.href)}/api/v2/vulnerabilities/${encodeURIComponent(refId)}`;
+  const urlWithPath = uriTemplate`/api/v2/vulnerabilities/${refId}`;
 
   const params = toURIParams({
     componentIdentifier: componentIdentifier && JSON.stringify(componentIdentifier),
@@ -25,28 +25,27 @@ export function getVulnerabilityJsonDetailUrl(refId, componentIdentifier, thirdP
 }
 
 export function getMailConfigUrl() {
-  return `${getBaseUrl(window.location.href)}/api/v2/config/mail`;
+  return uriTemplate`/api/v2/config/mail`;
 }
 
 export function getTestMailUrl(mailRecipient) {
-  return `${getBaseUrl(window.location.href)}/api/v2/config/mail/test/${encodeURIComponent(mailRecipient)}`;
+  return uriTemplate`/api/v2/config/mail/test/${mailRecipient}`;
 }
 
 export function getViolationDetailsUrl(constituentViolationId) {
-  return `${getBaseUrl(window.location.href)}/api/v2/policyViolations/crossStage/?constituentId=` +
-      encodeURIComponent(constituentViolationId);
+  return uriTemplate`/api/v2/policyViolations/crossStage/?constituentId=${constituentViolationId}`;
 }
 
 export function getProxyConfigUrl() {
-  return `${getBaseUrl(window.location.href)}/api/v2/config/httpProxyServer`;
+  return uriTemplate`/api/v2/config/httpProxyServer`;
 }
 
 export function getDashboardSavedFilters() {
-  return `${getBaseUrl(window.location.href)}/rest/dashboard/filters/named`;
+  return uriTemplate`/rest/dashboard/filters/named`;
 }
 
 export function getNewestRisksUrl() {
-  return `${getBaseUrl(window.location.href)}/rest/dashboard/policy/newestRisks`;
+  return uriTemplate`/rest/dashboard/policy/newestRisks`;
 }
 
 /**
@@ -54,7 +53,7 @@ export function getNewestRisksUrl() {
  * @since 1.11
  */
 export function getApplicationRisksUrl() {
-  return `${getBaseUrl(window.location.href)}/rest/dashboard/policy/applicationRisks`;
+  return uriTemplate`/rest/dashboard/policy/applicationRisks`;
 }
 
 /**
@@ -62,55 +61,55 @@ export function getApplicationRisksUrl() {
  * @since 1.11
  */
 export function getComponentRisksUrl() {
-  return `${getBaseUrl(window.location.href)}/rest/dashboard/policy/componentRisks`;
+  return uriTemplate`/rest/dashboard/policy/componentRisks`;
 }
 
 export function getApplicationsUrl() {
-  return `${getBaseUrl(window.location.href)}/rest/application`;
+  return uriTemplate`/rest/application`;
 }
 
 export function getDashboardStageUrl() {
-  return `${getBaseUrl(window.location.href)}/rest/policy/stages?context=dashboard`;
+  return uriTemplate`/rest/policy/stages?context=dashboard`;
 }
 
 export function getOrganizationsUrl() {
-  return `${getBaseUrl(window.location.href)}/rest/organization`;
+  return uriTemplate`/rest/organization`;
 }
 
 export function getApplicationTagsUrl() {
-  return `${getBaseUrl(window.location.href)}/api/v2/applicationCategories/application`;
+  return uriTemplate`/api/v2/applicationCategories/application`;
 }
 
 export function getDashboardFilters() {
-  return `${getBaseUrl(window.location.href)}/rest/dashboard/filters/active`;
+  return uriTemplate`/rest/dashboard/filters/active`;
 }
 
 export function getActionStageUrl() {
-  return `${getBaseUrl(window.location.href)}/rest/policy/stages?context=all`;
+  return uriTemplate`/rest/policy/stages?context=all`;
 }
 
 export function getCliStageUrl() {
-  return `${getBaseUrl(window.location.href)}/rest/policy/stages`;
+  return uriTemplate`/rest/policy/stages`;
 }
 
 export function getAdvancedSearchConfigUrl() {
-  return `${getBaseUrl(window.location.href)}/rest/search/advanced/status`;
+  return uriTemplate`/rest/search/advanced/status`;
 }
 
 export function getAdvancedSearchIndexUrl() {
-  return `${getBaseUrl(window.location.href)}/api/experimental/search/advanced/index`;
+  return uriTemplate`/api/experimental/search/advanced/index`;
 }
 
 export function getAdvancedSearchUrl(query, page) {
-  return `${getBaseUrl(window.location.href)}/api/experimental/search/advanced?search=${query}&page=${page}`;
+  return uriTemplate`/api/experimental/search/advanced?search=${query}&page=${page}`;
 }
 
 export function getAdvancedSearchQuerySuggesterUrl(query) {
-  return `${getBaseUrl(window.location.href)}/api/experimental/search/advanced/suggester?search=${query}`;
+  return uriTemplate`/api/experimental/search/advanced/suggester?search=${query}`;
 }
 
 export function getManifestScanConfigUrl() {
-  return `${getBaseUrl(window.location.href)}/api/experimental/config/manifest-scan`;
+  return uriTemplate`/api/experimental/config/manifest-scan`;
 }
 
 export function getScmRepositoriesUrl(organizationId) {
@@ -118,17 +117,15 @@ export function getScmRepositoriesUrl(organizationId) {
 }
 
 export function getDashboardDeleteFilterUrl(filterName) {
-  return `${getBaseUrl(window.location.href)}/rest/dashboard/filters/named/delete?filterName=${filterName}`;
+  return uriTemplate`/rest/dashboard/filters/named/delete?filterName=${filterName}`;
 }
 
 export function getApplicableWaiversUrl(policyViolationId) {
-  return `${getBaseUrl(window.location.href)}/api/v2/policyViolations/${policyViolationId}/applicableWaivers`;
+  return uriTemplate`/api/v2/policyViolations/${policyViolationId}/applicableWaivers`;
 }
 
 export function getReportMetadataUrl(applicationPublicId, scanId) {
-  const encodedAppId = encodeURIComponent(applicationPublicId),
-      encodedScanId = encodeURIComponent(scanId);
-  return `${getBaseUrl(window.location.href)}/rest/report/${encodedAppId}/${encodedScanId}/metadata`;
+  return uriTemplate`/rest/report/${applicationPublicId}/${scanId}/metadata`;
 }
 
 /**
@@ -137,12 +134,7 @@ export function getReportMetadataUrl(applicationPublicId, scanId) {
  * @param policyViolationId {string}
  */
 export function getAddPolicyViolationWaiverUrl(waiverScope, ownerId, policyViolationId) {
-  const encodedPolicyViolationId = encodeURIComponent(policyViolationId),
-      encodedScope = encodeURIComponent(waiverScope),
-      encodedOwnerId = encodeURIComponent(ownerId),
-      base = `${getBaseUrl(window.location.href)}/api/v2/policyWaivers/`;
-
-  return `${base}${encodedScope}/${encodedOwnerId}/${encodedPolicyViolationId}`;
+  return uriTemplate`/api/v2/policyWaivers/${waiverScope}/${ownerId}/${policyViolationId}`;
 }
 
 /**
@@ -152,12 +144,7 @@ export function getAddPolicyViolationWaiverUrl(waiverScope, ownerId, policyViola
  * @returns {string}
  */
 export function getOwnerContextHierarchyUrl(ownerType, ownerId, policyId) {
-  const encodedOwnerType = encodeURIComponent(ownerType),
-      encodedOwnerId = encodeURIComponent(ownerId),
-      encodedPolicyId = encodeURIComponent(policyId),
-      base = `${getBaseUrl(window.location.href)}/rest/policyWaiver`;
-
-  return `${base}/${encodedOwnerType}/${encodedOwnerId}/applicable/context/${encodedPolicyId}`;
+  return uriTemplate`/rest/policyWaiver/${ownerType}/${ownerId}/applicable/context/${policyId}`;
 }
 
 export default

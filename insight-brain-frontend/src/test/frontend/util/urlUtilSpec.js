@@ -3,7 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {getBaseUrl, toURIParams} from '../../../main/frontend/util/urlUtil';
+import {getBaseUrl, toURIParams, uriTemplate, setBaseUrl, _setBaseUrlForTesting}
+  from '../../../main/frontend/util/urlUtil';
 
 describe('urlUtil', function() {
   describe('toURIParams', function() {
@@ -36,6 +37,28 @@ describe('urlUtil', function() {
 
     it('returns empty string if no tokens found', function() {
       expect(getBaseUrl('foo/bar/assetss/')).toBe('');
+    });
+  });
+
+  describe('uriTemplate', function() {
+    beforeEach(function() {
+      _setBaseUrlForTesting('http://test-host:8888');
+    });
+
+    afterEach(function() {
+      setBaseUrl();
+    });
+
+    it('prepends the value with the base URI when there are no interpolated params', function() {
+      expect(uriTemplate`/api/myApi/`).toBe('http://test-host:8888/api/myApi/');
+    });
+
+    it('constructs a URI prepended with the base URI and with the interpolated parameters escaped', function() {
+      const foo = 'bar/?=',
+          baz = 'qwerty&%ＡＳＤＦ';
+
+      expect(uriTemplate`/api/myApi/${foo}?stuff=${baz}`)
+          .toBe('http://test-host:8888/api/myApi/bar%2F%3F%3D?stuff=qwerty%26%25%EF%BC%A1%EF%BC%B3%EF%BC%A4%EF%BC%A6');
     });
   });
 });

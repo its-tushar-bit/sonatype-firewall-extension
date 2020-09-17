@@ -111,6 +111,7 @@ describe('CLMLocation.js', function() {
     let mockRefId, mockComponentIdentifier, mockThirdPartyScanParameters;
 
     beforeEach(function() {
+      urlUtil._setBaseUrlForTesting('http://localhost');
       mockRefId = 'refId';
       mockComponentIdentifier = { coordinates: 'a-coordinate' };
       mockThirdPartyScanParameters = {
@@ -119,6 +120,10 @@ describe('CLMLocation.js', function() {
         'ownerId': 'appId',
         'ownerType': 'APPLICATION'
       };
+    });
+
+    afterEach(function() {
+      urlUtil.setBaseUrl();
     });
 
     it('returns URL to get the vulnerability details without query params', function() {

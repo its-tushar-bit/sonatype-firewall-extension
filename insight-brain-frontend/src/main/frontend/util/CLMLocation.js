@@ -113,6 +113,10 @@ export function getManifestScanConfigUrl() {
   return `${getBaseUrl(window.location.href)}/api/experimental/config/manifest-scan`;
 }
 
+export function getScmRepositoriesUrl(organizationId) {
+  return `${getBaseUrl(window.location.href)}/api/experimental/onboarding/load-repositories?orgId=${organizationId}`;
+}
+
 export function getDashboardDeleteFilterUrl(filterName) {
   return `${getBaseUrl(window.location.href)}/rest/dashboard/filters/named/delete?filterName=${filterName}`;
 }

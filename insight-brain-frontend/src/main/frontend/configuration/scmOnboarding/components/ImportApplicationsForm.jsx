@@ -80,9 +80,9 @@ ImportApplicationsForm.propTypes = {
 
   // organizations
   setSelectedOrganization: PropTypes.func.isRequired,
-  organizations: PropTypes.arrayOf(organizationPropType).isRequired,
+  organizations: PropTypes.arrayOf(PropTypes.shape(organizationPropType)).isRequired,
   loadingOrganizations: PropTypes.bool.isRequired,
-  selectedOrganization: organizationPropType,
+  selectedOrganization: PropTypes.shape(organizationPropType),
 
   //repositories
   loadRepositories: PropTypes.func.isRequired,

@@ -26,14 +26,10 @@ export default function ResultsTable(props) {
   } = props;
 
   function filterRepository(repo) {
-    return repo.project.includes(projectFilter)
-        && repo.namespace.includes(namespaceFilter)
-        && repo.description.includes(descriptionFilter);
+    return repo.httpCloneUrl.includes(urlFilter);
   }
 
-  const [projectFilter, setProjectFilter] = useState(''),
-      [namespaceFilter, setNamespaceFilter] = useState(''),
-      [descriptionFilter, setDescriptionFilter] = useState('');
+  const [urlFilter, setUrlFilter] = useState('');
 
   return (
     <Fragment>
@@ -46,38 +42,22 @@ export default function ResultsTable(props) {
         <NxTable id="iq-scm-onboarding-repositories">
           <NxTableHead>
             <NxTableRow>
-              <NxTableCell>Title</NxTableCell>
-              <NxTableCell>Namespace</NxTableCell>
-              <NxTableCell>Description</NxTableCell>
+              <NxTableCell>URL</NxTableCell>
               <NxTableCell>Selected</NxTableCell>
             </NxTableRow>
             <NxTableRow>
               <NxTableCell>
                 <NxTextInput
                     isPristine={false}
-                    value={ projectFilter }
-                    onChange={ newValue => setProjectFilter(newValue)} />
-              </NxTableCell>
-              <NxTableCell>
-                <NxTextInput
-                    isPristine={false}
-                    value={ namespaceFilter }
-                    onChange={ newValue => setNamespaceFilter(newValue)} />
-              </NxTableCell>
-              <NxTableCell>
-                <NxTextInput
-                    isPristine={false}
-                    value={ descriptionFilter }
-                    onChange={ newValue => setDescriptionFilter(newValue)} />
+                    value={ urlFilter }
+                    onChange={ newValue => setUrlFilter(newValue)} />
               </NxTableCell>
             </NxTableRow>
           </NxTableHead>
           <NxTableBody>
             { repositories.filter(repo => filterRepository(repo)).map(repo =>
-              <NxTableRow key={repo.project}>
-                <NxTableCell class="iq-scm-repository-project">{repo.project}</NxTableCell>
-                <NxTableCell class="iq-scm-repository-namespace">{repo.namespace}</NxTableCell>
-                <NxTableCell class="iq-scm-repository-description">{repo.description}</NxTableCell>
+              <NxTableRow key={repo.httpCloneUrl}>
+                <NxTableCell className="iq-scm-repository-url">{repo.httpCloneUrl}</NxTableCell>
                 <NxTableCell><NxCheckbox isChecked={false} /></NxTableCell>
               </NxTableRow>
             )}
@@ -90,5 +70,5 @@ export default function ResultsTable(props) {
 
 ResultsTable.propTypes = {
   loadingRepositories: PropTypes.bool.isRequired,
-  repositories: PropTypes.arrayOf(repositoryPropType).isRequired
+  repositories: PropTypes.arrayOf(PropTypes.shape(repositoryPropType)).isRequired
 };

@@ -136,4 +136,32 @@ describe('scmOnboardingReducer', function() {
       expect(newState.other).toBe(otherObject);
     });
   });
+
+  describe('SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED action', function() {
+    it('populates state repositories list', function() {
+      // given empty repositories list
+      const state = Object.freeze({
+        other: otherObject,
+        repositories: []
+      });
+
+      const repositoriesPayload = [{
+        'project': 'project',
+        'namespace': 'namespace',
+        'description': 'description'
+      }];
+
+      // when reduce is invoked
+      const newState = reduce(state, {
+        type: 'SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED',
+        payload: repositoriesPayload
+      });
+
+      // then state is updated
+      expect(newState.repositories).toBe(repositoriesPayload);
+
+      // and other properties are not modified
+      expect(newState.other).toBe(otherObject);
+    });
+  });
 });

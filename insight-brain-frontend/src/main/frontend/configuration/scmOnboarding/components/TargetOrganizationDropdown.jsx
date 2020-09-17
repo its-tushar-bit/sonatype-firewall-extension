@@ -60,8 +60,8 @@ export default function TargetOrganizationDropdown(props) {
 }
 
 TargetOrganizationDropdown.propTypes = {
-  organizations: PropTypes.arrayOf(organizationPropType).isRequired,
+  organizations: PropTypes.arrayOf(PropTypes.shape(organizationPropType)).isRequired,
   loadingOrganizations: PropTypes.bool.isRequired,
   setSelectedOrganization: PropTypes.func.isRequired,
-  selectedOrganization: organizationPropType
+  selectedOrganization: PropTypes.shape(organizationPropType)
 };

@@ -86,15 +86,13 @@ export default function ScmOnboarding(props) {
   );
 }
 
-export const organizationPropType = PropTypes.shape({
+export const organizationPropType = {
   id: PropTypes.string.isRequired,
   name: PropTypes.string.isRequired
-});
+};
 
 export const repositoryPropType = PropTypes.shape({
-  project: PropTypes.string.isRequired,
-  namespace: PropTypes.string.isRequired,
-  description: PropTypes.string
+  httpCloneUrl: PropTypes.string.isRequired
 });
 
 ScmOnboarding.propTypes = {
@@ -106,14 +104,14 @@ ScmOnboarding.propTypes = {
   // organizations
   loadOrganizations: PropTypes.func.isRequired,
   loadingOrganizations: PropTypes.bool.isRequired,
-  organizations: PropTypes.arrayOf(organizationPropType).isRequired,
+  organizations: PropTypes.arrayOf(PropTypes.shape(organizationPropType)).isRequired,
   setSelectedOrganization: PropTypes.func.isRequired,
   selectedOrganization: PropTypes.object,
 
   // repositories
   loadRepositories: PropTypes.func.isRequired,
   loadingRepositories: PropTypes.bool.isRequired,
-  repositories: PropTypes.arrayOf(repositoryPropType).isRequired,
+  repositories: PropTypes.arrayOf(PropTypes.shape(organizationPropType)).isRequired,
 
   // from angular
   isAuthorized: PropTypes.bool.isRequired,

@@ -116,8 +116,6 @@ public class ScmOnboardingTest
 
     // then results are displayed in the table (only basic check, data will be provided in INT-3453)
     scmOnboardingPage.resultsTable().waitUntil(visible, 5000);
-    scmOnboardingPage.resultsTableProjects().shouldHaveSize(15);
-    scmOnboardingPage.resultsTableNamespaces().shouldHaveSize(15);
-    scmOnboardingPage.resultsTableDescriptions().shouldHaveSize(15);
+    scmOnboardingPage.resultsTableUrl().shouldHaveSize(13);
   }
 }

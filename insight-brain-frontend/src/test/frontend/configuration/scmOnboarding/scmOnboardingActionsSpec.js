@@ -4,10 +4,15 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import {getManifestScanConfigUrl, getOrganizationsUrl} from '../../../../main/frontend/util/CLMLocation';
+import {
+  getManifestScanConfigUrl,
+  getOrganizationsUrl,
+  getScmRepositoriesUrl
+} from '../../../../main/frontend/util/CLMLocation';
 import {
   loadConfig,
-  loadOrganizations
+  loadOrganizations,
+  loadRepositories
 } from '../../../../main/frontend/configuration/scmOnboarding/scmOnboardingActions';
 
 describe('scmOnboardingActions', function() {
@@ -124,6 +129,49 @@ describe('scmOnboardingActions', function() {
         expect(actions.length).toBe(1);
         expect(actions[0].type).toBe('SCM_ONBOARDING_LOAD_ORGANIZATIONS_REQUESTED');
       });
+    });
+  });
+
+  describe('load repositories', function() {
+    it('requests a load of repositories', function(done) {
+      mockAxiosCalls({
+        get: {
+          [getScmRepositoriesUrl()]: Promise.resolve([{httpCloneUrl: 'http://github.com/my/repo.git', isPrivate: true}])
+        }
+      });
+
+      store = SpecUtil.mockReduxStore(state);
+
+      store.dispatch(loadRepositories())
+          .then(() => {
+            expect(axios.get).toHaveBeenCalledWith(getScmRepositoriesUrl());
+
+            done();
+          });
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0]).toEqual({type: 'SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED'});
+    });
+
+    it('handles errors', function(done) {
+      mockAxiosCalls({
+        get: {
+          [getScmRepositoriesUrl()]: Promise.reject('Failed request')
+        }
+      });
+
+      store = SpecUtil.mockReduxStore(state);
+
+      store.dispatch(loadRepositories())
+          .then(() => {
+            expect(axios.get).toHaveBeenCalledWith(getScmRepositoriesUrl());
+            expect(store.getActions().length).toBe(2);
+            expect(store.getActions()[1].type).toBe('SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED');
+            expect(store.getActions()[1].payload).toBe('Failed request');
+            done();
+          });
+      expect(store.getActions().length).toBe(1);
+      expect(axios.get).toHaveBeenCalledWith(getScmRepositoriesUrl());
     });
   });
 });

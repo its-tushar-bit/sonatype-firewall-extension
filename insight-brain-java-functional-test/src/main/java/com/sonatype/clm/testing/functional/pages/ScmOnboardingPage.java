@@ -47,16 +47,8 @@ public class ScmOnboardingPage
     return child("#iq-scm-onboarding-repositories");
   }
 
-  public ElementsCollection resultsTableProjects() {
-    return children(".iq-scm-repository-project");
-  }
-
-  public ElementsCollection resultsTableNamespaces() {
-    return children(".iq-scm-repository-namespace");
-  }
-
-  public ElementsCollection resultsTableDescriptions() {
-    return children(".iq-scm-repository-description");
+  public ElementsCollection resultsTableUrl() {
+    return children(".iq-scm-repository-url");
   }
 
   public static class OrganizationsDropdown

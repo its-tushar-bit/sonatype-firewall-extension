@@ -82,7 +82,7 @@ public class InvalidRequestFilterTest
 
   private int doRequestWithNonAsciiCharacters() throws IOException {
     // This request is done "manually" to avoid the non-ASCII characters be encoded by underlying libraries
-    URL url = new URL(getRestBaseUrl() + "any/thing/non-ascii/газета");
+    URL url = new URL(getRestBaseUrl() + "any/thing/non-ascii/\u007F/газета");
     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
     connection.setRequestMethod("GET");
 

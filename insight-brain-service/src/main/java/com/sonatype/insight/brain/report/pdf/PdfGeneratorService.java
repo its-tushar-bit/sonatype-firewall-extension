@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.version.VersionService;
 
 @Named
 public class PdfGeneratorService
@@ -38,6 +39,8 @@ public class PdfGeneratorService
 
   private final BaseUrl baseUrl;
 
+  private final VersionService versionService;
+
   private final ReportService reportService;
 
   private final ApiReportDataServiceV2 apiReportDataServiceV2;
@@ -47,12 +50,14 @@ public class PdfGeneratorService
       ApplicationDAO applicationDAO,
       PolicyEvaluationDAO policyEvaluationDAO,
       BaseUrl baseUrl,
+      VersionService versionService,
       ReportService reportService,
       ApiReportDataServiceV2 apiReportDataServiceV2)
   {
     this.applicationDAO = applicationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.baseUrl = baseUrl;
+    this.versionService = versionService;
     this.reportService = reportService;
     this.apiReportDataServiceV2 = apiReportDataServiceV2;
   }
@@ -82,9 +87,12 @@ public class PdfGeneratorService
 
   public File generateReport(Application app, String scanId) throws IOException {
     File pdfFile = PdfGenerator.getPdfFile(reportService.getReport(app.getId(), scanId));
-    PdfGenerator.generate(pdfFile, getBaseUrl(),
-        apiReportDataServiceV2.getPolicyViolationsDataNoAuth(app.getPublicId(), scanId),
-        apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), scanId));
+    PdfData pdfData = new PdfData();
+    pdfData.baseUrl = getBaseUrl();
+    pdfData.productVersion = versionService.getLogDisplayVersion();
+    pdfData.policyData = apiReportDataServiceV2.getPolicyViolationsDataNoAuth(app.getPublicId(), scanId);
+    pdfData.rawData = apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), scanId);
+    PdfGenerator.generate(pdfFile, pdfData);
     return pdfFile;
   }
 

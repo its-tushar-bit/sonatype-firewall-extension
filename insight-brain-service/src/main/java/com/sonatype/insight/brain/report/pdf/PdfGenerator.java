@@ -25,13 +25,10 @@ import java.util.stream.Collectors;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentPolicyViolationsDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyViolationDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.version.VersionService;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
@@ -138,14 +135,10 @@ public class PdfGenerator
 
   private static final char GRANDFATHERED_SYMBOL = '\uf1da';
 
-  private final String baseUrl;
+  private final PdfData pdfData;
 
   private final Predicate<ApiReportPolicyViolationDTOV2> isActiveViolation =
       violation -> !violation.waived && !violation.grandfathered;
-
-  private ApiReportPolicyDataDTOV2 policyData;
-
-  private ApiReportRawDataDTOV2 rawData;
 
   private File pdfFile;
 
@@ -188,11 +181,9 @@ public class PdfGenerator
   }
 
   // Visible for testing
-  PdfGenerator(File pdfFile, String baseUrl, ApiReportPolicyDataDTOV2 policyData, ApiReportRawDataDTOV2 rawData) {
+  PdfGenerator(File pdfFile, PdfData pdfData) {
     this.pdfFile = pdfFile;
-    this.baseUrl = baseUrl;
-    this.policyData = policyData;
-    this.rawData = rawData;
+    this.pdfData = pdfData;
   }
 
   private void generate() throws IOException {
@@ -202,7 +193,7 @@ public class PdfGenerator
       setDocumentMetadata();
       DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_STRING, Locale.ENGLISH);
       createdOnDateTime = dateFormat.format(new Date());
-      analyzedOnDateTime = dateFormat.format(policyData.reportTime);
+      analyzedOnDateTime = dateFormat.format(pdfData.policyData.reportTime);
       addPolicyViolationsSection();
       addVulnerabilitiesSection();
       addLicensesSection();
@@ -238,8 +229,8 @@ public class PdfGenerator
 
   private void setDocumentMetadata() {
     PDDocumentInformation docInfo = new PDDocumentInformation();
-    docInfo.setTitle(policyData.application.name + " " + policyData.reportTitle);
-    docInfo.setCreator("Nexus IQ Server release " + new VersionService().getLogDisplayVersion());
+    docInfo.setTitle(pdfData.policyData.application.name + " " + pdfData.policyData.reportTitle);
+    docInfo.setCreator("Nexus IQ Server release " + pdfData.productVersion);
     docInfo.setProducer(docInfo.getCreator());
     docInfo.setCreationDate(new GregorianCalendar());
     pdf.setDocumentInformation(docInfo);
@@ -304,7 +295,7 @@ public class PdfGenerator
       float grandfatheredCountStartX = grandfatheredSymbolStartX +
           grandfatheredFontStyle.getStringWidth(String.valueOf(GRANDFATHERED_SYMBOL)) + PADDING;
       float grandfatheredCountStartY = violationsTextStartY;
-      long grandfathered = policyData.components.stream().flatMap(component -> component.violations.stream())
+      long grandfathered = pdfData.policyData.components.stream().flatMap(component -> component.violations.stream())
           .filter(violation -> violation.grandfathered).count();
       addText(contentStream, grandfatheredCountStartX, grandfatheredCountStartY, summaryHeaderFontStyle,
           grandfathered + " GRANDFATHERED");
@@ -373,7 +364,7 @@ public class PdfGenerator
   // Visible for testing
   List<PolicyViolationsTableRow> createPolicyViolationsTableData() {
     List<PolicyViolationsTableRow> policyViolationsTableRows = new ArrayList<>();
-    for (ApiReportComponentPolicyViolationsDTOV2 component : policyData.components) {
+    for (ApiReportComponentPolicyViolationsDTOV2 component : pdfData.policyData.components) {
       for (ApiReportPolicyViolationDTOV2 violation : component.violations) {
         if (!isActiveViolation.test(violation)) {
           continue;
@@ -442,11 +433,11 @@ public class PdfGenerator
   }
 
   private AbstractCell buildVulnerabilityIdCell(String vulnerabilityId) {
-    if (baseUrl == null) {
+    if (pdfData.baseUrl == null) {
       return cellBuilder(vulnerabilityId).build();
     }
 
-    String url = baseUrl + UserInterfaceLinksResource.getVulnerabilityDetailsUrl(vulnerabilityId);
+    String url = pdfData.baseUrl + UserInterfaceLinksResource.getVulnerabilityDetailsUrl(vulnerabilityId);
     Annotations.HyperlinkAnnotation hyperlink = new Annotations.HyperlinkAnnotation(url, LinkStyle.none);
     AnnotatedStyledText annotatedStyledText =
         new AnnotatedStyledText(vulnerabilityId, tableRowFontStyle.getFontSize(), tableRowFontStyle.getFont(),
@@ -458,7 +449,7 @@ public class PdfGenerator
 
   private List<SecurityIssuesTableRow> createSecurityIssuesTableData() {
     List<SecurityIssuesTableRow> securityIssuesTableRows = new ArrayList<>();
-    for (ApiReportComponentDTOV2 component : rawData.components) {
+    for (ApiReportComponentDTOV2 component : pdfData.rawData.components) {
       if (component.securityData == null) {
         continue;
       }
@@ -547,7 +538,7 @@ public class PdfGenerator
 
   private List<LicensesTableRow> createLicensesTableData() {
     List<LicensesTableRow> licensesTableRows = new ArrayList<>();
-    for (ApiReportComponentDTOV2 component : rawData.components) {
+    for (ApiReportComponentDTOV2 component : pdfData.rawData.components) {
       if (component.licenseData == null) {
         continue;
       }
@@ -570,8 +561,8 @@ public class PdfGenerator
           pageRec.getHeight() - MARGIN - titleFontStyle.getFontHeight());
 
       // Add components summary
-      int totalComponents = policyData.components.size();
-      int totalMatched = (int) policyData.components.stream().filter(
+      int totalComponents = pdfData.policyData.components.size();
+      int totalMatched = (int) pdfData.policyData.components.stream().filter(
           component -> MatchState.EXACT.getName().equalsIgnoreCase(component.matchState) ||
               MatchState.SIMILAR.getName().equalsIgnoreCase(component.matchState)).count();
       long componentPercentIdentified = Math.round(100.0d * totalMatched / totalComponents);
@@ -627,7 +618,7 @@ public class PdfGenerator
 
   private List<BomTableRow> createBomTableData() {
     List<BomTableRow> bomTableRows = new ArrayList<>();
-    for (ApiReportComponentDTOV2 component : rawData.components) {
+    for (ApiReportComponentDTOV2 component : pdfData.rawData.components) {
       BomTableRow bomTableRow = new BomTableRow();
       bomTableRow.componentName = component.displayName;
       bomTableRows.add(bomTableRow);
@@ -666,32 +657,32 @@ public class PdfGenerator
     addText(contentStream, analyzedOnDateStartX, analyzedOnDateStartY, dateFontStyle, analyzedOnDateTime);
 
     addCommitHash(contentStream, pageRec, createdOnDescriptorStartY);
-    addIQServerVersion(contentStream, pageRec, analyzedOnDateStartY);
+    addProductVersion(contentStream, pageRec, analyzedOnDateStartY);
 
     return analyzedOnDateStartY;
   }
 
   private void addCommitHash(PDPageContentStream contentStream, PDRectangle pageRec, float startY) throws IOException {
-    if (policyData.commitHash != null) {
+    if (pdfData.policyData.commitHash != null) {
       String commitLabel = "Commit: ";
       float commitHashStartY = startY;
-      float commitHashStartX = pageRec.getUpperRightX() - MARGIN - dateFontStyle.getStringWidth(policyData.commitHash);
-      addText(contentStream, commitHashStartX, commitHashStartY, dateFontStyle, policyData.commitHash);
+      float commitHashStartX =
+          pageRec.getUpperRightX() - MARGIN - dateFontStyle.getStringWidth(pdfData.policyData.commitHash);
+      addText(contentStream, commitHashStartX, commitHashStartY, dateFontStyle, pdfData.policyData.commitHash);
       commitHashStartX -= dateDescriptorFontStyle.getStringWidth(commitLabel);
       addText(contentStream, commitHashStartX, commitHashStartY, dateDescriptorFontStyle, commitLabel);
     }
   }
 
-  private void addIQServerVersion(PDPageContentStream contentStream, PDRectangle pageRec, float startY)
+  private void addProductVersion(PDPageContentStream contentStream, PDRectangle pageRec, float startY)
       throws IOException
   {
-    String iqVersionLabel = "IQ Server release: ";
-    String iqVersion = new VersionService().getLogDisplayVersion();
-    float iqVersionStartX = pageRec.getUpperRightX() - MARGIN - dateFontStyle.getStringWidth(iqVersion);
-    float iqVersionStartY = startY;
-    addText(contentStream, iqVersionStartX, iqVersionStartY, dateFontStyle, iqVersion);
-    iqVersionStartX -= dateDescriptorFontStyle.getStringWidth(iqVersionLabel);
-    addText(contentStream, iqVersionStartX, iqVersionStartY, dateDescriptorFontStyle, iqVersionLabel);
+    String versionLabel = "IQ Server release: ";
+    float versionStartX = pageRec.getUpperRightX() - MARGIN - dateFontStyle.getStringWidth(pdfData.productVersion);
+    float versionStartY = startY;
+    addText(contentStream, versionStartX, versionStartY, dateFontStyle, pdfData.productVersion);
+    versionStartX -= dateDescriptorFontStyle.getStringWidth(versionLabel);
+    addText(contentStream, versionStartX, versionStartY, dateDescriptorFontStyle, versionLabel);
   }
 
   private void addPageNumbers() throws IOException {
@@ -715,11 +706,11 @@ public class PdfGenerator
   String getTitle(String sectionName) {
     String title = sectionName;
     String suffix = "";
-    if (policyData.application != null && policyData.application.name != null) {
-      suffix += " " + policyData.application.name;
+    if (pdfData.policyData.application != null && pdfData.policyData.application.name != null) {
+      suffix += " " + pdfData.policyData.application.name;
     }
-    if (policyData.reportTitle != null) {
-      suffix += " " + policyData.reportTitle;
+    if (pdfData.policyData.reportTitle != null) {
+      suffix += " " + pdfData.policyData.reportTitle;
     }
     title += suffix.isEmpty() ? "" : " for" + suffix;
     return title;
@@ -727,7 +718,7 @@ public class PdfGenerator
 
   // Visible for testing
   long countPolicyViolations(int minThreatLevel, int maxThreatLevel) {
-    return policyData.components.stream().flatMap(component -> component.violations.stream())
+    return pdfData.policyData.components.stream().flatMap(component -> component.violations.stream())
         .filter(isActiveViolation)
         .filter(violation -> violation.policyThreatLevel >= minThreatLevel
             && violation.policyThreatLevel <= maxThreatLevel)
@@ -736,7 +727,7 @@ public class PdfGenerator
 
   // Visible for testing
   long countAffectedComponents() {
-    return policyData.components.stream().filter(component -> component.violations.stream()
+    return pdfData.policyData.components.stream().filter(component -> component.violations.stream()
         .anyMatch(violation -> isActiveViolation.test(violation) && violation.policyThreatLevel >= 2)).count();
   }
 
@@ -885,18 +876,13 @@ public class PdfGenerator
         .draw(() -> pdf, PdfGenerator::newPage, MEDIA_BOX_SIZE.getHeight() - CROP_BOX_SIZE.getHeight() + MARGIN);
   }
 
-  public static void generate(
-      File pdfFile,
-      String baseUrl,
-      ApiReportPolicyDataDTOV2 apiReportPolicyDataDTOV2,
-      ApiReportRawDataDTOV2 apiReportRawDataDTOV2) throws IOException
-  {
+  public static void generate(File pdfFile, PdfData pdfData) throws IOException {
     if (!pdfFile.isFile() || pdfFile.length() == 0) {
       try {
         log.debug("Generating report PDF {}", pdfFile);
         long millis = System.currentTimeMillis();
 
-        new PdfGenerator(pdfFile, baseUrl, apiReportPolicyDataDTOV2, apiReportRawDataDTOV2).generate();
+        new PdfGenerator(pdfFile, pdfData).generate();
 
         if (pdfFile.length() <= 0) {
           throw new IOException("Could not generate report " + pdfFile);

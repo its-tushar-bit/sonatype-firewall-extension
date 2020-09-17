@@ -63,6 +63,14 @@ public class PdfGeneratorTest
     config.setBaseUrl("http://localhost:8070/");
   }
 
+  private PdfData newPdfData() {
+    PdfData pdfData = new PdfData();
+    pdfData.productVersion = "98";
+    pdfData.policyData = new ApiReportPolicyDataDTOV2();
+    pdfData.rawData = new ApiReportRawDataDTOV2();
+    return pdfData;
+  }
+
   @Test
   public void testGenerate() throws Exception {
     Application app = tempEntity.newApplicationWithParent("appPublicId", "appName");
@@ -72,17 +80,21 @@ public class PdfGeneratorTest
     FileUtils.copyURLToFile(ReportHelper.zipReport("/PdfGeneratorTest/report", tempDir), reportFile);
 
     File pdfFile = PdfGenerator.getPdfFile(reportFile);
+    PdfData pdfData = newPdfData();
+    pdfData.policyData = apiReportDataServiceV2.getPolicyViolationsData(app.getPublicId(), scanId);
+    pdfData.rawData = apiReportDataServiceV2.getRawData(app.getPublicId(), scanId);
 
-    PdfGenerator.generate(pdfFile, null, apiReportDataServiceV2.getPolicyViolationsData(app.getPublicId(), scanId),
-        apiReportDataServiceV2.getRawData(app.getPublicId(), scanId));
+    PdfGenerator.generate(pdfFile, pdfData);
     assertThat(pdfFile).isFile();
   }
 
   @Test
   public void testGenerate_EmptyData() throws Exception {
     File pdfFile = PdfGenerator.getPdfFile(generateReportFile());
+    PdfData pdfData = newPdfData();
+    pdfData.policyData = generateMinimalPolicyData();
 
-    PdfGenerator.generate(pdfFile, null, generateMinimalPolicyData(), new ApiReportRawDataDTOV2());
+    PdfGenerator.generate(pdfFile, pdfData);
 
     assertThat(pdfFile).isFile();
   }
@@ -92,8 +104,10 @@ public class PdfGeneratorTest
     ApiReportPolicyDataDTOV2 policyData = generateMinimalPolicyData();
     policyData.components.add(new ApiReportComponentPolicyViolationsDTOV2());
     File pdfFile = PdfGenerator.getPdfFile(generateReportFile());
+    PdfData pdfData = newPdfData();
+    pdfData.policyData = policyData;
 
-    PdfGenerator.generate(pdfFile, null, policyData, new ApiReportRawDataDTOV2());
+    PdfGenerator.generate(pdfFile, pdfData);
 
     assertThat(pdfFile).isFile();
   }
@@ -105,8 +119,10 @@ public class PdfGeneratorTest
     component.violations.add(new ApiReportPolicyViolationDTOV2());
     policyData.components.add(component);
     File pdfFile = PdfGenerator.getPdfFile(generateReportFile());
+    PdfData pdfData = newPdfData();
+    pdfData.policyData = policyData;
 
-    PdfGenerator.generate(pdfFile, null, policyData, new ApiReportRawDataDTOV2());
+    PdfGenerator.generate(pdfFile, pdfData);
 
     assertThat(pdfFile).isFile();
   }
@@ -116,8 +132,11 @@ public class PdfGeneratorTest
     ApiReportRawDataDTOV2 rawData = new ApiReportRawDataDTOV2();
     rawData.components.add(new ApiReportComponentDTOV2());
     File pdfFile = PdfGenerator.getPdfFile(generateReportFile());
+    PdfData pdfData = newPdfData();
+    pdfData.policyData = generateMinimalPolicyData();
+    pdfData.rawData = rawData;
 
-    PdfGenerator.generate(pdfFile, null, generateMinimalPolicyData(), rawData);
+    PdfGenerator.generate(pdfFile, pdfData);
 
     assertThat(pdfFile).isFile();
   }
@@ -129,8 +148,11 @@ public class PdfGeneratorTest
     component.securityData = new ApiSecurityDataDTO();
     rawData.components.add(component);
     File pdfFile = PdfGenerator.getPdfFile(generateReportFile());
+    PdfData pdfData = newPdfData();
+    pdfData.policyData = generateMinimalPolicyData();
+    pdfData.rawData = rawData;
 
-    PdfGenerator.generate(pdfFile, null, generateMinimalPolicyData(), rawData);
+    PdfGenerator.generate(pdfFile, pdfData);
 
     assertThat(pdfFile).isFile();
   }
@@ -143,8 +165,11 @@ public class PdfGeneratorTest
     component.securityData.securityIssues.add(new ApiSecurityIssueDTO());
     rawData.components.add(component);
     File pdfFile = PdfGenerator.getPdfFile(generateReportFile());
+    PdfData pdfData = newPdfData();
+    pdfData.policyData = generateMinimalPolicyData();
+    pdfData.rawData = rawData;
 
-    PdfGenerator.generate(pdfFile, null, generateMinimalPolicyData(), rawData);
+    PdfGenerator.generate(pdfFile, pdfData);
 
     assertThat(pdfFile).isFile();
   }
@@ -156,8 +181,11 @@ public class PdfGeneratorTest
     component.licenseData = new ApiLicenseDataDTOV2();
     rawData.components.add(component);
     File pdfFile = PdfGenerator.getPdfFile(generateReportFile());
+    PdfData pdfData = newPdfData();
+    pdfData.policyData = generateMinimalPolicyData();
+    pdfData.rawData = rawData;
 
-    PdfGenerator.generate(pdfFile, null, generateMinimalPolicyData(), rawData);
+    PdfGenerator.generate(pdfFile, pdfData);
 
     assertThat(pdfFile).isFile();
   }
@@ -170,8 +198,10 @@ public class PdfGeneratorTest
     ApiReportPolicyDataDTOV2 policyData = generateMinimalPolicyData();
     policyData.components.add(component);
     File pdfFile = PdfGenerator.getPdfFile(generateReportFile());
+    PdfData pdfData = newPdfData();
+    pdfData.policyData = policyData;
 
-    PdfGenerator.generate(pdfFile, null, policyData, new ApiReportRawDataDTOV2());
+    PdfGenerator.generate(pdfFile, pdfData);
 
     assertThat(pdfFile).isFile();
   }
@@ -179,9 +209,7 @@ public class PdfGeneratorTest
   @Test
   public void testGetTitle_EmptyPolicyData() {
     String sectionName = "sectionName";
-    assertThat(
-        new PdfGenerator(null, null, new ApiReportPolicyDataDTOV2(), new ApiReportRawDataDTOV2()).getTitle(sectionName))
-        .isEqualTo(sectionName);
+    assertThat(new PdfGenerator(null, newPdfData()).getTitle(sectionName)).isEqualTo(sectionName);
   }
 
   @Test
@@ -189,9 +217,10 @@ public class PdfGeneratorTest
     String sectionName = "sectionName";
     ApiReportPolicyDataDTOV2 policyData = new ApiReportPolicyDataDTOV2();
     policyData.application = new ApiApplicationBaseDTO();
+    PdfData pdfData = newPdfData();
+    pdfData.policyData = policyData;
 
-    assertThat(new PdfGenerator(null, null, policyData, new ApiReportRawDataDTOV2()).getTitle(sectionName))
-        .isEqualTo(sectionName);
+    assertThat(new PdfGenerator(null, pdfData).getTitle(sectionName)).isEqualTo(sectionName);
   }
 
   @Test
@@ -200,8 +229,10 @@ public class PdfGeneratorTest
     ApiReportPolicyDataDTOV2 policyData = new ApiReportPolicyDataDTOV2();
     policyData.application = new ApiApplicationBaseDTO();
     policyData.application.name = "someApplication";
+    PdfData pdfData = newPdfData();
+    pdfData.policyData = policyData;
 
-    assertThat(new PdfGenerator(null, null, policyData, new ApiReportRawDataDTOV2()).getTitle(sectionName))
+    assertThat(new PdfGenerator(null, pdfData).getTitle(sectionName))
         .isEqualTo(sectionName + " for " + policyData.application.name);
   }
 
@@ -210,8 +241,10 @@ public class PdfGeneratorTest
     String sectionName = "sectionName";
     ApiReportPolicyDataDTOV2 policyData = new ApiReportPolicyDataDTOV2();
     policyData.reportTitle = "reportTitle";
+    PdfData pdfData = newPdfData();
+    pdfData.policyData = policyData;
 
-    assertThat(new PdfGenerator(null, null, policyData, new ApiReportRawDataDTOV2()).getTitle(sectionName))
+    assertThat(new PdfGenerator(null, pdfData).getTitle(sectionName))
         .isEqualTo(sectionName + " for " + policyData.reportTitle);
   }
 
@@ -222,24 +255,26 @@ public class PdfGeneratorTest
     policyData.application = new ApiApplicationBaseDTO();
     policyData.application.name = "someApplication";
     policyData.reportTitle = "reportTitle";
+    PdfData pdfData = newPdfData();
+    pdfData.policyData = policyData;
 
-    assertThat(new PdfGenerator(null, null, policyData, new ApiReportRawDataDTOV2()).getTitle(sectionName))
+    assertThat(new PdfGenerator(null, pdfData).getTitle(sectionName))
         .isEqualTo(sectionName + " for " + policyData.application.name + " " + policyData.reportTitle);
   }
 
   @Test
   public void testCountPolicyViolations_EmptyPolicyData() {
-    assertThat(new PdfGenerator(null, null, new ApiReportPolicyDataDTOV2(), new ApiReportRawDataDTOV2())
-        .countPolicyViolations(0, 10)).isZero();
+    assertThat(new PdfGenerator(null, newPdfData()).countPolicyViolations(0, 10)).isZero();
   }
 
   @Test
   public void testCountPolicyViolations_EmptyComponent() {
     ApiReportPolicyDataDTOV2 policyData = new ApiReportPolicyDataDTOV2();
     policyData.components.add(new ApiReportComponentPolicyViolationsDTOV2());
+    PdfData pdfData = newPdfData();
+    pdfData.policyData = policyData;
 
-    assertThat(new PdfGenerator(null, null, policyData, new ApiReportRawDataDTOV2()).countPolicyViolations(0, 10))
-        .isZero();
+    assertThat(new PdfGenerator(null, pdfData).countPolicyViolations(0, 10)).isZero();
   }
 
   @Test
@@ -260,8 +295,10 @@ public class PdfGeneratorTest
     violation4.policyThreatLevel = 10;
     component.violations.add(violation4);
     policyData.components.add(component);
+    PdfData pdfData = newPdfData();
+    pdfData.policyData = policyData;
 
-    PdfGenerator pdfGenerator = new PdfGenerator(null, null, policyData, new ApiReportRawDataDTOV2());
+    PdfGenerator pdfGenerator = new PdfGenerator(null, pdfData);
     assertThat(pdfGenerator.countPolicyViolations(0, 0)).isEqualTo(1);
     assertThat(pdfGenerator.countPolicyViolations(2, 2)).isEqualTo(2);
     assertThat(pdfGenerator.countPolicyViolations(0, 2)).isEqualTo(4);
@@ -280,9 +317,10 @@ public class PdfGeneratorTest
     component2.violations.add(new ApiReportPolicyViolationDTOV2());
     policyData.components.add(component2);
     policyData.components.add(new ApiReportComponentPolicyViolationsDTOV2());
+    PdfData pdfData = newPdfData();
+    pdfData.policyData = policyData;
 
-    assertThat(new PdfGenerator(null, null, policyData, new ApiReportRawDataDTOV2()).countPolicyViolations(0, 10))
-        .isEqualTo(2);
+    assertThat(new PdfGenerator(null, pdfData).countPolicyViolations(0, 10)).isEqualTo(2);
   }
 
   @Test
@@ -298,9 +336,10 @@ public class PdfGeneratorTest
     grandfatheredViolation.grandfathered = true;
     component.violations.add(grandfatheredViolation);
     policyData.components.add(component);
+    PdfData pdfData = newPdfData();
+    pdfData.policyData = policyData;
 
-    assertThat(new PdfGenerator(null, null, policyData, new ApiReportRawDataDTOV2()).countPolicyViolations(0, 10))
-        .isEqualTo(1);
+    assertThat(new PdfGenerator(null, pdfData).countPolicyViolations(0, 10)).isEqualTo(1);
   }
 
   @Test
@@ -316,9 +355,10 @@ public class PdfGeneratorTest
     component2.violations.add(violation2);
     policyData.components.add(component1);
     policyData.components.add(component2);
+    PdfData pdfData = newPdfData();
+    pdfData.policyData = policyData;
 
-    assertThat(new PdfGenerator(null, null, policyData, new ApiReportRawDataDTOV2()).countAffectedComponents())
-        .isEqualTo(2);
+    assertThat(new PdfGenerator(null, pdfData).countAffectedComponents()).isEqualTo(2);
   }
 
   @Test
@@ -337,9 +377,10 @@ public class PdfGeneratorTest
     grandfatheredViolation.grandfathered = true;
     component.violations.add(grandfatheredViolation);
     policyData.components.add(component);
+    PdfData pdfData = newPdfData();
+    pdfData.policyData = policyData;
 
-    assertThat(new PdfGenerator(null, null, policyData, new ApiReportRawDataDTOV2()).countAffectedComponents())
-        .isEqualTo(0);
+    assertThat(new PdfGenerator(null, pdfData).countAffectedComponents()).isEqualTo(0);
   }
 
   @Test
@@ -439,7 +480,9 @@ public class PdfGeneratorTest
     policyData.components.add(component221);
     policyData.components.add(component222);
     policyData.components.add(component111);
-    PdfGenerator pdfGenerator = new PdfGenerator(null, null, policyData, new ApiReportRawDataDTOV2());
+    PdfData pdfData = newPdfData();
+    pdfData.policyData = policyData;
+    PdfGenerator pdfGenerator = new PdfGenerator(null, pdfData);
     pdfGenerator.initFontStyles(new PDDocument());
 
     Table policyViolationsTable = pdfGenerator.createPolicyViolationsTable(PdfGenerator.newPage());
@@ -466,8 +509,10 @@ public class PdfGeneratorTest
     grandfatheredViolation.grandfathered = true;
     component.violations.add(grandfatheredViolation);
     policyData.components.add(component);
+    PdfData pdfData = newPdfData();
+    pdfData.policyData = policyData;
 
-    PdfGenerator pdfGenerator = new PdfGenerator(null, null, policyData, new ApiReportRawDataDTOV2());
+    PdfGenerator pdfGenerator = new PdfGenerator(null, pdfData);
 
     assertThat(pdfGenerator.createPolicyViolationsTableData()).extracting(row -> row.policyName)
         .containsExactly(violation.policyName);
@@ -492,7 +537,9 @@ public class PdfGeneratorTest
     rawData.components.add(component221);
     rawData.components.add(component222);
     rawData.components.add(component111);
-    PdfGenerator pdfGenerator = new PdfGenerator(null, null, new ApiReportPolicyDataDTOV2(), rawData);
+    PdfData pdfData = newPdfData();
+    pdfData.rawData = rawData;
+    PdfGenerator pdfGenerator = new PdfGenerator(null, pdfData);
     pdfGenerator.initFontStyles(new PDDocument());
 
     Table securityIssuesTable = pdfGenerator.createSecurityIssuesTable(PdfGenerator.newPage());
@@ -515,7 +562,9 @@ public class PdfGeneratorTest
     rawData.components.add(component21);
     rawData.components.add(component12);
     rawData.components.add(component11);
-    PdfGenerator pdfGenerator = new PdfGenerator(null, null, new ApiReportPolicyDataDTOV2(), rawData);
+    PdfData pdfData = newPdfData();
+    pdfData.rawData = rawData;
+    PdfGenerator pdfGenerator = new PdfGenerator(null, pdfData);
     pdfGenerator.initFontStyles(new PDDocument());
 
     Table licensesTable = pdfGenerator.createLicensesTable(PdfGenerator.newPage());
@@ -533,7 +582,9 @@ public class PdfGeneratorTest
     ApiReportComponentDTOV2 component2 = generateComponent("component2");
     rawData.components.add(component2);
     rawData.components.add(component1);
-    PdfGenerator pdfGenerator = new PdfGenerator(null, null, new ApiReportPolicyDataDTOV2(), rawData);
+    PdfData pdfData = newPdfData();
+    pdfData.rawData = rawData;
+    PdfGenerator pdfGenerator = new PdfGenerator(null, pdfData);
     pdfGenerator.initFontStyles(new PDDocument());
 
     Table bomTable = pdfGenerator.createBomTable(PdfGenerator.newPage());
@@ -646,8 +697,7 @@ public class PdfGeneratorTest
   }
 
   private String getLicenseText(ApiLicenseDataDTOV2 licenseData) {
-    PdfGenerator pdfGenerator =
-        new PdfGenerator(null, null, new ApiReportPolicyDataDTOV2(), new ApiReportRawDataDTOV2());
+    PdfGenerator pdfGenerator = new PdfGenerator(null, newPdfData());
     pdfGenerator.initFontStyles(new PDDocument());
     ParagraphCell paragraphCell = pdfGenerator.buildLicensesCell(
         PdfGenerator.licensesToString(licenseData.declaredLicenses),

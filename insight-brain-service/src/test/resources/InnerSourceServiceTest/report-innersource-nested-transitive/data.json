@@ -1,0 +1,30 @@
+{
+  "partiallyMatchedComponentCount" : 0,
+  "notProvidedLicenseCount" : 2,
+  "liberalLicenseCount" : 15,
+  "scanLabel" : null,
+  "globals" : {
+    "earliestReleaseDate" : 1122888502000,
+    "dataVersion" : null,
+    "exceededRowLimit" : false,
+    "expandedCoverage" : false,
+    "scanErrorCount" : 0,
+    "currentDate" : 1599602752757,
+    "hideFilename" : true
+  },
+  "exactlyMatchedComponentCount" : 22,
+  "nonStandardLicenseCount" : 2,
+  "copyleftLicenseCount" : 1,
+  "knownArtifactCount" : 22,
+  "totalArtifactCount" : 26,
+  "weakcopyleftLicenseCount" : 1,
+  "commitHash" : "594b3f7fbf44187b66a70966dc8b27568fdb0174",
+  "securityCounts" : [ 0, 0, 1, 2, 0, 2, 0, 0, 0, 0 ],
+  "insecureArtifactCount" : 4,
+  "effectiveLicenseCounts" : [ 11, 0, 0, 0, 0, 7, 2, 0, 0, 1, 0 ],
+  "securityPunchCard" : [ [ 2, 0, 0 ], [ 0, 0, 0 ], [ 0, 0, 0 ], [ 1, 1, 0 ], [ 1, 2, 0 ], [ 0, 1, 0 ] ],
+  "licensePunchCard" : [ [ 0, 1, 0 ], [ 0, 3, 0 ], [ 0, 0, 0 ], [ 0, 3, 0 ], [ 0, 1, 0 ] ],
+  "policyCounts" : [ 0, 13, 1, 0, 0, 0, 0, 2, 0, 2, 0 ],
+  "policyComponentCount" : 5,
+  "grandfatheredPolicyViolationCount" : 0
+}

@@ -13,44 +13,34 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import com.sonatype.clm.dto.model.component.AnalysisSource;
-import com.sonatype.clm.dto.model.component.AnalysisType;
-import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
-import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
+import com.sonatype.insight.brain.innersource.ReportInnerSource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.MultiLicense;
@@ -59,8 +49,6 @@ import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverr
 import com.sonatype.insight.brain.report.pdf.PdfGenerator;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.purl.PackageUrlIdentifier;
-import com.sonatype.insight.util.ComponentIdentifierHelper;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -69,7 +57,6 @@ import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.lang3.StringUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,10 +85,6 @@ public final class Report
 
   public static final List<String> THIRD_PARTY_CACHED_FILES = Arrays.asList(THIRD_PARTY_BOM_JSON_FILENAME,
       THIRD_PARTY_SECURITY_JSON_FILENAME, THIRD_PARTY_LICENSE_JSON_FILENAME);
-
-  private static final Comparator<ComponentIdentifier> VERSIONLESS_COMPONENT_COMPARATOR = Comparator
-      .comparing((ComponentIdentifier identifier) -> identifier.get(ComponentIdentifier.MAVEN_GROUP_ID))
-      .thenComparing(identifier -> identifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID));
 
   private static final String EXACTLY_MATCHED_COMPONENT_COUNT = "exactlyMatchedComponentCount";
 
@@ -686,7 +669,8 @@ public final class Report
     saveReportEntry(reportFile, DEPENDENCIES_JSON_FILENAME, dependenciesJsonData);
 
     if (isEnableInnerSource) {
-      processInnerSourceComponents(dependenciesJsonData, bomJsonData, dataJson, summaryJsonData, application);
+      ReportInnerSource
+          .processDependencyTree(dependenciesJsonData, bomJsonData, dataJson, summaryJsonData, application);
     }
 
     saveReportEntry(reportFile, DATA_JSON_FILENAME, dataJson);
@@ -864,228 +848,6 @@ public final class Report
   private static void fill(final ArrayNode node, final List<int[]> datas) {
     for (final int[] data : datas) {
       fill(node.addArray(), data);
-    }
-  }
-
-  // visible for testing
-  static void processInnerSourceComponents(
-      final JsonNode dependenciesJson,
-      final JsonNode bomJson,
-      final JsonNode dataJson,
-      final JsonNode summaryJson,
-      final Application application)
-  {
-    if (dependenciesJson != null) {
-      InnerSourceComponentDAO innerSourceComponentDAO = new InnerSourceComponentDAO();
-      boolean isRootArtifactPresent =
-          createInnerSourceComponent(dependenciesJson, application.getId(), innerSourceComponentDAO);
-      if (isRootArtifactPresent) {
-        processInnerSourceDependencies(bomJson, dependenciesJson, dataJson, summaryJson, innerSourceComponentDAO);
-      }
-    }
-  }
-
-  // Create an inner source component if the project artifact is present in the dependencies JSON
-  // Visible for testing
-  static boolean createInnerSourceComponent(
-      final JsonNode dependencyJson,
-      final String appId,
-      final InnerSourceComponentDAO innerSourceComponentDAO)
-  {
-    PackageUrlIdentifier rootArtifactPurl = getRootArtifactIdentifier(dependencyJson);
-    if (rootArtifactPurl != null) {
-      createInnerSourceComponent(rootArtifactPurl, appId, innerSourceComponentDAO);
-      return true;
-    }
-    return false;
-  }
-
-  private static void createInnerSourceComponent(
-      final PackageUrlIdentifier rootArtifact,
-      final String appId,
-      final InnerSourceComponentDAO innerSourceComponentDAO)
-  {
-    InnerSourceComponent innerSourceComponent = innerSourceComponentDAO.getByPackageUrl(rootArtifact);
-    if (innerSourceComponent != null) {
-      if (!appId.equals(innerSourceComponent.getApplicationId())) {
-        innerSourceComponent.setApplicationId(appId);
-        innerSourceComponentDAO.update(innerSourceComponent);
-        log.info("Inner source component {} for app {} was updated", innerSourceComponent.getPackageUrl(), appId);
-      }
-    }
-    else {
-      innerSourceComponent = new InnerSourceComponent();
-      innerSourceComponent.setApplicationId(appId);
-      innerSourceComponent.setPackageUrl(rootArtifact.getPackageUrl());
-      innerSourceComponentDAO.insert(innerSourceComponent);
-      log.info("Inner source component {} for app {} was created", innerSourceComponent.getPackageUrl(), appId);
-    }
-  }
-
-  private static PackageUrlIdentifier getRootArtifactIdentifier(final JsonNode dependencyJson) {
-    JsonNode dependencyGraphNode = dependencyJson.path("rootArtifact");
-    if (dependencyGraphNode.isMissingNode()) {
-      return null;
-    }
-    ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(dependencyGraphNode);
-    if (componentIdentifier != null) {
-      return new PackageUrlIdentifier(String.format("pkg:maven/%s/%s",
-          componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID),
-          componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID)));
-    }
-    return null;
-  }
-
-  // visible for testing
-  static void processInnerSourceDependencies(
-      final JsonNode bomJson,
-      final JsonNode dependenciesJson,
-      final JsonNode dataJson,
-      final JsonNode summaryJson,
-      final InnerSourceComponentDAO innerSourceComponentDAO)
-  {
-    String dependencyGraph = "dependencyGraph";
-    if (dependenciesJson.has(dependencyGraph)) {
-      Map<ComponentIdentifier, Set<ComponentIdentifier>> graph = new TreeMap<>(VERSIONLESS_COMPONENT_COMPARATOR);
-
-      final String directDependency = DIRECT_DEPENDENCY_NODE;
-      for (JsonNode dependencyChild : dependenciesJson.get(dependencyGraph)) {
-        ComponentIdentifier parent = ComponentIdentifierAdapter.getComponentIdentifier(dependencyChild);
-
-        if (parent != null && dependencyChild.has(directDependency) &&
-            dependencyChild.get(directDependency).asBoolean()) {
-          if (dependencyChild.has(CHILDREN_NODE)) {
-            for (JsonNode childNode : dependencyChild.get(CHILDREN_NODE)) {
-              ComponentIdentifier child = ComponentIdentifierAdapter.getComponentIdentifier(childNode);
-              graph.computeIfAbsent(parent, k -> new TreeSet<>()).add(child);
-            }
-          }
-          else {
-            graph.put(parent, new TreeSet<>());
-          }
-        }
-      }
-      augmentReportWithInnerSourceData(graph, bomJson, dataJson, summaryJson, innerSourceComponentDAO);
-    }
-  }
-
-  private static void augmentReportWithInnerSourceData(
-      final Map<ComponentIdentifier, Set<ComponentIdentifier>> graph, final JsonNode bom,
-      final JsonNode dataJson,
-      final JsonNode summaryJson,
-      final InnerSourceComponentDAO innerSourceComponentDAO)
-  {
-    if (!graph.isEmpty()) {
-      AtomicInteger knownArtifactCount = new AtomicInteger(summaryJson.path(KNOWN_ARTIFACT_COUNT).asInt());
-      AtomicInteger exactlyMatchedComponentCount =
-          new AtomicInteger(dataJson.path(EXACTLY_MATCHED_COMPONENT_COUNT).asInt());
-      ApplicationDAO applicationDAO = new ApplicationDAO();
-
-      graph.entrySet()
-          .forEach(entry -> processInnerSourceParentComponent(entry, applicationDAO, innerSourceComponentDAO, bom,
-              knownArtifactCount, exactlyMatchedComponentCount));
-      updateReportSummaryWithInnerSourceResults(dataJson, summaryJson, knownArtifactCount,
-          exactlyMatchedComponentCount);
-    }
-  }
-
-  private static void processInnerSourceParentComponent(
-      final Map.Entry<ComponentIdentifier, Set<ComponentIdentifier>> entry,
-      final ApplicationDAO applicationDAO,
-      final InnerSourceComponentDAO innerSourceComponentDAO,
-      final JsonNode bom, AtomicInteger knownArtifactCount, AtomicInteger exactlyMatchedComponentCount)
-  {
-    ComponentIdentifier parentComponent = entry.getKey();
-
-    ComponentIdentifier simplifiedComponent =
-        ComponentIdentifier.createMavenCoordinates(parentComponent.get(ComponentIdentifier.MAVEN_GROUP_ID),
-            parentComponent.get(ComponentIdentifier.MAVEN_ARTIFACT_ID), null);
-
-    InnerSourceComponent innerSourceComponent =
-        innerSourceComponentDAO.getByPackageUrl(PackageUrlIdentifier.fromComponentIdentifier(simplifiedComponent));
-
-    if (innerSourceComponent != null) {
-      Application innerSourceApp = applicationDAO.getByIdNotNull(innerSourceComponent.getApplicationId());
-
-      boolean validParent = processInnerSourceParentDependency(bom, parentComponent, innerSourceApp);
-
-      if (validParent) {
-        knownArtifactCount.getAndIncrement();
-        exactlyMatchedComponentCount.getAndIncrement();
-        Set<ComponentIdentifier> childrenComponents = entry.getValue();
-
-        log.info("Inner source component found '{}' with {} transitive dependencies", parentComponent,
-            childrenComponents.size());
-        processInnerSourceChildDependency(bom, childrenComponents, innerSourceApp);
-      }
-    }
-  }
-
-  private static void updateReportSummaryWithInnerSourceResults(
-      final JsonNode dataJson,
-      final JsonNode summaryJson,
-      AtomicInteger knownArtifactCount,
-      AtomicInteger exactlyMatchedComponentCount)
-  {
-    ObjectNode dataObjectNode = (ObjectNode) dataJson;
-    dataObjectNode.put(EXACTLY_MATCHED_COMPONENT_COUNT, exactlyMatchedComponentCount.intValue());
-    dataObjectNode.put(KNOWN_ARTIFACT_COUNT, knownArtifactCount.intValue());
-
-    ((ObjectNode) summaryJson).put(KNOWN_ARTIFACT_COUNT, knownArtifactCount.intValue());
-  }
-
-  private static boolean processInnerSourceParentDependency(
-      final JsonNode bom,
-      final ComponentIdentifier parentComponent,
-      final Application innerSourceApp)
-  {
-    for (JsonNode bomChild : bom.get("aaData")) {
-      if (MatchState.UNKNOWN.getId().equals(bomChild.get("matchState").asText())) {
-        String path = StringUtils.substringAfterLast(bomChild.withArray("pathnames").get(0).asText(), "/");
-        ComponentIdentifier unknownComponent = ComponentIdentifierHelper.parseMavenId(path);
-
-        if (parentComponent.equals(unknownComponent)) {
-          ObjectNode bomObjectNode = (ObjectNode) bomChild;
-          bomObjectNode.put("innerSource", true);
-          bomObjectNode.put("matchState", MatchState.EXACT.getId());
-          bomObjectNode.put("identificationSource", IdentificationSource.PACKAGE_MANIFEST.getId());
-
-          if (ComponentIdentifier.FORMAT_MAVEN.equals(unknownComponent.getFormat())) {
-            setMavenCoordinatesWithExtension(bomObjectNode, unknownComponent);
-          }
-
-          ComponentIdentifierAdapter.injectComponentIdentifier(bomObjectNode);
-          ComponentDisplayNameUtil.injectDisplayName(bomObjectNode);
-
-          JsonNode analyzerFeatures = bomObjectNode.get("analyzerFeatures");
-          bomObjectNode.set("analyzerFeatures", JsonUtils.asTree(new AnalyzerFeatures(AnalysisSource.THIRD_PARTY,
-              AnalysisType.COORDINATE, analyzerFeatures.get("scanClient").asText())));
-
-          bomObjectNode.put("ownerApplicationName", innerSourceApp.getName());
-          log.debug("Inner source component '{}' was updated in bom.json as Direct Dependency", unknownComponent);
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  private static void processInnerSourceChildDependency(
-      final JsonNode bom,
-      final Set<ComponentIdentifier> childrenComponents,
-      final Application innerSourceApp)
-  {
-    for (ComponentIdentifier child : childrenComponents) {
-      for (JsonNode bomChild : bom.get("aaData")) {
-        ComponentIdentifier component = ComponentIdentifierAdapter.getComponentIdentifier(bomChild);
-
-        if (Objects.equals(component, child)) {
-          ObjectNode bomObjectNode = (ObjectNode) bomChild;
-          bomObjectNode.put("ownerApplicationName", innerSourceApp.getName());
-          log.debug("Inner source component {} was updated in bom as Transitive Dependency", component);
-          break;
-        }
-      }
     }
   }
 }

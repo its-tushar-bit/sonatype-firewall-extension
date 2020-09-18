@@ -139,7 +139,7 @@
     },
     "depths" : [ 2 ]
   } ],
-  "rootArtifact" : {
+  "dependencyTree" : {
     "componentIdentifier" : {
       "format" : "maven",
       "coordinates" : {
@@ -148,7 +148,8 @@
         "extension" : "jar",
         "groupId" : "com.sonatype.innersource.main",
         "version" : "1.0.0"
-      }
+      },
+      "module" : true
     }
   }
 }

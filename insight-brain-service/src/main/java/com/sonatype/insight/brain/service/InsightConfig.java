@@ -835,7 +835,8 @@ public class InsightConfig
     PR_LINE_COMMENTING("prLineCommenting"),
     CODE_INSIGHTS("codeInsights"),
     MANIFEST_SCAN("manifestScan"),
-    INNER_SOURCE("innerSource");
+    INNER_SOURCE("innerSource"),
+    GITLAB_LINE_COMMENTING("gitlabLineCommenting");
 
     private String flag;
 

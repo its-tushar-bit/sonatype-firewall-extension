@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.iq.location.discovery.PositionDiscoveryExecutor;
 import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
 import com.sonatype.nexus.iq.location.dto.PositionDiscoveryResult;
+import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.DiffPosition;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.CommentResponse;
@@ -37,6 +38,8 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.service.InsightConfig.Feature.GITLAB_LINE_COMMENTING;
 
 @Named
 @Singleton
@@ -87,7 +90,9 @@ public class PullRequestLineCommentingService
       final LocationDiscoveryResult locationDiscoveryResult)
   {
     if (!insightConfig.isFeatureEnabled(Feature.PR_LINE_COMMENTING) ||
-        !gitRepositoryInfo.getProvider().supportsPullRequestLineCommenting()) {
+        !gitRepositoryInfo.getProvider().supportsPullRequestLineCommenting() ||
+        (SourceControlProvider.GITLAB.equals(gitRepositoryInfo.getProvider()) &&
+            !insightConfig.isExperimentalFeatureEnabled(GITLAB_LINE_COMMENTING))) {
       return Collections.emptyList();
     }
 
@@ -244,8 +249,8 @@ public class PullRequestLineCommentingService
         }
         catch (HttpResponseException e) {
           if (HttpStatus.SC_NOT_FOUND == e.getStatusCode()) {
-            log.debug("Deleting pull request with id {} on application {} returned 404, skipping", pullRequestId,
-                applicationId);
+            log.debug("Deleting pull request line comment with id {} on application {} returned 404, skipping",
+                comment.getPullRequestCommentId(), applicationId);
           }
           else {
             throw e;

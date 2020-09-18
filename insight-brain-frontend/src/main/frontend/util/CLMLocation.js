@@ -113,7 +113,7 @@ export function getManifestScanConfigUrl() {
 }
 
 export function getScmRepositoriesUrl(organizationId) {
-  return `${getBaseUrl(window.location.href)}/api/experimental/onboarding/load-repositories?orgId=${organizationId}`;
+  return uriTemplate`/api/experimental/onboarding/load-repositories?orgId=${organizationId}`;
 }
 
 export function getDashboardDeleteFilterUrl(filterName) {

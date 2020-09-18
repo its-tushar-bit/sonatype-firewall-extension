@@ -87,8 +87,6 @@ public class SourceControlEventProcessingScheduler
       return;
     }
 
-    sourceControlEventService.initializeEvents();
-
     taskScheduler.schedulePeriodicTask(SourceControlEventProcessingScheduler.class, NAME,
         Duration.ofSeconds(SOURCE_CONTROL_EVENT_PROCESSING_INTERVAL_SECONDS));
     log.info("Scheduled processing of source control events every {} second(s)",

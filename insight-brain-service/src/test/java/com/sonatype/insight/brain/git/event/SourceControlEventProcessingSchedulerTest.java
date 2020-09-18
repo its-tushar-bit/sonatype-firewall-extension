@@ -74,7 +74,6 @@ public class SourceControlEventProcessingSchedulerTest
 
     sourceControlEventProcessingScheduler.start();
 
-    verify(sourceControlEventServiceMock).initializeEvents();
     verify(taskSchedulerMock).schedulePeriodicTask(SourceControlEventProcessingScheduler.class,
         SourceControlEventProcessingScheduler.NAME,
         Duration.ofSeconds(SourceControlEventProcessingScheduler.SOURCE_CONTROL_EVENT_PROCESSING_INTERVAL_SECONDS));

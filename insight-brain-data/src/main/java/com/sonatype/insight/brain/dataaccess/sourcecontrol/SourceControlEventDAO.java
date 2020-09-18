@@ -9,7 +9,10 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.EntityManager;
+
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -32,32 +35,54 @@ public class SourceControlEventDAO
 
   private static final String UPDATED_EVENT_WITH_STATUS = "updated event {} with status {}";
 
-  public int reserveEventsForInstance(final String instanceId, final int quantity) {
-    String sQuery = "SELECT entity.id FROM SourceControlEvent entity"
-        + " WHERE entity.instanceId IS NULL ORDER BY entity.eventPriority, entity.createTime";
-    List<String> ids = new Query<String>(sQuery).setMaxResults(quantity).getList();
-    return createQuery("UPDATE SourceControlEvent entity SET entity.instanceId=?2 WHERE entity.id IN (?1)", ids,
-        instanceId).executeUpdate();
-  }
+  public int reserveEventsForInstance(final String instanceId) {
+    EntityManager em = OperationalDataStoreProvider.getJPAEntityManagerFactory().createEntityManager();
+    int result = 0;
 
-  public void clearEventReservations() {
-    String sQuery =
-        UPDATE_ENTITY + "SET entity.instanceId = null WHERE entity.eventStatus IN ('new', 'in progress')";
-    int count = createQuery(sQuery).executeUpdate();
-    log.debug("Reset {} reserved events", count);
+    try (TransactionContext txn = new TransactionContext(em)) {
+      txn.begin();
+
+      // assign the given instance ID to any events that aren't already assigned IFF there are no active events
+      // (i.e. 'new', 'in progress') already assigned to another instance
+      result = em.createNativeQuery(
+          "UPDATE insight_brain_ods.source_control_event" +
+              " SET instance_id = ?1" +
+              " WHERE source_control_event_id IN (" +
+              "   SELECT unassigned_events.id FROM (" +
+              "     SELECT source_control_event_id AS id" +
+              "       FROM insight_brain_ods.source_control_event" +
+              "       WHERE instance_id IS NULL" +
+              "       FOR UPDATE" +
+              "     ) AS unassigned_events," +
+              "     (" +
+              "       SELECT count(*) AS reserved_count " +
+              "       FROM insight_brain_ods.source_control_event" +
+              "       WHERE instance_id IS NOT NULL" +
+              "       AND instance_id != ?1" +
+              "       AND event_status IN ('new', 'in progress')" +
+              "     ) AS events_reserved_for_other_instances" +
+              "   WHERE events_reserved_for_other_instances.reserved_count = 0" +
+              " );"
+      )
+          .setParameter(1, instanceId)
+          .executeUpdate();
+      txn.commit();
+    }
+    return result;
   }
 
   @VisibleForTesting
   List<SourceControlEvent> getAvailableEvents() {
     String sQuery = SELECT_ENTITY + "WHERE entity.instanceId IS NULL";
-    Query<SourceControlEvent> query = new Query<>(sQuery);
+    Query<SourceControlEvent> query = new Query<SourceControlEvent>(sQuery);
     return query.getList();
   }
 
   public List<SourceControlEvent> selectEventsForInstance(final String instanceId, final int quantity) {
     String sQuery = SELECT_ENTITY +
         "WHERE entity.instanceId = ?1 AND entity.eventStatus = ?2 ORDER BY entity.eventPriority, entity.createTime";
-    Query<SourceControlEvent> query = new Query<>(sQuery, instanceId, SourceControlEvent.EVENT_STATUS_NEW);
+    Query<SourceControlEvent> query =
+        new Query<SourceControlEvent>(sQuery, instanceId, SourceControlEvent.EVENT_STATUS_NEW);
     query.setMaxResults(quantity);
     return query.getList();
   }
@@ -92,6 +117,15 @@ public class SourceControlEventDAO
   @Override
   public SourceControlEvent getById(final String id) {
     return get(SELECT_ENTITY + WHERE_ENTITY_ID_MATCHES, id);
+  }
+
+  public void resetStaleEvents(Date cutoffTime) {
+    String sQuery = UPDATE_ENTITY +
+        "SET entity.instanceId = null, entity.eventStatus = 'new' " +
+        "WHERE entity.instanceId IS NOT NULL " +
+        "AND ((entity.eventStatus = 'new' AND entity.createTime < ?1) " +
+        "OR (entity.eventStatus = 'in progress' AND entity.startTime < ?1))";
+    createQuery(sQuery, cutoffTime).executeUpdate();
   }
 
   public void deleteByApplicationId(final String applicationId) {

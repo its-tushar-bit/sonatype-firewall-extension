@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
@@ -25,6 +24,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static java.lang.System.currentTimeMillis;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SourceControlEventDAOTest
@@ -71,79 +71,102 @@ public class SourceControlEventDAOTest
   }
 
   @Test
-  public void testReserveEventsForInstance() {
-    // given 4 new source control events
-    createNewSourceControlEvents(4);
+  public void testResetStaleEvents() {
+    // given: new, active and stale source control events
+    long cutoffTimeMs = currentTimeMillis() - 1000;
+    SourceControlEvent activeNewEvent = getNewSourceControlEvent()
+        .setEventStatus("new")
+        .setInstanceId("instance1")
+        .setCreateTime(new Date(cutoffTimeMs + 500));
+    sourceControlEventDAO.insert(activeNewEvent);
 
-    // when we reserve events for an instance
-    sourceControlEventDAO.reserveEventsForInstance("1", 1);
+    SourceControlEvent activeInProgressEvent = getNewSourceControlEvent()
+        .setEventStatus("in progress")
+        .setInstanceId("instance2")
+        .setCreateTime(new Date(cutoffTimeMs - 500))
+        .setStartTime(new Date(cutoffTimeMs + 500));
+    sourceControlEventDAO.insert(activeInProgressEvent);
 
-    // then we should have 1 reservation
-    List<SourceControlEvent> sourceControlEventList = sourceControlEventDAO.selectEventsForInstance("1", 4);
-    assertThat(sourceControlEventList).hasSize(1);
+    SourceControlEvent staleNewEvent = getNewSourceControlEvent()
+        .setEventStatus("new")
+        .setInstanceId("instance3")
+        .setCreateTime(new Date(cutoffTimeMs - 500));
+    sourceControlEventDAO.insert(staleNewEvent);
+
+    SourceControlEvent staleInProgressEvent = getNewSourceControlEvent()
+        .setEventStatus("new")
+        .setInstanceId("instance4")
+        .setCreateTime(new Date(cutoffTimeMs - 500))
+        .setStartTime(new Date(cutoffTimeMs - 500));
+    sourceControlEventDAO.insert(staleInProgressEvent);
+
+    SourceControlEvent staleCompletedEvent = getNewSourceControlEvent()
+        .setEventStatus("complete")
+        .setInstanceId("instance5")
+        .setCreateTime(new Date(cutoffTimeMs - 500))
+        .setStartTime(new Date(cutoffTimeMs - 400))
+        .setCompleteTime(new Date(cutoffTimeMs - 300));
+    sourceControlEventDAO.insert(staleCompletedEvent);
+
+    SourceControlEvent staleErrorEvent = getNewSourceControlEvent()
+        .setEventStatus("error")
+        .setInstanceId("instance6")
+        .setCreateTime(new Date(cutoffTimeMs - 500))
+        .setStartTime(new Date(cutoffTimeMs - 400))
+        .setCompleteTime(new Date(cutoffTimeMs - 300));
+    sourceControlEventDAO.insert(staleErrorEvent);
+
+    // when: reset stale events
+    sourceControlEventDAO.resetStaleEvents(new Date(cutoffTimeMs));
+
+    SourceControlEvent fetchedActiveNewEvent = sourceControlEventDAO.getById(activeNewEvent.getId());
+    SourceControlEvent fetchedActiveInProgressEvent = sourceControlEventDAO.getById(activeInProgressEvent.getId());
+    SourceControlEvent fetchedStaleNewEvent = sourceControlEventDAO.getById(staleNewEvent.getId());
+    SourceControlEvent fetchedStaleInProgressEvent = sourceControlEventDAO.getById(staleInProgressEvent.getId());
+    SourceControlEvent fetchedStaleCompletedEvent = sourceControlEventDAO.getById(staleCompletedEvent.getId());
+    SourceControlEvent fetchedStaleErrorEvent = sourceControlEventDAO.getById(staleErrorEvent.getId());
+
+    // then:
+    assertThat(fetchedActiveNewEvent.getInstanceId()).isEqualTo("instance1");
+    assertThat(fetchedActiveNewEvent.getEventStatus()).isEqualTo("new");
+    assertThat(fetchedActiveInProgressEvent.getInstanceId()).isEqualTo("instance2");
+    assertThat(fetchedActiveInProgressEvent.getEventStatus()).isEqualTo("in progress");
+    assertThat(fetchedStaleNewEvent.getInstanceId()).isNull();
+    assertThat(fetchedStaleNewEvent.getEventStatus()).isEqualTo("new");
+    assertThat(fetchedStaleInProgressEvent.getInstanceId()).isNull();
+    assertThat(fetchedStaleInProgressEvent.getEventStatus()).isEqualTo("new");
+    assertThat(fetchedStaleCompletedEvent.getInstanceId()).isEqualTo("instance5");
+    assertThat(fetchedStaleCompletedEvent.getEventStatus()).isEqualTo("complete");
+    assertThat(fetchedStaleErrorEvent.getInstanceId()).isEqualTo("instance6");
+    assertThat(fetchedStaleErrorEvent.getEventStatus()).isEqualTo("error");
   }
 
   @Test
-  public void testClearEventReservations() {
-    // given: new source control events in each of the possible states:
-    //            unreserved, reserved, in progress, complete, error
-    createNewSourceControlEvents(5);
-    String instanceId = UUID.randomUUID().toString();
-    sourceControlEventDAO.reserveEventsForInstance(instanceId, 4);
-    List<SourceControlEvent> events = sourceControlEventDAO.selectEventsForInstance(instanceId, 4);
+  public void testReserveEventsForInstance_exclusive() {
+    // given: an event
+    createNewSourceControlEvents(2);
 
-    SourceControlEvent inProgressEvent = events.get(0);
-    sourceControlEventDAO.markEventInProgress(inProgressEvent.getId());
+    // when: reserve events
+    sourceControlEventDAO.reserveEventsForInstance("instance1");
 
-    SourceControlEvent completeEvent = events.get(1);
-    sourceControlEventDAO.markEventComplete(completeEvent.getId());
+    // then: events should be reserved for instance1
+    List<SourceControlEvent> sourceControlEventList = sourceControlEventDAO.selectEventsForInstance("instance1", 5);
+    assertThat(sourceControlEventList).hasSize(2);
+    sourceControlEventList.forEach(event -> assertThat(event.getInstanceId()).isEqualTo("instance1"));
 
-    SourceControlEvent errorEvent = events.get(2);
-    sourceControlEventDAO.markEventHasError(errorEvent.getId(), "simulated");
+    // when: add some more new events
+    createNewSourceControlEvents(3);
 
-    SourceControlEvent reservedEvent = events.get(3);
-    SourceControlEvent unreservedEvent = sourceControlEventDAO.getAvailableEvents().get(0);
+    // then: should not be able to reserve events for instance2
+    assertThat(sourceControlEventDAO.reserveEventsForInstance("instance2")).isEqualTo(0);
 
-    // validate initial state
-    Map<String, SourceControlEvent> eventMap = getEventMap();
-    assertThat(eventMap.get(unreservedEvent.getId()).getInstanceId()).isNull();
-    assertThat(eventMap.get(unreservedEvent.getId()).getEventStatus()).isEqualTo(SourceControlEvent.EVENT_STATUS_NEW);
+    // when: reserve events for instance1
+    sourceControlEventDAO.reserveEventsForInstance("instance1");
 
-    assertThat(eventMap.get(reservedEvent.getId()).getInstanceId()).isEqualTo(instanceId);
-    assertThat(eventMap.get(reservedEvent.getId()).getEventStatus()).isEqualTo(SourceControlEvent.EVENT_STATUS_NEW);
-
-    assertThat(eventMap.get(inProgressEvent.getId()).getInstanceId()).isEqualTo(instanceId);
-    assertThat(eventMap.get(inProgressEvent.getId()).getEventStatus())
-        .isEqualTo(SourceControlEvent.EVENT_STATUS_IN_PROGRESS);
-
-    assertThat(eventMap.get(completeEvent.getId()).getInstanceId()).isEqualTo(instanceId);
-    assertThat(eventMap.get(completeEvent.getId()).getEventStatus())
-        .isEqualTo(SourceControlEvent.EVENT_STATUS_COMPLETE);
-
-    assertThat(eventMap.get(errorEvent.getId()).getInstanceId()).isEqualTo(instanceId);
-    assertThat(eventMap.get(errorEvent.getId()).getEventStatus()).isEqualTo(SourceControlEvent.EVENT_STATUS_ERROR);
-
-    // when: event reservations are cleared
-    sourceControlEventDAO.clearEventReservations();
-
-    // then: event info is as expected for each of the above events
-    eventMap = getEventMap();
-    assertThat(eventMap.get(unreservedEvent.getId()).getInstanceId()).isNull();
-    assertThat(eventMap.get(unreservedEvent.getId()).getEventStatus()).isEqualTo(SourceControlEvent.EVENT_STATUS_NEW);
-
-    assertThat(eventMap.get(reservedEvent.getId()).getInstanceId()).isNull();
-    assertThat(eventMap.get(reservedEvent.getId()).getEventStatus()).isEqualTo(SourceControlEvent.EVENT_STATUS_NEW);
-
-    assertThat(eventMap.get(inProgressEvent.getId()).getInstanceId()).isNull();
-    assertThat(eventMap.get(inProgressEvent.getId()).getEventStatus())
-        .isEqualTo(SourceControlEvent.EVENT_STATUS_IN_PROGRESS);
-
-    assertThat(eventMap.get(completeEvent.getId()).getInstanceId()).isEqualTo(instanceId);
-    assertThat(eventMap.get(completeEvent.getId()).getEventStatus())
-        .isEqualTo(SourceControlEvent.EVENT_STATUS_COMPLETE);
-
-    assertThat(eventMap.get(errorEvent.getId()).getInstanceId()).isEqualTo(instanceId);
-    assertThat(eventMap.get(errorEvent.getId()).getEventStatus()).isEqualTo(SourceControlEvent.EVENT_STATUS_ERROR);
+    // then: all events are for instance1
+    sourceControlEventList = sourceControlEventDAO.selectEventsForInstance("instance1", 10);
+    assertThat(sourceControlEventList).hasSize(5);
+    sourceControlEventList.forEach(event -> assertThat(event.getInstanceId()).isEqualTo("instance1"));
   }
 
   private Map<String, SourceControlEvent> getEventMap() {
@@ -152,40 +175,12 @@ public class SourceControlEventDAOTest
   }
 
   @Test
-  public void testReserveEventsForInstance_multipleEventsReserved() {
-    // given 4 new source control events
-    createNewSourceControlEvents(4);
-
-    // when we reserve 2 for an instance
-    sourceControlEventDAO.reserveEventsForInstance("1", 2);
-
-    // then only 2 are reserved
-    assertThat(sourceControlEventDAO.selectEventsForInstance("1", 3)).hasSize(2);
-  }
-
-  @Test
-  public void testReserveEventsForInstance_multipleReservations() {
-    // given 4 new source control events
-    createNewSourceControlEvents(4);
-
-    // when we reserve for 2 different instances
-    sourceControlEventDAO.reserveEventsForInstance("1", 2);
-    sourceControlEventDAO.reserveEventsForInstance("2", 1);
-
-    // then only 2 are reserved for instance 1
-    assertThat(sourceControlEventDAO.selectEventsForInstance("1", 3)).hasSize(2);
-
-    // and only 1 is reserved for instance 2
-    assertThat(sourceControlEventDAO.selectEventsForInstance("2", 3)).hasSize(1);
-  }
-
-  @Test
   public void testReserveEventsForInstance_eventPriority() {
     // given: a set of prioritized events
     createNewPrioritizedSourceControlEvents(app.getId(), 2, 2, 1, 3, 2);
 
     // when: reserve the events
-    int reserved = sourceControlEventDAO.reserveEventsForInstance("instance-1", 5);
+    int reserved = sourceControlEventDAO.reserveEventsForInstance("instance-1");
 
     // then:
     assertThat(reserved).isEqualTo(5);
@@ -195,15 +190,6 @@ public class SourceControlEventDAOTest
       assertThat(event.getEventPriority()).isGreaterThanOrEqualTo(priority);
       priority = event.getEventPriority();
     }
-
-    // when: clear reservations and reserve single event
-    sourceControlEventDAO.clearEventReservations();
-    reserved = sourceControlEventDAO.reserveEventsForInstance("instance-2", 1);
-
-    // then: reserved event is the only priorty 1 event
-    assertThat(reserved).isEqualTo(1);
-    events = sourceControlEventDAO.selectEventsForInstance("instance-2", 1);
-    assertThat(events.get(0).getEventPriority()).isEqualTo(1);
   }
 
   @Test
@@ -212,7 +198,7 @@ public class SourceControlEventDAOTest
     createNewSourceControlEvents(4);
 
     // when we pull events for processing
-    sourceControlEventDAO.reserveEventsForInstance("1", 1);
+    sourceControlEventDAO.reserveEventsForInstance("1");
     SourceControlEvent sourceControlEvent = sourceControlEventDAO.selectEventsForInstance("1", 1).get(0);
     sourceControlEventDAO.markEventInProgress(sourceControlEvent.getId());
 
@@ -228,7 +214,7 @@ public class SourceControlEventDAOTest
     createNewSourceControlEvents(4);
 
     // when we mark an event as complete
-    sourceControlEventDAO.reserveEventsForInstance("1", 1);
+    sourceControlEventDAO.reserveEventsForInstance("1");
     SourceControlEvent sourceControlEvent = sourceControlEventDAO.selectEventsForInstance("1", 1).get(0);
     sourceControlEventDAO.markEventComplete(sourceControlEvent.getId());
 
@@ -244,7 +230,7 @@ public class SourceControlEventDAOTest
     createNewSourceControlEvents(4);
 
     // when we mark an event with an error
-    sourceControlEventDAO.reserveEventsForInstance("1", 1);
+    sourceControlEventDAO.reserveEventsForInstance("1");
     SourceControlEvent sourceControlEvent = sourceControlEventDAO.selectEventsForInstance("1", 1).get(0);
     sourceControlEventDAO.markEventHasError(sourceControlEvent.getId(), "error message");
 

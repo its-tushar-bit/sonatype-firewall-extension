@@ -619,15 +619,6 @@ public class SourceControlEventServiceTest
     );
   }
 
-  @Test
-  public void testInitializeEvents() {
-    // when: call to initialize events
-    eventService.initializeEvents();
-
-    // then: dao is called to clear existing event reservations
-    verify(mockSourceControlEventDAO, times(1)).clearEventReservations();
-  }
-
   private String getProcessedEventMessage(SourceControlEvent event) {
     return format("Processed event '%s' of type '%s' for application '%s'", event.getId(), event.getEventType(),
         event.getApplicationId());

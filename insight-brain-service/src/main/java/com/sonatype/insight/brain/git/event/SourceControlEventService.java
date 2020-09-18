@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.git.event;
 
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -30,6 +31,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.lang.System.currentTimeMillis;
 import static java.lang.Thread.currentThread;
 import static java.lang.Thread.sleep;
 
@@ -68,6 +70,10 @@ public class SourceControlEventService
 
   @VisibleForTesting
   static final String INSTANCE_ID = UUID.randomUUID().toString();
+
+  // arbitrarily picking 2 minutes to detect when another instance of IQ server has gone down/offline and is no longer
+  // processing events
+  private static final int STALE_EVENT_CUTOFF_MS = 1_000 * 120;
 
   private final AtomicBoolean inProcessing = new AtomicBoolean();
 
@@ -122,16 +128,13 @@ public class SourceControlEventService
         int numberOfEventsToRequest = getNumberOfEventsToRequest();
 
         if (numberOfEventsToRequest > 0) {
-          // get any events already reserved for this instance
+          // un-claim any events where it appears that the instance processing them is no longer working
+          sourceControlEventDAO.resetStaleEvents(new Date(currentTimeMillis() - STALE_EVENT_CUTOFF_MS));
+
+          sourceControlEventDAO.reserveEventsForInstance(INSTANCE_ID);
+
           List<SourceControlEvent> events =
               sourceControlEventDAO.selectEventsForInstance(INSTANCE_ID, numberOfEventsToRequest);
-
-          // if there aren't enough, reserve more and re-fetch
-          if (events.size() < numberOfEventsToRequest) {
-            // we can't assume this is the only IQ server instance processing events
-            sourceControlEventDAO.reserveEventsForInstance(INSTANCE_ID, numberOfEventsToRequest - events.size());
-            events = sourceControlEventDAO.selectEventsForInstance(INSTANCE_ID, numberOfEventsToRequest);
-          }
 
           log.debug("Requested {} source control events, processing {}", numberOfEventsToRequest, events.size());
 
@@ -172,14 +175,6 @@ public class SourceControlEventService
           event.getId(), event.getEventType(), event.getApplicationId(), e.getMessage(), e);
       return false;
     }
-  }
-
-  /**
-   * this method initializes the events for this instance.   It is intended to clear latent reservations on
-   * subsequent restarts until the full multi-node event processing solution is put in place
-   */
-  public void initializeEvents() {
-    sourceControlEventDAO.clearEventReservations();
   }
 
   private void handleSourceControlEvent(final SourceControlEvent event) {

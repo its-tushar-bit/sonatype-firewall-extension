@@ -19,6 +19,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiUserListDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.security.UserService;
@@ -40,6 +41,12 @@ public class ApiUserResource
   @Inject
   public ApiUserResource(UserService userService) {
     this.userService = userService;
+  }
+
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public ApiUserListDTO getAll() {
+    return userService.getAllApiUserDTOs();
   }
 
   @GET

@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiUserListDTO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -68,5 +69,18 @@ public class ApiUserResourceTest
 
     assertResponseStatus(204, response);
     assertThat(userDAO.getById(user.getId())).isNull();
+  }
+
+  @Test
+  public void testGetAll() throws Exception {
+    User user = tempEntity.newUser();
+
+    HttpResponse response = restRequest().get();
+
+    assertResponseStatus(200, response);
+    ApiUserListDTO apiUserListDTO = response.getBody(ApiUserListDTO.class);
+    assertThat(apiUserListDTO).isNotNull();
+    assertThat(apiUserListDTO.users).extracting(apiUserDTO -> apiUserDTO.username)
+        .containsExactlyInAnyOrder(User.ADMIN_USERNAME, user.getUsername());
   }
 }

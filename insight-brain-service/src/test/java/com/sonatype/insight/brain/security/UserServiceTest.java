@@ -10,6 +10,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiUserDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiUserListDTO;
 import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
@@ -384,6 +385,26 @@ public class UserServiceTest
       admin.setUsername(User.ADMIN_USERNAME);
       userDAO.update(admin);
     }
+  }
+
+  @Test
+  public void testGetAllApiUserDTOs() {
+    User admin = new UserDAO().getByUsername(User.ADMIN_USERNAME);
+    User user = tempEntity.newUser();
+
+    ApiUserListDTO apiUserListDTO = userService.getAllApiUserDTOs();
+
+    assertThat(apiUserListDTO).isNotNull();
+    assertThat(apiUserListDTO.users).hasSize(2);
+    assertContainsApiUserDTOMatchingUser(apiUserListDTO.users, admin);
+    assertContainsApiUserDTOMatchingUser(apiUserListDTO.users, user);
+  }
+
+  private void assertContainsApiUserDTOMatchingUser(List<ApiUserDTO> apiUserDTOs, User user) {
+    ApiUserDTO apiUserDTO =
+        apiUserDTOs.stream().filter(dto -> dto.username.equals(user.getUsername())).findFirst().orElse(null);
+    assertThat(apiUserDTO).isNotNull();
+    assertEqualExceptNullDTOPassword(user, apiUserDTO);
   }
 
   @Test

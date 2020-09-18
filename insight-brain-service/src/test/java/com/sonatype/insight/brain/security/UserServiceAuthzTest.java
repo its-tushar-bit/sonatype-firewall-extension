@@ -238,6 +238,23 @@ public class UserServiceAuthzTest
     userService.shouldDisplayDefaultPasswordWarning();
   }
 
+  @Test
+  public void testGetAllApiUserDTOs_Authorized() {
+    grantConfigureSystemPermission();
+    assertThat(userService.getAllApiUserDTOs()).isNotNull();
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetAllApiUserDTOs_Unauthorized() {
+    login();
+    userService.getAllApiUserDTOs();
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetAllApiUserDTOs_Unauthenticated() {
+    userService.getAllApiUserDTOs();
+  }
+
   @Test(expected = UnauthenticatedException.class)
   public void testGetApiUserDTOByUsername_Unauthenticated() {
     userService.getApiUserDTOByUsername(tempEntity.newUser().getUsername());

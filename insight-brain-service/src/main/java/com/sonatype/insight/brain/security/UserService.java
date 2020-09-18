@@ -6,12 +6,14 @@
 package com.sonatype.insight.brain.security;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.naming.NamingException;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiUserDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiUserListDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
@@ -339,6 +341,13 @@ public class UserService
       this.members = members;
       this.error = error;
     }
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public ApiUserListDTO getAllApiUserDTOs() {
+    ApiUserListDTO apiUserListDTO = new ApiUserListDTO();
+    apiUserListDTO.users = userDAO.getAll().stream().map(this::convert).collect(Collectors.toList());
+    return apiUserListDTO;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)

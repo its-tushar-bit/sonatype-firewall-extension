@@ -65,7 +65,7 @@ public class MarkerFileMigrator
           PolicySecurityVulnerabilityConditionTypeMigrator.MIGRATION_ID, tx);
       migrateOne(new File(insightWork.getWorkDir(), PROPRIETARY_CONFIG_MARKER_FILE),
           ProprietaryConfigMigrator.MIGRATION_ID, tx);
-      migrateOne(new File(insightWork.getAuditDir(""), SECURITY_VULNERABILITY_OVERRIDE_MARKER_FILE),
+      migrateOne(new File(insightWork.getAuditDir(), SECURITY_VULNERABILITY_OVERRIDE_MARKER_FILE),
           SecurityVulnerabilityOverrideMigrator.MIGRATION_ID, tx);
 
       // Track `this` so it does not run again

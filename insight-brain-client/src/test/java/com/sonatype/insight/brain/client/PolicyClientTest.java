@@ -170,14 +170,8 @@ public class PolicyClientTest
     config.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
     mockScanReceiptAndReport(scanId);
 
-    PolicyEvaluationPollingResult completedResult = new PolicyEvaluationPollingResult();
-    completedResult.setStatus(PolicyEvaluationStatus.COMPLETED);
-    completedResult.setResult(new PolicyEvaluationResult());
-
     Logger logger = mock(Logger.class);
-    PolicyClient policyClient = spy(new PolicyClient(config, application.getPublicId(), logger));
-    doReturn(completedResult).when(policyClient)
-        .parseResult(ArgumentMatchers.any(Result.class), eq(PolicyEvaluationPollingResult.class));
+    PolicyClient policyClient = new PolicyClient(config, application.getPublicId(), logger);
     ClientScanResult clientScanResult = new ClientScanResult(scanFile, false);
     PolicyEvaluationPollingResult policyEvaluationResult = policyClient.evaluateCI(clientScanResult, stage);
     assertThat(policyEvaluationResult).isNotNull();
@@ -198,13 +192,7 @@ public class PolicyClientTest
     config.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
     mockScanReceiptAndReport(scanId);
 
-    PolicyEvaluationPollingResult completedResult = new PolicyEvaluationPollingResult();
-    completedResult.setStatus(PolicyEvaluationStatus.COMPLETED);
-    completedResult.setResult(new PolicyEvaluationResult());
-
-    PolicyClient policyClient = spy(new PolicyClient(config, application.getPublicId()));
-    doReturn(completedResult).when(policyClient)
-        .parseResult(ArgumentMatchers.any(Result.class), eq(PolicyEvaluationPollingResult.class));
+    PolicyClient policyClient = new PolicyClient(config, application.getPublicId());
 
     PolicyEvaluationPollingResult policyEvaluationResult = policyClient.evaluateRepoMan(scanFile, stage);
     assertThat(policyEvaluationResult).isNotNull();

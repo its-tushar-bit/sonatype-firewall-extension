@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.json.store;
+package com.sonatype.insight.brain.utils;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,10 +13,9 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import com.sonatype.insight.brain.dataaccess.ClusterLock;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -24,23 +23,22 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-final class JsonFileStore
+public final class JsonFileStore
     implements JsonStore
 {
-  private static final ConcurrentMap<String, ReadWriteLock> LOCK_TABLE = new ConcurrentHashMap<>();
-
   private final File folder;
 
-  public JsonFileStore(final File folder) {
+  private final String ownerId;
+
+  public JsonFileStore(final File folder, String ownerId) {
     this.folder = folder;
+    this.ownerId = ownerId;
   }
 
   @Override
   public void commit(final String path, final ContainerNode<?> data) throws IOException {
-    final ReadWriteLock lock = lockFor(folder);
-
-    lock.writeLock().lock();
-    try {
+    try (ClusterLock clusterLock = ClusterLock.createForAuditJsonFileStore(ownerId)) {
+      clusterLock.lock();
       final File file = new File(folder, path);
 
       final ArrayNode log;
@@ -54,17 +52,12 @@ final class JsonFileStore
       // newest entries appear at the top of the log
       JsonUtils.write(file, log.insert(0, data));
     }
-    finally {
-      lock.writeLock().unlock();
-    }
   }
 
   @Override
   public ContainerNode<?> restore(String path) throws IOException {
-    final ReadWriteLock lock = lockFor(folder);
-
-    lock.readLock().lock();
-    try {
+    try (ClusterLock clusterLock = ClusterLock.createForAuditJsonFileStore(ownerId)) {
+      clusterLock.lock();
       final File file = new File(folder, path);
 
       if (file.exists()) {
@@ -77,9 +70,6 @@ final class JsonFileStore
       }
 
       return null;
-    }
-    finally {
-      lock.readLock().unlock();
     }
   }
 
@@ -99,10 +89,8 @@ final class JsonFileStore
 
   @Override
   public ContainerNode<?> history(final ContainerNode<?> key, final String... paths) throws IOException {
-    final ReadWriteLock lock = lockFor(folder);
-
-    lock.readLock().lock();
-    try {
+    try (ClusterLock clusterLock = ClusterLock.createForAuditJsonFileStore(ownerId)) {
+      clusterLock.lock();
       Iterable<String> filenames = Arrays.asList(paths);
       if (paths.length == 0 || paths[0].length() == 0) {
         filenames = list();
@@ -119,9 +107,6 @@ final class JsonFileStore
       }
 
       return entries.size() > 0 ? log : null;
-    }
-    finally {
-      lock.readLock().unlock();
     }
   }
 
@@ -204,17 +189,5 @@ final class JsonFileStore
         return itr;
       }
     };
-  }
-
-  private static ReadWriteLock lockFor(final File folder) {
-    ReadWriteLock lock = LOCK_TABLE.get(folder.getAbsolutePath());
-    if (lock == null) {
-      final ReadWriteLock newLock = new ReentrantReadWriteLock();
-      lock = LOCK_TABLE.putIfAbsent(folder.getAbsolutePath(), newLock);
-      if (lock == null) {
-        lock = newLock;
-      }
-    }
-    return lock;
   }
 }

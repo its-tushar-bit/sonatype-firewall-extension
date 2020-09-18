@@ -360,6 +360,7 @@ public class ApplicationDAO
     ClusterLock.deleteForPolicyViolations(tx, application);
     ClusterLock.deleteForPolicyViolationAggregations(tx, application.getId());
     ClusterLock.deleteForPolicyEvaluations(tx, application);
+    ClusterLock.deleteForAuditJsonFileStore(tx, application.getId());
 
     // Cascade to Inner Source components
     InnerSourceComponentDAO innerSourceComponentDAO = new InnerSourceComponentDAO();

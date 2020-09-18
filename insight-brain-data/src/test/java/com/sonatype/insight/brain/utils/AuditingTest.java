@@ -3,11 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.json.store;
+package com.sonatype.insight.brain.utils;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -25,7 +28,8 @@ public class AuditingTest
 
   @Before
   public void setUp() throws Exception {
-    store = new JsonFileStore(new File(temporaryFolder.getRoot(), "audit-test"));
+    store = new JsonFileStore(new File(temporaryFolder.getRoot(), "audit-test"), "ownerId");
+    OperationalDataStoreProvider.init(null, false);
   }
 
   @Test

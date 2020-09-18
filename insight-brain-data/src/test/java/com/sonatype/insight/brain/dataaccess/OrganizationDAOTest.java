@@ -25,6 +25,8 @@ import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
+import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
@@ -48,6 +50,7 @@ import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverr
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.postgres.PostgresServer;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.collect.Sets;
@@ -655,5 +658,44 @@ public class OrganizationDAOTest
     assertThat(searchIndexChanges).hasSize(1);
     assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.ORGANIZATION);
     assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(org.getId());
+  }
+
+  @Test
+  public void testCascadeDeleteToLocks_H2() {
+    // Lock for audit json file store
+    Organization organization = tempEntity.newOrganization();
+    try (ClusterLock clusterLock = ClusterLock.createForAuditJsonFileStore(organization.getId())) {
+      clusterLock.lock();
+    }
+    assertThat(ClusterLock.LOCKS_BY_ID
+        .get(ClusterLock.getLockIdForAuditJsonFileStore(organization.getId()))).isNotNull();
+
+    dao.delete(organization);
+
+    assertThat(ClusterLock.LOCKS_BY_ID
+        .get(ClusterLock.getLockIdForAuditJsonFileStore(organization.getId()))).isNull();
+  }
+
+  @Test
+  public void testCascadeDeleteToLocks_Postgres() {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      LockDAO lockDAO = new LockDAO();
+      Organization organization = tempEntity.newOrganization();
+
+      // Lock for audit json file store
+      try (ClusterLock clusterLock = ClusterLock.createForAuditJsonFileStore(organization.getId())) {
+        clusterLock.lock();
+      }
+      assertThat(lockDAO.getById(ClusterLock.getLockIdForAuditJsonFileStore(organization.getId()))).isNotNull();
+
+      dao.delete(organization);
+
+      assertThat(lockDAO.getById(ClusterLock.getLockIdForAuditJsonFileStore(organization.getId()))).isNull();
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
   }
 }

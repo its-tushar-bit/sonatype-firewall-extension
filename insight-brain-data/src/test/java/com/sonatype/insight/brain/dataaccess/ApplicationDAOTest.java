@@ -895,6 +895,13 @@ public class ApplicationDAOTest
     assertThat(ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForPolicyEvaluation(application, scanId2))).isNotNull();
     assertThat(ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForPolicyEvaluation(otherApplication, scanId3)))
         .isNotNull();
+    
+    // Lock for audit json file store
+    try (ClusterLock clusterLock = ClusterLock.createForAuditJsonFileStore(application.getId())) {
+      clusterLock.lock();
+    }
+    assertThat(ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForAuditJsonFileStore(application.getId())))
+        .isNotNull();
 
     applicationDAO.delete(application);
 
@@ -907,6 +914,7 @@ public class ApplicationDAOTest
     assertThat(ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForPolicyEvaluation(application, scanId2))).isNull();
     assertThat(ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForPolicyEvaluation(otherApplication, scanId3)))
         .isNotNull();
+    assertThat(ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForAuditJsonFileStore(application.getId()))).isNull();
   }
 
   @Test
@@ -942,6 +950,11 @@ public class ApplicationDAOTest
       assertThat(dao.getById(ClusterLock.getLockIdForPolicyEvaluation(application, scanId1))).isNotNull();
       assertThat(dao.getById(ClusterLock.getLockIdForPolicyEvaluation(application, scanId2))).isNotNull();
       assertThat(dao.getById(ClusterLock.getLockIdForPolicyEvaluation(otherApplication, scanId3))).isNotNull();
+      // Lock for audit json file store
+      try (ClusterLock clusterLock = ClusterLock.createForAuditJsonFileStore(application.getId())) {
+        clusterLock.lock();
+      }
+      assertThat(dao.getById(ClusterLock.getLockIdForAuditJsonFileStore(application.getId()))).isNotNull();
 
       applicationDAO.delete(application);
 
@@ -951,6 +964,7 @@ public class ApplicationDAOTest
       assertThat(dao.getById(ClusterLock.getLockIdForPolicyEvaluation(application, scanId1))).isNull();
       assertThat(dao.getById(ClusterLock.getLockIdForPolicyEvaluation(application, scanId2))).isNull();
       assertThat(dao.getById(ClusterLock.getLockIdForPolicyEvaluation(otherApplication, scanId3))).isNotNull();
+      assertThat(dao.getById(ClusterLock.getLockIdForAuditJsonFileStore(application.getId()))).isNull();
     }
     finally {
       DataSourceFactory.clear_ForTestsOnly();

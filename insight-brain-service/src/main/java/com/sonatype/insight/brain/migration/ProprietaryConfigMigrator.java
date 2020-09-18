@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.migration;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 
@@ -83,7 +84,7 @@ public class ProprietaryConfigMigrator
 
   private com.sonatype.clm.dto.model.ProprietaryConfig getObsoleteProprietaryConfig() {
     try {
-      final JsonNode config = JsonUtils.fileStore(work.getDataDir()).restore(PROPRIETARY_CONFIG_FILENAME);
+      final JsonNode config = readObsoleteProprietaryConfig();
       return (config != null) ? JsonUtils.asPojo(config, com.sonatype.clm.dto.model.ProprietaryConfig.class)
           : new com.sonatype.clm.dto.model.ProprietaryConfig();
     }
@@ -91,5 +92,17 @@ public class ProprietaryConfigMigrator
       log.error("Failed to load proprietary component configuration", e);
       throw new UncheckedIOException(e);
     }
+  }
+
+  private JsonNode readObsoleteProprietaryConfig() throws IOException {
+    File obsoleteProprietaryConfigFile = new File(work.getDataDir(), PROPRIETARY_CONFIG_FILENAME);
+    if (obsoleteProprietaryConfigFile.exists()) {
+      JsonNode data = JsonUtils.read(obsoleteProprietaryConfigFile).get(0);
+      if (data != null && data.has("data")) {
+        data = data.get("data");
+      }
+      return data;
+    }
+    return null;
   }
 }

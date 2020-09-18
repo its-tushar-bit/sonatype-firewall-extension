@@ -218,6 +218,9 @@ public class OrganizationDAO
     // Cascade to SourceControl config
     new SourceControlDAO().deleteByOwnerId(tx, organization.getId());
 
+    // Cascade to locks
+    ClusterLock.deleteForAuditJsonFileStore(tx, organization.getId());
+
     super.delete(tx, organization);
 
     long duration = System.currentTimeMillis() - start;

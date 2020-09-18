@@ -31,10 +31,11 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
+import com.sonatype.insight.brain.utils.JsonFileStore;
 import com.sonatype.insight.brain.webhook.LicenseOverrideEventService;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.json.store.JsonStore;
+import com.sonatype.insight.brain.utils.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
@@ -133,7 +134,7 @@ public class LicenseOverrideService
                                     String ipAddress,
                                     boolean isDelete) throws IOException
   {
-    JsonStore store = JsonUtils.fileStore(work.getAuditDir(ownerId));
+    JsonStore store = new JsonFileStore(work.getAuditDir(ownerId), ownerId);
 
     LicenseOverrideAudit licenseOverrideAudit = new LicenseOverrideAudit(licenseOverride);
     if (isDelete) {

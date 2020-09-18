@@ -73,11 +73,12 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
+import com.sonatype.insight.brain.utils.JsonFileStore;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.json.store.JsonStore;
+import com.sonatype.insight.brain.utils.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.codahale.metrics.annotation.Timed;
@@ -584,7 +585,7 @@ public class ReportResource
     Application application = applicationDAO.getByPublicIdNotNull(appPublicId);
     String appId = application.getId();
 
-    final JsonStore store = JsonUtils.fileStore(work.getAuditDir(appId));
+    final JsonStore store = new JsonFileStore(work.getAuditDir(appId), appId);
     final ContainerNode<?> key = decodeKey(encodedKey);
     final ContainerNode<?> feed = store.history(key, path.split("[+]+"));
     if (feed != null) {

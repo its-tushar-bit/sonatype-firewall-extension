@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.JsonFileStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.Before;
@@ -118,7 +119,7 @@ public class ProprietaryConfigMigratorTest
   }
 
   private void writeProprietaryConfigFile(com.sonatype.clm.dto.model.ProprietaryConfig config) throws IOException {
-    JsonUtils.fileStore(work.getDataDir()).commit(ProprietaryConfigMigrator.PROPRIETARY_CONFIG_FILENAME,
+    new JsonFileStore(work.getDataDir(), "test").commit(ProprietaryConfigMigrator.PROPRIETARY_CONFIG_FILENAME,
         JsonUtils.stamp("user", "ip", null, JsonUtils.asTree(config)));
   }
 }

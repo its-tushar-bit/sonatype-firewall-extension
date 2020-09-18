@@ -508,4 +508,21 @@ public class ClusterLockTest
     assertThat(ClusterLock.createForPolicyEvaluation(application, scanId).lockId)
         .isEqualTo(ClusterLock.getLockIdForPolicyEvaluation(application, scanId));
   }
+
+  @Test
+  public void testGetLockIdForAuditJsonFileStore() {
+    String ownerId = "ownerId";
+    assertThat(ClusterLock.getLockIdForAuditJsonFileStore(ownerId))
+        .isEqualTo(ClusterLock.AUDIT_JSON_FILE_STORE_LOCK_PREFIX + ownerId);
+  }
+
+  @Test
+  public void testCreateForAuditJsonFileStore() {
+    String ownerId = "ownerId";
+    try (ClusterLock clusterLock = ClusterLock.createForAuditJsonFileStore(ownerId)) {
+      clusterLock.lock();
+
+      assertThat(clusterLock.lockId).isEqualTo(ClusterLock.getLockIdForAuditJsonFileStore(ownerId));
+    }
+  }
 }

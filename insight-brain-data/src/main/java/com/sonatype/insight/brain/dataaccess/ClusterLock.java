@@ -48,6 +48,9 @@ public class ClusterLock
   static final String POLICY_EVALUATION_LOCK_PREFIX = "policy-evaluation-";
 
   // Visible for testing
+  static final String AUDIT_JSON_FILE_STORE_LOCK_PREFIX = "audit-json-file-store-";
+
+  // Visible for testing
   final String lockId;
 
   // Visible for testing
@@ -144,6 +147,18 @@ public class ClusterLock
 
   public static String getLockIdForPolicyEvaluation(Application application, String scanId) {
     return POLICY_EVALUATION_LOCK_PREFIX + application.getId() + "-" + scanId;
+  }
+
+  public static ClusterLock createForAuditJsonFileStore(String ownerId) {
+    return new ClusterLock(getLockIdForAuditJsonFileStore(ownerId));
+  }
+
+  public static void deleteForAuditJsonFileStore(TransactionContext tx, String ownerId) {
+    deleteLock(tx, getLockIdForAuditJsonFileStore(ownerId));
+  }
+
+  public static String getLockIdForAuditJsonFileStore(String ownerId) {
+    return AUDIT_JSON_FILE_STORE_LOCK_PREFIX + ownerId;
   }
 
   public void lock() {

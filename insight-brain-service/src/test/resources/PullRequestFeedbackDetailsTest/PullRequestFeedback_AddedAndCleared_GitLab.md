@@ -2,7 +2,7 @@
 
 <details>
 <summary title="Threat Level: 10 of 10"><img alt="T10" src="https://cdn.sonatype.com/iq-for-scm/1.0/red-bar.png" width="4" height="16"> 
-<b>10&nbsp;&nbsp; com.h2database : h2 : 1.4.190</b></summary>
+<b>10&nbsp;&nbsp; com.h2database : h2 : 1.4.190</b> - <a href="https://gitlab.com/sonatype/enhanced-commit-information/-/merge_requests/10#note_12345">line comment</a></summary>
 <p></p>
 
 :shield: **Bumping to version 1.4.200** will resolve these violations

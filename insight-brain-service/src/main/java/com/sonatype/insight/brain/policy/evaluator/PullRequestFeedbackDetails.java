@@ -338,13 +338,18 @@ public class PullRequestFeedbackDetails
   {
     if (scmId != null && gitRepositoryInfo.getRepositoryUrl().startsWith("http")) {
       if (gitRepositoryInfo.provider == SourceControlProvider.GITHUB) {
-        // normalize repository URL
-        SimpleProjectUri projectUri = new SimpleProjectUri(gitRepositoryInfo.getRepositoryUrl());
-        String repoUrl = projectUri.getCanonicalUri().toString();
-        return repoUrl + "pull/" + prNumber + "#discussion_r" + scmId;
+        return getNormalizedRepositoryUrl(gitRepositoryInfo) + "pull/" + prNumber + "#discussion_r" + scmId;
+      }
+      else if (gitRepositoryInfo.provider == SourceControlProvider.GITLAB) {
+        return getNormalizedRepositoryUrl(gitRepositoryInfo) + "-/merge_requests/" + prNumber + "#note_" + scmId;
       }
     }
     return "";
+  }
+
+  private static String getNormalizedRepositoryUrl(final GitRepositoryInfo gitRepositoryInfo) {
+    SimpleProjectUri projectUri = new SimpleProjectUri(gitRepositoryInfo.getRepositoryUrl());
+    return projectUri.getCanonicalUri().toString();
   }
 
   private static String getSuggestedVersion(

@@ -115,8 +115,7 @@ public class PullRequestLineCommentingService
             // Build a list of line comments to be created
             lineCommentList = buildLineCommentList(diffPositionMap, violationList);
 
-            addMarkupToLineComments(lineCommentList, remediationVersionMap,
-                gitRepositoryInfo.getProvider().supportsEmbeddedHtmlInMarkdown());
+            addMarkupToLineComments(lineCommentList, remediationVersionMap, gitRepositoryInfo.getProvider());
 
             createLineComments(lineCommentList, gitApiClient, pullRequestId, commitHash,
                 sourcePolicyEvaluationId, basePolicyEvaluationId, applicationId);
@@ -182,14 +181,14 @@ public class PullRequestLineCommentingService
   private void addMarkupToLineComments(
       final List<PullRequestLineCommentDTO> lineCommentList,
       final Map<ComponentIdentifier, String> remediationVersionMap,
-      final boolean includeEmbeddedHtml)
+      final SourceControlProvider provider)
   {
     for (PullRequestLineCommentDTO lineCommentDTO : lineCommentList) {
       ComponentIdentifier componentIdentifier = lineCommentDTO.getComponentIdentifier();
       //Create the line comment body, if possible
       Optional<String> markupOptional = pullRequestFeedbackMarkupService.createLineMarkup(
           lineCommentDTO.getPolicyViolations(), ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString(),
-          remediationVersionMap.get(componentIdentifier), includeEmbeddedHtml);
+          remediationVersionMap.get(componentIdentifier), provider);
       markupOptional.ifPresent(lineCommentDTO::setMarkup);
     }
   }

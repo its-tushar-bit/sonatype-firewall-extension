@@ -1,7 +1,7 @@
 ### :thinking: Nexus IQ found <#if ( policiesViolatedCount > 1 )>policy violations<#else>a policy violation</#if> introduced by:<#lt>
 
 <details open>
-  <summary title="Threat Level: ${threatLevel} of 10"><img alt="T${threatLevel}" src="https://cdn.sonatype.com/iq-for-scm/1.0/${threatImage}">
+  <summary title="Threat Level: ${threatLevel} of 10"><img alt="T${threatLevel}" src="https://cdn.sonatype.com/iq-for-scm/1.0/${threatImage}"<#if provider.name() == "GITLAB"> width="4" height="16"</#if>>
     <b>${threatLevel}&nbsp;&nbsp;&nbsp; ${componentNameAndVersion}</b></summary>
 <p></p>
 

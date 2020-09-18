@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.telemetry.PullRequestCommentTelemetry;
+import com.sonatype.nexus.scm.SourceControlProvider;
 
 @Named
 @Singleton
@@ -85,10 +86,10 @@ public class PullRequestFeedbackMarkupService
       final List<PolicyViolation> violations,
       final String componentNameAndVersion,
       final String suggestedVersion, 
-      final boolean includeEmbeddedHtml)
+      final SourceControlProvider provider)
   {
     PullRequestLineFeedback details =
         new PullRequestLineFeedback(violations, componentNameAndVersion, baseUrl.getConfigured(), suggestedVersion);
-    return details.renderTemplateAndGetContents(includeEmbeddedHtml);
+    return details.renderTemplateAndGetContents(provider);
   }
 }

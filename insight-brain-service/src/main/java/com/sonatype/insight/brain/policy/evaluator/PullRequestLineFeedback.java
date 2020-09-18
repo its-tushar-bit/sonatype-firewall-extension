@@ -14,6 +14,7 @@ import java.util.Optional;
 
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.utils.TemplateUtils;
+import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -71,12 +72,13 @@ public class PullRequestLineFeedback
    *
    * @return An optional variable containing the Markdown-formatted contents of the Pull Request Line Comment, will be
    * empty if no new violations or no components available
-   * @param includeEmbeddedHtml
    */
-  public Optional<String> renderTemplateAndGetContents(final boolean includeEmbeddedHtml) {
+  public Optional<String> renderTemplateAndGetContents(
+      final SourceControlProvider provider)
+  {
     String contents = null;
     try {
-      contents = constructContents(includeEmbeddedHtml);
+      contents = constructContents(provider);
     }
     catch (IOException e) {
       log.debug("Cannot create PR line comment content", e);
@@ -89,15 +91,17 @@ public class PullRequestLineFeedback
    *
    * @return An optional variable containing the PR line feedback contents
    * @throws IOException
-   * @param includeEmbeddedHtml
    */
-  private String constructContents(final boolean includeEmbeddedHtml) throws IOException {
+  private String constructContents(final SourceControlProvider provider)
+      throws IOException
+  {
     Preconditions.checkState(!violations.isEmpty(), "violations cannot be empty");
 
     //Get a map containing the values to be populated in the template for the component
     final Map<String, Object> componentFeedbackList =
-        getComponentFeedbackList(displayName, violations, baseUrl, suggestedVersion);
-    return TemplateUtils.render(getLineFeedbackTemplate(includeEmbeddedHtml), componentFeedbackList);
+        getComponentFeedbackList(displayName, violations, baseUrl, suggestedVersion, provider);
+    return TemplateUtils
+        .render(getLineFeedbackTemplate(provider.supportsEmbeddedHtmlInMarkdown()), componentFeedbackList);
   }
 
   /**
@@ -114,7 +118,8 @@ public class PullRequestLineFeedback
       final String displayName,
       final List<PolicyViolation> violations,
       final String baseUrl,
-      final String suggestedVersion)
+      final String suggestedVersion,
+      final SourceControlProvider provider)
   {
     int threatLevel = getHighestThreatLevel(violations);
     String threatImage = PullRequestFeedbackDetails.getImageForThreatLevel(threatLevel);
@@ -126,6 +131,7 @@ public class PullRequestLineFeedback
         .put("suggestedVersion", suggestedVersion == null ? "" : suggestedVersion)
         .put("policiesViolatedCount", violations.size())
         .put("date", new SimpleDateFormat("MMM dd, yyyy").format(new Date()))
+        .put("provider", provider)
         .build();
   }
 }

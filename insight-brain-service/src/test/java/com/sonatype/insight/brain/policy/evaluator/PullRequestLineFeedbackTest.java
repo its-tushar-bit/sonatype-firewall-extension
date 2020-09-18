@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
@@ -72,46 +73,75 @@ public class PullRequestLineFeedbackTest
   }
 
   @Test
-  public void testPullRequestFeedback_multipleNoSuggestion() throws Exception {
-    assertContents(testCases.get(MULTIPLE_NO_SUGGESTIONS), "PullRequestLineFeedback_multipleNoSuggestions.md", true);
+  public void testPullRequestFeedback_multipleNoSuggestion_github() throws Exception {
+    assertContents(testCases.get(MULTIPLE_NO_SUGGESTIONS),
+        "PullRequestLineFeedback_multipleNoSuggestions.md", SourceControlProvider.GITHUB);
   }
 
   @Test
-  public void testPullRequestFeedback_multipleWithSuggestion() throws Exception {
-    assertContents(testCases.get(MULTIPLE_WITH_SUGGESTION), "PullRequestLineFeedback_multipleWithSuggestion.md", true);
+  public void testPullRequestFeedback_multipleWithSuggestion_github() throws Exception {
+    assertContents(testCases.get(MULTIPLE_WITH_SUGGESTION),
+        "PullRequestLineFeedback_multipleWithSuggestion.md", SourceControlProvider.GITHUB);
   }
 
   @Test
-  public void testPullRequestFeedback_singleNoSuggestion() throws Exception {
-    assertContents(testCases.get(SINGLE_NO_SUGGESTION), "PullRequestLineFeedback_singleNoSuggestions.md", true);
+  public void testPullRequestFeedback_singleNoSuggestion_github() throws Exception {
+    assertContents(testCases.get(SINGLE_NO_SUGGESTION),
+        "PullRequestLineFeedback_singleNoSuggestions.md", SourceControlProvider.GITHUB);
   }
 
   @Test
-  public void testPullRequestFeedback_singleWithSuggestion() throws Exception {
-    assertContents(testCases.get(SINGLE_WITH_SUGGESTION), "PullRequestLineFeedback_singleWithSuggestion.md", true);
+  public void testPullRequestFeedback_singleWithSuggestion_github() throws Exception {
+    assertContents(testCases.get(SINGLE_WITH_SUGGESTION),
+        "PullRequestLineFeedback_singleWithSuggestion.md", SourceControlProvider.GITHUB);
   }
 
   @Test
-  public void testPullRequestFeedback_multipleNoSuggestion_no_html() throws Exception {
-    assertContents(testCases.get(MULTIPLE_NO_SUGGESTIONS), "PullRequestLineFeedback_multipleNoSuggestions_noHtml.md",
-        false);
+  public void testPullRequestFeedback_multipleNoSuggestion_gitlab() throws Exception {
+    assertContents(testCases.get(MULTIPLE_NO_SUGGESTIONS),
+        "PullRequestLineFeedback_multipleNoSuggestions_gitlab.md", SourceControlProvider.GITLAB);
   }
 
   @Test
-  public void testPullRequestFeedback_multipleWithSuggestion_no_html() throws Exception {
-    assertContents(testCases.get(MULTIPLE_WITH_SUGGESTION), "PullRequestLineFeedback_multipleWithSuggestion_noHtml.md",
-        false);
+  public void testPullRequestFeedback_multipleWithSuggestion_gitlab() throws Exception {
+    assertContents(testCases.get(MULTIPLE_WITH_SUGGESTION),
+        "PullRequestLineFeedback_multipleWithSuggestion_gitlab.md", SourceControlProvider.GITLAB);
   }
 
   @Test
-  public void testPullRequestFeedback_singleNoSuggestion_no_html() throws Exception {
-    assertContents(testCases.get(SINGLE_NO_SUGGESTION), "PullRequestLineFeedback_singleNoSuggestions_noHtml.md", false);
+  public void testPullRequestFeedback_singleNoSuggestion_gitlab() throws Exception {
+    assertContents(testCases.get(SINGLE_NO_SUGGESTION),
+        "PullRequestLineFeedback_singleNoSuggestions_gitlab.md", SourceControlProvider.GITLAB);
   }
 
   @Test
-  public void testPullRequestFeedback_singleWithSuggestion_no_html() throws Exception {
-    assertContents(testCases.get(SINGLE_WITH_SUGGESTION), "PullRequestLineFeedback_singleWithSuggestion_noHtml.md",
-        false);
+  public void testPullRequestFeedback_singleWithSuggestion_gitlab() throws Exception {
+    assertContents(testCases.get(SINGLE_WITH_SUGGESTION),
+        "PullRequestLineFeedback_singleWithSuggestion_gitlab.md", SourceControlProvider.GITLAB);
+  }
+
+  @Test
+  public void testPullRequestFeedback_multipleNoSuggestion_bitbucket() throws Exception {
+    assertContents(testCases.get(MULTIPLE_NO_SUGGESTIONS),
+        "PullRequestLineFeedback_multipleNoSuggestions_noHtml.md", SourceControlProvider.BITBUCKET);
+  }
+
+  @Test
+  public void testPullRequestFeedback_multipleWithSuggestion_bitbucket() throws Exception {
+    assertContents(testCases.get(MULTIPLE_WITH_SUGGESTION),
+        "PullRequestLineFeedback_multipleWithSuggestion_noHtml.md", SourceControlProvider.BITBUCKET);
+  }
+
+  @Test
+  public void testPullRequestFeedback_singleNoSuggestion_bitbucket() throws Exception {
+    assertContents(testCases.get(SINGLE_NO_SUGGESTION),
+        "PullRequestLineFeedback_singleNoSuggestions_noHtml.md", SourceControlProvider.BITBUCKET);
+  }
+
+  @Test
+  public void testPullRequestFeedback_singleWithSuggestion_bitbucket() throws Exception {
+    assertContents(testCases.get(SINGLE_WITH_SUGGESTION),
+        "PullRequestLineFeedback_singleWithSuggestion_noHtml.md", SourceControlProvider.BITBUCKET);
   }
 
   @Test
@@ -125,7 +155,7 @@ public class PullRequestLineFeedbackTest
   public void testPullRequestFeedback_emptyViolations() throws Exception {
     assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
       new PullRequestLineFeedback(new ArrayList<>(), "Test Component", lookup(BaseUrl.class).getConfigured(), null)
-          .renderTemplateAndGetContents(true);
+          .renderTemplateAndGetContents(SourceControlProvider.GITHUB);
     }).withMessageContaining("violations cannot be empty");
   }
 
@@ -192,11 +222,11 @@ public class PullRequestLineFeedbackTest
   private void assertContents(
       final PullRequestLineFeedback details,
       final String expectedContentFile,
-      boolean includeEmbeddedHtml)
+      SourceControlProvider provider)
       throws Exception
   {
     final String expectedContent = readResource(expectedContentFile);
-    final Optional<String> contents = details.renderTemplateAndGetContents(includeEmbeddedHtml);
+    final Optional<String> contents = details.renderTemplateAndGetContents(provider);
     assertThat(contents).isNotEmpty();
     assertThat(removeDateFromOutput(contents.get())).isEqualTo(removeDateFromOutput(expectedContent));
   }

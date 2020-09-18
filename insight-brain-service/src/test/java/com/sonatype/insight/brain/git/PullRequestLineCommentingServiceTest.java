@@ -38,7 +38,6 @@ import org.mockito.MockitoAnnotations;
 import static com.sonatype.insight.brain.service.InsightConfig.Feature.GITLAB_LINE_COMMENTING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
@@ -444,7 +443,7 @@ public class PullRequestLineCommentingServiceTest
         }
         
         Optional<String> markup = Optional.of(markupContent);
-        when(mockPullRequestFeedbackMarkupService.createLineMarkup(anyList(), any(), any(), anyBoolean()))
+        when(mockPullRequestFeedbackMarkupService.createLineMarkup(anyList(), any(), any(), any()))
             .thenReturn(markup);
 
         CommentResponse response = new DefaultCommentResponse();

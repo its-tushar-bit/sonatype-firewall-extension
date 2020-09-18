@@ -415,18 +415,24 @@ public class ReportPurgerTest
     // policyEvaluation1 has no report files
     mockReport(policyEvaluation2);
     mockReport(policyEvaluation3);
-    ClusterLock.createForReport(app, policyEvaluation1.getScanId());
-    ClusterLock.createForReport(app, policyEvaluation2.getScanId());
-    ClusterLock.createForReport(app, policyEvaluation3.getScanId());
-    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForReport(app, policyEvaluation1.getScanId()))).isTrue();
-    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForReport(app, policyEvaluation2.getScanId()))).isTrue();
-    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForReport(app, policyEvaluation3.getScanId()))).isTrue();
+    ClusterLock.createForPolicyEvaluation(app, policyEvaluation1.getScanId());
+    ClusterLock.createForPolicyEvaluation(app, policyEvaluation2.getScanId());
+    ClusterLock.createForPolicyEvaluation(app, policyEvaluation3.getScanId());
+    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForPolicyEvaluation(app, policyEvaluation1.getScanId())))
+        .isTrue();
+    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForPolicyEvaluation(app, policyEvaluation2.getScanId())))
+        .isTrue();
+    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForPolicyEvaluation(app, policyEvaluation3.getScanId())))
+        .isTrue();
 
     reportPurger.purgeReports();
 
     assertThat(work.getReportDir(app.getId()).list()).containsExactlyInAnyOrder("report-3");
-    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForReport(app, policyEvaluation1.getScanId()))).isFalse();
-    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForReport(app, policyEvaluation2.getScanId()))).isFalse();
-    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForReport(app, policyEvaluation3.getScanId()))).isTrue();
+    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForPolicyEvaluation(app, policyEvaluation1.getScanId())))
+        .isFalse();
+    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForPolicyEvaluation(app, policyEvaluation2.getScanId())))
+        .isFalse();
+    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForPolicyEvaluation(app, policyEvaluation3.getScanId())))
+        .isTrue();
   }
 }

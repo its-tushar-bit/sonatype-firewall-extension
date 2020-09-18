@@ -490,22 +490,22 @@ public class ClusterLockTest
   }
 
   @Test
-  public void testGetLockIdForReport() {
+  public void testGetLockIdForPolicyEvaluation() {
     Application application = new Application();
     application.setId("appId");
     String scanId = "scanId";
 
-    assertThat(ClusterLock.getLockIdForReport(application, scanId))
-        .isEqualTo(ClusterLock.REPORT_LOCK_PREFIX + application.getId() + "-" + scanId);
+    assertThat(ClusterLock.getLockIdForPolicyEvaluation(application, scanId))
+        .isEqualTo(ClusterLock.POLICY_EVALUATION_LOCK_PREFIX + application.getId() + "-" + scanId);
   }
 
   @Test
-  public void testCreateForReport() {
+  public void testCreateForPolicyEvaluation() {
     Application application = new Application();
     application.setId("appId");
     String scanId = "scanId";
 
-    assertThat(ClusterLock.createForReport(application, scanId).lockId)
-        .isEqualTo(ClusterLock.getLockIdForReport(application, scanId));
+    assertThat(ClusterLock.createForPolicyEvaluation(application, scanId).lockId)
+        .isEqualTo(ClusterLock.getLockIdForPolicyEvaluation(application, scanId));
   }
 }

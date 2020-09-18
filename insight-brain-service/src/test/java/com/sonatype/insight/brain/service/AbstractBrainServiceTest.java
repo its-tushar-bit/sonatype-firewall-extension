@@ -96,7 +96,7 @@ public abstract class AbstractBrainServiceTest
   public TemporaryEntity tempEntity = new TemporaryEntity()
   {
     @Override
-    protected void after() {
+    public void after() {
       super.after();
       afterDatabaseReset();
     }

@@ -45,7 +45,7 @@ public class ClusterLock
   static final String REPOSITORY_REEVALUATION_LOCK_PREFIX = "repository-reevaluation-";
 
   // Visible for testing
-  static final String REPORT_LOCK_PREFIX = "report-";
+  static final String POLICY_EVALUATION_LOCK_PREFIX = "policy-evaluation-";
 
   // Visible for testing
   final String lockId;
@@ -126,24 +126,24 @@ public class ClusterLock
     return REPOSITORY_REEVALUATION_LOCK_PREFIX + repository.getId();
   }
 
-  public static ClusterLock createForReport(Application application, String scanId) {
-    return new ClusterLock(getLockIdForReport(application, scanId));
+  public static ClusterLock createForPolicyEvaluation(Application application, String scanId) {
+    return new ClusterLock(getLockIdForPolicyEvaluation(application, scanId));
   }
 
-  public static void deleteForReport(Application application, String scanId) {
+  public static void deleteForPolicyEvaluation(Application application, String scanId) {
     try (TransactionContext tx = new LockDAO().createTransactionContext()) {
       tx.begin();
-      deleteLock(tx, getLockIdForReport(application, scanId));
+      deleteLock(tx, getLockIdForPolicyEvaluation(application, scanId));
       tx.commit();
     }
   }
 
-  public static void deleteForReports(TransactionContext tx, Application application) {
-    deleteLocksByPrefix(tx, getLockIdForReport(application, ""));
+  public static void deleteForPolicyEvaluations(TransactionContext tx, Application application) {
+    deleteLocksByPrefix(tx, getLockIdForPolicyEvaluation(application, ""));
   }
 
-  public static String getLockIdForReport(Application application, String scanId) {
-    return REPORT_LOCK_PREFIX + application.getId() + "-" + scanId;
+  public static String getLockIdForPolicyEvaluation(Application application, String scanId) {
+    return POLICY_EVALUATION_LOCK_PREFIX + application.getId() + "-" + scanId;
   }
 
   public void lock() {

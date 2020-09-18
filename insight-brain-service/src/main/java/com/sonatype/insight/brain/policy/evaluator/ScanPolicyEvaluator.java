@@ -189,47 +189,51 @@ public class ScanPolicyEvaluator
 
     AuditData.get().setStageId(stage.getStageTypeId());
 
-    final File reportFile = reportService.fetchReport(application, scanId);
+    try (ClusterLock clusterLock = ClusterLock.createForPolicyEvaluation(application, scanId)) {
+      clusterLock.lock();
+      final File reportFile = reportService.fetchReport(application, scanId);
 
-    final ReportEntry licenseReportEntry = Report.getEntry(reportFile, Report.LICENSES_JSON_FILENAME);
-    final ReportEntry securityReportEntry = Report.getEntry(reportFile, Report.SECURITY_JSON_FILENAME);
-    final ReportEntry bomReportEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
-    final ReportEntry dependenciesReportEntry = Report.getEntry(reportFile, Report.DEPENDENCIES_JSON_FILENAME);
+      final ReportEntry licenseReportEntry = Report.getEntry(reportFile, Report.LICENSES_JSON_FILENAME);
+      final ReportEntry securityReportEntry = Report.getEntry(reportFile, Report.SECURITY_JSON_FILENAME);
+      final ReportEntry bomReportEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
+      final ReportEntry dependenciesReportEntry = Report.getEntry(reportFile, Report.DEPENDENCIES_JSON_FILENAME);
 
-    if (bomReportEntry == null || securityReportEntry == null || licenseReportEntry == null ||
-        dependenciesReportEntry == null) {
-      throw new BadRequestException("Unable to evaluate policy, the scan " + scanId + " could not be processed.");
+      if (bomReportEntry == null || securityReportEntry == null || licenseReportEntry == null
+          || dependenciesReportEntry == null) {
+        throw new BadRequestException("Unable to evaluate policy, the scan " + scanId + " could not be processed.");
+      }
+
+      // Load data about components
+      final List<Component> components = new ComponentDAO(application).getAll(licenseReportEntry.buf,
+          securityReportEntry.buf, bomReportEntry.buf, dependenciesReportEntry.buf);
+
+      sendApplicationStageComponentCounts(application.getId(), stage.getStageTypeId(), components);
+
+      // Evaluate the policies
+      String appId = application.getId();
+      List<Policy> policies = new PolicyDAO().getApplicableByOwnerIdWithHierarchy(appId);
+      PolicyResults policyResults =
+          componentPolicyEvaluator.evaluate(appId, stage, policies, components, forMonitoring);
+
+      PolicyViolationTelemetryCollector telemetryCollector =
+          new PolicyViolationTelemetryCollector(sourceControlUtils.isScmEnabled(appId));
+
+      String commitHash = extractCommitHash(Report.getEntry(reportFile, Report.DATA_JSON_FILENAME));
+
+      // Save the policy evaluation and violations
+      ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = processPolicyResults(application, scanId, stage, policies,
+          forMonitoring, policyResults, components, telemetryCollector, commitHash);
+
+      telemetrySender.send(telemetryCollector.getTelemetryData());
+
+      sendGrandfatheredViolationTelemetryData(application.getId(), scanPolicyEvaluatorResults.allViolations);
+
+      updateReportFiles(reportFile, scanPolicyEvaluatorResults, stage, forMonitoring);
+
+      postEvents(scanPolicyEvaluatorResults, commitHash, application);
+
+      return scanPolicyEvaluatorResults;
     }
-
-    // Load data about components
-    final List<Component> components = new ComponentDAO(application)
-        .getAll(licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf, dependenciesReportEntry.buf);
-
-    sendApplicationStageComponentCounts(application.getId(), stage.getStageTypeId(), components);
-
-    // Evaluate the policies
-    String appId = application.getId();
-    List<Policy> policies = new PolicyDAO().getApplicableByOwnerIdWithHierarchy(appId);
-    PolicyResults policyResults = componentPolicyEvaluator.evaluate(appId, stage, policies, components, forMonitoring);
-
-    PolicyViolationTelemetryCollector telemetryCollector
-        = new PolicyViolationTelemetryCollector(sourceControlUtils.isScmEnabled(appId));
-
-    String commitHash = extractCommitHash(Report.getEntry(reportFile, Report.DATA_JSON_FILENAME));
-
-    // Save the policy evaluation and violations
-    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = processPolicyResults(application, scanId, stage, policies,
-        forMonitoring, policyResults, components, telemetryCollector, commitHash);
-
-    telemetrySender.send(telemetryCollector.getTelemetryData());
-
-    sendGrandfatheredViolationTelemetryData(application.getId(), scanPolicyEvaluatorResults.allViolations);
-
-    updateReportFiles(reportFile, scanPolicyEvaluatorResults, stage, forMonitoring);
-
-    postEvents(scanPolicyEvaluatorResults, commitHash, application);
-
-    return scanPolicyEvaluatorResults;
   }
 
   private List<PolicyAlert> createPolicyAlerts(

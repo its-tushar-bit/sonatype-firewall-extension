@@ -24,7 +24,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -86,25 +85,23 @@ public class ReportService
   {
     String appId = app.getId();
     final File reportFile = work.getReportFile(appId, scanId);
-    try (ClusterLock clusterLock = ClusterLock.createForReport(app, scanId)) {
-      clusterLock.lock();
-      if (!reportFile.exists()) {
-        int reportTimeoutInSeconds = insightConfig.getReportTimeoutInSeconds();
-        final File tempFile = FileUtils.createTempFile("temp-", ".zip", reportFile.getParentFile());
-        if (!reportDownloader.downloadReport(scanId, tempFile, reportTimeoutInSeconds, 5)) {
-          throw new NotFoundException("Could not download the report for scan ID " + scanId);
-        }
-        processThirdPartyData(scanId, tempFile);
-        FileUtils.rename(tempFile, reportFile);
+    if (!reportFile.exists()) {
+      int reportTimeoutInSeconds = insightConfig.getReportTimeoutInSeconds();
+      final File tempFile = FileUtils.createTempFile("temp-", ".zip", reportFile.getParentFile());
+      if (!reportDownloader.downloadReport(scanId, tempFile, reportTimeoutInSeconds, 5)) {
+        throw new NotFoundException("Could not download the report for scan ID " + scanId);
       }
-
-      boolean isEnableInnerSource = insightConfig.getExperimentalFeatures() != null &&
-          !insightConfig.getExperimentalFeatures().isEmpty() ? insightConfig.getExperimentalFeatures().getOrDefault(
-          Feature.INNER_SOURCE.getFlag(), false) : false;
-      Report.applyChanges(app, reportFile, isEnableInnerSource);
-
-      return reportFile;
+      processThirdPartyData(scanId, tempFile);
+      FileUtils.rename(tempFile, reportFile);
     }
+
+    boolean isEnableInnerSource =
+        insightConfig.getExperimentalFeatures() != null && !insightConfig.getExperimentalFeatures().isEmpty()
+            ? insightConfig.getExperimentalFeatures().getOrDefault(Feature.INNER_SOURCE.getFlag(), false)
+            : false;
+    Report.applyChanges(app, reportFile, isEnableInnerSource);
+
+    return reportFile;
   }
 
   //visible for testing

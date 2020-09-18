@@ -318,7 +318,7 @@ public class ReportPurger
   private boolean purgeReport(Application application, String reportId) throws IOException {
     Path reportDir = work.getReportDir(application.getId(), reportId).toPath();
     if (!Files.exists(reportDir)) {
-      ClusterLock.deleteForReport(application, reportId);
+      ClusterLock.deleteForPolicyEvaluation(application, reportId);
       return false;
     }
     List<Path> reportFiles;
@@ -363,7 +363,7 @@ public class ReportPurger
       Files.delete(reportFile);
     }
 
-    ClusterLock.deleteForReport(application, reportId);
+    ClusterLock.deleteForPolicyEvaluation(application, reportId);
     log.info("Purged report {} from application {} to {}", reportDir, application.getName(), trashFile);
     return true;
   }

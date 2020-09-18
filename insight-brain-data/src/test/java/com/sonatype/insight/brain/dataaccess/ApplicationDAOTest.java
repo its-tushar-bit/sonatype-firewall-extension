@@ -888,12 +888,13 @@ public class ApplicationDAOTest
     String scanId1 = "scanId1";
     String scanId2 = "scanId2";
     String scanId3 = "scanId3";
-    ClusterLock.createForReport(application, scanId1);
-    ClusterLock.createForReport(application, scanId2);
-    ClusterLock.createForReport(otherApplication, scanId3);
-    assertThat(ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForReport(application, scanId1))).isNotNull();
-    assertThat(ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForReport(application, scanId2))).isNotNull();
-    assertThat(ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForReport(otherApplication, scanId3))).isNotNull();
+    ClusterLock.createForPolicyEvaluation(application, scanId1);
+    ClusterLock.createForPolicyEvaluation(application, scanId2);
+    ClusterLock.createForPolicyEvaluation(otherApplication, scanId3);
+    assertThat(ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForPolicyEvaluation(application, scanId1))).isNotNull();
+    assertThat(ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForPolicyEvaluation(application, scanId2))).isNotNull();
+    assertThat(ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForPolicyEvaluation(otherApplication, scanId3)))
+        .isNotNull();
 
     applicationDAO.delete(application);
 
@@ -902,9 +903,10 @@ public class ApplicationDAOTest
         .isNull();
     assertThat(ClusterLock.LOCKS_BY_ID
         .get(ClusterLock.getLockIdForPolicyViolationAggregations(application.getId()))).isNull();
-    assertThat(ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForReport(application, scanId1))).isNull();
-    assertThat(ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForReport(application, scanId2))).isNull();
-    assertThat(ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForReport(otherApplication, scanId3))).isNotNull();
+    assertThat(ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForPolicyEvaluation(application, scanId1))).isNull();
+    assertThat(ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForPolicyEvaluation(application, scanId2))).isNull();
+    assertThat(ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForPolicyEvaluation(otherApplication, scanId3)))
+        .isNotNull();
   }
 
   @Test
@@ -934,21 +936,21 @@ public class ApplicationDAOTest
       String scanId1 = "scanId1";
       String scanId2 = "scanId2";
       String scanId3 = "scanId3";
-      ClusterLock.createForReport(application, scanId1);
-      ClusterLock.createForReport(application, scanId2);
-      ClusterLock.createForReport(otherApplication, scanId3);
-      assertThat(dao.getById(ClusterLock.getLockIdForReport(application, scanId1))).isNotNull();
-      assertThat(dao.getById(ClusterLock.getLockIdForReport(application, scanId2))).isNotNull();
-      assertThat(dao.getById(ClusterLock.getLockIdForReport(otherApplication, scanId3))).isNotNull();
+      ClusterLock.createForPolicyEvaluation(application, scanId1);
+      ClusterLock.createForPolicyEvaluation(application, scanId2);
+      ClusterLock.createForPolicyEvaluation(otherApplication, scanId3);
+      assertThat(dao.getById(ClusterLock.getLockIdForPolicyEvaluation(application, scanId1))).isNotNull();
+      assertThat(dao.getById(ClusterLock.getLockIdForPolicyEvaluation(application, scanId2))).isNotNull();
+      assertThat(dao.getById(ClusterLock.getLockIdForPolicyEvaluation(otherApplication, scanId3))).isNotNull();
 
       applicationDAO.delete(application);
 
       assertThat(dao.getById(ClusterLock.getLockIdForPolicyViolations(application))).isNull();
       assertThat(dao.getById(ClusterLock.getLockIdForPolicyViolationAggregations(application.getId())))
           .isNull();
-      assertThat(dao.getById(ClusterLock.getLockIdForReport(application, scanId1))).isNull();
-      assertThat(dao.getById(ClusterLock.getLockIdForReport(application, scanId2))).isNull();
-      assertThat(dao.getById(ClusterLock.getLockIdForReport(otherApplication, scanId3))).isNotNull();
+      assertThat(dao.getById(ClusterLock.getLockIdForPolicyEvaluation(application, scanId1))).isNull();
+      assertThat(dao.getById(ClusterLock.getLockIdForPolicyEvaluation(application, scanId2))).isNull();
+      assertThat(dao.getById(ClusterLock.getLockIdForPolicyEvaluation(otherApplication, scanId3))).isNotNull();
     }
     finally {
       DataSourceFactory.clear_ForTestsOnly();

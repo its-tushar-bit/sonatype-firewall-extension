@@ -32,6 +32,8 @@ import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.scan.model.ClientScanResult;
 import com.sonatype.insight.scan.model.ClientScanType;
 
+import org.apache.openjpa.persistence.RollbackException;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
@@ -56,6 +58,27 @@ public class PolicyClientTest
   @Before
   public void setup() {
     insightWork = getCLMServer().getInstance(InsightWork.class);
+  }
+
+  @After
+  public void after() throws InterruptedException {
+    // We need to do this special cleanup because these tests start async policy evaluations but they don't wait for the
+    // policy evaluations to finish.
+    // This means the tests usually finish before the policy evaluations finish, which creates a race condition with the
+    // TemporaryEntity cleanup.
+    long start = System.currentTimeMillis();
+    while (true) {
+      try {
+        tempEntity.after();
+        return;
+      }
+      catch (RollbackException e) {
+        if (System.currentTimeMillis() - start > 10000) {
+          throw e;
+        }
+        Thread.sleep(50);
+      }
+    }
   }
 
   @Test

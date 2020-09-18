@@ -359,7 +359,7 @@ public class ApplicationDAO
     // Cascade to locks
     ClusterLock.deleteForPolicyViolations(tx, application);
     ClusterLock.deleteForPolicyViolationAggregations(tx, application.getId());
-    ClusterLock.deleteForReports(tx, application);
+    ClusterLock.deleteForPolicyEvaluations(tx, application);
 
     // Cascade to Inner Source components
     InnerSourceComponentDAO innerSourceComponentDAO = new InnerSourceComponentDAO();

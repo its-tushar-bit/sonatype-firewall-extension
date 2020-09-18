@@ -182,6 +182,7 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.collect.Table;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.apache.openjpa.enhance.PersistenceCapable;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
 import org.joda.time.LocalDate;
@@ -463,7 +464,7 @@ public class TemporaryEntity
   }
 
   @Override
-  protected void after() {
+  public void after() {
     automaticApplicationsConfigurationDAO.setEnabled(false);
     automaticApplicationsConfigurationDAO.setOrganizationId("");
     systemConfigurationPropertyDAO.update(new SystemConfigurationProperty("SUCCESS_METRICS_ENABLED", "true"));
@@ -514,6 +515,7 @@ public class TemporaryEntity
       proprietaryConfigDAO.delete(config);
     }
     migrationTrackerDAO.getAll().forEach(migrationTrackerDAO::delete);
+    migrationTrackers.forEach(this::detachEntity);
     migrationTrackers.forEach(migrationTrackerDAO::insert);
     searchIndexChangeDAO.getAll().forEach(searchIndexChangeDAO::delete);
     cleanupPersistedUserSessions();
@@ -543,6 +545,12 @@ public class TemporaryEntity
         systemConfigurationPropertyDAO.delete(property);
       }
     }
+  }
+
+  private <E> void detachEntity(E entity) {
+    PersistenceCapable pc = (PersistenceCapable) entity;
+    pc.pcSetDetachedState(null);
+    pc.pcReplaceStateManager(null);
   }
 
   public void initializePersistedUserSessions() {

@@ -6,7 +6,6 @@
 package com.sonatype.insight.scan.cli;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -63,7 +62,6 @@ import org.owasp.dependencycheck.utils.Settings.KEYS;
 
 import static com.sonatype.insight.scan.cli.ExpandedCoveragePolicyEvaluator.EXPANDED_COVERAGE_SCAN_DISCLAIMER;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -74,7 +72,7 @@ public class ExpandedCoveragePolicyEvaluatorTest
     extends AbstractPolicyEvaluatorTest
 {
   @Inject
-  private ExpandedCoveragePolicyEvaluator evaluator;
+  protected ExpandedCoveragePolicyEvaluator evaluator;
 
   private RestClientFactory restClientFactory = mock(RestClientFactory.class);
 
@@ -85,6 +83,11 @@ public class ExpandedCoveragePolicyEvaluatorTest
 
   private String getDependencyName(Dependency dependency) {
     return dependency.getDisplayFileName().replace('\\', '/');
+  }
+
+  @Override
+  protected PolicyEvaluatorTestRunner withTestRunner(final Parameters params) {
+    return new PolicyEvaluatorTestRunner(params, evaluator, logOutput);
   }
 
   @Test
@@ -146,7 +149,7 @@ public class ExpandedCoveragePolicyEvaluatorTest
   }
 
   @Test
-  public void testRun_ExpandedCoverage() throws IOException, ExitException {
+  public void testRun_ExpandedCoverage() throws Exception {
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "-a", "user:pass",
         "src/test/data/artifact.jar");
     RestClient restClient = mock(RestClient.class);
@@ -154,7 +157,8 @@ public class ExpandedCoveragePolicyEvaluatorTest
     when(restClient.verifyOrCreateApplication("the-app-id")).thenReturn(true);
     when(restClient.uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.EXPANDED_COVERAGE)))
         .thenReturn(newReceipt());
-    evaluator.run(params);
+    withTestRunner(params)
+        .doPolicyEvaluationRun();
     verify(restClient).uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.EXPANDED_COVERAGE));
     verify(restClient).prepareExpandedCoverageReport(eq("the-app-id"), eq("the-scan-id"));
   }
@@ -235,22 +239,17 @@ public class ExpandedCoveragePolicyEvaluatorTest
   }
 
   private List<Dependency> testScan(String scanTarget) throws Exception {
-    return testScan(scanTarget, evaluator);
-  }
-
-  private List<Dependency> testScan(String scanTarget, ExpandedCoveragePolicyEvaluator evaluator) throws Exception {
     Parameters params = new Parameters("-o", tmpDir.newFolder().getAbsolutePath(),
-        getClass().getResource("/" + getClass().getSimpleName() + "/" + scanTarget).getFile());
+        getClass().getResource("/" + getTestClassName() + "/" + scanTarget).getFile());
 
     RestClient restClient = mock(RestClient.class);
 
-    ClientScanResult clientScanResult = evaluator.scan(params, new ProprietaryConfig(), restClient);
-
-    assertThat(logOutput)
+    ClientScanResult clientScanResult = withTestRunner(params)
         // Assert that the disclaimer banner is logged
-        .atInfoLevel().contains(EXPANDED_COVERAGE_SCAN_DISCLAIMER)
+        .expectInfoLog(EXPANDED_COVERAGE_SCAN_DISCLAIMER)
         // Assert applied client settings are logged in debug move
-        .atDebugLevel().contains("Setting: " + KEYS.ANALYZER_EXPERIMENTAL_ENABLED + "='true'");
+        .expectDebugLog("Setting: " + KEYS.ANALYZER_EXPERIMENTAL_ENABLED + "='true'")
+        .doPolicyEvaluationScan(new ProprietaryConfig(), restClient);
 
     Scan scan = scanReader.read(clientScanResult.getScanFile());
 
@@ -327,7 +326,7 @@ public class ExpandedCoveragePolicyEvaluatorTest
     when(restClient.verifyOrCreateApplication("non-existent-app-public-id")).thenReturn(true);
     when(restClient.uploadScan(eq("non-existent-app-public-id"), any(File.class), eq(ClientScanType.EXPANDED_COVERAGE)))
         .thenReturn(newReceipt());
-    evaluator.run(params);
+    withTestRunner(params).doPolicyEvaluationRun();
     verify(restClient)
         .uploadScan(eq("non-existent-app-public-id"), any(File.class), eq(ClientScanType.EXPANDED_COVERAGE));
     verify(restClient).prepareExpandedCoverageReport(eq("non-existent-app-public-id"), eq("the-scan-id"));
@@ -342,10 +341,10 @@ public class ExpandedCoveragePolicyEvaluatorTest
     when(restClient.verifyOrCreateApplication("non-existent-app-public-id")).thenReturn(false);
     when(restClient.uploadScan(eq("non-existent-app-public-id"), any(File.class), eq(ClientScanType.EXPANDED_COVERAGE)))
         .thenReturn(newReceipt());
-    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
-      evaluator.run(params);
-    });
-    assertThat(logOutput).atErrorLevel().contains("The application ID non-existent-app-public-id is invalid.");
+    withTestRunner(params)
+        .expectFailExit()
+        .expectErrorLog("The application ID non-existent-app-public-id is invalid.")
+        .doPolicyEvaluationRun();
   }
 
   private List<Class<?>> getEnabledAnalyzers() throws Exception {
@@ -370,5 +369,9 @@ public class ExpandedCoveragePolicyEvaluatorTest
       }
     }
     return analyzers;
+  }
+
+  protected String getTestClassName() {
+    return getClass().getSimpleName();
   }
 }

@@ -30,7 +30,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @RunWith(Parameterized.class)
 public class DefaultPolicyEvaluatorReverseProxyAuthTest
@@ -75,14 +74,18 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
         "the-app-id", "src/test/data/artifact.jar");
 
     if (rutEnabled) {
-      evaluator.run(params);
-      assertLogSummary(newPolicyEvaluationResultWithOneComponent());
+      withTestRunner(params)
+          .expectPolicyEvaluationResult(newPolicyEvaluationResultWithOneComponent())
+          .doPolicyEvaluationRun();
     }
     else {
-      assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
-        evaluator.run(params);
-      }).withCauseInstanceOf(HttpResponseException.class).satisfies(
-          e -> assertThat(e.getCause().getMessage()).isEqualTo(ErrorResponseGenerator.MSG_MISSING_CREDENTIALS));
+      withTestRunner(params)
+          .expectFailExit()
+          .expectException(result -> {
+            result.withCauseInstanceOf(HttpResponseException.class).satisfies(
+                e -> assertThat(e.getCause().getMessage()).isEqualTo(ErrorResponseGenerator.MSG_MISSING_CREDENTIALS));
+          })
+          .doPolicyEvaluationRun();
     }
   }
 
@@ -93,16 +96,22 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
     Parameters params = new Parameters("-s", reverseProxy.getSslUrl(), "-a", "mrbasic:secret", "-i",
         "another_app", "src/test/data/artifact.jar");
 
-    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
-      evaluator.run(params);
-    }).withCauseInstanceOf(HttpResponseException.class)
-        .satisfies(e -> assertThat(e.getCause().getMessage()).isEqualTo("Invalid credentials. Please try again."));
+    withTestRunner(params)
+        .expectFailExit()
+        .expectException(result -> {
+          result
+              .withCauseInstanceOf(HttpResponseException.class)
+              .satisfies(
+                  e -> assertThat(e.getCause().getMessage()).isEqualTo("Invalid credentials. Please try again."));
+        })
+        .doPolicyEvaluationRun();
 
     // same, but with good credentials
     createAppAndAuthorizedUser("another_app", "mrbasic", "secret");
 
-    evaluator.run(params);
-    assertLogSummary(newPolicyEvaluationResultWithOneComponent());
+    withTestRunner(params)
+        .expectPolicyEvaluationResult(newPolicyEvaluationResultWithOneComponent())
+        .doPolicyEvaluationRun();
   }
 
   private PolicyEvaluationResult newPolicyEvaluationResultWithOneComponent() {
@@ -117,10 +126,15 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
     tempEntity.newApplication("yet_another", Organization.ROOT_ORGANIZATION_ID);
     Parameters params = new Parameters("-s", reverseProxy.getSslUrl(), "-i", "yet_another",
         "src/test/data/artifact.jar");
-    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
-      evaluator.run(params);
-    }).withCauseInstanceOf(HttpResponseException.class).satisfies(
-        e -> assertThat(e.getCause().getMessage()).isEqualTo(ErrorResponseGenerator.MSG_MISSING_CREDENTIALS));
+    withTestRunner(params)
+        .expectFailExit()
+        .expectException(result -> {
+          result
+              .withCauseInstanceOf(HttpResponseException.class)
+              .satisfies(
+                  e -> assertThat(e.getCause().getMessage()).isEqualTo(ErrorResponseGenerator.MSG_MISSING_CREDENTIALS));
+        })
+        .doPolicyEvaluationRun();
   }
 
   @Override

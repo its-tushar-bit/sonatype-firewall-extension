@@ -14,7 +14,6 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
-import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
@@ -22,9 +21,11 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseDetailsCache;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.product.license.TestProductLicenseDetailsCache;
+import com.sonatype.insight.brain.scan.Scanner;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestCLMServer;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
+import com.sonatype.insight.scan.cli.nativeimage.DefaultPolicyEvaluatorTestForNativeImageConfigGeneration;
 import com.sonatype.insight.scan.model.io.ScanReader;
 import com.sonatype.insight.test.InjectedTest;
 import com.sonatype.insight.test.LogOutput;
@@ -40,18 +41,16 @@ import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.owasp.dependencycheck.Engine;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 public abstract class AbstractPolicyEvaluatorTest
     extends InjectedTest
 {
+  protected static TestCLMServer testInsightServer;
+
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
 
   @Rule
   public TemporaryFolder tmpDir = new TemporaryFolder();
-
-  protected static TestCLMServer testInsightServer;
 
   @Rule
   public LogOutput logOutput = new LogOutput(1, AbstractPolicyEvaluatorTest.class, Engine.class);
@@ -63,6 +62,35 @@ public abstract class AbstractPolicyEvaluatorTest
   protected ScanReader scanReader;
 
   protected String insightServerUrl;
+
+  @AfterClass
+  public static void afterClass() throws Exception {
+    stopInsightServer();
+  }
+
+  protected static void stopInsightServer() throws Exception {
+    if (testInsightServer == null) {
+      return;
+    }
+
+    testInsightServer.stop();
+    testInsightServer = null;
+  }
+
+  /**
+   * The TestRunner class is responsible for executing the actual test against the subject with the given parameters,
+   * and asserting the results such as exit code/exception, log output, etc...
+   * Implementations:
+   * <ul>
+   *   <li>{@link PolicyEvaluatorTestRunner} is the main implementation for normal unit tests</li>
+   *   <li>{@link DefaultPolicyEvaluatorTestForNativeImageConfigGeneration} is the implementation for generating config
+   *   files for the native image tooling</li>
+   *   <li>TODO {@link TBD} is the implementation for testing the native image binaries</li>
+   * </ul>
+   */
+  protected PolicyEvaluatorTestRunner withTestRunner(final Parameters params) {
+    return new PolicyEvaluatorTestRunner(params, evaluator, logOutput);
+  }
 
   @Override
   @Before
@@ -86,11 +114,6 @@ public abstract class AbstractPolicyEvaluatorTest
         .atUri("rest/application/analysis/SCAN-ID");
 
     insightServerUrl = testInsightServer.getCLMServer().getClientConfiguration().getServerUrl();
-  }
-
-  @AfterClass
-  public static void afterClass() throws Exception {
-    stopInsightServer();
   }
 
   protected void startInsightServer() throws Exception {
@@ -117,18 +140,11 @@ public abstract class AbstractPolicyEvaluatorTest
         bind(ProductLicenseDetailsCache.class).to(TestProductLicenseDetailsCache.class);
         bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
         bind(LicenseFingerprinter.class).to(TestLicenseFingerprinter.class);
+        // unable to bind this class automatically during startup
+        bind(Scanner.class).toInstance(new Scanner(null, null, null, null, null));
       }
     };
     return Arrays.asList(testModule);
-  }
-
-  protected static void stopInsightServer() throws Exception {
-    if (testInsightServer == null) {
-      return;
-    }
-
-    testInsightServer.stop();
-    testInsightServer = null;
   }
 
   protected ScanReceipt newReceipt() {
@@ -147,21 +163,5 @@ public abstract class AbstractPolicyEvaluatorTest
     ApplicationSummaryList appSummaryList = new ApplicationSummaryList();
     appSummaryList.getApplicationSummaries().add(appSummary);
     return appSummaryList;
-  }
-
-  protected void assertLogSummary(PolicyEvaluationResult expectedPolicyEvalutionResult) {
-    assertThat(logOutput).atInfoLevel()
-        .contains(String.format("Number of components affected: %s critical, %s severe, %s moderate",
-            expectedPolicyEvalutionResult.getCriticalComponentCount(),
-            expectedPolicyEvalutionResult.getSevereComponentCount(),
-            expectedPolicyEvalutionResult.getModerateComponentCount()))
-        .contains(String.format("Number of open policy violations: %s critical, %s severe, %s moderate",
-            expectedPolicyEvalutionResult.getCriticalPolicyViolationCount(),
-            expectedPolicyEvalutionResult.getSeverePolicyViolationCount(),
-            expectedPolicyEvalutionResult.getModeratePolicyViolationCount()))
-        .contains(String.format("Number of grandfathered policy violations: %s",
-            expectedPolicyEvalutionResult.getGrandfatheredPolicyViolationCount()))
-        .contains(String.format("Number of components: %s",
-            expectedPolicyEvalutionResult.getTotalComponentCount()));
   }
 }

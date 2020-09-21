@@ -230,6 +230,30 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <includes>
+            <include>**/*ForNativeImageConfigGeneration.java</include>
+          </includes>
+          <additionalClasspathElements>
+            <!-- failsafe normally works against the target JAR, which is obfuscated at this point in the reactor -->
+            <!-- in order to use the non-obfuscated classes in the parent test classes of the native image 'tests', -->
+            <!-- we need to put the regular classes back on the classpath -->
+            <additionalClasspathElement>${project.build.outputDirectory}</additionalClasspathElement>
+          </additionalClasspathElements>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
     </plugins>
   </build>
 

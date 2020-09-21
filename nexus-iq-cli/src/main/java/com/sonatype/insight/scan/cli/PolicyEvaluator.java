@@ -18,7 +18,7 @@ import com.sonatype.insight.scan.model.ClientScanType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-abstract class PolicyEvaluator<P extends AbstractCliParameters>
+public abstract class PolicyEvaluator<P extends AbstractCliParameters>
     extends AbstractPolicyEvaluator<P>
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyEvaluator.class);

@@ -44,7 +44,6 @@ import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class DefaultPolicyEvaluatorTest
     extends AbstractPolicyEvaluatorTest
@@ -61,10 +60,10 @@ public class DefaultPolicyEvaluatorTest
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
-    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
-      evaluator.run(params);
-    });
-    assertThat(logOutput).atErrorLevel().contains("The IQ Server " + insightServerUrl + " could not be contacted");
+    withTestRunner(params)
+        .expectFailExit()
+        .expectErrorLog("The IQ Server " + insightServerUrl + " could not be contacted")
+        .doPolicyEvaluationRun();
   }
 
   @Test
@@ -72,10 +71,10 @@ public class DefaultPolicyEvaluatorTest
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
-    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
-      evaluator.run(params);
-    });
-    assertThat(logOutput).atErrorLevel().contains("The application ID the-app-id is invalid.");
+    withTestRunner(params)
+        .expectFailExit()
+        .expectErrorLog("The application ID the-app-id is invalid.")
+        .doPolicyEvaluationRun();
   }
 
   @Test
@@ -83,11 +82,10 @@ public class DefaultPolicyEvaluatorTest
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "user:pass", //
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
-    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
-      evaluator.run(params);
-    });
-    assertThat(logOutput).atErrorLevel()
-        .contains("The IQ Server " + insightServerUrl + " rejected the supplied credentials.");
+    withTestRunner(params)
+        .expectFailExit()
+        .expectErrorLog("The IQ Server " + insightServerUrl + " rejected the supplied credentials.")
+        .doPolicyEvaluationRun();
   }
 
   @Test
@@ -97,10 +95,10 @@ public class DefaultPolicyEvaluatorTest
         "-a", "user:" + TemporaryEntity.USER_PASSWORD_CLEAR, //
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
-    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
-      evaluator.run(params);
-    });
-    assertThat(logOutput).atErrorLevel().contains("The application ID the-app-id is invalid.");
+    withTestRunner(params)
+        .expectFailExit()
+        .expectErrorLog("The application ID the-app-id is invalid.")
+        .doPolicyEvaluationRun();
   }
 
   @Test
@@ -108,11 +106,11 @@ public class DefaultPolicyEvaluatorTest
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "user:pass", "--pki-authentication", //
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
-    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
-      evaluator.run(params);
-    });
-    assertThat(logOutput).atErrorLevel().contains("Only one mode of authentication can be enabled at a time"
-        + ", --authentication and --pki-authentication are mutually exclusive.");
+    withTestRunner(params)
+        .expectFailExit()
+        .expectErrorLog("Only one mode of authentication can be enabled at a time"
+            + ", --authentication and --pki-authentication are mutually exclusive.")
+        .doPolicyEvaluationRun();
   }
 
   @Test
@@ -120,12 +118,10 @@ public class DefaultPolicyEvaluatorTest
     Parameters params = new Parameters("-s", insightServerUrl, "--pki-authentication", //
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
-
-    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
-      evaluator.run(params);
-    });
-    assertThat(logOutput).atErrorLevel()
-        .contains("The IQ Server " + insightServerUrl + " rejected the supplied credentials.");
+    withTestRunner(params)
+        .expectFailExit()
+        .expectErrorLog("The IQ Server " + insightServerUrl + " rejected the supplied credentials.")
+        .doPolicyEvaluationRun();
   }
 
   @Test
@@ -135,8 +131,9 @@ public class DefaultPolicyEvaluatorTest
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
-    evaluator.run(params);
-    assertLogSummary(newPolicyEvaluationResultForOneComponent());
+    withTestRunner(params)
+        .expectPolicyEvaluationResult(newPolicyEvaluationResultForOneComponent())
+        .doPolicyEvaluationRun();
   }
 
   @Test
@@ -147,14 +144,16 @@ public class DefaultPolicyEvaluatorTest
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
-    evaluator.run(params);
 
-    assertThat(logOutput).atInfoLevel().contains("Policy Action: Warning");
     PolicyEvaluationResult expectedPolicyEvaluationResult = newPolicyEvaluationResultForOneComponent();
     expectedPolicyEvaluationResult.setCriticalComponentCount(4);
     expectedPolicyEvaluationResult.setCriticalPolicyViolationCount(4);
-    assertLogSummary(expectedPolicyEvaluationResult);
-    assertThat(logOutput).atWarnLevel().contains("The IQ Server reports policy warning due to \nPolicy(Policy Name)");
+
+    withTestRunner(params)
+        .expectInfoLog("Policy Action: Warning")
+        .expectWarnLog("The IQ Server reports policy warning due to \nPolicy(Policy Name)")
+        .expectPolicyEvaluationResult(expectedPolicyEvaluationResult)
+        .doPolicyEvaluationRun();
   }
 
   @Test
@@ -168,20 +167,20 @@ public class DefaultPolicyEvaluatorTest
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
 
-    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
-      evaluator.run(params);
-    }).satisfies(e -> assertThat(e.getExitCode()).isOne());
-    assertThat(logOutput).atInfoLevel().contains("Policy Action: Failure");
     PolicyEvaluationResult expectedPolicyEvaluationResult = newPolicyEvaluationResultForOneComponent();
     expectedPolicyEvaluationResult.setCriticalComponentCount(4);
     expectedPolicyEvaluationResult.setCriticalPolicyViolationCount(4);
     expectedPolicyEvaluationResult.setSeverePolicyViolationCount(4);
     expectedPolicyEvaluationResult.setModeratePolicyViolationCount(4);
-    assertLogSummary(expectedPolicyEvaluationResult);
-    assertThat(logOutput) //
-        .atWarnLevel().contains("The IQ Server reports policy warning due to \nPolicy(Policy 1)") //
-        .atErrorLevel().contains("The IQ Server reports policy failing due to \nPolicy(Policy 2)") //
-        .atWarnLevel().contains("The IQ Server reports policy warning due to \nPolicy(Policy 3)");
+
+    withTestRunner(params)
+        .expectFailExit()
+        .expectInfoLog("Policy Action: Failure")
+        .expectPolicyEvaluationResult(expectedPolicyEvaluationResult)
+        .expectWarnLog("The IQ Server reports policy warning due to \nPolicy(Policy 1)") //
+        .expectErrorLog("The IQ Server reports policy failing due to \nPolicy(Policy 2)") //
+        .expectWarnLog("The IQ Server reports policy warning due to \nPolicy(Policy 3)")
+        .doPolicyEvaluationRun();
   }
 
   @Test
@@ -192,24 +191,26 @@ public class DefaultPolicyEvaluatorTest
     Parameters params1 = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
-    evaluator.run(params1);
-    assertThat(logOutput).atInfoLevel().contains("Policy Action: Warning");
+
     PolicyEvaluationResult expectedPolicyEvaluationResult = newPolicyEvaluationResultForOneComponent();
     expectedPolicyEvaluationResult.setCriticalComponentCount(4);
     expectedPolicyEvaluationResult.setCriticalPolicyViolationCount(4);
-    assertLogSummary(expectedPolicyEvaluationResult);
-    assertThat(logOutput).atWarnLevel().contains("The IQ Server reports policy warning due to \nPolicy(TestPolicy)");
+
+    withTestRunner(params1)
+        .expectInfoLog("Policy Action: Warning")
+        .expectPolicyEvaluationResult(expectedPolicyEvaluationResult)
+        .expectWarnLog("The IQ Server reports policy warning due to \nPolicy(TestPolicy)");
 
     logOutput.clear();
 
     Parameters params2 = new Parameters(
         Stream.concat(Stream.of("-w"), Stream.of(params1.getArgs())).toArray(String[]::new));
-    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
-      evaluator.run(params2);
-    }).satisfies(e -> assertThat(e.getExitCode()).isOne());
-    assertThat(logOutput).atInfoLevel().contains("Policy Action: Warning");
-    assertLogSummary(expectedPolicyEvaluationResult);
-    assertThat(logOutput).atWarnLevel().contains("The IQ Server reports policy warning due to \nPolicy(TestPolicy)");
+    withTestRunner(params2)
+        .expectFailExit()
+        .expectInfoLog("Policy Action: Warning")
+        .expectPolicyEvaluationResult(expectedPolicyEvaluationResult)
+        .expectWarnLog("The IQ Server reports policy warning due to \nPolicy(TestPolicy)")
+        .doPolicyEvaluationRun();
   }
 
   @Test
@@ -221,11 +222,10 @@ public class DefaultPolicyEvaluatorTest
     Parameters params1 = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
-    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
-      evaluator.run(params1);
-    }).satisfies(e -> assertThat(e.getExitCode()).isOne());
-
-    assertThat(logOutput).atErrorLevel().contains("The IQ Server " + insightServerUrl + " could not be contacted");
+    withTestRunner(params1)
+        .expectFailExit()
+        .expectErrorLog("The IQ Server " + insightServerUrl + " could not be contacted")
+        .doPolicyEvaluationRun();
 
     logOutput.clear();
 
@@ -233,11 +233,10 @@ public class DefaultPolicyEvaluatorTest
         Stream.concat(Stream.of("-e"), Stream.of(params1.getArgs())).toArray(String[]::new));
     // The evaluator will still throw an exit exception in the case where the -e flag is passed in as true
     // The exception will have exit status code 0 such that it will "pass" in a CI
-    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
-      evaluator.run(params2);
-    }).satisfies(e -> assertThat(e.getExitCode()).isZero());
-
-    assertThat(logOutput).atErrorLevel().contains("The IQ Server " + insightServerUrl + " could not be contacted");
+    withTestRunner(params2)
+        .expectErrorLog("The IQ Server " + insightServerUrl + " could not be contacted")
+        .expectExitExceptionButSuccessExit()
+        .doPolicyEvaluationRun();
   }
 
   @Test
@@ -247,9 +246,10 @@ public class DefaultPolicyEvaluatorTest
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
-    evaluator.run(params);
-    assertThat(logOutput).atInfoLevel().contains("The detailed report can be viewed online at " + insightServerUrl
-        + "ui/links/application/the-app-id/report/SCAN-ID");
+    withTestRunner(params)
+        .expectInfoLog("The detailed report can be viewed online at " + insightServerUrl
+            + "ui/links/application/the-app-id/report/SCAN-ID")
+        .doPolicyEvaluationRun();
   }
 
   @Test
@@ -260,7 +260,8 @@ public class DefaultPolicyEvaluatorTest
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
-    evaluator.run(params);
+    withTestRunner(params)
+        .doPolicyEvaluationRun();
 
     File scanFile = findScanFile(params);
     Scan scan = scanReader.read(scanFile);
@@ -295,7 +296,8 @@ public class DefaultPolicyEvaluatorTest
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "-D", "proprietaryPackages=com.sonatype", //
         "src/test/data/artifact.jar");
-    evaluator.run(params);
+    withTestRunner(params)
+        .doPolicyEvaluationRun();
 
     File scanFile = findScanFile(params);
     Scan scan = scanReader.read(scanFile);
@@ -325,7 +327,8 @@ public class DefaultPolicyEvaluatorTest
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "-D", "proprietaryRegexes=com.sonatype.*", //
         "src/test/data/artifact.jar");
-    evaluator.run(params);
+    withTestRunner(params)
+        .doPolicyEvaluationRun();
 
     File scanFile = findScanFile(params);
     Scan scan = scanReader.read(scanFile);
@@ -353,7 +356,8 @@ public class DefaultPolicyEvaluatorTest
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "-t", Stage.ID_RELEASE, //
         "src/test/data/artifact.jar");
-    evaluator.run(params);
+    withTestRunner(params)
+        .doPolicyEvaluationRun();
 
     assertThat(new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(), Stage.ID_RELEASE)).isNotNull();
   }
@@ -365,7 +369,8 @@ public class DefaultPolicyEvaluatorTest
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
-    evaluator.run(params);
+    withTestRunner(params)
+        .doPolicyEvaluationRun();
 
     assertThat(new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(), Stage.ID_BUILD)).isNotNull();
   }
@@ -379,8 +384,9 @@ public class DefaultPolicyEvaluatorTest
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "-r", jsonFile.getAbsolutePath(), //
         "src/test/data/artifact.jar");
-    evaluator.run(params);
-    
+    withTestRunner(params)
+        .doPolicyEvaluationRun();
+
     ResultData resultData = JsonUtils.parse(Files.readAllBytes(jsonFile.toPath()), ResultData.class);
     assertThat(resultData.scanId).isEqualTo("SCAN-ID");
     assertThat(resultData.applicationId).isEqualTo(app.getPublicId());
@@ -419,8 +425,9 @@ public class DefaultPolicyEvaluatorTest
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
         "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "@" + paramFile1.getAbsolutePath(), "@" + paramFile2.getAbsolutePath());
-    evaluator.run(params);
-    assertLogSummary(newPolicyEvaluationResultForOneComponent());
+    withTestRunner(params)
+        .expectPolicyEvaluationResult(newPolicyEvaluationResultForOneComponent())
+        .doPolicyEvaluationRun();
   }
 
   @Test
@@ -434,14 +441,14 @@ public class DefaultPolicyEvaluatorTest
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "non-existent-app-public-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
-    evaluator.run(params);
+    withTestRunner(params)
+        .expectPolicyEvaluationResult(newPolicyEvaluationResultForOneComponent())
+        .doPolicyEvaluationRun();
 
     ApplicationDAO appDAO = new ApplicationDAO();
     Application app = appDAO.getByPublicId("non-existent-app-public-id");
     assertThat(app).isNotNull();
     appDAO.delete(app);
-
-    assertLogSummary(newPolicyEvaluationResultForOneComponent());
   }
 
   @Test
@@ -449,10 +456,10 @@ public class DefaultPolicyEvaluatorTest
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "non-existent-app-public-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
-    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
-      evaluator.run(params);
-    });
-    assertThat(logOutput).atErrorLevel().contains("The application ID non-existent-app-public-id is invalid.");
+    withTestRunner(params)
+        .expectFailExit()
+        .expectErrorLog("The application ID non-existent-app-public-id is invalid.")
+        .doPolicyEvaluationRun();
   }
 
   private File findScanFile(Parameters params) {
@@ -498,10 +505,13 @@ public class DefaultPolicyEvaluatorTest
       String expectedMessage = "The IQ Server version " + olderServerVersion
           + " is not compatible. Supported IQ server versions are "
           + AbstractPolicyEvaluator.MINIMAL_SERVER_VERSION_REQUIRED + " or newer.";
-      assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
-        evaluator.run(params);
-      }).withMessageEndingWith(expectedMessage);
-      assertThat(logOutput).atErrorLevel().contains(expectedMessage);
+      withTestRunner(params)
+          .expectFailExit()
+          .expectErrorLog(expectedMessage)
+          .expectException(result -> {
+            result.withMessageEndingWith(expectedMessage);
+          })
+          .doPolicyEvaluationRun();
     }
     finally {
       versionService.setVersion(savedServerVersion);
@@ -512,7 +522,8 @@ public class DefaultPolicyEvaluatorTest
     String newerServerVersion = incrementVersion(AbstractPolicyEvaluator.MINIMAL_SERVER_VERSION_REQUIRED);
     versionService.setVersion(newerServerVersion);
     try {
-      evaluator.run(params);
+      withTestRunner(params)
+          .doPolicyEvaluationRun();
     }
     finally {
       versionService.setVersion(savedServerVersion);
@@ -530,7 +541,8 @@ public class DefaultPolicyEvaluatorTest
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "-m", "src/test/data/metadata.json", "src/test/data/artifact.jar");
-    evaluator.run(params);
+    withTestRunner(params)
+        .doPolicyEvaluationRun();
 
     File scanFile = findScanFile(params);
     Scan scan = scanReader.read(scanFile);
@@ -548,7 +560,8 @@ public class DefaultPolicyEvaluatorTest
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "-m", "src/test/data/metadata.json", "src/test/data/artifact.jar");
-    evaluator.run(params);
+    withTestRunner(params)
+        .doPolicyEvaluationRun();
 
     File scanFile = findScanFile(params);
     Scan scan = scanReader.read(scanFile);

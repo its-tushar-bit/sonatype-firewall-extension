@@ -9,10 +9,7 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -36,15 +33,15 @@ public class SourceControlEventDAO
   private static final String UPDATED_EVENT_WITH_STATUS = "updated event {} with status {}";
 
   public int reserveEventsForInstance(final String instanceId) {
-    EntityManager em = OperationalDataStoreProvider.getJPAEntityManagerFactory().createEntityManager();
     int result = 0;
 
-    try (TransactionContext txn = new TransactionContext(em)) {
+    try (TransactionContext txn = createTransactionContext()) {
       txn.begin();
 
       // assign the given instance ID to any events that aren't already assigned IFF there are no active events
       // (i.e. 'new', 'in progress') already assigned to another instance
-      result = em.createNativeQuery(
+      result = txn
+          .createNativeQuery(
           "UPDATE insight_brain_ods.source_control_event" +
               " SET instance_id = ?1" +
               " WHERE source_control_event_id IN (" +
@@ -74,8 +71,7 @@ public class SourceControlEventDAO
   @VisibleForTesting
   List<SourceControlEvent> getAvailableEvents() {
     String sQuery = SELECT_ENTITY + "WHERE entity.instanceId IS NULL";
-    Query<SourceControlEvent> query = new Query<SourceControlEvent>(sQuery);
-    return query.getList();
+    return getList(sQuery);
   }
 
   public List<SourceControlEvent> selectEventsForInstance(final String instanceId, final int quantity) {

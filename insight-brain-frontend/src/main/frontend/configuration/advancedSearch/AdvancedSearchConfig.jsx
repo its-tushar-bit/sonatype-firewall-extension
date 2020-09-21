@@ -90,52 +90,73 @@ export default function AdvancedSearchConfig(props) {
           <div id="advanced-search-config" className="iq-tile iq-tile--sys-prefs">
             <div className="iq-tile-header">
               <div className="iq-tile-header__title">
-                <h2>Advanced Search</h2>
+                <h2 className="nx-h2">Advanced Search Configuration</h2>
               </div>
             </div>
-            <p>
-              Here you can enable the early access Advanced Search feature. Please read the <NxExternalLink
-                href="https://links.sonatype.com/products/nxiq/doc/advanced-search">documentation
-              </NxExternalLink>.
-              Advanced Search, once enabled, should be periodically re-indexed.
-              Re-indexing may impact the performance of IQ Server while it is running, so it is recommended to do this
-              during a time of low usage.
+            <p className="nx-p">
+              Advanced Search gives you robust search options to help you find exactly what you are looking for.
+              Search terms give you the ability to scope your search to specific types of information relating to the
+              following categories:
             </p>
-            <div>
-              As this feature is early access, there are a number of caveats:
+            <div className="nx-list nx-list--bulleted">
               <ul>
-                <li>
-                  To see new data in the results a re-index is required.
-                  This can either be automated using the provided REST API or manually from the UI
+                <li className="nx-list__item">
+                  Organizations
                 </li>
-                <li>
-                  The syntax and/or keyword fields may subsequently change on different releases
+                <li className="nx-list__item">
+                  Applications
+                </li>
+                <li className="nx-list__item">
+                  Application Categories
+                </li>
+                <li className="nx-list__item">
+                  Component Labels
+                </li>
+                <li className="nx-list__item">
+                  Policies
+                </li>
+                <li className="nx-list__item">
+                  Security Vulnerabilities
                 </li>
               </ul>
             </div>
-            <p>
-              This feature is in development and functionality can be expected to change.
-              Please provide any feedback you may have <NxExternalLink
-                href='https://links.sonatype.com/products/nxiq/feedback/advanced-search'>here</NxExternalLink>.
+            <p className="nx-p">You can combine multiple search terms to craft an even more targeted search.
+            </p>
+            <p className="nx-p">
+              For more information on how to use this feature,{' '}
+              <NxExternalLink href='https://links.sonatype.com/products/nxiq/doc/advanced-search'>
+                check out the documentation
+              </NxExternalLink>.
             </p>
             <div>
               {submitMaskState !== null &&
               <NxSubmitMask success={submitMaskState} message={submitMaskMessage} />}
               <form className="nx-form" onSubmit={onSubmit}>
                 <fieldset className="nx-fieldset">
-                  <legend className="nx-label">Advanced Search</legend>
+                  <legend className="nx-label">Advanced Search Status</legend>
                   <div className="nx-form-group">
                     <NxCheckbox id="advanced-search-config-is-enabled-checkbox"
                                 isChecked={isEnabled}
                                 onChange={setIsEnabled}>
-                      Opt-In to Experimental Advanced Search
+                      Enabled
                     </NxCheckbox>
                   </div>
+                  <p className="nx-p">Note: It is recommended that you manually re-index after enabling this feature in
+                    order for Advanced Search to index your historical data.
+                  </p>
                 </fieldset>
+                <h3 className="nx-h3">Indexing</h3>
+                <p className="nx-p">To ensure search results are as accurate as possible,  Advanced Search automatically
+                  re-indexes when any changes are made to relevant IQ Server application data. Automatic indexing only
+                  applies to data changes made whilst the feature is enabled. In order for Advanced Search to index
+                  historical data, you must run a manual index. Re-indexing may impact the performance of IQ Server
+                  while it is running, so it is recommended to do this during a time of low usage.
+                </p>
+                <p className="nx-p">If you would like to manually re-index, you can do so below:
+                </p>
                 <div className="nx-form-row">
                   <div className="nx-form-group">
                     <fieldset className="nx-fieldset">
-                      <legend className="nx-label">Indexing</legend>
                       <div className="nx-form-group">
                         <button id="advanced-search-config-re-index-button"
                                 onClick={reIndexHandler}

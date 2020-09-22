@@ -72,7 +72,7 @@ public class PolicyEvaluatorTestRunner
       final ProprietaryConfig proprietaryConfig,
       final RestClient restClient) throws Exception
   {
-    return executeTest(() -> evaluator.scan(params, new ProprietaryConfig(), restClient));
+    return executeTest(() -> evaluator.scan(params, proprietaryConfig, restClient));
   }
 
   public PolicyEvaluatorTestRunner expectSuccessExit() {

@@ -129,7 +129,7 @@ public class SourceControlEventService
 
         if (numberOfEventsToRequest > 0) {
           // un-claim any events where it appears that the instance processing them is no longer working
-          sourceControlEventDAO.resetStaleEvents(new Date(currentTimeMillis() - STALE_EVENT_CUTOFF_MS));
+          sourceControlEventDAO.resetStaleEvents(new Date(currentTimeMillis() - STALE_EVENT_CUTOFF_MS), INSTANCE_ID);
 
           sourceControlEventDAO.reserveEventsForInstance(INSTANCE_ID);
 

@@ -115,13 +115,14 @@ public class SourceControlEventDAO
     return get(SELECT_ENTITY + WHERE_ENTITY_ID_MATCHES, id);
   }
 
-  public void resetStaleEvents(Date cutoffTime) {
+  public void resetStaleEvents(Date cutoffTime, String instanceIdToIgnore) {
     String sQuery = UPDATE_ENTITY +
         "SET entity.instanceId = null, entity.eventStatus = 'new' " +
         "WHERE entity.instanceId IS NOT NULL " +
         "AND ((entity.eventStatus = 'new' AND entity.createTime < ?1) " +
-        "OR (entity.eventStatus = 'in progress' AND entity.startTime < ?1))";
-    createQuery(sQuery, cutoffTime).executeUpdate();
+        "OR (entity.eventStatus = 'in progress' AND entity.startTime < ?1)) " +
+        "AND entity.instanceId <> ?2";
+    createQuery(sQuery, cutoffTime, instanceIdToIgnore).executeUpdate();
   }
 
   public void deleteByApplicationId(final String applicationId) {

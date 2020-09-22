@@ -116,8 +116,15 @@ public class SourceControlEventDAOTest
         .setCompleteTime(new Date(cutoffTimeMs - 300));
     sourceControlEventDAO.insert(staleErrorEvent);
 
+    SourceControlEvent staleThisInstanceEvent = getNewSourceControlEvent()
+        .setEventStatus("in progress")
+        .setInstanceId("instance7")
+        .setCreateTime(new Date(cutoffTimeMs - 500))
+        .setStartTime(new Date(cutoffTimeMs - 400));
+    sourceControlEventDAO.insert(staleThisInstanceEvent);
+
     // when: reset stale events
-    sourceControlEventDAO.resetStaleEvents(new Date(cutoffTimeMs));
+    sourceControlEventDAO.resetStaleEvents(new Date(cutoffTimeMs), "instance7");
 
     SourceControlEvent fetchedActiveNewEvent = sourceControlEventDAO.getById(activeNewEvent.getId());
     SourceControlEvent fetchedActiveInProgressEvent = sourceControlEventDAO.getById(activeInProgressEvent.getId());
@@ -125,20 +132,29 @@ public class SourceControlEventDAOTest
     SourceControlEvent fetchedStaleInProgressEvent = sourceControlEventDAO.getById(staleInProgressEvent.getId());
     SourceControlEvent fetchedStaleCompletedEvent = sourceControlEventDAO.getById(staleCompletedEvent.getId());
     SourceControlEvent fetchedStaleErrorEvent = sourceControlEventDAO.getById(staleErrorEvent.getId());
+    SourceControlEvent fetchedStaleThisInstanceEvent = sourceControlEventDAO.getById(staleThisInstanceEvent.getId());
 
-    // then:
+    // then: active events were unchanged
     assertThat(fetchedActiveNewEvent.getInstanceId()).isEqualTo("instance1");
     assertThat(fetchedActiveNewEvent.getEventStatus()).isEqualTo("new");
     assertThat(fetchedActiveInProgressEvent.getInstanceId()).isEqualTo("instance2");
     assertThat(fetchedActiveInProgressEvent.getEventStatus()).isEqualTo("in progress");
+
+    // and: stale new/in progress events were reset to new
     assertThat(fetchedStaleNewEvent.getInstanceId()).isNull();
     assertThat(fetchedStaleNewEvent.getEventStatus()).isEqualTo("new");
     assertThat(fetchedStaleInProgressEvent.getInstanceId()).isNull();
     assertThat(fetchedStaleInProgressEvent.getEventStatus()).isEqualTo("new");
+
+    // and: complete/error events were NOT reset
     assertThat(fetchedStaleCompletedEvent.getInstanceId()).isEqualTo("instance5");
     assertThat(fetchedStaleCompletedEvent.getEventStatus()).isEqualTo("complete");
     assertThat(fetchedStaleErrorEvent.getInstanceId()).isEqualTo("instance6");
     assertThat(fetchedStaleErrorEvent.getEventStatus()).isEqualTo("error");
+
+    // and: 'this' instance was stale but was not reset
+    assertThat(fetchedStaleThisInstanceEvent.getInstanceId()).isEqualTo("instance7");
+    assertThat(fetchedStaleThisInstanceEvent.getEventStatus()).isEqualTo("in progress");
   }
 
   @Test

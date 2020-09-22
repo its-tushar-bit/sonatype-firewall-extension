@@ -360,6 +360,9 @@ public class PullRequestPollingServiceTest
     private SourceControlDAO mockSourceControlDAO;
 
     @Mock
+    private SourceControlInstanceManager mockSourceControlInstanceManager;
+
+    @Mock
     private PolicyEvaluationDAO mockPolicyEvaluationDAO;
 
     @Mock
@@ -429,6 +432,8 @@ public class PullRequestPollingServiceTest
               .isInternalRepository(eq(mockRepo.gitRepositoryInfo));
         }
         mockRepo.pullRequests.forEach(pullRequest -> pullRequest.setRepositoryPrivate(mockRepo.isGitRepositoryPrivate));
+
+        doReturn(true).when(mockSourceControlInstanceManager).canPoll();
       }
 
       // setup next repo to poll sequence
@@ -445,7 +450,7 @@ public class PullRequestPollingServiceTest
 
       return new PullRequestPollingService(mockSourceControlDAO, sourceControlEventPublisher, mockPolicyEvaluationDAO,
           mockGitCommitHistoryService, mockSourceControlUtils, mockGitClientFactory,
-          mockPullRequestRepositoryValidator);
+          mockPullRequestRepositoryValidator, mockSourceControlInstanceManager);
     }
 
     private List<SourceControl> buildSourceControlList(MockRepo mockRepo) {

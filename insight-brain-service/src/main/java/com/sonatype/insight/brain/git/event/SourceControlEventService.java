@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.git.GitCommitStatusService;
 import com.sonatype.insight.brain.git.ManifestScanService;
 import com.sonatype.insight.brain.git.PullRequestCommentingService;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
+import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -84,6 +85,8 @@ public class SourceControlEventService
 
   private final SourceControlEventDAO sourceControlEventDAO;
 
+  private final SourceControlInstanceManager sourceControlInstanceManager;
+
   private final PullRequestCommentingService pullRequestCommentingService;
 
   private ThreadPoolExecutor threadPoolExecutor;
@@ -97,12 +100,14 @@ public class SourceControlEventService
   @Inject
   public SourceControlEventService(
       SourceControlEventDAO sourceControlEventDAO,
+      SourceControlInstanceManager sourceControlInstanceManager,
       PullRequestCommentingService pullRequestCommentingService,
       PullRequestRemediationService pullRequestRemediationService,
       GitCommitStatusService gitCommitStatusService,
       ManifestScanService manifestScanService)
   {
     this.sourceControlEventDAO = sourceControlEventDAO;
+    this.sourceControlInstanceManager = sourceControlInstanceManager;
     this.pullRequestCommentingService = pullRequestCommentingService;
     this.pullRequestRemediationService = pullRequestRemediationService;
     this.gitCommitStatusService = gitCommitStatusService;
@@ -116,6 +121,12 @@ public class SourceControlEventService
    * @return the count of events that were submitted for execution
    */
   public int processEvents() {
+    // for now this is a global check;  future plan is to base this on specific tokens/repos/users
+    if (!sourceControlInstanceManager.canProcessEvents()) {
+      log.trace("This instance is not allowed to process events.");
+      return 0;
+    }
+    
     int eventsSubmittedForProcessing = 0;
 
     if (inProcessing.get()) {

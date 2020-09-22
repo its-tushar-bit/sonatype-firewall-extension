@@ -64,6 +64,8 @@ public class PullRequestPollingService
 
   private final PullRequestRepositoryValidator pullRequestRepositoryValidator;
 
+  private final SourceControlInstanceManager sourceControlInstanceManager;
+
   @Inject
   public PullRequestPollingService(
       SourceControlDAO sourceControlDAO,
@@ -72,7 +74,8 @@ public class PullRequestPollingService
       GitCommitHistoryService gitCommitHistoryService,
       SourceControlUtils sourceControlUtils,
       GitClientFactory gitClientFactory,
-      PullRequestRepositoryValidator pullRequestRepositoryValidator)
+      PullRequestRepositoryValidator pullRequestRepositoryValidator,
+      SourceControlInstanceManager sourceControlInstanceManager)
   {
     this.sourceControlDAO = sourceControlDAO;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
@@ -81,9 +84,17 @@ public class PullRequestPollingService
     this.sourceControlUtils = sourceControlUtils;
     this.gitClientFactory = gitClientFactory;
     this.pullRequestRepositoryValidator = pullRequestRepositoryValidator;
+    this.sourceControlInstanceManager = sourceControlInstanceManager;
   }
 
   public void fetchAndSendPullRequestsForCommenting() {
+    // for now this is a global check;  future plan is to base this on specific tokens/repos/users, in which case
+    // we can push this check down into this class' canPoll() method
+    if (!sourceControlInstanceManager.canPoll()) {
+      log.trace("This instance is not allowed to poll.  Skipping.");
+      return;
+    }
+
     PullRequestPollingTracker pollingTracker = new PullRequestPollingTracker(sourceControlDAO);
 
     // the pull requests we get back can be for any app that the related org and key have access to

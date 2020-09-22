@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.git.GitCommitStatusService;
 import com.sonatype.insight.brain.git.ManifestScanService;
 import com.sonatype.insight.brain.git.PullRequestCommentingService;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
+import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.git.VerifiableLoggingTestBase;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 
@@ -57,6 +58,9 @@ public class SourceControlEventServiceTest
   private SourceControlEventDAO mockSourceControlEventDAO;
 
   @Mock
+  private SourceControlInstanceManager mockSourceControlInstanceManager;
+
+  @Mock
   private PullRequestCommentingService mockPullRequestCommentingService;
 
   @Mock
@@ -82,8 +86,10 @@ public class SourceControlEventServiceTest
   public void setup() {
     MockitoAnnotations.openMocks(this);
     super.setup();
-    eventService = spy(new SourceControlEventService(mockSourceControlEventDAO, mockPullRequestCommentingService,
-        mockPullRequestRemediationService, mockGitCommitStatusService, mockManifestScanService));
+    eventService = spy(new SourceControlEventService(mockSourceControlEventDAO, mockSourceControlInstanceManager,
+        mockPullRequestCommentingService, mockPullRequestRemediationService, mockGitCommitStatusService,
+        mockManifestScanService));
+    when(mockSourceControlInstanceManager.canProcessEvents()).thenReturn(true);
   }
 
   @After

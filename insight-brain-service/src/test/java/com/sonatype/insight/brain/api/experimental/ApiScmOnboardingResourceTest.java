@@ -9,6 +9,7 @@ import java.util.List;
 
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.nexus.scm.api.model.SCMRepository;
 
 import org.apache.http.HttpStatus;
 import org.junit.Test;
@@ -27,7 +28,8 @@ public class ApiScmOnboardingResourceTest
 
     // then the response is OK
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SC_OK);
-    List responseList = response.getBody(List.class);
+    @SuppressWarnings("unchecked")
+    List<SCMRepository> responseList = response.getBody(List.class);
     assertThat(responseList.size()).isEqualTo(13);
   }
 }

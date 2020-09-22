@@ -7,7 +7,6 @@ import { getComponentName } from '../util/componentNameUtils';
 
 import template from './componentDisplay.html';
 import isFilenameOrUnknown from './isFilenameOrUnknown';
-import {isInnerSourceEnabled} from '../applicationReport/applicationReportService';
 
 export default {
   controllerAs: 'vm',
@@ -34,11 +33,9 @@ function ComponentDisplayController($scope) {
 
     updateDisplay() {
       vm.componentName = getComponentName(vm.component);
-      if (isInnerSourceEnabled) {
-        vm.ownerApplicationName = vm.component.ownerApplicationName ? vm.component.ownerApplicationName : null;
-        vm.innerSourceIndicator = vm.component.innerSourceIndicator;
-        vm.dependencyType = vm.component.dependencyType ? vm.component.dependencyType : null;
-      }
+      vm.ownerApplicationName = vm.component.ownerApplicationName || null;
+      vm.innerSourceIndicator = vm.component.innerSourceIndicator;
+      vm.dependencyType = vm.component.dependencyType || null;
       vm.isFilenameOrUnknown = isFilenameOrUnknown(vm.component);
     }
   });

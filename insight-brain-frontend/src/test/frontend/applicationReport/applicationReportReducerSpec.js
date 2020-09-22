@@ -133,7 +133,8 @@ describe('applicationReportReducer', function() {
         policyTypeFilterEnabled: true,
         isUnknownJs: false,
         vulnerabilities: null,
-        vulnerabilitiesPageEnabled: true
+        vulnerabilitiesPageEnabled: true,
+        isInnerSourceEnabled: false
       });
     });
   });
@@ -192,7 +193,7 @@ describe('applicationReportReducer', function() {
   });
 
   describe('LOAD_REPORT_FULFILLED action', function() {
-    it('removes "policy" from pendingLoads and sets selectedReport values', function() {
+    it('removes "policy" from pendingLoads and sets selectedReport values without innerSource enabled', function() {
       const state = Object.freeze({
         pendingLoads: new Set(['foo', 'policy']),
         loadError: null,
@@ -208,7 +209,8 @@ describe('applicationReportReducer', function() {
         type: 'LOAD_REPORT_FULFILLED',
         payload: {
           allEntries: entries,
-          reportVersion: 3
+          reportVersion: 3,
+          isInnerSourceEnabled: false
         }
       });
       expect(newState).toEqual({
@@ -221,10 +223,67 @@ describe('applicationReportReducer', function() {
           severeViolationCount: 1,
           criticalViolationCount: 1,
           nonLowViolationCount: 3,
-          reportVersion: 3
+          reportVersion: 3,
+          isInnerSourceEnabled: false
         },
         policyTypeFilterEnabled: false,
         vulnerabilitiesPageEnabled: jasmine.anything(),
+        isInnerSourceEnabled: false,
+        other: otherObject
+      });
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+
+    it('removes "policy" from pendingLoads and sets selectedReport values with innerSource enabled', function() {
+      const state = Object.freeze({
+        pendingLoads: new Set(['foo', 'policy']),
+        loadError: null,
+        selectedReport: null,
+        policyTypeFilterEnabled: null,
+        other: otherObject
+      });
+      const entries = [
+        {policyThreatLevel: 10, grandfathered: true, ownerApplicationName: 'myISApp', innerSource: true},
+        {policyThreatLevel: 10}, {policyThreatLevel: 6, ownerApplicationName: 'myISApp'}
+      ];
+      const newState = reduce(state, {
+        type: 'LOAD_REPORT_FULFILLED',
+        payload: {
+          allEntries: entries,
+          reportVersion: 3,
+          isInnerSourceEnabled: true
+        }
+      });
+      expect(newState).toEqual({
+        pendingLoads: new Set(['foo']),
+        loadError: null,
+        selectedReport: {
+          allEntries: entries,
+          displayedEntries: [
+            {
+              policyThreatLevel: 10
+            },
+            {
+              grandfathered: true,
+              innerSource: true,
+              ownerApplicationName: 'myISApp',
+              policyThreatLevel: 10
+            },
+            {
+              ownerApplicationName: 'myISApp',
+              policyThreatLevel: 6
+            }
+          ],
+          moderateViolationCount: 0,
+          severeViolationCount: 1,
+          criticalViolationCount: 1,
+          nonLowViolationCount: 2,
+          reportVersion: 3,
+          isInnerSourceEnabled: true
+        },
+        policyTypeFilterEnabled: false,
+        vulnerabilitiesPageEnabled: jasmine.anything(),
+        isInnerSourceEnabled: true,
         other: otherObject
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified

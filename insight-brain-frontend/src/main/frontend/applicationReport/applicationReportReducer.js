@@ -56,8 +56,7 @@ import { sortItemsByFields } from '../util/sortUtils';
 import {
   aggregateReportEntries,
   filterReportEntries,
-  getVulnerabilities,
-  isInnerSourceEnabled
+  getVulnerabilities
 } from './applicationReportService';
 import { pathSet } from '../util/jsUtil';
 
@@ -90,7 +89,8 @@ const initState = Object.freeze({
   isUnknownJs: false,
 
   vulnerabilities: null,
-  vulnerabilitiesPageEnabled: true
+  vulnerabilitiesPageEnabled: true,
+  isInnerSourceEnabled: false
 });
 
 export default function applicationReportReducer(state = initState, {type, payload}) {
@@ -214,7 +214,8 @@ function setSelectedReport(state, report) {
     ...state,
     policyTypeFilterEnabled: report.reportVersion && report.reportVersion >= 4,
     vulnerabilitiesPageEnabled: !!(report.reportVersion && report.reportVersion >= 5),
-    selectedReport: {...report, ...getViolationCountsPerThreatLevel(report.allEntries)}
+    selectedReport: {...report, ...getViolationCountsPerThreatLevel(report.allEntries)},
+    isInnerSourceEnabled: report.isInnerSourceEnabled
   });
 
   // if there is selected component, update selectedComponentIndex
@@ -290,7 +291,7 @@ function updateRawDataDisplayedEntries(state) {
  * based on `allEntries` and the various sorting, filtering, and aggregation settings stored in the state
  */
 function updateDisplayedEntries(state) {
-  let { selectedReport, sortFields, aggregate, exactValueFilters, substringFilters } = state;
+  let { selectedReport, sortFields, aggregate, exactValueFilters, substringFilters, isInnerSourceEnabled } = state;
 
   if (selectedReport) {
     if (isInnerSourceEnabled) {

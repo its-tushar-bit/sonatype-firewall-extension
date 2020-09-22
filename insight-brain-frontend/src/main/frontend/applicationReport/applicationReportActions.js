@@ -129,7 +129,12 @@ export default function applicationReportActions($http, $q, $state, $window, CLM
               const allEntries = createReportEntries(policyResult, bomData, unknownJsData, partialMatches,
                   dependencies);
               const reportVersion = policyResult && policyResult.version || null;
-              return dispatch(loadReportFulfilled({ allEntries, reportVersion, ...dataResult }));
+              return dispatch(loadReportFulfilled({
+                allEntries: allEntries.policies,
+                isInnerSourceEnabled: allEntries.isInnerSourceEnabled,
+                reportVersion,
+                ...dataResult
+              }));
             })
             .catch(error => {
               dispatch(loadReportFailed(error));

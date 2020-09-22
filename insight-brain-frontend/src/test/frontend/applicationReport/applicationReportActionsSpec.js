@@ -403,7 +403,8 @@ describe('applicationReportActions', function() {
             }
           ],
           fooReport: 'barReport',
-          reportVersion: 3
+          reportVersion: 3,
+          isInnerSourceEnabled: false
         }
       });
     });
@@ -647,7 +648,8 @@ describe('applicationReportActions', function() {
             derivedViolationState: 'notViolating'
           }],
           fooReport: 'barReport',
-          reportVersion: 3
+          reportVersion: 3,
+          isInnerSourceEnabled: false
         }
       });
     });

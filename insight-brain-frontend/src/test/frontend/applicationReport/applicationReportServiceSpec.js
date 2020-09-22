@@ -334,13 +334,17 @@ describe('applicationReportService', function() {
               }))
             }))
           },
-          result = applicationReportService.createReportEntries(
+          reportEntries = applicationReportService.createReportEntries(
               policyThreatData, bomData, unknownJSData, partialMatchData),
-          result2 = applicationReportService.createReportEntries(
-              policyThreatData2, bomData, unknownJSData, partialMatchData);
+          result = reportEntries.policies,
+          reportEntries2 = applicationReportService.createReportEntries(
+              policyThreatData2, bomData, unknownJSData, partialMatchData),
+          result2 = reportEntries2.policies;
 
       expect(result.length).toEqual(4);
+      expect(reportEntries.isInnerSourceEnabled).toEqual(false);
       expect(result2.length).toEqual(4);
+      expect(reportEntries.isInnerSourceEnabled).toEqual(false);
 
       expect(result).toContain(jasmine.objectContaining({
         hash: 'fooHash',
@@ -537,9 +541,9 @@ describe('applicationReportService', function() {
           },
           policyThreatData2 = { ...policyThreatData, version: 2 },
           result = applicationReportService.createReportEntries(
-              policyThreatData, bomData, unknownJSData, partialMatchData),
+              policyThreatData, bomData, unknownJSData, partialMatchData).policies,
           result2 = applicationReportService.createReportEntries(
-              policyThreatData2, bomData, unknownJSData, partialMatchData);
+              policyThreatData2, bomData, unknownJSData, partialMatchData).policies;
 
       expect(result.length).toEqual(4);
 
@@ -660,7 +664,7 @@ describe('applicationReportService', function() {
             }]
           },
           result = applicationReportService.createReportEntries(
-              policyThreatData, bomData, unknownJSData, partialMatchData);
+              policyThreatData, bomData, unknownJSData, partialMatchData).policies;
 
       expect(result.length).toEqual(4);
 
@@ -778,7 +782,7 @@ describe('applicationReportService', function() {
               policyThreatLevel: 9
             }]
           },
-          result = applicationReportService.createReportEntries(policyThreatData, bomData);
+          result = applicationReportService.createReportEntries(policyThreatData, bomData).policies;
 
       expect(result.length).toEqual(3);
 
@@ -836,7 +840,8 @@ describe('applicationReportService', function() {
     });
 
     it('can handle undefined values for all parameters', function() {
-      expect(applicationReportService.createReportEntries(undefined, undefined)).toEqual([]);
+      expect(applicationReportService.createReportEntries(undefined, undefined)).toEqual(
+          {policies: [], isInnerSourceEnabled: false});
     });
 
     it('generates dependencyInfo for violating and non-violating entries', function() {
@@ -924,7 +929,7 @@ describe('applicationReportService', function() {
             }]
           },
           result = applicationReportService.createReportEntries(
-              policyThreatData, bomData, unknownJSData, partialMatchData, dependencies);
+              policyThreatData, bomData, unknownJSData, partialMatchData, dependencies).policies;
 
       expect(result.length).toEqual(4);
 

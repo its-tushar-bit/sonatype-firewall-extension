@@ -1,0 +1,48 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@Library(['jenkins-shared', 'iq-pipeline-library']) _
+
+pipeline {
+  agent {
+    label InsightConstants.AGENT_LABEL
+  }
+
+  options {
+    buildDiscarder(logRotator(numToKeepStr: '10'))
+    timestamps()
+  }
+
+  parameters {
+    choice(name: 'DATABASE_TYPE', choices: ['H2', 'PostgreSQL'], description: 'Defines the database engine to be used')
+  }
+
+  stages {
+    stage('Load parameters') {
+      steps {
+        script {
+          if (env.BUILD_NUMBER.equals("1")) {
+            currentBuild.displayName = 'Parameter loading. Refresh the page and build again.'
+            currentBuild.result = 'ABORTED'
+            error('Stopping initial triggered build as we only want to get the parameters')
+          }
+        }
+      }
+    }
+
+    stage('Test performance') {
+      steps {
+        build job: '../Test-performance',
+                parameters: [
+                        string(name: 'BRANCH_NAME', value: "${env.BRANCH_NAME}"),
+                        string(name: 'DATABASE_TYPE', value: "${DATABASE_TYPE}")
+                ],
+                wait: true
+      }
+    }
+  }
+
+}

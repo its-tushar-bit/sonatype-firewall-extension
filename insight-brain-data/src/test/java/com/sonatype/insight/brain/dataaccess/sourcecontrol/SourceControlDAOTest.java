@@ -806,4 +806,70 @@ public class SourceControlDAOTest
   private Date toDate(LocalDateTime localDateTime) {
     return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
   }
+
+  @Test
+  public void test_getApplicationSourceControlsByOrganization() {
+    // given a root org with github as a provider
+    createRootOrgWithGitHubProvider();
+    // and several apps with SC entries in the initial org
+    Application app1a = tempEntity.newApplication("my-app-1", org.getId());
+    SourceControl scApp1a = buildAppSourceControl(app1a.getId(), 1, null);
+    scApp1a.setRepositoryUrl("https://myhost.com/org/app-1");
+    sourceControlDAO.insert(scApp1a);
+
+    Application app1b = tempEntity.newApplication("my-app-2", org.getId());
+    SourceControl scApp1b = buildAppSourceControl(app1b.getId(), 2, null);
+    scApp1b.setRepositoryUrl("https://myhost.com/org/app-2");
+    sourceControlDAO.insert(scApp1b);
+
+    // define a token, so should be excluded from search results
+    Application app1c = tempEntity.newApplication("my-app-3", org.getId());
+    SourceControl scApp1c = buildAppSourceControl(app1c.getId(), 3, null);
+    scApp1c.setRepositoryUrl("https://myhost.com/org/app-3");
+    scApp1c.setToken("sample-token");
+    sourceControlDAO.insert(scApp1c);
+
+    // and several SC entries for another org
+    Organization org2 = tempEntity.newOrganization();
+    Application app2a = tempEntity.newApplication("my-app-2-1", org2.getId());
+    SourceControl scApp2a = buildAppSourceControl(app2a.getId(), 1, null);
+    sourceControlDAO.insert(scApp2a);
+
+    Application app2b = tempEntity.newApplication("my-app-2-2", org2.getId());
+    SourceControl scApp2b = buildAppSourceControl(app2b.getId(), 2, null);
+    sourceControlDAO.insert(scApp2b);
+
+    // then we get the SC entries for the first org
+    assertThat(sourceControlDAO.getApplicationSourceControlsByOrganizationWithRepositories(org.getId()))
+        .extracting(SourceControl::getId)
+        .containsExactlyInAnyOrder(scApp1a.getId(), scApp1b.getId());
+
+    // and we get the SC entries for the second org
+    assertThat(sourceControlDAO.getApplicationSourceControlsByOrganizationWithRepositories(org2.getId()))
+        .extracting(SourceControl::getId)
+        .containsExactlyInAnyOrder(scApp2a.getId(), scApp2b.getId());
+  }
+
+  @Test
+  public void test_getApplicationSourceControlsWithRepositories() {
+    // given a root org with github as a provider
+    createRootOrgWithGitHubProvider();
+    // and an app with a SC entry in the initial org
+    Application app1a = tempEntity.newApplication("my-app-1", org.getId());
+    SourceControl scApp1a = buildAppSourceControl(app1a.getId(), 1, null);
+    scApp1a.setRepositoryUrl("https://myhost.com/org/app-1");
+    sourceControlDAO.insert(scApp1a);
+
+    // and an org with no SC entries
+    Organization org2 = tempEntity.newOrganization();
+
+    // then we get the 0 entries when querying by org
+    assertThat(sourceControlDAO.getApplicationSourceControlsByOrganizationWithRepositories(org2.getId()))
+        .isEmpty();
+
+    // and we get a SC value when querying without an org
+    assertThat(sourceControlDAO.getApplicationSourceControlsWithRepositories())
+        .extracting(SourceControl::getId)
+        .containsOnly(scApp1a.getId());
+  }
 }

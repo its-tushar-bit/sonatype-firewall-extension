@@ -116,6 +116,11 @@ export function getScmRepositoriesUrl(organizationId) {
   return uriTemplate`/api/experimental/onboarding/load-repositories?orgId=${organizationId}`;
 }
 
+export function getScmDefaultHostUrl(organizationId, provider) {
+  return `${getBaseUrl(window.location.href)}/api/experimental/onboarding/default-host-url?` +
+    `orgId=${organizationId}&provider=${provider}`;
+}
+
 export function getDashboardDeleteFilterUrl(filterName) {
   return uriTemplate`/rest/dashboard/filters/named/delete?filterName=${filterName}`;
 }

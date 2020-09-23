@@ -20,6 +20,7 @@ function mapStateToProps({scmOnboarding}) {
     organizations: scmOnboarding.organizations,
     selectedOrganization: scmOnboarding.selectedOrganization,
     setSelectedOrganization: scmOnboarding.setSelectedOrganization,
+    loadOrgHostUrl: scmOnboarding.loadOrgHostUrl,
 
     // repositories
     loadingRepositories: scmOnboarding.loadingRepositories,

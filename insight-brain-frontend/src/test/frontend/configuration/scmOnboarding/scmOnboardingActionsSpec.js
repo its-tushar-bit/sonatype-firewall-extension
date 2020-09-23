@@ -7,12 +7,14 @@ import axios from 'axios';
 import {
   getManifestScanConfigUrl,
   getOrganizationsUrl,
+  getScmDefaultHostUrl,
   getScmRepositoriesUrl
 } from '../../../../main/frontend/util/CLMLocation';
 import {
   loadConfig,
   loadOrganizations,
-  loadRepositories
+  loadRepositories,
+  loadOrgHostUrl
 } from '../../../../main/frontend/configuration/scmOnboarding/scmOnboardingActions';
 
 describe('scmOnboardingActions', function() {
@@ -172,6 +174,49 @@ describe('scmOnboardingActions', function() {
           });
       expect(store.getActions().length).toBe(1);
       expect(axios.get).toHaveBeenCalledWith(getScmRepositoriesUrl());
+    });
+  });
+
+  describe('loadOrgHostUrl', function() {
+    it('requests a default host URL', function(done) {
+      mockAxiosCalls({
+        get: {
+          [getScmDefaultHostUrl('orgId', 'github')]: Promise.resolve({defaultHostUrl: 'http://github.com/'})
+        }
+      });
+
+      store = SpecUtil.mockReduxStore(state);
+
+      store.dispatch(loadOrgHostUrl('orgId', 'github'))
+          .then(() => {
+            expect(axios.get).toHaveBeenCalledWith(getScmDefaultHostUrl('orgId', 'github'));
+            done();
+          });
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0]).toEqual({type: 'SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_REQUESTED'});
+    });
+
+    it('handles errors', function(done) {
+      mockAxiosCalls({
+        get: {
+          [getScmDefaultHostUrl('orgId', 'github')]: Promise.reject('Failed request')
+        }
+      });
+
+      store = SpecUtil.mockReduxStore(state);
+
+      store.dispatch(loadOrgHostUrl('orgId', 'github'))
+          .then(() => {
+            expect(axios.get).toHaveBeenCalledWith(getScmDefaultHostUrl('orgId', 'github'));
+            expect(store.getActions().length).toBe(2);
+            expect(store.getActions()[1].type).toBe('SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FAILED');
+            expect(store.getActions()[1].payload).toBe('Failed request');
+            done();
+          });
+      expect(store.getActions().length).toBe(1);
+      expect(axios.get).toHaveBeenCalledWith(getScmDefaultHostUrl('orgId', 'github'));
+      expect(store.getActions()[0]).toEqual({type: 'SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_REQUESTED'});
     });
   });
 });

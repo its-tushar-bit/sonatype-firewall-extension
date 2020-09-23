@@ -17,6 +17,8 @@ import org.junit.Test.None;
 public class ApiScmOnboardingServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
+  private static final String PROVIDER = "github";
+
   @Inject
   public ApiScmOnboardingService apiScmOnboardingService;
 
@@ -54,5 +56,22 @@ public class ApiScmOnboardingServiceAuthzTest
   public void testLoadRepositories_Unauthorized_nullOrg() throws Exception {
     login();
     apiScmOnboardingService.loadRepositories(null);
+  }
+
+  @Test(expected = None.class /* no exception expected */)
+  public void test_getDefaultHostUrl_Authorized() throws Exception {
+    grantManageAutomaticSourceControlPermission();
+    apiScmOnboardingService.getDefaultHostUrl(PROVIDER, org.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void test_getDefaultHostUrl_Unauthorized() throws Exception {
+    login();
+    apiScmOnboardingService.getDefaultHostUrl(PROVIDER, org.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void test_getDefaultHostUrl_Unauthenticated() throws Exception {
+    apiScmOnboardingService.getDefaultHostUrl(PROVIDER, org.getId());
   }
 }

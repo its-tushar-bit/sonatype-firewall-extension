@@ -164,4 +164,33 @@ describe('scmOnboardingReducer', function() {
       expect(newState.other).toBe(otherObject);
     });
   });
+
+  describe('SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FULFILLED action', function() {
+    it('sets the default host url state', function() {
+      // given a clean host URL state
+      const state = Object.freeze({
+        other: otherObject,
+        defaultHostUrlState: {isPristine: true, value: ''}
+      });
+
+      const defaultHostPayload = {
+        'defaultHostUrl': 'https://github.com/'
+      };
+
+      // when reduce is invoked
+      const newState = reduce(state, {
+        type: 'SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FULFILLED',
+        payload: defaultHostPayload
+      });
+
+      // then state is updated
+      expect(newState.defaultHostUrlState).toEqual({
+        isPristine: false,
+        value: 'https://github.com/'
+      });
+
+      // and other properties are not modified
+      expect(newState.other).toBe(otherObject);
+    });
+  });
 });

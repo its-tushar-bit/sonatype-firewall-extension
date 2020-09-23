@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.experimental;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -19,6 +20,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.nexus.scm.api.model.SCMRepository;
 
 import com.codahale.metrics.annotation.Timed;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * This resource supports bulk onboarding of Source Config Management repositories
@@ -34,6 +36,8 @@ public class ApiScmOnboardingResource
 
   static final String LOAD_REPO_PATH = "load-repositories";
 
+  static final String DEFAULT_HOST_URL = "default-host-url";
+
   private final ApiScmOnboardingService apiScmOnboardingService;
 
   @Inject
@@ -48,5 +52,15 @@ public class ApiScmOnboardingResource
       @QueryParam("orgId") String orgId)
   {
     return apiScmOnboardingService.loadRepositories(orgId);
+  }
+
+  @Path(DEFAULT_HOST_URL)
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public Map<String, String> getDefaultHostUrl(
+      @QueryParam("provider") String provider,
+      @QueryParam("orgId") String orgId)
+  {
+    return ImmutableMap.of("defaultHostUrl", apiScmOnboardingService.getDefaultHostUrl(provider, orgId));
   }
 }

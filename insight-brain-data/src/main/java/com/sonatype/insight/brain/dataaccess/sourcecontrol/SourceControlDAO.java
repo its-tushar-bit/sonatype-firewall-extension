@@ -149,6 +149,26 @@ public class SourceControlDAO
     return getList(query);
   }
 
+  /**
+   * Get all the application-level source control entries which are under a given organization
+   */
+  public List<SourceControl> getApplicationSourceControlsByOrganizationWithRepositories(String orgId) {
+    String query = "SELECT entity " +
+        "FROM SourceControl entity, Application app " +
+        "WHERE entity.ownerId=app.id AND app.organizationId=?1 AND entity.repositoryUrl IS NOT NULL " +
+        // filter out apps with a custom token. We're interested in apps that can be loaded using the
+        // existing org tokens, otherwise they may be on custom hosts
+        "AND entity.token IS NULL";
+    return getList(query, orgId);
+  }
+
+  public List<SourceControl> getApplicationSourceControlsWithRepositories() {
+    String query = "SELECT entity " +
+        "FROM SourceControl entity " +
+        "WHERE entity.repositoryUrl IS NOT NULL AND entity.token IS NULL";
+    return getList(query);
+  }
+
   private List<SourceControl> getByOrganization() {
     String query = "SELECT entity FROM SourceControl entity WHERE entity.repositoryUrl IS NULL";
 

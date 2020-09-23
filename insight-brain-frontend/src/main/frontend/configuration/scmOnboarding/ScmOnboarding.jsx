@@ -19,6 +19,7 @@ export default function ScmOnboarding(props) {
     loadOrganizations,
     loadRepositories,
     setSelectedOrganization,
+    loadOrgHostUrl,
 
     // configuration state
     loadingConfig,
@@ -59,7 +60,9 @@ export default function ScmOnboarding(props) {
                   loadingOrganizations={loadingOrganizations}
                   selectedOrganization={selectedOrganization}
                   loadingRepositories={loadingRepositories}
-                  defaultHostUrlState={defaultHostUrlState}/>
+                  defaultHostUrlState={defaultHostUrlState}
+                  loadOrgHostUrl={loadOrgHostUrl}
+                  provider='github'/>
             </div>
             <div className="iq-tile iq-tile--sys-prefs">
               <ResultsTable
@@ -107,6 +110,7 @@ ScmOnboarding.propTypes = {
   organizations: PropTypes.arrayOf(PropTypes.shape(organizationPropType)).isRequired,
   setSelectedOrganization: PropTypes.func.isRequired,
   selectedOrganization: PropTypes.object,
+  loadOrgHostUrl: PropTypes.func.isRequired,
 
   // repositories
   loadRepositories: PropTypes.func.isRequired,

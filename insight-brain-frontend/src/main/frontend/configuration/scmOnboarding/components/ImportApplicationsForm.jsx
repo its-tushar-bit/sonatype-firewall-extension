@@ -15,6 +15,7 @@ export default function ImportApplicationsForm(props) {
   const {
     //config
     defaultHostUrlState,
+    provider,
 
     // organizations
     setSelectedOrganization,
@@ -24,7 +25,10 @@ export default function ImportApplicationsForm(props) {
 
     // repositories
     loadRepositories,
-    loadingRepositories
+    loadingRepositories,
+
+    // actions
+    loadOrgHostUrl
   } = props;
 
   function onSubmitMainForm() {
@@ -46,8 +50,11 @@ export default function ImportApplicationsForm(props) {
             <TargetOrganizationDropdown
                 organizations={organizations}
                 loadingOrganizations={loadingOrganizations}
+                provider={provider}
                 selectedOrganization={selectedOrganization}
-                setSelectedOrganization={setSelectedOrganization}/>
+                setSelectedOrganization={setSelectedOrganization}
+                loadOrgHostUrl={loadOrgHostUrl}
+            />
           </div>
         </fieldset>
         <fieldset className="nx-fieldset">
@@ -77,12 +84,14 @@ export const textInputPropType = PropTypes.shape(pick(['value', 'isPristine', 'v
 ImportApplicationsForm.propTypes = {
   // config
   defaultHostUrlState: textInputPropType,
+  provider: PropTypes.string.isRequired,
 
   // organizations
   setSelectedOrganization: PropTypes.func.isRequired,
   organizations: PropTypes.arrayOf(PropTypes.shape(organizationPropType)).isRequired,
   loadingOrganizations: PropTypes.bool.isRequired,
   selectedOrganization: PropTypes.shape(organizationPropType),
+  loadOrgHostUrl: PropTypes.func.isRequired,
 
   //repositories
   loadRepositories: PropTypes.func.isRequired,

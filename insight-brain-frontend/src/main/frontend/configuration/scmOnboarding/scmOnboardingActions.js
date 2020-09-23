@@ -6,7 +6,12 @@
 
 import {noPayloadActionCreator, payloadParamActionCreator} from '../../util/reduxUtil';
 import axios from 'axios';
-import {getManifestScanConfigUrl, getOrganizationsUrl, getScmRepositoriesUrl} from '../../util/CLMLocation';
+import {
+  getManifestScanConfigUrl,
+  getOrganizationsUrl,
+  getScmRepositoriesUrl,
+  getScmDefaultHostUrl
+} from '../../util/CLMLocation';
 
 export const SCM_ONBOARDING_LOAD_CONFIG_REQUESTED = 'SCM_ONBOARDING_LOAD_CONFIG_REQUESTED';
 export const SCM_ONBOARDING_LOAD_CONFIG_FULFILLED = 'SCM_ONBOARDING_LOAD_CONFIG_FULFILLED';
@@ -19,6 +24,10 @@ export const SCM_ONBOARDING_LOAD_ORGANIZATIONS_FAILED = 'SCM_ONBOARDING_CONFIG_O
 export const SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED = 'SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED';
 export const SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED = 'SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED';
 export const SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED = 'SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED';
+
+export const SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_REQUESTED = 'SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_REQUESTED';
+export const SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FULFILLED = 'SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FULFILLED';
+export const SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FAILED = 'SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FAILED';
 
 export function loadConfig() {
   return function(dispatch) {
@@ -50,6 +59,16 @@ export function loadRepositories() {
   };
 }
 
+export function loadOrgHostUrl(orgId, provider) {
+  return function(dispatch) {
+    dispatch(loadOrgDefaultHostUrlRequested());
+
+    return axios.get(getScmDefaultHostUrl(orgId, provider))
+        .then(({ data }) => { dispatch(loadOrgDefaultHostUrlFulfilled(data)); })
+        .catch(error => { dispatch(loadOrgDefaultHostUrlFailed(error)); });
+  };
+}
+
 const loadConfigRequested = noPayloadActionCreator(SCM_ONBOARDING_LOAD_CONFIG_REQUESTED);
 const loadConfigFulfilled = payloadParamActionCreator(SCM_ONBOARDING_LOAD_CONFIG_FULFILLED);
 const loadConfigFailed = payloadParamActionCreator(SCM_ONBOARDING_LOAD_CONFIG_FAILED);
@@ -64,3 +83,7 @@ const loadRepositoriesFailed = payloadParamActionCreator(SCM_ONBOARDING_LOAD_REP
 
 export const SCM_ONBOARDING_SET_TARGET_ORGANIZATION = 'SCM_ONBOARDING_SET_TARGET_ORGANIZATION';
 export const setSelectedOrganization = payloadParamActionCreator(SCM_ONBOARDING_SET_TARGET_ORGANIZATION);
+
+const loadOrgDefaultHostUrlRequested = noPayloadActionCreator(SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_REQUESTED);
+const loadOrgDefaultHostUrlFulfilled = payloadParamActionCreator(SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FULFILLED);
+const loadOrgDefaultHostUrlFailed = payloadParamActionCreator(SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FAILED);

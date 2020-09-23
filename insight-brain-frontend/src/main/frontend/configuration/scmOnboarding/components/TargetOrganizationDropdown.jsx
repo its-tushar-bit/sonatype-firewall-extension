@@ -14,12 +14,14 @@ export default function TargetOrganizationDropdown(props) {
     // input: organizations
     organizations,
     loadingOrganizations,
+    provider,
 
     // output: selected organization
     selectedOrganization,
 
     // action
-    setSelectedOrganization
+    setSelectedOrganization,
+    loadOrgHostUrl
   } = props;
 
   const [isOpen, setOpen] = useState(false),
@@ -27,6 +29,7 @@ export default function TargetOrganizationDropdown(props) {
       onClick = (event) => {
         setSelectedOrganization(event);
         setOpen(false);
+        loadOrgHostUrl(event.organizationId, provider);
       };
 
   function getOptionClassNames(isSelected) {
@@ -62,6 +65,8 @@ export default function TargetOrganizationDropdown(props) {
 TargetOrganizationDropdown.propTypes = {
   organizations: PropTypes.arrayOf(PropTypes.shape(organizationPropType)).isRequired,
   loadingOrganizations: PropTypes.bool.isRequired,
+  provider: PropTypes.string.isRequired,
   setSelectedOrganization: PropTypes.func.isRequired,
-  selectedOrganization: PropTypes.shape(organizationPropType)
+  selectedOrganization: PropTypes.shape(organizationPropType),
+  loadOrgHostUrl: PropTypes.func.isRequired
 };

@@ -16,7 +16,9 @@ import {
 
   SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED,
   SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED,
-  SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED
+  SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED,
+  SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_REQUESTED,
+  SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FULFILLED, SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FAILED
 } from './scmOnboardingActions';
 import {Messages} from '../../util/CommonServices';
 
@@ -114,6 +116,32 @@ function loadRepositoriesFailed(payload, state) {
   };
 }
 
+function loadOrgDefaultHostUrlRequested(payload, state) {
+  return {
+    ...state,
+    defaultHostUrlState: {
+      isPristine: true,
+      value: ''
+    }
+  };
+}
+
+function loadOrgDefaultHostUrlFulfilled(payload, state) {
+  return {
+    ...state,
+    defaultHostUrlState: {
+      isPristine: false,
+      value: payload.defaultHostUrl
+    }
+  };
+}
+
+function loadOrgDefaultHostUrlFailed(payload, state) {
+  return {
+    ...state
+  };
+}
+
 const reducerActionMap = {
   [SCM_ONBOARDING_LOAD_CONFIG_REQUESTED]: loadConfigRequested,
   [SCM_ONBOARDING_LOAD_CONFIG_FULFILLED]: loadConfigFulfilled,
@@ -127,7 +155,11 @@ const reducerActionMap = {
   [SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED]: loadRepositoriesFulfilled,
   [SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED]: loadRepositoriesFailed,
 
-  [SCM_ONBOARDING_SET_TARGET_ORGANIZATION]: setSelectedOrganization
+  [SCM_ONBOARDING_SET_TARGET_ORGANIZATION]: setSelectedOrganization,
+
+  [SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_REQUESTED]: loadOrgDefaultHostUrlRequested,
+  [SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FULFILLED]: loadOrgDefaultHostUrlFulfilled,
+  [SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FAILED]: loadOrgDefaultHostUrlFailed
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

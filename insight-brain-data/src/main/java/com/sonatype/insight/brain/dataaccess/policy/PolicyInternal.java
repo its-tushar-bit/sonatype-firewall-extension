@@ -149,21 +149,14 @@ public class PolicyInternal
     result.setOwnerId(policy.getOwnerId());
     result.setThreatLevel(policy.getThreatLevel());
     result.setPolicyViolationGrandfatheringAllowed(policy.isPolicyViolationGrandfatheringAllowed());
-    result.setContent(JsonUtils.format(policy));
+    result.setContent(toJson(policy));
     result.setDroolsCode(policy.getDroolsCode());
 
     return result;
   }
 
   Policy toPolicy() {
-    Policy result;
-    try {
-      result = JsonUtils.parse(content, Policy.class);
-    }
-    catch (IOException e) {
-      throw new UncheckedIOException("Failed to parse policy content for policy '" + name + "' for owner id " + ownerId
-          + ": " + e.getMessage(), e);
-    }
+    Policy result = fromJson(content, name, ownerId);
     result.setId(id);
     result.setName(name);
     result.setOwnerId(ownerId);
@@ -172,6 +165,20 @@ public class PolicyInternal
     result.setDroolsCode(droolsCode);
 
     return result;
+  }
+
+  public static Policy fromJson(String policyJson, String policyName, String policyOwnerid) {
+    try {
+      return JsonUtils.parse(policyJson, Policy.class);
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException("Failed to parse policy content for policy '" + policyName + "' for owner id "
+          + policyOwnerid + ": " + e.getMessage(), e);
+    }
+  }
+
+  public static String toJson(Policy policy) {
+    return JsonUtils.format(policy);
   }
 
   static Policy toPolicy(PolicyInternal policyInternal) {

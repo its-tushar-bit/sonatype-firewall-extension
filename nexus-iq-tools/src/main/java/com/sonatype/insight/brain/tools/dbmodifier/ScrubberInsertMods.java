@@ -27,6 +27,12 @@ import java.util.stream.Collectors;
 
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyInternal;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.PackageUrlConditionType;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.apache.commons.lang3.RandomStringUtils;
@@ -43,22 +49,8 @@ class ScrubberInsertMods
   private static Random RANDOM = new Random(seed);
 
   // visible for testing
-  static final String NAME_OPEN_JSON = "\"name\" : \"";
-
-  private static final String NOTIFICATIONS_OPEN_JSON = "  \"notifications\" : {\n";
-
-  // visible for testing
   static final String DEFAULT_PASS =
       "$shiro1$SHA-256$10$7PC5QqeewnJK3iBQLPoq+Q==$5G44CC6HIYL8113tbp9lL0lNDP5CQJzbar0mWWkKbIM=";
-
-  // visible for testing
-  static final String NOTIFICATIONS_EMPTY_CLOSING_JSON =
-      "  \"notifications\" : {\n" +
-          "    \"userNotifications\" : [ ],\n" +
-          "    \"roleNotifications\" : [ ],\n" +
-          "    \"jiraNotifications\" : [ ]\n" +
-          "  }\n" +
-          "}";
 
   private static final Set<String> EXCLUDED_TERMS = new HashSet<>(Arrays.asList("Root Organization"));
 
@@ -79,39 +71,6 @@ class ScrubberInsertMods
       }
     }
     return builder.toString();
-  }
-
-  private static String stripNotifications(String json) {
-    if (json.contains(NOTIFICATIONS_OPEN_JSON)) {
-      return json.substring(0, json.indexOf(NOTIFICATIONS_OPEN_JSON)) + NOTIFICATIONS_EMPTY_CLOSING_JSON;
-    }
-    return json;
-  }
-
-  private static String replaceJsonNames(String json) {
-    if (json.contains(NAME_OPEN_JSON)) {
-      StringBuffer modified = new StringBuffer(json.length());
-      int position = 0;
-      int next = json.indexOf(NAME_OPEN_JSON);
-      while (next > 0) {
-        int eol = json.indexOf('\n', next);
-        int closing = json.lastIndexOf('"', eol);
-        String target = json.substring(next + NAME_OPEN_JSON.length(), closing);
-        modified.append(json, position, next + NAME_OPEN_JSON.length());
-        modified.append(consistentRandomString(target));
-        position = closing;
-        next = json.indexOf(NAME_OPEN_JSON, position);
-      }
-      modified.append(json.substring(position));
-
-      return modified.toString();
-    }
-    return json;
-  }
-
-  // visible for testing
-  static String jsonRandomizer(String src) {
-    return replaceJsonNames(stripNotifications(src));
   }
 
   private static Function<String, String> stringValueModifier(Function<String, String> mutator) {
@@ -256,9 +215,6 @@ class ScrubberInsertMods
           else if (colParts[1].equals("path")) {
             mutator = stringValueModifier(ScrubberInsertMods::pathRandomizer);
           }
-          else if (colParts[1].equals("json")) {
-            mutator = stringValueModifier(ScrubberInsertMods::jsonRandomizer);
-          }
           else if (colParts[1].equals("user")) {
             mutator = stringValueModifier(userRandomizer(name));
           }
@@ -350,7 +306,7 @@ class ScrubberInsertMods
         tableMod("component_id_coordinates_json:componentIdentifier", "comment"));
     insertModMap.put(h2OdsTable("license_threat_group"), tableMod("name"));
     insertModMap.put(h2OdsTable("organization"), tableMod("name"));
-    insertModMap.put(h2OdsTable("policy"), tableMod("name", "content:json"));
+    insertModMap.put(h2OdsTable("policy"), policyScrubber());
     insertModMap.put(h2OdsTable("policy_evaluation"), tableMod("commit_hash"));
     insertModMap.put(h2OdsTable("policy_violation"),
         tableMod("policy_name", "policy_waiver_comment", "component_id_coordinates_json:componentIdentifier",
@@ -425,6 +381,71 @@ class ScrubberInsertMods
 
         columnIndex++;
       }
+
+      scrubbedLines.add(insertSqlLine);
+      return scrubbedLines;
+    };
+  }
+
+  private static Function<SQLLine, List<SQLLine>> policyScrubber() {
+    return insertSqlLine -> {
+      List<SQLLine> scrubbedLines = new ArrayList<>();
+
+      String policyJson = stripQuotes(stripStringDecode(getColumnValue(insertSqlLine, "content")));
+      String policyName = getColumnValue(insertSqlLine, "name");
+      String policyOwnerId = getColumnValue(insertSqlLine, "owner_id");
+      Policy policy = PolicyInternal.fromJson(policyJson, policyName, policyOwnerId);
+      int columnIndex = 0;
+      int contentColumnIndex = -1;
+      int droolsCodeColumnIndex = -1;
+      for (String columnName : insertSqlLine.cols) {
+        switch (columnName) {
+          case "name":
+            Function<String, String> mutator = stringValueModifier(ScrubberInsertMods::defaultRandomizer);
+            scrubColumnValue(insertSqlLine, columnName, mutator, scrubbedLines);
+            String scrubbedPolicyName = getColumnValue(insertSqlLine, "name");
+            policy.setName(scrubbedPolicyName);
+            break;
+          case "content":
+            contentColumnIndex = columnIndex;
+            break;
+          case "drools_code":
+            droolsCodeColumnIndex = columnIndex;
+            break;
+          default:
+            break;
+        }
+
+        columnIndex++;
+      }
+
+      for (Constraint constraint : policy.getConstraints()) {
+        constraint.setName(defaultRandomizer(constraint.getName()));
+        for (Condition condition : constraint.getConditions()) {
+          switch (condition.getConditionTypeId()) {
+            case CoordinatesConditionType.ID: {
+              String[] coordinates = condition.getValue().split(":", 2);
+              condition.setValue(coordinates[0] + ":" + defaultRandomizer(coordinates[1]));
+              break;
+            }
+            case PackageUrlConditionType.ID: {
+              String[] coordinates = condition.getValue().split("/", 2);
+              condition.setValue(coordinates[0] + "/" + defaultRandomizer(coordinates[1]));
+              break;
+            }
+            default:
+              // Checkstyle wants a default for all switches
+              break;
+          }
+        }
+      }
+
+      policy.setNotifications(null);
+
+      String scrubbedPolicyJson = PolicyInternal.toJson(policy);
+      insertSqlLine.vals.set(contentColumnIndex, wrapStringDecode(wrapQuotes(scrubbedPolicyJson)));
+      // Remove the drools code. It can be re-generated if needed.
+      insertSqlLine.vals.set(droolsCodeColumnIndex, "''");
 
       scrubbedLines.add(insertSqlLine);
       return scrubbedLines;

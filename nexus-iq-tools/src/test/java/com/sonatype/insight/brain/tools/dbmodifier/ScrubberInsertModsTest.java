@@ -5,9 +5,7 @@
  */
 package com.sonatype.insight.brain.tools.dbmodifier;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -147,62 +145,5 @@ public class ScrubberInsertModsTest
     assertThat(scrubbed2).hasSize(1);
     assertThat(scrubbed2.get(0).columnValue("password")).isEqualTo("'" + ScrubberInsertMods.DEFAULT_PASS + "'");
     assertThat(scrubbed2.get(0).columnValue("username")).isEqualTo("'BNe19y'");
-  }
-
-  @Test
-  public void testJsonRandomizer_Generic() {
-    String samplePolicyJson = "{\n" +
-        "  \"id\" : \"03ec05bee50c4e911111111a000bc5c4\",\n" +
-        "  \"name\" : \"Security-Low\",\n" +
-        "  \"ownerId\" : \"11111111bbbbbbbb55555555aaaaaaaa\",\n" +
-        "  \"enabled\" : true,\n" +
-        "  \"threatLevel\" : 3,\n" +
-        "  \"constraints\" : [ {\n" +
-        "    \"id\" : \"22222222cccccccc3333333300000000\",\n" +
-        "    \"name\" : \"CVSS > 0 and < 4\",\n" +
-        "    \"enabled\" : true,\n" +
-        "    \"operator\" : \"AND\",\n" +
-        "    \"conditions\" : [ {\n" +
-        "      \"conditionTypeId\" : \"SecurityVulnerabilitySeverity\",\n" +
-        "      \"operator\" : \"<\",\n" +
-        "      \"value\" : \"4\"\n" +
-        "    }, {\n" +
-        "      \"conditionTypeId\" : \"SecurityVulnerabilityStatus\",\n" +
-        "      \"operator\" : \"is not\",\n" +
-        "      \"value\" : \"NOT_APPLICABLE\"\n" +
-        "    }, {\n" +
-        "      \"conditionTypeId\" : \"SecurityVulnerabilitySeverity\",\n" +
-        "      \"operator\" : \">\",\n" +
-        "      \"value\" : \"0\"\n" +
-        "    } ]\n" +
-        "  } ],\n" +
-        "  \"actions\" : {\n" +
-        "    \"build\" : \"warn\",\n" +
-        "    \"release\" : \"warn\",\n" +
-        "    \"develop\" : \"warn\",\n" +
-        "    \"stage-release\" : \"warn\"\n" +
-        "  },\n" +
-        "  \"notifications\" : {\n" +
-        "    \"userNotifications\" : [ {\n" +
-        "      \"stageIds\" : [ \"build\", \"release\", \"stage-release\" ],\n" +
-        "      \"emailAddress\" : \"some.one@sonatype.com\"\n" +
-        "    }, {\n" +
-        "      \"stageIds\" : [ \"build\", \"release\", \"stage-release\" ],\n" +
-        "      \"emailAddress\" : \"nobody@sonatype.com\"\n" +
-        "    } ],\n" +
-        "    \"roleNotifications\" : [ ],\n" +
-        "    \"jiraNotifications\" : [ ]\n" +
-        "  }\n" +
-        "}";
-
-    String randomized = ScrubberInsertMods.jsonRandomizer(samplePolicyJson);
-    assertThat(randomized).endsWith(ScrubberInsertMods.NOTIFICATIONS_EMPTY_CLOSING_JSON);
-    List<String> original = Arrays.stream(samplePolicyJson.split("\n"))
-        .filter(s -> s.contains(ScrubberInsertMods.NAME_OPEN_JSON)).collect(Collectors.toList());
-    List<String> mutated = Arrays.stream(randomized.split("\n"))
-        .filter(s -> s.contains(ScrubberInsertMods.NAME_OPEN_JSON)).collect(Collectors.toList());
-
-    assertThat(mutated).hasSameSizeAs(original);
-    assertThat(mutated).contains("  \"name\" : \"qfLPbbXOwP0g\",","    \"name\" : \"hpzsB14BNe19yjys\",");
   }
 }

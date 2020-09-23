@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
@@ -40,11 +41,19 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.notification.UserViewedProductNotification;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.PackageUrlConditionType;
+import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
+import com.sonatype.insight.brain.model.policy.notifications.Notifications;
+import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
+import com.sonatype.insight.brain.model.policy.notifications.WebhookNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -65,7 +74,6 @@ import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverr
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.apache.commons.io.FileUtils;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -409,17 +417,32 @@ public class DbScrubberTest
   }
 
   @Test
-  @Ignore
-  // Policies need extra processing to be scrubbed properly
   public void testScrubDB_Table_policy() throws Exception {
     Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Test policy");
 
+    Constraint constraint = policy.getConstraints().get(0);
+    String constraintName = constraint.getName();
+    constraint
+        .addCondition(new Condition(CoordinatesConditionType.ID, "match", "maven:testCoordinatesConditionTypeValue"));
+    constraint.addCondition(new Condition(PackageUrlConditionType.ID, "matches",
+        "pkg:maven/testPackageUrlConditionTypeValue/a@v?classifier=*&type=jar"));
+
+    Notifications notifications = new Notifications(new UserNotification("testEmailAddress", Stage.ID_PROXY),
+        new JiraNotification("testProjectKey", 1, Stage.ID_STAGE_RELEASE),
+        new WebhookNotification("testWebhookid", Stage.ID_BUILD));
+    policy.setNotifications(notifications);
+
+    new PolicyDAO().update(policy);
+
     scrubDb();
 
-    assertThat(getSqlDumpContent()).contains(policy.getId(), "Test policy", "testpolicy");
+    assertThat(getSqlDumpContent()).contains(policy.getId(), "Test policy", "testpolicy", constraintName,
+        "testEmailAddress", "testProjectKey", "testWebhookid", "testCoordinatesConditionTypeValue",
+        "testPackageUrlConditionTypeValue");
     String scrubbedSqlContent = getScrubbedSqlContent();
     assertThat(scrubbedSqlContent).contains(policy.getId());
-    assertThat(scrubbedSqlContent).doesNotContain("Test policy", "testpolicy");
+    assertThat(scrubbedSqlContent).doesNotContain("Test policy", "testpolicy", constraintName, "testEmailAddress",
+        "testProjectKey", "testWebhookid", "testCoordinatesConditionTypeValue", "testPackageUrlConditionTypeValue");
   }
 
   @Test

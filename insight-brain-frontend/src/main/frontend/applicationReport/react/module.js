@@ -18,7 +18,7 @@ function routes($stateProvider) {
         data: {
           title: 'Application Report'
         },
-        url: '/reactAppReport/{appId}/{scanId}'
+        url: '/reactAppReport/{publicId}/{scanId}?unknownjs&embeddable&policyViolationId'
       });
 }
 

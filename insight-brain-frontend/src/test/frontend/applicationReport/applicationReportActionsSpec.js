@@ -3,8 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import axios from 'axios';
 import applicationReportModule from '../../../main/frontend/applicationReport/module';
 import { serializeComponentIdentifier } from '../../../main/frontend/util/componentIdentifierUtils';
+import * as CLMLocation from '../../../main/frontend/util/CLMLocation';
+import { STATE_GO } from '../../../main/frontend/reduxUiRouter/routerActions';
 
 const createMockState = (isUnknownJs, bomData, unknownJsData, metadata, embeddable) => ({
   applicationReport: {
@@ -36,23 +39,15 @@ const mockLicenseData = {
 const mockReportData = { fooReport: 'barReport' };
 
 describe('applicationReportActions', function() {
-  let applicationReportActions, CLMLocations, $httpBackend, $state;
+  let applicationReportActions, mockAxiosCalls;
 
-  beforeEach(angular.mock.module(applicationReportModule.name, function($provide) {
-    $provide.value('$window', { location: {} });
+  beforeEach(angular.mock.module(applicationReportModule.name, function() {
+    mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   }));
 
-  beforeEach(inject(function(_applicationReportActions_, _CLMLocations_, _$httpBackend_, _$state_) {
+  beforeEach(inject(function(_applicationReportActions_) {
     applicationReportActions = _applicationReportActions_;
-    CLMLocations = _CLMLocations_;
-    $httpBackend = _$httpBackend_;
-    $state = _$state_;
   }));
-
-  afterEach(function() {
-    $httpBackend.verifyNoOutstandingExpectation();
-    $httpBackend.verifyNoOutstandingRequest();
-  });
 
   describe('setReportParameters', () => {
     it('dispatches SET_REPORT_PARAMETERS action', () => {
@@ -93,201 +88,165 @@ describe('applicationReportActions', function() {
    * and unknownjs).  The tests defined here expect the action creator to initially fire some action, the details
    * of which are not specific to the common data and which are therefore not tested here.
    * @param actionCreatorName The property on applicationReportActions containing the action creator function to invoke
-   * @param expectAdditionalCalls A function that sets up additional HTTP call expectations specific to the action
+   * @param expectAdditionalCalls An object that sets up additional HTTP call expectations specific to the action
    * creator under test which come after the common data HTTP expectations, when appropriate
    */
   function testCommonDataLoading(actionCreatorName, expectAdditionalCalls) {
-    it('fetches common data if bomData is not on the state', () => {
+    it('fetches common data if bomData is not on the state', (done) => {
       const store = SpecUtil.mockReduxStore(createMockState(true, undefined, mockUnknownJsData, mockMetadata));
-      const errorSpy = jasmine.createSpy('errorSpy');
 
-      store.dispatch(applicationReportActions[actionCreatorName]()).catch(errorSpy);
+      expectCommonDataCalls(true, expectAdditionalCalls);
 
-      expect(store.getActions().length).toBe(1);
-
-      expectCommonDataCalls(true);
-      expectUnknownJsCall();
-      expectAdditionalCalls();
-      $httpBackend.flush(3);
-
-      expect(store.getActions().length).toBe(2);
-      expect(store.getActions()[1]).toEqual({
-        type: 'LOAD_COMMON_DATA_FULFILLED',
-        payload: {
-          bomData: mockBomData,
-          metadata: mockMetadata,
-          unknownJsData: mockUnknownJsData
-        }
+      store.dispatch(applicationReportActions[actionCreatorName]()).then(() => {
+        expect(store.getActions()[1]).toEqual({
+          type: 'LOAD_COMMON_DATA_FULFILLED',
+          payload: {
+            bomData: mockBomData,
+            metadata: mockMetadata,
+            unknownJsData: mockUnknownJsData
+          }
+        });
+        done();
       });
 
-      $httpBackend.flush();
+      expect(store.getActions().length).toBe(1);
     });
 
-    it('fetches common data if metadata is not on the state', () => {
+    it('fetches common data if metadata is not on the state', (done) => {
       const store = SpecUtil.mockReduxStore(createMockState(true, mockBomData, mockUnknownJsData, undefined));
-      const errorSpy = jasmine.createSpy('errorSpy');
 
-      store.dispatch(applicationReportActions[actionCreatorName]()).catch(errorSpy);
+      expectCommonDataCalls(true, expectAdditionalCalls);
 
-      expect(store.getActions().length).toBe(1);
-
-      expectCommonDataCalls(true);
-      expectUnknownJsCall();
-      expectAdditionalCalls();
-      $httpBackend.flush(3);
-
-      expect(store.getActions().length).toBe(2);
-      expect(store.getActions()[1]).toEqual({
-        type: 'LOAD_COMMON_DATA_FULFILLED',
-        payload: {
-          bomData: mockBomData,
-          metadata: mockMetadata,
-          unknownJsData: mockUnknownJsData
-        }
+      store.dispatch(applicationReportActions[actionCreatorName]()).then(() => {
+        expect(store.getActions()[1]).toEqual({
+          type: 'LOAD_COMMON_DATA_FULFILLED',
+          payload: {
+            bomData: mockBomData,
+            metadata: mockMetadata,
+            unknownJsData: mockUnknownJsData
+          }
+        });
+        done();
       });
-
-      $httpBackend.flush();
     });
 
-    it('fetches common data if unknownJs is on and unknownJsData is not on the state', () => {
+    it('fetches common data if unknownJs is on and unknownJsData is not on the state', (done) => {
       const store = SpecUtil.mockReduxStore(createMockState(true, mockBomData, undefined, mockMetadata));
-      const errorSpy = jasmine.createSpy('errorSpy');
 
-      store.dispatch(applicationReportActions[actionCreatorName]()).catch(errorSpy);
+      expectCommonDataCalls(true, expectAdditionalCalls);
 
-      expect(store.getActions().length).toBe(1);
-
-      expectCommonDataCalls(true);
-      expectUnknownJsCall();
-      expectAdditionalCalls();
-      $httpBackend.flush(3);
-
-      expect(store.getActions().length).toBe(2);
-      expect(store.getActions()[1]).toEqual({
-        type: 'LOAD_COMMON_DATA_FULFILLED',
-        payload: {
-          bomData: mockBomData,
-          metadata: mockMetadata,
-          unknownJsData: mockUnknownJsData
-        }
+      store.dispatch(applicationReportActions[actionCreatorName]()).then(() => {
+        expect(store.getActions()[1]).toEqual({
+          type: 'LOAD_COMMON_DATA_FULFILLED',
+          payload: {
+            bomData: mockBomData,
+            metadata: mockMetadata,
+            unknownJsData: mockUnknownJsData
+          }
+        });
+        done();
       });
-
-      $httpBackend.flush();
     });
 
-    it('does not fetch unknownJsData if unknownJs is off', () => {
+    it('does not fetch unknownJsData if unknownJs is off', (done) => {
       const store = SpecUtil.mockReduxStore(createMockState(false, undefined, undefined, undefined));
-      const errorSpy = jasmine.createSpy('errorSpy');
 
-      store.dispatch(applicationReportActions[actionCreatorName]()).catch(errorSpy);
+      expectCommonDataCalls(true, expectAdditionalCalls);
 
-      expect(store.getActions().length).toBe(1);
-
-      expectCommonDataCalls(true);
-      expectAdditionalCalls();
-      $httpBackend.flush(2);
-
-      expect(store.getActions().length).toBe(2);
-      expect(store.getActions()[1]).toEqual({
-        type: 'LOAD_COMMON_DATA_FULFILLED',
-        payload: {
-          bomData: mockBomData,
-          metadata: mockMetadata,
-          unknownJsData: undefined
-        }
+      store.dispatch(applicationReportActions[actionCreatorName]()).then(() => {
+        expect(store.getActions()[1]).toEqual({
+          type: 'LOAD_COMMON_DATA_FULFILLED',
+          payload: {
+            bomData: mockBomData,
+            metadata: mockMetadata,
+            unknownJsData: undefined
+          }
+        });
+        done();
       });
-
-      $httpBackend.flush();
     });
 
-    it('does not fetch common data if bomData, metadata are set on the state and unknownJs is false', () => {
+    it('does not fetch common data if bomData, metadata are set on the state and unknownJs is false', (done) => {
       const store = SpecUtil.mockReduxStore(createMockState(false, mockBomData, mockUnknownJsData, mockMetadata));
-      const errorSpy = jasmine.createSpy('errorSpy');
 
-      store.dispatch(applicationReportActions[actionCreatorName]()).catch(errorSpy);
+      expectCommonDataCalls(false, expectAdditionalCalls);
 
-      expect(store.getActions().length).toBe(2);
-      expect(store.getActions()[1]).toEqual({
-        type: 'LOAD_COMMON_DATA_UNNECESSARY'
+      store.dispatch(applicationReportActions[actionCreatorName]()).then(() => {
+        expect(store.getActions()[1]).toEqual({
+          type: 'LOAD_COMMON_DATA_UNNECESSARY'
+        });
+        done();
       });
-
-      expectAdditionalCalls();
-      $httpBackend.flush();
     });
 
-    it('does not fetch common data if bomData, metadata and unknownJsData are all on the state', () => {
+    it('does not fetch common data if bomData, metadata and unknownJsData are all on the state', (done) => {
       const store = SpecUtil.mockReduxStore(createMockState(true, mockBomData, mockUnknownJsData, mockMetadata));
-      const errorSpy = jasmine.createSpy('errorSpy');
 
-      store.dispatch(applicationReportActions[actionCreatorName]()).catch(errorSpy);
+      expectCommonDataCalls(false, expectAdditionalCalls);
 
-      expect(store.getActions().length).toBe(2);
-      expect(store.getActions()[1]).toEqual({
-        type: 'LOAD_COMMON_DATA_UNNECESSARY'
+      store.dispatch(applicationReportActions[actionCreatorName]()).then(() => {
+        expect(store.getActions()[1]).toEqual({
+          type: 'LOAD_COMMON_DATA_UNNECESSARY'
+        });
+        done();
       });
-
-      expectAdditionalCalls();
-      $httpBackend.flush();
     });
 
-    it('fires LOAD_COMMON_DATA_FAILED action and no further actions if the common data request fails', () => {
+    it('fires LOAD_COMMON_DATA_FAILED action and no further actions if the common data request fails', (done) => {
       const store = SpecUtil.mockReduxStore(createMockState(true, undefined, undefined, undefined));
-      const errorSpy = jasmine.createSpy('errorSpy');
-      store.dispatch(applicationReportActions[actionCreatorName]()).catch(errorSpy);
 
-      expect(store.getActions().length).toBe(1);
+      expectCommonDataCalls(false, expectAdditionalCalls);
 
-      expectCommonDataCalls(false);
-      expectUnknownJsCall();
-      $httpBackend.flush();
-
-      expect(errorSpy).toHaveBeenCalled();
-      expect(store.getActions().length).toBe(2);
-      expect(store.getActions()[1]).toEqual({
-        type: 'LOAD_COMMON_DATA_FAILED',
-        payload: 'Error 500'
+      store.dispatch(applicationReportActions[actionCreatorName]()).catch(() => {
+        expect(store.getActions().length).toBe(2);
+        expect(store.getActions()[1]).toEqual({
+          type: 'LOAD_COMMON_DATA_FAILED',
+          payload: 'Error 500'
+        });
+        done();
       });
     });
 
-    it('redirects to the old app report page if this is an XC report', function() {
-      spyOn($state, 'go');
-
+    it('redirects to the old app report page if this is an XC report', function(done) {
       const store = SpecUtil.mockReduxStore(createMockState(false, undefined, undefined, undefined));
-      const errorSpy = jasmine.createSpy('errorSpy');
-      store.dispatch(applicationReportActions[actionCreatorName]()).catch(errorSpy);
 
-      expect(store.getActions().length).toBe(1);
+      mockAxiosCalls({
+        get: {
+          [CLMLocation.getReportBomUrl('appId', 'scanId')]: { data: mockBomData },
+          [CLMLocation.getReportMetadataUrl('appId', 'scanId')]: { data: { expandedCoverage: true } }
+        }
+      });
 
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportBomUrl('appId', 'scanId')))
-          .respond(200, mockBomData);
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportMetadataUrl('appId', 'scanId')))
-          .respond(200, { expandedCoverage: true });
-      $httpBackend.flush();
-
-      expect($state.go).toHaveBeenCalledWith('report', { publicId: 'appId', scanId: 'scanId' });
-      expect(errorSpy).toHaveBeenCalled();
-      expect(store.getActions().length).toBe(1);
+      store.dispatch(applicationReportActions[actionCreatorName]()).catch(() => {
+        expect(store.getActions().length).toBe(2);
+        expect(store.getActions()[1]).toEqual({
+          type: STATE_GO,
+          payload: {
+            to: 'report',
+            params: { publicId: 'appId', scanId: 'scanId' },
+            options: undefined
+          }
+        });
+        done();
+      });
     });
 
-    it('redirects to the old iframe URL if this is an XC report and the embeddable flag is set',
-        inject(function($window) {
-          const store = SpecUtil.mockReduxStore(createMockState(false, undefined, undefined, undefined, true));
-          const errorSpy = jasmine.createSpy('errorSpy');
-          store.dispatch(applicationReportActions[actionCreatorName]()).catch(errorSpy);
+    it('redirects to the old iframe URL if this is an XC report and the embeddable flag is set', function (done) {
+      const store = SpecUtil.mockReduxStore(createMockState(false, undefined, undefined, undefined, true));
+      const spyRedirect = spyOn(CLMLocation, 'redirectTo').and.callFake(() => {});
 
-          expect(store.getActions().length).toBe(1);
+      mockAxiosCalls({
+        get: {
+          [CLMLocation.getReportBomUrl('appId', 'scanId')]: { data: mockBomData },
+          [CLMLocation.getReportMetadataUrl('appId', 'scanId')]: { data: { expandedCoverage: true } }
+        }
+      });
 
-          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportBomUrl('appId', 'scanId')))
-              .respond(200, mockBomData);
-          $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportMetadataUrl('appId', 'scanId')))
-              .respond(200, { expandedCoverage: true });
-          $httpBackend.flush();
-
-          expect($window.location).toBe(CLMLocations.getExpandedCoverageEmbeddableUrl('appId', 'scanId'));
-          expect(errorSpy).toHaveBeenCalled();
-          expect(store.getActions().length).toBe(1);
-        })
-    );
+      store.dispatch(applicationReportActions[actionCreatorName]()).catch(() => {
+        expect(spyRedirect).toHaveBeenCalledWith(CLMLocation.getExpandedCoverageEmbeddableUrl('appId', 'scanId'));
+        done();
+      });
+    });
   }
 
   describe('loadReport', function() {
@@ -300,49 +259,35 @@ describe('applicationReportActions', function() {
       expect(store.getActions()[0]).toEqual({
         type: 'LOAD_REPORT_REQUESTED'
       });
-
-      expectReportDataCalls(false);
-      $httpBackend.flush();
     });
 
-    testCommonDataLoading('loadReport', () => expectReportDataCalls(true));
+    testCommonDataLoading('loadReport', expectReportDataCalls(true));
 
-    it('loads report information if forceCache is true, even if it is already on the state', () => {
+    it('loads report information if forceCache is true, even if it is already on the state', (done) => {
       const store = SpecUtil.mockReduxStore(createMockState(true, mockBomData, mockUnknownJsData, mockMetadata));
-      const errorSpy = jasmine.createSpy('errorSpy');
 
-      store.dispatch(applicationReportActions.loadReport(true)).catch(errorSpy);
+      expectCommonDataCalls(true, expectReportDataCalls(true));
 
-      expect(store.getActions().length).toBe(1);
-
-      expectCommonDataCalls(true);
-      expectUnknownJsCall();
-      expectReportDataCalls(true);
-
-      $httpBackend.flush();
-    });
-
-    it('fires LOAD_REPORT_FAILED action if report request fails', function() {
-      const store = SpecUtil.mockReduxStore(createMockState(true, undefined, mockUnknownJsData, mockMetadata));
-      const errorSpy = jasmine.createSpy('errorSpy');
-      store.dispatch(applicationReportActions.loadReport()).catch(errorSpy);
-
-      expect(store.getActions().length).toBe(1);
-      expect(store.getActions()[0]).toEqual({
-        type: 'LOAD_REPORT_REQUESTED'
+      store.dispatch(applicationReportActions.loadReport(true)).then(() => {
+        expect(store.getActions().length).toBe(3);
+        expect(store.getActions()[2].type).toEqual('LOAD_REPORT_FULFILLED');
+        done();
       });
-
-      expectCommonDataCalls(true);
-      expectUnknownJsCall();
-      expectReportDataCalls(false);
-      $httpBackend.flush();
-
-      expect(errorSpy).toHaveBeenCalled();
-      expect(store.getActions().length).toBe(3);
-      expect(store.getActions()[2].type).toEqual('LOAD_REPORT_FAILED');
     });
 
-    it('fires LOAD_REPORT_FULFILLED action if report request succeeds', function() {
+    it('fires LOAD_REPORT_FAILED action if report request fails', function(done) {
+      const store = SpecUtil.mockReduxStore(createMockState(true, undefined, mockUnknownJsData, mockMetadata));
+
+      expectCommonDataCalls(true, expectReportDataCalls(false));
+
+      store.dispatch(applicationReportActions.loadReport()).catch(() => {
+        expect(store.getActions().length).toBe(3);
+        expect(store.getActions()[2].type).toEqual('LOAD_REPORT_FAILED');
+        done();
+      });
+    });
+
+    it('fires LOAD_REPORT_FULFILLED action if report request succeeds', function(done) {
       const componentIdentifier = {
         format: 'maven',
         coordinates: {
@@ -361,51 +306,46 @@ describe('applicationReportActions', function() {
       };
       const store = SpecUtil.mockReduxStore(createMockState(false, bomData, undefined, mockMetadata));
 
-      const errorSpy = jasmine.createSpy('errorSpy');
-      store.dispatch(applicationReportActions.loadReport()).catch(errorSpy);
+      expectCommonDataCalls(true, expectReportDataCalls(true));
 
-      expect(store.getActions().length).toBe(2);
-      expect(store.getActions()[0]).toEqual({
-        type: 'LOAD_REPORT_REQUESTED'
-      });
-
-      expectReportDataCalls(true);
-
-      $httpBackend.flush();
-
-      expect(errorSpy).not.toHaveBeenCalled();
-      expect(store.getActions().length).toBe(3);
-      expect(store.getActions()[2]).toEqual({
-        type: 'LOAD_REPORT_FULFILLED',
-        payload: {
-          allEntries: [
-            {
-              foo: 'bar',
-              componentIdentifier: {
-                format: 'maven',
-                coordinates: {
-                  artifactId: 'logback-access',
-                  classifier: '',
-                  extension: 'jar',
-                  groupId: 'ch.qos.logback',
-                  version: '0.6'
-                }
-              },
-              serializedComponentIdentifier: serializeComponentIdentifier(componentIdentifier),
-              policyThreatLevel: 0,
-              policyName: 'None',
-              waived: false,
-              grandfathered: false,
-              derivedComponentName: 'unknown',
-              derivedDependencyType: 'direct',
-              derivedViolationState: 'notViolating',
-              dependencyInfo: { isDirectDependency: true }
-            }
-          ],
-          fooReport: 'barReport',
-          reportVersion: 3,
-          isInnerSourceEnabled: false
-        }
+      store.dispatch(applicationReportActions.loadReport()).then(() => {
+        expect(store.getActions().length).toBe(3);
+        expect(store.getActions()[0]).toEqual({
+          type: 'LOAD_REPORT_REQUESTED'
+        });
+        expect(store.getActions()[2]).toEqual({
+          type: 'LOAD_REPORT_FULFILLED',
+          payload: {
+            allEntries: [
+              {
+                foo: 'bar',
+                componentIdentifier: {
+                  format: 'maven',
+                  coordinates: {
+                    artifactId: 'logback-access',
+                    classifier: '',
+                    extension: 'jar',
+                    groupId: 'ch.qos.logback',
+                    version: '0.6'
+                  }
+                },
+                serializedComponentIdentifier: serializeComponentIdentifier(componentIdentifier),
+                policyThreatLevel: 0,
+                policyName: 'None',
+                waived: false,
+                grandfathered: false,
+                derivedComponentName: 'unknown',
+                derivedDependencyType: 'direct',
+                derivedViolationState: 'notViolating',
+                dependencyInfo: { isDirectDependency: true }
+              }
+            ],
+            fooReport: 'barReport',
+            reportVersion: 3,
+            isInnerSourceEnabled: false
+          }
+        });
+        done();
       });
     });
   });
@@ -420,59 +360,43 @@ describe('applicationReportActions', function() {
       expect(store.getActions()[0]).toEqual({
         type: 'LOAD_REPORT_RAW_DATA_REQUESTED'
       });
-
-      expectReportRawDataCalls(false);
-      $httpBackend.flush();
     });
 
-    testCommonDataLoading('loadReportRawData', () => expectReportRawDataCalls(true));
+    testCommonDataLoading('loadReportRawData', expectReportRawDataCalls(true));
 
-    it('fires LOAD_REPORT_RAW_DATA_FAILED action if report request fails', function() {
+    it('fires LOAD_REPORT_RAW_DATA_FAILED action if report request fails', function(done) {
       const store = SpecUtil.mockReduxStore(createMockState(true, undefined, mockUnknownJsData, mockMetadata));
-      const errorSpy = jasmine.createSpy('errorSpy');
-      store.dispatch(applicationReportActions.loadReportRawData()).catch(errorSpy);
 
-      expect(store.getActions().length).toBe(1);
-      expect(store.getActions()[0]).toEqual({
-        type: 'LOAD_REPORT_RAW_DATA_REQUESTED'
+      expectCommonDataCalls(true, expectReportDataCalls(false));
+
+      store.dispatch(applicationReportActions.loadReportRawData()).catch(() => {
+        expect(store.getActions().length).toBe(3);
+        expect(store.getActions()[2].type).toEqual('LOAD_REPORT_RAW_DATA_FAILED');
+        done();
       });
-
-      expectCommonDataCalls(true);
-      expectUnknownJsCall();
-      expectReportRawDataCalls(false);
-      $httpBackend.flush();
-
-      expect(errorSpy).toHaveBeenCalled();
-      expect(store.getActions().length).toBe(3);
-      expect(store.getActions()[2].type).toEqual('LOAD_REPORT_RAW_DATA_FAILED');
     });
 
-    it('fires LOAD_REPORT_RAW_DATA_FULFILLED action if report request succeeds', function() {
-      const bomData = {aaData: [{foo: 'bar'}]};
+    it('fires LOAD_REPORT_RAW_DATA_FULFILLED action if report request succeeds', function () {
+      const bomData = { aaData: [{ foo: 'bar' }] };
       const store = SpecUtil.mockReduxStore(createMockState(false, bomData, undefined, mockMetadata));
+      expectCommonDataCalls(true, expectReportDataCalls(true));
 
-      const errorSpy = jasmine.createSpy('errorSpy');
-      store.dispatch(applicationReportActions.loadReportRawData()).catch(errorSpy);
+      store.dispatch(applicationReportActions.loadReportRawData()).then(() => {
+        expect(store.getActions().length).toBe(3);
+        expect(store.getActions()[2]).toEqual({
+          type: 'LOAD_REPORT_RAW_DATA_FULFILLED',
+          payload: [{
+            derivedComponentName: 'unknown',
+            license: undefined,
+            licenseSortKey: '',
+            foo: 'bar'
+          }]
+        });
+      });
 
       expect(store.getActions().length).toBe(2);
       expect(store.getActions()[0]).toEqual({
         type: 'LOAD_REPORT_RAW_DATA_REQUESTED'
-      });
-
-      expectReportRawDataCalls(true);
-
-      $httpBackend.flush();
-
-      expect(errorSpy).not.toHaveBeenCalled();
-      expect(store.getActions().length).toBe(3);
-      expect(store.getActions()[2]).toEqual({
-        type: 'LOAD_REPORT_RAW_DATA_FULFILLED',
-        payload: [{
-          derivedComponentName: 'unknown',
-          license: undefined,
-          licenseSortKey: '',
-          foo: 'bar'
-        }]
       });
     });
   });
@@ -569,128 +493,121 @@ describe('applicationReportActions', function() {
   });
 
   describe('reevaluateReport', function() {
-    it('fires REEVALUATE_REPORT_FAILED action if the reevaluation request fails', function() {
-      const store = SpecUtil.mockReduxStore(createMockState(false)),
-          errorSpy = jasmine.createSpy('errorSpy');
+    it('fires REEVALUATE_REPORT_FAILED action if the reevaluation request fails', function (done) {
+      const store = SpecUtil.mockReduxStore(createMockState(false));
 
-      store.dispatch(applicationReportActions.reevaluateReport()).catch(errorSpy);
-
-      expect(store.getActions().length).toBe(1);
-      expect(store.getActions()[0]).toEqual({
-        type: 'REEVALUATE_REPORT_REQUESTED'
+      mockAxiosCalls({
+        post: {
+          [CLMLocation.getReportReevaluateUrl('appId', 'scanId')]: Promise.reject({ status: 500, data: 'test error' })
+        }
       });
 
-      $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getReportReevaluateUrl('appId', 'scanId'))).respond(500,
-          'test error');
-
-      $httpBackend.flush();
-
-      expect(errorSpy).toHaveBeenCalled();
-      expect(store.getActions().length).toBe(2);
-      expect(store.getActions()[1]).toEqual({
-        type: 'REEVALUATE_REPORT_FAILED',
-        payload: 'test error'
+      store.dispatch(applicationReportActions.reevaluateReport()).catch(() => {
+        expect(store.getActions().length).toBe(2);
+        expect(store.getActions()[0]).toEqual({
+          type: 'REEVALUATE_REPORT_REQUESTED'
+        });
+        expect(store.getActions()[1]).toEqual({
+          type: 'REEVALUATE_REPORT_FAILED',
+          payload: 'test error'
+        });
+        done();
       });
     });
 
-    it('loads the report after reevaluation', function() {
+    it('loads the report after reevaluation', function (done) {
       const store = SpecUtil.mockReduxStore(createMockState(false, mockBomData, mockUnknownJsData, mockMetadata));
-      const errorSpy = jasmine.createSpy('errorSpy');
 
-      store.dispatch(applicationReportActions.reevaluateReport()).catch(errorSpy);
-
-      expect(store.getActions().length).toBe(1);
-      expect(store.getActions()[0]).toEqual({
-        type: 'REEVALUATE_REPORT_REQUESTED'
-      });
-
-      $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getReportReevaluateUrl('appId', 'scanId'))).respond(200);
-
-      expectCommonDataCalls(true);
-      expectReportDataCalls(true);
-      $httpBackend.flush();
-
-      expect(errorSpy).not.toHaveBeenCalled();
-      expect(store.getActions().length).toBe(5);
-
-      expect(store.getActions()[0]).toEqual({
-        type: 'REEVALUATE_REPORT_REQUESTED'
-      });
-
-      expect(store.getActions()[1]).toEqual({
-        type: 'REEVALUATE_REPORT_FULFILLED'
-      });
-
-      expect(store.getActions()[2]).toEqual({
-        type: 'LOAD_REPORT_REQUESTED'
-      });
-
-      expect(store.getActions()[3]).toEqual({
-        type: 'LOAD_COMMON_DATA_FULFILLED',
-        payload: {
-          bomData: mockBomData,
-          metadata: mockMetadata,
-          unknownJsData: undefined
+      mockAxiosCalls({
+        post: {
+          [CLMLocation.getReportReevaluateUrl('appId', 'scanId')]: Promise.resolve({ data: '' })
         }
       });
 
-      expect(store.getActions()[4]).toEqual({
-        type: 'LOAD_REPORT_FULFILLED',
-        payload: {
-          allEntries: [{
-            filenames: ['foo.js'],
-            policyThreatLevel: 0,
-            policyName: 'None',
-            waived: false,
-            grandfathered: false,
-            derivedComponentName: 'foo.js',
-            derivedDependencyType: 'unknown',
-            derivedViolationState: 'notViolating'
-          }],
-          fooReport: 'barReport',
-          reportVersion: 3,
-          isInnerSourceEnabled: false
-        }
+      expectCommonDataCalls(true, expectReportDataCalls(true));
+
+      store.dispatch(applicationReportActions.reevaluateReport()).then(() => {
+        expect(store.getActions().length).toBe(5);
+        expect(store.getActions()[0]).toEqual({
+          type: 'REEVALUATE_REPORT_REQUESTED'
+        });
+
+        expect(store.getActions()[1]).toEqual({
+          type: 'REEVALUATE_REPORT_FULFILLED'
+        });
+
+        expect(store.getActions()[2]).toEqual({
+          type: 'LOAD_REPORT_REQUESTED'
+        });
+
+        expect(store.getActions()[3]).toEqual({
+          type: 'LOAD_COMMON_DATA_FULFILLED',
+          payload: {
+            bomData: mockBomData,
+            metadata: mockMetadata,
+            unknownJsData: undefined
+          }
+        });
+        expect(store.getActions()[4]).toEqual({
+          type: 'LOAD_REPORT_FULFILLED',
+          payload: {
+            allEntries: [{
+              filenames: ['foo.js'],
+              policyThreatLevel: 0,
+              policyName: 'None',
+              waived: false,
+              grandfathered: false,
+              derivedComponentName: 'foo.js',
+              derivedDependencyType: 'unknown',
+              derivedViolationState: 'notViolating'
+            }],
+            fooReport: 'barReport',
+            reportVersion: 3,
+            isInnerSourceEnabled: false
+          }
+        });
+        done();
       });
     });
 
-    it('does not fire REEVALUATE_REPORT_FAILED if the load afterwards fails', function() {
+    it('does not fire REEVALUATE_REPORT_FAILED if the load afterwards fails', function (done) {
       const store = SpecUtil.mockReduxStore(createMockState(false, mockBomData, mockUnknownJsData, mockMetadata));
-      const errorSpy = jasmine.createSpy('errorSpy');
 
-      store.dispatch(applicationReportActions.reevaluateReport()).catch(errorSpy);
-
-      expect(store.getActions().length).toBe(1);
-      expect(store.getActions()[0]).toEqual({
-        type: 'REEVALUATE_REPORT_REQUESTED'
-      });
-
-      $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getReportReevaluateUrl('appId', 'scanId'))).respond(200);
-      expectCommonDataCalls(true);
-      expectReportDataCalls(false);
-      $httpBackend.flush();
-
-      expect(errorSpy).toHaveBeenCalled();
-      expect(store.getActions().length).toBe(5);
-
-      expect(store.getActions()[1]).toEqual({
-        type: 'REEVALUATE_REPORT_FULFILLED'
-      });
-
-      expect(store.getActions()[2]).toEqual({
-        type: 'LOAD_REPORT_REQUESTED'
-      });
-
-      expect(store.getActions()[3]).toEqual({
-        type: 'LOAD_COMMON_DATA_FULFILLED',
-        payload: {
-          bomData: mockBomData,
-          metadata: mockMetadata,
-          unknownJsData: undefined
+      mockAxiosCalls({
+        post: {
+          [CLMLocation.getReportReevaluateUrl('appId', 'scanId')]: Promise.resolve({ data: '' })
         }
       });
 
-      expect(store.getActions()[4].type).toEqual('LOAD_REPORT_FAILED');
+      expectCommonDataCalls(true, expectReportDataCalls(false));
+
+      store.dispatch(applicationReportActions.reevaluateReport()).catch(() => {
+        expect(store.getActions().length).toBe(5);
+        expect(store.getActions()[0]).toEqual({
+          type: 'REEVALUATE_REPORT_REQUESTED'
+        });
+        expect(store.getActions()[1]).toEqual({
+          type: 'REEVALUATE_REPORT_FULFILLED'
+        });
+
+        expect(store.getActions()[2]).toEqual({
+          type: 'LOAD_REPORT_REQUESTED'
+        });
+
+        expect(store.getActions()[3]).toEqual({
+          type: 'LOAD_COMMON_DATA_FULFILLED',
+          payload: {
+            bomData: mockBomData,
+            metadata: mockMetadata,
+            unknownJsData: undefined
+          }
+        });
+
+        expect(store.getActions()[4].type).toEqual('LOAD_REPORT_FAILED');
+        done();
+      });
+
+      expect(store.getActions().length).toBe(1);
     });
   });
 
@@ -713,70 +630,53 @@ describe('applicationReportActions', function() {
       expect(store.getActions()[0]).toEqual({
         type: 'LOAD_REPORT_ALL_DATA_REQUESTED'
       });
-
-      expectReportRawDataCalls(false);
-      expectReportDataCalls(false);
-      $httpBackend.flush();
     });
 
-    testCommonDataLoading('loadReportAllData', () => {
-      expectReportRawDataCalls(true);
-      expectReportDataCalls(true);
+    testCommonDataLoading('loadReportAllData', {
+      ...expectReportDataCalls(true),
+      ...expectReportRawDataCalls(true)
     });
 
-    it('does not load the raw data if it is already loaded', function() {
+    it('does not load the raw data if it is already loaded', function (done) {
       const state = createMockState(false, mockBomData, mockUnknownJsData, mockMetadata);
 
       state.applicationReport.reportRawData = [];
 
-      const store = SpecUtil.mockReduxStore(state),
-          errorSpy = jasmine.createSpy('errorSpy');
+      const store = SpecUtil.mockReduxStore(state);
 
-      store.dispatch(applicationReportActions.loadReportAllData()).catch(errorSpy);
-
-      expect(store.getActions().length).toBe(2);
-      expect(store.getActions()[0]).toEqual({
-        type: 'LOAD_REPORT_ALL_DATA_REQUESTED'
+      store.dispatch(applicationReportActions.loadReportAllData()).catch(() => {
+        expect(store.getActions()[2].type).toEqual('LOAD_REPORT_RAW_DATA_UNNECESSARY');
+        done();
       });
-
-      // no raw data calls
-      expectReportDataCalls(false);
-      $httpBackend.flush();
     });
 
-    it('does not load the policy data if it is already loaded', function() {
+    it('does not load the policy data if it is already loaded', function (done) {
       const state = createMockState(false, mockBomData, mockUnknownJsData, mockMetadata);
 
       state.applicationReport.selectedReport = {};
 
-      const store = SpecUtil.mockReduxStore(state),
-          errorSpy = jasmine.createSpy('errorSpy');
+      const store = SpecUtil.mockReduxStore(state);
+      expectCommonDataCalls(true, expectReportRawDataCalls(true));
 
-      store.dispatch(applicationReportActions.loadReportAllData()).catch(errorSpy);
-
-      expect(store.getActions().length).toBe(2);
-      expect(store.getActions()[0]).toEqual({
-        type: 'LOAD_REPORT_ALL_DATA_REQUESTED'
+      store.dispatch(applicationReportActions.loadReportAllData()).then(() => {
+        expect(store.getActions()[2].type).toEqual('LOAD_REPORT_UNNECESSARY');
+        done();
       });
-
-      // no policy data calls
-      expectReportRawDataCalls(true);
-      $httpBackend.flush();
     });
 
-    it('dispatches GENERATE_VULNERABILITY_ENTRIES after all data is loaded', function() {
+    it('dispatches GENERATE_VULNERABILITY_ENTRIES after all data is loaded', function (done) {
       const store = SpecUtil.mockReduxStore(createMockState(false, mockBomData, mockUnknownJsData, mockMetadata));
-      const errorSpy = jasmine.createSpy('errorSpy');
-      store.dispatch(applicationReportActions.loadReportAllData()).catch(errorSpy);
 
-      expect(store.getActions().length).toBe(2);
+      expectCommonDataCalls(true, {
+        ...expectReportDataCalls(true),
+        ...expectReportRawDataCalls(true)
+      });
 
-      expectReportRawDataCalls(true);
-      expectReportDataCalls(true);
-      $httpBackend.flush();
-
-      expect(store.getActions().length).toBe(5);
-      expect(store.getActions()[4]).toEqual({ type: 'GENERATE_VULNERABILITY_ENTRIES' });
+      store.dispatch(applicationReportActions.loadReportAllData()).finally(() => {
+        expect(store.getActions().length).toBe(5);
+        expect(store.getActions()[4]).toEqual({ type: 'GENERATE_VULNERABILITY_ENTRIES' });
+        done();
+      });
     });
   });
 
@@ -800,69 +700,66 @@ describe('applicationReportActions', function() {
     });
   });
 
-  function expectCommonDataCalls(isSuccess) {
-    if (isSuccess) {
-      $httpBackend.expectGET(SpecUtil.toRegExp(
-          CLMLocations.getReportBomUrl('appId', 'scanId'))).respond(200, mockBomData);
-      $httpBackend.expectGET(SpecUtil.toRegExp(
-          CLMLocations.getReportMetadataUrl('appId', 'scanId'))).respond(200, mockMetadata);
-    }
-    else {
-      $httpBackend.expectGET(SpecUtil.toRegExp(
-          CLMLocations.getReportBomUrl('appId', 'scanId'))).respond(500);
-      $httpBackend.expectGET(SpecUtil.toRegExp(
-          CLMLocations.getReportMetadataUrl('appId', 'scanId'))).respond(500);
-    }
-  }
-
-  function expectUnknownJsCall() {
-    $httpBackend.expectGET(SpecUtil.toRegExp(
-        CLMLocations.getReportUnknownJsUrl('appId', 'scanId'))).respond(200, mockUnknownJsData);
-  }
-
-  function expectReportDataCalls(isSuccess) {
-    const httpCode = isSuccess ? 200 : 500;
-
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportPolicyThreatsUrl('appId', 'scanId'))).respond(
-        httpCode, { version: 3, aaData: [] });
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportDataUrl('appId', 'scanId'))).respond(
-        httpCode, mockReportData);
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportPartialMatchedUrl('appId', 'scanId')))
-        .respond(httpCode);
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getDependenciesUrl('appId', 'scanId'))).respond(httpCode, {
-      dependencyGraph: [{
-        children: [{
-          componentIdentifier: {
-            format: 'maven',
-            coordinates: {
-              artifactId: 'logback-access',
-              classifier: '',
-              extension: 'jar',
-              groupId: 'ch.qos.logback',
-              version: '0.6'
-            }
-          }
-        }]
-      }, {
-        componentIdentifier: {
-          format: 'maven',
-          coordinates: {
-            artifactId: 'logback-access',
-            classifier: '',
-            extension: 'jar',
-            groupId: 'ch.qos.logback',
-            version: '0.6'
-          }
-        }
-      }]
+  function expectCommonDataCalls(isSuccess, additionalCalls = {}) {
+    mockAxiosCalls({
+      get: {
+        [CLMLocation.getReportBomUrl('appId', 'scanId')]:
+          isSuccess ? { data: mockBomData } : Promise.reject({ status: 500 }),
+        [CLMLocation.getReportMetadataUrl('appId', 'scanId')]:
+          isSuccess ? { data: mockMetadata } : Promise.reject({ status: 500 }),
+        [CLMLocation.getReportUnknownJsUrl('appId', 'scanId')]: { data: mockUnknownJsData },
+        ...additionalCalls
+      }
     });
   }
 
-  function expectReportRawDataCalls(isSuccess) {
-    const httpCode = isSuccess ? 200 : 500;
+  function expectReportDataCalls(isSuccess) {
+    return {
+      [CLMLocation.getReportPolicyThreatsUrl('appId', 'scanId')]:
+        isSuccess ? { data: { version: 3, aaData: [] } } : Promise.reject({ status: 500 }),
+      [CLMLocation.getReportDataUrl('appId', 'scanId')]:
+        isSuccess ? { data: mockReportData } : Promise.reject({ status: 500 }),
+      [CLMLocation.getReportPartialMatchedUrl('appId', 'scanId')]:
+        isSuccess ? { data: { aaData: [] } } : Promise.reject({ status: 500 }),
+      [CLMLocation.getDependenciesUrl('appId', 'scanId')]:
+        isSuccess ? {
+          data: {
+            dependencyGraph: [{
+              children: [{
+                componentIdentifier: {
+                  format: 'maven',
+                  coordinates: {
+                    artifactId: 'logback-access',
+                    classifier: '',
+                    extension: 'jar',
+                    groupId: 'ch.qos.logback',
+                    version: '0.6'
+                  }
+                }
+              }]
+            }, {
+              componentIdentifier: {
+                format: 'maven',
+                coordinates: {
+                  artifactId: 'logback-access',
+                  classifier: '',
+                  extension: 'jar',
+                  groupId: 'ch.qos.logback',
+                  version: '0.6'
+                }
+              }
+            }]
+          }
+        } : Promise.reject({ status: 500 })
+    };
+  }
 
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportSecurityUrl('appId', 'scanId'))).respond(httpCode);
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getReportLicenseUrl('appId', 'scanId'))).respond(
-        httpCode, mockLicenseData);
+  function expectReportRawDataCalls(isSuccess) {
+    return {
+      [CLMLocation.getReportSecurityUrl('appId', 'scanId')]:
+        isSuccess ? { data: { aaData: [] } } : Promise.reject({ status: 500 }),
+      [CLMLocation.getReportLicenseUrl('appId', 'scanId')]:
+        isSuccess ? { data: mockLicenseData } : Promise.reject({ status: 500 })
+    };
   }
 });

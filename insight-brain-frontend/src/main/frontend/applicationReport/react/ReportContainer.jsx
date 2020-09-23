@@ -4,18 +4,16 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { pick } from 'ramda';
-import { loadReportMetadata } from './reportActions';
+import * as applicationReportActions from '../applicationReportActions';
 import { connect } from 'react-redux';
 import ReportPage from './ReportPage';
 
-function mapStateToProps({appReport, router}) {
+function mapStateToProps({applicationReport, router}) {
   return {
-    ...pick(['metadataDetails'], appReport),
-    ...pick(['appId', 'scanId'], router.currentParams)
+    ...pick(['metadata'], applicationReport),
+    ...pick(['publicId', 'scanId', 'unknownjs', 'embeddable', 'policyViolationId'], router.currentParams)
   };
 }
 
-const mapDispatchToProps = { loadReportMetadata };
-
-const ReportPageContainer = connect(mapStateToProps, mapDispatchToProps)(ReportPage);
+const ReportPageContainer = connect(mapStateToProps, applicationReportActions)(ReportPage);
 export default ReportPageContainer;

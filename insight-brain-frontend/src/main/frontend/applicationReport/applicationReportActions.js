@@ -4,9 +4,26 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { map, pick } from 'ramda';
+import axios from 'axios';
 
 import { createReportEntries, createRawDataEntries } from './applicationReportService';
 import { mappedPayloadParamActionCreator, noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
+import {
+  getReportMetadataUrl,
+  getReportBomUrl,
+  getReportUnknownJsUrl,
+  getExpandedCoverageEmbeddableUrl,
+  getReportPolicyThreatsUrl,
+  getReportDataUrl,
+  getReportPartialMatchedUrl,
+  getDependenciesUrl,
+  getReportSecurityUrl,
+  getReportLicenseUrl,
+  getReportReevaluateUrl,
+  redirectTo
+} from '../util/CLMLocation';
+import { Messages } from '../util/CommonServices';
+import { stateGo } from '../reduxUiRouter/routerActions';
 
 export const LOAD_REPORT_REQUESTED = 'LOAD_REPORT_REQUESTED';
 export const LOAD_REPORT_FULFILLED = 'LOAD_REPORT_FULFILLED';
@@ -40,253 +57,252 @@ export const SET_RAW_DATA_NUMERIC_FIELD_MIN_FILTER = 'SET_RAW_DATA_NUMERIC_FIELD
 export const SET_SORTING = 'SET_SORTING';
 export const SET_SORTING_RAW_DATA = 'SET_SORTING_RAW_DATA';
 
-export default function applicationReportActions($http, $q, $state, $window, CLMLocations, Messages) {
+export function setReportParameters(appId, scanId, isUnknownJs, embeddable, policyViolationId) {
+  return {
+    type: SET_REPORT_PARAMETERS,
+    payload: { appId, scanId, isUnknownJs, embeddable, policyViolationId }
+  };
+}
 
-  function setReportParameters(appId, scanId, isUnknownJs, embeddable, policyViolationId) {
-    return {
-      type: SET_REPORT_PARAMETERS,
-      payload: { appId, scanId, isUnknownJs, embeddable, policyViolationId }
-    };
-  }
+function fetchCommonData(forceClearMetadata = false) {
+  return (dispatch, getState) => {
+    const {bomData, unknownJsData, metadata, reportParameters} = getState().applicationReport;
+    const {appId, scanId, isUnknownJs, embeddable} = reportParameters;
 
-  function fetchCommonData(forceClearMetadata = false) {
-    return (dispatch, getState) => {
-      const {bomData, unknownJsData, metadata, reportParameters} = getState().applicationReport;
-      const {appId, scanId, isUnknownJs, embeddable} = reportParameters;
+    if (forceClearMetadata || (!metadata || !bomData || (!unknownJsData && isUnknownJs))) {
+      const promises = [
+        axios.get(getReportBomUrl(appId, scanId)),
+        axios.get(getReportMetadataUrl(appId, scanId))
+      ];
 
-      if (forceClearMetadata || (!metadata || !bomData || (!unknownJsData && isUnknownJs))) {
-        const promises = {
-          bomResult: $http.get(CLMLocations.getReportBomUrl(appId, scanId)),
-          metadata: $http.get(CLMLocations.getReportMetadataUrl(appId, scanId))
-        };
+      if (isUnknownJs) {
+        promises.push(axios.get(getReportUnknownJsUrl(appId, scanId)));
+      }
 
-        if (isUnknownJs) {
-          promises.unknownJsResult = $http.get(CLMLocations.getReportUnknownJsUrl(appId, scanId));
-        }
+      return Promise.all(promises)
+          .then((results) => {
+            const bomResult = results[0].data || undefined;
+            const metadataResult = results[1].data;
+            const unknownJsResult = (isUnknownJs && results[2].data) || undefined;
 
-        return $q.all(promises)
-            .then((results) => {
-              const bomResult = results.bomResult.data || undefined;
-              const metadataResult = results.metadata.data;
-              const unknownJsResult = (isUnknownJs && results.unknownJsResult.data) || undefined;
-
-              if (metadataResult.expandedCoverage) {
-                // this is an Expanded Coverage report and should not be viewed on the Policy Centric app report
-                // page. Redirect to the old report page, or if embeddable was requested, then to the iframe URL
-                if (embeddable) {
-                  $window.location = CLMLocations.getExpandedCoverageEmbeddableUrl(appId, scanId);
-                }
-                else {
-                  $state.go('report', {
-                    publicId: appId,
-                    scanId
-                  });
-                }
-
-                return $q.reject('XC Report');
+            if (metadataResult.expandedCoverage) {
+              // this is an Expanded Coverage report and should not be viewed on the Policy Centric app report
+              // page. Redirect to the old report page, or if embeddable was requested, then to the iframe URL
+              if (embeddable) {
+                redirectTo(getExpandedCoverageEmbeddableUrl(appId, scanId));
               }
               else {
-                return dispatch(loadCommonDataFulfilled({
-                  bomData: bomResult,
-                  metadata: metadataResult,
-                  unknownJsData: unknownJsResult
+                dispatch(stateGo('report', {
+                  publicId: appId,
+                  scanId
                 }));
               }
-            })
-            .catch(error => {
-              if (error !== 'XC Report') {
-                dispatch(loadCommonDataFailed(error));
-              }
 
-              return $q.reject(error);
-            });
-      }
-
-      return $q.resolve(dispatch(loadCommonDataUnnecessary()));
-    };
-  }
-
-  function fetchReportData(forceReload = true) {
-    return (dispatch, getState) => {
-      const { bomData, unknownJsData, reportParameters, selectedReport } = getState().applicationReport;
-      const { appId, scanId } = reportParameters;
-
-      if (forceReload || !selectedReport) {
-        const promises = {
-          policyResult: $http.get(CLMLocations.getReportPolicyThreatsUrl(appId, scanId)),
-          dataResult: $http.get(CLMLocations.getReportDataUrl(appId, scanId)),
-          partialMatches: $http.get(CLMLocations.getReportPartialMatchedUrl(appId, scanId)),
-          dependencies: $http.get(CLMLocations.getDependenciesUrl(appId, scanId))
-        };
-
-        return $q.all(promises)
-            .then((results) => {
-              const policyResult = results.policyResult.data || undefined;
-              const dataResult = results.dataResult.data;
-              const partialMatches = results.partialMatches.data || undefined;
-              const dependencies = results.dependencies.data;
-
-              const allEntries = createReportEntries(policyResult, bomData, unknownJsData, partialMatches,
-                  dependencies);
-              const reportVersion = policyResult && policyResult.version || null;
-              return dispatch(loadReportFulfilled({
-                allEntries: allEntries.policies,
-                isInnerSourceEnabled: allEntries.isInnerSourceEnabled,
-                reportVersion,
-                ...dataResult
+              return Promise.reject('XC Report');
+            }
+            else {
+              return dispatch(loadCommonDataFulfilled({
+                bomData: bomResult,
+                metadata: metadataResult,
+                unknownJsData: unknownJsResult
               }));
-            })
-            .catch(error => {
-              dispatch(loadReportFailed(error));
-              return $q.reject(error);
-            });
-      }
-      else {
-        return $q.resolve(dispatch(loadReportUnnecessary()));
-      }
-    };
-  }
-
-  function fetchReportRawData(forceReload = true) {
-    return (dispatch, getState) => {
-      const {bomData, unknownJsData, reportParameters, reportRawData } = getState().applicationReport;
-      const { appId, scanId } = reportParameters;
-
-      if (forceReload || !reportRawData) {
-        const promises = {
-          securityResult: $http.get(CLMLocations.getReportSecurityUrl(appId, scanId)),
-          licenseResult: $http.get(CLMLocations.getReportLicenseUrl(appId, scanId))
-        };
-
-        return $q.all(promises)
-            .then((results) => {
-              const securityResult = results.securityResult.data;
-              const licenseResult = results.licenseResult.data;
-              const allEntries = createRawDataEntries(securityResult, licenseResult, bomData, unknownJsData);
-              return dispatch(loadReportRawDataFulfilled(allEntries));
-            })
-            .catch(error => {
-              dispatch(loadReportRawDataFailed(error));
-              return $q.reject(error);
-            });
-      }
-      else {
-        return $q.resolve(dispatch(loadReportRawDataUnnecessary()));
-      }
-    };
-  }
-
-  function loadReport(forceClearMetadata = false) {
-    return (dispatch) => {
-      dispatch({
-        type: LOAD_REPORT_REQUESTED
-      });
-
-      return dispatch(fetchCommonData(forceClearMetadata)).then(() => dispatch(fetchReportData()));
-    };
-  }
-
-  function loadReportRawData() {
-    return (dispatch) => {
-      dispatch({
-        type: LOAD_REPORT_RAW_DATA_REQUESTED
-      });
-      return dispatch(fetchCommonData()).then(() => dispatch(fetchReportRawData()));
-    };
-  }
-
-  function loadReportAllData() {
-    return (dispatch) => {
-      dispatch({
-        type: LOAD_REPORT_ALL_DATA_REQUESTED
-      });
-      return dispatch(fetchCommonData())
-          .then(() => $q.all(map(dispatch, [fetchReportRawData(false), fetchReportData(false)])))
-          .then(() => dispatch(generateVulnerabilityEntries()));
-    };
-  }
-
-  const httpErrorMessageActionCreator = type => mappedPayloadParamActionCreator(type, Messages.getHttpErrorMessage);
-
-  const loadCommonDataFulfilled = mappedPayloadParamActionCreator(LOAD_COMMON_DATA_FULFILLED,
-      pick(['bomData', 'metadata', 'unknownJsData']));
-
-  const loadCommonDataFailed = httpErrorMessageActionCreator(LOAD_COMMON_DATA_FAILED);
-  const loadCommonDataUnnecessary = noPayloadActionCreator(LOAD_COMMON_DATA_UNNECESSARY);
-  const loadReportFulfilled = payloadParamActionCreator(LOAD_REPORT_FULFILLED);
-  const loadReportFailed = httpErrorMessageActionCreator(LOAD_REPORT_FAILED);
-  const loadReportUnnecessary = httpErrorMessageActionCreator(LOAD_REPORT_UNNECESSARY);
-  const loadReportRawDataFulfilled = payloadParamActionCreator(LOAD_REPORT_RAW_DATA_FULFILLED);
-  const loadReportRawDataFailed = httpErrorMessageActionCreator(LOAD_REPORT_RAW_DATA_FAILED);
-  const loadReportRawDataUnnecessary = httpErrorMessageActionCreator(LOAD_REPORT_RAW_DATA_UNNECESSARY);
-  const setAggregateReportEntries = payloadParamActionCreator(SET_AGGREGATE_REPORT_ENTRIES);
-  const setSorting = payloadParamActionCreator(SET_SORTING);
-  const setSortingRawData = payloadParamActionCreator(SET_SORTING_RAW_DATA);
-  const generateVulnerabilityEntries = noPayloadActionCreator(GENERATE_VULNERABILITY_ENTRIES);
-
-  function setStringFieldFilter(fieldName, filterString) {
-    return {
-      type: SET_SUBSTRING_FIELD_FILTER,
-      payload: { fieldName, filterString }
-    };
-  }
-
-  function setRawDataStringFieldFilter(fieldName, filterString) {
-    return {
-      type: SET_RAW_DATA_SUBSTRING_FIELD_FILTER,
-      payload: { fieldName, filterString }
-    };
-  }
-
-  function setRawDataNumericMaxFilter(fieldName, filterValue) {
-    return {
-      type: SET_RAW_DATA_NUMERIC_FIELD_MAX_FILTER,
-      payload: { fieldName, filterValue }
-    };
-  }
-
-  function setRawDataNumericMinFilter(fieldName, filterValue) {
-    return {
-      type: SET_RAW_DATA_NUMERIC_FIELD_MIN_FILTER,
-      payload: { fieldName, filterValue }
-    };
-  }
-
-  function setExactValueFilter(fieldName, allowedValues) {
-    return {
-      type: SET_EXACT_VALUE_FILTER,
-      payload: { fieldName, allowedValues }
-    };
-  }
-
-  const selectComponent = payloadParamActionCreator(SELECT_COMPONENT);
-  const selectRootAncestor = payloadParamActionCreator(SELECT_ROOT_ANCESTOR);
-  const unselectRootAncestor = noPayloadActionCreator(UNSELECT_ROOT_ANCESTOR);
-
-  function reevaluateReport() {
-    return (dispatch, getState) => {
-      const { scanId, appId } = getState().applicationReport.reportParameters;
-
-      dispatch({
-        type: REEVALUATE_REPORT_REQUESTED
-      });
-
-      return $http.post(CLMLocations.getReportReevaluateUrl(appId, scanId))
-          .catch(error => {
-            dispatch(reevaluateReportFailed(error));
-            return $q.reject(error);
+            }
           })
-          .then(() => {
-            dispatch(reevaluateReportFulfilled());
-            return dispatch(loadReport(true));
+          .catch(error => {
+            if (error !== 'XC Report') {
+              dispatch(loadCommonDataFailed(error));
+            }
+
+            return Promise.reject(error);
           });
-    };
-  }
+    }
 
-  const reevaluateReportFulfilled = noPayloadActionCreator(REEVALUATE_REPORT_FULFILLED);
-  const reevaluateReportFailed = httpErrorMessageActionCreator(REEVALUATE_REPORT_FAILED);
-  const reevaluateReportCancelled = noPayloadActionCreator(REEVALUATE_REPORT_CANCELLED);
+    return Promise.resolve(dispatch(loadCommonDataUnnecessary()));
+  };
+}
 
+function fetchReportData(forceReload = true) {
+  return (dispatch, getState) => {
+    const { bomData, unknownJsData, reportParameters, selectedReport } = getState().applicationReport;
+    const { appId, scanId } = reportParameters;
+
+    if (forceReload || !selectedReport) {
+      const promises = [
+        axios.get(getReportPolicyThreatsUrl(appId, scanId)),
+        axios.get(getReportDataUrl(appId, scanId)),
+        axios.get(getReportPartialMatchedUrl(appId, scanId)),
+        axios.get(getDependenciesUrl(appId, scanId))
+      ];
+
+      return Promise.all(promises)
+          .then((results) => {
+            const policyResult = results[0].data || undefined;
+            const dataResult = results[1].data;
+            const partialMatches = results[2].data || undefined;
+            const dependencies = results[3].data;
+
+            const allEntries = createReportEntries(policyResult, bomData, unknownJsData, partialMatches,
+                dependencies);
+            const reportVersion = policyResult && policyResult.version || null;
+            return dispatch(loadReportFulfilled({
+              allEntries: allEntries.policies,
+              isInnerSourceEnabled: allEntries.isInnerSourceEnabled,
+              reportVersion,
+              ...dataResult
+            }));
+          })
+          .catch(error => {
+            dispatch(loadReportFailed(error));
+            return Promise.reject(error);
+          });
+    }
+    else {
+      return Promise.resolve(dispatch(loadReportUnnecessary()));
+    }
+  };
+}
+
+function fetchReportRawData(forceReload = true) {
+  return (dispatch, getState) => {
+    const {bomData, unknownJsData, reportParameters, reportRawData } = getState().applicationReport;
+    const { appId, scanId } = reportParameters;
+
+    if (forceReload || !reportRawData) {
+      const promises = [
+        axios.get(getReportSecurityUrl(appId, scanId)),
+        axios.get(getReportLicenseUrl(appId, scanId))
+      ];
+
+      return Promise.all(promises)
+          .then((results) => {
+            const securityResult = results[0].data;
+            const licenseResult = results[1].data;
+            const allEntries = createRawDataEntries(securityResult, licenseResult, bomData, unknownJsData);
+            return dispatch(loadReportRawDataFulfilled(allEntries));
+          })
+          .catch(error => {
+            dispatch(loadReportRawDataFailed(error));
+            return Promise.reject(error);
+          });
+    }
+    else {
+      return Promise.resolve(dispatch(loadReportRawDataUnnecessary()));
+    }
+  };
+}
+
+export function loadReport(forceClearMetadata = false) {
+  return (dispatch) => {
+    dispatch({
+      type: LOAD_REPORT_REQUESTED
+    });
+
+    return dispatch(fetchCommonData(forceClearMetadata)).then(() => dispatch(fetchReportData()));
+  };
+}
+
+function loadReportRawData() {
+  return (dispatch) => {
+    dispatch({
+      type: LOAD_REPORT_RAW_DATA_REQUESTED
+    });
+    return dispatch(fetchCommonData()).then(() => dispatch(fetchReportRawData()));
+  };
+}
+
+function loadReportAllData() {
+  return (dispatch) => {
+    dispatch({
+      type: LOAD_REPORT_ALL_DATA_REQUESTED
+    });
+    return dispatch(fetchCommonData())
+        .then(() => Promise.all(map(dispatch, [fetchReportRawData(false), fetchReportData(false)])))
+        .then(() => dispatch(generateVulnerabilityEntries()));
+  };
+}
+
+const httpErrorMessageActionCreator = type => mappedPayloadParamActionCreator(type, Messages.getHttpErrorMessage);
+
+const loadCommonDataFulfilled = mappedPayloadParamActionCreator(LOAD_COMMON_DATA_FULFILLED,
+    pick(['bomData', 'metadata', 'unknownJsData']));
+
+const loadCommonDataFailed = httpErrorMessageActionCreator(LOAD_COMMON_DATA_FAILED);
+const loadCommonDataUnnecessary = noPayloadActionCreator(LOAD_COMMON_DATA_UNNECESSARY);
+const loadReportFulfilled = payloadParamActionCreator(LOAD_REPORT_FULFILLED);
+const loadReportFailed = httpErrorMessageActionCreator(LOAD_REPORT_FAILED);
+const loadReportUnnecessary = httpErrorMessageActionCreator(LOAD_REPORT_UNNECESSARY);
+const loadReportRawDataFulfilled = payloadParamActionCreator(LOAD_REPORT_RAW_DATA_FULFILLED);
+const loadReportRawDataFailed = httpErrorMessageActionCreator(LOAD_REPORT_RAW_DATA_FAILED);
+const loadReportRawDataUnnecessary = httpErrorMessageActionCreator(LOAD_REPORT_RAW_DATA_UNNECESSARY);
+const setAggregateReportEntries = payloadParamActionCreator(SET_AGGREGATE_REPORT_ENTRIES);
+const setSorting = payloadParamActionCreator(SET_SORTING);
+const setSortingRawData = payloadParamActionCreator(SET_SORTING_RAW_DATA);
+const generateVulnerabilityEntries = noPayloadActionCreator(GENERATE_VULNERABILITY_ENTRIES);
+
+function setStringFieldFilter(fieldName, filterString) {
+  return {
+    type: SET_SUBSTRING_FIELD_FILTER,
+    payload: { fieldName, filterString }
+  };
+}
+
+function setRawDataStringFieldFilter(fieldName, filterString) {
+  return {
+    type: SET_RAW_DATA_SUBSTRING_FIELD_FILTER,
+    payload: { fieldName, filterString }
+  };
+}
+
+function setRawDataNumericMaxFilter(fieldName, filterValue) {
+  return {
+    type: SET_RAW_DATA_NUMERIC_FIELD_MAX_FILTER,
+    payload: { fieldName, filterValue }
+  };
+}
+
+function setRawDataNumericMinFilter(fieldName, filterValue) {
+  return {
+    type: SET_RAW_DATA_NUMERIC_FIELD_MIN_FILTER,
+    payload: { fieldName, filterValue }
+  };
+}
+
+function setExactValueFilter(fieldName, allowedValues) {
+  return {
+    type: SET_EXACT_VALUE_FILTER,
+    payload: { fieldName, allowedValues }
+  };
+}
+
+const selectComponent = payloadParamActionCreator(SELECT_COMPONENT);
+const selectRootAncestor = payloadParamActionCreator(SELECT_ROOT_ANCESTOR);
+const unselectRootAncestor = noPayloadActionCreator(UNSELECT_ROOT_ANCESTOR);
+
+function reevaluateReport() {
+  return (dispatch, getState) => {
+    const { scanId, appId } = getState().applicationReport.reportParameters;
+
+    dispatch({
+      type: REEVALUATE_REPORT_REQUESTED
+    });
+
+    return axios.post(getReportReevaluateUrl(appId, scanId))
+        .catch(error => {
+          dispatch(reevaluateReportFailed(error));
+          return Promise.reject(error);
+        })
+        .then(() => {
+          dispatch(reevaluateReportFulfilled());
+          return dispatch(loadReport(true));
+        });
+  };
+}
+
+const reevaluateReportFulfilled = noPayloadActionCreator(REEVALUATE_REPORT_FULFILLED);
+const reevaluateReportFailed = httpErrorMessageActionCreator(REEVALUATE_REPORT_FAILED);
+const reevaluateReportCancelled = noPayloadActionCreator(REEVALUATE_REPORT_CANCELLED);
+
+export default function applicationReportActions() {
   return {
     setReportParameters,
     loadReport,
@@ -307,5 +323,3 @@ export default function applicationReportActions($http, $q, $state, $window, CLM
     unselectRootAncestor
   };
 }
-
-applicationReportActions.$inject = ['$http', '$q', '$state', '$window', 'CLMLocations', 'Messages'];

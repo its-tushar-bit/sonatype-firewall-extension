@@ -20,21 +20,24 @@ describe('ReportContainer component', function() {
     loadMetadataActionMock = jasmine.createSpy('loadReportMetadata').and.returnValue({ type: 'LOAD_DATA' });
     ReportContainer =
         require('inject-loader!../../../../main/frontend/applicationReport/react/ReportContainer')({
-          './reportActions': {
+          '../applicationReportActions': {
             loadReportMetadata: loadMetadataActionMock
           }
         }).default;
 
     state = {
-      appReport: {
-        appId: 'appId',
+      applicationReport: {
+        publicId: 'appId',
         scanId: 'scanId',
-        metadataDetails: { title: 'title' }
+        metadata: { reportTitle: 'title' }
       },
       router: {
         currentParams: {
-          appId: 'appId',
-          scanId: 'scanId'
+          publicId: 'appId',
+          scanId: 'scanId',
+          unknownjs: true,
+          embeddable: true,
+          policyViolationId: 'CVE-123'
         }
       }
     };
@@ -48,9 +51,12 @@ describe('ReportContainer component', function() {
   it('maps the state "ReportPage" to ReportContainer props', () => {
     store.dispatch({ type: 'ANY_ACTION' });
     const wrapper = shallow(vdom).dive();
-    expect(wrapper).toHaveProp('appId', 'appId');
+    expect(wrapper).toHaveProp('publicId', 'appId');
     expect(wrapper).toHaveProp('scanId', 'scanId');
-    expect(wrapper).toHaveProp('metadataDetails', { title: 'title' });
+    expect(wrapper).toHaveProp('unknownjs', true);
+    expect(wrapper).toHaveProp('embeddable', true);
+    expect(wrapper).toHaveProp('policyViolationId', 'CVE-123');
+    expect(wrapper).toHaveProp('metadata', { reportTitle: 'title' });
   });
 
 });

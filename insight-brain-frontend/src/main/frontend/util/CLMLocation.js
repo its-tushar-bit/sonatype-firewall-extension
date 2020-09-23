@@ -129,8 +129,41 @@ export function getApplicableWaiversUrl(policyViolationId) {
   return uriTemplate`/api/v2/policyViolations/${policyViolationId}/applicableWaivers`;
 }
 
+function getBaseReportUrl(applicationPublicId, scanId) {
+  return uriTemplate`/rest/report/${applicationPublicId}/${scanId}`;
+}
+
+const getBrowseReportUrl = (fileName) => (applicationPublicId, scanId) =>
+  `${getBaseReportUrl(applicationPublicId, scanId)}/browseReport/${fileName}`;
+
 export function getReportMetadataUrl(applicationPublicId, scanId) {
-  return uriTemplate`/rest/report/${applicationPublicId}/${scanId}/metadata`;
+  return `${getBaseReportUrl(applicationPublicId, scanId)}/metadata`;
+}
+
+export const getReportBomUrl = getBrowseReportUrl('bom.json');
+
+export const getReportUnknownJsUrl = getBrowseReportUrl('unknownjs.json');
+
+export const getExpandedCoverageEmbeddableUrl = getBrowseReportUrl('index.html');
+
+export const getReportPolicyThreatsUrl = getBrowseReportUrl('policythreats.json');
+
+export const getReportDataUrl = getBrowseReportUrl('data.json');
+
+export const getReportPartialMatchedUrl = getBrowseReportUrl('partialmatched.json');
+
+export const getDependenciesUrl = getBrowseReportUrl('dependencies.json');
+
+export const getReportSecurityUrl = getBrowseReportUrl('security.json');
+
+export const getReportLicenseUrl = getBrowseReportUrl('licenses.json');
+
+export function getReportReevaluateUrl(applicationPublicId, scanId) {
+  return `${getBaseReportUrl(applicationPublicId, scanId)}/reevaluatePolicy`;
+}
+
+export function redirectTo(url) {
+  window.location = url;
 }
 
 /**
@@ -161,14 +194,6 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
       // use the RM proxy endpoint if we are in RM.  The normal one will get blocked
       return baseUrl.get() + (isRM ? '/rest/rm/user-telemetry' : '/rest/user-telemetry');
     }
-
-    function getBaseReportUrl(applicationPublicId, scanId) {
-      return baseUrl.get() + '/rest/report/' + encodeURIComponent(applicationPublicId) + '/' +
-          encodeURIComponent(scanId);
-    }
-
-    const getBrowseReportUrl = (fileName) => (applicationPublicId, scanId) =>
-      getBaseReportUrl(applicationPublicId, scanId) + '/browseReport/' + fileName;
 
     return {
       getLicensesUrl: function() {
@@ -465,22 +490,6 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
       getTelemetryUrl: () => `${baseUrl.get()}/rest/environment/stats`,
 
       getReportPolicyThreatsUrl: getBrowseReportUrl('policythreats.json'),
-
-      getReportBomUrl: getBrowseReportUrl('bom.json'),
-
-      getReportDataUrl: getBrowseReportUrl('data.json'),
-
-      getReportSecurityUrl: getBrowseReportUrl('security.json'),
-
-      getReportLicenseUrl: getBrowseReportUrl('licenses.json'),
-
-      getReportUnknownJsUrl: getBrowseReportUrl('unknownjs.json'),
-
-      getReportPartialMatchedUrl: getBrowseReportUrl('partialmatched.json'),
-
-      getExpandedCoverageEmbeddableUrl: getBrowseReportUrl('index.html'),
-
-      getDependenciesUrl: getBrowseReportUrl('dependencies.json'),
 
       getReportAuditLogUrl: function(appPublicId, reportId, component) {
         const keyJson = JSON.stringify(pick(['hash', 'componentIdentifier'], component)),

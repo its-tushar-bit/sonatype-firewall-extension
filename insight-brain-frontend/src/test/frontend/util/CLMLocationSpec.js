@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as urlUtil from '../../../main/frontend/util/urlUtil';
+import * as clmLocation from '../../../main/frontend/util/CLMLocation';
 
 describe('CLMLocation.js', function() {
   let CLMLocation,
@@ -34,7 +35,12 @@ describe('CLMLocation.js', function() {
   describe('browseReportUrl', () => {
     beforeEach(inject(function(BaseUrl) {
       spyOn(BaseUrl, 'get').and.returnValue('http://localhost');
+      urlUtil._setBaseUrlForTesting('http://localhost');
     }));
+
+    afterEach(function() {
+      urlUtil.setBaseUrl();
+    });
 
     it('should return the correct URL for the report policy threats URL', () => {
       expect(CLMLocationsService.getReportPolicyThreatsUrl('foo', 'bar')).toBe(
@@ -42,33 +48,53 @@ describe('CLMLocation.js', function() {
     });
 
     it('should return the correct URL for the report BOM URL', () => {
-      expect(CLMLocationsService.getReportBomUrl('foo', 'bar')).toBe(
+      expect(clmLocation.getReportBomUrl('foo', 'bar')).toBe(
           'http://localhost/rest/report/foo/bar/browseReport/bom.json');
     });
 
     it('should return the correct URL for the report data URL', () => {
-      expect(CLMLocationsService.getReportDataUrl('foo', 'bar')).toBe(
+      expect(clmLocation.getReportDataUrl('foo', 'bar')).toBe(
           'http://localhost/rest/report/foo/bar/browseReport/data.json');
     });
 
     it('should return the correct URL for the report security URL', () => {
-      expect(CLMLocationsService.getReportSecurityUrl('foo', 'bar')).toBe(
+      expect(clmLocation.getReportSecurityUrl('foo', 'bar')).toBe(
           'http://localhost/rest/report/foo/bar/browseReport/security.json');
     });
 
     it('should return the correct URL for the report licenses URL', () => {
-      expect(CLMLocationsService.getReportLicenseUrl('foo', 'bar')).toBe(
+      expect(clmLocation.getReportLicenseUrl('foo', 'bar')).toBe(
           'http://localhost/rest/report/foo/bar/browseReport/licenses.json');
     });
 
     it('should return the correct URL for the report unknownJS URL', () => {
-      expect(CLMLocationsService.getReportUnknownJsUrl('foo', 'bar')).toBe(
+      expect(clmLocation.getReportUnknownJsUrl('foo', 'bar')).toBe(
           'http://localhost/rest/report/foo/bar/browseReport/unknownjs.json');
     });
 
     it('should return the correct URL for the report partial matched URL', () => {
-      expect(CLMLocationsService.getReportPartialMatchedUrl('foo', 'bar')).toBe(
+      expect(clmLocation.getReportPartialMatchedUrl('foo', 'bar')).toBe(
           'http://localhost/rest/report/foo/bar/browseReport/partialmatched.json');
+    });
+
+    it('should return the correct URL for the report metadata URL', () => {
+      expect(clmLocation.getReportMetadataUrl('foo', 'bar')).toBe(
+          'http://localhost/rest/report/foo/bar/metadata');
+    });
+
+    it('should return the correct URL for the expanded coverage embeddable URL', () => {
+      expect(clmLocation.getExpandedCoverageEmbeddableUrl('foo', 'bar')).toBe(
+          'http://localhost/rest/report/foo/bar/browseReport/index.html');
+    });
+
+    it('should return the correct URL for the report dependencies URL', () => {
+      expect(clmLocation.getDependenciesUrl('foo', 'bar')).toBe(
+          'http://localhost/rest/report/foo/bar/browseReport/dependencies.json');
+    });
+
+    it('should return the correct URL for the report reevaluation', () => {
+      expect(clmLocation.getReportReevaluateUrl('foo', 'bar')).toBe(
+          'http://localhost/rest/report/foo/bar/reevaluatePolicy');
     });
   });
 

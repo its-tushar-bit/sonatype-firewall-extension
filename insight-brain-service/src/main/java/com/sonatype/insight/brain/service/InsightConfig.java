@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.Map;
 
 import javax.annotation.Nullable;
@@ -71,6 +72,12 @@ public class InsightConfig
   @NotNull
   @JsonProperty
   private String sonatypeWork = "sonatype-work/clm-server";
+
+  /**
+   * @since 1.99
+   */
+  @JsonProperty
+  private String clusterDirectory;
 
   @NotNull
   @JsonProperty
@@ -322,6 +329,36 @@ public class InsightConfig
   }
 
   @JsonIgnore
+  public File getClusterDirectory() {
+    if (clusterDirectory == null) {
+      return getSonatypeWork();
+    }
+    return new File(clusterDirectory);
+  }
+
+  @JsonIgnore
+  public boolean isClusterDirectorySetByUser() {
+    return clusterDirectory != null;
+  }
+
+  @JsonIgnore
+  @ValidationMethod(message = "Cannot set sonatypeWork as the clusterDirectory.")
+  public boolean isValidClusterDirectory() {
+    try {
+      if (clusterDirectory == null) {
+        return true;
+      }
+      Files.createDirectories(getSonatypeWork().toPath());
+      Files.createDirectories(getClusterDirectory().toPath());
+      return !Files.isSameFile(getSonatypeWork().toPath(), getClusterDirectory().toPath());
+    }
+    catch (Exception e) {
+      log.error("Invalid clusterDirectory: {}", e.getMessage());
+      return false;
+    }
+  }
+
+  @JsonIgnore
   public File getConfigDir() {
     return new File(sonatypeWork, "config");
   }
@@ -350,6 +387,10 @@ public class InsightConfig
 
   public void setSonatypeWork(final String sonatypeWork) {
     this.sonatypeWork = sonatypeWork;
+  }
+
+  public void setClusterDirectory(String clusterDirectory) {
+    this.clusterDirectory = clusterDirectory;
   }
 
   public String getBaseUrl() {

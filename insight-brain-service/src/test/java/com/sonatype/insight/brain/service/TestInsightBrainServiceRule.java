@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.io.File;
 import java.net.URL;
 import java.util.List;
 
@@ -102,35 +101,11 @@ public class TestInsightBrainServiceRule
     return brain.getClientConfiguration();
   }
 
-  public File getAuditDir(String appId) {
-    return brain.getAuditDir(appId);
-  }
-
-  public File getDataDir() {
-    return brain.getDataDir();
-  }
-
-  public File getOrganizationIconDir() {
-    return brain.getOrganizationIconDir();
-  }
-
-  public File getApplicationIconDir() {
-    return brain.getApplicationIconDir();
-  }
-
   public <T> T getInstance(Class<T> type) {
     if (brain.getInjector() == null) {
       return null;
     }
     return brain.getInstance(type);
-  }
-
-  public File getReportDir(String appId, String scanId) {
-    return brain.getReportDir(appId, scanId);
-  }
-
-  public File getWorkDir() {
-    return brain.getWorkDir();
   }
 
   public int getPort() {

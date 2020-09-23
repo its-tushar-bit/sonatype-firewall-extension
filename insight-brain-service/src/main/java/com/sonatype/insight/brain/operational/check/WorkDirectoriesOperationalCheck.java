@@ -17,21 +17,24 @@ import com.sonatype.insight.brain.service.InsightConfig;
  */
 @Named
 @Singleton
-public class WorkDirectoryOperationalCheck
+public class WorkDirectoriesOperationalCheck
     extends AbstractOperationalCheck
 {
   private final InsightConfig insightConfig;
 
   @Inject
-  public WorkDirectoryOperationalCheck(final InsightConfig insightConfig) {
+  public WorkDirectoriesOperationalCheck(final InsightConfig insightConfig) {
     super("work-directory");
     this.insightConfig = insightConfig;
   }
 
   @Override
-  protected Result check() throws Exception {
+  protected Result check() {
     if (!insightConfig.getSonatypeWork().isDirectory()) {
       return Result.unhealthy(insightConfig.getSonatypeWork() + " is not a directory");
+    }
+    if (!insightConfig.getClusterDirectory().isDirectory()) {
+      return Result.unhealthy(insightConfig.getClusterDirectory() + " is not a directory");
     }
     return Result.healthy();
   }

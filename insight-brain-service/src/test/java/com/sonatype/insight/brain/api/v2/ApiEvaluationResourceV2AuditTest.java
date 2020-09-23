@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.mock.hds.HdsMockServer.RestHandler;
 
@@ -123,8 +124,8 @@ public class ApiEvaluationResourceV2AuditTest
     String resultId = "resultId";
     ApiComponentEvaluationResultDTOV2 evaluationResultDTO = new ApiComponentEvaluationResultDTOV2();
     evaluationResultDTO.results.add(new ApiComponentDetailsDTOV2());
-    File componentDetailsFile = new File(
-        getCLMServer().getWorkDir() + "/componentDetails/" + app.getId() + "/componentDetails-" + resultId + ".json");
+    File componentDetailsFile =
+        getCLMServer().getInstance(InsightWork.class).getComponentDetailsFile(app.getId(), resultId);
     JsonUtils.write(componentDetailsFile, evaluationResultDTO);
 
     getComponentEvaluation(resultId).get();

@@ -200,6 +200,10 @@ class SystemInfo
     entries.put("sonatypeWork", sonatypeWork.getAbsolutePath());
     entries.put("sonatypeWorkContent", sonatypeWork.list());
 
+    final File clusterDirectory = insightConfig.getClusterDirectory();
+    entries.put("clusterDirectory", clusterDirectory.getAbsolutePath());
+    entries.put("clusterDirectoryContent", clusterDirectory.list());
+
     final File auditDir = insightWork.getAuditDir();
     entries.put("auditDir", auditDir.getAbsolutePath());
     entries.put("auditDirContent", auditDir.list());

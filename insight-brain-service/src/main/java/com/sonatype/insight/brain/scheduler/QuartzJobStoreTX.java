@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.PostgresDatabaseEngine;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseListener;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.db.DatabaseEngine;
 import com.sonatype.insight.db.H2DatabaseEngine;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -43,11 +44,17 @@ public class QuartzJobStoreTX
 
   private static final String SHUTDOWN_THREAD_NAME = "Unclustered-Node-Shutdown";
 
-  private static final int NODE_CLUSTERING_NOT_SUPPORTED_EXIT_STATUS = 13;
+  private static final int NODE_CLUSTERING_NOT_ENABLED_EXIT_STATUS = 13;
 
   // Visible for testing
   static final String NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE =
-      "Node clustering is not supported by the current license, shutting down this excess node.";
+      "Node clustering is not supported by the current license.";
+
+  // Visible for testing
+  static final String CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE = "Cluster directory has not been set by the user.";
+
+  // Visible for testing
+  static final String SHUTTING_DOWN_EXCESS_NODE_MESSAGE = "Shutting down this excess node.";
 
   private static final String DATA_SOURCE_NAME = "ods";
 
@@ -56,13 +63,18 @@ public class QuartzJobStoreTX
 
   private final ProductLicense productLicense;
 
+  private final InsightConfig insightConfig;
+
   private volatile boolean productLicenseLoaded;
 
   private volatile boolean isShuttingDown;
 
   @Inject
-  public QuartzJobStoreTX(ProductLicense productLicense) throws InvalidConfigurationException {
+  public QuartzJobStoreTX(ProductLicense productLicense, InsightConfig insightConfig)
+      throws InvalidConfigurationException
+  {
     this.productLicense = productLicense;
+    this.insightConfig = insightConfig;
     initialize();
   }
 
@@ -89,7 +101,6 @@ public class QuartzJobStoreTX
       return false;
     }
     if (shouldExitDueToOtherNodeInCluster()) {
-      log.error(NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE);
       // Need to trigger shutdown in a different thread otherwise it can deadlock because
       // - System.exit makes this thread (probably clusterManagementThread) wait for ApplicationShutdownHooks to finish
       // - ApplicationShutdownHooks includes org.eclipse.jetty.util.thread.ShutdownThread which stops TaskScheduler,
@@ -104,7 +115,11 @@ public class QuartzJobStoreTX
   }
 
   private boolean shouldExitDueToOtherNodeInCluster() throws JobPersistenceException {
-    if (!productLicenseLoaded || productLicense.hasFeature(LicensedFeature.NODE_CLUSTERING)) {
+    if (!productLicenseLoaded) {
+      return false;
+    }
+    String potentialErrorMessage = getPotentialErrorMessage();
+    if (potentialErrorMessage == null) {
       return false;
     }
     List<SchedulerStateRecord> schedulerStateRecords = getSchedulerStateRecords();
@@ -122,12 +137,27 @@ public class QuartzJobStoreTX
     if (otherRecordsToExitFor.isEmpty()) {
       return false;
     }
-    log.debug("Node clustering is not supported by the current license," +
+    log.debug("Node clustering is not enabled," +
             " but with our own scheduler state record {}" +
             " found other scheduler state records to cause us to exit [{}].",
         schedulerStateRecordToString(myRecord),
         otherRecordsToExitFor.stream().map(this::schedulerStateRecordToString).collect(Collectors.joining(",")));
+    log.error(potentialErrorMessage);
     return true;
+  }
+
+  private String getPotentialErrorMessage() {
+    String potentialErrorMessage = "";
+    if (!productLicense.hasFeature(LicensedFeature.NODE_CLUSTERING)) {
+      potentialErrorMessage += NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE + " ";
+    }
+    if (!insightConfig.isClusterDirectorySetByUser()) {
+      potentialErrorMessage += CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE + " ";
+    }
+    if (potentialErrorMessage.isEmpty()) {
+      return null;
+    }
+    return potentialErrorMessage + SHUTTING_DOWN_EXCESS_NODE_MESSAGE;
   }
 
   private boolean shouldExitDueToOtherNodeInCluster(
@@ -159,7 +189,7 @@ public class QuartzJobStoreTX
 
   // Visible for testing
   void exitInNewThread() {
-    new Thread(() -> System.exit(NODE_CLUSTERING_NOT_SUPPORTED_EXIT_STATUS), SHUTDOWN_THREAD_NAME).start();
+    new Thread(() -> System.exit(NODE_CLUSTERING_NOT_ENABLED_EXIT_STATUS), SHUTDOWN_THREAD_NAME).start();
   }
 
   @Override

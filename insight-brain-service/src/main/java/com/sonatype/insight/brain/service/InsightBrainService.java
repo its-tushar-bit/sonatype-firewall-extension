@@ -154,6 +154,7 @@ public class InsightBrainService
           throws Exception
       {
         Files.createDirectories(configuration.getSonatypeWork().toPath());
+        Files.createDirectories(configuration.getClusterDirectory().toPath());
         insightFileLock = new InsightFileLock(configuration);
         insightFileLock.lock();
 

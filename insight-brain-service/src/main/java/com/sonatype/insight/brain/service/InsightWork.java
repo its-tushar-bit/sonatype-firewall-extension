@@ -30,7 +30,7 @@ public class InsightWork
 
   public File getScanDir(final String appId) {
     IdValidationUtils.validate(appId);
-    return new File(insightConfig.getSonatypeWork(), "scan/" + appId);
+    return new File(insightConfig.getClusterDirectory(), "scan/" + appId);
   }
 
   public File getScanFile(final String appId, final String scanId) {
@@ -40,21 +40,21 @@ public class InsightWork
   }
 
   public File getAuditDir() {
-    return new File(insightConfig.getSonatypeWork(), "audit");
+    return new File(insightConfig.getClusterDirectory(), "audit");
   }
 
   public File getAuditDir(final String appId) {
     IdValidationUtils.validate(appId);
-    return new File(insightConfig.getSonatypeWork(), "audit/" + appId);
+    return new File(getAuditDir(), appId);
   }
 
   public File getReportDir() {
-    return new File(insightConfig.getSonatypeWork(), "report");
+    return new File(insightConfig.getClusterDirectory(), "report");
   }
 
   public File getReportDir(final String appId) {
     IdValidationUtils.validate(appId);
-    return new File(insightConfig.getSonatypeWork(), "report/" + appId);
+    return new File(getReportDir(), appId);
   }
 
   public File getReportDir(final String appId, final String scanId) {
@@ -71,7 +71,7 @@ public class InsightWork
 
   public File getComponentDetailsDir(final String appId) {
     IdValidationUtils.validate(appId);
-    return new File(insightConfig.getSonatypeWork(), "componentDetails/" + appId);
+    return new File(insightConfig.getClusterDirectory(), "componentDetails/" + appId);
   }
 
   public File getComponentDetailsFile(final String appId, final String resultsId) {
@@ -81,29 +81,29 @@ public class InsightWork
   }
 
   public File getApplicationIconDir() {
-    return new File(insightConfig.getSonatypeWork(), "data/application");
+    return new File(getDataDir(), "application");
   }
 
   public File getOrganizationIconDir() {
-    return new File(insightConfig.getSonatypeWork(), "data/organization");
+    return new File(getDataDir(), "organization");
   }
 
   public File getDataDir() {
-    return new File(insightConfig.getSonatypeWork(), "data");
+    return new File(insightConfig.getClusterDirectory(), "data");
   }
 
   /**
    * @since 1.63
    */
   public File getTrashDir() {
-    return new File(insightConfig.getSonatypeWork(), "trash");
+    return new File(insightConfig.getClusterDirectory(), "trash");
   }
 
   /**
    * @since 1.88
    */
   public File getSearchDir() {
-    return new File(insightConfig.getSonatypeWork(), "search");
+    return new File(insightConfig.getClusterDirectory(), "search");
   }
 
   /**

@@ -188,6 +188,7 @@ public class SystemInfoTest
     final Map<String, Object> obufscatedMap = (Map<String, Object>) new Yaml().load(obfuscatedYaml);
 
     assertThat(obufscatedMap.get("sonatypeWork")).isEqualTo("./sonatype-work/clm-server");
+    assertThat(obufscatedMap.get("clusterDirectory")).isEqualTo("./sonatype-work/cluster-directory");
 
     final Map<String, Object> entryServer = (Map<String, Object>) obufscatedMap.get("server");
     Map<String, Object> entryApplicationConnectors = (Map<String, Object>) ((ArrayList<Object>) entryServer
@@ -277,6 +278,11 @@ public class SystemInfoTest
     assertThat(workDir).isAbsolute();
     assertThat(entries.get("sonatypeWorkContent")).isNotNull();
 
+    final File clusterDirectory = new File(entries.get("clusterDirectory").toString());
+    assertThat(clusterDirectory).isDirectory();
+    assertThat(clusterDirectory).isAbsolute();
+    assertThat(entries.get("clusterDirectoryContent")).isNotNull();
+
     final File auditDir = new File(entries.get("auditDir").toString());
     assertThat(auditDir).isAbsolute();
     assertThat(entries.get("auditDirContent")).isNull();
@@ -303,7 +309,7 @@ public class SystemInfoTest
     final File policyViolationFile = new File(policyViolationLog);
     assertThat(policyViolationFile).isAbsolute();
 
-    assertThat(entries).hasSize(13);
+    assertThat(entries).hasSize(15);
   }
 
   @Test

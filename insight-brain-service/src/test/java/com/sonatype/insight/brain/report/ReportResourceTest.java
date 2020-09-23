@@ -290,7 +290,7 @@ public class ReportResourceTest
   public void testBrowseReport_NoDirectoryTraversal() throws Exception {
     final String scanId = "ReportResourceTest_ScanId";
     mockReport(scanId, "/ReportResourceTest/report");
-    File reportDir = getCLMServer().getReportDir(app.getId(), scanId);
+    File reportDir = getCLMServer().getInstance(InsightWork.class).getReportDir(app.getId(), scanId);
     reportDir.mkdirs();
     new File(reportDir, "restricted.txt").createNewFile();
 

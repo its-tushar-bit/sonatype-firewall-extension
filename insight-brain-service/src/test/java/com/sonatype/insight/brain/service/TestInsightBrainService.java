@@ -326,26 +326,6 @@ public class TestInsightBrainService
     return null;
   }
 
-  public File getAuditDir(String applicationId) {
-    return new File(new File(getWorkDir(), "audit"), applicationId);
-  }
-
-  public File getDataDir() {
-    return new File(getWorkDir(), "data");
-  }
-
-  public File getReportDir(String applicationId, String scanId) {
-    return new File(new File(new File(getWorkDir(), "report"), applicationId), scanId);
-  }
-
-  public File getOrganizationIconDir() {
-    return new File(getDataDir(),"organization");
-  }
-
-  public File getApplicationIconDir() {
-    return new File(getDataDir(),"application");
-  }
-
   public InsightConfig getConfiguration() {
     return insightConfig;
   }

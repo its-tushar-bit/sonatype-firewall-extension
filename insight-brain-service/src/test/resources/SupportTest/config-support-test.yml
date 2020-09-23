@@ -5,6 +5,8 @@
 # Directory for data files.
 sonatypeWork: ./sonatype-work/clm-server
 
+clusterDirectory: ./sonatype-work/cluster-directory
+
 # Base URL of the Sonatype CLM server for user facing links back to the server.
 #baseUrl: http://localhost:8070/
 

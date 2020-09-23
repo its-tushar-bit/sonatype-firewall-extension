@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -197,7 +198,7 @@ public class LicenseOverrideResourceTest
       throws Exception
   {
     // Verify the license override audit
-    File logFile = new File(getCLMServer().getAuditDir(ownerId), "licenses.json");
+    File logFile = new File(getCLMServer().getInstance(InsightWork.class).getAuditDir(ownerId), "licenses.json");
     assertThat(logFile).isFile();
 
     ArrayNode allLogJsonData = JsonUtils.read(logFile);

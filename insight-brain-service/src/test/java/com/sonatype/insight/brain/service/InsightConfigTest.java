@@ -17,6 +17,7 @@ import io.dropwizard.jersey.validation.Validators;
 import io.dropwizard.validation.ConstraintViolations;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,6 +25,9 @@ public class InsightConfigTest
 {
   @Rule
   public LogOutput logOutput = new LogOutput(InsightConfig.class);
+
+  @Rule
+  public TemporaryFolder tempDir = new TemporaryFolder();
 
   @Test
   public void testBaseUrl() {
@@ -62,6 +66,23 @@ public class InsightConfigTest
 
     config.setCdnUrl(null);
     assertThat(config.isValidCdnUrl()).isFalse();
+  }
+
+  @Test
+  public void testClusterDirectory() {
+    InsightConfig config = new InsightConfig();
+    config.setSonatypeWork(tempDir.getRoot().getAbsolutePath());
+    assertThat(config.getClusterDirectory()).isEqualTo(config.getSonatypeWork());
+    assertThat(config.isValidClusterDirectory()).isTrue();
+    assertThat(config.isClusterDirectorySetByUser()).isFalse();
+
+    config.setClusterDirectory(config.getSonatypeWork().getPath());
+    assertThat(config.isValidClusterDirectory()).isFalse();
+    assertThat(config.isClusterDirectorySetByUser()).isTrue();
+
+    config.setClusterDirectory(tempDir.getRoot().getAbsolutePath() + "/cluster-directory");
+    assertThat(config.isValidClusterDirectory()).isTrue();
+    assertThat(config.isClusterDirectorySetByUser()).isTrue();
   }
 
   @Test
@@ -193,5 +214,28 @@ public class InsightConfigTest
     assertThat(logOutput).atWarnLevel()
         .contains("The support for hiding the root organization was removed in Nexus IQ Server 98. "
             + "The showRootOrganization configuration option should be removed from the config yml file.");
+  }
+
+  @Test
+  public void testGetClusterDirectory() {
+    InsightConfig insightConfig = new InsightConfig();
+    assertThat(insightConfig.getClusterDirectory()).isEqualTo(insightConfig.getSonatypeWork());
+
+    String clusterDirectory = "someDirectory";
+    insightConfig.setClusterDirectory(clusterDirectory);
+    assertThat(insightConfig.getClusterDirectory()).isEqualTo(new File(clusterDirectory));
+  }
+
+  @Test
+  public void testIsClusterDirectorySetByUser() {
+    InsightConfig insightConfig = new InsightConfig();
+    assertThat(insightConfig.isClusterDirectorySetByUser()).isFalse();
+
+    assertThat(insightConfig.getSonatypeWork()).isNotNull();
+    insightConfig.setClusterDirectory(insightConfig.getSonatypeWork().getPath());
+    assertThat(insightConfig.isClusterDirectorySetByUser()).isTrue();
+
+    insightConfig.setClusterDirectory("someDirectory");
+    assertThat(insightConfig.isClusterDirectorySetByUser()).isTrue();
   }
 }

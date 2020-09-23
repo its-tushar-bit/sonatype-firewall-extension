@@ -10,6 +10,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.service.InsightConfig;
 
 import org.quartz.JobPersistenceException;
 import org.quartz.impl.jdbcjobstore.InvalidConfigurationException;
@@ -26,10 +27,10 @@ public class TestQuartzJobStoreTx
   private volatile boolean recoveringMisfires = false;
 
   @Inject
-  public TestQuartzJobStoreTx(ProductLicense productLicense)
+  public TestQuartzJobStoreTx(ProductLicense productLicense, InsightConfig insightConfig)
       throws InvalidConfigurationException
   {
-    super(productLicense);
+    super(productLicense, insightConfig);
   }
 
   @Override

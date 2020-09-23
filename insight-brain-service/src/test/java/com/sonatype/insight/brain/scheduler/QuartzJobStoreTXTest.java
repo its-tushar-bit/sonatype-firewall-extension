@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.scheduler;
 
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.Date;
@@ -16,6 +17,7 @@ import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.postgres.PostgresServer;
 import com.sonatype.insight.test.LogOutput;
@@ -54,6 +56,9 @@ public class QuartzJobStoreTXTest
 
   @Inject
   public TaskScheduler taskScheduler;
+
+  @Inject
+  public InsightConfig insightConfig;
 
   private QuartzJobStoreTX quartzJobStoreTXSpy;
 
@@ -105,7 +110,9 @@ public class QuartzJobStoreTXTest
   }
 
   @Test
-  public void testDoCheckin() throws Exception {
+  public void testDoCheckin_NodeClusteringNotSupported() throws Exception {
+    insightConfig.setClusterDirectory(
+        Paths.get(insightConfig.getSonatypeWork().getAbsolutePath(), "clusterDirectory").toString());
     testProductLicense.setMissingFeatures(LicensedFeature.NODE_CLUSTERING);
     doNothing().when(quartzJobStoreTXSpy).exitInNewThread();
     quartzJobStoreTXSpy.productLicenseChanged();
@@ -115,7 +122,45 @@ public class QuartzJobStoreTXTest
 
     quartzJobStoreTXSpy.doCheckin();
 
-    assertThat(logOutput).atErrorLevel().contains(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE);
+    assertThat(logOutput).atErrorLevel()
+        .contains(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
+        .doesNotContain(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
+        .contains(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
+    verify(quartzJobStoreTXSpy).exitInNewThread();
+  }
+
+  @Test
+  public void testDoCheckin_ClusterDirectoryNotSet() throws Exception {
+    doNothing().when(quartzJobStoreTXSpy).exitInNewThread();
+    quartzJobStoreTXSpy.productLicenseChanged();
+    quartzJobStoreTXSpy.doCheckin();
+    createSchedulerStateRecord("other",
+        quartzJobStoreTXSpy.getSchedulerStateRecords().get(0).getCheckinTimestamp() + 1);
+
+    quartzJobStoreTXSpy.doCheckin();
+
+    assertThat(logOutput).atErrorLevel()
+        .doesNotContain(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
+        .contains(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
+        .contains(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
+    verify(quartzJobStoreTXSpy).exitInNewThread();
+  }
+
+  @Test
+  public void testDoCheckin_NodeClusteringNotSupportedAndClusterDirectoryNotSet() throws Exception {
+    testProductLicense.setMissingFeatures(LicensedFeature.NODE_CLUSTERING);
+    doNothing().when(quartzJobStoreTXSpy).exitInNewThread();
+    quartzJobStoreTXSpy.productLicenseChanged();
+    quartzJobStoreTXSpy.doCheckin();
+    createSchedulerStateRecord("other",
+        quartzJobStoreTXSpy.getSchedulerStateRecords().get(0).getCheckinTimestamp() + 1);
+
+    quartzJobStoreTXSpy.doCheckin();
+
+    assertThat(logOutput).atErrorLevel()
+        .contains(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
+        .contains(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
+        .contains(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
     verify(quartzJobStoreTXSpy).exitInNewThread();
   }
 
@@ -129,12 +174,17 @@ public class QuartzJobStoreTXTest
 
     quartzJobStoreTXSpy.doCheckin();
 
-    assertThat(logOutput).doesNotContain(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE);
+    assertThat(logOutput).atErrorLevel()
+        .doesNotContain(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
+        .doesNotContain(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
+        .doesNotContain(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
     verify(quartzJobStoreTXSpy, never()).exitInNewThread();
   }
 
   @Test
-  public void testDoCheckin_HasNodeClusteringFeature() throws Exception {
+  public void testDoCheckin_HasNodeClusteringFeatureAndClusterDirectoryIsSetByUser() throws Exception {
+    insightConfig.setClusterDirectory(
+        Paths.get(insightConfig.getSonatypeWork().getAbsolutePath(), "clusterDirectory").toString());
     lenient().doNothing().when(quartzJobStoreTXSpy).exitInNewThread();
     quartzJobStoreTXSpy.productLicenseChanged();
     quartzJobStoreTXSpy.doCheckin();
@@ -143,7 +193,10 @@ public class QuartzJobStoreTXTest
 
     quartzJobStoreTXSpy.doCheckin();
 
-    assertThat(logOutput).doesNotContain(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE);
+    assertThat(logOutput).atErrorLevel()
+        .doesNotContain(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
+        .doesNotContain(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
+        .doesNotContain(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
     verify(quartzJobStoreTXSpy, never()).exitInNewThread();
   }
 
@@ -158,7 +211,10 @@ public class QuartzJobStoreTXTest
 
     quartzJobStoreTXSpy.doCheckin();
 
-    assertThat(logOutput).doesNotContain(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE);
+    assertThat(logOutput).atErrorLevel()
+        .doesNotContain(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
+        .doesNotContain(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
+        .doesNotContain(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
     verify(quartzJobStoreTXSpy, never()).exitInNewThread();
   }
 
@@ -173,7 +229,10 @@ public class QuartzJobStoreTXTest
 
     quartzJobStoreTXSpy.doCheckin();
 
-    assertThat(logOutput).doesNotContain(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE);
+    assertThat(logOutput).atErrorLevel()
+        .doesNotContain(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
+        .doesNotContain(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
+        .doesNotContain(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
     verify(quartzJobStoreTXSpy, never()).exitInNewThread();
   }
 
@@ -188,7 +247,10 @@ public class QuartzJobStoreTXTest
 
     quartzJobStoreTXSpy.doCheckin();
 
-    assertThat(logOutput).atErrorLevel().contains(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE);
+    assertThat(logOutput).atErrorLevel()
+        .contains(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
+        .contains(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
+        .contains(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
     verify(quartzJobStoreTXSpy).exitInNewThread();
   }
 

@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.service.InsightWork;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
@@ -418,9 +419,10 @@ public class CreateOwnerTest
   }
 
   private BufferedImage readImage(OwnerType ownerType, String ownerId) throws Exception {
+    InsightWork insightWork = testCLMServer.getCLMServer().getInstance(InsightWork.class);
     return ImageIO.read(new ByteArrayInputStream(iconDAO.getIcon(ownerId,
-        OwnerType.ORGANIZATION.equals(ownerType) ? testCLMServer.getCLMServer().getOrganizationIconDir()
-            : testCLMServer.getCLMServer().getApplicationIconDir())));
+        OwnerType.ORGANIZATION.equals(ownerType) ? insightWork.getOrganizationIconDir() : insightWork
+            .getApplicationIconDir())));
   }
 
   private void assertImage(SelenideElement element) {

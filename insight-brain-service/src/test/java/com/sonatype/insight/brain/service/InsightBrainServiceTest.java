@@ -343,7 +343,8 @@ public class InsightBrainServiceTest
     try {
       assertThatExceptionOfType(IllegalStateException.class).isThrownBy(testCLMServerTwo::start)
           .withStackTraceContaining(
-              "Work directory " + getCLMServer().getWorkDir().getAbsolutePath() + " is already in use.");
+              "Work directory " + getCLMServer().getConfiguration().getSonatypeWork().getAbsolutePath() +
+                  " is already in use.");
     }
     finally {
       testCLMServerTwo.stop();

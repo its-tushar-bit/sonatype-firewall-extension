@@ -177,6 +177,12 @@
                   <span ng-if='componentDetails.securityVulnerabilities.length > 1'> within {{componentDetails.securityVulnerabilities.length}} security issues</span>
                 </td>
               </tr>
+              <tr id='artifactIntegrityRating' ng-if='componentDetails.integrityRating'>
+                <td>Integrity Rating:</td>
+                <td>
+                  <span ng-class="{ 'cip-color-suspicious': componentDetails.integrityRating.id === 1}">{{componentDetails.integrityRating.label}}</span>
+                </td>
+              </tr>
               <tr id='artifactHygieneRating' ng-if='componentDetails.hygieneRating'>
                 <td>Hygiene Rating:</td>
                 <td>

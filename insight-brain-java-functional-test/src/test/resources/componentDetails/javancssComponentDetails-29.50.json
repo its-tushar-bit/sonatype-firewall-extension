@@ -96,5 +96,9 @@
   "hygieneRating": {
     "id": 1,
     "label": "Exemplar"
+  },
+  "integrityRating": {
+    "id": 0,
+    "label": "Normal"
   }
 }

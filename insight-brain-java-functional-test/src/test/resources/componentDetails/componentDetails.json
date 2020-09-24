@@ -186,5 +186,9 @@
   "hygieneRating": {
     "id": 4,
     "label": "Laggard"
+  },
+  "integrityRating": {
+    "id": 1,
+    "label": "Malicious"
   }
 }

@@ -391,6 +391,8 @@ public class RepositoryReportTest
     VersionsCIP.highestSecurityThreat().shouldHave(text("9.1"));
     VersionsCIP.securityCount().shouldHave(text("3"));
     VersionsCIP.hygieneRating().shouldHave(text("Laggard"));
+    VersionsCIP.integrityRating().shouldHave(text("Malicious"));
+    VersionsCIP.integrityRating().shouldHave(cssClass("cip-color-suspicious"));
     VersionsCIP.matchState().shouldHave(text("exact"));
     VersionsCIP.identificationSource().shouldHave(text("Sonatype"));
     VersionsCIP.componentCategory().shouldHave(text("Other"));

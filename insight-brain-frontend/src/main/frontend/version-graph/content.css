@@ -284,3 +284,7 @@ form.form-horizontal .control-label {
 .cip-color-laggard {
   color: #f5c648;
 }
+
+.cip-color-suspicious {
+  color: #bc012f;
+}

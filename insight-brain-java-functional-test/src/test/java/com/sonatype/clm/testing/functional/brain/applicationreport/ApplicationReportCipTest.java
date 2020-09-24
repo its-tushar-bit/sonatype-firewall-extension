@@ -214,6 +214,8 @@ public class ApplicationReportCipTest
     VersionsCIP.highestSecurityThreat().shouldHave(text("9.1"));
     VersionsCIP.securityCount().shouldHave(exactText("within 3 security issues"));
     VersionsCIP.hygieneRating().shouldHave(text("Exemplar"));
+    VersionsCIP.integrityRating().shouldHave(text("Normal"));
+    VersionsCIP.integrityRating().shouldNotHave(cssClass("cip-color-suspicious"));
     VersionsCIP.matchState().shouldHave(text("exact"));
     VersionsCIP.identificationSource().shouldHave(text("Sonatype"));
     VersionsCIP.componentCategory().shouldHave(text("Programming Language Utilites"));

@@ -81,6 +81,10 @@ public class VersionsCIP
     return artifactTable().find("#artifactHygieneRating td:last-child");
   }
 
+  public static SelenideElement integrityRating() {
+    return artifactTable().find("#artifactIntegrityRating span");
+  }
+
   public static SelenideElement catalogDate() {
     return artifactTable().find("#artifactInfoCatalogDateRow td:last-child");
   }

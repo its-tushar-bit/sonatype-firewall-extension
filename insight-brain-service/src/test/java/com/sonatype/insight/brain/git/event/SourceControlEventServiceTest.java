@@ -213,7 +213,7 @@ public class SourceControlEventServiceTest
   @Test
   public void testProcessEvents_onManifestScanEvent() throws Exception {
     // given: an event DAO setup to return a manifest scan event
-    List<SourceControlEvent> events = generateEvents("1:app1:" + SourceControlEvent.MANIFEST_SCAN_EVENT);
+    List<SourceControlEvent> events = generateEvents("1:app1:" + SourceControlEvent.MANIFEST_EVALUATION_EVENT);
     when(mockSourceControlEventDAO
         .selectEventsForInstance(eq(SourceControlEventService.INSTANCE_ID), anyInt()))
         .thenReturn(events);

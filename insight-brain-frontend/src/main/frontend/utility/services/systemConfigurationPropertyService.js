@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {getManifestScanConfigUrl} from '../../util/CLMLocation';
+import {getScmOnboardingConfigUrl} from '../../util/CLMLocation';
 
 const SUCCESS_METRICS_DISABLED_MESSAGE = 'Success metrics have been disabled by your system administrator.';
 
@@ -61,7 +61,7 @@ export default function systemConfigurationPropertyService($http, $rootScope, $q
   }
 
   function isManifestScanFeatureEnabled() {
-    return $http.get(getManifestScanConfigUrl()).then(function(response) {
+    return $http.get(getScmOnboardingConfigUrl()).then(function(response) {
       return response.data.manifestScanFeatureEnabled;
     });
   }

@@ -256,7 +256,7 @@ public class SourceControlEventService
           pullRequestCommentingService.onDiscoveredPullRequest(event);
           break;
 
-        case SourceControlEvent.MANIFEST_SCAN_EVENT:
+        case SourceControlEvent.MANIFEST_EVALUATION_EVENT:
           manifestScanService.onManifestScan(event);
           break;
 

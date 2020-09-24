@@ -20,7 +20,6 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
@@ -42,6 +41,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.api.PublicApiPaths.APPLICATION_EVALUATION_PATH_V2;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -65,7 +65,7 @@ public class ApiEvaluationResourceV2Test
   private static final String SCAN_ID = "scanId";
 
   private HttpRequest restRequest(String applicationId) {
-    return restRequest().path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, applicationId);
+    return restRequest().path(APPLICATION_EVALUATION_PATH_V2, applicationId);
   }
 
   @Before
@@ -500,7 +500,7 @@ public class ApiEvaluationResourceV2Test
         .fromScan(SCAN_ID, Stage.ID_OPERATE);
 
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, ApiEvaluationResourceV2.PROMOTE_SCAN_PATH)
+        .path(APPLICATION_EVALUATION_PATH_V2, ApiEvaluationResourceV2.PROMOTE_SCAN_PATH)
         .parameter(app.getId()).body(apiPromoteScanRequestDTOV2).post();
 
     assertResponseStatus(200, response);
@@ -513,7 +513,7 @@ public class ApiEvaluationResourceV2Test
     createScanFile(app.getId(), SCAN_ID);
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, ApiEvaluationResourceV2.PROMOTE_SCAN_PATH)
+        .path(APPLICATION_EVALUATION_PATH_V2, ApiEvaluationResourceV2.PROMOTE_SCAN_PATH)
         .parameter(app.getId()).body(ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE)).post();
     assertResponseStatus(200, response);
     ApiPromoteScanResultDTOV2 apiPromoteScanResultDTOV2 = response.getBody(ApiPromoteScanResultDTOV2.class);

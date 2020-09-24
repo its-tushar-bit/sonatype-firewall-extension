@@ -13,10 +13,10 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.api.experimental.ApiManifestConfigResource.RESOURCE_PATH;
+import static com.sonatype.insight.brain.api.experimental.ScmOnboardingConfigResource.RESOURCE_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ApiManifestConfigResourceTest
+public class ScmOnboardingConfigResourceTest
     extends AbstractResourceTest
 {
   @Test

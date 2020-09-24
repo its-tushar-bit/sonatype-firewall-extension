@@ -14,19 +14,25 @@ import com.sonatype.insight.brain.model.security.User;
 import com.codeborne.selenide.Selenide;
 import com.google.common.collect.ImmutableSet;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Condition.enabled;
 import static com.google.common.collect.ImmutableMap.of;
-import static com.sonatype.insight.brain.service.InsightConfig.Feature.MANIFEST_SCAN;
+import static com.sonatype.insight.brain.service.InsightConfig.Feature.SCM_ONBOARDING;
 
 public class ScmOnboardingTest
     extends AbstractFunctionalTest
 {
+  @Before
+  public void setup() {
+    testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(of(SCM_ONBOARDING.getFlag(), true));
+  }
+
   @After
   public void clearCookies() {
     Selenide.clearBrowserCookies();
@@ -35,7 +41,7 @@ public class ScmOnboardingTest
   @Test
   public void testFeatureIsDisabled() {
     // given the feature flag is false
-    testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(of(MANIFEST_SCAN.getFlag(), false));
+    testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(of(SCM_ONBOARDING.getFlag(), false));
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
 
     // when we open the onboarding page as admin
@@ -49,8 +55,7 @@ public class ScmOnboardingTest
 
   @Test
   public void testFeatureIsEnabled() {
-    // given the feature flag is true
-    testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(of(MANIFEST_SCAN.getFlag(), true));
+    // given the onboarding page
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
 
     // when we open the onboarding page as admin
@@ -64,8 +69,7 @@ public class ScmOnboardingTest
 
   @Test
   public void testFeatureIsNotAllowed() {
-    // given the feature flag is true
-    testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(of(MANIFEST_SCAN.getFlag(), true));
+    // given the onboarding page and a new user
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
     User user = tempEntity.newUser();
 
@@ -80,8 +84,7 @@ public class ScmOnboardingTest
 
   @Test
   public void testPopulatesOrganizations() {
-    // given the feature flag is true
-    testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(of(MANIFEST_SCAN.getFlag(), true));
+    // given the onboarding page
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
 
     // and organizations exist
@@ -105,7 +108,6 @@ public class ScmOnboardingTest
   @Test
   public void testPopulatesRepositories() {
     // given SCM onboarding page
-    testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(of(MANIFEST_SCAN.getFlag(), true));
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
     refreshOrOpen(ScmOnboardingPage.url());
     loginAsAdmin();

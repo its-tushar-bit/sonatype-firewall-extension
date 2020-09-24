@@ -108,8 +108,8 @@ export function getAdvancedSearchQuerySuggesterUrl(query) {
   return uriTemplate`/api/experimental/search/advanced/suggester?search=${query}`;
 }
 
-export function getManifestScanConfigUrl() {
-  return uriTemplate`/api/experimental/config/manifest-scan`;
+export function getScmOnboardingConfigUrl() {
+  return uriTemplate`/api/experimental/config/scm-onboarding`;
 }
 
 export function getScmRepositoriesUrl(organizationId) {

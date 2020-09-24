@@ -5,7 +5,7 @@
  */
 import axios from 'axios';
 import {
-  getManifestScanConfigUrl,
+  getScmOnboardingConfigUrl,
   getOrganizationsUrl,
   getScmDefaultHostUrl,
   getScmRepositoriesUrl
@@ -19,7 +19,7 @@ import {
 
 describe('scmOnboardingActions', function() {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios),
-      manifestScanConfigUrl = getManifestScanConfigUrl(),
+      manifestScanConfigUrl = getScmOnboardingConfigUrl(),
       manifestScanConfigPayload = {
         manifestScanFeatureEnabled: true
       },

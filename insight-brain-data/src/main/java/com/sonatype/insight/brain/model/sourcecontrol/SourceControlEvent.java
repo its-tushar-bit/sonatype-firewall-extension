@@ -29,7 +29,7 @@ public class  SourceControlEvent
 
   public static final String DISCOVERED_PULL_REQUEST_EVENT = "discovered pull request";
 
-  public static final String MANIFEST_SCAN_EVENT = "manifest scan";
+  public static final String MANIFEST_EVALUATION_EVENT = "manifest evaluation";
 
   public static final String REMEDIATION_PULL_REQUEST_EVENT = "remediation pull request";
 

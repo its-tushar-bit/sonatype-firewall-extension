@@ -13,20 +13,17 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.jaxrs.testing.HttpResponse;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
-import com.google.common.collect.ImmutableMap;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.api.experimental.ApiManifestScanResource.RESOURCE_PATH;
+import static com.sonatype.insight.brain.api.experimental.ApiManifestEvaluationResource.RESOURCE_PATH;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ApiManifestScanResourceTest
+public class ApiManifestEvaluationResourceTest
     extends AbstractResourceTest
 {
   @Test
@@ -44,10 +41,6 @@ public class ApiManifestScanResourceTest
             new String(pwHandler.encryptPassword("TOKEN".toCharArray())), null,
             null, true, "customBranch", null);
 
-    // and manifest scans are enabled
-    InsightConfig config = this.getCLMServer().getInstance(InsightConfig.class);
-    config.setExperimentalFeatures(ImmutableMap.of(Feature.MANIFEST_SCAN.getFlag(), true));
-
     // and we can query for Source Control events
     SourceControlEventDAO sourceControlEventDAO = new SourceControlEventDAO();
 
@@ -55,7 +48,7 @@ public class ApiManifestScanResourceTest
     assertThat(sourceControlEventDAO.getAll()).isEmpty();
 
     // when application manifest is scanned
-    HttpResponse response = restRequest().path(RESOURCE_PATH).parameter(app.getId()).get();
+    HttpResponse response = restRequest().path(RESOURCE_PATH).parameter(app.getId()).post();
 
     // the response contains status ID
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK_200);
@@ -70,7 +63,7 @@ public class ApiManifestScanResourceTest
     // and it matches expected values
     SourceControlEvent event = allEvents.get(0);
     assertThat(event.getApplicationId()).isEqualTo(app.getId());
-    assertThat(event.getEventType()).isEqualTo(SourceControlEvent.MANIFEST_SCAN_EVENT);
+    assertThat(event.getEventType()).isEqualTo(SourceControlEvent.MANIFEST_EVALUATION_EVENT);
     assertThat(event.getStageTypeId()).isEqualTo("develop");
     assertThat(event.getBranchName()).isEqualTo("customBranch");
 

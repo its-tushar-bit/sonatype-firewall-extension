@@ -26,21 +26,21 @@ import com.google.common.collect.ImmutableMap;
  */
 @Named
 @Timed
-@Path(ApiManifestConfigResource.RESOURCE_PATH)
-public class ApiManifestConfigResource
+@Path(ScmOnboardingConfigResource.RESOURCE_PATH)
+public class ScmOnboardingConfigResource
 {
-  static final String RESOURCE_PATH = PublicApiPaths.BASE_PATH + "/experimental/config/manifest-scan";
+  static final String RESOURCE_PATH = PublicApiPaths.BASE_PATH + "/experimental/config/scm-onboarding";
 
-  private final ApiManifestConfigService apiManifestConfigService;
+  private final ScmOnboardingConfigService scmOnboardingConfigService;
 
   @Inject
-  public ApiManifestConfigResource(final ApiManifestConfigService apiManifestConfigService) {
-    this.apiManifestConfigService = apiManifestConfigService;
+  public ScmOnboardingConfigResource(final ScmOnboardingConfigService scmOnboardingConfigService) {
+    this.scmOnboardingConfigService = scmOnboardingConfigService;
   }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public Map<String, Object> manifestScanConfiguration() {
-    return ImmutableMap.of("manifestScanFeatureEnabled", apiManifestConfigService.isManifestScanFeatureEnabled());
+    return ImmutableMap.of("manifestScanFeatureEnabled", scmOnboardingConfigService.isScmOnboardingEnabled());
   }
 }

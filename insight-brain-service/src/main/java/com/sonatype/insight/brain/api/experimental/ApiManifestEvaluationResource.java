@@ -12,7 +12,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -33,30 +33,30 @@ import com.google.common.collect.ImmutableMap;
  */
 @Named
 @Timed
-@Path(ApiManifestScanResource.RESOURCE_PATH)
-public class ApiManifestScanResource
+@Path(ApiManifestEvaluationResource.RESOURCE_PATH)
+public class ApiManifestEvaluationResource
 {
   static final String RESOURCE_PATH = PublicApiPaths.BASE_PATH + "/experimental"
-      + "/applications/{applicationId}/manifest-scan";
+      + "/applications/{applicationId}/manifest-evaluation";
 
-  private final ApiManifestScanService apiManifestScanService;
+  private final ApiManifestEvaluationService apiManifestEvaluationService;
 
   @Context
   private HttpServletRequest request;
 
   @Inject
-  public ApiManifestScanResource(final ApiManifestScanService apiManifestScanService) {
-    this.apiManifestScanService = apiManifestScanService;
+  public ApiManifestEvaluationResource(final ApiManifestEvaluationService apiManifestEvaluationService) {
+    this.apiManifestEvaluationService = apiManifestEvaluationService;
   }
 
-  @GET
+  @POST
   @Produces(MediaType.APPLICATION_JSON)
   public Map<String, String> scanManifest(
       @PathParam("applicationId") String applicationId,
       @DefaultValue("develop") @QueryParam("stage") String stage,
       @QueryParam("branch") String branchName) throws IOException
   {
-    String statusId = apiManifestScanService
+    String statusId = apiManifestEvaluationService
         .performManifestScan(applicationId, stage, branchName, HdsClient.getClientUserAgent(request));
     return ImmutableMap.of("statusId", statusId);
   }

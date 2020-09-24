@@ -17,17 +17,17 @@ import com.sonatype.insight.brain.service.InsightConfig.Feature;
  *
  * @since 1.99
  */
-public class ApiManifestConfigService
+public class ScmOnboardingConfigService
 {
   private final InsightConfig insightConfig;
 
   @Inject
-  public ApiManifestConfigService(final InsightConfig insightConfig) {
+  public ScmOnboardingConfigService(final InsightConfig insightConfig) {
     this.insightConfig = insightConfig;
   }
 
   @Authorize(permission = Permission.READ)
-  public boolean isManifestScanFeatureEnabled() {
-    return insightConfig.isExperimentalFeatureEnabled(Feature.MANIFEST_SCAN);
+  public boolean isScmOnboardingEnabled() {
+    return insightConfig.isExperimentalFeatureEnabled(Feature.SCM_ONBOARDING);
   }
 }

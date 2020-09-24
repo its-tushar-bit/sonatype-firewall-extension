@@ -15,8 +15,6 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 
@@ -25,22 +23,18 @@ import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
  *
  * @since 1.98
  */
-public class ApiManifestScanService
+public class ApiManifestEvaluationService
 {
   private final SourceControlEventPublisher sourceControlEventPublisher;
-
-  private final InsightConfig insightConfig;
 
   private final SourceControlUtils sourceControlUtils;
 
   @Inject
-  public ApiManifestScanService(
+  public ApiManifestEvaluationService(
       final SourceControlEventPublisher sourceControlEventPublisher,
-      final InsightConfig insightConfig,
       final SourceControlUtils sourceControlUtils)
   {
     this.sourceControlEventPublisher = sourceControlEventPublisher;
-    this.insightConfig = insightConfig;
     this.sourceControlUtils = sourceControlUtils;
   }
 
@@ -51,9 +45,6 @@ public class ApiManifestScanService
       final String branchName,
       final String userAgent) throws IOException
   {
-    if (!insightConfig.isExperimentalFeatureEnabled(Feature.MANIFEST_SCAN)) {
-      return null;
-    }
     final GitRepositoryInfo gitRepositoryInfo =
         sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
 
@@ -69,7 +60,7 @@ public class ApiManifestScanService
 
     SourceControlEvent sourceControlEvent = new SourceControlEvent()
         .setApplicationId(applicationId)
-        .setEventType(SourceControlEvent.MANIFEST_SCAN_EVENT)
+        .setEventType(SourceControlEvent.MANIFEST_EVALUATION_EVENT)
         .setStageTypeId(stage)
         .setStatusId(statusId)
         .setBranchName(branch)

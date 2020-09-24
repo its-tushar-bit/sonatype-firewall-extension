@@ -7,7 +7,7 @@
 import {noPayloadActionCreator, payloadParamActionCreator} from '../../util/reduxUtil';
 import axios from 'axios';
 import {
-  getManifestScanConfigUrl,
+  getScmOnboardingConfigUrl,
   getOrganizationsUrl,
   getScmRepositoriesUrl,
   getScmDefaultHostUrl
@@ -33,7 +33,7 @@ export function loadConfig() {
   return function(dispatch) {
     dispatch(loadConfigRequested());
 
-    return axios.get(getManifestScanConfigUrl())
+    return axios.get(getScmOnboardingConfigUrl())
         .then(({ data }) => { dispatch(loadConfigFulfilled(data)); })
         .catch(error => { dispatch(loadConfigFailed(error)); });
   };

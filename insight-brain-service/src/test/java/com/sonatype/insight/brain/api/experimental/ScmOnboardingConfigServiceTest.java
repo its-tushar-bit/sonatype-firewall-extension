@@ -17,23 +17,23 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ApiManifestConfigServiceTest
+public class ScmOnboardingConfigServiceTest
     extends AbstractComponentTest
 {
   @Inject
-  ApiManifestConfigService apiManifestConfigService;
+  ScmOnboardingConfigService scmOnboardingConfigService;
 
   @Inject
   private InsightConfig config;
 
   @Before
   public void setup() {
-    config.setExperimentalFeatures(ImmutableMap.of(Feature.MANIFEST_SCAN.getFlag(), true));
+    config.setExperimentalFeatures(ImmutableMap.of(Feature.SCM_ONBOARDING.getFlag(), true));
   }
 
   @Test
   public void testFeatureFlag() {
     // expect feature flag to be true
-    assertThat(apiManifestConfigService.isManifestScanFeatureEnabled()).isTrue();
+    assertThat(scmOnboardingConfigService.isScmOnboardingEnabled()).isTrue();
   }
 }

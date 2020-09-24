@@ -89,6 +89,7 @@ public class ReportInnerSourceTest
 
     ComponentIdentifier rootComponentIdentifier = ComponentIdentifier
         .createMavenCoordinates("com.sonatype.innersource.main", "innersource-main", "1.0.0", "", "jar");
+
     ReportInnerSource.saveInnerSourceComponent(rootComponentIdentifier, app.getId(), innerSourceComponentDAO);
 
     verify(innerSourceComponentDAOSpy, never()).insert(innerSourceComponent);
@@ -104,7 +105,9 @@ public class ReportInnerSourceTest
 
     ComponentIdentifier rootComponentIdentifier = ComponentIdentifier
         .createMavenCoordinates("com.sonatype.nexus", "nexus-platform-api", "1.0.0", "", "jar");
+
     ReportInnerSource.saveInnerSourceComponent(rootComponentIdentifier, app.getId(), innerSourceComponentDAOSpy);
+
     ArgumentCaptor<InnerSourceComponent> argument = ArgumentCaptor.forClass(InnerSourceComponent.class);
     verify(innerSourceComponentDAOSpy).update(argument.capture());
     assertThat(argument.getValue().getApplicationId()).isEqualTo(app.getId());
@@ -117,7 +120,9 @@ public class ReportInnerSourceTest
 
     ComponentIdentifier rootComponentIdentifier = ComponentIdentifier
         .createMavenCoordinates("com.sonatype.nexus", "nexus-platform-api", "1.0.0", "", "jar");
+
     ReportInnerSource.saveInnerSourceComponent(rootComponentIdentifier, app.getId(), innerSourceComponentDAOSpy);
+
     verify(innerSourceComponentDAOSpy, never()).update(innerSourceComponent);
   }
 
@@ -140,14 +145,13 @@ public class ReportInnerSourceTest
 
     JsonNode dependenciesJson = objectMapper
         .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-multi-module/dependencies.json"));
-    JsonNode bomJson =
-        objectMapper
-            .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-multi-module/bom.json"));
+    JsonNode bomJson = objectMapper
+        .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-multi-module/bom.json"));
     JsonNode summaryJson = objectMapper
         .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-multi-module/summary.json"));
-    JsonNode dataJson =
-        objectMapper
-            .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-multi-module/data.json"));
+    JsonNode dataJson = objectMapper
+        .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-multi-module/data.json"));
+
     ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app);
 
     List<InnerSourceComponent> innerSourceComponents = innerSourceComponentDAO.getByApplicationId(app.getId());
@@ -200,6 +204,7 @@ public class ReportInnerSourceTest
         objectMapper.readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource/summary.json"));
     JsonNode dataJson =
         objectMapper.readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource/data.json"));
+
     ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app);
 
     List<JsonNode> bomInnerSourceParent = new ArrayList<>();
@@ -211,6 +216,51 @@ public class ReportInnerSourceTest
     for (JsonNode bom : bomInnerSourceParent) {
       assertInnerSourceParent(bom, appInnerSource, componentIdentifiers);
     }
+
+    for (JsonNode transitiveDependencies : bomInnerSourceDependencies) {
+      assertThat(transitiveDependencies).isNotNull();
+      assertThat(transitiveDependencies.get("ownerApplicationName").asText()).isEqualTo(appInnerSource.getName());
+      assertThat(transitiveDependencies.get("componentIdentifier")).isNotNull();
+    }
+  }
+
+  @Test
+  public void processInnerSource_knownInnerSourceParent() throws Exception {
+    Application appInnerSource = tempEntity.newApplicationWithParent();
+
+    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-module-model", appInnerSource);
+    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive", appInnerSource);
+    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-client-utils", appInnerSource);
+    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api", app);
+
+    ObjectMapper objectMapper = new ObjectMapper();
+
+    JsonNode dependenciesJson = objectMapper
+        .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-known/dependencies.json"));
+    JsonNode bomJson =
+        objectMapper.readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-known/bom.json"));
+    JsonNode summaryJson =
+        objectMapper.readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-known/summary.json"));
+    JsonNode dataJson =
+        objectMapper.readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-known/data.json"));
+
+    ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app);
+
+    List<JsonNode> bomInnerSourceParent = new ArrayList<>();
+    List<JsonNode> bomInnerSourceDependencies = new ArrayList<>();
+    assertInnerSourceInformation(bomJson, 3, 5, bomInnerSourceParent, bomInnerSourceDependencies);
+
+    assertSummaryCounters(summaryJson, dataJson, 18);
+
+    AnalyzerFeatures analyzerFeaturesSonatype =
+        new AnalyzerFeatures(AnalysisSource.SDS, AnalysisType.HASH, "mvn", true, true, true);
+    assertIdentificationSourceAndAnalyzerFeatures(bomInnerSourceParent.get(1), IdentificationSource.SONATYPE.getId(),
+        analyzerFeaturesSonatype);
+    AnalyzerFeatures analyzerFeaturesPackageManifest =
+        new AnalyzerFeatures(AnalysisSource.THIRD_PARTY, AnalysisType.COORDINATE, "mvn");
+    assertIdentificationSourceAndAnalyzerFeatures(bomInnerSourceParent.get(0),
+        IdentificationSource.PACKAGE_MANIFEST.getId(),
+        analyzerFeaturesPackageManifest);
 
     for (JsonNode transitiveDependencies : bomInnerSourceDependencies) {
       assertThat(transitiveDependencies).isNotNull();
@@ -269,15 +319,15 @@ public class ReportInnerSourceTest
 
     ObjectMapper objectMapper = new ObjectMapper();
 
-    JsonNode dependenciesJson = objectMapper
-        .readTree(
-            getClass().getResource("/InnerSourceServiceTest/report-innersource-nested-transitive/dependencies.json"));
+    JsonNode dependenciesJson = objectMapper.readTree(
+        getClass().getResource("/InnerSourceServiceTest/report-innersource-nested-transitive/dependencies.json"));
     JsonNode bomJson = objectMapper
         .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-nested-transitive/bom.json"));
     JsonNode summaryJson = objectMapper
         .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-nested-transitive/summary.json"));
     JsonNode dataJson = objectMapper
         .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-nested-transitive/data.json"));
+
     ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app);
 
     List<JsonNode> bomInnerSourceDependencies = new ArrayList<>();
@@ -300,15 +350,15 @@ public class ReportInnerSourceTest
 
     ObjectMapper objectMapper = new ObjectMapper();
 
-    JsonNode dependenciesJson = objectMapper
-        .readTree(
-            getClass().getResource("/InnerSourceServiceTest/report-innersource-unknown-components/dependencies.json"));
+    JsonNode dependenciesJson = objectMapper.readTree(
+        getClass().getResource("/InnerSourceServiceTest/report-innersource-unknown-components/dependencies.json"));
     JsonNode bomJson = objectMapper
         .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-unknown-components/bom.json"));
     JsonNode summaryJson = objectMapper
         .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-unknown-components/summary.json"));
     JsonNode dataJson = objectMapper
         .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-unknown-components/data.json"));
+
     ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app);
 
     List<JsonNode> bomInnerSourceDependencies = new ArrayList<>();
@@ -332,23 +382,15 @@ public class ReportInnerSourceTest
 
     ObjectMapper objectMapper = new ObjectMapper();
 
-    JsonNode dependenciesJson =
-        new ObjectMapper()
-            .readTree(
-                getClass().getResource(
-                    "/InnerSourceServiceTest/report-innersource-not-root/dependencies.json"));
-    JsonNode summaryJson =
-        objectMapper.readTree(
-            getClass().getResource(
-                "/InnerSourceServiceTest/report-innersource-not-root/summary.json"));
+    JsonNode dependenciesJson = new ObjectMapper()
+        .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-not-root/dependencies.json"));
+    JsonNode summaryJson = objectMapper
+        .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-not-root/summary.json"));
     JsonNode bomJson =
-        objectMapper.readTree(
-            getClass().getResource(
-                "/InnerSourceServiceTest/report-innersource-not-root/bom.json"));
+        objectMapper.readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-not-root/bom.json"));
     JsonNode dataJson =
-        objectMapper.readTree(
-            getClass().getResource(
-                "/InnerSourceServiceTest/report-innersource-not-root/data.json"));
+        objectMapper.readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-not-root/data.json"));
+
     ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app);
 
     assertInnerSourceInformation(bomJson, 0, 0, null, null);
@@ -369,22 +411,15 @@ public class ReportInnerSourceTest
 
     ObjectMapper objectMapper = new ObjectMapper();
 
-    JsonNode dependenciesJson =
-        objectMapper.readTree(getClass()
-            .getResource(
-                "/InnerSourceServiceTest/report-innersource-not-children/dependencies.json"));
-    JsonNode bomJson =
-        objectMapper.readTree(
-            getClass().getResource(
-                "/InnerSourceServiceTest/report-innersource-not-children/bom.json"));
-    JsonNode summaryJson =
-        objectMapper.readTree(
-            getClass().getResource(
-                "/InnerSourceServiceTest/report-innersource-not-children/summary.json"));
-    JsonNode dataJson =
-        objectMapper.readTree(
-            getClass().getResource(
-                "/InnerSourceServiceTest/report-innersource-not-children/data.json"));
+    JsonNode dependenciesJson = objectMapper
+        .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-not-children/dependencies.json"));
+    JsonNode bomJson = objectMapper
+        .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-not-children/bom.json"));
+    JsonNode summaryJson = objectMapper.readTree(getClass().getResource(
+        "/InnerSourceServiceTest/report-innersource-not-children/summary.json"));
+    JsonNode dataJson = objectMapper
+        .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-not-children/data.json"));
+
     ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app);
 
     List<JsonNode> bomInnerSourceParent = new ArrayList<>();
@@ -411,14 +446,13 @@ public class ReportInnerSourceTest
 
     JsonNode dependenciesJson = objectMapper
         .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-not-children/dependencies.json"));
-    JsonNode bomJson =
-        objectMapper
-            .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-not-children/bom.json"));
+    JsonNode bomJson = objectMapper
+        .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-not-children/bom.json"));
     JsonNode summaryJson = objectMapper
         .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-not-children/summary.json"));
-    JsonNode dataJson =
-        objectMapper
-            .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-not-children/data.json"));
+    JsonNode dataJson = objectMapper
+        .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-not-children/data.json"));
+
     ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app);
 
     assertInnerSourceInformation(bomJson, 0, 0, null, null);
@@ -435,8 +469,7 @@ public class ReportInnerSourceTest
     assertThat(bomInnerSource.get("displayName")).isNotNull();
     assertThat(bomInnerSource.get("innerSource").asBoolean()).isTrue();
     assertThat(bomInnerSource.get("matchState").asText()).isEqualTo(MatchState.EXACT.getId());
-    assertThat(bomInnerSource.get("identificationSource").asText())
-        .isEqualTo(IdentificationSource.PACKAGE_MANIFEST.getId());
+    assertThat(bomInnerSource.get("ownerApplicationName").asText()).isEqualTo(app.getName());
 
     assertThat(bomInnerSource.get(ComponentIdentifier.MAVEN_GROUP_ID).asText()).isNotNull();
     assertThat(bomInnerSource.get(ComponentIdentifier.MAVEN_ARTIFACT_ID).asText()).isNotNull();
@@ -446,11 +479,20 @@ public class ReportInnerSourceTest
       assertThat(componentIdentifiers).contains(ComponentIdentifierAdapter.getComponentIdentifier(bomInnerSource));
     }
 
-    AnalyzerFeatures analyzerFeaturesInBom =
-        JsonUtils.asPojo(bomInnerSource.get("analyzerFeatures"), AnalyzerFeatures.class);
     AnalyzerFeatures analyzerFeaturesExpected =
         new AnalyzerFeatures(AnalysisSource.THIRD_PARTY, AnalysisType.COORDINATE, "mvn");
+    assertIdentificationSourceAndAnalyzerFeatures(bomInnerSource, IdentificationSource.PACKAGE_MANIFEST.getId(),
+        analyzerFeaturesExpected);
+  }
+
+  private void assertIdentificationSourceAndAnalyzerFeatures(
+      JsonNode bomInnerSource,
+      String identificationSource,
+      AnalyzerFeatures analyzerFeaturesExpected) throws Exception
+  {
+    assertThat(bomInnerSource.get("identificationSource").asText()).isEqualTo(identificationSource);
+    AnalyzerFeatures analyzerFeaturesInBom =
+        JsonUtils.asPojo(bomInnerSource.get("analyzerFeatures"), AnalyzerFeatures.class);
     assertThat(analyzerFeaturesInBom).usingRecursiveComparison().isEqualTo(analyzerFeaturesExpected);
-    assertThat(bomInnerSource.get("ownerApplicationName").asText()).isEqualTo(app.getName());
   }
 }

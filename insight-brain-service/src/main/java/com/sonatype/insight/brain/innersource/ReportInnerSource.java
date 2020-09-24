@@ -226,33 +226,34 @@ public final class ReportInnerSource
 
   private static boolean updateDependencyBomAsInnerSource(
       final JsonNode bom,
-      final ComponentIdentifier parentComponent,
+      final ComponentIdentifier innerSourceComponent,
       final Application innerSourceApp,
       final AtomicInteger knownArtifactCount,
       final AtomicInteger exactlyMatchedComponentCount)
   {
     for (JsonNode bomChild : bom.get("aaData")) {
-      if (MatchState.UNKNOWN.getId().equals(bomChild.get(MATCH_STATE).asText())) {
-        String path = StringUtils.substringAfterLast(bomChild.withArray("pathnames").get(0).asText(), "/");
-        ComponentIdentifier unknownComponent = ComponentIdentifierHelper.parseMavenId(path);
+      ComponentIdentifier bomComponentIdentifier = getBomComponentIdentifier(bomChild);
 
-        if (parentComponent.equals(unknownComponent)) {
-          //If the component is direct and exists as InnerSource, it needs to be updated as such
-          ObjectNode bomObjectNode = (ObjectNode) bomChild;
-          bomObjectNode.put("ownerApplicationName", innerSourceApp.getName());
-          markInnerSourceComponentAsKnown(bomObjectNode, true, unknownComponent, knownArtifactCount,
+      if (Objects.equals(bomComponentIdentifier, innerSourceComponent)) {
+        //If the component is direct and exists as InnerSource, it needs to be updated as such
+        ObjectNode bomObjectNode = (ObjectNode) bomChild;
+        bomObjectNode.put("ownerApplicationName", innerSourceApp.getName());
+        bomObjectNode.put("innerSource", true);
+
+        if (MatchState.UNKNOWN.getId().equals(bomChild.get(MATCH_STATE).asText())) {
+          markInnerSourceComponentAsKnown(bomObjectNode, bomComponentIdentifier, knownArtifactCount,
               exactlyMatchedComponentCount);
-          log.debug("InnerSource component '{}' was updated in bom.json as Direct Dependency", unknownComponent);
-          return true;
         }
+        log.debug("InnerSource component '{}' was updated in bom.json as Direct Dependency", bomComponentIdentifier);
+        return true;
       }
     }
+
     return false;
   }
 
   private static void markInnerSourceComponentAsKnown(
       final ObjectNode bomObjectNode,
-      final boolean isInnerSource,
       final ComponentIdentifier componentIdentifier,
       final AtomicInteger knownArtifactCount,
       final AtomicInteger exactlyMatchedComponentCount)
@@ -260,7 +261,6 @@ public final class ReportInnerSource
     knownArtifactCount.getAndIncrement();
     exactlyMatchedComponentCount.getAndIncrement();
 
-    bomObjectNode.put("innerSource", isInnerSource);
     bomObjectNode.put(MATCH_STATE, MatchState.EXACT.getId());
     bomObjectNode.put("identificationSource", IdentificationSource.PACKAGE_MANIFEST.getId());
 
@@ -283,15 +283,7 @@ public final class ReportInnerSource
   {
     for (DependencyNode dependency : transitiveDependencies) {
       for (JsonNode bomChild : bom.get("aaData")) {
-        ComponentIdentifier bomComponentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(bomChild);
-
-        boolean isUnknownComponent = MatchState.UNKNOWN.getId().equals(bomChild.get(MATCH_STATE).asText());
-
-        //The component might be unknown, it's needs to be grouped too, looking by path name
-        if (bomComponentIdentifier == null && isUnknownComponent) {
-          String path = StringUtils.substringAfterLast(bomChild.withArray("pathnames").get(0).asText(), "/");
-          bomComponentIdentifier = ComponentIdentifierHelper.parseMavenId(path);
-        }
+        ComponentIdentifier bomComponentIdentifier = getBomComponentIdentifier(bomChild);
 
         if (Objects.equals(bomComponentIdentifier, dependency.getComponentIdentifier())) {
           ObjectNode bomObjectNode = (ObjectNode) bomChild;
@@ -300,9 +292,9 @@ public final class ReportInnerSource
           log.debug("Component {} associated with InnerSource app {}", bomComponentIdentifier,
               innerSourceApp.getName());
 
-          if (isUnknownComponent) {
-            updateUnknownTransitiveDependency(innerSourceComponentDAO, knownArtifactCount, exactlyMatchedComponentCount,
-                bomComponentIdentifier, bomObjectNode);
+          if (MatchState.UNKNOWN.getId().equals(bomChild.get(MATCH_STATE).asText())) {
+            updateUnknownTransitiveDependencyAsKnown(innerSourceComponentDAO, knownArtifactCount,
+                exactlyMatchedComponentCount, bomComponentIdentifier, bomObjectNode);
           }
           break;
         }
@@ -310,7 +302,17 @@ public final class ReportInnerSource
     }
   }
 
-  private static void updateUnknownTransitiveDependency(
+  private static ComponentIdentifier getBomComponentIdentifier(JsonNode bomChild) {
+    ComponentIdentifier bomComponentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(bomChild);
+
+    if (bomComponentIdentifier == null) {
+      String path = StringUtils.substringAfterLast(bomChild.withArray("pathnames").get(0).asText(), "/");
+      bomComponentIdentifier = ComponentIdentifierHelper.parseMavenId(path);
+    }
+    return bomComponentIdentifier;
+  }
+
+  private static void updateUnknownTransitiveDependencyAsKnown(
       final InnerSourceComponentDAO innerSourceComponentDAO,
       final AtomicInteger knownArtifactCount,
       final AtomicInteger exactlyMatchedComponentCount,
@@ -322,7 +324,7 @@ public final class ReportInnerSource
     if (is != null) {
       //If the component is transitive and exists as InnerSource, it needs to be updated so it can be marked as
       //Transitive dependency but not as InnerSource
-      markInnerSourceComponentAsKnown(bomObjectNode, false, bomComponentIdentifier, knownArtifactCount,
+      markInnerSourceComponentAsKnown(bomObjectNode, bomComponentIdentifier, knownArtifactCount,
           exactlyMatchedComponentCount);
       log.debug("InnerSource module {} was updated in bom.json as Transitive InnerSource",
           bomComponentIdentifier);

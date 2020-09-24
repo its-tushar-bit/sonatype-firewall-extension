@@ -46,7 +46,7 @@ public class ConfigurationChecker
     try {
       bootstrap.getConfigurationFactoryFactory()
           .create(InsightConfig.class, bootstrap.getValidatorFactory().getValidator(), bootstrap.getObjectMapper(),
-              "dw").build(configurationFile);
+              "dw").build(bootstrap.getConfigurationSourceProvider(), configurationFile.getPath());
     }
     catch (ConfigurationParsingException e) {
       if (e.getCause() instanceof UnrecognizedPropertyException &&

@@ -63,6 +63,8 @@ import io.dropwizard.cli.Cli;
 import io.dropwizard.cli.ServerCommand;
 import io.dropwizard.configuration.ConfigurationFactory;
 import io.dropwizard.configuration.DefaultConfigurationFactoryFactory;
+import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
+import io.dropwizard.configuration.SubstitutingSourceProvider;
 import io.dropwizard.forms.MultiPartBundle;
 import io.dropwizard.jackson.AnnotationSensitivePropertyNamingStrategy;
 import io.dropwizard.jackson.DiscoverableSubtypeResolver;
@@ -332,6 +334,9 @@ public class InsightBrainService
         return objectMapper;
       }
     });
+    
+    bootstrap.setConfigurationSourceProvider(new SubstitutingSourceProvider(bootstrap.getConfigurationSourceProvider(),
+        new EnvironmentVariableSubstitutor(false, true)));
   }
 
   private <T extends ObjectMapper> T configureObjectMapper(T objectMapper) {

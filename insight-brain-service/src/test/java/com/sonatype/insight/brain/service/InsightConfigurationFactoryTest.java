@@ -17,7 +17,6 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.dropwizard.configuration.ConfigurationFactory;
-import io.dropwizard.configuration.ResourceConfigurationSourceProvider;
 import io.dropwizard.jackson.Jackson;
 import io.dropwizard.jetty.ConnectorFactory;
 import io.dropwizard.jetty.HttpConnectorFactory;
@@ -36,8 +35,13 @@ import io.dropwizard.server.ServerFactory;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.util.Duration;
+import org.codehaus.plexus.util.FileUtils;
 import org.junit.AfterClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
+import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -47,6 +51,12 @@ public class InsightConfigurationFactoryTest
       .asList(ConsoleAppenderFactory.class, FileAppenderFactory.class, SyslogAppenderFactory.class);
   
   private static final int DROPWIZARD_HTTPS_PORT = new HttpsConnectorFactory().getPort();
+
+  @ClassRule
+  public static TemporaryFolder tempDir = new TemporaryFolder();
+
+  @Rule
+  public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
   @AfterClass
   public static void resetLogging() throws Exception {
@@ -356,12 +366,15 @@ public class InsightConfigurationFactoryTest
     if (!configResource.startsWith("/")) {
       configResource = "/InsightConfigurationFactoryTest/" + configResource;
     }
+    File configFile = tempDir.newFile();
+    FileUtils.copyURLToFile(InsightConfigurationFactoryTest.class.getResource(configResource), configFile);
     InsightBrainService insightBrainService = new InsightBrainService();
     Bootstrap<InsightConfig> bootstrap = new Bootstrap<>(insightBrainService);
     insightBrainService.initialize(bootstrap);
     ConfigurationFactory<InsightConfig> configurationFactory = bootstrap.getConfigurationFactoryFactory()
         .create(InsightConfig.class, bootstrap.getValidatorFactory().getValidator(), bootstrap.getObjectMapper(), "dw");
-    InsightConfig insightConfig = configurationFactory.build(new ResourceConfigurationSourceProvider(), configResource);
+    InsightConfig insightConfig =
+        configurationFactory.build(bootstrap.getConfigurationSourceProvider(), configFile.getPath());
     insightConfig.getServerFactory().build(
         new Environment(bootstrap.getApplication().getName(), bootstrap.getObjectMapper(),
             bootstrap.getValidatorFactory().getValidator(), bootstrap.getMetricRegistry(), bootstrap.getClassLoader(),
@@ -457,5 +470,47 @@ public class InsightConfigurationFactoryTest
   private void assertLosslessAppender(AppenderFactory<?> appenderFactory) {
     assertThat(appenderFactory).hasFieldOrPropertyWithValue("neverBlock", false)
         .hasFieldOrPropertyWithValue("discardingThreshold", 0);
+  }
+
+  @Test
+  public void testBuild_EnvironmentVariable_WithoutDefault() throws Exception {
+    String licenseFile = "someLicenseFile.lic";
+    environmentVariables.set("LICENSE_FILE", licenseFile);
+    InsightConfig insightConfig = build("config-environment-variable-without-default.yml");
+
+    assertThat(insightConfig.getLicenseFile()).isEqualTo(licenseFile);
+  }
+
+  @Test
+  public void testBuild_EnvironmentVariable_WithoutDefault_Missing() throws Exception {
+    InsightConfig insightConfig = build("config-environment-variable-without-default.yml");
+
+    assertThat(insightConfig.getLicenseFile()).isEqualTo("${LICENSE_FILE}");
+  }
+
+  @Test
+  public void testBuild_EnvironmentVariable_WithDefault() throws Exception {
+    String licenseFile = "someLicenseFile.lic";
+    environmentVariables.set("LICENSE_FILE", licenseFile);
+    InsightConfig insightConfig = build("config-environment-variable-with-default.yml");
+
+    assertThat(insightConfig.getLicenseFile()).isEqualTo(licenseFile);
+  }
+
+  @Test
+  public void testBuild_EnvironmentVariable_WithDefault_Missing() throws Exception {
+    InsightConfig insightConfig = build("config-environment-variable-with-default.yml");
+
+    assertThat(insightConfig.getLicenseFile()).isEqualTo("defaultLicenseFile.lic");
+  }
+
+  @Test
+  public void testBuild_SubstitutionInEnvironmentVariable() throws Exception {
+    environmentVariables.set("LICENSE_FILE_VERSION", "1");
+    String licenseFile = "someLicenseFile.lic";
+    environmentVariables.set("LICENSE_FILE_VERSION_1", licenseFile);
+    InsightConfig insightConfig = build("config-substitution-in-environment-variable.yml");
+
+    assertThat(insightConfig.getLicenseFile()).isEqualTo(licenseFile);
   }
 }

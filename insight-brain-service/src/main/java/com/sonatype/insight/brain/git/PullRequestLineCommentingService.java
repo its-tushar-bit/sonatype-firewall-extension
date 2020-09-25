@@ -39,8 +39,6 @@ import org.apache.http.client.HttpResponseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.service.InsightConfig.Feature.GITLAB_LINE_COMMENTING;
-
 @Named
 @Singleton
 public class PullRequestLineCommentingService
@@ -90,9 +88,7 @@ public class PullRequestLineCommentingService
       final LocationDiscoveryResult locationDiscoveryResult)
   {
     if (!insightConfig.isFeatureEnabled(Feature.PR_LINE_COMMENTING) ||
-        !gitRepositoryInfo.getProvider().supportsPullRequestLineCommenting() ||
-        (SourceControlProvider.GITLAB.equals(gitRepositoryInfo.getProvider()) &&
-            !insightConfig.isExperimentalFeatureEnabled(GITLAB_LINE_COMMENTING))) {
+        !gitRepositoryInfo.getProvider().supportsPullRequestLineCommenting()) {
       return Collections.emptyList();
     }
 

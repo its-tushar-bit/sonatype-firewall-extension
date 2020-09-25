@@ -93,7 +93,7 @@ public class InsightConfig
   /**
    * The directory where db backups are created. If set to a relative path, then it is considered relative to the
    * {@link sonatypeWork} directory.
-   * 
+   *
    * @since 1.15.0
    */
   @JsonProperty
@@ -186,7 +186,7 @@ public class InsightConfig
 
   /**
    * If true, users must configure and acknowledge a filter before being able to see any data in the dashboard.
-   * 
+   *
    * @since 1.29
    */
   @NotNull
@@ -285,7 +285,7 @@ public class InsightConfig
 
   /**
    * This configuration blocks requests containing semicolons in the path to avoid malicious attacks.
-   * 
+   *
    * @since 1.98
    */
   @JsonProperty
@@ -293,7 +293,7 @@ public class InsightConfig
 
   /**
    * This configuration blocks requests containing backslash in the path to avoid malicious attacks.
-   * 
+   *
    * @since 1.98
    */
 
@@ -302,7 +302,7 @@ public class InsightConfig
 
   /**
    * This configuration blocks requests containing non-ASCII characters in the path to avoid malicious attacks.
-   * 
+   *
    * @since 1.98
    */
   @JsonProperty
@@ -497,7 +497,7 @@ public class InsightConfig
 
   /**
    * @since 1.14.0
-   * 
+   *
    * @deprecated The support for anonymous client access was removed in 1.72.
    */
   @Deprecated
@@ -590,7 +590,7 @@ public class InsightConfig
 
   /**
    * @since 1.21
-   * 
+   *
    * @deprecated Removed in 1.97.
    */
   @Deprecated
@@ -634,7 +634,7 @@ public class InsightConfig
 
   /**
    * If true, users must configure and acknowledge a filter before being able to see any data in the dashboard.
-   * 
+   *
    * @since 1.29
    */
   public boolean isNeedsAcknowledgementOfInitialDashboardFilter() {
@@ -876,8 +876,7 @@ public class InsightConfig
     PR_LINE_COMMENTING("prLineCommenting"),
     CODE_INSIGHTS("codeInsights"),
     INNER_SOURCE("innerSource"),
-    SCM_ONBOARDING("scmOnboarding"),
-    GITLAB_LINE_COMMENTING("gitlabLineCommenting");
+    SCM_ONBOARDING("scmOnboarding");
 
     private String flag;
 

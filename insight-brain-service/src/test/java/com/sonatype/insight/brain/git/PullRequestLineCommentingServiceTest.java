@@ -35,7 +35,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import static com.sonatype.insight.brain.service.InsightConfig.Feature.GITLAB_LINE_COMMENTING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -238,8 +237,7 @@ public class PullRequestLineCommentingServiceTest
 
     // when: try to create line comments
     List<PullRequestLineCommentDTO> lineComments = service.createPullRequestLineComments(
-        null, gitRepositoryInfo, null, 1, null, null,
-        null, null, null);
+        null, null, null, 1, null, null, null, null, null);
 
     // then: no comment should be created
     verify(mockGitClientFactory, never()).createApiClient(any());
@@ -313,48 +311,12 @@ public class PullRequestLineCommentingServiceTest
   }
 
   @Test
-  public void testCreatePullRequestLineComments_gitlabWithNoExperimentalFeatureFlag() throws Exception {
-    // given:
-    when(gitRepositoryInfo.getProvider()).thenReturn(SourceControlProvider.GITLAB);
-    PullRequestLineCommentingService service = new TestablePullRequestLineCommentingServiceBuilder()
-        .build();
-
-    // when: try to create line comments
-    List<PullRequestLineCommentDTO> lineComments = service.createPullRequestLineComments(
-        null, gitRepositoryInfo, null, 1, null, null,
-        null, null, locationDiscoveryResult);
-
-    // then: no comment should be created
-    verify(mockGitClientFactory, never()).createApiClient(any());
-    assertThat(lineComments).isEmpty();
-  }
-
-  @Test
-  public void testCreatePullRequestLineComments_gitlabWithExperimentalFeatureFlagOff() throws Exception {
-    // given:
-    when(gitRepositoryInfo.getProvider()).thenReturn(SourceControlProvider.GITLAB);
-    PullRequestLineCommentingService service = new TestablePullRequestLineCommentingServiceBuilder()
-        .withGitlabLineCommentingFeatureFlag(false)
-        .build();
-
-    // when: try to create line comments
-    List<PullRequestLineCommentDTO> lineComments = service.createPullRequestLineComments(
-        null, gitRepositoryInfo, null, 1, null, null,
-        null, null, locationDiscoveryResult);
-
-    // then: no comment should be created
-    verify(mockGitClientFactory, never()).createApiClient(any());
-    assertThat(lineComments).isEmpty();
-  }
-
-  @Test
-  public void testCreatePullRequestLineComments_gitlabWithExperimentalFeatureFlagOn() throws Exception {
+  public void testCreatePullRequestLineComments_gitlab() throws Exception {
     // given:
     when(gitRepositoryInfo.getProvider()).thenReturn(SourceControlProvider.GITLAB);
     PullRequestLineCommentingService service = new TestablePullRequestLineCommentingServiceBuilder()
         .withTwoComponentsFoundInCode()
         .withTwoComponentsFoundInPrDiff()
-        .withGitlabLineCommentingFeatureFlag(true)
         .build();
 
     // when: try to create line comments
@@ -406,8 +368,6 @@ public class PullRequestLineCommentingServiceTest
     private int existingLineCommentsCount = 0;
 
     private Integer commentVersion = null;
-
-    private Boolean gitlabLineCommentingEnabled = null;
 
     PullRequestLineCommentingService build() throws Exception {
       MockitoAnnotations.openMocks(this);
@@ -464,14 +424,12 @@ public class PullRequestLineCommentingServiceTest
         }
       }
 
-      InsightConfig insightConfig = getInsightConfig(featureFlagEnabled);
-      addGitlabLineCommentingFeatureFlagIfNotNull(insightConfig);
       return new PullRequestLineCommentingService(
           mockGitClientFactory,
           mockPullRequestCommentDAO,
           mockPullRequestFeedbackMarkupService,
           mockPositionDiscoveryExecutor,
-          insightConfig
+          getInsightConfig(featureFlagEnabled)
       );
     }
 
@@ -510,25 +468,12 @@ public class PullRequestLineCommentingServiceTest
       return this;
     }
 
-    TestablePullRequestLineCommentingServiceBuilder withGitlabLineCommentingFeatureFlag(boolean flag) {
-      this.gitlabLineCommentingEnabled = flag;
-      return this;
-    }
-
     private InsightConfig getInsightConfig(boolean enableFeatureFlag) {
       InsightConfig config = new InsightConfig();
       Map<String, Boolean> features = new HashMap<>();
       features.put(Feature.PR_LINE_COMMENTING.getFlag(), enableFeatureFlag);
       config.setFeatures(features);
       return config;
-    }
-
-    private void addGitlabLineCommentingFeatureFlagIfNotNull(InsightConfig insightConfig) {
-      Map<String, Boolean> experimentalFeatures = new HashMap<>();
-      insightConfig.setExperimentalFeatures(experimentalFeatures);
-      if (gitlabLineCommentingEnabled != null) {
-        experimentalFeatures.put(GITLAB_LINE_COMMENTING.getFlag(), gitlabLineCommentingEnabled);
-      }
     }
   }
 }

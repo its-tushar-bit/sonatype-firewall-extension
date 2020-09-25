@@ -74,6 +74,8 @@ public class Component
 
   private HygieneRating hygieneRating;
 
+  private IntegrityRating integrityRating;
+
   private ComponentIdentifier componentIdentifier;
 
   private AnalyzerFeatures analyzerFeatures;
@@ -400,6 +402,14 @@ public class Component
 
   public void setHygieneRating(final HygieneRating hygieneRating) {
     this.hygieneRating = hygieneRating;
+  }
+
+  public IntegrityRating getIntegrityRating() {
+    return integrityRating;
+  }
+
+  public void setIntegrityRating(final IntegrityRating integrityRating) {
+    this.integrityRating = integrityRating;
   }
 
   public AnalyzerFeatures getAnalyzerFeatures() {

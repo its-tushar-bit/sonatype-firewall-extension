@@ -21,6 +21,7 @@ public class ConditionValueTypes
     allConditionValueTypes.add(new PackageUrlValueType());
     allConditionValueTypes.add(new FloatValueType());
     allConditionValueTypes.add(new HygieneRatingValueType());
+    allConditionValueTypes.add(new IntegrityRatingValueType());
     allConditionValueTypes.add(new IntegerValueType());
     allConditionValueTypes.add(new IdentificationSourceValueType());
     allConditionValueTypes.add(new LabelValueType(ownerId));

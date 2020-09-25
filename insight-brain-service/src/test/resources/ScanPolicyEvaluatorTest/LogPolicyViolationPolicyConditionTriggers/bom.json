@@ -25,6 +25,7 @@
     "lastModifiedEntryTime" : 1187431150000,
     "website" : null,
     "hygieneRating" : { "id" : "4", "label" : "Laggard"},
+    "integrityRating" : { "id" :  "1", "label" :  "Suspicious"},
     "analyzerFeatures" : {
       "analysisSource" : "SDS",
       "analysisType" : "HASH",

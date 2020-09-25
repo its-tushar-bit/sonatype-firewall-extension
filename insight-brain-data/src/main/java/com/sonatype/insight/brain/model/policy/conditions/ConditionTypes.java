@@ -61,6 +61,8 @@ public class ConditionTypes
 
   public static final HygieneRatingConditionType HygieneRatingConditionType = new HygieneRatingConditionType();
 
+  public static final IntegrityRatingConditionType IntegrityRatingConditionType = new IntegrityRatingConditionType();
+
   public static final DataSourceConditionType
       DataSourceConditionType = new DataSourceConditionType();
 
@@ -76,6 +78,7 @@ public class ConditionTypes
     add(CoordinatesConditionType);
     add(PackageUrlConditionType);
     addDisabledConditionType(HygieneRatingConditionType);
+    addDisabledConditionType(IntegrityRatingConditionType);
     add(IdentificationSourceConditionType);
     add(LabelConditionType);
     add(LicenseConditionType);

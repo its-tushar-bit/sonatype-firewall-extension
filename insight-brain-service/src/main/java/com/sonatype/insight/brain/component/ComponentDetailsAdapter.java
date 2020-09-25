@@ -22,6 +22,7 @@ public class ComponentDetailsAdapter
     componentDetails.setRelativePopularity(componentEvaluationData.relativePopularity);
     componentDetails.setComponentCategories(componentEvaluationData.componentCategories);
     componentDetails.setHygieneRating(componentEvaluationData.hygieneRating);
+    componentDetails.setIntegrityRating(componentEvaluationData.integrityRating);
     return componentDetails;
   }
 }

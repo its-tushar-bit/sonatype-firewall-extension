@@ -9,6 +9,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.IntegrityRatingConditionType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -34,5 +35,16 @@ public class LicensedConditionTypesListenerTest
     testProductLicense.setMissingFeatures(LicensedFeature.HYGIENE);
     licensedConditionTypesListener.productLicenseChanged();
     assertThat(ConditionTypes.getById(HygieneRatingConditionType.ID).isEnabled()).isFalse();
+  }
+
+  @Test
+  public void test_IntegrityRatingConditionType() {
+    testProductLicense.setFeatures(LicensedFeature.RELEASE_INTEGRITY);
+    licensedConditionTypesListener.productLicenseChanged();
+    assertThat(ConditionTypes.getById(IntegrityRatingConditionType.ID).isEnabled()).isTrue();
+
+    testProductLicense.setMissingFeatures(LicensedFeature.RELEASE_INTEGRITY);
+    licensedConditionTypesListener.productLicenseChanged();
+    assertThat(ConditionTypes.getById(IntegrityRatingConditionType.ID).isEnabled()).isFalse();
   }
 }

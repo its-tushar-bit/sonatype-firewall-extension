@@ -19,10 +19,11 @@ public class ConditionTypesTest
   public void testGetAll() {
     Collection<ConditionType> allConditionTypes = ConditionTypes.getAll();
 
-    assertThat(allConditionTypes).hasSize(19);
+    assertThat(allConditionTypes).hasSize(20);
     assertThat(allConditionTypes).extracting(ConditionType::getId)
         .doesNotContain(DeprecatedSecurityVulnerabilityConditionType.ID)
-        .contains(HygieneRatingConditionType.ID);
+        .contains(HygieneRatingConditionType.ID)
+        .contains(IntegrityRatingConditionType.ID);
     assertThat(allConditionTypes).filteredOn(ConditionType::isEnabled).extracting(ConditionType::getId)
         .doesNotContain(HygieneRatingConditionType.ID);
   }
@@ -37,5 +38,8 @@ public class ConditionTypesTest
   public void testGetById_LicensedConditionTypes() {
     assertThat(ConditionTypes.getById(HygieneRatingConditionType.ID))
         .isEqualTo(ConditionTypes.HygieneRatingConditionType);
+
+    assertThat(ConditionTypes.getById(IntegrityRatingConditionType.ID))
+        .isEqualTo(ConditionTypes.IntegrityRatingConditionType);
   }
 }

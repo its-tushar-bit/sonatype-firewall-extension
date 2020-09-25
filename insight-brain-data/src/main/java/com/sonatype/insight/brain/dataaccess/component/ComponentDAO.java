@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.ComponentCategory;
 import com.sonatype.insight.brain.model.component.HygieneRating;
+import com.sonatype.insight.brain.model.component.IntegrityRating;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityCategory;
@@ -253,6 +254,15 @@ public class ComponentDAO
             JsonNode labelNode = hygieneRatingNode.get("label");
             if (idNode != null && labelNode != null) {
               component.setHygieneRating(new HygieneRating(idNode.asText(), labelNode.asText()));
+            }
+          }
+
+          JsonNode integrityRatingNode = componentJson.get("integrityRating");
+          if (integrityRatingNode != null) {
+            JsonNode idNode = integrityRatingNode.get("id");
+            JsonNode labelNode = integrityRatingNode.get("label");
+            if (idNode != null && labelNode != null) {
+              component.setIntegrityRating(new IntegrityRating(idNode.asText(), labelNode.asText()));
             }
           }
 
@@ -495,6 +505,10 @@ public class ComponentDAO
         component.addComponentCategory(new ComponentCategory(String.valueOf(componentCategory.getComponentCategoryId()),
             componentCategory.getPath()));
       }
+    }
+    if (componentInfo.getIntegrityRating() != null) {
+      component.setIntegrityRating(new IntegrityRating(String.valueOf(componentInfo.getIntegrityRating().getId()),
+          componentInfo.getIntegrityRating().getLabel()));
     }
 
     loadComponentLabels(component);

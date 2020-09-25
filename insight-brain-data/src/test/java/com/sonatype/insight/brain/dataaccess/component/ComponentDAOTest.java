@@ -101,6 +101,9 @@ public class ComponentDAOTest
     com.sonatype.clm.dto.model.component.HygieneRating hygieneRating =
         new com.sonatype.clm.dto.model.component.HygieneRating(1, "HygieneRating");
     matchedComponent.setHygieneRating(hygieneRating);
+    com.sonatype.clm.dto.model.component.IntegrityRating integrityRating =
+        new com.sonatype.clm.dto.model.component.IntegrityRating(1, "IntegrityRating");
+    matchedComponent.setIntegrityRating(integrityRating);
     com.sonatype.clm.dto.model.component.ComponentCategory componentCategory =
         new com.sonatype.clm.dto.model.component.ComponentCategory(1, "ComponentCategory");
     matchedComponent.setComponentCategories(Collections.singletonList(componentCategory));
@@ -129,6 +132,7 @@ public class ComponentDAOTest
 
     assertThat(component.getLabelIds()).containsExactlyInAnyOrder(appLabel.getId(), orgLabel.getId());
     assertThat(component.getHygieneRating().getId()).isEqualTo(String.valueOf(hygieneRating.getId()));
+    assertThat(component.getIntegrityRating().getId()).isEqualTo(String.valueOf(integrityRating.getId()));
     assertThat(component.getComponentCategories()).hasSize(1);
     assertThat(component.getComponentCategories().get(0).getId())
         .isEqualTo(String.valueOf(componentCategory.getComponentCategoryId()));

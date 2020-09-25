@@ -32,5 +32,11 @@ public class LicensedConditionTypesListener
     else {
       ConditionTypes.disableConditionType(ConditionTypes.HygieneRatingConditionType);
     }
+    if (productLicense.hasFeature(LicensedFeature.RELEASE_INTEGRITY)) {
+      ConditionTypes.enableConditionType(ConditionTypes.IntegrityRatingConditionType);
+    }
+    else {
+      ConditionTypes.disableConditionType(ConditionTypes.IntegrityRatingConditionType);
+    }
   }
 }

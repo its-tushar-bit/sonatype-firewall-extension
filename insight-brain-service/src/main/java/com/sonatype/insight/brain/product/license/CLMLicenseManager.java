@@ -480,6 +480,7 @@ public class CLMLicenseManager
         LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES, //
         LicensedFeature.EXTERNAL_DATABASE, //
         LicensedFeature.HYGIENE, //
+        LicensedFeature.RELEASE_INTEGRITY, //
         LicensedFeature.NODE_CLUSTERING //
     );
     for (LicensedFeature feature : hdsControlledFeatures) {

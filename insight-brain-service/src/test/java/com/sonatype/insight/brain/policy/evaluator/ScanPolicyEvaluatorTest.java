@@ -65,6 +65,7 @@ import com.sonatype.insight.brain.model.policy.conditions.DataSourceConditionTyp
 import com.sonatype.insight.brain.model.policy.conditions.DependencyTypeConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.IdentificationSourceConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.IntegrityRatingConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseStatusConditionType;
@@ -1718,14 +1719,16 @@ public class ScanPolicyEvaluatorTest
     Condition dependencyCondition = new Condition(DependencyTypeConditionType.ID, "is", "direct");
     Condition vulnerabilityCategoryCondition =
         new Condition(SecurityVulnerabilityCategoryConditionType.ID, "is", "malicious_code");
+    Condition integrityCondition = new Condition(IntegrityRatingConditionType.ID, "is not", "0");
 
     List<Condition> conditions = Arrays.asList(ageCondition, coordinatesCondition, identificationSourceCondition,
         labelCondition, licenseCondition, licenseStatusCondition, licenseThreatGroupCondition,
         licenseThreatGroupLevelCondition, matchStateCondition, proprietaryCondition, relativePopularityCondition,
         securityVulnerabilitySeverityCondition, securityVulnerabilityStatusCondition, packageUrlCondition,
         componentCategoryCondition, hygieneCondition, dataSourceCondition, dependencyCondition,
-        vulnerabilityCategoryCondition);
+        vulnerabilityCategoryCondition, integrityCondition);
     ConditionTypes.enableConditionType(ConditionTypes.HygieneRatingConditionType);
+    ConditionTypes.enableConditionType(ConditionTypes.IntegrityRatingConditionType);
     try {
       Set<String> expectedConditionTypeIds = ConditionTypes.getAll().stream().map(ConditionType::getId)
           .collect(Collectors.toSet());
@@ -1746,6 +1749,7 @@ public class ScanPolicyEvaluatorTest
     }
     finally {
       ConditionTypes.disableConditionType(ConditionTypes.HygieneRatingConditionType);
+      ConditionTypes.disableConditionType(ConditionTypes.IntegrityRatingConditionType);
     }
   }
 
@@ -1758,9 +1762,10 @@ public class ScanPolicyEvaluatorTest
     Condition dependencyCondition = new Condition(DependencyTypeConditionType.ID, "is", "direct");
     Condition vulnerabilityCategoryCondition =
         new Condition(SecurityVulnerabilityCategoryConditionType.ID, "is", "malicious_code");
+    Condition integrityCondition = new Condition(IntegrityRatingConditionType.ID, "is not", "0");
 
     List<Condition> conditions = Arrays.asList(packageUrlCondition, componentCategoryCondition, hygieneCondition,
-        dependencyCondition, vulnerabilityCategoryCondition);
+        dependencyCondition, vulnerabilityCategoryCondition, integrityCondition);
 
     Constraint constraint = new Constraint(null, "constraintName", LogicalOperator.OR);
     constraint.setConditions(conditions);
@@ -1795,10 +1800,15 @@ public class ScanPolicyEvaluatorTest
         telemetryData.getAttributes().get(
             PolicyViolationTelemetryCollector.CONDITION_TYPE).equals(SecurityVulnerabilityCategoryConditionType.ID));
 
+    boolean hasIntegrityViolation = telemetryDataList.stream().anyMatch(telemetryData ->
+        telemetryData.getAttributes().get(
+            PolicyViolationTelemetryCollector.CONDITION_TYPE).equals(IntegrityRatingConditionType.ID));
+
     assertThat(hasHygieneViolation).isTrue();
     assertThat(hasComponentCategoryViolation).isTrue();
     assertThat(hasDependencyTypeViolation).isTrue();
     assertThat(hasSVCategoryTypeViolation).isTrue();
+    assertThat(hasIntegrityViolation).isTrue();
     clearInvocations(mockTelemetrySender);
   }
 

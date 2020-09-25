@@ -27,7 +27,10 @@ import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.utils.TemplateUtils;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
+import com.sonatype.nexus.scm.api.dto.BaseProjectUri;
+import com.sonatype.nexus.scm.bitbucket.dto.BitbucketServerProjectUri;
 import com.sonatype.nexus.scm.common.SimpleProjectUri;
+import com.sonatype.nexus.scm.gitlab.dto.GitlabProjectUri;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -336,20 +339,28 @@ public class PullRequestFeedbackDetails
       final Integer prNumber,
       final Integer scmId)
   {
+    String linkUrl = "";
     if (scmId != null && gitRepositoryInfo.getRepositoryUrl().startsWith("http")) {
-      if (gitRepositoryInfo.provider == SourceControlProvider.GITHUB) {
-        return getNormalizedRepositoryUrl(gitRepositoryInfo) + "pull/" + prNumber + "#discussion_r" + scmId;
-      }
-      else if (gitRepositoryInfo.provider == SourceControlProvider.GITLAB) {
-        return getNormalizedRepositoryUrl(gitRepositoryInfo) + "-/merge_requests/" + prNumber + "#note_" + scmId;
+      BaseProjectUri projectUri;
+      switch (gitRepositoryInfo.provider) {
+        case GITHUB:
+          projectUri = new SimpleProjectUri(gitRepositoryInfo.getRepositoryUrl());
+          linkUrl = projectUri.getCanonicalUri().toString() + "pull/" + prNumber + "#discussion_r" + scmId;
+          break;
+        case GITLAB:
+          projectUri = new GitlabProjectUri(gitRepositoryInfo.getRepositoryUrl());
+          linkUrl = projectUri.getCanonicalUri().toString() + "-/merge_requests/" + prNumber + "#note_" + scmId;
+          break;
+        case BITBUCKET:
+          projectUri = new BitbucketServerProjectUri(gitRepositoryInfo.getRepositoryUrl());
+          linkUrl = "/bitbucket/projects/" + projectUri.getNamespace() + "/repos/" + projectUri.getProject() +
+              "/pull-requests/" + prNumber + "/overview?commentId=" + scmId;
+          break;
+        default:
+          linkUrl = "";
       }
     }
-    return "";
-  }
-
-  private static String getNormalizedRepositoryUrl(final GitRepositoryInfo gitRepositoryInfo) {
-    SimpleProjectUri projectUri = new SimpleProjectUri(gitRepositoryInfo.getRepositoryUrl());
-    return projectUri.getCanonicalUri().toString();
+    return linkUrl;
   }
 
   private static String getSuggestedVersion(

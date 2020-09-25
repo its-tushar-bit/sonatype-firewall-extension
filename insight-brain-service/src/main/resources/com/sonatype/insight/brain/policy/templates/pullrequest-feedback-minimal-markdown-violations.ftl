@@ -4,7 +4,7 @@
 &#8192;<#-- spacer -->
 
 <#list componentList as component>
-  #### ${component.componentNameAndVersion}<#lt>
+  #### ${component.componentNameAndVersion}<#if component.lineCommentLink?has_content> - [line comment](${component.lineCommentLink})</#if><#lt>
 
   <#if component.suggestedVersion?has_content>
     :shield: **Bumping to version ${component.suggestedVersion}** will resolve <#if ( component.policiesViolated?size > 1 )>these violations<#else>this violation</#if><#lt>

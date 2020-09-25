@@ -25,6 +25,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.codehaus.plexus.util.StringUtils;
+import org.joda.time.DateTime;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -254,6 +255,46 @@ public class PolicyWaiverDAOTest
       dao.update(policyWaiver2);
     }).isInstanceOf(BadRequestException.class)
         .hasMessage("A policy waiver for the same policy violation already exists.");
+  }
+
+  @Test
+  public void testGetByOwnerId() {
+    PolicyWaiverDAO dao = new PolicyWaiverDAO();
+
+    DateTime now = DateTime.now();
+    Policy policy = tempEntity.newPolicy(organization);
+    String policyId = policy.getId();
+    String ownerId = organization.getId();
+    String comment = "Just testing";
+    PolicyWaiver noExpiryWaiver = tempEntity.newWaiver(null, policyId, ownerId, null, comment,
+        now.toDate(), null);
+    PolicyWaiver expiringWaiver = tempEntity.newWaiver("expiring", policyId, ownerId, null, comment,
+        now.toDate(), now.plusHours(1).toDate());
+    PolicyWaiver expiredWaiver = tempEntity.newWaiver("expired", policyId, ownerId, null, comment,
+        now.toDate(), now.toDate());
+
+    assertThat(dao.getByOwnerId(ownerId)).extracting(PolicyWaiver::getId)
+        .containsExactly(noExpiryWaiver.getId(), expiringWaiver.getId(), expiredWaiver.getId());
+  }
+
+  @Test
+  public void testGetActiveByOwnerId() {
+    PolicyWaiverDAO dao = new PolicyWaiverDAO();
+
+    DateTime now = DateTime.now();
+    Policy policy = tempEntity.newPolicy(organization);
+    String policyId = policy.getId();
+    String ownerId = organization.getId();
+    String comment = "Just testing";
+    PolicyWaiver noExpiryWaiver = tempEntity.newWaiver(null, policyId, ownerId, null, comment,
+        now.toDate(), null);
+    PolicyWaiver expiringWaiver = tempEntity.newWaiver("expiring", policyId, ownerId, null, comment,
+        now.toDate(), now.plusHours(1).toDate());
+    tempEntity.newWaiver("expired", policyId, ownerId, null, comment,
+        now.toDate(), now.toDate());
+
+    assertThat(dao.getActiveByOwnerId(ownerId)).extracting(PolicyWaiver::getId)
+        .containsExactly(noExpiryWaiver.getId(), expiringWaiver.getId());
   }
 
   @Test

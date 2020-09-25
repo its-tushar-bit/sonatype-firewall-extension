@@ -8,10 +8,16 @@ package com.sonatype.insight.brain.dataaccess;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
+import org.joda.time.DateTime;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -126,5 +132,27 @@ public class OwnerDAOTest
   @Test
   public void testGetChildOwners_Repository() {
     assertThat(ownerDAO.getChildOwners(repository)).isEmpty();
+  }
+
+  @Test
+  public void testCascadeDelete_PolicyWaivers() {
+    try (TransactionContext tx = new ApplicationDAO().createTransactionContext()) {
+      DateTime now = DateTime.now();
+      Owner owner = ownerDAO.getById(organization.getId());
+      Application app = tempEntity.newApplication(organization.getId());
+      Policy appPolicy = tempEntity.newPolicy(app);
+      tempEntity.newWaiver("noexpiry", appPolicy.getId(), owner.getId(), null, "comment", now.toDate(), null);
+      tempEntity.newWaiver("expiring", appPolicy.getId(), owner.getId(), null, "comment", now.toDate(),
+          now.plusHours(1).toDate());
+      tempEntity.newWaiver("expired", appPolicy.getId(), owner.getId(), null, "comment", now.toDate(),
+          now.minusHours(1).toDate());
+      List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getByOwnerId(tx, owner.getId());
+      assertThat(policyWaivers).hasSize(3);
+      tx.begin();
+      ownerDAO.cascadeDelete(tx, owner);
+      tx.commit();
+      policyWaivers = new PolicyWaiverDAO().getByOwnerId(tx, owner.getId());
+      assertThat(policyWaivers).isEmpty();
+    }
   }
 }

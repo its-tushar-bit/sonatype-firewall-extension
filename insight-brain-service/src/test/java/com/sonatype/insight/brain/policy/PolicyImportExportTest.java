@@ -48,6 +48,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.collect.Lists;
+import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -156,12 +157,22 @@ public class PolicyImportExportTest
 
   @Test
   public void testDeletionOfPolicyWaiversFromOrg() {
+    DateTime now = DateTime.now();
     Organization toOrg = tempEntity.newOrganization();
     Application toApp = tempEntity.newApplication(toOrg.getId());
     Policy orgPolicy = tempEntity.newPolicy(toOrg);
     Policy appPolicy = tempEntity.newPolicy(toApp);
-    tempEntity.newWaiver("hash", orgPolicy.getId(), toOrg.getId());
-    tempEntity.newWaiver("hash", appPolicy.getId(), toApp.getId());
+    tempEntity.newWaiver(orgPolicy.getId(), toOrg.getId());
+    tempEntity.newWaiver("expiring", orgPolicy.getId(), toOrg.getId(), null, "comment",
+        now.toDate(), now.plusHours(1).toDate());
+    tempEntity.newWaiver("expired", orgPolicy.getId(), toOrg.getId(), null, "comment",
+        now.toDate(), now.toDate());
+    tempEntity.newWaiver(appPolicy.getId(), toApp.getId());
+    tempEntity.newWaiver("expiring", appPolicy.getId(), toApp.getId(), null, "comment",
+        now.toDate(), now.plusHours(1).toDate());
+    tempEntity.newWaiver("expired", appPolicy.getId(), toApp.getId(), null, "comment",
+        now.toDate(), now.toDate());
+
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
 
     // only interested in the deletion so import an empty DTO

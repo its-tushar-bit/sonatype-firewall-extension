@@ -283,6 +283,10 @@ public class FirewallMigrationServiceTest
     }
 
     generatedRepositoryData.policyWaivers.add(tempEntity.newWaiver("hash", policy.getId(), repository.getId()));
+    generatedRepositoryData.policyWaivers.add(tempEntity.newWaiver("hash2", policy.getId(), repository.getId(),
+        null, "comment", now.toDate(), now.plusHours(1).toDate())); // future expiry
+    generatedRepositoryData.policyWaivers.add(tempEntity.newWaiver("hash3", policy.getId(), repository.getId(),
+        null, "comment", now.toDate(), now.toDate())); // expired
     generatedRepositoryData.licenseOverrides.add(tempEntity.newLicenseOverride(repository.getId(),
         generatedRepositoryData.components.get(0).getComponentIdentifier(), OVERRIDDEN, "Apache-2.0"));
     generatedRepositoryData.vulnerabilityOverrides.add(
@@ -413,7 +417,8 @@ public class FirewallMigrationServiceTest
       .comparing(PolicyWaiver::getPolicyId) //
       .thenComparing(PolicyWaiver::getHash, nullSafe()) //
       .thenComparing(PolicyWaiver::getCreateTime) //
-      .thenComparing(PolicyWaiver::getComment, nullSafe());
+      .thenComparing(PolicyWaiver::getComment, nullSafe()) //
+      .thenComparing(PolicyWaiver::getExpiryTime, nullSafe());
 
   private final Comparator<PolicyWaiver> waiverComparator = Comparator //
       .comparing(PolicyWaiver::getId) //

@@ -74,6 +74,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
+import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -516,6 +517,51 @@ public class ApplicationCloneServiceTest
 
     // Assert the source objects were cloned, not moved.
     assertThat(new PolicyTagDAO().getById(sourcePolicyTag.getId())).isNotNull();
+  }
+
+  @Test
+  public void testCloneApplication_PolicyWaiver_WithExpiry() {
+    DateTime now = DateTime.now();
+    Policy sourcePolicy = tempEntity.newPolicy(sourceApp.getId());
+    PolicyWaiver sourcePolicyWaiver = tempEntity.newWaiver("hash1", sourcePolicy.getId(), sourceApp.getId(), "comment");
+    PolicyWaiver expiringPolicyWaiver = tempEntity.newWaiver("hash2", sourcePolicy.getId(), sourceApp.getId(),
+        null, "comment", now.toDate(), now.plusHours(1).toDate());
+    PolicyWaiver expiredPolicyWaiver = tempEntity.newWaiver("hash3", sourcePolicy.getId(), sourceApp.getId(),
+        null, "comment", now.toDate(), now.toDate());
+
+    ApiApplicationDTO clonedAppDTO =
+        appCloneService.cloneApplication(sourceApp.getId(), "clonedAppName", "clonedAppPublicId");
+
+    Policy clonedPolicy = new PolicyDAO().getByOwnerIdAndName(clonedAppDTO.id, sourcePolicy.getName());
+    List<PolicyWaiver> clonedPolicyWaivers = new PolicyWaiverDAO().getByOwnerId(clonedAppDTO.id);
+    assertThat(clonedPolicyWaivers).hasSize(3);
+    PolicyWaiver clonedPolicyWaiver = clonedPolicyWaivers.get(0);
+    assertThat(clonedPolicyWaiver.getId()).isNotEqualTo(sourcePolicyWaiver.getId());
+    assertThat(clonedPolicyWaiver.getPolicyId()).isEqualTo(clonedPolicy.getId());
+    assertThat(clonedPolicyWaiver.getHash()).isEqualTo(sourcePolicyWaiver.getHash());
+    assertThat(clonedPolicyWaiver.getComment()).isEqualTo(sourcePolicyWaiver.getComment());
+    assertThat(clonedPolicyWaiver.getCreateTime()).isEqualTo(sourcePolicyWaiver.getCreateTime());
+    assertThat(clonedPolicyWaiver.getExpiryTime()).isEqualTo(sourcePolicyWaiver.getExpiryTime());
+    assertThat(clonedPolicyWaiver.getConstraintFacts()).isNull();
+    clonedPolicyWaiver = clonedPolicyWaivers.get(1);
+    assertThat(clonedPolicyWaiver.getId()).isNotEqualTo(expiringPolicyWaiver.getId());
+    assertThat(clonedPolicyWaiver.getPolicyId()).isEqualTo(clonedPolicy.getId());
+    assertThat(clonedPolicyWaiver.getHash()).isEqualTo(expiringPolicyWaiver.getHash());
+    assertThat(clonedPolicyWaiver.getComment()).isEqualTo(expiringPolicyWaiver.getComment());
+    assertThat(clonedPolicyWaiver.getCreateTime()).isEqualTo(expiringPolicyWaiver.getCreateTime());
+    assertThat(clonedPolicyWaiver.getExpiryTime()).isEqualTo(expiringPolicyWaiver.getExpiryTime());
+    assertThat(clonedPolicyWaiver.getConstraintFacts()).isNull();
+    clonedPolicyWaiver = clonedPolicyWaivers.get(2);
+    assertThat(clonedPolicyWaiver.getId()).isNotEqualTo(expiredPolicyWaiver.getId());
+    assertThat(clonedPolicyWaiver.getPolicyId()).isEqualTo(clonedPolicy.getId());
+    assertThat(clonedPolicyWaiver.getHash()).isEqualTo(expiredPolicyWaiver.getHash());
+    assertThat(clonedPolicyWaiver.getComment()).isEqualTo(expiredPolicyWaiver.getComment());
+    assertThat(clonedPolicyWaiver.getCreateTime()).isEqualTo(expiredPolicyWaiver.getCreateTime());
+    assertThat(clonedPolicyWaiver.getExpiryTime()).isEqualTo(expiredPolicyWaiver.getExpiryTime());
+    assertThat(clonedPolicyWaiver.getConstraintFacts()).isNull();
+
+    // Assert the source objects were cloned, not moved.
+    assertThat(new PolicyWaiverDAO().getById(sourcePolicyWaiver.getId())).isNotNull();
   }
 
   @Test

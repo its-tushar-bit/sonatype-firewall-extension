@@ -528,7 +528,7 @@ public class RepositoryReportTest
         .getByRepositoryId(repo.getId());
     assertThat(repositoryPolicyViolations).hasSize(2);
 
-    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getByOwnerId(repo.getId());
+    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(repo.getId());
     assertThat(policyWaivers).hasSize(1);
 
     PolicyWaiver policyWaiver = policyWaivers.get(0);

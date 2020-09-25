@@ -38,6 +38,7 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.inject.Binder;
+import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -418,6 +419,44 @@ public class ApiPolicyWaiverServiceTest
   }
 
   @Test
+  public void testGetPolicyWaivers_Expired() {
+    DateTime now = DateTime.now();
+
+    Application application = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(application);
+    tempEntity.newWaiver("hash", policy.getId(), application.getId(), null, "comment", now.toDate(), now.toDate());
+
+    List<ApiPolicyWaiverDTO> policyWaiverDtoList =
+        apiPolicyWaiverService.getPolicyWaivers(OwnerType.APPLICATION, application.getId());
+
+    assertThat(policyWaiverDtoList).isEmpty();
+  }
+
+  @Test
+  public void testGetPolicyWaivers_ExpiringInFuture() {
+    DateTime now = DateTime.now();
+
+    Application application = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), application.getId(), null, "comment",
+        now.toDate(), now.plusHours(1).toDate()); // expiring in future
+
+    List<ApiPolicyWaiverDTO> policyWaiverDtoList =
+        apiPolicyWaiverService.getPolicyWaivers(OwnerType.APPLICATION, application.getId());
+
+    assertThat(policyWaiverDtoList).hasSize(1);
+    ApiPolicyWaiverDTO actual = policyWaiverDtoList.get(0);
+    assertThat(actual.policyWaiverId).isEqualTo(policyWaiver.getId());
+    assertThat(actual.comment).isEqualTo(policyWaiver.getComment());
+    assertThat(actual.createTime).isEqualTo(policyWaiver.getCreateTime());
+    assertThat(actual.hash).isEqualTo(policyWaiver.getHash());
+    assertThat(actual.policyId).isEqualTo(policyWaiver.getPolicyId());
+    assertThat(actual.scopeOwnerId).isEqualTo(application.getId());
+    assertThat(actual.scopeOwnerName).isEqualTo(application.getName());
+    assertThat(actual.scopeOwnerType).isEqualTo("application");
+  }
+
+  @Test
   public void testGetApplicableWaivers_NullId() {
     assertThatThrownBy(() ->
         apiPolicyWaiverService.getApplicableWaivers(null)
@@ -489,7 +528,7 @@ public class ApiPolicyWaiverServiceTest
   }
 
   private void assertPolicyWaiver(String ownerId, String comment, String hash) {
-    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getByOwnerId(ownerId);
+    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(ownerId);
     assertThat(policyWaivers).hasSize(1);
     PolicyWaiver policyWaiver = policyWaivers.get(0);
     assertThat(policyWaiver).isNotNull();

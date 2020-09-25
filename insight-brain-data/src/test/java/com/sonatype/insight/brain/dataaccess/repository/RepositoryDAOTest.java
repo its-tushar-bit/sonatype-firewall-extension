@@ -175,7 +175,7 @@ public class RepositoryDAOTest
 
     dao.delete(repository);
 
-    assertThat(policyWaiverDAO.getByOwnerId(repository.getId())).isEmpty();
+    assertThat(policyWaiverDAO.getActiveByOwnerId(repository.getId())).isEmpty();
   }
 
   @Test

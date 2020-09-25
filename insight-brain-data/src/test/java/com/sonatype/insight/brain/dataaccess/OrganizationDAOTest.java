@@ -506,11 +506,11 @@ public class OrganizationDAOTest
         "My comment");
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
     policyWaiverDAO.insert(policyWaiver);
-    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(organization.getId());
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getActiveByOwnerId(organization.getId());
     assertThat(policyWaivers).hasSize(1);
 
     dao.delete(organization);
-    policyWaivers = policyWaiverDAO.getByOwnerId(organization.getId());
+    policyWaivers = policyWaiverDAO.getActiveByOwnerId(organization.getId());
     assertThat(policyWaivers).isEmpty();
   }
 

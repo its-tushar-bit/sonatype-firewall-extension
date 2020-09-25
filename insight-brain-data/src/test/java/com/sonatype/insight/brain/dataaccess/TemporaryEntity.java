@@ -1035,6 +1035,21 @@ public class TemporaryEntity
     return waiver;
   }
 
+  public PolicyWaiver newWaiver(String hash,
+                                String policyId,
+                                String ownerId,
+                                List<ConstraintFact> constraintFacts,
+                                String comment,
+                                Date createTime,
+                                Date expiryTime)
+  {
+    PolicyWaiver waiver = new PolicyWaiver(hash, policyId, ownerId, constraintFacts, comment);
+    waiver.setCreateTime(createTime);
+    waiver.setExpiryTime(expiryTime);
+    waiverDAO.insert(waiver);
+    return waiver;
+  }
+
   public LdapServer newLdapServer(String name) {
     LdapServer ldapServer = new LdapServer(name);
     ldapServerDAO.insert(ldapServer);

@@ -673,11 +673,11 @@ public class ApplicationDAOTest
         "My comment");
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
     policyWaiverDAO.insert(policyWaiver);
-    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(application.getId());
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getActiveByOwnerId(application.getId());
     assertThat(policyWaivers).hasSize(1);
 
     applicationDAO.delete(application);
-    policyWaivers = policyWaiverDAO.getByOwnerId(application.getId());
+    policyWaivers = policyWaiverDAO.getActiveByOwnerId(application.getId());
     assertThat(policyWaivers).isEmpty();
   }
 

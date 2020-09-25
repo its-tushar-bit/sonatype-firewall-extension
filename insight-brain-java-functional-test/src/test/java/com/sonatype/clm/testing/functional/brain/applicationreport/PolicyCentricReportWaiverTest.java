@@ -97,7 +97,7 @@ public class PolicyCentricReportWaiverTest
     List<PolicyViolation> policyViolations = new PolicyViolationDAO().getByApplicationId(app.getId());
     assertThat(policyViolations).hasSize(7);
 
-    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getByOwnerId(app.getId());
+    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(app.getId());
     assertThat(policyWaivers).hasSize(1);
 
     PolicyWaiver policyWaiver = policyWaivers.get(0);

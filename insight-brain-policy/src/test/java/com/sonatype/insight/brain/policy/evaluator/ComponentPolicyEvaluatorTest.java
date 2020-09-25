@@ -51,6 +51,7 @@ import com.sonatype.insight.brain.policy.DroolsGenerator;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.collect.Lists;
+import org.joda.time.DateTime;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -858,6 +859,69 @@ public class ComponentPolicyEvaluatorTest
   }
 
   @Test
+  public void testEvaluate_PolicyWaiverIsExpired() {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app);
+
+    DateTime now = DateTime.now();
+
+    Component component1 = new Component(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"));
+    String hash1 = "hash1";
+    component1.setHash(hash1);
+    component1.addSecurityVulnerability(new SecurityVulnerability("source", "refId", 5F));
+    Component component2 = new Component(ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"));
+    String hash2 = "hash2";
+    component2.setHash(hash2);
+    component2.addSecurityVulnerability(new SecurityVulnerability("source", "refId", 5F));
+
+    // expired waiver
+    tempEntity.newWaiver(hash1, policy.getId(), app.getId(), null, "comment", now.toDate(), now.toDate());
+
+    PolicyResults policyResults = componentPolicyEvaluator.evaluate(app.getId(), new Stage(BuildStageType.ID),
+        Lists.newArrayList(component1, component2), false);
+
+    assertThat(policyResults.getWaivedAlerts()).isEmpty();
+    assertThat(policyResults.getActiveAlerts()).hasSize(2);
+    assertThat(policyResults.getActiveAlerts().get(0).getTrigger().getComponentFacts().get(0).getHash())
+        .isEqualTo(hash1);
+    assertThat(policyResults.getActiveAlerts().get(1).getTrigger().getComponentFacts().get(0).getHash())
+        .isEqualTo(hash2);
+  }
+
+  @Test
+  public void testEvaluate_PolicyWaiverIsExpiringInFuture() {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app);
+
+    DateTime now = DateTime.now();
+
+    Component component1 = new Component(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"));
+    String hash1 = "hash1";
+    component1.setHash(hash1);
+    component1.addSecurityVulnerability(new SecurityVulnerability("source", "refId", 5F));
+    Component component2 = new Component(ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"));
+    String hash2 = "hash2";
+    component2.setHash(hash2);
+    component2.addSecurityVulnerability(new SecurityVulnerability("source", "refId", 5F));
+
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(hash1, policy.getId(), app.getId(), null, "comment",
+        now.toDate(), now.plusHours(1).toDate()); // expiring in future
+
+    PolicyResults policyResults = componentPolicyEvaluator.evaluate(app.getId(), new Stage(BuildStageType.ID),
+        Lists.newArrayList(component1, component2), false);
+
+    assertThat(policyResults.getWaivedAlerts()).hasSize(1);
+    assertThat(policyResults.getWaivedAlerts().get(0).getTrigger().getComponentFacts().get(0).getHash())
+        .isEqualTo(hash1);
+    assertThat(policyResults
+        .getPolicyWaiver(policyResults.getWaivedAlerts().get(0).getTrigger().getComponentFacts().get(0)).getId())
+        .isEqualTo(policyWaiver.getId());
+    assertThat(policyResults.getActiveAlerts()).hasSize(1);
+    assertThat(policyResults.getActiveAlerts().get(0).getTrigger().getComponentFacts().get(0).getHash())
+        .isEqualTo(hash2);
+  }
+
+  @Test
   public void testEvaluate_PolicyWaiverForSpecificComponent() {
     Application app = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy(app);
@@ -881,7 +945,7 @@ public class ComponentPolicyEvaluatorTest
         .isEqualTo(hash1);
     assertThat(policyResults
         .getPolicyWaiver(policyResults.getWaivedAlerts().get(0).getTrigger().getComponentFacts().get(0)).getId())
-            .isEqualTo(policyWaiver.getId());
+        .isEqualTo(policyWaiver.getId());
     assertThat(policyResults.getActiveAlerts()).hasSize(1);
     assertThat(policyResults.getActiveAlerts().get(0).getTrigger().getComponentFacts().get(0).getHash())
         .isEqualTo(hash2);

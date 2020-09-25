@@ -321,7 +321,7 @@ public class ApplicationMoveServiceTest
     assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
     oldWaiver = policyWaiverDAO.getById(oldWaiver.getId());
     assertThat(oldWaiver.getPolicyId()).isEqualTo(oldPolicy.getId());
-    assertThat(policyWaiverDAO.getByOwnerId(app.getId())).isEmpty();
+    assertThat(policyWaiverDAO.getActiveByOwnerId(app.getId())).isEmpty();
   }
 
   @Test
@@ -336,7 +336,7 @@ public class ApplicationMoveServiceTest
     assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
     oldWaiver = policyWaiverDAO.getById(oldWaiver.getId());
     assertThat(oldWaiver.getPolicyId()).isEqualTo(oldPolicy.getId());
-    assertThat(policyWaiverDAO.getByOwnerId(app.getId())).isEmpty();
+    assertThat(policyWaiverDAO.getActiveByOwnerId(app.getId())).isEmpty();
   }
 
   @Test

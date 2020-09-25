@@ -69,7 +69,7 @@ public class ApiPolicyViolationWaiverResourceTest
   }
 
   private void assertPolicyWaiver(String ownerId, String comment) {
-    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getByOwnerId(ownerId);
+    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(ownerId);
     assertThat(policyWaivers).hasSize(1);
     PolicyWaiver policyWaiver = policyWaivers.get(0);
     assertThat(policyWaiver.getId()).isNotNull();

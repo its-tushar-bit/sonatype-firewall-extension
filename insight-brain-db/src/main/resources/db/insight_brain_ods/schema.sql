@@ -112,6 +112,7 @@ CREATE TABLE policy_waiver (
   constraint_facts_json text NULL,
   comment varchar(1000) NULL,
   create_time timestamp NOT NULL,
+  expiry_time timestamp default NULL,
   CONSTRAINT policy_waiver_pk PRIMARY KEY (policy_waiver_id),
   CONSTRAINT policy_waiver_policy_fk FOREIGN KEY (policy_id) REFERENCES policy(policy_id)
 );

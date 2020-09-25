@@ -258,7 +258,7 @@ public class ApiPolicyWaiverResourceTest
                                   String comment,
                                   String hash)
   {
-    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getByOwnerId(ownerId);
+    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(ownerId);
     assertThat(policyWaivers).hasSize(1);
     PolicyWaiver policyWaiver = policyWaivers.get(0);
     assertThat(policyWaiver.getId()).isNotNull();

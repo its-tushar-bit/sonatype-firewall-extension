@@ -167,7 +167,7 @@ public class ApiPolicyWaiverService
   {
     List<ApiPolicyWaiverDTO> apiPolicyWaiverDTOS = new ArrayList<>();
 
-    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(owner.getId());
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getActiveByOwnerId(owner.getId());
     policyWaivers.forEach(policyWaiver -> apiPolicyWaiverDTOS.add(ApiPolicyWaiverDTO.toDto(policyWaiver, owner)));
 
     try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.VIEW_WAIVER, true)) {

@@ -51,6 +51,9 @@ public class PolicyWaiver
   @Column(name = "create_time")
   private Date createTime;
 
+  @Column(name = "expiry_time")
+  private Date expiryTime;
+
   /**
    * @since 1.53
    */
@@ -168,5 +171,13 @@ public class PolicyWaiver
 
   public void setCreateTime(Date createTime) {
     this.createTime = createTime;
+  }
+
+  public Date getExpiryTime() {
+    return expiryTime;
+  }
+
+  public void setExpiryTime(Date expiryTime) {
+    this.expiryTime = expiryTime;
   }
 }

@@ -54,6 +54,8 @@ class ScrubberInsertMods
 
   private static final Set<String> EXCLUDED_TERMS = new HashSet<>(Arrays.asList("Root Organization"));
 
+  private static final String WITH_DELIMITER = "((?<=%1$s)|(?=%1$s))";
+
   private static String defaultRandomizer(String src) {
     return consistentRandomString(src);
   }
@@ -129,6 +131,14 @@ class ScrubberInsertMods
     }
     return randomStringCache
         .computeIfAbsent(unesc, s -> RandomStringUtils.random(unesc.length(), 0, 0, true, true, null, RANDOM));
+  }
+
+  private static String consistentRandomStringWithFirstLetter(String unesc) {
+    if (EXCLUDED_TERMS.contains(unesc)) {
+      return unesc;
+    }
+    return randomStringCache.computeIfAbsent(unesc, s -> RandomStringUtils.random(1, 0, 0, true, false, null, RANDOM) +
+        RandomStringUtils.random(unesc.length() - 1, 0, 0, true, true, null, RANDOM));
   }
 
   private static Map<String, SortedMap<Integer, SQLLine>> clobCache = new HashMap<>();
@@ -392,8 +402,8 @@ class ScrubberInsertMods
       List<SQLLine> scrubbedLines = new ArrayList<>();
 
       String policyJson = stripQuotes(stripStringDecode(getColumnValue(insertSqlLine, "content")));
-      String policyName = getColumnValue(insertSqlLine, "name");
-      String policyOwnerId = getColumnValue(insertSqlLine, "owner_id");
+      String policyName = stripQuotes(getColumnValue(insertSqlLine, "name"));
+      String policyOwnerId = stripQuotes(getColumnValue(insertSqlLine, "owner_id"));
       Policy policy = PolicyInternal.fromJson(policyJson, policyName, policyOwnerId);
       int columnIndex = 0;
       int contentColumnIndex = -1;
@@ -403,7 +413,7 @@ class ScrubberInsertMods
           case "name":
             Function<String, String> mutator = stringValueModifier(ScrubberInsertMods::defaultRandomizer);
             scrubColumnValue(insertSqlLine, columnName, mutator, scrubbedLines);
-            String scrubbedPolicyName = getColumnValue(insertSqlLine, "name");
+            String scrubbedPolicyName = stripQuotes(getColumnValue(insertSqlLine, "name"));
             policy.setName(scrubbedPolicyName);
             break;
           case "content":
@@ -424,13 +434,28 @@ class ScrubberInsertMods
         for (Condition condition : constraint.getConditions()) {
           switch (condition.getConditionTypeId()) {
             case CoordinatesConditionType.ID: {
-              String[] coordinates = condition.getValue().split(":", 2);
-              condition.setValue(coordinates[0] + ":" + defaultRandomizer(coordinates[1]));
+              String[] coordinates = condition.getValue().split(":");
+              for (int i = 1; i < coordinates.length; i++) {
+                if (!coordinates[i].equals("*")) {
+                  coordinates[i] = defaultRandomizer(coordinates[i]);
+                }
+              }
+              condition.setValue(String.join(":", coordinates));
               break;
             }
             case PackageUrlConditionType.ID: {
-              String[] coordinates = condition.getValue().split("/", 2);
-              condition.setValue(coordinates[0] + "/" + defaultRandomizer(coordinates[1]));
+              String delimiters = "[/@?=&]";
+              String[] coordinates = condition.getValue().split(String.format(WITH_DELIMITER, delimiters));
+              for (int i = 1; i < coordinates.length; i++) {
+                // A Qualifier key can't start with a number see PackageURL.validateKey
+                if (coordinates[i - 1].matches("[?&]")) {
+                  coordinates[i] = consistentRandomStringWithFirstLetter(coordinates[i]);
+                }
+                else if (!coordinates[i].matches(delimiters) && !coordinates[i].equals("*")) {
+                  coordinates[i] = defaultRandomizer(coordinates[i]);
+                }
+              }
+              condition.setValue(String.join("", coordinates));
               break;
             }
             default:

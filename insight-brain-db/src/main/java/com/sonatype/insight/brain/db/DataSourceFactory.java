@@ -44,9 +44,7 @@ public class DataSourceFactory
     DataSource dataSource = super.loadDataSource(databaseConfig, databaseName);
     DatabaseEngine databaseEngine = getDatabaseEngine(dataSource);
     boolean isNew = populateDatabaseSchema(dataSource, databaseEngine, databaseName);
-    if (H2DatabaseEngine.INSTANCE.equals(databaseEngine)) {
-      logDatabaseSettings(dataSource, databaseEngine);
-    }
+    logDatabaseSettings(dataSource, databaseEngine);
     newDataSources.put(dataSource, isNew);
 
     return dataSource;

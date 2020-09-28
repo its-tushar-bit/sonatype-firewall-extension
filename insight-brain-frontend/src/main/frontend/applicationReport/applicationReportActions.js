@@ -278,7 +278,7 @@ const selectComponent = payloadParamActionCreator(SELECT_COMPONENT);
 const selectRootAncestor = payloadParamActionCreator(SELECT_ROOT_ANCESTOR);
 const unselectRootAncestor = noPayloadActionCreator(UNSELECT_ROOT_ANCESTOR);
 
-function reevaluateReport() {
+export function reevaluateReport() {
   return (dispatch, getState) => {
     const { scanId, appId } = getState().applicationReport.reportParameters;
 

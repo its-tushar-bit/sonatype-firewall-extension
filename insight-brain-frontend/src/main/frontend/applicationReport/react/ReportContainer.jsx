@@ -7,13 +7,16 @@ import { pick } from 'ramda';
 import * as applicationReportActions from '../applicationReportActions';
 import { connect } from 'react-redux';
 import ReportPage from './ReportPage';
+import { stateGo } from '../../reduxUiRouter/routerActions';
 
 function mapStateToProps({applicationReport, router}) {
   return {
-    ...pick(['metadata'], applicationReport),
+    ...pick(['metadata', 'selectedReport'], applicationReport),
     ...pick(['publicId', 'scanId', 'unknownjs', 'embeddable', 'policyViolationId'], router.currentParams)
   };
 }
 
-const ReportPageContainer = connect(mapStateToProps, applicationReportActions)(ReportPage);
+const mapDispatchToProps = { ...applicationReportActions, stateGo };
+
+const ReportPageContainer = connect(mapStateToProps, mapDispatchToProps)(ReportPage);
 export default ReportPageContainer;

@@ -29,7 +29,8 @@ describe('ReportContainer component', function() {
       applicationReport: {
         publicId: 'appId',
         scanId: 'scanId',
-        metadata: { reportTitle: 'title' }
+        metadata: { reportTitle: 'title' },
+        selectedReport: { reportVersion: 5 }
       },
       router: {
         currentParams: {
@@ -57,6 +58,7 @@ describe('ReportContainer component', function() {
     expect(wrapper).toHaveProp('embeddable', true);
     expect(wrapper).toHaveProp('policyViolationId', 'CVE-123');
     expect(wrapper).toHaveProp('metadata', { reportTitle: 'title' });
+    expect(wrapper).toHaveProp('selectedReport', { reportVersion: 5 });
   });
 
 });

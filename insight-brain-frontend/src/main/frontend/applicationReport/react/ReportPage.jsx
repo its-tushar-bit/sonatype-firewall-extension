@@ -16,12 +16,17 @@ export default function ReportPage(props) {
     // actions
     setReportParameters,
     loadReport,
+    reevaluateReport,
     // state
     publicId,
     scanId,
     unknownjs,
     embeddable,
-    policyViolationId
+    policyViolationId,
+    metadata,
+    loadError,
+    selectedReport,
+    stateGo
   } = props;
 
   useEffect(() => {
@@ -32,17 +37,28 @@ export default function ReportPage(props) {
   }, [publicId, scanId]);
 
   return (
-    <MaximizedContainer id="app-react-report" className="nx-page-content">
-      <aside className="nx-page-sidebar" id="report-sidebar">
-        <ReportFilters/>
-      </aside>
-      <div className="nx-page-main">
-        <ReportTitle/>
-        <div className="nx-tile">
-          <ReportStatusBar/>
-        </div>
-        <div className="nx-tile iq-report-content">
-          <ReportContent/>
+    <MaximizedContainer id="app-react-report">
+      <div className="nx-page">
+        <div className="nx-page-content">
+          <aside className="nx-page-sidebar" id="report-sidebar">
+            <ReportFilters/>
+          </aside>
+          <div className="nx-page-main">
+            <ReportTitle metadataDetails={metadata}
+                         scanId={scanId}
+                         publicId={publicId}
+                         selectedReport={selectedReport}
+                         reevaluateReport={reevaluateReport}
+                         loadError={loadError}
+                         stateGo={stateGo}
+            />
+            <div className="nx-tile">
+              <ReportStatusBar/>
+            </div>
+            <div className="nx-tile iq-report-content">
+              <ReportContent/>
+            </div>
+          </div>
         </div>
       </div>
     </MaximizedContainer>
@@ -53,10 +69,24 @@ ReportPage.propTypes = {
   // actions
   setReportParameters: PropTypes.func.isRequired,
   loadReport: PropTypes.func.isRequired,
+  reevaluateReport: PropTypes.func.isRequired,
+  stateGo: PropTypes.func.isRequired,
   // state
   publicId: PropTypes.string,
   scanId: PropTypes.string,
   unknownjs: PropTypes.bool,
   embeddable: PropTypes.bool,
-  policyViolationId: PropTypes.string
+  policyViolationId: PropTypes.string,
+  metadata: PropTypes.shape({
+    reportTitle: PropTypes.string.isRequired,
+    reportTime: PropTypes.number.isRequired,
+    commitHash: PropTypes.string,
+    application: PropTypes.shape({
+      name: PropTypes.string.isRequired
+    })
+  }),
+  selectedReport: PropTypes.shape({
+    reportVersion: PropTypes.number.isRequired
+  }),
+  loadError: PropTypes.object
 };

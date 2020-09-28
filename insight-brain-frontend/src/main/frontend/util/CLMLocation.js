@@ -165,6 +165,10 @@ export function redirectTo(url) {
   window.location = url;
 }
 
+export function getDownloadPdfUrl(applicationPublicId, scanId) {
+  return uriTemplate`/rest/report/${applicationPublicId}/${scanId}/printReport`;
+}
+
 /**
  * @param waiverScope {string} application|organization
  * @param ownerId {string}

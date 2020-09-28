@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.api.v2.dto;
 
 import java.util.Date;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+import com.sonatype.insight.json.store.ApiDateFormat;
 
 /**
  * @since 1.83
@@ -16,6 +16,6 @@ public class ApiStaleEvaluationStageDTO
 {
   public String stageId;
 
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
+  @ApiDateFormat
   public Date lastEvaluationDate;
 }

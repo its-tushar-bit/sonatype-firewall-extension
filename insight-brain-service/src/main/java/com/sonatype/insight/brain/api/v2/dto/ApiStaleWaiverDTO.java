@@ -9,7 +9,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+import com.sonatype.insight.json.store.ApiDateFormat;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
@@ -35,7 +36,7 @@ public class ApiStaleWaiverDTO
   @JsonInclude(Include.NON_EMPTY)
   public String scopeOwnerName;
 
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
+  @ApiDateFormat
   public Date createTime;
 
   @JsonInclude(Include.NON_EMPTY)

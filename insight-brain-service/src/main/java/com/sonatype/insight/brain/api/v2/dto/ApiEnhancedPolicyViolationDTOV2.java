@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.api.v2.dto;
 
 import java.util.Date;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+import com.sonatype.insight.json.store.ApiDateFormat;
 
 /**
  * @since 1.13.0
@@ -27,7 +27,7 @@ public class ApiEnhancedPolicyViolationDTOV2
   /**
    * @since 1.91
    */
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
+  @ApiDateFormat
   public Date openTime;
 
   public ApiComponentDTOV2 component;

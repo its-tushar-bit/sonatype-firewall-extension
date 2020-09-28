@@ -10,8 +10,8 @@ import java.util.Date;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.utils.ScopeOwnerUtils;
+import com.sonatype.insight.json.store.ApiDateFormat;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
@@ -26,8 +26,12 @@ public class ApiPolicyWaiverDTO
   public String comment;
 
   @JsonInclude(Include.NON_EMPTY)
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
+  @ApiDateFormat
   public Date createTime;
+
+  @JsonInclude(Include.NON_EMPTY)
+  @ApiDateFormat
+  public Date expiryTime;
 
   @JsonInclude(Include.NON_NULL)
   public Boolean isObsolete;
@@ -66,6 +70,7 @@ public class ApiPolicyWaiverDTO
     dto.policyWaiverId = policyWaiver.getId();
     dto.comment = policyWaiver.getComment();
     dto.createTime = policyWaiver.getCreateTime();
+    dto.expiryTime = policyWaiver.getExpiryTime();
     dto.hash = policyWaiver.getHash();
     dto.policyId = policyWaiver.getPolicyId();
 

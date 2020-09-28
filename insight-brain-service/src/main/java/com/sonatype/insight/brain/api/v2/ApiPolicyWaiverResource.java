@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -59,9 +60,16 @@ public class ApiPolicyWaiverResource
   {
     String comment = waiverOptionsDTO == null ? null : waiverOptionsDTO.comment;
     boolean applyToAllComponents = waiverOptionsDTO != null && waiverOptionsDTO.applyToAllComponents;
+    Date expiryTime = waiverOptionsDTO == null ? null : waiverOptionsDTO.expiryTime;
 
     apiPolicyWaiverService
-        .addPolicyWaiverByPolicyViolationId(ownerType, ownerId, policyViolationId, comment, applyToAllComponents);
+        .addPolicyWaiverByPolicyViolationId(
+            ownerType,
+            ownerId,
+            policyViolationId,
+            comment,
+            applyToAllComponents,
+            expiryTime);
   }
 
   @DELETE

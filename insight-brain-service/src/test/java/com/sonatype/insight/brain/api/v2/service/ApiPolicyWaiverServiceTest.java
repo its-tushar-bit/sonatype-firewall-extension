@@ -92,7 +92,7 @@ public class ApiPolicyWaiverServiceTest
   @Test
   public void testAddPolicyWaiver_Application() {
     apiPolicyWaiverService.addPolicyWaiver(policyViolation.getId(), OwnerType.APPLICATION, "waiver comment");
-    assertPolicyWaiver(app.getId(), "waiver comment", policyViolation.getHash());
+    assertNotExpiringPolicyWaiver(app.getId(), "waiver comment", policyViolation.getHash());
     assertTelemetry(OwnerType.APPLICATION, app.getId());
   }
 
@@ -103,7 +103,7 @@ public class ApiPolicyWaiverServiceTest
   @Test
   public void testAddPolicyWaiver_Organization() {
     apiPolicyWaiverService.addPolicyWaiver(policyViolation.getId(), OwnerType.ORGANIZATION, "waiver comment");
-    assertPolicyWaiver(org.getId(), "waiver comment", policyViolation.getHash());
+    assertNotExpiringPolicyWaiver(org.getId(), "waiver comment", policyViolation.getHash());
     assertTelemetry(OwnerType.ORGANIZATION, org.getId());
   }
 
@@ -114,7 +114,7 @@ public class ApiPolicyWaiverServiceTest
   @Test
   public void testAddPolicyWaiver_AcceptsNoComment() {
     apiPolicyWaiverService.addPolicyWaiver(policyViolation.getId(), OwnerType.APPLICATION, null);
-    assertPolicyWaiver(app.getId(), null, policyViolation.getHash());
+    assertNotExpiringPolicyWaiver(app.getId(), null, policyViolation.getHash());
   }
 
   /**
@@ -146,18 +146,17 @@ public class ApiPolicyWaiverServiceTest
   @Test
   public void testAddPolicyWaiverByPolicyViolationId_Application() {
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
-        policyViolation.getId(), "waiver comment", false);
-
-    assertPolicyWaiver(app.getId(), "waiver comment", policyViolation.getHash());
+        policyViolation.getId(), "waiver comment", false, null);
+    assertNotExpiringPolicyWaiver(app.getId(), "waiver comment", policyViolation.getHash());
     assertTelemetry(OwnerType.APPLICATION, app.getId());
   }
 
   @Test
   public void testAddPolicyWaiverByPolicyViolationId_ApplicationPublicId() {
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getPublicId(),
-        policyViolation.getId(), "waiver comment", false);
+        policyViolation.getId(), "waiver comment", false, null);
 
-    assertPolicyWaiver(app.getId(), "waiver comment", policyViolation.getHash());
+    assertNotExpiringPolicyWaiver(app.getId(), "waiver comment", policyViolation.getHash());
     assertTelemetry(OwnerType.APPLICATION, app.getId());
   }
 
@@ -167,7 +166,7 @@ public class ApiPolicyWaiverServiceTest
 
     assertThatThrownBy(() ->
         apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, otherApp.getId(),
-            policyViolation.getId(), "waiver comment", false)
+            policyViolation.getId(), "waiver comment", false, null)
     ).isInstanceOf(BadRequestException.class)
         .hasMessage("Invalid owner id: " + otherApp.getId());
   }
@@ -178,7 +177,7 @@ public class ApiPolicyWaiverServiceTest
 
     assertThatThrownBy(() ->
         apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, otherApp.getPublicId(),
-            policyViolation.getId(), "waiver comment", false)
+            policyViolation.getId(), "waiver comment", false, null)
     ).isInstanceOf(BadRequestException.class)
         .hasMessage("Invalid owner id: " + otherApp.getPublicId());
   }
@@ -186,9 +185,9 @@ public class ApiPolicyWaiverServiceTest
   @Test
   public void testAddPolicyWaiverByPolicyViolationId_Organization() {
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.ORGANIZATION, org.getId(),
-        policyViolation.getId(), "waiver comment", false);
+        policyViolation.getId(), "waiver comment", false, null);
 
-    assertPolicyWaiver(org.getId(), "waiver comment", policyViolation.getHash());
+    assertNotExpiringPolicyWaiver(org.getId(), "waiver comment", policyViolation.getHash());
     assertTelemetry(OwnerType.ORGANIZATION, org.getId());
   }
 
@@ -198,7 +197,7 @@ public class ApiPolicyWaiverServiceTest
 
     assertThatThrownBy(() ->
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.ORGANIZATION, otherOrg.getId(),
-        policyViolation.getId(), "waiver comment", false)
+        policyViolation.getId(), "waiver comment", false, null)
     ).isInstanceOf(BadRequestException.class)
         .hasMessage("Invalid owner id: " + otherOrg.getId());
   }
@@ -206,33 +205,33 @@ public class ApiPolicyWaiverServiceTest
   @Test
   public void testAddPolicyWaiverByPolicyViolationId_RootOrganization() {
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID,
-        policyViolation.getId(), "waiver comment", false);
+        policyViolation.getId(), "waiver comment", false, null);
 
-    assertPolicyWaiver(Organization.ROOT_ORGANIZATION_ID, "waiver comment", policyViolation.getHash());
+    assertNotExpiringPolicyWaiver(Organization.ROOT_ORGANIZATION_ID, "waiver comment", policyViolation.getHash());
     assertTelemetry(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
   }
 
   @Test
   public void testAddPolicyWaiverByPolicyViolationId_NullComment() {
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
-        policyViolation.getId(), null, false);
+        policyViolation.getId(), null, false, null);
 
-    assertPolicyWaiver(app.getId(), null, policyViolation.getHash());
+    assertNotExpiringPolicyWaiver(app.getId(), null, policyViolation.getHash());
   }
 
   @Test
   public void testAddPolicyWaiverByPolicyViolationId_ApplyToAllComponents() {
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
-        policyViolation.getId(), "waiver comment", true);
+        policyViolation.getId(), "waiver comment", true, null);
 
-    assertPolicyWaiver(app.getId(), "waiver comment", null);
+    assertNotExpiringPolicyWaiver(app.getId(), "waiver comment", null);
   }
 
   @Test
   public void testAddPolicyWaiverByPolicyViolationId_InvalidPolicyViolationId() {
     assertThatThrownBy(() ->
         apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
-            "invalid-policyViolationId", null, false)
+            "invalid-policyViolationId", null, false, null)
     ).isInstanceOf(NotFoundException.class)
         .hasMessage("Could not find policy violation with ID invalid-policyViolationId.");
   }
@@ -241,9 +240,44 @@ public class ApiPolicyWaiverServiceTest
   public void testAddPolicyWaiverByPolicyViolationId_InvalidOwnerType() {
     assertThatThrownBy(() ->
         apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID,
-            policyViolation.getId(), null, false)
+            policyViolation.getId(), null, false, null)
     ).isInstanceOf(BadRequestException.class)
         .hasMessage("Invalid owner type: repository_container");
+  }
+
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_WithExpiry_InPast() {
+    Date expiryTime = DateTime.now().minusHours(1).toDate();
+
+    apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
+        policyViolation.getId(), "waiver comment", true, expiryTime);
+
+    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(app.getId());
+    assertThat(policyWaivers).isEmpty();
+
+    policyWaivers = new PolicyWaiverDAO().getByOwnerId(app.getId());
+    assertThat(policyWaivers).isNotEmpty().hasSize(1);
+    assertPolicyWaiver(policyWaivers.get(0), app.getId(), "waiver comment", null, expiryTime);
+  }
+
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_WithExpiry_InFuture() {
+    Date expiryTime = DateTime.now().plusHours(1).toDate();
+
+    apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
+        policyViolation.getId(), "waiver comment", true, expiryTime);
+
+    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(app.getId());
+    assertThat(policyWaivers).isNotEmpty().hasSize(1);
+    assertPolicyWaiver(policyWaivers.get(0), app.getId(), "waiver comment", null, expiryTime);
+  }
+
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_WithExpiry_Null() {
+    apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
+        policyViolation.getId(), "waiver comment", true, null);
+
+    assertNotExpiringPolicyWaiver(app.getId(), "waiver comment", null);
   }
 
   @Test
@@ -449,6 +483,7 @@ public class ApiPolicyWaiverServiceTest
     assertThat(actual.policyWaiverId).isEqualTo(policyWaiver.getId());
     assertThat(actual.comment).isEqualTo(policyWaiver.getComment());
     assertThat(actual.createTime).isEqualTo(policyWaiver.getCreateTime());
+    assertThat(actual.expiryTime).isEqualTo(policyWaiver.getExpiryTime());
     assertThat(actual.hash).isEqualTo(policyWaiver.getHash());
     assertThat(actual.policyId).isEqualTo(policyWaiver.getPolicyId());
     assertThat(actual.scopeOwnerId).isEqualTo(application.getId());
@@ -527,10 +562,18 @@ public class ApiPolicyWaiverServiceTest
     assertApiPolicyWaiverDTO(null, policyId, appId, "NewApp", "A comment", applicableWaivers.get(3));
   }
 
-  private void assertPolicyWaiver(String ownerId, String comment, String hash) {
+  private void assertNotExpiringPolicyWaiver(String ownerId, String comment, String hash) {
     List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(ownerId);
-    assertThat(policyWaivers).hasSize(1);
-    PolicyWaiver policyWaiver = policyWaivers.get(0);
+    assertThat(policyWaivers).isNotEmpty().hasSize(1);
+    assertPolicyWaiver(policyWaivers.get(0), ownerId, comment, hash, null);
+  }
+
+  private void assertPolicyWaiver(PolicyWaiver policyWaiver,
+                                  String ownerId,
+                                  String comment,
+                                  String hash,
+                                  Date expiryTime)
+  {
     assertThat(policyWaiver).isNotNull();
     assertThat(policyWaiver.getId()).isNotNull();
     assertThat(policyWaiver.getOwnerId()).isEqualTo(ownerId);
@@ -538,6 +581,7 @@ public class ApiPolicyWaiverServiceTest
     assertThat(policyWaiver.getComment()).isEqualTo(comment);
     assertThat(policyWaiver.getPolicyId()).isEqualTo(policy.getId());
     assertThat(policyWaiver.getCreateTime()).isNotNull();
+    assertThat(policyWaiver.getExpiryTime()).isEqualTo(expiryTime);
     assertThat(policyWaiver.getConstraintFactsJson()).isEqualTo(policyViolation.getConstraintFactsJson());
   }
 

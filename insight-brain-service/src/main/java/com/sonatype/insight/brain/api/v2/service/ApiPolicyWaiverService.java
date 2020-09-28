@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -78,7 +79,7 @@ public class ApiPolicyWaiverService
   /**
    * This is currently used in "request waiver"
    *
-   * @deprecated Use {@link #addPolicyWaiverByPolicyViolationId(OwnerType, String, String, String, boolean)}
+   * @deprecated Use {@link #addPolicyWaiverByPolicyViolationId(OwnerType, String, String, String, boolean, Date)}
    */
   @Deprecated
   public void addPolicyWaiver(final String policyViolationId,
@@ -105,7 +106,7 @@ public class ApiPolicyWaiverService
         throw new IllegalStateException("Unknown owner type: " + ownerType);
     }
 
-    addPolicyWaiver(ownerType, ownerId, policyViolation, comment, false);
+    addPolicyWaiver(ownerType, ownerId, policyViolation, comment, false, null);
   }
 
   public void addPolicyWaiverByPolicyViolationId(
@@ -113,7 +114,8 @@ public class ApiPolicyWaiverService
       final String ownerId,
       final String policyViolationId,
       final String comment,
-      final boolean applyToAllComponents)
+      final boolean applyToAllComponents,
+      final Date expiryTime)
   {
     // disable adding repository waivers (for now)
     switch (ownerType) {
@@ -136,7 +138,7 @@ public class ApiPolicyWaiverService
       throw new BadRequestException("Invalid owner id: " + ownerId);
     }
 
-    addPolicyWaiver(ownerType, internalOwnerId, policyViolation, comment, applyToAllComponents);
+    addPolicyWaiver(ownerType, internalOwnerId, policyViolation, comment, applyToAllComponents, expiryTime);
   }
 
   @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
@@ -146,11 +148,13 @@ public class ApiPolicyWaiverService
       @AuthzContext(Key.INTERNAL_ID) final String ownerId,
       final PolicyViolation policyViolation,
       final String comment,
-      final boolean applyToAllComponents)
+      final boolean applyToAllComponents,
+      final Date expiryTime)
   {
     String hash = applyToAllComponents ? null : policyViolation.getHash();
     PolicyWaiver policyWaiver = new PolicyWaiver(hash, policyViolation.getPolicyId(), ownerId, comment);
     policyWaiver.setConstraintFactsJson(policyViolation.getConstraintFactsJson());
+    policyWaiver.setExpiryTime(expiryTime);
 
     policyWaiverDAO.insert(policyWaiver);
     auditPolicyWaiver(policyWaiver);

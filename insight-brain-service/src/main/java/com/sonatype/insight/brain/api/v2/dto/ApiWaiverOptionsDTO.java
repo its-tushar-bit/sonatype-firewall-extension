@@ -5,9 +5,16 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
+import java.util.Date;
+
+import com.sonatype.insight.json.store.ApiDateFormat;
+
 public class ApiWaiverOptionsDTO
 {
   public String comment;
 
   public boolean applyToAllComponents;
+
+  @ApiDateFormat
+  public Date expiryTime;
 }

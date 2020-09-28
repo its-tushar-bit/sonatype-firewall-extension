@@ -58,7 +58,7 @@ public class ClusterLock
 
   private volatile boolean acquired;
 
-  private TransactionContext tx;
+  private volatile TransactionContext tx;
 
   public ClusterLock(String lockId) {
     this.lockId = lockId;
@@ -215,14 +215,32 @@ public class ClusterLock
   }
 
   private boolean acquire(boolean waitForLock) {
-    tx = new LockDAO().createTransactionContext();
-    tx.begin();
-    if (waitForLock) {
-      new LockDAO().acquireLock(tx, lockId);
-      return true;
+    TransactionContext tempTx = new LockDAO().createTransactionContext();
+    tempTx.begin();
+    try {
+      if (waitForLock) {
+        new LockDAO().acquireLock(tempTx, lockId);
+        tx = tempTx;
+        return true;
+      }
+      else {
+        if (new LockDAO().tryAcquireLock(tempTx, lockId)) {
+          tx = tempTx;
+          return true;
+        }
+        // Failed to acquire lock
+        tempTx.close();
+        return false;
+      }
     }
-    else {
-      return new LockDAO().tryAcquireLock(tx, lockId);
+    catch (RuntimeException e) {
+      try {
+        tempTx.close();
+      }
+      catch (Exception closeException) {
+        e.addSuppressed(closeException);
+      }
+      throw e;
     }
   }
 

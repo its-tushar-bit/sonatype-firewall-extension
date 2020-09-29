@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -370,6 +372,37 @@ public class ApiPolicyWaiverServiceTest
   }
 
   @Test
+  public void testGetPolicyWaivers_Application_ExcludesExpiredWaivers() {
+    Instant now = Instant.now();
+    Date today = Date.from(now);
+    Date yesterday = Date.from(now.minus(1, ChronoUnit.DAYS));
+    Date aWeekFromNow = Date.from(now.plus(7, ChronoUnit.DAYS));
+    Date aWeekAgo = Date.from(now.minus(7, ChronoUnit.DAYS));
+
+    Application application = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), application.getId(),
+        null, "comment", today, aWeekFromNow);
+    tempEntity.newWaiver(null, policy.getId(), application.getId(),
+        null, "the expired waiver", aWeekAgo, yesterday);
+
+    List<ApiPolicyWaiverDTO> policyWaiverDtoList =
+        apiPolicyWaiverService.getPolicyWaivers(OwnerType.APPLICATION, application.getId());
+
+    assertThat(policyWaiverDtoList).hasSize(1);
+    ApiPolicyWaiverDTO actual = policyWaiverDtoList.get(0);
+    assertThat(actual.policyWaiverId).isEqualTo(policyWaiver.getId());
+    assertThat(actual.comment).isEqualTo(policyWaiver.getComment());
+    assertThat(actual.createTime).isEqualTo(policyWaiver.getCreateTime());
+    assertThat(actual.hash).isEqualTo(policyWaiver.getHash());
+    assertThat(actual.policyId).isEqualTo(policyWaiver.getPolicyId());
+    assertThat(actual.scopeOwnerId).isEqualTo(application.getId());
+    assertThat(actual.scopeOwnerName).isEqualTo(application.getName());
+    assertThat(actual.scopeOwnerType).isEqualTo("application");
+    assertThat(actual.expiryTime).isEqualTo(aWeekFromNow);
+  }
+
+  @Test
   public void testGetPolicyWaivers_Application_UsePublicId() {
     Application application = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy(application);
@@ -412,6 +445,38 @@ public class ApiPolicyWaiverServiceTest
   }
 
   @Test
+  public void testGetPolicyWaivers_Organization_ExcludesExpiredWaivers() {
+    Instant now = Instant.now();
+    Date today = Date.from(now);
+    Date yesterday = Date.from(now.minus(1, ChronoUnit.DAYS));
+    Date aWeekFromNow = Date.from(now.plus(7, ChronoUnit.DAYS));
+    Date aWeekAgo = Date.from(now.minus(7, ChronoUnit.DAYS));
+
+    Organization organization = tempEntity.newOrganization();
+    Policy policy = tempEntity.newPolicy(organization);
+    PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), organization.getId(),
+        null, "comment", today, aWeekFromNow);
+    // an expired waiver
+    tempEntity.newWaiver(null, policy.getId(), organization.getId(), null,
+        "expired waiver", aWeekAgo, yesterday);
+
+    List<ApiPolicyWaiverDTO> policyWaiverDtoList =
+        apiPolicyWaiverService.getPolicyWaivers(OwnerType.ORGANIZATION, organization.getId());
+
+    assertThat(policyWaiverDtoList).hasSize(1);
+    ApiPolicyWaiverDTO actual = policyWaiverDtoList.get(0);
+    assertThat(actual.policyWaiverId).isEqualTo(policyWaiver.getId());
+    assertThat(actual.comment).isEqualTo(policyWaiver.getComment());
+    assertThat(actual.createTime).isEqualTo(policyWaiver.getCreateTime());
+    assertThat(actual.hash).isEqualTo(policyWaiver.getHash());
+    assertThat(actual.policyId).isEqualTo(policyWaiver.getPolicyId());
+    assertThat(actual.scopeOwnerId).isEqualTo(organization.getId());
+    assertThat(actual.scopeOwnerName).isEqualTo(organization.getName());
+    assertThat(actual.scopeOwnerType).isEqualTo("organization");
+    assertThat(actual.expiryTime).isEqualTo(aWeekFromNow);
+  }
+
+  @Test
   public void testGetPolicyWaivers_Repository() {
     Repository repository = tempEntity.newRepository();
     Policy policy = tempEntity.newPolicy();
@@ -433,6 +498,37 @@ public class ApiPolicyWaiverServiceTest
   }
 
   @Test
+  public void testGetPolicyWaivers_Repository_ExcludesExpiredWaiver() {
+    Instant now = Instant.now();
+    Date today = Date.from(now);
+    Date yesterday = Date.from(now.minus(1, ChronoUnit.DAYS));
+    Date aWeekFromNow = Date.from(now.plus(7, ChronoUnit.DAYS));
+    Date aWeekAgo = Date.from(now.minus(7, ChronoUnit.DAYS));
+
+    Repository repository = tempEntity.newRepository();
+    Policy policy = tempEntity.newPolicy();
+    PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), repository.getId(),
+        null, "comment", today, aWeekFromNow);
+    tempEntity.newWaiver(null, policy.getId(), repository.getId(),
+        null, "comment", aWeekAgo, yesterday);
+
+    List<ApiPolicyWaiverDTO> policyWaiverDtoList =
+        apiPolicyWaiverService.getPolicyWaivers(OwnerType.REPOSITORY, repository.getId());
+
+    assertThat(policyWaiverDtoList).hasSize(1);
+    ApiPolicyWaiverDTO actual = policyWaiverDtoList.get(0);
+    assertThat(actual.policyWaiverId).isEqualTo(policyWaiver.getId());
+    assertThat(actual.comment).isEqualTo(policyWaiver.getComment());
+    assertThat(actual.createTime).isEqualTo(policyWaiver.getCreateTime());
+    assertThat(actual.hash).isEqualTo(policyWaiver.getHash());
+    assertThat(actual.policyId).isEqualTo(policyWaiver.getPolicyId());
+    assertThat(actual.scopeOwnerId).isEqualTo(repository.getId());
+    assertThat(actual.scopeOwnerName).isEqualTo(repository.getName());
+    assertThat(actual.scopeOwnerType).isEqualTo("repository");
+    assertThat(actual.expiryTime).isEqualTo(aWeekFromNow);
+  }
+
+  @Test
   public void testGetPolicyWaivers_RepositoryContainer() {
     Policy policy = tempEntity.newPolicy();
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), REPOSITORY_CONTAINER_ID, "comment");
@@ -450,6 +546,36 @@ public class ApiPolicyWaiverServiceTest
     assertThat(actual.scopeOwnerId).isEqualTo(REPOSITORY_CONTAINER_ID);
     assertThat(actual.scopeOwnerName).isEqualTo("All Repositories");
     assertThat(actual.scopeOwnerType).isEqualTo("all_repositories");
+  }
+
+  @Test
+  public void testGetPolicyWaivers_RepositoryContainer_ExcludesExpiredWaiver() {
+    Instant now = Instant.now();
+    Date today = Date.from(now);
+    Date yesterday = Date.from(now.minus(1, ChronoUnit.DAYS));
+    Date aWeekFromNow = Date.from(now.plus(7, ChronoUnit.DAYS));
+    Date aWeekAgo = Date.from(now.minus(7, ChronoUnit.DAYS));
+
+    Policy policy = tempEntity.newPolicy();
+    PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), REPOSITORY_CONTAINER_ID,
+        null, "comment", today, aWeekFromNow);
+    tempEntity.newWaiver(null, policy.getId(), REPOSITORY_CONTAINER_ID,
+        null, "comment", aWeekAgo, yesterday);
+
+    List<ApiPolicyWaiverDTO> policyWaiverDtoList =
+        apiPolicyWaiverService.getPolicyWaivers(REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID);
+
+    assertThat(policyWaiverDtoList).hasSize(1);
+    ApiPolicyWaiverDTO actual = policyWaiverDtoList.get(0);
+    assertThat(actual.policyWaiverId).isEqualTo(policyWaiver.getId());
+    assertThat(actual.comment).isEqualTo(policyWaiver.getComment());
+    assertThat(actual.createTime).isEqualTo(policyWaiver.getCreateTime());
+    assertThat(actual.hash).isEqualTo(policyWaiver.getHash());
+    assertThat(actual.policyId).isEqualTo(policyWaiver.getPolicyId());
+    assertThat(actual.scopeOwnerId).isEqualTo(REPOSITORY_CONTAINER_ID);
+    assertThat(actual.scopeOwnerName).isEqualTo("All Repositories");
+    assertThat(actual.scopeOwnerType).isEqualTo("all_repositories");
+    assertThat(actual.expiryTime).isEqualTo(aWeekFromNow);
   }
 
   @Test

@@ -97,15 +97,11 @@ export function getAdvancedSearchConfigUrl() {
 }
 
 export function getAdvancedSearchIndexUrl() {
-  return uriTemplate`/api/experimental/search/advanced/index`;
+  return uriTemplate`/api/v2/search/advanced/index`;
 }
 
 export function getAdvancedSearchUrl(query, page) {
-  return uriTemplate`/api/experimental/search/advanced?search=${query}&page=${page}`;
-}
-
-export function getAdvancedSearchQuerySuggesterUrl(query) {
-  return uriTemplate`/api/experimental/search/advanced/suggester?search=${query}`;
+  return uriTemplate`/api/v2/search/advanced?query=${query}&page=${page}`;
 }
 
 export function getScmOnboardingConfigUrl() {

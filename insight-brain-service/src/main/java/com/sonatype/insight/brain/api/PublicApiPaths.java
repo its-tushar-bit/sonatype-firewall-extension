@@ -91,7 +91,7 @@ public class PublicApiPaths
   public static final String COMPOSITE_SOURCE_CONTROL_CONFIG_VALIDATOR_PATH_V2 =
       API_VERSION_PATH_V2 + "compositeSourceControlConfigValidator/application/{applicationId}";
 
-  public static final String ADVANCED_SEARCH_RESOURCE_PATH = EXPERIMENTAL_PATH + "search/advanced";
+  public static final String ADVANCED_SEARCH_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "search/advanced";
 
   public static final String LABEL_RESOURCE_PATH =
       API_VERSION_PATH_V2 + "labels/{ownerType: application|organization|repository}/{ownerId}";

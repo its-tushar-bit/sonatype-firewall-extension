@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.experimental;
+package com.sonatype.insight.brain.api.v2;
 
 import java.io.File;
 import java.util.concurrent.TimeUnit;
@@ -31,7 +31,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-public class ApiAdvancedSearchResourceTest
+public class ApiAdvancedSearchResourceV2Test
     extends AbstractResourceTest
 {
   @Before
@@ -57,7 +57,7 @@ public class ApiAdvancedSearchResourceTest
 
   @Test
   public void testCreateSearchIndex() throws Exception {
-    HttpResponse response = restRequest().path(ApiAdvancedSearchResource.INDEX_PATH).post();
+    HttpResponse response = restRequest().path(ApiAdvancedSearchResourceV2.INDEX_PATH).post();
     awaitIndexCompletion();
 
     assertResponseStatus(204, response);
@@ -68,11 +68,11 @@ public class ApiAdvancedSearchResourceTest
   @Test
   public void testSearchIndex() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
-    restRequest().path(ApiAdvancedSearchResource.INDEX_PATH).post();
+    restRequest().path(ApiAdvancedSearchResourceV2.INDEX_PATH).post();
     awaitIndexCompletion();
 
     HttpResponse response =
-        restRequest().query("search", FieldIdentifier.APPLICATION_ID.label + ":" + application.getId()).get();
+        restRequest().query("query", FieldIdentifier.APPLICATION_ID.label + ":" + application.getId()).get();
 
     assertResponseStatus(200, response);
     SearchResultDTO searchResultDTO = response.getBody(SearchResultDTO.class);
@@ -86,14 +86,14 @@ public class ApiAdvancedSearchResourceTest
   @Test
   public void testSearchIndex_Unauthenticated() throws Exception {
     HttpResponse response =
-        restRequest().anon().query("search", FieldIdentifier.APPLICATION_ID.label + ":" + "i-am-anon").get();
+        restRequest().anon().query("query", FieldIdentifier.APPLICATION_ID.label + ":" + "i-am-anon").get();
 
     assertResponseStatus(401, response);
   }
 
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(PublicApiPaths.ADVANCED_SEARCH_RESOURCE_PATH);
+    return super.restRequest().path(PublicApiPaths.ADVANCED_SEARCH_RESOURCE_PATH_V2);
   }
 
   private void assertIndexExists(File indexFile) throws Exception {

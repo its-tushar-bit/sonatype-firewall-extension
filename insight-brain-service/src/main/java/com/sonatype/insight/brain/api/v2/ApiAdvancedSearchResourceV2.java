@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.experimental;
+package com.sonatype.insight.brain.api.v2;
 
 import java.io.IOException;
 
@@ -31,8 +31,8 @@ import com.codahale.metrics.annotation.Timed;
  */
 @Named
 @Timed
-@Path(PublicApiPaths.ADVANCED_SEARCH_RESOURCE_PATH)
-public class ApiAdvancedSearchResource
+@Path(PublicApiPaths.ADVANCED_SEARCH_RESOURCE_PATH_V2)
+public class ApiAdvancedSearchResourceV2
 {
   private final SearchService searchService;
 
@@ -41,7 +41,7 @@ public class ApiAdvancedSearchResource
   static final String INDEX_PATH = "index";
 
   @Inject
-  public ApiAdvancedSearchResource(SearchService searchService, IndexService indexService) {
+  public ApiAdvancedSearchResourceV2(SearchService searchService, IndexService indexService) {
     this.searchService = searchService;
     this.indexService = indexService;
   }
@@ -50,7 +50,7 @@ public class ApiAdvancedSearchResource
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.PERFORM_ADVANCED_SEARCH)
   public SearchResultDTO searchIndex(
-      @QueryParam("search") String searchQuery,
+      @QueryParam("query") String searchQuery,
       @DefaultValue("10") @QueryParam("pageSize") int pageSize,
       @QueryParam("page") int page) throws IOException
   {

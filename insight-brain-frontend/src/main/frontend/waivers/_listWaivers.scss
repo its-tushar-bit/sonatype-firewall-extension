@@ -1,0 +1,19 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
+
+.list-waivers-page {
+  .nx-page-title {
+    display: flex;
+    flex-direction: row;
+    align-items: center
+  }
+
+  .list-waivers--constraint, .list-waivers--conditions, .list-waivers--component-name {
+    margin-bottom: $nx-spacing-xl;
+  }
+}

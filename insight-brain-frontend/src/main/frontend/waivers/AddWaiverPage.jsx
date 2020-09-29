@@ -5,16 +5,14 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { map, path, prop } from 'ramda';
 import { NxSubmitMask } from '@sonatype/react-shared-components';
-import { categoryByPolicyThreatLevel } from '@sonatype/react-shared-components/util/threatLevels';
 
 import MaximizedContainer from '../react/MaximizedContainer';
 import LoadWrapper from '../react/LoadWrapper';
-import { getComponentName, getArtifactName } from '../util/componentNameUtils';
 import { violationDetailsPropTypes } from '../violation/ViolationDetailsTile';
 import { constraintViolationsPropType } from '../violation/PolicyViolationConstraintInfoTile';
 import AddWaiverForm, { waiverScopePropTypes } from './AddWaiverForm';
+import { extractViolationDetails } from '../util/violationDetailsUtil';
 
 export default function AddWaiverPage(props) {
   const {
@@ -51,28 +49,8 @@ export default function AddWaiverPage(props) {
       return null;
     }
 
-    const {
-      constraintViolations,
-      policyName,
-      policyViolationId,
-      threatLevel
-    } = violationDetails;
-
-    const { constraintName, reasons } = constraintViolations[0],
-        vulnerabilityId = path([0, 'reference', 'value'], reasons),
-        threatLevelCategory = categoryByPolicyThreatLevel[threatLevel],
-        componentName = getComponentName(violationDetails),
-        artifactName = getArtifactName(violationDetails);
-
     return {
       applyToAllComponents,
-      artifactName,
-      componentName,
-      constraintName,
-      policyName,
-      policyViolationId,
-      reasons: map(prop('reason'), reasons),
-      threatLevelCategory,
       waiverComments,
       availableWaiverScopes,
       openVulnerabilityDetailsModal,
@@ -82,8 +60,8 @@ export default function AddWaiverPage(props) {
       setWaiverComment,
       setApplyToAllComponents,
       saveWaiver,
-      vulnerabilityId,
-      cancelAction
+      cancelAction,
+      ...extractViolationDetails(violationDetails)
     };
   };
 

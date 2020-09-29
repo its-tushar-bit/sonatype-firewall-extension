@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import org.joda.time.DateTime;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.v2.ApiPolicyWaiverResource.BY_POLICY_VIOLATION_ID_PATH;
@@ -192,7 +193,7 @@ public class ApiPolicyWaiverResourceTest
         .post();
 
     assertResponseStatus(204, response);
-    assertPolicyWaiver(app.getId(), policy, policyViolation, "waiver comment", policyViolation.getHash());
+    assertNonExpiringPolicyWaiver(app.getId(), policy, policyViolation, "waiver comment", policyViolation.getHash());
   }
 
   @Test
@@ -213,7 +214,7 @@ public class ApiPolicyWaiverResourceTest
         .post();
 
     assertResponseStatus(204, response);
-    assertPolicyWaiver(org.getId(), policy, policyViolation, "waiver comment", policyViolation.getHash());
+    assertNonExpiringPolicyWaiver(org.getId(), policy, policyViolation, "waiver comment", policyViolation.getHash());
   }
 
   @Test
@@ -233,7 +234,7 @@ public class ApiPolicyWaiverResourceTest
         .post();
 
     assertResponseStatus(204, response);
-    assertPolicyWaiver(Organization.ROOT_ORGANIZATION_ID, policy, policyViolation, "waiver comment",
+    assertNonExpiringPolicyWaiver(Organization.ROOT_ORGANIZATION_ID, policy, policyViolation, "waiver comment",
         policyViolation.getHash());
   }
 
@@ -255,7 +256,7 @@ public class ApiPolicyWaiverResourceTest
         .post();
 
     assertResponseStatus(204, response);
-    assertPolicyWaiver(app.getId(), policy, policyViolation, "waiver comment", null);
+    assertNonExpiringPolicyWaiver(app.getId(), policy, policyViolation, "waiver comment", null);
   }
 
   @Test
@@ -272,7 +273,62 @@ public class ApiPolicyWaiverResourceTest
         .post();
 
     assertResponseStatus(204, response);
-    assertPolicyWaiver(app.getId(), policy, policyViolation, null, policyViolation.getHash());
+    assertNonExpiringPolicyWaiver(app.getId(), policy, policyViolation, null, policyViolation.getHash());
+  }
+
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_ExpiresInFuture() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app);
+
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId1App1");
+    PolicyViolation policyViolation = tempEntity
+        .newPolicyViolation(policyEvaluation, policy, "g1", "a1", "v1", "h1", "r1");
+
+    ApiWaiverOptionsDTO waiverOptionsDTO = new ApiWaiverOptionsDTO();
+    waiverOptionsDTO.comment = "waiver comment";
+    Date expiryTime = DateTime.now().plusDays(7).toDate();
+    waiverOptionsDTO.expiryTime = expiryTime;
+    HttpResponse response = restRequest().path(BY_POLICY_VIOLATION_ID_PATH)
+        .parameter(OwnerType.APPLICATION, app.getId(), policyViolation.getId())
+        .body(waiverOptionsDTO, MediaType.APPLICATION_JSON)
+        .post();
+
+    assertResponseStatus(204, response);
+    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(app.getId());
+    assertThat(policyWaivers).isNotEmpty().hasSize(1);
+    assertPolicyWaiver(app.getId(), policy, policyViolation, policyWaivers.get(0), "waiver comment",
+        policyViolation.getHash(), expiryTime);
+  }
+
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_Expired() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app);
+
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId1App1");
+    PolicyViolation policyViolation = tempEntity
+        .newPolicyViolation(policyEvaluation, policy, "g1", "a1", "v1", "h1", "r1");
+
+    ApiWaiverOptionsDTO waiverOptionsDTO = new ApiWaiverOptionsDTO();
+    waiverOptionsDTO.comment = "waiver comment";
+    Date expiryTime = DateTime.now().minusDays(1).toDate();
+    waiverOptionsDTO.expiryTime = expiryTime;
+    HttpResponse response = restRequest().path(BY_POLICY_VIOLATION_ID_PATH)
+        .parameter(OwnerType.APPLICATION, app.getId(), policyViolation.getId())
+        .body(waiverOptionsDTO, MediaType.APPLICATION_JSON)
+        .post();
+
+    // should not return a policy as the one existing is expired
+    assertResponseStatus(204, response);
+    List<PolicyWaiver> activePolicyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(app.getId());
+    assertThat(activePolicyWaivers).isEmpty();
+
+    // getByOwnerId should still return the expired policy
+    List<PolicyWaiver> allPolicyWaivers = new PolicyWaiverDAO().getByOwnerId(app.getId());
+    assertThat(allPolicyWaivers).hasSize(1);
+    assertPolicyWaiver(app.getId(), policy, policyViolation, allPolicyWaivers.get(0), "waiver comment",
+        policyViolation.getHash(), expiryTime);
   }
 
   @Override
@@ -280,21 +336,33 @@ public class ApiPolicyWaiverResourceTest
     return super.restRequest().path(PublicApiPaths.POLICY_WAIVER_PATH);
   }
 
+  private void assertNonExpiringPolicyWaiver(String ownerId,
+                                             Policy policy,
+                                             PolicyViolation policyViolation,
+                                             String comment,
+                                             String hash)
+  {
+    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(ownerId);
+    assertThat(policyWaivers).isNotEmpty().hasSize(1);
+    assertPolicyWaiver(ownerId, policy, policyViolation, policyWaivers.get(0), comment, hash, null);
+  }
+
   private void assertPolicyWaiver(String ownerId,
                                   Policy policy,
                                   PolicyViolation policyViolation,
+                                  PolicyWaiver policyWaiver,
                                   String comment,
-                                  String hash)
+                                  String hash,
+                                  Date expiryTime)
   {
-    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(ownerId);
-    assertThat(policyWaivers).hasSize(1);
-    PolicyWaiver policyWaiver = policyWaivers.get(0);
+    assertThat(policyWaiver).isNotNull();
     assertThat(policyWaiver.getId()).isNotNull();
     assertThat(policyWaiver.getOwnerId()).isEqualTo(ownerId);
     assertThat(policyWaiver.getHash()).isEqualTo(hash);
     assertThat(policyWaiver.getComment()).isEqualTo(comment);
     assertThat(policyWaiver.getPolicyId()).isEqualTo(policy.getId());
     assertThat(policyWaiver.getCreateTime()).isNotNull();
+    assertThat(policyWaiver.getExpiryTime()).isEqualTo(expiryTime);
     assertThat(policyWaiver.getConstraintFactsJson()).isEqualTo(policyViolation.getConstraintFactsJson());
   }
 }

@@ -27,8 +27,7 @@ make(
             'nexus-iq-server/target/*.zip*',
             'nexus-iq-server/target/*.tar.gz*',
             'nexus-iq-cli/target/*.jar*',
-            'nexus-iq-diagnostics/target/*.jar*',
-            'nexus-iq-integrator-scanner/target/*.jar*'
+            'nexus-iq-diagnostics/target/*.jar*'
         ],
         excludes: [
             '**/*-sources.jar*',

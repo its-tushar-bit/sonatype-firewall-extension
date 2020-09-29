@@ -85,7 +85,6 @@
     <module>insight-brain-cli-common</module>
     <module>nexus-iq-server</module>
     <module>nexus-iq-cli</module>
-    <module>nexus-iq-integrator-scanner</module>
     <module>nexus-iq-diagnostics</module>
     <module>insight-brain-java-functional-test</module>
     <module>insight-brain-functional-test</module>

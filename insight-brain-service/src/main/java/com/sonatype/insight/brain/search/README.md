@@ -5,7 +5,7 @@
     "Sonatype" is a trademark of Sonatype, Inc.
 
 -->
-# IQ Global Search 
+# Advanced Search 
 
 Provides the ability for users to search CVE vulnerabilities within IQ Server. The search results provides links to 
 the relevant application and policy report.

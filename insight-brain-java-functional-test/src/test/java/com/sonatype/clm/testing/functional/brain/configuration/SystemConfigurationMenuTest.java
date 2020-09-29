@@ -76,7 +76,7 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.automaticApplications().shouldBe(visible);
     systemConfigMenu.emailConfiguration().shouldBe(visible);
     systemConfigMenu.proxyConfiguration().shouldBe(visible);
-    systemConfigMenu.earlyAccessHeader().shouldBe(visible);
+    systemConfigMenu.earlyAccessHeader().shouldBe(hidden);
     systemConfigMenu.advancedSearchConfiguration().shouldBe(visible);
     systemConfigMenu.scmOnboarding().shouldBe(hidden); // TODO update when feature flag is removed INT-????
   }
@@ -102,7 +102,7 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.automaticApplications().shouldBe(hidden);
     systemConfigMenu.emailConfiguration().shouldBe(visible);
     systemConfigMenu.proxyConfiguration().shouldBe(visible);
-    systemConfigMenu.earlyAccessHeader().shouldBe(visible);
+    systemConfigMenu.earlyAccessHeader().shouldBe(hidden);
     systemConfigMenu.advancedSearchConfiguration().shouldBe(visible);
     systemConfigMenu.scmOnboarding().shouldBe(hidden); // TODO update when feature flag is removed INT-????
     eyesWatcher.eyesCheck();

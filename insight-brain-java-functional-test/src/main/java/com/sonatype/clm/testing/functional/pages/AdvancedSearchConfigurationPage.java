@@ -40,21 +40,7 @@ public class AdvancedSearchConfigurationPage
     return child("#advanced-search-config-cancel");
   }
 
-  public ReIndexingModal reIndexingModal() {
-    return new ReIndexingModal();
-  }
-
-  public static class ReIndexingModal
-      extends BasicElement<ReIndexingModal>
-  {
-    public static final String ROOT = "#advanced-search-re-indexing-modal";
-
-    public ReIndexingModal() {
-      super(ROOT);
-    }
-
-    public SelenideElement closeButton() {
-      return child("#advanced-search-re-indexing-modal-close-button");
-    }
+  public SelenideElement lastIndexTime() {
+    return child("#advanced-search-last-index-time");
   }
 }

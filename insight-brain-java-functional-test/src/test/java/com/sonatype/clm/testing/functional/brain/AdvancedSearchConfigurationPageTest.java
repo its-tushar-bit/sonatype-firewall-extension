@@ -16,12 +16,14 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.index.IndexService;
 
+import com.codeborne.selenide.Configuration;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.matchText;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
@@ -50,7 +52,6 @@ public class AdvancedSearchConfigurationPageTest
     page.reIndexButton().shouldBe(disabled);
     page.saveButton().shouldBe(disabled);
     page.cancelButton().shouldBe(disabled);
-    page.reIndexingModal().shouldBe(hidden);
 
     // Opt-In
     page.isEnabledCheckbox().click();
@@ -62,7 +63,6 @@ public class AdvancedSearchConfigurationPageTest
     page.reIndexButton().shouldBe(enabled);
     page.saveButton().shouldBe(disabled);
     page.cancelButton().shouldBe(disabled);
-    page.reIndexingModal().shouldBe(hidden);
 
     // Verify state in backend
     assertThat(isAdvancedSearchEnabled()).isTrue();
@@ -78,7 +78,6 @@ public class AdvancedSearchConfigurationPageTest
     page.reIndexButton().shouldBe(enabled);
     page.saveButton().shouldBe(disabled);
     page.cancelButton().shouldBe(disabled);
-    page.reIndexingModal().shouldBe(hidden);
 
     // Opt-Out
     page.isEnabledCheckbox().click();
@@ -90,7 +89,6 @@ public class AdvancedSearchConfigurationPageTest
     page.reIndexButton().shouldBe(disabled);
     page.saveButton().shouldBe(disabled);
     page.cancelButton().shouldBe(disabled);
-    page.reIndexingModal().shouldBe(hidden);
 
     // Verify state in backend
     assertThat(isAdvancedSearchEnabled()).isFalse();
@@ -109,9 +107,15 @@ public class AdvancedSearchConfigurationPageTest
     refreshOrOpen(AdvancedSearchConfigurationPage.url());
 
     page.reIndexButton().shouldBe(enabled).click();
-    page.reIndexingModal().shouldBe(visible);
-    page.reIndexingModal().closeButton().shouldBe(enabled).click();
-    page.reIndexingModal().shouldBe(hidden);
+    long currentTimeout = Configuration.timeout;
+    try {
+      // An Advanced Search reindex can take longer than the normal timeout to complete
+      Configuration.timeout = 10000;
+      page.lastIndexTime().should(matchText(".+"));
+    }
+    finally {
+      Configuration.timeout = currentTimeout;
+    }
   }
 
   @Test

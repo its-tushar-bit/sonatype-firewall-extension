@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.search;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -18,6 +19,9 @@ public class AdvancedSearchServiceAuthzTest
 {
   @Inject
   private AdvancedSearchService advancedSearchService;
+
+  @Inject
+  private TaskScheduler taskScheduler;
 
   @Test
   public void testSetStatus_Authorized() {
@@ -38,6 +42,7 @@ public class AdvancedSearchServiceAuthzTest
 
   @Test
   public void testGetStatus_Authorized() {
+    taskScheduler.createScheduler();
     login();
     advancedSearchService.getStatus();
   }

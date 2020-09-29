@@ -6,12 +6,17 @@
 import axios from 'axios';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
-import { save } from '../../../../main/frontend/configuration/advancedSearch/advancedSearchConfigActions';
-import { getAdvancedSearchConfigUrl } from '../../../../main/frontend/util/CLMLocation';
+import {
+  pollState,
+  reIndex,
+  save
+} from '../../../../main/frontend/configuration/advancedSearch/advancedSearchConfigActions';
+import { getAdvancedSearchConfigUrl, getAdvancedSearchIndexUrl } from '../../../../main/frontend/util/CLMLocation';
 
 describe('advancedSearchConfigActions', function() {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios),
-      advancedSearchConfigUrl = getAdvancedSearchConfigUrl();
+      advancedSearchConfigUrl = getAdvancedSearchConfigUrl(),
+      advancedSearchIndexUrl = getAdvancedSearchIndexUrl();
 
   describe('save', function() {
     let store, state;
@@ -113,6 +118,134 @@ describe('advancedSearchConfigActions', function() {
 
         let actions = store.getActions();
         expect(actions.length).toBe(1);
+      });
+    });
+  });
+
+  describe('reIndex', function() {
+    let store, state;
+
+    beforeEach(function() {
+      state = {
+        advancedSearchConfig: {
+          formState: {
+            lastIndexTime: '42'
+          }
+        }
+      };
+
+      store = SpecUtil.mockReduxStore(state);
+    });
+
+    afterEach(function() {
+      expect(axios.post).toHaveBeenCalledWith(advancedSearchIndexUrl, {});
+    });
+
+    describe('after a successful POST call', function() {
+      it('dispatches an ADVANCED_SEARCH_TRIGGER_RE_INDEX action', function(done) {
+        mockAxiosCalls({
+          post: {
+            [advancedSearchIndexUrl]: Promise.resolve({})
+          }
+        });
+
+        store.dispatch(reIndex())
+            .then(() => {
+              actions = store.getActions();
+              expect(actions.length).toBe(1);
+              expect(actions[0].type).toBe('ADVANCED_SEARCH_TRIGGER_RE_INDEX');
+              expect(actions[0].payload).toBeUndefined();
+              done();
+            });
+
+        let actions = store.getActions();
+        expect(actions.length).toBe(0);
+      });
+    });
+
+    describe('after a failed POST call', function() {
+      it('dispatches an ADVANCED_SEARCH_RE_INDEX_FAILED action', function(done) {
+        mockAxiosCalls({
+          post: {
+            [advancedSearchIndexUrl]: Promise.reject('error!')
+          }
+        });
+
+        store.dispatch(reIndex())
+            .then(() => {
+              actions = store.getActions();
+              expect(actions.length).toBe(1);
+              expect(actions[0].type).toBe('ADVANCED_SEARCH_RE_INDEX_FAILED');
+              expect(actions[0].payload).toBe('error!');
+              done();
+            });
+
+        let actions = store.getActions();
+        expect(actions.length).toBe(0);
+      });
+    });
+  });
+
+  describe('pollState', function() {
+    let store, state;
+
+    beforeEach(function() {
+      state = {
+        advancedSearchConfig: {
+          formState: {
+            lastIndexTime: '42'
+          }
+        }
+      };
+
+      store = SpecUtil.mockReduxStore(state);
+    });
+
+    afterEach(function() {
+      expect(axios.get).toHaveBeenCalledWith(advancedSearchConfigUrl);
+    });
+
+    describe('after a successful GET call', function() {
+      it('dispatches an ADVANCED_SEARCH_POLL_STATE_SUCCESS action', function(done) {
+        mockAxiosCalls({
+          get: {
+            [advancedSearchConfigUrl]: Promise.resolve({ data: {} })
+          }
+        });
+
+        store.dispatch(pollState())
+            .then(() => {
+              actions = store.getActions();
+              expect(actions.length).toBe(1);
+              expect(actions[0].type).toBe('ADVANCED_SEARCH_POLL_STATE_SUCCESS');
+              expect(actions[0].payload).toEqual({});
+              done();
+            });
+
+        let actions = store.getActions();
+        expect(actions.length).toBe(0);
+      });
+    });
+
+    describe('after a failed GET call', function() {
+      it('dispatches an ADVANCED_SEARCH_POLL_STATE_FAILED action', function(done) {
+        mockAxiosCalls({
+          get: {
+            [advancedSearchConfigUrl]: Promise.reject('error!')
+          }
+        });
+
+        store.dispatch(pollState())
+            .then(() => {
+              actions = store.getActions();
+              expect(actions.length).toBe(1);
+              expect(actions[0].type).toBe('ADVANCED_SEARCH_POLL_STATE_FAILED');
+              expect(actions[0].payload).toBe('error!');
+              done();
+            });
+
+        let actions = store.getActions();
+        expect(actions.length).toBe(0);
       });
     });
   });

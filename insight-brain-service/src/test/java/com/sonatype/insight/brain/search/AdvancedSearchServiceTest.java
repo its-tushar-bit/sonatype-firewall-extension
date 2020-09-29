@@ -12,6 +12,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -36,6 +37,9 @@ public class AdvancedSearchServiceTest
 
   @Inject
   private InsightWork insightWork;
+  
+  @Inject
+  private TaskScheduler taskScheduler;
 
   @Mock
   private TelemetrySender telemetrySenderMock;
@@ -68,12 +72,14 @@ public class AdvancedSearchServiceTest
 
   @Test
   public void testGetStatus_SearchDisabled() {
+    taskScheduler.createScheduler();
     AdvancedSearchStatusDTO status = advancedSearchService.getStatus();
     assertThat(status.isEnabled).isFalse();
   }
 
   @Test
   public void testGetStatus_SearchEnabled() {
+    taskScheduler.createScheduler();
     // Given Advanced Search is in enabled state..
     dao.update(new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true"));
     AdvancedSearchStatusDTO status = advancedSearchService.getStatus();
@@ -82,6 +88,7 @@ public class AdvancedSearchServiceTest
 
   @Test
   public void testGetStatus_NoIndex_NullLastIndexTime() {
+    taskScheduler.createScheduler();
     assertThat(advancedSearchService.getStatus().lastIndexTime).isNull();
     assertThat(insightWork.getSearchIndexDir()).doesNotExist();
   }
@@ -89,6 +96,7 @@ public class AdvancedSearchServiceTest
   @Test
   public void testGetStatus_Index_HasLastIndexTime() throws Exception {
     indexService.createSearchIndex();
+    taskScheduler.createScheduler();
     File segmentFile = Arrays.stream(insightWork.getSearchIndexDir().listFiles())
         .filter(file -> file.getName().startsWith("segment")).findFirst().get();
     long firstIndexTime = segmentFile.lastModified();
@@ -100,6 +108,25 @@ public class AdvancedSearchServiceTest
     long secondIndexTime = segmentFile.lastModified();
     assertThat(secondIndexTime).isGreaterThan(firstIndexTime);
     assertThat(advancedSearchService.getStatus().lastIndexTime).isEqualTo(secondIndexTime);
+  }
+
+  @Test
+  public void testGetStatus_FullIndexNotTriggered() {
+    taskScheduler.createScheduler();
+
+    assertThat(advancedSearchService.getStatus().isFullIndexTriggered).isFalse();
+  }
+
+  @Test
+  public void testGetStatus_FullIndexTriggered() {
+    taskScheduler.createScheduler();
+    indexService.start();
+
+    assertThat(advancedSearchService.getStatus().isFullIndexTriggered).isFalse();
+
+    indexService.createSearchIndexAsync();
+
+    assertThat(advancedSearchService.getStatus().isFullIndexTriggered).isTrue();
   }
 
   private boolean isAdvancedSearchEnabled() {

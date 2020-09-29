@@ -170,6 +170,20 @@ public class TaskScheduler
     scheduleTask(job, trigger);
   }
 
+  public boolean isJobTriggered(String name, Map<String, Object> data) {
+    try {
+      for (Trigger trigger : getScheduler().getTriggersOfJob(JobKey.jobKey(name))) {
+        if (data.equals(trigger.getJobDataMap().getWrappedMap())) {
+          return true;
+        }
+      }
+      return false;
+    }
+    catch (SchedulerException e) {
+      throw new RuntimeException(e.getMessage(), e);
+    }
+  }
+
   public void schedulePeriodicTask(Class<? extends Job> jobClass, String name, Duration interval) {
     JobDetail job = newJob(jobClass) //
         .withIdentity(name) //

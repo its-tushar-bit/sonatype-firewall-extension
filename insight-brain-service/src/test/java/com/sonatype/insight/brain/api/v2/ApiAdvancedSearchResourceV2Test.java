@@ -104,6 +104,6 @@ public class ApiAdvancedSearchResourceV2Test
 
   private void awaitIndexCompletion() {
     await().atMost(10, TimeUnit.SECONDS)
-        .until(() -> !getCLMServer().getInstance(IndexService.class).isFullIndexRunning());
+        .until(() -> !getCLMServer().getInstance(IndexService.class).isFullIndexTriggered());
   }
 }

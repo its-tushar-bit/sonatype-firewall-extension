@@ -85,8 +85,22 @@ export function reIndex() {
   };
 }
 
-export const ADVANCED_SEARCH_CLOSE_RE_INDEX_MODAL = 'ADVANCED_SEARCH_CLOSE_RE_INDEX_MODAL';
-export const closeReIndexModal = noPayloadActionCreator(ADVANCED_SEARCH_CLOSE_RE_INDEX_MODAL);
-
 export const ADVANCED_SEARCH_RE_INDEX_FAILED = 'ADVANCED_SEARCH_RE_INDEX_FAILED';
 const advancedSearchReindexFailed = payloadParamActionCreator(ADVANCED_SEARCH_RE_INDEX_FAILED);
+
+export const ADVANCED_SEARCH_POLL_STATE_SUCCESS = 'ADVANCED_SEARCH_POLL_STATE_SUCCESS';
+const pollStateSuccess = payloadParamActionCreator(ADVANCED_SEARCH_POLL_STATE_SUCCESS);
+export const ADVANCED_SEARCH_POLL_STATE_FAILED = 'ADVANCED_SEARCH_POLL_STATE_FAILED';
+const pollStateFailed = payloadParamActionCreator(ADVANCED_SEARCH_POLL_STATE_FAILED);
+
+export function pollState() {
+  return function(dispatch) {
+    return axios.get(getAdvancedSearchConfigUrl())
+        .then(({data}) => {
+          dispatch(pollStateSuccess(data));
+        })
+        .catch(error => {
+          dispatch(pollStateFailed(error));
+        });
+  };
+}

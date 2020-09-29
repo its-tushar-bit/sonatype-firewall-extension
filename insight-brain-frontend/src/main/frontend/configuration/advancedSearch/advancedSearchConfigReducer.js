@@ -15,17 +15,19 @@ import {
   ADVANCED_SEARCH_RESET_FORM,
   ADVANCED_SEARCH_SET_IS_ENABLED,
   ADVANCED_SEARCH_TRIGGER_RE_INDEX,
-  ADVANCED_SEARCH_CLOSE_RE_INDEX_MODAL,
   ADVANCED_SEARCH_RE_INDEX_FAILED,
-  ADVANCED_SEARCH_CONFIG_SAVE_SUBMIT_MASK_TIMER_DONE
+  ADVANCED_SEARCH_CONFIG_SAVE_SUBMIT_MASK_TIMER_DONE,
+  ADVANCED_SEARCH_POLL_STATE_SUCCESS,
+  ADVANCED_SEARCH_POLL_STATE_FAILED
 } from './advancedSearchConfigActions';
 
-const initialState = {
+const initialState = Object.freeze({
   // State of data held in form.
   // Same shape with serverData.
   formState: {
     isEnabled: false,
-    lastIndexTime: null
+    lastIndexTime: null,
+    isFullIndexTriggered: false
   },
   // Everything but data. State of the view.
   // Is the page being loaded? Is the submitMask being shown?
@@ -34,13 +36,12 @@ const initialState = {
     error: null,
     submitMaskState: null,
     submitMaskMessage: null,
-    isDirty: false,
-    showReIndexModal: false
+    isDirty: false
   },
   // State of data in server side.
   // Same shape with formState.
   serverData: null
-};
+});
 
 function loadRequested() {
   return {
@@ -128,9 +129,12 @@ function setIsAdvancedSearchEnabled(payload, state) {
 function triggerReIndex(payload, state) {
   return {
     ...state,
+    formState: {
+      ...state.formState,
+      isFullIndexTriggered: true
+    },
     viewState: {
-      ...state.viewState,
-      showReIndexModal: true
+      ...state.viewState
     }
   };
 }
@@ -138,20 +142,13 @@ function triggerReIndex(payload, state) {
 function advancedSearchReIndexFailed(payload, state) {
   return {
     ...state,
+    formState: {
+      ...state.formState,
+      isFullIndexTriggered: false
+    },
     viewState: {
       ...state.viewState,
-      showReIndexModal: false,
       error: payload
-    }
-  };
-}
-
-function closeReIndexModal(payload, state) {
-  return {
-    ...state,
-    viewState: {
-      ...state.viewState,
-      showReIndexModal: false
     }
   };
 }
@@ -177,6 +174,32 @@ function resetForm(payload, state) {
   };
 }
 
+function pollStateSuccess(payload, state) {
+  return {
+    ...state,
+    viewState: {
+      ...state.viewState,
+      error: null
+    },
+    formState: payload,
+    serverData: payload
+  };
+}
+
+function pollStateFailed(payload, state) {
+  return {
+    ...state,
+    formState: {
+      ...state.formState,
+      isFullIndexTriggered: false
+    },
+    viewState: {
+      ...state.viewState,
+      error: payload
+    }
+  };
+}
+
 const reducerActionMap = {
   [ADVANCED_SEARCH_CONFIG_LOAD_REQUESTED]: loadRequested,
   [ADVANCED_SEARCH_CONFIG_LOAD_FULFILLED]: loadFulfilled,
@@ -187,9 +210,10 @@ const reducerActionMap = {
   [ADVANCED_SEARCH_CONFIG_SAVE_FAILED]: saveFailed,
   [ADVANCED_SEARCH_RESET_FORM]: resetForm,
   [ADVANCED_SEARCH_TRIGGER_RE_INDEX]: triggerReIndex,
-  [ADVANCED_SEARCH_CLOSE_RE_INDEX_MODAL]: closeReIndexModal,
   [ADVANCED_SEARCH_RE_INDEX_FAILED]: advancedSearchReIndexFailed,
-  [ADVANCED_SEARCH_CONFIG_SAVE_SUBMIT_MASK_TIMER_DONE]: resetSubmitMaskState
+  [ADVANCED_SEARCH_CONFIG_SAVE_SUBMIT_MASK_TIMER_DONE]: resetSubmitMaskState,
+  [ADVANCED_SEARCH_POLL_STATE_SUCCESS]: pollStateSuccess,
+  [ADVANCED_SEARCH_POLL_STATE_FAILED]: pollStateFailed
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

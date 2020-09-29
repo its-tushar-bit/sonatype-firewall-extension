@@ -10,4 +10,6 @@ public class AdvancedSearchStatusDTO
   public boolean isEnabled;
 
   public Long lastIndexTime;
+
+  public boolean isFullIndexTriggered;
 }

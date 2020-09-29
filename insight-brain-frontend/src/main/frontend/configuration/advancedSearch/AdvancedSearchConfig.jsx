@@ -8,13 +8,13 @@ import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import LoadWrapper from '../../react/LoadWrapper';
 import MaximizedContainer from '../../react/MaximizedContainer';
+import PollingContainer from '../../react/PollingContainer';
 import NxExternalLink from '../../react/NxExternalLink';
 import {
   NxButton,
   NxCheckbox,
   NxErrorAlert,
   NxFontAwesomeIcon,
-  NxModal,
   NxSubmitMask
 } from '@sonatype/react-shared-components';
 
@@ -28,7 +28,7 @@ export default function AdvancedSearchConfig(props) {
     setIsEnabled,
     resetForm,
     reIndex,
-    closeReIndexModal
+    pollState
   } = props;
 
   // View State
@@ -37,7 +37,6 @@ export default function AdvancedSearchConfig(props) {
     submitMaskState,
     submitMaskMessage,
     isDirty,
-    showReIndexModal,
     error,
     isAuthorized
   } = props;
@@ -45,31 +44,14 @@ export default function AdvancedSearchConfig(props) {
   // Form State
   const {
     isEnabled,
-    lastIndexTime
+    lastIndexTime,
+    isFullIndexTriggered
   } = props;
 
   useEffect(load, []);
 
-  const reIndexingModal = (
-    <NxModal id="advanced-search-re-indexing-modal" onClose={closeReIndexModal}>
-      <header className="nx-modal-header">
-        <h2 className="nx-h2">Re-Indexing</h2>
-      </header>
-      <div className="nx-modal-content">
-        <NxFontAwesomeIcon icon={faSyncAlt} spin={true} />
-        Re-indexing is in progress. Closing this modal will not interrupt the process.
-      </div>
-      <footer className="nx-modal-footer">
-        <div className="nx-btn-bar">
-          <NxButton type="button"
-                    id="advanced-search-re-indexing-modal-close-button"
-                    onClick={closeReIndexModal}
-                    className="nx-btn">
-            Close
-          </NxButton>
-        </div>
-      </footer>
-    </NxModal>
+  const lastIndexTimePolling = (
+    <PollingContainer pollingAction={pollState}/>
   );
 
   function onSubmit(evt) {
@@ -160,7 +142,7 @@ export default function AdvancedSearchConfig(props) {
                       <div className="nx-form-group">
                         <button id="advanced-search-config-re-index-button"
                                 onClick={reIndexHandler}
-                                disabled={!isEnabled}
+                                disabled={!isEnabled || isFullIndexTriggered}
                                 className="nx-btn">
                           Re-Index
                         </button>
@@ -168,8 +150,22 @@ export default function AdvancedSearchConfig(props) {
                     </fieldset>
                   </div>
                   <div className="nx-form-group">
-                    <span className="nx-sub-label">Last Indexed:&nbsp;
-                      {lastIndexTime ? new Date(lastIndexTime).toLocaleString() : ''}</span>
+                    {
+                      isFullIndexTriggered &&
+                      <span className="nx-sub-label">
+                        <NxFontAwesomeIcon icon={faSyncAlt} spin={true}/>
+                        <span>Reindexing is in progress. Leaving this page will not interrupt this process.</span>
+                      </span>
+                    }
+                    {
+                      !isFullIndexTriggered &&
+                      <span className="nx-sub-label">
+                        <span>Last Indexed: </span>
+                        <span id="advanced-search-last-index-time">
+                          {lastIndexTime ? new Date(lastIndexTime).toLocaleString() : ''}
+                        </span>
+                      </span>
+                    }
                   </div>
                 </div>
                 <div className='iq-tile-footer'>
@@ -193,7 +189,7 @@ export default function AdvancedSearchConfig(props) {
           </div>
         </div>
         {
-          showReIndexModal && reIndexingModal
+          isFullIndexTriggered && lastIndexTimePolling
         }
       </MaximizedContainer>
     </LoadWrapper> :
@@ -216,8 +212,8 @@ AdvancedSearchConfig.propTypes = {
   submitMaskState: PropTypes.bool,
   submitMaskMessage: PropTypes.string,
   reIndex: PropTypes.func.isRequired,
-  showReIndexModal: PropTypes.bool.isRequired,
-  closeReIndexModal: PropTypes.func.isRequired,
+  isFullIndexTriggered: PropTypes.bool.isRequired,
   lastIndexTime: PropTypes.number,
-  isAuthorized: PropTypes.bool.isRequired
+  isAuthorized: PropTypes.bool.isRequired,
+  pollState: PropTypes.func.isRequired
 };

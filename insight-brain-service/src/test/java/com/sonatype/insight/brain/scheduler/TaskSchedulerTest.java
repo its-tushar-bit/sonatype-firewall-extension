@@ -326,6 +326,21 @@ public class TaskSchedulerTest
   }
 
   @Test
+  public void testIsJobTriggered() throws Exception {
+    TestJob.setDurations(execution -> 5000);
+    Scheduler scheduler = taskScheduler.createScheduler();
+    scheduler.start();
+    taskScheduler.scheduleDailyTask(TestJob.class, TestJob.NAME, LocalTime.now().plusHours(4));
+    assertThat(taskScheduler.isJobTriggered(TestJob.NAME, Collections.emptyMap())).isTrue();
+    assertThat(TestJob.getExecutions()).isZero();
+    taskScheduler.triggerTaskNow(TestJob.NAME, Collections.singletonMap("key", "true"));
+    assertThat(taskScheduler.isJobTriggered(TestJob.NAME, Collections.singletonMap("key", "false"))).isFalse();
+    assertThat(taskScheduler.isJobTriggered(TestJob.NAME, Collections.singletonMap("key", "true"))).isTrue();
+    await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
+        assertThat(taskScheduler.isJobTriggered(TestJob.NAME, Collections.singletonMap("key", "true"))).isFalse());
+  }
+
+  @Test
   public void testSchedulePeriodicTask_RefireAfterError() throws Exception {
     Scheduler scheduler = taskScheduler.createScheduler();
     TestJob.setShouldThrowException(true);

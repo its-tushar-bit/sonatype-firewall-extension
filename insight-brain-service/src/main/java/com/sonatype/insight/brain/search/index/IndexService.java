@@ -59,7 +59,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
-import com.google.common.annotations.VisibleForTesting;
 import io.dropwizard.lifecycle.Managed;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
@@ -125,8 +124,6 @@ public class IndexService
   private final TaskScheduler taskScheduler;
 
   private final LuceneComponents luceneComponents;
-
-  private volatile boolean fullIndexRunning;
 
   public boolean disableForTesting;
 
@@ -207,7 +204,6 @@ public class IndexService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void createSearchIndexAsync() {
-    fullIndexRunning = true;
     taskScheduler.triggerTaskNow(TASK_NAME, Collections.singletonMap(TASK_PARAM_INDEX_ALL, "true"));
   }
 
@@ -215,12 +211,7 @@ public class IndexService
   public void execute(JobExecutionContext context) {
     try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
       if (context.getMergedJobDataMap().containsKey(TASK_PARAM_INDEX_ALL)) {
-        try {
-          createSearchIndex();
-        }
-        finally {
-          fullIndexRunning = false;
-        }
+        createSearchIndex();
       }
       else {
         updateIndex();
@@ -238,9 +229,8 @@ public class IndexService
     }
   }
 
-  @VisibleForTesting
-  public boolean isFullIndexRunning() {
-    return fullIndexRunning;
+  public boolean isFullIndexTriggered() {
+    return taskScheduler.isJobTriggered(TASK_NAME, Collections.singletonMap(TASK_PARAM_INDEX_ALL, "true"));
   }
 
   public void createSearchIndex() throws IOException {

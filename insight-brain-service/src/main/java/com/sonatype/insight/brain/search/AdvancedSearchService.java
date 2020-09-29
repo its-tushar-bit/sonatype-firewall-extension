@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.service.InsightWork;
 
@@ -34,15 +35,19 @@ public class AdvancedSearchService
 
   private final LuceneComponents luceneComponents;
 
+  private final IndexService indexService;
+
   @Inject
   public AdvancedSearchService(
       SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
       InsightWork insightWork,
-      LuceneComponents luceneComponents)
+      LuceneComponents luceneComponents,
+      IndexService indexService)
   {
     this.dao = systemConfigurationPropertyDAO;
     this.insightWork = insightWork;
     this.luceneComponents = luceneComponents;
+    this.indexService = indexService;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -59,6 +64,7 @@ public class AdvancedSearchService
     dto.isEnabled =
         Boolean.parseBoolean(dao.getByName(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED).getValue());
     dto.lastIndexTime = getLastIndexTime();
+    dto.isFullIndexTriggered = indexService.isFullIndexTriggered();
     return dto;
   }
 

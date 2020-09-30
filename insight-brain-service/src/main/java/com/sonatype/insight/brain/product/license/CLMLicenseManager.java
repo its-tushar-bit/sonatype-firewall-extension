@@ -81,6 +81,8 @@ public class CLMLicenseManager
 
   public static final String MIGRATION_TRACKER_EXTERNAL_DB = "external-database";
 
+  public static final String PRODUCT_ADVANCED_DEVELOPMENT_PACK = "Advanced Development Pack";
+
   // Visible for testing
   static final String TASK_NAME = "ProductLicenseLoad";
 
@@ -311,6 +313,9 @@ public class CLMLicenseManager
         break;
       case ProductLicenseDetails.PRODUCT_RISK:
         marketingNameSuffix = PRODUCT_AUDITOR;
+        break;
+      case ProductLicenseDetails.PRODUCT_ADVANCED_DEVELOPMENT_PACK:
+        marketingNameSuffix = PRODUCT_ADVANCED_DEVELOPMENT_PACK;
         break;
       default:
         return null;

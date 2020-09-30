@@ -78,7 +78,7 @@ public class AuthenticationTest
 
   @Test
   public void testJavaLangErrorThrownDuringAuthentication() {
-    Error error = new Error("Test");
+    Error error = new OutOfMemoryError("Test");
     when(mockRealm.supports(any(AuthenticationToken.class))).thenThrow(new RuntimeException(error));
 
     assertThatExceptionOfType(AuthenticationException.class).isThrownBy(() -> {

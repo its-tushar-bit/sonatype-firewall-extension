@@ -84,6 +84,16 @@ public class ApiAdvancedSearchResourceV2Test
   }
 
   @Test
+  public void testSearchIndex_TokenMgrError() throws Exception {
+    restRequest().path(ApiAdvancedSearchResourceV2.INDEX_PATH).post();
+    awaitIndexCompletion();
+
+    HttpResponse response = restRequest().query("query", "\"").get();
+
+    assertResponseStatus(400, response);
+  }
+
+  @Test
   public void testSearchIndex_Unauthenticated() throws Exception {
     HttpResponse response =
         restRequest().anon().query("query", FieldIdentifier.APPLICATION_ID.label + ":" + "i-am-anon").get();

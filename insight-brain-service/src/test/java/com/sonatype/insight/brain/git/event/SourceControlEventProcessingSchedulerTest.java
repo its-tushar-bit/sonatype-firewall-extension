@@ -5,118 +5,155 @@
  */
 package com.sonatype.insight.brain.git.event;
 
-import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
+import com.sonatype.insight.brain.git.VerifiableLoggingTestBase;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 
-import javax.inject.Inject;
-
-import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.security.MDCUsernameScope;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
-import com.sonatype.insight.license.model.LicensedFeature;
-
-import com.google.inject.Binder;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.quartz.JobExecutionContext;
-import org.slf4j.MDC;
+import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class SourceControlEventProcessingSchedulerTest
-    extends AbstractComponentTest
+    extends VerifiableLoggingTestBase
 {
-  @Inject
-  SourceControlEventProcessingScheduler sourceControlEventProcessingScheduler;
+  @Mock
+  private SourceControlEventService sourceControlEventService;
 
   @Mock
-  SourceControlEventService sourceControlEventServiceMock;
+  private ProductLicense productLicense;
 
-  @Inject
-  private InsightConfig insightConfig;
-
-  @Inject
-  private TestProductLicense testProductLicense;
-
-  @Mock
-  private TaskScheduler taskSchedulerMock;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(SourceControlEventService.class).toInstance(sourceControlEventServiceMock);
-    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
-    super.configure(binder);
+  public SourceControlEventProcessingSchedulerTest() {
+    super(SourceControlEventProcessingScheduler.class);
   }
 
   @Test
-  public void testStart_FeatureDisabled() throws Exception {
-    setFeatureFlagEnabled(false);
-    assertThat(insightConfig.isFeatureEnabled(Feature.PR_COMMENTING)).isFalse();
+  public void testSourceControlEventProcessingScheduler_startAndStop() throws Exception {
+    // given: scheduler instance with valid product license
+    final int delaySeconds = 2;
+    final int intervalSeconds = 1;
+    SourceControlEventProcessingScheduler scheduler =
+        new SourceControlEventProcessingScheduler(sourceControlEventService, productLicense, delaySeconds,
+            intervalSeconds);
+    when(productLicense.hasFeature(any())).thenReturn(true);
 
-    sourceControlEventProcessingScheduler.start();
+    // when: start scheduler and wait (less than full initial delay)
+    scheduler.start();
+    Thread.sleep(1500);
 
-    verifyNoInteractions(taskSchedulerMock);
+    // then: no invocations of event processing yet
+    verify(sourceControlEventService, never()).processEvents();
+    assertThatLogMessagesEqual(
+        info("Scheduled processing of source control events every 1 second(s) starting in 2 second(s)")
+    );
+
+    // when: wait 3 event processing cycles
+    Thread.sleep(3000);
+
+    // then: event service invoked 3 times
+    verify(sourceControlEventService, times(3)).processEvents();
+    assertThatLogMessagesEqual(
+        info("Scheduled processing of source control events every 1 second(s) starting in 2 second(s)"),
+        debug("Commencing source control event processing cycle"),
+        debug("0 source control events submitted for execution"),
+        debug("Source control event processing cycle complete"),
+        debug("Commencing source control event processing cycle"),
+        debug("0 source control events submitted for execution"),
+        debug("Source control event processing cycle complete"),
+        debug("Commencing source control event processing cycle"),
+        debug("0 source control events submitted for execution"),
+        debug("Source control event processing cycle complete")
+    );
+
+    // when: stop scheduler and wait (2 intervals)
+    scheduler.stop();
+    Thread.sleep(2000);
+
+    // then: scheduler stopped and no new invocations of the event processing service
+    verify(sourceControlEventService, times(3)).processEvents();
+    assertThatLogMessagesEqual(
+        info("Scheduled processing of source control events every 1 second(s) starting in 2 second(s)"),
+        debug("Commencing source control event processing cycle"),
+        debug("0 source control events submitted for execution"),
+        debug("Source control event processing cycle complete"),
+        debug("Commencing source control event processing cycle"),
+        debug("0 source control events submitted for execution"),
+        debug("Source control event processing cycle complete"),
+        debug("Commencing source control event processing cycle"),
+        debug("0 source control events submitted for execution"),
+        debug("Source control event processing cycle complete"),
+        info("Stopped source control event processing")
+    );
   }
 
   @Test
-  public void testStart_FeatureEnabled() throws Exception {
-    setFeatureFlagEnabled(true);
-    assertThat(insightConfig.isFeatureEnabled(Feature.PR_COMMENTING)).isTrue();
+  public void testSourceControlEventProcessingScheduler_exceptionInEventProcessing() throws Exception {
+    // given: scheduler instance with polling service that throws IO exceptions
+    final int delaySeconds = 1;
+    final int intervalSeconds = 1;
+    SourceControlEventProcessingScheduler scheduler =
+        new SourceControlEventProcessingScheduler(sourceControlEventService, productLicense, delaySeconds,
+            intervalSeconds);
+    doThrow(new RuntimeException("some runtime exception")).when(sourceControlEventService).processEvents();
+    when(productLicense.hasFeature(any())).thenReturn(true);
 
-    sourceControlEventProcessingScheduler.start();
+    // when: start scheduler, wait (delay + 1 interval)
+    scheduler.start();
+    Thread.sleep(1500);
 
-    verify(taskSchedulerMock).schedulePeriodicTask(SourceControlEventProcessingScheduler.class,
-        SourceControlEventProcessingScheduler.NAME,
-        Duration.ofSeconds(SourceControlEventProcessingScheduler.SOURCE_CONTROL_EVENT_PROCESSING_INTERVAL_SECONDS));
-  }
+    // then : expecting exception was thrown, caught and handled
+    verify(sourceControlEventService, times(1)).processEvents();
+    assertThatLogMessagesEqual(
+        info("Scheduled processing of source control events every 1 second(s) starting in 1 second(s)"),
+        debug("Commencing source control event processing cycle"),
+        error("some runtime exception"),
+        debug("Source control event processing cycle complete")
+    );
 
-  @Test
-  public void testExecute() {
-    SourceControlEventProcessingScheduler sourceControlEventProcessingSchedulerSpy =
-        spy(sourceControlEventProcessingScheduler);
-    doAnswer(invocationOnMock -> {
-      assertThat(MDC.get(MDCUsernameScope.USERNAME)).isEqualTo(MDCUsernameScope.SYSTEM);
-      return null;
-    }).when(sourceControlEventProcessingSchedulerSpy).processSourceControlEvents();
+    // when: throw runtime exception instead and wait another interval
+    doThrow(new RuntimeException("some runtime exception")).when(sourceControlEventService).processEvents();
+    Thread.sleep(1000);
 
-    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forUser("username")) {
-      sourceControlEventProcessingSchedulerSpy.execute(mock(JobExecutionContext.class));
-    }
+    // then: polling still occurring and runtime exception was handled
+    verify(sourceControlEventService, times(2)).processEvents();
+    assertThatLogMessagesEqual(
+        info("Scheduled processing of source control events every 1 second(s) starting in 1 second(s)"),
+        debug("Commencing source control event processing cycle"),
+        error("some runtime exception"),
+        debug("Source control event processing cycle complete"),
+        debug("Commencing source control event processing cycle"),
+        error("some runtime exception"),
+        debug("Source control event processing cycle complete")
+    );
 
-    verify(sourceControlEventProcessingSchedulerSpy).processSourceControlEvents();
-  }
+    // when: stop throwing and wait
+    doReturn(0).when(sourceControlEventService).processEvents();
+    Thread.sleep(1000);
 
-  @Test
-  public void testMonitorPullRequestsForCommenting_Unlicensed() {
-    testProductLicense.setFeatures();
-    assertThat(testProductLicense.hasFeature(LicensedFeature.AUTOMATION)).isFalse();
+    // then: polling still occurring
+    verify(sourceControlEventService, times(3)).processEvents();
+    assertThatLogMessagesEqual(
+        info("Scheduled processing of source control events every 1 second(s) starting in 1 second(s)"),
+        debug("Commencing source control event processing cycle"),
+        error("some runtime exception"),
+        debug("Source control event processing cycle complete"),
+        debug("Commencing source control event processing cycle"),
+        error("some runtime exception"),
+        debug("Source control event processing cycle complete"),
+        debug("Commencing source control event processing cycle"),
+        debug("0 source control events submitted for execution"),
+        debug("Source control event processing cycle complete")
+    );
 
-    sourceControlEventProcessingScheduler.processSourceControlEvents();
-
-    verifyNoInteractions(sourceControlEventServiceMock);
-  }
-
-  @Test
-  public void testMonitorPullRequestsForCommenting_Licensed() throws Exception {
-    assertThat(testProductLicense.hasFeature(LicensedFeature.AUTOMATION)).isTrue();
-
-    sourceControlEventProcessingScheduler.processSourceControlEvents();
-
-    verify(sourceControlEventServiceMock).processEvents();
-  }
-
-  private void setFeatureFlagEnabled(boolean featureFlagEnabled) {
-    Map<String, Boolean> features = new HashMap<>();
-    features.put(Feature.PR_COMMENTING.getFlag(), featureFlagEnabled);
-    insightConfig.setFeatures(features);
+    // cleanup: stop the scheduler so as not to interfere with other tests
+    scheduler.stop();
   }
 }

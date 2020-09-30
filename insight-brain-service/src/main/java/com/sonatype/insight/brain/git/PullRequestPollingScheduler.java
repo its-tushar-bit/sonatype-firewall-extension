@@ -5,61 +5,75 @@
  */
 package com.sonatype.insight.brain.git;
 
-import java.time.Duration;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.security.MDCUsernameScope;
+import com.sonatype.insight.brain.security.SystemRunnable;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.dropwizard.lifecycle.Managed;
-import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
-@DisallowConcurrentExecution
 public class PullRequestPollingScheduler
-    implements Managed, Job
+    implements Managed
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestPollingScheduler.class);
 
-  // Visible for testing
-  static final int PULL_REQUEST_MONITORING_INTERVAL_SECONDS = 60;
+  private static final int PULL_REQUEST_MONITORING_DELAY_SECONDS = 30;
 
-  // Visible for testing
-  static final String NAME = "PullRequestPolling";
+  private static final int PULL_REQUEST_MONITORING_INTERVAL_SECONDS = 60;
 
   private final PullRequestPollingService pullRequestPollingService;
 
   private final ProductLicense productLicense;
 
+  private ScheduledExecutorService scheduledExecutorService;
+
   private final InsightConfig insightConfig;
 
-  private final TaskScheduler taskScheduler;
+  private final int pullRequestMonitoringIntervalSeconds;
+
+  private final int pullRequestMonitoringDelaySeconds;
 
   public boolean disableForTesting;
 
   @Inject
   public PullRequestPollingScheduler(
+      final PullRequestPollingService pullRequestPollingService,
+      final ProductLicense productLicense,
+      final InsightConfig insightConfig)
+  {
+    this(pullRequestPollingService, productLicense, insightConfig, PULL_REQUEST_MONITORING_DELAY_SECONDS,
+        PULL_REQUEST_MONITORING_INTERVAL_SECONDS);
+  }
+
+  @VisibleForTesting
+  PullRequestPollingScheduler(
       PullRequestPollingService pullRequestPollingService,
       ProductLicense productLicense,
-      InsightConfig insightConfig,
-      TaskScheduler taskScheduler)
+      final InsightConfig insightConfig,
+      int pullRequestMonitoringDelaySeconds,
+      int pullRequestMonitoringIntervalSeconds)
   {
     this.pullRequestPollingService = pullRequestPollingService;
     this.productLicense = productLicense;
     this.insightConfig = insightConfig;
-    this.taskScheduler = taskScheduler;
+    this.pullRequestMonitoringDelaySeconds = pullRequestMonitoringDelaySeconds;
+    this.pullRequestMonitoringIntervalSeconds = pullRequestMonitoringIntervalSeconds;
   }
 
   @Override
@@ -73,38 +87,44 @@ public class PullRequestPollingScheduler
   }
 
   @Override
-  public void stop() {
-    // noop
+  public void stop() throws Exception {
+    stopPullRequestMonitoring();
+  }
+
+  private ScheduledExecutorService newExecutor() {
+    ThreadFactory threadFactory =
+        new ThreadFactoryBuilder().setNameFormat("PullRequestMonitor-%d").setDaemon(true).build();
+    return new ScheduledThreadPoolExecutor(1, threadFactory);
   }
 
   private void startPullRequestMonitoring() {
-    if (disableForTesting) {
+    if (scheduledExecutorService != null || disableForTesting) {
       return;
     }
-    taskScheduler.schedulePeriodicTask(PullRequestPollingScheduler.class, NAME,
-        Duration.ofSeconds(PULL_REQUEST_MONITORING_INTERVAL_SECONDS));
-    log.info("Scheduled monitoring of SCM pull requests every {} second(s)", PULL_REQUEST_MONITORING_INTERVAL_SECONDS);
+    scheduledExecutorService = newExecutor();
+    Runnable pullRequestMonitoringTask = new SystemRunnable(() -> {
+      try {
+        monitorPullRequestsForCommenting();
+      }
+      catch (RuntimeException e) {
+        log.warn("Failed to monitor pull requests", e);
+      }
+    });
+    scheduledExecutorService.scheduleAtFixedRate(pullRequestMonitoringTask, pullRequestMonitoringDelaySeconds,
+        pullRequestMonitoringIntervalSeconds, TimeUnit.SECONDS);
+    log.info("Scheduled monitoring of SCM pull requests every {} second(s) starting in {} second(s)",
+        pullRequestMonitoringIntervalSeconds, pullRequestMonitoringDelaySeconds);
   }
 
-  @Override
-  public void execute(JobExecutionContext context) {
-    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
-      monitorPullRequestsForCommenting();
-    }
-    catch (Exception e) {
-      log.error("Pull request monitoring error: {}", e.getMessage(), e);
-    }
-    catch (Throwable t) {
-      // Try to log to stderr before trying the standard logging because the standard logging may not be operational
-      // at this point.
-      t.printStackTrace();
-      log.error(t.getMessage(), t);
-      System.exit(1);
+  private void stopPullRequestMonitoring() {
+    if (scheduledExecutorService != null) {
+      scheduledExecutorService.shutdown();
+      scheduledExecutorService = null;
+      log.info("Stopped SCM pull request monitoring");
     }
   }
 
-  // Visible for testing
-  void monitorPullRequestsForCommenting() {
+  private void monitorPullRequestsForCommenting() {
     if (checkLicense()) {
       log.debug("Commencing pull request polling cycle");
 

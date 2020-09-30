@@ -5,23 +5,22 @@
  */
 package com.sonatype.insight.brain.git.event;
 
-import java.time.Duration;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.security.MDCUsernameScope;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
+import com.sonatype.insight.brain.security.SystemRunnable;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.dropwizard.lifecycle.Managed;
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,12 +33,13 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 public class SourceControlEventProcessingScheduler
-    implements Managed, Job
+    implements Managed
 {
   private static final Logger log = LoggerFactory.getLogger(SourceControlEventProcessingScheduler.class);
 
-  @VisibleForTesting
   static final int SOURCE_CONTROL_EVENT_PROCESSING_INTERVAL_SECONDS = 15;
+
+  static final int SOURCE_CONTROL_EVENT_PROCESSING_DELAY_SECONDS = 30;
 
   @VisibleForTesting
   static final String NAME = "SourceControlEventProcessing";
@@ -48,66 +48,74 @@ public class SourceControlEventProcessingScheduler
 
   private final ProductLicense productLicense;
 
-  private final InsightConfig insightConfig;
+  private ScheduledExecutorService scheduledExecutorService;
 
-  private final TaskScheduler taskScheduler;
+  private final int sourceControlEventProcessingIntervalSeconds;
+
+  private final int sourceControlEventProcessingDelaySeconds;
 
   public boolean disableForTesting;
 
   @Inject
   public SourceControlEventProcessingScheduler(
       SourceControlEventService sourceControlEventService,
+      ProductLicense productLicense)
+  {
+    this(sourceControlEventService, productLicense, SOURCE_CONTROL_EVENT_PROCESSING_DELAY_SECONDS,
+        SOURCE_CONTROL_EVENT_PROCESSING_INTERVAL_SECONDS);
+  }
+
+  @VisibleForTesting
+  SourceControlEventProcessingScheduler(
+      SourceControlEventService sourceControlEventService,
       ProductLicense productLicense,
-      InsightConfig insightConfig,
-      TaskScheduler taskScheduler)
+      int sourceControlEventProcessingDelaySeconds,
+      int sourceControlEventProcessingIntervalSeconds)
   {
     this.sourceControlEventService = sourceControlEventService;
     this.productLicense = productLicense;
-    this.insightConfig = insightConfig;
-    this.taskScheduler = taskScheduler;
+    this.sourceControlEventProcessingDelaySeconds = sourceControlEventProcessingDelaySeconds;
+    this.sourceControlEventProcessingIntervalSeconds = sourceControlEventProcessingIntervalSeconds;
   }
 
   @Override
   public void start() throws Exception {
-    if (insightConfig.isFeatureEnabled(Feature.PR_COMMENTING)) {
-      startSourceControlEventProcessing();
+    startSourceControlEventProcessing();
+  }
+
+  private void startSourceControlEventProcessing() {
+    if (scheduledExecutorService != null || disableForTesting) {
+      return;
     }
-    else {
-      log.info("Pull request commenting feature is disabled; Source control event scheduler is not started.");
-    }
+    scheduledExecutorService = newExecutor();
+    Runnable sourceControlEventProcessingTask = new SystemRunnable(() -> {
+      try {
+        processSourceControlEvents();
+      }
+      catch (RuntimeException e) {
+        log.warn("Failed to process source control events", e);
+      }
+    });
+    scheduledExecutorService
+        .scheduleAtFixedRate(sourceControlEventProcessingTask, sourceControlEventProcessingDelaySeconds,
+            sourceControlEventProcessingIntervalSeconds, TimeUnit.SECONDS);
+    log.info("Scheduled processing of source control events every {} second(s) starting in {} second(s)",
+        sourceControlEventProcessingIntervalSeconds, sourceControlEventProcessingDelaySeconds);
   }
 
   @Override
   public void stop() {
-    // noop
+    if (scheduledExecutorService != null) {
+      scheduledExecutorService.shutdown();
+      scheduledExecutorService = null;
+      log.info("Stopped source control event processing");
+    }
   }
 
-  private void startSourceControlEventProcessing() {
-    if (disableForTesting) {
-      return;
-    }
-
-    taskScheduler.schedulePeriodicTask(SourceControlEventProcessingScheduler.class, NAME,
-        Duration.ofSeconds(SOURCE_CONTROL_EVENT_PROCESSING_INTERVAL_SECONDS));
-    log.info("Scheduled processing of source control events every {} second(s)",
-        SOURCE_CONTROL_EVENT_PROCESSING_INTERVAL_SECONDS);
-  }
-
-  @Override
-  public void execute(JobExecutionContext context) {
-    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
-      processSourceControlEvents();
-    }
-    catch (Exception e) {
-      log.error("Source control event processing error: {}", e.getMessage(), e);
-    }
-    catch (Throwable t) {
-      // Try to log to stderr before trying the standard logging because the standard logging may not be operational
-      // at this point.
-      t.printStackTrace();
-      log.error(t.getMessage(), t);
-      System.exit(1);
-    }
+  private ScheduledExecutorService newExecutor() {
+    ThreadFactory threadFactory =
+        new ThreadFactoryBuilder().setNameFormat("SourceControlEventProcessing-%d").setDaemon(true).build();
+    return new ScheduledThreadPoolExecutor(1, threadFactory);
   }
 
   // Visible for testing

@@ -21,6 +21,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -47,19 +48,26 @@ public class ScanFileCleaner
   // Visible for testing
   static final String NAME = "ScanFileCleaner";
 
-  private final Path markerFile;
+  // Visible for testing
+  static final String MARKER_ID = "obsoletescanfiles-cleaned";
 
   private final InsightWork insightWork;
 
   private final TaskScheduler taskScheduler;
 
+  private final MigrationTrackerDAO migrationTrackerDAO;
+
   public boolean disableForTesting;
 
   @Inject
-  public ScanFileCleaner(InsightWork insightWork, TaskScheduler taskScheduler) {
+  public ScanFileCleaner(
+      InsightWork insightWork,
+      TaskScheduler taskScheduler,
+      MigrationTrackerDAO migrationTrackerDAO)
+  {
     this.insightWork = insightWork;
     this.taskScheduler = taskScheduler;
-    markerFile = insightWork.getWorkDir().toPath().resolve("obsoletescanfiles-cleaned");
+    this.migrationTrackerDAO = migrationTrackerDAO;
   }
 
   @Override
@@ -68,7 +76,13 @@ public class ScanFileCleaner
       return;
     }
 
+    if (migrationTrackerDAO.isTrackerPresent(MARKER_ID)) {
+      log.info("Obsolete scan files already deleted.");
+      return;
+    }
+    Path markerFile = getObsoleteMarkerFile();
     if (Files.exists(markerFile)) {
+      migrationTrackerDAO.insertTracker(MARKER_ID);
       log.info("Obsolete scan files already deleted.");
       return;
     }
@@ -100,7 +114,7 @@ public class ScanFileCleaner
   }
 
   // Visible for tests
-  void deleteScanFiles() throws IOException {
+  void deleteScanFiles() {
     long start = System.currentTimeMillis();
 
     log.debug("Deleting obsolete scan files...");
@@ -166,7 +180,7 @@ public class ScanFileCleaner
       }
     }
 
-    Files.createFile(markerFile);
+    migrationTrackerDAO.insertTracker(MARKER_ID);
 
     log.info("Deleted {} obsolete scan files for {} applications in {} ms.", deletedFilesCount, apps.size(),
         System.currentTimeMillis() - start);
@@ -177,7 +191,8 @@ public class ScanFileCleaner
     return System.currentTimeMillis() - lastModifiedTime.toMillis() > DateTimeConstants.MILLIS_PER_HOUR;
   }
 
-  Path getMarkerFile() {
-    return markerFile;
+  // Visible for tests
+  Path getObsoleteMarkerFile() {
+    return insightWork.getWorkDir().toPath().resolve("obsoletescanfiles-cleaned");
   }
 }

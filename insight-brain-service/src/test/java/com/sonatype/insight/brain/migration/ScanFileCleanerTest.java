@@ -14,6 +14,7 @@ import java.util.Date;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -70,8 +71,8 @@ public class ScanFileCleanerTest
   }
 
   @Test
-  public void testStartServer_NoMarkerFile() {
-    assertThat(scanFileCleaner.getMarkerFile()).doesNotExist();
+  public void testStartServer_NoMarker() {
+    assertMarkerDoesNotExist();
     scanFileCleaner.start();
 
     verify(taskSchedulerMock).scheduleOneTimeTask(ScanFileCleaner.class, ScanFileCleaner.NAME, LocalTime.of(23, 0));
@@ -79,8 +80,20 @@ public class ScanFileCleanerTest
 
   @Test
   public void testStartServer_MarkerFile() throws Exception {
+    assertMarkerDoesNotExist();
     insightWork.getWorkDir().toPath().resolve("obsoletescanfiles-cleaned").toFile().createNewFile();
-    assertThat(scanFileCleaner.getMarkerFile()).isRegularFile();
+    assertThat(scanFileCleaner.getObsoleteMarkerFile()).exists();
+
+    scanFileCleaner.start();
+
+    assertMarkerExists();
+    verifyNoInteractions(taskSchedulerMock);
+  }
+
+  @Test
+  public void testStartServer_MarkerInDb() throws Exception {
+    new MigrationTrackerDAO().insertTracker(ScanFileCleaner.MARKER_ID);
+    assertMarkerExists();
 
     scanFileCleaner.start();
 
@@ -89,7 +102,7 @@ public class ScanFileCleanerTest
 
   @Test
   public void testDeleteScanFiles_DeletesOnlyFilesOlderThanOneHour() throws Exception {
-    assertThat(scanFileCleaner.getMarkerFile()).doesNotExist();
+    assertMarkerDoesNotExist();
 
     Application app = tempEntity.newApplicationWithParent();
     Path scanDir = insightWork.getScanDir(app.getId()).toPath();
@@ -102,12 +115,12 @@ public class ScanFileCleanerTest
 
     assertThat(Files.list(scanDir)).containsExactly(newScanFile);
 
-    assertThat(scanFileCleaner.getMarkerFile()).isRegularFile();
+    assertMarkerExists();
   }
 
   @Test
   public void testDeleteScanFiles_DoesNotDeleteScanFilesForLatestPolicyEvaluations() throws Exception {
-    assertThat(scanFileCleaner.getMarkerFile()).doesNotExist();
+    assertMarkerDoesNotExist();
 
     Application app = tempEntity.newApplicationWithParent();
     Path scanDir = insightWork.getScanDir(app.getId()).toPath();
@@ -134,12 +147,12 @@ public class ScanFileCleanerTest
 
     assertThat(Files.list(scanDir)).containsExactly(newScanFile);
 
-    assertThat(scanFileCleaner.getMarkerFile()).isRegularFile();
+    assertMarkerExists();
   }
 
   @Test
   public void testDeleteScanFiles_LogsWarningIfItCannotDeleteFile() throws Exception {
-    assertThat(scanFileCleaner.getMarkerFile()).doesNotExist();
+    assertMarkerDoesNotExist();
 
     Application app = tempEntity.newApplicationWithParent();
     Path scanDir = insightWork.getScanDir(app.getId()).toPath();
@@ -176,12 +189,12 @@ public class ScanFileCleanerTest
     assertThat(logOutput).atWarnLevel().contains("Error deleting scan file '" + oldScanFile1.toAbsolutePath()
         + "': java.lang.SecurityException: Test exception");
 
-    assertThat(scanFileCleaner.getMarkerFile()).isRegularFile();
+    assertMarkerExists();
   }
 
   @Test
   public void testDeleteScanFiles_LogsWarningIfItCannotAccessFile() throws Exception {
-    assertThat(scanFileCleaner.getMarkerFile()).doesNotExist();
+    assertMarkerDoesNotExist();
 
     Application app = tempEntity.newApplicationWithParent();
     Path scanDir = insightWork.getScanDir(app.getId()).toPath();
@@ -218,19 +231,19 @@ public class ScanFileCleanerTest
     assertThat(logOutput).atWarnLevel().contains("Error accessing the last modified timestamp for scan file '"
         + oldScanFile1.toAbsolutePath() + "': java.lang.SecurityException: Test exception");
 
-    assertThat(scanFileCleaner.getMarkerFile()).isRegularFile();
+    assertMarkerExists();
   }
 
   @Test
   public void testDeleteScanFiles_ScanDirectoryDoesNotExist() throws Exception {
-    assertThat(scanFileCleaner.getMarkerFile()).doesNotExist();
+    assertMarkerDoesNotExist();
 
     Application app = tempEntity.newApplicationWithParent();
     assertThat(insightWork.getScanDir(app.getId())).doesNotExist();
 
     scanFileCleaner.deleteScanFiles();
 
-    assertThat(scanFileCleaner.getMarkerFile()).isRegularFile();
+    assertMarkerExists();
   }
 
   @Test
@@ -251,5 +264,14 @@ public class ScanFileCleanerTest
     }
 
     verify(scanFileCleanerSpy).deleteScanFiles();
+  }
+
+  private void assertMarkerExists() {
+    assertThat(new MigrationTrackerDAO().isTrackerPresent(ScanFileCleaner.MARKER_ID)).isTrue();
+  }
+
+  private void assertMarkerDoesNotExist() {
+    assertThat(scanFileCleaner.getObsoleteMarkerFile()).doesNotExist();
+    assertThat(new MigrationTrackerDAO().isTrackerPresent(ScanFileCleaner.MARKER_ID)).isFalse();
   }
 }

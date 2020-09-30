@@ -182,7 +182,7 @@ public class DefaultPolicyEvaluateService
         applicationPublicId, clientScanType, stage.getStageTypeId(), statusId);
 
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    File tempScanFile = scanHandler.createTempScanFile(req, app, clientScanType);
+    File tempScanFile = scanHandler.createTempScanFile(req, app);
 
     String thirdPartyScanType =
         clientScanType == ClientScanType.SONATYPE_THIRD_PARTY ? integrationType.toString() : null;

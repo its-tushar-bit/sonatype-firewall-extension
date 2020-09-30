@@ -9,42 +9,23 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Collections;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 
-import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanService;
-import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.scan.archive.RegexSelector;
-import com.sonatype.insight.scan.archive.Selector.Selection;
-import com.sonatype.insight.scan.archive.TFileUtils;
 import com.sonatype.insight.scan.model.ClientScanType;
-import com.sonatype.insight.scan.model.DirectoryScanItem;
-import com.sonatype.insight.scan.model.Scan;
-import com.sonatype.insight.scan.model.ScanItem;
-import com.sonatype.insight.scan.model.io.ScanReader;
-import com.sonatype.insight.scan.model.io.ScanWriter;
-import com.sonatype.insight.scan.model.io.ScanWriterFactory;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import de.schlichtherle.truezip.file.TArchiveDetector;
-import de.schlichtherle.truezip.file.TFile;
-import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.slf4j.Logger;
@@ -62,12 +43,6 @@ public class ScanHandler
 
   private final ScanUploader scanUploader;
 
-  private final ScanReader scanReader;
-
-  private final ScanWriterFactory scanWriterFactory;
-
-  private final ProprietaryConfigService proprietaryConfigService;
-
   private final ApplicationDAO appDAO;
 
   private final ThirdPartyScanService thirdPartyScanService;
@@ -76,17 +51,11 @@ public class ScanHandler
   public ScanHandler(
       InsightWork work,
       ScanUploader scanUploader,
-      ScanReader scanReader,
-      ScanWriterFactory scanWriterFactory,
-      ProprietaryConfigService proprietaryConfigService,
       ApplicationDAO appDAO,
       ThirdPartyScanService thirdPartyScanService)
   {
     this.work = work;
     this.scanUploader = scanUploader;
-    this.scanReader = scanReader;
-    this.scanWriterFactory = scanWriterFactory;
-    this.proprietaryConfigService = proprietaryConfigService;
     this.appDAO = appDAO;
     this.thirdPartyScanService = thirdPartyScanService;
   }
@@ -98,7 +67,7 @@ public class ScanHandler
       throws IOException
   {
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
-    File tempScanFile = createTempScanFile(httpRequest, app, clientScanType);
+    File tempScanFile = createTempScanFile(httpRequest, app);
     return handle(tempScanFile, app, clientScanType, null, null);
   }
 
@@ -114,10 +83,6 @@ public class ScanHandler
     log.debug("Received {} scan for application public id {}.", clientScanType, app.getPublicId());
 
     try {
-      if (ClientScanType.TWISTLOCK.equals(clientScanType)) {
-        tempScanFile = convertTwistlockScan(tempScanFile, app);
-      }
-
       ScanReceipt scanReceipt;
       if (ClientScanType.SONATYPE_THIRD_PARTY.equals(clientScanType)) {
         scanReceipt = thirdPartyScanService.filterAndUpload(tempScanFile, app, stageTypeId, telemetryData);
@@ -151,12 +116,8 @@ public class ScanHandler
     }
   }
 
-  public File createTempScanFile(
-      HttpServletRequest httpRequest,
-      Application app,
-      ClientScanType clientScanType) throws IOException
-  {
-    File tempScanFile = createTempScanFile(app, clientScanType);
+  public File createTempScanFile(HttpServletRequest httpRequest, Application app) throws IOException {
+    File tempScanFile = createTempScanFile(app);
 
     try {
       saveScanFromHttpRequest(httpRequest, tempScanFile);
@@ -175,76 +136,16 @@ public class ScanHandler
     return tempScanFile;
   }
 
-  private File convertTwistlockScan(File twistlockScanFile, Application app) throws IOException {
-    long start = System.currentTimeMillis();
-
-    try {
-      ProprietaryConfig proprietaryConfig =
-          proprietaryConfigService.getProprietaryConfig(OwnerType.APPLICATION, app.getPublicId());
-
-      File scanFile = FileUtils.createTempFile("temp-", ".xml.gz", twistlockScanFile.getParentFile());
-
-      TwistlockScan twistlockScan = new TwistlockScan(twistlockScanFile);
-      Scan scan = scanReader.read(IOUtils.toInputStream(twistlockScan.getScanXml(), "UTF-8"));
-      try (ScanWriter writer = scanWriterFactory.newWriter(scanFile)) {
-        writer.openScan(scan);
-        writer.writeConfiguration(scan.getConfiguration());
-
-        DirectoryScanItem directoryScanItem = new DirectoryScanItem();
-        File dockerImageFakeFile = new File("DockerImage");
-        directoryScanItem.setPath("DockerImage");
-        writer.openDirectoryScanItem(directoryScanItem, dockerImageFakeFile);
-
-        RegexSelector proprietaryRegexSelector = RegexSelector.forProprietaryRegexes(proprietaryConfig.getRegexes());
-
-        TArchiveDetector archiveDetector =
-            TFileUtils.getArchiveDetector(Collections.emptyMap(), null /* badExtensions */);
-        ArrayNode scannedFiles = JsonUtils.parse(twistlockScan.getFilesJson());
-        for (JsonNode scannedFile : scannedFiles) {
-          String hash = scannedFile.get("sha1").asText();
-          hash = hash.substring(0, 20);
-          String path = scannedFile.get("path").asText();
-
-          TFile tFile = new TFile(path, archiveDetector);
-          ScanItem scanItem = tFile.isArchive() ? new DirectoryScanItem() : new ScanItem();
-          scanItem.setSha1(hash);
-          scanItem.setPath(path);
-          boolean isProprietary = proprietaryRegexSelector.isSelected(path) == Selection.EXCLUDED;
-          if (isProprietary) {
-            scanItem.setProprietary(true);
-          }
-  
-          writer.writeScanItem(scanItem);
-        }
-        writer.closeDirectoryScanItem(dockerImageFakeFile);
-        writer.writeSummary(scan.getSummary());
-        writer.closeScan();
-      }
-
-      log.debug("Converted {} scan in {} ms.", ClientScanType.TWISTLOCK, System.currentTimeMillis() - start);
-      return scanFile;
-    }
-    finally {
-      try {
-        Files.delete(twistlockScanFile.toPath());
-      }
-      catch (IOException e) {
-        log.warn(e.getMessage(), e);
-      }
-    }
-  }
-
   private void saveScanFromHttpRequest(HttpServletRequest httpRequest, File scanFile) throws IOException {
     try (ServletInputStream is = httpRequest.getInputStream(); FileOutputStream os = new FileOutputStream(scanFile)) {
       IOUtil.copy(is, os);
     }
   }
 
-  private File createTempScanFile(Application app, ClientScanType clientScanType) throws IOException {
+  private File createTempScanFile(Application app) throws IOException {
     File scanDir = work.getScanDir(app.getId());
     Files.createDirectories(scanDir.toPath());
 
-    return FileUtils.createTempFile("temp-", ClientScanType.TWISTLOCK.equals(clientScanType) ? ".zip" : ".xml.gz",
-        scanDir);
+    return FileUtils.createTempFile("temp-", ".xml.gz", scanDir);
   }
 }

@@ -23,7 +23,9 @@ public class NativeImageConfigGenerationTestRunner
     extends PolicyEvaluatorTestRunner
 {
   public NativeImageConfigGenerationTestRunner(
-      final Parameters params, final PolicyEvaluator<Parameters> evaluator, final LogOutput logOutput)
+      final Parameters params,
+      final PolicyEvaluator evaluator,
+      final LogOutput logOutput)
   {
     super(params, evaluator, logOutput);
   }

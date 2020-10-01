@@ -18,8 +18,8 @@ import com.sonatype.insight.scan.model.ClientScanType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class PolicyEvaluator<P extends AbstractCliParameters>
-    extends AbstractPolicyEvaluator<P>
+public abstract class PolicyEvaluator
+    extends AbstractPolicyEvaluator<Parameters>
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyEvaluator.class);
 
@@ -28,11 +28,12 @@ public abstract class PolicyEvaluator<P extends AbstractCliParameters>
   }
 
   @Override
-  protected void processResults(P params,
-                                ScanReceipt receipt,
-                                PolicyEvaluationResult eval,
-                                PolicyAction outcome,
-                                RestClient restClient) throws ExitException
+  protected void processResults(
+      Parameters params,
+      ScanReceipt receipt,
+      PolicyEvaluationResult eval,
+      PolicyAction outcome,
+      RestClient restClient) throws ExitException
   {
     String reportUrl = receipt.resolveReportUrl(params.getServerUrl());
 
@@ -64,7 +65,7 @@ public abstract class PolicyEvaluator<P extends AbstractCliParameters>
   }
 
   private void saveResultFile(
-      P params,
+      Parameters params,
       RestClient restClient,
       ScanReceipt receipt,
       PolicyEvaluationResult eval,
@@ -82,7 +83,7 @@ public abstract class PolicyEvaluator<P extends AbstractCliParameters>
   }
 
   @Override
-  protected void saveErrorData(P params, CLIError error, RestClient restClient) throws ExitException {
+  protected void saveErrorData(Parameters params, CLIError error, RestClient restClient) throws ExitException {
     if (params.getResultFile() != null) {
       try {
         restClient.saveErrorData(
@@ -106,12 +107,12 @@ public abstract class PolicyEvaluator<P extends AbstractCliParameters>
   }
   
   @Override
-  public void run(P params) throws ExitException {
+  public void run(Parameters params) throws ExitException {
     validateAuthenticationConfig(params);
     super.run(params);
   }
   
-  private void validateAuthenticationConfig(final P params) throws ExitException {
+  private void validateAuthenticationConfig(final Parameters params) throws ExitException {
     if (params.isPkiAuthentication() && params.getServerUser() != null) {
       String message = "Only one mode of authentication can be enabled at a time"
           + ", --authentication and --pki-authentication are mutually exclusive.";

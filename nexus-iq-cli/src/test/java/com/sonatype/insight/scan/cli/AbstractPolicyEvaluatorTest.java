@@ -99,8 +99,8 @@ public abstract class AbstractPolicyEvaluatorTest
     try {
       String outDir = tmpDir.newFolder("scan").getAbsolutePath();
       String timestamp = "20130610-171959";
-      System.setProperty(AbstractPolicyEvaluatorCli.PROP_OUTPUT_DIRECTORY, outDir);
-      System.setProperty(AbstractPolicyEvaluatorCli.PROP_START_TIME, timestamp);
+      System.setProperty(PolicyEvaluatorCli.PROP_OUTPUT_DIRECTORY, outDir);
+      System.setProperty(PolicyEvaluatorCli.PROP_START_TIME, timestamp);
     }
     catch (Exception e) {
       throw new IllegalStateException(e);

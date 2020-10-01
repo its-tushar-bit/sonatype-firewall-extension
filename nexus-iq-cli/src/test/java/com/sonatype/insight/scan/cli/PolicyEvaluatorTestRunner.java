@@ -30,7 +30,7 @@ public class PolicyEvaluatorTestRunner
 {
   private final Parameters params;
 
-  private final PolicyEvaluator<Parameters> evaluator;
+  private final PolicyEvaluator evaluator;
 
   private final LogOutput logOutput;
 
@@ -52,7 +52,7 @@ public class PolicyEvaluatorTestRunner
 
   public PolicyEvaluatorTestRunner(
       final Parameters params,
-      final PolicyEvaluator<Parameters> evaluator,
+      final PolicyEvaluator evaluator,
       final LogOutput logOutput)
   {
     this.params = params;

@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.client.RestClientFactory;
  */
 @Named
 public class DefaultPolicyEvaluator
-    extends PolicyEvaluator<Parameters>
+    extends PolicyEvaluator
 {
   @Inject
   public DefaultPolicyEvaluator(final Scanner scanner, final RestClientFactory restClientFactory) {

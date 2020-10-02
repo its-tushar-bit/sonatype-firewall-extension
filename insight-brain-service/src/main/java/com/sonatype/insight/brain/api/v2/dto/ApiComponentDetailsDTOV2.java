@@ -33,4 +33,10 @@ public class ApiComponentDetailsDTOV2
 
   @JsonInclude(Include.NON_NULL)
   public ApiComponentPolicyViolationListDTOV2 policyData;
+
+  /**
+   * @since 1.100
+   */
+  @JsonInclude(Include.NON_NULL)
+  public ApiComponentProjectDataDTO projectData;
 }

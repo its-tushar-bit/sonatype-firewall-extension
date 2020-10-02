@@ -62,6 +62,7 @@ public class ApiComponentDetailsResourceV2Test
     componentEvaluationData.observedLicenses = new HashSet<>();
     componentEvaluationData.securityVulnerabilities = new ArrayList<>();
     componentEvaluationData.matchState = MatchState.EXACT.getId();
+    componentEvaluationData.componentProjectDetails = componentEvaluationV2Helper.createComponentProjectDetails();
 
     return componentEvaluationData;
   }
@@ -110,5 +111,8 @@ public class ApiComponentDetailsResourceV2Test
         .containsExactlyInAnyOrder("GPL-2.0");
     assertThat(componentDetails.securityData.securityIssues).extracting(dto -> dto.reference)
         .containsExactlyInAnyOrder("SOME-REFID");
+    componentEvaluationV2Helper
+        .assertComponentProjectDetails(componentDetails.projectData, componentData.componentProjectDetails);
+    assertThat(componentDetails.projectData).isNotNull();
   }
 }

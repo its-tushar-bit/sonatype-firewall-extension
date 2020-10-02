@@ -19,6 +19,7 @@ import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.ComponentProjectDetails;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsResultDTOV2;
@@ -91,6 +92,7 @@ public class ApiComponentDetailsServiceV2Test
     Set<License> declaredLicenseSet = Collections.singleton(new License("Apache-2.0", "Apache-2.0"));
     Set<License> observedLicenseSet = Collections.singleton(new License("ATT", "ATT"));
     List<SecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper.createSecurityVulnerabilities();
+    ComponentProjectDetails componentProjectDetails = componentEvaluationV2Helper.createComponentProjectDetails();
 
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
 
@@ -110,7 +112,8 @@ public class ApiComponentDetailsServiceV2Test
 
         hdsResult.components.add(componentEvaluationV2Helper
             .createComponentEvaluationData(componentIdentifier, component.hash, MatchState.EXACT, i,
-                declaredLicenseSet, observedLicenseSet, securityVulnerabilities, componentIndex /* popularity */));
+                declaredLicenseSet, observedLicenseSet, securityVulnerabilities, componentIndex /* popularity */,
+                componentProjectDetails));
       }
       mockHdsRequest(componentEvaluationV2Helper.toHdsRequest(requestChunk), hdsResult);
     }
@@ -126,7 +129,8 @@ public class ApiComponentDetailsServiceV2Test
       effectiveLicenseSet.addAll(declaredLicenseSet);
       effectiveLicenseSet.addAll(observedLicenseSet);
       assertComponentDetails(componentDetailsDTOV2, request.components.get(i), MatchState.EXACT.getId(),
-          declaredLicenseSet, observedLicenseSet, effectiveLicenseSet, securityVulnerabilities, i /* popularity */);
+          declaredLicenseSet, observedLicenseSet, effectiveLicenseSet, securityVulnerabilities, i /* popularity */,
+          componentProjectDetails);
       i++;
     }
   }
@@ -378,6 +382,21 @@ public class ApiComponentDetailsServiceV2Test
       List<SecurityVulnerability> securityVulnerabilities,
       Integer relativePopularity)
   {
+    assertComponentDetails(resultComponentDTO, requestComponentDTO, matchState, declaredLicenses, observedLicenses,
+        effectiveLicenses, securityVulnerabilities, relativePopularity, null);
+  }
+
+  private void assertComponentDetails(
+      ApiComponentDetailsDTOV2 resultComponentDTO,
+      ApiComponentDTOV2 requestComponentDTO,
+      String matchState,
+      Set<License> declaredLicenses,
+      Set<License> observedLicenses,
+      Set<License> effectiveLicenses,
+      List<SecurityVulnerability> securityVulnerabilities,
+      Integer relativePopularity,
+      ComponentProjectDetails projectDetails)
+  {
     ApiComponentIdentifierDTOV2 expectedComponentIdentifier = requestComponentDTO.componentIdentifier;
     String expectedHash = requestComponentDTO.hash;
     String expectedPackageUrl = requestComponentDTO.packageUrl;
@@ -418,6 +437,9 @@ public class ApiComponentDetailsServiceV2Test
       assertThat(resultComponentDTO.securityData.securityIssues.get(i).url)
           .isEqualTo(securityVulnerabilities.get(i).getUrl());
     }
+
+    componentEvaluationV2Helper
+        .assertComponentProjectDetails(resultComponentDTO.projectData, projectDetails);
 
     assertThat(resultComponentDTO.policyData).isNull();
   }

@@ -38,12 +38,17 @@ public class ApiComponentDetailsAdapter
 
   private final ApiSecurityDataAdapter securityDataAdapter;
 
+  private final ApiComponentProjectDetailsAdapter componentProjectDetailsAdapter;
+
   @Inject
-  public ApiComponentDetailsAdapter(final ApiLicenseDataAdapter licenseDataAdapter,
-                                    final ApiSecurityDataAdapter securityDataAdapter)
+  public ApiComponentDetailsAdapter(
+      final ApiLicenseDataAdapter licenseDataAdapter,
+      final ApiSecurityDataAdapter securityDataAdapter,
+      final ApiComponentProjectDetailsAdapter componentProjectDetailsAdapter)
   {
     this.licenseDataAdapter = licenseDataAdapter;
     this.securityDataAdapter = securityDataAdapter;
+    this.componentProjectDetailsAdapter = componentProjectDetailsAdapter;
   }
 
   public ApiComponentDetailsDTOV2 convertToDTO(final Component component, final Collection<PolicyAlert> policyAlerts) {
@@ -100,6 +105,7 @@ public class ApiComponentDetailsAdapter
 
     componentDetailsDTO.licenseData = licenseDataAdapter.convertToDTO(componentDetailsFromHds);
     componentDetailsDTO.securityData = securityDataAdapter.convertToDTO(componentDetailsFromHds);
+    componentDetailsDTO.projectData = componentProjectDetailsAdapter.convertToDTO(componentDetailsFromHds);
 
     return componentDetailsDTO;
   }

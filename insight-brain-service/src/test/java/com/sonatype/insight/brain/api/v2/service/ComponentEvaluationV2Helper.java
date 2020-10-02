@@ -19,12 +19,14 @@ import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.Componen
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList.ComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.ComponentProjectDetails;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentProjectDataDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -58,6 +60,21 @@ public class ComponentEvaluationV2Helper
       final List<SecurityVulnerability> securityVulnerabilities,
       final Integer relativePopularity)
   {
+    return createComponentEvaluationData(componentIdentifier, hash, matchState, index, declaredLicenses,
+        observedLicenses, securityVulnerabilities, relativePopularity, null);
+  }
+
+  public ComponentEvaluationData createComponentEvaluationData(
+      final ComponentIdentifier componentIdentifier,
+      final String hash,
+      final MatchState matchState,
+      final int index,
+      final Set<License> declaredLicenses,
+      final Set<License> observedLicenses,
+      final List<SecurityVulnerability> securityVulnerabilities,
+      final Integer relativePopularity,
+      final ComponentProjectDetails componentProjectDetails)
+  {
     ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
     componentEvaluationData.requestIndex = index;
     componentEvaluationData.hash = hash;
@@ -68,6 +85,7 @@ public class ComponentEvaluationV2Helper
     componentEvaluationData.catalogDate = new Date().getTime();
     componentEvaluationData.securityVulnerabilities = securityVulnerabilities;
     componentEvaluationData.relativePopularity = relativePopularity;
+    componentEvaluationData.componentProjectDetails = componentProjectDetails;
 
     return componentEvaluationData;
   }
@@ -226,5 +244,45 @@ public class ComponentEvaluationV2Helper
       hdsRequest.components.add(componentEvaluationDataRequest);
     }
     return hdsRequest;
+  }
+
+  public ComponentProjectDetails createComponentProjectDetails() {
+    ComponentProjectDetails projectDetails = new ComponentProjectDetails();
+    projectDetails.setDescription("Test project");
+    projectDetails.setOrganization("org");
+    projectDetails.setFirstRelease(new Date());
+    projectDetails.setLastRelease(new Date());
+    projectDetails.setScmUrl("http://github.com/owner/repo");
+    projectDetails.setCommitsPerMonth(1);
+    projectDetails.setUniqueDevsPerMonth(2);
+    projectDetails.setScmStars(6);
+    projectDetails.setScmForks(7);
+    projectDetails.setLastUpdated(new Date());
+
+    return projectDetails;
+  }
+
+  public void assertComponentProjectDetails(
+      ApiComponentProjectDataDTO projectData,
+      ComponentProjectDetails projectDetails)
+  {
+    if (projectDetails == null) {
+      assertThat(projectData).isNull();
+    }
+    else {
+      assertThat(projectData.getFirstReleaseDate()).isEqualTo(projectDetails.getFirstRelease());
+      assertThat(projectData.getLastReleaseDate()).isEqualTo(projectDetails.getLastRelease());
+      assertThat(projectData.getProjectMetadata().description).isEqualTo(projectDetails.getDescription());
+      assertThat(projectData.getProjectMetadata().organization).isEqualTo(projectDetails.getOrganization());
+      assertThat(projectData.getSourceControlManagement().getScmUrl()).isEqualTo(projectDetails.getScmUrl());
+      assertThat(projectData.getSourceControlManagement().getScmMetadata().forks)
+          .isEqualTo(projectDetails.getScmForks());
+      assertThat(projectData.getSourceControlManagement().getScmMetadata().stars)
+          .isEqualTo(projectDetails.getScmStars());
+      assertThat(projectData.getSourceControlManagement().getScmDetails().commitsPerMonth)
+          .isEqualTo(projectDetails.getCommitsPerMonth());
+      assertThat(projectData.getSourceControlManagement().getScmDetails().uniqueDevsPerMonth)
+          .isEqualTo(projectDetails.getUniqueDevsPerMonth());
+    }
   }
 }

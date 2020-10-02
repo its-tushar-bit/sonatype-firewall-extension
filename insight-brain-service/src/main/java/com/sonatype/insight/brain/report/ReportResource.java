@@ -60,7 +60,6 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
-import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -74,11 +73,10 @@ import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.utils.JsonFileStore;
+import com.sonatype.insight.brain.utils.JsonStore;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.brain.utils.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.codahale.metrics.annotation.Timed;
@@ -128,7 +126,7 @@ public class ReportResource
   private final ReleaseGraphService releaseGraphService;
 
   private final VersionService versionService;
-  
+
   private final PdfGeneratorService pdfGeneratorService;
 
   static {
@@ -159,43 +157,6 @@ public class ReportResource
     this.releaseGraphService = releaseGraphService;
     this.versionService = versionService;
     this.pdfGeneratorService = pdfGeneratorService;
-  }
-
-  /**
-   * TODO: Should this method be removed now?
-   * 
-   * @deprecated Support legacy CI instances (pre 2.11) and Nexus CLM plugins that persisted a report link obtained from
-   *             CLM 1.6-
-   * 
-   */
-  @Deprecated
-  @GET
-  @Path("embedReport/{path:.*}")
-  @Authorize(permission = Permission.READ)
-  public Response embedReport(
-      @PathParam("applicationPublicId") @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String appPublicId,
-      @PathParam("scanId") final String scanId,
-      @PathParam("path") final String path)
-  {
-    if ("index.html".equals(path) || path.isEmpty()) {
-      UriBuilder uriBuilder = baseUrl.redirect();
-      uriBuilder.path(UserInterfaceLinksResource.RESOURCE_PATH + "/" + UserInterfaceLinksResource.REPORT_PATH);
-
-      StringBuilder sb = new StringBuilder();
-      sb.append("<html>");
-      sb.append("<body style='font: 12px Verdana, Helvetica;margin-top:50px;'>");
-      sb.append("<h1>This report has moved</h1>");
-      sb.append("<p>Your Nexus IQ Server was updated, causing the report formerly at this location to be moved ");
-      sb.append("<a target='_blank' href='" + uriBuilder.build(appPublicId, scanId) + "'>here</a></p>");
-      sb.append("</body>");
-      sb.append("</html>");
-
-      final ResponseBuilder response = Response.ok(sb.toString());
-      response.type("text/html;charset=UTF-8");
-      response.expires(new Date(0));
-      return response.build();
-    }
-    throw new NotFoundException("Reports have been moved.  Clear cache and reload.");
   }
 
   /**
@@ -658,7 +619,7 @@ public class ReportResource
   /**
    * Prepares the report for an expanded coverage scan to be available when the customer loads it in a browser.
    * It waits for the report to become available on the HDS.
-   * 
+   *
    * @since 1.37
    */
   @POST

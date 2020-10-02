@@ -42,7 +42,6 @@ import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.hds.TestNamedComponentDetails;
-import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
@@ -304,29 +303,6 @@ public class ReportResourceTest
 
     response = request.subpath("%2E%2E%5Crestricted.txt").get();
     assertResponseStatus(400, response);
-  }
-
-  @Test
-  public void testEmbedReport() throws Exception {
-    String scanId = "abcdefg12345";
-    HttpResponse response = restRequest(app.getPublicId(), scanId).path("embedReport/index.html").get();
-    assertResponseStatus(200, response);
-
-    String content = response.getBodyText();
-    assertThat(content)
-        .contains(restRequest().path(UserInterfaceLinksResource.RESOURCE_PATH, UserInterfaceLinksResource.REPORT_PATH)
-            .parameter(app.getPublicId(), scanId).getUrl());
-    assertThat(response.getHeader("Expires")).isEqualTo("Thu, 01 Jan 1970 00:00:00 GMT");
-    assertThat(response.getContentType().replace(" ", "")).isEqualToIgnoringCase("text/html;charset=UTF-8");
-  }
-
-  @Test
-  public void testEmbedReport_Json() throws Exception {
-    String scanId = "abcdefg12345";
-    HttpResponse response = restRequest(app.getPublicId(), scanId)
-        .path("embedReport", ScanPolicyEvaluator.POLICY_ALERTS_FILENAME).get();
-    assertResponseStatus(404, response);
-    assertThat(response.getBodyText()).isEqualTo("Reports have been moved.  Clear cache and reload.");
   }
 
   @Test

@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.git.event;
 
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -69,9 +68,6 @@ public class SourceControlEventService
   @VisibleForTesting
   static final int MAX_LOAD = THREAD_POOL_SIZE + TASK_QUEUE_CAPACITY;
 
-  @VisibleForTesting
-  static final String INSTANCE_ID = UUID.randomUUID().toString();
-
   // arbitrarily picking 2 minutes to detect when another instance of IQ server has gone down/offline and is no longer
   // processing events
   private static final int STALE_EVENT_CUTOFF_MS = 1_000 * 120;
@@ -126,7 +122,7 @@ public class SourceControlEventService
       log.trace("This instance is not allowed to process events.");
       return 0;
     }
-    
+
     int eventsSubmittedForProcessing = 0;
 
     if (inProcessing.get()) {
@@ -140,12 +136,13 @@ public class SourceControlEventService
 
         if (numberOfEventsToRequest > 0) {
           // un-claim any events where it appears that the instance processing them is no longer working
-          sourceControlEventDAO.resetStaleEvents(new Date(currentTimeMillis() - STALE_EVENT_CUTOFF_MS), INSTANCE_ID);
+          sourceControlEventDAO
+              .resetStaleEvents(new Date(currentTimeMillis() - STALE_EVENT_CUTOFF_MS), getInstanceId());
 
-          sourceControlEventDAO.reserveEventsForInstance(INSTANCE_ID);
+          sourceControlEventDAO.reserveEventsForInstance(getInstanceId());
 
           List<SourceControlEvent> events =
-              sourceControlEventDAO.selectEventsForInstance(INSTANCE_ID, numberOfEventsToRequest);
+              sourceControlEventDAO.selectEventsForInstance(getInstanceId(), numberOfEventsToRequest);
 
           log.debug("Requested {} source control events, processing {}", numberOfEventsToRequest, events.size());
 
@@ -282,6 +279,11 @@ public class SourceControlEventService
     }
 
     return success;
+  }
+
+  @VisibleForTesting
+  String getInstanceId() {
+    return sourceControlInstanceManager.getSourceControlInstanceId();
   }
 
   private void initThreadPoolExecutor() {

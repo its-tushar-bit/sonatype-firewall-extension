@@ -27,4 +27,5 @@
   <!-- Turn off the excessive logging from ApacheDS code. This makes the tests run ~6 times faster (on my machine, at least :) ). -->
   <logger name="net.sf.ehcache" level="WARN" />
   <logger name="org.apache.directory" level="WARN" />
+  <logger name="com.sonatype.insight.brain.concurrent.PerpetualLockManager" level="TRACE" />
 </configuration>

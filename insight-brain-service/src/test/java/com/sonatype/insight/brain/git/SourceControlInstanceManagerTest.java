@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.git;
 
-import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 
 import org.junit.After;
@@ -16,6 +15,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class SourceControlInstanceManagerTest
 {
+  // test subject 1
+  SourceControlInstanceManager instanceManager1 = new SourceControlInstanceManager();
+
+  // test subject 2
+  SourceControlInstanceManager instanceManager2 = new SourceControlInstanceManager();
+
   @Before
   public void before() {
     OperationalDataStoreProvider.init(null, false);
@@ -23,14 +28,13 @@ public class SourceControlInstanceManagerTest
 
   @After
   public void after() {
-    ClusterLock.LOCKS_BY_ID.clear();
+    instanceManager2.releaseInstance();
+    instanceManager1.releaseInstance();
   }
 
   @Test
   public void testCanPoll() {
     // given: two source control instance managers
-    SourceControlInstanceManager instanceManager1 = new SourceControlInstanceManager();
-    SourceControlInstanceManager instanceManager2 = new SourceControlInstanceManager();
 
     // then: first one to ask can poll, the other cannot
     assertThat(instanceManager1.canPoll()).isTrue();
@@ -47,8 +51,6 @@ public class SourceControlInstanceManagerTest
   @Test
   public void testCanProcessEvents() {
     // given: two source control instance managers
-    SourceControlInstanceManager instanceManager1 = new SourceControlInstanceManager();
-    SourceControlInstanceManager instanceManager2 = new SourceControlInstanceManager();
 
     // then: first one to ask can process events, the other cannot
     assertThat(instanceManager1.canProcessEvents()).isTrue();
@@ -65,8 +67,6 @@ public class SourceControlInstanceManagerTest
   @Test
   public void testPollAndProcessInteraction() {
     // given: two source control instance managers
-    SourceControlInstanceManager instanceManager1 = new SourceControlInstanceManager();
-    SourceControlInstanceManager instanceManager2 = new SourceControlInstanceManager();
 
     // then: first one to ask can poll AND process events, the other cannot
     assertThat(instanceManager1.canProcessEvents()).isTrue();

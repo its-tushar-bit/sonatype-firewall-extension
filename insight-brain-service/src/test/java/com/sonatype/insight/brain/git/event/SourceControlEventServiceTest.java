@@ -111,7 +111,7 @@ public class SourceControlEventServiceTest
     // given: an event DAO setup to return an application evaluation event
     List<SourceControlEvent> events = generateEvents("1:app1:" + SourceControlEvent.APPLICATION_EVALUATION_EVENT);
     when(mockSourceControlEventDAO
-        .selectEventsForInstance(eq(SourceControlEventService.INSTANCE_ID), anyInt()))
+        .selectEventsForInstance(eq(eventService.getInstanceId()), anyInt()))
         .thenReturn(events);
 
     CountDownLatch eventsProcessedLatch = createOnEventFinishedLatch(events.get(0));
@@ -137,7 +137,7 @@ public class SourceControlEventServiceTest
     // given: an event DAO setup to return an application evaluation event
     List<SourceControlEvent> events = generateEvents("1:app1:" + SourceControlEvent.DISCOVERED_PULL_REQUEST_EVENT);
     when(mockSourceControlEventDAO
-        .selectEventsForInstance(eq(SourceControlEventService.INSTANCE_ID), anyInt()))
+        .selectEventsForInstance(eq(eventService.getInstanceId()), anyInt()))
         .thenReturn(events);
 
     CountDownLatch eventsProcessedLatch = createOnEventFinishedLatch(events.get(0));
@@ -163,7 +163,7 @@ public class SourceControlEventServiceTest
     // given: an event DAO setup to return an application evaluation event
     List<SourceControlEvent> events = generateEvents("1:app1:" + SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT);
     when(mockSourceControlEventDAO
-        .selectEventsForInstance(eq(SourceControlEventService.INSTANCE_ID), anyInt()))
+        .selectEventsForInstance(eq(eventService.getInstanceId()), anyInt()))
         .thenReturn(events);
 
     CountDownLatch eventsProcessedLatch = createOnEventFinishedLatch(events.get(0));
@@ -189,7 +189,7 @@ public class SourceControlEventServiceTest
     // given: an event DAO setup to return an application evaluation event
     List<SourceControlEvent> events = generateEvents("1:app1:" + SourceControlEvent.STATUS_UPDATE_EVENT);
     when(mockSourceControlEventDAO
-        .selectEventsForInstance(eq(SourceControlEventService.INSTANCE_ID), anyInt()))
+        .selectEventsForInstance(eq(eventService.getInstanceId()), anyInt()))
         .thenReturn(events);
 
     CountDownLatch eventsProcessedLatch = createOnEventFinishedLatch(events.get(0));
@@ -215,7 +215,7 @@ public class SourceControlEventServiceTest
     // given: an event DAO setup to return a manifest scan event
     List<SourceControlEvent> events = generateEvents("1:app1:" + SourceControlEvent.MANIFEST_EVALUATION_EVENT);
     when(mockSourceControlEventDAO
-        .selectEventsForInstance(eq(SourceControlEventService.INSTANCE_ID), anyInt()))
+        .selectEventsForInstance(eq(eventService.getInstanceId()), anyInt()))
         .thenReturn(events);
 
     CountDownLatch eventsProcessedLatch = createOnEventFinishedLatch(events.get(0));
@@ -246,7 +246,7 @@ public class SourceControlEventServiceTest
         "1:app2:" + SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT);
     final String errorMsg = "simulated";
     when(mockSourceControlEventDAO
-        .selectEventsForInstance(eq(SourceControlEventService.INSTANCE_ID), anyInt()))
+        .selectEventsForInstance(eq(eventService.getInstanceId()), anyInt()))
         .thenReturn(events);
     doThrow(new RuntimeException(errorMsg)).when(mockPullRequestCommentingService)
         .onDiscoveredPullRequest(any(SourceControlEvent.class));
@@ -294,7 +294,7 @@ public class SourceControlEventServiceTest
     // and given: an event DAO setup to return the list of events and the count of events requested
     ArgumentCaptor<Integer> requestCountCaptor = ArgumentCaptor.forClass(Integer.class);
     when(mockSourceControlEventDAO
-        .selectEventsForInstance(eq(SourceControlEventService.INSTANCE_ID), requestCountCaptor.capture()))
+        .selectEventsForInstance(eq(eventService.getInstanceId()), requestCountCaptor.capture()))
         .thenReturn(events);
 
     // and given: commenting service setup to block on requests to cause the event pool to back up
@@ -309,7 +309,7 @@ public class SourceControlEventServiceTest
 
     // then: the maximum number of events was requested
     verify(mockSourceControlEventDAO, atLeast(1))
-        .selectEventsForInstance(eq(SourceControlEventService.INSTANCE_ID), requestCountCaptor.capture());
+        .selectEventsForInstance(eq(eventService.getInstanceId()), requestCountCaptor.capture());
     assertThat(requestCountCaptor.getValue()).isEqualTo(SourceControlEventService.TASK_QUEUE_CAPACITY);
 
     // and when: another request to process events is made (while n - 1 of the previous events are being processed)
@@ -323,7 +323,7 @@ public class SourceControlEventServiceTest
     // then: the count of events requested = max load - those still in work from previous request
     final int expectedRequestCount = SourceControlEventService.MAX_LOAD - (events.size() - 1);
     verify(mockSourceControlEventDAO, atLeast(2))
-        .selectEventsForInstance(eq(SourceControlEventService.INSTANCE_ID), requestCountCaptor.capture());
+        .selectEventsForInstance(eq(eventService.getInstanceId()), requestCountCaptor.capture());
     assertThat(requestCountCaptor.getValue()).isEqualTo(expectedRequestCount);
 
     // and then: logs are correct based on whichever event was actually picked up for processing first
@@ -343,7 +343,7 @@ public class SourceControlEventServiceTest
   public void testProcessEvents_multipleInvocationsQuickSuccession() throws InterruptedException {
     // given : given a process events invocation that will take a little time to complete
     List<SourceControlEvent> events = generateEvents("1:app1:" + SourceControlEvent.APPLICATION_EVALUATION_EVENT);
-    when(mockSourceControlEventDAO.selectEventsForInstance(eq(SourceControlEventService.INSTANCE_ID), anyInt()))
+    when(mockSourceControlEventDAO.selectEventsForInstance(eq(eventService.getInstanceId()), anyInt()))
         .thenReturn(events);
 
     CountDownLatch startupLatch = new CountDownLatch(1);
@@ -374,7 +374,7 @@ public class SourceControlEventServiceTest
     List<SourceControlEvent> events = generateEvents(
         2 * SourceControlEventService.TASK_QUEUE_CAPACITY + ":app1:" + SourceControlEvent.APPLICATION_EVALUATION_EVENT);
     when(mockSourceControlEventDAO
-        .selectEventsForInstance(eq(SourceControlEventService.INSTANCE_ID), anyInt()))
+        .selectEventsForInstance(eq(eventService.getInstanceId()), anyInt()))
         .thenReturn(events);
 
     // and given: commenting service setup to block on requests to cause the event pool to back up
@@ -422,7 +422,7 @@ public class SourceControlEventServiceTest
     List<SourceControlEvent> events =
         generateEvents(eventCount + ":app1:" + SourceControlEvent.APPLICATION_EVALUATION_EVENT);
     when(mockSourceControlEventDAO
-        .selectEventsForInstance(eq(SourceControlEventService.INSTANCE_ID), anyInt()))
+        .selectEventsForInstance(eq(eventService.getInstanceId()), anyInt()))
         .thenReturn(events);
 
     CountDownLatch eventBurstCompleteLatch = createEventBurstCompleteLatch(eventCount);
@@ -446,7 +446,7 @@ public class SourceControlEventServiceTest
         .withId(eventId)
         .setEventType("SomeUnknownEventType");
     when(mockSourceControlEventDAO
-        .selectEventsForInstance(eq(SourceControlEventService.INSTANCE_ID), anyInt()))
+        .selectEventsForInstance(eq(eventService.getInstanceId()), anyInt()))
         .thenReturn(ImmutableList.of(event));
 
     CountDownLatch eventsProcessedLatch = createOnEventFinishedLatch(event);
@@ -476,7 +476,7 @@ public class SourceControlEventServiceTest
     event.setId("c0c0babe");
 
     when(mockSourceControlEventDAO
-        .selectEventsForInstance(eq(SourceControlEventService.INSTANCE_ID), anyInt()))
+        .selectEventsForInstance(eq(eventService.getInstanceId()), anyInt()))
         .thenReturn(ImmutableList.of(event));
     doThrow(new RuntimeException("simulated")).when(mockSourceControlEventDAO).markEventInProgress(eq(event.getId()));
 
@@ -501,7 +501,7 @@ public class SourceControlEventServiceTest
         .setEventType(SourceControlEvent.APPLICATION_EVALUATION_EVENT);
     final String errorMsg = "simulated error";
     when(mockSourceControlEventDAO
-        .selectEventsForInstance(eq(SourceControlEventService.INSTANCE_ID), anyInt()))
+        .selectEventsForInstance(eq(eventService.getInstanceId()), anyInt()))
         .thenReturn(ImmutableList.of(event));
     doThrow(new RuntimeException(errorMsg)).when(mockSourceControlEventDAO).markEventComplete(eq(event.getId()));
 
@@ -534,7 +534,7 @@ public class SourceControlEventServiceTest
     event.setId("def456");
 
     when(mockSourceControlEventDAO
-        .selectEventsForInstance(eq(SourceControlEventService.INSTANCE_ID), anyInt()))
+        .selectEventsForInstance(eq(eventService.getInstanceId()), anyInt()))
         .thenReturn(ImmutableList.of(event));
     doThrow(new RuntimeException("simulated")).when(mockPullRequestCommentingService)
         .onApplicationEvaluation(eq(event));
@@ -570,7 +570,7 @@ public class SourceControlEventServiceTest
     event.setId("c0c0babe");
 
     when(mockSourceControlEventDAO
-        .selectEventsForInstance(eq(SourceControlEventService.INSTANCE_ID), anyInt()))
+        .selectEventsForInstance(eq(eventService.getInstanceId()), anyInt()))
         .thenReturn(ImmutableList.of(event));
     eventService.setRepoAccessController(mockRepoAccessController);
     doThrow(new InterruptedException("simulated")).when(mockRepoAccessController).acquire(eq(event.getApplicationId()));
@@ -601,7 +601,7 @@ public class SourceControlEventServiceTest
     event.setId("hij789");
 
     when(mockSourceControlEventDAO
-        .selectEventsForInstance(eq(SourceControlEventService.INSTANCE_ID), anyInt()))
+        .selectEventsForInstance(eq(eventService.getInstanceId()), anyInt()))
         .thenReturn(ImmutableList.of(event));
     eventService.setRepoAccessController(mockRepoAccessController);
     doThrow(new InterruptedException("simulated")).when(mockRepoAccessController).release(eq(event.getApplicationId()));

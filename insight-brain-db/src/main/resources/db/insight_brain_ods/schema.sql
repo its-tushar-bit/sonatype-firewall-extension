@@ -848,3 +848,11 @@ CREATE TABLE repository_migration (
   CONSTRAINT repository_migration_repository_fk FOREIGN KEY (repository_id) REFERENCES repository(repository_id),
   CONSTRAINT repository_id_uk UNIQUE (repository_id)
 );
+
+-- Since 1.100
+CREATE TABLE perpetual_lock (
+  perpetual_lock_id VARCHAR(1100) NOT NULL,
+  owner VARCHAR(50),
+  expiration_time timestamp,
+  CONSTRAINT perpetual_lock_id_pk PRIMARY KEY (perpetual_lock_id)
+);

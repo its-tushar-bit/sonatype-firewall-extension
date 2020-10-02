@@ -50,6 +50,10 @@ public class VerifiableLoggingTestBase
     return tuple(message, Level.ERROR);
   }
 
+  protected Tuple trace(String message) {
+    return tuple(message, Level.TRACE);
+  }
+
   protected void assertThatLogMessagesEqual(Tuple... logMessageTuples) {
     assertThat(listAppender.list)
         .extracting(ILoggingEvent::getFormattedMessage, ILoggingEvent::getLevel)

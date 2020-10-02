@@ -9,7 +9,6 @@ import java.io.IOException;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
-import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
@@ -66,21 +65,6 @@ public class ReportResourceAuthzTest
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
     HttpRequest request = restRequest().path("reevaluatePolicy").parameter(app.getPublicId(), "scanId");
     testAuthzPost(request);
-  }
-
-  @Test
-  public void testEmbedReport() throws Exception {
-    grantReadPermission(app.getId());
-
-    HttpRequest request = restRequest().path("embedReport/{path}").parameter(app.getPublicId(), "scanId", "index.html");
-    testAuthzGet(request);
-  }
-
-  @Test
-  public void testEmbedReport_Unauthenticated() throws Exception {
-    HttpRequest request = restRequest().path("embedReport/{path}").parameter(app.getPublicId(), "scanId", "index.html");
-    HttpResponse response = request.auth("unknownUser", "unknownPassword").get();
-    assertResponseStatus(401, response);
   }
 
   private void createReportFile(String appId, String scanId) throws IOException {

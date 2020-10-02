@@ -141,7 +141,6 @@ public class SecurityModule
     manager.createChain("/rest/report/*/*/downloadBundle", filters);
 
     manager.createChain("/rest/integration/applications", filters);
-    manager.createChain("/rest/report/*/*/embedReport/**", filters);
     manager.createChain("/rest/application/services/names", filters);
     manager.createChain("/rest/application/validate/*", filters);
     manager.createChain("/rest/policy/*/evaluate", filters);

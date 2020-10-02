@@ -190,7 +190,8 @@ public class PullRequestRemediationDetails
         .put("threatList", threatList)
         .put("date", DATE_TIME_FORMATTER.format(ZonedDateTime.now(clock)))
         .put("stage", stage)
-        .put("detailedReportUrl", baseUrl + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), scanId))
+        .put("detailedReportUrl",
+            baseUrl + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), scanId) + "?source=auto-pr")
         .put("baseIqUrl", baseUrl)
         .put("provider", provider)
         .build();

@@ -406,9 +406,11 @@ public class PullRequestFeedbackDetails
         .put("featureBranchStage", StringUtils.capitalize(featureBranchEvaluation.getStageTypeId()))
         .put("defaultBranchStage", StringUtils.capitalize(defaultBranchEvaluation.getStageTypeId()))
         .put("detailedFeatureBranchReportUrl", baseUrl +
-            UserInterfaceLinksResource.getReportUrl(app.getPublicId(), featureBranchEvaluation.getScanId()))
+            UserInterfaceLinksResource.getReportUrl(app.getPublicId(), featureBranchEvaluation.getScanId()) +
+            "?source=pr-commenting")
         .put("detailedDefaultBranchReportUrl", baseUrl +
-            UserInterfaceLinksResource.getReportUrl(app.getPublicId(), defaultBranchEvaluation.getScanId()))
+            UserInterfaceLinksResource.getReportUrl(app.getPublicId(), defaultBranchEvaluation.getScanId()) +
+            "?source=pr-commenting")
         .put("baseIqUrl", baseUrl)
         .put("policiesViolatedCount",
             newComponentFeedbackList.stream().mapToInt(item -> ((List<?>) item.get("policiesViolated")).size()).sum()

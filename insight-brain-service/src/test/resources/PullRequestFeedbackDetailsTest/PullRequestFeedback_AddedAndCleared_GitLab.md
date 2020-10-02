@@ -74,7 +74,7 @@ Threat (of 10) | Policy | Violation Details
 **Application**: TEST APP\
 **Organization**: TEST ORG\
 **Date**: 2020-06-21 09:15:32 UTC\
-**MR Branch**: Release Stage - [Full Report](http://localhost:1122/ui/links/application/TEST_APP_PUBLIC_ID/report/toScanId)\
-**Default Branch**: Build Stage - [Full Report](http://localhost:1122/ui/links/application/TEST_APP_PUBLIC_ID/report/fromScanId)
+**MR Branch**: Release Stage - [Full Report](http://localhost:1122/ui/links/application/TEST_APP_PUBLIC_ID/report/toScanId?source=pr-commenting)\
+**Default Branch**: Build Stage - [Full Report](http://localhost:1122/ui/links/application/TEST_APP_PUBLIC_ID/report/fromScanId?source=pr-commenting)
 
 [Give feedback](https://community.sonatype.com/t/user-feedback-github-pr-reviews/3811)

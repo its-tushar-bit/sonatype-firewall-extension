@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -43,6 +44,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vandeseer.easytable.RepeatedHeaderTableDrawer;
 import org.vandeseer.easytable.TableDrawer;
+import org.vandeseer.easytable.drawing.DrawingContext;
+import org.vandeseer.easytable.drawing.PositionedStyledText;
+import org.vandeseer.easytable.drawing.cell.TextCellDrawer;
 import org.vandeseer.easytable.settings.HorizontalAlignment;
 import org.vandeseer.easytable.settings.Settings;
 import org.vandeseer.easytable.settings.VerticalAlignment;
@@ -204,10 +208,12 @@ public class PdfGenerator
   }
 
   // Visible for testing
-  void initFontStyles(PDDocument pdf) {
-    PDType0Font regularFont = loadPDType0Font(pdf, "OpenSans-Regular.ttf");
-    PDType0Font semiBoldFont = loadPDType0Font(pdf, "OpenSans-SemiBold.ttf");
-    PDType0Font boldFont = loadPDType0Font(pdf, "OpenSans-Bold.ttf");
+  void initFontStyles(PDDocument pdf) throws IOException {
+    PDFontList regularFont = new PDFontList(
+        Arrays.asList(loadPDType0Font(pdf, "OpenSans-Regular.ttf"), loadPDType0Font(pdf, "NotoSansCJKsc-Regular.ttf")));
+    PDFontList semiBoldFont = new PDFontList(Collections.singletonList(loadPDType0Font(pdf, "OpenSans-SemiBold.ttf")));
+    PDFontList boldFont = new PDFontList(
+        Arrays.asList(loadPDType0Font(pdf, "OpenSans-Bold.ttf"), loadPDType0Font(pdf, "NotoSansCJKsc-Bold.ttf")));
     PDType0Font fontawesome = loadPDType0Font(pdf, "fontawesome-webfont.ttf");
 
     sonatypeFontStyle = new FontStyle(regularFont, HEADER_FONT_SIZE, DEFAULT_FONT_COLOR);
@@ -751,7 +757,17 @@ public class PdfGenerator
         .horizontalAlignment(HorizontalAlignment.CENTER)
         .verticalAlignment(VerticalAlignment.MIDDLE)
         .backgroundColor(HEADER_FILL_COLOR)
-        .borderColor(CELL_BORDER_COLOR);
+        .borderColor(CELL_BORDER_COLOR)
+        .drawer(new TextCellDrawer<TextCell>()
+        {
+          @Override
+          protected void drawText(DrawingContext drawingContext, PositionedStyledText positionedStyledText)
+              throws IOException
+          {
+            addText(drawingContext.getContentStream(), positionedStyledText.getX(), positionedStyledText.getY(),
+                tableRowHeaderFontStyle, positionedStyledText.getText());
+          }
+        });
   }
 
   private TextCellBuilder<?, ?> cellBuilder(String text) {
@@ -764,7 +780,17 @@ public class PdfGenerator
         .text(text == null ? "" : text)
         .horizontalAlignment(HorizontalAlignment.LEFT)
         .verticalAlignment(VerticalAlignment.TOP)
-        .borderColor(CELL_BORDER_COLOR);
+        .borderColor(CELL_BORDER_COLOR)
+        .drawer(new TextCellDrawer<TextCell>()
+        {
+          @Override
+          protected void drawText(DrawingContext drawingContext, PositionedStyledText positionedStyledText)
+              throws IOException
+          {
+            addText(drawingContext.getContentStream(), positionedStyledText.getX(), positionedStyledText.getY(),
+                tableRowFontStyle, positionedStyledText.getText());
+          }
+        });
   }
 
   private ParagraphCellBuilder<?, ?> paragraphCellBuilder() {

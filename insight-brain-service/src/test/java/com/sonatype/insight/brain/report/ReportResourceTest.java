@@ -317,7 +317,7 @@ public class ReportResourceTest
         .containsSubsequence("attachment; filename=\"" + app.getName() + "-Build-", ".pdf\"");
 
     // validate content type and check the actual content is really a PDF
-    assertThat(response.getContentType()).isEqualTo("application/pdf");
+    assertThat(response.getContentType()).isEqualTo("application/pdf;charset=UTF-8");
     assertThat(new String(response.getBodyBytes(), 0, 1024, "US-ASCII")).contains("%PDF-");
   }
 

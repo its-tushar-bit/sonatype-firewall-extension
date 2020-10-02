@@ -55,7 +55,7 @@ public class DatabaseConfigProvider
       // NOTE: H2 uses previous setting if not set in URL, so be explicit about the default size
       long dbCacheSizeInBytes = 16L * 1024 * 1024;
       if (config.getDbCacheSizePercent() != null) {
-        dbCacheSizeInBytes = runtime.maxMemory() * config.getDbCacheSizePercent() / 100;
+        dbCacheSizeInBytes = getMaxMemory() * config.getDbCacheSizePercent() / 100;
         // CLM-8847 enforce a maximum cache size due to a possible overflow problem in h2 
         // see https://github.com/h2database/h2database/issues/630 for more details
         if (dbCacheSizeInBytes > MAX_CACHE_SIZE_BYTES) {
@@ -75,6 +75,11 @@ public class DatabaseConfigProvider
     databaseConfig.setPassword("");
     databaseConfig.setMaxConnections(50);
     return databaseConfig;
+  }
+
+  // Visible for testing
+  long getMaxMemory() {
+    return runtime.maxMemory();
   }
 
   private DatabaseConfig getExternalDatabaseConfig(com.sonatype.insight.brain.service.DatabaseConfig dbConfig) {

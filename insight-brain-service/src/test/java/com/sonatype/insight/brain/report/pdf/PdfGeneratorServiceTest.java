@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.report.pdf;
 
 import java.io.File;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
@@ -55,7 +56,7 @@ public class PdfGeneratorServiceTest
 
   @Test
   public void testPrintReport() throws Exception {
-    Application application = tempEntity.newApplicationWithParent();
+    Application application = tempEntity.newApplicationWithParent("appPublicId", "appName-星義义こ여", "orgName");
     String scanId = "scanId";
     PolicyEvaluation policyEvaluation =
         tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, scanId);
@@ -67,9 +68,9 @@ public class PdfGeneratorServiceTest
     // Validate content type and check the actual content is really a PDF.
     File pdfFile = PdfGenerator.getPdfFile(insightWork.getReportFile(application.getId(), scanId));
     assertThat(response.getHeaderString("Content-Disposition")).containsSubsequence("attachment; " +
-        "filename=\"" + application.getName() +
+        "filename=\"" + URLEncoder.encode(application.getName(), "UTF-8") +
         "-Build-" + new SimpleDateFormat("yyyyMMdd-HHmmss").format(policyEvaluation.getTime()), ".pdf\"");
-    assertThat(response.getMediaType()).hasToString("application/pdf");
+    assertThat(response.getMediaType()).hasToString("application/pdf;charset=UTF-8");
     assertThat(response.getHeaderString("Content-Length")).isEqualTo(Long.toString(pdfFile.length()));
     assertThat(
         DateUtils.parseDate(response.getHeaderString("Last-Modified")).toInstant().truncatedTo(ChronoUnit.SECONDS))
@@ -98,7 +99,7 @@ public class PdfGeneratorServiceTest
     assertThat(response.getHeaderString("Content-Disposition")).containsSubsequence("attachment; " +
         "filename=\"" + application.getName() +
         "-Build-" + new SimpleDateFormat("yyyyMMdd-HHmmss").format(policyEvaluation.getTime()), ".pdf\"");
-    assertThat(response.getMediaType()).hasToString("application/pdf");
+    assertThat(response.getMediaType()).hasToString("application/pdf;charset=UTF-8");
     assertThat(response.getHeaderString("Content-Length")).isEqualTo(Long.toString(pdfFile.length()));
     assertThat(
         DateUtils.parseDate(response.getHeaderString("Last-Modified")).toInstant().truncatedTo(ChronoUnit.SECONDS))

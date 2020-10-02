@@ -191,11 +191,12 @@ public class PdfGeneratorTest
   }
 
   @Test
-  public void testGenerate_NonLatinCharactersSupportedByFont() throws Exception {
+  public void testGenerate_NonLatinCharactersSupportedByFonts() throws Exception {
     ApiReportComponentPolicyViolationsDTOV2 component = new ApiReportComponentPolicyViolationsDTOV2();
-    component.displayName = "�-test.zip";
+    component.displayName = "星義义こ여�-test.zip";
     component.violations.add(new ApiReportPolicyViolationDTOV2());
     ApiReportPolicyDataDTOV2 policyData = generateMinimalPolicyData();
+    policyData.application.name += "星義义こ여";
     policyData.components.add(component);
     File pdfFile = PdfGenerator.getPdfFile(generateReportFile());
     PdfData pdfData = newPdfData();
@@ -384,12 +385,12 @@ public class PdfGeneratorTest
   }
 
   @Test
-  public void testGetLicensesString_Empty() {
+  public void testGetLicensesString_Empty() throws Exception {
     assertThat(getLicenseText(new ApiLicenseDataDTOV2())).isEmpty();
   }
 
   @Test
-  public void testGetLicensesString_OneObservedLicense() {
+  public void testGetLicensesString_OneObservedLicense() throws Exception {
     ApiLicenseDataDTOV2 licenseData = new ApiLicenseDataDTOV2();
     ApiLicenseDTO observedLicense = new ApiLicenseDTO();
     observedLicense.licenseName = "observedLicense";
@@ -399,7 +400,7 @@ public class PdfGeneratorTest
   }
 
   @Test
-  public void testGetLicensesString_OneDeclaredLicense() {
+  public void testGetLicensesString_OneDeclaredLicense() throws Exception {
     ApiLicenseDataDTOV2 licenseData = new ApiLicenseDataDTOV2();
     ApiLicenseDTO declaredLicense = new ApiLicenseDTO();
     declaredLicense.licenseName = "declaredLicense";
@@ -409,7 +410,7 @@ public class PdfGeneratorTest
   }
 
   @Test
-  public void testGetLicensesString_MultipleDeclaredLicenses() {
+  public void testGetLicensesString_MultipleDeclaredLicenses() throws Exception {
     ApiLicenseDataDTOV2 licenseData = new ApiLicenseDataDTOV2();
     ApiLicenseDTO declaredLicense1 = new ApiLicenseDTO();
     declaredLicense1.licenseName = "declaredLicense1";
@@ -426,7 +427,7 @@ public class PdfGeneratorTest
   }
 
   @Test
-  public void testGetLicensesString_MultipleObservedLicenses() {
+  public void testGetLicensesString_MultipleObservedLicenses() throws Exception {
     ApiLicenseDataDTOV2 licenseData = new ApiLicenseDataDTOV2();
     ApiLicenseDTO observedLicense1 = new ApiLicenseDTO();
     observedLicense1.licenseName = "observedLicense1";
@@ -442,7 +443,7 @@ public class PdfGeneratorTest
   }
 
   @Test
-  public void testGetLicensesString_MultipleDeclaredAndObservedLicenses() {
+  public void testGetLicensesString_MultipleDeclaredAndObservedLicenses() throws Exception {
     ApiLicenseDataDTOV2 licenseData = new ApiLicenseDataDTOV2();
     ApiLicenseDTO declaredLicense1 = new ApiLicenseDTO();
     declaredLicense1.licenseName = "declaredLicense1";
@@ -462,7 +463,7 @@ public class PdfGeneratorTest
   }
 
   @Test
-  public void testCreatePolicyViolationsTable_RowOrdering() {
+  public void testCreatePolicyViolationsTable_RowOrdering() throws Exception {
     ApiReportPolicyDataDTOV2 policyData = new ApiReportPolicyDataDTOV2();
     ApiReportComponentPolicyViolationsDTOV2 component111 = generateComponentWithPolicyThreat(2, "policy1", "comp111");
     ApiReportComponentPolicyViolationsDTOV2 component112 = generateComponentWithPolicyThreat(2, "policy1", "comp112");
@@ -552,7 +553,7 @@ public class PdfGeneratorTest
   }
 
   @Test
-  public void testCreateLicensesTable_RowOrdering() {
+  public void testCreateLicensesTable_RowOrdering() throws Exception {
     ApiReportRawDataDTOV2 rawData = new ApiReportRawDataDTOV2();
     ApiReportComponentDTOV2 component11 = generateComponentWithLicense("license1", "component11");
     ApiReportComponentDTOV2 component12 = generateComponentWithLicense("license1", "component12");
@@ -576,7 +577,7 @@ public class PdfGeneratorTest
   }
 
   @Test
-  public void testCreateBomTable_RowOrdering() {
+  public void testCreateBomTable_RowOrdering() throws Exception {
     ApiReportRawDataDTOV2 rawData = new ApiReportRawDataDTOV2();
     ApiReportComponentDTOV2 component1 = generateComponent("component1");
     ApiReportComponentDTOV2 component2 = generateComponent("component2");
@@ -696,7 +697,7 @@ public class PdfGeneratorTest
     return policyData;
   }
 
-  private String getLicenseText(ApiLicenseDataDTOV2 licenseData) {
+  private String getLicenseText(ApiLicenseDataDTOV2 licenseData) throws Exception {
     PdfGenerator pdfGenerator = new PdfGenerator(null, newPdfData());
     pdfGenerator.initFontStyles(new PDDocument());
     ParagraphCell paragraphCell = pdfGenerator.buildLicensesCell(

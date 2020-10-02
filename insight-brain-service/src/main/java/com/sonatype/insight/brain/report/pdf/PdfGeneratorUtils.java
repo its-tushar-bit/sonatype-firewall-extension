@@ -13,11 +13,12 @@ import java.io.InputStream;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
 import org.knowm.xchart.internal.chartpart.Chart;
 
-final class PdfGeneratorUtils
+public final class PdfGeneratorUtils
 {
   private PdfGeneratorUtils() {
     throw new UnsupportedOperationException();
@@ -41,11 +42,41 @@ final class PdfGeneratorUtils
       String text) throws IOException
   {
     pdPageContentStream.beginText();
-    pdPageContentStream.setFont(fontStyle.getFont(), fontStyle.getFontSize());
     pdPageContentStream.setNonStrokingColor(fontStyle.getFontColor());
     pdPageContentStream.newLineAtOffset(x, y);
-    pdPageContentStream.showText(text);
+    addText(pdPageContentStream, fontStyle.getFont(), fontStyle.getFontSize(), text);
     pdPageContentStream.endText();
+  }
+
+  public static void addText(PDPageContentStream pdPageContentStream, PDFont font, float fontSize, String text)
+      throws IOException
+  {
+    if (font instanceof PDFontList) {
+      PDFontList pdFontList = (PDFontList) font;
+      for (int i = 0; i < text.length(); i++) {
+        String character = String.valueOf(text.charAt(i));
+        for (int j = 0; j < pdFontList.getPDFonts().size(); j++) {
+          PDFont pdFont = pdFontList.getPDFonts().get(j);
+          try {
+            pdFont.encode(character);
+            // Only set the font and try showing if we know the font can encode it
+            pdPageContentStream.setFont(pdFont, fontSize);
+            pdPageContentStream.showText(character);
+            break; // This font worked for this character so no need to try the others
+          }
+          catch (IllegalArgumentException e) {
+            if (j == pdFontList.getPDFonts().size() - 1) {
+              // No fonts worked so raise an error
+              throw new IllegalArgumentException("No glyph found for " + character);
+            }
+          }
+        }
+      }
+    }
+    else {
+      pdPageContentStream.setFont(font, fontSize);
+      pdPageContentStream.showText(text);
+    }
   }
 
   private static void drawRectangle(

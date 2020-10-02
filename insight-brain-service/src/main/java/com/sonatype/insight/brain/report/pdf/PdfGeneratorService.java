@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.report.pdf;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -77,9 +78,10 @@ public class PdfGeneratorService
         new SimpleDateFormat("yyyyMMdd-HHmmss").format(policyEvaluation.getTime()) + ".pdf";
     ResponseBuilder responseBuilder = Response.ok()
         .lastModified(policyEvaluation.getTime()).expires(new Date())
-        .type("application/pdf")
+        .type("application/pdf; charset=UTF-8")
+        .encoding("UTF-8")
         .header(HttpHeaders.CONTENT_LENGTH, pdfFile.length())
-        .header("Content-Disposition", "attachment; filename=\"" + filename + '"')
+        .header("Content-Disposition", "attachment; filename=\"" + URLEncoder.encode(filename, "UTF-8") + "\"")
         .entity(pdfFile);
 
     return responseBuilder.build();

@@ -718,6 +718,12 @@
                     <exclude>org/h2/tools/Backup*</exclude>
                   </excludes>
                 </filter>
+                <filter>
+                  <artifact>*:pdfbox2-layout</artifact>
+                  <excludes>
+                    <exclude>rst/pdfbox/layout/text/TextLine.class</exclude>
+                  </excludes>
+                </filter>
               </filters>
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
@@ -785,6 +791,21 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <configuration>
+          <excludes>**/rst/**</excludes>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>**/rst/**</exclude>
+          </excludes>
+        </configuration>
       </plugin>
     </plugins>
 

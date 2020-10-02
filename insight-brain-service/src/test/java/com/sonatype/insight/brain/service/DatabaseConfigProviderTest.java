@@ -25,6 +25,7 @@ import org.postgresql.Driver;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.spy;
 
 public class DatabaseConfigProviderTest
 {
@@ -72,8 +73,9 @@ public class DatabaseConfigProviderTest
 
   private void assertCacheSize(Integer dbCacheSizePercent, long maxMemoryInBytes, long expectedCacheSizeInKilobytes) {
     config.setDbCacheSizePercent(dbCacheSizePercent);
-    lenient().when(runtime.maxMemory()).thenReturn(maxMemoryInBytes);
-    DatabaseConfig databaseConfig = databaseConfigProvider.getDatabaseConfig(DatabaseName.ods);
+    DatabaseConfigProvider databaseConfigProviderSpy = spy(databaseConfigProvider);
+    lenient().when(databaseConfigProviderSpy.getMaxMemory()).thenReturn(maxMemoryInBytes);
+    DatabaseConfig databaseConfig = databaseConfigProviderSpy.getDatabaseConfig(DatabaseName.ods);
     Matcher matcher = Pattern.compile("CACHE_SIZE=(\\d*)").matcher(databaseConfig.getUrl());
     matcher.find();
     assertThat(Long.valueOf(matcher.group(1))).isEqualTo(expectedCacheSizeInKilobytes);

@@ -113,6 +113,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>com.sonatype.insight.portal</groupId>
+      <artifactId>insight-jaxrs-testing</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>

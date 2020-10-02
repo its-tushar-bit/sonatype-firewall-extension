@@ -9,25 +9,19 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.inject.Inject;
-
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseDetailsCache;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.product.license.TestProductLicenseDetailsCache;
 import com.sonatype.insight.brain.scan.Scanner;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.TestCLMServer;
-import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
+import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.scan.cli.nativeimage.DefaultPolicyEvaluatorTestForNativeImageConfigGeneration;
 import com.sonatype.insight.scan.model.io.ScanReader;
-import com.sonatype.insight.test.InjectedTest;
 import com.sonatype.insight.test.LogOutput;
 
 import org.sonatype.licensing.product.ProductLicenseManager;
@@ -35,47 +29,21 @@ import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Rule;
-import org.junit.rules.TemporaryFolder;
 import org.owasp.dependencycheck.Engine;
 
 public abstract class AbstractPolicyEvaluatorTest
-    extends InjectedTest
+    extends AbstractBrainServiceTest
 {
-  protected static TestCLMServer testInsightServer;
-
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
-
-  @Rule
-  public TemporaryFolder tmpDir = new TemporaryFolder();
-
   @Rule
   public LogOutput logOutput = new LogOutput(1, AbstractPolicyEvaluatorTest.class, Engine.class);
 
-  @Inject
   protected DefaultPolicyEvaluator evaluator;
 
-  @Inject
   protected ScanReader scanReader;
 
   protected String insightServerUrl;
-
-  @AfterClass
-  public static void afterClass() throws Exception {
-    stopInsightServer();
-  }
-
-  protected static void stopInsightServer() throws Exception {
-    if (testInsightServer == null) {
-      return;
-    }
-
-    testInsightServer.stop();
-    testInsightServer = null;
-  }
 
   /**
    * The TestRunner class is responsible for executing the actual test against the subject with the given parameters,
@@ -92,12 +60,11 @@ public abstract class AbstractPolicyEvaluatorTest
     return new PolicyEvaluatorTestRunner(params, evaluator, logOutput);
   }
 
-  @Override
   @Before
   public void setUp() throws Exception {
     System.out.println("--- " + testName.getMethodName() + " ------------------------");
     try {
-      String outDir = tmpDir.newFolder("scan").getAbsolutePath();
+      String outDir = tempDir.newFolder("scan").getAbsolutePath();
       String timestamp = "20130610-171959";
       System.setProperty(PolicyEvaluatorCli.PROP_OUTPUT_DIRECTORY, outDir);
       System.setProperty(PolicyEvaluatorCli.PROP_START_TIME, timestamp);
@@ -105,30 +72,15 @@ public abstract class AbstractPolicyEvaluatorTest
     catch (Exception e) {
       throw new IllegalStateException(e);
     }
-    super.setUp();
-
-    startInsightServer();
 
     // return a valid report zip file when asked
-    testInsightServer.getHdsServer().respondWith(new File("src/test/resources/small-report.zip"))
+    getHdsServer().respondWith(new File("src/test/resources/small-report.zip"))
         .atUri("rest/application/analysis/SCAN-ID");
 
-    insightServerUrl = testInsightServer.getCLMServer().getClientConfiguration().getServerUrl();
-  }
+    insightServerUrl = getCLMServer().getClientConfiguration().getServerUrl();
 
-  protected void startInsightServer() throws Exception {
-    if (testInsightServer != null) {
-      return;
-    }
-
-    testInsightServer = new TestCLMServer(false, getBrainModules(), new Configurator()
-    {
-      @Override
-      public void configure(InsightConfig config) {
-        config.setImportRefrencePoliciesFromHDS(false);
-      }
-    });
-    testInsightServer.start();
+    scanReader = getCLMServer().getInstance(ScanReader.class);
+    evaluator = getCLMServer().getInstance(DefaultPolicyEvaluator.class);
   }
 
   protected List<Module> getBrainModules() {

@@ -12,20 +12,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.inject.Inject;
-
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.brain.client.RestClientFactory;
 import com.sonatype.insight.brain.client.RestClientFactory.RestClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
+import com.sonatype.insight.scan.client.ClientScanner;
 import com.sonatype.insight.scan.model.ClientScanResult;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.scan.model.Scan;
+import com.sonatype.insight.scan.model.io.ScanWriterFactory;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.inject.Binder;
+import org.junit.Before;
 import org.junit.Test;
 import org.owasp.dependencycheck.Engine;
 import org.owasp.dependencycheck.analyzer.AbstractFileTypeAnalyzer;
@@ -71,14 +71,14 @@ import static org.mockito.Mockito.when;
 public class ExpandedCoveragePolicyEvaluatorTest
     extends AbstractPolicyEvaluatorTest
 {
-  @Inject
   protected ExpandedCoveragePolicyEvaluator evaluator;
 
   private RestClientFactory restClientFactory = mock(RestClientFactory.class);
 
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(RestClientFactory.class).toInstance(restClientFactory);
+  @Before
+  public void before() {
+    evaluator = new ExpandedCoveragePolicyEvaluator(getCLMServer().getInstance(Scanner.class), restClientFactory,
+        getCLMServer().getInstance(ClientScanner.class), getCLMServer().getInstance(ScanWriterFactory.class));
   }
 
   private String getDependencyName(Dependency dependency) {
@@ -239,7 +239,7 @@ public class ExpandedCoveragePolicyEvaluatorTest
   }
 
   private List<Dependency> testScan(String scanTarget) throws Exception {
-    Parameters params = new Parameters("-o", tmpDir.newFolder().getAbsolutePath(),
+    Parameters params = new Parameters("-o", tempDir.newFolder().getAbsolutePath(),
         getClass().getResource("/" + getTestClassName() + "/" + scanTarget).getFile());
 
     RestClient restClient = mock(RestClient.class);

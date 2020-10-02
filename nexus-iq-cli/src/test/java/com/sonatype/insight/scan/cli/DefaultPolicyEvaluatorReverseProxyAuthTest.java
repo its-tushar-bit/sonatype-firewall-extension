@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.security.PasswordService;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.TestCLMServer;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.test.reverseproxy.ReverseProxyServer;
 
@@ -52,12 +51,25 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
   }
 
   @Override
-  @Before
-  public void setUp() throws Exception {
-    super.setUp();
+  protected void initServer() throws Exception {
+    initServer(new Configurator()
+    {
+      @Override
+      public void configure(InsightConfig config) {
+        config.getReverseProxyAuthentication().setEnabled(rutEnabled);
+        config.setImportRefrencePoliciesFromHDS(false);
+      }
+    });
+  }
 
+  @Before
+  public void before() throws Exception {
     sslSettings.use();
     createAppAndAuthorizedUser("the-app-id", "mmurdock", "pa55word");
+
+    // start proxy server
+    reverseProxy = new ReverseProxyServer(getCLMServer().getPort(), true);
+    reverseProxy.start();
   }
 
   @After
@@ -65,7 +77,6 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
     if (reverseProxy != null) {
       reverseProxy.stop();
     }
-    stopInsightServer();
   }
 
   @Test
@@ -135,24 +146,6 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
                   e -> assertThat(e.getCause().getMessage()).isEqualTo(ErrorResponseGenerator.MSG_MISSING_CREDENTIALS));
         })
         .doPolicyEvaluationRun();
-  }
-
-  @Override
-  protected void startInsightServer() throws Exception {
-    // start Insight server
-    testInsightServer = new TestCLMServer(false, getBrainModules(), new Configurator()
-    {
-      @Override
-      public void configure(InsightConfig config) {
-        config.getReverseProxyAuthentication().setEnabled(rutEnabled);
-        config.setImportRefrencePoliciesFromHDS(false);
-      }
-    });
-    testInsightServer.start();
-
-    // start proxy server
-    reverseProxy = new ReverseProxyServer(testInsightServer.getCLMServer().getPort(), true);
-    reverseProxy.start();
   }
 
   private void createAppAndAuthorizedUser(String appId, String username, String password) {

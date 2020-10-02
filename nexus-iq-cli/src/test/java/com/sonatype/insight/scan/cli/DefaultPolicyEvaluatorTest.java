@@ -53,23 +53,26 @@ public class DefaultPolicyEvaluatorTest
 
   @Test
   public void testRun_ServerDown() throws Exception {
-    stopInsightServer();
+    getTestCLMServer().stop();
 
-    tempEntity.newApplicationWithParent("the-app-id");
+    try {
+      tempEntity.newApplicationWithParent("the-app-id");
 
-    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
-        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
-        "src/test/data/artifact.jar");
-    withTestRunner(params)
-        .expectFailExit()
-        .expectErrorLog("The IQ Server " + insightServerUrl + " could not be contacted")
-        .doPolicyEvaluationRun();
+      Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+          "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
+          "src/test/data/artifact.jar");
+      withTestRunner(params).expectFailExit()
+          .expectErrorLog("The IQ Server " + insightServerUrl + " could not be contacted").doPolicyEvaluationRun();
+    }
+    finally {
+      getTestCLMServer().start();
+    }
   }
 
   @Test
   public void testRun_InvalidAppId() throws Exception {
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
-        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
     withTestRunner(params)
         .expectFailExit()
@@ -80,7 +83,7 @@ public class DefaultPolicyEvaluatorTest
   @Test
   public void testRun_InvalidAuthentication() throws Exception {
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "user:pass", //
-        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
     withTestRunner(params)
         .expectFailExit()
@@ -93,7 +96,7 @@ public class DefaultPolicyEvaluatorTest
     tempEntity.newUser("user");
     Parameters params = new Parameters("-s", insightServerUrl, //
         "-a", "user:" + TemporaryEntity.USER_PASSWORD_CLEAR, //
-        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
     withTestRunner(params)
         .expectFailExit()
@@ -104,7 +107,7 @@ public class DefaultPolicyEvaluatorTest
   @Test
   public void testRun_MultiAuthenticationModesEnabled() throws Exception {
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "user:pass", "--pki-authentication", //
-        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
     withTestRunner(params)
         .expectFailExit()
@@ -116,7 +119,7 @@ public class DefaultPolicyEvaluatorTest
   @Test
   public void testRun_PkiAuthenticationMode() throws Exception {
     Parameters params = new Parameters("-s", insightServerUrl, "--pki-authentication", //
-        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
     withTestRunner(params)
         .expectFailExit()
@@ -129,7 +132,7 @@ public class DefaultPolicyEvaluatorTest
     tempEntity.newApplicationWithParent("the-app-id");
 
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
-        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
     withTestRunner(params)
         .expectPolicyEvaluationResult(newPolicyEvaluationResultForOneComponent())
@@ -142,7 +145,7 @@ public class DefaultPolicyEvaluatorTest
     createPolicy(app.getId(), "Policy Name", Action.ID_WARN, 10);
 
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
-        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
 
     PolicyEvaluationResult expectedPolicyEvaluationResult = newPolicyEvaluationResultForOneComponent();
@@ -164,7 +167,7 @@ public class DefaultPolicyEvaluatorTest
     createPolicy(app.getId(), "Policy 3", Action.ID_WARN, 2);
 
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
-        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
 
     PolicyEvaluationResult expectedPolicyEvaluationResult = newPolicyEvaluationResultForOneComponent();
@@ -189,7 +192,7 @@ public class DefaultPolicyEvaluatorTest
     createPolicy(app.getId(), "TestPolicy", Action.ID_WARN, 9);
 
     Parameters params1 = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
-        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
 
     PolicyEvaluationResult expectedPolicyEvaluationResult = newPolicyEvaluationResultForOneComponent();
@@ -215,28 +218,29 @@ public class DefaultPolicyEvaluatorTest
 
   @Test
   public void testRun_PassWhenIgnoreSystemExceptions() throws Exception {
-    stopInsightServer();
+    getTestCLMServer().stop();
 
-    tempEntity.newApplicationWithParent("the-app-id");
+    try {
+      tempEntity.newApplicationWithParent("the-app-id");
 
-    Parameters params1 = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
-        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
-        "src/test/data/artifact.jar");
-    withTestRunner(params1)
-        .expectFailExit()
-        .expectErrorLog("The IQ Server " + insightServerUrl + " could not be contacted")
-        .doPolicyEvaluationRun();
+      Parameters params1 = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+          "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
+          "src/test/data/artifact.jar");
+      withTestRunner(params1).expectFailExit()
+          .expectErrorLog("The IQ Server " + insightServerUrl + " could not be contacted").doPolicyEvaluationRun();
 
-    logOutput.clear();
+      logOutput.clear();
 
-    Parameters params2 = new Parameters(
-        Stream.concat(Stream.of("-e"), Stream.of(params1.getArgs())).toArray(String[]::new));
-    // The evaluator will still throw an exit exception in the case where the -e flag is passed in as true
-    // The exception will have exit status code 0 such that it will "pass" in a CI
-    withTestRunner(params2)
-        .expectErrorLog("The IQ Server " + insightServerUrl + " could not be contacted")
-        .expectExitExceptionButSuccessExit()
-        .doPolicyEvaluationRun();
+      Parameters params2 =
+          new Parameters(Stream.concat(Stream.of("-e"), Stream.of(params1.getArgs())).toArray(String[]::new));
+      // The evaluator will still throw an exit exception in the case where the -e flag is passed in as true
+      // The exception will have exit status code 0 such that it will "pass" in a CI
+      withTestRunner(params2).expectErrorLog("The IQ Server " + insightServerUrl + " could not be contacted")
+          .expectExitExceptionButSuccessExit().doPolicyEvaluationRun();
+    }
+    finally {
+      getTestCLMServer().start();
+    }
   }
 
   @Test
@@ -244,7 +248,7 @@ public class DefaultPolicyEvaluatorTest
     tempEntity.newApplicationWithParent("the-app-id");
 
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
-        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
     withTestRunner(params)
         .expectInfoLog("The detailed report can be viewed online at " + insightServerUrl
@@ -258,7 +262,7 @@ public class DefaultPolicyEvaluatorTest
     tempEntity.newProprietaryConfig(app.getId(), Collections.singletonList("com.sonatype"), Collections.emptyList());
 
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
-        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
     withTestRunner(params)
         .doPolicyEvaluationRun();
@@ -293,7 +297,7 @@ public class DefaultPolicyEvaluatorTest
     tempEntity.newProprietaryConfig(app.getId(), Collections.singletonList("com.overridden"), Collections.emptyList());
 
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
-        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "-D", "proprietaryPackages=com.sonatype", //
         "src/test/data/artifact.jar");
     withTestRunner(params)
@@ -324,7 +328,7 @@ public class DefaultPolicyEvaluatorTest
         Collections.singletonList("com.overridden.*"));
 
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
-        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "-D", "proprietaryRegexes=com.sonatype.*", //
         "src/test/data/artifact.jar");
     withTestRunner(params)
@@ -353,7 +357,7 @@ public class DefaultPolicyEvaluatorTest
     Application app = tempEntity.newApplicationWithParent("the-app-id");
 
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
-        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "-t", Stage.ID_RELEASE, //
         "src/test/data/artifact.jar");
     withTestRunner(params)
@@ -367,7 +371,7 @@ public class DefaultPolicyEvaluatorTest
     Application app = tempEntity.newApplicationWithParent("the-app-id");
 
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
-        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
     withTestRunner(params)
         .doPolicyEvaluationRun();
@@ -379,9 +383,9 @@ public class DefaultPolicyEvaluatorTest
   public void testRun_JsonExport() throws Exception {
     Application app = tempEntity.newApplicationWithParent("the-app-id");
 
-    File jsonFile = new File(tmpDir.getRoot(), "not-yet-existent/results.json");
+    File jsonFile = new File(tempDir.getRoot(), "not-yet-existent/results.json");
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
-        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "-r", jsonFile.getAbsolutePath(), //
         "src/test/data/artifact.jar");
     withTestRunner(params)
@@ -411,19 +415,19 @@ public class DefaultPolicyEvaluatorTest
     List<String> paramFileLines1 = new ArrayList<>();
     paramFileLines1.add("-i");
     paramFileLines1.add("the-app-id");
-    File paramFile1 = tmpDir.newFile();
+    File paramFile1 = tempDir.newFile();
     List<String> paramFileLines2 = new ArrayList<>();
     paramFileLines2.add("--stage");
     paramFileLines2.add(Stage.ID_RELEASE);
     paramFileLines2.add("src/test/data/artifact.jar");
-    File paramFile2 = tmpDir.newFile();
+    File paramFile2 = tempDir.newFile();
     // We use the default character encoding to write the parameter files because JCommander uses the default character
     // encoding to read the file.
     FileUtils.writeLines(paramFile1, paramFileLines1, "\n");
     FileUtils.writeLines(paramFile2, paramFileLines2, "\n");
 
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
-        "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "@" + paramFile1.getAbsolutePath(), "@" + paramFile2.getAbsolutePath());
     withTestRunner(params)
         .expectPolicyEvaluationResult(newPolicyEvaluationResultForOneComponent())
@@ -439,7 +443,7 @@ public class DefaultPolicyEvaluatorTest
     automaticApplicationsConfigurationDAO.setEnabled(true);
 
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
-        "-i", "non-existent-app-public-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "-i", "non-existent-app-public-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
     withTestRunner(params)
         .expectPolicyEvaluationResult(newPolicyEvaluationResultForOneComponent())
@@ -454,7 +458,7 @@ public class DefaultPolicyEvaluatorTest
   @Test
   public void testRun_AutoAppCreationDisabled() throws Exception {
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
-        "-i", "non-existent-app-public-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "-i", "non-existent-app-public-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
     withTestRunner(params)
         .expectFailExit()
@@ -491,10 +495,10 @@ public class DefaultPolicyEvaluatorTest
     Application app = tempEntity.newApplicationWithParent();
 
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
-        "-i", app.getPublicId(), "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "-i", app.getPublicId(), "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
 
-    VersionService versionService = testInsightServer.getCLMServer().getInstance(VersionService.class);
+    VersionService versionService = getCLMServer().getInstance(VersionService.class);
     String savedServerVersion = versionService.getVersion();
 
     // Verify older server version. There should be an exception because the client requires a minimal server version
@@ -539,7 +543,7 @@ public class DefaultPolicyEvaluatorTest
     tempEntity.newProprietaryConfig(app.getId(), Collections.singletonList("com.sonatype"), Collections.emptyList());
 
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
-        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "-m", "src/test/data/metadata.json", "src/test/data/artifact.jar");
     withTestRunner(params)
         .doPolicyEvaluationRun();
@@ -558,7 +562,7 @@ public class DefaultPolicyEvaluatorTest
     tempEntity.newProprietaryConfig(app.getId(), Collections.singletonList("com.sonatype"), Collections.emptyList());
 
     Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
-        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "-m", "src/test/data/metadata.json", "src/test/data/artifact.jar");
     withTestRunner(params)
         .doPolicyEvaluationRun();

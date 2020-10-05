@@ -3,7 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global Insight*/
+
+import { renderVersionGraph } from './versionGraph';
 
 export default function graphDirective(Coordinates) {
   return {
@@ -19,7 +20,7 @@ export default function graphDirective(Coordinates) {
     link: function(scope) {
       scope.$watch('versions', function(versions) {
         if (versions) {
-          Insight.ComponentInformation({
+          renderVersionGraph({
             data: {
               nextMajorRevisionIndex: versions.nextMajorRevisionIndex,
               versions: versions,

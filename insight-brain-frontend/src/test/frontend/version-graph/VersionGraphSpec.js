@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import * as versionGraph from '../../../main/frontend/version-graph/version.graph/versionGraph';
+
 var clmEndpointTemplate = {
       openView: angular.noop,
       type: 'ide',
@@ -47,8 +49,6 @@ var clmEndpointTemplate = {
           require('inject-loader!../../../main/frontend/version-graph/app/version.graph.app')({
             './exception.handler.factory': exceptionHandler
           }).default;
-
-      require('inject-loader!../../../main/frontend/version-graph/appcheck')();
 
       angular.mock.module(versionGraphAppModule.name, function($provide) {
         $provide.service('pendoService', function() {
@@ -1083,7 +1083,7 @@ var clmEndpointTemplate = {
             describe('For next-no-violations', function() {
 
               beforeEach(function() {
-                spyOn(Insight, 'updateBars');
+                spyOn(versionGraph, 'selectVersion');
                 scope.markSelection({ type: 'next-no-violations'});
               });
 
@@ -1091,15 +1091,15 @@ var clmEndpointTemplate = {
                 expect(Coordinates.getSelected().version).toEqual('2');
               }));
 
-              it('Bars are updated', function () {
-                expect(Insight.updateBars).toHaveBeenCalledWith(1);
+              it('selects proper version in the graph', function () {
+                expect(versionGraph.selectVersion).toHaveBeenCalledWith(1);
               });
             });
 
             describe('For next-no-fail', function() {
 
               beforeEach(function() {
-                spyOn(Insight, 'updateBars');
+                spyOn(versionGraph, 'selectVersion');
                 scope.markSelection({type: 'next-non-failing'});
               });
 
@@ -1107,8 +1107,8 @@ var clmEndpointTemplate = {
                 expect(Coordinates.getSelected().version).toEqual('3');
               }));
 
-              it('updates the bars', function() {
-                expect(Insight.updateBars).toHaveBeenCalledWith(2);
+              it('selects proper version in the graph', function() {
+                expect(versionGraph.selectVersion).toHaveBeenCalledWith(2);
               });
             });
           });
@@ -1134,7 +1134,7 @@ var clmEndpointTemplate = {
             describe('For next-no-violations', function() {
 
               beforeEach(function() {
-                spyOn(Insight, 'updateBars');
+                spyOn(versionGraph, 'selectVersion');
                 scope.markSelection({type: 'next-no-violations'});
               });
 
@@ -1142,15 +1142,15 @@ var clmEndpointTemplate = {
                 expect(Coordinates.getSelected().version).toEqual('1');
               }));
 
-              it('does not update bars', function() {
-                expect(Insight.updateBars).not.toHaveBeenCalled();
+              it('does not selected a version in the graph', function() {
+                expect(versionGraph.selectVersion).not.toHaveBeenCalled();
               });
             });
 
             describe('For next-no-fail', function() {
 
               beforeEach(function() {
-                spyOn(Insight, 'updateBars');
+                spyOn(versionGraph, 'selectVersion');
                 scope.markSelection({type: 'next-non-failing'});
               });
 
@@ -1158,8 +1158,8 @@ var clmEndpointTemplate = {
                 expect(Coordinates.getSelected().version).toEqual('1');
               }));
 
-              it('does not update bars', function() {
-                expect(Insight.updateBars).not.toHaveBeenCalled();
+              it('does not selected a version in the graph', function() {
+                expect(versionGraph.selectVersion).not.toHaveBeenCalled();
               });
             });
           });
@@ -1447,7 +1447,7 @@ var clmEndpointTemplate = {
       var parentScope = null;
 
       beforeEach(inject(function($compile, $rootScope, Coordinates) {
-        spyOn(Insight, 'ComponentInformation').and.returnValue(undefined);
+        spyOn(versionGraph, 'renderVersionGraph').and.returnValue(undefined);
 
         parentScope = $rootScope.$new();
         parentScope.componentDetails = [
@@ -1622,10 +1622,10 @@ var clmEndpointTemplate = {
       });
 
       it('Version Click', inject(function(Coordinates) {
-        Insight.ComponentInformation.calls.mostRecent().args[0].versionClick('5.5.23');
+        versionGraph.renderVersionGraph.calls.mostRecent().args[0].versionClick('5.5.23');
         expect(Coordinates.getSelected()).toEqual({'version': '5.5.23'});
 
-        Insight.ComponentInformation.calls.mostRecent().args[0].versionClick('5.0.28');
+        versionGraph.renderVersionGraph.calls.mostRecent().args[0].versionClick('5.0.28');
         expect(Coordinates.getSelected()).toEqual({'version': '5.0.28'});
       }));
 
@@ -1635,7 +1635,7 @@ var clmEndpointTemplate = {
         parentScope.$on('viewDetails', function(event, v) {
           version = v;
         });
-        Insight.ComponentInformation.calls.mostRecent().args[0].versionDblClick('5.5.23');
+        versionGraph.renderVersionGraph.calls.mostRecent().args[0].versionDblClick('5.5.23');
         expect(version).toEqual(null);
       }));
 
@@ -1645,7 +1645,7 @@ var clmEndpointTemplate = {
         parentScope.$on('viewDetails', function(event, v) {
           version = v;
         });
-        Insight.ComponentInformation.calls.mostRecent().args[0].versionDblClick('5.5.23');
+        versionGraph.renderVersionGraph.calls.mostRecent().args[0].versionDblClick('5.5.23');
         expect(version).toEqual('5.5.23');
       }));
     });

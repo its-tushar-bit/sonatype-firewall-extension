@@ -3,7 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, Brain, clmEndpoint, Insight*/
+/*global angular, Brain, clmEndpoint*/
+
+import { selectVersion } from './versionGraph';
 
 const NEXT_NO_VIOLATIONS = 'next-no-violations';
 const NEXT_NO_VIOLATIONS_DEPENDENCIES = 'next-no-violations-with-dependencies';
@@ -265,7 +267,7 @@ export default function ComponentController($scope, Coordinates, OwnerContext, e
       if (item.componentIdentifier.coordinates.version === suggestedRemediationVersion) {
         Coordinates.setSelected(item.componentIdentifier.coordinates);
         Properties.setHash(item.hash);
-        Insight.updateBars(index);
+        selectVersion(index);
       }
     });
   }

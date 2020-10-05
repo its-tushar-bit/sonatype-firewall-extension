@@ -11,12 +11,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.client.ResultData;
+import com.sonatype.insight.brain.client.UnsupportedServerVersionException;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
@@ -38,18 +38,24 @@ import com.sonatype.insight.scan.model.io.ScanWriter;
 import com.sonatype.nexus.git.utils.Environment.GitLabCI;
 import com.sonatype.nexus.git.utils.commit.CommitHashFinderBuilder;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DefaultPolicyEvaluatorTest
+/**
+ * The primary set of tests for the {@link DefaultPolicyEvaluator}.
+ *
+ * This set of test cases powers not only the regular unit tests (see @{@link JUnitDefaultPolicyEvaluatorTest}, but also
+ * the native image configuration and testing. This allows us to have one set of tests which covers all three cases.
+ */
+public abstract class DefaultPolicyEvaluatorTest
     extends AbstractPolicyEvaluatorTest
 {
   @Rule
-  public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
+  public final AccessibleEnvironmentVariables environmentVariables = new AccessibleEnvironmentVariables();
 
   @Test
   public void testRun_ServerDown() throws Exception {
@@ -58,11 +64,13 @@ public class DefaultPolicyEvaluatorTest
     try {
       tempEntity.newApplicationWithParent("the-app-id");
 
-      Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+      List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
           "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
           "src/test/data/artifact.jar");
-      withTestRunner(params).expectFailExit()
-          .expectErrorLog("The IQ Server " + insightServerUrl + " could not be contacted").doPolicyEvaluationRun();
+      withTestRunner(params)
+          .expectFailExit()
+          .expectErrorLog("The IQ Server " + insightServerUrl + " could not be contacted")
+          .doPolicyEvaluationRun();
     }
     finally {
       getTestCLMServer().start();
@@ -71,7 +79,7 @@ public class DefaultPolicyEvaluatorTest
 
   @Test
   public void testRun_InvalidAppId() throws Exception {
-    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
     withTestRunner(params)
@@ -82,7 +90,7 @@ public class DefaultPolicyEvaluatorTest
 
   @Test
   public void testRun_InvalidAuthentication() throws Exception {
-    Parameters params = new Parameters("-s", insightServerUrl, "-a", "user:pass", //
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "user:pass", //
         "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
     withTestRunner(params)
@@ -94,7 +102,7 @@ public class DefaultPolicyEvaluatorTest
   @Test
   public void testRun_InvalidAuthorization() throws Exception {
     tempEntity.newUser("user");
-    Parameters params = new Parameters("-s", insightServerUrl, //
+    List<String> params = ImmutableList.of("-s", insightServerUrl, //
         "-a", "user:" + TemporaryEntity.USER_PASSWORD_CLEAR, //
         "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
@@ -106,7 +114,7 @@ public class DefaultPolicyEvaluatorTest
 
   @Test
   public void testRun_MultiAuthenticationModesEnabled() throws Exception {
-    Parameters params = new Parameters("-s", insightServerUrl, "-a", "user:pass", "--pki-authentication", //
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "user:pass", "--pki-authentication", //
         "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
     withTestRunner(params)
@@ -118,7 +126,7 @@ public class DefaultPolicyEvaluatorTest
 
   @Test
   public void testRun_PkiAuthenticationMode() throws Exception {
-    Parameters params = new Parameters("-s", insightServerUrl, "--pki-authentication", //
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "--pki-authentication", //
         "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
     withTestRunner(params)
@@ -131,7 +139,7 @@ public class DefaultPolicyEvaluatorTest
   public void testRun_NoViolations() throws Exception {
     tempEntity.newApplicationWithParent("the-app-id");
 
-    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
     withTestRunner(params)
@@ -144,7 +152,7 @@ public class DefaultPolicyEvaluatorTest
     Application app = tempEntity.newApplicationWithParent("the-app-id");
     createPolicy(app.getId(), "Policy Name", Action.ID_WARN, 10);
 
-    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
 
@@ -166,7 +174,7 @@ public class DefaultPolicyEvaluatorTest
     createPolicy(app.getId(), "Policy 2", Action.ID_FAIL, 5);
     createPolicy(app.getId(), "Policy 3", Action.ID_WARN, 2);
 
-    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
 
@@ -191,7 +199,7 @@ public class DefaultPolicyEvaluatorTest
     Application app = tempEntity.newApplicationWithParent("the-app-id");
     createPolicy(app.getId(), "TestPolicy", Action.ID_WARN, 9);
 
-    Parameters params1 = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+    List<String> params1 = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
 
@@ -206,8 +214,7 @@ public class DefaultPolicyEvaluatorTest
 
     logOutput.clear();
 
-    Parameters params2 = new Parameters(
-        Stream.concat(Stream.of("-w"), Stream.of(params1.getArgs())).toArray(String[]::new));
+    List<String> params2 = ImmutableList.<String>builder().addAll(params1).add("-w").build();
     withTestRunner(params2)
         .expectFailExit()
         .expectInfoLog("Policy Action: Warning")
@@ -223,7 +230,7 @@ public class DefaultPolicyEvaluatorTest
     try {
       tempEntity.newApplicationWithParent("the-app-id");
 
-      Parameters params1 = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+      List<String> params1 = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
           "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
           "src/test/data/artifact.jar");
       withTestRunner(params1).expectFailExit()
@@ -231,8 +238,7 @@ public class DefaultPolicyEvaluatorTest
 
       logOutput.clear();
 
-      Parameters params2 =
-          new Parameters(Stream.concat(Stream.of("-e"), Stream.of(params1.getArgs())).toArray(String[]::new));
+      List<String> params2 = ImmutableList.<String>builder().addAll(params1).add("-e").build();
       // The evaluator will still throw an exit exception in the case where the -e flag is passed in as true
       // The exception will have exit status code 0 such that it will "pass" in a CI
       withTestRunner(params2).expectErrorLog("The IQ Server " + insightServerUrl + " could not be contacted")
@@ -247,7 +253,7 @@ public class DefaultPolicyEvaluatorTest
   public void testRun_ReportUrl() throws Exception {
     tempEntity.newApplicationWithParent("the-app-id");
 
-    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
     withTestRunner(params)
@@ -261,13 +267,13 @@ public class DefaultPolicyEvaluatorTest
     Application app = tempEntity.newApplicationWithParent("the-app-id");
     tempEntity.newProprietaryConfig(app.getId(), Collections.singletonList("com.sonatype"), Collections.emptyList());
 
-    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
     withTestRunner(params)
         .doPolicyEvaluationRun();
 
-    File scanFile = findScanFile(params);
+    File scanFile = findScanFile();
     Scan scan = scanReader.read(scanFile);
     assertThat(scan).isNotNull();
     ScanSummary summary = scan.getSummary();
@@ -296,14 +302,14 @@ public class DefaultPolicyEvaluatorTest
     Application app = tempEntity.newApplicationWithParent("the-app-id");
     tempEntity.newProprietaryConfig(app.getId(), Collections.singletonList("com.overridden"), Collections.emptyList());
 
-    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "-D", "proprietaryPackages=com.sonatype", //
         "src/test/data/artifact.jar");
     withTestRunner(params)
         .doPolicyEvaluationRun();
 
-    File scanFile = findScanFile(params);
+    File scanFile = findScanFile();
     Scan scan = scanReader.read(scanFile);
     assertThat(scan).isNotNull();
     ScanConfiguration config = scan.getConfiguration();
@@ -327,14 +333,14 @@ public class DefaultPolicyEvaluatorTest
     tempEntity.newProprietaryConfig(app.getId(), Collections.emptyList(),
         Collections.singletonList("com.overridden.*"));
 
-    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "-D", "proprietaryRegexes=com.sonatype.*", //
         "src/test/data/artifact.jar");
     withTestRunner(params)
         .doPolicyEvaluationRun();
 
-    File scanFile = findScanFile(params);
+    File scanFile = findScanFile();
     Scan scan = scanReader.read(scanFile);
     assertThat(scan).isNotNull();
     ScanConfiguration config = scan.getConfiguration();
@@ -356,7 +362,7 @@ public class DefaultPolicyEvaluatorTest
   public void testRun_SetScanStage() throws Exception {
     Application app = tempEntity.newApplicationWithParent("the-app-id");
 
-    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "-t", Stage.ID_RELEASE, //
         "src/test/data/artifact.jar");
@@ -370,7 +376,7 @@ public class DefaultPolicyEvaluatorTest
   public void testRun_DefaultScanStage() throws Exception {
     Application app = tempEntity.newApplicationWithParent("the-app-id");
 
-    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
     withTestRunner(params)
@@ -384,7 +390,7 @@ public class DefaultPolicyEvaluatorTest
     Application app = tempEntity.newApplicationWithParent("the-app-id");
 
     File jsonFile = new File(tempDir.getRoot(), "not-yet-existent/results.json");
-    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "-r", jsonFile.getAbsolutePath(), //
         "src/test/data/artifact.jar");
@@ -426,7 +432,7 @@ public class DefaultPolicyEvaluatorTest
     FileUtils.writeLines(paramFile1, paramFileLines1, "\n");
     FileUtils.writeLines(paramFile2, paramFileLines2, "\n");
 
-    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
         "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "@" + paramFile1.getAbsolutePath(), "@" + paramFile2.getAbsolutePath());
     withTestRunner(params)
@@ -442,7 +448,7 @@ public class DefaultPolicyEvaluatorTest
     automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
     automaticApplicationsConfigurationDAO.setEnabled(true);
 
-    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "non-existent-app-public-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
     withTestRunner(params)
@@ -457,7 +463,7 @@ public class DefaultPolicyEvaluatorTest
 
   @Test
   public void testRun_AutoAppCreationDisabled() throws Exception {
-    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "non-existent-app-public-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
     withTestRunner(params)
@@ -466,8 +472,8 @@ public class DefaultPolicyEvaluatorTest
         .doPolicyEvaluationRun();
   }
 
-  private File findScanFile(Parameters params) {
-    File scanOutputDir = params.getOutputDirectory();
+  private File findScanFile() {
+    File scanOutputDir = new File(tempDir.getRoot().getAbsolutePath());
 
     File[] scanFiles = scanOutputDir.listFiles(file -> file.getName().startsWith("scan-"));
     assertThat(scanFiles).hasSize(1);
@@ -494,7 +500,7 @@ public class DefaultPolicyEvaluatorTest
   public void testRun_ServerVersionRequired() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
 
-    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", app.getPublicId(), "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
 
@@ -512,9 +518,8 @@ public class DefaultPolicyEvaluatorTest
       withTestRunner(params)
           .expectFailExit()
           .expectErrorLog(expectedMessage)
-          .expectException(result -> {
-            result.withMessageEndingWith(expectedMessage);
-          })
+          .expectException(UnsupportedServerVersionException.class, expectedMessage)
+          .expectErrorLog(expectedMessage)
           .doPolicyEvaluationRun();
     }
     finally {
@@ -542,13 +547,13 @@ public class DefaultPolicyEvaluatorTest
     Application app = tempEntity.newApplicationWithParent("the-app-id");
     tempEntity.newProprietaryConfig(app.getId(), Collections.singletonList("com.sonatype"), Collections.emptyList());
 
-    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "-m", "src/test/data/metadata.json", "src/test/data/artifact.jar");
     withTestRunner(params)
         .doPolicyEvaluationRun();
 
-    File scanFile = findScanFile(params);
+    File scanFile = findScanFile();
     Scan scan = scanReader.read(scanFile);
 
     environmentVariables.clear("GIT_COMMIT");
@@ -561,13 +566,13 @@ public class DefaultPolicyEvaluatorTest
     Application app = tempEntity.newApplicationWithParent("the-app-id");
     tempEntity.newProprietaryConfig(app.getId(), Collections.singletonList("com.sonatype"), Collections.emptyList());
 
-    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "-m", "src/test/data/metadata.json", "src/test/data/artifact.jar");
     withTestRunner(params)
         .doPolicyEvaluationRun();
 
-    File scanFile = findScanFile(params);
+    File scanFile = findScanFile();
     Scan scan = scanReader.read(scanFile);
 
     assertThat(scan).isNotNull();

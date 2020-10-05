@@ -3,11 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.scan.cli.nativeimage;
+package com.sonatype.insight.scan.cli;
 
-import com.sonatype.insight.scan.cli.DefaultPolicyEvaluatorReverseProxyAuthTest;
-import com.sonatype.insight.scan.cli.Parameters;
-import com.sonatype.insight.scan.cli.PolicyEvaluatorTestRunner;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Native image config generation for the {@link DefaultPolicyEvaluatorReverseProxyAuthTest}. This extends that class
@@ -15,15 +14,15 @@ import com.sonatype.insight.scan.cli.PolicyEvaluatorTestRunner;
  *
  * See readme.md in the nexus-iq-cli-native-image module for full details
  */
-public class DefaultPolicyEvaluatorReverseProxyAuthTestForNativeImageConfigGeneration
+public class NativeImageConfigDefaultPolicyEvaluatorReverseProxyAuthTest
     extends DefaultPolicyEvaluatorReverseProxyAuthTest
 {
-  public DefaultPolicyEvaluatorReverseProxyAuthTestForNativeImageConfigGeneration(final boolean rutEnabled) {
+  public NativeImageConfigDefaultPolicyEvaluatorReverseProxyAuthTest(final boolean rutEnabled) {
     super(rutEnabled);
   }
 
   @Override
-  protected PolicyEvaluatorTestRunner withTestRunner(final Parameters params) {
-    return new NativeImageConfigGenerationTestRunner(params, evaluator, logOutput);
+  protected AbstractPolicyEvaluatorTestRunner withTestRunner(final List<String> params) {
+    return new NativeImageConfigGenerationTestRunner(params, Collections.emptyMap(), logOutput).withSsl();
   }
 }

@@ -18,40 +18,6 @@ public class PolicyEvaluatorCli
 
   static final String PROP_START_TIME = "com.sonatype.insight.scan.startTime";
 
-  private void run(
-      Class<? extends PolicyEvaluator> policyEvaluatorClass,
-      Parameters params)
-  {
-    try {
-      PolicyEvaluator main = boot(policyEvaluatorClass, params);
-      main.run(params);
-    }
-    catch (ExitException e) {
-      System.exit(e.getExitCode());
-    }
-  }
-
-  private <T extends PolicyEvaluator> T boot(Class<T> type, AbstractParameters params) throws ExitException {
-    initLogging(params);
-
-    // NOTE: Acquire logger after initLogging()
-    Logger log = LoggerFactory.getLogger(type);
-
-    if (params.getError() != null) {
-      log.error(params.createUsageHelp());
-      log.error(params.getError().getMessage());
-
-      throw new ExitException(1);
-    }
-
-    if (params.isHelp()) {
-      log.info(params.createUsageHelp());
-      throw new ExitException(0);
-    }
-
-    return org.eclipse.sisu.launch.Main.boot(type, params.getArgs());
-  }
-
   private static void initLogging(AbstractParameters params) {
     System.setProperty(PROP_OUTPUT_DIRECTORY, params.getOutputDirectory().getAbsolutePath());
     System.setProperty(PROP_START_TIME, new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date()));
@@ -82,5 +48,43 @@ public class PolicyEvaluatorCli
         params.isExpandedCoverageMode() ? ExpandedCoveragePolicyEvaluator.class : DefaultPolicyEvaluator.class;
 
     new PolicyEvaluatorCli().run(policyEvaluatorClass, params);
+  }
+
+  protected void run(
+      Class<? extends PolicyEvaluator> policyEvaluatorClass,
+      Parameters params)
+  {
+    try {
+      PolicyEvaluator main = boot(policyEvaluatorClass, params);
+      main.run(params);
+    }
+    catch (ExitException e) {
+      System.exit(e.getExitCode());
+    }
+  }
+
+  private <T extends PolicyEvaluator> T boot(Class<T> type, AbstractParameters params) throws ExitException {
+    initLogging(params);
+
+    // NOTE: Acquire logger after initLogging()
+    Logger log = LoggerFactory.getLogger(type);
+
+    if (params.getError() != null) {
+      log.error(params.createUsageHelp());
+      log.error(params.getError().getMessage());
+
+      throw new ExitException(1);
+    }
+
+    if (params.isHelp()) {
+      log.info(params.createUsageHelp());
+      throw new ExitException(0);
+    }
+
+    return instantiate(type, params);
+  }
+
+  protected <T extends PolicyEvaluator> T instantiate(final Class<T> type, final AbstractParameters params) {
+    return org.eclipse.sisu.launch.Main.boot(type, params.getArgs());
   }
 }

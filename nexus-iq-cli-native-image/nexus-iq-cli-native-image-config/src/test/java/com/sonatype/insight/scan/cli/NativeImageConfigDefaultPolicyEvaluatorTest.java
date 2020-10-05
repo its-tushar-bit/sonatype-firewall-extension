@@ -3,11 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.scan.cli.nativeimage;
+package com.sonatype.insight.scan.cli;
 
-import com.sonatype.insight.scan.cli.DefaultPolicyEvaluatorTest;
-import com.sonatype.insight.scan.cli.Parameters;
-import com.sonatype.insight.scan.cli.PolicyEvaluatorTestRunner;
+import java.util.List;
 
 /**
  * Native image config generation for the {@link DefaultPolicyEvaluatorTest}. This extends that class and will execute
@@ -15,11 +13,11 @@ import com.sonatype.insight.scan.cli.PolicyEvaluatorTestRunner;
  *
  * See readme.md in the nexus-iq-cli-native-image module for full details
  */
-public class DefaultPolicyEvaluatorTestForNativeImageConfigGeneration
+public class NativeImageConfigDefaultPolicyEvaluatorTest
     extends DefaultPolicyEvaluatorTest
 {
   @Override
-  protected PolicyEvaluatorTestRunner withTestRunner(final Parameters params) {
-    return new NativeImageConfigGenerationTestRunner(params, evaluator, logOutput);
+  protected AbstractPolicyEvaluatorTestRunner withTestRunner(final List<String> params) {
+    return new NativeImageConfigGenerationTestRunner(params, environmentVariables.get(), logOutput);
   }
 }

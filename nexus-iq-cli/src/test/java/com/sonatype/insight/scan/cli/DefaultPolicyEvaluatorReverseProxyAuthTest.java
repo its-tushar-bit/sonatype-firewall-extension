@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.test.reverseproxy.ReverseProxyServer;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.http.client.HttpResponseException;
 import org.junit.After;
 import org.junit.Before;
@@ -28,10 +29,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+/**
+ * The primary set of tests for the {@link DefaultPolicyEvaluator} in expanded coverage mode.
+ *
+ * This set of test cases powers not only the regular unit tests (see @{@link
+ * JUnitDefaultPolicyEvaluatorReverseProxyAuthTest}, but also the native image configuration and testing. This allows us
+ * to have one set of tests which covers all three cases.
+ */
 @RunWith(Parameterized.class)
-public class DefaultPolicyEvaluatorReverseProxyAuthTest
+public abstract class DefaultPolicyEvaluatorReverseProxyAuthTest
     extends AbstractPolicyEvaluatorTest
 {
   @Rule
@@ -41,13 +47,13 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
 
   private boolean rutEnabled;
 
+  public DefaultPolicyEvaluatorReverseProxyAuthTest(boolean rutEnabled) {
+    this.rutEnabled = rutEnabled;
+  }
+
   @Parameterized.Parameters(name = "RUT: {0}")
   public static List<Boolean> data() {
     return Arrays.asList(false, true);
-  }
-
-  public DefaultPolicyEvaluatorReverseProxyAuthTest(boolean rutEnabled) {
-    this.rutEnabled = rutEnabled;
   }
 
   @Override
@@ -81,7 +87,7 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
 
   @Test
   public void testPkiAuth() throws Exception {
-    Parameters params = new Parameters("--pki-authentication", "-s", reverseProxy.getSslUrl(), "-i",
+    List<String> params = ImmutableList.of("--pki-authentication", "-s", reverseProxy.getSslUrl(), "-i",
         "the-app-id", "src/test/data/artifact.jar");
 
     if (rutEnabled) {
@@ -92,10 +98,9 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
     else {
       withTestRunner(params)
           .expectFailExit()
-          .expectException(result -> {
-            result.withCauseInstanceOf(HttpResponseException.class).satisfies(
-                e -> assertThat(e.getCause().getMessage()).isEqualTo(ErrorResponseGenerator.MSG_MISSING_CREDENTIALS));
-          })
+          .expectException(HttpResponseException.class, ErrorResponseGenerator.MSG_MISSING_CREDENTIALS)
+          .expectErrorLog(
+              String.format("The IQ Server %s rejected the supplied credentials.", reverseProxy.getSslUrl()))
           .doPolicyEvaluationRun();
     }
   }
@@ -104,17 +109,14 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
   public void testBasicAuth() throws Exception {
     // use certs for SSL, basic auth with bad credentials
     reverseProxy.expectClientAuth();
-    Parameters params = new Parameters("-s", reverseProxy.getSslUrl(), "-a", "mrbasic:secret", "-i",
+    List<String> params = ImmutableList.of("-s", reverseProxy.getSslUrl(), "-a", "mrbasic:secret", "-i",
         "another_app", "src/test/data/artifact.jar");
 
     withTestRunner(params)
         .expectFailExit()
-        .expectException(result -> {
-          result
-              .withCauseInstanceOf(HttpResponseException.class)
-              .satisfies(
-                  e -> assertThat(e.getCause().getMessage()).isEqualTo("Invalid credentials. Please try again."));
-        })
+        .expectErrorLog(
+            String.format("The IQ Server %s rejected the supplied credentials.", reverseProxy.getSslUrl()))
+        .expectException(HttpResponseException.class, "Invalid credentials. Please try again.")
         .doPolicyEvaluationRun();
 
     // same, but with good credentials
@@ -135,16 +137,13 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
   public void testAnonymousAccess() throws Exception {
     reverseProxy.defaultReverseProxyHandler();
     tempEntity.newApplication("yet_another", Organization.ROOT_ORGANIZATION_ID);
-    Parameters params = new Parameters("-s", reverseProxy.getSslUrl(), "-i", "yet_another",
+    List<String> params = ImmutableList.of("-s", reverseProxy.getSslUrl(), "-i", "yet_another",
         "src/test/data/artifact.jar");
     withTestRunner(params)
         .expectFailExit()
-        .expectException(result -> {
-          result
-              .withCauseInstanceOf(HttpResponseException.class)
-              .satisfies(
-                  e -> assertThat(e.getCause().getMessage()).isEqualTo(ErrorResponseGenerator.MSG_MISSING_CREDENTIALS));
-        })
+        .expectException(HttpResponseException.class, ErrorResponseGenerator.MSG_MISSING_CREDENTIALS)
+        .expectErrorLog(
+            String.format("The IQ Server %s rejected the supplied credentials.", reverseProxy.getSslUrl()))
         .doPolicyEvaluationRun();
   }
 

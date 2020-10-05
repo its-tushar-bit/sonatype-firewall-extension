@@ -18,9 +18,7 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseDetailsCache;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.product.license.TestProductLicenseDetailsCache;
-import com.sonatype.insight.brain.scan.Scanner;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
-import com.sonatype.insight.scan.cli.nativeimage.DefaultPolicyEvaluatorTestForNativeImageConfigGeneration;
 import com.sonatype.insight.scan.model.io.ScanReader;
 import com.sonatype.insight.test.LogOutput;
 
@@ -39,8 +37,6 @@ public abstract class AbstractPolicyEvaluatorTest
   @Rule
   public LogOutput logOutput = new LogOutput(1, AbstractPolicyEvaluatorTest.class, Engine.class);
 
-  protected DefaultPolicyEvaluator evaluator;
-
   protected ScanReader scanReader;
 
   protected String insightServerUrl;
@@ -50,15 +46,13 @@ public abstract class AbstractPolicyEvaluatorTest
    * and asserting the results such as exit code/exception, log output, etc...
    * Implementations:
    * <ul>
-   *   <li>{@link PolicyEvaluatorTestRunner} is the main implementation for normal unit tests</li>
-   *   <li>{@link DefaultPolicyEvaluatorTestForNativeImageConfigGeneration} is the implementation for generating config
-   *   files for the native image tooling</li>
+   *   <li>{@link JUnitPolicyEvaluatorTestRunner} is the main implementation for normal unit tests</li>
+   *   <li>NativeImageConfigGenerationTestRunner (in the nexus-iq-cli-native-image/config module) is the implementation
+   *   for generating config files for the native image tooling</li>
    *   <li>TODO {@link TBD} is the implementation for testing the native image binaries</li>
    * </ul>
    */
-  protected PolicyEvaluatorTestRunner withTestRunner(final Parameters params) {
-    return new PolicyEvaluatorTestRunner(params, evaluator, logOutput);
-  }
+  protected abstract AbstractPolicyEvaluatorTestRunner withTestRunner(final List<String> params);
 
   @Before
   public void setUp() throws Exception {
@@ -74,13 +68,13 @@ public abstract class AbstractPolicyEvaluatorTest
     }
 
     // return a valid report zip file when asked
-    getHdsServer().respondWith(new File("src/test/resources/small-report.zip"))
+    File smallReportZip = new File(getClass().getClassLoader().getResource("small-report.zip").getFile());
+    getHdsServer().respondWith(smallReportZip)
         .atUri("rest/application/analysis/SCAN-ID");
 
     insightServerUrl = getCLMServer().getClientConfiguration().getServerUrl();
 
     scanReader = getCLMServer().getInstance(ScanReader.class);
-    evaluator = getCLMServer().getInstance(DefaultPolicyEvaluator.class);
   }
 
   protected List<Module> getBrainModules() {
@@ -92,8 +86,6 @@ public abstract class AbstractPolicyEvaluatorTest
         bind(ProductLicenseDetailsCache.class).to(TestProductLicenseDetailsCache.class);
         bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
         bind(LicenseFingerprinter.class).to(TestLicenseFingerprinter.class);
-        // unable to bind this class automatically during startup
-        bind(Scanner.class).toInstance(new Scanner(null, null, null, null, null));
       }
     };
     return Arrays.asList(testModule);

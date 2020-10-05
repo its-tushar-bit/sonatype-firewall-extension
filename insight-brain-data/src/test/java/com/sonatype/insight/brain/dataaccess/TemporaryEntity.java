@@ -999,7 +999,12 @@ public class TemporaryEntity
   }
 
   public PolicyWaiver newWaiver(String hash, String policyId, String ownerId, String comment) {
+    return newWaiver(hash, policyId, ownerId, comment, null);
+  }
+
+  public PolicyWaiver newWaiver(String hash, String policyId, String ownerId, String comment, Date expiryTime) {
     PolicyWaiver waiver = new PolicyWaiver(hash, policyId, ownerId, comment);
+    waiver.setExpiryTime(expiryTime);
     waiverDAO.insert(waiver);
     return waiver;
   }

@@ -143,7 +143,7 @@ public class AddWaiverTest
       NxSubmitMask.seeAndWaitForDismissal();
       addWaiverPage.submitError().shouldNotBe(visible);
 
-      waivers = policyWaiverDAO.getByOwnerIdAndHash(application.getId(), "hash1");
+      waivers = policyWaiverDAO.getApplicableToComponent(application.getId(), "hash1");
       assertThat(waivers.size()).isEqualTo(1);
       assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
     }
@@ -202,7 +202,7 @@ public class AddWaiverTest
       NxSubmitMask.seeAndWaitForDismissal();
       addWaiverPage.submitError().shouldNotBe(visible);
 
-      waivers = policyWaiverDAO.getByOwnerIdAndHash(organization.getId(), "hash1");
+      waivers = policyWaiverDAO.getApplicableToComponent(organization.getId(), "hash1");
       assertThat(waivers.size()).isEqualTo(1);
       assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
     }
@@ -261,7 +261,7 @@ public class AddWaiverTest
       NxSubmitMask.seeAndWaitForDismissal();
       addWaiverPage.submitError().shouldNotBe(visible);
 
-      waivers = policyWaiverDAO.getByOwnerIdAndHash(Organization.ROOT_ORGANIZATION_ID, "hash1");
+      waivers = policyWaiverDAO.getApplicableToComponent(Organization.ROOT_ORGANIZATION_ID, "hash1");
       assertThat(waivers.size()).isEqualTo(1);
       assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
     }

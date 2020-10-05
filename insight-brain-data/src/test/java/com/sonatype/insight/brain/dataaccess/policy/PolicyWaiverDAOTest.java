@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -13,6 +15,7 @@ import java.util.UUID;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -298,7 +301,85 @@ public class PolicyWaiverDAOTest
   }
 
   @Test
-  public void testGetByOwnerIdAndHash() throws Exception {
+  public void testGetByOwnerIdAndHash() {
+    PolicyWaiverDAO dao = new PolicyWaiverDAO();
+
+    String hash = "12345678901234567890";
+    DateTime now = DateTime.now();
+    Policy policy1 = tempEntity.newPolicy(organization);
+    Policy policy2 = tempEntity.newPolicy(organization);
+    Policy policy3 = tempEntity.newPolicy(organization);
+    Policy policy4 = tempEntity.newPolicy(organization);
+    String ownerId = organization.getId();
+    String comment = "Just testing";
+
+    PolicyWaiver noExpiryWaiver = tempEntity.newWaiver(hash, policy1.getId(), ownerId, null, comment,
+        now.toDate(), null);
+    PolicyWaiver expiringWaiver = tempEntity.newWaiver(hash, policy2.getId(), ownerId, null, comment,
+        now.toDate(), now.plusHours(1).toDate());
+    PolicyWaiver expiredWaiver = tempEntity.newWaiver(hash, policy3.getId(), ownerId, null, comment,
+        now.toDate(), now.toDate());
+
+    // not expiring waiver for all components
+    tempEntity.newWaiver(null, policy4.getId(), ownerId, null, comment,
+        now.toDate(), null);
+
+    // not expiring waiver for Root Org
+    tempEntity.newWaiver(hash, policy4.getId(), Organization.ROOT_ORGANIZATION_ID, null, comment,
+        now.toDate(), null);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      List<PolicyWaiver> waivers = dao.getByOwnerIdAndHash(tx, ownerId, hash);
+      tx.commit();
+
+      assertThat(waivers).extracting(PolicyWaiver::getId)
+        .containsExactly(noExpiryWaiver.getId(), expiringWaiver.getId(), expiredWaiver.getId());
+    }
+  }
+
+  @Test
+  public void testGetActiveByOwnerIdAndHash() {
+    PolicyWaiverDAO dao = new PolicyWaiverDAO();
+
+    String hash = "12345678901234567890";
+    DateTime now = DateTime.now();
+    Policy policy1 = tempEntity.newPolicy(organization);
+    Policy policy2 = tempEntity.newPolicy(organization);
+    Policy policy3 = tempEntity.newPolicy(organization);
+    Policy policy4 = tempEntity.newPolicy(organization);
+    String ownerId = organization.getId();
+    String comment = "Just testing";
+
+    PolicyWaiver noExpiryWaiver = tempEntity.newWaiver(hash, policy1.getId(), ownerId, null, comment,
+        now.toDate(), null);
+    PolicyWaiver expiringWaiver = tempEntity.newWaiver(hash, policy2.getId(), ownerId, null, comment,
+        now.toDate(), now.plusHours(1).toDate());
+
+    // Expired waiver
+    tempEntity.newWaiver(hash, policy3.getId(), ownerId, null, comment,
+        now.toDate(), now.toDate());
+
+    // not expiring waiver for all components
+    tempEntity.newWaiver(null, policy4.getId(), ownerId, null, comment,
+        now.toDate(), null);
+
+    // not expiring waiver for Root Org
+    tempEntity.newWaiver(hash, policy4.getId(), Organization.ROOT_ORGANIZATION_ID, null, comment,
+        now.toDate(), null);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      List<PolicyWaiver> waivers = dao.getActiveByOwnerIdAndHash(tx, ownerId, hash);
+      tx.commit();
+
+      assertThat(waivers).extracting(PolicyWaiver::getId)
+          .containsExactly(noExpiryWaiver.getId(), expiringWaiver.getId());
+    }
+  }
+
+  @Test
+  public void getApplicableToComponent() throws Exception {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
 
     String hash = "12345678901234567890";
@@ -311,11 +392,41 @@ public class PolicyWaiverDAOTest
     PolicyWaiver policyWaiver2 = new PolicyWaiver(policyId, ownerId, comment);
     dao.insert(policyWaiver2);
 
-    List<PolicyWaiver> waivers = dao.getByOwnerIdAndHash(ownerId, hash);
+    List<PolicyWaiver> waivers = dao.getApplicableToComponent(ownerId, hash);
     dao.delete(policyWaiver1);
     dao.delete(policyWaiver2);
 
     assertThat(waivers).extracting(PolicyWaiver::getId).containsExactly(policyWaiver1.getId(), policyWaiver2.getId());
+  }
+
+  @Test
+  public void getApplicableToComponent_TimeBasedWaivers() {
+    PolicyWaiverDAO dao = new PolicyWaiverDAO();
+
+    Instant now = Instant.now();
+    Date yesterday = Date.from(now.minus(1, ChronoUnit.DAYS));
+    Date aWeekFromNow = Date.from(now.plus(7, ChronoUnit.DAYS));
+
+    String hash = "12345678901234567890";
+    Policy policy = tempEntity.newPolicy(organization);
+    String policyId = policy.getId();
+    String ownerId = organization.getId();
+    String comment = "Just testing";
+
+    PolicyWaiver expiringWaiver = new PolicyWaiver(hash, policyId, ownerId, comment);
+    expiringWaiver.setExpiryTime(aWeekFromNow);
+    dao.insert(expiringWaiver);
+
+    PolicyWaiver expiredWaiver = new PolicyWaiver(policyId, ownerId, comment);
+    expiredWaiver.setExpiryTime(yesterday);
+    dao.insert(expiredWaiver);
+
+    List<PolicyWaiver> waivers = dao.getApplicableToComponent(ownerId, hash);
+    dao.delete(expiringWaiver);
+    dao.delete(expiredWaiver);
+
+    assertThat(waivers).extracting(PolicyWaiver::getId)
+        .containsExactly(expiringWaiver.getId());
   }
 
   @Test

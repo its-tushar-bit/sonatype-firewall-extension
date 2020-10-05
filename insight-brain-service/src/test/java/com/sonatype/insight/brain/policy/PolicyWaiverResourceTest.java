@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.policy.PolicyWaiverResource.WaiversByOwner;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import org.joda.time.DateTime;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -120,8 +121,18 @@ public class PolicyWaiverResourceTest
   }
 
   @Test
+  public void testGetPolicyWaiversByHash_Application_TimeBasedWaivers() throws Exception {
+    testGetPolicyWaiversByHash_TimeBasedWaivers(tempEntity.newApplicationWithParent("PolicyWaiverResourceTest_AppId1"));
+  }
+
+  @Test
   public void testGetPolicyWaiversByHash_Repository() throws Exception {
     testGetPolicyWaiversByHash(tempEntity.newRepository());
+  }
+
+  @Test
+  public void testGetPolicyWaiversByHash_Repository_TimeBasedWaivers() throws Exception {
+    testGetPolicyWaiversByHash_TimeBasedWaivers(tempEntity.newRepository());
   }
 
   private void testGetPolicyWaiversByHash(Owner owner) throws Exception {
@@ -188,6 +199,77 @@ public class PolicyWaiverResourceTest
     waivers = response.getBody(AppliedWaivers.class);
     assertThat(waivers.waiversByOwner).hasSize(1);
     assertWaiversByOwner(grandparent, policy.getId(), "My comment", waivers.waiversByOwner.get(0));
+  }
+
+  private void testGetPolicyWaiversByHash_TimeBasedWaivers(Owner owner) throws Exception {
+    DateTime now = DateTime.now();
+    OwnerDAO ownerDAO = new OwnerDAO();
+    Owner parent = ownerDAO.getById(owner.getParentOwnerId());
+    Owner grandparent = ownerDAO.getById(parent.getParentOwnerId());
+
+    Policy policy1 = tempEntity.newPolicy(grandparent);
+    Policy policy2 = tempEntity.newPolicy(grandparent);
+    String hash = "12345678901234567890";
+
+    String restId = OwnerType.APPLICATION.equals(owner.getType()) ? owner.getPublicId() : owner.getId();
+
+    // Verify owner level
+    tempEntity.newWaiver(hash, policy1.getId(), owner.getId(), "App Scope", now.plusHours(1).toDate());
+    tempEntity.newWaiver(hash, policy2.getId(), owner.getId(), "Expired", now.toDate());
+    HttpResponse response = restRequest(owner.getType(), restId).path("component", hash).get();
+    assertResponseStatus(200, response);
+    AppliedWaivers waivers = response.getBody(AppliedWaivers.class);
+    assertThat(waivers.waiversByOwner).hasSize(1);
+    assertWaiversByOwner(owner, policy1.getId(), "App Scope", waivers.waiversByOwner.get(0));
+    response = restRequest(parent.getType(), parent.getId()).path("component", hash).get();
+    assertResponseStatus(200, response);
+    waivers = response.getBody(AppliedWaivers.class);
+    assertThat(waivers.waiversByOwner).hasSize(0);
+    response = restRequest(grandparent.getType(), grandparent.getId()).path("component", hash).get();
+    assertResponseStatus(200, response);
+    waivers = response.getBody(AppliedWaivers.class);
+    assertThat(waivers.waiversByOwner).hasSize(0);
+
+    // Verify parent owner level
+    tempEntity.newWaiver(hash, policy2.getId(), parent.getId(), "Parent Scope", now.plusHours(1).toDate());
+    tempEntity.newWaiver(hash, policy1.getId(), parent.getId(), "Expired", now.toDate());
+    response = restRequest(owner.getType(), restId).path("component", hash).get();
+    assertResponseStatus(200, response);
+    waivers = response.getBody(AppliedWaivers.class);
+    assertThat(waivers.waiversByOwner).hasSize(2);
+    assertWaiversByOwner(owner, policy1.getId(), "App Scope", waivers.waiversByOwner.get(0));
+    assertWaiversByOwner(parent, policy2.getId(), "Parent Scope", waivers.waiversByOwner.get(1));
+    response = restRequest(parent.getType(), parent.getId()).path("component", hash).get();
+    assertResponseStatus(200, response);
+    waivers = response.getBody(AppliedWaivers.class);
+    assertThat(waivers.waiversByOwner).hasSize(1);
+    assertWaiversByOwner(parent, policy2.getId(), "Parent Scope", waivers.waiversByOwner.get(0));
+    response = restRequest(grandparent.getType(), grandparent.getId()).path("component", hash).get();
+    assertResponseStatus(200, response);
+    waivers = response.getBody(AppliedWaivers.class);
+    assertThat(waivers.waiversByOwner).hasSize(0);
+
+    // Verify grandparent organization level
+    tempEntity.newWaiver(hash, policy1.getId(), grandparent.getId(), "Grandparent Scope", now.plusHours(1).toDate());
+    tempEntity.newWaiver(hash, policy2.getId(), grandparent.getId(), "Expired", now.toDate());
+    response = restRequest(owner.getType(), restId).path("component", hash).get();
+    assertResponseStatus(200, response);
+    waivers = response.getBody(AppliedWaivers.class);
+    assertThat(waivers.waiversByOwner).hasSize(3);
+    assertWaiversByOwner(owner, policy1.getId(), "App Scope", waivers.waiversByOwner.get(0));
+    assertWaiversByOwner(parent, policy2.getId(), "Parent Scope", waivers.waiversByOwner.get(1));
+    assertWaiversByOwner(grandparent, policy1.getId(), "Grandparent Scope", waivers.waiversByOwner.get(2));
+    response = restRequest(parent.getType(), parent.getId()).path("component", hash).get();
+    assertResponseStatus(200, response);
+    waivers = response.getBody(AppliedWaivers.class);
+    assertThat(waivers.waiversByOwner).hasSize(2);
+    assertWaiversByOwner(parent, policy2.getId(), "Parent Scope", waivers.waiversByOwner.get(0));
+    assertWaiversByOwner(grandparent, policy1.getId(), "Grandparent Scope", waivers.waiversByOwner.get(1));
+    response = restRequest(grandparent.getType(), grandparent.getId()).path("component", hash).get();
+    assertResponseStatus(200, response);
+    waivers = response.getBody(AppliedWaivers.class);
+    assertThat(waivers.waiversByOwner).hasSize(1);
+    assertWaiversByOwner(grandparent, policy1.getId(), "Grandparent Scope", waivers.waiversByOwner.get(0));
   }
 
   @Test

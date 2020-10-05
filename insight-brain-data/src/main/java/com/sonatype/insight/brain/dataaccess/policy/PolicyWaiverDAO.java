@@ -59,15 +59,15 @@ public class PolicyWaiverDAO
   }
 
   /**
-   * Gets all policy waivers that target the specified component hash in the context of the given app/org. Note that a
-   * component can be subject to a waiver that refers to its specific hash or to a waiver that applies to the entire
-   * app/org.
+   * Gets all Active (non expired) policy waivers that target the specified component hash in the context of the given
+   * app/org. Note that a component can be subject to a waiver that refers to its specific hash or to a waiver that
+   * applies to the entire app/org.
    */
-  public List<PolicyWaiver> getByOwnerIdAndHash(String ownerId, String hash) {
+  public List<PolicyWaiver> getApplicableToComponent(String ownerId, String hash) {
     try (TransactionContext tx = createTransactionContext()) {
       List<PolicyWaiver> waivers = new ArrayList<>();
-      waivers.addAll(getByOwnerIdAndHash(tx, ownerId, hash));
-      waivers.addAll(getByOwnerIdAndHash(tx, ownerId, null));
+      waivers.addAll(getActiveByOwnerIdAndHash(tx, ownerId, hash));
+      waivers.addAll(getActiveByOwnerIdAndHash(tx, ownerId, null));
       return waivers;
     }
   }
@@ -88,6 +88,13 @@ public class PolicyWaiverDAO
     Owner owner = ownerDAO.getById(ownerId);
     loadActiveByOwnerId(policyWaivers, owner.getParentOwnerId());
     policyWaivers.addAll(getActiveByOwnerId(ownerId));
+  }
+
+  public List<PolicyWaiver> getActiveByOwnerIdAndHash(TransactionContext tx, String ownerId, String hash) {
+    String sQuery = "SELECT entity FROM PolicyWaiver entity" + //
+        " WHERE entity.ownerId=?1 AND entity.hash=?2" + //
+        " AND (entity.expiryTime is null OR entity.expiryTime > CURRENT_TIMESTAMP)";
+    return getList(tx, sQuery, ownerId, hash);
   }
 
   public List<PolicyWaiver> getByOwnerIdAndHash(TransactionContext tx, String ownerId, String hash) {

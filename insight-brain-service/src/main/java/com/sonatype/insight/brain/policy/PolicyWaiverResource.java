@@ -102,18 +102,18 @@ public class PolicyWaiverResource
 
     AppliedWaivers result = new AppliedWaivers();
     for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
-      result.add(owner, getAppliedWaivers(owner.getId(), hash, policyNameLoader));
+      result.add(owner, getApplicableWaivers(owner.getId(), hash, policyNameLoader));
     }
 
     return result;
   }
 
-  private List<PolicyWaiverDTO> getAppliedWaivers(
+  private List<PolicyWaiverDTO> getApplicableWaivers(
       String ownerId,
       String hash,
       Function<String, String> policyNameLoader)
   {
-    List<PolicyWaiver> waivers = new PolicyWaiverDAO().getByOwnerIdAndHash(ownerId, hash);
+    List<PolicyWaiver> waivers = new PolicyWaiverDAO().getApplicableToComponent(ownerId, hash);
     List<PolicyWaiverDTO> dtos = new ArrayList<>(waivers.size());
     for (PolicyWaiver waiver : waivers) {
       PolicyWaiverDTO dto = new PolicyWaiverDTO();

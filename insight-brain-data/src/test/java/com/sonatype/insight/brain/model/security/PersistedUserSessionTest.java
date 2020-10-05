@@ -17,6 +17,7 @@ import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.subject.SimplePrincipalCollection;
 import org.apache.shiro.subject.support.DefaultSubjectContext;
 import org.junit.Test;
+import org.keycloak.adapters.saml.SamlSessionStore.CurrentAction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -70,6 +71,7 @@ public class PersistedUserSessionTest
     simpleSession.setHost("127.0.0.1");
     simpleSession.setAttribute("key1", "value1");
     simpleSession.setAttribute("key2", "value2");
+    simpleSession.setAttribute("SAML_CURRENT_ACTION", CurrentAction.NONE);
     return simpleSession;
   }
 

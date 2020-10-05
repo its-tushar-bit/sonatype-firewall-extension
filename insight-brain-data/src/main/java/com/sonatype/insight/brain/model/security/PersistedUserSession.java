@@ -24,6 +24,7 @@ import org.apache.shiro.session.UnknownSessionException;
 import org.apache.shiro.session.mgt.SimpleSession;
 import org.apache.shiro.subject.SimplePrincipalCollection;
 import org.apache.shiro.subject.support.DefaultSubjectContext;
+import org.keycloak.adapters.saml.SamlSessionStore;
 
 @Entity
 @Table(name = "persisted_user_session")
@@ -79,6 +80,7 @@ public class PersistedUserSession
             .forEach(userPrincipal -> simplePrincipalCollection.add(userPrincipal, userPrincipal.getRealmId()));
         session.setAttribute(DefaultSubjectContext.PRINCIPALS_SESSION_KEY, simplePrincipalCollection);
       }
+      setSamlCurrentAction(session);
       return session;
     }
     catch (IllegalArgumentException e) {
@@ -86,6 +88,14 @@ public class PersistedUserSession
     }
     catch (IOException e) {
       throw new UncheckedIOException(e.getMessage(), e);
+    }
+  }
+
+  private static void setSamlCurrentAction(SimpleSession session) {
+    Object samlCurrentActionAttribute = session.getAttribute("SAML_CURRENT_ACTION");
+    if (samlCurrentActionAttribute instanceof String) {
+      String samlCurrentAction = (String) samlCurrentActionAttribute;
+      session.setAttribute("SAML_CURRENT_ACTION", SamlSessionStore.CurrentAction.valueOf(samlCurrentAction));
     }
   }
 

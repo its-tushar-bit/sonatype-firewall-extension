@@ -7,14 +7,7 @@
 @import '~@sonatype/react-shared-components/scss-shared/nx-colors';
 
 .iq-violation-exclamation {
-  $padding: 0.2em;
-
   color: $nx-white;
-
-  padding: $padding 0;
-
-  // account for padding in addition to fontawesome's usual valign adjustment
-  vertical-align: #{-0.125em - $padding};
 }
 
 @each $threat in $nx-threat-levels {

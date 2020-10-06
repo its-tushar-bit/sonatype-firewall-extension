@@ -10,7 +10,11 @@
   .nx-page-title {
     display: flex;
     flex-direction: row;
-    align-items: center
+    align-items: baseline;
+  }
+
+  .list-waivers--threat-indicator {
+    font-size: 16px;
   }
 
   .list-waivers--constraint, .list-waivers--conditions, .list-waivers--component-name {

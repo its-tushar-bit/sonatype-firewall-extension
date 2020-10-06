@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import org.joda.time.DateTime;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverDTOTestUtils.assertApiPolicyWaiverDTO;
@@ -162,7 +163,7 @@ public class ApiPolicyViolationResourceV2Test
 
   @Test
   public void testGetApplicableWaivers() throws Exception {
-    Date baseDate = new Date();
+    DateTime now = DateTime.now();
     List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
     Organization newOrg = tempEntity.newOrganization("NewOrg");
     Application newApp = tempEntity.newApplication("NewApp", "AppPublicId", newOrg.getId());
@@ -179,12 +180,18 @@ public class ApiPolicyViolationResourceV2Test
     String orgId = newOrg.getId();
     String appId = newApp.getId();
 
-    tempEntity.newWaiver("hash", policyId, orgId, constraintFacts, "", baseDate);
-    tempEntity.newWaiver(null, policyId, orgId, constraintFacts, "", new Date(baseDate.getTime() + 1));
-    tempEntity.newWaiver("hash", policyId, appId, constraintFacts, "", new Date(baseDate.getTime() + 2));
-    tempEntity.newWaiver(null, policyId, appId, constraintFacts, "", new Date(baseDate.getTime() + 3));
-    tempEntity.newWaiver("hash2", policy2Id, appId, null, "", new Date(baseDate.getTime() + 4));
-    tempEntity.newWaiver(null, policy2Id, appId, null, "", new Date(baseDate.getTime() + 5));
+    Date expiredExpiryTime = now.minusMillis(1).toDate();
+    Date expiringInFutureExpiryTime = now.plusMinutes(1).toDate();
+
+    tempEntity.newWaiver("hash", policyId, orgId, constraintFacts, "", now.minusDays(10).toDate());
+    tempEntity.newWaiver(null, policyId, orgId, constraintFacts, "", now.minusDays(9).toDate(), null);
+    tempEntity.newWaiver("hash", policyId, appId, constraintFacts, "", now.minusDays(8).toDate(),
+        expiredExpiryTime); // expired
+    tempEntity.newWaiver(null, policyId, appId, constraintFacts, "A comment", now.minusDays(7).toDate(),
+        expiringInFutureExpiryTime); // expiring in the future
+    tempEntity.newWaiver("hash2", policy2Id, appId, null, "", now.minusDays(2).toDate(), null);
+    tempEntity.newWaiver(null, policy2Id, appId, null, "", now.minusDays(1).toDate(), now.plusMinutes(1).toDate());
+    tempEntity.newWaiver("hash", policy2Id, appId, constraintFacts, "", now.toDate(), now.minusMillis(1).toDate());
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
@@ -195,14 +202,22 @@ public class ApiPolicyViolationResourceV2Test
     assertResponseStatus(200, response);
     ApiPolicyWaiversApplicableToViolationDTO apiPolicyWaivers =
         response.getBody(ApiPolicyWaiversApplicableToViolationDTO.class);
-    List<ApiPolicyWaiverDTO> applicableWaivers = apiPolicyWaivers.activeWaivers.stream()
+
+    List<ApiPolicyWaiverDTO> activeApplicableWaivers = apiPolicyWaivers.activeWaivers.stream()
         .sorted(Comparator.comparing(apiPolicyWaiverDTO -> apiPolicyWaiverDTO.createTime))
         .collect(Collectors.toList());
 
-    assertThat(applicableWaivers.size()).isEqualTo(4);
-    assertApiPolicyWaiverDTO("hash", policyId, orgId, "NewOrg", "", applicableWaivers.get(0));
-    assertApiPolicyWaiverDTO(null, policyId, orgId, "NewOrg", "", applicableWaivers.get(1));
-    assertApiPolicyWaiverDTO("hash", policyId, appId, "NewApp", "", applicableWaivers.get(2));
-    assertApiPolicyWaiverDTO(null, policyId, appId, "NewApp", "", applicableWaivers.get(3));
+    assertThat(activeApplicableWaivers.size()).isEqualTo(3);
+    assertApiPolicyWaiverDTO("hash", policyId, orgId, "NewOrg", "", null, activeApplicableWaivers.get(0));
+    assertApiPolicyWaiverDTO(null, policyId, orgId, "NewOrg", "", null, activeApplicableWaivers.get(1));
+    assertApiPolicyWaiverDTO(null, policyId, appId, "NewApp", "A comment", expiringInFutureExpiryTime,
+        activeApplicableWaivers.get(2));
+
+    List<ApiPolicyWaiverDTO> expiredApplicableWaivers = apiPolicyWaivers.expiredWaivers.stream()
+        .sorted(Comparator.comparing(apiPolicyWaiverDTO -> apiPolicyWaiverDTO.createTime))
+        .collect(Collectors.toList());
+
+    assertThat(expiredApplicableWaivers.size()).isEqualTo(1);
+    assertApiPolicyWaiverDTO("hash", policyId, appId, "NewApp", "", expiredExpiryTime, expiredApplicableWaivers.get(0));
   }
 }

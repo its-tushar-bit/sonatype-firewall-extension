@@ -128,7 +128,7 @@ public class ComponentPolicyEvaluator
     PolicyResults policyResults = new PolicyResults();
 
     Map<String, Policy> policiesById = policies.stream().collect(Collectors.toMap(Policy::getId, Function.identity()));
-    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getApplicableByOwnerId(ownerId);
+    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveApplicableByOwnerId(ownerId);
     for (PolicyFact policyFact : policyFacts) {
       Policy policy = policiesById.get(policyFact.getPolicyId());
 

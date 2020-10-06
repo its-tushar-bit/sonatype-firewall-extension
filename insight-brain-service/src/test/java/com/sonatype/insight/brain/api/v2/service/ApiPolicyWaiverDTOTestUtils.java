@@ -5,21 +5,25 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.util.Date;
+
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiPolicyWaiverDTOTestUtils
 {
-  public static void assertApiPolicyWaiverDTO(String hash,
-                                              String policyId,
-                                              String ownerId,
-                                              String ownerName,
-                                              String comment,
-                                              ApiPolicyWaiverDTO actual)
+  public static void assertApiPolicyWaiverDTO(
+      String hash,
+      String policyId,
+      String ownerId,
+      String ownerName,
+      String comment,
+      final Date expiryTime,
+      ApiPolicyWaiverDTO actual)
   {
     assertThat(actual)
-        .extracting("hash", "policyId", "scopeOwnerId", "scopeOwnerName", "comment")
-        .containsExactly(hash, policyId, ownerId, ownerName, comment);
+        .extracting("hash", "policyId", "scopeOwnerId", "scopeOwnerName", "comment", "expiryTime")
+        .containsExactly(hash, policyId, ownerId, ownerName, comment, expiryTime);
   }
 }

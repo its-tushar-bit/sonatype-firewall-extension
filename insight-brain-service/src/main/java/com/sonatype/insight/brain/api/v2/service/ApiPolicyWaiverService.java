@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -40,6 +40,9 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
+
+import static java.util.stream.Collectors.partitioningBy;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @since 1.70
@@ -208,7 +211,7 @@ public class ApiPolicyWaiverService
         .setComponentHash(policyWaiver.getHash());
     if (policyWaiver.getConstraintFacts() != null) {
       AuditData.get().setData("policyConstraints",
-          policyWaiver.getConstraintFacts().stream().map(ConstraintFactDTO::new).collect(Collectors.toList()));
+          policyWaiver.getConstraintFacts().stream().map(ConstraintFactDTO::new).collect(toList()));
     }
   }
 
@@ -245,12 +248,15 @@ public class ApiPolicyWaiverService
 
     Owner owner = ownerDAO.getById(applicationId);
 
-    List<ApiPolicyWaiverDTO> applicableWaivers = getApplicableWaiversWithAuthzCheck(owner).stream()
+    Map<Boolean, List<ApiPolicyWaiverDTO>> applicableWaivers = getAllApplicableWaiversWithAuthzCheck(owner).stream()
         .filter(policyWaiver -> filterWaiverByCriteria(policyId, constraintFactsJson, hash, policyWaiver))
         .map(policyWaiver -> ApiPolicyWaiverDTO.toDto(policyWaiver, ownerDAO.getById(policyWaiver.getOwnerId())))
-        .collect(Collectors.toList());
+        .collect(partitioningBy(dto -> hasWaiverExpired(dto.expiryTime), toList()));
 
-    apiPolicyWaivers.activeWaivers = applicableWaivers;
+    apiPolicyWaivers.activeWaivers = applicableWaivers.get(Boolean.FALSE);
+
+    apiPolicyWaivers.expiredWaivers = applicableWaivers.get(Boolean.TRUE);
+
     return apiPolicyWaivers;
   }
 
@@ -265,10 +271,14 @@ public class ApiPolicyWaiverService
         policyWaiver.getConstraintFactsJson().equals(constraintFactsJson);
   }
 
+  private boolean hasWaiverExpired(Date expiryTime) {
+    return expiryTime != null && expiryTime.before(new Date());
+  }
+
   @Authorize(permission = Permission.READ)
-  List<PolicyWaiver> getApplicableWaiversWithAuthzCheck(
+  List<PolicyWaiver> getAllApplicableWaiversWithAuthzCheck(
       @AuthzContext(Key.OWNER) Owner owner)
   {
-    return policyWaiverDAO.getApplicableByOwnerId(owner.getId());
+    return policyWaiverDAO.getApplicableAndExpiredByOwnerId(owner.getId());
   }
 }

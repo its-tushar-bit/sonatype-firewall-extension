@@ -637,13 +637,13 @@ public class ApiPolicyWaiverServiceTest
   public void testGetApplicableWaivers_NoWaivers() {
     ApiPolicyWaiversApplicableToViolationDTO results =
         apiPolicyWaiverService.getApplicableWaivers(policyViolation.getId());
-    List<ApiPolicyWaiverDTO> applicableWaivers = results.activeWaivers;
-    assertThat(applicableWaivers).isEmpty();
+    assertThat(results.activeWaivers).isEmpty();
+    assertThat(results.expiredWaivers).isEmpty();
   }
 
   @Test
   public void testGetApplicableWaivers() {
-    Date baseDate = new Date();
+    DateTime now = DateTime.now();
     List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
     List<ConstraintFact> constraintFacts2 = tempEntity.createArbitraryConstraintFacts();
     Organization newOrg = tempEntity.newOrganization("NewOrg");
@@ -661,31 +661,43 @@ public class ApiPolicyWaiverServiceTest
     String orgId = newOrg.getId();
     String appId = newApp.getId();
 
-    // applicable waivers that the service should return for the given violation
-    tempEntity.newWaiver("hash", policyId, orgId, constraintFacts, "", baseDate);
-    tempEntity.newWaiver(null, policyId, orgId, constraintFacts, "", new Date(baseDate.getTime() + 1));
-    tempEntity.newWaiver("hash", policyId, appId, constraintFacts, "", new Date(baseDate.getTime() + 2));
-    tempEntity.newWaiver(null, policyId, appId, constraintFacts, "A comment", new Date(baseDate.getTime() + 3));
-    // add more waivers with different attributes — for diversity
-    tempEntity.newWaiver("hash", policyId, appId, null, "", new Date(baseDate.getTime() + 4));
-    tempEntity.newWaiver(null, policyId, appId, null, "", new Date(baseDate.getTime() + 5));
-    tempEntity.newWaiver("hashX", policyId, appId, constraintFacts, "", new Date(baseDate.getTime() + 6));
-    tempEntity.newWaiver("hash", policyId, appId, constraintFacts2, "", new Date(baseDate.getTime() + 7));
-    tempEntity.newWaiver("hash2", policy2Id, appId, null, "", new Date(baseDate.getTime() + 8));
-    tempEntity.newWaiver(null, policy2Id, appId, null, "", new Date(baseDate.getTime() + 9));
-    tempEntity.newWaiver("hash", policy2Id, appId, constraintFacts, "", new Date(baseDate.getTime() + 10));
+    Date expiredExpiryTime = now.minusMillis(1).toDate();
+    Date expiringInFutureExpiryTime = now.plusMinutes(1).toDate();
 
-    // results sorted to have deterministic ordering in the test
-    List<ApiPolicyWaiverDTO> applicableWaivers = apiPolicyWaiverService.getApplicableWaivers(violation.getId())
-        .activeWaivers.stream()
+    // applicable waivers that the service should return for the given violation
+    tempEntity.newWaiver("hash", policyId, orgId, constraintFacts, "", now.minusDays(10).toDate());
+    tempEntity.newWaiver(null, policyId, orgId, constraintFacts, "", now.minusDays(9).toDate(), null);
+    tempEntity.newWaiver("hash", policyId, appId, constraintFacts, "", now.minusDays(8).toDate(),
+        expiredExpiryTime); // expired
+    tempEntity.newWaiver(null, policyId, appId, constraintFacts, "A comment", now.minusDays(7).toDate(),
+        expiringInFutureExpiryTime); // expiring in the future
+    // add more waivers with different attributes — for diversity
+    tempEntity.newWaiver("hash", policyId, appId, null, "", now.minusDays(6).toDate());
+    tempEntity.newWaiver(null, policyId, appId, null, "", now.minusDays(5).toDate());
+    tempEntity.newWaiver("hashX", policyId, appId, constraintFacts, "", now.minusDays(4).toDate());
+    tempEntity.newWaiver("hash", policyId, appId, constraintFacts2, "", now.minusDays(3).toDate());
+    tempEntity.newWaiver("hash2", policy2Id, appId, null, "", now.minusDays(2).toDate(), null);
+    tempEntity.newWaiver(null, policy2Id, appId, null, "", now.minusDays(1).toDate(), now.plusMinutes(1).toDate());
+    tempEntity.newWaiver("hash", policy2Id, appId, constraintFacts, "", now.toDate(), now.minusMillis(1).toDate());
+
+    ApiPolicyWaiversApplicableToViolationDTO dto = apiPolicyWaiverService.getApplicableWaivers(violation.getId());
+
+    // activeWaivers - results sorted to have deterministic ordering in the test
+    List<ApiPolicyWaiverDTO> activeApplicableWaivers = dto.activeWaivers.stream()
         .sorted(Comparator.comparing(apiPolicyWaiverDTO -> apiPolicyWaiverDTO.createTime))
         .collect(Collectors.toList());
 
-    assertThat(applicableWaivers.size()).isEqualTo(4);
-    assertApiPolicyWaiverDTO("hash", policyId, orgId, "NewOrg", "", applicableWaivers.get(0));
-    assertApiPolicyWaiverDTO(null, policyId, orgId, "NewOrg", "", applicableWaivers.get(1));
-    assertApiPolicyWaiverDTO("hash", policyId, appId, "NewApp", "", applicableWaivers.get(2));
-    assertApiPolicyWaiverDTO(null, policyId, appId, "NewApp", "A comment", applicableWaivers.get(3));
+    assertThat(activeApplicableWaivers.size()).isEqualTo(3);
+    assertApiPolicyWaiverDTO("hash", policyId, orgId, "NewOrg", "", null, activeApplicableWaivers.get(0));
+    assertApiPolicyWaiverDTO(null, policyId, orgId, "NewOrg", "", null, activeApplicableWaivers.get(1));
+    assertApiPolicyWaiverDTO(null, policyId, appId, "NewApp", "A comment", expiringInFutureExpiryTime,
+        activeApplicableWaivers.get(2));
+
+    // expiredWaivers
+    List<ApiPolicyWaiverDTO> expiredApplicableWaivers = dto.expiredWaivers;
+
+    assertThat(expiredApplicableWaivers.size()).isEqualTo(1);
+    assertApiPolicyWaiverDTO("hash", policyId, appId, "NewApp", "", expiredExpiryTime, expiredApplicableWaivers.get(0));
   }
 
   private void assertNotExpiringPolicyWaiver(String ownerId, String comment, String hash) {

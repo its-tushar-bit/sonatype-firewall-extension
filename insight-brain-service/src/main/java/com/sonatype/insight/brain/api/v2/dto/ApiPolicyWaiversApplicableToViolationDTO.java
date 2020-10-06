@@ -14,4 +14,6 @@ import java.util.List;
 public class ApiPolicyWaiversApplicableToViolationDTO
 {
   public List<ApiPolicyWaiverDTO> activeWaivers = new ArrayList<>();
+
+  public List<ApiPolicyWaiverDTO> expiredWaivers = new ArrayList<>();
 }

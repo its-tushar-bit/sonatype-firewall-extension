@@ -59,6 +59,8 @@ public class PolicyWaiverDAOTest
     // Create
     PolicyWaiver policyWaiver = new PolicyWaiver(hash, policyId, ownerId, comment);
     policyWaiver.setConstraintFacts(createRandomConstraintFacts());
+    Date expiryTime = DateTime.now().plusWeeks(1).toDate();
+    policyWaiver.setExpiryTime(expiryTime);
     assertThat(policyWaiver.getId()).isNull();
     Date beforeInsert = new Date();
     dao.insert(policyWaiver);
@@ -71,7 +73,7 @@ public class PolicyWaiverDAOTest
     // Read
     policyWaiver = dao.getById(policyWaiver.getId());
     assertThat(policyWaiver).isNotNull();
-    assertPolicyWaiver(truncatedHash, policyId, ownerId, comment, createTime, policyWaiver);
+    assertPolicyWaiver(truncatedHash, policyId, ownerId, comment, createTime, expiryTime, policyWaiver);
 
     // Update
     String updateComment = "Updated comment";
@@ -81,7 +83,7 @@ public class PolicyWaiverDAOTest
     // Read
     policyWaiver = dao.getById(policyWaiver.getId());
     assertThat(policyWaiver).isNotNull();
-    assertPolicyWaiver(truncatedHash, policyId, ownerId, updateComment, createTime, policyWaiver);
+    assertPolicyWaiver(truncatedHash, policyId, ownerId, updateComment, createTime, expiryTime, policyWaiver);
 
     // Delete
     dao.delete(policyWaiver);
@@ -95,6 +97,7 @@ public class PolicyWaiverDAOTest
                                   String ownerId,
                                   String comment,
                                   Date createTime,
+                                  Date expiryTime,
                                   PolicyWaiver actual)
   {
     assertThat(actual.getHash()).isEqualTo(hash);
@@ -102,6 +105,7 @@ public class PolicyWaiverDAOTest
     assertThat(actual.getOwnerId()).isEqualTo(ownerId);
     assertThat(actual.getComment()).isEqualTo(comment);
     assertThat(actual.getCreateTime()).isEqualTo(createTime);
+    assertThat(actual.getExpiryTime()).isEqualTo(expiryTime);
   }
 
   private void assertPolicyWaiver(PolicyWaiver expected, PolicyWaiver actual) {
@@ -153,7 +157,7 @@ public class PolicyWaiverDAOTest
   }
 
   @Test
-  public void testGetApplicableByOwnerId() {
+  public void testGetActiveApplicableByOwnerId() {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
     Policy policyApp = tempEntity.newPolicy(application);
     Policy policyOrg = tempEntity.newPolicy(organization);
@@ -165,20 +169,20 @@ public class PolicyWaiverDAOTest
     PolicyWaiver policyWaiverApp = tempEntity.newWaiver("2", policyApp.getId(), application.getId());
 
     // Assert for application
-    List<PolicyWaiver> policyWaivers = dao.getApplicableByOwnerId(application.getId());
+    List<PolicyWaiver> policyWaivers = dao.getActiveApplicableByOwnerId(application.getId());
     assertThat(policyWaivers).hasSize(3);
     assertPolicyWaiver(policyWaiverParentOrg, policyWaivers.get(0));
     assertPolicyWaiver(policyWaiverOrg, policyWaivers.get(1));
     assertPolicyWaiver(policyWaiverApp, policyWaivers.get(2));
 
     // Assert for organization
-    policyWaivers = dao.getApplicableByOwnerId(organization.getId());
+    policyWaivers = dao.getActiveApplicableByOwnerId(organization.getId());
     assertThat(policyWaivers).hasSize(2);
     assertPolicyWaiver(policyWaiverParentOrg, policyWaivers.get(0));
     assertPolicyWaiver(policyWaiverOrg, policyWaivers.get(1));
 
     // Assert for parent organization
-    policyWaivers = dao.getApplicableByOwnerId(organization.getParentOrganizationId());
+    policyWaivers = dao.getActiveApplicableByOwnerId(organization.getParentOrganizationId());
     assertThat(policyWaivers).hasSize(1);
     assertPolicyWaiver(policyWaiverParentOrg, policyWaivers.get(0));
   }
@@ -298,6 +302,26 @@ public class PolicyWaiverDAOTest
 
     assertThat(dao.getActiveByOwnerId(ownerId)).extracting(PolicyWaiver::getId)
         .containsExactly(noExpiryWaiver.getId(), expiringWaiver.getId());
+  }
+
+  @Test
+  public void testGetApplicableAndExpiredByOwnerId() {
+    PolicyWaiverDAO dao = new PolicyWaiverDAO();
+
+    DateTime now = DateTime.now();
+    Policy policy = tempEntity.newPolicy(organization);
+    String policyId = policy.getId();
+    String ownerId = organization.getId();
+    String comment = "Just testing";
+    PolicyWaiver noExpiryWaiver = tempEntity.newWaiver(null, policyId, ownerId, null, comment,
+        now.toDate(), null);
+    PolicyWaiver expiringWaiver = tempEntity.newWaiver("expiring", policyId, ownerId, null, comment,
+        now.toDate(), now.plusHours(1).toDate());
+    PolicyWaiver expiredWaiver =  tempEntity.newWaiver("expired", policyId, ownerId, null, comment,
+        now.toDate(), now.minusMillis(1).toDate());
+
+    assertThat(dao.getApplicableAndExpiredByOwnerId(ownerId)).extracting(PolicyWaiver::getId)
+        .containsExactly(noExpiryWaiver.getId(), expiringWaiver.getId(), expiredWaiver.getId());
   }
 
   @Test

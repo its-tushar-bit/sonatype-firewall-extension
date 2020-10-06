@@ -349,7 +349,7 @@ public class ApiStaleWaiverService
 
     if (!authorizedReposMap.isEmpty()) {
       authorizedReposMap.keySet().forEach(repositoryId -> {
-        staleRepositoryWaivers.addAll(policyWaiverDAO.getApplicableByOwnerId(repositoryId).stream()
+        staleRepositoryWaivers.addAll(policyWaiverDAO.getActiveApplicableByOwnerId(repositoryId).stream()
             .filter(policyWaiver -> !allUsedWaiverIds.contains(policyWaiver.getId()))
             .collect(Collectors.toList()));
       });
@@ -434,7 +434,7 @@ public class ApiStaleWaiverService
     Set<PolicyWaiver> stalePolicyWaivers = new TreeSet<>(comparing(PolicyWaiver::getId));
 
     for (Application application : authorizedApplications) {
-      List<PolicyWaiver> applicableAppWaivers = policyWaiverDAO.getApplicableByOwnerId(application.getId());
+      List<PolicyWaiver> applicableAppWaivers = policyWaiverDAO.getActiveApplicableByOwnerId(application.getId());
 
       // If the policy waiver id is not found in all used policy waiver id's, then it's stale (not used)
       stalePolicyWaivers.addAll(applicableAppWaivers.stream()

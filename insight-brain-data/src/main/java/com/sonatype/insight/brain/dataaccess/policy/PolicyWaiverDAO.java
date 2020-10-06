@@ -72,7 +72,25 @@ public class PolicyWaiverDAO
     }
   }
 
-  public List<PolicyWaiver> getApplicableByOwnerId(String ownerId) {
+  public List<PolicyWaiver> getApplicableAndExpiredByOwnerId(String ownerId) {
+    List<PolicyWaiver> policyWaivers = new ArrayList<>();
+
+    loadAllByOwnerId(policyWaivers, ownerId);
+
+    return policyWaivers;
+  }
+
+  private void loadAllByOwnerId(List<PolicyWaiver> policyWaivers, String ownerId) {
+    if (ownerId == null) {
+      return;
+    }
+
+    Owner owner = ownerDAO.getById(ownerId);
+    loadAllByOwnerId(policyWaivers, owner.getParentOwnerId());
+    policyWaivers.addAll(getByOwnerId(ownerId));
+  }
+
+  public List<PolicyWaiver> getActiveApplicableByOwnerId(String ownerId) {
     List<PolicyWaiver> policyWaivers = new ArrayList<>();
 
     loadActiveByOwnerId(policyWaivers, ownerId);

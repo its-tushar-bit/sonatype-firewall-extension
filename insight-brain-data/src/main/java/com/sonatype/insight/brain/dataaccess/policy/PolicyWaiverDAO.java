@@ -151,14 +151,15 @@ public class PolicyWaiverDAO
     return getList(tx, sQuery, policyId, ownerIds);
   }
 
-  PolicyWaiver getByHashAndPolicyIdAndOwnerIdAndConstraintFacts(TransactionContext tx,
-                                                                String hash,
-                                                                String policyId,
-                                                                String ownerId,
-                                                                List<ConstraintFact> constraintFacts)
+  PolicyWaiver getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(TransactionContext tx,
+                                                                      String hash,
+                                                                      String policyId,
+                                                                      String ownerId,
+                                                                      List<ConstraintFact> constraintFacts)
   {
     String sQuery = "SELECT entity FROM PolicyWaiver entity" + //
-        " WHERE entity.hash=?1 AND entity.policyId=?2 AND entity.ownerId=?3";
+        " WHERE entity.hash=?1 AND entity.policyId=?2 AND entity.ownerId=?3" + //
+        " AND (entity.expiryTime is null OR entity.expiryTime > CURRENT_TIMESTAMP)";
     if (constraintFacts == null) {
       sQuery += " AND entity.constraintFactsJson IS NULL";
       return get(tx, sQuery, hash, policyId, ownerId);
@@ -186,8 +187,8 @@ public class PolicyWaiverDAO
 
   @Override
   public void insert(TransactionContext tx, PolicyWaiver entity) {
-    PolicyWaiver other = getByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, entity.getHash(), entity.getPolicyId(),
-        entity.getOwnerId(), entity.getConstraintFacts());
+    PolicyWaiver other = getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, entity.getHash(),
+        entity.getPolicyId(), entity.getOwnerId(), entity.getConstraintFacts());
     if (other != null) {
       throw new BadRequestException("This policy waiver already exists.");
     }
@@ -204,8 +205,8 @@ public class PolicyWaiverDAO
 
   @Override
   public void update(TransactionContext tx, PolicyWaiver entity) {
-    PolicyWaiver other = getByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, entity.getHash(), entity.getPolicyId(),
-        entity.getOwnerId(), entity.getConstraintFacts());
+    PolicyWaiver other = getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, entity.getHash(),
+        entity.getPolicyId(), entity.getOwnerId(), entity.getConstraintFacts());
     if (other != null && !other.getId().equals(entity.getId())) {
       throw new BadRequestException("A policy waiver for the same policy violation already exists.");
     }

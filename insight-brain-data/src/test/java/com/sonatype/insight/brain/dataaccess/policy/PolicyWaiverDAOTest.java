@@ -499,7 +499,7 @@ public class PolicyWaiverDAOTest
   }
 
   @Test
-  public void testGetByHashAndPolicyIdAndOwnerIdAndConstraintFacts() {
+  public void testGetActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts() {
     String hash = "hash";
     Policy policy = tempEntity.newPolicy(organization);
     String policyId = policy.getId();
@@ -511,14 +511,53 @@ public class PolicyWaiverDAOTest
 
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
     try (TransactionContext tx = dao.createTransactionContext()) {
-      PolicyWaiver foundPolicyWaiver = dao.getByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, hash, policyId, ownerId,
-          constraintFacts);
+      PolicyWaiver foundPolicyWaiver = dao.getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, hash, policyId,
+          ownerId, constraintFacts);
       assertThat(foundPolicyWaiver.getId()).isEqualTo(policyWaiver1.getId());
     }
   }
 
   @Test
-  public void testGetByHashAndPolicyIdAndOwnerIdAndConstraintFacts_NullConstraintFacts() {
+  public void testGetActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts_ExpiredWaiver() {
+    String hash = "hash";
+    Policy policy = tempEntity.newPolicy(organization);
+    String policyId = policy.getId();
+    String ownerId = organization.getId();
+    List<ConstraintFact> constraintFacts = createRandomConstraintFacts();
+    String comment = "My comment";
+    DateTime now = DateTime.now();
+    tempEntity.newWaiver(hash, policyId, ownerId, constraintFacts, comment, now.toDate(), now.toDate());
+
+    PolicyWaiverDAO dao = new PolicyWaiverDAO();
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      PolicyWaiver foundPolicyWaiver = dao.getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, hash, policyId,
+          ownerId, constraintFacts);
+      assertThat(foundPolicyWaiver).isNull();
+    }
+  }
+
+  @Test
+  public void testGetActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts_UnexpiredWaiver() {
+    String hash = "hash";
+    Policy policy = tempEntity.newPolicy(organization);
+    String policyId = policy.getId();
+    String ownerId = organization.getId();
+    List<ConstraintFact> constraintFacts = createRandomConstraintFacts();
+    String comment = "My comment";
+    DateTime now = DateTime.now();
+    PolicyWaiver unexpiredWaiver = tempEntity.newWaiver(hash, policyId, ownerId, constraintFacts, comment, now.toDate(),
+        now.plusDays(1).toDate());
+
+    PolicyWaiverDAO dao = new PolicyWaiverDAO();
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      PolicyWaiver foundPolicyWaiver = dao.getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, hash, policyId,
+          ownerId, constraintFacts);
+      assertThat(foundPolicyWaiver.getId()).isEqualTo(unexpiredWaiver.getId());
+    }
+  }
+
+  @Test
+  public void testGetActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts_NullConstraintFacts() {
     String hash = "hash";
     Policy policy = tempEntity.newPolicy(organization);
     String policyId = policy.getId();
@@ -529,12 +568,12 @@ public class PolicyWaiverDAOTest
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
     try (TransactionContext tx = dao.createTransactionContext()) {
       // Get using null constraint facts
-      PolicyWaiver foundPolicyWaiver = dao.getByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, hash, policyId, ownerId,
-          null /* constraintFacts */);
+      PolicyWaiver foundPolicyWaiver = dao.getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, hash, policyId,
+          ownerId, null /* constraintFacts */);
       assertThat(foundPolicyWaiver.getId()).isEqualTo(policyWaiver1.getId());
 
       // Get using not null constraint facts
-      foundPolicyWaiver = dao.getByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, hash, policyId, ownerId,
+      foundPolicyWaiver = dao.getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, hash, policyId, ownerId,
           createRandomConstraintFacts());
       assertThat(foundPolicyWaiver).isNull();
     }

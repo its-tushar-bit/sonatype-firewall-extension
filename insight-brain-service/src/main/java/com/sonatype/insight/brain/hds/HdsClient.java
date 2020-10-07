@@ -137,6 +137,7 @@ public class HdsClient
   private synchronized void updateClient() {
     Configuration config = new Configuration();
     config.setConnectTimeout(insightConfig.getConnectTimeoutInSeconds() * 1000);
+    config.setSocketTimeout(insightConfig.getSocketTimeoutInSeconds() * 1000);
     customizeConfiguration(config);
     proxy.contextualize(config);
     this.config = config;

@@ -759,12 +759,32 @@ public class InsightConfig
   @Max(60 * 60)  // 1 hour
   private int connectTimeoutInSeconds = 20;
 
+  /**
+   * This uses a generous default value to account for batched component data requests that are known to occasionally
+   * take ~1 minute.
+   * 
+   * @since 1.101
+   */
+  @JsonProperty
+  @NotNull
+  @Min(5)
+  @Max(60 * 60) // 1 hour
+  private int socketTimeoutInSeconds = 60 * 3;
+
   public int getConnectTimeoutInSeconds() {
     return connectTimeoutInSeconds;
   }
 
   public void setConnectTimeoutInSeconds(int connectTimeoutInSeconds) {
     this.connectTimeoutInSeconds = connectTimeoutInSeconds;
+  }
+
+  public int getSocketTimeoutInSeconds() {
+    return socketTimeoutInSeconds;
+  }
+
+  public void setSocketTimeoutInSeconds(int socketTimeoutInSeconds) {
+    this.socketTimeoutInSeconds = socketTimeoutInSeconds;
   }
 
   public SourceControlConfig getSourceControl() {

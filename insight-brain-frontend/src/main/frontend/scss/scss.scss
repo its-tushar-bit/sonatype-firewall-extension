@@ -41,13 +41,13 @@
 
 // Directives
 @import "../directives/directives";
-@import "../owner.manager/access/access.tile.directive.scss";
-@import "../owner.manager/policy/policy.editor.constraints.directive.scss";
-@import "../utility/widgets/age.in.days.input.directive.scss";
-@import "../owner.manager/navigation/_ownerTreeView.scss";
+@import "../owner.manager/access/access.tile.directive";
+@import "../owner.manager/policy/policy.editor.constraints.directive";
+@import "../utility/widgets/age.in.days.input.directive";
+@import "../owner.manager/navigation/ownerTreeView";
 
 // Services
-@import "../externalLink/externalLinkModalService.scss";
+@import "../externalLink/externalLinkModalService";
 
 // Pages
 @import "dashboard-old";
@@ -56,31 +56,31 @@
 @import "../labs/labs";
 @import "../configuration/configuration";
 @import "policy-editor";
-@import "../owner.manager/summary/owner.summary.view.scss";
-@import "../owner.manager/summary/ownerPolicyList/ownerPolicyList.scss";
-@import "../owner.manager/repositories/repositories.summary.view.scss";
-@import "../applicationReport/applicationReport.scss";
-@import "../role.membership/role.membership.view.scss";
-@import "../configuration/webhook/_webhook.list.view.scss";
-@import "../policy/components/app-security/_app-security.scss";
-@import "../security/_user-list.scss";
-@import "../owner.manager/utility/services/evaluateApplicationModal.scss";
-@import "../security/role-editor.scss";
-@import "../report/violations/_report-list.scss";
-@import "../owner.manager/retention/retentionEditor.scss";
-@import "../owner.manager/retention/retentionTile.scss";
+@import "../owner.manager/summary/owner.summary.view";
+@import "../owner.manager/summary/ownerPolicyList/ownerPolicyList";
+@import "../owner.manager/repositories/repositories.summary.view";
+@import "../applicationReport/applicationReport";
+@import "../role.membership/role.membership.view";
+@import "../configuration/webhook/webhook.list.view";
+@import "../policy/components/app-security/app-security";
+@import "../security/user-list";
+@import "../owner.manager/utility/services/evaluateApplicationModal";
+@import "../security/role-editor";
+@import "../report/violations/report-list";
+@import "../owner.manager/retention/retentionEditor";
+@import "../owner.manager/retention/retentionTile";
 @import "../vulnerabilitySearch/vulnerabilitySearch";
 @import "../configuration/saml/samlConfiguration";
-@import "../advancedSearch/advancedSearch.scss";
-@import "../owner.manager/source.control/source.control.editor.scss";
-@import "../report/report/_report.scss";
+@import "../advancedSearch/advancedSearch";
+@import "../owner.manager/source.control/source.control.editor";
+@import "../report/report/report";
 @import "../violation/violationPage";
 @import "../waivers/addWaiver";
 @import "../waivers/listWaivers";
 @import "../applicationReport/react/report";
 
 // CIP
-@import "../version-graph/icons.css";
+@import "../version-graph/icons";
 
 // Overrides
 @import "responsive";

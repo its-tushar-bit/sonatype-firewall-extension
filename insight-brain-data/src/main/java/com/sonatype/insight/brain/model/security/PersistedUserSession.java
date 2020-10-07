@@ -7,24 +7,41 @@ package com.sonatype.insight.brain.model.security;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.sonatype.insight.model.HasStringId;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.apache.shiro.session.UnknownSessionException;
 import org.apache.shiro.session.mgt.SimpleSession;
 import org.apache.shiro.subject.SimplePrincipalCollection;
 import org.apache.shiro.subject.support.DefaultSubjectContext;
+import org.keycloak.adapters.saml.SamlPrincipal;
+import org.keycloak.adapters.saml.SamlSession;
 import org.keycloak.adapters.saml.SamlSessionStore;
+import org.keycloak.dom.saml.v2.assertion.AssertionType;
 
 @Entity
 @Table(name = "persisted_user_session")
@@ -80,7 +97,10 @@ public class PersistedUserSession
             .forEach(userPrincipal -> simplePrincipalCollection.add(userPrincipal, userPrincipal.getRealmId()));
         session.setAttribute(DefaultSubjectContext.PRINCIPALS_SESSION_KEY, simplePrincipalCollection);
       }
-      setSamlCurrentAction(session);
+      // Fix jackson deserializing CurrentAction as a String
+      setSamlCurrentActionIfNeeded(session);
+      // Fix jackson deserializing SamlSession as a LinkedHashMap
+      setSamlSessionIfNeeded(sessionNode, session);
       return session;
     }
     catch (IllegalArgumentException e) {
@@ -91,11 +111,19 @@ public class PersistedUserSession
     }
   }
 
-  private static void setSamlCurrentAction(SimpleSession session) {
-    Object samlCurrentActionAttribute = session.getAttribute("SAML_CURRENT_ACTION");
+  private static void setSamlCurrentActionIfNeeded(SimpleSession session) {
+    Object samlCurrentActionAttribute = session.getAttribute(SamlSessionStore.CURRENT_ACTION);
     if (samlCurrentActionAttribute instanceof String) {
-      String samlCurrentAction = (String) samlCurrentActionAttribute;
-      session.setAttribute("SAML_CURRENT_ACTION", SamlSessionStore.CurrentAction.valueOf(samlCurrentAction));
+      session.setAttribute(SamlSessionStore.CURRENT_ACTION,
+          SamlSessionStore.CurrentAction.valueOf((String) samlCurrentActionAttribute));
+    }
+  }
+
+  private static void setSamlSessionIfNeeded(JsonNode sessionNode, SimpleSession session) throws IOException {
+    JsonNode samlSessionNode = sessionNode.findValue(SamlSession.class.getName());
+    if (samlSessionNode != null) {
+      session.setAttribute(SamlSession.class.getName(),
+          OBJECT_MAPPER.readValue(OBJECT_MAPPER.treeAsTokens(samlSessionNode), SamlSession.class));
     }
   }
 
@@ -116,6 +144,45 @@ public class PersistedUserSession
   private static ObjectMapper createObjectMapper() {
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.configure(MapperFeature.REQUIRE_SETTERS_FOR_GETTERS, true);
+    objectMapper.addMixIn(SamlSession.class, SamlSessionMixIn.class);
+    objectMapper.addMixIn(SamlPrincipal.class, SamlPrincipalMixIn.class);
     return objectMapper;
+  }
+
+  abstract static class SamlSessionMixIn
+  {
+    @JsonDeserialize(using = XMLGregorianCalendarDeserializer.class)
+    private XMLGregorianCalendar sessionNotOnOrAfter;
+  }
+
+  static class XMLGregorianCalendarDeserializer
+      extends JsonDeserializer<XMLGregorianCalendar>
+  {
+    @Override
+    public XMLGregorianCalendar deserialize(JsonParser jsonParser, DeserializationContext deserializationContext)
+        throws IOException
+    {
+      JsonNode jsonNode = jsonParser.getCodec().readTree(jsonParser);
+      if (!jsonNode.isNumber()) {
+        return null;
+      }
+      long sessionNotOnOrAfter = jsonNode.asLong();
+      Instant instant = Instant.ofEpochMilli(sessionNotOnOrAfter);
+      ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(instant, ZoneOffset.UTC);
+      GregorianCalendar gregorianCalendar = GregorianCalendar.from(zonedDateTime);
+      try {
+        return DatatypeFactory.newInstance().newXMLGregorianCalendar(gregorianCalendar);
+      }
+      catch (DatatypeConfigurationException e) {
+        throw new RuntimeException(e.getMessage(), e);
+      }
+    }
+  }
+
+  @JsonAutoDetect(fieldVisibility = Visibility.ANY)
+  abstract static class SamlPrincipalMixIn
+  {
+    @JsonIgnore
+    abstract AssertionType getAssertion();
   }
 }

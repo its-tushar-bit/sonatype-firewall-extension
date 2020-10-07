@@ -11,7 +11,6 @@ import org.keycloak.adapters.saml.SamlDeployment;
 import org.keycloak.adapters.saml.servlet.FilterSamlSessionStore;
 import org.keycloak.adapters.servlet.FilterSessionStore;
 import org.keycloak.adapters.spi.HttpFacade;
-import org.keycloak.adapters.spi.SessionIdMapper;
 
 public class SamlSessionStoreForRedirect
     extends FilterSamlSessionStore
@@ -22,11 +21,11 @@ public class SamlSessionStoreForRedirect
       HttpServletRequest request,
       HttpFacade facade,
       int maxBuffer,
-      SessionIdMapper idMapper,
+      SamlSessionIdMapper samlSessionIdMapper,
       SamlDeployment samlDeployment,
       String redirect)
   {
-    super(request, facade, maxBuffer, idMapper, samlDeployment);
+    super(request, facade, maxBuffer, samlSessionIdMapper, samlDeployment);
     this.redirect = redirect;
   }
 

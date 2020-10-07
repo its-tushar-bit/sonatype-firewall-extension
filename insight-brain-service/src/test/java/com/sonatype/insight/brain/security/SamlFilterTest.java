@@ -75,6 +75,11 @@ public class SamlFilterTest
   }
 
   @Test
+  public void testInstantiation() {
+    assertThat(samlFilter.getSamlSessionIdMapper()).isInstanceOf(SamlSessionIdMapper.class);
+  }
+
+  @Test
   public void testOnPrehandle_NullSamlDeployment_ReturnsTrue() throws Exception {
     assertThat(samlDeploymentManager.get()).isNull();
     assertThat(samlFilter.onPreHandle(null, null, null)).isTrue();

@@ -6,8 +6,17 @@
 package com.sonatype.insight.brain.model.security;
 
 import java.time.Duration;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
+
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.google.common.collect.Sets;
 import org.apache.shiro.session.UnknownSessionException;
@@ -17,7 +26,12 @@ import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.subject.SimplePrincipalCollection;
 import org.apache.shiro.subject.support.DefaultSubjectContext;
 import org.junit.Test;
+import org.keycloak.adapters.saml.SamlPrincipal;
+import org.keycloak.adapters.saml.SamlSession;
+import org.keycloak.adapters.saml.SamlSessionStore;
 import org.keycloak.adapters.saml.SamlSessionStore.CurrentAction;
+import org.keycloak.common.util.MultivaluedHashMap;
+import org.keycloak.dom.saml.v2.assertion.AssertionType;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -25,7 +39,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class PersistedUserSessionTest
 {
   @Test
-  public void testGetSetSession() {
+  public void testGetSetSession() throws Exception {
     SimpleSession session = new SimpleSession();
     PersistedUserSession persistedUserSession = new PersistedUserSession(session);
 
@@ -36,13 +50,13 @@ public class PersistedUserSessionTest
     persistedUserSession.setSession(session);
 
     assertThat(persistedUserSession.getSession()).usingRecursiveComparison().ignoringCollectionOrder()
-        .isEqualTo(session);
+        .ignoringFields("attributes.principal.assertion").isEqualTo(session);
 
     session.setAttribute(DefaultSubjectContext.PRINCIPALS_SESSION_KEY, createPrincipalCollection());
     persistedUserSession.setSession(session);
 
     assertThat(persistedUserSession.getSession()).usingRecursiveComparison().ignoringCollectionOrder()
-        .isEqualTo(session);
+        .ignoringFields("attributes.principal.assertion").isEqualTo(session);
   }
 
   @Test
@@ -60,7 +74,7 @@ public class PersistedUserSessionTest
         .withMessageContaining("Unrecognized field \"newField\"");
   }
 
-  private SimpleSession createSession() {
+  private SimpleSession createSession() throws Exception {
     SimpleSession simpleSession = new SimpleSession();
     simpleSession.setId(UUID.randomUUID().toString());
     simpleSession.setStartTimestamp(new Date());
@@ -71,8 +85,26 @@ public class PersistedUserSessionTest
     simpleSession.setHost("127.0.0.1");
     simpleSession.setAttribute("key1", "value1");
     simpleSession.setAttribute("key2", "value2");
-    simpleSession.setAttribute("SAML_CURRENT_ACTION", CurrentAction.NONE);
+    simpleSession.setAttribute(SamlSessionStore.CURRENT_ACTION, CurrentAction.NONE);
+    simpleSession.setAttribute(SamlSession.class.getName(), createSamlSession());
     return simpleSession;
+  }
+
+  private SamlSession createSamlSession() throws Exception {
+    AssertionType assertionType = new AssertionType("id", createXMLGregorianCalendar());
+    MultivaluedHashMap<String, String> attributes = new MultivaluedHashMap<>();
+    attributes.put("key1", Arrays.asList("value1", "value2"));
+    attributes.putSingle("key2", "value3");
+    SamlPrincipal samlPrincipal =
+        new SamlPrincipal(assertionType, null, "name", "samlSubject", "nameIDFormat", attributes, attributes);
+    Set<String> roles = new HashSet<>(Arrays.asList("role1", "role2"));
+    String sessionIndex = "sessionIndex";
+    return new SamlSession(samlPrincipal, roles, sessionIndex, createXMLGregorianCalendar());
+  }
+
+  private XMLGregorianCalendar createXMLGregorianCalendar() throws Exception {
+    return DatatypeFactory.newInstance()
+        .newXMLGregorianCalendar(GregorianCalendar.from(ZonedDateTime.now(ZoneOffset.UTC)));
   }
 
   private PrincipalCollection createPrincipalCollection() {

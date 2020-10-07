@@ -33,8 +33,6 @@ import org.keycloak.adapters.servlet.ServletHttpFacade;
 import org.keycloak.adapters.spi.AuthChallenge;
 import org.keycloak.adapters.spi.AuthOutcome;
 import org.keycloak.adapters.spi.HttpFacade;
-import org.keycloak.adapters.spi.InMemorySessionIdMapper;
-import org.keycloak.adapters.spi.SessionIdMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,13 +54,22 @@ class SamlFilter
 
   private final LandingService landingService;
 
-  private final SessionIdMapper idMapper;
+  private final SamlSessionIdMapper samlSessionIdMapper;
 
   @Inject
-  public SamlFilter(SamlDeploymentManager samlDeploymentManager, LandingService landingService) {
+  public SamlFilter(
+      SamlDeploymentManager samlDeploymentManager,
+      LandingService landingService,
+      SamlSessionIdMapper samlSessionIdMapper)
+  {
     this.samlDeploymentManager = samlDeploymentManager;
     this.landingService = landingService;
-    idMapper = new InMemorySessionIdMapper();
+    this.samlSessionIdMapper = samlSessionIdMapper;
+  }
+
+  // Visible for testing
+  SamlSessionIdMapper getSamlSessionIdMapper() {
+    return samlSessionIdMapper;
   }
 
   @Override
@@ -157,7 +164,7 @@ class SamlFilter
       HttpFacade httpFacade,
       SamlDeployment samlDeployment)
   {
-    return new SamlSessionStoreForRedirect(httpRequest, httpFacade, 0, idMapper, samlDeployment,
+    return new SamlSessionStoreForRedirect(httpRequest, httpFacade, 0, samlSessionIdMapper, samlDeployment,
         getDestinationOrDefault(httpRequest));
   }
 

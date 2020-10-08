@@ -162,6 +162,21 @@ public class SamlAuthcTest
   }
 
   @Test
+  public void testLoginRequest_SessionCookieUseableForLoginResponseFromIdp() throws Exception {
+    configureSaml();
+
+    HttpResponse response = samlRequest().path("login").get();
+
+    assertResponseStatus(200, response);
+    assertThat(response.getSessionCookie()).isNotNull();
+    // To redirect back to the originally requested page upon receiving the login response from the IdP, the original
+    // URL is stored in a session when the SAML flow starts. To find/continue that session later, the corresponding
+    // session cookie must support the cross-site POST request from the IdP though.
+    assertThat(response.getHeader("Set-Cookie")).contains(response.getSessionCookie().getName())
+        .doesNotContainIgnoringCase("SameSite=Lax", "SameSite=Strict");
+  }
+
+  @Test
   public void testLoginResponse_FullySignedAndEncrypted() throws Exception {
     configureSaml();
 

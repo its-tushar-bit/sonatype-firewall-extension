@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import hash from '../util/hash';
-import { mapObjIndexed, zipWith } from 'ramda';
+import { mapObjIndexed, zipWith, contains } from 'ramda';
 import { parse, stringify } from 'query-string';
 
 import ownerConstant from '../utility/services/owner.constant';
@@ -73,10 +73,10 @@ function sanitizeUrlService($urlService, baseUrlService) {
         // query parameter that has no value - http://foo.com?bar
         return val;
       }
-      if (queryParamsToShowInPlaintext.includes(key)) {
+      if (contains(key, queryParamsToShowInPlaintext)) {
         return val;
       }
-      if (queryParamsToObfuscate.includes(key)) {
+      if (contains(key, queryParamsToObfuscate)) {
         return hash(val);
       }
       console.warn(`Possible unobfuscated query param ${key}=${val} detected in sanitizeUrlService`);

@@ -144,8 +144,7 @@ You are at the final stages. Your change works, it's polished, and it's ready to
 ### UI changes
 
 If your change introduces new or modifies any HTML, SCSS, or JavaScript; please request a review from 
-[@iq-laurel](https://github.com/orgs/sonatype/teams/iq-laurel) in Github. You must get a +1 from a member of that
-team in order to merge.
+[@iq-laurel](https://github.com/orgs/sonatype/teams/iq-laurel) in Github.  A +1 from our team is not needed to proceed with front end development.
 
 ### All other changes
 

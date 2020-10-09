@@ -181,7 +181,11 @@ function pollStateSuccess(payload, state) {
       ...state.viewState,
       error: null
     },
-    formState: payload,
+    formState: {
+      ...state.formState,
+      lastIndexTime: payload.lastIndexTime,
+      isFullIndexTriggered: payload.isFullIndexTriggered
+    },
     serverData: payload
   };
 }

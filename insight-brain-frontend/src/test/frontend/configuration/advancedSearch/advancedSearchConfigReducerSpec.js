@@ -188,16 +188,28 @@ describe('advancedSearchConfigReducer', function() {
           other: otherObject,
           error: 'error!'
         },
-        formState: otherObject,
+        formState: {
+          isEnabled: true,
+          lastIndexTime: null,
+          isFullIndexTriggered: false
+        },
         serverData: otherObject
       });
+      const payload = {
+        isEnabled: false,
+        lastIndexTime: 'some time',
+        isFullIndexTriggered: true
+      };
       const newState = reduce(state, {
         type: 'ADVANCED_SEARCH_POLL_STATE_SUCCESS',
-        payload: 'payload'
+        payload: payload
       });
       expect(newState.viewState.error).toBeNull();
-      expect(newState.formState).toBe('payload');
-      expect(newState.serverData).toBe('payload');
+      expect(newState.formState).not.toBeNull();
+      expect(newState.formState.isEnabled).toBeTruthy();
+      expect(newState.formState.lastIndexTime).toBe('some time');
+      expect(newState.formState.isFullIndexTriggered).toBeTruthy();
+      expect(newState.serverData).toBe(payload);
       // other properties are not modified
       expect(newState.other).toBe(otherObject);
       expect(newState.viewState.other).toBe(otherObject);

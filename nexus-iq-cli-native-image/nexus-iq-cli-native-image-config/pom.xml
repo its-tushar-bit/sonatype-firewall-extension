@@ -21,7 +21,13 @@
   <packaging>jar</packaging>
 
   <dependencies>
-      <dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>nexus-iq-cli</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>nexus-iq-cli</artifactId>
         <version>${project.version}</version>

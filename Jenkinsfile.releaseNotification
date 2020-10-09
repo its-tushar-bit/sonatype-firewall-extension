@@ -1,0 +1,52 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+
+properties(
+  [
+    parameters (
+      [
+        string (
+          name: 'releaseVersion',
+          defaultValue: '',
+          description: 'The version number for the product, like "52"'
+        ),
+        string (
+          name: 'notificationTime',
+          defaultValue: '',
+          description: 'The time the in-product notification was pushed and displayed, like "12pm EST Today"'
+        )
+      ]
+    )
+  ]
+)
+
+pipeline {
+  agent { label InsightConstants.AGENT_LABEL }
+  options {
+    buildDiscarder(logRotator(numToKeepStr: '10'))
+    timestamps()
+  }
+  stages {
+    stage('Email Release Notification') {
+      steps {
+        emailext(
+          mimeType: 'text/html',
+          subject: "${params.releaseVersion} Release Complete",
+          body: "<p>Dear Product Owners, All the release binaries are up, and can be found by following the link below.<br>\
+          Furthermore, the in-product notification was pushed and displayed at ${params.notificationTime}, marking the completion of the ${params.releaseVersion} Release.</p>\
+          <p><a href='https://help.sonatype.com/display/NXIQ/Download+and+Compatibility'>https://help.sonatype.com/display/NXIQ/Download+and+Compatibility</a></p>",
+          to: "jwhitehouse@sonatype.com, products@sonatype.com, dev@sonatype.com, sonatype-se-discussion-group@sonatype.com, success@sonatype.com, support-team-group@sonatype.com"
+        )
+      }
+    }
+    stage('Slack Release Notification') {
+      steps {
+        slackSend color: 'good', channel: '#iq', message: "@lifecycle-pm IQ server release ${params.releaseVersion} is available, please send the notification to the clm-announcements list."
+      }
+    }
+  }
+}

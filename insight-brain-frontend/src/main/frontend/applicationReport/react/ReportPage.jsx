@@ -53,7 +53,9 @@ export default function ReportPage(props) {
                          stateGo={stateGo}
             />
             <div className="nx-tile">
-              <ReportStatusBar/>
+              <ReportStatusBar selectedReport={selectedReport}
+                               loadError={loadError}
+              />
             </div>
             <div className="nx-tile iq-report-content">
               <ReportContent/>
@@ -86,7 +88,15 @@ ReportPage.propTypes = {
     })
   }),
   selectedReport: PropTypes.shape({
-    reportVersion: PropTypes.number.isRequired
+    reportVersion: PropTypes.number.isRequired,
+    knownArtifactCount: PropTypes.number.isRequired,
+    totalArtifactCount: PropTypes.number.isRequired,
+    policyComponentCount: PropTypes.number.isRequired,
+    grandfatheredPolicyViolationCount: PropTypes.number.isRequired,
+    criticalViolationCount: PropTypes.number.isRequired,
+    severeViolationCount: PropTypes.number.isRequired,
+    moderateViolationCount: PropTypes.number.isRequired,
+    nonLowViolationCount: PropTypes.number.isRequired
   }),
   loadError: PropTypes.object
 };

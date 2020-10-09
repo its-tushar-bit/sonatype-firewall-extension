@@ -700,6 +700,24 @@ describe('applicationReportActions', function() {
     });
   });
 
+  describe('setSortingParameters', () => {
+    it('dispatches SET_SORTING_PARAMETERS action', () => {
+      const store = SpecUtil.mockReduxStore({});
+      store.dispatch(
+          applicationReportActions.setSortingParameters('key', ['a', 'b'], 'dir'));
+
+      expect(store.getActions().length).toBe(1);
+      expect(store.getActions()[0]).toEqual({
+        type: 'SET_SORTING_PARAMETERS',
+        payload: {
+          key: 'key',
+          sortFields: ['a', 'b'],
+          dir: 'dir'
+        }
+      });
+    });
+  });
+
   function expectCommonDataCalls(isSuccess, additionalCalls = {}) {
     mockAxiosCalls({
       get: {

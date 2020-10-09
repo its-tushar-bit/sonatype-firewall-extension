@@ -47,6 +47,7 @@ export const REEVALUATE_REPORT_FULFILLED = 'REEVALUATE_REPORT_FULFILLED';
 export const REEVALUATE_REPORT_FAILED = 'REEVALUATE_REPORT_FAILED';
 export const REEVALUATE_REPORT_CANCELLED = 'REEVALUATE_REPORT_CANCELLED';
 export const GENERATE_VULNERABILITY_ENTRIES = 'GENERATE_VULNERABILITY_ENTRIES';
+export const SET_SORTING_PARAMETERS = 'SET_SORTING_PARAMETERS';
 
 // To be used for filters that are done by substring matching, as opposed to matching a discrete set of values
 export const SET_SUBSTRING_FIELD_FILTER = 'SET_SUBSTRING_FIELD_FILTER';
@@ -61,6 +62,13 @@ export function setReportParameters(appId, scanId, isUnknownJs, embeddable, poli
   return {
     type: SET_REPORT_PARAMETERS,
     payload: { appId, scanId, isUnknownJs, embeddable, policyViolationId }
+  };
+}
+
+export function setSortingParameters(key, sortFields, dir) {
+  return {
+    type: SET_SORTING_PARAMETERS,
+    payload: { key, sortFields, dir }
   };
 }
 
@@ -235,9 +243,9 @@ const loadReportRawDataFulfilled = payloadParamActionCreator(LOAD_REPORT_RAW_DAT
 const loadReportRawDataFailed = httpErrorMessageActionCreator(LOAD_REPORT_RAW_DATA_FAILED);
 const loadReportRawDataUnnecessary = httpErrorMessageActionCreator(LOAD_REPORT_RAW_DATA_UNNECESSARY);
 const setAggregateReportEntries = payloadParamActionCreator(SET_AGGREGATE_REPORT_ENTRIES);
-const setSorting = payloadParamActionCreator(SET_SORTING);
 const setSortingRawData = payloadParamActionCreator(SET_SORTING_RAW_DATA);
 const generateVulnerabilityEntries = noPayloadActionCreator(GENERATE_VULNERABILITY_ENTRIES);
+export const setSorting = payloadParamActionCreator(SET_SORTING);
 
 function setStringFieldFilter(fieldName, filterString) {
   return {
@@ -320,6 +328,7 @@ export default function applicationReportActions() {
     setSortingRawData,
     selectComponent,
     selectRootAncestor,
-    unselectRootAncestor
+    unselectRootAncestor,
+    setSortingParameters
   };
 }

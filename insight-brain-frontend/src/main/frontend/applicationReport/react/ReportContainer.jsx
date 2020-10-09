@@ -11,7 +11,7 @@ import { stateGo } from '../../reduxUiRouter/routerActions';
 
 function mapStateToProps({applicationReport, router}) {
   return {
-    ...pick(['metadata', 'selectedReport'], applicationReport),
+    ...pick(['metadata', 'selectedReport', 'sortConfiguration'], applicationReport),
     ...pick(['publicId', 'scanId', 'unknownjs', 'embeddable', 'policyViolationId'], router.currentParams)
   };
 }

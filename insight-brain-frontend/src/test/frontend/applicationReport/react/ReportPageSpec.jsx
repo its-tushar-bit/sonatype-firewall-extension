@@ -115,4 +115,21 @@ describe('Report Page component', function() {
     expect(reportStatusBar).toHaveProp('selectedReport', selectedReport);
   });
 
+  it('renders ReportContent with props, ', function() {
+    const props = {
+      selectedReport: {
+        reportVersion: 3
+      },
+      sortConfiguration: {
+        key: 'policyThreatLevel',
+        sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
+        dir: 'desc'
+      }
+    };
+
+    const reportContent = getShallowComponent(props).find('ReportContent');
+    expect(reportContent).toExist();
+    expect(reportContent).toHaveProp('selectedReport', props.selectedReport);
+    expect(reportContent).toHaveProp('sortConfiguration', props.sortConfiguration);
+  });
 });

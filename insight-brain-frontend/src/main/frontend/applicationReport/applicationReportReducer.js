@@ -48,7 +48,8 @@ import {
   SELECT_COMPONENT,
   SELECT_ROOT_ANCESTOR,
   UNSELECT_ROOT_ANCESTOR,
-  GENERATE_VULNERABILITY_ENTRIES
+  GENERATE_VULNERABILITY_ENTRIES,
+  SET_SORTING_PARAMETERS
 } from './applicationReportActions';
 
 import { sortItemsByFields } from '../util/sortUtils';
@@ -90,13 +91,21 @@ const initState = Object.freeze({
 
   vulnerabilities: null,
   vulnerabilitiesPageEnabled: true,
-  isInnerSourceEnabled: false
+  isInnerSourceEnabled: false,
+  sortConfiguration: {
+    key: 'policyThreatLevel',
+    sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
+    dir: 'desc'
+  }
 });
 
 export default function applicationReportReducer(state = initState, {type, payload}) {
   switch (type) {
     case SET_REPORT_PARAMETERS:
       return setReportParameters(state, payload);
+
+    case SET_SORTING_PARAMETERS:
+      return setSortingParameters(state, payload);
 
     case LOAD_REPORT_REQUESTED:
       return setPendingLoads(['common', 'policy'], {...state, loadError: null, selectedReport: null});
@@ -203,6 +212,13 @@ function setReportParameters(state, payload) {
   return {
     ...initState,
     reportParameters: payload
+  };
+}
+
+function setSortingParameters(state, payload) {
+  return {
+    ...state,
+    sortConfiguration: payload
   };
 }
 

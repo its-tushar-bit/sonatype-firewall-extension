@@ -17,6 +17,8 @@ export default function ReportPage(props) {
     setReportParameters,
     loadReport,
     reevaluateReport,
+    setSorting,
+    setSortingParameters,
     // state
     publicId,
     scanId,
@@ -26,7 +28,8 @@ export default function ReportPage(props) {
     metadata,
     loadError,
     selectedReport,
-    stateGo
+    stateGo,
+    sortConfiguration
   } = props;
 
   useEffect(() => {
@@ -57,8 +60,11 @@ export default function ReportPage(props) {
                                loadError={loadError}
               />
             </div>
-            <div className="nx-tile iq-report-content">
-              <ReportContent/>
+            <div className="nx-tile">
+              <ReportContent selectedReport={selectedReport}
+                             setSorting={setSorting}
+                             sortConfiguration={sortConfiguration}
+                             setSortingParameters={setSortingParameters}/>
             </div>
           </div>
         </div>
@@ -73,6 +79,8 @@ ReportPage.propTypes = {
   loadReport: PropTypes.func.isRequired,
   reevaluateReport: PropTypes.func.isRequired,
   stateGo: PropTypes.func.isRequired,
+  setSorting: PropTypes.func,
+  setSortingParameters: PropTypes.func,
   // state
   publicId: PropTypes.string,
   scanId: PropTypes.string,
@@ -96,7 +104,25 @@ ReportPage.propTypes = {
     criticalViolationCount: PropTypes.number.isRequired,
     severeViolationCount: PropTypes.number.isRequired,
     moderateViolationCount: PropTypes.number.isRequired,
-    nonLowViolationCount: PropTypes.number.isRequired
+    nonLowViolationCount: PropTypes.number.isRequired,
+    displayedEntries: PropTypes.arrayOf(PropTypes.shape({
+      derivedComponentName: PropTypes.string,
+      policyName: PropTypes.string,
+      hash: PropTypes.string,
+      derivedDependencyType: PropTypes.string,
+      filenames: PropTypes.array,
+      displayName: PropTypes.shape({
+        name: PropTypes.string,
+        parts: PropTypes.array
+      }),
+      waived: PropTypes.bool,
+      grandfathered: PropTypes.bool,
+      policyThreatLevel: PropTypes.number
+    }))
   }),
-  loadError: PropTypes.object
+  loadError: PropTypes.object,
+  sortConfiguration: PropTypes.shape({
+    sortFields: PropTypes.arrayOf(PropTypes.string),
+    dir: PropTypes.string
+  })
 };

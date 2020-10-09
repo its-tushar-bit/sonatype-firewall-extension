@@ -134,7 +134,12 @@ describe('applicationReportReducer', function() {
         isUnknownJs: false,
         vulnerabilities: null,
         vulnerabilitiesPageEnabled: true,
-        isInnerSourceEnabled: false
+        isInnerSourceEnabled: false,
+        sortConfiguration: {
+          key: 'policyThreatLevel',
+          sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
+          dir: 'desc'
+        }
       });
     });
   });
@@ -1735,6 +1740,48 @@ describe('applicationReportReducer', function() {
       const newState = reduce(state, { type: 'GENERATE_VULNERABILITY_ENTRIES' });
 
       expect(newState.vulnerabilities).toEqual([]);
+    });
+  });
+
+  describe('SET_SORTING_PARAMETERS action', function() {
+    it('adds sorting parameters to state', function() {
+      const state = {};
+      const newState = reduce(state, {
+        type: 'SET_SORTING_PARAMETERS',
+        payload: {
+          key: 'key',
+          sortFields: ['a', 'b'],
+          dir: 'dir'
+        }
+      });
+      expect(newState.sortConfiguration).toEqual({
+        key: 'key',
+        sortFields: ['a', 'b'],
+        dir: 'dir'
+      });
+    });
+
+    it('update sorting parameters to state', function() {
+      const state = {
+        sortConfiguration: {
+          key: 'key',
+          sortFields: ['a', 'b'],
+          dir: 'dir'
+        }
+      };
+      const newState = reduce(state, {
+        type: 'SET_SORTING_PARAMETERS',
+        payload: {
+          key: 'key2',
+          sortFields: ['c', 'd'],
+          dir: 'asc'
+        }
+      });
+      expect(newState.sortConfiguration).toEqual({
+        key: 'key2',
+        sortFields: ['c', 'd'],
+        dir: 'asc'
+      });
     });
   });
 });

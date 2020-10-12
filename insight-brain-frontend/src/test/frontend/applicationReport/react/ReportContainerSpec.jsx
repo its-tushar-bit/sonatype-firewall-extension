@@ -30,7 +30,9 @@ describe('ReportContainer component', function() {
         publicId: 'appId',
         scanId: 'scanId',
         metadata: { reportTitle: 'title' },
-        selectedReport: { reportVersion: 5 }
+        selectedReport: { reportVersion: 5 },
+        aggregate: true,
+        exactValueFilters: { matchState: 'unknown'}
       },
       router: {
         currentParams: {
@@ -59,6 +61,8 @@ describe('ReportContainer component', function() {
     expect(wrapper).toHaveProp('policyViolationId', 'CVE-123');
     expect(wrapper).toHaveProp('metadata', { reportTitle: 'title' });
     expect(wrapper).toHaveProp('selectedReport', { reportVersion: 5 });
+    expect(wrapper).toHaveProp('aggregate', true);
+    expect(wrapper).toHaveProp('exactValueFilters', { matchState: 'unknown'});
   });
 
 });

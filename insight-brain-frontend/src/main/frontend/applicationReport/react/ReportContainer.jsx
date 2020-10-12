@@ -11,7 +11,7 @@ import { stateGo } from '../../reduxUiRouter/routerActions';
 
 function mapStateToProps({applicationReport, router}) {
   return {
-    ...pick(['metadata', 'selectedReport', 'sortConfiguration'], applicationReport),
+    ...pick(['metadata', 'selectedReport', 'sortConfiguration', 'aggregate', 'exactValueFilters'], applicationReport),
     ...pick(['publicId', 'scanId', 'unknownjs', 'embeddable', 'policyViolationId'], router.currentParams)
   };
 }
@@ -20,3 +20,5 @@ const mapDispatchToProps = { ...applicationReportActions, stateGo };
 
 const ReportPageContainer = connect(mapStateToProps, mapDispatchToProps)(ReportPage);
 export default ReportPageContainer;
+
+ReportPageContainer.propTypes = pick(['$state'], ReportPage.propTypes);

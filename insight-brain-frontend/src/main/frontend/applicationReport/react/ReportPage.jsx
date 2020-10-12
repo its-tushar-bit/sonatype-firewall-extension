@@ -19,6 +19,8 @@ export default function ReportPage(props) {
     reevaluateReport,
     setSorting,
     setSortingParameters,
+    setExactValueFilter,
+    setAggregateReportEntries,
     // state
     publicId,
     scanId,
@@ -29,7 +31,10 @@ export default function ReportPage(props) {
     loadError,
     selectedReport,
     stateGo,
-    sortConfiguration
+    sortConfiguration,
+    aggregate,
+    exactValueFilters,
+    $state
   } = props;
 
   useEffect(() => {
@@ -44,7 +49,13 @@ export default function ReportPage(props) {
       <div className="nx-page">
         <div className="nx-page-content">
           <aside className="nx-page-sidebar" id="report-sidebar">
-            <ReportFilters/>
+            <ReportFilters {...({
+              $state,
+              setAggregateReportEntries,
+              setExactValueFilter,
+              exactValueFilters,
+              aggregate
+            })}/>
           </aside>
           <div className="nx-page-main">
             <ReportTitle metadataDetails={metadata}
@@ -74,6 +85,10 @@ export default function ReportPage(props) {
 }
 
 ReportPage.propTypes = {
+  $state: PropTypes.shape({
+    get: PropTypes.func.isRequired,
+    href: PropTypes.func.isRequired
+  }),
   // actions
   setReportParameters: PropTypes.func.isRequired,
   loadReport: PropTypes.func.isRequired,
@@ -81,6 +96,8 @@ ReportPage.propTypes = {
   stateGo: PropTypes.func.isRequired,
   setSorting: PropTypes.func,
   setSortingParameters: PropTypes.func,
+  setExactValueFilter: PropTypes.func.isRequired,
+  setAggregateReportEntries: PropTypes.func.isRequired,
   // state
   publicId: PropTypes.string,
   scanId: PropTypes.string,
@@ -121,6 +138,8 @@ ReportPage.propTypes = {
     }))
   }),
   loadError: PropTypes.object,
+  aggregate: PropTypes.bool.isRequired,
+  exactValueFilters: PropTypes.object.isRequired,
   sortConfiguration: PropTypes.shape({
     sortFields: PropTypes.arrayOf(PropTypes.string),
     dir: PropTypes.string

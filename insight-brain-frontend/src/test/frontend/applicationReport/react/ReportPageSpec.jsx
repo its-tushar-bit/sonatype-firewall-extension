@@ -8,11 +8,17 @@ import ReportPage from '../../../../main/frontend/applicationReport/react/Report
 
 describe('Report Page component', function() {
   let getShallowComponent,
-      loadReportActionMock;
+      loadReportActionMock,
+      setAggregateReportEntriesSpy,
+      setExactValueFilterSpy,
+      mock$State;
 
   beforeEach(function() {
 
     loadReportActionMock = jasmine.createSpy('loadReport');
+    setAggregateReportEntriesSpy = jasmine.createSpy('setAggregateReportEntries');
+    setExactValueFilterSpy = jasmine.createSpy('setExactValueFilter');
+    mock$State = jasmine.createSpyObj('$state', ['get', 'href']);
 
     const minimalProps = {
       metadata: {
@@ -34,7 +40,10 @@ describe('Report Page component', function() {
         moderateViolationCount: 3,
         nonLowViolationCount: 0
       },
-      loadReport: loadReportActionMock
+      loadReport: loadReportActionMock,
+      setAggregateReportEntries: setAggregateReportEntriesSpy,
+      setExactValueFilter: setExactValueFilterSpy,
+      $state: mock$State
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ReportPage, minimalProps);
@@ -96,6 +105,12 @@ describe('Report Page component', function() {
     expect(pageMainDiv).toExist();
     expect(aside).toExist();
     expect(aside).toHaveProp('className', 'nx-page-sidebar');
+
+    const reportElement = component.find('ReportFilters');
+    expect(reportElement).toExist();
+    expect(reportElement).toHaveProp('$state', mock$State);
+    expect(reportElement).toHaveProp('setAggregateReportEntries', setAggregateReportEntriesSpy);
+    expect(reportElement).toHaveProp('setExactValueFilter', setExactValueFilterSpy);
   });
 
   it('renders ReportStatusBar with props, ', function() {

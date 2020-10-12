@@ -242,10 +242,11 @@ const loadReportUnnecessary = httpErrorMessageActionCreator(LOAD_REPORT_UNNECESS
 const loadReportRawDataFulfilled = payloadParamActionCreator(LOAD_REPORT_RAW_DATA_FULFILLED);
 const loadReportRawDataFailed = httpErrorMessageActionCreator(LOAD_REPORT_RAW_DATA_FAILED);
 const loadReportRawDataUnnecessary = httpErrorMessageActionCreator(LOAD_REPORT_RAW_DATA_UNNECESSARY);
-const setAggregateReportEntries = payloadParamActionCreator(SET_AGGREGATE_REPORT_ENTRIES);
 const setSortingRawData = payloadParamActionCreator(SET_SORTING_RAW_DATA);
 const generateVulnerabilityEntries = noPayloadActionCreator(GENERATE_VULNERABILITY_ENTRIES);
 export const setSorting = payloadParamActionCreator(SET_SORTING);
+
+export const setAggregateReportEntries = payloadParamActionCreator(SET_AGGREGATE_REPORT_ENTRIES);
 
 function setStringFieldFilter(fieldName, filterString) {
   return {
@@ -275,7 +276,7 @@ function setRawDataNumericMinFilter(fieldName, filterValue) {
   };
 }
 
-function setExactValueFilter(fieldName, allowedValues) {
+export function setExactValueFilter(fieldName, allowedValues) {
   return {
     type: SET_EXACT_VALUE_FILTER,
     payload: { fieldName, allowedValues }

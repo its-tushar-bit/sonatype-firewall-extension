@@ -373,6 +373,7 @@ public class ApiStaleWaiverService
     staleWaiverDTO.policyId = policyWaiver.getPolicyId();
     staleWaiverDTO.policyName = policyIdToNameMap.get(policyWaiver.getPolicyId());
     staleWaiverDTO.createTime = policyWaiver.getCreateTime();
+    staleWaiverDTO.expiryTime = policyWaiver.getExpiryTime();
     staleWaiverDTO.comment = policyWaiver.getComment();
 
     List<ConstraintFact> constraintFacts = policyWaiver.getConstraintFacts();

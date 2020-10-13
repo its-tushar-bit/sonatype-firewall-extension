@@ -5,6 +5,10 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Date;
+
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.audit.AuditDTO;
@@ -38,12 +42,17 @@ public class ApiStaleWaiversReportingResourceAuditTest
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
     Policy policy = tempEntity.newPolicy();
+    Policy expiredWaiverPolicy = tempEntity.newPolicy();
 
     tempEntity.newWaiver("hash1", policy.getId(), app.getId(), "stale waiver comment1");
 
     Repository repo = tempEntity.newRepository();
 
     tempEntity.newWaiver("hash2", policy.getId(), repo.getId(), null, "stale waiver comment2");
+
+    Date expiredTime = Date.from(Instant.now().minus(Duration.ofHours(10)));
+    tempEntity.newWaiver("hash3", expiredWaiverPolicy.getId(), app.getId(), null, "expired waiver", null,
+        expiredTime);
 
     restRequest().get();
     AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_STALE_WAIVERS, null);

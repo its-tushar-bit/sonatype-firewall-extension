@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.time.Period;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -127,7 +129,7 @@ public class ApiStaleWaiverServiceTest
     PolicyWaiver policyWaiver5 = tempEntity.newWaiver("hash5", policy.getId(), Organization.ROOT_ORGANIZATION_ID,
         constraintFacts1, "stale waiver comment2");
     PolicyWaiver policyWaiver6 = tempEntity.newWaiver("hash6", policy.getId(),
-        RepositoryContainer.REPOSITORY_CONTAINER_ID, constraintFacts1,"stale waiver comment3");
+        RepositoryContainer.REPOSITORY_CONTAINER_ID, constraintFacts1, "stale waiver comment3");
     PolicyWaiver policyWaiver7 = tempEntity.newWaiver("hash7", policy.getId(), repo.getId(),
         null, "stale waiver comment4");
 
@@ -201,13 +203,14 @@ public class ApiStaleWaiverServiceTest
     assertThat(staleRepositoryWaivers).hasSize(0);
   }
 
-  private void assertStalePolicyWaiver(ApiStaleWaiverDTO staleWaiver, 
-        PolicyWaiver policyWaiver, 
-        Policy policy,
-        String ownerName,
-        String ownerType,
-        boolean hasConstraintFacts,
-        ConstraintFact constraintFact)
+  private void assertStalePolicyWaiver(
+      ApiStaleWaiverDTO staleWaiver,
+      PolicyWaiver policyWaiver,
+      Policy policy,
+      String ownerName,
+      String ownerType,
+      boolean hasConstraintFacts,
+      ConstraintFact constraintFact)
   {
     assertThat(staleWaiver).isNotNull();
     assertThat(staleWaiver.waiverId).isEqualTo(policyWaiver.getId());
@@ -499,6 +502,7 @@ public class ApiStaleWaiverServiceTest
     assertThat(staleWaiverDTO.policyName).isEqualTo(expectedPolicy.getName());
     assertThat(staleWaiverDTO.comment).isEqualTo(expectedWaiver.getComment());
     assertThat(staleWaiverDTO.createTime).isEqualTo(expectedWaiver.getCreateTime());
+    assertThat(staleWaiverDTO.expiryTime).isEqualTo(expectedWaiver.getExpiryTime());
     assertThat(staleWaiverDTO.scopeOwnerType).isEqualTo(expectedOwnerType);
     assertThat(staleWaiverDTO.scopeOwnerId).isEqualTo(expectedOwnerId);
     assertThat(staleWaiverDTO.scopeOwnerName).isEqualTo(expectedOwnerName);
@@ -831,10 +835,50 @@ public class ApiStaleWaiverServiceTest
     assertThat(latestFoundIndex).isEqualTo(1);
   }
 
+  @Test
+  public void testGetStaleWaivers_applicationWithExpiringAndExpiredWaivers() {
+    Policy expiredWaiverPolicy = tempEntity.newPolicy(org);
+    Application app1 = tempEntity.newApplication("app1", org.getId());
+    Owner waiversOwner = app1;
+
+    Date staleEvaluationDate = new Date();
+    tempEntity.newPolicyEvaluation(waiversOwner.getId(), OperateStageType.ID, "test scan app1 id (operate)",
+        staleEvaluationDate);
+
+    // stale waiver
+    List<ConstraintFact> constraintFacts = Collections.singletonList(constraintFact1);
+
+    Date expiringDate = Date.from(ZonedDateTime.now().plus(Period.ofMonths(2)).toInstant());
+    PolicyWaiver staleWaiver =
+        tempEntity.newWaiver("hash", policy.getId(), app1.getId(), constraintFacts, "stale waiver comment",
+            staleEvaluationDate, expiringDate);
+    addExpiredWaiver(expiredWaiverPolicy, waiversOwner);
+
+    List<ApiStaleWaiverDTO> staleWaivers = apiStaleWaiverService.getStaleWaivers();
+    assertThat(staleWaivers).hasSize(1);
+    ApiStaleWaiverDTO returnedWaiver = staleWaivers.get(0);
+    assertStaleWaiver(returnedWaiver, policy, staleWaiver, "application", waiversOwner.getId(),
+        waiversOwner.getName());
+    assertConstraintFacts(returnedWaiver.constraintFacts);
+  }
+
   private PolicyEvaluation createPolicyEvaluationWithDate(Date date) {
     PolicyEvaluation policyEvaluation = new PolicyEvaluation();
     policyEvaluation.setTime(date);
     return policyEvaluation;
+  }
+
+  private PolicyWaiver addExpiredWaiver(final Policy expiredWaiverPolicy, final Owner expiredWaiverOwner) {
+    ConstraintFact waiverConstraintFact = new ConstraintFact("constraintFact1", "aa c", "OR");
+    waiverConstraintFact
+        .addConditionFact(new ConditionFact("MatchState", 0, "Match State is exact", "Match State was exact"));
+
+    Date createTime = Date.from(ZonedDateTime.now().minus(Period.ofMonths(2)).toInstant());
+    Date expiryTime = Date.from(ZonedDateTime.now().minus(Period.ofMonths(1)).toInstant());
+    return tempEntity
+        .newWaiver("h4", expiredWaiverPolicy.getId(), expiredWaiverOwner.getId(),
+            Collections.singletonList(waiverConstraintFact),
+            "unapplied waiver", createTime, expiryTime);
   }
 
   private void assertApiRepositoryDTO(

@@ -39,6 +39,12 @@ public class ApiStaleWaiverDTO
   @ApiDateFormat
   public Date createTime;
 
+  /**
+   * @since 1.101
+   */
+  @ApiDateFormat
+  public Date expiryTime;
+
   @JsonInclude(Include.NON_EMPTY)
   public List<ApiConstraintFactDTO> constraintFacts = new ArrayList<>();
 

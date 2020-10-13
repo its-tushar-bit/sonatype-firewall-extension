@@ -49,7 +49,7 @@ def captureResultsAndCleanup() {
 }
 
 pipeline {
-  agent { label agentLabel }
+  agent none
   options {
     buildDiscarder(
         logRotator(numToKeepStr: '100', daysToKeepStr: '14', artifactNumToKeepStr: '20', artifactDaysToKeepStr: '10')

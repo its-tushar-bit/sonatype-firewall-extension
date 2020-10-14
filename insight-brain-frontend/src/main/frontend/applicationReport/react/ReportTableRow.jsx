@@ -14,6 +14,7 @@ import classnames from 'classnames';
 export default function ReportTableRow(props) {
 
   const {
+    index,
     component
   } = props;
 
@@ -26,7 +27,7 @@ export default function ReportTableRow(props) {
       dependencyIndicator = component.derivedDependencyType === 'direct' ? 'D' : 'T';
 
   return (
-    <NxTableRow key={ component.hash }>
+    <NxTableRow key={ index }>
       <NxTableCell className="nx-cell nx-cell--threat-bar">
         <NxThreatBar policyThreatLevel={component.policyThreatLevel} />
         <span className="nx-threat-number">{component.policyThreatLevel}</span>
@@ -65,6 +66,7 @@ export default function ReportTableRow(props) {
 }
 
 ReportTableRow.propTypes = {
+  index: PropTypes.number.isRequired,
   component: PropTypes.shape({
     derivedComponentName: PropTypes.string,
     policyName: PropTypes.string,

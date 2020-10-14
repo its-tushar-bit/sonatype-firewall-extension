@@ -14,6 +14,7 @@ describe('ReportTableRow component', function() {
   beforeEach(function() {
 
     const minimalProps = {
+      index: 0,
       component: {
         derivedComponentName: 'Component B',
         policyName: 'Security-High',
@@ -38,6 +39,7 @@ describe('ReportTableRow component', function() {
   it('renders minimal properties', function() {
 
     const props = {
+          index: 0,
           component: {
             derivedComponentName: 'Component A',
             policyName: 'None',
@@ -57,6 +59,7 @@ describe('ReportTableRow component', function() {
 
   it('renders properties with direct dependency type', function() {
     const props = {
+          index: 0,
           component: {
             derivedComponentName: 'Component A',
             policyName: 'None',
@@ -72,6 +75,7 @@ describe('ReportTableRow component', function() {
 
   it('renders properties with transitive dependency type', function() {
     const props = {
+          index: 0,
           component: {
             derivedComponentName: 'Component A',
             policyName: 'None',
@@ -88,6 +92,7 @@ describe('ReportTableRow component', function() {
 
   it('renders properties waived', function() {
     const props = {
+          index: 0,
           component: {
             derivedComponentName: 'Component A',
             policyName: 'None',
@@ -112,6 +117,7 @@ describe('ReportTableRow component', function() {
 
   it('renders properties grandfathered', function() {
     const props = {
+          index: 0,
           component: {
             derivedComponentName: 'Component A',
             policyName: 'None',

@@ -143,6 +143,8 @@ describe('ReportContent component', function() {
     expect(body).toExist();
     expect(tableRow).toExist();
     expect(tableRow.at(0)).toHaveProp('component', props.selectedReport.displayedEntries[0]);
+    expect(tableRow.at(0)).toHaveProp('index', 0);
     expect(tableRow.at(1)).toHaveProp('component', props.selectedReport.displayedEntries[1]);
+    expect(tableRow.at(1)).toHaveProp('index', 1);
   });
 });

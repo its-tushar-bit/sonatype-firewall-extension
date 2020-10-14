@@ -80,7 +80,7 @@ export default function ReportContent(props) {
           </NxTableRow>
         </NxTableHead>
         <NxTableBody>
-          {displayedEntries.length > 0 && displayedEntries.map(component => createRow(component))}
+          {displayedEntries.length > 0 && displayedEntries.map((component, index) => createRow(component, index))}
           {displayedEntries.length === 0 &&
             <NxTableRow>
               <NxTableCell colSpan={3} className="nx-cell--empty"><span>No Results</span></NxTableCell>
@@ -92,8 +92,8 @@ export default function ReportContent(props) {
   );
 }
 
-const createRow = (component) => {
-  return <ReportTableRow key={ component.hash } component={ component }/>;
+const createRow = (component, index) => {
+  return <ReportTableRow key={ index } index={ index } component={ component }/>;
 };
 
 ReportContent.propTypes = {

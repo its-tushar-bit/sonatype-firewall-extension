@@ -47,9 +47,8 @@ public abstract class AbstractPolicyEvaluatorTest
    * Implementations:
    * <ul>
    *   <li>{@link JUnitPolicyEvaluatorTestRunner} is the main implementation for normal unit tests</li>
-   *   <li>NativeImageConfigGenerationTestRunner (in the nexus-iq-cli-native-image/config module) is the implementation
-   *   for generating config files for the native image tooling</li>
-   *   <li>TODO {@link TBD} is the implementation for testing the native image binaries</li>
+   *   <li><a href="http://github.com/sonatype/native-image-nexus-iq-cli>sonatype/native-image-nexus-iq-cli/</a>
+   *   contains the native-image implementations
    * </ul>
    */
   protected abstract AbstractPolicyEvaluatorTestRunner withTestRunner(final List<String> params);

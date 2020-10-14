@@ -23,11 +23,6 @@ import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplications
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.policy.Condition;
-import com.sonatype.insight.brain.model.policy.Constraint;
-import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.scan.model.Scan;
@@ -481,21 +476,6 @@ public abstract class DefaultPolicyEvaluatorTest
     return scanFiles[0];
   }
 
-  private void createPolicy(String ownerId, String policyName, String actionId, int threatLevel) {
-    Policy policy = new Policy();
-    policy.setName(policyName);
-    policy.setOwnerId(ownerId);
-    Condition condition = new Condition(MatchStateConditionType.ID, "is");
-    condition.setValue(MatchState.EXACT.getId());
-    Constraint constraint = new Constraint();
-    constraint.setName("test constraint");
-    constraint.addCondition(condition);
-    policy.addConstraint(constraint);
-    policy.setAction(Stage.ID_BUILD, actionId);
-    policy.setThreatLevel(threatLevel);
-    tempEntity.newPolicy(policy);
-  }
-
   @Test
   public void testRun_ServerVersionRequired() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
@@ -601,11 +581,5 @@ public abstract class DefaultPolicyEvaluatorTest
       return (Integer.valueOf(versionAsString.substring(0, dotAt)) + 1) + "." + versionAsString.substring(dotAt + 1);
     }
     return String.valueOf(Integer.valueOf(versionAsString) + 1);
-  }
-
-  private PolicyEvaluationResult newPolicyEvaluationResultForOneComponent() {
-    PolicyEvaluationResult expectedPolicyEvalutionResult = new PolicyEvaluationResult();
-    expectedPolicyEvalutionResult.setTotalComponentCount(1);
-    return expectedPolicyEvalutionResult;
   }
 }

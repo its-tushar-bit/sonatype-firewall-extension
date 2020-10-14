@@ -55,13 +55,9 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
   }
 
   void run(P params) throws ExitException {
-    RestClient restClient = createClient(newHttpClientConfig(params));
+    RestClient restClient = createClient(params);
 
-    validateServerVersion(params, restClient);
-
-    validateServerAccess(params, restClient);
-
-    validateScanTargets(params, restClient);
+    validate(params, restClient);
 
     ClientScanResult clientScanResult = scan(params, getProprietaryConfiguration(params, restClient), restClient);
 
@@ -70,7 +66,23 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 
   protected abstract ClientScanType getClientScanType();
 
-  private Configuration newHttpClientConfig(P params) {
+  /**
+   * Validate the given {@link AbstractParameters} (params) with a given {@link RestClient}
+   *
+   * @param params     - {@link AbstractParameters}
+   * @param restClient - {@link RestClient}
+   * @throws ExitException when validation fails
+   * @since 1.101
+   */
+  protected void validate(final P params, final RestClient restClient) throws ExitException {
+    validateServerVersion(params, restClient);
+
+    validateServerAccess(params, restClient);
+
+    validateScanTargets(params, restClient);
+  }
+
+  protected Configuration newHttpClientConfig(P params) {
     Configuration config = new Configuration();
     config.setServerUrl(params.getServerUrl());
     config.setProxy(params.getProxy());
@@ -232,6 +244,10 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 
   protected RestClient createClient(Configuration configuration) {
     return restClientFactory.newRestCIClient(configuration);
+  }
+
+  protected RestClient createClient(P params) {
+    return createClient(newHttpClientConfig(params));
   }
 
   protected abstract void processResults(P params,

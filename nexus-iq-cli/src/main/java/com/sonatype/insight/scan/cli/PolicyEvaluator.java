@@ -18,12 +18,12 @@ import com.sonatype.insight.scan.model.ClientScanType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class PolicyEvaluator
-    extends AbstractPolicyEvaluator<Parameters>
+public abstract class PolicyEvaluator<P extends Parameters>
+    extends AbstractPolicyEvaluator<P>
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyEvaluator.class);
 
-  PolicyEvaluator(Scanner scanner, RestClientFactory restClientFactory) {
+  protected PolicyEvaluator(Scanner scanner, RestClientFactory restClientFactory) {
     super(scanner, restClientFactory);
   }
 
@@ -107,7 +107,7 @@ public abstract class PolicyEvaluator
   }
   
   @Override
-  public void run(Parameters params) throws ExitException {
+  public void run(P params) throws ExitException {
     validateAuthenticationConfig(params);
     super.run(params);
   }

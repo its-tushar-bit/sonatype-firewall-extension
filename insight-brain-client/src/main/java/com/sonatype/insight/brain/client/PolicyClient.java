@@ -25,6 +25,7 @@ import com.sonatype.nexus.git.utils.Environment.BambooCI;
 import com.sonatype.nexus.git.utils.Environment.GitLabCI;
 import com.sonatype.nexus.git.utils.repository.RepositoryUrlFinderBuilder;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
 import org.slf4j.Logger;
@@ -45,7 +46,7 @@ public class PolicyClient
 
   private final String serverUrl;
 
-  private final String appId;
+  protected final String appId;
 
   private final SourceControlClient sourceControlClient;
 
@@ -109,14 +110,67 @@ public class PolicyClient
     }
     final FileEntity entity = new FileEntity(scanFile, GZIP_CONTENT_TYPE);
     long start = System.currentTimeMillis();
-    Result evaluateResult = path("rest/integration/applications/", appId, "/evaluations/", integrationPath, "/stages/",
-        stage.getStageTypeId()).query("scanType", clientScanType.name()).post(entity);
+    Result evaluateResult = evaluateResult(integrationPath, clientScanType, stage, entity);
     PolicyEvaluationReceipt receipt = parseResult(evaluateResult, PolicyEvaluationReceipt.class);
+
+    // allow handling of receipt before polling
+    beforePolling(receipt, integrationPath);
+
     log.debug("Assigned status ID {}", receipt.getStatusId());
     log.info("Waiting for policy evaluation to complete...");
     PolicyEvaluationPollingResult result = pollEvaluationResult(receipt.getStatusId());
     log.info("Policy evaluation completed in {} seconds.", (System.currentTimeMillis() - start) / 1000);
     return result;
+  }
+
+  /**
+   * Retrieve the {@link Result} for post to {@link #evaluationRequestPathBuilder(String, ClientScanType, Stage)}.
+   *
+   * @param integrationPath - CI, CLI or RM path
+   * @param clientScanType  - {@link ClientScanType}
+   * @param stage           - {@link Stage}
+   * @param entity          - {@link HttpEntity}
+   * @return Result to post of {@link #evaluationRequestPathBuilder(String, ClientScanType, Stage)}
+   * @since 1.101
+   */
+  protected Result evaluateResult(final String integrationPath,
+                                  final ClientScanType clientScanType,
+                                  final Stage stage,
+                                  final HttpEntity entity) throws IOException
+  {
+    return evaluationRequestPathBuilder(integrationPath, clientScanType, stage).post(entity);
+  }
+
+  /**
+   * Construct a {@link RequestBuilder} for the evaluation request.
+   *
+   * @param integrationPath - CI, CLI or RM path
+   * @param clientScanType  - {@link ClientScanType}
+   * @param stage           - {@link Stage}
+   * @return RequestBuilder to allow continuing of build the request.
+   * @since 1.101
+   */
+  protected RequestBuilder evaluationRequestPathBuilder(final String integrationPath,
+                                                        final ClientScanType clientScanType,
+                                                        final Stage stage)
+  {
+    return path("rest/integration/applications/", appId, "/evaluations/",
+        integrationPath, "/stages/", stage.getStageTypeId())
+        .query("scanType", clientScanType.name());
+  }
+
+  /**
+   * Allow implementers to handle any actions on the {@link PolicyEvaluationReceipt} and <code>integrationPath</code>
+   * before we execute to wait on the {@link #pollEvaluationResult(String)}. Implementation in {@link PolicyClient} is
+   * doing no operations itself.
+   *
+   * @param receipt         - {@link PolicyEvaluationReceipt}
+   * @param integrationPath - {@link String}
+   * @throws IOException on io issues handling the {@link PolicyEvaluationReceipt} before polling.
+   * @since 1.101
+   */
+  protected void beforePolling(final PolicyEvaluationReceipt receipt, final String integrationPath) throws IOException {
+    // no-op
   }
 
   private void addOrUpdateSourceControl() {

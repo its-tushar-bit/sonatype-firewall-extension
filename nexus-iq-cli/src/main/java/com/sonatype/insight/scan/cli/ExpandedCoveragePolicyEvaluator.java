@@ -50,7 +50,7 @@ import org.slf4j.LoggerFactory;
  */
 @Named
 public class ExpandedCoveragePolicyEvaluator
-    extends PolicyEvaluator
+    extends PolicyEvaluator<Parameters>
 {
   @VisibleForTesting
   static final String EXPANDED_COVERAGE_SCAN_DISCLAIMER = "                         PERFORMING EXPANDED COVERAGE SCAN";

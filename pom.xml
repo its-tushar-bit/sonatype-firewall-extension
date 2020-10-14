@@ -199,6 +199,18 @@
         <artifactId>insight-brain-functional-test</artifactId>
         <version>1.101.0-SNAPSHOT</version>
       </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.brain</groupId>
+        <artifactId>nexus-iq-cli</artifactId>
+        <version>1.100.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.brain</groupId>
+        <artifactId>nexus-iq-cli</artifactId>
+        <version>1.100.0-SNAPSHOT</version>
+        <classifier>tests</classifier>
+        <scope>test</scope>
+      </dependency>
 
       <dependency>
         <groupId>org.apache.commons</groupId>

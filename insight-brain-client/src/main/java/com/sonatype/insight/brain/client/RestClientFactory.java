@@ -96,7 +96,7 @@ public class RestClientFactory
   {
     protected final Configuration config;
 
-    RestClient(Configuration config) {
+    protected RestClient(Configuration config) {
       this.config = config;
     }
 

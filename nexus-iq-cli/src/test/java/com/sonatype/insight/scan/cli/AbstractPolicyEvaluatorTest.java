@@ -12,8 +12,15 @@ import java.util.List;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseDetailsCache;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
@@ -30,6 +37,8 @@ import com.google.inject.Module;
 import org.junit.Before;
 import org.junit.Rule;
 import org.owasp.dependencycheck.Engine;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class AbstractPolicyEvaluatorTest
     extends AbstractBrainServiceTest
@@ -99,6 +108,21 @@ public abstract class AbstractPolicyEvaluatorTest
     return receipt;
   }
 
+  protected void createPolicy(String ownerId, String policyName, String actionId, int threatLevel) {
+    Policy policy = new Policy();
+    policy.setName(policyName);
+    policy.setOwnerId(ownerId);
+    Condition condition = new Condition(MatchStateConditionType.ID, "is");
+    condition.setValue(MatchState.EXACT.getId());
+    Constraint constraint = new Constraint();
+    constraint.setName("test constraint");
+    constraint.addCondition(condition);
+    policy.addConstraint(constraint);
+    policy.setAction(Stage.ID_BUILD, actionId);
+    policy.setThreatLevel(threatLevel);
+    tempEntity.newPolicy(policy);
+  }
+
   protected ApplicationSummaryList newApplicationSummaryList(String publicId, String name) {
     ApplicationSummary appSummary = new ApplicationSummary();
     appSummary.setPublicId(publicId);
@@ -106,5 +130,27 @@ public abstract class AbstractPolicyEvaluatorTest
     ApplicationSummaryList appSummaryList = new ApplicationSummaryList();
     appSummaryList.getApplicationSummaries().add(appSummary);
     return appSummaryList;
+  }
+
+  protected PolicyEvaluationResult newPolicyEvaluationResultForOneComponent() {
+    PolicyEvaluationResult expectedPolicyEvalutionResult = new PolicyEvaluationResult();
+    expectedPolicyEvalutionResult.setTotalComponentCount(1);
+    return expectedPolicyEvalutionResult;
+  }
+
+  protected void assertLogSummary(PolicyEvaluationResult expectedPolicyEvalutionResult) {
+    assertThat(logOutput).atInfoLevel()
+        .contains(String.format("Number of components affected: %s critical, %s severe, %s moderate",
+            expectedPolicyEvalutionResult.getCriticalComponentCount(),
+            expectedPolicyEvalutionResult.getSevereComponentCount(),
+            expectedPolicyEvalutionResult.getModerateComponentCount()))
+        .contains(String.format("Number of open policy violations: %s critical, %s severe, %s moderate",
+            expectedPolicyEvalutionResult.getCriticalPolicyViolationCount(),
+            expectedPolicyEvalutionResult.getSeverePolicyViolationCount(),
+            expectedPolicyEvalutionResult.getModeratePolicyViolationCount()))
+        .contains(String.format("Number of grandfathered policy violations: %s",
+            expectedPolicyEvalutionResult.getGrandfatheredPolicyViolationCount()))
+        .contains(String.format("Number of components: %s",
+            expectedPolicyEvalutionResult.getTotalComponentCount()));
   }
 }

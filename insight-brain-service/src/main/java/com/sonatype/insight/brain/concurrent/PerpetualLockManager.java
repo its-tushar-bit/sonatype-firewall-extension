@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.concurrent;
 import java.util.Date;
 
 import javax.persistence.EntityExistsException;
+import javax.persistence.RollbackException;
 
 import com.sonatype.insight.brain.dataaccess.PerpetualLockDAO;
 import com.sonatype.insight.brain.model.PerpetualLock;
@@ -82,7 +83,10 @@ public class PerpetualLockManager
       acquired = true;
       log.trace("Perpetual lock {} created and acquired on behalf of {}.", perpetualLockId, owner);
     }
-    catch (EntityExistsException e) {
+    catch (RollbackException e) {
+      if (!(e.getCause() instanceof EntityExistsException)) {
+        throw e;
+      }
       // a simultaneous request to reserve this same lock beat us to it;  may have come from a different
       // instance or a different caller in this same instance, so we'll check to see if we can reserve it
       // instead of just assuming we can't

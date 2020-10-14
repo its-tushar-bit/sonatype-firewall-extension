@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess;
 
 import java.util.Date;
 
+import javax.persistence.EntityExistsException;
 import javax.persistence.RollbackException;
 
 import com.sonatype.insight.brain.model.PerpetualLock;
@@ -82,6 +83,7 @@ public class PerpetualLockDAOTest
     }
     catch (Exception e) {
       assertThat(e).isInstanceOf(RollbackException.class);
+      assertThat(e.getCause()).isInstanceOf(EntityExistsException.class);
     }
   }
 

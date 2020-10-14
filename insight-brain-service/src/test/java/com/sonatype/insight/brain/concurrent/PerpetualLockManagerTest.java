@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.concurrent;
 import java.util.Date;
 
 import javax.persistence.EntityExistsException;
+import javax.persistence.RollbackException;
 
 import com.sonatype.insight.brain.dataaccess.PerpetualLockDAO;
 import com.sonatype.insight.brain.git.VerifiableLoggingTestBase;
@@ -146,7 +147,7 @@ public class PerpetualLockManagerTest
     final String owner = "test-owner";
     final long expiration = 30;
     doReturn(null).when(mockPerpetualLockDAO).getPerpetualLockByIdForUpdate(eq(mockTxn), eq(lockId));
-    doThrow(EntityExistsException.class).when(mockPerpetualLockDAO)
+    doThrow(new RollbackException(new EntityExistsException())).when(mockPerpetualLockDAO)
         .createPerpetualLock(eq(lockId), eq(owner), any(Date.class));
     doReturn(1).when(mockPerpetualLockDAO)
         .reservePerpetualLock(eq(lockId), eq(owner), any(Date.class));
@@ -166,7 +167,7 @@ public class PerpetualLockManagerTest
     final String owner = "test-owner";
     final long expiration = 30;
     doReturn(null).when(mockPerpetualLockDAO).getPerpetualLockByIdForUpdate(eq(mockTxn), eq(lockId));
-    doThrow(EntityExistsException.class).when(mockPerpetualLockDAO)
+    doThrow(new RollbackException(new EntityExistsException())).when(mockPerpetualLockDAO)
         .createPerpetualLock(eq(lockId), eq(owner), any(Date.class));
     doReturn(0).when(mockPerpetualLockDAO)
         .reservePerpetualLock(eq(lockId), eq(owner), any(Date.class));

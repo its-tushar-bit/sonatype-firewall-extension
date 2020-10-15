@@ -33,6 +33,7 @@ describe('addWaiverReducer', function() {
       expect(newState.availableWaiverScopes).toBeNull();
       expect(newState.selectedWaiverScope).toBeNull();
       expect(newState.applyToAllComponents).toBe(false);
+      expect(newState.expiryTime).toBeNull();
     });
 
     it('calls textHelpers.initialState for waiverComments', function() {
@@ -341,6 +342,55 @@ describe('addWaiverReducer', function() {
       });
 
       expect(newState.applyToAllComponents).toBe(false);
+      expect(newState.otherProp).toBe(initialState.otherProp);
+    });
+  });
+
+  describe('ADD_WAIVER_SET_EXPIRY_TIME action', function() {
+    it('sets the expiryTime prop in the state', function() {
+      const initialState = {
+        loading: false,
+        loadError: null,
+        submitMaskState: false,
+        submitError: null,
+        waiverComments: {},
+        availableWaiverScopes: null,
+        selectedWaiverScope: null,
+        applyToAllComponents: null,
+        violationDetails: null,
+        expiryTime: null,
+        otherProp: { prop: 'foo' }
+      };
+
+      let newState = reducer(initialState, {
+        type: 'ADD_WAIVER_SET_EXPIRY_TIME',
+        payload: '7'
+      });
+      expect(newState.expiryTime).toEqual('7');
+      expect(newState.otherProp).toBe(initialState.otherProp);
+
+      newState = reducer(initialState, {
+        type: 'ADD_WAIVER_SET_EXPIRY_TIME',
+        payload: '60'
+      });
+
+      expect(newState.expiryTime).toEqual('60');
+      expect(newState.otherProp).toBe(initialState.otherProp);
+
+      newState = reducer(initialState, {
+        type: 'ADD_WAIVER_SET_EXPIRY_TIME',
+        payload: null
+      });
+
+      expect(newState.expiryTime).toEqual(null);
+      expect(newState.otherProp).toBe(initialState.otherProp);
+
+      newState = reducer(initialState, {
+        type: 'ADD_WAIVER_SET_EXPIRY_TIME',
+        payload: 'never'
+      });
+
+      expect(newState.expiryTime).toEqual('never');
       expect(newState.otherProp).toBe(initialState.otherProp);
     });
   });

@@ -17,6 +17,7 @@ import {
   set,
   transduce
 } from 'ramda';
+import moment from 'moment';
 
 /**
  * Convert Set to Array (in IE9 compatible way)
@@ -92,4 +93,14 @@ export function capitalize(str) {
   else {
     return str.charAt(0).toUpperCase() + str.substring(1);
   }
+}
+
+/**
+ * Returns an ISO date (with offset) created from the moment this function is called
+ * and adding the number of daysToAdd.
+ * Note that time portion of the String will always be end of day.
+ * @param {String} daysToAdd number of days to add to current date
+ */
+export function getFutureDate(daysToAdd = 0) {
+  return moment().add(daysToAdd, 'days').endOf('day').format('YYYY-MM-DDTHH:mm:ss.SSSZZ');
 }

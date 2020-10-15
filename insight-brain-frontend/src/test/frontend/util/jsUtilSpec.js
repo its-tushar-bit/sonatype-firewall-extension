@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {capitalize, isNilOrEmpty, multiGroupBy, union} from '../../../main/frontend/util/jsUtil';
+import {capitalize, getFutureDate, isNilOrEmpty, multiGroupBy, union} from '../../../main/frontend/util/jsUtil';
 
 describe('jsUtil', function() {
 
@@ -126,5 +126,47 @@ describe('jsUtil', function() {
       expect(capitalize('Foo')).toBe('Foo');
       expect(capitalize('FOO')).toBe('FOO');
     });
+  });
+
+  describe('getFutureDate', function() {
+    const assertEndOfDayTime = (dateString) => {
+      expect(dateString.indexOf('23:59:59')).not.toEqual(-1);
+    };
+
+    const assertFormat = (dateString) => {
+      const dateFormatRegex = /\d{4}-[0-1][0-2]-[0-3]\dT[0-2][0-3]:[0-5]\d:[0-5]\d\.\d{3}(-|\+)\d{4}/;
+      expect(dateFormatRegex.test(dateString)).toBe(true);
+    };
+
+    const assertToday = (dateString) => {
+      const today = new Date();
+      const zeroPaddedMonth = `0${today.getMonth() + 1}`.slice(-2);
+      const zeroPaddedDay = `0${today.getDate()}`.slice(-2);
+      const timeStamp = `${today.getFullYear()}-${zeroPaddedMonth}-${zeroPaddedDay}`;
+      expect(dateString.indexOf(timeStamp)).not.toEqual(-1);
+    };
+
+    it('returns the End of Day timestamp for today if no param or 0 is provided', function() {
+      assertToday(getFutureDate());
+      assertToday(getFutureDate(0));
+    });
+
+    it('includes End of Day time', function() {
+      assertEndOfDayTime(getFutureDate(1));
+      assertEndOfDayTime(getFutureDate(0));
+      assertEndOfDayTime(getFutureDate(30));
+      assertEndOfDayTime(getFutureDate(120));
+    });
+
+    it('follows the expected format', function () {
+      // 2020-10-23T23:59:59.999-0500' - example date
+      assertFormat(getFutureDate(0));
+      assertFormat(getFutureDate(1));
+      assertFormat(getFutureDate(7));
+      assertFormat(getFutureDate(30));
+      assertFormat(getFutureDate(90));
+      assertFormat(getFutureDate(120));
+    });
+
   });
 });

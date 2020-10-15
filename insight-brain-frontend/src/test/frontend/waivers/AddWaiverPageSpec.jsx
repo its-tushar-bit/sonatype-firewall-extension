@@ -39,11 +39,13 @@ describe('AddWaiverPage', function() {
         value: '',
         isPristine: true
       },
+      expiryTime: null,
       loadAddWaiverData: loadAddWaiverDataSpy,
       saveWaiver: () => {},
       setWaiverComment: () => {},
       setWaiverScope: () => {},
       setApplyToAllComponents: () => {},
+      setExpiryTime: () => {},
       cancelAction: () => {}
     };
 
@@ -99,6 +101,7 @@ describe('AddWaiverPage', function() {
       },
       openVulnerabilityDetailsModal: openVulnerabilityDetailsModalMock,
       applyToAllComponents: true,
+      expiryTime: '7',
       availableWaiverScopes: [
         { id: 'id', name: 'name', label: 'Application', type: 'application' }
       ],
@@ -125,6 +128,8 @@ describe('AddWaiverPage', function() {
     expect(addWaiverForm).toHaveProp('openVulnerabilityDetailsModal', openVulnerabilityDetailsModalMock);
     expect(addWaiverForm).toHaveProp('vulnerabilityId', 'CVE-67890');
     expect(addWaiverForm).toHaveProp('cancelAction', minimalProps.cancelAction);
+    expect(addWaiverForm).toHaveProp('expiryTime', fullProps.expiryTime);
+    expect(addWaiverForm).toHaveProp('setExpiryTime', minimalProps.setExpiryTime);
   });
 
   it('renders NxSubmitMask with success message when submitMaskState is true', function() {

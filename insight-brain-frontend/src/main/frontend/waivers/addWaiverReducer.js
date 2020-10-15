@@ -19,7 +19,8 @@ import {
   ADD_WAIVER_SUBMIT_MASK_TIMER_DONE,
   ADD_WAIVER_SET_WAIVER_COMMENT,
   ADD_WAIVER_SET_WAIVER_SCOPE,
-  ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS
+  ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS,
+  ADD_WAIVER_SET_EXPIRY_TIME
 } from './addWaiverActions';
 import { propSet } from '../util/jsUtil';
 
@@ -32,7 +33,8 @@ const initState = Object.freeze({
   waiverComments: Object.freeze(initialState('')),
   availableWaiverScopes: null,
   selectedWaiverScope: null,
-  applyToAllComponents: false
+  applyToAllComponents: false,
+  expiryTime: null
 });
 
 const loadDataFailed = (payload, state) => ({
@@ -78,6 +80,7 @@ const reducerActionMap = {
   [ADD_WAIVER_SET_WAIVER_COMMENT]: setWaiverComment,
   [ADD_WAIVER_SET_WAIVER_SCOPE]: propSet('selectedWaiverScope'),
   [ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS]: propSet('applyToAllComponents'),
+  [ADD_WAIVER_SET_EXPIRY_TIME]: propSet('expiryTime'),
   [UI_ROUTER_ON_FINISH]: always(initState)
 };
 

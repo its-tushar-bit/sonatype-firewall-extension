@@ -78,6 +78,14 @@ public class AddWaiverPage
     return new NxRadio(this.availableComponents().get(index));
   }
 
+  public SelenideElement expiryTimesSelect() {
+    return child("#waiver-expiration-select");
+  }
+
+  public ElementsCollection expiryTimesOptions() {
+    return children("#waiver-expiration-select option");
+  }
+
   public ReactTextInput comments() {
     return new ReactTextInput(child(".iq-add-waiver-form__comments .nx-text-input"));
   }

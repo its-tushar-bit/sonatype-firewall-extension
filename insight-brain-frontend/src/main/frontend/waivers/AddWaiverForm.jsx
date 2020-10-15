@@ -33,11 +33,13 @@ export default function AddWaiverForm(props) {
     waiverComments,
     availableWaiverScopes,
     selectedWaiverScope,
+    expiryTime,
     submitError,
     openVulnerabilityDetailsModal,
     setWaiverScope,
     setWaiverComment,
     setApplyToAllComponents,
+    setExpiryTime,
     saveWaiver,
     vulnerabilityId,
     cancelAction
@@ -48,8 +50,9 @@ export default function AddWaiverForm(props) {
 
     const { type, id } = selectedWaiverScope;
     const { value } = waiverComments;
+    const expiration = expiryTime === 'never' ? null : parseInt(expiryTime, 10);
 
-    saveWaiver(policyViolationId, type, id, value, applyToAllComponents);
+    saveWaiver(policyViolationId, type, id, value, applyToAllComponents, expiration);
   };
 
   const onVulnerabilityDetailsClick = () => {
@@ -67,7 +70,22 @@ export default function AddWaiverForm(props) {
     setWaiverScope(target);
   };
 
+  const onExpiryTimeChange = (event) => {
+    const value = event.currentTarget.value;
+    setExpiryTime(value);
+  };
+
   const policyClassnames = classnames('iq-threat-level', `iq-threat-level--${threatLevelCategory}`);
+
+  const expirationTimes = [
+    { name: 'Never', value: 'never' }, // <select> doesn't handle null values, so use string instead
+    { name: '7 Days', value: '7' },
+    { name: '14 Days', value: '14' },
+    { name: '30 Days', value: '30' },
+    { name: '60 Days', value: '60' },
+    { name: '90 Days', value: '90' },
+    { name: '120 Days', value: '120' }
+  ];
 
   return (
     <form className="nx-tile-content nx-form nx-form--simple iq-add-waiver-form"
@@ -147,6 +165,18 @@ export default function AddWaiverForm(props) {
         </NxRadio>
       </fieldset>
 
+      { /* Expiry time */ }
+      <fieldset className="nx-fieldset iq-add-waiver-form__expiryTime">
+        <legend className="nx-label">Waiver Expiration</legend>
+        <select id="waiver-expiration-select"
+                onChange={onExpiryTimeChange}
+                value={expiryTime || ''}>
+          {expirationTimes.map(({ name, value }, index) =>
+            <option key={index} value={value}>{name}</option>
+          )}
+        </select>
+      </fieldset>
+
       { /* Comments */}
       <div className="nx-form-group iq-add-waiver-form__comments">
         <label className="nx-label nx-label--optional">
@@ -197,9 +227,11 @@ AddWaiverForm.propTypes = {
   }).isRequired,
   availableWaiverScopes: PropTypes.arrayOf(PropTypes.shape(waiverScopePropTypes)).isRequired,
   selectedWaiverScope: PropTypes.shape(waiverScopePropTypes).isRequired,
+  expiryTime: PropTypes.string,
   submitError: PropTypes.instanceOf(Error),
   setWaiverScope: PropTypes.func.isRequired,
   setApplyToAllComponents: PropTypes.func.isRequired,
+  setExpiryTime: PropTypes.func.isRequired,
   setWaiverComment: PropTypes.func.isRequired,
   saveWaiver: PropTypes.func.isRequired,
   openVulnerabilityDetailsModal: PropTypes.func.isRequired,

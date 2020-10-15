@@ -24,6 +24,7 @@ describe('AddWaiverForm', function() {
       setWaiverCommentSpy,
       setWaiverScopeSpy,
       setApplyToAllComponentsSpy,
+      setExpiryTimeSpy,
       openVulnerabilityDetailsModalSpy,
       cancelActionSpy;
 
@@ -34,6 +35,7 @@ describe('AddWaiverForm', function() {
     setApplyToAllComponentsSpy = jasmine.createSpy('setApplyToAllComponents');
     openVulnerabilityDetailsModalSpy = jasmine.createSpy('loadAddWaiverDataSpy');
     cancelActionSpy = jasmine.createSpy('cancelAction');
+    setExpiryTimeSpy = jasmine.createSpy('setExpiryTime');
 
     minimalProps = {
       applyToAllComponents: false,
@@ -42,6 +44,7 @@ describe('AddWaiverForm', function() {
       constraintName: 'constraint name',
       policyName: 'policy name',
       policyViolationId: 'violationId',
+      expiryTime: '7',
       reasons: ['reason1', 'reason2'],
       threatLevelCategory: 'severe',
       waiverComments: {
@@ -71,6 +74,7 @@ describe('AddWaiverForm', function() {
       setWaiverScope: setWaiverScopeSpy,
       setApplyToAllComponents: setApplyToAllComponentsSpy,
       setWaiverComment: setWaiverCommentSpy,
+      setExpiryTime: setExpiryTimeSpy,
       saveWaiver: saveWaiverSpy,
       openVulnerabilityDetailsModal: openVulnerabilityDetailsModalSpy,
       vulnerabilityId: 'CVE-12345',
@@ -222,6 +226,48 @@ describe('AddWaiverForm', function() {
     expect(setApplyToAllComponentsSpy).toHaveBeenCalledWith(false);
   });
 
+  it('renders a fieldset with Select for the expiry times', function() {
+    const component = getShallowComponent(),
+        expiryTimeSection = component.find('.iq-add-waiver-form__expiryTime'),
+        selectComponent = expiryTimeSection.find('select'),
+        options = selectComponent.find('option');
+
+    expect(expiryTimeSection).toHaveClassName('.nx-fieldset');
+    expect(selectComponent).toExist();
+    expect(options.length).toBe(7);
+
+    expect(options.at(0)).toHaveText('Never');
+    expect(options.at(0)).toHaveProp('value', 'never');
+
+    expect(options.at(1)).toHaveText('7 Days');
+    expect(options.at(1)).toHaveProp('value', '7');
+
+    expect(options.at(2)).toHaveText('14 Days');
+    expect(options.at(2)).toHaveProp('value', '14');
+
+    expect(options.at(3)).toHaveText('30 Days');
+    expect(options.at(3)).toHaveProp('value', '30');
+
+    expect(options.at(4)).toHaveText('60 Days');
+    expect(options.at(4)).toHaveProp('value', '60');
+
+    expect(options.at(5)).toHaveText('90 Days');
+    expect(options.at(5)).toHaveProp('value', '90');
+
+    expect(options.at(6)).toHaveText('120 Days');
+    expect(options.at(6)).toHaveProp('value', '120');
+  });
+
+  it('calls `setExpiryTime` when the expiry time is changed', function() {
+    const component = getShallowComponent(),
+        selectComponent = component.find('select'),
+        mockEvent = { currentTarget: { value: '7'} };
+
+    selectComponent.simulate('change', mockEvent);
+
+    expect(setExpiryTimeSpy).toHaveBeenCalledWith('7');
+  });
+
   it('renders a form group with a text area for the comments', function() {
     const component = getShallowComponent(),
         commentsSection = component.find('.iq-add-waiver-form__comments'),
@@ -260,26 +306,37 @@ describe('AddWaiverForm', function() {
     expect(buttons.at(1)).toHaveText('Submit');
   });
 
-  it('calls `saveWaiver` when form is submitted using the chosen selectedWaiverScope', function() {
+  describe('it calls `saveWaiver` when form is submitted', function() {
     const preventDefaultSpy = jasmine.createSpy('preventDefault');
-    let component, form;
 
-    component = getShallowComponent(),
-    form = component.find('.nx-form');
-    form.simulate('submit', { preventDefault: preventDefaultSpy });
-    expect(saveWaiverSpy).toHaveBeenCalledWith('violationId', 'application', 'id1', 'waiver comments', false);
+    it('passes null as expiryTime if never is chosen as expiry time', function() {
+      const component = getShallowComponent({ expiryTime: 'never' }),
+          form = component.find('.nx-form');
 
-    component = getShallowComponent({
-      selectedWaiverScope: {
-        id: 'idOrg',
-        name: 'target2',
-        label: 'Organization',
-        type: 'organization'
-      }
+      form.simulate('submit', { preventDefault: preventDefaultSpy });
+      expect(saveWaiverSpy).toHaveBeenCalledWith('violationId', 'application', 'id1', 'waiver comments', false, null);
     });
-    form = component.find('.nx-form');
-    form.simulate('submit', { preventDefault: preventDefaultSpy });
-    expect(saveWaiverSpy).toHaveBeenCalledWith('violationId', 'organization', 'idOrg', 'waiver comments', false);
+
+    it('passes the number of days chosen for the expiry time', function() {
+      let component = getShallowComponent(),
+          form = component.find('.nx-form');
+
+      form.simulate('submit', { preventDefault: preventDefaultSpy });
+      expect(saveWaiverSpy).toHaveBeenCalledWith('violationId', 'application', 'id1', 'waiver comments', false, 7);
+
+      component = getShallowComponent({
+        selectedWaiverScope: {
+          id: 'idOrg',
+          name: 'target2',
+          label: 'Organization',
+          type: 'organization'
+        },
+        expiryTime: '30'
+      });
+      form = component.find('.nx-form');
+      form.simulate('submit', { preventDefault: preventDefaultSpy });
+      expect(saveWaiverSpy).toHaveBeenCalledWith('violationId', 'organization', 'idOrg', 'waiver comments', false, 30);
+    });
   });
 
   it('calls `cancelAction` when cancel button is clicked', function() {

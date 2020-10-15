@@ -21,10 +21,12 @@ import {
   ADD_WAIVER_SET_WAIVER_COMMENT,
   ADD_WAIVER_SET_WAIVER_SCOPE,
   ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS,
+  ADD_WAIVER_SET_EXPIRY_TIME,
   saveWaiver,
   loadAddWaiverData,
   setWaiverComment,
   setApplyToAllComponents,
+  setExpiryTime,
   setWaiverScope,
   returnToAddWaiverOriginPage
 } from '../../../main/frontend/waivers/addWaiverActions';
@@ -34,6 +36,7 @@ import {
   LOAD_VIOLATION_FAILED
 } from '../../../main/frontend/violation/violationPageActions';
 import { STATE_GO } from '../../../main/frontend/reduxUiRouter/routerActions';
+import { getFutureDate } from '../../../main/frontend/util/jsUtil';
 
 describe('addWaiverActions', function() {
   let store, mockAxiosCalls;
@@ -64,19 +67,21 @@ describe('addWaiverActions', function() {
       let expectedUrl, expectedPayload;
       spyOn(axios, 'post').and.returnValue(Promise.resolve());
 
-      store.dispatch(saveWaiver('policyViolationId', 'application', 'ownerId', 'some comments', true));
+      store.dispatch(saveWaiver('policyViolationId', 'application', 'ownerId', 'some comments', true, 7));
       expectedUrl = '/api/v2/policyWaivers/application/ownerId/policyViolationId';
       expectedPayload = {
         comment: 'some comments',
-        applyToAllComponents: true
+        applyToAllComponents: true,
+        expiryTime: getFutureDate(7)
       };
       expect(axios.post).toHaveBeenCalledWith(expectedUrl, expectedPayload);
 
-      store.dispatch(saveWaiver('policyViolationId2', 'organization', 'org1Id', '', false));
+      store.dispatch(saveWaiver('policyViolationId2', 'organization', 'org1Id', '', false, null));
       expectedUrl = '/api/v2/policyWaivers/organization/org1Id/policyViolationId2';
       expectedPayload = {
         comment: '',
-        applyToAllComponents: false
+        applyToAllComponents: false,
+        expiryTime: null
       };
 
       expect(axios.post).toHaveBeenCalledWith(expectedUrl, expectedPayload);
@@ -87,7 +92,8 @@ describe('addWaiverActions', function() {
         const url = getAddPolicyViolationWaiverUrl('application', 'ownerId', 'policyViolationId'),
             expectedPayload = {
               comment: '',
-              applyToAllComponents: false
+              applyToAllComponents: false,
+              expiryTime: getFutureDate(7)
             };
 
         mockAxiosCalls({
@@ -96,7 +102,7 @@ describe('addWaiverActions', function() {
           }
         });
 
-        store.dispatch(saveWaiver('policyViolationId', 'application', 'ownerId', '', false))
+        store.dispatch(saveWaiver('policyViolationId', 'application', 'ownerId', '', false, 7))
             .then(() => {
               setTimeout(() => {
                 expect(axios.post).toHaveBeenCalledWith(url, expectedPayload);
@@ -116,7 +122,8 @@ describe('addWaiverActions', function() {
         const url = getAddPolicyViolationWaiverUrl('application', 'ownerId', 'policyViolationId'),
             expectedPayload = {
               comment: '',
-              applyToAllComponents: false
+              applyToAllComponents: false,
+              expiryTime: getFutureDate(30)
             };
 
         mockAxiosCalls({
@@ -125,7 +132,7 @@ describe('addWaiverActions', function() {
           }
         });
 
-        store.dispatch(saveWaiver('policyViolationId', 'application', 'ownerId', '', false))
+        store.dispatch(saveWaiver('policyViolationId', 'application', 'ownerId', '', false, 30))
             .then(() => {
               expect(axios.post).toHaveBeenCalledWith(url, expectedPayload);
               expect(store.getActions().length).toBe(3);
@@ -143,7 +150,7 @@ describe('addWaiverActions', function() {
       it('dispatches the ADD_WAIVER_SAVE_FAILED action', function(done) {
         spyOn(axios, 'post').and.returnValue(Promise.reject('Err'));
 
-        store.dispatch(saveWaiver('policyViolationId', 'application', 'ownerId', '', false))
+        store.dispatch(saveWaiver('policyViolationId', 'application', 'ownerId', '', false, null))
             .catch(() => {
               expect(store.getActions().length).toBe(2);
               expect(store.getActions()[1].type).toBe(ADD_WAIVER_SAVE_FAILED);
@@ -335,6 +342,20 @@ describe('addWaiverActions', function() {
       expect(store.getActions().length).toBe(2);
       expect(store.getActions()[1].type).toBe(ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS);
       expect(store.getActions()[1].payload).toBe(false);
+    });
+  });
+
+  describe('setExpiryTime', function() {
+    it('dispatches ADD_WAIVER_SET_EXPIRY_TIME with the given payload', function() {
+      store.dispatch(setExpiryTime('7'));
+      expect(store.getActions().length).toBe(1);
+      expect(store.getActions()[0].type).toBe(ADD_WAIVER_SET_EXPIRY_TIME);
+      expect(store.getActions()[0].payload).toBe('7');
+
+      store.dispatch(setExpiryTime('never'));
+      expect(store.getActions().length).toBe(2);
+      expect(store.getActions()[1].type).toBe(ADD_WAIVER_SET_EXPIRY_TIME);
+      expect(store.getActions()[1].payload).toBe('never');
     });
   });
 

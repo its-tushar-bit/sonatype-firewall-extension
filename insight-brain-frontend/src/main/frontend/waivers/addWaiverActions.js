@@ -6,7 +6,7 @@
 import axios from 'axios';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
-import { capitalize } from '../util/jsUtil';
+import { capitalize, getFutureDate } from '../util/jsUtil';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
 import { getAddPolicyViolationWaiverUrl, getOwnerContextHierarchyUrl } from '../util/CLMLocation';
 import { loadViolation } from '../violation/violationPageActions';
@@ -22,6 +22,7 @@ export const ADD_WAIVER_SUBMIT_MASK_TIMER_DONE = 'ADD_WAIVER_SUBMIT_MASK_TIMER_D
 export const ADD_WAIVER_SET_WAIVER_COMMENT = 'ADD_WAIVER_SET_WAIVER_COMMENT';
 export const ADD_WAIVER_SET_WAIVER_SCOPE = 'ADD_WAIVER_SET_WAIVER_SCOPE';
 export const ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS = 'ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS';
+export const ADD_WAIVER_SET_EXPIRY_TIME = 'ADD_WAIVER_SET_EXPIRY_TIME';
 
 const saveWaiverRequested = noPayloadActionCreator(ADD_WAIVER_SAVE_REQUESTED);
 const saveWaiverFulfilled = noPayloadActionCreator(ADD_WAIVER_SAVE_FULFILLED);
@@ -36,21 +37,31 @@ function startSubmitMaskTimer(dispatch) {
   }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 }
 
+function getExpiryTime(expiration) {
+  if (!expiration) {
+    return null;
+  }
+
+  return getFutureDate(expiration);
+}
+
 /**
  * @param policyViolationId { string }
  * @param waiverScope { string } application | organization | root_organization
  * @param ownerId { string }
  * @param comment { string }
  * @param applyToAllComponents { boolean }
+ * @param expiration { string }
  */
-export function saveWaiver(policyViolationId, waiverScope, ownerId, comment, applyToAllComponents) {
+export function saveWaiver(policyViolationId, waiverScope, ownerId, comment, applyToAllComponents, expiration) {
   return (dispatch) => {
     dispatch(saveWaiverRequested());
 
     const url = getAddPolicyViolationWaiverUrl(waiverScope, ownerId, policyViolationId),
         payload = {
           comment,
-          applyToAllComponents
+          applyToAllComponents,
+          expiryTime: getExpiryTime(expiration)
         };
 
     return axios.post(url, payload)
@@ -112,6 +123,8 @@ export const setWaiverComment = payloadParamActionCreator(ADD_WAIVER_SET_WAIVER_
 export const setWaiverScope = payloadParamActionCreator(ADD_WAIVER_SET_WAIVER_SCOPE);
 
 export const setApplyToAllComponents = payloadParamActionCreator(ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS);
+
+export const setExpiryTime = payloadParamActionCreator(ADD_WAIVER_SET_EXPIRY_TIME);
 
 function loadOwnerContextHierarchy(ownerType, ownerId, policyId) {
   return axios.get(getOwnerContextHierarchyUrl(ownerType, ownerId, policyId))

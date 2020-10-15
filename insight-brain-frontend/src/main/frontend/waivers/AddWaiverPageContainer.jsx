@@ -14,6 +14,7 @@ import {
   setWaiverComment,
   setWaiverScope,
   setApplyToAllComponents,
+  setExpiryTime,
   returnToAddWaiverOriginPage
 } from './addWaiverActions';
 import { openVulnerabilityDetailsModal } from '../vulnerabilityDetails/vulnerabilityDetailsModalActions';
@@ -33,6 +34,7 @@ const mapDispatchToProps = {
   setWaiverComment,
   setWaiverScope,
   setApplyToAllComponents,
+  setExpiryTime,
   cancelAction: returnToAddWaiverOriginPage
 };
 

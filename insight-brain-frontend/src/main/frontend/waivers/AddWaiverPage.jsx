@@ -27,6 +27,7 @@ export default function AddWaiverPage(props) {
     availableWaiverScopes,
     selectedWaiverScope,
     applyToAllComponents,
+    expiryTime,
     violationDetails,
     //actions
     loadAddWaiverData,
@@ -35,6 +36,7 @@ export default function AddWaiverPage(props) {
     setWaiverComment,
     setWaiverScope,
     setApplyToAllComponents,
+    setExpiryTime,
     cancelAction
   } = props;
 
@@ -55,10 +57,12 @@ export default function AddWaiverPage(props) {
       availableWaiverScopes,
       openVulnerabilityDetailsModal,
       selectedWaiverScope,
+      expiryTime,
       submitError,
       setWaiverScope,
       setWaiverComment,
       setApplyToAllComponents,
+      setExpiryTime,
       saveWaiver,
       cancelAction,
       ...extractViolationDetails(violationDetails)
@@ -112,11 +116,13 @@ AddWaiverPage.propTypes = {
   availableWaiverScopes: PropTypes.arrayOf(PropTypes.shape(waiverScopePropTypes)),
   selectedWaiverScope: PropTypes.shape(waiverScopePropTypes),
   applyToAllComponents: PropTypes.bool,
+  expiryTime: PropTypes.string,
   loadAddWaiverData: PropTypes.func.isRequired,
   openVulnerabilityDetailsModal: PropTypes.func.isRequired,
   saveWaiver: PropTypes.func.isRequired,
   setWaiverComment: PropTypes.func.isRequired,
   setWaiverScope: PropTypes.func.isRequired,
   setApplyToAllComponents: PropTypes.func.isRequired,
+  setExpiryTime: PropTypes.func.isRequired,
   cancelAction: PropTypes.func.isRequired
 };

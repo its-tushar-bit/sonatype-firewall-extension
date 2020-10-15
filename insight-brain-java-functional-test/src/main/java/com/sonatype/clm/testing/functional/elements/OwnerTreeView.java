@@ -81,6 +81,10 @@ public class OwnerTreeView
       return child(".iq-owner-tree-view__new-application button");
     }
 
+    public SelenideElement importApplicationsButton() {
+      return child(".iq-owner-tree-view__import-applications a");
+    }
+
     public ElementsCollection applicationElements() {
       return children(".iq-tree-view__child");
     }

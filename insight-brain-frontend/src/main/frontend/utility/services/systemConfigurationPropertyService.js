@@ -3,8 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {getScmOnboardingConfigUrl} from '../../util/CLMLocation';
-
 const SUCCESS_METRICS_DISABLED_MESSAGE = 'Success metrics have been disabled by your system administrator.';
 
 export default function systemConfigurationPropertyService($http, $rootScope, $q, CLMLocations) {
@@ -13,8 +11,7 @@ export default function systemConfigurationPropertyService($http, $rootScope, $q
     saveSuccessMetricsEnabled: saveSuccessMetricsEnabled,
     checkSuccessMetricsEnabled: checkSuccessMetricsEnabled,
     SUCCESS_METRICS_DISABLED_MESSAGE: SUCCESS_METRICS_DISABLED_MESSAGE,
-    isAdvancedSearchEnabled: isAdvancedSearchEnabled,
-    isManifestScanFeatureEnabled: isManifestScanFeatureEnabled
+    isAdvancedSearchEnabled: isAdvancedSearchEnabled
   };
 
   function isSuccessMetricsEnabled() {
@@ -57,12 +54,6 @@ export default function systemConfigurationPropertyService($http, $rootScope, $q
   function isAdvancedSearchEnabled() {
     return $http.get(CLMLocations.getAdvancedSearchConfigUrl()).then(function(response) {
       return response.data.isEnabled;
-    });
-  }
-
-  function isManifestScanFeatureEnabled() {
-    return $http.get(getScmOnboardingConfigUrl()).then(function(response) {
-      return response.data.manifestScanFeatureEnabled;
     });
   }
 }

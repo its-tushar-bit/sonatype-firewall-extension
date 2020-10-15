@@ -29,6 +29,7 @@ const initialState = {
   loadingOrganizations: false,
   organizations: [],
   selectedOrganization: null,
+  preselectedOrganizationId: null,
 
   loadingRepositories: false,
   repositories: [],
@@ -65,7 +66,8 @@ function loadConfigFailed(payload) {
 function loadOrganizationsRequested(payload, state) {
   return {
     ...state,
-    loadingOrganizations: true
+    loadingOrganizations: true,
+    preselectedOrganizationId: payload
   };
 }
 
@@ -73,7 +75,8 @@ function loadOrganizationsFulfilled(payload, state) {
   return {
     ...state,
     loadingOrganizations: false,
-    organizations: payload
+    organizations: payload,
+    selectedOrganization: payload.find(org => org.id === state.preselectedOrganizationId) || state.selectedOrganization
   };
 }
 

@@ -81,32 +81,47 @@ describe('scmOnboardingReducer', function() {
   });
 
   describe('SCM_ONBOARDING_LOAD_ORGANIZATIONS_FULFILLED action', function() {
-    it('populates state organizations list', function() {
-      // given empty organizations list
-      const state = Object.freeze({
-        other: otherObject,
-        loadingOrganizations: true,
-        organizations: []
+    const organizationsPayload = [{
+      'name': 'name0',
+      'id': 'id0'
+    }, {
+      'name': 'name1',
+      'id': 'id1'
+    }];
+
+    let testdata = [{
+      preselectedOrganizationId: 'id1',
+      expectedOrg: organizationsPayload[1]
+    }, {
+      preselectedOrganizationId: undefined,
+      expectedOrg: undefined
+    }];
+
+    for (let i in testdata) {
+      it('populates state organizations list (' + testdata[i].preselectedOrganizationId + ')', function() {
+        // given empty organizations list
+        const state = Object.freeze({
+          other: otherObject,
+          loadingOrganizations: true,
+          organizations: [],
+          preselectedOrganizationId: testdata[i].preselectedOrganizationId
+        });
+
+        // when reduce is invoked
+        const newState = reduce(state, {
+          type: 'SCM_ONBOARDING_LOAD_ORGANIZATIONS_FULFILLED',
+          payload: organizationsPayload
+        });
+
+        // then state is updated
+        expect(newState.organizations).toBe(organizationsPayload);
+        expect(newState.loadingOrganizations).toBe(false);
+        expect(newState.selectedOrganization).toBe(testdata[i].expectedOrg);
+
+        // and other properties are not modified
+        expect(newState.other).toBe(otherObject);
       });
-
-      const organizationsPayload = [{
-        'name': 'name',
-        'id': 'id'
-      }];
-
-      // when reduce is invoked
-      const newState = reduce(state, {
-        type: 'SCM_ONBOARDING_LOAD_ORGANIZATIONS_FULFILLED',
-        payload: organizationsPayload
-      });
-
-      // then state is updated
-      expect(newState.organizations).toBe(organizationsPayload);
-      expect(newState.loadingOrganizations).toBe(false);
-
-      // and other properties are not modified
-      expect(newState.other).toBe(otherObject);
-    });
+    }
   });
 
   describe('SCM_ONBOARDING_SET_TARGET_ORGANIZATION action', function() {

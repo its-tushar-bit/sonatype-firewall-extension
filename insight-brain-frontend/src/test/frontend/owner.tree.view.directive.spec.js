@@ -18,7 +18,14 @@ describe('owner.tree.view.directive.spec.js', function() {
       };
     });
   }));
-  beforeEach(angular.mock.module(ownerManagerModule.name, legacyConfigurationModule.name));
+  beforeEach(angular.mock.module(ownerManagerModule.name, legacyConfigurationModule.name, function($provide) {
+    SpecUtil.mockNgRedux($provide);
+    $provide.factory('scmOnboardingActions', function() {
+      return {
+        loadConfig: jasmine.createSpy('loadConfig')
+      };
+    });
+  }));
 
   afterEach(inject(function(_$httpBackend_) {
     _$httpBackend_.verifyNoOutstandingExpectation();
@@ -57,6 +64,10 @@ describe('owner.tree.view.directive.spec.js', function() {
         $httpBackend.flush();
         $timeout.flush();
       }));
+
+      it('loads feature flag', () => {
+        expect(scope.vm.loadConfig).toHaveBeenCalledTimes(1);
+      });
 
       it('loads organizations and applications', function() {
         expect(scope.vm.showRepositories).toBe(permissions.length > 0);
@@ -511,4 +522,40 @@ describe('owner.tree.view.directive.spec.js', function() {
 
   });
 
+  describe('manifest scan feature flag', function() {
+
+    beforeEach(inject((_$rootScope_, _$httpBackend_, _$state_, _$compile_, _CLMLocations_, _CLMContextLocations_) => {
+      $httpBackend = _$httpBackend_;
+      $state = _$state_;
+      CLMLocations = _CLMLocations_;
+      CLMContextLocations = _CLMContextLocations_;
+
+      spyOn($state, 'is').and.returnValue(true);
+      scope = _$rootScope_.$new();
+      const ownerTreeView = angular.element('<div owner-tree-view></div>');
+      _$compile_(ownerTreeView)(scope);
+    }));
+
+    describe('doLoad', () => {
+      it('subscribes to ngRedux', () => {
+        scope.vm.doLoad();
+        $httpBackend.whenGET(CLMLocations.getOwnerListUrl()).respond(SidebarResourceMockData.getOwnerListUrl());
+        $httpBackend.whenPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container')).respond(false);
+        $httpBackend.flush();
+
+        expect(scope.vm.unsubscribe).toBeDefined();
+      });
+    });
+
+    describe('$destroy', () => {
+      it('unsubscribes from ngRedux', () => {
+        expect(scope.vm.unsubscribe).not.toHaveBeenCalled();
+        scope.$destroy();
+        $httpBackend.whenGET(CLMLocations.getOwnerListUrl()).respond(SidebarResourceMockData.getOwnerListUrl());
+        $httpBackend.whenPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container')).respond(false);
+        $httpBackend.flush();
+        expect(scope.vm.unsubscribe).toHaveBeenCalledTimes(1);
+      });
+    });
+  });
 });

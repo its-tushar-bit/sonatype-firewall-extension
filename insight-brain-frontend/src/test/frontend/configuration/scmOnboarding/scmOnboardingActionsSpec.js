@@ -10,12 +10,6 @@ import {
   getScmDefaultHostUrl,
   getScmRepositoriesUrl
 } from '../../../../main/frontend/util/CLMLocation';
-import {
-  loadConfig,
-  loadOrganizations,
-  loadRepositories,
-  loadOrgHostUrl
-} from '../../../../main/frontend/configuration/scmOnboarding/scmOnboardingActions';
 
 describe('scmOnboardingActions', function() {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios),
@@ -29,7 +23,7 @@ describe('scmOnboardingActions', function() {
         name: 'name'}
       ];
 
-  let store, state;
+  let store, state, scmOnboardingActions;
 
   beforeEach(function() {
     state = {
@@ -37,6 +31,12 @@ describe('scmOnboardingActions', function() {
     };
     store = SpecUtil.mockReduxStore(state);
   });
+
+  beforeEach(angular.mock.module('configurationModule'));
+
+  beforeEach(inject(function(_scmOnboardingActions_) {
+    scmOnboardingActions = _scmOnboardingActions_;
+  }));
 
   describe('loadConfig', function() {
 
@@ -51,7 +51,7 @@ describe('scmOnboardingActions', function() {
         }
       });
 
-      store.dispatch(loadConfig());
+      store.dispatch(scmOnboardingActions.loadConfig());
 
       const actions = store.getActions();
       expect(actions.length).toBe(1);
@@ -71,7 +71,7 @@ describe('scmOnboardingActions', function() {
 
       it('dispatches SCM_ONBOARDING_LOAD_CONFIG_FULFILLED', function(done) {
 
-        store.dispatch(loadConfig())
+        store.dispatch(scmOnboardingActions.loadConfig())
             .then(() => {
               actions = store.getActions();
               expect(actions.length).toBe(2);
@@ -87,51 +87,56 @@ describe('scmOnboardingActions', function() {
   });
 
   describe('loadOrganizations', function() {
+    var testdata = [{organizationId: 'organizationId'}, {organizationId: undefined}];
 
     afterEach(function() {
       expect(axios.get).toHaveBeenCalledWith(organizationsUrl);
     });
 
-    it('dispatches a SCM_ONBOARDING_LOAD_ORGANIZATIONS_REQUESTED action', function() {
-      mockAxiosCalls({
-        get: {
-          [organizationsUrl]: Promise.resolve(organizationsPayload)
-        }
-      });
-
-      store.dispatch(loadOrganizations());
-
-      const actions = store.getActions();
-      expect(actions.length).toBe(1);
-      expect(actions[0].type).toBe('SCM_ONBOARDING_LOAD_ORGANIZATIONS_REQUESTED');
-      expect(actions[0].payload).toBeUndefined();
-    });
-
-    describe('after successful GET call', function() {
-
-      beforeEach(function() {
-        mockAxiosCalls({
-          get: {
-            [organizationsUrl]: Promise.resolve(organizationsPayload)
-          }
-        });
-      });
-
-      it('dispatches SCM_ONBOARDING_LOAD_ORGANIZATIONS_FULFILLED', function(done) {
-
-        store.dispatch(loadOrganizations())
-            .then(() => {
-              actions = store.getActions();
-              expect(actions.length).toBe(2);
-              expect(actions[1].type).toBe('SCM_ONBOARDING_LOAD_ORGANIZATIONS_FULFILLED');
-              done();
+    for (let i in testdata) {
+      it('dispatches a SCM_ONBOARDING_LOAD_ORGANIZATIONS_REQUESTED(' + testdata[i].organizationId + ') action',
+          function() {
+            mockAxiosCalls({
+              get: {
+                [organizationsUrl]: Promise.resolve(organizationsPayload)
+              }
             });
 
-        let actions = store.getActions();
-        expect(actions.length).toBe(1);
-        expect(actions[0].type).toBe('SCM_ONBOARDING_LOAD_ORGANIZATIONS_REQUESTED');
+            store.dispatch(scmOnboardingActions.loadOrganizations(testdata[i].organizationId));
+
+            const actions = store.getActions();
+            expect(actions.length).toBe(1);
+            expect(actions[0].type).toBe('SCM_ONBOARDING_LOAD_ORGANIZATIONS_REQUESTED');
+            expect(actions[0].payload).toBe(testdata[i].organizationId);
+          });
+
+      describe('after successful GET call (' + testdata[i].organizationId + ')', function() {
+
+        beforeEach(function() {
+          mockAxiosCalls({
+            get: {
+              [organizationsUrl]: Promise.resolve(organizationsPayload)
+            }
+          });
+        });
+
+        it('dispatches SCM_ONBOARDING_LOAD_ORGANIZATIONS_FULFILLED(' + testdata[i].organizationId + ')', done => {
+
+          store.dispatch(scmOnboardingActions.loadOrganizations(testdata[i].organizationId))
+              .then(() => {
+                actions = store.getActions();
+                expect(actions.length).toBe(2);
+                expect(actions[1].type).toBe('SCM_ONBOARDING_LOAD_ORGANIZATIONS_FULFILLED');
+                done();
+              });
+
+          let actions = store.getActions();
+          expect(actions.length).toBe(1);
+          expect(actions[0].type).toBe('SCM_ONBOARDING_LOAD_ORGANIZATIONS_REQUESTED');
+          expect(actions[0].payload).toBe(testdata[i].organizationId);
+        });
       });
-    });
+    }
   });
 
   describe('load repositories', function() {
@@ -144,7 +149,7 @@ describe('scmOnboardingActions', function() {
 
       store = SpecUtil.mockReduxStore(state);
 
-      store.dispatch(loadRepositories())
+      store.dispatch(scmOnboardingActions.loadRepositories())
           .then(() => {
             expect(axios.get).toHaveBeenCalledWith(getScmRepositoriesUrl());
 
@@ -164,7 +169,7 @@ describe('scmOnboardingActions', function() {
 
       store = SpecUtil.mockReduxStore(state);
 
-      store.dispatch(loadRepositories())
+      store.dispatch(scmOnboardingActions.loadRepositories())
           .then(() => {
             expect(axios.get).toHaveBeenCalledWith(getScmRepositoriesUrl());
             expect(store.getActions().length).toBe(2);
@@ -187,7 +192,7 @@ describe('scmOnboardingActions', function() {
 
       store = SpecUtil.mockReduxStore(state);
 
-      store.dispatch(loadOrgHostUrl('orgId', 'github'))
+      store.dispatch(scmOnboardingActions.loadOrgHostUrl('orgId', 'github'))
           .then(() => {
             expect(axios.get).toHaveBeenCalledWith(getScmDefaultHostUrl('orgId', 'github'));
             done();
@@ -206,7 +211,7 @@ describe('scmOnboardingActions', function() {
 
       store = SpecUtil.mockReduxStore(state);
 
-      store.dispatch(loadOrgHostUrl('orgId', 'github'))
+      store.dispatch(scmOnboardingActions.loadOrgHostUrl('orgId', 'github'))
           .then(() => {
             expect(axios.get).toHaveBeenCalledWith(getScmDefaultHostUrl('orgId', 'github'));
             expect(store.getActions().length).toBe(2);

@@ -159,12 +159,14 @@ $child-row-left-padding: 40px;
   }
 }
 
+.iq-owner-tree-view__import-applications,
 .iq-owner-tree-view__new-organization,
 .iq-owner-tree-view__new-application {
   background-color: $iq-off-white;
   border-right: 16px solid $iq-grey-1;
   margin-left: $iq-spacing-xs;
 
+  .iq-link__import-applications,
   .iq-btn--text-only {
     padding-left: 34px;
     text-align: left;
@@ -173,6 +175,7 @@ $child-row-left-padding: 40px;
     &:hover, &:active, &:focus {
       background-color: $iq-off-white;
       color: $iq-link-color-active;
+      text-decoration: none;
     }
   }
 }
@@ -184,8 +187,10 @@ $child-row-left-padding: 40px;
     margin-top: $iq-spacing-sm;
   }
 
+  .iq-owner-tree-view__import-applications,
   .iq-owner-tree-view__new-application {
     margin-left: $iq-spacing-xs;
+    .iq-link__import-applications,
     .iq-btn--text-only {
       padding-left: 52px;
     }

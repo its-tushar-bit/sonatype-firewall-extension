@@ -4,11 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import {connect} from 'react-redux';
+import * as scmOnboardingActions from './scmOnboardingActions';
+import * as PropTypes from 'prop-types';
 
-import * as scmOnboardingActions from '../scmOnboarding/scmOnboardingActions';
 import ScmOnboarding from '../scmOnboarding/ScmOnboarding';
 
-function mapStateToProps({scmOnboarding}) {
+function mapStateToProps({ scmOnboarding, router }) {
   return {
     // config
     loadingConfig: scmOnboarding.loadingConfig,
@@ -24,8 +25,21 @@ function mapStateToProps({scmOnboarding}) {
 
     // repositories
     loadingRepositories: scmOnboarding.loadingRepositories,
-    repositories: scmOnboarding.repositories
+    repositories: scmOnboarding.repositories,
+
+    // router state
+    preselectedOrganizationId: router.currentParams.organizationId
   };
 }
 
-export default connect(mapStateToProps, scmOnboardingActions)(ScmOnboarding);
+const ScmOnboardingContainer = connect(mapStateToProps, scmOnboardingActions)(ScmOnboarding);
+export default ScmOnboardingContainer;
+
+ScmOnboardingContainer.propTypes = {
+  preselectedOrganizationId: PropTypes.string,
+  scmOnboardingActions: PropTypes.shape({
+    loadConfig: PropTypes.func.isRequired,
+    loadOrganizations: PropTypes.func.isRequired,
+    loadRepositories: PropTypes.func.isRequired
+  })
+};

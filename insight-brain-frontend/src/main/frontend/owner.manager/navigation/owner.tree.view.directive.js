@@ -5,9 +5,9 @@
  */
 import template from './owner.tree.view.directive.html';
 
-function OwnerTreeViewController($q, $scope, $state, $stateParams, $http, CLMLocations, organizationStore,
+function OwnerTreeViewController($q, $scope, $state, $stateParams, $http, $ngRedux, CLMLocations, organizationStore,
                                  applicationStore, OwnerEditor, PermissionService, ownerConstant, EventNameConstant,
-                                 LastSelectedOrganization, fuzzyFilter) {
+                                 LastSelectedOrganization, fuzzyFilter, scmOnboardingActions) {
   var vm = this;
 
   vm.filter = {
@@ -82,11 +82,21 @@ function OwnerTreeViewController($q, $scope, $state, $stateParams, $http, CLMLoc
 
   $scope.$on(EventNameConstant.RELOAD_OWNER_TREE_DATA, doLoad);
 
+  $scope.$on('$destroy', function () {
+    vm.unsubscribe();
+  });
+
   vm.doLoad();
 
   function doLoad() {
     delete vm.error;
     delete vm.rootOrganization;
+
+    vm.unsubscribe = $ngRedux.connect(mapStateToThis, scmOnboardingActions)(vm);
+    if (vm.state === undefined || vm.state.scmOnboarding === undefined
+        || vm.state.scmOnboarding.isManifestScanFeatureEnabled === undefined) {
+      vm.loadConfig();
+    }
 
     var loadPromises = [
       $http.get(CLMLocations.getOwnerListUrl()),
@@ -257,12 +267,18 @@ function OwnerTreeViewController($q, $scope, $state, $stateParams, $http, CLMLoc
 
     organization.isExpanded = stateIsThisOrg || selectedParentIsThisOrg || !organization.isExpanded;
   }
+
+  function mapStateToThis(state) {
+    return ({
+      isManifestScanFeatureEnabled: state.scmOnboarding.isManifestScanFeatureEnabled
+    });
+  }
 }
 
 OwnerTreeViewController.$inject = [
-  '$q', '$scope', '$state', '$stateParams', '$http', 'CLMLocations', 'OrganizationStore', 'ApplicationStore',
-  'OwnerEditorService', 'PermissionService', 'owner.constant', 'event.name.constant', 'LastSelectedOrganization',
-  'fuzzyFilter'
+  '$q', '$scope', '$state', '$stateParams', '$http', '$ngRedux', 'CLMLocations', 'OrganizationStore',
+  'ApplicationStore', 'OwnerEditorService', 'PermissionService', 'owner.constant', 'event.name.constant',
+  'LastSelectedOrganization', 'fuzzyFilter', 'scmOnboardingActions'
 ];
 
 export default function ownerTreeView() {

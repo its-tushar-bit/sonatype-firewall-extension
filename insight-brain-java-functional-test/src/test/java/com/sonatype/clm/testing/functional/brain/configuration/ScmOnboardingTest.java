@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.security.User;
 import com.codeborne.selenide.Selenide;
 import com.google.common.collect.ImmutableSet;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -31,6 +32,11 @@ public class ScmOnboardingTest
   @Before
   public void setup() {
     testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(of(SCM_ONBOARDING.getFlag(), true));
+  }
+
+  @AfterClass
+  public static void cleanup() {
+    testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(of(SCM_ONBOARDING.getFlag(), false));
   }
 
   @After

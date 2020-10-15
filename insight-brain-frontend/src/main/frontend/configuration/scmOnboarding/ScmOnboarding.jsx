@@ -34,56 +34,59 @@ export default function ScmOnboarding(props) {
     repositories,
     loadingRepositories,
 
-    // external state
+    // from angular URL router
     isAuthorized,
+    preselectedOrganizationId,
 
     // base URL
     defaultHostUrlState
   } = props;
 
   useEffect(() => {
-    loadOrganizations();
     loadConfig();
+    loadOrganizations(preselectedOrganizationId);
   }, []);
 
   return (
     <MaximizedContainer id="scm-onboarding-container" className="nx-page-content">
-      <div id="scm-onboarding-root">
-        <LoadWrapper loading={loadingConfig}>
-          {isAuthorized && isManifestScanFeatureEnabled &&
-          <div className="nx-page-main">
-            <div className="iq-tile iq-tile--sys-prefs">
-              <ImportApplicationsForm
-                  setSelectedOrganization={setSelectedOrganization}
-                  loadRepositories={loadRepositories}
-                  organizations={organizations}
-                  loadingOrganizations={loadingOrganizations}
-                  selectedOrganization={selectedOrganization}
-                  loadingRepositories={loadingRepositories}
-                  defaultHostUrlState={defaultHostUrlState}
-                  loadOrgHostUrl={loadOrgHostUrl}
-                  provider='github'/>
+      <div id="scm-onboarding-root" className="nx-page">
+        <div className="nx-page-content">
+          <LoadWrapper loading={loadingConfig}>
+            {isAuthorized && isManifestScanFeatureEnabled &&
+            <div className="nx-page-main">
+              <div className="iq-tile iq-tile--sys-prefs">
+                <ImportApplicationsForm
+                    setSelectedOrganization={setSelectedOrganization}
+                    loadRepositories={loadRepositories}
+                    organizations={organizations}
+                    loadingOrganizations={loadingOrganizations}
+                    selectedOrganization={selectedOrganization}
+                    loadingRepositories={loadingRepositories}
+                    defaultHostUrlState={defaultHostUrlState}
+                    loadOrgHostUrl={loadOrgHostUrl}
+                    provider='github'/>
+              </div>
+              <div className="iq-tile iq-tile--sys-prefs">
+                <ResultsTable
+                  repositories={repositories}
+                  loadingRepositories={loadingRepositories} />
+              </div>
             </div>
-            <div className="iq-tile iq-tile--sys-prefs">
-              <ResultsTable
-                repositories={repositories}
-                loadingRepositories={loadingRepositories} />
-            </div>
-          </div>
-          }
-          {!isAuthorized &&
-          <NxErrorAlert id="scm-onboarding-insufficient-permissions-error">
-            <strong>Error</strong> It appears you do not have permission to access this page.
-            If you believe this to be incorrect please contact your administrator.
-          </NxErrorAlert>
-          }
-          {!isManifestScanFeatureEnabled && isAuthorized &&
-          <NxErrorAlert id="scm-onboarding-feature-flag-disabled-error">
-            <strong>Error</strong> This feature has not been enabled.
-            If you believe this to be incorrect please contact your administrator.
-          </NxErrorAlert>
-          }
-        </LoadWrapper>
+            }
+            {!isAuthorized &&
+            <NxErrorAlert id="scm-onboarding-insufficient-permissions-error">
+              <strong>Error</strong> It appears you do not have permission to access this page.
+              If you believe this to be incorrect please contact your administrator.
+            </NxErrorAlert>
+            }
+            {!isManifestScanFeatureEnabled && isAuthorized &&
+            <NxErrorAlert id="scm-onboarding-feature-flag-disabled-error">
+              <strong>Error</strong> This feature has not been enabled.
+              If you believe this to be incorrect please contact your administrator.
+            </NxErrorAlert>
+            }
+          </LoadWrapper>
+        </div>
       </div>
     </MaximizedContainer>
   );
@@ -94,9 +97,9 @@ export const organizationPropType = {
   name: PropTypes.string.isRequired
 };
 
-export const repositoryPropType = PropTypes.shape({
+export const repositoryPropType = {
   httpCloneUrl: PropTypes.string.isRequired
-});
+};
 
 ScmOnboarding.propTypes = {
   // config
@@ -109,16 +112,17 @@ ScmOnboarding.propTypes = {
   loadingOrganizations: PropTypes.bool.isRequired,
   organizations: PropTypes.arrayOf(PropTypes.shape(organizationPropType)).isRequired,
   setSelectedOrganization: PropTypes.func.isRequired,
-  selectedOrganization: PropTypes.object,
+  selectedOrganization: PropTypes.shape(organizationPropType),
   loadOrgHostUrl: PropTypes.func.isRequired,
 
   // repositories
   loadRepositories: PropTypes.func.isRequired,
   loadingRepositories: PropTypes.bool.isRequired,
-  repositories: PropTypes.arrayOf(PropTypes.shape(organizationPropType)).isRequired,
+  repositories: PropTypes.arrayOf(PropTypes.shape(repositoryPropType)).isRequired,
 
-  // from angular
+  // from angular router
   isAuthorized: PropTypes.bool.isRequired,
+  preselectedOrganizationId: PropTypes.string,
 
   // base URL
   defaultHostUrlState: textInputPropType.isRequired

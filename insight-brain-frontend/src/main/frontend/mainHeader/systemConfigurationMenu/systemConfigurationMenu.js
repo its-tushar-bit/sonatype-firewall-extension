@@ -6,22 +6,33 @@
 import { faCog } from '@fortawesome/pro-regular-svg-icons';
 import template from './systemConfigurationMenu.html';
 
-function SystemConfigurationMenuController($state, systemConfigurationPropertyService) {
+function SystemConfigurationMenuController($state, $ngRedux, scmOnboardingActions) {
   var vm = this;
   vm.state = $state;
   vm.$onInit = doLoad;
+  vm.$onDestroy = doDestroy;
 
   vm.faCog = faCog;
-  vm.isManifestScanFeatureEnabled = false;
 
   function doLoad() {
-    systemConfigurationPropertyService.isManifestScanFeatureEnabled().then(function(data) {
-      vm.isManifestScanFeatureEnabled = data;
-    });
+    vm.unsubscribe = $ngRedux.connect(mapStateToThis, scmOnboardingActions)(vm);
+    if (vm.state.scmOnboarding === undefined || vm.state.scmOnboarding.isManifestScanFeatureEnabled === undefined) {
+      vm.loadConfig();
+    }
+  }
+
+  function doDestroy() {
+    vm.unsubscribe();
   }
 }
 
-SystemConfigurationMenuController.$inject = ['$state', 'systemConfigurationPropertyService'];
+function mapStateToThis(state) {
+  return {
+    isManifestScanFeatureEnabled: state.scmOnboarding.isManifestScanFeatureEnabled
+  };
+}
+
+SystemConfigurationMenuController.$inject = ['$state', '$ngRedux', 'scmOnboardingActions'];
 
 export default {
   template,

@@ -19,6 +19,7 @@ import automaticSourceControlConfigurationModule
 import MailConfigContainer from './mail/MailConfigContainer';
 import ProxyConfigContainer from './proxy/ProxyConfigContainer';
 import ScmOnboardingContainer from './scmOnboarding/ScmOnboardingContainer';
+import scmOnboardingActions from './scmOnboarding/scmOnboardingActions';
 import withStoreProvider from '../reactAdapter/StoreProvider';
 import { always } from 'ramda';
 import AdvancedSearchConfigContainer from './advancedSearch/AdvancedSearchConfigContainer';
@@ -35,9 +36,24 @@ export default angular.module('configurationModule',
         ['$ngRedux']))
     .component('scmOnboarding', react2angular(withStoreProvider(ScmOnboardingContainer), ['isAuthorized'],
         ['$ngRedux']))
+    .factory('scmOnboardingActions', scmOnboardingActions)
     .config(routes);
 
 function routes($stateProvider) {
+  const scmOnboardingRouteCommonProps = {
+    component: 'scmOnboarding',
+    data: {
+      title: 'Onboarding'
+    },
+    resolve: {
+      isAuthorized: [
+        'PermissionService', function(PermissionService) {
+          return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
+        }
+      ]
+    }
+  };
+
   $stateProvider
       .state('mailConfig', {
         component: 'mailConfig',
@@ -89,18 +105,12 @@ function routes($stateProvider) {
         }
       })
       .state('scmOnboarding', {
-        component: 'scmOnboarding',
-        url: '/onboarding',
-        data: {
-          title: 'Onboarding'
-        },
-        resolve: {
-          isAuthorized: [
-            'PermissionService', function(PermissionService) {
-              return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
-            }
-          ]
-        }
+        ...scmOnboardingRouteCommonProps,
+        url: '/onboarding'
+      })
+      .state('scmOnboardingOrg', {
+        ...scmOnboardingRouteCommonProps,
+        url: '/onboarding/{organizationId}'
       });
 }
 

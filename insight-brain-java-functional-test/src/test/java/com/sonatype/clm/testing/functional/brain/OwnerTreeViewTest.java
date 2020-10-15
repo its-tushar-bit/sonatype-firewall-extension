@@ -30,9 +30,12 @@ import org.junit.Test;
 import org.openqa.selenium.interactions.Actions;
 
 import static com.codeborne.selenide.Condition.attribute;
+import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.google.common.collect.ImmutableMap.of;
+import static com.sonatype.insight.brain.service.InsightConfig.Feature.SCM_ONBOARDING;
 
 public class OwnerTreeViewTest
     extends AbstractFunctionalTest
@@ -128,6 +131,31 @@ public class OwnerTreeViewTest
     twisty.shouldBe(CLM.COLLAPSED);
 
     eyesWatcher.eyesCheck();
+  }
+
+  @Test
+  public void testOrganizationImport() {
+    // delete this section when feature flag is removed
+    testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(of(SCM_ONBOARDING.getFlag(), true));
+    logout();
+    refreshOrOpen(OwnerSummaryPage.url());
+    loginAsAdmin();
+
+    OrganizationNode organizationNode = OwnerTreeView.organization(0);
+    SelenideElement twisty = organizationNode.twisty();
+    SelenideElement treeViewElement = organizationNode.treeViewElement();
+
+    treeViewElement.click();
+    treeViewElement.shouldBe(CLM.SELECTED);
+    organizationNode.importApplicationsButton().shouldBe(visible, enabled);
+
+    twisty.shouldBe(CLM.COLLAPSED);
+
+    // delete this section when feature flag is removed
+    testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(of(SCM_ONBOARDING.getFlag(), false));
+    logout();
+    refreshOrOpen(OwnerSummaryPage.url());
+    loginAsAdmin();
   }
 
   @Test

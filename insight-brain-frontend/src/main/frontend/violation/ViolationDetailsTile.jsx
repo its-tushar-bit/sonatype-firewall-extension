@@ -26,8 +26,8 @@ const ownerIdTypeMap = {
 export default function ViolationDetailsTile(props) {
   const { $state, violationDetails, stageTypes, stateGo, activeWaivers } = props,
       { applicationPublicId, policyName, threatLevel, policyOwner, stageData, policyViolationId } = violationDetails,
-      { ownerName, ownerType } = policyOwner,
-      ownerId = policyOwner.ownerPublicId || policyOwner.ownerId,
+
+      policyExists = !!policyOwner.ownerId,
 
       threatLevelCategory = categoryByPolicyThreatLevel[threatLevel],
       threatLevelClassName = classnames('iq-threat-level', `iq-threat-level--${threatLevelCategory}`),
@@ -39,13 +39,6 @@ export default function ViolationDetailsTile(props) {
       mostRecentEvaluationTimes = map(parseRecentEvaluationTimes, values(violationDetails.stageData)),
       mostRecentEvaluationTimestamp = reduce(max, 0, mostRecentEvaluationTimes),
       mostRecentEvaluationTime = timeAgo(mostRecentEvaluationTimestamp),
-
-      ownerIdType = ownerIdTypeMap[ownerType],
-      ownerHref = $state.href($state.get(`management.view.${ownerType}`), { [ownerIdType]: ownerId }),
-      ownerImageUrl = getOwnerImageUrl({
-        publicId: policyOwner.ownerPublicId,
-        id: policyOwner.ownerId
-      }),
 
       // pair each possible stage type with its respective (optional) data from the backend
       stageDisplayData = map(stageType => [stageType, stageData[stageType.stageTypeId]], stageTypes),
@@ -74,11 +67,19 @@ export default function ViolationDetailsTile(props) {
         </div>
       );
 
+  function getOwnerHref(owner) {
+    const ownerIdType = ownerIdTypeMap[owner.ownerType],
+        ownerId = owner.ownerPublicId || owner.ownerId;
+    return $state.href($state.get(`management.view.${owner.ownerType}`), { [ownerIdType]: ownerId });
+  }
+
   return (
     <div id="violation-details-tile" className="nx-tile iq-violation-details">
-      <div className="nx-tile__actions">
-        { activeWaivers.length ? waivedIndicator : addWaiverButton }
-      </div>
+      { policyExists &&
+        <div className="nx-tile__actions">
+          { activeWaivers.length ? waivedIndicator : addWaiverButton }
+        </div>
+      }
       <div className="nx-tile-header">
         <div className="nx-tile-header__title">
           <h2 className="nx-h2">
@@ -114,10 +115,14 @@ export default function ViolationDetailsTile(props) {
           </div>
           <div className="iq-violation-details__policy-owner">
             <dt>Policy Owner</dt>
-            <dd>
-              <img className="iq-violation-details__policy-owner-icon" src={ownerImageUrl} />
-              <a href={ownerHref}>{ownerName}</a>
-            </dd>
+            { policyExists ? (
+              <dd>
+                <img className="iq-violation-details__policy-owner-icon"
+                     src={ getOwnerImageUrl({ publicId: policyOwner.ownerPublicId, id: policyOwner.ownerId }) } />
+                <a href={ getOwnerHref(policyOwner) }>{ policyOwner.ownerName }</a>
+              </dd>)
+              : <dd>Policy no longer exists</dd>
+            }
           </div>
         </dl>
       </div>
@@ -130,9 +135,9 @@ export const violationDetailsPropTypes = {
   policyName: PropTypes.string.isRequired,
   policyThreatCategory: PropTypes.string.isRequired,
   policyOwner: PropTypes.shape({
-    ownerName: PropTypes.string.isRequired,
-    ownerType: PropTypes.oneOf(keys(ownerIdTypeMap)).isRequired,
-    ownerId: PropTypes.string.isRequired,
+    ownerName: PropTypes.string,
+    ownerType: PropTypes.oneOf(keys(ownerIdTypeMap)),
+    ownerId: PropTypes.string,
     ownerPublicId: PropTypes.string
   }).isRequired,
   threatLevel: PropTypes.number.isRequired,

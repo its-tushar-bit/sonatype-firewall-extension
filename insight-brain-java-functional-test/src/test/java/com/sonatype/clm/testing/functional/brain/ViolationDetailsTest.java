@@ -28,6 +28,7 @@ import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.PolicyViol
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.SidebarNav;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.SidebarNavListItem;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.ViolationDetailsTile;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -55,6 +56,8 @@ public class ViolationDetailsTest
   private static PolicyViolation securityPolicyViolation;
 
   private static PolicyViolation otherPolicyViolation;
+
+  private static PolicyViolation deletedPolicyViolation;
 
   @BeforeClass
   public static void startup() {
@@ -91,6 +94,10 @@ public class ViolationDetailsTest
     policyViolation3.setActionTypeId(Action.ID_WARN);
     policyViolationDAO.update(policyViolation3);
 
+    Policy deletedPolicy = staticTempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Deleted Policy", 2);
+    deletedPolicyViolation = staticTempEntity.newPolicyViolation(policyEvaluation1, deletedPolicy);
+    new PolicyDAO().delete(deletedPolicy);
+
     refreshOrOpen(DashboardPage.url());
     loginAsAdmin();
   }
@@ -113,7 +120,7 @@ public class ViolationDetailsTest
     tile.lastReported().shouldHave(text("1 day ago"));
     tile.policyType().shouldHave(text("Security"));
     tile.threatLevel().shouldHave(text("7"));
-    tile.policyOwner().shouldHave(text("Root Organization"));
+    tile.policyOwnerLink().shouldHave(text("Root Organization"));
 
     tile.stages().shouldHaveSize(4);
 
@@ -132,6 +139,16 @@ public class ViolationDetailsTest
     tile.stage(3).shouldHave(text("Operate 1d"));
     tile.stage(3).icon().should(exist);
     tile.stage(3).shouldNotBe(ViolationDetailsPage.ViolationDetailsStage.unused());
+  }
+
+  @Test
+  public void testDetails_PolicyNoLongerExists() {
+    refreshOrOpen(ViolationDetailsPage.url(deletedPolicyViolation.getId()));
+    ViolationDetailsPage.ViolationDetailsTile tile = new ViolationDetailsPage().detailsTile();
+    tile.policyOwner().shouldHave(text("Policy no longer exists"));
+    tile.waivedIndicator().shouldNotBe(visible);
+    tile.addWaiverButton().shouldNotBe(visible);
+    eyesWatcher.eyesCheck();
   }
 
   @Test
@@ -157,7 +174,7 @@ public class ViolationDetailsTest
     refreshOrOpen(ViolationDetailsPage.url(securityPolicyViolation.getId()));
     ViolationDetailsPage.ViolationDetailsTile tile = new ViolationDetailsPage().detailsTile();
 
-    tile.policyOwner().click();
+    tile.policyOwnerLink().click();
     waitUntilUrl(OwnerSummaryPage.urlToRootOrg());
   }
 
@@ -214,7 +231,7 @@ public class ViolationDetailsTest
     sidebarNav.sidebarNavTitle().shouldHave(text("VIOLATIONS"));
 
     ElementsCollection navItems = sidebarNav.sidebarNavItems();
-    navItems.shouldHaveSize(2);
+    navItems.shouldHaveSize(3);
 
     SidebarNavListItem item1 = sidebarNav.navItem(0);
     item1.shouldHave(cssClass("selected"));
@@ -225,7 +242,12 @@ public class ViolationDetailsTest
     SidebarNavListItem item2 = sidebarNav.navItem(1);
     item2.policyName().shouldHave(text("3 Policy 2"));
     item2.threatBar().shouldHave(cssClass("nx-threat-bar--moderate"));
-    item1.artifactName().shouldHave(text("Artifact1"));
+    item2.artifactName().shouldHave(text("Artifact1"));
+
+    SidebarNavListItem item3 = sidebarNav.navItem(2);
+    item3.policyName().shouldHave(text("2 Deleted Policy"));
+    item3.threatBar().shouldHave(cssClass("nx-threat-bar--moderate"));
+    item3.artifactName().shouldHave(text("Artifact1"));
   }
 
   @Test
@@ -253,7 +275,7 @@ public class ViolationDetailsTest
     sidebarNav.sidebarNavTitle().shouldHave(text("VIOLATIONS"));
 
     ElementsCollection navItems = sidebarNav.sidebarNavItems();
-    navItems.shouldHaveSize(2);
+    navItems.shouldHaveSize(3);
 
     SidebarNavListItem item2 = sidebarNav.navItem(1);
     item2.shouldNotHave(cssClass("selected"));
@@ -292,9 +314,9 @@ public class ViolationDetailsTest
     sidebarNav.sidebarNavTitle().shouldHave(text("VIOLATIONS"));
 
     ElementsCollection navItems = sidebarNav.sidebarNavItems();
-    navItems.shouldHaveSize(32);
+    navItems.shouldHaveSize(33);
 
-    SidebarNavListItem selectedItem = sidebarNav.navItem(31);
+    SidebarNavListItem selectedItem = sidebarNav.navItem(32);
     selectedItem.shouldBe(visible);
     selectedItem.shouldHave(cssClass("selected"));
     eyesWatcher.eyesCheck("selected element is visible");

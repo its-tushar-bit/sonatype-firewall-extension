@@ -171,6 +171,12 @@ describe('ViolationDetailsTile', function() {
       expect(icon).toHaveProp('icon', faFlag);
       expect(text).toHaveText('Waived');
     });
+
+    it('does not render nx-tile__actions section when policyOwner prop has null ownerId', function() {
+      const component = getShallowComponent(pathSet(['violationDetails', 'policyOwner', 'ownerId'], null,
+          minimalProps));
+      expect(component.find('.nx-tile__actions')).not.toExist();
+    });
   });
 
   describe('left content', function() {
@@ -333,6 +339,14 @@ describe('ViolationDetailsTile', function() {
           publicId: 'app2',
           id: '1234'
         });
+      });
+    });
+
+    describe('when policyOwner prop has null ownerId', function() {
+      it('renders "Policy no longer exists" message', function() {
+        const component = getShallowComponent(pathSet(['violationDetails', 'policyOwner', 'ownerId'], null,
+            minimalProps));
+        expect(component.find('.iq-violation-details__policy-owner dd')).toHaveText('Policy no longer exists');
       });
     });
   });

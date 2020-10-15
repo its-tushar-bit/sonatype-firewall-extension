@@ -112,7 +112,7 @@ public class ApiCrossStageViolationService
     Application app = applicationService.getApplicationByIdForRead(constituentViolation.getApplicationId());
     Organization org = organizationDAO.getById(app.getOrganizationId());
     Policy policy = policyDAO.getById(constituentViolation.getPolicyId());
-    Owner policyOwner = ownerDAO.getById(policy.getOwnerId());
+    Owner policyOwner = policy == null ? null : ownerDAO.getById(policy.getOwnerId());
 
     List<PolicyViolation> allViolationsForApp = policyViolationDAO
         .getByApplicationId(constituentViolation.getApplicationId())
@@ -254,14 +254,16 @@ public class ApiCrossStageViolationService
         .fromComponentIdentifier(firstViolation.getComponentIdentifier());
 
     dto.policyOwner = new ApiCrossStageViolationDTOV2.PolicyOwner();
-    dto.policyOwner.ownerId = policyOwner.getId();
-    dto.policyOwner.ownerName = policyOwner.getName();
-    dto.policyOwner.ownerType = policyOwner.getType().toString();
+    if (policyOwner != null) {
+      dto.policyOwner.ownerId = policyOwner.getId();
+      dto.policyOwner.ownerName = policyOwner.getName();
+      dto.policyOwner.ownerType = policyOwner.getType().toString();
 
-    // even though the Organization model is willing to return its internal id as a public id, we don't want
-    // to give external consumers the impression that Organizations have a public id
-    if (policyOwner instanceof Application) {
-      dto.policyOwner.ownerPublicId = policyOwner.getPublicId();
+      // even though the Organization model is willing to return its internal id as a public id, we don't want
+      // to give external consumers the impression that Organizations have a public id
+      if (policyOwner instanceof Application) {
+        dto.policyOwner.ownerPublicId = policyOwner.getPublicId();
+      }
     }
 
     dto.openTime = policyViolations.stream()

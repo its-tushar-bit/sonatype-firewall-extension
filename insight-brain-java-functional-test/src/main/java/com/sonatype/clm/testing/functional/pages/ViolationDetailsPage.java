@@ -137,6 +137,10 @@ public class ViolationDetailsPage
     }
 
     public SelenideElement policyOwner() {
+      return child(".iq-violation-details__policy-owner dd");
+    }
+
+    public SelenideElement policyOwnerLink() {
       return child(".iq-violation-details__policy-owner dd a");
     }
 

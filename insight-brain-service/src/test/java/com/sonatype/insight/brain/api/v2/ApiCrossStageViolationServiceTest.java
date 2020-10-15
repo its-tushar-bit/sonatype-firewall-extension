@@ -15,6 +15,7 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationReasonDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiCrossStageViolationDTOV2;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -263,6 +264,22 @@ public class ApiCrossStageViolationServiceTest
     assertThat(result.policyOwner.ownerPublicId).isEqualTo("public-foo");
     assertThat(result.policyOwner.ownerName).isEqualTo(policyOwnerApp.getName());
     assertThat(result.policyOwner.ownerType).isEqualTo("application");
+  }
+
+  @Test
+  public void testGetCrossStageViolationById_ApplicationPolicyOwner_PolicyNoLongerExists() {
+    Application policyOwnerApp = tempEntity.newApplication("public-foo", org.getId());
+    Policy policy = tempEntity.newPolicy(policyOwnerApp.getId(), "p1", 7);
+    PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
+    new PolicyDAO().delete(policy);
+
+    ApiCrossStageViolationDTOV2 result = service.getCrossStageViolationById(violation1.getId());
+    assertThat(result.policyOwner).isNotNull();
+    assertThat(result.policyOwner.ownerId).isNull();
+    assertThat(result.policyOwner.ownerPublicId).isNull();
+    assertThat(result.policyOwner.ownerName).isNull();
+    assertThat(result.policyOwner.ownerType).isNull();
   }
 
   @Test

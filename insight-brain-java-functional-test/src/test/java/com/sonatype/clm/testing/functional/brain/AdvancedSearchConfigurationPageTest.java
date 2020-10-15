@@ -45,6 +45,7 @@ public class AdvancedSearchConfigurationPageTest
 
   @Test
   public void testOptIn() {
+    dao.update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "false"));
     refreshOrOpen(AdvancedSearchConfigurationPage.url());
 
     // Verify page is in expected state
@@ -120,6 +121,7 @@ public class AdvancedSearchConfigurationPageTest
 
   @Test
   public void testResetForm() {
+    dao.update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "false"));
     refreshOrOpen(AdvancedSearchConfigurationPage.url());
     page.cancelButton().shouldBe(disabled);
 
@@ -131,6 +133,7 @@ public class AdvancedSearchConfigurationPageTest
 
   @Test
   public void testCanOnlyReIndexWhenOptInIsChecked_OptedOutState() {
+    dao.update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "false"));
     refreshOrOpen(AdvancedSearchConfigurationPage.url());
 
     // By default I should not be able to trigger indexing.

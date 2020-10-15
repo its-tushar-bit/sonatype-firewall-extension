@@ -18,7 +18,8 @@ import {
   ADVANCED_SEARCH_RE_INDEX_FAILED,
   ADVANCED_SEARCH_CONFIG_SAVE_SUBMIT_MASK_TIMER_DONE,
   ADVANCED_SEARCH_POLL_STATE_SUCCESS,
-  ADVANCED_SEARCH_POLL_STATE_FAILED
+  ADVANCED_SEARCH_POLL_STATE_FAILED,
+  ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING
 } from './advancedSearchConfigActions';
 
 const initialState = Object.freeze({
@@ -40,17 +41,20 @@ const initialState = Object.freeze({
   },
   // State of data in server side.
   // Same shape with formState.
-  serverData: null
+  serverData: null,
+  currentlyPolling: false
 });
 
-function loadRequested() {
+function loadRequested(payload, state) {
   return {
-    ...initialState
+    ...initialState,
+    currentlyPolling: state.currentlyPolling
   };
 }
 
 function loadFulfilled(payload, state) {
   return {
+    ...state,
     viewState: {
       ...state.viewState,
       loading: false,
@@ -200,7 +204,15 @@ function pollStateFailed(payload, state) {
     viewState: {
       ...state.viewState,
       error: payload
-    }
+    },
+    currentlyPolling: false
+  };
+}
+
+function updateCurrentlyPolling(payload, state) {
+  return {
+    ...state,
+    currentlyPolling: payload
   };
 }
 
@@ -217,7 +229,8 @@ const reducerActionMap = {
   [ADVANCED_SEARCH_RE_INDEX_FAILED]: advancedSearchReIndexFailed,
   [ADVANCED_SEARCH_CONFIG_SAVE_SUBMIT_MASK_TIMER_DONE]: resetSubmitMaskState,
   [ADVANCED_SEARCH_POLL_STATE_SUCCESS]: pollStateSuccess,
-  [ADVANCED_SEARCH_POLL_STATE_FAILED]: pollStateFailed
+  [ADVANCED_SEARCH_POLL_STATE_FAILED]: pollStateFailed,
+  [ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING]: updateCurrentlyPolling
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

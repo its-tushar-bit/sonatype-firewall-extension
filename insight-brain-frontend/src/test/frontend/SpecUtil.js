@@ -194,7 +194,8 @@ window.SpecUtil = {
 
     return {
       dispatch: dispatch,
-      getActions: getActions
+      getActions: getActions,
+      getState: getState
     };
   },
 

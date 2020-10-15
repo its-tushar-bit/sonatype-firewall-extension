@@ -8,7 +8,6 @@ import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import LoadWrapper from '../../react/LoadWrapper';
 import MaximizedContainer from '../../react/MaximizedContainer';
-import PollingContainer from '../../react/PollingContainer';
 import NxExternalLink from '../../react/NxExternalLink';
 import {
   NxButton,
@@ -27,8 +26,7 @@ export default function AdvancedSearchConfig(props) {
     save,
     setIsEnabled,
     resetForm,
-    reIndex,
-    pollState
+    reIndex
   } = props;
 
   // View State
@@ -48,11 +46,9 @@ export default function AdvancedSearchConfig(props) {
     isFullIndexTriggered
   } = props;
 
-  useEffect(load, []);
-
-  const lastIndexTimePolling = (
-    <PollingContainer pollingAction={pollState}/>
-  );
+  useEffect(() => {
+    load();
+  }, []);
 
   function onSubmit(evt) {
     evt.preventDefault();
@@ -188,9 +184,6 @@ export default function AdvancedSearchConfig(props) {
             </div>
           </div>
         </div>
-        {
-          isFullIndexTriggered && lastIndexTimePolling
-        }
       </MaximizedContainer>
     </LoadWrapper> :
     <NxErrorAlert>
@@ -214,6 +207,5 @@ AdvancedSearchConfig.propTypes = {
   reIndex: PropTypes.func.isRequired,
   isFullIndexTriggered: PropTypes.bool.isRequired,
   lastIndexTime: PropTypes.number,
-  isAuthorized: PropTypes.bool.isRequired,
-  pollState: PropTypes.func.isRequired
+  isAuthorized: PropTypes.bool.isRequired
 };

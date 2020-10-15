@@ -9,7 +9,8 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-comp
 import {
   pollState,
   reIndex,
-  save
+  save,
+  load
 } from '../../../../main/frontend/configuration/advancedSearch/advancedSearchConfigActions';
 import { getAdvancedSearchConfigUrl, getAdvancedSearchIndexUrl } from '../../../../main/frontend/util/CLMLocation';
 
@@ -142,19 +143,38 @@ describe('advancedSearchConfigActions', function() {
     });
 
     describe('after a successful POST call', function() {
-      it('dispatches an ADVANCED_SEARCH_TRIGGER_RE_INDEX action', function(done) {
+      it('dispatches an ADVANCED_SEARCH_TRIGGER_RE_INDEX action, an ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING action, ' +
+          'and schedules a call to pollState',
+      function(done) {
         mockAxiosCalls({
           post: {
             [advancedSearchIndexUrl]: Promise.resolve({})
           }
         });
 
+        spyOn(window, 'setTimeout');
+
         store.dispatch(reIndex())
             .then(() => {
               actions = store.getActions();
-              expect(actions.length).toBe(1);
+              expect(actions.length).toBe(2);
               expect(actions[0].type).toBe('ADVANCED_SEARCH_TRIGGER_RE_INDEX');
               expect(actions[0].payload).toBeUndefined();
+              expect(actions[1].type).toBe('ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING');
+              expect(actions[1].payload).toBeTruthy();
+              expect(window.setTimeout).toHaveBeenCalled();
+              const setTimeoutArgs = window.setTimeout.calls.mostRecent().args;
+              expect(typeof setTimeoutArgs[0]).toBe('function');
+              expect(setTimeoutArgs[1]).toBe(2000);
+              state.router = {
+                currentState: {
+                  name: 'notAdvancedSearchConfig'
+                }
+              };
+              setTimeoutArgs[0]();
+              expect(actions.length).toBe(3);
+              expect(actions[2].type).toBe('ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING');
+              expect(actions[2].payload).toBeFalsy();
               done();
             });
 
@@ -195,6 +215,143 @@ describe('advancedSearchConfigActions', function() {
           formState: {
             lastIndexTime: '42'
           }
+        },
+        router: {
+          currentState: {
+            name: 'advancedSearchConfig'
+          }
+        }
+      };
+
+      store = SpecUtil.mockReduxStore(state);
+    });
+
+    describe('immediately after being called', function() {
+      it('dispatches ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING with false if on a different page', function(done) {
+        mockAxiosCalls({
+          get: {
+            [advancedSearchConfigUrl]: Promise.resolve({ data: { isFullIndexTriggered: true } })
+          }
+        });
+        state.router.currentState.name = 'notAdvancedSearchConfig';
+        store.dispatch(pollState(store.dispatch, store.getState))
+            .then(() => {
+              actions = store.getActions();
+              expect(actions.length).toBe(1);
+              expect(actions[0].type).toBe('ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING');
+              expect(actions[0].payload).toBeFalsy();
+              done();
+            });
+
+        let actions = store.getActions();
+        expect(actions.length).toBe(1);
+        expect(axios.get).not.toHaveBeenCalledWith(advancedSearchConfigUrl);
+      });
+    });
+
+    describe('after a REST call', function() {
+      afterEach(function() {
+        expect(axios.get).toHaveBeenCalledWith(advancedSearchConfigUrl);
+      });
+
+      describe('after a successful GET call', function() {
+        it('dispatches ADVANCED_SEARCH_POLL_STATE_SUCCESS and ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING actions',
+            function(done) {
+              mockAxiosCalls({
+                get: {
+                  [advancedSearchConfigUrl]: Promise.resolve({ data: { isFullIndexTriggered: false } })
+                }
+              });
+
+              store.dispatch(pollState(store.dispatch, store.getState))
+                  .then(() => {
+                    actions = store.getActions();
+                    expect(actions.length).toBe(2);
+                    expect(actions[0].type).toBe('ADVANCED_SEARCH_POLL_STATE_SUCCESS');
+                    expect(actions[0].payload).toEqual({ isFullIndexTriggered: false });
+                    expect(actions[1].type).toBe('ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING');
+                    expect(actions[1].payload).toBeFalsy();
+                    done();
+                  });
+
+              let actions = store.getActions();
+              expect(actions.length).toBe(0);
+            }
+        );
+
+        it('dispatches ADVANCED_SEARCH_POLL_STATE_SUCCESS and ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING actions and ' +
+            'schedules a call to pollState if a full index is happening and we are still on the page', function(done) {
+          mockAxiosCalls({
+            get: {
+              [advancedSearchConfigUrl]: Promise.resolve({ data: { isFullIndexTriggered: true } })
+            }
+          });
+
+          spyOn(window, 'setTimeout');
+
+          store.dispatch(pollState(store.dispatch, store.getState))
+              .then(() => {
+                actions = store.getActions();
+                expect(actions.length).toBe(2);
+                expect(actions[0].type).toBe('ADVANCED_SEARCH_POLL_STATE_SUCCESS');
+                expect(actions[0].payload).toEqual({ isFullIndexTriggered: true });
+                expect(actions[1].type).toBe('ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING');
+                expect(actions[1].payload).toBeTruthy();
+                expect(window.setTimeout).toHaveBeenCalled();
+                const setTimeoutArgs = window.setTimeout.calls.mostRecent().args;
+                expect(typeof setTimeoutArgs[0]).toBe('function');
+                expect(setTimeoutArgs[1]).toBe(2000);
+                state.router = {
+                  currentState: {
+                    name: 'notAdvancedSearchConfig'
+                  }
+                };
+                setTimeoutArgs[0]();
+                expect(actions.length).toBe(3);
+                expect(actions[2].type).toBe('ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING');
+                expect(actions[2].payload).toBeFalsy();
+                done();
+              });
+
+          let actions = store.getActions();
+          expect(actions.length).toBe(0);
+        });
+      });
+
+      describe('after a failed GET call', function() {
+        it('dispatches an ADVANCED_SEARCH_POLL_STATE_FAILED action', function(done) {
+          mockAxiosCalls({
+            get: {
+              [advancedSearchConfigUrl]: Promise.reject('error!')
+            }
+          });
+
+          store.dispatch(pollState(store.dispatch, store.getState))
+              .then(() => {
+                actions = store.getActions();
+                expect(actions.length).toBe(1);
+                expect(actions[0].type).toBe('ADVANCED_SEARCH_POLL_STATE_FAILED');
+                expect(actions[0].payload).toBe('error!');
+                done();
+              });
+
+          let actions = store.getActions();
+          expect(actions.length).toBe(0);
+        });
+      });
+    });
+  });
+
+  describe('load', function() {
+    let store, state;
+
+    beforeEach(function() {
+      state = {
+        advancedSearchConfig: {
+          formState: {
+            lastIndexTime: '42'
+          },
+          currentlyPolling: false
         }
       };
 
@@ -205,47 +362,107 @@ describe('advancedSearchConfigActions', function() {
       expect(axios.get).toHaveBeenCalledWith(advancedSearchConfigUrl);
     });
 
+    it('immediately dispatches a ADVANCED_SEARCH_CONFIG_LOAD_REQUESTED action', function() {
+      mockAxiosCalls({
+        get: {
+          [advancedSearchConfigUrl]: Promise.resolve({ data: { isFullIndexTriggered: false } })
+        }
+      });
+
+      store.dispatch(load());
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe('ADVANCED_SEARCH_CONFIG_LOAD_REQUESTED');
+      expect(actions[0].payload).toBeUndefined();
+    });
+
     describe('after a successful GET call', function() {
-      it('dispatches an ADVANCED_SEARCH_POLL_STATE_SUCCESS action', function(done) {
+      it('dispatches ADVANCED_SEARCH_CONFIG_LOAD_FULFILLED and ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING actions',
+          function(done) {
+            mockAxiosCalls({
+              get: {
+                [advancedSearchConfigUrl]: Promise.resolve({ data: { isFullIndexTriggered: false } })
+              }
+            });
+
+            store.dispatch(load())
+                .then(() => {
+                  actions = store.getActions();
+                  expect(actions.length).toBe(3);
+                  expect(actions[0].type).toBe('ADVANCED_SEARCH_CONFIG_LOAD_REQUESTED');
+                  expect(actions[0].payload).toBeUndefined();
+                  expect(actions[1].type).toBe('ADVANCED_SEARCH_CONFIG_LOAD_FULFILLED');
+                  expect(actions[1].payload).toEqual({ isFullIndexTriggered: false });
+                  expect(actions[2].type).toBe('ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING');
+                  expect(actions[2].payload).toBeFalsy();
+                  done();
+                });
+
+            let actions = store.getActions();
+            expect(actions.length).toBe(1);
+          });
+
+      it('dispatches ADVANCED_SEARCH_CONFIG_LOAD_FULFILLED and ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING actions and ' +
+          'schedules a call to pollState if a full index is happening and we are not already polling', function(done) {
         mockAxiosCalls({
           get: {
-            [advancedSearchConfigUrl]: Promise.resolve({ data: {} })
+            [advancedSearchConfigUrl]: Promise.resolve({ data: { isFullIndexTriggered: true } })
           }
         });
 
-        store.dispatch(pollState())
+        spyOn(window, 'setTimeout');
+
+        store.dispatch(load())
             .then(() => {
               actions = store.getActions();
-              expect(actions.length).toBe(1);
-              expect(actions[0].type).toBe('ADVANCED_SEARCH_POLL_STATE_SUCCESS');
-              expect(actions[0].payload).toEqual({});
+              expect(actions.length).toBe(3);
+              expect(actions[0].type).toBe('ADVANCED_SEARCH_CONFIG_LOAD_REQUESTED');
+              expect(actions[0].payload).toBeUndefined();
+              expect(actions[1].type).toBe('ADVANCED_SEARCH_CONFIG_LOAD_FULFILLED');
+              expect(actions[1].payload).toEqual({ isFullIndexTriggered: true });
+              expect(actions[2].type).toBe('ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING');
+              expect(actions[2].payload).toBeTruthy();
+              expect(window.setTimeout).toHaveBeenCalled();
+              const setTimeoutArgs = window.setTimeout.calls.mostRecent().args;
+              expect(typeof setTimeoutArgs[0]).toBe('function');
+              expect(setTimeoutArgs[1]).toBe(2000);
+              state.router = {
+                currentState: {
+                  name: 'notAdvancedSearchConfig'
+                }
+              };
+              setTimeoutArgs[0]();
+              expect(actions.length).toBe(4);
+              expect(actions[3].type).toBe('ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING');
+              expect(actions[3].payload).toBeFalsy();
               done();
             });
 
         let actions = store.getActions();
-        expect(actions.length).toBe(0);
+        expect(actions.length).toBe(1);
       });
     });
 
     describe('after a failed GET call', function() {
-      it('dispatches an ADVANCED_SEARCH_POLL_STATE_FAILED action', function(done) {
+      it('dispatches an ADVANCED_SEARCH_CONFIG_LOAD_FAILED action', function(done) {
         mockAxiosCalls({
           get: {
             [advancedSearchConfigUrl]: Promise.reject('error!')
           }
         });
 
-        store.dispatch(pollState())
+        store.dispatch(load())
             .then(() => {
               actions = store.getActions();
-              expect(actions.length).toBe(1);
-              expect(actions[0].type).toBe('ADVANCED_SEARCH_POLL_STATE_FAILED');
-              expect(actions[0].payload).toBe('error!');
+              expect(actions.length).toBe(2);
+              expect(actions[1].type).toBe('ADVANCED_SEARCH_CONFIG_LOAD_FAILED');
+              expect(actions[1].payload).toBe('error!');
               done();
             });
 
         let actions = store.getActions();
-        expect(actions.length).toBe(0);
+        expect(actions.length).toBe(1);
       });
     });
   });

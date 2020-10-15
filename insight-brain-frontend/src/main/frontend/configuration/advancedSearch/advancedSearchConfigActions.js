@@ -7,7 +7,10 @@ import axios from 'axios';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
-import { getAdvancedSearchIndexUrl, getAdvancedSearchConfigUrl } from '../../util/CLMLocation';
+import {
+  getAdvancedSearchIndexUrl,
+  getAdvancedSearchConfigUrl
+} from '../../util/CLMLocation';
 
 // Actions related to initial loading of the page
 export const ADVANCED_SEARCH_CONFIG_LOAD_REQUESTED = 'ADVANCED_SEARCH_CONFIG_LOAD_REQUESTED';
@@ -18,12 +21,25 @@ const loadRequested = noPayloadActionCreator(ADVANCED_SEARCH_CONFIG_LOAD_REQUEST
 const loadFulfilled = payloadParamActionCreator(ADVANCED_SEARCH_CONFIG_LOAD_FULFILLED);
 const loadFailed = payloadParamActionCreator(ADVANCED_SEARCH_CONFIG_LOAD_FAILED);
 
+export const ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING = 'ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING';
+const updateCurrentlyPolling = payloadParamActionCreator(ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING);
+const ADVANCED_SEARCH_POLLING_INTERVAL_MS = 2000;
+
+function waitAndPollIfNeeded(dispatch, getState, currentlyPolling) {
+  dispatch(updateCurrentlyPolling(currentlyPolling));
+  if (currentlyPolling) {
+    setTimeout(pollState(dispatch, getState), ADVANCED_SEARCH_POLLING_INTERVAL_MS);
+  }
+}
+
 export function load() {
-  return function(dispatch) {
+  return function(dispatch, getState) {
     dispatch(loadRequested());
-    axios.get(getAdvancedSearchConfigUrl())
+    return axios.get(getAdvancedSearchConfigUrl())
         .then(({data}) => {
           dispatch(loadFulfilled(data));
+          waitAndPollIfNeeded(dispatch, getState,
+              data.isFullIndexTriggered && !getState().advancedSearchConfig.currentlyPolling);
         })
         .catch(error => {
           dispatch(loadFailed(error));
@@ -74,10 +90,11 @@ export const ADVANCED_SEARCH_TRIGGER_RE_INDEX = 'ADVANCED_SEARCH_TRIGGER_RE_INDE
 const triggerReIndex = noPayloadActionCreator(ADVANCED_SEARCH_TRIGGER_RE_INDEX);
 
 export function reIndex() {
-  return function(dispatch) {
+  return function(dispatch, getState) {
     return axios.post(getAdvancedSearchIndexUrl(), {})
         .then(() => {
           dispatch(triggerReIndex());
+          waitAndPollIfNeeded(dispatch, getState, true);
         })
         .catch(error => {
           dispatch(advancedSearchReindexFailed(error));
@@ -93,11 +110,17 @@ const pollStateSuccess = payloadParamActionCreator(ADVANCED_SEARCH_POLL_STATE_SU
 export const ADVANCED_SEARCH_POLL_STATE_FAILED = 'ADVANCED_SEARCH_POLL_STATE_FAILED';
 const pollStateFailed = payloadParamActionCreator(ADVANCED_SEARCH_POLL_STATE_FAILED);
 
-export function pollState() {
-  return function(dispatch) {
+// exported for testing
+export function pollState(dispatch, getState) {
+  return function() {
+    if (getState().router.currentState.name !== 'advancedSearchConfig') {
+      dispatch(updateCurrentlyPolling(false));
+      return Promise.resolve();
+    }
     return axios.get(getAdvancedSearchConfigUrl())
         .then(({data}) => {
           dispatch(pollStateSuccess(data));
+          waitAndPollIfNeeded(dispatch, getState, data.isFullIndexTriggered);
         })
         .catch(error => {
           dispatch(pollStateFailed(error));

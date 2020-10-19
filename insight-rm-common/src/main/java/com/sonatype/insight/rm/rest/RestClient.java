@@ -12,6 +12,7 @@ import java.util.Map;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.Resource;
+import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
@@ -61,6 +62,8 @@ public interface RestClient
   interface Scan
   {
     PolicyEvaluationResult evaluatePolicies(Stage stage) throws IOException;
+
+    ScanReceipt evaluatePoliciesWithReportId(Stage stage) throws IOException;
   }
 
   interface Repository

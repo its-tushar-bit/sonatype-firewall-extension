@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.Resource;
+import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
@@ -269,6 +270,15 @@ public class RestClientFactory
 
     @Override
     public PolicyEvaluationResult evaluatePolicies(com.sonatype.insight.rm.rest.Stage stage) throws IOException {
+      return newPolicyClient(config, appId).evaluateRepoMan(scanFile, getStage(stage)).getResult();
+    }
+
+    @Override
+    public ScanReceipt evaluatePoliciesWithReportId(com.sonatype.insight.rm.rest.Stage stage) throws IOException {
+      return newPolicyClient(config, appId).evaluateRepoMan(scanFile, getStage(stage)).getScanReceipt();
+    }
+
+    private Stage getStage(final com.sonatype.insight.rm.rest.Stage stage) {
       if (stage == null) {
         throw new IllegalArgumentException("stage missing");
       }
@@ -283,7 +293,7 @@ public class RestClientFactory
         default:
           throw new IllegalStateException("unsupported stage " + stage);
       }
-      return newPolicyClient(config, appId).evaluateRepoMan(scanFile, st).getResult();
+      return st;
     }
   }
 

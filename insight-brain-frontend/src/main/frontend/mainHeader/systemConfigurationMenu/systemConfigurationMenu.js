@@ -16,7 +16,7 @@ function SystemConfigurationMenuController($state, $ngRedux, scmOnboardingAction
 
   function doLoad() {
     vm.unsubscribe = $ngRedux.connect(mapStateToThis, scmOnboardingActions)(vm);
-    if (vm.state.scmOnboarding === undefined || vm.state.scmOnboarding.isManifestScanFeatureEnabled === undefined) {
+    if (vm.state.scmOnboarding === undefined || vm.state.scmOnboarding.isScmOnboardingFeatureEnabled === undefined) {
       vm.loadConfig();
     }
   }
@@ -28,7 +28,7 @@ function SystemConfigurationMenuController($state, $ngRedux, scmOnboardingAction
 
 function mapStateToThis(state) {
   return {
-    isManifestScanFeatureEnabled: state.scmOnboarding.isManifestScanFeatureEnabled
+    isScmOnboardingFeatureEnabled: state.scmOnboarding.isScmOnboardingFeatureEnabled
   };
 }
 

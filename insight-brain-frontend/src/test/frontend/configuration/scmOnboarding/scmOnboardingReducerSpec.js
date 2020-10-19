@@ -24,25 +24,43 @@ describe('scmOnboardingReducer', function() {
     });
   });
 
+  describe('SCM_ONBOARDING_REPOSITORY_SELECTION_CHANGED action', function() {
+    it('increments after a selection changed event', function() {
+      // TODO flesh this out in INT-3479. Not sure if we even want this to be in the reducer at all
+      const state = Object.freeze({selectedRepositoryCount: 1});
+
+      // when reduce is invoked
+      const newState = reduce(state, {
+        type: 'SCM_ONBOARDING_REPOSITORY_SELECTION_CHANGED',
+        payload: {
+          isSelected: true
+        }
+      });
+
+      // then count is updated
+      expect(newState.selectedRepositoryCount).toBe(2);
+    });
+  });
+
   describe('SCM_ONBOARDING_LOAD_CONFIG_FULFILLED action', function() {
     it('populates state from configuration', function() {
       // given SCM configuration from IQ server
       const state = Object.freeze({
         other: otherObject,
         loadingConfig: true,
-        manifestScanFeatureEnabled: false
+        scmOnboardingFeatureEnabled: false
       });
 
       // when reduce is invoked
       const newState = reduce(state, {
         type: 'SCM_ONBOARDING_LOAD_CONFIG_FULFILLED',
         payload: {
-          manifestScanFeatureEnabled: true
+          scmOnboardingFeatureEnabled: true
         }
       });
 
       // then state is updated
-      expect(newState.isManifestScanFeatureEnabled).toBe(true);
+      expect(newState.isScmOnboardingFeatureEnabled).toBe(true);
       expect(newState.loadingConfig).toBe(false);
 
       // and other properties are not modified

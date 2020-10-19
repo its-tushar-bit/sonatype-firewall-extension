@@ -35,7 +35,7 @@ export default angular.module('configurationModule',
     .component('advancedSearchConfig', react2angular(withStoreProvider(AdvancedSearchConfigContainer), ['isAuthorized'],
         ['$ngRedux']))
     .component('scmOnboarding', react2angular(withStoreProvider(ScmOnboardingContainer), ['isAuthorized'],
-        ['$ngRedux']))
+        ['$ngRedux', '$state']))
     .factory('scmOnboardingActions', scmOnboardingActions)
     .config(routes);
 

@@ -94,7 +94,7 @@ function OwnerTreeViewController($q, $scope, $state, $stateParams, $http, $ngRed
 
     vm.unsubscribe = $ngRedux.connect(mapStateToThis, scmOnboardingActions)(vm);
     if (vm.state === undefined || vm.state.scmOnboarding === undefined
-        || vm.state.scmOnboarding.isManifestScanFeatureEnabled === undefined) {
+        || vm.state.scmOnboarding.isScmOnboardingFeatureEnabled === undefined) {
       vm.loadConfig();
     }
 
@@ -270,7 +270,7 @@ function OwnerTreeViewController($q, $scope, $state, $stateParams, $http, $ngRed
 
   function mapStateToThis(state) {
     return ({
-      isManifestScanFeatureEnabled: state.scmOnboarding.isManifestScanFeatureEnabled
+      isScmOnboardingFeatureEnabled: state.scmOnboarding.isScmOnboardingFeatureEnabled
     });
   }
 }

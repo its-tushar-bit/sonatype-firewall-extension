@@ -21,7 +21,7 @@ public class ScmOnboardingPage
     return BaseUrl.resolvePageUrl("/onboarding");
   }
 
-  private static final String ROOT_SELECTOR = "#scm-onboarding-root";
+  private static final String ROOT_SELECTOR = "#scm-onboarding-container";
 
   public ScmOnboardingPage() {
     super(ROOT_SELECTOR);
@@ -39,16 +39,36 @@ public class ScmOnboardingPage
     return new OrganizationsDropdown();
   }
 
-  public SelenideElement loadButton() {
-    return child("#iq-scm-load-button");
-  }
-
   public SelenideElement resultsTable() {
     return child("#iq-scm-onboarding-repositories");
   }
 
-  public ElementsCollection resultsTableUrl() {
-    return children(".iq-scm-repository-url");
+  public ElementsCollection resultsTableProject() {
+    return children(".iq-scm-repository-project");
+  }
+
+  public ElementsCollection resultsTableNamespace() {
+    return children(".iq-scm-repository-namespace");
+  }
+
+  public SelenideElement repositoryCount() {
+    return child("#repository-count");
+  }
+
+  public SelenideElement selectedTotalCount() {
+    return child("#selected-total-count");
+  }
+
+  public SelenideElement backButton() {
+    return child(".nx-back-button");
+  }
+
+  public SelenideElement onboardingPageTitle() {
+    return child(".iq-scmonboarding-title");
+  }
+
+  public SelenideElement loadingSpinner() {
+    return child(".nx-loading-spinner");
   }
 
   public static class OrganizationsDropdown
@@ -78,16 +98,8 @@ public class ScmOnboardingPage
       super(selector, ".nx-dropdown-menu");
     }
 
-    public SelenideElement emptyListMessage() {
-      return child(".nx-list__item--empty");
-    }
-
     public ElementsCollection options() {
       return children(".iq-scm-onboarding-dropdown__option");
-    }
-
-    public OrganizationsDropdownOption defaultFilterOption() {
-      return option(0);
     }
 
     public OrganizationsDropdownOption option(int i) {
@@ -100,10 +112,6 @@ public class ScmOnboardingPage
   {
     public OrganizationsDropdownOption(String... selectors) {
       super(selectors);
-    }
-
-    public SelenideElement selectOrganizationButton() {
-      return child(".nx-dropdown-button--select-organization");
     }
   }
 }

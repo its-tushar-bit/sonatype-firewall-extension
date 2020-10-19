@@ -13,19 +13,25 @@ function mapStateToProps({ scmOnboarding, router }) {
   return {
     // config
     loadingConfig: scmOnboarding.loadingConfig,
-    isManifestScanFeatureEnabled: scmOnboarding.isManifestScanFeatureEnabled,
+    isScmOnboardingFeatureEnabled: scmOnboarding.isScmOnboardingFeatureEnabled,
     defaultHostUrlState: scmOnboarding.defaultHostUrlState,
 
     // organizations
     loadingOrganizations: scmOnboarding.loadingOrganizations,
     organizations: scmOnboarding.organizations,
     selectedOrganization: scmOnboarding.selectedOrganization,
-    setSelectedOrganization: scmOnboarding.setSelectedOrganization,
-    loadOrgHostUrl: scmOnboarding.loadOrgHostUrl,
 
     // repositories
     loadingRepositories: scmOnboarding.loadingRepositories,
     repositories: scmOnboarding.repositories,
+    selectedRepositoryCount: scmOnboarding.selectedRepositoryCount,
+    importedRepositoryCount: scmOnboarding.importedRepositoryCount,
+
+    // actions
+    onRepositorySelectionChanged: scmOnboarding.onRepositorySelectionChanged,
+    importSelectedRepositories: scmOnboarding.importSelectedRepositories,
+    setSelectedOrganization: scmOnboarding.setSelectedOrganization,
+    loadOrgHostUrl: scmOnboarding.loadOrgHostUrl,
 
     // router state
     preselectedOrganizationId: router.currentParams.organizationId

@@ -18,13 +18,15 @@ import {
   SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED,
   SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED,
   SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_REQUESTED,
-  SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FULFILLED, SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FAILED
+  SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FULFILLED,
+  SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FAILED,
+  SCM_ONBOARDING_REPOSITORY_SELECTION_CHANGED
 } from './scmOnboardingActions';
 import {Messages} from '../../util/CommonServices';
 
 const initialState = {
   loadingConfig: true,
-  isManifestScanFeatureEnabled: false,
+  isScmOnboardingFeatureEnabled: false,
 
   loadingOrganizations: false,
   organizations: [],
@@ -33,6 +35,8 @@ const initialState = {
 
   loadingRepositories: false,
   repositories: [],
+  selectedRepositoryCount: 0,
+  importedRepositoryCount: 0,
 
   defaultHostUrlState: {
     isPristine: true,
@@ -50,7 +54,7 @@ function loadConfigRequested() {
 function loadConfigFulfilled(payload, state) {
   return {
     ...state,
-    isManifestScanFeatureEnabled: payload.manifestScanFeatureEnabled,
+    isScmOnboardingFeatureEnabled: payload.scmOnboardingFeatureEnabled,
     loadingConfig: false
   };
 }
@@ -107,7 +111,10 @@ function loadRepositoriesFulfilled(payload, state) {
   return {
     ...state,
     loadingRepositories: false,
-    repositories: payload
+    repositories: payload,
+    selectedRepositoryCount: 0,
+    // todo gather correct values INT-3479
+    importedRepositoryCount: 0
   };
 }
 
@@ -116,6 +123,14 @@ function loadRepositoriesFailed(payload, state) {
     ...state,
     loadingRepositories: false,
     error: payload.response && payload.response.status === 404 ? null : Messages.getHttpErrorMessage(payload)
+  };
+}
+
+function repositorySelectionChanged(payload, state) {
+  return {
+    ...state,
+    // TODO filter & count? Rework when selection is finalized INT-3479
+    selectedRepositoryCount: payload.isSelected ? state.selectedRepositoryCount + 1 : state.selectedRepositoryCount - 1
   };
 }
 
@@ -157,6 +172,8 @@ const reducerActionMap = {
   [SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED]: loadRepositoriesRequested,
   [SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED]: loadRepositoriesFulfilled,
   [SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED]: loadRepositoriesFailed,
+
+  [SCM_ONBOARDING_REPOSITORY_SELECTION_CHANGED]: repositorySelectionChanged,
 
   [SCM_ONBOARDING_SET_TARGET_ORGANIZATION]: setSelectedOrganization,
 

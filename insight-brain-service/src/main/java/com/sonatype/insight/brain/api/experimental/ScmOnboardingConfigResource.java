@@ -41,6 +41,6 @@ public class ScmOnboardingConfigResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public Map<String, Object> manifestScanConfiguration() {
-    return ImmutableMap.of("manifestScanFeatureEnabled", scmOnboardingConfigService.isScmOnboardingEnabled());
+    return ImmutableMap.of("scmOnboardingFeatureEnabled", scmOnboardingConfigService.isScmOnboardingEnabled());
   }
 }

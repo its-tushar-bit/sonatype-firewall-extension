@@ -51,19 +51,48 @@ public class ApiScmOnboardingService
     log.debug("loadRepositories returning stubbed data for org {}", orgId);
 
     return Arrays.asList(
-        new SCMRepository("https://github.com/depshield-ci/ci-project-1.git", true),
-        new SCMRepository("https://github.com/depshield-ci/ci-project-16.git", true),
-        new SCMRepository("https://github.com/depshield-ci/create-react-app.git", false),
-        new SCMRepository("https://github.com/sonatype-nexus-community/nexus-repository-p2.git", false),
-        new SCMRepository("https://github.com/sonatype-nexus-community/nexus-repository-puppet.git", true),
-        new SCMRepository("https://github.com/sonatype-nexus-community/nexus-repository-terraform.git", true),
-        new SCMRepository("https://github.com/sonatype-nexus-community/nexus-repository-vgo.git", true),
-        new SCMRepository("https://github.com/sonatype-nexus-community/nexus-scripting-examples.git", true),
-        new SCMRepository("https://github.com/sonatype-nexus-community/nexus-webhook-example-collection.git", true),
-        new SCMRepository("https://github.com/sonatype-nexus-community/nxrm-cli.git", true),
-        new SCMRepository("https://github.com/sonatype-nexus-community/ossindex-gradle-plugin.git", true),
-        new SCMRepository("https://github.com/sonatype-nexus-community/oysteR.git", true),
-        new SCMRepository("https://github.com/sonatype-nexus-community/prime-nexus-proxy-repos.git", false)
+        new SCMRepository(SourceControlProvider.GITHUB, "https://github.com/depshield-ci/ci-project-1.git", true,
+            "depshield-ci", "ci-project-1", "long description: Nexus IQ Server is the on-premises server that " +
+            "customers run to evaluate their applications against a set of policies and review the results. " +
+            "It is part of the Nexus Lifecycle product umbrella (historically, this product umbrella was previously " +
+            "known as Component Lifecycle Management (CLM)).\n" +
+            "\n" +
+            "insight-brain contains the server, front-end, and component scanner for Nexus IQ Server. It scans " +
+            "projects (i.e. it generates hashes that represent components in an application - see also: " +
+            "insight-scanner), and evaluates known component vulnerabilities and component license information " +
+            "against user-configured policies. It then uses these data to generate an application scan report."),
+        new SCMRepository(SourceControlProvider.GITHUB, "https://github.com/depshield-ci/ci-project-16.git", true,
+            "depshield-ci", "ci-project-16", "were"),
+        new SCMRepository(SourceControlProvider.GITHUB, "https://github.com/depshield-ci/create-react-app.git", false,
+            "depshield-ci", "create-react-app", "the"),
+        new SCMRepository(SourceControlProvider.GITHUB,
+            "https://github.com/sonatype-nexus-community/nexus-repository-p2.git", false, "sonatype-nexus-community",
+            "nexus-repository-pw", "days"),
+        new SCMRepository(SourceControlProvider.GITHUB,
+            "https://github.com/sonatype-nexus-community/nexus-repository-puppet.git", true, "sonatype-nexus-community",
+            "nexus-repository-puppet", "my"),
+        new SCMRepository(SourceControlProvider.GITHUB,
+            "https://github.com/sonatype-nexus-community/nexus-repository-terraform.git", true,
+            "sonatype-nexus-community", "nexus-repository-terraform", "friend"),
+        new SCMRepository(SourceControlProvider.GITHUB,
+            "https://github.com/sonatype-nexus-community/nexus-repository-vgo.git", true, "sonatype-nexus-community",
+            "nexus-repository-vgo", "we"),
+        new SCMRepository(SourceControlProvider.GITHUB,
+            "https://github.com/sonatype-nexus-community/nexus-scripting-examples.git", true,
+            "sonatype-nexus-community", "nexus-scripting-examples", "thought"),
+        new SCMRepository(SourceControlProvider.GITHUB,
+            "https://github.com/sonatype-nexus-community/nexus-webhook-example-collection.git", true,
+            "sonatype-nexus-community", "nexus-webhook-example-collection", "they'd"),
+        new SCMRepository(SourceControlProvider.GITHUB, "https://github.com/sonatype-nexus-community/nxrm-cli.git",
+            true, "sonatype-nexus-community", "nxrm-cli", "never"),
+        new SCMRepository(SourceControlProvider.GITHUB,
+            "https://github.com/sonatype-nexus-community/ossindex-gradle-plugin.git", true, "sonatype-nexus-community",
+            "ossindex-gradle-plugin", "end"),
+        new SCMRepository(SourceControlProvider.GITHUB, "https://github.com/sonatype-nexus-community/oysteR.git", true,
+            "sonatype-nexus-community", "oysteR", "we'd"),
+        new SCMRepository(SourceControlProvider.GITHUB,
+            "https://github.com/sonatype-nexus-community/prime-nexus-proxy-repos.git", false,
+            "sonatype-nexus-community", "prime-nexus-proxy-repos", "sing")
     );
   }
 

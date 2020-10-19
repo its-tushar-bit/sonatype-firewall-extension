@@ -30,6 +30,6 @@ public class ScmOnboardingConfigResourceTest
     // and value is present
     @SuppressWarnings("unchecked")
     Map<String, Object> responseMap = response.getBody(Map.class);
-    assertThat(responseMap).containsEntry("manifestScanFeatureEnabled", false);
+    assertThat(responseMap).containsEntry("scmOnboardingFeatureEnabled", false);
   }
 }

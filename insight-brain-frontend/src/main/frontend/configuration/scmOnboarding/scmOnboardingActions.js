@@ -25,6 +25,8 @@ export const SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED = 'SCM_ONBOARDING_LOAD_R
 export const SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED = 'SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED';
 export const SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED = 'SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED';
 
+export const SCM_ONBOARDING_REPOSITORY_SELECTION_CHANGED = 'SCM_ONBOARDING_REPOSITORY_SELECTION_CHANGED';
+
 export const SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_REQUESTED = 'SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_REQUESTED';
 export const SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FULFILLED = 'SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FULFILLED';
 export const SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FAILED = 'SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FAILED';
@@ -61,6 +63,16 @@ export function loadRepositories() {
   };
 }
 
+export function onRepositorySelectionChanged(repo) {
+  return function(dispatch) {
+    dispatch(repositorySelectionChanged(repo));
+  };
+}
+
+export function importSelectedRepositories() {
+  // TODO INT-3482
+}
+
 export function loadOrgHostUrl(orgId, provider) {
   return function(dispatch) {
     dispatch(loadOrgDefaultHostUrlRequested());
@@ -82,6 +94,7 @@ const loadOrganizationsFailed = payloadParamActionCreator(SCM_ONBOARDING_LOAD_OR
 const loadRepositoriesRequested = noPayloadActionCreator(SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED);
 const loadRepositoriesFulfilled = payloadParamActionCreator(SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED);
 const loadRepositoriesFailed = payloadParamActionCreator(SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED);
+const repositorySelectionChanged = payloadParamActionCreator(SCM_ONBOARDING_REPOSITORY_SELECTION_CHANGED);
 
 export const setSelectedOrganization = payloadParamActionCreator(SCM_ONBOARDING_SET_TARGET_ORGANIZATION);
 
@@ -95,6 +108,8 @@ export default function scmOnboarding() {
     loadConfig,
     loadOrganizations,
     loadRepositories,
-    loadOrgHostUrl
+    onRepositorySelectionChanged,
+    loadOrgHostUrl,
+    importSelectedRepositories
   };
 }

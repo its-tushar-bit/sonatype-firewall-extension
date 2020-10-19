@@ -14,8 +14,8 @@ import {
 describe('scmOnboardingActions', function() {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios),
       manifestScanConfigUrl = getScmOnboardingConfigUrl(),
-      manifestScanConfigPayload = {
-        manifestScanFeatureEnabled: true
+      scmOnboardingConfigPayload = {
+        scmOnboardingFeatureEnabled: true
       },
       organizationsUrl = getOrganizationsUrl(),
       organizationsPayload = [{
@@ -27,7 +27,7 @@ describe('scmOnboardingActions', function() {
 
   beforeEach(function() {
     state = {
-      manifestScanFeatureEnabled: false
+      scmOnboardingFeatureEnabled: false
     };
     store = SpecUtil.mockReduxStore(state);
   });
@@ -47,7 +47,7 @@ describe('scmOnboardingActions', function() {
     it('dispatches a SCM_ONBOARDING_LOAD_CONFIG_REQUESTED action', function() {
       mockAxiosCalls({
         get: {
-          [manifestScanConfigUrl]: Promise.resolve(manifestScanConfigPayload)
+          [manifestScanConfigUrl]: Promise.resolve(scmOnboardingConfigPayload)
         }
       });
 
@@ -64,7 +64,7 @@ describe('scmOnboardingActions', function() {
       beforeEach(function() {
         mockAxiosCalls({
           get: {
-            [manifestScanConfigUrl]: Promise.resolve(manifestScanConfigPayload)
+            [manifestScanConfigUrl]: Promise.resolve(scmOnboardingConfigPayload)
           }
         });
       });
@@ -137,6 +137,19 @@ describe('scmOnboardingActions', function() {
         });
       });
     }
+  });
+
+  describe('onRepositorySelectionChanged', function() {
+    it('dispatches an event', function() {
+      store = SpecUtil.mockReduxStore(state);
+
+      let repo = {isSelected: true};
+      // TODO flesh this out in INT-3479. Not sure if we even want this to be an action at all
+      store.dispatch(scmOnboardingActions.onRepositorySelectionChanged(repo));
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toEqual('SCM_ONBOARDING_REPOSITORY_SELECTION_CHANGED');
+    });
   });
 
   describe('load repositories', function() {

@@ -84,7 +84,9 @@ public class PolicyEvaluatorCli
     return instantiate(type, params);
   }
 
-  protected <T extends PolicyEvaluator> T instantiate(final Class<T> type, final AbstractParameters params) {
+  protected <T extends PolicyEvaluator> T instantiate(final Class<T> type, final AbstractParameters params)
+      throws ExitException
+  {
     return org.eclipse.sisu.launch.Main.boot(type, params.getArgs());
   }
 }

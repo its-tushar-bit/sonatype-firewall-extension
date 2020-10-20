@@ -39,13 +39,13 @@ import org.slf4j.LoggerFactory;
 
 public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 {
-  private static final Logger log = LoggerFactory.getLogger(AbstractPolicyEvaluator.class);
-
   public static final String MINIMAL_SERVER_VERSION_REQUIRED = "1.69.0";
 
-  private final Scanner scanner;
+  private static final Logger log = LoggerFactory.getLogger(AbstractPolicyEvaluator.class);
 
   protected final RestClientFactory restClientFactory;
+
+  private final Scanner scanner;
 
   protected AbstractPolicyEvaluator(Scanner scanner,
                                     RestClientFactory restClientFactory)

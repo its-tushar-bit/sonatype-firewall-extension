@@ -18,12 +18,15 @@ import com.sonatype.insight.scan.model.io.ScanWriterFactory;
 /**
  * Graal has issues with Guice & Sisu. Until we figure that out, this is a custom instance of the Cli which manually
  * defines all the dependencies.
+ *
+ * Note: Tests for this class are in https://github.com/sonatype/native-image-nexus-iq-cli/. This class is in the main
+ * IQ repository as obfuscation prevents it being used as a dependency.
  */
 public class GraalPolicyEvaluatorCli
     extends PolicyEvaluatorCli
 {
   public static void main(String[] args) {
-    Parameters params = new Parameters(args);
+    GraalParameters params = new GraalParameters(args);
 
     Class<? extends PolicyEvaluator> policyEvaluatorClass = params
         .isExpandedCoverageMode() ? ExpandedCoveragePolicyEvaluator.class : DefaultPolicyEvaluator.class;
@@ -32,7 +35,8 @@ public class GraalPolicyEvaluatorCli
   }
 
   @Override
-  protected <T extends PolicyEvaluator> T instantiate(Class<T> type, AbstractParameters params) {
+  protected <T extends PolicyEvaluator> T instantiate(Class<T> type, AbstractParameters params) throws ExitException {
+    GraalSslContext.maybeDoCustomSslContext(params);
     JavaDigester javaDigester = new JavaDigester();
 
     Digester digester = new DefaultDigester(javaDigester);

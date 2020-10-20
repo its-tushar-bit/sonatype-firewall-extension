@@ -55,10 +55,6 @@ public class ListWaiversPage
     return child(".nx-btn--tertiary");
   }
 
-  public SelenideElement waiverListTable() {
-    return child(".nx-table");
-  }
-
   public SelenideElement policyName() {
     return child(".list-waivers--threat-indicator .iq-threat-level");
   }
@@ -77,5 +73,63 @@ public class ListWaiversPage
 
   public SelenideElement componentName() {
     return child(".list-waivers--component-name div");
+  }
+
+  public WaiverListTable waiverListTable() {
+    return new WaiverListTable();
+  }
+
+  public class WaiverListTable
+      extends BasicElement<WaiverListTable>
+  {
+    static final String ROW_SELECTOR = "tbody .nx-table-row";
+
+    WaiverListTable() {
+      super(ROOT, "#list-waivers-page-waiver-table");
+    }
+
+    public WaiverListRow headerRow() {
+      return new WaiverListRow(childSelector("thead .nx-table-row"));
+    }
+
+    public ElementsCollection rows() {
+      return children(ROW_SELECTOR);
+    }
+
+    public WaiverListRow row(int i) {
+      return new WaiverListRow(childSelector(ROW_SELECTOR, nthChild(i)));
+    }
+
+    public SelenideElement noWaiversMessage() {
+      return child("tbody tr td.nx-cell--empty");
+    }
+  }
+
+  public class WaiverListRow
+      extends BasicElement<WaiverListRow>
+  {
+    public WaiverListRow(String selector) {
+      super(selector);
+    }
+
+    public SelenideElement dateCreated() {
+      return child(".nx-cell", nthChild(1));
+    }
+
+    public SelenideElement scope() {
+      return child(".nx-cell", nthChild(2));
+    }
+
+    public SelenideElement components() {
+      return child(".nx-cell", nthChild(3));
+    }
+
+    public SelenideElement waiverExpiration() {
+      return child(".nx-cell", nthChild(4));
+    }
+
+    public SelenideElement comments() {
+      return child(".nx-cell", nthChild(5));
+    }
   }
 }

@@ -29,6 +29,8 @@ describe('ListWaiversPageContainer', function() {
 
     state = {
       violationPage: {
+        activeWaivers: [],
+        expiredWaivers: [],
         loading: false,
         violationDetails: {},
         violationDetailsError: {}
@@ -45,6 +47,8 @@ describe('ListWaiversPageContainer', function() {
   it('maps the state slice to props', () => {
     let wrapper = shallow(vdom).dive();
 
+    expect(wrapper).toHaveProp('activeWaivers', []);
+    expect(wrapper).toHaveProp('expiredWaivers', []);
     expect(wrapper).toHaveProp('loading', false);
     expect(wrapper).toHaveProp('violationId', 'foo');
     expect(wrapper).toHaveProp('violationDetails', {});

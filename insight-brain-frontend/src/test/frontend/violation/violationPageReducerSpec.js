@@ -32,6 +32,7 @@ describe('violationPageReducer', function() {
       expect(newState.vulnerabilityDetails).toBe(null);
       expect(newState.vulnerabilityDetailsError).toBe(null);
       expect(newState.activeWaivers).toEqual([]);
+      expect(newState.expiredWaivers).toEqual([]);
     });
 
     it('is immutable', function() {
@@ -59,6 +60,10 @@ describe('violationPageReducer', function() {
       expect(() => {
         state.activeWaivers.push({});
       }).toThrowError(TypeError);
+
+      expect(() => {
+        state.expiredWaivers.push({});
+      }).toThrowError(TypeError);
     });
   });
 
@@ -83,7 +88,8 @@ describe('violationPageReducer', function() {
         vulnerabilityDetailsLoading: false,
         vulnerabilityDetails: null,
         vulnerabilityDetailsError: null,
-        activeWaivers: []
+        activeWaivers: [],
+        expiredWaivers: []
       });
     });
   });
@@ -101,7 +107,10 @@ describe('violationPageReducer', function() {
         type: 'LOAD_VIOLATION_FULFILLED',
         payload: {
           violationDetails: { foo: 'bar' },
-          applicableWaivers: { activeWaivers: ['activeWaiver'] }
+          applicableWaivers: {
+            activeWaivers: ['activeWaiver'],
+            expiredWaivers: ['expiredWaiver']
+          }
         }
       });
 
@@ -110,7 +119,8 @@ describe('violationPageReducer', function() {
         violationDetailsError: null,
         violationDetails: { foo: 'bar' },
         otherProp: 'asdf',
-        activeWaivers: ['activeWaiver']
+        activeWaivers: ['activeWaiver'],
+        expiredWaivers: ['expiredWaiver']
       });
     });
   });

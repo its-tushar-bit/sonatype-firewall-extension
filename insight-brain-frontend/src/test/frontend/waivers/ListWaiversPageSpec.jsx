@@ -13,6 +13,7 @@ import { faPlus } from '@fortawesome/free-solid-svg-icons';
 describe('ListWaiversPage', function() {
   let minimalProps,
       ListWaiversPage,
+      ListWaiversTableMock,
       MaximizedContainerMock,
       loadViolationSpy,
       stateMock,
@@ -22,11 +23,14 @@ describe('ListWaiversPage', function() {
       getShallowComponent;
 
   beforeEach(function() {
+    ListWaiversTableMock = jasmine.createSpy('ListWaiversTableMock')
+        .and.returnValue(<div>ListWaiversTable</div>);
     MaximizedContainerMock = jasmine.createSpy('MaximizedContainerMock')
         .and.returnValue(<div>MaximizedContainer</div>);
 
     ListWaiversPage = require('inject-loader!../../../main/frontend/waivers/ListWaiversPage')({
-      '../react/MaximizedContainer': MaximizedContainerMock
+      '../react/MaximizedContainer': MaximizedContainerMock,
+      './ListWaiversTable': ListWaiversTableMock
     }).default;
 
     loadViolationSpy = jasmine.createSpy('loadViolationSpy');
@@ -129,8 +133,8 @@ describe('ListWaiversPage', function() {
     const component = getShallowComponent();
     const nxTiles = component.find('.nx-tile');
     expect(nxTiles.length).toEqual(2);
-    expect(nxTiles.at(0).find('.nx-h2')).toHaveText('Waiver Details');
-    expect(nxTiles.at(1).find('.nx-h2')).toHaveText('Waiver List Table');
+    expect(nxTiles.at(0).find('.nx-h2')).toHaveText('Violation Details');
+    expect(nxTiles.at(1).find('.nx-h2')).toHaveText('Applicable Waivers');
   });
 
   it('properly renders the constraint section', function() {
@@ -173,9 +177,18 @@ describe('ListWaiversPage', function() {
     expect(stateGoSpy).toHaveBeenCalledWith('addWaiver', { violationId: 'violationId' });
   });
 
-  it('renders an .nx-table', function() {
-    const component = getShallowComponent();
-    const table = component.find('.nx-table');
+  it('renders the ListWaiversTable component', function() {
+    const activeWaivers = [{ foo: 'bar1'}];
+    const expiredWaivers = [{ foo: 'bar2'}];
+    const component = getShallowComponent({
+      activeWaivers: activeWaivers,
+      expiredWaivers: expiredWaivers,
+      violationDetails: violationDetailsMock
+    });
+    const table = component.find(ListWaiversTableMock);
     expect(table).toExist();
+    expect(table).toHaveProp('activeWaivers', activeWaivers);
+    expect(table).toHaveProp('expiredWaivers', expiredWaivers);
+    expect(table).toHaveProp('violationDetails', violationDetailsMock);
   });
 });

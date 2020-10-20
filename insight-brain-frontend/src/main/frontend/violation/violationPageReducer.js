@@ -21,7 +21,8 @@ const initialState = Object.freeze({
   vulnerabilityDetailsLoading: false,
   vulnerabilityDetails: null,
   vulnerabilityDetailsError: null,
-  activeWaivers: Object.freeze([])
+  activeWaivers: Object.freeze([]),
+  expiredWaivers: Object.freeze([])
 });
 
 const reducerActionMap = {
@@ -47,7 +48,8 @@ function loadViolationFulfilled({ violationDetails, applicableWaivers }, state) 
     loading: false,
     violationDetailsError: null,
     violationDetails,
-    activeWaivers: [...applicableWaivers.activeWaivers]
+    activeWaivers: applicableWaivers.activeWaivers,
+    expiredWaivers: applicableWaivers.expiredWaivers
   };
 }
 

@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+@import '~@sonatype/react-shared-components/scss-shared/nx-colors';
 @import '~@sonatype/react-shared-components/scss-shared/nx-variables';
 
 .list-waivers-page {
@@ -19,5 +20,9 @@
 
   .list-waivers--constraint, .list-waivers--conditions, .list-waivers--component-name {
     margin-bottom: $nx-spacing-xl;
+  }
+
+  .list-waivers-row--expired {
+    background-color: $nx-grey-2;
   }
 }

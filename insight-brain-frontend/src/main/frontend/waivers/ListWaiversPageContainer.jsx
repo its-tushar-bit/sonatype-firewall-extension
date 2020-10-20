@@ -11,7 +11,7 @@ import { loadViolation } from '../violation/violationPageActions';
 
 function mapStateToProps({ violationPage, router }) {
   return {
-    ...pick(['loading', 'violationDetails', 'violationDetailsError'], violationPage),
+    ...pick(['activeWaivers', 'expiredWaivers', 'loading', 'violationDetails', 'violationDetailsError'], violationPage),
     ...pick(['violationId'], router.currentParams)
   };
 }

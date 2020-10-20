@@ -15,9 +15,12 @@ import ViolationExclamation from '../react/ViolationExclamation';
 import { extractViolationDetails } from '../util/violationDetailsUtil';
 import { violationDetailsPropTypes } from '../violation/ViolationDetailsTile';
 import { constraintViolationsPropType } from '../violation/PolicyViolationConstraintInfoTile';
+import ListWaiversTable, { waiverType } from './ListWaiversTable';
 
 export default function ListWaiversPage(props) {
   const {
+    activeWaivers,
+    expiredWaivers,
     loadViolation,
     violationId,
     loading,
@@ -59,7 +62,7 @@ export default function ListWaiversPage(props) {
           </div>
           <div className="nx-tile">
             <div className="nx-tile-header nx-tile-header--hrule">
-              <h2 className="nx-h2">Waiver Details</h2>
+              <h2 className="nx-h2">Violation Details</h2>
             </div>
             <div className="nx-tile-content list-waivers--details">
               <div className="list-waivers--constraint">
@@ -83,7 +86,7 @@ export default function ListWaiversPage(props) {
           <div className="nx-tile">
             <div className="nx-tile-header">
               <div className="nx-tile-header__title">
-                <h2 className="nx-h2">Waiver List Table</h2>
+                <h2 className="nx-h2">Applicable Waivers</h2>
               </div>
               <div className="nx-tile__actions">
                 <NxButton className="nx-btn--tertiary" onClick={ redirectToAddWaiverPage }>
@@ -93,26 +96,7 @@ export default function ListWaiversPage(props) {
               </div>
             </div>
             <div className="nx-tile-content">
-              <table className="nx-table">
-                <thead>
-                  <tr className="nx-table-row nx-table-row--header">
-                    <th className="nx-cell nx-cell--header">DATE CREATED</th>
-                    <th className="nx-cell nx-cell--header">SCOPE</th>
-                    <th className="nx-cell nx-cell--header">COMPONENTS</th>
-                    <th className="nx-cell nx-cell--header">WAIVER EXPIRATION</th>
-                    <th className="nx-cell nx-cell--header">COMMENTS</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="nx-table-row">
-                    <td className="nx-cell">Foo</td>
-                    <td className="nx-cell">Bar</td>
-                    <td className="nx-cell">Baz</td>
-                    <td className="nx-cell">Qux</td>
-                    <td className="nx-cell">Quux</td>
-                  </tr>
-                </tbody>
-              </table>
+              <ListWaiversTable { ...({ activeWaivers, expiredWaivers, violationDetails }) }/>
             </div>
           </div>
         </LoadWrapper>
@@ -122,6 +106,8 @@ export default function ListWaiversPage(props) {
 }
 
 ListWaiversPage.propTypes = {
+  activeWaivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
+  expiredWaivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
   violationDetailsError: PropTypes.any,
   loading: PropTypes.bool,
   loadViolation: PropTypes.func.isRequired,

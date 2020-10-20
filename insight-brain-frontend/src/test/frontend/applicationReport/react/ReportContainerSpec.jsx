@@ -32,7 +32,11 @@ describe('ReportContainer component', function() {
         metadata: { reportTitle: 'title' },
         selectedReport: { reportVersion: 5 },
         aggregate: true,
-        exactValueFilters: { matchState: 'unknown'}
+        exactValueFilters: { matchState: 'unknown'},
+        substringFilters: {
+          policyName: 'policyName',
+          derivedComponentName: 'derivedComponentName'
+        }
       },
       router: {
         currentParams: {
@@ -63,6 +67,10 @@ describe('ReportContainer component', function() {
     expect(wrapper).toHaveProp('selectedReport', { reportVersion: 5 });
     expect(wrapper).toHaveProp('aggregate', true);
     expect(wrapper).toHaveProp('exactValueFilters', { matchState: 'unknown'});
+    expect(wrapper).toHaveProp('substringFilters', {
+      policyName: 'policyName',
+      derivedComponentName: 'derivedComponentName'
+    });
   });
 
 });

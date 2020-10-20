@@ -9,10 +9,12 @@ import {
   NxTableHead,
   NxTableRow,
   NxTableCell,
-  NxTableBody
+  NxTableBody,
+  NxFilterInput
 } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import ReportTableRow from './ReportTableRow';
+import { propOr } from 'ramda';
 
 const policyThreatLevelSettings = {
   key: 'policyThreatLevel',
@@ -35,8 +37,18 @@ const getDirection = (sortConfig, key) => {
 
 export default function ReportContent(props) {
 
-  const { selectedReport, sortConfiguration, setSortingParameters, setSorting } = props;
+  const {
+    selectedReport,
+    substringFilters,
+    sortConfiguration,
+    setSortingParameters,
+    setSorting,
+    setStringFieldFilter
+  } = props;
   const displayedEntries = selectedReport ? selectedReport.displayedEntries : [];
+  const getSubstringFiltersProp = propName => propOr('', propName, substringFilters);
+  const policyNameFilter = getSubstringFiltersProp('policyName');
+  const derivedComponentNameFilter = getSubstringFiltersProp('derivedComponentName');
 
   function requestSort(settings) {
     let direction = 'asc';
@@ -58,13 +70,21 @@ export default function ReportContent(props) {
     setSorting(sortingOrder, displayedEntries);
   }
 
+  const filterPolicyName = (filter) => {
+    setStringFieldFilter('policyName', filter);
+  };
+
+  const filterDerivedComponentName = (filter) => {
+    setStringFieldFilter('derivedComponentName', filter);
+  };
+
   const dirPolicyThreatLevel = getDirection(sortConfiguration, 'policyThreatLevel');
   const dirPolicyName = getDirection(sortConfiguration, 'policyName');
   const dirComponentName = getDirection(sortConfiguration, 'derivedComponentName');
 
   return (
     <div className="nx-tile-content nx-scrollable nx-scrollable--report-table">
-      <NxTable className="nx-table--scrollable">
+      <NxTable className="nx-table-border nx-table--scrollable">
         <NxTableHead>
           <NxTableRow>
             <NxTableCell isSortable sortDir={dirPolicyThreatLevel} onClick={() =>
@@ -76,6 +96,22 @@ export default function ReportContent(props) {
             </NxTableCell>
             <NxTableCell isSortable sortDir={dirComponentName} onClick={() => requestSort(componentNameSettings)}>
               Component
+            </NxTableCell>
+          </NxTableRow>
+          <NxTableRow className="nx-table-row--filter-header">
+            <NxTableCell colSpan={2} className="nx-cell-policy-name">
+              <NxFilterInput className="nx-filter-input"
+                             placeholder="policy name"
+                             onChange={filterPolicyName}
+                             value={policyNameFilter}
+              />
+            </NxTableCell>
+            <NxTableCell className="nx-cell-component-name">
+              <NxFilterInput className="nx-filter-input"
+                             placeholder="component name"
+                             onChange={filterDerivedComponentName}
+                             value={derivedComponentNameFilter}
+              />
             </NxTableCell>
           </NxTableRow>
         </NxTableHead>
@@ -113,6 +149,12 @@ ReportContent.propTypes = {
     sortFields: PropTypes.arrayOf(PropTypes.string),
     dir: PropTypes.string
   }),
+  substringFilters: PropTypes.shape({
+    policyName: PropTypes.string,
+    derivedComponentName: PropTypes.string
+  }),
+  // actions
   setSorting: PropTypes.func,
-  setSortingParameters: PropTypes.func
+  setSortingParameters: PropTypes.func,
+  setStringFieldFilter: PropTypes.func
 };

@@ -139,6 +139,10 @@ describe('Report Page component', function() {
         key: 'policyThreatLevel',
         sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
         dir: 'desc'
+      },
+      substringFilters: {
+        policyName: 'policyName',
+        derivedComponentName: 'derivedComponentName'
       }
     };
 
@@ -146,5 +150,6 @@ describe('Report Page component', function() {
     expect(reportContent).toExist();
     expect(reportContent).toHaveProp('selectedReport', props.selectedReport);
     expect(reportContent).toHaveProp('sortConfiguration', props.sortConfiguration);
+    expect(reportContent).toHaveProp('substringFilters', props.substringFilters);
   });
 });

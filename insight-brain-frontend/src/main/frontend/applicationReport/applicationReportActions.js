@@ -248,7 +248,7 @@ export const setSorting = payloadParamActionCreator(SET_SORTING);
 
 export const setAggregateReportEntries = payloadParamActionCreator(SET_AGGREGATE_REPORT_ENTRIES);
 
-function setStringFieldFilter(fieldName, filterString) {
+export function setStringFieldFilter(fieldName, filterString) {
   return {
     type: SET_SUBSTRING_FIELD_FILTER,
     payload: { fieldName, filterString }

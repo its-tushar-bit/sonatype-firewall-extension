@@ -5,7 +5,14 @@
  */
 import * as enzymeUtils from '../../enzymeUtils';
 import ReportContent from '../../../../main/frontend/applicationReport/react/ReportContent';
-import {NxTable, NxTableBody, NxTableCell, NxTableHead, NxTableRow} from '@sonatype/react-shared-components';
+import {
+  NxTable,
+  NxTableBody,
+  NxTableCell,
+  NxTableHead,
+  NxTableRow,
+  NxFilterInput
+} from '@sonatype/react-shared-components';
 
 describe('ReportContent component', function() {
   let getShallowComponent;
@@ -112,6 +119,55 @@ describe('ReportContent component', function() {
     expect(firstRowTds.at(1)).toHaveProp('isSortable', true);
     expect(firstRowTds.at(1)).toHaveProp('sortDir', 'asc');
     expect(firstRowTds.at(2)).toHaveProp('isSortable', true);
+  });
+
+  it('render the table header with filters', function() {
+
+    const setStringFieldFilterSpy = jasmine.createSpy('setStringFieldFilter');
+
+    const props = {
+      setStringFieldFilter: setStringFieldFilterSpy,
+      selectedReport: {
+        displayedEntries: [
+          {
+            derivedComponentName: 'Component A',
+            policyName: 'None',
+            policyThreatLevel: 0
+          },
+          {
+            derivedComponentName: 'Component B',
+            policyName: 'Security-High',
+            policyThreatLevel: 9
+          }
+        ]
+      },
+      sortConfiguration: {
+        key: 'policyThreatLevel',
+        sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
+        dir: 'desc'
+      },
+      substringFilters: {
+        policyName: 'policyName',
+        derivedComponentName: 'derivedComponentName'
+      }
+    };
+
+    const shallowComponent = getShallowComponent(props),
+        head = shallowComponent.find(NxTableHead),
+        rows = head.find(NxTableRow),
+        secondRowTds = rows.at(1).find(NxTableCell),
+        policyNameFilter = secondRowTds.at(0).find(NxFilterInput),
+        derivedComponentNameFilter = secondRowTds.at(1).find(NxFilterInput);
+
+    expect(policyNameFilter).toHaveProp('placeholder', 'policy name');
+    expect(policyNameFilter).toHaveProp('value', 'policyName');
+    expect(derivedComponentNameFilter).toHaveProp('placeholder', 'component name');
+    expect(derivedComponentNameFilter).toHaveProp('value', 'derivedComponentName');
+    policyNameFilter.simulate('change', 'High');
+    derivedComponentNameFilter.simulate('change', 'A');
+    expect(setStringFieldFilterSpy).toHaveBeenCalledWith('policyName', 'High');
+    expect(setStringFieldFilterSpy).toHaveBeenCalledWith('derivedComponentName', 'A');
+
   });
 
   it('renders a ReportTableRow for each entry', function() {

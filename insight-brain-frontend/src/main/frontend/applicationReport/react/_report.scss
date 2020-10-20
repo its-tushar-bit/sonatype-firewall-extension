@@ -24,6 +24,7 @@
 
 .nx-scrollable.nx-scrollable--report-table {
   max-height: 600px;
+  width: 100%;
 }
 
 .nx-table--scrollable {
@@ -53,5 +54,35 @@
     position: sticky;
     top: 0;
     z-index: 1;
+    border-bottom: transparent;
   }
+
+  .nx-cell-policy-name {
+    width: 215px;
+  }
+
+  .nx-cell-component-name {
+    width: 656px;
+  }
+
+}
+
+.nx-table-row--filter-header > .nx-cell--header {
+  top: 28px;
+  border-bottom: 1px solid transparent;
+  border-top: 1px solid $iq-grey-5;
+}
+
+.nx-filter-input {
+  width: 100%;
+
+  > .nx-filter-text-input {
+    height: 18px;
+    padding-left: 0;
+    width: calc(100% - 30px);
+  }
+}
+
+.nx-table-border.nx-table {
+  border-collapse: separate;
 }

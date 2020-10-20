@@ -21,6 +21,7 @@ export default function ReportPage(props) {
     setSortingParameters,
     setExactValueFilter,
     setAggregateReportEntries,
+    setStringFieldFilter,
     // state
     publicId,
     scanId,
@@ -34,6 +35,7 @@ export default function ReportPage(props) {
     sortConfiguration,
     aggregate,
     exactValueFilters,
+    substringFilters,
     $state
   } = props;
 
@@ -73,8 +75,10 @@ export default function ReportPage(props) {
             </div>
             <div className="nx-tile">
               <ReportContent selectedReport={selectedReport}
+                             substringFilters={substringFilters}
                              setSorting={setSorting}
                              sortConfiguration={sortConfiguration}
+                             setStringFieldFilter={setStringFieldFilter}
                              setSortingParameters={setSortingParameters}/>
             </div>
           </div>
@@ -95,6 +99,7 @@ ReportPage.propTypes = {
   reevaluateReport: PropTypes.func.isRequired,
   stateGo: PropTypes.func.isRequired,
   setSorting: PropTypes.func,
+  setStringFieldFilter: PropTypes.func,
   setSortingParameters: PropTypes.func,
   setExactValueFilter: PropTypes.func.isRequired,
   setAggregateReportEntries: PropTypes.func.isRequired,
@@ -143,5 +148,9 @@ ReportPage.propTypes = {
   sortConfiguration: PropTypes.shape({
     sortFields: PropTypes.arrayOf(PropTypes.string),
     dir: PropTypes.string
+  }),
+  substringFilters: PropTypes.shape({
+    policyName: PropTypes.string,
+    derivedComponentName: PropTypes.string
   })
 };

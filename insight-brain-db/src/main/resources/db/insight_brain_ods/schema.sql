@@ -353,7 +353,7 @@ CREATE TABLE policy_evaluation (
   for_obsolete_scan bool DEFAULT false NOT NULL,
   time timestamp NOT NULL,
   commit_hash varchar(128),
-  initiator varchar(50) NOT NULL,
+  initiator varchar(60) NOT NULL,
   CONSTRAINT policy_evaluation_pk PRIMARY KEY (policy_evaluation_id),
   CONSTRAINT policy_evaluation_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id)
 );
@@ -748,7 +748,7 @@ CREATE TABLE source_control_event (
   pull_request_contents text,
   pull_request_number int,
   scm_username varchar(255),
-  initiator varchar(50),
+  initiator varchar(60),
   create_time timestamp NOT NULL,
   start_time timestamp,
   complete_time timestamp,

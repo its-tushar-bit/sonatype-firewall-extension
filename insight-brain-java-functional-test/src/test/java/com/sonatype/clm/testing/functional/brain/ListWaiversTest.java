@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.brain;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
@@ -113,13 +114,16 @@ public class ListWaiversTest
 
   @Test
   public void testWaiverListTable() {
+    Instant now = Instant.now();
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy").withZone(ZoneId.systemDefault());
+    String nowStr = formatter.format(now);
+    Instant fiveDaysAgo = now.minus(5, ChronoUnit.DAYS);
+
     tempEntity.newWaiver(null, securityPolicy1.getId(), organization.getId(),
         policyViolation.getConstraintFacts(), null,
         Date.from(LocalDate.parse("2020-05-05").atStartOfDay(ZoneId.of("America/New_York")).toInstant()));
     tempEntity.newWaiver("hash1", securityPolicy1.getId(), application.getId(),
-        policyViolation.getConstraintFacts(), "Comment 1",
-        Date.from(LocalDate.parse("2020-10-05").atStartOfDay(ZoneId.of("America/New_York")).toInstant()),
-        Date.from(LocalDate.parse("2020-05-05").atStartOfDay(ZoneId.of("America/New_York")).toInstant()));
+        policyViolation.getConstraintFacts(), "Comment 1", Date.from(now), Date.from(fiveDaysAgo));
     refreshOrOpen(ListWaiversPage.url(policyViolation.getId()));
 
     ListWaiversPage listWaiversPage = new ListWaiversPage();
@@ -139,10 +143,10 @@ public class ListWaiversTest
 
     WaiverListRow row2 = waiverListTable.row(2);
     row2.shouldHave(cssClass("list-waivers-row--expired"));
-    row2.dateCreated().shouldHave(text("10/05/20"));
+    row2.dateCreated().shouldHave(text(nowStr));
     row2.scope().shouldHave(text("Application - App 1"));
     row2.components().shouldHave(text("Group1 : Artifact1 : Version1"));
-    row2.waiverExpiration().shouldHave(text("5 months ago"));
+    row2.waiverExpiration().shouldHave(text("5 days ago"));
     row2.comments().shouldHave(text("Comment 1"));
 
     eyesWatcher.eyesCheck();

@@ -22,6 +22,7 @@ import DashboardFilterFooter from './DashboardFilterFooter';
 import SaveFilterModalContainer from '../saveFilterModal/SaveFilterModalContainer';
 import ManageFiltersDropdown from '../manageFiltersDropdown/ManageFiltersDropdown';
 import DeleteFilterModalContainer from '../deleteFilterModal/DeleteFilterModalContainer';
+import TopModalRenderer from '../../../react/TopModalRenderer';
 
 export default function DashboardFilter(props) {
   const {
@@ -94,7 +95,7 @@ export default function DashboardFilter(props) {
 
   return (
     <div className="dashboard-filter-container">
-      { showSaveFilterModal && <SaveFilterModalContainer/> }
+      { showSaveFilterModal && <TopModalRenderer><SaveFilterModalContainer/></TopModalRenderer> }
       { filterToDelete && <DeleteFilterModalContainer/> }
       <div className="dashboard-filter-header" id="dashboard-filter-header">
         {/* Not wrapping ManageFiltersDropdown with label to prevent label clicks from triggering dropdown toggle */}

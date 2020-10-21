@@ -32,7 +32,9 @@ public class LockDAO
 
   public void createLock(String lockId) {
     try {
-      insert(new Lock(lockId));
+      if (getById(lockId) == null) {
+        insert(new Lock(lockId));
+      }
     }
     catch (RollbackException e) {
       if (!(e.getCause() instanceof EntityExistsException)) {

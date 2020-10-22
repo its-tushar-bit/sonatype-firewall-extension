@@ -24,24 +24,6 @@ describe('scmOnboardingReducer', function() {
     });
   });
 
-  describe('SCM_ONBOARDING_REPOSITORY_SELECTION_CHANGED action', function() {
-    it('increments after a selection changed event', function() {
-      // TODO flesh this out in INT-3479. Not sure if we even want this to be in the reducer at all
-      const state = Object.freeze({selectedRepositoryCount: 1});
-
-      // when reduce is invoked
-      const newState = reduce(state, {
-        type: 'SCM_ONBOARDING_REPOSITORY_SELECTION_CHANGED',
-        payload: {
-          isSelected: true
-        }
-      });
-
-      // then count is updated
-      expect(newState.selectedRepositoryCount).toBe(2);
-    });
-  });
-
   describe('SCM_ONBOARDING_LOAD_CONFIG_FULFILLED action', function() {
     it('populates state from configuration', function() {
       // given SCM configuration from IQ server

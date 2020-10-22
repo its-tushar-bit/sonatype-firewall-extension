@@ -51,12 +51,28 @@ public class ScmOnboardingPage
     return children(".iq-scm-repository-namespace");
   }
 
+  public SelenideElement resultsTableSelectAll() {
+    return child("#select-all");
+  }
+
+  public SelenideElement selectionCheckboxById(String id) {
+    return child(".nx-checkbox", "#" + id);
+  }
+
+  public SelenideElement projectFilter() {
+    return child("#project-filter input");
+  }
+
   public SelenideElement repositoryCount() {
     return child("#repository-count");
   }
 
   public SelenideElement selectedTotalCount() {
     return child("#selected-total-count");
+  }
+
+  public SelenideElement selectedRepositoryCount() {
+    return child("#selected-repository-count");
   }
 
   public SelenideElement backButton() {

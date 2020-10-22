@@ -23,11 +23,9 @@ export default function ResultsTable(props) {
   const {
     loadingRepositories,
     repositories,
-    selectedRepositoryCount,
     importedRepositoryCount,
 
     // actions
-    onRepositorySelectionChanged,
     importSelectedRepositories
   } = props;
 
@@ -38,19 +36,25 @@ export default function ResultsTable(props) {
     return 0.0;
   }
 
-  function filterRepository(repo) {
-    return repo.project.includes(projectFilter)
-        && repo.namespace.includes(namespaceFilter)
-        && repo.description.includes(descriptionFilter);
+  const [filters, setFilters] = useState({project: '', namespace: '', description: ''}),
+      [isAllChecked, setIsAllChecked] = useState(false),
+      [selectedRepositories, setSelectedRepositories] = useState([]);
+
+  function isRepositorySelectedByFilter(repository) {
+    return repository.project.includes(filters.project)
+        && repository.namespace.includes(filters.namespace)
+        && repository.description.includes(filters.description);
   }
 
-  const [projectFilter, setProjectFilter] = useState(''),
-      [namespaceFilter, setNamespaceFilter] = useState(''),
-      [descriptionFilter, setDescriptionFilter] = useState('');
-
-  let isAllChecked = false;
   function toggleSelectAll() {
-    // TODO handle select all, INT-3479
+    setIsAllChecked(!isAllChecked);
+    setSelectedRepositories(repositories.filter(repo => isRepositorySelectedByFilter(repo) && !isAllChecked));
+  }
+
+  function changeFilter(filterName, filterValue) {
+    setFilters(Object.assign({}, filters, {[filterName]: filterValue}));
+    setSelectedRepositories(repositories.filter(repo => repo[filterName].includes(filterValue)
+        && selectedRepositories.includes(repo)));
   }
 
   return (
@@ -91,31 +95,35 @@ export default function ResultsTable(props) {
               <NxTableRow isHeader>
                 <NxTableCell className="nx-cell--filter">
                   <NxFilterInput
-                      value={ namespaceFilter }
-                      onChange={ newValue => setNamespaceFilter(newValue)} />
+                      value={ filters.namespace }
+                      onChange={ filterValue => changeFilter('namespace', filterValue)}
+                      onClear={ () => changeFilter('namespace', '') }/>
                 </NxTableCell>
                 <NxTableCell hasIcon={true} className="nx-cell--filter">
                   <NxFilterInput
-                      value={ projectFilter }
-                      onChange={ newValue => setProjectFilter(newValue)} />
+                      id="project-filter"
+                      value={ filters.project }
+                      onChange={ filterValue => changeFilter('project', filterValue)}
+                      onClear={ () => changeFilter('project', '') }/>
                 </NxTableCell>
                 <NxTableCell className="nx-cell--filter">
                   <NxFilterInput
-                      value={ descriptionFilter }
-                      onChange={ newValue => setDescriptionFilter(newValue)} />
+                      value={ filters.description }
+                      onChange={ filterValue => changeFilter('description', filterValue)}
+                      onClear={ () => changeFilter('description', '') }/>
                 </NxTableCell>
                 <NxTableCell className="nx-cell--select-all">
-                  <NxCheckbox checkboxId='selectAll'
+                  <NxCheckbox checkboxId='select-all'
                               isChecked={isAllChecked}
                               onChange={toggleSelectAll}>All</NxCheckbox>
                 </NxTableCell>
               </NxTableRow>
             </NxTableHead>
             <NxTableBody>
-              { repositories.filter(repo => filterRepository(repo)).map(repo =>
+              { repositories.filter(repo => isRepositorySelectedByFilter(repo)).map(repo =>
                 <RepositoryRow repo={repo} key={repo.httpCloneUrl} rowKey={repo.httpCloneUrl}
-                               onSelectionChanged={() => onRepositorySelectionChanged(repo)}
-                />
+                               selectedRepositories={selectedRepositories}
+                               setSelectedRepositories={setSelectedRepositories} />
               )}
             </NxTableBody>
           </NxTable>
@@ -124,7 +132,8 @@ export default function ResultsTable(props) {
       {repositories.length > 0 &&
       <div className="nx-footer nx-footer--scmonboarding">
         <div className='iq-scmonboarding-stats-row'>
-          <h3 className='iq-caption_text iq-scmonboarding-stats-highlight'>{selectedRepositoryCount}</h3>
+          <h3 className='iq-caption_text iq-scmonboarding-stats-highlight'
+              id="selected-repository-count">{selectedRepositories.length}</h3>
           <div className='iq-scmonboarding-stats-column'>
             <h3 id='selected-total-count' className='iq-caption_text'>OF {repositories.length} REPOSITORIES</h3>
             <div className='iq-caption_subtext'>selected to import</div>
@@ -134,7 +143,7 @@ export default function ResultsTable(props) {
           <NxButton
             id="iq-scm-import-button"
             variant="primary"
-            disabled={selectedRepositoryCount <= 0}
+            disabled={selectedRepositories.length <= 0}
             onClick={() => importSelectedRepositories()}>
             Import Repositories
           </NxButton>
@@ -160,15 +169,15 @@ function RepositoryRow(props) {
   const {
     rowKey,
     repo,
-    onSelectionChanged
+    setSelectedRepositories,
+    selectedRepositories
   } = props;
 
-  const [isCheckedState, setIsCheckedState] = useState(false),
-      toggleSelection = () => {
-        repo.isSelected = !isCheckedState;
-        setIsCheckedState(!isCheckedState);
-        onSelectionChanged();
-      };
+  const toggleSelection = () => {
+    setSelectedRepositories(selectedRepositories.includes(repo)
+      ? selectedRepositories.filter(selectedRepo => selectedRepo !== repo)
+      : selectedRepositories.concat([repo]));
+  };
 
   return (
     <NxTableRow key={rowKey}>
@@ -176,7 +185,8 @@ function RepositoryRow(props) {
       <NxTableCell className='iq-scm-repository-project'>{repo.project}</NxTableCell>
       <NxTableCell className='iq-scm-repository-description'>{repo.description}</NxTableCell>
       <NxTableCell>
-        <NxCheckbox checkboxId={rowKey} isChecked={isCheckedState} onChange={toggleSelection}/>
+        <NxCheckbox checkboxId={rowKey} isChecked={selectedRepositories.includes(repo)}
+                    onChange={toggleSelection}/>
       </NxTableCell>
     </NxTableRow>
   );
@@ -184,5 +194,6 @@ function RepositoryRow(props) {
 RepositoryRow.propTypes = {
   rowKey: PropTypes.string,
   repo: PropTypes.shape(repositoryPropType).isRequired,
-  onSelectionChanged: PropTypes.func
+  setSelectedRepositories: PropTypes.func.isRequired,
+  selectedRepositories: PropTypes.array.isRequired
 };

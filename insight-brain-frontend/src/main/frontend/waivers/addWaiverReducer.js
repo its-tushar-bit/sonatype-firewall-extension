@@ -10,18 +10,18 @@ import { UI_ROUTER_ON_FINISH } from '../reduxUiRouter/routerActions';
 
 import { createReducerFromActionMap, propSetConst } from '../util/reduxUtil';
 import {
-  ADD_WAIVER_LOAD_DATA_REQUESTED,
-  ADD_WAIVER_LOAD_DATA_FULFILLED,
-  ADD_WAIVER_LOAD_DATA_FAILED,
-  ADD_WAIVER_SAVE_REQUESTED,
-  ADD_WAIVER_SAVE_FULFILLED,
-  ADD_WAIVER_SAVE_FAILED,
-  ADD_WAIVER_SUBMIT_MASK_TIMER_DONE,
-  ADD_WAIVER_SET_WAIVER_COMMENT,
-  ADD_WAIVER_SET_WAIVER_SCOPE,
-  ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS,
-  ADD_WAIVER_SET_EXPIRY_TIME
-} from './addWaiverActions';
+  WAIVERS_LOAD_SCOPE_DATA_REQUESTED,
+  WAIVERS_LOAD_SCOPE_DATA_FULFILLED,
+  WAIVERS_LOAD_SCOPE_DATA_FAILED,
+  WAIVERS_SAVE_WAIVER_REQUESTED,
+  WAIVERS_SAVE_WAIVER_FULFILLED,
+  WAIVERS_SAVE_WAIVER_FAILED,
+  WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE,
+  WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT,
+  WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE,
+  WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS,
+  WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME
+} from './waiverActions';
 import { propSet } from '../util/jsUtil';
 
 const initState = Object.freeze({
@@ -70,17 +70,17 @@ const setWaiverComment = (payload, state) => ({
 });
 
 const reducerActionMap = {
-  [ADD_WAIVER_LOAD_DATA_REQUESTED]: propSetConst('loading', true),
-  [ADD_WAIVER_LOAD_DATA_FULFILLED]: setWaiverData,
-  [ADD_WAIVER_LOAD_DATA_FAILED]: loadDataFailed,
-  [ADD_WAIVER_SAVE_REQUESTED]: saveWaiverRequested,
-  [ADD_WAIVER_SAVE_FULFILLED]: propSetConst('submitMaskState', true),
-  [ADD_WAIVER_SAVE_FAILED]: saveWaiverFailed,
-  [ADD_WAIVER_SUBMIT_MASK_TIMER_DONE]: propSetConst('submitMaskState', null),
-  [ADD_WAIVER_SET_WAIVER_COMMENT]: setWaiverComment,
-  [ADD_WAIVER_SET_WAIVER_SCOPE]: propSet('selectedWaiverScope'),
-  [ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS]: propSet('applyToAllComponents'),
-  [ADD_WAIVER_SET_EXPIRY_TIME]: propSet('expiryTime'),
+  [WAIVERS_LOAD_SCOPE_DATA_REQUESTED]: propSetConst('loading', true),
+  [WAIVERS_LOAD_SCOPE_DATA_FULFILLED]: setWaiverData,
+  [WAIVERS_LOAD_SCOPE_DATA_FAILED]: loadDataFailed,
+  [WAIVERS_SAVE_WAIVER_REQUESTED]: saveWaiverRequested,
+  [WAIVERS_SAVE_WAIVER_FULFILLED]: propSetConst('submitMaskState', true),
+  [WAIVERS_SAVE_WAIVER_FAILED]: saveWaiverFailed,
+  [WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE]: propSetConst('submitMaskState', null),
+  [WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT]: setWaiverComment,
+  [WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE]: propSet('selectedWaiverScope'),
+  [WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS]: propSet('applyToAllComponents'),
+  [WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME]: propSet('expiryTime'),
   [UI_ROUTER_ON_FINISH]: always(initState)
 };
 

@@ -11,17 +11,17 @@ import {
   getAddPolicyViolationWaiverUrl
 } from '../../../main/frontend/util/CLMLocation';
 import {
-  ADD_WAIVER_LOAD_DATA_REQUESTED,
-  ADD_WAIVER_LOAD_DATA_FULFILLED,
-  ADD_WAIVER_LOAD_DATA_FAILED,
-  ADD_WAIVER_SAVE_REQUESTED,
-  ADD_WAIVER_SAVE_FULFILLED,
-  ADD_WAIVER_SAVE_FAILED,
-  ADD_WAIVER_SUBMIT_MASK_TIMER_DONE,
-  ADD_WAIVER_SET_WAIVER_COMMENT,
-  ADD_WAIVER_SET_WAIVER_SCOPE,
-  ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS,
-  ADD_WAIVER_SET_EXPIRY_TIME,
+  WAIVERS_LOAD_SCOPE_DATA_REQUESTED,
+  WAIVERS_LOAD_SCOPE_DATA_FULFILLED,
+  WAIVERS_LOAD_SCOPE_DATA_FAILED,
+  WAIVERS_SAVE_WAIVER_REQUESTED,
+  WAIVERS_SAVE_WAIVER_FULFILLED,
+  WAIVERS_SAVE_WAIVER_FAILED,
+  WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE,
+  WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT,
+  WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE,
+  WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS,
+  WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME,
   saveWaiver,
   loadAddWaiverData,
   setWaiverComment,
@@ -29,7 +29,7 @@ import {
   setExpiryTime,
   setWaiverScope,
   returnToAddWaiverOriginPage
-} from '../../../main/frontend/waivers/addWaiverActions';
+} from '../../../main/frontend/waivers/waiverActions';
 import {
   LOAD_VIOLATION_REQUESTED,
   LOAD_VIOLATION_FULFILLED,
@@ -56,11 +56,11 @@ describe('addWaiverActions', function() {
   });
 
   describe('saveWaiver', function() {
-    it('immediately dispatches an ADD_WAIVER_SAVE_REQUESTED action', function() {
+    it('immediately dispatches an WAIVERS_SAVE_WAIVER_REQUESTED action', function() {
       store.dispatch(saveWaiver('policyViolationId', 'waiverScope', 'ownerId', 'some comments', true));
 
       expect(store.getActions().length).toBe(1);
-      expect(store.getActions()[0].type).toBe(ADD_WAIVER_SAVE_REQUESTED);
+      expect(store.getActions()[0].type).toBe(WAIVERS_SAVE_WAIVER_REQUESTED);
     });
 
     it('sends a POST request with proper data and config', function() {
@@ -88,7 +88,7 @@ describe('addWaiverActions', function() {
     });
 
     describe('after a succesful POST', function() {
-      it('dispatches the ADD_WAIVER_SUBMIT_MASK_TIMER_DONE action once the timer is done', function(done) {
+      it('dispatches the WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE action once the timer is done', function(done) {
         const url = getAddPolicyViolationWaiverUrl('application', 'ownerId', 'policyViolationId'),
             expectedPayload = {
               comment: '',
@@ -107,18 +107,18 @@ describe('addWaiverActions', function() {
               setTimeout(() => {
                 expect(axios.post).toHaveBeenCalledWith(url, expectedPayload);
                 expect(store.getActions().length).toBe(4);
-                expect(store.getActions()[1].type).toBe(ADD_WAIVER_SAVE_FULFILLED);
+                expect(store.getActions()[1].type).toBe(WAIVERS_SAVE_WAIVER_FULFILLED);
                 expect(store.getActions()[2].type).toBe(STATE_GO);
-                expect(store.getActions()[3].type).toBe(ADD_WAIVER_SUBMIT_MASK_TIMER_DONE);
+                expect(store.getActions()[3].type).toBe(WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE);
                 done();
               }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
             });
 
         expect(store.getActions().length).toBe(1);
-        expect(store.getActions()[0].type).toBe(ADD_WAIVER_SAVE_REQUESTED);
+        expect(store.getActions()[0].type).toBe(WAIVERS_SAVE_WAIVER_REQUESTED);
       });
 
-      it('dispatches the ADD_WAIVER_SAVE_FULFILLED action', function(done) {
+      it('dispatches the WAIVERS_SAVE_WAIVER_FULFILLED action', function(done) {
         const url = getAddPolicyViolationWaiverUrl('application', 'ownerId', 'policyViolationId'),
             expectedPayload = {
               comment: '',
@@ -136,40 +136,40 @@ describe('addWaiverActions', function() {
             .then(() => {
               expect(axios.post).toHaveBeenCalledWith(url, expectedPayload);
               expect(store.getActions().length).toBe(3);
-              expect(store.getActions()[1].type).toBe(ADD_WAIVER_SAVE_FULFILLED);
+              expect(store.getActions()[1].type).toBe(WAIVERS_SAVE_WAIVER_FULFILLED);
               expect(store.getActions()[2].type).toBe(STATE_GO);
               done();
             });
 
         expect(store.getActions().length).toBe(1);
-        expect(store.getActions()[0].type).toBe(ADD_WAIVER_SAVE_REQUESTED);
+        expect(store.getActions()[0].type).toBe(WAIVERS_SAVE_WAIVER_REQUESTED);
       });
     });
 
     describe('after a failed POST', function() {
-      it('dispatches the ADD_WAIVER_SAVE_FAILED action', function(done) {
+      it('dispatches the WAIVERS_SAVE_WAIVER_FAILED action', function(done) {
         spyOn(axios, 'post').and.returnValue(Promise.reject('Err'));
 
         store.dispatch(saveWaiver('policyViolationId', 'application', 'ownerId', '', false, null))
             .catch(() => {
               expect(store.getActions().length).toBe(2);
-              expect(store.getActions()[1].type).toBe(ADD_WAIVER_SAVE_FAILED);
+              expect(store.getActions()[1].type).toBe(WAIVERS_SAVE_WAIVER_FAILED);
               done();
             });
 
         expect(store.getActions().length).toBe(1);
-        expect(store.getActions()[0].type).toBe(ADD_WAIVER_SAVE_REQUESTED);
+        expect(store.getActions()[0].type).toBe(WAIVERS_SAVE_WAIVER_REQUESTED);
       });
     });
   });
 
   describe('loadAddWaiverData', function() {
-    it('immediately dispatches a ADD_WAIVER_LOAD_DATA_REQUESTED action', function() {
+    it('immediately dispatches a WAIVERS_LOAD_SCOPE_DATA_REQUESTED action', function() {
       spyOn(axios, 'get').and.returnValue(Promise.resolve());
       store.dispatch(loadAddWaiverData('foo'));
 
       expect(store.getActions().length).toBe(2);
-      expect(store.getActions()[0].type).toEqual(ADD_WAIVER_LOAD_DATA_REQUESTED);
+      expect(store.getActions()[0].type).toEqual(WAIVERS_LOAD_SCOPE_DATA_REQUESTED);
     });
 
     it('calls loadViolation actionCreator', function() {
@@ -177,7 +177,7 @@ describe('addWaiverActions', function() {
       store.dispatch(loadAddWaiverData('foo'));
 
       expect(store.getActions().length).toBe(2);
-      expect(store.getActions()[0].type).toEqual(ADD_WAIVER_LOAD_DATA_REQUESTED);
+      expect(store.getActions()[0].type).toEqual(WAIVERS_LOAD_SCOPE_DATA_REQUESTED);
       expect(store.getActions()[1].type).toEqual(LOAD_VIOLATION_REQUESTED);
 
       expect(axios.get).toHaveBeenCalledWith('/api/v2/policyViolations/crossStage/?constituentId=foo');
@@ -211,11 +211,11 @@ describe('addWaiverActions', function() {
             });
 
         expect(store.getActions().length).toBe(2);
-        expect(store.getActions()[0].type).toBe(ADD_WAIVER_LOAD_DATA_REQUESTED);
+        expect(store.getActions()[0].type).toBe(WAIVERS_LOAD_SCOPE_DATA_REQUESTED);
       });
 
       describe('when loadOwnerContextHierarchy succeeds', function() {
-        it('dispatches LOAD_OWNER_CONTEXT_HIERARCHY_FULFILLED', function(done) {
+        it('dispatches WAIVERS_LOAD_SCOPE_DATA_FULFILLED', function(done) {
           const loadViolationDetailsUrl = '/api/v2/policyViolations/crossStage/?constituentId=foo',
               applicableWaiversUrl = '/api/v2/policyViolations/foo/applicableWaivers',
               ownerContextHierarchyUrl = getOwnerContextHierarchyUrl('application', 'appPublicId', 'policyId'),
@@ -244,18 +244,18 @@ describe('addWaiverActions', function() {
                 expect(store.getActions().length).toBe(4);
                 expect(store.getActions()[1].type).toBe(LOAD_VIOLATION_REQUESTED);
                 expect(store.getActions()[2].type).toBe(LOAD_VIOLATION_FULFILLED);
-                expect(store.getActions()[3].type).toBe(ADD_WAIVER_LOAD_DATA_FULFILLED);
+                expect(store.getActions()[3].type).toBe(WAIVERS_LOAD_SCOPE_DATA_FULFILLED);
                 done();
               });
 
           expect(store.getActions().length).toBe(2);
-          expect(store.getActions()[0].type).toBe(ADD_WAIVER_LOAD_DATA_REQUESTED);
+          expect(store.getActions()[0].type).toBe(WAIVERS_LOAD_SCOPE_DATA_REQUESTED);
           expect(store.getActions()[1].type).toBe(LOAD_VIOLATION_REQUESTED);
         });
       });
 
       describe('when loadOwnerContextHierarchy fails', function() {
-        it('dispatches ADD_WAIVER_LOAD_DATA_FAILED', function(done) {
+        it('dispatches WAIVERS_LOAD_SCOPE_DATA_FAILED', function(done) {
           const loadViolationDetailsUrl = '/api/v2/policyViolations/crossStage/?constituentId=foo',
               applicableWaiversUrl = '/api/v2/policyViolations/foo/applicableWaivers',
               ownerContextHierarchyUrl = getOwnerContextHierarchyUrl('application', 'appPublicId', 'policyId'),
@@ -278,19 +278,19 @@ describe('addWaiverActions', function() {
                 expect(store.getActions().length).toBe(4);
                 expect(store.getActions()[1].type).toBe(LOAD_VIOLATION_REQUESTED);
                 expect(store.getActions()[2].type).toBe(LOAD_VIOLATION_FULFILLED);
-                expect(store.getActions()[3].type).toBe(ADD_WAIVER_LOAD_DATA_FAILED);
+                expect(store.getActions()[3].type).toBe(WAIVERS_LOAD_SCOPE_DATA_FAILED);
                 done();
               });
 
           expect(store.getActions().length).toBe(2);
-          expect(store.getActions()[0].type).toBe(ADD_WAIVER_LOAD_DATA_REQUESTED);
+          expect(store.getActions()[0].type).toBe(WAIVERS_LOAD_SCOPE_DATA_REQUESTED);
           expect(store.getActions()[1].type).toBe(LOAD_VIOLATION_REQUESTED);
         });
       });
     });
 
     describe('when loadViolation fails', function() {
-      it('dispatches LOAD_OWNER_CONTEXT_HIERARCHY_FAILED', function(done) {
+      it('dispatches WAIVERS_LOAD_SCOPE_DATA_FAILED', function(done) {
         const loadViolationDetailsUrl = '/api/v2/policyViolations/crossStage/?constituentId=foo';
         mockAxiosCalls({
           get: {
@@ -302,59 +302,59 @@ describe('addWaiverActions', function() {
             .then(() => {
               expect(store.getActions().length).toBe(4);
               expect(store.getActions()[2].type).toBe(LOAD_VIOLATION_FAILED);
-              expect(store.getActions()[3].type).toEqual(ADD_WAIVER_LOAD_DATA_FAILED);
+              expect(store.getActions()[3].type).toEqual(WAIVERS_LOAD_SCOPE_DATA_FAILED);
               done();
             });
 
         expect(store.getActions().length).toBe(2);
-        expect(store.getActions()[0].type).toBe(ADD_WAIVER_LOAD_DATA_REQUESTED);
+        expect(store.getActions()[0].type).toBe(WAIVERS_LOAD_SCOPE_DATA_REQUESTED);
         expect(store.getActions()[1].type).toBe(LOAD_VIOLATION_REQUESTED);
       });
     });
   });
 
   describe('setWaiverComment', function() {
-    it('dispatches SET_WAIVER_COMMENT with the given payload', function() {
+    it('dispatches WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT with the given payload', function() {
       store.dispatch(setWaiverComment('comment'));
       expect(store.getActions().length).toBe(1);
-      expect(store.getActions()[0].type).toBe(ADD_WAIVER_SET_WAIVER_COMMENT);
+      expect(store.getActions()[0].type).toBe(WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT);
       expect(store.getActions()[0].payload).toBe('comment');
     });
   });
 
   describe('setWaiverScope', function() {
-    it('dispatches SET_WAIVER_TARGET with the given payload', function() {
+    it('dispatches WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE with the given payload', function() {
       store.dispatch(setWaiverScope('target'));
       expect(store.getActions().length).toBe(1);
-      expect(store.getActions()[0].type).toBe(ADD_WAIVER_SET_WAIVER_SCOPE);
+      expect(store.getActions()[0].type).toBe(WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE);
       expect(store.getActions()[0].payload).toBe('target');
     });
   });
 
   describe('setApplyToAllComponents', function() {
-    it('dispatches SET_APPLY_TO_ALL_COMPONENTS with the given payload', function() {
+    it('dispatches WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS with the given payload', function() {
       store.dispatch(setApplyToAllComponents(true));
       expect(store.getActions().length).toBe(1);
-      expect(store.getActions()[0].type).toBe(ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS);
+      expect(store.getActions()[0].type).toBe(WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS);
       expect(store.getActions()[0].payload).toBe(true);
 
       store.dispatch(setApplyToAllComponents(false));
       expect(store.getActions().length).toBe(2);
-      expect(store.getActions()[1].type).toBe(ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS);
+      expect(store.getActions()[1].type).toBe(WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS);
       expect(store.getActions()[1].payload).toBe(false);
     });
   });
 
   describe('setExpiryTime', function() {
-    it('dispatches ADD_WAIVER_SET_EXPIRY_TIME with the given payload', function() {
+    it('dispatches WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME with the given payload', function() {
       store.dispatch(setExpiryTime('7'));
       expect(store.getActions().length).toBe(1);
-      expect(store.getActions()[0].type).toBe(ADD_WAIVER_SET_EXPIRY_TIME);
+      expect(store.getActions()[0].type).toBe(WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME);
       expect(store.getActions()[0].payload).toBe('7');
 
       store.dispatch(setExpiryTime('never'));
       expect(store.getActions().length).toBe(2);
-      expect(store.getActions()[1].type).toBe(ADD_WAIVER_SET_EXPIRY_TIME);
+      expect(store.getActions()[1].type).toBe(WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME);
       expect(store.getActions()[1].payload).toBe('never');
     });
   });

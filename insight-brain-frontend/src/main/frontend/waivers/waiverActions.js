@@ -12,28 +12,28 @@ import { getAddPolicyViolationWaiverUrl, getOwnerContextHierarchyUrl } from '../
 import { loadViolation } from '../violation/violationPageActions';
 import { stateGo } from '../reduxUiRouter/routerActions';
 
-export const ADD_WAIVER_LOAD_DATA_REQUESTED = 'ADD_WAIVER_LOAD_DATA_REQUESTED';
-export const ADD_WAIVER_LOAD_DATA_FULFILLED = 'ADD_WAIVER_LOAD_DATA_FULFILLED';
-export const ADD_WAIVER_LOAD_DATA_FAILED = 'ADD_WAIVER_LOAD_DATA_FAILED';
-export const ADD_WAIVER_SAVE_REQUESTED = 'ADD_WAIVER_SAVE_REQUESTED';
-export const ADD_WAIVER_SAVE_FULFILLED = 'ADD_WAIVER_SAVE_FULFILLED';
-export const ADD_WAIVER_SAVE_FAILED = 'ADD_WAIVER_SAVE_FAILED';
-export const ADD_WAIVER_SUBMIT_MASK_TIMER_DONE = 'ADD_WAIVER_SUBMIT_MASK_TIMER_DONE';
-export const ADD_WAIVER_SET_WAIVER_COMMENT = 'ADD_WAIVER_SET_WAIVER_COMMENT';
-export const ADD_WAIVER_SET_WAIVER_SCOPE = 'ADD_WAIVER_SET_WAIVER_SCOPE';
-export const ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS = 'ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS';
-export const ADD_WAIVER_SET_EXPIRY_TIME = 'ADD_WAIVER_SET_EXPIRY_TIME';
+export const WAIVERS_LOAD_SCOPE_DATA_REQUESTED = 'ADD_WAIVER_LOAD_DATA_REQUESTED';
+export const WAIVERS_LOAD_SCOPE_DATA_FULFILLED = 'ADD_WAIVER_LOAD_DATA_FULFILLED';
+export const WAIVERS_LOAD_SCOPE_DATA_FAILED = 'ADD_WAIVER_LOAD_DATA_FAILED';
+export const WAIVERS_SAVE_WAIVER_REQUESTED = 'ADD_WAIVER_SAVE_REQUESTED';
+export const WAIVERS_SAVE_WAIVER_FULFILLED = 'ADD_WAIVER_SAVE_FULFILLED';
+export const WAIVERS_SAVE_WAIVER_FAILED = 'ADD_WAIVER_SAVE_FAILED';
+export const WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE = 'ADD_WAIVER_SUBMIT_MASK_TIMER_DONE';
+export const WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT = 'ADD_WAIVER_SET_WAIVER_COMMENT';
+export const WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE = 'ADD_WAIVER_SET_WAIVER_SCOPE';
+export const WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS = 'ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS';
+export const WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME = 'ADD_WAIVER_SET_EXPIRY_TIME';
 
-const saveWaiverRequested = noPayloadActionCreator(ADD_WAIVER_SAVE_REQUESTED);
-const saveWaiverFulfilled = noPayloadActionCreator(ADD_WAIVER_SAVE_FULFILLED);
-const saveWaiverFailed = payloadParamActionCreator(ADD_WAIVER_SAVE_FAILED);
-const loadAddWaiverDataRequested = noPayloadActionCreator(ADD_WAIVER_LOAD_DATA_REQUESTED);
-const loadAddWaiverDataFailed = payloadParamActionCreator(ADD_WAIVER_LOAD_DATA_FAILED);
-const loadAddWaiverDataFulfilled = payloadParamActionCreator(ADD_WAIVER_LOAD_DATA_FULFILLED);
+const saveWaiverRequested = noPayloadActionCreator(WAIVERS_SAVE_WAIVER_REQUESTED);
+const saveWaiverFulfilled = noPayloadActionCreator(WAIVERS_SAVE_WAIVER_FULFILLED);
+const saveWaiverFailed = payloadParamActionCreator(WAIVERS_SAVE_WAIVER_FAILED);
+const loadAddWaiverDataRequested = noPayloadActionCreator(WAIVERS_LOAD_SCOPE_DATA_REQUESTED);
+const loadAddWaiverDataFailed = payloadParamActionCreator(WAIVERS_LOAD_SCOPE_DATA_FAILED);
+const loadAddWaiverDataFulfilled = payloadParamActionCreator(WAIVERS_LOAD_SCOPE_DATA_FULFILLED);
 
 function startSubmitMaskTimer(dispatch) {
   setTimeout(() => {
-    dispatch({ type: ADD_WAIVER_SUBMIT_MASK_TIMER_DONE });
+    dispatch({ type: WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE });
   }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 }
 
@@ -118,13 +118,13 @@ export function returnToAddWaiverOriginPage() {
   };
 }
 
-export const setWaiverComment = payloadParamActionCreator(ADD_WAIVER_SET_WAIVER_COMMENT);
+export const setWaiverComment = payloadParamActionCreator(WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT);
 
-export const setWaiverScope = payloadParamActionCreator(ADD_WAIVER_SET_WAIVER_SCOPE);
+export const setWaiverScope = payloadParamActionCreator(WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE);
 
-export const setApplyToAllComponents = payloadParamActionCreator(ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS);
+export const setApplyToAllComponents = payloadParamActionCreator(WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS);
 
-export const setExpiryTime = payloadParamActionCreator(ADD_WAIVER_SET_EXPIRY_TIME);
+export const setExpiryTime = payloadParamActionCreator(WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME);
 
 function loadOwnerContextHierarchy(ownerType, ownerId, policyId) {
   return axios.get(getOwnerContextHierarchyUrl(ownerType, ownerId, policyId))

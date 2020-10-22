@@ -16,7 +16,7 @@ import {
   setApplyToAllComponents,
   setExpiryTime,
   returnToAddWaiverOriginPage
-} from './addWaiverActions';
+} from './waiverActions';
 import { openVulnerabilityDetailsModal } from '../vulnerabilityDetails/vulnerabilityDetailsModalActions';
 
 function mapStateToProps({ addWaiver, violationPage, router }) {

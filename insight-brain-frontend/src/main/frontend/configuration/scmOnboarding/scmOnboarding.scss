@@ -36,6 +36,24 @@
   .nx-cell--select-all {
     min-width: 110px;
   }
+
+  .iq-scm-repository-description {
+    position: relative;
+
+    span {
+      position: absolute;
+      left: 0;
+      right: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+  .iq-scm-repository-description:before {
+    content: "&nbsp;";
+    visibility: hidden;
+  }
+
 }
 
 .nx-footer--scmonboarding {

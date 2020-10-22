@@ -11,7 +11,8 @@ import {
   NxTableBody,
   NxTableCell,
   NxTableHead,
-  NxTableRow
+  NxTableRow,
+  NxTooltip
 } from '@sonatype/react-shared-components';
 import React, {Fragment, useState} from 'react';
 import * as PropTypes from 'prop-types';
@@ -183,7 +184,11 @@ function RepositoryRow(props) {
     <NxTableRow key={rowKey}>
       <NxTableCell className='iq-scm-repository-namespace'>{repo.namespace}</NxTableCell>
       <NxTableCell className='iq-scm-repository-project'>{repo.project}</NxTableCell>
-      <NxTableCell className='iq-scm-repository-description'>{repo.description}</NxTableCell>
+      <NxTableCell className='iq-scm-repository-description'>
+        <NxTooltip title={repo.description} className='iq-scm-repo-description-tooltip'>
+          <span>{repo.description}</span>
+        </NxTooltip>
+      </NxTableCell>
       <NxTableCell>
         <NxCheckbox checkboxId={rowKey} isChecked={selectedRepositories.includes(repo)}
                     onChange={toggleSelection}/>

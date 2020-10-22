@@ -47,6 +47,15 @@ public class ScmOnboardingPage
     return children(".iq-scm-repository-project");
   }
 
+  public ElementsCollection resultsTableDescription() {
+    return children(".iq-scm-repository-description span");
+  }
+
+  public SelenideElement descriptionTooltip() {
+    // Note that this is not a child of the top-level container element! This is an issue with NxTooltip
+    return $(".iq-scm-repo-description-tooltip");
+  }
+
   public ElementsCollection resultsTableNamespace() {
     return children(".iq-scm-repository-namespace");
   }

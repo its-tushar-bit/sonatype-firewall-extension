@@ -123,6 +123,15 @@ public class ScmOnboardingTest
         "ci-project-16", "create-react-app", "nexus-repository-pw", "nexus-repository-puppet",
         "nexus-repository-terraform", "nexus-repository-vgo", "nexus-scripting-examples",
         "nexus-webhook-example-collection", "nxrm-cli", "ossindex-gradle-plugin", "oysteR", "prime-nexus-proxy-repos");
+
+    // the long descriptions are trimmed
+    assertThat(scmOnboardingPage.resultsTableDescription().get(0).getCssValue("text-overflow")).isEqualTo("ellipsis");
+
+    // and there is a hover tooltip over the trimmed description
+    scmOnboardingPage.resultsTableDescription().get(0).hover();
+    String tooltipText = scmOnboardingPage.descriptionTooltip().text();
+    assertThat(tooltipText.length() > 100).isTrue();
+    assertThat(tooltipText).doesNotContain("...");
   }
 
   @Test

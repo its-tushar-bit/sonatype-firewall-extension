@@ -56,10 +56,6 @@ pipeline {
     )
     timestamps()
   }
-  environment {
-    // For the applitools github integration
-    APPLITOOLS_BATCH_ID = "${env.GIT_COMMIT}"
-  }
   stages {
     stage('Parallel Test Groups') {
       parallel {
@@ -76,6 +72,10 @@ pipeline {
         }
         stage('Java Functional Tests - (Chrome) A') {
           agent { label agentLabel }
+          environment {
+            // For the applitools github integration
+            APPLITOOLS_BATCH_ID = "${env.GIT_COMMIT}"
+          }
           steps {
             functionalTests('chrome', '.*/[A-M].*Test.class')
           }
@@ -87,6 +87,10 @@ pipeline {
         }
         stage('Java Functional Tests - (Chrome) B') {
           agent { label agentLabel }
+          environment {
+            // For the applitools github integration
+            APPLITOOLS_BATCH_ID = "${env.GIT_COMMIT}"
+          }
           steps {
             functionalTests('chrome', '.*/[N-Z].*Test.class')
           }

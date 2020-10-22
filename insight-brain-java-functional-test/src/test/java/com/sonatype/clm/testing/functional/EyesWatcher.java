@@ -10,12 +10,15 @@ import com.applitools.eyes.selenium.Eyes;
 import com.applitools.eyes.selenium.fluent.SeleniumCheckSettings;
 import com.applitools.eyes.selenium.fluent.Target;
 import com.codeborne.selenide.WebDriverRunner;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.WrapsDriver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class EyesWatcher
     extends TestWatcher
@@ -37,7 +40,8 @@ public class EyesWatcher
     eyes.setIsDisabled(APPLITOOLS_KEY == null || !isApplitoolsEnabled());
 
     if (!eyes.getIsDisabled()) {
-      batchId = System.getenv("APPLITOOLS_BATCH_ID"); // batch id set by Applitools jenkins plugin
+      batchId = System.getenv("APPLITOOLS_BATCH_ID"); // APPLITOOLS_BATCH_ID is mapped to COMMIT_ID in the Jenkinsfile
+      batchId = StringUtils.equals(batchId, "null") ? null : batchId;
 
       // Set only once per Jenkins job. Note, we set the batch name to null if we are building for a pr - the github
       // integration takes care of this. We are making some assumptions here since there is no easy way atm to know if
@@ -64,6 +68,9 @@ public class EyesWatcher
 
   @Override
   protected void starting(Description description) {
+    Logger log = LoggerFactory.getLogger(EyesWatcher.class);
+    log.info("Starting EyesWatcher with batch id: {}, localBranchName: {}, eyes enabled? {}.", batchId, localBranchName,
+        !eyes.getIsDisabled());
     if (!eyes.getIsDisabled() && batchId == null && localBranchName == null) {
       throw new IllegalArgumentException(
           "The branchName parameter or the Jenkins environment variables are required if visual testing is enabled " +

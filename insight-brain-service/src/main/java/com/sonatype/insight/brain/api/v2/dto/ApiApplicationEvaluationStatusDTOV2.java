@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.api.v2.dto;
 /**
  * @since 1.51.0
  */
-public class ApiPromoteScanResultDTOV2
+public class ApiApplicationEvaluationStatusDTOV2
 {
   public String statusUrl;
 }

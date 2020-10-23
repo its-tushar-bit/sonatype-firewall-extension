@@ -62,7 +62,7 @@ export default function ListWaiversTable(props) {
   const emptyTableBody = (
     <NxTableBody>
       <NxTableRow>
-        <NxTableCell colspan='5' className='nx-cell--empty'>
+        <NxTableCell colSpan='5' className='nx-cell--empty'>
           You don&#39;t have any waivers: to learn more about waivers you can check
           our <a href="https://help.sonatype.com/iqserver/reporting/application-composition-report/waivers">
           help documentation.</a>

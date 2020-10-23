@@ -59,7 +59,6 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PersistedPromoteScanResultDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
@@ -132,7 +131,6 @@ import com.sonatype.insight.brain.model.notification.UserViewedProductNotificati
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
-import com.sonatype.insight.brain.model.policy.PersistedPromoteScanResult;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
@@ -338,8 +336,6 @@ public class TemporaryEntity
 
   private final ShiroSessionDAO shiroSessionDAO = new ShiroSessionDAO();
 
-  private final PersistedPromoteScanResultDAO persistedPromoteScanResultDAO = new PersistedPromoteScanResultDAO();
-
   private final InnerSourceComponentDAO innerSourceComponentDAO = new InnerSourceComponentDAO();
 
   private final PersistedScanTicketDAO persistedScanTicketDAO = new PersistedScanTicketDAO();
@@ -506,7 +502,6 @@ public class TemporaryEntity
     productLicenseDAO.delete();
     firewallIgnorePatternsDAO.update(new FirewallIgnorePatterns());
     persistedPolicyEvaluationPollingResultDAO.deleteAll();
-    persistedPromoteScanResultDAO.getAll().forEach(persistedPromoteScanResultDAO::delete);
     persistedScanTicketDAO.getAll().forEach(persistedScanTicketDAO::delete);
     repositoryMigrationDAO.getAll().forEach(repositoryMigrationDAO::delete);
 
@@ -2660,14 +2655,6 @@ public class TemporaryEntity
     FirewallIgnorePatterns firewallIgnorePatterns = new FirewallIgnorePatterns(ignorePatterns);
     firewallIgnorePatternsDAO.update(firewallIgnorePatterns);
     return firewallIgnorePatterns;
-  }
-
-  public PersistedPromoteScanResult newPersistedPromoteScanResult(Date createTime) {
-    PersistedPromoteScanResult persistedPromoteScanResult = new PersistedPromoteScanResult();
-    persistedPromoteScanResult.setApplicationId("fakeAppId");
-    persistedPromoteScanResult.setCreateTime(createTime);
-    persistedPromoteScanResultDAO.insert(persistedPromoteScanResult);
-    return persistedPromoteScanResult;
   }
 
   public List<ConstraintFact> createArbitraryConstraintFacts() {

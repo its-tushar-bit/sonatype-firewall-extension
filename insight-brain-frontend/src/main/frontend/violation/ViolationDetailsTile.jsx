@@ -63,7 +63,7 @@ export default function ViolationDetailsTile(props) {
       waivedIndicator = (
         <div className="violation-details-tile__waiver-indicator">
           <NxFontAwesomeIcon icon={faFlag} />
-          <span>Waived</span>
+          <span>Has Active Waivers</span>
         </div>
       );
 

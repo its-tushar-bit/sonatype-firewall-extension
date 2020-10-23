@@ -16,14 +16,14 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationResultDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationStatusDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanResultDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiScanResultDTOV2;
-import com.sonatype.insight.brain.dataaccess.policy.PersistedPromoteScanResultDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.policy.PersistedPromoteScanResult;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluatorResults;
@@ -96,11 +96,11 @@ public class ApiPromoteScanServiceV2Test
     createScanFile();
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
 
-    ApiPromoteScanResultDTOV2 apiPromoteScanResultDTOV2 = service
-        .promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE));
+    ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 = service
+        .promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE), null /* userAgent */);
 
-    assertThat(apiPromoteScanResultDTOV2).isNotNull();
-    assertThat(apiPromoteScanResultDTOV2.statusUrl)
+    assertThat(apiApplicationEvaluationStatusDTOV2).isNotNull();
+    assertThat(apiApplicationEvaluationStatusDTOV2.statusUrl)
         .startsWith(String.format("api/v2/evaluation/applications/%s/status/", app.getId()));
   }
 
@@ -110,20 +110,22 @@ public class ApiPromoteScanServiceV2Test
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(NEW_SCAN_ID);
+    String toStageId = Stage.ID_OPERATE;
     when(scanUploader.upload(any(File.class), any(Application.class), anyString())).thenReturn(scanReceipt);
     ScanPolicyEvaluatorResults evaluatorResults = new ScanPolicyEvaluatorResults();
+    evaluatorResults.evaluation = tempEntity.newPolicyEvaluation(app.getId(), toStageId, NEW_SCAN_ID);
     when(scanPolicyEvaluator.evaluate(any(Application.class), eq(NEW_SCAN_ID), any(Stage.class)))
         .thenReturn(evaluatorResults);
 
-    ApiPromoteScanResultDTOV2 apiPromoteScanResultDTOV2 = service.promoteScan(app.getId(),
-        ApiPromoteScanRequestDTOV2.fromStage(Stage.ID_BUILD, Stage.ID_OPERATE));
+    ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 = service.promoteScan(app.getId(),
+        ApiPromoteScanRequestDTOV2.fromStage(Stage.ID_BUILD, toStageId), null /* userAgent */);
 
-    assertThat(apiPromoteScanResultDTOV2).isNotNull();
-    assertThat(apiPromoteScanResultDTOV2.statusUrl)
+    assertThat(apiApplicationEvaluationStatusDTOV2).isNotNull();
+    assertThat(apiApplicationEvaluationStatusDTOV2.statusUrl)
         .startsWith(String.format("api/v2/evaluation/applications/%s/status/", app.getId()));
 
     // await successful completion
-    String scanPromotionStatusId = getStatusId(apiPromoteScanResultDTOV2.statusUrl);
+    String scanPromotionStatusId = getStatusId(apiApplicationEvaluationStatusDTOV2.statusUrl);
     awaitPromoteScanResult(scanPromotionStatusId, 1, TimeUnit.MINUTES);
     assertThat(insightWork.getScanFile(app.getId(), NEW_SCAN_ID)).isFile();
     verify(policyAlertNotifier).sendNotifications(any(Application.class), eq(evaluatorResults));
@@ -132,14 +134,15 @@ public class ApiPromoteScanServiceV2Test
   @Test
   public void testPromoteScan_NullRequestDTO() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.promoteScan(app.getId(), null);
+      service.promoteScan(app.getId(), null, null /* userAgent */);
     }).withMessage("Missing parameters.");
   }
 
   @Test
   public void testPromoteScan_NoSourceScan() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromStage(null, Stage.ID_OPERATE));
+      service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromStage(null, Stage.ID_OPERATE),
+          null /* userAgent */);
     }).withMessageStartingWith("Either scanId or sourceStageId need to be supplied.");
   }
 
@@ -148,21 +151,23 @@ public class ApiPromoteScanServiceV2Test
     ApiPromoteScanRequestDTOV2 requestDTO = ApiPromoteScanRequestDTOV2.fromStage(Stage.ID_BUILD, Stage.ID_OPERATE);
     requestDTO.scanId = SCAN_ID;
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.promoteScan(app.getId(), requestDTO);
+      service.promoteScan(app.getId(), requestDTO, null /* userAgent */);
     }).withMessageStartingWith("Only one of scanId or sourceStageId can be supplied.");
   }
 
   @Test
   public void testPromoteScan_NoEvaluationsInSourceStage() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromStage(Stage.ID_BUILD, Stage.ID_OPERATE));
+      service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromStage(Stage.ID_BUILD, Stage.ID_OPERATE),
+          null /* userAgent */);
     }).withMessageStartingWith("No scan available to promote from stage");
   }
 
   @Test
   public void testPromoteScan_ScanDoesNotExist_Failed() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE));
+      service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE),
+          null /* userAgent */);
     }).withMessageStartingWith("A scan with ID " + SCAN_ID + " does not exist on the server and may be obsolete. ");
   }
 
@@ -172,13 +177,14 @@ public class ApiPromoteScanServiceV2Test
     final List<String> invalidStages = Arrays.asList("invalidStage", Stage.ID_DEVELOP, Stage.ID_PROXY);
     for (String invalidStage : invalidStages) {
       assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-        service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, invalidStage));
+        service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, invalidStage),
+            null /* userAgent */);
       }).withMessage("Stage " + invalidStage + " is invalid.");
     }
   }
 
   @Test
-  public void testGetScanStatus_Pending() throws Exception {
+  public void testGetApplicationEvaluationStatus_Pending() throws Exception {
     createScanFile();
     CountDownLatch countDownLatch = new CountDownLatch(1);
     lenient().doAnswer((Answer<ScanReceipt>) invocationOnMock -> {
@@ -186,102 +192,109 @@ public class ApiPromoteScanServiceV2Test
       return null;
     }).when(scanUploader).upload(any(File.class), any(Application.class), anyString());
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
-    ApiPromoteScanResultDTOV2 apiPromoteScanResultDTOV2 = service
-        .promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE));
-    String scanPromotionStatusId = getStatusId(apiPromoteScanResultDTOV2.statusUrl);
+    ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 = service
+        .promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE), null /* userAgent */);
+    String scanPromotionStatusId = getStatusId(apiApplicationEvaluationStatusDTOV2.statusUrl);
 
-    ApiScanResultDTOV2 scanStatus = service.getScanStatus(app.getId(), scanPromotionStatusId);
+    ApiApplicationEvaluationResultDTOV2 apiApplicationEvaluationResultDTOV2 =
+        service.getApplicationEvaluationStatus(app.getId(), scanPromotionStatusId);
     countDownLatch.countDown();
 
-    assertThat(scanStatus).isNotNull();
-    assertThat(scanStatus.status).isEqualTo(PersistedPromoteScanResult.Status.PENDING.name());
-    assertThat(scanStatus.reason).isNull();
-    assertThat(scanStatus.reportHtmlUrl).isNull();
-    assertThat(scanStatus.embeddableReportHtmlUrl).isNull();
-    assertThat(scanStatus.reportPdfUrl).isNull();
-    assertThat(scanStatus.reportDataUrl).isNull();
+    assertThat(apiApplicationEvaluationResultDTOV2).isNotNull();
+    assertThat(apiApplicationEvaluationResultDTOV2.status).isEqualTo(PolicyEvaluationStatus.PENDING.name());
+    assertThat(apiApplicationEvaluationResultDTOV2.reason).isNull();
+    assertThat(apiApplicationEvaluationResultDTOV2.reportHtmlUrl).isNull();
+    assertThat(apiApplicationEvaluationResultDTOV2.embeddableReportHtmlUrl).isNull();
+    assertThat(apiApplicationEvaluationResultDTOV2.reportPdfUrl).isNull();
+    assertThat(apiApplicationEvaluationResultDTOV2.reportDataUrl).isNull();
   }
 
   @Test
-  public void testGetScanStatus_Failure() throws Exception {
+  public void testGetApplicationEvaluationStatus_Failure() throws Exception {
     createScanFile();
     when(scanUploader.upload(any(File.class), any(Application.class), anyString()))
         .thenThrow(new RuntimeException("ruh-roh"));
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
-    ApiPromoteScanResultDTOV2 apiPromoteScanResultDTOV2 = service
-        .promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE));
-    String scanPromotionStatusId = getStatusId(apiPromoteScanResultDTOV2.statusUrl);
+    ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 = service
+        .promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE), null /* userAgent */);
+    String scanPromotionStatusId = getStatusId(apiApplicationEvaluationStatusDTOV2.statusUrl);
     awaitPromoteScanResult(scanPromotionStatusId, 1, TimeUnit.MINUTES);
 
-    ApiScanResultDTOV2 scanStatus = service.getScanStatus(app.getId(), scanPromotionStatusId);
+    ApiApplicationEvaluationResultDTOV2 apiApplicationEvaluationResultDTOV2 =
+        service.getApplicationEvaluationStatus(app.getId(), scanPromotionStatusId);
 
-    assertThat(scanStatus).isNotNull();
-    assertThat(scanStatus.status).isEqualTo(PersistedPromoteScanResult.Status.FAILED.name());
-    assertThat(scanStatus.reason).startsWith("Internal Server Error");
-    assertThat(scanStatus.reportHtmlUrl).isNull();
-    assertThat(scanStatus.embeddableReportHtmlUrl).isNull();
-    assertThat(scanStatus.reportPdfUrl).isNull();
-    assertThat(scanStatus.reportDataUrl).isNull();
+    assertThat(apiApplicationEvaluationResultDTOV2).isNotNull();
+    assertThat(apiApplicationEvaluationResultDTOV2.status).isEqualTo(PolicyEvaluationStatus.FAILED.name());
+    assertThat(apiApplicationEvaluationResultDTOV2.reason).startsWith("Internal Server Error");
+    assertThat(apiApplicationEvaluationResultDTOV2.reportHtmlUrl).isNull();
+    assertThat(apiApplicationEvaluationResultDTOV2.embeddableReportHtmlUrl).isNull();
+    assertThat(apiApplicationEvaluationResultDTOV2.reportPdfUrl).isNull();
+    assertThat(apiApplicationEvaluationResultDTOV2.reportDataUrl).isNull();
   }
 
   private void awaitPromoteScanResult(String statusId, long timeout, TimeUnit unit) {
-    await().atMost(timeout, unit).until(() -> !PersistedPromoteScanResult.Status.PENDING
-        .equals(new PersistedPromoteScanResultDAO().getById(statusId).getStatus()));
+    await().atMost(timeout, unit)
+        .until(() -> !PolicyEvaluationStatus.PENDING.equals(new PersistedPolicyEvaluationPollingResultDAO()
+            .getByApplicationIdAndStatusId(app.getId(), statusId).getPolicyEvaluationPollingResult().getStatus()));
   }
 
   @Test
-  public void testGetScanStatus_Success() throws Exception {
+  public void testGetApplicationEvaluationStatus_Success() throws Exception {
     createScanFile();
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(NEW_SCAN_ID);
     when(scanUploader.upload(any(File.class), any(Application.class), anyString())).thenReturn(scanReceipt);
+    String toStageId = Stage.ID_OPERATE;
+    ScanPolicyEvaluatorResults evaluatorResults = new ScanPolicyEvaluatorResults();
+    evaluatorResults.evaluation = tempEntity.newPolicyEvaluation(app.getId(), toStageId, NEW_SCAN_ID);
     when(scanPolicyEvaluator.evaluate(any(Application.class), eq(NEW_SCAN_ID), any(Stage.class)))
-        .thenReturn(new ScanPolicyEvaluatorResults());
+        .thenReturn(evaluatorResults);
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
-    ApiPromoteScanResultDTOV2 apiPromoteScanResultDTOV2 = service
-        .promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE));
-    String scanPromotionStatusId = getStatusId(apiPromoteScanResultDTOV2.statusUrl);
+    ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 = service
+        .promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, toStageId), null /* userAgent */);
+    String scanPromotionStatusId = getStatusId(apiApplicationEvaluationStatusDTOV2.statusUrl);
     awaitPromoteScanResult(scanPromotionStatusId, 1, TimeUnit.MINUTES);
 
-    ApiScanResultDTOV2 scanStatus = service.getScanStatus(app.getId(), getStatusId(scanPromotionStatusId));
+    ApiApplicationEvaluationResultDTOV2 apiApplicationEvaluationResultDTOV2 =
+        service.getApplicationEvaluationStatus(app.getId(), getStatusId(scanPromotionStatusId));
 
-    assertThat(scanStatus).isNotNull();
-    assertThat(scanStatus.status).isEqualTo(PersistedPromoteScanResult.Status.COMPLETED.name());
-    assertThat(scanStatus.reason).isNull();
-    assertThat(scanStatus.reportHtmlUrl)
+    assertThat(apiApplicationEvaluationResultDTOV2).isNotNull();
+    assertThat(apiApplicationEvaluationResultDTOV2.status).isEqualTo(PolicyEvaluationStatus.COMPLETED.name());
+    assertThat(apiApplicationEvaluationResultDTOV2.reason).isNull();
+    assertThat(apiApplicationEvaluationResultDTOV2.reportHtmlUrl)
         .isEqualTo(String.format("ui/links/application/%s/report/%s", app.getPublicId(), NEW_SCAN_ID));
-    assertThat(scanStatus.embeddableReportHtmlUrl)
+    assertThat(apiApplicationEvaluationResultDTOV2.embeddableReportHtmlUrl)
         .isEqualTo(String.format("ui/links/application/%s/report/%s/embeddable", app.getPublicId(), NEW_SCAN_ID));
-    assertThat(scanStatus.reportPdfUrl)
+    assertThat(apiApplicationEvaluationResultDTOV2.reportPdfUrl)
         .isEqualTo(String.format("ui/links/application/%s/report/%s/pdf", app.getPublicId(), NEW_SCAN_ID));
-    assertThat(scanStatus.reportDataUrl)
+    assertThat(apiApplicationEvaluationResultDTOV2.reportDataUrl)
         .isEqualTo(String.format("api/v2/applications/%s/reports/%s/raw", app.getPublicId(), NEW_SCAN_ID));
   }
 
   @Test
-  public void testGetScanStatus_MismatchedAppStatusIds_NotFound() throws Exception {
+  public void testGetApplicationEvaluationStatus_MismatchedAppStatusIds_NotFound() throws Exception {
     // app scan promotion
     createScanFile();
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
-    String appScanPromotionStatusId = getStatusId(
-        service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE)).statusUrl);
+    String appScanPromotionStatusId = getStatusId(service.promoteScan(app.getId(),
+        ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE), null /* userAgent */).statusUrl);
 
     // otherApp scan promotion
     Application otherApp = tempEntity.newApplicationWithParent();
     createScanFile(otherApp.getId());
     tempEntity.newPolicyEvaluation(otherApp.getId(), Stage.ID_BUILD, SCAN_ID);
-    String otherAppScanPromotionStatusId = getStatusId(
-        service
-            .promoteScan(otherApp.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE)).statusUrl);
+    String otherAppScanPromotionStatusId = getStatusId(service.promoteScan(otherApp.getId(),
+        ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE), null /* userAgent */).statusUrl);
 
-    assertNotFound(app.getId(), getStatusId(otherAppScanPromotionStatusId));
-    assertNotFound(otherApp.getId(), getStatusId(appScanPromotionStatusId));
+    assertNotFound(app, getStatusId(otherAppScanPromotionStatusId));
+    assertNotFound(otherApp, getStatusId(appScanPromotionStatusId));
   }
 
-  private void assertNotFound(String applicationId, String statusId) {
+  private void assertNotFound(Application app, String statusId) {
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      service.getScanStatus(applicationId, statusId);
-    }).withMessage("Scan status with id %s for application with id %s was not found.", statusId, applicationId);
+      service.getApplicationEvaluationStatus(app.getId(), statusId);
+    }).withMessage("Policy evaluation status with id %s for public application id %s was not found.", statusId,
+        app.getPublicId());
   }
 
   private String getStatusId(String statusUrl) {

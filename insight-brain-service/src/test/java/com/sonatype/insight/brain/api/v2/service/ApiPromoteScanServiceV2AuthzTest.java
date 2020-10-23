@@ -27,37 +27,41 @@ public class ApiPromoteScanServiceV2AuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testPromoteScan_Unauthenticated() {
-    service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan("scanId", Stage.ID_OPERATE));
+    service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan("scanId", Stage.ID_OPERATE),
+        null /* userAgent */);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testPromoteScan_Unauthorized() {
     login();
-    service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan("scanId", Stage.ID_OPERATE));
+    service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan("scanId", Stage.ID_OPERATE),
+        null /* userAgent */);
   }
 
   @Test(expected = BadRequestException.class)
   public void testPromoteScan_Authorized() {
     grantEvaluateApplicationPermission(app.getId());
-    service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan("scanId", Stage.ID_OPERATE));
+    service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan("scanId", Stage.ID_OPERATE),
+        null /* userAgent */);
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetScanStatus_Unauthenticated() {
-    service.getScanStatus(app.getId(), "statusId");
+  public void testGetApplicationEvaluationStatusUnauthenticated() {
+    service.getApplicationEvaluationStatus(app.getId(), "statusId");
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetScanStatus_Unauthorized() {
+  public void testGetApplicationEvaluationStatus_Unauthorized() {
     login();
-    service.getScanStatus(app.getId(), "statusId");
+    service.getApplicationEvaluationStatus(app.getId(), "statusId");
   }
 
   @Test
-  public void testGetScanStatus_Authorized() {
+  public void testGetApplicationEvaluationStatus_Authorized() {
     grantEvaluateApplicationPermission(app.getId());
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      service.getScanStatus(app.getId(), "statusId");
-    }).withMessage("Scan status with id %s for application with id %s was not found.", "statusId", app.getId());
+      service.getApplicationEvaluationStatus(app.getId(), "statusId");
+    }).withMessage("Policy evaluation status with id %s for public application id %s was not found.", "statusId",
+        app.getPublicId());
   }
 }

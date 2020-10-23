@@ -20,14 +20,14 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationResultDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationStatusDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanResultDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiScanResultDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentEvaluationServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ComponentEvaluationV2Helper;
@@ -504,27 +504,30 @@ public class ApiEvaluationResourceV2Test
         .parameter(app.getId()).body(apiPromoteScanRequestDTOV2).post();
 
     assertResponseStatus(200, response);
-    ApiPromoteScanResultDTOV2 apiPromoteScanResultDTOV2 = response.getBody(ApiPromoteScanResultDTOV2.class);
-    assertThat(apiPromoteScanResultDTOV2).isNotNull();
+    ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 =
+        response.getBody(ApiApplicationEvaluationStatusDTOV2.class);
+    assertThat(apiApplicationEvaluationStatusDTOV2).isNotNull();
   }
 
   @Test
-  public void testGetScanStatus() throws Exception {
+  public void testGetApplicationEvaluationStatus() throws Exception {
     createScanFile(app.getId(), SCAN_ID);
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
     HttpResponse response = restRequest()
         .path(APPLICATION_EVALUATION_PATH_V2, ApiEvaluationResourceV2.PROMOTE_SCAN_PATH)
         .parameter(app.getId()).body(ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE)).post();
     assertResponseStatus(200, response);
-    ApiPromoteScanResultDTOV2 apiPromoteScanResultDTOV2 = response.getBody(ApiPromoteScanResultDTOV2.class);
-    assertThat(apiPromoteScanResultDTOV2).isNotNull();
+    ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 =
+        response.getBody(ApiApplicationEvaluationStatusDTOV2.class);
+    assertThat(apiApplicationEvaluationStatusDTOV2).isNotNull();
 
-    response = restRequest().path(apiPromoteScanResultDTOV2.statusUrl).get();
+    response = restRequest().path(apiApplicationEvaluationStatusDTOV2.statusUrl).get();
 
     assertResponseStatus(200, response);
-    ApiScanResultDTOV2 apiScanResultDTOV2 = response.getBody(ApiScanResultDTOV2.class);
-    assertThat(apiScanResultDTOV2).isNotNull();
-    assertThat(apiScanResultDTOV2.status).isNotNull();
+    ApiApplicationEvaluationResultDTOV2 apiApplicationEvaluationResultDTOV2 =
+        response.getBody(ApiApplicationEvaluationResultDTOV2.class);
+    assertThat(apiApplicationEvaluationResultDTOV2).isNotNull();
+    assertThat(apiApplicationEvaluationResultDTOV2.status).isNotNull();
   }
 
   private void mockComponentDetails(final ComponentEvaluationDataList componentEvaluationDataList) {

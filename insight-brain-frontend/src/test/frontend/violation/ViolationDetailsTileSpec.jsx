@@ -169,7 +169,7 @@ describe('ViolationDetailsTile', function() {
       expect(actions).toExist();
       expect(indicator).toExist();
       expect(icon).toHaveProp('icon', faFlag);
-      expect(text).toHaveText('Waived');
+      expect(text).toHaveText('Has Active Waivers');
     });
 
     it('does not render nx-tile__actions section when policyOwner prop has null ownerId', function() {

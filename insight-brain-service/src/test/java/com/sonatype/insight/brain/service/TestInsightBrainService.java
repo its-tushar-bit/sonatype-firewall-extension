@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 
-import com.sonatype.insight.brain.api.v2.service.PersistedPromoteScanResultCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
@@ -302,7 +301,6 @@ public class TestInsightBrainService
     getInstance(FirewallIgnorePatternUpdater.class).disableForTesting = true;
     getInstance(IndexService.class).disableForTesting = true;
     getInstance(PersistedPolicyEvaluationPollingResultCleaner.class).disableForTesting = true;
-    getInstance(PersistedPromoteScanResultCleaner.class).disableForTesting = true;
     getInstance(PersistedScanTicketCleaner.class).disableForTesting = true;
   }
 

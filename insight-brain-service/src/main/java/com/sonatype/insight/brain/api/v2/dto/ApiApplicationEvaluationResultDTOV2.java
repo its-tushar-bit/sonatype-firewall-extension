@@ -12,7 +12,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  * @since 1.51.0
  */
 @JsonInclude(Include.NON_NULL)
-public class ApiScanResultDTOV2
+public class ApiApplicationEvaluationResultDTOV2
 {
   public String status;
 

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -17,32 +18,30 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.ws.rs.core.UriBuilder;
 
-import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.ApiReportDataResourceV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationResultDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationStatusDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanResultDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiScanResultDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PersistedPromoteScanResultDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.policy.PersistedPromoteScanResult;
+import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
-import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
-import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluatorResults;
+import com.sonatype.insight.brain.policy.evaluator.DefaultPolicyEvaluateService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.scan.model.ClientScanType;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
@@ -63,15 +62,11 @@ public class ApiPromoteScanServiceV2
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
-  private final PersistedPromoteScanResultDAO persistedPromoteScanResultDAO;
+  private final PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO;
 
-  private final ScanPolicyEvaluator scanPolicyEvaluator;
-
-  private final PolicyAlertNotifier policyAlertNotifier;
+  private final DefaultPolicyEvaluateService policyEvaluateService;
 
   private final InsightWork work;
-
-  private final ScanUploader uploader;
   
   private final ErrorResponseGenerator errorResponseGenerator;
 
@@ -79,20 +74,16 @@ public class ApiPromoteScanServiceV2
   public ApiPromoteScanServiceV2(
       ApplicationDAO applicationDAO,
       PolicyEvaluationDAO policyEvaluationDAO,
-      PersistedPromoteScanResultDAO persistedPromoteScanResultDAO,
-      ScanPolicyEvaluator scanPolicyEvaluator,
-      PolicyAlertNotifier policyAlertNotifier,
+      PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO,
+      DefaultPolicyEvaluateService policyEvaluateService,
       InsightWork work,
-      ScanUploader uploader,
       ErrorResponseGenerator errorResponseGenerator)
   {
     this.applicationDAO = applicationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
-    this.persistedPromoteScanResultDAO = persistedPromoteScanResultDAO;
-    this.scanPolicyEvaluator = scanPolicyEvaluator;
-    this.policyAlertNotifier = policyAlertNotifier;
+    this.persistedPolicyEvaluationPollingResultDAO = persistedPolicyEvaluationPollingResultDAO;
+    this.policyEvaluateService = policyEvaluateService;
     this.work = work;
-    this.uploader = uploader;
     this.errorResponseGenerator = errorResponseGenerator;
 
     executor = new ThreadPoolExecutor(100, 100, 5L, TimeUnit.SECONDS,
@@ -141,29 +132,28 @@ public class ApiPromoteScanServiceV2
   }
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
-  public ApiPromoteScanResultDTOV2 promoteScan(
+  public ApiApplicationEvaluationStatusDTOV2 promoteScan(
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
-      final ApiPromoteScanRequestDTOV2 apiPromoteScanRequestDTOV2)
+      final ApiPromoteScanRequestDTOV2 apiPromoteScanRequestDTOV2,
+      String userAgent)
   {
     final Application application = applicationDAO.getByIdNotNull(applicationId);
 
     validateRequest(apiPromoteScanRequestDTOV2, application.getId());
 
-    PersistedPromoteScanResult persistedPromoteScanResult = new PersistedPromoteScanResult();
-    persistedPromoteScanResult.setApplicationId(applicationId);
-    persistedPromoteScanResultDAO.insert(persistedPromoteScanResult);
-    String statusId = persistedPromoteScanResult.getId();
+    String statusId = UUID.randomUUID().toString().replace("-", "");
+    policyEvaluateService.createPersistedPolicyEvaluationPollingResultIfNeeded(application, statusId);
     log.debug("Received request to promote scan {} of app {} to stage {}. The status ID of the operation is {}.",
         apiPromoteScanRequestDTOV2.scanId != null ? apiPromoteScanRequestDTOV2.scanId
             : "from stage " + apiPromoteScanRequestDTOV2.sourceStageId,
         application.getName(), apiPromoteScanRequestDTOV2.targetStageId, statusId);
 
     AuditData.get().continueAsync(executor,
-        new ScanPromotionTask(apiPromoteScanRequestDTOV2, application.getId(), statusId));
+        new ScanPromotionTask(apiPromoteScanRequestDTOV2, application.getId(), statusId, userAgent));
 
-    ApiPromoteScanResultDTOV2 apiPromoteScanResultDTOV2 = new ApiPromoteScanResultDTOV2();
-    apiPromoteScanResultDTOV2.statusUrl = getStatusUrl(applicationId, statusId);
-    return apiPromoteScanResultDTOV2;
+    ApiApplicationEvaluationStatusDTOV2 result = new ApiApplicationEvaluationStatusDTOV2();
+    result.statusUrl = getStatusUrl(applicationId, statusId);
+    return result;
   }
 
   class ScanPromotionTask
@@ -175,26 +165,26 @@ public class ApiPromoteScanServiceV2
 
     private final String statusId;
 
-    ScanPromotionTask(final ApiPromoteScanRequestDTOV2 apiPromoteScanRequestDTOV2,
-                      final String applicationId,
-                      final String statusId)
+    private final String userAgent;
+
+    ScanPromotionTask(
+        final ApiPromoteScanRequestDTOV2 apiPromoteScanRequestDTOV2,
+        final String applicationId,
+        final String statusId,
+        String userAgent)
     {
       this.apiPromoteScanRequestDTOV2 = apiPromoteScanRequestDTOV2;
       this.applicationId = applicationId;
       this.statusId = statusId;
+      this.userAgent = userAgent;
     }
 
     @Override
     public void run() {
       File tempScanFile = null;
       final String targetStageId = apiPromoteScanRequestDTOV2.targetStageId;
-      PersistedPromoteScanResult persistedPromoteScanResult = null;
       try {
-        final long start = System.currentTimeMillis();
-
         final Application application = applicationDAO.getByIdNotNull(applicationId);
-        persistedPromoteScanResult = persistedPromoteScanResultDAO.getByIdNotNull(statusId);
-
         log.debug("Promoting scan {} of app {} to stage {}. The status ID of the operation is {}.",
             apiPromoteScanRequestDTOV2.scanId != null ? apiPromoteScanRequestDTOV2.scanId
                 : "from stage " + apiPromoteScanRequestDTOV2.sourceStageId,
@@ -221,34 +211,24 @@ public class ApiPromoteScanServiceV2
           }
         }
 
-        final ScanReceipt scanReceipt = uploader.upload(tempScanFile, application, targetStageId);
-        scanReceipt.waitForReport();
-        Files.move(tempScanFile.toPath(), work.getScanFile(application.getId(), scanReceipt.getScanId()).toPath());
-        ScanPolicyEvaluatorResults results = scanPolicyEvaluator
-            .evaluate(application, scanReceipt.getScanId(), new Stage(targetStageId));
-        policyAlertNotifier.sendNotifications(application, results);
-        log.debug("Promoted scan {} of app {} to stage {} in {} ms. The status ID of the operation is {}.",
-            sourceScanId, application.getName(), targetStageId, System.currentTimeMillis() - start, statusId);
-
-        persistedPromoteScanResult.setStatus(PersistedPromoteScanResult.Status.COMPLETED);
-        persistedPromoteScanResult.setScanId(scanReceipt.getScanId());
-        persistedPromoteScanResultDAO.update(persistedPromoteScanResult);
+        policyEvaluateService.evaluateWithPolling(statusId, application, ClientScanType.SONATYPE,
+            new Stage(targetStageId), tempScanFile, "api", userAgent);
       }
       catch (Exception e) {
         log.error("Failed to promote scan of app {} to stage {}. The status ID of the operation is {}.", applicationId,
             targetStageId, statusId);
         String errorMessage = errorResponseGenerator.mapExceptionAndLog(e).getMessageBody();
-        if (persistedPromoteScanResult != null) {
-          persistedPromoteScanResult.setStatus(PersistedPromoteScanResult.Status.FAILED);
-          persistedPromoteScanResult.setErrorMessage(errorMessage);
-          persistedPromoteScanResultDAO.update(persistedPromoteScanResult);
-        }
+
+        PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
+            persistedPolicyEvaluationPollingResultDAO.getByApplicationIdAndStatusId(applicationId, statusId);
+        PolicyEvaluationPollingResult policyEvaluationPollingResult =
+            persistedPolicyEvaluationPollingResult.getPolicyEvaluationPollingResult();
+        policyEvaluationPollingResult.setStatus(PolicyEvaluationStatus.FAILED);
+        policyEvaluationPollingResult.setReason(errorMessage);
+        persistedPolicyEvaluationPollingResult.setPolicyEvaluationPollingResult(policyEvaluationPollingResult);
+        persistedPolicyEvaluationPollingResultDAO.update(persistedPolicyEvaluationPollingResult);
+
         throw new RuntimeException(errorMessage, e);
-      }
-      finally {
-        if (tempScanFile != null && tempScanFile.exists() && !tempScanFile.delete()) {
-          log.warn("Failed to delete temporary scan file {}.", tempScanFile);
-        }
       }
     }
 
@@ -265,33 +245,33 @@ public class ApiPromoteScanServiceV2
   }
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
-  public ApiScanResultDTOV2 getScanStatus(@AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
-                                          String statusId)
+  public ApiApplicationEvaluationResultDTOV2 getApplicationEvaluationStatus(
+      @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
+      String statusId)
   {
-    PersistedPromoteScanResult persistedPromoteScanResult = persistedPromoteScanResultDAO.getById(statusId);
-    if (persistedPromoteScanResult == null || !persistedPromoteScanResult.getApplicationId().equals(applicationId)) {
-      throw new NotFoundException(
-          String.format("Scan status with id %s for application with id %s was not found.", statusId, applicationId));
-    }
+    Application application = applicationDAO.getById(applicationId);
+    PolicyEvaluationPollingResult policyEvaluationPollingResult =
+        policyEvaluateService.pollEvaluationResult(application.getPublicId(), statusId);
 
-    ApiScanResultDTOV2 scanStatus = new ApiScanResultDTOV2();
-    scanStatus.status = persistedPromoteScanResult.getStatus().name();
-    switch (persistedPromoteScanResult.getStatus()) {
-      case FAILED:
-        scanStatus.reason = persistedPromoteScanResult.getErrorMessage();
-        break;
+    ApiApplicationEvaluationResultDTOV2 result = new ApiApplicationEvaluationResultDTOV2();
+    result.status = policyEvaluationPollingResult.getStatus().name();
+    switch (policyEvaluationPollingResult.getStatus()) {
       case COMPLETED:
-        String applicationPublicId = applicationDAO.getByIdNotNull(applicationId).getPublicId();
-        String scanId = persistedPromoteScanResult.getScanId();
-        scanStatus.reportPdfUrl = UserInterfaceLinksResource.getPdfUrl(applicationPublicId, scanId);
-        scanStatus.reportHtmlUrl = UserInterfaceLinksResource.getReportUrl(applicationPublicId, scanId);
-        scanStatus.embeddableReportHtmlUrl =
+        String applicationPublicId = application.getPublicId();
+        String scanId = policyEvaluationPollingResult.getScanReceipt().getScanId();
+        result.reportPdfUrl = UserInterfaceLinksResource.getPdfUrl(applicationPublicId, scanId);
+        result.reportHtmlUrl = UserInterfaceLinksResource.getReportUrl(applicationPublicId, scanId);
+        result.embeddableReportHtmlUrl =
             UserInterfaceLinksResource.getEmbeddableReportUrl(applicationPublicId, scanId);
-        scanStatus.reportDataUrl = ApiReportDataResourceV2.getDataUrl(applicationPublicId, scanId);
+        result.reportDataUrl = ApiReportDataResourceV2.getDataUrl(applicationPublicId, scanId);
+        break;
+      case FAILED:
+        result.reason = policyEvaluationPollingResult.getReason();
         break;
       default:
         break;
     }
-    return scanStatus;
+
+    return result;
   }
 }

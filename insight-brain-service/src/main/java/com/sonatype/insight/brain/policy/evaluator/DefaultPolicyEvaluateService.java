@@ -207,12 +207,8 @@ public class DefaultPolicyEvaluateService
       String userAgent)
   {
     // to avoid any race condition when the following task attempts to update
-    PolicyEvaluationPollingResult initialResult = new PolicyEvaluationPollingResult();
-    initialResult.setStatus(PolicyEvaluationStatus.PENDING);
-    initialResult.setNextPollingIntervalInSeconds(getNextPollingInterval());
     PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
-        new PersistedPolicyEvaluationPollingResult(app.getId(), statusId, initialResult);
-    persistedPolicyEvaluationPollingResultDAO.insert(persistedPolicyEvaluationPollingResult);
+        createPersistedPolicyEvaluationPollingResultIfNeeded(app, statusId);
 
     log.debug(
         "Submitting policy evaluation task for app public id {}, clientScanType {}, stageTypeId {}. "
@@ -223,6 +219,26 @@ public class DefaultPolicyEvaluateService
             buildThirdPartyScanTelemetryData(app.getPublicId(), stage, thirdPartyScanType, userAgent),
             persistedPolicyEvaluationPollingResult),
         executor::submit);
+  }
+
+  public PersistedPolicyEvaluationPollingResult createPersistedPolicyEvaluationPollingResultIfNeeded(
+      Application app,
+      String statusId)
+  {
+    PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
+        persistedPolicyEvaluationPollingResultDAO.getByApplicationIdAndStatusId(app.getId(), statusId);
+    if (persistedPolicyEvaluationPollingResult != null) {
+      return persistedPolicyEvaluationPollingResult;
+    }
+
+    PolicyEvaluationPollingResult initialResult = new PolicyEvaluationPollingResult();
+    initialResult.setStatus(PolicyEvaluationStatus.PENDING);
+    initialResult.setNextPollingIntervalInSeconds(getNextPollingInterval());
+    persistedPolicyEvaluationPollingResult =
+        new PersistedPolicyEvaluationPollingResult(app.getId(), statusId, initialResult);
+    persistedPolicyEvaluationPollingResultDAO.insert(persistedPolicyEvaluationPollingResult);
+
+    return persistedPolicyEvaluationPollingResult;
   }
 
   /**

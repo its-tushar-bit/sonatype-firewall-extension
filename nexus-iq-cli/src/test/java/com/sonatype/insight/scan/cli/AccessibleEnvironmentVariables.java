@@ -5,10 +5,10 @@
  */
 package com.sonatype.insight.scan.cli;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.google.common.collect.ImmutableMap;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 /**
@@ -16,7 +16,7 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
  * into the native image config gen tests. So this is simply an extension of {@link EnvironmentVariables} which provides
  * access to the map of variables
  */
-public class AccessibleEnvironmentVariables
+public class  AccessibleEnvironmentVariables
     extends EnvironmentVariables
 {
   private final Map<String, String> copyOfEnvironmentVariables = new HashMap<>();
@@ -28,6 +28,6 @@ public class AccessibleEnvironmentVariables
   }
 
   public Map<String, String> get() {
-    return ImmutableMap.copyOf(copyOfEnvironmentVariables);
+    return Collections.unmodifiableMap(copyOfEnvironmentVariables);
   }
 }

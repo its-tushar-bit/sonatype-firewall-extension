@@ -158,4 +158,18 @@ public class SourceControlDefaultBranchCommitHistoryDAO
               .executeUpdate();
     }
   }
+
+  @Override
+  public final void delete(TransactionContext tx, SourceControlDefaultBranchCommitHistory entity) {
+    // WARNING: Don't add any business logic to this method because, for performance reasons,
+    // we bypass this method when deleting all expired entities.
+    super.delete(tx, entity);
+  }
+
+  @Override
+  public final void delete(SourceControlDefaultBranchCommitHistory entity) {
+    // WARNING: Don't add any business logic to this method because, for performance reasons,
+    // we bypass this method when deleting all expired entities.
+    super.delete(entity);
+  }
 }

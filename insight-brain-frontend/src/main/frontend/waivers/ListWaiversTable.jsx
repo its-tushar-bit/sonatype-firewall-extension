@@ -13,6 +13,7 @@ import { NxTable, NxTableBody, NxTableCell, NxTableHead, NxTableRow } from '@son
 import ComponentDisplay from '../ComponentDisplay/ReactComponentDisplay';
 import { violationDetailsPropTypes } from '../violation/ViolationDetailsTile';
 import { constraintViolationsPropType } from '../violation/PolicyViolationConstraintInfoTile';
+import NxExternalLink from '../react/NxExternalLink';
 
 export default function ListWaiversTable(props) {
   const {
@@ -64,8 +65,9 @@ export default function ListWaiversTable(props) {
       <NxTableRow>
         <NxTableCell colSpan='5' className='nx-cell--empty'>
           You don&#39;t have any waivers: to learn more about waivers you can check
-          our <a href="https://help.sonatype.com/iqserver/reporting/application-composition-report/waivers">
-          help documentation.</a>
+          our <NxExternalLink
+            href={'https://help.sonatype.com/iqserver/reporting/application-composition-report/waivers'}>help
+          documentation.</NxExternalLink>
         </NxTableCell>
       </NxTableRow>
     </NxTableBody>

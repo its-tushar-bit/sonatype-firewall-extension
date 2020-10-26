@@ -7,6 +7,7 @@ import * as enzymeUtils from '../enzymeUtils';
 import { NxTable, NxTableBody, NxTableCell, NxTableHead, NxTableRow } from '@sonatype/react-shared-components';
 import moment from 'moment';
 import ComponentDisplay from '../../../main/frontend/ComponentDisplay/ReactComponentDisplay';
+import NxExternalLink from '../../../main/frontend/react/NxExternalLink';
 
 describe('ListWaiversTable', function() {
   let minimalProps,
@@ -59,10 +60,11 @@ describe('ListWaiversTable', function() {
     expect(emptyCell).toHaveClassName('nx-cell--empty');
     expect(emptyCell.childAt(0).text())
         .toBe('You don\'t have any waivers: to learn more about waivers you can check our ');
-    const waiverLinkHtml =
-        '<a href="https://help.sonatype.com/iqserver/reporting/application-composition-report/waivers">' +
-        'help documentation.</a>';
-    expect(emptyCell.childAt(1).html()).toBe(waiverLinkHtml);
+    const linkNode = emptyCell.find(NxExternalLink);
+    const linkElement = linkNode.getElement();
+    const { children, href } = linkElement.props;
+    expect(children).toBe('help documentation.');
+    expect(href).toBe('https://help.sonatype.com/iqserver/reporting/application-composition-report/waivers');
   });
 
   const assertWaiverTableRow = (tableRow, dateCreated, scope, components, expiration, comments, isExpired) => {

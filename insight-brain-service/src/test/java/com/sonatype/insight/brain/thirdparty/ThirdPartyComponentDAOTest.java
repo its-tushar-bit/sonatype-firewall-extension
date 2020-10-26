@@ -23,6 +23,7 @@ import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.SecurityVulnerabilityDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
@@ -298,6 +299,8 @@ public class ThirdPartyComponentDAOTest
         suggestedRemediation.versionChanges.stream().map(change -> change.getData().getComponent()).findFirst().get();
 
     assertThat(remediation.packageUrl).isEqualTo("pkg:debian-9/glibc@2.24-12%2Bdeb9u4");
+    assertThat(remediation.displayName).isEqualTo(
+        ComponentDisplayNameUtil.fromIdentifier(remediation.componentIdentifier.toComponentIdentifier()).toString());
     assertThat(remediation.thirdParty).isTrue();
   }
 

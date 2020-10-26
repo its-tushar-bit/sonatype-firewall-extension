@@ -17,6 +17,8 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayName;
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationBaseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
@@ -176,6 +178,9 @@ public class ApiReportDataServiceV2
           component.componentIdentifier = ApiComponentIdentifierDTOV2
               .fromComponentIdentifier(componentIdentifier);
           component.packageUrl = PackageUrlIdentifier.toPackageUrl(componentIdentifier);
+          ComponentDisplayName componentDisplayName =
+              ComponentDisplayNameUtil.fromIdentifier(componentIdentifier);
+          component.displayName = componentDisplayName != null ? componentDisplayName.toString() : null;
           component.proprietary = componentJson.get("proprietary").booleanValue();
           component.pathnames = getPathnames(componentJson);
           component.displayName = ComponentDAO.getDisplayName(componentJson);
@@ -295,6 +300,9 @@ public class ApiReportDataServiceV2
       component.componentIdentifier = ApiComponentIdentifierDTOV2
           .fromComponentIdentifier(comp.getComponentIdentifier());
       component.packageUrl = PackageUrlIdentifier.toPackageUrl(comp.getComponentIdentifier());
+      ComponentDisplayName componentDisplayName =
+          ComponentDisplayNameUtil.fromIdentifier(comp.getComponentIdentifier());
+      component.displayName = componentDisplayName != null ? componentDisplayName.toString() : null;
 
       component.matchState = comp.getMatchState().getId();
       component.proprietary = comp.isProprietary();

@@ -27,6 +27,7 @@ import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.SecurityVulnerabilityDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
+import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
@@ -439,6 +440,9 @@ public class ThirdPartyComponentDAO
           ApiComponentDTOV2 componentDTOV2 = new ApiComponentDTOV2();
           componentDTOV2.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(suggestedComponent);
           componentDTOV2.packageUrl = PackageUrlIdentifier.toPackageUrl(suggestedComponent);
+          ComponentDisplayName componentDisplayName =
+              ComponentDisplayNameUtil.fromIdentifier(suggestedComponent);
+          componentDTOV2.displayName = componentDisplayName != null ? componentDisplayName.toString() : null;
           componentDTOV2.proprietary = null; // not applicable
           componentDTOV2.thirdParty = true;
           ApiVersionChangeOptionDTO changeOptionType = new ApiVersionChangeOptionDTO(

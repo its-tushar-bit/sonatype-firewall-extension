@@ -12,6 +12,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentReleasedFromQuarantineDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationDTO;
@@ -265,10 +266,13 @@ public class ApiComponentReleaseQuarantineServiceTest
           .isEqualTo(repositoryComponent.getComponentIdentifier());
       assertThat(repositoryComponentDTO.packageUrl)
           .isEqualTo(PackageUrlIdentifier.toPackageUrl(repositoryComponent.getComponentIdentifier()));
+      assertThat(repositoryComponentDTO.displayName).isEqualTo(
+          ComponentDisplayNameUtil.fromIdentifier(repositoryComponent.getComponentIdentifier()).toString());
     }
     else {
       assertThat(repositoryComponentDTO.componentIdentifier).isNull();
       assertThat(repositoryComponentDTO.packageUrl).isNull();
+      assertThat(repositoryComponentDTO.displayName).isNull();
     }
     assertThat(repositoryComponentDTO.proprietary).isNull();
     assertThat(repositoryComponentDTO.quarantineTime).isEqualTo(quarantineTime);

@@ -10,6 +10,7 @@ import java.util.HashSet;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -105,6 +106,8 @@ public class ApiComponentDetailsResourceV2Test
         .isEqualTo(componentIdentifier);
     assertThat(componentDetails.component.hash).isEqualTo("h1");
     assertThat(componentDetails.component.packageUrl).isEqualTo(expectedPackageUrl);
+    assertThat(componentDetails.component.displayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString());
     assertThat(componentDetails.licenseData.declaredLicenses).extracting(dto -> dto.licenseId)
         .containsExactlyInAnyOrder("Apache-2.0");
     assertThat(componentDetails.licenseData.observedLicenses).extracting(dto -> dto.licenseId)

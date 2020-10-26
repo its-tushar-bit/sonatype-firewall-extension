@@ -11,6 +11,8 @@ import java.util.Date;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayName;
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
@@ -58,6 +60,11 @@ public class ApiComponentDetailsAdapter
         .getComponentIdentifier());
     componentDetailsDTO.component.hash = component.getHash();
     componentDetailsDTO.component.packageUrl = PackageUrlIdentifier.toPackageUrl(component.getComponentIdentifier());
+
+    ComponentDisplayName componentDisplayName =
+        ComponentDisplayNameUtil.fromIdentifier(component.getComponentIdentifier());
+    componentDetailsDTO.component.displayName = componentDisplayName != null ? componentDisplayName.toString() : null;
+
     componentDetailsDTO.component.proprietary = component.isProprietary();
     componentDetailsDTO.matchState = component.getMatchState() == null ? MatchState.UNKNOWN.getId() : component
         .getMatchState().getId();
@@ -88,6 +95,11 @@ public class ApiComponentDetailsAdapter
     componentDetailsDTO.component.hash = componentDetailsFromHds.hash;
     componentDetailsDTO.component.packageUrl =
         PackageUrlIdentifier.toPackageUrl(componentDetailsFromHds.componentIdentifier);
+
+    ComponentDisplayName componentDisplayName =
+        ComponentDisplayNameUtil.fromIdentifier(componentDetailsFromHds.componentIdentifier);
+    componentDetailsDTO.component.displayName = componentDisplayName != null ? componentDisplayName.toString() : null;
+
     if (componentDetailsFromHds.matchState == null) {
       componentDetailsDTO.matchState = MatchState.UNKNOWN.getId();
     }

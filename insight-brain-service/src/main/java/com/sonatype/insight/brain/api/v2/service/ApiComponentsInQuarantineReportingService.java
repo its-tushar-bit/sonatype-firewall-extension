@@ -10,6 +10,8 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayName;
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentsInQuarantineDTO;
@@ -129,6 +131,9 @@ public class ApiComponentsInQuarantineReportingService
     ApiRepositoryComponentDTO repositoryComponentDTO = new ApiRepositoryComponentDTO();
     repositoryComponentDTO.packageUrl = PackageUrlIdentifier.toPackageUrl(
         repositoryComponent.getComponentIdentifier());
+    ComponentDisplayName componentDisplayName =
+        ComponentDisplayNameUtil.fromIdentifier(repositoryComponent.getComponentIdentifier());
+    repositoryComponentDTO.displayName = componentDisplayName != null ? componentDisplayName.toString() : null;
     repositoryComponentDTO.hash = repositoryComponent.getHash();
     repositoryComponentDTO.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(
         repositoryComponent.getComponentIdentifier());

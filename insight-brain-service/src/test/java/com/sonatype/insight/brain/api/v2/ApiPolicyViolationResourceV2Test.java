@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.HttpResponse;
@@ -80,6 +81,8 @@ public class ApiPolicyViolationResourceV2Test
     assertThat(apiPolicyViolationDTO.component.componentIdentifier.toComponentIdentifier())
         .isEqualTo(pv1App1.getComponentIdentifier());
     assertThat(apiPolicyViolationDTO.component.packageUrl).isEqualTo("pkg:maven/g1/a1@v1");
+    assertThat(apiPolicyViolationDTO.component.displayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(pv1App1.getComponentIdentifier()).toString());
 
     assertThat(apiPolicyViolationDTO.constraintViolations).hasSize(1);
     ApiConstraintViolationDTO apiConstraintViolationDTO = apiPolicyViolationDTO.constraintViolations.get(0);

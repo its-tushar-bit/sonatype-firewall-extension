@@ -14,6 +14,7 @@ import java.util.Set;
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.HttpRequest;
@@ -139,6 +140,9 @@ public class CIComponentInfoResourceTest
     ApiVersionChangeOptionDTO versionChangeDTO = responseDto.remediation.versionChanges.get(0);
     assertThat(versionChangeDTO.getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
     assertThat(versionChangeDTO.getData().getComponent().packageUrl).isEqualTo("pkg:debian/glibc@2.24-11%2Bdeb9u4");
+    assertThat(versionChangeDTO.getData().getComponent().displayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(versionChangeDTO.getData().getComponent().componentIdentifier
+            .toComponentIdentifier()).toString());
   }
 
   @Test

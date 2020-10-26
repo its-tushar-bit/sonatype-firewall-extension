@@ -20,6 +20,9 @@ public class ApiComponentDTOV2
   public ApiComponentIdentifierDTOV2 componentIdentifier;
 
   @JsonInclude(Include.NON_NULL)
+  public String displayName;
+
+  @JsonInclude(Include.NON_NULL)
   public Boolean proprietary = false;
 
   @JsonInclude(Include.NON_NULL)

@@ -11,6 +11,7 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
@@ -184,10 +185,13 @@ public class ApiPolicyViolationServiceV2Test
       assertThat(apiPolicyViolationDTO.component.componentIdentifier.toComponentIdentifier())
           .isEqualTo(policyViolation.getComponentIdentifier());
       assertThat(apiPolicyViolationDTO.component.packageUrl).isEqualTo(packageUrl);
+      assertThat(apiPolicyViolationDTO.component.displayName)
+          .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(policyViolation.getComponentIdentifier()).toString());
     }
     else {
       assertThat(apiPolicyViolationDTO.component.componentIdentifier).isNull();
       assertThat(apiPolicyViolationDTO.component.packageUrl).isNull();
+      assertThat(apiPolicyViolationDTO.component.displayName).isNull();
     }
 
     assertThat(apiPolicyViolationDTO.constraintViolations).hasSize(1);

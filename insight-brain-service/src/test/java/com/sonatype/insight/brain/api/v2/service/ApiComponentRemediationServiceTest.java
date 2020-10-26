@@ -17,6 +17,7 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
@@ -613,6 +614,8 @@ public class ApiComponentRemediationServiceTest
     assertThat(noViolationsDto.componentIdentifier.toComponentIdentifier()).isEqualTo(v3.componentIdentifier);
     assertThat(noViolationsDto.hash).isNull();
     assertThat(noViolationsDto.packageUrl).isEqualTo(expectedPackageUrl);
+    assertThat(noViolationsDto.displayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(v3.componentIdentifier).toString());
     assertThat(noViolationsDto.proprietary).isNull();
     assertTelemetry("application", app.getId(), v1.componentIdentifier, "option_next_no_violations");
   }
@@ -702,6 +705,8 @@ public class ApiComponentRemediationServiceTest
     assertThat(nonFailingDto.componentIdentifier.toComponentIdentifier()).isEqualTo(expectedComponentIdentifier);
     assertThat(nonFailingDto.hash).isNull();
     assertThat(nonFailingDto.packageUrl).isEqualTo(expectedPackageUrl);
+    assertThat(nonFailingDto.displayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(expectedComponentIdentifier).toString());
     assertThat(nonFailingDto.proprietary).isNull();
   }
 
@@ -723,6 +728,8 @@ public class ApiComponentRemediationServiceTest
     assertThat(nonFailingDto.componentIdentifier.toComponentIdentifier()).isEqualTo(expectedComponentIdentifier);
     assertThat(nonFailingDto.hash).isNull();
     assertThat(nonFailingDto.packageUrl).isEqualTo(expectedPackageUrl);
+    assertThat(nonFailingDto.displayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(expectedComponentIdentifier).toString());
     assertThat(nonFailingDto.proprietary).isNull();
   }
 
@@ -740,6 +747,9 @@ public class ApiComponentRemediationServiceTest
     assertThat(noViolationsOption.getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
     ApiComponentDTOV2 noViolationsDto = noViolationsOption.getData().getComponent();
     assertThat(noViolationsDto.packageUrl).isEqualTo(expectedPackageUrl);
+    assertThat(noViolationsDto.displayName).isEqualTo(ComponentDisplayNameUtil
+        .fromIdentifier(noViolationsOption.getData().getComponent().componentIdentifier.toComponentIdentifier())
+        .toString());
 
     ApiVersionChangeOptionDTO nonFailingOption = apiComponentRemediationValueDTO.versionChanges.get(1);
     assertThat(nonFailingOption.getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NON_FAILING);
@@ -751,12 +761,18 @@ public class ApiComponentRemediationServiceTest
         .isEqualTo(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
     ApiComponentDTOV2 noViolationsWithDepDto = noViolationsWithDepOption.getData().getComponent();
     assertThat(noViolationsWithDepDto.packageUrl).isEqualTo(expectedPackageUrl);
+    assertThat(noViolationsDto.displayName).isEqualTo(ComponentDisplayNameUtil
+        .fromIdentifier(noViolationsWithDepOption.getData().getComponent().componentIdentifier.toComponentIdentifier())
+        .toString());
 
     ApiVersionChangeOptionDTO nonFailingWithDepOption = apiComponentRemediationValueDTO.versionChanges.get(3);
     assertThat(nonFailingWithDepOption.getType())
         .isEqualTo(ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES);
     ApiComponentDTOV2 nonFailingWithDepDto = nonFailingWithDepOption.getData().getComponent();
     assertThat(nonFailingWithDepDto.packageUrl).isEqualTo(expectedPackageUrl);
+    assertThat(noViolationsDto.displayName).isEqualTo(ComponentDisplayNameUtil
+        .fromIdentifier(nonFailingWithDepOption.getData().getComponent().componentIdentifier.toComponentIdentifier())
+        .toString());
   }
 
   private ApiComponentDTOV2 createComponent(final ComponentIdentifier componentIdentifier) {

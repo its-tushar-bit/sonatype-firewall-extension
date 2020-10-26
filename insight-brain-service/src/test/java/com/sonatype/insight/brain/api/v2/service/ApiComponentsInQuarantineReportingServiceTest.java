@@ -13,6 +13,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
@@ -363,6 +364,8 @@ public class ApiComponentsInQuarantineReportingServiceTest
     ComponentIdentifier expectedComponentIdentifier = expectedComponent.getComponentIdentifier();
     assertThat(repositoryComponentDTO.componentIdentifier.toComponentIdentifier())
         .isEqualTo(expectedComponentIdentifier);
+    assertThat(repositoryComponentDTO.displayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(expectedComponentIdentifier).toString());
 
     assertThat(repositoryComponentDTO.quarantineId).isEqualTo(expectedComponent.getId());
     assertThat(repositoryComponentDTO.quarantineTime).isEqualTo(expectedComponent.getQuarantineTime());

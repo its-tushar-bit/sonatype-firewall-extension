@@ -14,6 +14,7 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentDetails;
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
@@ -890,6 +891,9 @@ public class ComponentRemediationServiceTest
               dto.getData().getComponent().componentIdentifier.toComponentIdentifier(),
               expected.getData().getComponent().componentIdentifier.toComponentIdentifier())
           ).isTrue();
+          assertThat(dto.getData().getComponent().displayName)
+              .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(expected.getData().getComponent().componentIdentifier
+                  .toComponentIdentifier()).toString());
           found = true;
           break;
         }

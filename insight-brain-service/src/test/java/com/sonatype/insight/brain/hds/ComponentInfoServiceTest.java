@@ -1155,6 +1155,10 @@ public class ComponentInfoServiceTest
     assertThat(dto.remediation.versionChanges.get(0).getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NON_FAILING);
     assertThat(dto.remediation.versionChanges.get(0).getData().getComponent().packageUrl)
         .isEqualTo("pkg:maven/g1/a2@v1?type=jar");
+    assertThat(dto.remediation.versionChanges.get(0).getData().getComponent().displayName).isEqualTo(
+        ComponentDisplayNameUtil.fromIdentifier(
+            dto.remediation.versionChanges.get(0).getData().getComponent().componentIdentifier.toComponentIdentifier())
+            .toString());
   }
 
   @Test

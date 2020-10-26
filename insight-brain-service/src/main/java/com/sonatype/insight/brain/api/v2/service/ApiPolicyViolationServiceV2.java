@@ -13,6 +13,8 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayName;
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.api.v2.ApiApplicationAdapter;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
@@ -117,6 +119,10 @@ public class ApiPolicyViolationServiceV2
             .fromComponentIdentifier(policyViolation.getComponentIdentifier());
         apiPolicyViolationDTO.component.packageUrl =
             PackageUrlIdentifier.toPackageUrl(policyViolation.getComponentIdentifier());
+        ComponentDisplayName componentDisplayName =
+            ComponentDisplayNameUtil.fromIdentifier(policyViolation.getComponentIdentifier());
+        apiPolicyViolationDTO.component.displayName =
+            componentDisplayName != null ? componentDisplayName.toString() : null;
         apiPolicyViolationDTO.constraintViolations = policyViolationAdapter.convert(policyViolation);
       }
     }

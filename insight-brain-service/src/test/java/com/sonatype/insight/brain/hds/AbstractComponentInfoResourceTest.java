@@ -211,6 +211,10 @@ public abstract class AbstractComponentInfoResourceTest
     ApiVersionChangeOptionDTO versionChange = remediationValue.versionChanges.get(0);
     assertThat(versionChange.getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
     assertThat(versionChange.getData().getComponent().packageUrl).isEqualTo("pkg:maven/g1/a1@v1?type=jar");
+    assertThat(versionChange.getData().getComponent().displayName).isEqualTo(
+        com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil
+            .fromIdentifier(versionChange.getData().getComponent().componentIdentifier.toComponentIdentifier())
+            .toString());
   }
 
   private void assertComponentDetails(ComponentDetails actual, ComponentDetails expected) {

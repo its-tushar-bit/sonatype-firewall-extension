@@ -20,6 +20,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentDetails;
+import com.sonatype.clm.dto.model.component.ComponentDisplayName;
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
@@ -322,6 +324,9 @@ public class ComponentRemediationService
     ApiComponentDTOV2 componentDTOV2 = new ApiComponentDTOV2();
     componentDTOV2.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
     componentDTOV2.packageUrl = PackageUrlIdentifier.toPackageUrl(componentIdentifier);
+    ComponentDisplayName componentDisplayName =
+        ComponentDisplayNameUtil.fromIdentifier(componentIdentifier);
+    componentDTOV2.displayName = componentDisplayName != null ? componentDisplayName.toString() : null;
     componentDTOV2.proprietary = null; // not applicable
     return new ApiVersionChangeOptionDTO(apiVersionChangeOptionType, new ApiComponentChangeActionDTO(componentDTOV2));
   }

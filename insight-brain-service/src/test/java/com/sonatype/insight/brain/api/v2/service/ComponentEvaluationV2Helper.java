@@ -15,6 +15,8 @@ import java.util.Set;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
+import com.sonatype.clm.dto.model.component.ComponentDisplayName;
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList.ComponentEvaluationDataRequest;
@@ -98,6 +100,8 @@ public class ComponentEvaluationV2Helper
     component.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
     component.hash = hash;
     component.packageUrl = packageUrl;
+    ComponentDisplayName componentDisplayName = ComponentDisplayNameUtil.fromIdentifier(componentIdentifier);
+    component.displayName = componentDisplayName != null ? componentDisplayName.toString() : null;
     return component;
   }
 
@@ -186,6 +190,8 @@ public class ComponentEvaluationV2Helper
         .isEqualTo(expectedComponentIdentifier.toComponentIdentifier());
     assertThat(resultComponentDTO.component.hash).isEqualTo(expectedHash);
     assertThat(resultComponentDTO.component.packageUrl).isEqualTo(expectedPackageUrl);
+    assertThat(resultComponentDTO.component.displayName).isEqualTo(
+        ComponentDisplayNameUtil.fromIdentifier(expectedComponentIdentifier.toComponentIdentifier()).toString());
     assertThat(resultComponentDTO.matchState).isEqualTo(matchState);
     assertThat(resultComponentDTO.relativePopularity).isEqualTo(relativePopularity);
 

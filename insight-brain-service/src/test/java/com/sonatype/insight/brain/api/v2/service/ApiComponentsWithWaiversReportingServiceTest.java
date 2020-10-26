@@ -11,6 +11,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
@@ -331,6 +332,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
 
     assertThat(apiComponentPolicyViolationDTO.component.componentIdentifier).isNull();
     assertThat(apiComponentPolicyViolationDTO.component.packageUrl).isNull();
+    assertThat(apiComponentPolicyViolationDTO.component.displayName).isNull();
     assertThat(apiComponentPolicyViolationDTO.component.proprietary).isNull();
     assertThat(apiComponentPolicyViolationDTO.component.hash).isEqualTo("hash1");
 
@@ -588,6 +590,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
 
     assertThat(componentPolicyViolationDTO.component.componentIdentifier).isNull();
     assertThat(componentPolicyViolationDTO.component.packageUrl).isNull();
+    assertThat(componentPolicyViolationDTO.component.displayName).isNull();
     assertThat(componentPolicyViolationDTO.component.proprietary).isNull();
     assertThat(componentPolicyViolationDTO.component.hash).isEqualTo("h1");
     assertThat(componentPolicyViolationDTO.waivedPolicyViolations).hasSize(1);
@@ -733,6 +736,8 @@ public class ApiComponentsWithWaiversReportingServiceTest
         .isEqualTo(policyViolation.getComponentIdentifier());
     assertThat(componentDTOV2.packageUrl)
         .isEqualTo(PackageUrlIdentifier.toPackageUrl(policyViolation.getComponentIdentifier()));
+    assertThat(componentDTOV2.displayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(policyViolation.getComponentIdentifier()).toString());
     assertThat(componentDTOV2.proprietary).isNull();
   }
 

@@ -16,21 +16,16 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.ApiReportDataResourceV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationStatusDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -53,18 +48,15 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 public class ApiPromoteScanServiceV2
+    extends AbstractApiApplicationEvaluationService
 {
   private static final Logger log = LoggerFactory.getLogger(ApiPromoteScanServiceV2.class);
 
   private final ThreadPoolExecutor executor;
 
-  private final ApplicationDAO applicationDAO;
-
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
   private final PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO;
-
-  private final DefaultPolicyEvaluateService policyEvaluateService;
 
   private final InsightWork work;
   
@@ -79,10 +71,9 @@ public class ApiPromoteScanServiceV2
       InsightWork work,
       ErrorResponseGenerator errorResponseGenerator)
   {
-    this.applicationDAO = applicationDAO;
+    super(applicationDAO, policyEvaluateService);
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.persistedPolicyEvaluationPollingResultDAO = persistedPolicyEvaluationPollingResultDAO;
-    this.policyEvaluateService = policyEvaluateService;
     this.work = work;
     this.errorResponseGenerator = errorResponseGenerator;
 
@@ -238,40 +229,5 @@ public class ApiPromoteScanServiceV2
       }
       return getLastEvaluation(applicationId, apiPromoteScanRequestDTOV2.sourceStageId).getScanId();
     }
-  }
-
-  private static String getStatusUrl(String applicationId, String statusId) {
-    return UriBuilder.fromPath(PublicApiPaths.PROMOTE_SCAN_STATUS_PATH_V2).build(applicationId, statusId).toString();
-  }
-
-  @Authorize(permission = Permission.EVALUATE_APPLICATION)
-  public ApiApplicationEvaluationResultDTOV2 getApplicationEvaluationStatus(
-      @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
-      String statusId)
-  {
-    Application application = applicationDAO.getById(applicationId);
-    PolicyEvaluationPollingResult policyEvaluationPollingResult =
-        policyEvaluateService.pollEvaluationResult(application.getPublicId(), statusId);
-
-    ApiApplicationEvaluationResultDTOV2 result = new ApiApplicationEvaluationResultDTOV2();
-    result.status = policyEvaluationPollingResult.getStatus().name();
-    switch (policyEvaluationPollingResult.getStatus()) {
-      case COMPLETED:
-        String applicationPublicId = application.getPublicId();
-        String scanId = policyEvaluationPollingResult.getScanReceipt().getScanId();
-        result.reportPdfUrl = UserInterfaceLinksResource.getPdfUrl(applicationPublicId, scanId);
-        result.reportHtmlUrl = UserInterfaceLinksResource.getReportUrl(applicationPublicId, scanId);
-        result.embeddableReportHtmlUrl =
-            UserInterfaceLinksResource.getEmbeddableReportUrl(applicationPublicId, scanId);
-        result.reportDataUrl = ApiReportDataResourceV2.getDataUrl(applicationPublicId, scanId);
-        break;
-      case FAILED:
-        result.reason = policyEvaluationPollingResult.getReason();
-        break;
-      default:
-        break;
-    }
-
-    return result;
   }
 }

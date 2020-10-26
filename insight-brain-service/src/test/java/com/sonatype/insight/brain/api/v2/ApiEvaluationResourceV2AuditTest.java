@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiManifestEvaluationRequestDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentEvaluationServiceV2;
@@ -25,13 +26,17 @@ import com.sonatype.insight.brain.api.v2.service.ComponentEvaluationV2Helper;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.mock.hds.HdsMockServer.RestHandler;
+import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 
 public class ApiEvaluationResourceV2AuditTest
     extends AbstractAuditTest
@@ -143,6 +148,33 @@ public class ApiEvaluationResourceV2AuditTest
     assertApplicationData(auditDTO, app);
   }
 
+  @Test
+  public void testDoManifestEvaluation() throws Exception {
+    assertResponseStatus(200, doManifestEvaluation(null /* user */, app.getId(), Stage.ID_DEVELOP));
+    assertManifestEvaluationAuditLog(null, app.getId(), app.getPublicId(), app.getName());
+  }
+
+  @Test
+  public void testDoManifestEvaluation_Unauthorized() throws Exception {
+    assertResponseStatus(403, doManifestEvaluation(unauthorizedUser(), app.getId(), Stage.ID_DEVELOP));
+    assertManifestEvaluationAuditLog("unauthorized", app.getId(), app.getPublicId(), app.getName());
+  }
+
+  private HttpResponse doManifestEvaluation(
+      Consumer<HttpRequest> user,
+      String applicationId,
+      String stageId) throws Exception
+  {
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
+    PasswordHandler pwHandler = getCLMServer().getInstance(PasswordHandler.class);
+    tempEntity.newSourceControl(app.getId(), "http://example.com/my/repo.git", null,
+        new String(pwHandler.encryptPassword("TOKEN".toCharArray())), null, null, true, "TestBaseBranchName", null);
+
+    return restRequest().with(user)
+        .path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, ApiEvaluationResourceV2.MANIFEST_EVALUATION_PATH)
+        .parameter(applicationId).body(new ApiManifestEvaluationRequestDTO(stageId, "TestBranchName")).post();
+  }
+
   private HttpResponse promoteScan(boolean createScanFile,
                                    boolean createReport,
                                    Consumer<HttpRequest> user,
@@ -176,5 +208,16 @@ public class ApiEvaluationResourceV2AuditTest
           .createComponent(ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), "h"));
     }
     return request;
+  }
+
+  private void assertManifestEvaluationAuditLog(
+      String error,
+      String applicationId,
+      String applicationPublicId,
+      String applicationName)
+  {
+    AuditDTO auditDTO = awaitLogEntries(AuditEvent.EVALUATE_APPLICATION, 1).get(0);
+    assertStandardData(auditDTO, AuditEvent.EVALUATE_APPLICATION, error, null /* username */);
+    assertApplicationData(auditDTO, applicationId, applicationPublicId, applicationName);
   }
 }

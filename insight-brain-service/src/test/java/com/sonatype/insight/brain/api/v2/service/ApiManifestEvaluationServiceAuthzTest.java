@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.api.v2.service;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiManifestEvaluationRequestDTO;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -19,30 +19,36 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-public class ApiPromoteScanServiceV2AuthzTest
+public class ApiManifestEvaluationServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
   @Inject
-  private ApiPromoteScanServiceV2 service;
+  private ApiManifestEvaluationService service;
+
+  @Test
+  public void testDoManifestEvaluation_Authorized() throws Exception {
+    grantEvaluateApplicationPermission(app.getId());
+
+    ApiManifestEvaluationRequestDTO apiManifestEvaluationRequestDTO =
+        new ApiManifestEvaluationRequestDTO(Stage.ID_DEVELOP, "a-branch");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      service.doManifestEvaluation(app.getId(), apiManifestEvaluationRequestDTO, "useragent");
+    }).withMessage("No SCM configuration defined for application ID " + app.getId());
+  }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testPromoteScan_Unauthenticated() {
-    service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan("scanId", Stage.ID_OPERATE),
-        null /* userAgent */);
+  public void testDoManifestEvaluation_Unauthenticated() throws Exception {
+    ApiManifestEvaluationRequestDTO apiManifestEvaluationRequestDTO =
+        new ApiManifestEvaluationRequestDTO(Stage.ID_DEVELOP, "a-branch");
+    service.doManifestEvaluation(app.getId(), apiManifestEvaluationRequestDTO, "useragent");
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testPromoteScan_Unauthorized() {
+  public void testDoManifestEvaluation_Unauthorized() throws Exception {
     login();
-    service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan("scanId", Stage.ID_OPERATE),
-        null /* userAgent */);
-  }
-
-  @Test(expected = BadRequestException.class)
-  public void testPromoteScan_Authorized() {
-    grantEvaluateApplicationPermission(app.getId());
-    service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan("scanId", Stage.ID_OPERATE),
-        null /* userAgent */);
+    ApiManifestEvaluationRequestDTO apiManifestEvaluationRequestDTO =
+        new ApiManifestEvaluationRequestDTO(Stage.ID_DEVELOP, "a-branch");
+    service.doManifestEvaluation(app.getId(), apiManifestEvaluationRequestDTO, "useragent");
   }
 
   @Test(expected = UnauthenticatedException.class)

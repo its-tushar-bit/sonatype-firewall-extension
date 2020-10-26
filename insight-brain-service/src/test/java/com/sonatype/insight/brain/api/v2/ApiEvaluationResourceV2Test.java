@@ -27,21 +27,27 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiManifestEvaluationRequestDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentEvaluationServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ComponentEvaluationV2Helper;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.PublicApiPaths.APPLICATION_EVALUATION_PATH_V2;
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -528,6 +534,51 @@ public class ApiEvaluationResourceV2Test
         response.getBody(ApiApplicationEvaluationResultDTOV2.class);
     assertThat(apiApplicationEvaluationResultDTOV2).isNotNull();
     assertThat(apiApplicationEvaluationResultDTOV2.status).isNotNull();
+  }
+
+  @Test
+  public void testDoManifestEvaluation() throws Exception {
+    // given an application
+    Application app = tempEntity.newApplicationWithParent();
+
+    // and a root-org source control definition
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
+
+    // and app-level source control
+    PasswordHandler pwHandler = getCLMServer().getInstance(PasswordHandler.class);
+    tempEntity.newSourceControl(app.getId(), "http://example.com/my/repo.git", null,
+        new String(pwHandler.encryptPassword("TOKEN".toCharArray())), null, null, true, "customBranch", null);
+
+    // and we can query for Source Control events
+    SourceControlEventDAO sourceControlEventDAO = new SourceControlEventDAO();
+
+    // and events are empty
+    assertThat(sourceControlEventDAO.getAll()).isEmpty();
+
+    // when application manifest is scanned
+    ApiManifestEvaluationRequestDTO apiManifestEvaluationRequestDTO =
+        new ApiManifestEvaluationRequestDTO(Stage.ID_DEVELOP, "customBranch");
+    HttpResponse response = restRequest() //
+        .path(APPLICATION_EVALUATION_PATH_V2, ApiEvaluationResourceV2.MANIFEST_EVALUATION_PATH) //
+        .parameter(app.getId()) //
+        .body(apiManifestEvaluationRequestDTO).post();
+
+    // the response contains status ID
+    assertResponseStatus(200, response);
+    ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 =
+        response.getBody(ApiApplicationEvaluationStatusDTOV2.class);
+    assertThat(apiApplicationEvaluationStatusDTOV2.statusUrl).isNotNull();
+
+    // and the event was published
+    List<SourceControlEvent> allEvents = sourceControlEventDAO.getAll();
+    assertThat(allEvents.size()).isEqualTo(1);
+
+    // and it matches expected values
+    SourceControlEvent event = allEvents.get(0);
+    assertThat(event.getApplicationId()).isEqualTo(app.getId());
+    assertThat(event.getEventType()).isEqualTo(SourceControlEvent.MANIFEST_EVALUATION_EVENT);
+    assertThat(event.getStageTypeId()).isEqualTo("develop");
+    assertThat(event.getBranchName()).isEqualTo("customBranch");
   }
 
   private void mockComponentDetails(final ComponentEvaluationDataList componentEvaluationDataList) {

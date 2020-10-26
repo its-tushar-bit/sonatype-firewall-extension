@@ -25,8 +25,10 @@ import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationStatusDTOV2
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiManifestEvaluationRequestDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentEvaluationServiceV2;
+import com.sonatype.insight.brain.api.v2.service.ApiManifestEvaluationService;
 import com.sonatype.insight.brain.api.v2.service.ApiPromoteScanServiceV2;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -44,17 +46,23 @@ public class ApiEvaluationResourceV2
 {
   public static final String PROMOTE_SCAN_PATH = "{applicationId}/promoteScan";
 
+  public static final String MANIFEST_EVALUATION_PATH = "{applicationId}/manifestEvaluation";
+
   private final ApiComponentEvaluationServiceV2 componentEvaluationService;
 
   private final ApiPromoteScanServiceV2 promoteScanService;
 
+  private final ApiManifestEvaluationService manifestEvaluationService;
+
   @Inject
   public ApiEvaluationResourceV2(
       final ApiComponentEvaluationServiceV2 componentEvaluationService,
-      final ApiPromoteScanServiceV2 apiPromoteScanServiceV2)
+      final ApiPromoteScanServiceV2 apiPromoteScanServiceV2,
+      ApiManifestEvaluationService manifestEvaluationService)
   {
     this.componentEvaluationService = componentEvaluationService;
     this.promoteScanService = apiPromoteScanServiceV2;
+    this.manifestEvaluationService = manifestEvaluationService;
   }
 
   @Path("{applicationId}")
@@ -91,6 +99,23 @@ public class ApiEvaluationResourceV2
       @Context HttpServletRequest request)
   {
     return promoteScanService.promoteScan(applicationId, promoteScanRequest, HdsClient.getClientUserAgent(request));
+  }
+
+  /**
+   * @since 1.101
+   */
+  @Path(MANIFEST_EVALUATION_PATH)
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(value = AuditEvent.EVALUATE_APPLICATION)
+  public ApiApplicationEvaluationStatusDTOV2 doManifestEvaluation(
+      @PathParam("applicationId") String applicationId,
+      ApiManifestEvaluationRequestDTO manifestEvaluationRequest,
+      @Context HttpServletRequest request)
+  {
+    return manifestEvaluationService.doManifestEvaluation(applicationId, manifestEvaluationRequest,
+        HdsClient.getClientUserAgent(request));
   }
 
   @GET

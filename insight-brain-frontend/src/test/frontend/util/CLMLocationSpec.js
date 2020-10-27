@@ -200,4 +200,9 @@ describe('CLMLocation.js', function() {
           .toBe('http://localhost/rest/component/identified/foo%20bar');
     });
   });
+
+  it('should return the delete url for waivers', function() {
+    expect(CLMLocation.deleteWaiverUrl('organization', 'orgId', 'waiverId'))
+        .toBe('/api/v2/policyWaivers/organization/orgId/waiverId/');
+  });
 });

@@ -20,20 +20,26 @@ describe('ListWaiversPage', function() {
       stateGoSpy,
       stateHrefSpy,
       violationDetailsMock,
-      getShallowComponent;
+      getShallowComponent,
+      DeleteWaiverModalMock,
+      setWaiverToDeleteMock;
 
   beforeEach(function() {
     ListWaiversTableMock = jasmine.createSpy('ListWaiversTableMock')
         .and.returnValue(<div>ListWaiversTable</div>);
     MaximizedContainerMock = jasmine.createSpy('MaximizedContainerMock')
         .and.returnValue(<div>MaximizedContainer</div>);
+    DeleteWaiverModalMock = jasmine.createSpy('DeleteWaiverModalMock')
+        .and.returnValue(<div>Delete Waiver Modal</div>);
 
     ListWaiversPage = require('inject-loader!../../../main/frontend/waivers/ListWaiversPage')({
       '../react/MaximizedContainer': MaximizedContainerMock,
-      './ListWaiversTable': ListWaiversTableMock
+      './ListWaiversTable': ListWaiversTableMock,
+      './deleteWaiverModal/DeleteWaiverModalContainer': DeleteWaiverModalMock
     }).default;
 
     loadViolationSpy = jasmine.createSpy('loadViolationSpy');
+    setWaiverToDeleteMock = () => {};
     stateGoSpy = jasmine.createSpy();
     stateHrefSpy = jasmine.createSpy().and.returnValue('href');
     stateMock = {
@@ -67,7 +73,9 @@ describe('ListWaiversPage', function() {
       },
       $state: stateMock,
       backButtonStateName: 'backButtonStateName',
-      loadViolation: loadViolationSpy
+      loadViolation: loadViolationSpy,
+      setWaiverToDelete: setWaiverToDeleteMock,
+      waiverToDelete: null
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ListWaiversPage, minimalProps);
@@ -101,6 +109,16 @@ describe('ListWaiversPage', function() {
     const component = getShallowComponent({ violationDetails: violationDetailsMock });
     expect(component.find(ViolationExclamation)).toExist();
     expect(component.find(ViolationExclamation)).toHaveProp('threatLevelCategory', 'severe');
+  });
+
+  it('renders the DeleteWaiverModal component if there is a waiverToDelete in the state', function() {
+    const component = getShallowComponent({ waiverToDelete: { waiverId: 'foo' } });
+    expect(component.find(DeleteWaiverModalMock)).toExist();
+  });
+
+  it('does not render the DeleteWaiverModal if there is not a waiverToDelete in the state', function() {
+    const component = getShallowComponent();
+    expect(component.find(DeleteWaiverModalMock)).not.toExist();
   });
 
   it('renders a loading LoadWrapper when loading is true', function() {
@@ -190,5 +208,6 @@ describe('ListWaiversPage', function() {
     expect(table).toHaveProp('activeWaivers', activeWaivers);
     expect(table).toHaveProp('expiredWaivers', expiredWaivers);
     expect(table).toHaveProp('violationDetails', violationDetailsMock);
+    expect(table).toHaveProp('setWaiverToDelete', setWaiverToDeleteMock);
   });
 });

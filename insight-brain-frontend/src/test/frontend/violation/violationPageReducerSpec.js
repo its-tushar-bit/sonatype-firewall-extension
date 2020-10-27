@@ -233,4 +233,60 @@ describe('violationPageReducer', function() {
       expect(newState.violationDetails).toBe(currentState.violationDetails);
     });
   });
+
+  describe('VIOLATION_LOAD_APPLICABLE_WAIVERS_REQUESTED', function() {
+    it('sets the loading prop to true', function() {
+      const state = {
+        loading: false,
+        otherProp: 'whatever'
+      };
+
+      const newState = reducer(state, {
+        type: 'VIOLATION_LOAD_APPLICABLE_WAIVERS_REQUESTED'
+      });
+
+      expect(newState.loading).toBe(true);
+      expect(newState.otherProp).toEqual(state.otherProp);
+    });
+  });
+
+  describe('VIOLATION_LOAD_APPLICABLE_WAIVERS_FULFILLED', function() {
+    it('sets the waivers in the state', function() {
+      const state = {
+        loading: true,
+        otherProp: 'whatever'
+      };
+
+      const newState = reducer(state, {
+        type: 'VIOLATION_LOAD_APPLICABLE_WAIVERS_FULFILLED',
+        payload: {
+          activeWaivers: ['foo'],
+          expiredWaivers: ['bar']
+        }
+      });
+
+      expect(newState.activeWaivers).toEqual(['foo']);
+      expect(newState.expiredWaivers).toEqual(['bar']);
+      expect(newState.loading).toBe(false);
+    });
+  });
+
+  describe('VIOLATION_LOAD_APPLICABLE_WAIVERS_FAILED', function() {
+    it('sets the error on the state', function() {
+      const state = {
+        loading: true,
+        violationDetailsError: null,
+        otherProp: 'whatever'
+      };
+
+      const newState = reducer(state, {
+        type: 'VIOLATION_LOAD_APPLICABLE_WAIVERS_FAILED',
+        payload: 'Err!'
+      });
+
+      expect(newState.loading).toBe(false);
+      expect(newState.violationDetailsError).toBe('Err!');
+      expect(newState.otherProp).toBe(state.otherProp);
+    });
+  });
 });

@@ -8,16 +8,19 @@ import { connect } from 'react-redux';
 import ListWaiversPage from './ListWaiversPage';
 import { pick } from 'ramda';
 import { loadViolation } from '../violation/violationPageActions';
+import { setWaiverToDelete } from './waiverActions';
 
-function mapStateToProps({ violationPage, router }) {
+function mapStateToProps({ violationPage, router, deleteWaiver }) {
   return {
     ...pick(['activeWaivers', 'expiredWaivers', 'loading', 'violationDetails', 'violationDetailsError'], violationPage),
-    ...pick(['violationId'], router.currentParams)
+    ...pick(['violationId'], router.currentParams),
+    ...pick(['waiverToDelete'], deleteWaiver)
   };
 }
 
 const mapDispatchToProps = {
-  loadViolation
+  loadViolation,
+  setWaiverToDelete
 };
 
 const ListWaiversPageContainer = connect(mapStateToProps, mapDispatchToProps)(ListWaiversPage);

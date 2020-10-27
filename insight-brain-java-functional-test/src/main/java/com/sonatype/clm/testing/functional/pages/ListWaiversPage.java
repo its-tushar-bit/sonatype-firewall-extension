@@ -12,6 +12,7 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class ListWaiversPage
@@ -79,6 +80,10 @@ public class ListWaiversPage
     return new WaiverListTable();
   }
 
+  public DeleteWaiverModal deleteWaiverModal() {
+    return new DeleteWaiverModal();
+  }
+
   public class WaiverListTable
       extends BasicElement<WaiverListTable>
   {
@@ -130,6 +135,36 @@ public class ListWaiversPage
 
     public SelenideElement comments() {
       return child(".nx-cell", nthChild(5));
+    }
+
+    public SelenideElement deleteButton() {
+      return child(".list-waivers-row__delete-btn");
+    }
+  }
+
+  public class DeleteWaiverModal
+      extends BasicElement<DeleteWaiverModal>
+  {
+    private static final String ROOT_SELECTOR = "#delete-waiver-modal";
+
+    public SelenideElement root() {
+      return $(ROOT_SELECTOR);
+    }
+
+    public SelenideElement header() {
+      return child(".nx-modal-header");
+    }
+
+    public SelenideElement message() {
+      return child(".nx-modal-content");
+    }
+
+    public SelenideElement noButton() {
+      return child("#delete-waiver-modal-cancel-button");
+    }
+
+    public SelenideElement yesButton() {
+      return child("#delete-waiver-modal-continue-button");
     }
   }
 }

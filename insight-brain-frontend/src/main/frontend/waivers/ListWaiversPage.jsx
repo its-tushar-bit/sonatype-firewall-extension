@@ -16,6 +16,7 @@ import { extractViolationDetails } from '../util/violationDetailsUtil';
 import { violationDetailsPropTypes } from '../violation/ViolationDetailsTile';
 import { constraintViolationsPropType } from '../violation/PolicyViolationConstraintInfoTile';
 import ListWaiversTable, { waiverType } from './ListWaiversTable';
+import DeleteWaiverModalContainer from './deleteWaiverModal/DeleteWaiverModalContainer';
 
 export default function ListWaiversPage(props) {
   const {
@@ -26,6 +27,8 @@ export default function ListWaiversPage(props) {
     loading,
     violationDetails,
     violationDetailsError,
+    waiverToDelete,
+    setWaiverToDelete,
     $state
   } = props;
 
@@ -51,6 +54,7 @@ export default function ListWaiversPage(props) {
   return (
     <MaximizedContainer id="list-waivers-page" className="nx-page-content">
       <div className="nx-page-main list-waivers-page">
+        { waiverToDelete && <DeleteWaiverModalContainer/> }
         <LoadWrapper loading={ loading || !violationDetails } error={ violationDetailsError }>
           <NxBackButton targetPageTitle="Violation Details" href={ violationDetailsHref } />
           <div className="nx-page-title">
@@ -96,7 +100,7 @@ export default function ListWaiversPage(props) {
               </div>
             </div>
             <div className="nx-tile-content">
-              <ListWaiversTable { ...({ activeWaivers, expiredWaivers, violationDetails }) }/>
+              <ListWaiversTable { ...({ activeWaivers, expiredWaivers, violationDetails, setWaiverToDelete }) }/>
             </div>
           </div>
         </LoadWrapper>
@@ -111,6 +115,8 @@ ListWaiversPage.propTypes = {
   violationDetailsError: PropTypes.any,
   loading: PropTypes.bool,
   loadViolation: PropTypes.func.isRequired,
+  waiverToDelete: PropTypes.shape(waiverType),
+  setWaiverToDelete: PropTypes.func.isRequired,
   $state: PropTypes.shape({
     go: PropTypes.func.isRequired
   }),

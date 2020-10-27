@@ -22,6 +22,10 @@ export const LOAD_VULNERABILITY_DETAILS_REQUESTED = 'LOAD_VULNERABILITY_DETAILS_
 export const LOAD_VULNERABILITY_DETAILS_FULFILLED = 'LOAD_VULNERABILITY_DETAILS_FULFILLED';
 export const LOAD_VULNERABILITY_DETAILS_FAILED = 'LOAD_VULNERABILITY_DETAILS_FAILED';
 
+export const VIOLATION_LOAD_APPLICABLE_WAIVERS_REQUESTED = 'VIOLATION_LOAD_APPLICABLE_WAIVERS_REQUESTED';
+export const VIOLATION_LOAD_APPLICABLE_WAIVERS_FULFILLED = 'VIOLATION_LOAD_APPLICABLE_WAIVERS_FULFILLED';
+export const VIOLATION_LOAD_APPLICABLE_WAIVERS_FAILED = 'VIOLATION_LOAD_APPLICABLE_WAIVERS_FAILED';
+
 function isViolationLoaded(requestedViolationId, violationDetails) {
   return violationDetails && violationDetails.policyViolationId === requestedViolationId;
 }
@@ -90,3 +94,21 @@ function loadVulnerabilityDetails({ violationDetails }) {
 const loadVulnerabilityDetailsRequested = noPayloadActionCreator(LOAD_VULNERABILITY_DETAILS_REQUESTED);
 const loadVulnerabilityDetailsFulfilled = payloadParamActionCreator(LOAD_VULNERABILITY_DETAILS_FULFILLED);
 const loadVulnerabilityDetailsFailed = payloadParamActionCreator(LOAD_VULNERABILITY_DETAILS_FAILED);
+
+const loadApplicableWaiversRequested = noPayloadActionCreator(VIOLATION_LOAD_APPLICABLE_WAIVERS_REQUESTED);
+const loadApplicableWaiversFulfilled = payloadParamActionCreator(VIOLATION_LOAD_APPLICABLE_WAIVERS_FULFILLED);
+const loadApplicableWaiversFailed = payloadParamActionCreator(VIOLATION_LOAD_APPLICABLE_WAIVERS_FAILED);
+
+export function loadApplicableWaivers(policyViolationId) {
+  return function(dispatch) {
+    dispatch(loadApplicableWaiversRequested());
+    return axios.get(getApplicableWaiversUrl(policyViolationId))
+        .then(({ data }) => {
+          return dispatch(loadApplicableWaiversFulfilled(data));
+        })
+        .catch((err) => {
+          dispatch(loadApplicableWaiversFailed(err));
+          return Promise.reject(err);
+        });
+  };
+}

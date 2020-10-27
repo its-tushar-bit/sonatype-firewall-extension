@@ -16,6 +16,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
+import com.sonatype.clm.testing.functional.pages.ListWaiversPage.DeleteWaiverModal;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage.WaiverListRow;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage.WaiverListTable;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
@@ -30,8 +31,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 
 public class ListWaiversTest
     extends AbstractFunctionalTest
@@ -158,5 +161,65 @@ public class ListWaiversTest
     ListWaiversPage listWaiversPage = new ListWaiversPage();
     listWaiversPage.backButton().shouldHave(text("Back to Violation Details")).click();
     waitUntilUrl(ViolationDetailsPage.url(policyViolation.getId()));
+  }
+
+  @Test
+  public void testDeleteButton() {
+    Instant now = Instant.now();
+    Instant twoDaysAgo = now.minus(2, ChronoUnit.DAYS);
+    Instant fiveDaysAgo = now.minus(5, ChronoUnit.DAYS);
+
+    Organization tempOrg = tempEntity.newOrganization("Org Temp");
+    Application tempApp = tempEntity.newApplication("App Temp", "apptemp", tempOrg.getId());
+    Policy securityPolicyTemp = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy Temp", 8);
+
+    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(tempApp.getId(),
+        StageTypes.BUILD.getId(), "scan1", false, false, Date.from(twoDaysAgo));
+
+    PolicyViolation policyViolationTemp = tempEntity.newPolicyViolation(policyEvaluation1, securityPolicyTemp,
+        "Group1", "Artifact1", "Version1", "hash1", "sonatype-2017-0507");
+
+    tempEntity.newWaiver(null, securityPolicyTemp.getId(), tempOrg.getId(),
+        policyViolationTemp.getConstraintFacts(), null,
+        Date.from(LocalDate.parse("2020-05-05").atStartOfDay(ZoneId.of("America/New_York")).toInstant()));
+
+    tempEntity.newWaiver("hash1", securityPolicyTemp.getId(), tempApp.getId(),
+        policyViolationTemp.getConstraintFacts(), "Comment 1", Date.from(now), Date.from(fiveDaysAgo));
+    refreshOrOpen(ListWaiversPage.url(policyViolationTemp.getId()));
+
+    ListWaiversPage listWaiversPage = new ListWaiversPage();
+    listWaiversPage.waiverListTile().exists();
+
+    WaiverListTable waiverListTable = listWaiversPage.waiverListTable();
+    waiverListTable.noWaiversMessage().shouldNot(exist);
+    waiverListTable.rows().shouldHaveSize(2);
+
+    WaiverListRow row1 = waiverListTable.row(1);
+    row1.scope().shouldHave(text("Organization - Org Temp"));
+    row1.deleteButton().exists();
+    row1.deleteButton().click();
+
+    DeleteWaiverModal modal = listWaiversPage.deleteWaiverModal();
+    modal.root().shouldBe(visible);
+    modal.header().shouldHave(text("Delete Waiver"));
+    modal.message().shouldHave(text("Are you sure you want to remove this waiver?"));
+    modal.noButton().shouldHave(text("No")).click();
+    modal.root().should(disappear);
+
+    row1.deleteButton().click();
+    modal.root().shouldBe(visible);
+    eyesWatcher.eyesCheck();
+    modal.yesButton().click();
+    modal.root().should(disappear);
+
+    row1 = waiverListTable.row(1);
+    // Assert that row is now a different one — previous one is gone
+    waiverListTable.rows().shouldHaveSize(1);
+    row1.scope().shouldHave(text("Application - App Temp"));
+    row1.deleteButton().click();
+    modal.yesButton().click();
+    modal.root().should(disappear);
+
+    waiverListTable.noWaiversMessage().shouldBe(visible);
   }
 }

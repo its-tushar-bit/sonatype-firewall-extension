@@ -10,7 +10,10 @@ import {
   LOAD_VIOLATION_FAILED,
   LOAD_VULNERABILITY_DETAILS_REQUESTED,
   LOAD_VULNERABILITY_DETAILS_FULFILLED,
-  LOAD_VULNERABILITY_DETAILS_FAILED
+  LOAD_VULNERABILITY_DETAILS_FAILED,
+  VIOLATION_LOAD_APPLICABLE_WAIVERS_REQUESTED,
+  VIOLATION_LOAD_APPLICABLE_WAIVERS_FULFILLED,
+  VIOLATION_LOAD_APPLICABLE_WAIVERS_FAILED
 } from './violationPageActions';
 import { UI_ROUTER_ON_FINISH } from '../reduxUiRouter/routerActions';
 
@@ -32,6 +35,9 @@ const reducerActionMap = {
   [LOAD_VULNERABILITY_DETAILS_REQUESTED]: propSetConst('vulnerabilityDetailsLoading', true),
   [LOAD_VULNERABILITY_DETAILS_FULFILLED]: loadVulnerabilityDetailsFulfilled,
   [LOAD_VULNERABILITY_DETAILS_FAILED]: loadVulnerabilityDetailsFailed,
+  [VIOLATION_LOAD_APPLICABLE_WAIVERS_REQUESTED]: propSetConst('loading', true),
+  [VIOLATION_LOAD_APPLICABLE_WAIVERS_FULFILLED]: loadApplicableWaiversFulfilled,
+  [VIOLATION_LOAD_APPLICABLE_WAIVERS_FAILED]: loadApplicableWaiversFailed,
   [UI_ROUTER_ON_FINISH]: propSetConst('loading', true)
 };
 
@@ -71,6 +77,23 @@ function loadVulnerabilityDetailsFailed(payload, state) {
     ...state,
     vulnerabilityDetailsLoading: false,
     vulnerabilityDetailsError: payload
+  };
+}
+
+function loadApplicableWaiversFulfilled({ expiredWaivers, activeWaivers }, state) {
+  return {
+    ...state,
+    loading: false,
+    activeWaivers: activeWaivers,
+    expiredWaivers: expiredWaivers
+  };
+}
+
+function loadApplicableWaiversFailed(payload, state) {
+  return {
+    ...state,
+    loading: false,
+    violationDetailsError: payload
   };
 }
 

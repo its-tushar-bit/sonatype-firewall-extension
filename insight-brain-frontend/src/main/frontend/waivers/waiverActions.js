@@ -4,12 +4,19 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
+import { path } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 import { capitalize, getFutureDate } from '../util/jsUtil';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
-import { getAddPolicyViolationWaiverUrl, getOwnerContextHierarchyUrl } from '../util/CLMLocation';
-import { loadViolation } from '../violation/violationPageActions';
+import { Messages } from '../util/CommonServices';
+import {
+  getAddPolicyViolationWaiverUrl,
+  getOwnerContextHierarchyUrl,
+  deleteWaiverUrl
+} from '../util/CLMLocation';
+
+import { loadViolation, loadApplicableWaivers } from '../violation/violationPageActions';
 import { stateGo } from '../reduxUiRouter/routerActions';
 
 export const WAIVERS_LOAD_SCOPE_DATA_REQUESTED = 'WAIVERS_LOAD_SCOPE_DATA_REQUESTED';
@@ -23,6 +30,12 @@ export const WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT = 'WAIVERS_ADD_WAIVER_SET_WAI
 export const WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE = 'WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE';
 export const WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS = 'WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS';
 export const WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME = 'WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME';
+export const WAIVERS_SET_WAIVER_TO_DELETE = 'WAIVERS_SET_WAIVER_TO_DELETE';
+export const WAIVERS_HIDE_DELETE_WAIVER_MODAL = 'WAIVERS_HIDE_DELETE_WAIVER_MODAL';
+export const WAIVERS_DELETE_WAIVER_REQUESTED = 'WAIVERS_DELETE_WAIVER_REQUESTED';
+export const WAIVERS_DELETE_WAIVER_FULFILLED = 'WAIVERS_DELETE_WAIVER_FULFILLED';
+export const WAIVERS_DELETE_WAIVER_FAILED = 'WAIVERS_DELETE_WAIVER_FAILED';
+export const WAIVERS_DELETE_MASK_TIMER_DONE = 'WAIVERS_DELETE_MASK_TIMER_DONE';
 
 const saveWaiverRequested = noPayloadActionCreator(WAIVERS_SAVE_WAIVER_REQUESTED);
 const saveWaiverFulfilled = noPayloadActionCreator(WAIVERS_SAVE_WAIVER_FULFILLED);
@@ -143,4 +156,32 @@ function processOwnerHierarchy(context) {
       label = capitalize(type);
 
   return processedChildren.concat({ type, id, name, label });
+}
+
+export const setWaiverToDelete = payloadParamActionCreator(WAIVERS_SET_WAIVER_TO_DELETE);
+export const hideDeleteWaiverModal = noPayloadActionCreator(WAIVERS_HIDE_DELETE_WAIVER_MODAL);
+const deleteWaiverRequested = noPayloadActionCreator(WAIVERS_DELETE_WAIVER_REQUESTED);
+const deleteWaiverFulfilled = noPayloadActionCreator(WAIVERS_DELETE_WAIVER_FULFILLED);
+const deleteWaiverFailed = payloadParamActionCreator(WAIVERS_DELETE_WAIVER_FAILED);
+const deleteWaiverMaskTimerDone = noPayloadActionCreator(WAIVERS_DELETE_MASK_TIMER_DONE);
+
+export function deleteWaiver(ownerType, ownerId, waiverId) {
+  return (dispatch, getState) => {
+    dispatch(deleteWaiverRequested());
+    const { policyViolationId } = path(['violationPage', 'violationDetails'], getState());
+    const endpointUrl = deleteWaiverUrl(ownerType, ownerId, waiverId);
+
+    return axios.delete(endpointUrl)
+        .then(() => {
+          dispatch(deleteWaiverFulfilled());
+          setTimeout(() => {
+            dispatch(deleteWaiverMaskTimerDone());
+            dispatch(loadApplicableWaivers(policyViolationId));
+          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        })
+        .catch((err) => {
+          dispatch(deleteWaiverFailed(Messages.getHttpErrorMessage(err)));
+          return Promise.reject(err);
+        });
+  };
 }

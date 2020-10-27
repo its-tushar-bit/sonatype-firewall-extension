@@ -9,7 +9,17 @@ import classnames from 'classnames';
 import moment from 'moment';
 import { curry, descend, map, prop, sort } from 'ramda';
 
-import { NxTable, NxTableBody, NxTableCell, NxTableHead, NxTableRow } from '@sonatype/react-shared-components';
+import {
+  NxTable,
+  NxTableBody,
+  NxTableCell,
+  NxTableHead,
+  NxTableRow,
+  NxButton,
+  NxFontAwesomeIcon
+} from '@sonatype/react-shared-components';
+import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/index';
+
 import ComponentDisplay from '../ComponentDisplay/ReactComponentDisplay';
 import { violationDetailsPropTypes } from '../violation/ViolationDetailsTile';
 import { constraintViolationsPropType } from '../violation/PolicyViolationConstraintInfoTile';
@@ -19,7 +29,8 @@ export default function ListWaiversTable(props) {
   const {
     activeWaivers,
     expiredWaivers,
-    violationDetails
+    violationDetails,
+    setWaiverToDelete
   } = props;
 
   const displayWaiverScope = (waiver) => {
@@ -39,16 +50,26 @@ export default function ListWaiversTable(props) {
 
   const displayWaiverInTableRow = curry((isWaiverExpired, waiver) => {
     const rowClass = classnames({ 'list-waivers-row--expired': isWaiverExpired });
+    const key = waiver.policyWaiverId;
     return (
       <NxTableRow className={ rowClass }
-                  key={ waiver.policyWaiverId }>
-        <NxTableCell>{ moment(waiver.createTime).format('MM/DD/YYYY') }</NxTableCell>
+                  key={ key }>
+        <NxTableCell className="visual-testing-ignore">{ moment(waiver.createTime).format('MM/DD/YYYY') }</NxTableCell>
         <NxTableCell>{ displayWaiverScope(waiver) }</NxTableCell>
         <NxTableCell>
           { waiver.hash ? <ComponentDisplay component={ violationDetails } truncate={true} /> : 'All' }
         </NxTableCell>
         <NxTableCell>{ waiver.expiryTime ? moment(waiver.expiryTime).fromNow() : 'Does not expire' }</NxTableCell>
         <NxTableCell>{ waiver.comment || '- -' }</NxTableCell>
+        <NxTableCell>
+          <NxButton variant="tertiary"
+                    key={ key }
+                    className="list-waivers-row__delete-btn"
+                    iconOnly={ true }
+                    onClick={ () => setWaiverToDelete(waiver) }>
+            <NxFontAwesomeIcon icon={faTrashAlt} />
+          </NxButton>
+        </NxTableCell>
       </NxTableRow>
     );
   });
@@ -84,6 +105,7 @@ export default function ListWaiversTable(props) {
           <NxTableCell>COMPONENTS</NxTableCell>
           <NxTableCell>WAIVER EXPIRATION</NxTableCell>
           <NxTableCell>COMMENTS</NxTableCell>
+          <NxTableCell>{' '}</NxTableCell>
         </NxTableRow>
       </NxTableHead>
       { hasWaiversToDisplay ? waiverTableBody : emptyTableBody }
@@ -105,6 +127,7 @@ export const waiverType = {
 ListWaiversTable.propTypes = {
   activeWaivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
   expiredWaivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
+  setWaiverToDelete: PropTypes.func.isRequired,
   violationDetails: PropTypes.shape({
     ...violationDetailsPropTypes,
     constraintViolations: constraintViolationsPropType.isRequired,

@@ -157,6 +157,15 @@ export function getReportReevaluateUrl(applicationPublicId, scanId) {
   return `${getBaseReportUrl(applicationPublicId, scanId)}/reevaluatePolicy`;
 }
 
+/**
+ * @param waiverScope {string} application|organization
+ * @param ownerId {string}
+ * @param policyViolationId {string}
+ */
+export function deleteWaiverUrl(waiverScope, ownerId, waiverId) {
+  return uriTemplate`/api/v2/policyWaivers/${waiverScope}/${ownerId}/${waiverId}/`;
+}
+
 export function redirectTo(url) {
   window.location = url;
 }

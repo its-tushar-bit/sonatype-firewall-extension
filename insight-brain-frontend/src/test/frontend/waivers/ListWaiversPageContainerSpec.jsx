@@ -11,6 +11,7 @@ import ListWaiversPage from '../../../main/frontend/waivers/ListWaiversPage';
 describe('ListWaiversPageContainer', function() {
   let ListWaiversPageContainer,
       loadViolationMock,
+      setWaiverToDeleteMock,
       store,
       state,
       vdom;
@@ -20,10 +21,17 @@ describe('ListWaiversPageContainer', function() {
       type: 'LOAD_VIOLATION'
     });
 
+    setWaiverToDeleteMock = jasmine.createSpy('setWaiverToDelete').and.returnValue({
+      type: 'SET_WAIVER_TO_DELETE'
+    });
+
     ListWaiversPageContainer =
         require('inject-loader!../../../main/frontend/waivers/ListWaiversPageContainer')({
           '../violation/violationPageActions': {
             loadViolation: loadViolationMock
+          },
+          './waiverActions': {
+            setWaiverToDelete: setWaiverToDeleteMock
           }
         }).default;
 
@@ -37,6 +45,9 @@ describe('ListWaiversPageContainer', function() {
       },
       router: {
         currentParams: { violationId: 'foo' }
+      },
+      deleteWaiver: {
+        waiverToDelete: { waiverId: 'foo' }
       }
     };
 
@@ -67,18 +78,27 @@ describe('ListWaiversPageContainer', function() {
     expect(wrapper).toHaveProp('loading', true);
     expect(wrapper).toHaveProp('violationId', 'foo');
     expect(wrapper).toHaveProp('violationDetails', { id: 'bar' });
+    expect(wrapper).toHaveProp('waiverToDelete', { waiverId: 'foo' });
   });
 
   it('maps action creators to props', function() {
     const wrapper = shallow(vdom).dive();
     const loadViolationActionCreator = wrapper.prop('loadViolation');
+    const setWaiverToDeleteActionCreator = wrapper.prop('setWaiverToDelete');
 
     expect(loadViolationActionCreator).toEqual(jasmine.any(Function));
+    expect(setWaiverToDeleteActionCreator).toEqual(jasmine.any(Function));
 
     expect(store.getActions()).toEqual([]);
 
     loadViolationActionCreator();
     expect(store.getActions()).toEqual([{ type: 'LOAD_VIOLATION' }]);
+
+    setWaiverToDeleteActionCreator();
+    expect(store.getActions()).toEqual([
+      { type: 'LOAD_VIOLATION' },
+      { type: 'SET_WAIVER_TO_DELETE' }
+    ]);
   });
 
   it('renders ListWaiversPage component', function() {

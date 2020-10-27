@@ -16,6 +16,17 @@
     background-color: #fff;
     overflow-y: initial;
     position: static;
+
+  }
+
+  body.iq-body, .iq-main-view {
+    // At least some browsers (including chrome) seem to automatically scale the body such that it fits on the page.
+    // This means that as the body width increases, the printed page content zooms out. The body min-width increase
+    // to 1366px caused that zoom to occur to an extent greater than is desired (text became too small).
+    // At the same time, removing the min-width entirely causes the content to render a bit too large, with
+    // most component identifiers on the vulnerability list page getting cut off. Therefore we specify 1024px here
+    // to maintain the scaling that was in effect when we first implemented print styles
+    min-width: 1024px;
   }
 
   .iq-scrollable {

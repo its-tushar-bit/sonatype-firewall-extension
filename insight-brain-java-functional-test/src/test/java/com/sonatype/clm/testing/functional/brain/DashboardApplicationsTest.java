@@ -333,9 +333,9 @@ public class DashboardApplicationsTest
 
   @Test
   public void testApplicationNameTooltip() {
-    WebDriverRunner.getWebDriver().manage().window().setSize(new Dimension(1024, 768));
+    String appName = "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW";
 
-    createViolation(tempEntity.newApplication("A long name to ensure overflow in cell", "long", org.getId()),
+    createViolation(tempEntity.newApplication(appName, "long", org.getId()),
         BuildStageType.ID, 8);
     createViolation(tempEntity.newApplication("A", "short", org.getId()), BuildStageType.ID, 5);
     ApplicationsResults table = DashboardPage.applicationsView().results();
@@ -343,7 +343,7 @@ public class DashboardApplicationsTest
 
     Tooltip.get().shouldBe(hidden);
     table.firstApplication().name().hover();
-    Tooltip.get().shouldBe(visible).shouldHave(text("A long name to ensure overflow in cell"));
+    Tooltip.get().shouldBe(visible).shouldHave(text(appName));
     table.lastApplication().name().hover();
     Tooltip.get().shouldBe(hidden);
   }

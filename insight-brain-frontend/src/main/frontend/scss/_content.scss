@@ -26,7 +26,7 @@ body {
   left: 0;
 
   &.iq-body { // for styles that shouldn't leak out of IQ to e.g. audit reports
-    min-width: 1024px;
+    min-width: $iq-page-width-min;
   }
 }
 

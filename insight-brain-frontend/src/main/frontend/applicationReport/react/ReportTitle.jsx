@@ -12,7 +12,6 @@ import { faFilePdf, faSync, faFile } from '@fortawesome/pro-solid-svg-icons';
 import { getDownloadPdfUrl } from '../../util/CLMLocation';
 import moment from 'moment';
 import NxTooltip from '@sonatype/react-shared-components/components/NxTooltip/NxTooltip';
-import LoadWrapper from '../../react/LoadWrapper';
 
 export default function ReportTitle(props) {
   const {
@@ -21,8 +20,7 @@ export default function ReportTitle(props) {
     publicId,
     scanId,
     selectedReport,
-    reevaluateReport,
-    loadError
+    reevaluateReport
   } = props;
 
   const pdfUrl = getDownloadPdfUrl(publicId, scanId);
@@ -53,62 +51,58 @@ export default function ReportTitle(props) {
   };
 
   return (
-    <LoadWrapper error={loadError}>
-      {metadataDetails &&
-      <div className="nx-page-title">
-        <div className='iq-page-title__actions'>
-          <NxButton className="nx-btn--tertiary" onClick={reevaluateReport}>
-            <NxFontAwesomeIcon icon={faSync} />
-            <span>Re-Evaluate Report</span>
-          </NxButton>
-          <NxStatefulDropdown label="Options" className="nx-dropdown--navigation iq-report-actions">
-            <a className="nx-dropdown-button"
-               href={pdfUrl}>
-              <NxFontAwesomeIcon icon={faFilePdf}/>
-              <span>Generate PDF</span>
-            </a>
-            <NxDropdownDivider/>
-            <a className="nx-dropdown-button"
-               onClick={onRawDataClick}>
-              <NxFontAwesomeIcon icon={faFile}/>
-              <span>View raw data</span>
-            </a>
-            <NxTooltip
+    <div className="nx-page-title">
+      <div className='iq-page-title__actions'>
+        <NxButton className="nx-btn--tertiary" onClick={reevaluateReport}>
+          <NxFontAwesomeIcon icon={faSync} />
+          <span>Re-Evaluate Report</span>
+        </NxButton>
+        <NxStatefulDropdown label="Options" className="nx-dropdown--navigation iq-report-actions">
+          <a className="nx-dropdown-button"
+             href={pdfUrl}>
+            <NxFontAwesomeIcon icon={faFilePdf}/>
+            <span>Generate PDF</span>
+          </a>
+          <NxDropdownDivider/>
+          <a className="nx-dropdown-button"
+             onClick={onRawDataClick}>
+            <NxFontAwesomeIcon icon={faFile}/>
+            <span>View raw data</span>
+          </a>
+          <NxTooltip
                 title={vulnerabilitiesPageDisable
                   ? 'Reevaluate the report in order to enable Vulnerabilities view'
                   : ''}
                 placement="top">
-              <a className={applyBtnClasses}
-                 onClick={onVulnerabilitiesDetailsClick}
-                 id="viewVulnBtn">
-                <NxFontAwesomeIcon icon={faFile}/>
-                <span>View vulnerabilities</span>
-              </a>
-            </NxTooltip>
-            <a className="nx-dropdown-button"
-               onClick={onLegacyReportClick}>
+            <a className={applyBtnClasses}
+               onClick={onVulnerabilitiesDetailsClick}
+               id="viewVulnBtn">
               <NxFontAwesomeIcon icon={faFile}/>
-              <span>View legacy report</span>
+              <span>View vulnerabilities</span>
             </a>
-          </NxStatefulDropdown>
-        </div>
-        <div className="nx-tile-header">
-          <div className="nx-tile-header__title">
-            <h1 className="nx-h1">{metadataDetails.application.name} {metadataDetails.reportTitle}
-            </h1>
-          </div>
-        </div>
-        <div className="nx-tile-content">
-          {metadataDetails.reportTime &&
-          <span>{formatDate(metadataDetails.reportTime)}</span>
-          }
-          {metadataDetails.commitHash &&
-          <span> — Commit {metadataDetails.commitHash}</span>
-          }
+          </NxTooltip>
+          <a className="nx-dropdown-button"
+             onClick={onLegacyReportClick}>
+            <NxFontAwesomeIcon icon={faFile}/>
+            <span>View legacy report</span>
+          </a>
+        </NxStatefulDropdown>
+      </div>
+      <div className="nx-tile-header">
+        <div className="nx-tile-header__title">
+          <h1 className="nx-h1">{metadataDetails.application.name} {metadataDetails.reportTitle}
+          </h1>
         </div>
       </div>
-      }
-    </LoadWrapper>
+      <div className="nx-tile-content">
+        {metadataDetails.reportTime &&
+        <span>{formatDate(metadataDetails.reportTime)}</span>
+        }
+        {metadataDetails.commitHash &&
+        <span> — Commit {metadataDetails.commitHash}</span>
+        }
+      </div>
+    </div>
   );
 }
 
@@ -127,7 +121,6 @@ ReportTitle.propTypes = {
   selectedReport: PropTypes.shape({
     reportVersion: PropTypes.number.isRequired
   }),
-  loadError: PropTypes.object,
   stateGo: PropTypes.func.isRequired,
   // actions
   reevaluateReport: PropTypes.func.isRequired

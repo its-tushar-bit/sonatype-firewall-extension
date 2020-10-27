@@ -42,11 +42,6 @@ describe('ReportTitle component', function() {
     getShallowComponent = enzymeUtils.getShallowComponent(ReportTitle, minimalProps);
   });
 
-  it('renders a LoadWrapper', function() {
-    const shallowComponent = getShallowComponent();
-    expect(shallowComponent).toMatchSelector('LoadWrapper');
-  });
-
   it('renders a div a dropdown and a button', function() {
     const shallowComponent = getShallowComponent();
     const div = shallowComponent.find('div');

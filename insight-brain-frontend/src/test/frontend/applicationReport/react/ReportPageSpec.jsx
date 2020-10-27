@@ -5,6 +5,7 @@
  */
 import * as enzymeUtils from '../../enzymeUtils';
 import ReportPage from '../../../../main/frontend/applicationReport/react/ReportPage';
+import LoadWrapper from '../../../../main/frontend/react/LoadWrapper';
 
 describe('Report Page component', function() {
   let getShallowComponent,
@@ -91,7 +92,6 @@ describe('Report Page component', function() {
     expect(reportTitle).toHaveProp('scanId', 'scanId');
     expect(reportTitle).toHaveProp('publicId', 'publicId');
     expect(reportTitle).toHaveProp('selectedReport', selectedReport);
-    expect(reportTitle).toHaveProp('loadError', undefined);
   });
 
   it('renders aside for filters', function() {
@@ -152,4 +152,16 @@ describe('Report Page component', function() {
     expect(reportContent).toHaveProp('sortConfiguration', props.sortConfiguration);
     expect(reportContent).toHaveProp('substringFilters', props.substringFilters);
   });
+
+  it('renders a LoadWrapper', function() {
+    const loadWrapper = getShallowComponent().find('LoadWrapper');
+    expect(loadWrapper).toExist();
+  });
+
+  it('passes any error to the LoadWrapper', function() {
+    const component = getShallowComponent({ loadError: 'error' });
+    const loadWrapper = component.find(LoadWrapper);
+    expect(loadWrapper).toHaveProp('error', 'error');
+  });
+
 });

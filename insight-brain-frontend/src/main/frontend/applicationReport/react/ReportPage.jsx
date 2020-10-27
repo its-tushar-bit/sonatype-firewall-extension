@@ -10,6 +10,7 @@ import ReportContent from './ReportContent';
 import ReportFilters from './ReportFilters';
 import ReportTitle from './ReportTitle';
 import * as PropTypes from 'prop-types';
+import LoadWrapper from '../../react/LoadWrapper';
 
 export default function ReportPage(props) {
   const {
@@ -60,27 +61,25 @@ export default function ReportPage(props) {
             })}/>
           </aside>
           <div className="nx-page-main">
-            <ReportTitle metadataDetails={metadata}
-                         scanId={scanId}
-                         publicId={publicId}
-                         selectedReport={selectedReport}
-                         reevaluateReport={reevaluateReport}
-                         loadError={loadError}
-                         stateGo={stateGo}
-            />
-            <div className="nx-tile">
-              <ReportStatusBar selectedReport={selectedReport}
-                               loadError={loadError}
-              />
-            </div>
-            <div className="nx-tile">
-              <ReportContent selectedReport={selectedReport}
-                             substringFilters={substringFilters}
-                             setSorting={setSorting}
-                             sortConfiguration={sortConfiguration}
-                             setStringFieldFilter={setStringFieldFilter}
-                             setSortingParameters={setSortingParameters}/>
-            </div>
+            <LoadWrapper loading={!metadata} error={loadError} retryHandler={loadReport}>
+              <ReportTitle metadataDetails={metadata}
+                           scanId={scanId}
+                           publicId={publicId}
+                           selectedReport={selectedReport}
+                           reevaluateReport={reevaluateReport}
+                           stateGo={stateGo} />
+              <div className="nx-tile">
+                <ReportStatusBar selectedReport={selectedReport}/>
+              </div>
+              <div className="nx-tile">
+                <ReportContent selectedReport={selectedReport}
+                               substringFilters={substringFilters}
+                               setSorting={setSorting}
+                               sortConfiguration={sortConfiguration}
+                               setStringFieldFilter={setStringFieldFilter}
+                               setSortingParameters={setSortingParameters}/>
+              </div>
+            </LoadWrapper>
           </div>
         </div>
       </div>
@@ -142,7 +141,8 @@ ReportPage.propTypes = {
       policyThreatLevel: PropTypes.number
     }))
   }),
-  loadError: PropTypes.object,
+  loading: PropTypes.bool,
+  loadError: LoadWrapper.propTypes.error,
   aggregate: PropTypes.bool.isRequired,
   exactValueFilters: PropTypes.object.isRequired,
   sortConfiguration: PropTypes.shape({

@@ -17,7 +17,8 @@ function mapStateToProps({applicationReport, router}) {
       'sortConfiguration',
       'aggregate',
       'exactValueFilters',
-      'substringFilters'
+      'substringFilters',
+      'loadError'
     ], applicationReport),
     ...pick(['publicId', 'scanId', 'unknownjs', 'embeddable', 'policyViolationId'], router.currentParams)
   };

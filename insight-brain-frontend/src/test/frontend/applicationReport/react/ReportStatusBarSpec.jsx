@@ -27,11 +27,6 @@ describe('ReportStatusBar component', function() {
     getShallowComponent = enzymeUtils.getShallowComponent(ReportStatusBar, minimalProps);
   });
 
-  it('renders a LoadWrapper', function() {
-    const shallowComponent = getShallowComponent();
-    expect(shallowComponent).toMatchSelector('LoadWrapper');
-  });
-
   it('renders a div for threats', function() {
     const shallowComponent = getShallowComponent();
     const indicator = shallowComponent.find('.iq-threat-indicators');

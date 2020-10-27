@@ -5,25 +5,19 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.URI;
-import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
+import com.sonatype.insight.brain.git.SourceControlComponentDetails;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.utils.ThreatLevel;
-import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
 import com.sonatype.nexus.iq.location.dto.RankedSourceLocation;
 import com.sonatype.nexus.scm.api.model.CodeInsightAnnotation;
@@ -34,9 +28,6 @@ import com.sonatype.nexus.scm.bitbucket.BitbucketCodeInsightReportOutcome;
 import com.sonatype.nexus.scm.bitbucket.BitbucketCodeInsightSeverity;
 import com.sonatype.nexus.scm.bitbucket.BitbucketLinkDataParameter;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
@@ -64,15 +55,13 @@ public class PullRequestCodeInsightsDetails
 
   private final Application application;
 
-  private final ReportEntry bomReportEntry;
+  private final SourceControlComponentDetails sourceControlComponentDetails;
 
   private final PolicyEvaluation featureBranchEvaluation;
 
   private final PolicyViolationDiff<PolicyViolation> policyViolationDiff;
 
   private final String baseUrl;
-
-  private final Map<String, String> componentDisplayNamesMap;
 
   private final List<PolicyViolation> newPolicyViolations;
 
@@ -83,7 +72,7 @@ public class PullRequestCodeInsightsDetails
   public PullRequestCodeInsightsDetails(
       final String repositoryUrl,
       final Application application,
-      final ReportEntry bomReportEntry,
+      final SourceControlComponentDetails sourceControlComponentDetails,
       final PolicyEvaluation featureBranchEvaluation,
       final PolicyViolationDiff<PolicyViolation> policyViolationDiff,
       final String baseUrl,
@@ -91,7 +80,8 @@ public class PullRequestCodeInsightsDetails
   {
     this.repositoryUrl = checkNotNull(repositoryUrl, "repositoryUrl is required and cannot be null");
     this.application = checkNotNull(application, "app is required and cannot be null");
-    this.bomReportEntry = checkNotNull(bomReportEntry, "bomReportEntry is required and cannot be null");
+    this.sourceControlComponentDetails =
+        checkNotNull(sourceControlComponentDetails, "sourceControlComponentDetails is required and cannot be null");
     this.featureBranchEvaluation = checkNotNull(featureBranchEvaluation,
         "featureBranchEvaluation is required and cannot be null");
     this.policyViolationDiff = checkNotNull(policyViolationDiff, "policyViolationDiff is required and cannot be null");
@@ -99,14 +89,9 @@ public class PullRequestCodeInsightsDetails
     this.baseUrl = checkNotNull(baseUrl, "baseUrl is required and cannot be null");
     this.locationDiscoveryResult = locationDiscoveryResult;
 
-    componentDisplayNamesMap = createDisplayNamesMap();
+    newPolicyViolations = getComponentPolicyViolationsMap(policyViolationDiff.getAppeared());
 
-    newPolicyViolations = getComponentPolicyViolationsMap(policyViolationDiff.getAppeared(),
-        componentDisplayNamesMap);
-
-    clearedPolicyViolations = getComponentPolicyViolationsMap(
-        policyViolationDiff.getCleared(),
-        componentDisplayNamesMap);
+    clearedPolicyViolations = getComponentPolicyViolationsMap(policyViolationDiff.getCleared());
   }
 
   /**
@@ -116,17 +101,19 @@ public class PullRequestCodeInsightsDetails
     // Process new violations
     long policiesViolatedCount = newPolicyViolations.size();
     int componentCountForPolicyViolated = newPolicyViolations.stream()
-        .collect(Collectors.groupingBy(policyViolation -> componentDisplayNamesMap.get(policyViolation.getHash())))
+        .collect(Collectors
+            .groupingBy(policyViolation -> sourceControlComponentDetails.getComponentInfo(policyViolation.getHash())))
         .size();
 
     // Process cleared violations
     int fixedPolicyViolationsCount = clearedPolicyViolations.size();
     int componentCountForFixedPolicyViolations = clearedPolicyViolations.stream()
-        .filter(policyViolation -> componentDisplayNamesMap.containsKey(policyViolation.getHash()))
-        .collect(Collectors.groupingBy(policyViolation -> componentDisplayNamesMap.get(policyViolation.getHash())))
+        .filter(policyViolation -> sourceControlComponentDetails.getComponentInfo(policyViolation.getHash()) != null)
+        .collect(Collectors
+            .groupingBy(policyViolation -> sourceControlComponentDetails.getComponentInfo(policyViolation.getHash())))
         .size();
 
-    String timestamp = DATE_TIME_FORMATTER.format(ZonedDateTime.ofInstant(Instant.ofEpochMilli(bomReportEntry.time),
+    String timestamp = DATE_TIME_FORMATTER.format(ZonedDateTime.ofInstant(featureBranchEvaluation.getTime().toInstant(),
         ZoneId.systemDefault()));
     StringBuilder stringBuilder = new StringBuilder();
     if (policiesViolatedCount > 0) {
@@ -219,7 +206,8 @@ public class PullRequestCodeInsightsDetails
         repositoryUrl);
 
     newPolicyViolations.forEach(policyViolation -> {
-      String componentDisplayName = componentDisplayNamesMap.get(policyViolation.getHash());
+      String componentDisplayName =
+          sourceControlComponentDetails.getComponentInfo(policyViolation.getHash()).getDisplayName();
       AnnotationContent annotationContent = new AnnotationContent(policyViolation, componentDisplayName);
       BitbucketCodeInsightSeverity severity = getSeverity(policyViolation.getThreatLevel());
 
@@ -275,56 +263,11 @@ public class PullRequestCodeInsightsDetails
     return BitbucketCodeInsightSeverity.LOW;
   }
 
-
-  /**
-   * Gets the display names for all components in the BOM and components in the cleared policy violations section
-   * (some of them may not be included in the BOM).
-   *
-   * @return Returns a map with the component hash as the key and the component display name as the value
-   */
-  Map<String, String> createDisplayNamesMap() {
-    final Map<String, String> componentDisplayNamesMap = new HashMap<>();
-    JsonNode bomJson = loadJson();
-    if (bomJson != null) {
-      bomJson = bomJson.get("aaData");
-      if (bomJson != null) {
-        final ArrayNode bomJsonArray = (ArrayNode) bomJson;
-        bomJsonArray.forEach(jsonNode -> {
-          final String hash = JsonUtils.getNullableString(jsonNode.get("hash"));
-          componentDisplayNamesMap.put(hash, ComponentDisplayNameUtil.fromJsonNode((ObjectNode) jsonNode).toString());
-        });
-      }
-    }
-    if (policyViolationDiff.hasCleared()) {
-      // add mappings for the components from the cleared violations section; some may not be included in the bom file
-      List<PolicyViolation> cleared = policyViolationDiff.getCleared();
-      for (PolicyViolation violation : cleared) {
-        String hash = violation.getHash();
-        if (violation.getComponentIdentifier() != null && !componentDisplayNamesMap.containsKey(hash)) {
-          componentDisplayNamesMap.put(hash,
-              ComponentDisplayNameUtil.fromIdentifier(violation.getComponentIdentifier()).toString());
-        }
-      }
-    }
-    return componentDisplayNamesMap;
-  }
-
-  private JsonNode loadJson() {
-    checkNotNull(bomReportEntry.buf, "bom data is required, and cannot be null");
-    try {
-      return JsonUtils.parse(bomReportEntry.buf);
-    }
-    catch (final IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
-
   private List<PolicyViolation> getComponentPolicyViolationsMap(
-      final List<PolicyViolation> violations,
-      final Map<String, String> componentDisplayNamesMap)
+      final List<PolicyViolation> violations)
   {
     return violations.stream()
-        .filter(policyViolation -> componentDisplayNamesMap.containsKey(policyViolation.getHash()))
+        .filter(policyViolation -> sourceControlComponentDetails.getComponentInfo(policyViolation.getHash()) != null)
         .collect(Collectors.toList());
   }
 

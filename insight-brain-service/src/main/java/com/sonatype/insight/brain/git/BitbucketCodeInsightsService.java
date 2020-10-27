@@ -18,8 +18,6 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestCodeInsightsDetails;
-import com.sonatype.insight.brain.report.ReportEntry;
-import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
@@ -60,8 +58,6 @@ public class BitbucketCodeInsightsService
 
   private final ApplicationDAO applicationDAO;
 
-  private final ReportService reportService;
-
   private final InsightConfig insightConfig;
 
   private final BaseUrl baseUrl;
@@ -69,12 +65,10 @@ public class BitbucketCodeInsightsService
   @Inject
   public BitbucketCodeInsightsService(
       final ApplicationDAO applicationDAO,
-      final ReportService reportService,
       final InsightConfig insightConfig,
       final BaseUrl baseUrl)
   {
     this.applicationDAO = applicationDAO;
-    this.reportService = reportService;
     this.insightConfig = insightConfig;
     this.baseUrl = baseUrl;
   }
@@ -84,6 +78,7 @@ public class BitbucketCodeInsightsService
       final GitClientFactory gitClientFactory,
       final GitRepositoryInfo gitRepositoryInfo,
       final PolicyViolationDiff<PolicyViolation> policyViolationDiff,
+      final SourceControlComponentDetails sourceControlComponentDetails,
       final PolicyEvaluation sourceCommitPolicyEvaluation,
       final PolicyEvaluation baseBranchPolicyEvaluation,
       final String branch,
@@ -99,11 +94,10 @@ public class BitbucketCodeInsightsService
 
     try {
       Application application = applicationDAO.getById(sourceCommitPolicyEvaluation.getApplicationId());
-      ReportEntry reportEntry = reportService.getBomForPolicyEvaluation(sourceCommitPolicyEvaluation);
       PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
           gitRepositoryInfo.repositoryUrl,
           application,
-          reportEntry,
+          sourceControlComponentDetails,
           sourceCommitPolicyEvaluation,
           policyViolationDiff,
           baseUrl.getConfigured(),

@@ -25,14 +25,15 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.git.PullRequestLineCommentDTO;
+import com.sonatype.insight.brain.git.SourceControlComponentDetails;
+import com.sonatype.insight.brain.git.SourceControlComponentDetails.ComponentInfo;
+import com.sonatype.insight.brain.git.SourceControlComponentLoader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.policy.PolicyEvaluationDiffService;
-import com.sonatype.insight.brain.report.ReportEntry;
-import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -88,7 +89,7 @@ public class PullRequestFeedbackDetailsTest
 
   private int pullRequestNumber = 10;
 
-  private ReportEntry bomEntry;
+  private SourceControlComponentDetails componentDetails;
 
   @Inject
   private PolicyEvaluationDiffService policyEvaluationDiffService;
@@ -97,7 +98,7 @@ public class PullRequestFeedbackDetailsTest
   private InsightWork insightWork;
 
   @Inject
-  private ReportService reportService;
+  private SourceControlComponentLoader sourceControlComponentLoader;
 
   @Inject
   private InsightConfig config;
@@ -132,8 +133,8 @@ public class PullRequestFeedbackDetailsTest
 
     //when
     final PullRequestFeedbackDetails details =
-        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
+        new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
+            diff, remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents match expected
@@ -150,8 +151,8 @@ public class PullRequestFeedbackDetailsTest
 
     //when
     final PullRequestFeedbackDetails details =
-        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            remediationVersionMap, pullRequestLineComments, bitbucketGitRepositoryInfo, pullRequestNumber, app,
+        new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
+            diff, remediationVersionMap, pullRequestLineComments, bitbucketGitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents match expected
@@ -168,8 +169,8 @@ public class PullRequestFeedbackDetailsTest
 
     //when
     final PullRequestFeedbackDetails details =
-        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            remediationVersionMap, pullRequestLineComments, gitlabGitRepositoryInfo, pullRequestNumber, app,
+        new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
+            diff, remediationVersionMap, pullRequestLineComments, gitlabGitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents match expected
@@ -184,11 +185,16 @@ public class PullRequestFeedbackDetailsTest
     //setup test data
     setupTestData("/PullRequestFeedbackDetailsTest/to-report", "/PullRequestFeedbackDetailsTest/from-report");
 
+    SourceControlComponentDetails sourceControlComponentDetails =
+        sourceControlComponentLoader.getSourceControlComponentDetails(
+            featureBranchPolicyEvaluation.getApplicationId(), featureBranchPolicyEvaluation.getScanId());
+    sourceControlComponentLoader.enhanceSourceControlComponentDetails(sourceControlComponentDetails, diff.getCleared());
+
     //when
     final PullRequestFeedbackDetails details =
-        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
-            lookup(BaseUrl.class).getConfigured());
+        new PullRequestFeedbackDetails(sourceControlComponentDetails, featureBranchPolicyEvaluation,
+            defaultBranchPolicyEvaluation, diff, remediationVersionMap, pullRequestLineComments,
+            githubGitRepositoryInfo, pullRequestNumber, app, lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents match expected
     final String expectedContent = readResource("PullRequestFeedback_Cleared.md");
@@ -202,9 +208,15 @@ public class PullRequestFeedbackDetailsTest
     //setup test data
     setupTestData("/PullRequestFeedbackDetailsTest/to-report", "/PullRequestFeedbackDetailsTest/from-report");
 
+    SourceControlComponentDetails sourceControlComponentDetails =
+        sourceControlComponentLoader.getSourceControlComponentDetails(
+            featureBranchPolicyEvaluation.getApplicationId(), featureBranchPolicyEvaluation.getScanId());
+    sourceControlComponentLoader.enhanceSourceControlComponentDetails(sourceControlComponentDetails, diff.getCleared());
+
     //when
     final PullRequestFeedbackDetails details =
-        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
+        new PullRequestFeedbackDetails(sourceControlComponentDetails, featureBranchPolicyEvaluation,
+            defaultBranchPolicyEvaluation, diff,
             remediationVersionMap, pullRequestLineComments, bitbucketGitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured());
 
@@ -220,9 +232,15 @@ public class PullRequestFeedbackDetailsTest
     //setup test data
     setupTestData("/PullRequestFeedbackDetailsTest/to-report", "/PullRequestFeedbackDetailsTest/from-report");
 
+    SourceControlComponentDetails sourceControlComponentDetails =
+        sourceControlComponentLoader.getSourceControlComponentDetails(
+            featureBranchPolicyEvaluation.getApplicationId(), featureBranchPolicyEvaluation.getScanId());
+    sourceControlComponentLoader.enhanceSourceControlComponentDetails(sourceControlComponentDetails, diff.getCleared());
+
     //when
     final PullRequestFeedbackDetails details =
-        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
+        new PullRequestFeedbackDetails(sourceControlComponentDetails, featureBranchPolicyEvaluation,
+            defaultBranchPolicyEvaluation, diff,
             remediationVersionMap, pullRequestLineComments, gitlabGitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured());
 
@@ -241,9 +259,15 @@ public class PullRequestFeedbackDetailsTest
     PolicyViolation policyViolation = createClearedPolicyViolation();
     diff.getCleared().add(policyViolation);
 
+    SourceControlComponentDetails sourceControlComponentDetails =
+        sourceControlComponentLoader.getSourceControlComponentDetails(
+            featureBranchPolicyEvaluation.getApplicationId(), featureBranchPolicyEvaluation.getScanId());
+    sourceControlComponentLoader.enhanceSourceControlComponentDetails(sourceControlComponentDetails, diff.getCleared());
+
     //when
     final PullRequestFeedbackDetails details =
-        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
+        new PullRequestFeedbackDetails(sourceControlComponentDetails, featureBranchPolicyEvaluation,
+            defaultBranchPolicyEvaluation, diff,
             remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured());
 
@@ -260,9 +284,15 @@ public class PullRequestFeedbackDetailsTest
     setupTestData();
     diff.getCleared().addAll(diff.getAppeared());
 
+    SourceControlComponentDetails sourceControlComponentDetails =
+        sourceControlComponentLoader.getSourceControlComponentDetails(
+            featureBranchPolicyEvaluation.getApplicationId(), featureBranchPolicyEvaluation.getScanId());
+    sourceControlComponentLoader.enhanceSourceControlComponentDetails(sourceControlComponentDetails, diff.getCleared());
+
     //when
     final PullRequestFeedbackDetails details =
-        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
+        new PullRequestFeedbackDetails(sourceControlComponentDetails, featureBranchPolicyEvaluation,
+            defaultBranchPolicyEvaluation, diff,
             remediationVersionMap, pullRequestLineComments, bitbucketGitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured());
 
@@ -281,9 +311,15 @@ public class PullRequestFeedbackDetailsTest
     PolicyViolation policyViolation = createClearedPolicyViolation();
     diff.getCleared().add(policyViolation);
 
+    SourceControlComponentDetails sourceControlComponentDetails =
+        sourceControlComponentLoader.getSourceControlComponentDetails(
+            featureBranchPolicyEvaluation.getApplicationId(), featureBranchPolicyEvaluation.getScanId());
+    sourceControlComponentLoader.enhanceSourceControlComponentDetails(sourceControlComponentDetails, diff.getCleared());
+
     //when
     final PullRequestFeedbackDetails details =
-        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
+        new PullRequestFeedbackDetails(sourceControlComponentDetails, featureBranchPolicyEvaluation,
+            defaultBranchPolicyEvaluation, diff,
             remediationVersionMap, pullRequestLineComments, gitlabGitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured());
 
@@ -302,8 +338,8 @@ public class PullRequestFeedbackDetailsTest
 
     //when
     final PullRequestFeedbackDetails details =
-        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
+        new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
+            diff, remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents match expected
@@ -321,8 +357,8 @@ public class PullRequestFeedbackDetailsTest
 
     //when
     final PullRequestFeedbackDetails details =
-        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            remediationVersionMap, pullRequestLineComments, bitbucketGitRepositoryInfo, pullRequestNumber, app,
+        new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
+            diff, remediationVersionMap, pullRequestLineComments, bitbucketGitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents match expected
@@ -340,8 +376,8 @@ public class PullRequestFeedbackDetailsTest
 
     //when
     final PullRequestFeedbackDetails details =
-        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            remediationVersionMap, pullRequestLineComments, gitlabGitRepositoryInfo, pullRequestNumber, app,
+        new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
+            diff, remediationVersionMap, pullRequestLineComments, gitlabGitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured());
 
     //then assert that created contents match expected
@@ -360,12 +396,15 @@ public class PullRequestFeedbackDetailsTest
     diff.getAppeared().clear();
     diff.getAppeared().add(first);
 
-    //setup bom report entry
-    final ReportEntry bomEntry = reportService.getBomForPolicyEvaluation(featureBranchPolicyEvaluation);
+    //setup source control component details
+    SourceControlComponentDetails sourceControlComponentDetails =
+        sourceControlComponentLoader.getSourceControlComponentDetails(
+            featureBranchPolicyEvaluation.getApplicationId(), featureBranchPolicyEvaluation.getScanId());
 
     //when
     final PullRequestFeedbackDetails details =
-        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
+        new PullRequestFeedbackDetails(sourceControlComponentDetails, featureBranchPolicyEvaluation,
+            defaultBranchPolicyEvaluation, diff,
             remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured());
 
@@ -384,12 +423,16 @@ public class PullRequestFeedbackDetailsTest
     diff.getAppeared().clear();
     diff.getCleared().add(first);
 
-    //setup bom report entry
-    final ReportEntry bomEntry = reportService.getBomForPolicyEvaluation(featureBranchPolicyEvaluation);
+    //setup source control component details
+    SourceControlComponentDetails sourceControlComponentDetails =
+        sourceControlComponentLoader.getSourceControlComponentDetails(
+            featureBranchPolicyEvaluation.getApplicationId(), featureBranchPolicyEvaluation.getScanId());
+    sourceControlComponentLoader.enhanceSourceControlComponentDetails(sourceControlComponentDetails, diff.getCleared());
 
     //when
     final PullRequestFeedbackDetails details =
-        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
+        new PullRequestFeedbackDetails(sourceControlComponentDetails, featureBranchPolicyEvaluation,
+            defaultBranchPolicyEvaluation, diff,
             remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured());
 
@@ -401,30 +444,14 @@ public class PullRequestFeedbackDetailsTest
   }
 
   @Test
-  public void testPullRequestFeedback_emptyBomData() throws IOException, URISyntaxException {
-    //setup test data
-    setupTestData("/PullRequestFeedbackDetailsTest/from-report", "/PullRequestFeedbackDetailsTest/to-report-empty-bom");
-
-    //when
-    final PullRequestFeedbackDetails details =
-        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
-            lookup(BaseUrl.class).getConfigured());
-
-    //then assert that created contents is not available
-    final Optional<String> contents = details.renderTemplateAndGetContents();
-    assertThat(contents).isEmpty();
-  }
-
-  @Test
   public void testPullRequestFeedback_nullBom() throws IOException, URISyntaxException {
     //setup test data
     setupTestData();
 
     //when
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
-        new PullRequestFeedbackDetails(null, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
+        new PullRequestFeedbackDetails(null, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
+            diff, remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured()));
   }
 
@@ -435,8 +462,8 @@ public class PullRequestFeedbackDetailsTest
 
     //when
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
-        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, null,
-            remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
+        new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
+            null, remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured()));
   }
 
@@ -447,8 +474,8 @@ public class PullRequestFeedbackDetailsTest
 
     //when
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
-        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, null,
+        new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
+            diff, remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, null,
             lookup(BaseUrl.class).getConfigured()));
   }
 
@@ -460,8 +487,8 @@ public class PullRequestFeedbackDetailsTest
 
     //when
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() ->
-        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, diff,
-            remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
+        new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
+            diff, remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured()).renderTemplateAndGetContents());
   }
 
@@ -472,8 +499,8 @@ public class PullRequestFeedbackDetailsTest
 
     //when
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
-        new PullRequestFeedbackDetails(bomEntry, null, defaultBranchPolicyEvaluation, diff, remediationVersionMap,
-            pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
+        new PullRequestFeedbackDetails(componentDetails, null, defaultBranchPolicyEvaluation, diff,
+            remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured()));
   }
 
@@ -484,15 +511,22 @@ public class PullRequestFeedbackDetailsTest
 
     //when
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
-        new PullRequestFeedbackDetails(bomEntry, featureBranchPolicyEvaluation, null, diff, remediationVersionMap,
-            pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
+        new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, null, diff,
+            remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
             lookup(BaseUrl.class).getConfigured()));
   }
 
   @Test
-  public void testGetComponentFeedbackList_noComponents() {
+  public void testGetComponentFeedbackList_noComponents() throws IOException, URISyntaxException {
+    // given
+    setupTestData();
+    final PullRequestFeedbackDetails details =
+        new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
+            diff, remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
+            lookup(BaseUrl.class).getConfigured());
+
     // when
-    final List<Map<String, Object>> result = PullRequestFeedbackDetails.getNewComponentFeedbackList(new HashMap<>(),
+    final List<Map<String, Object>> result = details.getNewComponentFeedbackList(new HashMap<>(),
         remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber,
         config.getBaseUrl());
 
@@ -504,11 +538,24 @@ public class PullRequestFeedbackDetailsTest
   public void testGetComponentFeedbackList_componentWithoutViolations() throws IOException, URISyntaxException {
     // setup
     setupTestData();
+
     final Map<String, List<PolicyViolation>> componentMap = new HashMap<>();
-    componentMap.put("NAME", Collections.singletonList(diff.getAppeared().get(0)));
-    componentMap.put("NAME_EMPTY", Collections.emptyList());
+    componentMap.put("hash-1", Collections.singletonList(diff.getAppeared().get(0)));
+    componentMap.put("hash-2", Collections.emptyList());
+
+    SourceControlComponentDetails componentDetails = new SourceControlComponentDetails();
+    ComponentInfo componentInfo = new ComponentInfo("NAME", true);
+    componentDetails.getHashToComponentInfoMap().put("hash-1", componentInfo);
+    componentInfo = new ComponentInfo("NAME_EMPTY", true);
+    componentDetails.getHashToComponentInfoMap().put("hash-2", componentInfo);
+
+    final PullRequestFeedbackDetails details =
+        new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
+            diff, remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
+            lookup(BaseUrl.class).getConfigured());
+
     // when
-    final List<Map<String, Object>> result = PullRequestFeedbackDetails.getNewComponentFeedbackList(componentMap,
+    final List<Map<String, Object>> result = details.getNewComponentFeedbackList(componentMap,
         remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber,
         config.getBaseUrl());
 
@@ -677,7 +724,16 @@ public class PullRequestFeedbackDetailsTest
         new GitRepositoryInfo("https://bitbucket.com/scm/sonatype/enhanced-commit-information", "user", "token",
             SourceControlProvider.BITBUCKET, "master", true, true);
 
-    //setup bom report entry
-    bomEntry = reportService.getBomForPolicyEvaluation(featureBranchPolicyEvaluation);
+    //setup source control component details
+    componentDetails = sourceControlComponentLoader.getSourceControlComponentDetails(
+        featureBranchPolicyEvaluation.getApplicationId(), featureBranchPolicyEvaluation.getScanId());
+
+    // add some dependency info manually
+    ComponentInfo componentInfo = componentDetails.getComponentInfo("df71536d44e3b07f0c15");
+    ComponentInfo newComponentInfo = new ComponentInfo(componentInfo.getDisplayName(), true);
+    componentDetails.getHashToComponentInfoMap().put("df71536d44e3b07f0c15", newComponentInfo);
+    componentInfo = componentDetails.getComponentInfo("7a03e737484ca232d714");
+    newComponentInfo = new ComponentInfo(componentInfo.getDisplayName(), false);
+    componentDetails.getHashToComponentInfoMap().put("7a03e737484ca232d714", newComponentInfo);
   }
 }

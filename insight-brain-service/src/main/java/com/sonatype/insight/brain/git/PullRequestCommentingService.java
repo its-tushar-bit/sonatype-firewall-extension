@@ -113,6 +113,8 @@ public class PullRequestCommentingService
 
   private final PullRequestLocationDiscoveryService locationDiscoveryService;
 
+  private final SourceControlComponentLoader sourceControlComponentLoader;
+
   @Inject
   public PullRequestCommentingService(
       final SourceControlUtils sourceControlUtils,
@@ -132,7 +134,8 @@ public class PullRequestCommentingService
       final PullRequestLineCommentingService pullRequestLineCommentingService,
       final Provider<PullRequestCommentingHashBuilder> hashBuilderProvider,
       final List<PullRequestPostCommentAction> pullRequestPostCommentActionList,
-      final PullRequestLocationDiscoveryService locationDiscoveryService)
+      final PullRequestLocationDiscoveryService locationDiscoveryService,
+      final SourceControlComponentLoader sourceControlComponentLoader)
   {
     this.sourceControlUtils = sourceControlUtils;
     this.gitClientFactory = gitClientFactory;
@@ -152,6 +155,7 @@ public class PullRequestCommentingService
     this.hashBuilderProvider = hashBuilderProvider;
     this.pullRequestPostCommentActionList = pullRequestPostCommentActionList;
     this.locationDiscoveryService = locationDiscoveryService;
+    this.sourceControlComponentLoader = sourceControlComponentLoader;
   }
 
   @Override
@@ -318,9 +322,8 @@ public class PullRequestCommentingService
         if (existingPullRequestComment == null) { // new PR comment
           if (policyViolationDiff.get().hasAppeared() || policyViolationDiff.get().hasCleared()) {
             doCreateOrUpdateComments(applicationId, gitRepositoryInfo, pullRequestNumber, branchName,
-                sourceCommitPolicyEvaluation,
-                baseBranchPolicyEvaluation, existingPullRequestComment, policyViolationDiff, remediationVersionMap,
-                contentHash);
+                sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation, existingPullRequestComment,
+                policyViolationDiff.get(), remediationVersionMap, contentHash);
           }
           else {
             log.info("no added or cleared violations in policy evaluation diff, and no previous PR comments for " +
@@ -330,9 +333,8 @@ public class PullRequestCommentingService
         else { // existing PR comment
           if (!contentHash.equals(existingPullRequestComment.getContentHash())) {
             doCreateOrUpdateComments(applicationId, gitRepositoryInfo, pullRequestNumber, branchName,
-                sourceCommitPolicyEvaluation,
-                baseBranchPolicyEvaluation, existingPullRequestComment, policyViolationDiff, remediationVersionMap,
-                contentHash);
+                sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation, existingPullRequestComment,
+                policyViolationDiff.get(), remediationVersionMap, contentHash);
           }
           else {
             log.info("policy evaluations have not changed for application '{}' pull request '{}'.",
@@ -358,7 +360,7 @@ public class PullRequestCommentingService
       final PolicyEvaluation sourceCommitPolicyEvaluation,
       final PolicyEvaluation baseBranchPolicyEvaluation,
       final SourceControlPullRequestComment existingPullRequestComment,
-      final Optional<PolicyViolationDiff<PolicyViolation>> policyViolationDiff,
+      final PolicyViolationDiff<PolicyViolation> policyViolationDiff,
       final Map<ComponentIdentifier, String> remediationVersionMap,
       final String contentHash)
       throws IOException
@@ -368,22 +370,36 @@ public class PullRequestCommentingService
     LocationDiscoveryResult locationDiscoveryResult = new LocationDiscoveryResult();
     if (isLocationDiscoveryRequired(gitRepositoryInfo, policyViolationDiff)) {
       // Find all potential source locations to comment on
-      List<PolicyViolation> violationList = policyViolationDiff.get().getAppeared();
+      List<PolicyViolation> violationList = policyViolationDiff.getAppeared();
       locationDiscoveryResult = locationDiscoveryService.doLocationDiscovery(
           violationList, gitRepositoryInfo, branchName, applicationId);
     }
 
+    // load component details from report and cleared violations list
+    SourceControlComponentDetails sourceControlComponentDetails = sourceControlComponentLoader
+        .getSourceControlComponentDetails(applicationId, sourceCommitPolicyEvaluation.getScanId());
+    if (policyViolationDiff.hasCleared()) {
+      sourceControlComponentLoader
+          .enhanceSourceControlComponentDetails(sourceControlComponentDetails, policyViolationDiff.getCleared());
+    }
+
     // line comment sub-flow
     List<PullRequestLineCommentDTO> pullRequestLineComments = pullRequestLineCommentingService
-        .createPullRequestLineComments(policyViolationDiff.get().getAppeared(), gitRepositoryInfo,
+        .createPullRequestLineComments(policyViolationDiff.getAppeared(), gitRepositoryInfo,
             remediationVersionMap, pullRequestNumber, sourceCommitPolicyEvaluation.getCommitHash(),
             applicationId, sourceCommitPolicyEvaluation.getId(), baseBranchPolicyEvaluation.getId(),
             locationDiscoveryResult);
     telemetry.lineCommentCount = pullRequestLineComments.size();
 
+    if (!pullRequestLineComments.isEmpty()) {
+      sourceControlComponentLoader
+          .enhanceSourceControlComponentDetailsWithDirectDependencyInformation(sourceControlComponentDetails,
+              pullRequestLineComments);
+    }
+
     Optional<String> policyEvaluationDiffMarkup = pullRequestFeedbackMarkupService.createMarkup(
-        policyViolationDiff.get(), remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber,
-        sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation, telemetry);
+        policyViolationDiff, remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber,
+        sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation, sourceControlComponentDetails, telemetry);
 
     if (policyEvaluationDiffMarkup.isPresent()) {
       Optional<CommentResponse> response =
@@ -394,7 +410,7 @@ public class PullRequestCommentingService
         recordCommentInDatabase(applicationId, pullRequestNumber, commentResponse.getId(), commentResponse.getVersion(),
             contentHash, sourceCommitPolicyEvaluation.getId(), baseBranchPolicyEvaluation.getId(),
             existingPullRequestComment);
-        invokePostCommentActions(gitRepositoryInfo, policyViolationDiff.get(),
+        invokePostCommentActions(gitRepositoryInfo, policyViolationDiff, sourceControlComponentDetails,
             sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation, branchName, locationDiscoveryResult);
 
         prCommentingMetricsService.sendTelemetry(telemetry);
@@ -415,12 +431,12 @@ public class PullRequestCommentingService
    * Check if we will need to do location discovery
    */
   private boolean isLocationDiscoveryRequired(final GitRepositoryInfo gitRepositoryInfo,
-                                              final Optional<PolicyViolationDiff<PolicyViolation>> policyViolationDiff)
+                                              final PolicyViolationDiff<PolicyViolation> policyViolationDiff)
   {
     if ((insightConfig.isFeatureEnabled(Feature.PR_LINE_COMMENTING) &&
         gitRepositoryInfo.getProvider().supportsPullRequestLineCommenting()) ||
         gitRepositoryInfo.getProvider().supportsCodeInsights()) {
-      return policyViolationDiff.isPresent() && !policyViolationDiff.get().getAppeared().isEmpty();
+      return !policyViolationDiff.getAppeared().isEmpty();
     }
     return false;
   }
@@ -637,14 +653,15 @@ public class PullRequestCommentingService
   private void invokePostCommentActions(
       final GitRepositoryInfo gitRepositoryInfo,
       final PolicyViolationDiff<PolicyViolation> policyViolationDiff,
+      final SourceControlComponentDetails sourceControlComponentDetails,
       final PolicyEvaluation sourceCommitPolicyEvaluation,
       final PolicyEvaluation baseBranchPolicyEvaluation,
       final String branch,
       final LocationDiscoveryResult locationDiscoveryResult)
   {
     pullRequestPostCommentActionList.forEach(pullRequestPostCommentAction -> pullRequestPostCommentAction
-        .invokeAction(gitClientFactory, gitRepositoryInfo, policyViolationDiff, sourceCommitPolicyEvaluation,
-            baseBranchPolicyEvaluation, branch, locationDiscoveryResult));
+        .invokeAction(gitClientFactory, gitRepositoryInfo, policyViolationDiff, sourceControlComponentDetails,
+            sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation, branch, locationDiscoveryResult));
   }
 
   private boolean checkLicense() {

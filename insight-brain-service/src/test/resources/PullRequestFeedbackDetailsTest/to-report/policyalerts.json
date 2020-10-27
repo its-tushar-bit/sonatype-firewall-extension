@@ -2526,7 +2526,7 @@
       "trigger": {
         "policyId": "703d23823ddb40f9a3207011f315e37c",
         "policyName": "Component-Unknown",
-        "threatLevel": 2,
+        "threatLevel": 3,
         "componentFacts": [
           {
             "componentIdentifier": null,

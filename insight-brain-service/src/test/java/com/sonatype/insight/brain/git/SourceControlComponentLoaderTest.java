@@ -7,18 +7,22 @@ package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.git.SourceControlComponentDetails.ComponentInfo;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.nexus.scm.api.DiffPosition;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -142,6 +146,7 @@ public class SourceControlComponentLoaderTest
     ComponentIdentifier junitComponentId =
         ComponentIdentifier.createMavenCoordinates("junit", "junit", "4.12", "", "jar");
     violation.setComponentIdentifier(junitComponentId);
+    violation.setHash("junit-hash");
     policyViolations.add(violation);
 
     SourceControlComponentDetails details = loader.getSourceControlComponentDetails(application.getId(), "SCAN_ID_4");
@@ -161,5 +166,36 @@ public class SourceControlComponentLoaderTest
     componentInfo = details.getComponentInfo(junitComponentId);
     assertThat(componentInfo.getDisplayName()).isEqualTo("junit : junit : 4.12");
     assertThat(componentInfo.getDirectDependency()).isNull();
+    // and: junit is accessible by hash as well
+    componentInfo = details.getComponentInfo("junit-hash");
+    assertThat(componentInfo.getDisplayName()).isEqualTo("junit : junit : 4.12");
+    assertThat(componentInfo.getDirectDependency()).isNull();
+  }
+
+  @Test
+  public void testEnhanceSourceControlComponentDetailsDirectDependency() throws IOException, URISyntaxException {
+    // given:
+    createReportFile(application.getId(), "SCAN_ID_4",
+        zipReportDir("/SourceControlComponentLoaderTest/complete", tempDir), insightWork);
+
+    SourceControlComponentDetails details = loader.getSourceControlComponentDetails(application.getId(), "SCAN_ID_4");
+
+    Map<ComponentIdentifier, ComponentInfo> identifierToComponentInfoMap = details.getIdentifierToComponentInfoMap();
+    ComponentInfo componentInfo =
+        new ComponentInfo(ComponentDisplayNameUtil.fromIdentifier(log4jCoreComponentId).toString(), false);
+    identifierToComponentInfoMap.put(log4jCoreComponentId, componentInfo);
+    List<PullRequestLineCommentDTO> lineComments =
+        Arrays.asList(new PullRequestLineCommentDTO(log4jCoreComponentId, new DiffPosition("path", 1, 1, 1)));
+
+    componentInfo = details.getComponentInfo(log4jCoreComponentId);
+    assertThat(componentInfo.getDirectDependency()).isFalse();
+
+    // when:
+    loader.enhanceSourceControlComponentDetailsWithDirectDependencyInformation(details, lineComments);
+
+    // and: log4j-core component info is unchanged
+    componentInfo = details.getComponentInfo(log4jCoreComponentId);
+    assertThat(componentInfo.getDisplayName()).isEqualTo("org.apache.logging.log4j : log4j-core : 2.6.1");
+    assertThat(componentInfo.getDirectDependency()).isTrue();
   }
 }

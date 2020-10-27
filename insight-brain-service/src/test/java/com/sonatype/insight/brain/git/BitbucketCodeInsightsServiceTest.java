@@ -22,7 +22,6 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.policy.PolicyEvaluationDiffService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
-import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -78,13 +77,13 @@ public class BitbucketCodeInsightsServiceTest
   private ApplicationDAO applicationDAO;
 
   @Inject
-  private ReportService reportService;
-
-  @Inject
   private PolicyEvaluationDiffService policyEvaluationDiffService;
 
   @Inject
   private BaseUrl baseUrl;
+
+  @Inject
+  private SourceControlComponentLoader sourceControlComponentLoader;
 
   @Mock
   private GitClientFactory gitClientFactory;
@@ -106,6 +105,8 @@ public class BitbucketCodeInsightsServiceTest
 
   private LocationDiscoveryResult locationDiscoveryResult;
 
+  private SourceControlComponentDetails componentDetails;
+
   @Before
   public void before() throws URISyntaxException, IOException {
     MockitoAnnotations.openMocks(this);
@@ -114,7 +115,7 @@ public class BitbucketCodeInsightsServiceTest
     config.setBaseUrl("http://localhost:1122");
     application = tempEntity.newApplicationWithParent();
     service =
-        new BitbucketCodeInsightsService(applicationDAO, reportService, config, baseUrl);
+        new BitbucketCodeInsightsService(applicationDAO, config, baseUrl);
 
     createReportFile(application.getId(), FROM_SCAN_ID,
         zipReportDir("/BitbucketCodeInsightsServiceTest/from-report", tempDir), insightWork);
@@ -139,27 +140,31 @@ public class BitbucketCodeInsightsServiceTest
     lenient().when(gitClientFactory.createApiClient(gitRepositoryInfo)).thenReturn(bitbucketApiClient);
 
     locationDiscoveryResult = new LocationDiscoveryResult();
+
+    //setup source control component details
+    componentDetails = sourceControlComponentLoader.getSourceControlComponentDetails(
+        featureBranchPolicyEvaluation.getApplicationId(), featureBranchPolicyEvaluation.getScanId());
   }
 
   @Test
   public void testCodeInsightFeatureFlag() throws IOException {
     // verify when disabled that the feature is not interacted with
     config.setFeatures(ImmutableMap.of(Feature.CODE_INSIGHTS.getFlag(), Boolean.FALSE));
-    service.invokeAction(gitClientFactory, gitRepositoryInfo, policyViolationDiff, featureBranchPolicyEvaluation,
-        defaultBranchPolicyEvaluation, BRANCH, locationDiscoveryResult);
+    service.invokeAction(gitClientFactory, gitRepositoryInfo, policyViolationDiff, componentDetails,
+        featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, BRANCH, locationDiscoveryResult);
     verifyNoInteractions(bitbucketApiClient);
 
     // verify when enabled that the feature is interacted with
     config.setFeatures(ImmutableMap.of(Feature.CODE_INSIGHTS.getFlag(), Boolean.TRUE));
-    service.invokeAction(gitClientFactory, gitRepositoryInfo, policyViolationDiff, featureBranchPolicyEvaluation,
-        defaultBranchPolicyEvaluation, BRANCH, locationDiscoveryResult);
+    service.invokeAction(gitClientFactory, gitRepositoryInfo, policyViolationDiff, componentDetails,
+        featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, BRANCH, locationDiscoveryResult);
     verify(bitbucketApiClient).deleteCodeInsightReport(anyString(), anyString()); //interaction itself doesn't matter
   }
 
   @Test
   public void testCodeInsightFlow() throws IOException {
-    service.invokeAction(gitClientFactory, gitRepositoryInfo, policyViolationDiff, featureBranchPolicyEvaluation,
-        defaultBranchPolicyEvaluation, BRANCH, locationDiscoveryResult);
+    service.invokeAction(gitClientFactory, gitRepositoryInfo, policyViolationDiff, componentDetails,
+        featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, BRANCH, locationDiscoveryResult);
 
     URI reportUri = URI.create(String.format("http://localhost:1122/ui/links/application/%s/report/toScanId",
         application.getPublicId()));
@@ -187,8 +192,8 @@ public class BitbucketCodeInsightsServiceTest
   public void testWrongProvider() {
     gitRepositoryInfo.provider = GITHUB;
 
-    service.invokeAction(gitClientFactory, gitRepositoryInfo, policyViolationDiff, featureBranchPolicyEvaluation,
-        defaultBranchPolicyEvaluation, BRANCH, locationDiscoveryResult);
+    service.invokeAction(gitClientFactory, gitRepositoryInfo, policyViolationDiff, componentDetails,
+        featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, BRANCH, locationDiscoveryResult);
 
     verifyNoInteractions(bitbucketApiClient);
   }

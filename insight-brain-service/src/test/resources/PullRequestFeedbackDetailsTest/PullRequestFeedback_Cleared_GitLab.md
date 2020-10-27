@@ -29,12 +29,12 @@ Threat (of 10) | Policy | Violation Details
 </details>
 
 <details>
-<summary title="Threat Level: 2 of 10">:white_check_mark: <b>&nbsp; webgoat-server-8.0.0.M1.jar</b></summary>
+<summary title="Threat Level: 3 of 10">:white_check_mark: <b>&nbsp; webgoat-server-8.0.0.M1.jar</b></summary>
 <p></p>
   
 Threat (of 10) | Policy | Violation Details
 --- | --- | --- |
-2 | Component-Unknown | <b>Unknown 3rd party component:</b><ul><li>Match state was 'Unknown'</li><li>Component does not contain proprietary packages</li></ul>
+3 | Component-Unknown | <b>Unknown 3rd party component:</b><ul><li>Match state was 'Unknown'</li><li>Component does not contain proprietary packages</li></ul>
 
 </details>
 

@@ -33,15 +33,15 @@ public class SourceControlComponentDetails
     return identifierToComponentInfoMap.get(componentIdentifier);
   }
 
-  Map<String, ComponentInfo> getHashToComponentInfoMap() {
+  public Map<String, ComponentInfo> getHashToComponentInfoMap() {
     return hashToComponentInfoMap;
   }
 
-  Map<ComponentIdentifier, ComponentInfo> getIdentifierToComponentInfoMap() {
+  public Map<ComponentIdentifier, ComponentInfo> getIdentifierToComponentInfoMap() {
     return identifierToComponentInfoMap;
   }
 
-  static class ComponentInfo
+  public static class ComponentInfo
   {
     private final String displayName;
 

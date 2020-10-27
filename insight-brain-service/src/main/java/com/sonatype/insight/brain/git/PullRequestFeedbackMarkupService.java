@@ -22,8 +22,6 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestFeedbackDetails;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestLineFeedback;
-import com.sonatype.insight.brain.report.ReportEntry;
-import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.telemetry.PullRequestCommentTelemetry;
@@ -35,18 +33,14 @@ public class PullRequestFeedbackMarkupService
 {
   private final ApplicationDAO applicationDAO;
 
-  private final ReportService reportService;
-
   private final BaseUrl baseUrl;
 
   @Inject
   public PullRequestFeedbackMarkupService(
       final ApplicationDAO applicationDAO,
-      final ReportService reportService,
       final BaseUrl baseUrl)
   {
     this.applicationDAO = applicationDAO;
-    this.reportService = reportService;
     this.baseUrl = baseUrl;
   }
 
@@ -58,15 +52,15 @@ public class PullRequestFeedbackMarkupService
       Map<ComponentIdentifier, String> remediationVersionMap,
       List<PullRequestLineCommentDTO> pullRequestLineComments,
       GitRepositoryInfo gitRepositoryInfo,
-      int pullRequestNumber, 
+      int pullRequestNumber,
       PolicyEvaluation sourceCommitPolicyEvaluation,
       PolicyEvaluation baseBranchPolicyEvaluation,
+      SourceControlComponentDetails componentDetails,
       PullRequestCommentTelemetry telemetry) throws IOException
   {
-    ReportEntry reportEntry = reportService.getBomForPolicyEvaluation(sourceCommitPolicyEvaluation);
     Application application = applicationDAO.getById(sourceCommitPolicyEvaluation.getApplicationId());
     PullRequestFeedbackDetails details =
-        new PullRequestFeedbackDetails(reportEntry, sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation,
+        new PullRequestFeedbackDetails(componentDetails, sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation,
             policyViolationDiff, remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber,
             application, baseUrl.getConfigured());
 

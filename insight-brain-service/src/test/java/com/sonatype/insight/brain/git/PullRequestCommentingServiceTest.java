@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequ
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.git.helper.ApplicationEvaluationEventBuilder;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
@@ -725,10 +726,12 @@ public class PullRequestCommentingServiceTest
 
     // then : post comment actions invoked
     verify(postAction1, times(1)).invokeAction(any(GitClientFactory.class), any(GitRepositoryInfo.class),
-        any(PolicyViolationDiff.class), any(PolicyEvaluation.class), any(PolicyEvaluation.class),
+        any(PolicyViolationDiff.class), any(SourceControlComponentDetails.class),
+        any(PolicyEvaluation.class), any(PolicyEvaluation.class),
         eq(branchName), any(LocationDiscoveryResult.class));
     verify(postAction2, times(1)).invokeAction(any(GitClientFactory.class), any(GitRepositoryInfo.class),
-        any(PolicyViolationDiff.class), any(PolicyEvaluation.class), any(PolicyEvaluation.class),
+        any(PolicyViolationDiff.class), any(SourceControlComponentDetails.class),
+        any(PolicyEvaluation.class), any(PolicyEvaluation.class),
         eq(branchName), any(LocationDiscoveryResult.class));
   }
 
@@ -800,6 +803,9 @@ public class PullRequestCommentingServiceTest
     @Mock
     private PullRequestLocationDiscoveryService locationDiscoveryService;
 
+    @Mock
+    private SourceControlComponentLoader mockSourceControlComponentLoader;
+
     private boolean scmEnabled = true;
 
     private String org = "testOrg";
@@ -851,6 +857,8 @@ public class PullRequestCommentingServiceTest
 
     private LocationDiscoveryResult locationDiscoveryResult = new LocationDiscoveryResult();
 
+    private SourceControlComponentDetails sourceControlComponentDetails = new SourceControlComponentDetails();
+
     PullRequestCommentingService build() throws Exception {
       MockitoAnnotations.openMocks(this);
 
@@ -900,7 +908,7 @@ public class PullRequestCommentingServiceTest
           .createPolicyViolationDiff(basePolicyEvaluation, sourcePolicyEvaluation, MINIMUM_THREAT_LEVEL);
 
       doReturn(policyEvaluationDiffMarkup).when(mockPullRequestFeedbackMarkupService)
-          .createMarkup(any(), any(), any(), any(), anyInt(), any(), any(), any());
+          .createMarkup(any(), any(), any(), any(), anyInt(), any(), any(), any(), any());
 
       if (gitRepositoryEffectivelyPrivateThrows != null) {
         doThrow(UnsupportedOperationException.class).when(mockPullRequestRepositoryValidator)
@@ -919,6 +927,10 @@ public class PullRequestCommentingServiceTest
 
       doReturn(locationDiscoveryResult).when(locationDiscoveryService)
           .doLocationDiscovery(anyList(), any(), anyString(), anyString());
+      doReturn(sourceControlComponentDetails).when(mockSourceControlComponentLoader)
+          .getSourceControlComponentDetails(any(Application.class), anyString());
+      doReturn(sourceControlComponentDetails).when(mockSourceControlComponentLoader)
+          .getSourceControlComponentDetails(anyString(), anyString());
 
       return new PullRequestCommentingService(
           mockSourceControlUtils,
@@ -938,7 +950,8 @@ public class PullRequestCommentingServiceTest
           pullRequestLineCommentingService,
           mockHashBuilderProvider,
           pullRequestPostCommentActionList,
-          locationDiscoveryService
+          locationDiscoveryService,
+          mockSourceControlComponentLoader
       );
     }
 
@@ -1048,6 +1061,7 @@ public class PullRequestCommentingServiceTest
       sourcePolicyEvaluation.setId(policyEvaluationId);
       sourcePolicyEvaluation.setCommitHash(commitHash);
       sourcePolicyEvaluation.setApplicationId(applicationId);
+      sourcePolicyEvaluation.setScanId("sourcePolicyEvaluationScanId");
       return this;
     }
 

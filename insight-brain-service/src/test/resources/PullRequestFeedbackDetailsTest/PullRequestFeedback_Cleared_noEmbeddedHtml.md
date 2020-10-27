@@ -7,7 +7,7 @@ Well done. The committed code does not violate any of your organization's Nexus 
 ---
 ### :sunglasses: Nexus IQ determined that you fixed outstanding policy violations:
 
-#### :white_check_mark: com.h2database : h2 : 1.4.190
+:white_check_mark: **com.h2database : h2 : 1.4.190**
 
 | **Threat (of 10)** | **Policy** | **Violation Details** |
 | --- | --- | --- |
@@ -16,7 +16,7 @@ Well done. The committed code does not violate any of your organization's Nexus 
 
 &#8192;
 
-#### :white_check_mark: org.springframework.security : spring-security-web : 4.2.3.RELEASE
+:white_check_mark: **org.springframework.security : spring-security-web : 4.2.3.RELEASE**
 
 | **Threat (of 10)** | **Policy** | **Violation Details** |
 | --- | --- | --- |
@@ -27,15 +27,15 @@ Well done. The committed code does not violate any of your organization's Nexus 
 
 &#8192;
 
-#### :white_check_mark: webgoat-server-8.0.0.M1.jar
+:white_check_mark: **webgoat-server-8.0.0.M1.jar**
 
 | **Threat (of 10)** | **Policy** | **Violation Details** |
 | --- | --- | --- |
-| 2 | Component-Unknown | **Unknown 3rd party component:** Match state was 'Unknown'. Component does not contain proprietary packages.  |
+| 3 | Component-Unknown | **Unknown 3rd party component:** Match state was 'Unknown'. Component does not contain proprietary packages.  |
 
 &#8192;
 
-#### :white_check_mark: html-tampering-8.0.0.M1.jar
+:white_check_mark: **html-tampering-8.0.0.M1.jar**
 
 | **Threat (of 10)** | **Policy** | **Violation Details** |
 | --- | --- | --- |

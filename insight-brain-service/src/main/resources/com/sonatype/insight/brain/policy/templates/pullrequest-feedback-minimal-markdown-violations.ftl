@@ -4,7 +4,14 @@
 &#8192;<#-- spacer -->
 
 <#list componentList as component>
-  #### ${component.componentNameAndVersion}<#if component.lineCommentLink?has_content> - [line comment](${component.lineCommentLink})</#if><#lt>
+  <#switch component.dependencyLogo>
+      <#case "d-logo.png">
+        \[Direct\] <#t>
+          <#break>
+      <#case "t-logo.png">
+        \[Transitive\] <#t>
+  </#switch>
+**${component.componentNameAndVersion}**<#if component.lineCommentLink?has_content> - [line comment](${component.lineCommentLink})</#if><#lt>
 
   <#if component.suggestedVersion?has_content>
     :shield: **Bumping to version ${component.suggestedVersion}** will resolve <#if ( component.policiesViolated?size > 1 )>these violations<#else>this violation</#if><#lt>
@@ -39,7 +46,7 @@
 ### :sunglasses: Nexus IQ determined that you fixed <#if ( fixedPolicyViolationsCount > 1 )>outstanding policy violations<#else>an outstanding policy violation</#if>:
 
 <#list fixedComponentList as component>
-  #### :white_check_mark: ${component.componentNameAndVersion}<#lt>
+  :white_check_mark: **${component.componentNameAndVersion}**<#lt>
 
   | **Threat (of 10)** | **Policy** | **Violation Details** |<#lt>
   | --- | --- | --- |<#lt>

@@ -2,7 +2,7 @@
 
 &#8192;
 
-#### com.h2database : h2 : 1.4.190 - [line comment](/bitbucket/projects/sonatype/repos/enhanced-commit-information/pull-requests/10/overview?commentId=12345)
+\[Direct\] **com.h2database : h2 : 1.4.190** - [line comment](/bitbucket/projects/sonatype/repos/enhanced-commit-information/pull-requests/10/overview?commentId=12345)
 
 :shield: **Bumping to version 1.4.200** will resolve these violations
 
@@ -13,7 +13,7 @@
 
 &#8192;
 
-#### org.springframework.security : spring-security-web : 4.2.3.RELEASE
+\[Transitive\] **org.springframework.security : spring-security-web : 4.2.3.RELEASE**
 
 :warning: No recommended versions are available for this component
 
@@ -26,17 +26,17 @@
 
 &#8192;
 
-#### webgoat-server-8.0.0.M1.jar
+**webgoat-server-8.0.0.M1.jar**
 
 :warning: No recommended versions are available for this component
 
 | **Threat (of 10)** | **Policy** | **Violation Details** |
 | --- | --- | --- |
-| 2 | Component-Unknown | **Unknown 3rd party component:** Match state was 'Unknown'. Component does not contain proprietary packages.  |
+| 3 | Component-Unknown | **Unknown 3rd party component:** Match state was 'Unknown'. Component does not contain proprietary packages.  |
 
 &#8192;
 
-#### html-tampering-8.0.0.M1.jar
+**html-tampering-8.0.0.M1.jar**
 
 :warning: No recommended versions are available for this component
 

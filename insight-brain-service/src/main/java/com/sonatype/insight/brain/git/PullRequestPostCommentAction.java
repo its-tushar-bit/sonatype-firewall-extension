@@ -30,6 +30,7 @@ public interface PullRequestPostCommentAction
       final GitClientFactory gitClientFactory,
       final GitRepositoryInfo gitRepositoryInfo,
       final PolicyViolationDiff<PolicyViolation> policyViolationDiff,
+      final SourceControlComponentDetails sourceControlComponentDetails,
       final PolicyEvaluation sourceCommitPolicyEvaluation,
       final PolicyEvaluation baseBranchPolicyEvaluation,
       final String branch,

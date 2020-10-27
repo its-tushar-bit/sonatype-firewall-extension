@@ -26,14 +26,14 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.git.PullRequestLineCommentDTO;
 import com.sonatype.insight.brain.git.PullRequestLocationDiscoveryService;
+import com.sonatype.insight.brain.git.SourceControlComponentDetails;
+import com.sonatype.insight.brain.git.SourceControlComponentLoader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.policy.PolicyEvaluationDiffService;
-import com.sonatype.insight.brain.report.ReportEntry;
-import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -105,10 +105,6 @@ public class PullRequestCodeInsightsDetailsTest
 
   private GitRepositoryInfo bitbucketGitRepositoryInfo;
 
-  private ReportEntry bomEntry;
-
-  private String bomTimestamp;
-
   @Inject
   private PolicyEvaluationDiffService policyEvaluationDiffService;
 
@@ -116,16 +112,20 @@ public class PullRequestCodeInsightsDetailsTest
   private InsightWork insightWork;
 
   @Inject
-  private ReportService reportService;
+  private InsightConfig config;
 
   @Inject
-  private InsightConfig config;
+  private SourceControlComponentLoader sourceControlComponentLoader;
 
   private Application app;
 
   private String repositoryUrl;
 
   private LocationDiscoveryResult locationDiscoveryResult;
+
+  private SourceControlComponentDetails componentDetails;
+
+  private String bomTimestamp;
 
   public PullRequestCodeInsightsDetailsTest(final String repositoryUrl) {
     this.repositoryUrl = repositoryUrl;
@@ -141,7 +141,7 @@ public class PullRequestCodeInsightsDetailsTest
   }
 
   @Before
-  public void before() {
+  public void before() throws IOException {
     config.setBaseUrl("http://localhost:1122");
     tempEntity.newOrganizationWithSpecificId(ORG_ID, ORG_NAME);
     app = tempEntity.newApplicationWithSpecificId(APP_INTERNAL_ID, APP_NAME, APP_PUBLIC_ID, ORG_ID);
@@ -163,7 +163,7 @@ public class PullRequestCodeInsightsDetailsTest
 
     //when
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
-        bitbucketGitRepositoryInfo.repositoryUrl, app, bomEntry, featureBranchPolicyEvaluation, diff,
+        bitbucketGitRepositoryInfo.repositoryUrl, app, componentDetails, featureBranchPolicyEvaluation, diff,
         lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult);
 
     //then assert that created contents match expected
@@ -198,7 +198,7 @@ public class PullRequestCodeInsightsDetailsTest
 
     //when
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
-        bitbucketGitRepositoryInfo.repositoryUrl, app, bomEntry, featureBranchPolicyEvaluation, diff,
+        bitbucketGitRepositoryInfo.repositoryUrl, app, componentDetails, featureBranchPolicyEvaluation, diff,
         lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult);
 
     //then assert that created contents match expected
@@ -224,10 +224,11 @@ public class PullRequestCodeInsightsDetailsTest
     policyViolation.setPolicyId(existingViolation.getPolicyId());
     policyViolation.setPolicyName(existingViolation.getPolicyName());
     diff.getCleared().add(policyViolation);
+    sourceControlComponentLoader.enhanceSourceControlComponentDetails(componentDetails, diff.getCleared());
 
     //when
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
-        bitbucketGitRepositoryInfo.repositoryUrl, app, bomEntry, featureBranchPolicyEvaluation, diff,
+        bitbucketGitRepositoryInfo.repositoryUrl, app, componentDetails, featureBranchPolicyEvaluation, diff,
         lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult);
 
     //then assert that created contents match expected
@@ -262,7 +263,7 @@ public class PullRequestCodeInsightsDetailsTest
 
     //when
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
-        bitbucketGitRepositoryInfo.repositoryUrl, app, bomEntry, featureBranchPolicyEvaluation, diff,
+        bitbucketGitRepositoryInfo.repositoryUrl, app, componentDetails, featureBranchPolicyEvaluation, diff,
         lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult);
 
     //then assert that created contents match expected
@@ -283,12 +284,9 @@ public class PullRequestCodeInsightsDetailsTest
     diff.getAppeared().clear();
     diff.getAppeared().add(first);
 
-    //setup bom report entry
-    final ReportEntry bomEntry = reportService.getBomForPolicyEvaluation(featureBranchPolicyEvaluation);
-
     //when
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
-        bitbucketGitRepositoryInfo.repositoryUrl, app, bomEntry, featureBranchPolicyEvaluation, diff,
+        bitbucketGitRepositoryInfo.repositoryUrl, app, componentDetails, featureBranchPolicyEvaluation, diff,
         lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult);
 
     //then assert that created contents has singular violation in heading
@@ -313,13 +311,11 @@ public class PullRequestCodeInsightsDetailsTest
     final PolicyViolation first = diff.getAppeared().get(0);
     diff.getAppeared().clear();
     diff.getCleared().add(first);
-
-    //setup bom report entry
-    final ReportEntry bomEntry = reportService.getBomForPolicyEvaluation(featureBranchPolicyEvaluation);
+    sourceControlComponentLoader.enhanceSourceControlComponentDetails(componentDetails, diff.getCleared());
 
     //when
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
-        bitbucketGitRepositoryInfo.repositoryUrl, app, bomEntry, featureBranchPolicyEvaluation, diff,
+        bitbucketGitRepositoryInfo.repositoryUrl, app, componentDetails, featureBranchPolicyEvaluation, diff,
         lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult);
 
     //then assert that created contents has singular violation in heading
@@ -339,7 +335,7 @@ public class PullRequestCodeInsightsDetailsTest
 
     //when
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
-        bitbucketGitRepositoryInfo.repositoryUrl, app, bomEntry, featureBranchPolicyEvaluation, diff,
+        bitbucketGitRepositoryInfo.repositoryUrl, app, componentDetails, featureBranchPolicyEvaluation, diff,
         lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult);
 
     //then assert that created contents is not available
@@ -354,7 +350,7 @@ public class PullRequestCodeInsightsDetailsTest
         new PullRequestCodeInsightsDetails(
             bitbucketGitRepositoryInfo.repositoryUrl, app, null, featureBranchPolicyEvaluation, diff,
             lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult))
-        .withMessage("bomReportEntry is required and cannot be null");
+        .withMessage("sourceControlComponentDetails is required and cannot be null");
   }
 
   @Test
@@ -362,7 +358,7 @@ public class PullRequestCodeInsightsDetailsTest
     setupTestData();
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
         new PullRequestCodeInsightsDetails(
-            bitbucketGitRepositoryInfo.repositoryUrl, app, bomEntry, featureBranchPolicyEvaluation, null,
+            bitbucketGitRepositoryInfo.repositoryUrl, app, componentDetails, featureBranchPolicyEvaluation, null,
             lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult))
         .withMessage("policyViolationDiff is required and cannot be null");
   }
@@ -372,7 +368,7 @@ public class PullRequestCodeInsightsDetailsTest
     setupTestData();
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
         new PullRequestCodeInsightsDetails(
-            bitbucketGitRepositoryInfo.repositoryUrl, null, bomEntry, featureBranchPolicyEvaluation, diff,
+            bitbucketGitRepositoryInfo.repositoryUrl, null, componentDetails, featureBranchPolicyEvaluation, diff,
             lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult))
         .withMessage("app is required and cannot be null");
   }
@@ -382,7 +378,7 @@ public class PullRequestCodeInsightsDetailsTest
     setupTestData();
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
         new PullRequestCodeInsightsDetails(
-            null, app, bomEntry, featureBranchPolicyEvaluation, diff,
+            null, app, componentDetails, featureBranchPolicyEvaluation, diff,
             lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult))
         .withMessage("repositoryUrl is required and cannot be null");
   }
@@ -392,7 +388,7 @@ public class PullRequestCodeInsightsDetailsTest
     setupTestData();
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
         new PullRequestCodeInsightsDetails(
-            bitbucketGitRepositoryInfo.repositoryUrl, app, bomEntry, null, diff,
+            bitbucketGitRepositoryInfo.repositoryUrl, app, componentDetails, null, diff,
             lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult))
         .withMessage("featureBranchEvaluation is required and cannot be null");
   }
@@ -402,7 +398,7 @@ public class PullRequestCodeInsightsDetailsTest
     setupTestData();
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
         new PullRequestCodeInsightsDetails(
-            bitbucketGitRepositoryInfo.repositoryUrl, app, bomEntry, featureBranchPolicyEvaluation, diff,
+            bitbucketGitRepositoryInfo.repositoryUrl, app, componentDetails, featureBranchPolicyEvaluation, diff,
             null, locationDiscoveryResult))
         .withMessage("baseUrl is required and cannot be null");
   }
@@ -444,12 +440,13 @@ public class PullRequestCodeInsightsDetailsTest
     bitbucketGitRepositoryInfo =
         new GitRepositoryInfo(repositoryUrl, "user", "token",
             SourceControlProvider.BITBUCKET, "master", true, true);
+    
+    //setup source control component details
+    componentDetails = sourceControlComponentLoader.getSourceControlComponentDetails(
+        featureBranchPolicyEvaluation.getApplicationId(), featureBranchPolicyEvaluation.getScanId());
 
-    //setup bom report entry
-    bomEntry = reportService.getBomForPolicyEvaluation(featureBranchPolicyEvaluation);
-
-    bomTimestamp = DATE_TIME_FORMATTER
-        .format(ZonedDateTime.ofInstant(Instant.ofEpochMilli(bomEntry.time), ZoneId.systemDefault()));
+    bomTimestamp = DATE_TIME_FORMATTER.format(
+        ZonedDateTime.ofInstant(featureBranchPolicyEvaluation.getTime().toInstant(), ZoneId.systemDefault()));
 
     Mockito.lenient().when(pullRequestLocationDiscoveryService.doLocationDiscovery(anyList(),
         any(GitRepositoryInfo.class), anyString(), anyString())).thenReturn(locationDiscoveryResult);

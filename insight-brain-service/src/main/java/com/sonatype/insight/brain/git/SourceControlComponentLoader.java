@@ -110,12 +110,44 @@ public class SourceControlComponentLoader
     if (policyViolations == null) {
       return;
     }
-    Map<ComponentIdentifier, ComponentInfo> componentMap = componentDetails.getIdentifierToComponentInfoMap();
+    Map<String, ComponentInfo> byHashMap = componentDetails.getHashToComponentInfoMap();
+    Map<ComponentIdentifier, ComponentInfo> byIdentifierMap = componentDetails.getIdentifierToComponentInfoMap();
     for (PolicyViolation violation : policyViolations) {
+      ComponentInfo componentInfo = null;
       ComponentIdentifier componentIdentifier = violation.getComponentIdentifier();
-      if (componentIdentifier != null && !componentMap.containsKey(componentIdentifier)) {
-        componentMap.put(componentIdentifier,
-            new ComponentInfo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString(), null));
+      if (componentIdentifier != null && !byIdentifierMap.containsKey(componentIdentifier)) {
+        componentInfo =
+            new ComponentInfo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString(), null);
+        byIdentifierMap.put(componentIdentifier, componentInfo);
+      }
+      // update the hash-based map, if needed
+      String hash = violation.getHash();
+      if (hash != null && componentInfo != null) {
+        byHashMap.putIfAbsent(hash, componentInfo);
+      }
+    }
+  }
+
+  public void enhanceSourceControlComponentDetailsWithDirectDependencyInformation(
+      final SourceControlComponentDetails componentDetails,
+      final List<PullRequestLineCommentDTO> pullRequestLineComments)
+  {
+    Map<ComponentIdentifier, ComponentInfo> byIdentifierMap = componentDetails.getIdentifierToComponentInfoMap();
+    Map<String, ComponentInfo> byHashMap = componentDetails.getHashToComponentInfoMap();
+    for  (PullRequestLineCommentDTO pullRequestLineComment : pullRequestLineComments) {
+      ComponentIdentifier componentIdentifier = pullRequestLineComment.getComponentIdentifier();
+      if (componentIdentifier != null && byIdentifierMap.containsKey(componentIdentifier)) {
+        ComponentInfo componentInfo = byIdentifierMap.get(componentIdentifier);
+        if (componentInfo != null && !componentInfo.getDirectDependency()) {
+          componentInfo =
+              new ComponentInfo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString(), true);
+          byIdentifierMap.put(componentIdentifier, componentInfo);
+          // update the hash-based map, if needed
+          String hash = pullRequestLineComment.getHash();
+          if (hash != null) {
+            byHashMap.put(hash, componentInfo);
+          }
+        }
       }
     }
   }

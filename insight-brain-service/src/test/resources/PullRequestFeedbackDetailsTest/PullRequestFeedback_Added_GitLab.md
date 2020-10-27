@@ -2,7 +2,9 @@
 
 <details>
 <summary title="Threat Level: 10 of 10"><img alt="T10" src="https://cdn.sonatype.com/iq-for-scm/1.0/red-bar.png" width="4" height="16"> 
-<b>10&nbsp;&nbsp; com.h2database : h2 : 1.4.190</b> - <a href="https://gitlab.com/sonatype/enhanced-commit-information/-/merge_requests/10#note_12345">line comment</a></summary>
+<b>10&nbsp;
+<img alt="dependency logo" src="https://cdn.sonatype.com/iq-for-scm/1.0/d-logo.png" height="16">&nbsp;
+com.h2database : h2 : 1.4.190</b> - <a href="https://gitlab.com/sonatype/enhanced-commit-information/-/merge_requests/10#note_12345">line comment</a></summary>
 <p></p>
 
 :shield: **Bumping to version 1.4.200** will resolve these violations
@@ -16,7 +18,9 @@ Threat (of 10) | Policy | Violation Details
 
 <details>
 <summary title="Threat Level: 10 of 10"><img alt="T10" src="https://cdn.sonatype.com/iq-for-scm/1.0/red-bar.png" width="4" height="16"> 
-<b>10&nbsp;&nbsp; org.springframework.security : spring-security-web : 4.2.3.RELEASE</b></summary>
+<b>10&nbsp;
+<img alt="dependency logo" src="https://cdn.sonatype.com/iq-for-scm/1.0/t-logo.png" height="16">&nbsp;
+org.springframework.security : spring-security-web : 4.2.3.RELEASE</b></summary>
 <p></p>
 
 :warning: No recommended versions are available for this component
@@ -31,21 +35,25 @@ Threat (of 10) | Policy | Violation Details
 </details>
 
 <details>
-<summary title="Threat Level: 2 of 10"><img alt="T2" src="https://cdn.sonatype.com/iq-for-scm/1.0/yellow-bar.png" width="4" height="16"> 
-<b>2&nbsp;&nbsp;&nbsp; webgoat-server-8.0.0.M1.jar</b></summary>
+<summary title="Threat Level: 3 of 10"><img alt="T3" src="https://cdn.sonatype.com/iq-for-scm/1.0/yellow-bar.png" width="4" height="16"> 
+<b>3&nbsp;&nbsp;&nbsp;
+<img alt="dependency logo" src="https://cdn.sonatype.com/iq-for-scm/1.0/blank.png" height="16">&nbsp;
+webgoat-server-8.0.0.M1.jar</b></summary>
 <p></p>
 
 :warning: No recommended versions are available for this component
 
 Threat (of 10) | Policy | Violation Details
 --- | --- | --- |
-2 | Component-Unknown | <b>Unknown 3rd party component:</b><ul><li>Match state was 'Unknown'</li><li>Component does not contain proprietary packages</li></ul>
+3 | Component-Unknown | <b>Unknown 3rd party component:</b><ul><li>Match state was 'Unknown'</li><li>Component does not contain proprietary packages</li></ul>
 
 </details>
 
 <details>
 <summary title="Threat Level: 2 of 10"><img alt="T2" src="https://cdn.sonatype.com/iq-for-scm/1.0/yellow-bar.png" width="4" height="16"> 
-<b>2&nbsp;&nbsp;&nbsp; html-tampering-8.0.0.M1.jar</b></summary>
+<b>2&nbsp;&nbsp;&nbsp;
+<img alt="dependency logo" src="https://cdn.sonatype.com/iq-for-scm/1.0/blank.png" height="16">&nbsp;
+html-tampering-8.0.0.M1.jar</b></summary>
 <p></p>
 
 :warning: No recommended versions are available for this component

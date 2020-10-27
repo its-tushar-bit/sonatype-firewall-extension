@@ -5,8 +5,10 @@
 <details>
   <#assign threatImage="${threatImageArray[component.highestThreatLevel]}">
   <summary title="Threat Level: ${component.highestThreatLevel} of 10"><#t>
-    <img alt="T${component.highestThreatLevel}" src="https://cdn.sonatype.com/iq-for-scm/1.0/${threatImage}"<#if provider.name() == "GITLAB"> width="4" height="16"</#if>> <#lt>
-    <b>${component.highestThreatLevel}<#if ( component.highestThreatLevel < 10 )>&nbsp;</#if>&nbsp;&nbsp; ${component.componentNameAndVersion}</b><#t>
+    <img alt="T${component.highestThreatLevel}" src="https://cdn.sonatype.com/iq-for-scm/1.0/${threatImage}" width="4" <#if provider.name() == "GITLAB">height="16"<#else>height="14"</#if>> <#lt>
+    <b>${component.highestThreatLevel}<#if ( component.highestThreatLevel < 10 )>&nbsp;&nbsp;</#if>&nbsp;<#lt>
+    <img alt="dependency logo" src="https://cdn.sonatype.com/iq-for-scm/1.0/${component.dependencyLogo}" <#if provider.name() == "GITLAB">height="16"<#else>height="14"</#if>>&nbsp;<#lt>
+    ${component.componentNameAndVersion}</b><#t>
     <#if component.lineCommentLink?has_content> - <a href="${component.lineCommentLink}">line comment</a></#if><#t>
   </summary><#lt>
   <p></p><#lt>

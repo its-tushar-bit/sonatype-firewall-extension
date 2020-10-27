@@ -6,35 +6,29 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.git.PullRequestLineCommentDTO;
+import com.sonatype.insight.brain.git.SourceControlComponentDetails;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.utils.TemplateUtils;
-import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.dto.BaseProjectUri;
 import com.sonatype.nexus.scm.bitbucket.dto.BitbucketServerProjectUri;
 import com.sonatype.nexus.scm.common.SimpleProjectUri;
 import com.sonatype.nexus.scm.gitlab.dto.GitlabProjectUri;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
@@ -61,6 +55,12 @@ public class PullRequestFeedbackDetails
 
   private static final String RED_BAR = "red-bar.png";
 
+  private static final String BLANK_LOGO = "blank.png";
+
+  private static final String D_LOGO = "d-logo.png";
+
+  private static final String T_LOGO = "t-logo.png";
+
   private static final String[] THREAT_IMAGE_ARRAY = new String[]{
       LIGHT_BLUE_BAR, // 0
       DARK_BLUE_BAR, // 1
@@ -75,7 +75,7 @@ public class PullRequestFeedbackDetails
 
   private final Application app;
 
-  private final ReportEntry bomReportEntry;
+  private final SourceControlComponentDetails sourceControlComponentDetails;
 
   private final PolicyEvaluation featureBranchEvaluation;
 
@@ -110,7 +110,7 @@ public class PullRequestFeedbackDetails
   }
 
   public PullRequestFeedbackDetails(
-      final ReportEntry bomReportEntry,
+      final SourceControlComponentDetails sourceControlComponentDetails,
       final PolicyEvaluation featureBranchEvaluation,
       final PolicyEvaluation defaultBranchEvaluation,
       final PolicyViolationDiff<PolicyViolation> diff,
@@ -121,8 +121,9 @@ public class PullRequestFeedbackDetails
       final Application app,
       final String baseUrl)
   {
-    Preconditions.checkNotNull(bomReportEntry, "bomReportEntry is required and cannot be null");
-    this.bomReportEntry = bomReportEntry;
+    Preconditions
+        .checkNotNull(sourceControlComponentDetails, "sourceControlComponentDetails is required and cannot be null");
+    this.sourceControlComponentDetails = sourceControlComponentDetails;
     Preconditions.checkNotNull(featureBranchEvaluation, "featureBranchEvaluation is required and cannot be null");
     this.featureBranchEvaluation = featureBranchEvaluation;
     Preconditions.checkNotNull(defaultBranchEvaluation, "defaultBranchEvaluation is required and cannot be null");
@@ -160,22 +161,16 @@ public class PullRequestFeedbackDetails
    * @return An optional variable containing the PR feedback contents
    */
   private String constructContents() throws IOException {
-    //Create a map from component hash to display name
-    final Map<String, String> componentDisplayNamesMap = createDisplayNamesMap();
-    if (componentDisplayNamesMap.isEmpty()) {
-      return "";
-    }
-
-    //Policy violations need to be grouped by component, any component not in the bom will not be considered
+    //Policy violations grouped by component hash, any component not in the bom will not be considered
     final Map<String, List<PolicyViolation>> componentPolicyViolationsMap = diff.hasAppeared() ? 
-        getComponentPolicyViolationsMap(diff.getAppeared(), componentDisplayNamesMap) : Collections.emptyMap();
+        getComponentPolicyViolationsMap(diff.getAppeared()) : Collections.emptyMap();
     //Get a map containing the PR feedback for each of the components
     final List<Map<String, Object>> newComponentFeedbackList = getNewComponentFeedbackList(componentPolicyViolationsMap,
         remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, baseUrl);
     newViolationsComponentCount = newComponentFeedbackList.size();
 
     final Map<String, List<PolicyViolation>> fixedComponentPolicyViolationsMap = diff.hasCleared() ? 
-        getComponentPolicyViolationsMap(diff.getCleared(), componentDisplayNamesMap) : Collections.emptyMap();
+        getComponentPolicyViolationsMap(diff.getCleared()) : Collections.emptyMap();
     //Get a map containing the PR feedback for each of the components
     final List<Map<String, Object>> fixedComponentFeedbackList = 
         getFixedComponentFeedbackList(fixedComponentPolicyViolationsMap, baseUrl);
@@ -194,62 +189,18 @@ public class PullRequestFeedbackDetails
     }
     return policyViolationDiffMDMinimalHtmlTemplate;
   }
-  
-  private Map<String, List<PolicyViolation>> getComponentPolicyViolationsMap(
-      final List<PolicyViolation> violations,
-      final Map<String, String> componentDisplayNamesMap)
-  {
-    return violations.stream()
-        .filter(policyViolation -> componentDisplayNamesMap.containsKey(policyViolation.getHash()))
-        .collect(
-            Collectors.groupingBy(
-                policyViolation -> componentDisplayNamesMap.get(policyViolation.getHash()))
-        );
-  }
 
   /**
-   * Gets the display names for all components in the BOM and components in the cleared policy violations section
-   * (some of them may not be included in the BOM).
-   *
-   * @return Returns a map with the component hash as the key and the component display name as the value
+   * Returns a map between component hashes and associated lists of policy violations
    */
-  Map<String, String> createDisplayNamesMap() {
-    final Map<String, String> componentDisplayNamesMap = new HashMap<>();
-    JsonNode bomJson = loadJson();
-    if (bomJson != null) {
-      bomJson = bomJson.get("aaData");
-      if (bomJson != null) {
-        final ArrayNode bomJsonArray = (ArrayNode) bomJson;
-        bomJsonArray.forEach(jsonNode -> {
-          final String hash = JsonUtils.getNullableString(jsonNode.get("hash"));
-          componentDisplayNamesMap.put(hash, ComponentDisplayNameUtil.fromJsonNode((ObjectNode) jsonNode).toString());
-        });
-      }
-    }
-    if (diff.hasCleared()) {
-      // add mappings for the components from the cleared violations section; some may not be included in the bom file
-      List<PolicyViolation> cleared = diff.getCleared();
-      for (PolicyViolation violation : cleared) {
-        String hash = violation.getHash();
-        if (violation.getComponentIdentifier() != null && !componentDisplayNamesMap.containsKey(hash)) {
-          componentDisplayNamesMap.put(hash,
-              ComponentDisplayNameUtil.fromIdentifier(violation.getComponentIdentifier()).toString());
-        }
-      }
-    }
-    return componentDisplayNamesMap;
+  private Map<String, List<PolicyViolation>> getComponentPolicyViolationsMap(
+      final List<PolicyViolation> violations)
+  {
+    return violations.stream()
+        .filter(policyViolation -> sourceControlComponentDetails.getComponentInfo(policyViolation.getHash()) != null)
+        .collect(Collectors.groupingBy(AbstractPolicyViolation::getHash));
   }
-
-  private JsonNode loadJson() {
-    Preconditions.checkNotNull(bomReportEntry.buf, "bom data is required, and cannot be null");
-    try {
-      return JsonUtils.parse(bomReportEntry.buf);
-    }
-    catch (final IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
-
+  
   /**
    * Gets a list of feedback items for each of the components with fixed violations
    *
@@ -259,7 +210,7 @@ public class PullRequestFeedbackDetails
    * to highest threat level on the component
    */
   @VisibleForTesting
-  static List<Map<String, Object>> getFixedComponentFeedbackList(
+  List<Map<String, Object>> getFixedComponentFeedbackList(
       final Map<String, List<PolicyViolation>> componentPolicyViolationsMap,
       final String baseUrl)
   {
@@ -267,7 +218,8 @@ public class PullRequestFeedbackDetails
         .entrySet()
         .stream()
         .map(componentEntry -> ImmutableMap.<String, Object>builder()
-            .put("componentNameAndVersion", componentEntry.getKey())
+            .put("componentNameAndVersion",
+                sourceControlComponentDetails.getComponentInfo(componentEntry.getKey()).getDisplayName())
             .put("highestThreatLevel",
                 getHighestThreatLevel(componentEntry.getValue()))
             .put("policiesViolated", getPoliciesViolatedMap(componentEntry.getValue(), baseUrl, true))
@@ -280,7 +232,7 @@ public class PullRequestFeedbackDetails
   /**
    * Gets a list of feedback items for each of the components that introduced new policy violations
    *
-   * @param componentPolicyViolationsMap A map containing policy violations for each component
+   * @param componentPolicyViolationsMap A map containing policy violations for each component grouped by hash
    * @param remediationVersionMap A map containing suggested remediation version (if one exists) for each component
    * @param pullRequestLineComments A list of newly created line comment details
    * @param baseUrl The baseUrl of the IQ server
@@ -288,7 +240,7 @@ public class PullRequestFeedbackDetails
    * to highest threat level on the component
    */
   @VisibleForTesting
-  static List<Map<String, Object>> getNewComponentFeedbackList(
+  List<Map<String, Object>> getNewComponentFeedbackList(
       final Map<String, List<PolicyViolation>> componentPolicyViolationsMap,
       final Map<ComponentIdentifier, String> remediationVersionMap,
       final List<PullRequestLineCommentDTO> pullRequestLineComments,
@@ -300,7 +252,14 @@ public class PullRequestFeedbackDetails
         .entrySet()
         .stream()
         .map(componentEntry -> ImmutableMap.<String, Object>builder()
-            .put("componentNameAndVersion", componentEntry.getKey())
+            .put("componentNameAndVersion",
+                sourceControlComponentDetails.getComponentInfo(componentEntry.getKey()).getDisplayName())
+            .put("dependencyLogo",
+                sourceControlComponentDetails.getComponentInfo(componentEntry.getKey()).getDirectDependency() ==
+                    null ? BLANK_LOGO :
+                    sourceControlComponentDetails.getComponentInfo(componentEntry.getKey()).getDirectDependency() ?
+                        D_LOGO : T_LOGO
+            )
             .put("highestThreatLevel",
                 getHighestThreatLevel(componentEntry.getValue()))
             .put("suggestedVersion", getSuggestedVersion(remediationVersionMap, componentEntry.getValue()))

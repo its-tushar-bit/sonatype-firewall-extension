@@ -18,7 +18,7 @@ import org.junit.Test;
 
 import static java.lang.System.currentTimeMillis;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 public class PerpetualLockDAOTest
     extends AbstractDbDAOTest
@@ -77,14 +77,12 @@ public class PerpetualLockDAOTest
     perpetualLockDAO.createPerpetualLock(lockId, null, null);
 
     // when: try to create a duplicate lock
-    try {
+    Throwable throwable = catchThrowable(() -> {
       perpetualLockDAO.createPerpetualLock(lockId, "test-owner", new Date());
-      fail("Exception expected for lock already exists");
-    }
-    catch (Exception e) {
-      assertThat(e).isInstanceOf(RollbackException.class);
-      assertThat(e.getCause()).isInstanceOf(EntityExistsException.class);
-    }
+    });
+
+    // then: an exception about the duplicate is raised
+    assertThat(throwable).isInstanceOf(RollbackException.class).hasCauseInstanceOf(EntityExistsException.class);
   }
 
   @Test

@@ -52,7 +52,6 @@ import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersi
 import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS;
 import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
@@ -899,7 +898,7 @@ public class ComponentRemediationServiceTest
         }
       }
       // we expected to find that the remediationDto purl matches with expected purl, but did not find one.
-      assertTrue(expected.getType() + " does not exist in remediation result!", found);
+      assertThat(found).as(expected.getType() + " does not exist in remediation result!").isTrue();
     }
   }
 

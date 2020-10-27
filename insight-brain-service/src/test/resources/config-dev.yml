@@ -45,3 +45,4 @@ server:
 
 experimentalFeatures:
   innerSource: false
+  scmOnboarding: false

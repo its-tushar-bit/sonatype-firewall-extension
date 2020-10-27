@@ -94,3 +94,8 @@ specified number of milliseconds on the server. This mode can help to expose bad
 about timing of (asynchronous) operations. A delay of 500 ms doesn't delay tests too much that timeouts occur and is
 typically sufficient to trigger errors where tests are badly coded and fail to wait on page changes. PhantomJS is known
 to not support this slow motion mode properly so other browsers should be used.
+
+## Experimental Feature Flags ##
+
+As new work is being developed, it can be hidden behind experimental feature flags. References to the currently available
+experimental feature flags can be maintained in `insight-brain-service/src/test/resources/config-dev.yml`.

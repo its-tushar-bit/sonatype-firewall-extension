@@ -7,19 +7,20 @@
 import { connect } from 'react-redux';
 import ListWaiversPage from './ListWaiversPage';
 import { pick } from 'ramda';
-import { loadViolation } from '../violation/violationPageActions';
+import { loadManageWaiversData } from './waiverActions';
 import { setWaiverToDelete } from './waiverActions';
 
-function mapStateToProps({ violationPage, router, deleteWaiver }) {
+function mapStateToProps({ violationPage, manageWaivers, router, deleteWaiver }) {
   return {
-    ...pick(['activeWaivers', 'expiredWaivers', 'loading', 'violationDetails', 'violationDetailsError'], violationPage),
+    ...pick(['activeWaivers', 'expiredWaivers', 'violationDetails'], violationPage),
     ...pick(['violationId'], router.currentParams),
+    ...pick(['loading', 'loadError', 'hasPermissionForAppWaivers'], manageWaivers),
     ...pick(['waiverToDelete'], deleteWaiver)
   };
 }
 
 const mapDispatchToProps = {
-  loadViolation,
+  loadManageWaiversData,
   setWaiverToDelete
 };
 

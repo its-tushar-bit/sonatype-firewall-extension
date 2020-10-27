@@ -8,7 +8,7 @@ import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 
-import { NxBackButton, NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { NxBackButton, NxButton, NxFontAwesomeIcon, NxTooltip } from '@sonatype/react-shared-components';
 import LoadWrapper from '../react/LoadWrapper';
 import MaximizedContainer from '../react/MaximizedContainer';
 import ViolationExclamation from '../react/ViolationExclamation';
@@ -22,11 +22,12 @@ export default function ListWaiversPage(props) {
   const {
     activeWaivers,
     expiredWaivers,
-    loadViolation,
+    loadManageWaiversData,
     violationId,
     loading,
     violationDetails,
-    violationDetailsError,
+    loadError,
+    hasPermissionForAppWaivers,
     waiverToDelete,
     setWaiverToDelete,
     $state
@@ -34,11 +35,11 @@ export default function ListWaiversPage(props) {
 
   useEffect(() => {
     if (violationId) {
-      loadViolation(violationId);
+      loadManageWaiversData(violationId);
     }
   }, [violationId]);
 
-  const redirectToAddWaiverPage = () => $state.go('addWaiver', { violationId });
+  const redirectToAddWaiverPage = () => hasPermissionForAppWaivers && $state.go('addWaiver', { violationId });
   const violationDetailsHref = $state.href($state.get('sidebarView.violation'), { 'id': violationId });
 
   const {
@@ -55,7 +56,7 @@ export default function ListWaiversPage(props) {
     <MaximizedContainer id="list-waivers-page" className="nx-page-content">
       <div className="nx-page-main list-waivers-page">
         { waiverToDelete && <DeleteWaiverModalContainer/> }
-        <LoadWrapper loading={ loading || !violationDetails } error={ violationDetailsError }>
+        <LoadWrapper loading={ loading || !violationDetails } error={ loadError }>
           <NxBackButton targetPageTitle="Violation Details" href={ violationDetailsHref } />
           <div className="nx-page-title">
             <h1 className="nx-h1">Waivers for Violation</h1>
@@ -93,10 +94,15 @@ export default function ListWaiversPage(props) {
                 <h2 className="nx-h2">Applicable Waivers</h2>
               </div>
               <div className="nx-tile__actions">
-                <NxButton className="nx-btn--tertiary" onClick={ redirectToAddWaiverPage }>
-                  <NxFontAwesomeIcon icon={ faPlus }/>
-                  <span>Add Waiver</span>
-                </NxButton>
+                <NxTooltip id="add-waiver-btn-tooltip"
+                           title={ hasPermissionForAppWaivers ? '' : 'Insufficient permissions to Add Waiver' }>
+                  <NxButton className={ classnames('nx-btn--tertiary', {disabled: !hasPermissionForAppWaivers}) }
+                            onClick={ redirectToAddWaiverPage }
+                            id="add-waiver-btn">
+                    <NxFontAwesomeIcon icon={ faPlus }/>
+                    <span>Add Waiver</span>
+                  </NxButton>
+                </NxTooltip>
               </div>
             </div>
             <div className="nx-tile-content">
@@ -112,9 +118,9 @@ export default function ListWaiversPage(props) {
 ListWaiversPage.propTypes = {
   activeWaivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
   expiredWaivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
-  violationDetailsError: PropTypes.any,
+  loadError: PropTypes.any,
   loading: PropTypes.bool,
-  loadViolation: PropTypes.func.isRequired,
+  loadManageWaiversData: PropTypes.func.isRequired,
   waiverToDelete: PropTypes.shape(waiverType),
   setWaiverToDelete: PropTypes.func.isRequired,
   $state: PropTypes.shape({
@@ -129,5 +135,6 @@ ListWaiversPage.propTypes = {
     }),
     filename: PropTypes.string,
     policyViolationId: PropTypes.string.isRequired
-  })
+  }),
+  hasPermissionForAppWaivers: PropTypes.bool
 };

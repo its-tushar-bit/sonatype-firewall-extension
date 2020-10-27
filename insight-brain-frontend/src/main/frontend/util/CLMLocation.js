@@ -76,6 +76,10 @@ export function getOrganizationsUrl() {
   return uriTemplate`/rest/organization`;
 }
 
+export function getApplicationSummaryUrl(applicationPublicId) {
+  return uriTemplate`/rest/application/services/summary/${applicationPublicId}`;
+}
+
 export function getApplicationTagsUrl() {
   return uriTemplate`/api/v2/applicationCategories/application`;
 }
@@ -227,9 +231,7 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
             encodeURIComponent(order) + '&page=' + page + '&pageSize=' + pageSize;
       },
 
-      getApplicationSummaryUrl: function(applicationPublicId) {
-        return baseUrl.get() + '/rest/application/services/summary/' + encodeURIComponent(applicationPublicId);
-      },
+      getApplicationSummaryUrl,
 
       getOrganizationsUrl,
 

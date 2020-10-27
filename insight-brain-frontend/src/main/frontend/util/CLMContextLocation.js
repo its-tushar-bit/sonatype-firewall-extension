@@ -22,6 +22,17 @@ export function getOwnerImageUrl(owner) {
   return `${getBaseUrl(window.location.href)}/rest/${servicePath}/icon/${id}`;
 }
 
+/*
+ * @since 1.18.0
+ */
+export function getPermissionContextTestUrl(ownerType, ownerId) {
+  var path = ownerType;
+  if (ownerId) {
+    path += '/' + ownerId;
+  }
+  return `${getBaseUrl(window.location.href)}/rest/user/permissions/${path}`;
+}
+
 locationModule.factory('CLMContextLocations', [
   'ApplicationId', 'OrganizationId', '$state', 'BaseUrl', '$window', 'CLMLocations',
   function(appId, orgId, $state, baseUrl, $window, CLMLocations) {
@@ -201,16 +212,7 @@ locationModule.factory('CLMContextLocations', [
         return baseUrl.get() + '/rest/sidebar/' + getServicePathWithId() + '/details';
       },
 
-      /*
-       * @since 1.18.0
-       */
-      getPermissionContextTestUrl: function(ownerType, ownerId) {
-        var path = ownerType;
-        if (ownerId) {
-          path += '/' + ownerId;
-        }
-        return baseUrl.get() + '/rest/user/permissions/' + path;
-      },
+      getPermissionContextTestUrl,
 
       getProprietaryConfigUrl: function() {
         return baseUrl.get() + '/rest/proprietary/' + getServicePathWithId();

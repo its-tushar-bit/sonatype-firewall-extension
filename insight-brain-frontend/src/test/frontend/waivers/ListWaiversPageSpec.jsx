@@ -74,6 +74,7 @@ describe('ListWaiversPage', function() {
       $state: stateMock,
       backButtonStateName: 'backButtonStateName',
       loadViolation: loadViolationSpy,
+      hasPermissionForAppWaivers: false,
       setWaiverToDelete: setWaiverToDeleteMock,
       waiverToDelete: null
     };
@@ -134,7 +135,7 @@ describe('ListWaiversPage', function() {
   });
 
   it('passes any error to the LoadWrapper', function() {
-    const component = getShallowComponent({ violationDetailsError: 'error' });
+    const component = getShallowComponent({ loadError: 'error' });
     const loadWrapper = component.find(LoadWrapper);
     expect(loadWrapper).toHaveProp('error', 'error');
   });
@@ -186,13 +187,45 @@ describe('ListWaiversPage', function() {
     expect(icon).toHaveProp('icon', faPlus);
   });
 
-  it('redirects to the add waiver page when clicking the waiver list table header button', function() {
-    const component = getShallowComponent();
-    const buttonSection = component.find('.nx-tile__actions');
-    const button = buttonSection.find(NxButton);
-    expect(stateGoSpy).not.toHaveBeenCalled();
-    button.simulate('click');
-    expect(stateGoSpy).toHaveBeenCalledWith('addWaiver', { violationId: 'violationId' });
+  describe('Add Waiver button', function() {
+    describe('if hasPermissionForAppWaivers is true', function() {
+      let addWaiverButton;
+      beforeEach(function() {
+        const component = getShallowComponent({
+          hasPermissionForAppWaivers: true
+        });
+        addWaiverButton = component.find('#add-waiver-btn');
+      });
+      it('redirects to the add waiver page', function() {
+        expect(stateGoSpy).not.toHaveBeenCalled();
+        addWaiverButton.simulate('click');
+        expect(stateGoSpy).toHaveBeenCalledWith('addWaiver', { violationId: 'violationId' });
+      });
+      it('renders as enabled', function() {
+        expect(addWaiverButton).not.toHaveClassName('disabled');
+      });
+      it('renders with no tooltip', function() {
+        expect(addWaiverButton.parent()).toHaveProp('title', '');
+      });
+    });
+
+    describe('if hasPermissionForAppWaivers is false', function() {
+      let addWaiverButton;
+      beforeEach(function() {
+        const component = getShallowComponent();
+        addWaiverButton = component.find('#add-waiver-btn');
+      });
+      it('does not redirect to the add waiver', function() {
+        addWaiverButton.simulate('click');
+        expect(stateGoSpy).not.toHaveBeenCalled();
+      });
+      it('renders as disabled', function() {
+        expect(addWaiverButton).toHaveClassName('disabled');
+      });
+      it('renders with tooltip', function() {
+        expect(addWaiverButton.parent()).toHaveProp('title', 'Insufficient permissions to Add Waiver');
+      });
+    });
   });
 
   it('renders the ListWaiversTable component', function() {

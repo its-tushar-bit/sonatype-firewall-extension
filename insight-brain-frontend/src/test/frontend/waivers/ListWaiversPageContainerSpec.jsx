@@ -10,15 +10,15 @@ import ListWaiversPage from '../../../main/frontend/waivers/ListWaiversPage';
 
 describe('ListWaiversPageContainer', function() {
   let ListWaiversPageContainer,
-      loadViolationMock,
+      loadManageWaiversDataMock,
       setWaiverToDeleteMock,
       store,
       state,
       vdom;
 
   beforeEach(function() {
-    loadViolationMock = jasmine.createSpy('loadViolation').and.returnValue({
-      type: 'LOAD_VIOLATION'
+    loadManageWaiversDataMock = jasmine.createSpy('loadManageWaiversData').and.returnValue({
+      type: 'LOAD_MANAGE_WAIVERS_DATA'
     });
 
     setWaiverToDeleteMock = jasmine.createSpy('setWaiverToDelete').and.returnValue({
@@ -27,10 +27,8 @@ describe('ListWaiversPageContainer', function() {
 
     ListWaiversPageContainer =
         require('inject-loader!../../../main/frontend/waivers/ListWaiversPageContainer')({
-          '../violation/violationPageActions': {
-            loadViolation: loadViolationMock
-          },
           './waiverActions': {
+            loadManageWaiversData: loadManageWaiversDataMock,
             setWaiverToDelete: setWaiverToDeleteMock
           }
         }).default;
@@ -39,12 +37,15 @@ describe('ListWaiversPageContainer', function() {
       violationPage: {
         activeWaivers: [],
         expiredWaivers: [],
-        loading: false,
-        violationDetails: {},
-        violationDetailsError: {}
+        violationDetails: {}
       },
       router: {
         currentParams: { violationId: 'foo' }
+      },
+      manageWaivers: {
+        loading: false,
+        loadError: 'test error',
+        hasPermissionForAppWaivers: false
       },
       deleteWaiver: {
         waiverToDelete: { waiverId: 'foo' }
@@ -63,14 +64,19 @@ describe('ListWaiversPageContainer', function() {
     expect(wrapper).toHaveProp('loading', false);
     expect(wrapper).toHaveProp('violationId', 'foo');
     expect(wrapper).toHaveProp('violationDetails', {});
-    expect(wrapper).toHaveProp('violationDetailsError', {});
+    expect(wrapper).toHaveProp('loadError', 'test error');
+    expect(wrapper).toHaveProp('hasPermissionForAppWaivers', false);
     state = {
       ...state,
       violationPage: {
-        loading: true,
         violationDetails: {
           id: 'bar'
         }
+      },
+      manageWaivers: {
+        loading: true,
+        loadError: null,
+        hasPermissionForAppWaivers: true
       }
     };
     wrapper = shallow(vdom).dive();
@@ -78,25 +84,27 @@ describe('ListWaiversPageContainer', function() {
     expect(wrapper).toHaveProp('loading', true);
     expect(wrapper).toHaveProp('violationId', 'foo');
     expect(wrapper).toHaveProp('violationDetails', { id: 'bar' });
+    expect(wrapper).toHaveProp('loadError', null);
+    expect(wrapper).toHaveProp('hasPermissionForAppWaivers', true);
     expect(wrapper).toHaveProp('waiverToDelete', { waiverId: 'foo' });
   });
 
   it('maps action creators to props', function() {
     const wrapper = shallow(vdom).dive();
-    const loadViolationActionCreator = wrapper.prop('loadViolation');
+    const loadMAnageWaiversDataActionCreator = wrapper.prop('loadManageWaiversData');
     const setWaiverToDeleteActionCreator = wrapper.prop('setWaiverToDelete');
 
-    expect(loadViolationActionCreator).toEqual(jasmine.any(Function));
+    expect(loadMAnageWaiversDataActionCreator).toEqual(jasmine.any(Function));
     expect(setWaiverToDeleteActionCreator).toEqual(jasmine.any(Function));
 
     expect(store.getActions()).toEqual([]);
 
-    loadViolationActionCreator();
-    expect(store.getActions()).toEqual([{ type: 'LOAD_VIOLATION' }]);
+    loadMAnageWaiversDataActionCreator();
+    expect(store.getActions()).toEqual([{ type: 'LOAD_MANAGE_WAIVERS_DATA' }]);
 
     setWaiverToDeleteActionCreator();
     expect(store.getActions()).toEqual([
-      { type: 'LOAD_VIOLATION' },
+      { type: 'LOAD_MANAGE_WAIVERS_DATA' },
       { type: 'SET_WAIVER_TO_DELETE' }
     ]);
   });

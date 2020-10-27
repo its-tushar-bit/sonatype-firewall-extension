@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { path } from 'ramda';
+import { compose, path } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 import { capitalize, getFutureDate } from '../util/jsUtil';
@@ -18,6 +18,8 @@ import {
 
 import { loadViolation, loadApplicableWaivers } from '../violation/violationPageActions';
 import { stateGo } from '../reduxUiRouter/routerActions';
+import { getPermissionContextTestUrl } from '../util/CLMContextLocation';
+import { getApplicationSummaryUrl } from '../util/CLMLocation';
 
 export const WAIVERS_LOAD_SCOPE_DATA_REQUESTED = 'WAIVERS_LOAD_SCOPE_DATA_REQUESTED';
 export const WAIVERS_LOAD_SCOPE_DATA_FULFILLED = 'WAIVERS_LOAD_SCOPE_DATA_FULFILLED';
@@ -30,6 +32,9 @@ export const WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT = 'WAIVERS_ADD_WAIVER_SET_WAI
 export const WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE = 'WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE';
 export const WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS = 'WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS';
 export const WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME = 'WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME';
+export const WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED = 'WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED';
+export const WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED = 'WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED';
+export const WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED = 'WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED';
 export const WAIVERS_SET_WAIVER_TO_DELETE = 'WAIVERS_SET_WAIVER_TO_DELETE';
 export const WAIVERS_HIDE_DELETE_WAIVER_MODAL = 'WAIVERS_HIDE_DELETE_WAIVER_MODAL';
 export const WAIVERS_DELETE_WAIVER_REQUESTED = 'WAIVERS_DELETE_WAIVER_REQUESTED';
@@ -43,6 +48,9 @@ const saveWaiverFailed = payloadParamActionCreator(WAIVERS_SAVE_WAIVER_FAILED);
 const loadAddWaiverDataRequested = noPayloadActionCreator(WAIVERS_LOAD_SCOPE_DATA_REQUESTED);
 const loadAddWaiverDataFailed = payloadParamActionCreator(WAIVERS_LOAD_SCOPE_DATA_FAILED);
 const loadAddWaiverDataFulfilled = payloadParamActionCreator(WAIVERS_LOAD_SCOPE_DATA_FULFILLED);
+const loadManageWaiversDataRequested = noPayloadActionCreator(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED);
+const loadManageWaiversDataFulfilled = payloadParamActionCreator(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED);
+const loadManageWaiversDataFailed = payloadParamActionCreator(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED);
 
 function startSubmitMaskTimer(dispatch) {
   setTimeout(() => {
@@ -111,6 +119,19 @@ export function loadAddWaiverData(violationId) {
   };
 }
 
+/**
+ * @param {string } violationId
+*/
+export function loadManageWaiversData(violationId) {
+  return (dispatch, getState) => {
+    dispatch(loadManageWaiversDataRequested());
+    return dispatch(loadViolation(violationId))
+        .then(() => loadPermissionForAppWaivers(getState().violationPage.violationDetails.applicationPublicId))
+        .then(compose(dispatch, loadManageWaiversDataFulfilled))
+        .catch(compose(dispatch, loadManageWaiversDataFailed));
+  };
+}
+
 export function returnToAddWaiverOriginPage() {
   return (dispatch, getState) => {
     const { prevParams, prevState, currentParams } = getState().router;
@@ -143,6 +164,12 @@ function loadOwnerContextHierarchy(ownerType, ownerId, policyId) {
   return axios.get(getOwnerContextHierarchyUrl(ownerType, ownerId, policyId))
       .then(({ data }) => processOwnerHierarchy(data));
   // let the error be handled by calling code.
+}
+
+function loadPermissionForAppWaivers(applicationPublicId) {
+  return axios.get(getApplicationSummaryUrl(applicationPublicId))
+      .then(({ data }) => axios.put(getPermissionContextTestUrl('application', data.id), ['WAIVE_POLICY_VIOLATIONS']))
+      .then(({ data }) => data.length === 1);
 }
 
 /**

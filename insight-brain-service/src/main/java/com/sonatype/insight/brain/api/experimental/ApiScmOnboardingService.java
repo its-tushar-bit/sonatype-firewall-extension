@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.api.experimental;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
@@ -16,12 +16,18 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.nexus.scm.GitApiClientFactory;
 import com.sonatype.nexus.scm.SourceControlProvider;
+import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
+import com.sonatype.nexus.scm.api.GitApiClientUtils;
 import com.sonatype.nexus.scm.api.model.SCMRepository;
 
 import org.apache.commons.lang3.StringUtils;
@@ -41,59 +47,50 @@ public class ApiScmOnboardingService
 
   private final SourceControlDAO sourceControlDAO;
 
+  private final ApiSourceControlService apiSourceControlService;
+
+  private final GitApiClientFactory gitApiClientFactory;
+
   @Inject
-  public ApiScmOnboardingService(final SourceControlDAO sourceControlDAO) {
+  public ApiScmOnboardingService(final SourceControlDAO sourceControlDAO,
+                                 final ApiSourceControlService apiSourceControlService,
+                                 final GitApiClientFactory gitApiClientFactory)
+  {
     this.sourceControlDAO = sourceControlDAO;
+    this.apiSourceControlService = apiSourceControlService;
+    this.gitApiClientFactory = gitApiClientFactory;
   }
 
   @Authorize(permission = Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION)
-  public List<SCMRepository> loadRepositories(final String orgId) {
-    log.debug("loadRepositories returning stubbed data for org {}", orgId);
+  public List<SCMRepository> loadRepositories(final String orgId, final String hostUrl) throws IOException {
+    log.debug("loadRepositories returning data for org {} and hostUrl {}", orgId, hostUrl);
 
-    return Arrays.asList(
-        new SCMRepository(SourceControlProvider.GITHUB, "https://github.com/depshield-ci/ci-project-1.git", true,
-            "depshield-ci", "ci-project-1", "long description: Nexus IQ Server is the on-premises server that " +
-            "customers run to evaluate their applications against a set of policies and review the results. " +
-            "It is part of the Nexus Lifecycle product umbrella (historically, this product umbrella was previously " +
-            "known as Component Lifecycle Management (CLM)).\n" +
-            "\n" +
-            "insight-brain contains the server, front-end, and component scanner for Nexus IQ Server. It scans " +
-            "projects (i.e. it generates hashes that represent components in an application - see also: " +
-            "insight-scanner), and evaluates known component vulnerabilities and component license information " +
-            "against user-configured policies. It then uses these data to generate an application scan report."),
-        new SCMRepository(SourceControlProvider.GITHUB, "https://github.com/depshield-ci/ci-project-16.git", true,
-            "depshield-ci", "ci-project-16", "were"),
-        new SCMRepository(SourceControlProvider.GITHUB, "https://github.com/depshield-ci/create-react-app.git", false,
-            "depshield-ci", "create-react-app", "the"),
-        new SCMRepository(SourceControlProvider.GITHUB,
-            "https://github.com/sonatype-nexus-community/nexus-repository-p2.git", false, "sonatype-nexus-community",
-            "nexus-repository-pw", "days"),
-        new SCMRepository(SourceControlProvider.GITHUB,
-            "https://github.com/sonatype-nexus-community/nexus-repository-puppet.git", true, "sonatype-nexus-community",
-            "nexus-repository-puppet", "my"),
-        new SCMRepository(SourceControlProvider.GITHUB,
-            "https://github.com/sonatype-nexus-community/nexus-repository-terraform.git", true,
-            "sonatype-nexus-community", "nexus-repository-terraform", "friend"),
-        new SCMRepository(SourceControlProvider.GITHUB,
-            "https://github.com/sonatype-nexus-community/nexus-repository-vgo.git", true, "sonatype-nexus-community",
-            "nexus-repository-vgo", "we"),
-        new SCMRepository(SourceControlProvider.GITHUB,
-            "https://github.com/sonatype-nexus-community/nexus-scripting-examples.git", true,
-            "sonatype-nexus-community", "nexus-scripting-examples", "thought"),
-        new SCMRepository(SourceControlProvider.GITHUB,
-            "https://github.com/sonatype-nexus-community/nexus-webhook-example-collection.git", true,
-            "sonatype-nexus-community", "nexus-webhook-example-collection", "they'd"),
-        new SCMRepository(SourceControlProvider.GITHUB, "https://github.com/sonatype-nexus-community/nxrm-cli.git",
-            true, "sonatype-nexus-community", "nxrm-cli", "never"),
-        new SCMRepository(SourceControlProvider.GITHUB,
-            "https://github.com/sonatype-nexus-community/ossindex-gradle-plugin.git", true, "sonatype-nexus-community",
-            "ossindex-gradle-plugin", "end"),
-        new SCMRepository(SourceControlProvider.GITHUB, "https://github.com/sonatype-nexus-community/oysteR.git", true,
-            "sonatype-nexus-community", "oysteR", "we'd"),
-        new SCMRepository(SourceControlProvider.GITHUB,
-            "https://github.com/sonatype-nexus-community/prime-nexus-proxy-repos.git", false,
-            "sonatype-nexus-community", "prime-nexus-proxy-repos", "sing")
-    );
+    if (orgId == null) {
+      throw new BadRequestException("No organization specified");
+    }
+
+    SourceControl orgSourceControl = apiSourceControlService.getSourceControlByOwnerDecrypted(orgId);
+    if (orgSourceControl == null) {
+      log.debug("No source control entry defined for org {}, checking for entries at root", orgId);
+      orgSourceControl = apiSourceControlService.getSourceControlByOwnerDecrypted(Organization.ROOT_ORGANIZATION_ID);
+    }
+    if (orgSourceControl == null) {
+      log.error("Not able to retrieve source control entries at org {} or root, repository scan exiting",
+          orgId);
+      throw new BadRequestException("No source control entries found for organization ID " + orgId);
+    }
+
+    GitApiClientUtils gitUtils = gitApiClientFactory.getGitApiClientUtils(orgSourceControl.getProvider());
+    String defaultHostUrl = getDefaultHostUrl(orgSourceControl.getProvider().name(), orgId);
+    // TODO use hostUrl when that gets passed in: INT-3695
+    String serverUrl = gitUtils.getBaseApiUrl(defaultHostUrl);
+    log.debug("Attempting to retrieving repositories using base url: {}", serverUrl);
+    Configuration configuration = gitApiClientFactory.createConfiguration();
+    configuration.setServerUrl(serverUrl);
+    GeneralSCMApiClient generalClient = gitApiClientFactory
+        .getGeneralSCMApiClient(orgSourceControl.getProvider(), configuration, orgSourceControl.getUsername(),
+            orgSourceControl.getToken());
+    return generalClient.listAllRepositories();
   }
 
   /**

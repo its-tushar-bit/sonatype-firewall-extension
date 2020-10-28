@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.api.experimental;
 
+import java.io.IOException;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -18,15 +21,30 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.model.SCMRepository;
 
+import org.sonatype.plexus.components.cipher.PlexusCipher;
+
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpHeaders;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ApiScmOnboardingServiceTest
     extends AbstractComponentTest
 {
+  @Rule
+  public WireMockRule gitService = new WireMockRule(wireMockConfig().dynamicPort());
+
   @Inject
   private ApiScmOnboardingService apiScmOnboardingService;
 
@@ -36,17 +54,50 @@ public class ApiScmOnboardingServiceTest
 
   private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
 
+  @Inject
+  private PlexusCipher plexusCipher;
+
+  private static final String ENC = "CMMDwoV";
+
   @Before
   public void setup() {
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication("tmpapp", org.getId());
+    gitService.stubFor(get(urlPathEqualTo("/api/v3/user"))
+        .willReturn(aResponse()
+            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .withBody("{\"username\":\"foo\"}")));
   }
 
   @Test
-  public void testStubMethod() {
-    List<SCMRepository> repositories = apiScmOnboardingService.loadRepositories(null);
+  public void testLoadRepositories() throws Exception {
+    mockRepoForPage(gitService, 0, getResourceAsString("/ApiScmOnboardingServiceTest/allRepos0.json"));
+    mockRepoForPage(gitService, 1, getResourceAsString("/ApiScmOnboardingServiceTest/allRepos1.json"));
 
+    // and given root org is configured for github
+    tempEntity
+        .newSourceControl(ROOT_ORGANIZATION_ID, null, plexusCipher.encrypt("TOKEN", ENC), SourceControlProvider.GITHUB);
+    // TODO INT-3695 adds default host support, until then prime the pump
+    tempEntity.newSourceControl(app.getId(), gitService.baseUrl() + "/org/repo.git", null);
+
+    // then loading repositories returns the expected results
+    List<SCMRepository> repositories = apiScmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
     assertThat(repositories.size()).isEqualTo(13);
+  }
+
+  private String getResourceAsString(String filename) throws IOException {
+    StringWriter writer = new StringWriter();
+    IOUtils.copy(this.getClass().getResourceAsStream(filename), writer, StandardCharsets.UTF_8);
+    return writer.toString();
+  }
+
+  private void mockRepoForPage(WireMockRule gitService, int page, String json) {
+    gitService.stubFor(get(urlPathEqualTo("/api/v3/user/repos"))
+        .withQueryParam("per_page", equalTo("100"))
+        .withQueryParam("page", equalTo(Integer.toString(page)))
+        .willReturn(aResponse()
+            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .withBody(json)));
   }
 
   @Test

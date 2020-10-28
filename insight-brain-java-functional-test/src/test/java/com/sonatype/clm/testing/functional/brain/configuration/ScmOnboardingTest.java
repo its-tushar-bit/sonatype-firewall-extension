@@ -5,23 +5,36 @@
  */
 package com.sonatype.clm.testing.functional.brain.configuration;
 
+import java.io.IOException;
+
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.ScmOnboardingPage;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.codeborne.selenide.Selenide;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import org.apache.http.HttpHeaders;
+import org.codehaus.plexus.util.IOUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.google.common.collect.ImmutableMap.of;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.service.InsightConfig.Feature.SCM_ONBOARDING;
@@ -30,19 +43,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ScmOnboardingTest
     extends AbstractFunctionalTest
 {
-  public static final String CI_PROJECT_1_GIT = "https\\:\\/\\/github\\.com\\/depshield-ci\\/ci-project-1\\.git";
+  private static final String GITHUB = "https\\:\\/\\/github\\.com\\/";
 
-  public static final String REPOSITORY_P_2_GIT = "https\\:\\/\\/github\\.com\\/sonatype-nexus-community\\/nexus-repo" +
-      "sitory-p2\\.git";
+  private static final String CI_PROJECT_1_GIT = GITHUB + "depshield-ci\\/ci-project-1\\.git";
 
-  public static final String REPOSITORY_PUPPET_GIT = "https\\:\\/\\/github\\.com\\/sonatype-nexus-community\\/nexus-r" +
-      "epository-puppet\\.git";
+  private static final String REPOSITORY_P_2_GIT = GITHUB + "sonatype-nexus-community\\/nexus-repository-p2\\.git";
 
-  public static final String REPOSITORY_TERRAFORM_GIT = "https\\:\\/\\/github\\.com\\/sonatype-nexus-community\\/nexu" +
-      "s-repository-terraform\\.git";
+  private static final String REPOSITORY_PUPPET_GIT =
+      GITHUB + "sonatype-nexus-community\\/nexus-repository-puppet\\.git";
 
-  public static final String REPOSITORY_VGO_GIT = "https\\:\\/\\/github\\.com\\/sonatype-nexus-community\\/nexus-repo" +
-      "sitory-vgo\\.git";
+  private static final String REPOSITORY_TERRAFORM_GIT =
+      GITHUB + "sonatype-nexus-community\\/nexus-repository-terraform\\.git";
+
+  private static final String REPOSITORY_VGO_GIT =
+      GITHUB + "sonatype-nexus-community\\/nexus-repository-vgo\\.git";
+
+  private Organization org;
+
+  private Application app;
+
+  @Rule
+  public final WireMockRule gitService = new WireMockRule(wireMockConfig().dynamicPort());
 
   @AfterClass
   public static void cleanup() {
@@ -58,6 +79,40 @@ public class ScmOnboardingTest
   public void setup() {
     // given the feature flag is true
     testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(of(Feature.SCM_ONBOARDING.getFlag(), true));
+    gitService.stubFor(get(urlPathEqualTo("/api/v3/user"))
+        .willReturn(aResponse()
+            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .withBody("{\"username\":\"foo\"}")));
+
+    // TODO INT-3695 adds default host support, until then have to prime the pump
+    org = tempEntity.newOrganization();
+    app = tempEntity.newApplication(org.getId());
+  }
+
+  private void setupMockRepos() throws IOException {
+    mockRepoForPage(0, getResourceAsString("/ScmOnboardingTest/allRepos0.json"));
+    mockRepoForPage(1, getResourceAsString("/ScmOnboardingTest/emptyResponse.json"));
+
+    PasswordHandler pwHandler = testCLMServer.getCLMServer().getInstance(PasswordHandler.class);
+    String encryptedPwd = new String(pwHandler.encryptPassword("TOKEN".toCharArray()));
+    tempEntity
+        .newSourceControl(ROOT_ORGANIZATION_ID, null, encryptedPwd, SourceControlProvider.GITHUB);
+
+    // TODO INT-3695 adds default host support, until then have to prime the pump
+    tempEntity.newSourceControl(app.getId(), gitService.baseUrl() + "/org/repo.git", null);
+  }
+
+  private void mockRepoForPage(int page, String json) {
+    gitService.stubFor(get(urlPathEqualTo("/api/v3/user/repos"))
+        .withQueryParam("per_page", equalTo("100"))
+        .withQueryParam("page", equalTo(Integer.toString(page)))
+        .willReturn(aResponse()
+            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .withBody(json)));
+  }
+
+  private String getResourceAsString(String filename) throws IOException {
+    return IOUtil.toString(this.getClass().getResourceAsStream(filename));
   }
 
   @Test
@@ -105,10 +160,13 @@ public class ScmOnboardingTest
   }
 
   @Test
-  public void testPopulatesRepositories() {
+  public void testPopulatesRepositories() throws Exception {
+    // given an SCM with git repos
+    setupMockRepos();
+
     // given SCM onboarding page with a selected organization
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
-    refreshOrOpen(ScmOnboardingPage.url() + "/stubOrgId");
+    refreshOrOpen(ScmOnboardingPage.url() + "/" + org.getId());
     loginAsAdmin();
 
     // then results are automatically displayed in the table
@@ -120,7 +178,7 @@ public class ScmOnboardingTest
     assertThat(scmOnboardingPage.resultsTableNamespace().texts()).containsAnyOf("depshield-ci",
         "sonatype-nexus-community");
     assertThat(scmOnboardingPage.resultsTableProject().texts()).containsExactlyInAnyOrder("ci-project-1",
-        "ci-project-16", "create-react-app", "nexus-repository-pw", "nexus-repository-puppet",
+        "ci-project-16", "create-react-app", "nexus-repository-p2", "nexus-repository-puppet",
         "nexus-repository-terraform", "nexus-repository-vgo", "nexus-scripting-examples",
         "nexus-webhook-example-collection", "nxrm-cli", "ossindex-gradle-plugin", "oysteR", "prime-nexus-proxy-repos");
 
@@ -149,11 +207,12 @@ public class ScmOnboardingTest
   }
 
   @Test
-  public void testSelection_all() {
+  public void testSelection_all() throws Exception {
+    // given an SCM with git repos
+    setupMockRepos();
+
     // given SCM onboarding page with a selected organization
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
-    Organization org = tempEntity.newOrganization("Test Org");
-    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
     refreshOrOpen(ScmOnboardingPage.url() + "/" + org.getId());
     loginAsAdmin();
 
@@ -172,11 +231,12 @@ public class ScmOnboardingTest
   }
 
   @Test
-  public void testSelection_subset() {
+  public void testSelection_subset() throws Exception {
+    // given an SCM with git repos
+    setupMockRepos();
+
     // given SCM onboarding page with a selected organization
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
-    Organization org = tempEntity.newOrganization("Test Org");
-    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
     refreshOrOpen(ScmOnboardingPage.url() + "/" + org.getId());
     loginAsAdmin();
 
@@ -192,11 +252,12 @@ public class ScmOnboardingTest
   }
 
   @Test
-  public void testSelection_subset_replaces_previous_selection() {
+  public void testSelection_subset_replaces_previous_selection() throws Exception {
+    // given an SCM with git repos
+    setupMockRepos();
+
     // given SCM onboarding page with a selected organization
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
-    Organization org = tempEntity.newOrganization("Test Org");
-    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
     refreshOrOpen(ScmOnboardingPage.url() + "/" + org.getId());
     loginAsAdmin();
 
@@ -212,17 +273,18 @@ public class ScmOnboardingTest
     scmOnboardingPage.resultsTableSelectAll().parent().click(); // check box
     scmOnboardingPage.selectedRepositoryCount().shouldBe(text("7"));
     assertThat(scmOnboardingPage.resultsTableProject().texts()).containsExactlyInAnyOrder(
-        "nexus-repository-pw", "nexus-repository-puppet", "nexus-repository-terraform",
+        "nexus-repository-p2", "nexus-repository-puppet", "nexus-repository-terraform",
         "nexus-repository-vgo", "nexus-scripting-examples", "nexus-webhook-example-collection",
         "prime-nexus-proxy-repos");
   }
 
   @Test
-  public void testSelection_filter_change_replaces_previous_selection() {
+  public void testSelection_filter_change_replaces_previous_selection() throws Exception {
+    // given an SCM with git repos
+    setupMockRepos();
+
     // given SCM onboarding page with a selected organization
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
-    Organization org = tempEntity.newOrganization("Test Org");
-    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
     refreshOrOpen(ScmOnboardingPage.url() + "/" + org.getId());
     loginAsAdmin();
 
@@ -232,7 +294,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.resultsTableSelectAll().parent().click();
     scmOnboardingPage.selectedRepositoryCount().shouldBe(text("7"));
     assertThat(scmOnboardingPage.resultsTableProject().texts()).containsExactlyInAnyOrder(
-        "nexus-repository-pw", "nexus-repository-puppet", "nexus-repository-terraform",
+        "nexus-repository-p2", "nexus-repository-puppet", "nexus-repository-terraform",
         "nexus-repository-vgo", "nexus-scripting-examples", "nexus-webhook-example-collection",
         "prime-nexus-proxy-repos");
 
@@ -244,7 +306,7 @@ public class ScmOnboardingTest
 
     // and the result table contains exactly 4 projects
     assertThat(scmOnboardingPage.resultsTableProject().texts()).containsExactlyInAnyOrder(
-        "nexus-repository-pw", "nexus-repository-puppet", "nexus-repository-terraform",
+        "nexus-repository-p2", "nexus-repository-puppet", "nexus-repository-terraform",
         "nexus-repository-vgo");
 
     // and the repositories checkboxes are selected
@@ -270,11 +332,12 @@ public class ScmOnboardingTest
   }
 
   @Test
-  public void testSelection_select_individual_row() {
+  public void testSelection_select_individual_row() throws Exception {
+    // given a mock git service
+    setupMockRepos();
+
     // given SCM onboarding page with a selected organization
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
-    Organization org = tempEntity.newOrganization("Test Org");
-    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
     refreshOrOpen(ScmOnboardingPage.url() + "/" + org.getId());
     loginAsAdmin();
 

@@ -7,11 +7,11 @@ import React, {useEffect} from 'react';
 
 import MaximizedContainer from '../../react/MaximizedContainer';
 import * as PropTypes from 'prop-types';
-import {NxBackButton, NxErrorAlert, NxFontAwesomeIcon} from '@sonatype/react-shared-components';
+import {NxBackButton, NxErrorAlert, NxFontAwesomeIcon, NxTextInput} from '@sonatype/react-shared-components';
 import LoadWrapper from '../../react/LoadWrapper';
 import ResultsTable from './components/ResultsTable';
-import {textInputPropType} from './components/ImportApplicationsForm';
 import {faSitemap} from '@fortawesome/pro-regular-svg-icons';
+import NxButton from '@sonatype/react-shared-components/components/NxButton/NxButton';
 
 export default function ScmOnboarding(props) {
   const {
@@ -21,6 +21,8 @@ export default function ScmOnboarding(props) {
     loadRepositories,
     importSelectedRepositories,
     onRepositorySelectionChanged,
+    defaultHostUrl,
+    loadOrgHostUrl,
 
     // configuration state
     loadingConfig,
@@ -41,11 +43,19 @@ export default function ScmOnboarding(props) {
     $state
   } = props;
 
+  let hostUrl = defaultHostUrl;
+
+  function onDefaultHostUrlChanged(val) {
+    hostUrl = val;
+  }
+
   useEffect(() => {
     loadConfig();
+    // todo use dynamic provider
+    loadOrgHostUrl(preselectedOrganizationId, 'github');
     loadOrganizations(preselectedOrganizationId);
     if (preselectedOrganizationId) {
-      loadRepositories();
+      loadRepositories(preselectedOrganizationId, hostUrl);
     }
   }, []);
 
@@ -67,15 +77,34 @@ export default function ScmOnboarding(props) {
           </div>
         </div>
         <div className="iq-tile">
+          <form className='nx-form'>
+            <fieldset className="nx-fieldset">
+              <legend className="nx-label">Host URL</legend>
+              <NxTextInput id='iq-scm-default-host-field'
+                           defaultValue={defaultHostUrl}
+                           isPristine={defaultHostUrl === hostUrl}
+                           onChange={onDefaultHostUrlChanged}
+                           value={hostUrl}/>
+              <NxButton
+                  id="iq-scm-load-button"
+                  variant="primary"
+                  disabled={loadingRepositories}
+                  onClick={() => loadRepositories(preselectedOrganizationId, hostUrl)}>
+                Reload Repositories
+              </NxButton>
+            </fieldset>
+          </form>
+        </div>
+        <div className="iq-tile">
           <LoadWrapper loading={loadingConfig}>
             {isAuthorized && isScmOnboardingFeatureEnabled &&
               <ResultsTable
-                  repositories={repositories}
-                  loadingRepositories={loadingRepositories}
-                  selectedRepositoryCount={selectedRepositoryCount}
-                  importedRepositoryCount={importedRepositoryCount}
-                  onRepositorySelectionChanged={onRepositorySelectionChanged}
-                  importSelectedRepositories={importSelectedRepositories} />
+                repositories={repositories}
+                loadingRepositories={loadingRepositories}
+                selectedRepositoryCount={selectedRepositoryCount}
+                importedRepositoryCount={importedRepositoryCount}
+                onRepositorySelectionChanged={onRepositorySelectionChanged}
+                importSelectedRepositories={importSelectedRepositories} />
             }
             {!isAuthorized &&
               <NxErrorAlert id="scm-onboarding-insufficient-permissions-error">
@@ -141,5 +170,5 @@ ScmOnboarding.propTypes = {
   onRepositorySelectionChanged: PropTypes.func.isRequired,
 
   // base URL
-  defaultHostUrlState: textInputPropType
+  defaultHostUrl: PropTypes.string
 };

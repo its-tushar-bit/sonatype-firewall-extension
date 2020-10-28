@@ -53,11 +53,11 @@ export function loadOrganizations(preselectedOrganizationId) {
   };
 }
 
-export function loadRepositories() {
+export function loadRepositories(orgId, defaultHostUrl) {
   return function(dispatch) {
     dispatch(loadRepositoriesRequested());
 
-    return axios.get(getScmRepositoriesUrl())
+    return axios.get(getScmRepositoriesUrl(orgId, defaultHostUrl))
         .then(({ data }) => { dispatch(loadRepositoriesFulfilled(data)); })
         .catch(error => { dispatch(loadRepositoriesFailed(error)); });
   };

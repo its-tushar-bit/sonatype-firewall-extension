@@ -8,54 +8,65 @@ package com.sonatype.insight.brain.api.experimental;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 import org.junit.Test.None;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 public class ApiScmOnboardingServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
   private static final String PROVIDER = "github";
 
+  public static final String GITHUB_COM = "http://github.com";
+
   @Inject
   public ApiScmOnboardingService apiScmOnboardingService;
 
-  @Test(expected = None.class)
+  @Test
   public void testLoadRepositories_Authorized() throws Exception {
     grantManageAutomaticSourceControlPermission();
 
-    apiScmOnboardingService.loadRepositories(org.getId());
+    assertThatThrownBy(() -> {
+      apiScmOnboardingService.loadRepositories(org.getId(), GITHUB_COM);
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessage("No source control entries found for organization ID " + org.getId());
   }
 
-  @Test(expected = None.class /* no exception expected */)
+  @Test
   public void testLoadRepositories_Authorized_nullOrg() throws Exception {
     grantManageAutomaticSourceControlPermission();
 
-    apiScmOnboardingService.loadRepositories(null);
+    assertThatThrownBy(() -> {
+      apiScmOnboardingService.loadRepositories(null, GITHUB_COM);
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessage("No organization specified");
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testLoadRepositories_Unauthenticated() throws Exception {
-    apiScmOnboardingService.loadRepositories(org.getId());
+    apiScmOnboardingService.loadRepositories(org.getId(), GITHUB_COM);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testLoadRepositories_Unauthenticated_nullOrg() throws Exception {
-    apiScmOnboardingService.loadRepositories(null);
+    apiScmOnboardingService.loadRepositories(null, GITHUB_COM);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testLoadRepositories_Unauthorized() throws Exception {
     login();
-    apiScmOnboardingService.loadRepositories(org.getId());
+    apiScmOnboardingService.loadRepositories(org.getId(), GITHUB_COM);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testLoadRepositories_Unauthorized_nullOrg() throws Exception {
     login();
-    apiScmOnboardingService.loadRepositories(null);
+    apiScmOnboardingService.loadRepositories(null, GITHUB_COM);
   }
 
   @Test(expected = None.class /* no exception expected */)

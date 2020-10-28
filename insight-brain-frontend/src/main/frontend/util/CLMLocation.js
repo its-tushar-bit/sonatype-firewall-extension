@@ -112,8 +112,9 @@ export function getScmOnboardingConfigUrl() {
   return uriTemplate`/api/experimental/config/scm-onboarding`;
 }
 
-export function getScmRepositoriesUrl(organizationId) {
-  return uriTemplate`/api/experimental/onboarding/load-repositories?orgId=${organizationId}`;
+export function getScmRepositoriesUrl(organizationId, defaultHostUrl) {
+  return uriTemplate(`/api/experimental/onboarding/load-repositories?` +
+    `orgId=${organizationId}&defaultHostUrl=${defaultHostUrl}`);
 }
 
 export function getScmDefaultHostUrl(organizationId, provider) {

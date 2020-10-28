@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.experimental;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -49,9 +50,11 @@ public class ApiScmOnboardingResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public List<SCMRepository> loadRepositories(
-      @QueryParam("orgId") String orgId)
+      @QueryParam("orgId") String orgId,
+      @QueryParam("defaultHostUrl") String defaultHostUrl)
+      throws IOException
   {
-    return apiScmOnboardingService.loadRepositories(orgId);
+    return apiScmOnboardingService.loadRepositories(orgId, defaultHostUrl);
   }
 
   @Path(DEFAULT_HOST_URL)

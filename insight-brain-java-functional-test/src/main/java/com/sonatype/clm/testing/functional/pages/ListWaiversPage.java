@@ -36,16 +36,8 @@ public class ListWaiversPage
     return child(".nx-h1");
   }
 
-  public SelenideElement waiverDetailsTile() {
-    return child(".nx-tile", nthChild(0));
-  }
-
   public SelenideElement waiverDetailsTitle() {
     return child(".nx-tile-header--hrule h2");
-  }
-
-  public SelenideElement waiverListTile() {
-    return child(".nx-tile", nthChild(1));
   }
 
   public SelenideElement waiverListTitle() {

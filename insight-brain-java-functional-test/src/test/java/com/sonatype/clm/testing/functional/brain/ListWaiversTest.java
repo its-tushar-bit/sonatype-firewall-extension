@@ -13,6 +13,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
@@ -26,7 +27,13 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.model.security.User;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -35,6 +42,7 @@ import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 
 public class ListWaiversTest
     extends AbstractFunctionalTest
@@ -61,9 +69,17 @@ public class ListWaiversTest
 
     policyViolation = staticTempEntity.newPolicyViolation(policyEvaluation1, securityPolicy1, "Group1",
         "Artifact1", "Version1", "hash1", "sonatype-2017-0507");
+  }
 
+  @Before
+  public void before() {
     refreshOrOpen(DashboardPage.url());
     loginAsAdmin();
+  }
+
+  @After
+  public void after() {
+    logout();
   }
 
   @Test
@@ -72,7 +88,6 @@ public class ListWaiversTest
 
     ListWaiversPage listWaiversPage = new ListWaiversPage();
     listWaiversPage.title().shouldHave(text("Waivers for Violation"));
-    listWaiversPage.waiverDetailsTile().exists();
     listWaiversPage.waiverDetailsTitle().shouldHave(text("Violation Details"));
     listWaiversPage.policyName().shouldHave(text("Policy 1"));
     listWaiversPage.policyName().shouldHave(cssClass("iq-threat-level--severe"));
@@ -89,11 +104,28 @@ public class ListWaiversTest
     refreshOrOpen(ListWaiversPage.url(policyViolation.getId()));
 
     ListWaiversPage listWaiversPage = new ListWaiversPage();
-    listWaiversPage.waiverListTile().exists();
 
-    listWaiversPage.addWaiverButton().click();
+    listWaiversPage.addWaiverButton().shouldNotBe(DISABLED).click();
     // that it reaches this page after click is assertion enough
     waitUntilUrl(AddWaiverPage.url(policyViolation.getId()));
+  }
+
+  @Test
+  public void testWaiverListAddWaiverButton_NotAuthorised() {
+    Role role = tempEntity.newRole(false, Permission.READ);
+    User user = tempEntity.newUser();
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), user.getUsername());
+
+    logout();
+    login(user.getUsername(), user.getPassword());
+    refreshOrOpen(ListWaiversPage.url(policyViolation.getId()));
+
+    ListWaiversPage listWaiversPage = new ListWaiversPage();
+    listWaiversPage.addWaiverButton().shouldBe(visible, DISABLED).hover();
+    Tooltip.get().shouldBe(visible).shouldHave(text("Insufficient permissions to Add Waiver"));
+    listWaiversPage.addWaiverButton().click();
+    // should remain on the same page
+    listWaiversPage.title().shouldBe(visible);
   }
 
   @Test
@@ -101,7 +133,6 @@ public class ListWaiversTest
     refreshOrOpen(ListWaiversPage.url(policyViolation.getId()));
 
     ListWaiversPage listWaiversPage = new ListWaiversPage();
-    listWaiversPage.waiverListTile().exists();
     listWaiversPage.waiverListTitle().shouldHave(text("Applicable Waivers"));
 
     WaiverListTable waiverListTable = listWaiversPage.waiverListTable();
@@ -110,7 +141,7 @@ public class ListWaiversTest
     waiverListTable.headerRow().components().shouldHave(text("COMPONENTS"));
     waiverListTable.headerRow().waiverExpiration().shouldHave(text("WAIVER EXPIRATION"));
     waiverListTable.headerRow().comments().shouldHave(text("COMMENTS"));
-    waiverListTable.noWaiversMessage().exists();
+    waiverListTable.noWaiversMessage().should(exist);
     waiverListTable.noWaiversMessage().shouldHave(
         text("You don't have any waivers: to learn more about waivers you can check our help documentation."));
   }
@@ -130,7 +161,6 @@ public class ListWaiversTest
     refreshOrOpen(ListWaiversPage.url(policyViolation.getId()));
 
     ListWaiversPage listWaiversPage = new ListWaiversPage();
-    listWaiversPage.waiverListTile().exists();
 
     WaiverListTable waiverListTable = listWaiversPage.waiverListTable();
     waiverListTable.noWaiversMessage().shouldNot(exist);
@@ -188,7 +218,6 @@ public class ListWaiversTest
     refreshOrOpen(ListWaiversPage.url(policyViolationTemp.getId()));
 
     ListWaiversPage listWaiversPage = new ListWaiversPage();
-    listWaiversPage.waiverListTile().exists();
 
     WaiverListTable waiverListTable = listWaiversPage.waiverListTable();
     waiverListTable.noWaiversMessage().shouldNot(exist);
@@ -196,7 +225,7 @@ public class ListWaiversTest
 
     WaiverListRow row1 = waiverListTable.row(1);
     row1.scope().shouldHave(text("Organization - Org Temp"));
-    row1.deleteButton().exists();
+    row1.deleteButton().should(exist);
     row1.deleteButton().click();
 
     DeleteWaiverModal modal = listWaiversPage.deleteWaiverModal();

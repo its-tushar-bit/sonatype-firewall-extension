@@ -308,6 +308,14 @@ public class InsightConfig
   @JsonProperty
   private boolean blockNonAsciiInPath = true;
 
+  /**
+   * This configuration limits the number of parallel requests for license data made to HDS for the Advanced Legal Pack.
+   *
+   * @since 1.101
+   */
+  @JsonProperty
+  private int licenseLegalHdsRequestLimit = 50;
+
   public ProxyServerConfigurationMigrator.ProxyConfig getProxyConfig() {
     return proxy;
   }
@@ -888,6 +896,14 @@ public class InsightConfig
 
   public void setBlockNonAsciiInPath(boolean blockNonAsciiInPath) {
     this.blockNonAsciiInPath = blockNonAsciiInPath;
+  }
+
+  public int getLicenseLegalHdsRequestLimit() {
+    return licenseLegalHdsRequestLimit;
+  }
+
+  public void setLicenseLegalHdsRequestLimit(int licenseLegalHdsRequestLimit) {
+    this.licenseLegalHdsRequestLimit = licenseLegalHdsRequestLimit;
   }
 
   public enum Feature

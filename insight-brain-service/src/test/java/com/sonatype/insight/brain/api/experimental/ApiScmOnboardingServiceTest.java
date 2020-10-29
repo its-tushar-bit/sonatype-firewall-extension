@@ -72,7 +72,7 @@ public class ApiScmOnboardingServiceTest
   @Test
   public void testLoadRepositories() throws Exception {
     mockRepoForPage(gitService, 0, getResourceAsString("/ApiScmOnboardingServiceTest/allRepos0.json"));
-    mockRepoForPage(gitService, 1, getResourceAsString("/ApiScmOnboardingServiceTest/allRepos1.json"));
+    mockRepoForPage(gitService, 1, getResourceAsString("/ApiScmOnboardingServiceTest/emptyResponse.json"));
 
     // and given root org is configured for github
     tempEntity

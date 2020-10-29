@@ -36,7 +36,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import org.junit.Before;
 import org.junit.Rule;
-import org.owasp.dependencycheck.Engine;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -44,7 +43,7 @@ public abstract class AbstractPolicyEvaluatorTest
     extends AbstractBrainServiceTest
 {
   @Rule
-  public LogOutput logOutput = new LogOutput(1, AbstractPolicyEvaluatorTest.class, Engine.class);
+  public LogOutput logOutput = new LogOutput(1, AbstractPolicyEvaluatorTest.class);
 
   protected ScanReader scanReader;
 

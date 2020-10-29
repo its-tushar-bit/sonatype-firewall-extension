@@ -19,10 +19,6 @@
 
   <artifactId>nexus-iq-cli</artifactId>
 
-  <properties>
-    <dependency-check-version>3.3.1</dependency-check-version>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>commons-io</groupId>
@@ -54,31 +50,6 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.owasp</groupId>
-      <artifactId>dependency-check-core</artifactId>
-      <version>${dependency-check-version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>com.h2database</groupId>
-          <artifactId>h2</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.h3xstream.retirejs</groupId>
-          <artifactId>retirejs-core</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>javax.activation</groupId>
-          <artifactId>activation</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.owasp</groupId>
-      <artifactId>dependency-check-utils</artifactId>
-      <version>${dependency-check-version}</version>
     </dependency>
 
     <dependency>

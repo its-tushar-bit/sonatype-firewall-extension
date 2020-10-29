@@ -51,7 +51,7 @@ public class GraalPolicyEvaluatorCli
     RestClientFactory restClientFactory = new RestClientFactory();
 
     return type.isAssignableFrom(ExpandedCoveragePolicyEvaluator.class)
-        ? type.cast(new ExpandedCoveragePolicyEvaluator(scanner, restClientFactory, clientScanner, scanWriterFactory))
+        ? type.cast(new ExpandedCoveragePolicyEvaluator(scanner, restClientFactory))
         : type.cast(new DefaultPolicyEvaluator(scanner, restClientFactory));
   }
 }

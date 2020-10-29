@@ -1101,6 +1101,7 @@
               <exclude>**/src/main/frontend/**/lib/**/*</exclude>
               <exclude>**/src/test/resources/**/*</exclude>
               <exclude>**/node_modules/**</exclude>
+              <exclude>**/com/codahale/**</exclude>
               <exclude>**/org/h2/**</exclude>
               <exclude>**/src/main/resources/com/sonatype/insight/brain/cyclonedx/vulnerability-1.0.xsd</exclude>
               <exclude>**/src/main/resources/com/sonatype/insight/brain/cyclonedx/bom-1.1.xsd</exclude>

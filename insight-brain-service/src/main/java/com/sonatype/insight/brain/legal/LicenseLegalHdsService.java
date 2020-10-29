@@ -27,11 +27,11 @@ import com.google.common.collect.Iterables;
 @Named
 public class LicenseLegalHdsService
 {
-  private static final String METADATA_URL = "/rest/license/metadata";
+  static final String METADATA_URL = "/rest/license/metadata";
 
-  private static final String LEGAL_COMMENT_URL = "/rest/legal/comment";
+  static final String LEGAL_COMMENT_URL = "/rest/legal/comment";
 
-  private static final String LEGAL_FILE_URL = "/rest/legal/file";
+  static final String LEGAL_FILE_URL = "/rest/legal/file";
 
   private final HdsClient hdsClient;
 

@@ -1,0 +1,65 @@
+{
+  "components": [
+    {
+      "packageUrl": "pkg:maven/com.fasterxml.jackson.module/jackson-module-parameter-names@2.10.3?type=jar",
+      "hash": "033e7a20b23ea284d474",
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "jackson-module-parameter-names",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.fasterxml.jackson.module",
+          "version": "2.10.3"
+        }
+      },
+      "proprietary": false,
+      "matchState": "exact",
+      "pathnames": [
+        "com.sonatype:license-legal-service:jar:0.0.4-SNAPSHOT/com.fasterxml.jackson.module:jackson-module-parameter-names:jar:2.10.3"
+      ],
+      "displayName": "com.fasterxml.jackson.module : jackson-module-parameter-names : 2.10.3",
+      "licenseData": {
+        "declaredLicenses": [
+          {
+            "licenseId": "Apache-2.0",
+            "licenseName": "Apache-2.0"
+          }
+        ],
+        "observedLicenses": [
+          {
+            "licenseId": "No-Source-License",
+            "licenseName": "No Source License"
+          }
+        ],
+        "effectiveLicenses": [
+          {
+            "licenseId": "Apache-2.0",
+            "licenseName": "Apache-2.0"
+          }
+        ],
+        "overriddenLicenses": [],
+        "status": "Open",
+        "effectiveLicenseThreats": [
+          {
+            "licenseThreatGroupName": "Liberal",
+            "licenseThreatGroupLevel": 0,
+            "licenseThreatGroupCategory": "no-threat"
+          },
+          {
+            "licenseThreatGroupName": "Sonatype Special Licenses",
+            "licenseThreatGroupLevel": 5,
+            "licenseThreatGroupCategory": "severe"
+          }
+        ]
+      },
+      "securityData": {
+        "securityIssues": []
+      }
+    }
+  ],
+  "matchSummary": {
+    "totalComponentCount": 1,
+    "knownComponentCount": 1
+  }
+}

@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.legal;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -49,7 +48,7 @@ public class LicenseLegalHdsServiceTest
   }
 
   @Test
-  public void testGetLicenseMetadata() throws IOException {
+  public void testGetLicenseMetadata() {
     List<String> licenses = Arrays.asList("Adobe", "DOCBOOK", "MIT");
     List<LicenseMetadataDTO> expectedMetadata = Arrays.asList(
         new LicenseMetadataDTO("License 1", "Test 1", new LicenseThreatGroupDTO("Group 1", 1),
@@ -61,7 +60,7 @@ public class LicenseLegalHdsServiceTest
         new LicenseMetadataDTO("License 3", "Test 3", new LicenseThreatGroupDTO("Group 3", 3),
             Sets.newHashSet(new LicenseObligationDTO("Obligation 3", Sets.newHashSet("Obligation Text 3")))));
 
-    when(mockHdsClient.post(eq(LicenseMetadataDTO[].class), eq("/rest/license/metadata"), eq(licenses)))
+    when(mockHdsClient.post(eq(LicenseMetadataDTO[].class), eq(LicenseLegalHdsService.METADATA_URL), eq(licenses)))
         .thenReturn(expectedMetadata.toArray(new LicenseMetadataDTO[0]));
 
     List<LicenseMetadataDTO> results = licenseLegalHdsService.getLicenseMetadata(licenses);
@@ -70,9 +69,9 @@ public class LicenseLegalHdsServiceTest
   }
 
   @Test
-  public void testGetLicenseMetadata_Empty() throws IOException {
+  public void testGetLicenseMetadata_Empty() {
     List<String> licenses = Arrays.asList("Adobe", "DOCBOOK", "MIT");
-    when(mockHdsClient.post(eq(LicenseMetadataDTO[].class), eq("/rest/license/metadata"), eq(licenses)))
+    when(mockHdsClient.post(eq(LicenseMetadataDTO[].class), eq(LicenseLegalHdsService.METADATA_URL), eq(licenses)))
         .thenReturn(new LicenseMetadataDTO[0]);
 
     List<LicenseMetadataDTO> results = licenseLegalHdsService.getLicenseMetadata(licenses);
@@ -80,7 +79,7 @@ public class LicenseLegalHdsServiceTest
   }
 
   @Test
-  public void testGetComponentLegalComments() throws IOException {
+  public void testGetComponentLegalComments() {
     ComponentIdentifier component1 = ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version");
     ComponentIdentifier component2 = ComponentIdentifier.createNpmCoordinates("npmPackageId", "npmVersion");
     List<ComponentIdentifier> components = Arrays.asList(component1, component2);
@@ -108,7 +107,8 @@ public class LicenseLegalHdsServiceTest
     Set<ComponentLegalCommentDTO> expectedLegalComments =
         Sets.newHashSet(componentLegalComment1, componentLegalComment2);
 
-    when(mockHdsClient.post(eq(ComponentLegalCommentDTO[].class), eq("/rest/legal/comment"), eq(components)))
+    when(mockHdsClient
+        .post(eq(ComponentLegalCommentDTO[].class), eq(LicenseLegalHdsService.LEGAL_COMMENT_URL), eq(components)))
         .thenReturn(expectedLegalComments.toArray(new ComponentLegalCommentDTO[2]));
 
     Set<ComponentLegalCommentDTO> results = licenseLegalHdsService.getComponentLegalComments(components);
@@ -117,11 +117,12 @@ public class LicenseLegalHdsServiceTest
   }
 
   @Test
-  public void testGetComponentLegalComments_Empty() throws IOException {
+  public void testGetComponentLegalComments_Empty() {
     List<ComponentIdentifier> components = Arrays.asList(
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
 
-    when(mockHdsClient.post(eq(ComponentLegalCommentDTO[].class), eq("/rest/legal/comment"), eq(components)))
+    when(mockHdsClient
+        .post(eq(ComponentLegalCommentDTO[].class), eq(LicenseLegalHdsService.LEGAL_COMMENT_URL), eq(components)))
         .thenReturn(new ComponentLegalCommentDTO[0]);
 
     Set<ComponentLegalCommentDTO> results = licenseLegalHdsService.getComponentLegalComments(components);
@@ -129,7 +130,7 @@ public class LicenseLegalHdsServiceTest
   }
 
   @Test
-  public void testGetComponentLegalFiles() throws IOException {
+  public void testGetComponentLegalFiles() {
     ComponentIdentifier component1 = ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version");
     ComponentIdentifier component2 = ComponentIdentifier.createNpmCoordinates("npmPackageId", "npmVersion");
     List<ComponentIdentifier> components = Arrays.asList(component1, component2);
@@ -154,7 +155,8 @@ public class LicenseLegalHdsServiceTest
 
     Set<ComponentLegalFileDTO> expectedLegalFiles = Sets.newHashSet(componentLegalFile1, componentLegalFile2);
 
-    when(mockHdsClient.post(eq(ComponentLegalFileDTO[].class), eq("/rest/legal/file"), eq(components)))
+    when(mockHdsClient
+        .post(eq(ComponentLegalFileDTO[].class), eq(LicenseLegalHdsService.LEGAL_FILE_URL), eq(components)))
         .thenReturn(expectedLegalFiles.toArray(new ComponentLegalFileDTO[2]));
 
     Set<ComponentLegalFileDTO> results = licenseLegalHdsService.getComponentLegalFiles(components);
@@ -163,11 +165,12 @@ public class LicenseLegalHdsServiceTest
   }
 
   @Test
-  public void testGetComponentLegalFiles_Empty() throws IOException {
+  public void testGetComponentLegalFiles_Empty() {
     List<ComponentIdentifier> components =
         Arrays.asList(ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
 
-    when(mockHdsClient.post(eq(ComponentLegalFileDTO[].class), eq("/rest/legal/file"), eq(components)))
+    when(mockHdsClient
+        .post(eq(ComponentLegalFileDTO[].class), eq(LicenseLegalHdsService.LEGAL_FILE_URL), eq(components)))
         .thenReturn(new ComponentLegalFileDTO[0]);
 
     Set<ComponentLegalFileDTO> results = licenseLegalHdsService.getComponentLegalFiles(components);

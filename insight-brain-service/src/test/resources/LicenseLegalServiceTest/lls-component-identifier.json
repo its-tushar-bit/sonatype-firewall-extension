@@ -1,0 +1,142 @@
+[
+  {
+    "format": "maven",
+    "coordinates": {
+      "artifactId": "spring-core",
+      "classifier": "",
+      "extension": "jar",
+      "groupId": "org.springframework",
+      "version": "5.2.5.RELEASE"
+    }
+  },
+  {
+    "format": "maven",
+    "coordinates": {
+      "artifactId": "spring-boot-actuator",
+      "classifier": "",
+      "extension": "jar",
+      "groupId": "org.springframework.boot",
+      "version" : "2.2.6.RELEASE"
+    }
+  },
+  {
+    "format": "maven",
+    "coordinates": {
+      "artifactId": "spring-boot-starter-json",
+      "classifier": "",
+      "extension": "jar",
+      "groupId": "org.springframework.boot",
+      "version": "2.2.6.RELEASE"
+    }
+  },
+  {
+    "format": "maven",
+    "coordinates": {
+      "artifactId": "jboss-logging",
+      "classifier": "",
+      "extension": "jar",
+      "groupId": "org.jboss.logging",
+      "version": "3.4.1.Final"
+    }
+  },
+  {
+    "format": "maven",
+    "coordinates": {
+      "artifactId": "micrometer-core",
+      "classifier": "",
+      "extension": "jar",
+      "groupId": "io.micrometer",
+      "version": "1.3.6"
+    }
+  },
+  {
+    "format": "maven",
+    "coordinates": {
+      "artifactId": "lombok",
+      "classifier": "",
+      "extension": "jar",
+      "groupId": "org.projectlombok",
+      "version": "1.18.12"
+    }
+  },
+  {
+    "format": "maven",
+    "coordinates": {
+      "artifactId": "jackson-datatype-jdk8",
+      "classifier": "",
+      "extension": "jar",
+      "groupId": "com.fasterxml.jackson.datatype",
+      "version": "2.10.3"
+    }
+  },
+  {
+    "format": "maven",
+    "coordinates": {
+      "artifactId": "spring-aop",
+      "classifier": "",
+      "extension": "jar",
+      "groupId": "org.springframework",
+      "version": "5.2.5.RELEASE"
+    }
+  },
+  {
+    "format": "maven",
+    "coordinates": {
+      "artifactId": "spring-boot-starter-logging",
+      "classifier": "",
+      "extension": "jar",
+      "groupId": "org.springframework.boot",
+      "version": "2.2.6.RELEASE"
+    }
+  },
+  {
+    "format": "maven",
+    "coordinates": {
+      "artifactId": "netty-codec-socks",
+      "classifier": "",
+      "extension": "jar",
+      "groupId": "io.netty",
+      "version": "4.1.48.Final"
+    }
+  },
+  {
+    "format": "maven",
+    "coordinates": {
+      "artifactId": "HdrHistogram",
+      "classifier": "",
+      "extension": "jar",
+      "groupId": "org.hdrhistogram",
+      "version": "2.1.11"
+    }
+  },
+  {
+    "format": "maven",
+    "coordinates": {
+      "artifactId": "jsr305",
+      "classifier": "",
+      "extension": "jar",
+      "groupId": "com.google.code.findbugs",
+      "version": "3.0.2"
+    }
+  },
+  {
+    "format": "maven",
+    "coordinates": {
+      "artifactId": "jackson-annotations",
+      "classifier": "",
+      "extension": "jar",
+      "groupId": "com.fasterxml.jackson.core",
+      "version": "2.10.3"
+    }
+  },
+  {
+    "format": "maven",
+    "coordinates": {
+      "artifactId": "classmate",
+      "classifier": "",
+      "extension": "jar",
+      "groupId": "com.fasterxml",
+      "version": "1.5.1"
+    }
+  }
+]

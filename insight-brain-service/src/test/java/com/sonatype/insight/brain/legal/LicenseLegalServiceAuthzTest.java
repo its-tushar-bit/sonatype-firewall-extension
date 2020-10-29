@@ -9,6 +9,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
@@ -23,20 +24,20 @@ public class LicenseLegalServiceAuthzTest
   private LicenseLegalService licenseLegalService;
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetLatestRawReportForApplication_Unauthenticated() {
-    licenseLegalService.getLatestRawReportForApplication(app.getPublicId());
+  public void testGetLicenseMetadataReport_Unauthenticated() {
+    licenseLegalService.getLicenseMetadataReport(app.getPublicId());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetLatestRawReportForApplication_Unauthorized() {
+  public void testGetLicenseMetadataReport_Unauthorized() {
     login();
-    licenseLegalService.getLatestRawReportForApplication(app.getPublicId());
+    licenseLegalService.getLicenseMetadataReport(app.getPublicId());
   }
 
-  @Test
-  public void testGetLatestRawReportForApplication_Authorized() {
+  @Test(expected = NotFoundException.class)
+  public void testGetLicenseMetadataReport_Authorized() {
     grantReadPermission(app.getId());
-    licenseLegalService.getLatestRawReportForApplication(app.getPublicId());
+    licenseLegalService.getLicenseMetadataReport(app.getPublicId());
   }
 
   @Test
@@ -58,19 +59,19 @@ public class LicenseLegalServiceAuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetReportsForOrg_Unauthenticated() {
-    licenseLegalService.getReportsForOrg(org.getId());
+  public void testGetOrganizationLicenseMetadataReport_Unauthenticated() {
+    licenseLegalService.getOrganizationLicenseMetadataReport(org.getId());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetReportsForOrg_Unauthorized() {
+  public void testGetOrganizationLicenseMetadataReport_Unauthorized() {
     login();
-    licenseLegalService.getReportsForOrg(org.getId());
+    licenseLegalService.getOrganizationLicenseMetadataReport(org.getId());
   }
 
-  @Test
-  public void testGetReportsForOrg_Authorized() {
+  @Test(expected = NotFoundException.class)
+  public void testGetOrganizationLicenseMetadataReport_Authorized() {
     grantReadPermission(org.getId());
-    licenseLegalService.getReportsForOrg(org.getId());
+    licenseLegalService.getOrganizationLicenseMetadataReport(org.getId());
   }
 }

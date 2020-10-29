@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.legal;
+package com.sonatype.insight.brain.legal.dto;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 

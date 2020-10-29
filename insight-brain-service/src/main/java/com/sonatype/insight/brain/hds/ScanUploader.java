@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadGatewayException;
 
+import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,6 +76,11 @@ public class ScanUploader
         // uploads which do have a stage both use this function.
         if (stageTypeId != null && !stageTypeId.isEmpty()) {
           uploadMetadata.put("stageTypeId", stageTypeId);
+        }
+
+        Map<String, String> matcherConfiguration = insightConfig.getMatcherConfiguration();
+        if (MapUtils.isNotEmpty(matcherConfiguration)) {
+          uploadMetadata.putAll(matcherConfiguration);
         }
 
         receipt = client.put(analytics, ScanReceipt.class, HDS_PATH, scanFile, uploadMetadata);

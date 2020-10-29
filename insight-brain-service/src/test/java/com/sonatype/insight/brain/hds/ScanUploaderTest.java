@@ -7,14 +7,17 @@ package com.sonatype.insight.brain.hds;
 
 import java.io.File;
 import java.time.Duration;
+import java.util.Map;
 
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadGatewayException;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Binder;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -38,14 +41,19 @@ public class ScanUploaderTest
   @Mock
   private HdsClient hdsClient;
 
+  @Mock
+  private InsightConfig insightConfig;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(HdsClient.class).toInstance(hdsClient);
+    binder.bind(InsightConfig.class).toInstance(insightConfig);
     super.configure(binder);
   }
 
   @Test
   public void testAugmentScanReceipt() {
+    when(insightConfig.getReportTimeoutInSeconds()).thenReturn(2100);
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("scan id");
     scanUploader.augmentScanReceipt("app id", receipt);
@@ -107,5 +115,25 @@ public class ScanUploaderTest
     verify(hdsClient, times(ScanUploader.BAD_GATEWAY_ATTEMPT_LIMIT))
         .put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class),
             anyMap(), any(String[].class));
+  }
+
+  @Test
+  public void testUpload_SendMatcherConfigsToHds() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("test-app-id");
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId("scanId");
+    ImmutableMap<String, String> matcherConfigs = ImmutableMap.of("k1", "v1");
+    when(insightConfig.getMatcherConfiguration()).thenReturn(matcherConfigs);
+    ArgumentCaptor<Map<String, String>> metadataArgs = ArgumentCaptor.forClass(Map.class);
+
+    when(
+        hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class),
+            metadataArgs.capture(), any(String[].class))).thenReturn(receipt);
+
+    scanUploader.upload(tempDir.newFile(), app, null);
+
+    verify(hdsClient, times(1))
+        .put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class),
+            eq(matcherConfigs), any(String[].class));
   }
 }

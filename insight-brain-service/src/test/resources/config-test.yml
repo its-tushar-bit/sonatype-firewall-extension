@@ -19,3 +19,6 @@ logging:
 
 experimentalFeatures:
   innerSource: false
+
+matcherConfiguration:
+  disableConanNamespaceMatching: false

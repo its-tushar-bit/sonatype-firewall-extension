@@ -316,6 +316,14 @@ public class InsightConfig
   @JsonProperty
   private int licenseLegalHdsRequestLimit = 50;
 
+  /**
+   * This configuration allows adjusting/tuning matcher behaviours based on specific customer needs.
+   *
+   * @since 1.101
+   */
+  @JsonProperty
+  private Map<String, String> matcherConfiguration;
+
   public ProxyServerConfigurationMigrator.ProxyConfig getProxyConfig() {
     return proxy;
   }
@@ -904,6 +912,14 @@ public class InsightConfig
 
   public void setLicenseLegalHdsRequestLimit(int licenseLegalHdsRequestLimit) {
     this.licenseLegalHdsRequestLimit = licenseLegalHdsRequestLimit;
+  }
+
+  public Map<String, String> getMatcherConfiguration() {
+    return matcherConfiguration;
+  }
+
+  public void setMatcherConfiguration(Map<String, String> matcherConfiguration) {
+    this.matcherConfiguration = matcherConfiguration;
   }
 
   public enum Feature

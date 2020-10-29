@@ -231,8 +231,8 @@ public class ListWaiversTest
     DeleteWaiverModal modal = listWaiversPage.deleteWaiverModal();
     modal.root().shouldBe(visible);
     modal.header().shouldHave(text("Delete Waiver"));
-    modal.message().shouldHave(text("Are you sure you want to remove this waiver?"));
-    modal.noButton().shouldHave(text("No")).click();
+    modal.message().shouldHave(text("Are you sure you want to delete this waiver?"));
+    modal.cancelButton().shouldHave(text("Cancel")).click();
     modal.root().should(disappear);
 
     row1.deleteButton().click();

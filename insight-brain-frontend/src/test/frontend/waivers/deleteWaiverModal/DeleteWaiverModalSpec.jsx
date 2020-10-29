@@ -47,23 +47,23 @@ describe('DeleteWaiverModal', function() {
 
     const modalTitle = component.find('.nx-modal-header');
     expect(modalTitle).toExist();
-    expect(modalTitle).toHaveText('Delete Waiver');
+    expect(modalTitle).toIncludeText('Delete Waiver');
 
     const modalContent = component.find('.nx-modal-content');
     expect(modalContent).toExist();
-    expect(modalContent).toHaveText('Are you sure you want to remove this waiver?');
+    expect(modalContent).toHaveText('Are you sure you want to delete this waiver?');
 
     const modalFooter = component.find('.nx-modal-footer');
     expect(modalFooter).toExist();
 
     const noButton = modalFooter.find('#delete-waiver-modal-cancel-button');
     expect(noButton).toMatchSelector(NxButton);
-    expect(noButton).toHaveText('No');
+    expect(noButton).toHaveText('Cancel');
     expect(noButton).toHaveProp('onClick', hideDeleteWaiverModalSpy);
 
     const yesButton = modalFooter.find('#delete-waiver-modal-continue-button');
     expect(yesButton).toMatchSelector(NxButton);
-    expect(yesButton).toHaveText('Yes');
+    expect(yesButton).toHaveText('Delete Waiver');
     expect(yesButton.prop('onClick')).toEqual(jasmine.any(Function));
   });
 

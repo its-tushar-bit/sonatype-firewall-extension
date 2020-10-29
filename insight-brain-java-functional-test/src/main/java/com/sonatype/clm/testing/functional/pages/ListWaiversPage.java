@@ -151,7 +151,7 @@ public class ListWaiversPage
       return child(".nx-modal-content");
     }
 
-    public SelenideElement noButton() {
+    public SelenideElement cancelButton() {
       return child("#delete-waiver-modal-cancel-button");
     }
 

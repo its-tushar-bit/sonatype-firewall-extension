@@ -7,6 +7,7 @@ import React from 'react';
 
 import {
   NxButton,
+  NxFontAwesomeIcon,
   NxLoadError,
   NxModal,
   NxSubmitMask
@@ -14,6 +15,7 @@ import {
 import * as PropTypes from 'prop-types';
 
 import { waiverType } from '../ListWaiversTable';
+import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 
 export default function DeleteWaiverModal(props) {
   const {
@@ -38,11 +40,14 @@ export default function DeleteWaiverModal(props) {
         <NxSubmitMask message="Removing…" success={deleteWaiverSaving} />
       }
       <header className="nx-modal-header">
-        <h2 className="nx-h2"><span>Delete Waiver</span></h2>
+        <h2 className="nx-h2">
+          <NxFontAwesomeIcon icon={faTrashAlt}/>
+          <span>Delete Waiver</span>
+        </h2>
       </header>
       <div className="nx-modal-content">
         <span>
-          Are you sure you want to remove this waiver?
+          Are you sure you want to delete this waiver?
         </span>
       </div>
       <footer className="nx-modal-footer">
@@ -55,13 +60,13 @@ export default function DeleteWaiverModal(props) {
           <NxButton id="delete-waiver-modal-cancel-button"
                     type="button"
                     onClick={hideDeleteWaiverModal}>
-            No
+            Cancel
           </NxButton>
           { !deleteWaiverError &&
             <NxButton variant="primary"
                       id="delete-waiver-modal-continue-button"
                       onClick={handleDeleteWaiver}>
-              Yes
+              Delete Waiver
             </NxButton>
           }
         </div>

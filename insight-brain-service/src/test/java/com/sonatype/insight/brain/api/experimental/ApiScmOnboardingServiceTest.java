@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.experimental;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -65,8 +66,8 @@ public class ApiScmOnboardingServiceTest
     app = tempEntity.newApplication("tmpapp", org.getId());
     gitService.stubFor(get(urlPathEqualTo("/api/v3/user"))
         .willReturn(aResponse()
-            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
-            .withBody("{\"username\":\"foo\"}")));
+        .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+        .withBody("{\"username\":\"foo\"}")));
   }
 
   @Test
@@ -83,6 +84,38 @@ public class ApiScmOnboardingServiceTest
     // then loading repositories returns the expected results
     List<SCMRepository> repositories = apiScmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
     assertThat(repositories.size()).isEqualTo(13);
+  }
+  
+  @Test
+  public void testFilteringAlreadyConfiguredRepositories() throws Exception {
+    // configure urls to point to our mock git server, as these are used to guess at a base api url
+    String repo1Url = "https://github.com/depshield-ci/ci-project-1.git";
+    String repo2Url = "https://github.com/depshield-ci/ci-project-16.git";
+    String repo1ReplacementUrl = gitService.baseUrl() + "/org/repo1.git";
+    String repo2ReplacementUrl = gitService.baseUrl() + "/org/repo2.git";
+    
+    mockRepoForPage(gitService, 0, 
+        getResourceAsString("/ApiScmOnboardingServiceTest/allRepos0.json")
+        .replaceFirst(repo1Url, repo1ReplacementUrl)
+        .replaceFirst(repo2Url, repo2ReplacementUrl)
+    );
+    mockRepoForPage(gitService, 1, getResourceAsString("/ApiScmOnboardingServiceTest/emptyResponse.json"));
+
+    // given root org is configured for github
+    tempEntity
+        .newSourceControl(ROOT_ORGANIZATION_ID, null, plexusCipher.encrypt("TOKEN", ENC), SourceControlProvider.GITHUB);
+
+    // given some of the repositories are already configured for SCM
+    tempEntity.newSourceControl(app.getId(), repo1ReplacementUrl, new Date());
+    Application tmpapp2 = tempEntity.newApplication("tmpapp2", org.getId());
+    tempEntity.newSourceControl(tmpapp2.getId(), repo2ReplacementUrl, new Date());
+    // duplicate repo url entries as they can be configured as such to scan different modules(a la insight-brain)
+    Application tmpapp3 = tempEntity.newApplication("tmpapp3", org.getId());
+    tempEntity.newSourceControl(tmpapp3.getId(), repo2ReplacementUrl, new Date());
+    
+    // then loading repositories returns the trimmed results
+    List<SCMRepository> repositories = apiScmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
+    assertThat(repositories.size()).isEqualTo(11);
   }
 
   private String getResourceAsString(String filename) throws IOException {

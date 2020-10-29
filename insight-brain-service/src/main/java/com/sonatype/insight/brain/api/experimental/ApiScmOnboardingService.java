@@ -11,6 +11,7 @@ import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -90,7 +91,7 @@ public class ApiScmOnboardingService
     GeneralSCMApiClient generalClient = gitApiClientFactory
         .getGeneralSCMApiClient(orgSourceControl.getProvider(), configuration, orgSourceControl.getUsername(),
             orgSourceControl.getToken());
-    return generalClient.listAllRepositories();
+    return trimAlreadyConfigured(generalClient.listAllRepositories());
   }
 
   /**
@@ -157,5 +158,22 @@ public class ApiScmOnboardingService
       log.info("Was not able to parse repo url {}, falling back to default for the provider", repoUrl, e);
       return "";
     }
+  }
+
+  /**
+   * Trim the passed in list to remove any entries for already configured repositories.
+   */
+  private List<SCMRepository> trimAlreadyConfigured(final List<SCMRepository> listAllRepositories) {
+    List<String> existing =
+        sourceControlDAO.getAll().stream()
+            .map(SourceControl::getRepositoryUrl)
+            .filter(Objects::nonNull)
+            .distinct()
+            .collect(Collectors.toList());
+
+    return listAllRepositories.stream()
+        .filter(repo -> !existing.contains(repo.getHttpCloneUrl()) &&
+            !existing.contains(repo.getHttpCloneUrl().replace(".git", "")))
+        .collect(Collectors.toList());
   }
 }

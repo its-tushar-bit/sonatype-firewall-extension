@@ -19,6 +19,7 @@ export default function ScmOnboarding(props) {
     loadConfig,
     loadOrganizations,
     loadRepositories,
+    loadCompositeSourceControl,
     importSelectedRepositories,
     onRepositorySelectionChanged,
     defaultHostUrl,
@@ -27,6 +28,7 @@ export default function ScmOnboarding(props) {
     // configuration state
     loadingConfig,
     isScmOnboardingFeatureEnabled,
+    scmTokenConfigured,
 
     // orgs
     selectedOrganization,
@@ -49,15 +51,18 @@ export default function ScmOnboarding(props) {
     hostUrl = val;
   }
 
-  useEffect(() => {
+  function load() {
     loadConfig();
     // todo use dynamic provider
     loadOrgHostUrl(preselectedOrganizationId, 'github');
     loadOrganizations(preselectedOrganizationId);
     if (preselectedOrganizationId) {
       loadRepositories(preselectedOrganizationId, hostUrl);
+      loadCompositeSourceControl('organization', preselectedOrganizationId);
     }
-  }, []);
+  }
+
+  useEffect(load, []);
 
   return (
     <MaximizedContainer id="scm-onboarding-container" className="nx-page-content">
@@ -97,7 +102,7 @@ export default function ScmOnboarding(props) {
         </div>
         <div className="iq-tile">
           <LoadWrapper loading={loadingConfig}>
-            {isAuthorized && isScmOnboardingFeatureEnabled &&
+            {isAuthorized && isScmOnboardingFeatureEnabled && scmTokenConfigured &&
               <ResultsTable
                 repositories={repositories}
                 loadingRepositories={loadingRepositories}
@@ -118,6 +123,13 @@ export default function ScmOnboarding(props) {
                 If you believe this to be incorrect please contact your administrator.
               </NxErrorAlert>
             }
+            {!scmTokenConfigured && isAuthorized && isScmOnboardingFeatureEnabled &&
+              <NxErrorAlert id="scm-onboarding-invalid-token">
+                <strong>Error</strong> The selected Organization does not have SCM configured. You can configure it
+                <a href={$state.href($state.get('management.edit.organization.edit-source-control'),
+                    {organizationId: preselectedOrganizationId})}> here</a>.
+              </NxErrorAlert>
+            }
           </LoadWrapper>
         </div>
       </div>
@@ -130,14 +142,14 @@ export const organizationPropType = {
   name: PropTypes.string.isRequired
 };
 
-export const repositoryPropType = PropTypes.shape({
+export const repositoryPropType = {
   httpCloneUrl: PropTypes.string.isRequired,
   namespace: PropTypes.string,
   project: PropTypes.string,
   description: PropTypes.string,
   isSelected: PropTypes.bool,
   isImported: PropTypes.bool
-});
+};
 
 ScmOnboarding.propTypes = {
   // config
@@ -145,6 +157,8 @@ ScmOnboarding.propTypes = {
   loadingConfig: PropTypes.bool.isRequired,
   isScmOnboardingFeatureEnabled: PropTypes.bool.isRequired,
   $state: PropTypes.object.isRequired,
+  scmTokenConfigured: PropTypes.bool.isRequired,
+  scmProvider: PropTypes.string.isRequired,
 
   // organizations
   loadOrganizations: PropTypes.func.isRequired,
@@ -168,6 +182,7 @@ ScmOnboarding.propTypes = {
   // actions
   importSelectedRepositories: PropTypes.func.isRequired,
   onRepositorySelectionChanged: PropTypes.func.isRequired,
+  loadCompositeSourceControl: PropTypes.func.isRequired,
 
   // base URL
   defaultHostUrl: PropTypes.string

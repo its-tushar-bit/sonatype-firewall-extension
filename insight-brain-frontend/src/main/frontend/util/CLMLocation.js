@@ -121,6 +121,10 @@ export function getScmDefaultHostUrl(organizationId, provider) {
   return uriTemplate`/api/experimental/onboarding/default-host-url?orgId=${organizationId}&provider=${provider}`;
 }
 
+export function getCompositeSourceControlUrl(ownerType, ownerId) {
+  return uriTemplate`/api/v2/compositeSourceControl/${ownerType}/${ownerId}`;
+}
+
 export function getDashboardDeleteFilterUrl(filterName) {
   return uriTemplate`/rest/dashboard/filters/named/delete?filterName=${filterName}`;
 }

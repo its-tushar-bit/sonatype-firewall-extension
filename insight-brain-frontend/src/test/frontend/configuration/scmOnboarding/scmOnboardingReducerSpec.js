@@ -208,4 +208,33 @@ describe('scmOnboardingReducer', function() {
       expect(newState.other).toBe(otherObject);
     });
   });
+
+  describe('SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FULFILLED action', function() {
+
+    dataDrivenCompositeSourceControlTest({token: {value: 'token'}}, true);
+    dataDrivenCompositeSourceControlTest({token: {value: null}}, false);
+    dataDrivenCompositeSourceControlTest({token: {parentValue: 'token'}}, true);
+
+    function dataDrivenCompositeSourceControlTest(compositeSourceControlPayload, expectedValue) {
+      it(`sets scmTokenConfigured field to ${expectedValue}`, function() {
+        // given previous state with token
+        const state = Object.freeze({
+          other: otherObject,
+          scmTokenConfigured: false
+        });
+
+        // when reduce is invoked
+        const newState = reduce(state, {
+          type: 'SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FULFILLED',
+          payload: compositeSourceControlPayload
+        });
+
+        // then state is updated
+        expect(newState.scmTokenConfigured).toBe(expectedValue);
+
+        // and other properties are not modified
+        expect(newState.other).toBe(otherObject);
+      });
+    }
+  });
 });

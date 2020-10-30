@@ -14,7 +14,6 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
-import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.codeborne.selenide.Selenide;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -38,25 +37,26 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static com.google.common.collect.ImmutableMap.of;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.service.InsightConfig.Feature.SCM_ONBOARDING;
+import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ScmOnboardingTest
     extends AbstractFunctionalTest
 {
-  private static final String GITHUB = "https\\:\\/\\/github\\.com\\/";
+  private static final String GITHUB_ROOT = "https\\:\\/\\/github\\.com\\/";
 
-  private static final String CI_PROJECT_1_GIT = GITHUB + "depshield-ci\\/ci-project-1\\.git";
+  private static final String CI_PROJECT_1_GIT = GITHUB_ROOT + "depshield-ci\\/ci-project-1\\.git";
 
-  private static final String REPOSITORY_P_2_GIT = GITHUB + "sonatype-nexus-community\\/nexus-repository-p2\\.git";
+  private static final String REPOSITORY_P_2_GIT = GITHUB_ROOT + "sonatype-nexus-community\\/nexus-repository-p2\\.git";
 
   private static final String REPOSITORY_PUPPET_GIT =
-      GITHUB + "sonatype-nexus-community\\/nexus-repository-puppet\\.git";
+      GITHUB_ROOT + "sonatype-nexus-community\\/nexus-repository-puppet\\.git";
 
   private static final String REPOSITORY_TERRAFORM_GIT =
-      GITHUB + "sonatype-nexus-community\\/nexus-repository-terraform\\.git";
+      GITHUB_ROOT + "sonatype-nexus-community\\/nexus-repository-terraform\\.git";
 
   private static final String REPOSITORY_VGO_GIT =
-      GITHUB + "sonatype-nexus-community\\/nexus-repository-vgo\\.git";
+      GITHUB_ROOT + "sonatype-nexus-community\\/nexus-repository-vgo\\.git";
 
   private Organization org;
 
@@ -85,18 +85,19 @@ public class ScmOnboardingTest
             .withBody("{\"username\":\"foo\"}")));
 
     // TODO INT-3695 adds default host support, until then have to prime the pump
-    org = tempEntity.newOrganization();
+    org = tempEntity.newOrganization("Test Org");
     app = tempEntity.newApplication(org.getId());
   }
 
   private void setupMockRepos() throws IOException {
     mockRepoForPage(0, getResourceAsString("/ScmOnboardingTest/allRepos0.json"));
     mockRepoForPage(1, getResourceAsString("/ScmOnboardingTest/emptyResponse.json"));
+  }
 
+  private void setupSourceControl() {
     PasswordHandler pwHandler = testCLMServer.getCLMServer().getInstance(PasswordHandler.class);
     String encryptedPwd = new String(pwHandler.encryptPassword("TOKEN".toCharArray()));
-    tempEntity
-        .newSourceControl(ROOT_ORGANIZATION_ID, null, encryptedPwd, SourceControlProvider.GITHUB);
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, encryptedPwd, GITHUB);
 
     // TODO INT-3695 adds default host support, until then have to prime the pump
     tempEntity.newSourceControl(app.getId(), gitService.baseUrl() + "/org/repo.git", null);
@@ -128,20 +129,23 @@ public class ScmOnboardingTest
     // then the onboarding page is disabled
     scmOnboardingPage.featureFlagError().shouldBe(visible).shouldNotBe(empty);
     scmOnboardingPage.permissionDeniedError().shouldBe(hidden);
+    scmOnboardingPage.scmInvalidTokenError().shouldBe(hidden);
   }
 
   @Test
   public void testFeatureIsEnabled() {
     // given the onboarding page
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    tempEntity.newSourceControl(org.getParentOwnerId(), null, "token", GITHUB);
 
     // when we open the onboarding page as admin
-    refreshOrOpen(ScmOnboardingPage.url());
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
 
     // then the feature flag error is hidden
     scmOnboardingPage.featureFlagError().shouldBe(hidden);
     scmOnboardingPage.permissionDeniedError().shouldBe(hidden);
+    scmOnboardingPage.scmInvalidTokenError().shouldBe(hidden);
   }
 
   @Test
@@ -157,16 +161,33 @@ public class ScmOnboardingTest
     // then a permission denied error is shown
     scmOnboardingPage.permissionDeniedError().shouldBe(visible).shouldNotBe(empty);
     scmOnboardingPage.featureFlagError().shouldBe(hidden);
+    scmOnboardingPage.scmInvalidTokenError().shouldBe(hidden);
+  }
+
+  @Test
+  public void testScmTokenNotConfigured() {
+    // given the onboarding page and a new user
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+
+    // when we open the onboarding page as unprivileged user
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
+    loginAsAdmin();
+
+    // then a permission denied error is shown
+    scmOnboardingPage.permissionDeniedError().shouldBe(hidden);
+    scmOnboardingPage.featureFlagError().shouldBe(hidden);
+    scmOnboardingPage.scmInvalidTokenError().shouldBe(visible).shouldNotBe(empty);
   }
 
   @Test
   public void testPopulatesRepositories() throws Exception {
     // given an SCM with git repos
     setupMockRepos();
+    setupSourceControl();
 
     // given SCM onboarding page with a selected organization
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
-    refreshOrOpen(ScmOnboardingPage.url() + "/" + org.getId());
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
 
     // then results are automatically displayed in the table
@@ -193,30 +214,36 @@ public class ScmOnboardingTest
   }
 
   @Test
-  public void testPageTitleElements() {
+  public void testPageTitleElements() throws Exception {
     // given SCM onboarding page with a selected organization
+    setupMockRepos();
+    setupSourceControl();
+
+    // and loading scm onboarding page with given org id
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
-    Organization org = tempEntity.newOrganization("Test Org");
-    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
-    refreshOrOpen(ScmOnboardingPage.url() + "/" + org.getId());
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
 
     // then the page title block is populated
+    scmOnboardingPage.repositoryCount().waitUntil(text("13"), 5000);
     scmOnboardingPage.backButton().shouldBe(text("Back to Organization Management"));
-    scmOnboardingPage.onboardingPageTitle().shouldBe(text("Import Applications from Github to Test Org"));
+    scmOnboardingPage.onboardingPageTitle().shouldBe(visible)
+        .waitUntil(text("Import Applications from Github to Test Org"), 5000);
   }
 
   @Test
   public void testSelection_all() throws Exception {
     // given an SCM with git repos
     setupMockRepos();
+    setupSourceControl();
 
     // given SCM onboarding page with a selected organization
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
-    refreshOrOpen(ScmOnboardingPage.url() + "/" + org.getId());
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
 
     // when select all is clicked
+    scmOnboardingPage.repositoryCount().waitUntil(text("13"), 5000);
     scmOnboardingPage.resultsTableSelectAll().parent().waitUntil(visible, 5000);
     scmOnboardingPage.resultsTableSelectAll().parent().click();
 
@@ -234,10 +261,11 @@ public class ScmOnboardingTest
   public void testSelection_subset() throws Exception {
     // given an SCM with git repos
     setupMockRepos();
+    setupSourceControl();
 
     // given SCM onboarding page with a selected organization
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
-    refreshOrOpen(ScmOnboardingPage.url() + "/" + org.getId());
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
 
     // when select all is clicked while a filter is active
@@ -255,10 +283,11 @@ public class ScmOnboardingTest
   public void testSelection_subset_replaces_previous_selection() throws Exception {
     // given an SCM with git repos
     setupMockRepos();
+    setupSourceControl();
 
     // given SCM onboarding page with a selected organization
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
-    refreshOrOpen(ScmOnboardingPage.url() + "/" + org.getId());
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
 
     // and given that select all is clicked while a filter is active
@@ -282,10 +311,11 @@ public class ScmOnboardingTest
   public void testSelection_filter_change_replaces_previous_selection() throws Exception {
     // given an SCM with git repos
     setupMockRepos();
+    setupSourceControl();
 
     // given SCM onboarding page with a selected organization
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
-    refreshOrOpen(ScmOnboardingPage.url() + "/" + org.getId());
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
 
     // and given that select all is clicked while a filter is active
@@ -335,10 +365,11 @@ public class ScmOnboardingTest
   public void testSelection_select_individual_row() throws Exception {
     // given a mock git service
     setupMockRepos();
+    setupSourceControl();
 
     // given SCM onboarding page with a selected organization
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
-    refreshOrOpen(ScmOnboardingPage.url() + "/" + org.getId());
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
 
     // when a repository is clicked

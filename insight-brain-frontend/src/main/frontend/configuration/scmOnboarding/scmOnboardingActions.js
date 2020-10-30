@@ -7,6 +7,7 @@
 import {noPayloadActionCreator, payloadParamActionCreator} from '../../util/reduxUtil';
 import axios from 'axios';
 import {
+  getCompositeSourceControlUrl,
   getScmOnboardingConfigUrl,
   getOrganizationsUrl,
   getScmRepositoriesUrl,
@@ -32,6 +33,10 @@ export const SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FULFILLED = 'SCM_ONBOARDIN
 export const SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FAILED = 'SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FAILED';
 
 export const SCM_ONBOARDING_SET_TARGET_ORGANIZATION = 'SCM_ONBOARDING_SET_TARGET_ORGANIZATION';
+
+export const SCM_ONBOARDING_LOAD_COMPOSITE_SCM_REQUESTED = 'SCM_ONBOARDING_LOAD_COMPOSITE_SCM_REQUESTED';
+export const SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FULFILLED = 'SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FULFILLED';
+export const SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FAILED = 'SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FAILED';
 
 export function loadConfig() {
   return function(dispatch) {
@@ -60,6 +65,16 @@ export function loadRepositories(orgId, defaultHostUrl) {
     return axios.get(getScmRepositoriesUrl(orgId, defaultHostUrl))
         .then(({ data }) => { dispatch(loadRepositoriesFulfilled(data)); })
         .catch(error => { dispatch(loadRepositoriesFailed(error)); });
+  };
+}
+
+export function loadCompositeSourceControl(ownerType, internalOwnerId) {
+  return function(dispatch) {
+    dispatch(loadCompositeSourceControlRequested());
+
+    return axios.get(getCompositeSourceControlUrl(ownerType, internalOwnerId))
+        .then(({ data }) => { dispatch(loadCompositeSourceControlFulfilled(data)); })
+        .catch(error => { dispatch(loadCompositeSourceControlFailed(error)); });
   };
 }
 
@@ -102,9 +117,14 @@ const loadOrgDefaultHostUrlRequested = noPayloadActionCreator(SCM_ONBOARDING_LOA
 const loadOrgDefaultHostUrlFulfilled = payloadParamActionCreator(SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FULFILLED);
 const loadOrgDefaultHostUrlFailed = payloadParamActionCreator(SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FAILED);
 
+const loadCompositeSourceControlRequested = noPayloadActionCreator(SCM_ONBOARDING_LOAD_COMPOSITE_SCM_REQUESTED);
+const loadCompositeSourceControlFulfilled = payloadParamActionCreator(SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FULFILLED);
+const loadCompositeSourceControlFailed = payloadParamActionCreator(SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FAILED);
+
 export default function scmOnboarding() {
   return {
     setSelectedOrganization,
+    loadCompositeSourceControl,
     loadConfig,
     loadOrganizations,
     loadRepositories,

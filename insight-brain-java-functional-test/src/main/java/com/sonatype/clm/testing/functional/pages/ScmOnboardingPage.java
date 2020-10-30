@@ -21,6 +21,10 @@ public class ScmOnboardingPage
     return BaseUrl.resolvePageUrl("/onboarding");
   }
 
+  public static String url(String organizationId) {
+    return BaseUrl.resolvePageUrl("/onboarding/" + organizationId);
+  }
+
   private static final String ROOT_SELECTOR = "#scm-onboarding-container";
 
   public ScmOnboardingPage() {
@@ -33,6 +37,10 @@ public class ScmOnboardingPage
 
   public SelenideElement permissionDeniedError() {
     return child("#scm-onboarding-insufficient-permissions-error");
+  }
+
+  public SelenideElement scmInvalidTokenError() {
+    return child("#scm-onboarding-invalid-token");
   }
 
   public OrganizationsDropdown organizationsDropdown() {

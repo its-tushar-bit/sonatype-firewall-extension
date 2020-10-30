@@ -15,6 +15,8 @@ function mapStateToProps({ scmOnboarding, router }) {
     loadingConfig: scmOnboarding.loadingConfig,
     isScmOnboardingFeatureEnabled: scmOnboarding.isScmOnboardingFeatureEnabled,
     defaultHostUrlState: scmOnboarding.defaultHostUrlState,
+    scmProvider: scmOnboarding.scmProvider,
+    scmTokenConfigured: scmOnboarding.scmTokenConfigured,
 
     // organizations
     loadingOrganizations: scmOnboarding.loadingOrganizations,

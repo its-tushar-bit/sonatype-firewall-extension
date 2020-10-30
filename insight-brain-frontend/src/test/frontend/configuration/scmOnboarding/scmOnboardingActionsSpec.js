@@ -8,7 +8,8 @@ import {
   getScmOnboardingConfigUrl,
   getOrganizationsUrl,
   getScmDefaultHostUrl,
-  getScmRepositoriesUrl
+  getScmRepositoriesUrl,
+  getCompositeSourceControlUrl
 } from '../../../../main/frontend/util/CLMLocation';
 
 describe('scmOnboardingActions', function() {
@@ -82,6 +83,57 @@ describe('scmOnboardingActions', function() {
         let actions = store.getActions();
         expect(actions.length).toBe(1);
         expect(actions[0].type).toBe('SCM_ONBOARDING_LOAD_CONFIG_REQUESTED');
+      });
+    });
+  });
+
+  describe('loadCompositeSourceControl', function() {
+
+    const compositeSourceControlUrl = getCompositeSourceControlUrl('organization', 'ownerId'),
+        compositeSourceControlPayload = {token: {value: 'token'}};
+
+    afterEach(function() {
+      expect(axios.get).toHaveBeenCalledWith(compositeSourceControlUrl);
+    });
+
+    it('dispatches a SCM_ONBOARDING_LOAD_COMPOSITE_SCM_REQUESTED action', function() {
+      mockAxiosCalls({
+        get: {
+          [compositeSourceControlUrl]: Promise.resolve(compositeSourceControlPayload)
+        }
+      });
+
+      store.dispatch(scmOnboardingActions.loadCompositeSourceControl('organization', 'ownerId'));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe('SCM_ONBOARDING_LOAD_COMPOSITE_SCM_REQUESTED');
+      expect(actions[0].payload).toBeUndefined();
+    });
+
+    describe('after successful GET call', function() {
+
+      beforeEach(function() {
+        mockAxiosCalls({
+          get: {
+            [compositeSourceControlUrl]: Promise.resolve(compositeSourceControlPayload)
+          }
+        });
+      });
+
+      it('dispatches SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FULFILLED', function(done) {
+
+        store.dispatch(scmOnboardingActions.loadCompositeSourceControl('organization', 'ownerId'))
+            .then(() => {
+              actions = store.getActions();
+              expect(actions.length).toBe(2);
+              expect(actions[1].type).toBe('SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FULFILLED');
+              done();
+            });
+
+        let actions = store.getActions();
+        expect(actions.length).toBe(1);
+        expect(actions[0].type).toBe('SCM_ONBOARDING_LOAD_COMPOSITE_SCM_REQUESTED');
       });
     });
   });

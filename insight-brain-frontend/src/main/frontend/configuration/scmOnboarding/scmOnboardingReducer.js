@@ -5,6 +5,9 @@
  */
 import {createReducerFromActionMap} from '../../util/reduxUtil';
 import {
+  SCM_ONBOARDING_LOAD_COMPOSITE_SCM_REQUESTED,
+  SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FAILED,
+  SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FULFILLED,
   SCM_ONBOARDING_LOAD_CONFIG_FAILED,
   SCM_ONBOARDING_LOAD_CONFIG_FULFILLED,
   SCM_ONBOARDING_LOAD_CONFIG_REQUESTED,
@@ -23,7 +26,10 @@ import {Messages} from '../../util/CommonServices';
 
 const initialState = {
   loadingConfig: true,
+  loadingScmConfig: true,
   isScmOnboardingFeatureEnabled: false,
+  scmTokenConfigured: false,
+  scmProvider: '',
 
   loadingOrganizations: false,
   organizations: [],
@@ -45,6 +51,13 @@ function loadConfigRequested() {
   return {
     ...initialState,
     loadingConfig: true
+  };
+}
+
+function loadCompositeSourceControlRequested(payload, state) {
+  return {
+    ...state,
+    loadingScmConfig: true
   };
 }
 
@@ -149,6 +162,21 @@ function loadOrgDefaultHostUrlFailed(payload, state) {
   };
 }
 
+function loadCompositeSourceControlFulfilled(payload, state) {
+  return {
+    ...state,
+    scmProvider: payload.provider, // TODO entry point for INT-3695
+    scmTokenConfigured: !!payload.token.value || !!payload.token.parentValue
+  };
+}
+
+function loadCompositeSourceControlFailed(payload, state) {
+  return {
+    ...state,
+    compositeSourceControlError: payload
+  };
+}
+
 const reducerActionMap = {
   [SCM_ONBOARDING_LOAD_CONFIG_REQUESTED]: loadConfigRequested,
   [SCM_ONBOARDING_LOAD_CONFIG_FULFILLED]: loadConfigFulfilled,
@@ -166,7 +194,11 @@ const reducerActionMap = {
 
   [SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_REQUESTED]: loadOrgDefaultHostUrlRequested,
   [SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FULFILLED]: loadOrgDefaultHostUrlFulfilled,
-  [SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FAILED]: loadOrgDefaultHostUrlFailed
+  [SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FAILED]: loadOrgDefaultHostUrlFailed,
+
+  [SCM_ONBOARDING_LOAD_COMPOSITE_SCM_REQUESTED]: loadCompositeSourceControlRequested,
+  [SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FULFILLED]: loadCompositeSourceControlFulfilled,
+  [SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FAILED]: loadCompositeSourceControlFailed
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

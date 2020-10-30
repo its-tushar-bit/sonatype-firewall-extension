@@ -44,7 +44,8 @@ describe('ViolationDetailsTile', function() {
     minimalProps = {
       $state: {
         get: stateGetMock,
-        href: stateHrefMock
+        href: stateHrefMock,
+        params: {id: 'policyViolationId', type: 'violation', sidebarReference: 'filter'}
       },
       violationDetails: {
         policyViolationId: 'policyViolationId',
@@ -156,21 +157,30 @@ describe('ViolationDetailsTile', function() {
       expect(button).toExist();
 
       button.simulate('click');
-      expect(stateGoMock).toHaveBeenCalledWith('addWaiver', { violationId: 'policyViolationId'});
+      expect(stateGoMock).toHaveBeenCalledWith('listWaivers',
+          { violationId: 'policyViolationId', type: 'violation', sidebarReference: 'filter' });
     });
 
-    it('renders an nx-tile__actions section with a waived indicator when there are active waivers ', function() {
-      const component = getShallowComponent({ activeWaivers: ['an active waiver'] }),
-          actions = component.find('.nx-tile__actions'),
-          indicator = actions.find('.violation-details-tile__waiver-indicator'),
-          icon = indicator.find(NxFontAwesomeIcon),
-          text = indicator.find('span');
+    it('renders an nx-tile__actions section with action button and waived indicator when there are active waivers',
+        function() {
+          const component = getShallowComponent({activeWaivers: ['an active waiver']}),
+              actions = component.find('.nx-tile__actions'),
+              button = actions.find(NxButton),
+              indicator = actions.find('.violation-details-tile__waiver-indicator'),
+              icon = indicator.find(NxFontAwesomeIcon),
+              text = indicator.find('span');
 
-      expect(actions).toExist();
-      expect(indicator).toExist();
-      expect(icon).toHaveProp('icon', faFlag);
-      expect(text).toHaveText('Has Active Waivers');
-    });
+          expect(actions).toExist();
+          expect(button).toExist();
+          expect(indicator).toExist();
+          expect(icon).toHaveProp('icon', faFlag);
+          expect(text).toHaveText('Has Active Waivers');
+
+          button.simulate('click');
+          expect(stateGoMock).toHaveBeenCalledWith('listWaivers',
+              { violationId: 'policyViolationId', type: 'violation', sidebarReference: 'filter' });
+        }
+    );
 
     it('does not render nx-tile__actions section when policyOwner prop has null ownerId', function() {
       const component = getShallowComponent(pathSet(['violationDetails', 'policyOwner', 'ownerId'], null,

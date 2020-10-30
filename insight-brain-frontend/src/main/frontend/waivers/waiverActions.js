@@ -135,7 +135,7 @@ export function loadManageWaiversData(violationId) {
 export function returnToAddWaiverOriginPage() {
   return (dispatch, getState) => {
     const { prevParams, prevState, currentParams } = getState().router;
-    const originNameForViolationDetails = 'sidebarView.violation';
+    const originNameForViolationDetails = 'listWaivers';
     const originNameForCip = 'applicationReport.policy';
 
     const prevStateName = prevState && prevState.name;
@@ -147,7 +147,7 @@ export function returnToAddWaiverOriginPage() {
         return dispatch(stateGo(prevState.name, { ...prevParams, policyViolationId: currentParams.violationId }));
 
       default:
-        return dispatch(stateGo(originNameForViolationDetails, {id: currentParams.violationId}));
+        return dispatch(stateGo(originNameForViolationDetails, {violationId: currentParams.violationId}));
     }
   };
 }

@@ -40,7 +40,13 @@ export default function ListWaiversPage(props) {
   }, [violationId]);
 
   const redirectToAddWaiverPage = () => hasPermissionForAppWaivers && $state.go('addWaiver', { violationId });
-  const violationDetailsHref = $state.href($state.get('sidebarView.violation'), { 'id': violationId });
+  const violationDetailsHref = $state.href(
+      $state.get('sidebarView.violation'),
+      {
+        id: violationId,
+        type: $state.params.type,
+        sidebarReference: $state.params.sidebarReference
+      });
 
   const {
     componentName,

@@ -24,6 +24,15 @@ public class ListWaiversPage
     return BaseUrl.resolvePageUrl("/waivers/{id}", violationId);
   }
 
+  public static String urlWithQueryParams(String violationId, String type, String sidebarReference) {
+    return BaseUrl.resolvePageUrl(
+        "/waivers/{id}?type={type}&sidebarReference={sidebarReference}",
+        violationId,
+        type,
+        sidebarReference
+    );
+  }
+
   public ListWaiversPage() {
     super(ROOT);
   }
@@ -45,7 +54,7 @@ public class ListWaiversPage
   }
 
   public SelenideElement addWaiverButton() {
-    return child(".nx-btn--tertiary");
+    return child("#add-waiver-btn");
   }
 
   public SelenideElement policyName() {

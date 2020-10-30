@@ -144,8 +144,8 @@ public class ViolationDetailsPage
       return child(".iq-violation-details__policy-owner dd a");
     }
 
-    public Button addWaiverButton() {
-      return new Button("#violation-page-add-waiver");
+    public Button manageWaiversButton() {
+      return new Button("#violation-page-manage-waivers");
     }
 
     public SelenideElement waivedIndicator() {

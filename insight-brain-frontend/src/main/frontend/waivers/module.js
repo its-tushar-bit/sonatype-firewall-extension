@@ -28,7 +28,7 @@ function routes($stateProvider) {
         data: {
           title: 'Waivers'
         },
-        url: '/waivers/{violationId}'
+        url: '/waivers/{violationId}?type&sidebarReference'
       });
 }
 

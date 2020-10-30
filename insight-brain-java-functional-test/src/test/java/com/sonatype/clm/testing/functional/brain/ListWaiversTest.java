@@ -194,6 +194,14 @@ public class ListWaiversTest
   }
 
   @Test
+  public void testBackButtonWithQueryParams() {
+    refreshOrOpen(ListWaiversPage.urlWithQueryParams(policyViolation.getId(), "violation", "filter"));
+    ListWaiversPage listWaiversPage = new ListWaiversPage();
+    listWaiversPage.backButton().shouldHave(text("Back to Violation Details")).click();
+    waitUntilUrl(ViolationDetailsPage.urlWithQueryParams(policyViolation.getId(), "violation", "filter"));
+  }
+
+  @Test
   public void testDeleteButton() {
     Instant now = Instant.now();
     Instant twoDaysAgo = now.minus(2, ChronoUnit.DAYS);

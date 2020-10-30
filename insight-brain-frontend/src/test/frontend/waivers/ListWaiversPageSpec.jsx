@@ -45,7 +45,8 @@ describe('ListWaiversPage', function() {
     stateMock = {
       get: jasmine.createSpy().and.returnValue('/violation'),
       go: stateGoSpy,
-      href: stateHrefSpy
+      href: stateHrefSpy,
+      params: {id: 'violationId', type: 'violation', sidebarReference: 'filter'}
     };
 
     violationDetailsMock = {
@@ -91,7 +92,10 @@ describe('ListWaiversPage', function() {
     const backButton = component.find(NxBackButton);
     expect(backButton).toExist();
     expect(backButton).toHaveProp('targetPageTitle', 'Violation Details');
-    expect(stateHrefSpy).toHaveBeenCalledWith('/violation', { id: 'violationId' });
+    expect(stateHrefSpy).toHaveBeenCalledWith(
+        '/violation',
+        { id: 'violationId', type: 'violation', sidebarReference: 'filter' }
+    );
     expect(backButton).toHaveProp('href', 'href');
   });
 

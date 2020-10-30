@@ -21,6 +21,7 @@ import com.sonatype.clm.testing.functional.elements.NxTreeViewMultiSelect;
 import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.PolicyViolationConstraintInfoTile;
@@ -43,6 +44,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
@@ -147,7 +149,7 @@ public class ViolationDetailsTest
     ViolationDetailsPage.ViolationDetailsTile tile = new ViolationDetailsPage().detailsTile();
     tile.policyOwner().shouldHave(text("Policy no longer exists"));
     tile.waivedIndicator().shouldNotBe(visible);
-    tile.addWaiverButton().shouldNotBe(visible);
+    tile.manageWaiversButton().shouldNotBe(visible);
     eyesWatcher.eyesCheck();
   }
 
@@ -389,19 +391,37 @@ public class ViolationDetailsTest
   }
 
   @Test
-  public void testAddWaiverButton() {
-    refreshOrOpen(ViolationDetailsPage.url(securityPolicyViolation.getId()));
+  public void testAddWaiver() {
+    refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(securityPolicyViolation.getId(), "violation", "filter"));
     ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
     ViolationDetailsTile detailsTile = violationDetailsPage.detailsTile();
     
-    detailsTile.addWaiverButton().shouldBe(visible);
-    detailsTile.addWaiverButton().click();
+    detailsTile.manageWaiversButton().shouldBe(visible);
+    detailsTile.manageWaiversButton().click();
+
+    waitUntilUrl(ListWaiversPage.urlWithQueryParams(securityPolicyViolation.getId(), "violation", "filter"));
+    ListWaiversPage listWaiversPage = new ListWaiversPage();
+    listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
+    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
 
     waitUntilUrl(AddWaiverPage.url(securityPolicyViolation.getId()));
     AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.cancelButton().shouldBe(visible, enabled).click();
+    // clicking cancel takes back to list waivers page
+    waitUntilUrl(ListWaiversPage.urlWithQueryParams(securityPolicyViolation.getId(), "violation", "filter"));
+
+    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+    waitUntilUrl(AddWaiverPage.url(securityPolicyViolation.getId()));
     addWaiverPage.artifactName().shouldHave(text("Artifact1"));
     addWaiverPage.policyName().shouldHave(text("Policy 1"));
     addWaiverPage.constraintName().shouldHave(text("Test Constraint"));
+    addWaiverPage.comments().setValue("Test Comment");
+    addWaiverPage.saveButton().shouldBe(visible, enabled).click();
+    waitUntilUrl(ListWaiversPage.urlWithQueryParams(securityPolicyViolation.getId(), "violation", "filter"));
+    // verify that it was added
+    listWaiversPage.waiverListTable().noWaiversMessage().shouldNotBe(visible);
+    listWaiversPage.waiverListTable().rows().shouldHaveSize(1);
+    listWaiversPage.waiverListTable().row(1).comments().shouldHave(text("Test Comment"));
   }
 
   @Test
@@ -418,7 +438,6 @@ public class ViolationDetailsTest
     ViolationDetailsTile detailsTile = violationDetailsPage.detailsTile();
 
     detailsTile.waivedIndicator().shouldBe(visible);
-    detailsTile.addWaiverButton().shouldNotBe(visible);
-
+    detailsTile.manageWaiversButton().shouldBe(visible);
   }
 }

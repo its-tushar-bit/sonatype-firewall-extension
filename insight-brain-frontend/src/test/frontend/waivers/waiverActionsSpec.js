@@ -555,8 +555,8 @@ describe('waiverActions', function() {
       expect(store.getActions().length).toBe(1);
       expect(store.getActions()[0].type).toBe(STATE_GO);
       expect(store.getActions()[0].payload).toEqual({
-        to: 'sidebarView.violation',
-        params: { id: 'policyViolationId' },
+        to: 'listWaivers',
+        params: { violationId: 'policyViolationId' },
         options: undefined
       });
     });
@@ -593,7 +593,7 @@ describe('waiverActions', function() {
         router: {
           prevState: { name: 'sidebarView.violation' },
           prevParams: {
-            id: 'policyViolationId',
+            violationId: 'policyViolationId',
             sidebarId: undefined,
             sidebarReference: 'filter',
             type: 'violation'
@@ -607,13 +607,8 @@ describe('waiverActions', function() {
       expect(store.getActions().length).toBe(1);
       expect(store.getActions()[0].type).toBe(STATE_GO);
       expect(store.getActions()[0].payload).toEqual({
-        to: 'sidebarView.violation',
-        params: {
-          id: 'policyViolationId',
-          sidebarId: undefined,
-          sidebarReference: 'filter',
-          type: 'violation'
-        },
+        to: 'listWaivers',
+        params: { violationId: 'policyViolationId' },
         options: undefined
       });
     });
@@ -633,8 +628,8 @@ describe('waiverActions', function() {
       expect(store.getActions().length).toBe(1);
       expect(store.getActions()[0].type).toBe(STATE_GO);
       expect(store.getActions()[0].payload).toEqual({
-        to: 'sidebarView.violation',
-        params: { id: 'policyViolationId' },
+        to: 'listWaivers',
+        params: { violationId: 'policyViolationId' },
         options: undefined
       });
     });

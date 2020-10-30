@@ -17,6 +17,7 @@ import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.NxVulnerabilityModal;
 import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -32,6 +33,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -475,23 +477,36 @@ public class AddWaiverTest
   }
 
   @Test
-  public void testOpenPageDirectly_cancelReturnsToViolationDetails() {
-    refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
-    refresh(); // refresh to ensure there is no previous page/routing information
+  public void testOpenPageDirectly_cancelReturnsToListWaiversThenBackReturnsToViolationDetails() {
+    try {
+      refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
+      refresh(); // refresh to ensure there is no previous page/routing information
 
-    AddWaiverPage addWaiverPage = new AddWaiverPage();
-    addWaiverPage.availableScopes().shouldHaveSize(3);
+      AddWaiverPage addWaiverPage = new AddWaiverPage();
+      addWaiverPage.availableScopes().shouldHaveSize(3);
 
-    addWaiverPage.cancelButton().click();
-    NxSubmitMask.seeAndWaitForDismissal();
+      addWaiverPage.cancelButton().click();
+      NxSubmitMask.seeAndWaitForDismissal();
 
-    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
-    violationDetailsPage.detailsTile().shouldBe(visible);
-    violationDetailsPage.sidebarNav().sidebarNavItems().shouldHaveSize(1);
+      waitUntilUrl(ListWaiversPage.url(policyViolation.getId()));
+      ListWaiversPage listWaiversPage = new ListWaiversPage();
+      listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
+      listWaiversPage.backButton().shouldBe(visible).click();
+
+      waitUntilUrl(ViolationDetailsPage.url(policyViolation.getId()));
+      ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+      violationDetailsPage.detailsTile().shouldBe(visible);
+      violationDetailsPage.detailsTile().manageWaiversButton().shouldBe(visible);
+      violationDetailsPage.detailsTile().waivedIndicator().shouldNotBe(visible);
+      violationDetailsPage.sidebarNav().sidebarNavItems().shouldHaveSize(1);
+    }
+    finally {
+      cleanupCreatedWaivers(policyWaiverDAO.getActiveByOwnerId(application.getId()));
+    }
   }
 
   @Test
-  public void testOpenPageDirectly_submitReturnsToViolationDetails() {
+  public void testOpenPageDirectly_submitReturnsToListWaiversThenBackReturnsToViolationDetails() {
     try {
       refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
       refresh(); // refresh to ensure there is no previous page/routing information
@@ -508,10 +523,20 @@ public class AddWaiverTest
       addWaiverPage.comments().setValue("Some comments");
       addWaiverPage.saveButton().click();
       NxSubmitMask.seeAndWaitForDismissal();
+      addWaiverPage.submitError().shouldNotBe(visible);
+
+      waitUntilUrl(ListWaiversPage.url(policyViolation.getId()));
+      ListWaiversPage listWaiversPage = new ListWaiversPage();
+      listWaiversPage.waiverListTable().noWaiversMessage().shouldNotBe(visible);
+      listWaiversPage.waiverListTable().rows().shouldHaveSize(1);
+      listWaiversPage.waiverListTable().row(1).comments().shouldHave(text("Some comments"));
+      listWaiversPage.backButton().shouldBe(visible).click();
 
       waitUntilUrl(ViolationDetailsPage.url(policyViolation.getId()));
       ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
       violationDetailsPage.detailsTile().shouldBe(visible);
+      violationDetailsPage.detailsTile().manageWaiversButton().shouldBe(visible);
+      violationDetailsPage.detailsTile().waivedIndicator().shouldBe(visible);
       violationDetailsPage.sidebarNav().sidebarNavItems().shouldHaveSize(1);
     }
     finally {
@@ -520,29 +545,55 @@ public class AddWaiverTest
   }
 
   @Test
-  public void testOpenPageFromViolationDetails_cancelReturnsToViolationDetails() {
-    refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(policyViolation.getId(), "violation", "filter"));
-    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
-    violationDetailsPage.detailsTile().addWaiverButton().click();
+  public void testOpenPageFromViolationDetails_cancelReturnsToListWaiversThenBackReturnsToViolationDetails() {
+    try {
+      refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(policyViolation.getId(), "violation", "filter"));
+      refresh(); // refresh to ensure there is no previous page/routing information
 
-    AddWaiverPage addWaiverPage = new AddWaiverPage();
-    addWaiverPage.availableScopes().shouldHaveSize(3);
+      ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+      violationDetailsPage.detailsTile().manageWaiversButton().click();
 
-    addWaiverPage.cancelButton().click();
-    NxSubmitMask.seeAndWaitForDismissal();
+      waitUntilUrl(ListWaiversPage.urlWithQueryParams(policyViolation.getId(), "violation", "filter"));
+      ListWaiversPage listWaiversPage = new ListWaiversPage();
+      listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
+      listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
 
-    violationDetailsPage.detailsTile().addWaiverButton().shouldBe(visible);
-    violationDetailsPage.sidebarNav().sidebarNavItems().shouldHaveSize(3);
-    violationDetailsPage.sidebarNav().navItem(2).shouldHave(cssClass("selected"));
+      waitUntilUrl(AddWaiverPage.url(policyViolation.getId()));
+      AddWaiverPage addWaiverPage = new AddWaiverPage();
+      addWaiverPage.availableScopes().shouldHaveSize(3);
+      addWaiverPage.cancelButton().click();
+      NxSubmitMask.seeAndWaitForDismissal();
+
+      waitUntilUrl(ListWaiversPage.urlWithQueryParams(policyViolation.getId(), "violation", "filter"));
+      listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
+      listWaiversPage.backButton().shouldBe(visible).click();
+
+      violationDetailsPage.detailsTile().shouldBe(visible);
+      violationDetailsPage.detailsTile().manageWaiversButton().shouldBe(visible);
+      violationDetailsPage.detailsTile().waivedIndicator().shouldNotBe(visible);
+      violationDetailsPage.sidebarNav().sidebarNavItems().shouldHaveSize(3);
+      violationDetailsPage.sidebarNav().navItem(2).shouldHave(cssClass("selected"));
+    }
+    finally {
+      cleanupCreatedWaivers(policyWaiverDAO.getActiveByOwnerId(application.getId()));
+    }
   }
 
   @Test
-  public void testOpenPageFromViolationDetails_submitReturnsToViolationDetails() {
+  public void testOpenPageFromViolationDetails_submitReturnsToListWaiversThenBackReturnsToViolationDetails() {
     try {
       refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(policyViolation.getId(), "violation", "filter"));
-      ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
-      violationDetailsPage.detailsTile().addWaiverButton().click();
+      refresh(); // refresh to ensure there is no previous page/routing information
 
+      ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+      violationDetailsPage.detailsTile().manageWaiversButton().click();
+
+      waitUntilUrl(ListWaiversPage.urlWithQueryParams(policyViolation.getId(), "violation", "filter"));
+      ListWaiversPage listWaiversPage = new ListWaiversPage();
+      listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
+      listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+
+      waitUntilUrl(AddWaiverPage.url(policyViolation.getId()));
       AddWaiverPage addWaiverPage = new AddWaiverPage();
       addWaiverPage.availableScopes().shouldHaveSize(3);
       NxRadio chosenScope = addWaiverPage.scope(0);
@@ -555,12 +606,19 @@ public class AddWaiverTest
       addWaiverPage.comments().setValue("Some comments");
       addWaiverPage.saveButton().click();
       NxSubmitMask.seeAndWaitForDismissal();
+      addWaiverPage.submitError().shouldNotBe(visible);
+
+      waitUntilUrl(ListWaiversPage.urlWithQueryParams(policyViolation.getId(), "violation", "filter"));
+      listWaiversPage.waiverListTable().noWaiversMessage().shouldNotBe(visible);
+      listWaiversPage.waiverListTable().rows().shouldHaveSize(1);
+      listWaiversPage.waiverListTable().row(1).comments().shouldHave(text("Some comments"));
+      listWaiversPage.backButton().shouldBe(visible).click();
 
       violationDetailsPage.detailsTile().shouldBe(visible);
-      violationDetailsPage.detailsTile().addWaiverButton().shouldNotBe(visible);
+      violationDetailsPage.detailsTile().manageWaiversButton().shouldBe(visible);
       violationDetailsPage.detailsTile().waivedIndicator().shouldBe(visible);
-      violationDetailsPage.sidebarNav().sidebarNavItems().shouldHaveSize(3);
-      violationDetailsPage.sidebarNav().navItem(2).shouldHave(cssClass("selected"));
+      violationDetailsPage.sidebarNav().sidebarNavItems().shouldHaveSize(2);
+      violationDetailsPage.sidebarNav().navItem(1).shouldHave(cssClass("selected"));
     }
     finally {
       cleanupCreatedWaivers(policyWaiverDAO.getActiveByOwnerId(application.getId()));

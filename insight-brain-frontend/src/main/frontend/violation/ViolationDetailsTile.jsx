@@ -17,6 +17,7 @@ import { capitalize } from '../util/jsUtil';
 import { getOwnerImageUrl } from '../util/CLMContextLocation';
 import ViolationDetailsSubtitle from './ViolationDetailsSubtitle';
 import StageDisplay from './StageDisplay';
+import { faEye } from '@fortawesome/pro-solid-svg-icons/faEye';
 
 const ownerIdTypeMap = {
   application: 'applicationPublicId',
@@ -48,15 +49,18 @@ export default function ViolationDetailsTile(props) {
         </dd>
       ),
 
-      onAddWaiverClick = () => {
-        stateGo('addWaiver', { violationId: policyViolationId });
+      onManageWaiversClick = () => {
+        stateGo('listWaivers', {
+          violationId: policyViolationId,
+          type: $state.params.type,
+          sidebarReference: $state.params.sidebarReference
+        });
       },
 
-      addWaiverButton = (
-        <NxButton id="violation-page-add-waiver"
-                  variant="tertiary"
-                  onClick={onAddWaiverClick}>
-          Add Waiver
+      manageWaiversButton = (
+        <NxButton id="violation-page-manage-waivers" onClick={onManageWaiversClick}>
+          <NxFontAwesomeIcon icon={faEye}/>
+          <span>Manage Waivers</span>
         </NxButton>
       ),
 
@@ -77,7 +81,8 @@ export default function ViolationDetailsTile(props) {
     <div id="violation-details-tile" className="nx-tile iq-violation-details">
       { policyExists &&
         <div className="nx-tile__actions">
-          { activeWaivers.length ? waivedIndicator : addWaiverButton }
+          { manageWaiversButton }
+          { activeWaivers.length !== 0 && waivedIndicator }
         </div>
       }
       <div className="nx-tile-header">

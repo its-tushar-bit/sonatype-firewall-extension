@@ -7,6 +7,7 @@ package com.sonatype.insight.scan.cli;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Properties;
 
 import ch.qos.logback.classic.Level;
 import org.slf4j.Logger;
@@ -69,11 +70,9 @@ public class PolicyEvaluatorCli
     // NOTE: Acquire logger after initLogging()
     Logger log = LoggerFactory.getLogger(type);
 
-    if (params.getError() != null) {
-      log.error(params.createUsageHelp());
-      log.error(params.getError().getMessage());
-
-      throw new ExitException(1);
+    if (params.isVersion()) {
+      log.info(getVersion());
+      throw new ExitException(0);
     }
 
     if (params.isHelp()) {
@@ -81,7 +80,25 @@ public class PolicyEvaluatorCli
       throw new ExitException(0);
     }
 
+    if (params.getError() != null) {
+      log.error(params.createUsageHelp());
+      log.error(params.getError().getMessage());
+
+      throw new ExitException(1);
+    }
+
     return instantiate(type, params);
+  }
+
+  protected String getVersion() throws ExitException {
+    try {
+      final Properties properties = new Properties();
+      properties.load(getClass().getResourceAsStream("/com/sonatype/insight/scan/scanner.properties"));
+      return properties.getProperty("version");
+    }
+    catch (Exception e) {
+      throw new ExitException(1, "Unable to determine version");
+    }
   }
 
   protected <T extends PolicyEvaluator> T instantiate(final Class<T> type, final AbstractParameters params)

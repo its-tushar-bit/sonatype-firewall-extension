@@ -95,6 +95,9 @@ public abstract class AbstractParameters
           "is located")
   private ScanMetadata scanMetadata;
 
+  @Parameter(names = { "-v", "--version" }, description = "Show the IQ version this CLI was built from")
+  private boolean version;
+
   @Parameter(names = { "-h", "--help" }, description = "Show this help screen")
   private boolean help;
 
@@ -215,6 +218,10 @@ public abstract class AbstractParameters
 
   public boolean isQuiet() {
     return quiet;
+  }
+
+  public boolean isVersion() {
+    return version;
   }
 
   public boolean isHelp() {

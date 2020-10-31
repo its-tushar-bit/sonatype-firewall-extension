@@ -157,7 +157,7 @@ public class SbomResultHandlerTest
     assertThat(components).extracting("version")
         .containsOnly("9.0.14", "2.9.9");
     assertThat(components).extracting("type.name")
-        .containsOnly("LIBRARY", "LIBRARY");
+        .containsOnly("library", "library");
     assertThat(components).extracting("purl")
         .containsOnly(null, "pkg:library/com.fasterxml.jackson.core/jackson-databind@2.9.9");
     assertThat(components).extracting("hashes.size")

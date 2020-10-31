@@ -31,6 +31,7 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.tuple;
 
 public class ApiCrossStageViolationServiceTest
     extends AbstractComponentTest
@@ -120,10 +121,8 @@ public class ApiCrossStageViolationServiceTest
     assertCrossStageData(result, Stage.ID_RELEASE, new Date(baseDate.getTime() + 2), "scan2", "warn");
     assertCrossStageData(result, Stage.ID_STAGE_RELEASE, new Date(baseDate.getTime() + 4), "scan3", null);
 
-    assertThat(result.constraintViolations).hasSize(1);
-    assertThat(result.constraintViolations.get(0))
-        .extracting("constraintId", "constraintName")
-        .containsExactly(constraintFact.getConstraintId(), constraintFact.getConstraintName());
+    assertThat(result.constraintViolations).extracting(dto -> dto.constraintId, dto -> dto.constraintName)
+        .containsExactly(tuple(constraintFact.getConstraintId(), constraintFact.getConstraintName()));
 
     List<ApiConstraintViolationReasonDTO> violationReasons = result.constraintViolations.get(0).reasons;
     assertThat(violationReasons).hasSize(1);
@@ -545,7 +544,6 @@ public class ApiCrossStageViolationServiceTest
     assertThat(result1.openTime).isEqualTo(time1);
     assertThat(result1.fixTime).isEqualTo(time1);
     assertThat(result1.policyViolationId).isEqualTo(violation1.getId());
-    assertThat(result1.stageData).isNotNull();
     assertThat(result1.stageData).doesNotContainKey(Stage.ID_BUILD);
   }
 
@@ -557,9 +555,10 @@ public class ApiCrossStageViolationServiceTest
       String expectedActionTypeId
   )
   {
-    assertThat(result.stageData).isNotNull();
-    assertThat(result.stageData.get(stageId))
-        .extracting("mostRecentEvaluationTime", "mostRecentScanId", "actionTypeId")
-        .containsExactly(expectedEvaluationTime, expectedScanId, expectedActionTypeId);
+    assertThat(result.stageData).hasEntrySatisfying(stageId, stageData -> {
+      assertThat(stageData.mostRecentEvaluationTime).isEqualTo(expectedEvaluationTime);
+      assertThat(stageData.mostRecentScanId).isEqualTo(expectedScanId);
+      assertThat(stageData.actionTypeId).isEqualTo(expectedActionTypeId);
+    });
   }
 }

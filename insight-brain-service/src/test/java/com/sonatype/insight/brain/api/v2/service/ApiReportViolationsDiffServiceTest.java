@@ -285,15 +285,15 @@ public class ApiReportViolationsDiffServiceTest
     assertThat(apiPolicyViolationDiffDTO.application).isNotNull();
     assertThat(apiPolicyViolationDiffDTO.addedViolations).isNotNull();
     assertThat(apiPolicyViolationDiffDTO.addedViolations).hasSize(4);
-    assertThat(apiPolicyViolationDiffDTO.addedViolations).extracting("policyViolationId")
+    assertThat(apiPolicyViolationDiffDTO.addedViolations).extracting(dto -> dto.policyViolationId)
         .containsExactlyInAnyOrder("appeared_1", "appeared_2", "appeared_3", "appeared_4");
     assertThat(apiPolicyViolationDiffDTO.sameViolations).isNotNull();
     assertThat(apiPolicyViolationDiffDTO.sameViolations).hasSize(3);
-    assertThat(apiPolicyViolationDiffDTO.sameViolations).extracting("policyViolationId")
+    assertThat(apiPolicyViolationDiffDTO.sameViolations).extracting(dto -> dto.policyViolationId)
         .containsExactlyInAnyOrder("same_1", "same_2", "same_3");
     assertThat(apiPolicyViolationDiffDTO.removedViolations).isNotNull();
     assertThat(apiPolicyViolationDiffDTO.removedViolations).hasSize(4);
-    assertThat(apiPolicyViolationDiffDTO.removedViolations).extracting("policyViolationId")
+    assertThat(apiPolicyViolationDiffDTO.removedViolations).extracting(dto -> dto.policyViolationId)
         .containsExactlyInAnyOrder("cleared_1", "cleared_2", "cleared_3", "cleared_4");
     assertThat(apiPolicyViolationDiffDTO.fromCommit.commitHash).isEqualTo(FROM_COMMIT_HASH);
     assertThat(apiPolicyViolationDiffDTO.fromCommit.scanId).isEqualTo(FROM_SCAN_ID);

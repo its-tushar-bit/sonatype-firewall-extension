@@ -22,8 +22,11 @@ public class ApiPolicyWaiverDTOTestUtils
       final Date expiryTime,
       ApiPolicyWaiverDTO actual)
   {
-    assertThat(actual)
-        .extracting("hash", "policyId", "scopeOwnerId", "scopeOwnerName", "comment", "expiryTime")
-        .containsExactly(hash, policyId, ownerId, ownerName, comment, expiryTime);
+    assertThat(actual.hash).isEqualTo(hash);
+    assertThat(actual.policyId).isEqualTo(policyId);
+    assertThat(actual.scopeOwnerId).isEqualTo(ownerId);
+    assertThat(actual.scopeOwnerName).isEqualTo(ownerName);
+    assertThat(actual.comment).isEqualTo(comment);
+    assertThat(actual.expiryTime).isEqualTo(expiryTime);
   }
 }

@@ -54,11 +54,11 @@ public class ApiSourceControlMetricsAdapterTest
     ApiPullRequestResults results = adapter.convertToDTO(Collections.singletonList(enhancedSuccess));
     assertThat(results.results).hasSize(1);
     ApiPullRequestResult adapted = results.results.get(0);
-    assertThat(adapted).extracting("startTime").isEqualTo(enhancedSuccess.getStartTime());
-    assertThat(adapted).extracting("title").isEqualTo(enhancedSuccess.getTitle());
-    assertThat(adapted).extracting("reasoning").isEqualTo(enhancedSuccess.getReasoning());
-    assertThat(adapted).extracting("exceptionThrown").isEqualTo(enhancedSuccess.isExceptionThrown());
-    assertThat(adapted).extracting("successful").isEqualTo(enhancedSuccess.getTiming().isSuccessful());
-    assertThat(adapted).extracting("totalTime").isEqualTo(enhancedSuccess.getTiming().getTotalTime());
+    assertThat(adapted.startTime).isEqualTo(enhancedSuccess.getStartTime());
+    assertThat(adapted.title).isEqualTo(enhancedSuccess.getTitle());
+    assertThat(adapted.reasoning).isEqualTo(enhancedSuccess.getReasoning());
+    assertThat(adapted.exceptionThrown).isEqualTo(enhancedSuccess.isExceptionThrown());
+    assertThat(adapted.successful).isEqualTo(enhancedSuccess.getTiming().isSuccessful());
+    assertThat(adapted.totalTime).isEqualTo(enhancedSuccess.getTiming().getTotalTime());
   }
 }

@@ -125,8 +125,10 @@ public class ApiPolicyViolationResourceV2Test
     assertThat(resultDTO.applicationName).isEqualTo(app.getName());
     assertThat(resultDTO.stageData).containsOnlyKeys(BuildStageType.ID);
     assertThat(resultDTO.displayName.toString()).isEqualTo("g1 : a1 : v1");
-    assertThat(resultDTO.stageData.get(BuildStageType.ID)).extracting("mostRecentEvaluationTime", "mostRecentScanId")
-        .containsExactly(date, "scanId1App1");
+    assertThat(resultDTO.stageData).hasEntrySatisfying(BuildStageType.ID, stageData -> {
+      assertThat(stageData.mostRecentEvaluationTime).isEqualTo(date);
+      assertThat(stageData.mostRecentScanId).isEqualTo("scanId1App1");
+    });
   }
 
   @Test
@@ -158,10 +160,14 @@ public class ApiPolicyViolationResourceV2Test
     assertThat(resultDTO.stageData).hasSize(2);
     assertThat(resultDTO.stageData).containsOnlyKeys(BuildStageType.ID, DevelopStageType.ID);
     assertThat(resultDTO.displayName.toString()).isEqualTo("g1 : a1 : v1");
-    assertThat(resultDTO.stageData.get(BuildStageType.ID)).extracting("mostRecentEvaluationTime", "mostRecentScanId")
-            .containsExactly(baseDate, "scanId1App1");
-    assertThat(resultDTO.stageData.get(DevelopStageType.ID)).extracting("mostRecentEvaluationTime", "mostRecentScanId")
-            .containsExactly(new Date(baseDate.getTime() + 1), "scanId2App1");
+    assertThat(resultDTO.stageData).hasEntrySatisfying(BuildStageType.ID, stageData -> {
+      assertThat(stageData.mostRecentEvaluationTime).isEqualTo(baseDate);
+      assertThat(stageData.mostRecentScanId).isEqualTo("scanId1App1");
+    });
+    assertThat(resultDTO.stageData).hasEntrySatisfying(DevelopStageType.ID, stageData -> {
+      assertThat(stageData.mostRecentEvaluationTime).isEqualTo(new Date(baseDate.getTime() + 1));
+      assertThat(stageData.mostRecentScanId).isEqualTo("scanId2App1");
+    });
   }
 
   @Test

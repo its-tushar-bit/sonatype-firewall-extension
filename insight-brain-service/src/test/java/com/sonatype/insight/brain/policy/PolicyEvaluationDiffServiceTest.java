@@ -92,19 +92,19 @@ public class PolicyEvaluationDiffServiceTest
     assertThat(diffOptional.get().getAppeared()).isNotNull();
     assertThat(diffOptional.get().getCleared()).isNotNull();
     assertThat(diffOptional.get().getSame()).hasSize(3);
-    assertThat(diffOptional.get().getSame().values()).extracting("id")
+    assertThat(diffOptional.get().getSame().values()).extracting(PolicyViolation::getId)
         .containsExactlyInAnyOrder("same_1", "same_2", "same_3");
-    assertThat(diffOptional.get().getAppeared()).extracting("id")
+    assertThat(diffOptional.get().getAppeared()).extracting(PolicyViolation::getId)
         .containsExactlyInAnyOrder("appeared_1", "appeared_2", "appeared_3", "appeared_4");
     assertThat(diffOptional.get().getAppeared()).hasSize(4);
 
     if (minimumThreatLevel > 0) {
-      assertThat(diffOptional.get().getCleared()).extracting("id")
+      assertThat(diffOptional.get().getCleared()).extracting(PolicyViolation::getId)
           .containsExactlyInAnyOrder("cleared_1", "cleared_2", "cleared_3"); // "cleared_4" is filtered out
       assertThat(diffOptional.get().getCleared()).hasSize(3); // "cleared_4" is filtered out
     }
     else {
-      assertThat(diffOptional.get().getCleared()).extracting("id")
+      assertThat(diffOptional.get().getCleared()).extracting(PolicyViolation::getId)
           .containsExactlyInAnyOrder("cleared_1", "cleared_2", "cleared_3", "cleared_4");
       assertThat(diffOptional.get().getCleared()).hasSize(4);
     }

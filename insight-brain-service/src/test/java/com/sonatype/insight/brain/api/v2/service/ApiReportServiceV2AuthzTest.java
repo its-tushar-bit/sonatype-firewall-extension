@@ -64,7 +64,7 @@ public class ApiReportServiceV2AuthzTest
     tempEntity.newPolicyEvaluation(unauthorizedApp.getId(), StageTypes.BUILD.getId(), "scanId1");
 
     grantReadPermission(app.getId());
-    assertThat(apiReportServiceV2.getAll()).extracting("applicationId").containsExactly(app.getId());
+    assertThat(apiReportServiceV2.getAll()).extracting(dto -> dto.applicationId).containsExactly(app.getId());
   }
 
   @Test

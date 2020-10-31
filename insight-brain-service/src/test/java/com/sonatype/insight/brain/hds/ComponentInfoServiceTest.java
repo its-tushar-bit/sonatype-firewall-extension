@@ -20,12 +20,14 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
+import com.sonatype.clm.dto.model.component.ComponentCategory;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.clm.dto.model.ide.LicenseStatus;
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
@@ -662,7 +664,7 @@ public class ComponentInfoServiceTest
     assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_A1_COORDINATES);
     assertCategories(componentDetails);
     List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
-    assertThat(policyAlerts).extracting("trigger").extracting("policyName").containsExactly("Policy1");
+    assertThat(policyAlerts).extracting(alert -> alert.getTrigger().getPolicyName()).containsExactly("Policy1");
   }
 
   @Test
@@ -1140,15 +1142,15 @@ public class ComponentInfoServiceTest
         .isEqualTo(ImmutableMap.of(PolicyThreatCategory.SECURITY, 8, PolicyThreatCategory.LICENSE, 6));
     assertThat(componentDetails1.violatedPolicyCount).isEqualTo(2);
     assertThat(componentDetails1.policyAlerts).hasSize(2);
-    assertThat(componentDetails1.policyAlerts.get(0).getActions()).extracting("actionTypeId").contains("warn");
-    assertThat(componentDetails1.policyAlerts.get(1).getActions()).extracting("actionTypeId").contains("fail");
+    assertThat(componentDetails1.policyAlerts.get(0).getActions()).extracting(Action::getActionTypeId).contains("warn");
+    assertThat(componentDetails1.policyAlerts.get(1).getActions()).extracting(Action::getActionTypeId).contains("fail");
 
     ComponentDetailsDTO componentDetails2 = componentDetailsList.get(1);
     assertThat(componentDetails2.policyMaxThreatLevelsByCategory)
         .isEqualTo(ImmutableMap.of(PolicyThreatCategory.LICENSE, 6));
     assertThat(componentDetails2.violatedPolicyCount).isEqualTo(1);
     assertThat(componentDetails2.policyAlerts).hasSize(1);
-    assertThat(componentDetails2.policyAlerts.get(0).getActions()).extracting("actionTypeId").contains("warn");
+    assertThat(componentDetails2.policyAlerts.get(0).getActions()).extracting(Action::getActionTypeId).contains("warn");
 
     assertThat(dto.remediation.versionChanges).isNotNull();
     assertThat(dto.remediation.versionChanges).hasSize(1);
@@ -1259,11 +1261,11 @@ public class ComponentInfoServiceTest
     assertThat(resultComponentDetails.identificationSource).isEqualTo(identificationSource);
     assertThat(resultComponentDetails.policyMaxThreatLevelsByCategory).isEmpty();
     assertThat(resultComponentDetails.violatedPolicyCount).isEqualTo(0);
-    assertThat(resultComponentDetails.declaredLicenses).extracting("licenseId", "licenseName")
+    assertThat(resultComponentDetails.declaredLicenses).extracting(License::getLicenseId, License::getLicenseName)
         .contains(tuple(UNSPECIFIED_ID, "Not Provided"));
-    assertThat(resultComponentDetails.observedLicenses).extracting("licenseId", "licenseName")
+    assertThat(resultComponentDetails.observedLicenses).extracting(License::getLicenseId, License::getLicenseName)
         .contains(tuple(UNSPECIFIED_ID, "Not Provided"));
-    assertThat(resultComponentDetails.effectiveLicenses).extracting("licenseId", "licenseName")
+    assertThat(resultComponentDetails.effectiveLicenses).extracting(License::getLicenseId, License::getLicenseName)
         .contains(tuple(UNSPECIFIED_ID, "Not Provided"));
   }
 
@@ -1306,7 +1308,7 @@ public class ComponentInfoServiceTest
     ComponentDetails componentDetails = componentDetailsList.getList().get(0);
     assertThat(componentDetails.getComponentIdentifier()).isEqualTo(componentIdentifier1);
     assertThat(componentDetails.getSecurityVulnerabilities()).hasSize(2);
-    assertThat(componentDetails.getDeclaredLicenses()).extracting("licenseId", "licenseName")
+    assertThat(componentDetails.getDeclaredLicenses()).extracting(License::getLicenseId, License::getLicenseName)
         .contains(tuple("Apache-2.0", "Apache License 2.0"));
     assertThat(componentDetails.getComponentIdentifier()).isEqualTo(componentIdentifier1);
 
@@ -1511,7 +1513,8 @@ public class ComponentInfoServiceTest
   }
 
   private void assertCategories(ComponentDetails componentDetails) {
-    assertThat(componentDetails.getComponentCategories()).hasSize(1).extracting("componentCategoryId", "path")
-        .containsOnly(Tuple.tuple(113, "Other"));
+    assertThat(componentDetails.getComponentCategories())
+        .extracting(ComponentCategory::getComponentCategoryId, ComponentCategory::getPath)
+        .containsExactly(Tuple.tuple(113, "Other"));
   }
 }

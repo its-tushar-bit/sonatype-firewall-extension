@@ -435,13 +435,16 @@ public class PolicyViolationAggregationServiceTest
 
     service.generatePolicyViolationAggregations(Collections.singleton(app.getId()), aggregatingTime1, false);
 
-    assertThat(aggregationDAO.getByTimePeriod(MONTH)).extracting("evaluationCount").containsExactly(1);
+    assertThat(aggregationDAO.getByTimePeriod(MONTH)).extracting(PolicyViolationAggregation::getEvaluationCount)
+        .containsExactly(1);
     assertThat(aggregationDAO.getByTimePeriod(WEEK)).isEmpty();
 
     service.generatePolicyViolationAggregations(Collections.singleton(app.getId()), aggregatingTime2, false);
 
-    assertThat(aggregationDAO.getByTimePeriod(MONTH)).extracting("evaluationCount").containsExactly(1, 0);
-    assertThat(aggregationDAO.getByTimePeriod(WEEK)).extracting("evaluationCount").containsExactly(1, 0, 0, 0);
+    assertThat(aggregationDAO.getByTimePeriod(MONTH)).extracting(PolicyViolationAggregation::getEvaluationCount)
+        .containsExactly(1, 0);
+    assertThat(aggregationDAO.getByTimePeriod(WEEK)).extracting(PolicyViolationAggregation::getEvaluationCount)
+        .containsExactly(1, 0, 0, 0);
   }
 
   private void assertViolationOneWeekAgoFromMidMonth(PolicyViolationAggregation aggregation,

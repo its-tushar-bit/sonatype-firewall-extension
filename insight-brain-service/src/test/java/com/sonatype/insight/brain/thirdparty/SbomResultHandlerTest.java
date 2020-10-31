@@ -124,11 +124,11 @@ public class SbomResultHandlerTest
     assertThat(filteredContent).isNotNull();
     Bom bom = assertFilteredSbomFile(filteredContent, 4);
     List<Component> components = bom.getComponents();
-    assertThat(components).extracting("name")
+    assertThat(components).extracting(Component::getName)
         .containsOnly("tomcat-catalina", "django", "jackson-databind", "joda-time");
-    assertThat(components).extracting("version")
+    assertThat(components).extracting(Component::getVersion)
         .containsOnly("9.0.14", "1.2.3", "2.9.9", "2.1.0");
-    assertThat(components).extracting("purl")
+    assertThat(components).extracting(Component::getPurl)
         .containsOnly("pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14", null,
             "pkg:library/com.fasterxml.jackson.core/jackson-databind@2.9.9", null);
     assertThat(components).extracting("hashes.size")
@@ -152,13 +152,13 @@ public class SbomResultHandlerTest
     assertThat(filteredContent).isNotNull();
     Bom bom = assertFilteredSbomFile(filteredContent, 2);
     List<Component> components = bom.getComponents();
-    assertThat(components).extracting("name")
+    assertThat(components).extracting(Component::getName)
         .containsOnly("tomcat-catalina", "jackson-databind");
-    assertThat(components).extracting("version")
+    assertThat(components).extracting(Component::getVersion)
         .containsOnly("9.0.14", "2.9.9");
-    assertThat(components).extracting("type.name")
+    assertThat(components).extracting(component -> component.getType().getTypeName())
         .containsOnly("library", "library");
-    assertThat(components).extracting("purl")
+    assertThat(components).extracting(Component::getPurl)
         .containsOnly(null, "pkg:library/com.fasterxml.jackson.core/jackson-databind@2.9.9");
     assertThat(components).extracting("hashes.size")
         .containsOnly(1, null);
@@ -575,8 +575,8 @@ public class SbomResultHandlerTest
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
     assertThat(coordinates).hasSize(1);
-    assertThat(coordinates).extracting("name").containsOnly("django");
-    assertThat(coordinates).extracting("version").containsOnly("1.11.1");
+    assertThat(coordinates).extracting(ThirdPartyFileCoordinate::getName).containsOnly("django");
+    assertThat(coordinates).extracting(ThirdPartyFileCoordinate::getVersion).containsOnly("1.11.1");
   }
 
   @Test

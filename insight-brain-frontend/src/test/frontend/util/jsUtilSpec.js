@@ -134,7 +134,7 @@ describe('jsUtil', function() {
     };
 
     const assertFormat = (dateString) => {
-      const dateFormatRegex = /\d{4}-[0-1][0-2]-[0-3]\dT[0-2][0-3]:[0-5]\d:[0-5]\d\.\d{3}(-|\+)\d{4}/;
+      const dateFormatRegex = /\d{4}-[0-1]\d-[0-3]\dT[0-2][0-3]:[0-5]\d:[0-5]\d\.\d{3}(-|\+)\d{4}/;
       expect(dateFormatRegex.test(dateString)).toBe(true);
     };
 

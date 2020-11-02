@@ -26,6 +26,7 @@ function mapStateToProps({ scmOnboarding, router }) {
     // repositories
     loadingRepositories: scmOnboarding.loadingRepositories,
     repositories: scmOnboarding.repositories,
+    totalRepositories: scmOnboarding.totalRepositories,
     selectedRepositoryCount: scmOnboarding.selectedRepositoryCount,
     importedRepositoryCount: scmOnboarding.importedRepositoryCount,
 

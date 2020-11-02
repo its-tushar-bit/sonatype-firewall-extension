@@ -59,11 +59,16 @@ describe('scmOnboardingReducer', function() {
         repositories: []
       });
 
-      const repositoriesPayload = [{
-        'project': 'project',
-        'namespace': 'namespace',
-        'description': 'description'
-      }];
+      const repositoriesPayload = {
+        'totalRepositories': 1,
+        'availableRepositories': [
+          {
+            'project': 'project',
+            'namespace': 'namespace',
+            'description': 'description'
+          }
+        ]
+      };
 
       // when reduce is invoked
       const newState = reduce(state, {
@@ -72,7 +77,8 @@ describe('scmOnboardingReducer', function() {
       });
 
       // then state is updated
-      expect(newState.repositories).toBe(repositoriesPayload);
+      expect(newState.repositories).toBe(repositoriesPayload.availableRepositories);
+      expect(newState.totalRepositories).toBe(repositoriesPayload.totalRepositories);
       expect(newState.loadingRepositories).toBe(false);
 
       // and other properties are not modified
@@ -160,11 +166,16 @@ describe('scmOnboardingReducer', function() {
         repositories: []
       });
 
-      const repositoriesPayload = [{
-        'project': 'project',
-        'namespace': 'namespace',
-        'description': 'description'
-      }];
+      const repositoriesPayload = {
+        'totalRepositories': 1,
+        'availableRepositories': [
+          {
+            'project': 'project',
+            'namespace': 'namespace',
+            'description': 'description'
+          }
+        ]
+      };
 
       // when reduce is invoked
       const newState = reduce(state, {
@@ -173,7 +184,8 @@ describe('scmOnboardingReducer', function() {
       });
 
       // then state is updated
-      expect(newState.repositories).toBe(repositoriesPayload);
+      expect(newState.repositories).toBe(repositoriesPayload.availableRepositories);
+      expect(newState.totalRepositories).toBe(repositoriesPayload.totalRepositories);
 
       // and other properties are not modified
       expect(newState.other).toBe(otherObject);

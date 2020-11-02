@@ -121,7 +121,8 @@ function loadRepositoriesFulfilled(payload, state) {
   return {
     ...state,
     loadingRepositories: false,
-    repositories: payload,
+    repositories: payload.availableRepositories,
+    totalRepositories: payload.totalRepositories,
     selectedRepositoryCount: 0,
     // todo gather correct values INT-3479
     importedRepositoryCount: 0

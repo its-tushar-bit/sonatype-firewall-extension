@@ -158,6 +158,7 @@ export default function ResultsTable(props) {
 ResultsTable.propTypes = {
   loadingRepositories: PropTypes.bool.isRequired,
   repositories: PropTypes.arrayOf(PropTypes.shape(repositoryPropType)),
+  totalRepositories: PropTypes.number,
   selectedRepositoryCount: PropTypes.number.isRequired,
   importedRepositoryCount: PropTypes.number,
 

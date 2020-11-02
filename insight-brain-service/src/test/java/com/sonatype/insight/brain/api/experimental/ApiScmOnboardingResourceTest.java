@@ -6,16 +6,15 @@
 package com.sonatype.insight.brain.api.experimental;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.experimental.dto.SCMRepositories;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
-import com.sonatype.nexus.scm.api.model.SCMRepository;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.apache.http.HttpHeaders;
@@ -76,9 +75,8 @@ public class ApiScmOnboardingResourceTest
 
     // then the response is OK
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SC_OK);
-    @SuppressWarnings("unchecked")
-    List<SCMRepository> responseList = response.getBody(List.class);
-    assertThat(responseList.size()).isEqualTo(13);
+    SCMRepositories responseList = response.getBody(SCMRepositories.class);
+    assertThat(responseList.availableRepositories.size()).isEqualTo(13);
   }
 
   private String getResourceAsString(String filename) throws IOException {

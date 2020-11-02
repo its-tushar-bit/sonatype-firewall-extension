@@ -9,10 +9,10 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
-import java.util.List;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.experimental.dto.SCMRepositories;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.nexus.scm.SourceControlProvider;
-import com.sonatype.nexus.scm.api.model.SCMRepository;
 
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 
@@ -82,8 +81,9 @@ public class ApiScmOnboardingServiceTest
     tempEntity.newSourceControl(app.getId(), gitService.baseUrl() + "/org/repo.git", null);
 
     // then loading repositories returns the expected results
-    List<SCMRepository> repositories = apiScmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
-    assertThat(repositories.size()).isEqualTo(13);
+    SCMRepositories repositories = apiScmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
+    assertThat(repositories.availableRepositories.size()).isEqualTo(13);
+    assertThat(repositories.totalRepositories).isEqualTo(13);
   }
   
   @Test
@@ -114,8 +114,9 @@ public class ApiScmOnboardingServiceTest
     tempEntity.newSourceControl(tmpapp3.getId(), repo2ReplacementUrl, new Date());
     
     // then loading repositories returns the trimmed results
-    List<SCMRepository> repositories = apiScmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
-    assertThat(repositories.size()).isEqualTo(11);
+    SCMRepositories repositories = apiScmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
+    assertThat(repositories.availableRepositories.size()).isEqualTo(11);
+    assertThat(repositories.totalRepositories).isEqualTo(13);
   }
 
   private String getResourceAsString(String filename) throws IOException {

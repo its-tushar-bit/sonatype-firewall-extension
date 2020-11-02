@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.experimental.dto.SCMRepositories;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.model.Organization;
@@ -63,7 +64,7 @@ public class ApiScmOnboardingService
   }
 
   @Authorize(permission = Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION)
-  public List<SCMRepository> loadRepositories(final String orgId, final String hostUrl) throws IOException {
+  public SCMRepositories loadRepositories(final String orgId, String hostUrl) throws IOException {
     log.debug("loadRepositories returning data for org {} and hostUrl {}", orgId, hostUrl);
 
     if (orgId == null) {
@@ -91,7 +92,9 @@ public class ApiScmOnboardingService
     GeneralSCMApiClient generalClient = gitApiClientFactory
         .getGeneralSCMApiClient(orgSourceControl.getProvider(), configuration, orgSourceControl.getUsername(),
             orgSourceControl.getToken());
-    return trimAlreadyConfigured(generalClient.listAllRepositories());
+    List<SCMRepository> allRepositories = generalClient.listAllRepositories();
+    List<SCMRepository> availableRepositories = trimAlreadyConfigured(allRepositories);
+    return new SCMRepositories(allRepositories.size(), availableRepositories);  
   }
 
   /**

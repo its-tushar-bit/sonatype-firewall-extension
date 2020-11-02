@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.experimental;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -18,7 +17,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.nexus.scm.api.model.SCMRepository;
+import com.sonatype.insight.brain.api.experimental.dto.SCMRepositories;
 
 import com.codahale.metrics.annotation.Timed;
 import com.google.common.collect.ImmutableMap;
@@ -49,7 +48,7 @@ public class ApiScmOnboardingResource
   @Path(LOAD_REPO_PATH)
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public List<SCMRepository> loadRepositories(
+  public SCMRepositories loadRepositories(
       @QueryParam("orgId") String orgId,
       @QueryParam("defaultHostUrl") String defaultHostUrl)
       throws IOException

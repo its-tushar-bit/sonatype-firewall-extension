@@ -129,14 +129,14 @@
               <relocations>
                 <relocation>
                   <pattern>com.sonatype.insight.scan.</pattern>
-                  <shadedPattern>zz.com.sonatype.insight.scan.</shadedPattern>
+                  <shadedPattern>zy.com.sonatype.insight.scan.</shadedPattern>
                   <excludes>
                     <exclude>com.sonatype.insight.scan.model.*</exclude>
                   </excludes>
                 </relocation>
                 <relocation>
                   <pattern>org.objectweb.</pattern>
-                  <shadedPattern>zz.org.objectweb.</shadedPattern>
+                  <shadedPattern>zy.org.objectweb.</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>

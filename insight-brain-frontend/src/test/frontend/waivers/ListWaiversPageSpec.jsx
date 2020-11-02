@@ -185,7 +185,6 @@ describe('ListWaiversPage', function() {
     const component = getShallowComponent();
     const buttonSection = component.find('.nx-tile__actions');
     const button = buttonSection.find(NxButton);
-    expect(button).toMatchSelector('.nx-btn--tertiary');
     expect(button.find('span')).toHaveText('Add Waiver');
     const icon = button.find(NxFontAwesomeIcon);
     expect(icon).toHaveProp('icon', faPlus);

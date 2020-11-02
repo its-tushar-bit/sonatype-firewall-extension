@@ -102,7 +102,7 @@ export default function ListWaiversPage(props) {
               <div className="nx-tile__actions">
                 <NxTooltip id="add-waiver-btn-tooltip"
                            title={ hasPermissionForAppWaivers ? '' : 'Insufficient permissions to Add Waiver' }>
-                  <NxButton className={ classnames('nx-btn--tertiary', {disabled: !hasPermissionForAppWaivers}) }
+                  <NxButton className={ classnames({disabled: !hasPermissionForAppWaivers}) }
                             onClick={ redirectToAddWaiverPage }
                             id="add-waiver-btn">
                     <NxFontAwesomeIcon icon={ faPlus }/>

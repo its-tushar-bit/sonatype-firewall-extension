@@ -26,7 +26,7 @@ const ownerIdTypeMap = {
 
 export default function ViolationDetailsTile(props) {
   const { $state, violationDetails, stageTypes, stateGo, activeWaivers } = props,
-      { applicationPublicId, policyName, threatLevel, policyOwner, stageData, policyViolationId } = violationDetails,
+      { applicationPublicId, policyName, threatLevel, policyOwner, stageData } = violationDetails,
 
       policyExists = !!policyOwner.ownerId,
 
@@ -51,7 +51,7 @@ export default function ViolationDetailsTile(props) {
 
       onManageWaiversClick = () => {
         stateGo('listWaivers', {
-          violationId: policyViolationId,
+          violationId: $state.params.id,
           type: $state.params.type,
           sidebarReference: $state.params.sidebarReference
         });

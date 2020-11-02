@@ -26,6 +26,7 @@ describe('violationPageReducer', function() {
       const action = {type: 'UNKNOWN'};
       const newState = reducer(undefined, action);
       expect(newState.violationDetails).toBe(null);
+      expect(newState.selectedViolationId).toBe(null);
       expect(newState.loading).toBe(true);
       expect(newState.violationDetailsError).toBe(null);
       expect(newState.vulnerabilityDetailsLoading).toBe(false);
@@ -71,6 +72,7 @@ describe('violationPageReducer', function() {
     it('resets to default state and sets the loading flag to true', function() {
       const initialState = {
         violationDetails: {},
+        selectedViolationId: '123',
         violationDetailsError: 'foo',
         loading: false,
         vulnerabilityDetailsLoading: true,
@@ -85,6 +87,7 @@ describe('violationPageReducer', function() {
         loading: true,
         violationDetailsError: null,
         violationDetails: null,
+        selectedViolationId: null,
         vulnerabilityDetailsLoading: false,
         vulnerabilityDetails: null,
         vulnerabilityDetailsError: null,
@@ -98,6 +101,7 @@ describe('violationPageReducer', function() {
     it('unsets loading and violationDetailsError and sets violationDetails & activeWaivers to the payload', function() {
       const initialState = {
         violationDetails: {},
+        selectedViolationId: null,
         violationDetailsError: 'baz',
         loading: true,
         otherProp: 'asdf'
@@ -110,7 +114,8 @@ describe('violationPageReducer', function() {
           applicableWaivers: {
             activeWaivers: ['activeWaiver'],
             expiredWaivers: ['expiredWaiver']
-          }
+          },
+          selectedViolationId: '123'
         }
       });
 
@@ -120,7 +125,8 @@ describe('violationPageReducer', function() {
         violationDetails: { foo: 'bar' },
         otherProp: 'asdf',
         activeWaivers: ['activeWaiver'],
-        expiredWaivers: ['expiredWaiver']
+        expiredWaivers: ['expiredWaiver'],
+        selectedViolationId: '123'
       });
     });
   });

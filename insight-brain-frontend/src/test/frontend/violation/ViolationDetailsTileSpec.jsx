@@ -44,7 +44,7 @@ describe('ViolationDetailsTile', function() {
       $state: {
         get: stateGetMock,
         href: stateHrefMock,
-        params: {id: 'policyViolationId', type: 'violation', sidebarReference: 'filter'}
+        params: {id: 'selectedViolationId', type: 'violation', sidebarReference: 'filter'}
       },
       violationDetails: {
         policyViolationId: 'policyViolationId',
@@ -158,7 +158,7 @@ describe('ViolationDetailsTile', function() {
 
       button.simulate('click');
       expect(stateGoMock).toHaveBeenCalledWith('listWaivers',
-          { violationId: 'policyViolationId', type: 'violation', sidebarReference: 'filter' });
+          { violationId: 'selectedViolationId', type: 'violation', sidebarReference: 'filter' });
     });
 
     describe('active waivers counter', function() {

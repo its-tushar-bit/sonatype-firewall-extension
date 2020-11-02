@@ -26,18 +26,14 @@ export const VIOLATION_LOAD_APPLICABLE_WAIVERS_REQUESTED = 'VIOLATION_LOAD_APPLI
 export const VIOLATION_LOAD_APPLICABLE_WAIVERS_FULFILLED = 'VIOLATION_LOAD_APPLICABLE_WAIVERS_FULFILLED';
 export const VIOLATION_LOAD_APPLICABLE_WAIVERS_FAILED = 'VIOLATION_LOAD_APPLICABLE_WAIVERS_FAILED';
 
-function isViolationLoaded(requestedViolationId, violationDetails) {
-  return violationDetails && violationDetails.policyViolationId === requestedViolationId;
-}
-
 export function loadViolation(id) {
   return function(dispatch, getState) {
 
     const { violationPage } = getState(),
-        { violationDetails } = violationPage;
+        { violationDetails, selectedViolationId } = violationPage;
 
     // avoid requesting an already loaded violation but request waivers every time as they may have changed
-    const violationDetailsRequest = isViolationLoaded(id, violationDetails)
+    const violationDetailsRequest = id === selectedViolationId
       ? Promise.resolve({ data: violationDetails })
       : axios.get(getViolationDetailsUrl(id));
 
@@ -52,7 +48,8 @@ export function loadViolation(id) {
         .then(([violationDetailsResponse, applicableWaiversResponse]) => {
           return dispatch(loadViolationFulfilled({
             violationDetails: violationDetailsResponse.data,
-            applicableWaivers: applicableWaiversResponse.data
+            applicableWaivers: applicableWaiversResponse.data,
+            selectedViolationId: id
           }));
         })
         .then(({ payload }) => dispatch(loadVulnerabilityDetails(payload)))

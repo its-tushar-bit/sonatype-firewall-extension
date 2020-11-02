@@ -497,7 +497,7 @@ public class AddWaiverTest
       ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
       violationDetailsPage.detailsTile().shouldBe(visible);
       violationDetailsPage.detailsTile().manageWaiversButton().shouldBe(visible);
-      violationDetailsPage.detailsTile().waivedIndicator().shouldNotBe(visible);
+      violationDetailsPage.detailsTile().waiversIndicator().shouldBe(visible).shouldHave(text("0 Active Waivers"));
       violationDetailsPage.sidebarNav().sidebarNavItems().shouldHaveSize(1);
     }
     finally {
@@ -536,7 +536,7 @@ public class AddWaiverTest
       ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
       violationDetailsPage.detailsTile().shouldBe(visible);
       violationDetailsPage.detailsTile().manageWaiversButton().shouldBe(visible);
-      violationDetailsPage.detailsTile().waivedIndicator().shouldBe(visible);
+      violationDetailsPage.detailsTile().waiversIndicator().shouldBe(visible).shouldHave(text("1 Active Waiver"));
       violationDetailsPage.sidebarNav().sidebarNavItems().shouldHaveSize(1);
     }
     finally {
@@ -570,7 +570,7 @@ public class AddWaiverTest
 
       violationDetailsPage.detailsTile().shouldBe(visible);
       violationDetailsPage.detailsTile().manageWaiversButton().shouldBe(visible);
-      violationDetailsPage.detailsTile().waivedIndicator().shouldNotBe(visible);
+      violationDetailsPage.detailsTile().waiversIndicator().shouldBe(visible).shouldHave(text("0 Active Waivers"));
       violationDetailsPage.sidebarNav().sidebarNavItems().shouldHaveSize(3);
       violationDetailsPage.sidebarNav().navItem(2).shouldHave(cssClass("selected"));
     }
@@ -616,7 +616,7 @@ public class AddWaiverTest
 
       violationDetailsPage.detailsTile().shouldBe(visible);
       violationDetailsPage.detailsTile().manageWaiversButton().shouldBe(visible);
-      violationDetailsPage.detailsTile().waivedIndicator().shouldBe(visible);
+      violationDetailsPage.detailsTile().waiversIndicator().shouldBe(visible).shouldHave(text("1 Active Waiver"));
       violationDetailsPage.sidebarNav().sidebarNavItems().shouldHaveSize(2);
       violationDetailsPage.sidebarNav().navItem(1).shouldHave(cssClass("selected"));
     }

@@ -3,14 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { faFlag } from '@fortawesome/pro-solid-svg-icons';
-
 import * as enzymeUtils from '../enzymeUtils';
 import ViolationExclamation from '../../../main/frontend/react/ViolationExclamation';
 import ViolationDetailsSubtitle from '../../../main/frontend/violation/ViolationDetailsSubtitle';
 import StageDisplay from '../../../main/frontend/violation/StageDisplay';
 import { pathSet } from '../../../main/frontend/util/jsUtil';
-import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { NxButton } from '@sonatype/react-shared-components';
+import ActiveWaiversIndicator from '../../../main/frontend/violation/ActiveWaiversIndicator';
 
 describe('ViolationDetailsTile', function() {
   let timeAgoMock,
@@ -149,38 +148,53 @@ describe('ViolationDetailsTile', function() {
       expect(subtitle).toHaveProp('filenames', minimalProps.violationDetails.filenames);
     });
 
-    it('renders an nx-tile__actions section with an action button if there are no active waivers', function() {
+    it('renders an nx-tile__actions section with an action button', function() {
       const actions = getShallowComponent().find('.nx-tile__actions'),
           button = actions.find(NxButton);
 
       expect(actions).toExist();
       expect(button).toExist();
+      expect(button.text()).toContain('Manage Waivers');
 
       button.simulate('click');
       expect(stateGoMock).toHaveBeenCalledWith('listWaivers',
           { violationId: 'policyViolationId', type: 'violation', sidebarReference: 'filter' });
     });
 
-    it('renders an nx-tile__actions section with action button and waived indicator when there are active waivers',
-        function() {
-          const component = getShallowComponent({activeWaivers: ['an active waiver']}),
-              actions = component.find('.nx-tile__actions'),
-              button = actions.find(NxButton),
-              indicator = actions.find('.violation-details-tile__waiver-indicator'),
-              icon = indicator.find(NxFontAwesomeIcon),
-              text = indicator.find('span');
+    describe('active waivers counter', function() {
+      it('renders as inactive when there are no active waivers for the violation', function() {
+        const componentWithZeroWaivers = getShallowComponent(),
+            waiverIndicator = componentWithZeroWaivers.find(ActiveWaiversIndicator);
 
-          expect(actions).toExist();
-          expect(button).toExist();
-          expect(indicator).toExist();
-          expect(icon).toHaveProp('icon', faFlag);
-          expect(text).toHaveText('Has Active Waivers');
+        expect(waiverIndicator).toExist();
+        expect(waiverIndicator).toHaveProp('noOfWaivers', 0);
+        expect(waiverIndicator.html()).toContain('0');
+        expect(waiverIndicator.html()).toContain('Active Waivers');
+        expect(waiverIndicator.html()).toContain('iq-waiver-indicator--inactive');
+      });
 
-          button.simulate('click');
-          expect(stateGoMock).toHaveBeenCalledWith('listWaivers',
-              { violationId: 'policyViolationId', type: 'violation', sidebarReference: 'filter' });
-        }
-    );
+      it('renders as active and singular when there is only one active waiver for the violation', function() {
+        const componentWithOneWaiver = getShallowComponent({ activeWaivers: ['an active waiver'] }),
+            waiverIndicator = componentWithOneWaiver.find(ActiveWaiversIndicator);
+
+        expect(waiverIndicator).toExist();
+        expect(waiverIndicator).toHaveProp('noOfWaivers', 1);
+        expect(waiverIndicator.html()).toContain('1');
+        expect(waiverIndicator.html()).toContain('Active Waiver');
+        expect(waiverIndicator.html()).not.toContain('iq-waiver-indicator--inactive');
+      });
+
+      it('renders as active and plural when there is more than one active waiver for the violation', function() {
+        const componentWithSeveralWaiver = getShallowComponent(
+                { activeWaivers: ['an active waiver', 'and an another one', 'and another one bites the dust!'] }),
+            waiverIndicator = componentWithSeveralWaiver.find(ActiveWaiversIndicator);
+        expect(waiverIndicator).toExist();
+        expect(waiverIndicator).toHaveProp('noOfWaivers', 3);
+        expect(waiverIndicator.html()).toContain('3');
+        expect(waiverIndicator.html()).toContain('Active Waivers');
+        expect(waiverIndicator.html()).not.toContain('iq-waiver-indicator--inactive');
+      });
+    });
 
     it('does not render nx-tile__actions section when policyOwner prop has null ownerId', function() {
       const component = getShallowComponent(pathSet(['violationDetails', 'policyOwner', 'ownerId'], null,

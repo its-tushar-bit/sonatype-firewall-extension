@@ -148,8 +148,8 @@ public class ViolationDetailsPage
       return new Button("#violation-page-manage-waivers");
     }
 
-    public SelenideElement waivedIndicator() {
-      return child(".violation-details-tile__waiver-indicator");
+    public SelenideElement waiversIndicator() {
+      return child("#waivers-indicator");
     }
   }
 

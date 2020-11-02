@@ -7,9 +7,8 @@ import React from 'react';
 import * as PropTypes from 'prop-types';
 import { compose, keys, map, max, prop, reduce, values } from 'ramda';
 import classnames from 'classnames';
-import { faFlag } from '@fortawesome/pro-solid-svg-icons';
 import { categoryByPolicyThreatLevel } from '@sonatype/react-shared-components/util/threatLevels';
-import { NxButton, NxFontAwesomeIcon} from '@sonatype/react-shared-components';
+import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 
 import ViolationExclamation from '../react/ViolationExclamation';
 import { timeAgo } from '../util/CommonServices';
@@ -18,6 +17,7 @@ import { getOwnerImageUrl } from '../util/CLMContextLocation';
 import ViolationDetailsSubtitle from './ViolationDetailsSubtitle';
 import StageDisplay from './StageDisplay';
 import { faEye } from '@fortawesome/pro-solid-svg-icons/faEye';
+import ActiveWaiversIndicator from './ActiveWaiversIndicator';
 
 const ownerIdTypeMap = {
   application: 'applicationPublicId',
@@ -62,13 +62,6 @@ export default function ViolationDetailsTile(props) {
           <NxFontAwesomeIcon icon={faEye}/>
           <span>Manage Waivers</span>
         </NxButton>
-      ),
-
-      waivedIndicator = (
-        <div className="violation-details-tile__waiver-indicator">
-          <NxFontAwesomeIcon icon={faFlag} />
-          <span>Has Active Waivers</span>
-        </div>
       );
 
   function getOwnerHref(owner) {
@@ -82,7 +75,7 @@ export default function ViolationDetailsTile(props) {
       { policyExists &&
         <div className="nx-tile__actions">
           { manageWaiversButton }
-          { activeWaivers.length !== 0 && waivedIndicator }
+          <ActiveWaiversIndicator noOfWaivers={ activeWaivers.length }/>
         </div>
       }
       <div className="nx-tile-header">

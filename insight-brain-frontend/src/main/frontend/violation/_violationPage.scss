@@ -173,14 +173,28 @@
   margin-bottom: $nx-spacing-sm;
 }
 
-.violation-details-tile__waiver-indicator {
-  color: #1a832b;
-  font-style: italic;
-  height: 32px;
+.iq-waiver-indicator {
+  color: $nx-dark-green;
+  height: 19px;
+  text-align: right;
 
-  padding-right: $nx-spacing-sm;
+  padding-right: $nx-spacing-xs;
+}
 
-  & > svg {
-    margin-top: $nx-spacing-xs;
-  }
+.iq-waiver-indicator--inactive {
+  color: $nx-text-color-disabled;
+}
+
+.iq-waiver-indicator__counter {
+  background-color: $nx-dark-green;
+  border-radius: 8px;
+  color: $nx-white;
+  font-size: 10px;
+  padding: 0 4px 1px 4px;
+  text-align: center;
+  vertical-align: text-bottom;
+}
+
+.iq-waiver-indicator__counter--inactive {
+  background-color: $nx-text-color-disabled;
 }

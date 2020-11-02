@@ -148,7 +148,7 @@ public class ViolationDetailsTest
     refreshOrOpen(ViolationDetailsPage.url(deletedPolicyViolation.getId()));
     ViolationDetailsPage.ViolationDetailsTile tile = new ViolationDetailsPage().detailsTile();
     tile.policyOwner().shouldHave(text("Policy no longer exists"));
-    tile.waivedIndicator().shouldNotBe(visible);
+    tile.waiversIndicator().shouldNotBe(visible);
     tile.manageWaiversButton().shouldNotBe(visible);
     eyesWatcher.eyesCheck();
   }
@@ -437,7 +437,8 @@ public class ViolationDetailsTest
     ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
     ViolationDetailsTile detailsTile = violationDetailsPage.detailsTile();
 
-    detailsTile.waivedIndicator().shouldBe(visible);
     detailsTile.manageWaiversButton().shouldBe(visible);
+    detailsTile.waiversIndicator().shouldBe(visible);
+    detailsTile.waiversIndicator().shouldHave(text("1 Active Waiver"));
   }
 }

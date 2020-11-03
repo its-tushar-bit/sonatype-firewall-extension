@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.legal;
+package com.sonatype.insight.brain.api.experimental.legal;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -25,7 +25,7 @@ import com.sonatype.insight.license.dto.model.LicenseMetadataDTO;
 import com.google.common.collect.Iterables;
 
 @Named
-public class LicenseLegalHdsService
+public class ApiLicenseLegalHdsService
 {
   static final String METADATA_URL = "/rest/license/metadata";
 
@@ -38,7 +38,7 @@ public class LicenseLegalHdsService
   private final InsightConfig insightConfig;
 
   @Inject
-  public LicenseLegalHdsService(HdsClient hdsClient, InsightConfig insightConfig) {
+  public ApiLicenseLegalHdsService(HdsClient hdsClient, InsightConfig insightConfig) {
     this.hdsClient = hdsClient;
     this.insightConfig = insightConfig;
   }

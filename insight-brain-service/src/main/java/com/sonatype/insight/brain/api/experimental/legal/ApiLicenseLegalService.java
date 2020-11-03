@@ -3,14 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.legal;
+package com.sonatype.insight.brain.api.experimental.legal;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -26,20 +25,16 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
-import com.sonatype.insight.brain.legal.dto.ApplicationReportRawDataDTO;
-import com.sonatype.insight.brain.legal.dto.LegalOrganizationReportDataDTO;
-import com.sonatype.insight.brain.legal.dto.LegalReportDataDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.dto.model.ComponentLegalCommentDTO;
 import com.sonatype.insight.license.dto.model.ComponentLegalFileDTO;
@@ -54,13 +49,13 @@ import org.slf4j.LoggerFactory;
  * @since 1.101
  */
 @Named
-public class LicenseLegalService
+public class ApiLicenseLegalService
 {
-  private static final Logger log = LoggerFactory.getLogger(LicenseLegalService.class);
+  private static final Logger log = LoggerFactory.getLogger(ApiLicenseLegalService.class);
 
   private final MultiLicenseDAO multiLicenseDAO;
 
-  private final LicenseLegalHdsService licenseLegalHdsService;
+  private final ApiLicenseLegalHdsService apiLicenseLegalHdsService;
 
   private final ApplicationDAO applicationDAO;
 
@@ -71,16 +66,16 @@ public class LicenseLegalService
   private final LegalReportBuilder legalReportBuilder;
 
   @Inject
-  public LicenseLegalService(
+  public ApiLicenseLegalService(
       MultiLicenseDAO multiLicenseDAO,
-      LicenseLegalHdsService licenseLegalHdsService,
+      ApiLicenseLegalHdsService apiLicenseLegalHdsService,
       ApplicationDAO applicationDAO,
       PolicyEvaluationDAO policyEvaluationDAO,
       ApiReportDataServiceV2 apiReportDataServiceV2,
       LegalReportBuilder legalReportBuilder)
   {
     this.multiLicenseDAO = multiLicenseDAO;
-    this.licenseLegalHdsService = licenseLegalHdsService;
+    this.apiLicenseLegalHdsService = apiLicenseLegalHdsService;
     this.applicationDAO = applicationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.apiReportDataServiceV2 = apiReportDataServiceV2;
@@ -88,11 +83,11 @@ public class LicenseLegalService
   }
 
   @Authorize(permission = Permission.READ)
-  public LegalReportDataDTO getLicenseMetadataReport(
+  public ApiLicenseLegalApplicationReportDTO getLicenseLegalApplicationReport(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
   {
     log.info("Processing license metadata request for {}", applicationPublicId);
-    ApiReportRawDataDTOV2 latestRawReport = getLatestRawReportForApplication(applicationPublicId)
+    ApiReportRawDataDTOV2 latestRawReport = getLastRawApplicationReport(applicationPublicId)
         .orElseThrow(() -> new NotFoundException("Report for application " + applicationPublicId + " not found."));
     Set<ApiLicenseDTO> multiLicenses = getReportMultiLicenses(latestRawReport);
     Set<License> licenses = multiLicenses.stream()
@@ -100,7 +95,7 @@ public class LicenseLegalService
         .flatMap(multiLicenseId -> multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(multiLicenseId).stream())
         .collect(Collectors.toSet());
     Map<String, LicenseMetadataDTO> licenseMetadataById = multiLicenses.isEmpty() ? Collections.emptyMap() :
-        licenseLegalHdsService.getLicenseMetadata(
+        apiLicenseLegalHdsService.getLicenseMetadata(
             licenses.stream()
                 .map(License::getId)
                 .collect(Collectors.toSet()))
@@ -111,8 +106,9 @@ public class LicenseLegalService
     Map<ComponentIdentifier, Set<ComponentLegalFileDTO>> componentLegalFilesByComponentIdentifier =
         getComponentLegalFilesByComponentIdentifier(Collections.singleton(latestRawReport));
     log.info("Building license metadata report.");
-    return legalReportBuilder.buildLicenseMetadataReport(latestRawReport, componentLegalCommentsByComponentIdentifier,
-        componentLegalFilesByComponentIdentifier, licenses, licenseMetadataById);
+    return legalReportBuilder
+        .getLicenseLegalApplicationReport(latestRawReport, componentLegalCommentsByComponentIdentifier,
+            componentLegalFilesByComponentIdentifier, licenses, licenseMetadataById);
   }
 
   private Set<ComponentIdentifier> getComponentIdentifiers(Collection<ApiReportRawDataDTOV2> rawReports) {
@@ -141,39 +137,10 @@ public class LicenseLegalService
         licenses.effectiveLicenses.stream()).collect(Collectors.toSet());
   }
 
-  @Authorize(permission = Permission.READ)
-  public LegalOrganizationReportDataDTO getOrganizationLicenseMetadataReport(
-      @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String orgId)
-  {
-    Set<ApplicationReportRawDataDTO> reportsForOrg = getReportsForOrg(orgId);
-    if (reportsForOrg.isEmpty()) {
-      throw new NotFoundException("Cannot find reports for organization " + orgId + ".");
-    }
-    Set<ApiLicenseDTO> multiLicenses = reportsForOrg.stream()
-        .flatMap(report -> getReportMultiLicenses(report.apiReportRawDataDTOV2).stream())
-        .collect(Collectors.toSet());
-    Set<License> licenses = multiLicenses.stream()
-        .map(multiLicense -> multiLicense.licenseId)
-        .flatMap(multiLicenseId -> multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(multiLicenseId).stream())
-        .collect(Collectors.toSet());
-    Map<String, LicenseMetadataDTO> licenseMetadataById = multiLicenses.isEmpty() ? Collections.emptyMap() :
-        licenseLegalHdsService.getLicenseMetadata(licenses.stream().map(License::getId).collect(Collectors.toSet()))
-            .stream().collect(Collectors.toMap(LicenseMetadataDTO::getLicenseId, Function.identity()));
-    Set<ApiReportRawDataDTOV2> rawReports = reportsForOrg.stream()
-        .map(report -> report.apiReportRawDataDTOV2)
-        .collect(Collectors.toSet());
-    Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>> componentLegalCommentsByComponentIdentifier =
-        getComponentLegalCommentsByComponentIdentifier(rawReports);
-    Map<ComponentIdentifier, Set<ComponentLegalFileDTO>> componentLegalFilesByComponentIdentifier =
-        getComponentLegalFilesByComponentIdentifier(rawReports);
-    return legalReportBuilder.getLegalOrganizationReportData(reportsForOrg, componentLegalCommentsByComponentIdentifier,
-        componentLegalFilesByComponentIdentifier, licenses, licenseMetadataById);
-  }
-
   private Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>> getComponentLegalCommentsByComponentIdentifier(
       Collection<ApiReportRawDataDTOV2> rawReports)
   {
-    return licenseLegalHdsService.getComponentLegalComments(
+    return apiLicenseLegalHdsService.getComponentLegalComments(
         getComponentIdentifiers(rawReports)).stream()
         .collect(Collectors.groupingBy(
             c -> LegalReportBuilder.removeClassifierAndExtension(c.getComponentIdentifier()), Collectors.toSet()));
@@ -182,31 +149,23 @@ public class LicenseLegalService
   private Map<ComponentIdentifier, Set<ComponentLegalFileDTO>> getComponentLegalFilesByComponentIdentifier(
       Collection<ApiReportRawDataDTOV2> rawReports)
   {
-    return licenseLegalHdsService.getComponentLegalFiles(
+    return apiLicenseLegalHdsService.getComponentLegalFiles(
         getComponentIdentifiers(rawReports)).stream()
         .collect(Collectors.groupingBy(
             c -> LegalReportBuilder.removeClassifierAndExtension(c.getComponentIdentifier()), Collectors.toSet()));
   }
 
   // Visible for testing
-  Optional<ApiReportRawDataDTOV2> getLatestRawReportForApplication(String applicationPublicId) {
+  Optional<ApiReportRawDataDTOV2> getLastRawApplicationReport(String applicationPublicId) {
     return Optional.ofNullable(applicationDAO.getByPublicId(applicationPublicId)).flatMap(
-        application -> getLastRawReportsByAppPublicId(Collections.singletonList(application))
-            .get(application.getPublicId()));
-  }
-
-  // Visible for testing
-  Map<String, Optional<ApiReportRawDataDTOV2>> getLastRawReportsByAppPublicId(List<Application> applications) {
-    List<PolicyEvaluation> lastPolicyEvaluationsForAllStages = policyEvaluationDAO
-        .getLastByApplicationIds(applications.stream().map(Application::getId).collect(Collectors.toSet()));
-    return applications.stream().collect(Collectors.toMap(Application::getPublicId, application ->
-        lastPolicyEvaluationsForAllStages.stream()
-            .filter(policyEvaluation -> policyEvaluation.getApplicationId().equals(application.getId()))
+        application -> policyEvaluationDAO
+            .getLastByApplicationIds(Collections.singleton(application.getId()))
+            .stream()
             .max(Comparator.comparing(PolicyEvaluation::getTime))
-            .map(policyEvaluation -> getLastRawReportForApplication(application.getPublicId(), policyEvaluation))));
+            .map(policyEvaluation -> getLastRawApplicationReport(application.getPublicId(), policyEvaluation)));
   }
 
-  private ApiReportRawDataDTOV2 getLastRawReportForApplication(
+  private ApiReportRawDataDTOV2 getLastRawApplicationReport(
       String applicationPublicId,
       PolicyEvaluation lastPolicyEvaluation)
   {
@@ -216,21 +175,5 @@ public class LicenseLegalService
     catch (IOException e) {
       throw new UncheckedIOException(e.getMessage(), e);
     }
-  }
-
-  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
-  public List<Application> getApplications() {
-    return applicationDAO.getAll();
-  }
-
-  // Visible for testing
-  Set<ApplicationReportRawDataDTO> getReportsForOrg(String organizationId) {
-    List<Application> applications = applicationDAO.getByOrganizationId(organizationId);
-    if (applications.isEmpty()) {
-      throw new NotFoundException("Cannot find applications for organization with id " + organizationId + ".");
-    }
-    return getLastRawReportsByAppPublicId(applications).entrySet().stream()
-        .filter(e -> e.getValue().isPresent())
-        .map(e -> new ApplicationReportRawDataDTO(e.getKey(), e.getValue().get())).collect(Collectors.toSet());
   }
 }

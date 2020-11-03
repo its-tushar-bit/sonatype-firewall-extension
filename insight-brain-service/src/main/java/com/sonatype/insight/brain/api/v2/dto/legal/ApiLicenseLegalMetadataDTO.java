@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.legal.dto;
+package com.sonatype.insight.brain.api.v2.dto.legal;
 
 import java.util.Set;
 
@@ -12,7 +12,7 @@ import com.sonatype.insight.license.dto.model.LicenseObligationDTO;
 /**
  * @since 1.101
  */
-public class LegalLicenseMetadataDTO
+public class ApiLicenseLegalMetadataDTO
 {
   public String licenseId;
 
@@ -22,7 +22,11 @@ public class LegalLicenseMetadataDTO
 
   public Set<LicenseObligationDTO> obligations;
 
-  public LegalLicenseMetadataDTO(
+  public ApiLicenseLegalMetadataDTO() {
+    // for jackson
+  }
+
+  public ApiLicenseLegalMetadataDTO(
       String licenseId,
       String licenseName,
       String licenseText,

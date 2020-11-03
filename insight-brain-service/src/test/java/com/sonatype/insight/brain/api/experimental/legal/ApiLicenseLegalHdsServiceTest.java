@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.legal;
+package com.sonatype.insight.brain.api.experimental.legal;
 
 import java.util.Arrays;
 import java.util.List;
@@ -32,14 +32,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-public class LicenseLegalHdsServiceTest
+public class ApiLicenseLegalHdsServiceTest
     extends AbstractComponentTest
 {
   @Mock
   private HdsClient mockHdsClient;
 
   @Inject
-  private LicenseLegalHdsService licenseLegalHdsService;
+  private ApiLicenseLegalHdsService apiLicenseLegalHdsService;
 
   @Override
   public void configure(Binder binder) {
@@ -60,10 +60,10 @@ public class LicenseLegalHdsServiceTest
         new LicenseMetadataDTO("License 3", "Test 3", new LicenseThreatGroupDTO("Group 3", 3),
             Sets.newHashSet(new LicenseObligationDTO("Obligation 3", Sets.newHashSet("Obligation Text 3")))));
 
-    when(mockHdsClient.post(eq(LicenseMetadataDTO[].class), eq(LicenseLegalHdsService.METADATA_URL), eq(licenses)))
+    when(mockHdsClient.post(eq(LicenseMetadataDTO[].class), eq(ApiLicenseLegalHdsService.METADATA_URL), eq(licenses)))
         .thenReturn(expectedMetadata.toArray(new LicenseMetadataDTO[0]));
 
-    List<LicenseMetadataDTO> results = licenseLegalHdsService.getLicenseMetadata(licenses);
+    List<LicenseMetadataDTO> results = apiLicenseLegalHdsService.getLicenseMetadata(licenses);
 
     assertThat(results).isEqualTo(expectedMetadata);
   }
@@ -71,10 +71,10 @@ public class LicenseLegalHdsServiceTest
   @Test
   public void testGetLicenseMetadata_Empty() {
     List<String> licenses = Arrays.asList("Adobe", "DOCBOOK", "MIT");
-    when(mockHdsClient.post(eq(LicenseMetadataDTO[].class), eq(LicenseLegalHdsService.METADATA_URL), eq(licenses)))
+    when(mockHdsClient.post(eq(LicenseMetadataDTO[].class), eq(ApiLicenseLegalHdsService.METADATA_URL), eq(licenses)))
         .thenReturn(new LicenseMetadataDTO[0]);
 
-    List<LicenseMetadataDTO> results = licenseLegalHdsService.getLicenseMetadata(licenses);
+    List<LicenseMetadataDTO> results = apiLicenseLegalHdsService.getLicenseMetadata(licenses);
     assertThat(results).isEmpty();
   }
 
@@ -108,10 +108,10 @@ public class LicenseLegalHdsServiceTest
         Sets.newHashSet(componentLegalComment1, componentLegalComment2);
 
     when(mockHdsClient
-        .post(eq(ComponentLegalCommentDTO[].class), eq(LicenseLegalHdsService.LEGAL_COMMENT_URL), eq(components)))
+        .post(eq(ComponentLegalCommentDTO[].class), eq(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL), eq(components)))
         .thenReturn(expectedLegalComments.toArray(new ComponentLegalCommentDTO[2]));
 
-    Set<ComponentLegalCommentDTO> results = licenseLegalHdsService.getComponentLegalComments(components);
+    Set<ComponentLegalCommentDTO> results = apiLicenseLegalHdsService.getComponentLegalComments(components);
 
     assertThat(results).isEqualTo(expectedLegalComments);
   }
@@ -122,10 +122,10 @@ public class LicenseLegalHdsServiceTest
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
 
     when(mockHdsClient
-        .post(eq(ComponentLegalCommentDTO[].class), eq(LicenseLegalHdsService.LEGAL_COMMENT_URL), eq(components)))
+        .post(eq(ComponentLegalCommentDTO[].class), eq(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL), eq(components)))
         .thenReturn(new ComponentLegalCommentDTO[0]);
 
-    Set<ComponentLegalCommentDTO> results = licenseLegalHdsService.getComponentLegalComments(components);
+    Set<ComponentLegalCommentDTO> results = apiLicenseLegalHdsService.getComponentLegalComments(components);
     assertThat(results).isEmpty();
   }
 
@@ -156,10 +156,10 @@ public class LicenseLegalHdsServiceTest
     Set<ComponentLegalFileDTO> expectedLegalFiles = Sets.newHashSet(componentLegalFile1, componentLegalFile2);
 
     when(mockHdsClient
-        .post(eq(ComponentLegalFileDTO[].class), eq(LicenseLegalHdsService.LEGAL_FILE_URL), eq(components)))
+        .post(eq(ComponentLegalFileDTO[].class), eq(ApiLicenseLegalHdsService.LEGAL_FILE_URL), eq(components)))
         .thenReturn(expectedLegalFiles.toArray(new ComponentLegalFileDTO[2]));
 
-    Set<ComponentLegalFileDTO> results = licenseLegalHdsService.getComponentLegalFiles(components);
+    Set<ComponentLegalFileDTO> results = apiLicenseLegalHdsService.getComponentLegalFiles(components);
 
     assertThat(results).isEqualTo(expectedLegalFiles);
   }
@@ -170,10 +170,10 @@ public class LicenseLegalHdsServiceTest
         Arrays.asList(ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
 
     when(mockHdsClient
-        .post(eq(ComponentLegalFileDTO[].class), eq(LicenseLegalHdsService.LEGAL_FILE_URL), eq(components)))
+        .post(eq(ComponentLegalFileDTO[].class), eq(ApiLicenseLegalHdsService.LEGAL_FILE_URL), eq(components)))
         .thenReturn(new ComponentLegalFileDTO[0]);
 
-    Set<ComponentLegalFileDTO> results = licenseLegalHdsService.getComponentLegalFiles(components);
+    Set<ComponentLegalFileDTO> results = apiLicenseLegalHdsService.getComponentLegalFiles(components);
     assertThat(results).isEmpty();
   }
 }

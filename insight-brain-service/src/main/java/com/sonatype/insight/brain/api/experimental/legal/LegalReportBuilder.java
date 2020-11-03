@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.legal;
+package com.sonatype.insight.brain.api.experimental.legal;
 
 import java.util.HashSet;
 import java.util.List;
@@ -18,13 +18,10 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
-import com.sonatype.insight.brain.legal.dto.ApplicationReportRawDataDTO;
-import com.sonatype.insight.brain.legal.dto.LegalApplicationDataDTO;
-import com.sonatype.insight.brain.legal.dto.LegalLicenseDataDTO;
-import com.sonatype.insight.brain.legal.dto.LegalLicenseMetadataDTO;
-import com.sonatype.insight.brain.legal.dto.LegalOrganizationReportDataDTO;
-import com.sonatype.insight.brain.legal.dto.LegalReportComponentDTO;
-import com.sonatype.insight.brain.legal.dto.LegalReportDataDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalDataDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalMetadataDTO;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.license.dto.model.ComponentLegalCommentDTO;
 import com.sonatype.insight.license.dto.model.ComponentLegalFileDTO;
@@ -35,37 +32,20 @@ import com.sonatype.insight.license.dto.model.LicenseMetadataDTO;
 @Named
 public class LegalReportBuilder
 {
-  LegalReportDataDTO buildLicenseMetadataReport(
+  ApiLicenseLegalApplicationReportDTO getLicenseLegalApplicationReport(
       ApiReportRawDataDTOV2 rawReport,
       Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>> componentLegalCommentsByComponentIdentifier,
       Map<ComponentIdentifier, Set<ComponentLegalFileDTO>> componentLegalFilesByComponentIdentifier,
       Set<License> licenses,
       Map<String, LicenseMetadataDTO> licenseMetadataById)
   {
-    List<LegalReportComponentDTO> components = augmentReportComponents(rawReport,
+    List<ApiLicenseLegalComponentDTO> components = getLicenseLegalComponents(rawReport,
         componentLegalCommentsByComponentIdentifier, componentLegalFilesByComponentIdentifier);
-    Set<LegalLicenseMetadataDTO> legalLicenseMetadata = getLegalLicenseMetadata(licenses, licenseMetadataById);
-    return new LegalReportDataDTO(components, legalLicenseMetadata);
+    Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata = getLicenseLegalMetadata(licenses, licenseMetadataById);
+    return new ApiLicenseLegalApplicationReportDTO(components, licenseLegalMetadata);
   }
 
-  LegalOrganizationReportDataDTO getLegalOrganizationReportData(
-      Set<ApplicationReportRawDataDTO> reportsForOrg,
-      Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>> componentLegalCommentsByComponentIdentifier,
-      Map<ComponentIdentifier, Set<ComponentLegalFileDTO>> componentLegalFilesByComponentIdentifier,
-      Set<License> licenses,
-      Map<String, LicenseMetadataDTO> licenseMetadataById)
-  {
-    Set<LegalApplicationDataDTO> legalAppData = reportsForOrg.stream()
-        .map(report -> new LegalApplicationDataDTO(report.applicationPublicId, augmentReportComponents(
-            report.apiReportRawDataDTOV2,
-            componentLegalCommentsByComponentIdentifier,
-            componentLegalFilesByComponentIdentifier)))
-        .collect(Collectors.toSet());
-    Set<LegalLicenseMetadataDTO> legalLicenseMetadata = getLegalLicenseMetadata(licenses, licenseMetadataById);
-    return new LegalOrganizationReportDataDTO(legalAppData, legalLicenseMetadata);
-  }
-
-  private List<LegalReportComponentDTO> augmentReportComponents(
+  private List<ApiLicenseLegalComponentDTO> getLicenseLegalComponents(
       ApiReportRawDataDTOV2 rawReport,
       Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>> componentLegalCommentsByComponentIdentifier,
       Map<ComponentIdentifier, Set<ComponentLegalFileDTO>> componentLegalFilesByComponentIdentifier)
@@ -74,7 +54,7 @@ public class LegalReportBuilder
         .filter(component -> component.componentIdentifier != null)
         .map(component -> {
           ComponentIdentifier key = removeClassifierAndExtension(component.componentIdentifier.toComponentIdentifier());
-          return new LegalReportComponentDTO(component, augmentLicenseData(component.licenseData,
+          return new ApiLicenseLegalComponentDTO(component, getLicenseLegalData(component.licenseData,
               componentLegalCommentsByComponentIdentifier.getOrDefault(key, new HashSet<>()),
               componentLegalFilesByComponentIdentifier.getOrDefault(key, new HashSet<>())));
         })
@@ -88,7 +68,7 @@ public class LegalReportBuilder
     return new ComponentIdentifier(componentIdentifier.getFormat(), coordinates);
   }
 
-  private LegalLicenseDataDTO augmentLicenseData(
+  private ApiLicenseLegalDataDTO getLicenseLegalData(
       ApiLicenseDataDTOV2 sourceData,
       Set<ComponentLegalCommentDTO> componentLegalComments,
       Set<ComponentLegalFileDTO> componentLegalFiles)
@@ -96,7 +76,7 @@ public class LegalReportBuilder
     if (sourceData == null) {
       return null;
     }
-    return new LegalLicenseDataDTO(
+    return new ApiLicenseLegalDataDTO(
         toLicenseIds(sourceData.declaredLicenses),
         toLicenseIds(sourceData.observedLicenses),
         toLicenseIds(sourceData.effectiveLicenses),
@@ -121,14 +101,14 @@ public class LegalReportBuilder
     return licenses.stream().map(license -> license.licenseId).collect(Collectors.toList());
   }
 
-  private Set<LegalLicenseMetadataDTO> getLegalLicenseMetadata(
+  private Set<ApiLicenseLegalMetadataDTO> getLicenseLegalMetadata(
       Set<License> licenses,
       Map<String, LicenseMetadataDTO> licenseMetadataById)
   {
     return licenses.stream()
         .filter(license -> licenseMetadataById.containsKey(license.getId()))
         .map(license ->
-            new LegalLicenseMetadataDTO(license.getId(),
+            new ApiLicenseLegalMetadataDTO(license.getId(),
                 license.getShortDisplayName(),
                 licenseMetadataById.get(license.getId()).getLicenseText(),
                 licenseMetadataById.get(license.getId()).getLicenseObligations()))

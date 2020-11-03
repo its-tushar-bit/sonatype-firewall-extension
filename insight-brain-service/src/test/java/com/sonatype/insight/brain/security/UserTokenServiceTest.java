@@ -14,6 +14,7 @@ import java.util.Objects;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenExistsDTO;
 import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
@@ -256,5 +257,25 @@ public class UserTokenServiceTest
   public void testDeleteUserTokenByUserCode_TokenDoesNotExist() {
     assertThatThrownBy(() -> userTokenService.deleteUserTokenByUserCode("absent")).isInstanceOf(NotFoundException.class)
         .hasMessage("Cannot find a user token with user code: absent");
+  }
+
+  @Test
+  public void testUserTokenExistsForCurrentUser() {
+    String username = "user-a";
+    when(subject.getPrincipal()).thenReturn(new UserPrincipal(username, "UserA", InternalRealm.ID));
+
+    ApiUserTokenExistsDTO apiUserTokenExistsDTO = userTokenService.userTokenExistsForCurrentUser();
+    assertThat(apiUserTokenExistsDTO).isNotNull();
+    assertThat(apiUserTokenExistsDTO.userTokenExists).isFalse();
+
+    UserToken userToken = tempEntity.newUserToken(username, InternalRealm.ID);
+    apiUserTokenExistsDTO = userTokenService.userTokenExistsForCurrentUser();
+    assertThat(apiUserTokenExistsDTO).isNotNull();
+    assertThat(apiUserTokenExistsDTO.userTokenExists).isTrue();
+
+    userTokenService.deleteUserTokenByUserCode(userToken.getUserCode());
+    apiUserTokenExistsDTO = userTokenService.userTokenExistsForCurrentUser();
+    assertThat(apiUserTokenExistsDTO).isNotNull();
+    assertThat(apiUserTokenExistsDTO.userTokenExists).isFalse();
   }
 }

@@ -122,4 +122,18 @@ public class UserTokenDAOTest
         .extracting(UserToken::getCreateTime)
         .containsExactlyInAnyOrder(december27, december28);
   }
+
+  @Test
+  public void testUserTokenExists() {
+    String username = "John.Doe";
+    String realmId = "testRealmId";
+
+    assertThat(userTokenDAO.userTokenExists(username, realmId)).isFalse();
+
+    UserToken userToken = tempEntity.newUserToken(username, realmId);
+    assertThat(userTokenDAO.userTokenExists(username, realmId)).isTrue();
+
+    userTokenDAO.delete(userToken);
+    assertThat(userTokenDAO.userTokenExists(username, realmId)).isFalse();
+  }
 }

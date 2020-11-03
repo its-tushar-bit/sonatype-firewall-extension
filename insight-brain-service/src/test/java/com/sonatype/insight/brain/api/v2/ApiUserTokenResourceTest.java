@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenExistsDTO;
 import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
@@ -38,8 +39,8 @@ public class ApiUserTokenResourceTest
     tempEntity.newUser("victor.wooten");
 
     HttpResponse response = HttpRequest.to(getRestBaseUrl())
-        .auth("victor.wooten", "secret").path(PublicApiPaths.USER_TOKEN_RESOURCE_PATH_V2)
-        .path(ApiUserTokenResource.CURRENT_USER)
+        .auth("victor.wooten", "secret")
+        .path(PublicApiPaths.USER_TOKEN_RESOURCE_PATH_V2, ApiUserTokenResource.CURRENT_USER)
         .post();
     assertResponseStatus(200, response);
 
@@ -64,8 +65,7 @@ public class ApiUserTokenResourceTest
     // Token for non-existing LDAP user, should be purged.
     UserToken userTokenLdapUseInvalid = tempEntity.newUserToken("no-such-user", ldapServer.getId());
 
-    HttpResponse response = restRequest().path(PublicApiPaths.USER_TOKEN_RESOURCE_PATH_V2)
-        .path(ApiUserTokenResource.PURGE).delete();
+    HttpResponse response = restRequest().path(ApiUserTokenResource.PURGE).delete();
 
     assertResponseStatus(204, response);
     assertThat(userTokenDAO.getById(userTokenInternalUser.getId())).isNotNull();
@@ -76,8 +76,7 @@ public class ApiUserTokenResourceTest
   @Test
   public void testDeleteCurrentUserToken() throws Exception {
     UserToken userToken = tempEntity.newUserToken(getUsername(), InternalRealm.ID);
-    HttpResponse response =
-        restRequest().path(PublicApiPaths.USER_TOKEN_RESOURCE_PATH_V2).path(ApiUserTokenResource.CURRENT_USER).delete();
+    HttpResponse response = restRequest().path(ApiUserTokenResource.CURRENT_USER).delete();
 
     assertResponseStatus(204, response);
     assertThat(userTokenDAO.getById(userToken.getId())).isNull();
@@ -94,7 +93,6 @@ public class ApiUserTokenResourceTest
     tempEntity.newUserToken("stanley.clarke", december31);
 
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.USER_TOKEN_RESOURCE_PATH_V2) //
         .query("createdAfter", "2019-12-10") //
         .query("createdBefore", "2019-12-20") //
         .get();
@@ -111,12 +109,33 @@ public class ApiUserTokenResourceTest
   public void testDeleteUserTokenByUserCode() throws Exception {
     UserToken userToken = tempEntity.newUserToken(getUsername(), InternalRealm.ID);
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.USER_TOKEN_RESOURCE_PATH_V2)
         .path(ApiUserTokenResource.USER_CODE)
         .parameter(userToken.getUserCode())
         .delete();
 
     assertResponseStatus(204, response);
     assertThat(userTokenDAO.getById(userToken.getId())).isNull();
+  }
+
+  @Test
+  public void testGetUserTokenExistsForCurrentUser() throws Exception {
+    HttpResponse response = restRequest().path(ApiUserTokenResource.CURRENT_USER_HAS_TOKEN).get();
+
+    assertResponseStatus(200, response);
+    ApiUserTokenExistsDTO responseBody = response.getBody(ApiUserTokenExistsDTO.class);
+    assertThat(responseBody.userTokenExists).isFalse();
+
+    tempEntity.newUserToken(getUsername(), InternalRealm.ID);
+
+    response = restRequest().path(ApiUserTokenResource.CURRENT_USER_HAS_TOKEN).get();
+
+    assertResponseStatus(200, response);
+    responseBody = response.getBody(ApiUserTokenExistsDTO.class);
+    assertThat(responseBody.userTokenExists).isTrue();
+  }
+
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(PublicApiPaths.USER_TOKEN_RESOURCE_PATH_V2);
   }
 }

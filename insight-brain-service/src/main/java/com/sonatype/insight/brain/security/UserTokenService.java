@@ -19,6 +19,7 @@ import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenExistsDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
@@ -33,6 +34,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.shiro.authz.UnauthenticatedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,6 +111,17 @@ public class UserTokenService
     apiUserTokenDTO.passCode = passCode;
 
     return apiUserTokenDTO;
+  }
+
+  public ApiUserTokenExistsDTO userTokenExistsForCurrentUser() {
+    UserPrincipal userPrincipal = currentUser.getUserPrincipal();
+    if (userPrincipal == null) {
+      throw new UnauthenticatedException();
+    }
+    ApiUserTokenExistsDTO apiUserTokenExistsDTO = new ApiUserTokenExistsDTO();
+    apiUserTokenExistsDTO.userTokenExists =
+        userTokenDAO.userTokenExists(userPrincipal.getUsername(), userPrincipal.getRealmId());
+    return apiUserTokenExistsDTO;
   }
 
   private boolean isRealmAllowed(String realmId) {

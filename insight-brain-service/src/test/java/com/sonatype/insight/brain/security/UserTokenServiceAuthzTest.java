@@ -71,4 +71,9 @@ public class UserTokenServiceAuthzTest
   public void testDeleteUserTokenByUserCode_Unauthenticated() throws Exception {
     userTokenService.deleteUserTokenByUserCode("a-user-code");
   }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testUserTokenExistsForCurrentUser_Unauthenticated() throws Exception {
+    userTokenService.userTokenExistsForCurrentUser();
+  }
 }

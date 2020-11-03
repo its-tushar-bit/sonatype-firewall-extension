@@ -21,6 +21,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenExistsDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.security.UserTokenService;
@@ -39,6 +40,8 @@ public class ApiUserTokenResource
 
   public static final String CURRENT_USER = "currentUser";
 
+  public static final String CURRENT_USER_HAS_TOKEN = CURRENT_USER + "/hasToken";
+
   public static final String USER_CODE = "userCode/{userCode}";
 
   public static final String PURGE = "purge";
@@ -46,6 +49,16 @@ public class ApiUserTokenResource
   @Inject
   public ApiUserTokenResource(UserTokenService userTokenService) {
     this.userTokenService = userTokenService;
+  }
+
+  /**
+   * @since 1.102
+   */
+  @GET
+  @Path(CURRENT_USER_HAS_TOKEN)
+  @Produces(MediaType.APPLICATION_JSON)
+  public ApiUserTokenExistsDTO getUserTokenExistsForCurrentUser() {
+    return userTokenService.userTokenExistsForCurrentUser();
   }
 
   /**

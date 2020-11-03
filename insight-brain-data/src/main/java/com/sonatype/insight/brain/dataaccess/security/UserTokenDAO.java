@@ -72,6 +72,12 @@ public class UserTokenDAO
     getByRealmId(tx, realmId).forEach(userToken -> delete(tx, userToken));
   }
 
+  public boolean userTokenExists(String username, String realmId) {
+    String sQuery = "SELECT COUNT(userToken) FROM UserToken" + //
+        " userToken WHERE userToken.username=?1 AND userToken.realmId=?2";
+    return getSingle(Long.class, sQuery, username, realmId) > 0;
+  }
+
   /**
    * Both createdAfter and createdBefore can be null.
    *

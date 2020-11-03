@@ -83,13 +83,5 @@
          ng-class="{'active': vm.state.includes('advancedSearch')}">
       <a ui-sref="advancedSearchConfig" class="iq-dropdown-menu__link--main-header">Advanced Search</a>
     </div>
-    <div id="early-access-header" ng-if="vm.permissions.CONFIGURE_SYSTEM && vm.isScmOnboardingFeatureEnabled">
-      <hr />
-      <h5>Early Access</h5>
-    </div>
-    <div id="system-configuration-scm-onboarding"
-         ng-if="vm.isScmOnboardingFeatureEnabled">
-      <a ui-sref="scmOnboarding" class="iq-dropdown-menu__link--main-header">SCM Onboarding</a>
-    </div>
   </div>
 </div>

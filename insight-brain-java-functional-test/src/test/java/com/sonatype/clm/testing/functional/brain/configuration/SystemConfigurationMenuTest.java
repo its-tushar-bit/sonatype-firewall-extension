@@ -76,9 +76,7 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.automaticApplications().shouldBe(visible);
     systemConfigMenu.emailConfiguration().shouldBe(visible);
     systemConfigMenu.proxyConfiguration().shouldBe(visible);
-    systemConfigMenu.earlyAccessHeader().shouldBe(hidden);
     systemConfigMenu.advancedSearchConfiguration().shouldBe(visible);
-    systemConfigMenu.scmOnboarding().shouldBe(hidden); // TODO update when feature flag is removed INT-????
   }
 
   @Test
@@ -102,9 +100,7 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.automaticApplications().shouldBe(hidden);
     systemConfigMenu.emailConfiguration().shouldBe(visible);
     systemConfigMenu.proxyConfiguration().shouldBe(visible);
-    systemConfigMenu.earlyAccessHeader().shouldBe(hidden);
     systemConfigMenu.advancedSearchConfiguration().shouldBe(visible);
-    systemConfigMenu.scmOnboarding().shouldBe(hidden); // TODO update when feature flag is removed INT-????
     eyesWatcher.eyesCheck();
   }
 
@@ -129,9 +125,7 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.automaticApplications().shouldBe(hidden);
     systemConfigMenu.emailConfiguration().shouldBe(hidden);
     systemConfigMenu.proxyConfiguration().shouldBe(hidden);
-    systemConfigMenu.earlyAccessHeader().shouldBe(hidden);
     systemConfigMenu.advancedSearchConfiguration().shouldBe(hidden);
-    systemConfigMenu.scmOnboarding().shouldBe(hidden);
   }
 
   @Test
@@ -155,9 +149,7 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.automaticApplications().shouldBe(visible);
     systemConfigMenu.emailConfiguration().shouldBe(hidden);
     systemConfigMenu.proxyConfiguration().shouldBe(hidden);
-    systemConfigMenu.earlyAccessHeader().shouldBe(hidden);
     systemConfigMenu.advancedSearchConfiguration().shouldBe(hidden);
-    systemConfigMenu.scmOnboarding().shouldBe(hidden);
   }
 
   @Test
@@ -187,6 +179,5 @@ public class SystemConfigurationMenuTest
     webhookConfigurationPage.shouldNotBe(visible);
     systemConfigMenu.emailConfiguration().shouldBe(hidden);
     systemConfigMenu.proxyConfiguration().shouldBe(hidden);
-    systemConfigMenu.scmOnboarding().shouldBe(hidden);
   }
 }

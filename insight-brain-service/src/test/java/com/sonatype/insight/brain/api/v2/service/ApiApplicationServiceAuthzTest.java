@@ -14,12 +14,14 @@ import com.sonatype.insight.brain.api.v2.ApiApplicationAdapter;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ApiApplicationServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -123,6 +125,32 @@ public class ApiApplicationServiceAuthzTest
   public void testDeleteApplication_UnauthorizedButAuthenticated() throws Exception {
     login();
     apiApplicationService.deleteApplication(app.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetApplicationsByOrganizationId_Unauthenticated() {
+    apiApplicationService.getApplicationsByOrganizationId(org.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetApplicationsByOrganizationId_Unauthorized() {
+    login();
+    apiApplicationService.getApplicationsByOrganizationId(org.getId());
+  }
+
+  @Test
+  public void testGetApplicationsByOrganizationId_Authorized() {
+    grantReadPermission(org.getId());
+    apiApplicationService.getApplicationsByOrganizationId(org.getId());
+  }
+
+  @Test
+  public void testGetApplicationsByOrganizationId_NotFound() {
+    login();
+    String organizationId = "doesNotExist";
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> apiApplicationService.getApplicationsByOrganizationId(organizationId))
+        .withMessageContaining("Cannot find organization with ID " + organizationId + ".");
   }
 
   private ApiApplicationDTO createApplicationDTO() {

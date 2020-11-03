@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -109,6 +110,20 @@ public class ApiApplicationService
     ApiApplicationListDTO applicationListDTO = new ApiApplicationListDTO();
     applicationListDTO.applications = applicationDTOs;
     return applicationListDTO;
+  }
+
+  /**
+   * @since 1.102
+   */
+  @Authorize(permission = Permission.READ)
+  public ApiApplicationListDTO getApplicationsByOrganizationId(
+      @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId)
+  {
+    ApiApplicationListDTO apiApplicationListDTO = new ApiApplicationListDTO();
+    apiApplicationListDTO.applications = applicationDAO.getByOrganizationId(organizationId).stream()
+        .map(apiApplicationAdapter::convertToDTO)
+        .collect(Collectors.toList());
+    return apiApplicationListDTO;
   }
 
   public ApiApplicationDTO addApplication(final ApiApplicationDTO applicationDTO) {

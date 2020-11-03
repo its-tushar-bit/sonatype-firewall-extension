@@ -547,6 +547,22 @@ public class ApiApplicationResourceV2Test
     assertThat(new ApplicationDAO().getById(app.getId()).getOrganizationId()).isEqualTo(app.getOrganizationId());
   }
 
+  @Test
+  public void testGetApplicationsByOrganizationId() throws Exception {
+    Application app1 = tempEntity.newApplicationWithParent();
+    Application app2 = tempEntity.newApplication(app1.getOrganizationId());
+    tempEntity.newApplicationWithParent();
+
+    HttpResponse response =
+        restRequest().path(ApiApplicationResourceV2.ORGANIZATION_PATH).parameter(app1.getOrganizationId()).get();
+
+    assertResponseStatus(200, response);
+    ApiApplicationListDTO apiApplicationListDTO = response.getBody(ApiApplicationListDTO.class);
+    assertThat(apiApplicationListDTO).isNotNull();
+    assertThat(apiApplicationListDTO.applications).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(apiApplicationAdapter.convertToDTO(app1), apiApplicationAdapter.convertToDTO(app2));
+  }
+
   private ApiRoleMemberMappingListDTO newMemberMapping(final List<ApiMemberDTO> memberList, final String roleId) {
     final ApiRoleMemberMappingDTO memberMappingDTO = new ApiRoleMemberMappingDTO();
     memberMappingDTO.members = memberList;

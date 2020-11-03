@@ -10,7 +10,9 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.ApiApplicationAdapter;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationListDTO;
 import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -41,6 +43,9 @@ public class ApiApplicationServiceTest
 
   @Inject
   private ApiApplicationService applicationService;
+
+  @Inject
+  private ApiApplicationAdapter apiApplicationAdapter;
 
   @Test
   public void testAddApplication_RootOrgIsNoValidParent() {
@@ -102,5 +107,31 @@ public class ApiApplicationServiceTest
 
     assertThat(applications).usingRecursiveFieldByFieldElementComparator()
         .containsExactlyInAnyOrder(app1, app2, app4, app5);
+  }
+
+  @Test
+  public void testGetApplicationsByOrganizationId() {
+    Application app1 = tempEntity.newApplicationWithParent();
+    Application app2 = tempEntity.newApplication(app1.getOrganizationId());
+    tempEntity.newApplicationWithParent();
+
+    ApiApplicationListDTO apiApplicationListDTO =
+        applicationService.getApplicationsByOrganizationId(app1.getOrganizationId());
+
+    assertThat(apiApplicationListDTO).isNotNull();
+    assertThat(apiApplicationListDTO.applications).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(apiApplicationAdapter.convertToDTO(app1), apiApplicationAdapter.convertToDTO(app2));
+  }
+
+  @Test
+  public void testGetApplicationsByOrganizationId_NoApplications() {
+    Organization org = tempEntity.newOrganization();
+    tempEntity.newApplicationWithParent();
+
+    ApiApplicationListDTO apiApplicationListDTO =
+        applicationService.getApplicationsByOrganizationId(org.getId());
+
+    assertThat(apiApplicationListDTO).isNotNull();
+    assertThat(apiApplicationListDTO.applications).isEmpty();
   }
 }

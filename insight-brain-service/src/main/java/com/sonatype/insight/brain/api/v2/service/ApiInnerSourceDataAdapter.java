@@ -16,6 +16,7 @@ public class ApiInnerSourceDataAdapter
   public ApiInnerSourceDataDTO convertToDTO(final Component component) {
     ApiInnerSourceDataDTO innerSourceDataDTO = new ApiInnerSourceDataDTO();
     innerSourceDataDTO.ownerApplicationName = component.getOwnerApplicationName();
+    innerSourceDataDTO.ownerApplicationId = component.getOwnerApplicationId();
     innerSourceDataDTO.innerSource = component.getInnerSource();
     return innerSourceDataDTO;
   }

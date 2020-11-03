@@ -9,5 +9,7 @@ public class ApiInnerSourceDataDTO
 {
   public String ownerApplicationName;
 
+  public String ownerApplicationId;
+
   public Boolean innerSource;
 }

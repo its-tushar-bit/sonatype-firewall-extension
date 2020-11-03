@@ -279,6 +279,11 @@ public class ComponentDAO
             component.setOwnerApplicationName(ownerApplicationNameNode.asText());
           }
 
+          JsonNode ownerApplicationIdNode = componentJson.get("ownerApplicationId");
+          if (ownerApplicationIdNode != null) {
+            component.setOwnerApplicationId(ownerApplicationIdNode.asText());
+          }
+
           components.add(component);
         }
       }

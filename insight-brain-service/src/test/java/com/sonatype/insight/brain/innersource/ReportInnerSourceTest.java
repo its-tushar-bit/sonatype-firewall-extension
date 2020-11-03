@@ -6,8 +6,6 @@
 package com.sonatype.insight.brain.innersource;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.AnalysisSource;
@@ -163,15 +161,12 @@ public class ReportInnerSourceTest
     assertInnerSourceInformation(bomJson, 1, 2, bomInnerSourceParent, bomInnerSourceDependencies);
     assertSummaryCounters(summaryJson, dataJson, 15);
 
-    for (JsonNode bom : bomInnerSourceParent) {
-      assertInnerSourceParent(bom, appInnerSource, null);
-    }
+    ComponentIdentifier innerSourceParent = ComponentIdentifier
+        .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-hashing", "1.12.0-01", "", "jar");
 
-    for (JsonNode transitiveDependencies : bomInnerSourceDependencies) {
-      assertThat(transitiveDependencies).isNotNull();
-      assertThat(transitiveDependencies.get("ownerApplicationName").asText()).isEqualTo(appInnerSource.getName());
-      assertThat(transitiveDependencies.get("componentIdentifier")).isNotNull();
-    }
+    assertInnerSourceParent(bomInnerSourceParent.get(0), appInnerSource, innerSourceParent);
+
+    assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
   }
 
   @Test
@@ -185,9 +180,6 @@ public class ReportInnerSourceTest
     ComponentIdentifier innerSourceClient = ComponentIdentifier
         .createMavenCoordinates("com.sonatype.insight.scan", "insight-client-utils", "1.0.0-SNAPSHOT", "",
             "jar");
-
-    List<ComponentIdentifier> componentIdentifiers =
-        Arrays.asList(innerSourceModel, innerScannerArchive, innerSourceClient);
 
     tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-module-model", appInnerSource);
     tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive", appInnerSource);
@@ -213,15 +205,11 @@ public class ReportInnerSourceTest
 
     assertSummaryCounters(summaryJson, dataJson, 18);
 
-    for (JsonNode bom : bomInnerSourceParent) {
-      assertInnerSourceParent(bom, appInnerSource, componentIdentifiers);
-    }
+    assertInnerSourceParent(bomInnerSourceParent.get(1), appInnerSource, innerSourceModel);
+    assertInnerSourceParent(bomInnerSourceParent.get(2), appInnerSource, innerScannerArchive);
+    assertInnerSourceParent(bomInnerSourceParent.get(0), appInnerSource, innerSourceClient);
 
-    for (JsonNode transitiveDependencies : bomInnerSourceDependencies) {
-      assertThat(transitiveDependencies).isNotNull();
-      assertThat(transitiveDependencies.get("ownerApplicationName").asText()).isEqualTo(appInnerSource.getName());
-      assertThat(transitiveDependencies.get("componentIdentifier")).isNotNull();
-    }
+    assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
   }
 
   @Test
@@ -262,11 +250,7 @@ public class ReportInnerSourceTest
         IdentificationSource.PACKAGE_MANIFEST.getId(),
         analyzerFeaturesPackageManifest);
 
-    for (JsonNode transitiveDependencies : bomInnerSourceDependencies) {
-      assertThat(transitiveDependencies).isNotNull();
-      assertThat(transitiveDependencies.get("ownerApplicationName").asText()).isEqualTo(appInnerSource.getName());
-      assertThat(transitiveDependencies.get("componentIdentifier")).isNotNull();
-    }
+    assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
   }
 
   private void assertInnerSourceInformation(
@@ -333,11 +317,7 @@ public class ReportInnerSourceTest
     List<JsonNode> bomInnerSourceDependencies = new ArrayList<>();
     assertInnerSourceInformation(bomJson, 3, 15, null, bomInnerSourceDependencies);
 
-    for (JsonNode transitiveDependencies : bomInnerSourceDependencies) {
-      assertThat(transitiveDependencies).isNotNull();
-      assertThat(transitiveDependencies.get("ownerApplicationName").asText()).isEqualTo(appInnerSource.getName());
-      assertThat(transitiveDependencies.get("componentIdentifier")).isNotNull();
-    }
+    assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
     assertSummaryCounters(summaryJson, dataJson, 25);
   }
 
@@ -364,11 +344,7 @@ public class ReportInnerSourceTest
     List<JsonNode> bomInnerSourceDependencies = new ArrayList<>();
     assertInnerSourceInformation(bomJson, 1, 1, null, bomInnerSourceDependencies);
 
-    for (JsonNode transitiveDependencies : bomInnerSourceDependencies) {
-      assertThat(transitiveDependencies).isNotNull();
-      assertThat(transitiveDependencies.get("ownerApplicationName").asText()).isEqualTo(appInnerSource.getName());
-      assertThat(transitiveDependencies.get("componentIdentifier")).isNotNull();
-    }
+    assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
     assertSummaryCounters(summaryJson, dataJson, 1);
   }
 
@@ -402,10 +378,6 @@ public class ReportInnerSourceTest
 
     Application appInnerSource = tempEntity.newApplicationWithParent();
 
-    ComponentIdentifier innerSourceData = ComponentIdentifier
-        .createMavenCoordinates("com.sonatype.innersource.data", "innersource-data", "1.0.0-SNAPSHOT", "", "jar");
-
-    List<ComponentIdentifier> componentIdentifiers = Collections.singletonList(innerSourceData);
     tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.innersource.data/innersource-data", appInnerSource);
     tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.innersource.main/innersource-main", app);
 
@@ -432,9 +404,6 @@ public class ReportInnerSourceTest
     assertThat(dataJson.get("exactlyMatchedComponentCount").asInt()).isEqualTo(3);
     assertThat(dataJson.get("knownArtifactCount").asInt()).isEqualTo(3);
 
-    for (JsonNode bom : bomInnerSourceParent) {
-      assertInnerSourceParent(bom, appInnerSource, componentIdentifiers);
-    }
     assertSummaryCounters(summaryJson, dataJson, 3);
   }
 
@@ -462,7 +431,7 @@ public class ReportInnerSourceTest
   private void assertInnerSourceParent(
       JsonNode bomInnerSource,
       Application app,
-      List<ComponentIdentifier> componentIdentifiers) throws Exception
+      ComponentIdentifier componentIdentifier) throws Exception
   {
     assertThat(bomInnerSource).isNotNull();
     assertThat(bomInnerSource.get("componentIdentifier")).isNotNull();
@@ -470,14 +439,13 @@ public class ReportInnerSourceTest
     assertThat(bomInnerSource.get("innerSource").asBoolean()).isTrue();
     assertThat(bomInnerSource.get("matchState").asText()).isEqualTo(MatchState.EXACT.getId());
     assertThat(bomInnerSource.get("ownerApplicationName").asText()).isEqualTo(app.getName());
+    assertThat(bomInnerSource.get("ownerApplicationId").asText()).isEqualTo(app.getId());
 
     assertThat(bomInnerSource.get(ComponentIdentifier.MAVEN_GROUP_ID).asText()).isNotNull();
     assertThat(bomInnerSource.get(ComponentIdentifier.MAVEN_ARTIFACT_ID).asText()).isNotNull();
     assertThat(bomInnerSource.get(ComponentIdentifier.VERSION).asText()).isNotNull();
 
-    if (componentIdentifiers != null) {
-      assertThat(componentIdentifiers).contains(ComponentIdentifierAdapter.getComponentIdentifier(bomInnerSource));
-    }
+    assertThat(componentIdentifier).isEqualTo(ComponentIdentifierAdapter.getComponentIdentifier(bomInnerSource));
 
     AnalyzerFeatures analyzerFeaturesExpected =
         new AnalyzerFeatures(AnalysisSource.THIRD_PARTY, AnalysisType.COORDINATE, "mvn");
@@ -494,5 +462,17 @@ public class ReportInnerSourceTest
     AnalyzerFeatures analyzerFeaturesInBom =
         JsonUtils.asPojo(bomInnerSource.get("analyzerFeatures"), AnalyzerFeatures.class);
     assertThat(analyzerFeaturesInBom).usingRecursiveComparison().isEqualTo(analyzerFeaturesExpected);
+  }
+
+  private void assertTransitiveInnerSourceInformation(
+      final List<JsonNode> bomInnerSourceDependencies,
+      final Application appInnerSource)
+  {
+    for (JsonNode transitiveDependencies : bomInnerSourceDependencies) {
+      assertThat(transitiveDependencies).isNotNull();
+      assertThat(transitiveDependencies.get("ownerApplicationName").asText()).isEqualTo(appInnerSource.getName());
+      assertThat(transitiveDependencies.get("ownerApplicationId").asText()).isEqualTo(appInnerSource.getId());
+      assertThat(transitiveDependencies.get("componentIdentifier")).isNotNull();
+    }
   }
 }

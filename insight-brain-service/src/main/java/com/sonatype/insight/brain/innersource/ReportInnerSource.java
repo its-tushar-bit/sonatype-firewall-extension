@@ -238,6 +238,7 @@ public final class ReportInnerSource
         //If the component is direct and exists as InnerSource, it needs to be updated as such
         ObjectNode bomObjectNode = (ObjectNode) bomChild;
         bomObjectNode.put("ownerApplicationName", innerSourceApp.getName());
+        bomObjectNode.put("ownerApplicationId", innerSourceApp.getId());
         bomObjectNode.put("innerSource", true);
 
         if (MatchState.UNKNOWN.getId().equals(bomChild.get(MATCH_STATE).asText())) {
@@ -289,6 +290,7 @@ public final class ReportInnerSource
           ObjectNode bomObjectNode = (ObjectNode) bomChild;
 
           bomObjectNode.put("ownerApplicationName", innerSourceApp.getName());
+          bomObjectNode.put("ownerApplicationId", innerSourceApp.getId());
           log.debug("Component {} associated with InnerSource app {}", bomComponentIdentifier,
               innerSourceApp.getName());
 

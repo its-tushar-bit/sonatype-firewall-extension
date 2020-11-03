@@ -86,6 +86,8 @@ public class Component
 
   private String ownerApplicationName;
 
+  private String ownerApplicationId;
+
   public Component() {
   }
 
@@ -442,5 +444,13 @@ public class Component
 
   public void  setInnerSource(final Boolean innerSource) {
     this.innerSource = innerSource;
+  }
+
+  public String getOwnerApplicationId() {
+    return ownerApplicationId;
+  }
+
+  public void setOwnerApplicationId(final String ownerApplicationId) {
+    this.ownerApplicationId = ownerApplicationId;
   }
 }

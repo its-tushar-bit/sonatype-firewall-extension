@@ -28,10 +28,9 @@ describe('ReportContent component', function() {
     getShallowComponent = enzymeUtils.getShallowComponent(ReportContent, minimalProps);
   });
 
-  it('renders a div', function() {
+  it('renders a tile', function() {
     const shallowComponent = getShallowComponent();
-    expect(shallowComponent).toMatchSelector('div');
-    expect(shallowComponent).toMatchSelector('.nx-tile-content.nx-scrollable.nx-scrollable--report-table');
+    expect(shallowComponent).toMatchSelector('.nx-tile');
   });
 
   it('renders table header and body', function() {
@@ -44,11 +43,9 @@ describe('ReportContent component', function() {
     expect(body).toExist();
   });
 
-  it('renders a single row with a single nx-cell--empty when there are no display entries', function() {
-    const emptyCell = getShallowComponent().find('.nx-cell--empty');
-    const span = getShallowComponent().find('.nx-cell--empty').find('span');
-    expect(emptyCell).toExist();
-    expect(span).toHaveText('No Results');
+  it('sets the emptyMessage prop on the NxTableBody', function() {
+    const tableBody = getShallowComponent().find(NxTableBody);
+    expect(tableBody).toHaveProp('emptyMessage', 'No Results');
   });
 
   it('render the table header with sordir desc', function() {

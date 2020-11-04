@@ -20,7 +20,8 @@ function mapStateToProps({applicationReport, router}) {
       'substringFilters',
       'loadError'
     ], applicationReport),
-    ...pick(['publicId', 'scanId', 'unknownjs', 'embeddable', 'policyViolationId'], router.currentParams)
+    ...pick(['publicId', 'scanId', 'unknownjs', 'embeddable', 'policyViolationId'], router.currentParams),
+    loading: !applicationReport.loadError && (!!applicationReport.pendingLoads.size || !applicationReport.metadata)
   };
 }
 

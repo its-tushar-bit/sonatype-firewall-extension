@@ -9,21 +9,49 @@ $iq-cell-age-width: 89px;
 $iq-cell-chevron-width: 21px;
 $iq-cell-affected-apps-width: 133px;
 
-.iq-sidebar--dashboard {
-  // for the Manage Filter dropdown
-  overflow-x: visible;
+.nx-page-content--dashboard {
+  .nx-page-main {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
 
-  // setting display: block on the first item breaks the filter footer stickyness
-  & > :first-child {
-    height: calc(100% - #{$iq-spacing-xl});
+    // allow tables to go to exactly the end of the viewport
+    padding-bottom: 0;
   }
+
+  .nx-page-sidebar {
+    // needs to be slightly wider than normal to fix the buttons in the footer
+    flex: 0 0 25%;
+  }
+
+  .nx-page-title {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
+// pass down the flexing from the page skeleton all the way to the scroll box around the table
+dashboard-results-container,
+dashboard-results-container > div,
+dashboard-results-container > div > div:last-child,
+violations,
+violations > div,
+components,
+components > div,
+applications,
+applications > div,
+.iq-tile--dashboard-table-container {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .iq-tile--dashboard-table-container {
   background-color: transparent;
   border: 0;
-  margin-top: 0;
-  margin-bottom: 0;
+  margin: 0;
   padding: 0;
   position: relative;
 
@@ -46,8 +74,6 @@ $iq-cell-affected-apps-width: 133px;
 
 .iq-tab-bar--dashboard {
   margin-top: $iq-spacing-xs;
-  margin-right: $iq-spacing-sm;
-  margin-left: $iq-spacing-sm;
 }
 
 .iq-tab {
@@ -493,10 +519,6 @@ tbody {
 .iq-dashboard-summary {
   position: relative;
   z-index: $iq-dashboard-summary-zindex;
-
-  .iq-page-title__actions {
-    margin-right: $iq-spacing-md;
-  }
 }
 
 .dashboard-tooltip {

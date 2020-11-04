@@ -6,7 +6,7 @@
 import React from 'react';
 import { mount } from 'enzyme';
 import * as enzymeUtils from '../enzymeUtils';
-import { NxThreatBar } from '@sonatype/react-shared-components';
+import { NxThreatIndicator } from '@sonatype/react-shared-components';
 
 describe('SidebarNavViolationList', function() {
   let minimalProps,
@@ -45,9 +45,9 @@ describe('SidebarNavViolationList', function() {
     expect(listItem).toMatchSelector('.nx-list__item');
     expect(listItem.children().length).toEqual(3);
 
-    const threatBar = listItem.childAt(0);
-    expect(threatBar).toMatchSelector(NxThreatBar);
-    expect(threatBar.prop('policyThreatLevel')).toEqual(violation.threatLevel);
+    const threatIndicator = listItem.childAt(0);
+    expect(threatIndicator).toMatchSelector(NxThreatIndicator);
+    expect(threatIndicator.prop('policyThreatLevel')).toEqual(violation.threatLevel);
 
     const policyNameElement = listItem.childAt(1);
     expect(policyNameElement.text()).toEqual(`${threatLevel} ${policyName}`);

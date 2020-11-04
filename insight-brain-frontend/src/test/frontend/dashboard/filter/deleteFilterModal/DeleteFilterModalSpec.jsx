@@ -4,8 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { NxButton, NxErrorAlert, NxFontAwesomeIcon, NxSubmitMask } from '@sonatype/react-shared-components';
-import { faSync } from '@fortawesome/free-solid-svg-icons/index';
+import { NxErrorAlert, NxSubmitMask, NxLoadError } from '@sonatype/react-shared-components';
 
 import * as enzymeUtils from '../../../enzymeUtils';
 import DeleteFilterModal
@@ -45,7 +44,7 @@ describe('DeleteFilterModal', function() {
     });
 
     it('renders submit button as primary with "Continue" text', function() {
-      const submitButton = getShallowComponent().find(NxButton).at(0);
+      const submitButton = getShallowComponent().find('#delete-filter-modal-continue-button');
       expect(submitButton).toHaveProp('variant', 'primary');
       expect(submitButton).toHaveText('Continue');
     });
@@ -60,26 +59,19 @@ describe('DeleteFilterModal', function() {
       });
     });
 
-    it('does not render modal content', function() {
-      const modalContent = component.find('.nx-modal-content');
-      expect(modalContent).not.toExist();
+    it('renders a NxLoadError in the footer which can retry the delete', function() {
+      const loadError = component.find('.nx-footer').find(NxLoadError);
+
+      expect(loadError).toExist();
+      expect(loadError).toHaveProp('error', 'error123');
+
+      expect(deleteFilter).not.toHaveBeenCalled();
+      loadError.prop('retryHandler')();
+      expect(deleteFilter).toHaveBeenCalled();
     });
 
-    it('renders footer with .nx-error class', function() {
-      const footer = component.find('footer');
-      expect(footer).toHaveClassName('nx-error');
-    });
-
-    it('renders footer with NxErrorAlert containing error message', function() {
-      const footer = component.find('footer');
-      expect(footer.childAt(0)).toContainReact(<NxErrorAlert>error123</NxErrorAlert>);
-    });
-
-    it('renders submit button as error variant with "Retry" text and faSync icon', function() {
-      const submitButton = component.find(NxButton).at(0);
-      expect(submitButton).toHaveProp('variant', 'error');
-      expect(submitButton.childAt(0)).toContainReact(<NxFontAwesomeIcon icon={faSync}/>);
-      expect(submitButton.childAt(1)).toHaveText('Retry');
+    it('does not render the Continue button', function() {
+      expect(component.find('#delete-filter-modal-continue-button')).not.toExist();
     });
   });
 
@@ -137,7 +129,7 @@ describe('DeleteFilterModal', function() {
   describe('cancel button click handler', function() {
     it('fires hideDeleteFilterModal action and calls stopImmediatePropagation on the nativeEvent', function() {
       const stopImmediatePropagation = jasmine.createSpy('stopImmediatePropagation');
-      const cancelButton = getShallowComponent().find(NxButton).at(1);
+      const cancelButton = getShallowComponent().find('#delete-filter-modal-cancel-button');
       cancelButton.simulate('click', {
         nativeEvent: {
           stopImmediatePropagation

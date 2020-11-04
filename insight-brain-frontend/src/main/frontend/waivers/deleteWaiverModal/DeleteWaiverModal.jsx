@@ -34,8 +34,7 @@ export default function DeleteWaiverModal(props) {
   };
 
   return (
-    <NxModal id="delete-waiver-modal"
-             onClose={hideDeleteWaiverModal}>
+    <NxModal id="delete-waiver-modal" onClose={hideDeleteWaiverModal}>
       { (deleteWaiverSaving != null) &&
         <NxSubmitMask message="Removing…" success={deleteWaiverSaving} />
       }
@@ -45,12 +44,8 @@ export default function DeleteWaiverModal(props) {
           <span>Delete Waiver</span>
         </h2>
       </header>
-      <div className="nx-modal-content">
-        <span>
-          Are you sure you want to delete this waiver?
-        </span>
-      </div>
-      <footer className="nx-modal-footer">
+      <div className="nx-modal-content">Are you sure you want to delete this waiver?</div>
+      <footer className="nx-footer">
         { deleteWaiverError &&
           <NxLoadError error={deleteWaiverError}
                        retryHandler={handleDeleteWaiver}

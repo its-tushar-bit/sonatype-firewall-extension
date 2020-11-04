@@ -53,7 +53,7 @@ public class ViolationDetailsPage
     }
 
     public SelenideElement sidebarNavTitle() {
-      return child("h4.nx-list__title");
+      return child(".nx-h4");
     }
 
     public ElementsCollection sidebarNavItems() {
@@ -71,12 +71,12 @@ public class ViolationDetailsPage
       super(selector);
     }
 
-    public SelenideElement threatBar() {
-      return child(".nx-threat-bar");
+    public SelenideElement threatIndicator() {
+      return child(".nx-threat-indicator");
     }
 
     public SelenideElement policyName() {
-      return child(".iq-sidebar-nav-violation--policy");
+      return child(".nx-list__text");
     }
 
     public SelenideElement artifactName() {
@@ -205,7 +205,7 @@ public class ViolationDetailsPage
     }
 
     public SelenideElement vulnerabilityDetailsHeader() {
-      return child(".nx-vulnerability-details .nx-h1");
+      return child(".nx-vulnerability-details .nx-h2");
     }
   }
 }

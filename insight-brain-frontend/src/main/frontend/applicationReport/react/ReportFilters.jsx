@@ -126,10 +126,10 @@ export default function ReportFilters(props) {
   };
 
   return (
-    <nav className="filters-nav">
+    <aside className="nx-page-sidebar" id="report-sidebar">
       <BackButton stateName="violations" $state={$state} text="All Reports"/>
       <fieldset className="nx-fieldset">
-        <legend className="nx-label">Application Report View</legend>
+        <legend className="nx-legend">Application Report View</legend>
         <NxRadio name="view-mode"
                  id="aggregate-by-component-radio"
                  value={VIEW_MODE_AGGREGATE}
@@ -146,8 +146,8 @@ export default function ReportFilters(props) {
         </NxRadio>
       </fieldset>
 
-      <div className="report-filter-container">
-        <span className="nx-label">Filters</span>
+      <fieldset className="nx-fieldset">
+        <legend className="nx-legend">Filters</legend>
         <div className="report-filters">
           <NxStatefulTreeViewMultiSelect options={proprietaryFilterOptions}
                                          selectedIds={derivedSelectedProprietaryOptions}
@@ -195,8 +195,8 @@ export default function ReportFilters(props) {
             <span>Policy Threat Level</span>
           </IqTreeViewPolicyThreatSlider>
         </div>
-      </div>
-    </nav>
+      </fieldset>
+    </aside>
   );
 }
 

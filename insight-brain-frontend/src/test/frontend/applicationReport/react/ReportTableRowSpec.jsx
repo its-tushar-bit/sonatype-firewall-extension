@@ -4,7 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../../enzymeUtils';
-import {NxTableCell, NxTableRow, NxThreatBar, NxTooltip, NxFontAwesomeIcon} from '@sonatype/react-shared-components';
+import {NxTableCell, NxTableRow, NxThreatIndicator, NxTooltip, NxFontAwesomeIcon}
+  from '@sonatype/react-shared-components';
 import ComponentDisplay from '../../../../main/frontend/ComponentDisplay/ReactComponentDisplay';
 import ReportTableRow from '../../../../main/frontend/applicationReport/react/ReportTableRow';
 
@@ -148,11 +149,10 @@ describe('ReportTableRow component', function() {
     expect(firstTd).toExist();
     expect(secondTd).toExist();
 
-    expect(firstTd.find(NxThreatBar)).toHaveProp('policyThreatLevel', 0);
+    expect(firstTd.find(NxThreatIndicator)).toHaveProp('policyThreatLevel', 0);
     expect(firstTd.find('.nx-threat-number')).toHaveText('0');
     expect(secondTd.find('span').first()).toHaveText('None');
     expect(thirdTd.find(ComponentDisplay)).toHaveProp('component', component);
-    expect(thirdTd.find(ComponentDisplay)).toHaveProp('truncate', true);
   };
 
   const assertWithDependencyType = (rows, component, direct) => {

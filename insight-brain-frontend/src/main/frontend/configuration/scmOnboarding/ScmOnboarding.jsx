@@ -3,15 +3,20 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, {useEffect} from 'react';
+import React, {useEffect, Fragment} from 'react';
 
 import MaximizedContainer from '../../react/MaximizedContainer';
 import * as PropTypes from 'prop-types';
-import {NxBackButton, NxErrorAlert, NxFontAwesomeIcon, NxTextInput} from '@sonatype/react-shared-components';
+import {NxBackButton, NxFontAwesomeIcon, NxTextInput} from '@sonatype/react-shared-components';
 import LoadWrapper from '../../react/LoadWrapper';
 import ResultsTable from './components/ResultsTable';
 import {faSitemap} from '@fortawesome/pro-regular-svg-icons';
 import NxButton from '@sonatype/react-shared-components/components/NxButton/NxButton';
+
+const permissionsError = `It appears you do not have permission to access this page.
+        If you believe this to be incorrect please contact your administrator.`,
+    disabledError = `This feature has not been enabled.
+        If you believe this to be incorrect please contact your administrator.`;
 
 export default function ScmOnboarding(props) {
   const {
@@ -42,8 +47,24 @@ export default function ScmOnboarding(props) {
     // from angular URL router
     isAuthorized,
     preselectedOrganizationId,
-    $state
+    $state,
+
+    error: errorProp
   } = props;
+
+  const scmConfigurationHref = $state.href($state.get('management.edit.organization.edit-source-control'), {
+        organizationId: preselectedOrganizationId
+      }),
+      tokenNotConfiguredError = (
+        <Fragment>
+          The selected Organization does not have SCM configured. You can configure it{' '}
+          <a href={scmConfigurationHref}>here</a>.
+        </Fragment>
+      ),
+      error = !isAuthorized ? permissionsError :
+        !isScmOnboardingFeatureEnabled ? disabledError :
+          !scmTokenConfigured ? tokenNotConfiguredError :
+            errorProp;
 
   let hostUrl = defaultHostUrl;
 
@@ -66,73 +87,62 @@ export default function ScmOnboarding(props) {
 
   return (
     <MaximizedContainer id="scm-onboarding-container" className="nx-page-content">
-      <div className="nx-page-main">
+      <main className="nx-page-main">
         <NxBackButton
             href={$state.href($state.get('management.view.organization'),
                 {organizationId: preselectedOrganizationId})}
             targetPageTitle={$state.get('management.view.organization').data.title} />
-        <div className="nx-page-title iq-page-title">
-          {selectedOrganization &&
-            <h1 className="nx-h1 iq-scmonboarding-title">
-              Import Applications from Github to <NxFontAwesomeIcon icon={faSitemap}/> {selectedOrganization.name}
+        <div className="nx-page-title iq-scmonboarding-title">
+          { selectedOrganization &&
+            <h1 className="nx-h1">
+              <span>Import Applications from Github to</span>
+              <NxFontAwesomeIcon icon={faSitemap}/>
+              <span>{selectedOrganization.name}</span>
             </h1>
           }
           <div className="nx-page-title__description">
-            <p className='nx-p'>Use the filters and checkboxes to select repositories to import</p>
+            <p className="nx-p">Use the filters and checkboxes to select repositories to import</p>
           </div>
         </div>
-        <div className="iq-tile">
-          <form className='nx-form'>
-            <fieldset className="nx-fieldset">
-              <legend className="nx-label">Host URL</legend>
-              <NxTextInput id='iq-scm-default-host-field'
-                           defaultValue={defaultHostUrl}
-                           isPristine={defaultHostUrl === hostUrl}
-                           onChange={onDefaultHostUrlChanged}
-                           value={hostUrl}/>
-              <NxButton
-                  id="iq-scm-load-button"
-                  variant="primary"
-                  disabled={loadingRepositories}
-                  onClick={() => loadRepositories(preselectedOrganizationId, hostUrl)}>
-                Reload Repositories
-              </NxButton>
-            </fieldset>
+        <section className="nx-tile">
+          <form className="nx-form">
+            <div className="nx-form-row">
+              <div className="nx-form-group">
+                <label className="nx-label">
+                  <span className="nx-label__text">Host URL</span>
+                  <NxTextInput id="iq-scm-default-host-field"
+                               defaultValue={defaultHostUrl}
+                               isPristine={defaultHostUrl === hostUrl}
+                               onChange={onDefaultHostUrlChanged}
+                               value={hostUrl}/>
+                </label>
+              </div>
+              <div className="nx-btn-bar">
+                <NxButton
+                    id="iq-scm-load-button"
+                    variant="primary"
+                    disabled={loadingRepositories}
+                    onClick={() => loadRepositories(preselectedOrganizationId, hostUrl)}>
+                  Reload Repositories
+                </NxButton>
+              </div>
+            </div>
           </form>
-        </div>
-        <div className="iq-tile">
-          <LoadWrapper loading={loadingConfig}>
-            {isAuthorized && isScmOnboardingFeatureEnabled && scmTokenConfigured &&
-              <ResultsTable
-                repositories={repositories}
-                loadingRepositories={loadingRepositories}
-                selectedRepositoryCount={selectedRepositoryCount}
-                importedRepositoryCount={importedRepositoryCount}
-                onRepositorySelectionChanged={onRepositorySelectionChanged}
-                importSelectedRepositories={importSelectedRepositories} />
-            }
-            {!isAuthorized &&
-              <NxErrorAlert id="scm-onboarding-insufficient-permissions-error">
-                <strong>Error</strong> It appears you do not have permission to access this page.
-                If you believe this to be incorrect please contact your administrator.
-              </NxErrorAlert>
-            }
-            {!isScmOnboardingFeatureEnabled && isAuthorized &&
-              <NxErrorAlert id="scm-onboarding-feature-flag-disabled-error">
-                <strong>Error</strong> This feature has not been enabled.
-                If you believe this to be incorrect please contact your administrator.
-              </NxErrorAlert>
-            }
-            {!scmTokenConfigured && isAuthorized && isScmOnboardingFeatureEnabled &&
-              <NxErrorAlert id="scm-onboarding-invalid-token">
-                <strong>Error</strong> The selected Organization does not have SCM configured. You can configure it
-                <a href={$state.href($state.get('management.edit.organization.edit-source-control'),
-                    {organizationId: preselectedOrganizationId})}> here</a>.
-              </NxErrorAlert>
-            }
+        </section>
+        <section className="nx-tile">
+          <LoadWrapper loading={loadingConfig} error={error} retryHandler={load}>
+            <ResultsTable { ...{
+              repositories,
+              loadingRepositories,
+              selectedRepositoryCount,
+              importedRepositoryCount,
+              onRepositorySelectionChanged,
+              importSelectedRepositories,
+              loadRepositories
+            }} />
           </LoadWrapper>
-        </div>
-      </div>
+        </section>
+      </main>
     </MaximizedContainer>
   );
 }
@@ -185,5 +195,6 @@ ScmOnboarding.propTypes = {
   loadCompositeSourceControl: PropTypes.func.isRequired,
 
   // base URL
-  defaultHostUrl: PropTypes.string
+  defaultHostUrl: PropTypes.string,
+  error: LoadWrapper.propTypes.error
 };

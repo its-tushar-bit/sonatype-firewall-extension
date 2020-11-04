@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
-import com.sonatype.clm.testing.functional.elements.ReactTextInput;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
@@ -15,7 +14,7 @@ import com.codeborne.selenide.SelenideElement;
 public class ProxyConfigurationPage
     extends BasicElement<ProxyConfigurationPage>
 {
-  public static final String ROOT = "#proxy-configuration";
+  public static final String ROOT = "#proxy-config-container";
 
   public static class DeleteModal
       extends BasicElement<DeleteModal>
@@ -51,24 +50,24 @@ public class ProxyConfigurationPage
     return BaseUrl.resolvePageUrl("/proxyConfig");
   }
 
-  public ReactTextInput hostName() {
-    return new ReactTextInput(child("#proxy-config-hostname"));
+  public SelenideElement hostName() {
+    return child("#proxy-config-hostname");
   }
 
-  public ReactTextInput port() {
-    return new ReactTextInput(child("#proxy-config-port"));
+  public SelenideElement port() {
+    return child("#proxy-config-port");
   }
 
-  public ReactTextInput username() {
-    return new ReactTextInput(child("#proxy-config-username"));
+  public SelenideElement username() {
+    return child("#proxy-config-username");
   }
 
-  public ReactTextInput password() {
-    return new ReactTextInput(child("#proxy-config-password"));
+  public SelenideElement password() {
+    return child("#proxy-config-password");
   }
 
-  public ReactTextInput excludeHosts() {
-    return new ReactTextInput(child("#proxy-config-exclude-hosts"));
+  public SelenideElement excludeHosts() {
+    return child("#proxy-config-exclude-hosts");
   }
 
   public SelenideElement save() {
@@ -83,8 +82,8 @@ public class ProxyConfigurationPage
     return child("#proxy-config-delete");
   }
 
-  public SelenideElement insufficientPermissionsError() {
-    return child("#proxy-config-insufficient-permissions-error");
+  public SelenideElement loadError() {
+    return child(".nx-alert--load-error");
   }
 
   public SelenideElement productLicenseNavigation() {

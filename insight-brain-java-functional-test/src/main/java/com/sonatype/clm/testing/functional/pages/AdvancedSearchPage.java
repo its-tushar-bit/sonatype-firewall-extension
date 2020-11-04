@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
-import com.sonatype.clm.testing.functional.elements.ReactTextInput;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.SelenideElement;
@@ -31,11 +30,11 @@ public class AdvancedSearchPage
   }
 
   public SelenideElement advancedSearchDisabledError() {
-    return child("#advanced-search-disabled-error");
+    return child(".nx-alert--load-error");
   }
 
-  public ReactTextInput searchInput() {
-    return new ReactTextInput(child("#advanced-search-input"));
+  public SelenideElement searchInput() {
+    return child("#advanced-search-input");
   }
 
   public SelenideElement searchButton() {
@@ -64,7 +63,7 @@ public class AdvancedSearchPage
   }
 
   public SelenideElement queryError() {
-    return $("#advanced-search-query-error");
+    return child(".nx-alert--error");
   }
 
   public SelenideElement helpContainerToggle() {

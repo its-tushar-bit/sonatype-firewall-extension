@@ -83,48 +83,47 @@ export default function ReportContent(props) {
   const dirComponentName = getDirection(sortConfiguration, 'derivedComponentName');
 
   return (
-    <div className="nx-tile-content nx-scrollable nx-scrollable--report-table">
-      <NxTable className="nx-table-border nx-table--scrollable">
-        <NxTableHead>
-          <NxTableRow>
-            <NxTableCell isSortable sortDir={dirPolicyThreatLevel} onClick={() =>
-              requestSort(policyThreatLevelSettings)}>
-              Threat
-            </NxTableCell>
-            <NxTableCell isSortable sortDir={dirPolicyName} onClick={() => requestSort(policyNameSettings)}>
-              Policy
-            </NxTableCell>
-            <NxTableCell isSortable sortDir={dirComponentName} onClick={() => requestSort(componentNameSettings)}>
-              Component
-            </NxTableCell>
-          </NxTableRow>
-          <NxTableRow className="nx-table-row--filter-header">
-            <NxTableCell colSpan={2} className="nx-cell-policy-name">
-              <NxFilterInput className="nx-filter-input"
-                             placeholder="policy name"
-                             onChange={filterPolicyName}
-                             value={policyNameFilter}
-              />
-            </NxTableCell>
-            <NxTableCell className="nx-cell-component-name">
-              <NxFilterInput className="nx-filter-input"
-                             placeholder="component name"
-                             onChange={filterDerivedComponentName}
-                             value={derivedComponentNameFilter}
-              />
-            </NxTableCell>
-          </NxTableRow>
-        </NxTableHead>
-        <NxTableBody>
-          {displayedEntries.length > 0 && displayedEntries.map((component, index) => createRow(component, index))}
-          {displayedEntries.length === 0 &&
+    <section className="nx-tile iq-app-report__results-table-tile">
+      <div className="nx-tile-content nx-scrollable nx-scrollable--table-container">
+        <NxTable className="nx-table--scrollable nx-table--fixed-layout">
+          <NxTableHead>
             <NxTableRow>
-              <NxTableCell colSpan={3} className="nx-cell--empty"><span>No Results</span></NxTableCell>
+              <NxTableCell className="iq-app-report__threat-cell"
+                           isSortable
+                           sortDir={dirPolicyThreatLevel}
+                           onClick={() => requestSort(policyThreatLevelSettings)}>
+                Threat
+              </NxTableCell>
+              <NxTableCell className="iq-app-report__policy-name-cell"
+                           isSortable
+                           sortDir={dirPolicyName}
+                           onClick={() => requestSort(policyNameSettings)}>
+                Policy
+              </NxTableCell>
+              <NxTableCell className="iq-app-report__component-name-cell"
+                           isSortable
+                           sortDir={dirComponentName}
+                           onClick={() => requestSort(componentNameSettings)}>
+                Component
+              </NxTableCell>
             </NxTableRow>
-          }
-        </NxTableBody>
-      </NxTable>
-    </div>
+            <NxTableRow className="nx-table-row--filter-header">
+              <NxTableCell colSpan={2}>
+                <NxFilterInput placeholder="policy name" onChange={filterPolicyName} value={policyNameFilter} />
+              </NxTableCell>
+              <NxTableCell>
+                <NxFilterInput placeholder="component name"
+                               onChange={filterDerivedComponentName}
+                               value={derivedComponentNameFilter} />
+              </NxTableCell>
+            </NxTableRow>
+          </NxTableHead>
+          <NxTableBody emptyMessage="No Results">
+            {displayedEntries.map(createRow)}
+          </NxTableBody>
+        </NxTable>
+      </div>
+    </section>
   );
 }
 
@@ -147,7 +146,8 @@ ReportContent.propTypes = {
   }),
   sortConfiguration: PropTypes.shape({
     sortFields: PropTypes.arrayOf(PropTypes.string),
-    dir: PropTypes.string
+    dir: PropTypes.string,
+    key: PropTypes.string
   }),
   substringFilters: PropTypes.shape({
     policyName: PropTypes.string,

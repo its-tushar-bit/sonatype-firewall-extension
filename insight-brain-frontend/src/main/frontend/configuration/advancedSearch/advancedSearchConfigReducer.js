@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { pick } from 'ramda';
+
 import { createReducerFromActionMap } from '../../util/reduxUtil';
 import { pathSet } from '../../util/jsUtil';
 import {
@@ -34,7 +36,10 @@ const initialState = Object.freeze({
   // Is the page being loaded? Is the submitMask being shown?
   viewState: {
     loading: true,
-    error: null,
+    loadError: null,
+    saveError: null,
+    reIndexError: null,
+    pollError: null,
     submitMaskState: null,
     submitMaskMessage: null,
     isDirty: false
@@ -44,6 +49,8 @@ const initialState = Object.freeze({
   serverData: null,
   currentlyPolling: false
 });
+
+const clearedErrors = pick(['loadError', 'saveError', 'reIndexError', 'pollError'], initialState.viewState);
 
 function loadRequested(payload, state) {
   return {
@@ -58,7 +65,7 @@ function loadFulfilled(payload, state) {
     viewState: {
       ...state.viewState,
       loading: false,
-      error: null
+      ...clearedErrors
     },
     formState: payload,
     serverData: payload
@@ -71,7 +78,7 @@ function loadFailed(payload, state) {
     viewState: {
       ...state.viewState,
       loading: false,
-      error: payload
+      loadError: payload
     }
   };
 }
@@ -83,7 +90,7 @@ function saveRequested(payload, state) {
       ...state.viewState,
       submitMaskState: false,
       submitMaskMessage: 'Saving',
-      error: null
+      ...clearedErrors
     }
   };
 }
@@ -95,7 +102,7 @@ function saveFulfilled(payload, state) {
       ...state.viewState,
       submitMaskState: true,
       isDirty: false,
-      error: null
+      ...clearedErrors
     },
     serverData: state.formState
   };
@@ -106,7 +113,7 @@ function saveFailed(payload, state) {
     ...state,
     viewState: {
       ...state.viewState,
-      error: payload,
+      saveError: payload,
       submitMaskState: null
     },
     formState: {
@@ -138,7 +145,8 @@ function triggerReIndex(payload, state) {
       isFullIndexTriggered: true
     },
     viewState: {
-      ...state.viewState
+      ...state.viewState,
+      ...clearedErrors
     }
   };
 }
@@ -152,7 +160,7 @@ function advancedSearchReIndexFailed(payload, state) {
     },
     viewState: {
       ...state.viewState,
-      error: payload
+      reIndexError: payload
     }
   };
 }
@@ -183,7 +191,7 @@ function pollStateSuccess(payload, state) {
     ...state,
     viewState: {
       ...state.viewState,
-      error: null
+      pollError: null
     },
     formState: {
       ...state.formState,
@@ -203,7 +211,7 @@ function pollStateFailed(payload, state) {
     },
     viewState: {
       ...state.viewState,
-      error: payload
+      pollError: payload
     },
     currentlyPolling: false
   };

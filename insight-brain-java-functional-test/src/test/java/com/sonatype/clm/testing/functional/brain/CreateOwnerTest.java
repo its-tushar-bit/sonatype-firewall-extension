@@ -132,7 +132,7 @@ public class CreateOwnerTest
     OwnerEditorDialog.publicId().val(APP_PUBLIC_ID);
     OwnerEditorDialog.saveButton().shouldBe(disabled);
     // take focus off the input to prevent blinking cursor
-    OwnerEditorDialog.title().click();
+    OwnerEditorDialog.titleIcon().click();
     eyesWatcher.eyesCheck("Create owner with validation error");
 
     // Error should get removed

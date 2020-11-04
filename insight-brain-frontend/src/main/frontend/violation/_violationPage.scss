@@ -9,62 +9,40 @@
 @import '~@sonatype/react-shared-components/scss-shared/nx-variables';
 @import '~@sonatype/react-shared-components/scss-shared/nx-flexbox-helpers';
 
-.nx-page-content .nx-page-main {
-  padding-bottom: 0;
-}
-
-.nx-list.sidebar-nav-list {
-  margin-bottom: 0;
-
-  .nx-list__item .nx-threat-bar {
-    min-height: 90px;
-    margin: -28px 12px -40px -8px;
-  }
-
-  .nx-list__subtext {
-    @include truncate-ellipsis();
-    line-height: 20px;
-    margin-left: $nx-spacing-sm;
-    width: auto;
-  }
-}
-
-.nx-page-sidebar.nx-page-sidebar--nav-sidebar {
-  padding-bottom: 0;
-  max-height: 100%;
-}
-
-.nx-page-scrollbar--violations-list {
-  overflow-y: hidden;
-}
-
-.nx-scrollable.nx-scrollable--violations-list {
-  max-height: 100%;
-
-  > ul {
-    margin-left: 0;
-    margin-bottom: 0;
-  }
+#violation-page {
+  @include container-vertical;
 }
 
 .iq-violation-details {
   .nx-tile-header__subtitle {
     @include container-horizontal;
+  }
 
-    color: $nx-text-color-light;
-
-    margin-top: $nx-spacing-xs;
+  .nx-tile__actions {
+    .nx-btn {
+      margin: 0;
+    }
   }
 
   .nx-grid-col {
     display: grid;
 
     margin: 0;
+    padding-left: $nx-spacing-xxl;;
+    padding-right: $nx-spacing-xxl;;
 
-    gap: $nx-spacing-sm;
+    gap: $nx-spacing-xl $nx-spacing-xxl;
 
     > * {
-      @include truncate-ellipsis;
+      @include nx-truncate-ellipsis;
+    }
+
+    dt, dd {
+      line-height: $nx-line-height;
+    }
+
+    dt {
+      margin-bottom: $nx-spacing-xs;
     }
 
     dd {
@@ -79,6 +57,7 @@
 
   @include container-horizontal;
 
+  font-weight: normal;
   margin: 0 $nx-spacing-xs 0 0;
 
   .iq-inverse-icon-wrapper {
@@ -86,9 +65,14 @@
 
     display: inline-block;
 
-    font-size: 10px;
+    // makes the iq-inverse-icon-wrapper 16px tall as desired
+    font-size: 11px;
 
     margin: $icon-margin;
+
+    // eyeballed to line up with the non-inverse icon
+    position: relative;
+    bottom: 1.75px;
   }
 
   .nx-icon {
@@ -116,46 +100,16 @@
   color: $iq-orange;
 }
 
-.iq-violation-details__left-details {
+.nx-grid-col.iq-violation-details__left-details {
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
-  @include nx-grid-col-width(242px);
+  flex: 0 auto;
 }
 
 .iq-violation-details__right-details {
   grid-template-columns: 1fr;
   grid-template-rows: 1fr 1fr;
 
-}
-
-.iq-violation-details__threat-level {
-  grid-column: 1;
-  grid-row: 1;
-}
-
-.iq-violation-details__policy-type {
-  grid-column: 1;
-  grid-row: 2;
-}
-
-.iq-violation-details__first-reported {
-  grid-column: 2;
-  grid-row: 1;
-}
-
-.iq-violation-details__last-reported {
-  grid-column: 2;
-  grid-row: 2;
-}
-
-.iq-violation-details__stages {
-  grid-column: 1;
-  grid-row: 1;
-}
-
-.iq-violation-details__policy-owner {
-  grid-column: 1;
-  grid-row: 2;
 }
 
 .iq-violation-details__policy-owner-icon {
@@ -169,16 +123,16 @@
   vertical-align: -3px;
 }
 
-#violation-page-manage-waivers {
-  margin-bottom: $nx-spacing-sm;
-}
-
 .iq-waiver-indicator {
+  align-items: center;
+  justify-content: flex-end;
+  display: flex;
+  grid-column: 2;
+  grid-row: 2;
+  margin-top: 12px;
   color: $nx-dark-green;
   height: 19px;
   text-align: right;
-
-  padding-right: $nx-spacing-xs;
 }
 
 .iq-waiver-indicator--inactive {
@@ -186,13 +140,16 @@
 }
 
 .iq-waiver-indicator__counter {
+  box-sizing: border-box;
   background-color: $nx-dark-green;
   border-radius: 8px;
   color: $nx-white;
   font-size: 10px;
-  padding: 0 4px 1px 4px;
+  line-height: 10px;
+  padding: 3px;
+  min-width: 16px;
+  margin-right: 5px;
   text-align: center;
-  vertical-align: text-bottom;
 }
 
 .iq-waiver-indicator__counter--inactive {

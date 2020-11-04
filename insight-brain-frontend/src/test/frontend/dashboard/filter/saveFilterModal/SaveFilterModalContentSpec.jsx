@@ -110,6 +110,11 @@ describe('SaveFilterModalContent component', function() {
     expect(wrapper.find(NxTextInput)).toExist();
   });
 
+  it('marks the filter name input as validatable', function() {
+    const wrapper = getShallowComponent();
+    expect(wrapper.find(NxTextInput)).toHaveProp('validatable', true);
+  });
+
   it('only shows the save as text box if you click the save as radio button', () => {
     const wrapper = getShallowComponent({
       appliedFilterName: 'mario'

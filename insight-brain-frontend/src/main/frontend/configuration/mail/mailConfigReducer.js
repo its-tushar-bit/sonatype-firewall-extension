@@ -10,7 +10,6 @@ import { createReducerFromActionMap, propSetConst } from '../../util/reduxUtil';
 import { pathSet, propSet } from '../../util/jsUtil';
 import { combineValidators, hasValidationErrors, validateNonEmpty, validatePatternMatch }
   from '../../util/validationUtil';
-import { Messages } from '../../util/CommonServices';
 
 import {
   MAIL_CONFIG_LOAD_REQUESTED,
@@ -62,7 +61,10 @@ const initialState = {
   loading: false,
   submitMaskState: null, // one of null, false, or true as patterned in the NxStatefulSubmitMask examples
   submitMaskMessage: null,
-  error: null,
+  loadError: null,
+  saveError: null,
+  deleteError: null,
+  testEmailError: null,
   showDeleteModal: false,
   mustReenterPassword: false,
   testEmailSent: false
@@ -72,6 +74,8 @@ const textProps = ['hostname', 'port', 'username', 'password', 'systemEmail'],
     booleanProps = ['startTlsEnabled', 'sslEnabled'];
 
 const portValidator = combineValidators([validateNonEmpty, validatePatternMatch(/^\d+$/, 'Must be a number')]);
+
+const clearedErrors = pick(['loadError', 'saveError', 'deleteError', 'testEmailError'], initialState);
 
 function setFormStateFromServerData(state) {
   const { serverData } = state,
@@ -159,7 +163,7 @@ function loadFulfilled(payload, state) {
     ...state,
     loading: false,
     isDirty: false,
-    error: null,
+    ...clearedErrors,
     submitMaskState: initialState.submitMaskState,
     submitMaskMessage: initialState.submitMaskMessage,
     serverData: payload,
@@ -172,17 +176,24 @@ const resetForm = (_, state) => state.serverData ? loadFulfilled(state.serverDat
 
 function loadFailed(payload) {
   // 404 is fine, it just means there is no configuration
-  const error = payload.response && payload.response.status === 404 ? null : Messages.getHttpErrorMessage(payload);
+  const error = payload.response && payload.response.status === 404 ? null : payload;
 
   return {
     ...initialState,
     loading: false,
-    error
+    ...clearedErrors,
+    loadError: error
   };
 }
 
 function saveRequested(payload, state) {
-  return { ...state, submitMaskState: false, submitMaskMessage: SUBMIT_MASK_SAVING_MESSAGE, testEmailSent: false };
+  return {
+    ...state,
+    submitMaskState: false,
+    submitMaskMessage: SUBMIT_MASK_SAVING_MESSAGE,
+    testEmailSent: false,
+    ...clearedErrors
+  };
 }
 
 function saveFulfilled(payload, state) {
@@ -191,7 +202,7 @@ function saveFulfilled(payload, state) {
     loading: false,
     submitMaskState: true,
     isDirty: false,
-    error: null,
+    ...clearedErrors,
     serverData: payload
   });
 }
@@ -201,7 +212,8 @@ function saveFailed(payload, state) {
     ...state,
     loading: false,
     submitMaskState: null,
-    error: Messages.getHttpErrorMessage(payload)
+    ...clearedErrors,
+    saveError: payload
   };
 }
 
@@ -218,7 +230,7 @@ function sendTestMailFulfilled(payload, state) {
     ...state,
     submitMaskState: true,
     testEmailSent: true,
-    error: null
+    testEmailError: null
   };
 }
 
@@ -226,7 +238,7 @@ function sendTestMailFailed(payload, state) {
   return {
     ...state,
     submitMaskState: null,
-    error: Messages.getHttpErrorMessage(payload),
+    testEmailError: payload,
     testEmailSent: false
   };
 }
@@ -236,12 +248,13 @@ function deleteRequested(payload, state) {
     ...state,
     submitMaskState: false,
     submitMaskMessage: SUBMIT_MASK_DELETING_MESSAGE,
-    showDeleteModal: false
+    showDeleteModal: false,
+    ...clearedErrors
   };
 }
 
 function deleteFulfilled() {
-  return { ...initialState, submitMaskState: true, error: null };
+  return { ...initialState, submitMaskState: true, ...clearedErrors };
 }
 
 function deleteFailed(payload, state) {
@@ -249,7 +262,8 @@ function deleteFailed(payload, state) {
     ...state,
     loading: false,
     submitMaskState: null,
-    error: Messages.getHttpErrorMessage(payload)
+    ...clearedErrors,
+    deleteError: payload
   };
 }
 

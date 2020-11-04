@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { shallow } from 'enzyme';
+
 import * as enzymeUtils from '../../../enzymeUtils';
 import { NxDropdown } from '@sonatype/react-shared-components';
 
@@ -43,10 +45,9 @@ describe('ManageFiltersDropdown', function() {
     getShallowComponent = enzymeUtils.getShallowComponent(ManageFiltersDropdown, props);
   });
 
-  it('renders NxDropdown component with the variant secondary', function() {
+  it('renders NxDropdown component', function() {
     const component = getShallowComponent();
     expect(component).toMatchSelector(NxDropdown);
-    expect(component).toHaveProp('variant', 'secondary');
   });
 
   it('renders open dropdown when filtersDropdownOpen is true', function() {
@@ -67,30 +68,23 @@ describe('ManageFiltersDropdown', function() {
           labelProp = component.prop('label');
 
       const asteriskVDom = labelProp.props.children[0];
-      const labelVDom = labelProp.props.children[1];
+      const labelVDom = shallow(labelProp.props.children[1]);
 
       expect(asteriskVDom).toBe(false);
-      expect(labelVDom.props).toEqual({
-        className: 'iq-manage-filters-dropdown__label',
-        children: 'filter 1234'
-      });
+      expect(labelVDom).toHaveText('filter 1234');
     });
 
     it('renders appliedFilterName with asterisk as dropdown toggle label if showDirtyAsterisk is true', function() {
       const component = getShallowComponent({ showDirtyAsterisk: true }),
           labelProp = component.prop('label');
 
-      const asteriskVDom = labelProp.props.children[0];
-      const labelVDom = labelProp.props.children[1];
+      const asteriskVDom = shallow(labelProp.props.children[0]);
+      const labelVDom = shallow(labelProp.props.children[1]);
 
-      expect(asteriskVDom.props).toEqual({
-        className: 'iq-manage-filters-dropdown__dirty-asterisk',
-        children: '*'
-      });
-      expect(labelVDom.props).toEqual({
-        className: 'iq-manage-filters-dropdown__label',
-        children: 'filter 1234'
-      });
+      expect(asteriskVDom).toHaveClassName('iq-manage-filters-dropdown__dirty-asterisk');
+      expect(asteriskVDom).toHaveText('*');
+
+      expect(labelVDom).toHaveText('filter 1234');
     });
 
     it('renders "Default" as dropdown toggle label if appliedFilterName is null', function() {
@@ -98,30 +92,23 @@ describe('ManageFiltersDropdown', function() {
           labelProp = component.prop('label');
 
       const asteriskVDom = labelProp.props.children[0];
-      const labelVDom = labelProp.props.children[1];
+      const labelVDom = shallow(labelProp.props.children[1]);
 
       expect(asteriskVDom).toBe(false);
-      expect(labelVDom.props).toEqual({
-        className: 'iq-manage-filters-dropdown__label',
-        children: 'Default'
-      });
+      expect(labelVDom).toHaveText('Default');
     });
 
     it('renders "Default" with asterisk as dropdown toggle label if showDirtyAsterisk is true', function() {
       const component = getShallowComponent({ appliedFilterName: null, showDirtyAsterisk: true }),
           labelProp = component.prop('label');
 
-      const asteriskVDom = labelProp.props.children[0];
-      const labelVDom = labelProp.props.children[1];
+      const asteriskVDom = shallow(labelProp.props.children[0]);
+      const labelVDom = shallow(labelProp.props.children[1]);
 
-      expect(asteriskVDom.props).toEqual({
-        className: 'iq-manage-filters-dropdown__dirty-asterisk',
-        children: '*'
-      });
-      expect(labelVDom.props).toEqual({
-        className: 'iq-manage-filters-dropdown__label',
-        children: 'Default'
-      });
+      expect(asteriskVDom).toHaveClassName('iq-manage-filters-dropdown__dirty-asterisk');
+      expect(asteriskVDom).toHaveText('*');
+
+      expect(labelVDom).toHaveText('Default');
     });
   });
 

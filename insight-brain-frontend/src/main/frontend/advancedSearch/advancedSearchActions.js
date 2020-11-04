@@ -21,13 +21,14 @@ const loadFailed = payloadParamActionCreator(ADVANCED_SEARCH_LOAD_FAILED);
 
 export function load() {
   return function(dispatch, getState) {
-    const advancedSearchState = getState().advancedSearch;
+    const advancedSearchState = getState().advancedSearch,
+        { formState, viewState } = advancedSearchState;
 
     // When the user navigates to any other page and comes to Advanced Search, we want to retain the state
     // For example, you search for CVE-2016-* and on page 3 click on a link and you use browsers BACK button
     // we want to let users continue going through search results.
     // But there is no need to retain the page if there was a query error, better present a fresh search page.
-    if (!advancedSearchState.formState.queryError && !advancedSearchState.viewState.loading) {
+    if (!formState.queryError && !viewState.loadError && !viewState.loading) {
       return;
     }
 

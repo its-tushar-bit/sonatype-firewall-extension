@@ -5,7 +5,7 @@
  */
 import TargetOrganizationDropdown from './TargetOrganizationDropdown';
 import NxButton from '@sonatype/react-shared-components/components/NxButton/NxButton';
-import React, {Fragment} from 'react';
+import React from 'react';
 import * as PropTypes from 'prop-types';
 import {NxTextInput} from '@sonatype/react-shared-components';
 import {pick} from 'ramda';
@@ -36,13 +36,13 @@ export default function ImportApplicationsForm(props) {
   }
 
   return (
-    <Fragment>
-      <div className="iq-tile-header">
-        <div className="iq-tile-header__title">
-          <h2>Import Applications from SCM</h2>
+    <form className="nx-form">
+      <header className="nx-tile-header">
+        <div className="nx-tile-header__title">
+          <h2 className="nx-h2">Import Applications from SCM</h2>
         </div>
-      </div>
-      <form className='nx-form'>
+      </header>
+      <div className="nx-tile-content">
         <fieldset className="nx-fieldset">
           <legend className="nx-label">Target Organization</legend>
           <div>IQ Server will use the SCM configuration associated with the target organization.</div>
@@ -62,19 +62,19 @@ export default function ImportApplicationsForm(props) {
           <div>The SCM Base URL for importing repositories.</div>
           <NxTextInput {...defaultHostUrlState}/>
         </fieldset>
-        <div className="nx-tile-footer">
-          <div className="nx-btn-bar">
-            <NxButton
-              id="iq-scm-load-button"
-              variant="primary"
-              disabled={loadingRepositories}
-              onClick={() => onSubmitMainForm()}>
-              Load Repositories
-            </NxButton>
-          </div>
+      </div>
+      <footer className="nx-footer">
+        <div className="nx-btn-bar">
+          <NxButton
+            id="iq-scm-load-button"
+            variant="primary"
+            disabled={loadingRepositories}
+            onClick={() => onSubmitMainForm()}>
+            Load Repositories
+          </NxButton>
         </div>
-      </form>
-    </Fragment>
+      </footer>
+    </form>
   );
 }
 

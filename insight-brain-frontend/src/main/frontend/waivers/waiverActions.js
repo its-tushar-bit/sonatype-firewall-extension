@@ -208,7 +208,6 @@ export function deleteWaiver(ownerType, ownerId, waiverId) {
         })
         .catch((err) => {
           dispatch(deleteWaiverFailed(Messages.getHttpErrorMessage(err)));
-          return Promise.reject(err);
         });
   };
 }

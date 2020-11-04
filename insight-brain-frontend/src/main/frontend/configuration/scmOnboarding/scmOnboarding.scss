@@ -3,60 +3,87 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-.iq-scmonboarding-title {
-  max-width: none !important;
+#scm-onboarding-container {
+  .nx-page-main {
+    display: flex;
+    flex-direction: column;
+    overflow-y: hidden;
+  }
+
+  // because the container is a flex container, margins don't collapse and we have to delete the smaller of each
+  // adjacent pair
+  .nx-back-button {
+    margin-bottom: 0;
+  }
+
+  .nx-tile {
+    margin-top: 0;
+  }
+
+  .nx-tile, .nx-tile-content {
+    display: flex;
+    flex-shrink: 1;
+    flex-direction: column;
+    overflow-y: hidden;
+  }
+
+  .nx-tile-header, .nx-footer {
+    flex-shrink: 0;
+  }
+
+  .nx-footer {
+    align-items: center;
+    display: flex;
+
+    .nx-btn-bar {
+      margin: 0;
+    }
+  }
+
+  .nx-scrollable {
+    max-height: none;
+    flex-shrink: 1;
+  }
+
+  .iq-scm-repository-description {
+    .nx-truncate-ellipsis {
+      max-width: 400px;
+    }
+  }
+}
+
+.iq-scmonboarding-title.nx-page-title {
+  .nx-h1 {
+    max-width: none;
+  }
 }
 
 .iq-scmonboarding-stats {
   display: flex;
+  margin-top: $nx-spacing-md;
 }
 
 .iq-scmonboarding-stats-row {
   display: flex;
   margin-right: 50px;
-
-  .iq-scmonboarding-stats-column {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .iq-scmonboarding-stats-highlight {
-    font-size: 37px;
-    height: 26px;
-    font-weight: bold;
-    margin-right: 12px;
-  }
 }
 
-.nx-table--scm-onboarding {
-  .nx-cell--filter {
-    min-width: 260px;
-  }
-
-  .nx-cell--select-all {
-    min-width: 110px;
-  }
-
-  .iq-scm-repository-description {
-    position: relative;
-
-    span {
-      position: absolute;
-      left: 0;
-      right: 0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-  }
-  .iq-scm-repository-description:before {
-    content: "&nbsp;";
-    visibility: hidden;
-  }
-
-}
-
-.nx-footer--scmonboarding {
+.iq-scmonboarding-stats-column {
   display: flex;
-  padding: $nx-spacing-l 0;
+  flex-direction: column;
+}
+
+.iq-scmonboarding-stats-highlight {
+  font-size: 37px;
+  height: 26px;
+  font-weight: bold;
+  margin-right: 12px;
+}
+
+.iq-scmonboarding__filter-cell {
+  min-width: 260px;
+}
+
+.iq-scmonboarding__select-all-cell {
+  min-width: 110px;
 }

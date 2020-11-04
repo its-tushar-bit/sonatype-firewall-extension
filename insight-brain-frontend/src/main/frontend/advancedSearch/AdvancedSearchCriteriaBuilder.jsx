@@ -30,7 +30,7 @@ export default function AdvancedSearchCriteriaBuilder(props) {
     return (
       <span key={prefix}
             id={'advanced-search-query-builder-tag-' + prefix}
-            className={classnames('nx-tag', {['selected']: currentQuery.indexOf(prefix) !== -1})}
+            className={classnames('iq-tag', {['selected']: currentQuery.indexOf(prefix) !== -1})}
             onClick={prefixTagOnClickHandler(prefix)}>{prefix}<NxFontAwesomeIcon icon={faPlusCircle}/>
       </span>
     );
@@ -38,7 +38,7 @@ export default function AdvancedSearchCriteriaBuilder(props) {
 
   function queryBuilderGroup(header, ...prefixList) {
     return (
-      <div className="nx-adv-search__query-group">
+      <div className="iq-adv-search__query-group">
         <h4>{header}</h4>
         {prefixList.map(prefix => {
           return prefixTag(prefix);
@@ -49,13 +49,16 @@ export default function AdvancedSearchCriteriaBuilder(props) {
 
   return (
     <Fragment>
-      <NxButton id="advanced-search-query-builder-toggle-button"
-                onClick={() => {setShowCriteriaBuilder(!showCriteriaBuilder);}}>
-        <NxFontAwesomeIcon icon={showCriteriaBuilder ? faCaretDown : faCaretRight}/> Add Search Terms
-      </NxButton>
-      {
-        showCriteriaBuilder &&
-        <div id="advanced-search-query-builder-container" className="nx-adv-search__query-builder">
+      <div className="nx-form-row">
+        <div className="nx-btn-bar">
+          <NxButton id="advanced-search-query-builder-toggle-button"
+                    onClick={() => {setShowCriteriaBuilder(!showCriteriaBuilder);}}>
+            <NxFontAwesomeIcon icon={showCriteriaBuilder ? faCaretDown : faCaretRight}/> Add Search Terms
+          </NxButton>
+        </div>
+      </div>
+      { showCriteriaBuilder &&
+        <div id="advanced-search-query-builder-container" className="iq-adv-search__query-builder">
           {queryBuilderGroup('Organization', 'organizationId', 'organizationName')}
 
           {queryBuilderGroup('Application', 'applicationId', 'applicationName', 'applicationPublicId')}

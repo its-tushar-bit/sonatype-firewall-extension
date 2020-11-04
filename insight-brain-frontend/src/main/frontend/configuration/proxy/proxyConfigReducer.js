@@ -10,7 +10,6 @@ import { createReducerFromActionMap, propSetConst } from '../../util/reduxUtil';
 import { pathSet, propSet } from '../../util/jsUtil';
 import { combineValidators, hasValidationErrors, validateNonEmpty, validatePatternMatch }
   from '../../util/validationUtil';
-import { Messages } from '../../util/CommonServices';
 
 import {
   PROXY_CONFIG_LOAD_REQUESTED,
@@ -52,7 +51,9 @@ const initialState = {
   loading: false,
   submitMaskState: null, // one of null, false, or true as patterned in the NxStatefulSubmitMask examples
   submitMaskMessage: null,
-  error: null,
+  loadError: null,
+  saveError: null,
+  deleteError: null,
   showDeleteModal: false,
   mustReenterPassword: false
 };
@@ -60,6 +61,8 @@ const initialState = {
 const textProps = ['hostname', 'port', 'username', 'password', 'excludeHosts'];
 
 const portValidator = combineValidators([validateNonEmpty, validatePatternMatch(/^\d+$/, 'Must be a number')]);
+
+const clearedErrors = pick(['loadError', 'saveError', 'deleteError'], initialState);
 
 function setFormStateFromServerData(state) {
   const { serverData } = state,
@@ -135,7 +138,7 @@ function loadFulfilled(payload, state) {
     ...state,
     loading: false,
     isDirty: false,
-    error: null,
+    ...clearedErrors,
     submitMaskState: initialState.submitMaskState,
     submitMaskMessage: initialState.submitMaskMessage,
     serverData: payload,
@@ -149,7 +152,7 @@ function loadFailed(payload) {
   return {
     ...initialState,
     loading: false,
-    error: payload.response && payload.response.status === 404 ? null : Messages.getHttpErrorMessage(payload)
+    loadError: payload.response && payload.response.status === 404 ? null : payload
   };
 }
 
@@ -163,7 +166,7 @@ function saveFulfilled(payload, state) {
     loading: false,
     submitMaskState: true,
     isDirty: false,
-    error: null,
+    ...clearedErrors,
     serverData: payload
   });
 }
@@ -173,7 +176,8 @@ function saveFailed(payload, state) {
     ...state,
     loading: false,
     submitMaskState: null,
-    error: Messages.getHttpErrorMessage(payload)
+    ...clearedErrors,
+    saveError: payload
   };
 }
 
@@ -187,7 +191,7 @@ function deleteRequested(payload, state) {
 }
 
 function deleteFulfilled() {
-  return { ...initialState, submitMaskState: true, error: null };
+  return { ...initialState, submitMaskState: true, ...clearedErrors };
 }
 
 function deleteFailed(payload, state) {
@@ -195,7 +199,8 @@ function deleteFailed(payload, state) {
     ...state,
     loading: false,
     submitMaskState: null,
-    error: Messages.getHttpErrorMessage(payload)
+    ...clearedErrors,
+    deleteError: payload
   };
 }
 

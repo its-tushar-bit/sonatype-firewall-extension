@@ -55,7 +55,7 @@ public class ProxyConfigurationPageTest
   @Test
   public void testSave_MinimalData() {
     refreshOrOpen(ProxyConfigurationPage.url());
-    proxyConfigurationPage.insufficientPermissionsError().shouldNotBe(visible);
+    proxyConfigurationPage.loadError().shouldNotBe(visible);
     assertNoProxyServerConfigured();
     eyesWatcher.eyesCheck("Proxy Configuration Page - Empty State");
     proxyConfigurationPage.hostName().setValue("proxy.server");
@@ -295,10 +295,10 @@ public class ProxyConfigurationPageTest
       login(user.getUsername(), user.getPassword());
       refreshOrOpen(ProxyConfigurationPage.url());
       proxyConfigurationPage.hostName().shouldNotBe(visible);
-      proxyConfigurationPage.insufficientPermissionsError()
+      proxyConfigurationPage.loadError()
           .shouldBe(visible)
-          .shouldHave(text("Error It appears you do not have permission to access this page. If you believe this to " +
-              "be incorrect please contact your administrator."));
+          .shouldHave(text("An error occurred loading data. It appears you do not have permission to access this " +
+              "page. If you believe this to be incorrect, please contact your administrator."));
     }
     finally {
       logout();

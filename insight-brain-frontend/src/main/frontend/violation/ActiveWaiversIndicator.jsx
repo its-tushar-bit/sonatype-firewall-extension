@@ -17,7 +17,8 @@ export default function ActiveWaiversIndicator({ noOfWaivers = 0 }) {
 
   return (
     <div id='waivers-indicator' className={ containerClass }>
-      <span className={ iconClass }>{ noOfWaivers }</span> { indicatorText }
+      <span className={ iconClass }>{ noOfWaivers }</span>
+      <span>{ indicatorText }</span>
     </div>
   );
 }

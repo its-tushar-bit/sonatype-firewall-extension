@@ -75,6 +75,12 @@ module.exports = {
       {
         test: /\.s?css$/,
         use: 'null-loader'
+      }, {
+        test: /\.png$/,
+        loader: 'file-loader',
+        options: {
+          name: 'images/[name].[ext]'
+        }
       }
     ]
   },

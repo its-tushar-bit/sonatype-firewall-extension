@@ -19,7 +19,10 @@ function mapStateToProps({ mailConfig }) {
       'isDirty',
       'isValid',
       'mustReenterPassword',
-      'error',
+      'loadError',
+      'saveError',
+      'deleteError',
+      'testEmailError',
       'serverData',
       'showDeleteModal',
       'testEmailSent'

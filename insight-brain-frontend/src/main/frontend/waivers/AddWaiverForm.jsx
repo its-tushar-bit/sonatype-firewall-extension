@@ -88,119 +88,128 @@ export default function AddWaiverForm(props) {
   ];
 
   return (
-    <form className="nx-tile-content nx-form nx-form--simple iq-add-waiver-form"
-          onSubmit={onSubmit}>
+    <form className="nx-form iq-add-waiver-form" onSubmit={onSubmit}>
       { /* Component-Info Section */}
-      <div className="nx-tile-header iq-add-waiver-form__component">
+      <header className="nx-tile-header iq-add-waiver-form__component">
         <div className="nx-tile-header__title">
           <h2 className="nx-h2">
             <ArtifactNameDisplay { ...{ artifactName } } />
           </h2>
         </div>
         <div className="nx-tile-header__subtitle">{ componentName }</div>
-      </div>
+      </header>
 
-      { /* Policy Info */ }
-      <div className="nx-form-group iq-add-waiver-form__policy iq-read-only">
-        <label className="nx-label">Policy</label>
-        <div className="iq-read-only-data">
-          <ViolationExclamation threatLevelCategory={ threatLevelCategory } />
-          <span className={ policyClassnames }>{ policyName }</span>
+      <div className="nx-tile-content">
+        { /* Policy Info */ }
+        <div className="nx-form-group iq-add-waiver-form__policy iq-read-only">
+          <label className="nx-label">
+            <span className="nx-label__text">Policy</span>
+          </label>
+          <div className="iq-read-only-data">
+            <ViolationExclamation threatLevelCategory={ threatLevelCategory } />
+            <span className={ policyClassnames }>{ policyName }</span>
+          </div>
         </div>
-      </div>
 
-      { /* Constraint Info */ }
-      <div className="nx-form-group iq-add-waiver-form__constraint iq-read-only">
-        <label className="nx-label">Constraint Name</label>
-        <div className="iq-read-only-data">{ constraintName }</div>
-      </div>
+        { /* Constraint Info */ }
+        <div className="nx-form-group iq-add-waiver-form__constraint iq-read-only">
+          <label className="nx-label">
+            <span className="nx-label__text">Constraint Name</span>
+          </label>
+          <div className="iq-read-only-data">{ constraintName }</div>
+        </div>
 
-      {/* Conditions */}
-      <div className="nx-form-group nx-read-only iq-add-waiver-form__conditions iq-read-only">
-        <label className="nx-label">Conditions</label>
-        <div className="iq-read-only-data iq-read-only-data--vertical">
-          {reasons && reasons.map((reason, index) =>
-            <span key={index}>{reason}</span>
+        {/* Conditions */}
+        <div className="nx-form-group nx-read-only iq-add-waiver-form__conditions iq-read-only">
+          <label className="nx-label">
+            <span className="nx-label__text">Conditions</span>
+          </label>
+          <div className="iq-read-only-data iq-read-only-data--vertical">
+            {reasons && reasons.map((reason, index) =>
+              <span key={index}>{reason}</span>
+            )}
+          </div>
+        </div>
+
+        { vulnerabilityId &&
+        <div className="nx-form-group iq-add-waiver-form__vulnerability_details_link">
+          <a onClick={ onVulnerabilityDetailsClick }>
+            See Security Vulnerability Details
+          </a>
+          <VulnerabilityDetailsModalContainer />
+        </div>
+        }
+
+        { /* Scope */ }
+        <fieldset className="nx-fieldset iq-add-waiver-form__scope">
+          <legend className="nx-legend">Scope</legend>
+          { availableWaiverScopes && availableWaiverScopes.map(({ id, name, label }) =>
+            <NxRadio name="add-waiver-target"
+                     value={id}
+                     isChecked={selectedWaiverScope.id === id}
+                     key={id}
+                     onChange={handleScopeChange}>
+              {label} - {name}
+            </NxRadio>
           )}
-        </div>
-      </div>
+        </fieldset>
 
-      { vulnerabilityId &&
-      <div className="nx-form-group iq-add-waiver-form__vulnerability_details_link">
-        <a onClick={ onVulnerabilityDetailsClick }>
-          See Security Vulnerability Details
-        </a>
-        <VulnerabilityDetailsModalContainer />
-      </div>
-      }
-
-      { /* Scope */ }
-      <fieldset className="nx-fieldset iq-add-waiver-form__scope">
-        <legend className="nx-label">Scope</legend>
-        { availableWaiverScopes && availableWaiverScopes.map(({ id, name, label }) =>
-          <NxRadio name="add-waiver-target"
-                   value={id}
-                   isChecked={selectedWaiverScope.id === id}
-                   key={id}
-                   onChange={handleScopeChange}>
-            {label} - {name}
+        { /* Components */ }
+        <fieldset className="nx-fieldset iq-add-waiver-form__components">
+          <legend className="nx-legend">Components</legend>
+          <NxRadio name="add-waiver-components"
+                   value={componentName}
+                   isChecked={!applyToAllComponents}
+                   onChange={handleComponentsChange}>
+            { componentName }
           </NxRadio>
-        )}
-      </fieldset>
+          <NxRadio name="add-waiver-components"
+                   value={ALL_COMPONENTS}
+                   isChecked={!!applyToAllComponents}
+                   onChange={handleComponentsChange}>
+            All Components
+          </NxRadio>
+        </fieldset>
 
-      { /* Components */ }
-      <fieldset className="nx-fieldset iq-add-waiver-form__components">
-        <legend className="nx-label">Components</legend>
-        <NxRadio name="add-waiver-components"
-                 value={componentName}
-                 isChecked={!applyToAllComponents}
-                 onChange={handleComponentsChange}>
-          { componentName }
-        </NxRadio>
-        <NxRadio name="add-waiver-components"
-                 value={ALL_COMPONENTS}
-                 isChecked={!!applyToAllComponents}
-                 onChange={handleComponentsChange}>
-          All Components
-        </NxRadio>
-      </fieldset>
+        { /* Expiry time */ }
+        <fieldset className="nx-fieldset iq-add-waiver-form__expiryTime">
+          <legend className="nx-legend">Waiver Expiration</legend>
+          <select id="waiver-expiration-select"
+                  onChange={onExpiryTimeChange}
+                  value={expiryTime || ''}>
+            {expirationTimes.map(({ name, value }, index) =>
+              <option key={index} value={value}>{name}</option>
+            )}
+          </select>
+        </fieldset>
 
-      { /* Expiry time */ }
-      <fieldset className="nx-fieldset iq-add-waiver-form__expiryTime">
-        <legend className="nx-label">Waiver Expiration</legend>
-        <select id="waiver-expiration-select"
-                onChange={onExpiryTimeChange}
-                value={expiryTime || ''}>
-          {expirationTimes.map(({ name, value }, index) =>
-            <option key={index} value={value}>{name}</option>
-          )}
-        </select>
-      </fieldset>
-
-      { /* Comments */}
-      <div className="nx-form-group iq-add-waiver-form__comments">
-        <label className="nx-label nx-label--optional">
-          <span className="nx-label__text">Comments</span>
-          <NxTextInput type="textarea"
-                       maxLength={1000}
-                       { ...waiverComments }
-                       onChange={ setWaiverComment } />
-        </label>
+        { /* Comments */}
+        <div className="nx-form-group iq-add-waiver-form__comments">
+          <label className="nx-label nx-label--optional">
+            <span className="nx-label__text">Comments</span>
+            <NxTextInput type="textarea"
+                         maxLength={1000}
+                         { ...waiverComments }
+                         onChange={ setWaiverComment } />
+          </label>
+        </div>
       </div>
 
       { /* Actions */ }
-      <div className="nx-btn-bar nx-btn-bar--forms">
+      <footer className="nx-footer">
         {
           submitError && <LoadError error={submitError} titleMessage="An error occurred saving the waiver." />
         }
-        <NxButton type="button" id="add-waiver-cancel" onClick={cancelAction}>
-          Cancel
-        </NxButton>
+        <div className="nx-btn-bar">
+          <NxButton type="button" id="add-waiver-cancel" onClick={cancelAction}>
+            Cancel
+          </NxButton>
 
-        <NxButton type="submit" id="add-waiver-submit" variant="primary">
-          Submit
-        </NxButton>
-      </div>
+          <NxButton type="submit" id="add-waiver-submit" variant="primary">
+            Submit
+          </NxButton>
+        </div>
+      </footer>
     </form>
   );
 }

@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import { shallow } from 'enzyme';
 import { NxLoadWrapper } from '@sonatype/react-shared-components';
 
 import * as enzymeUtils from '../enzymeUtils';
@@ -37,5 +38,13 @@ describe('LoadWrapper', function() {
 
     expect(getShallowComponent({ error: 'foo', bar: 'baz' })).toHaveProp('error', 'FOOO');
     expect(mockMessages.getHttpErrorMessage).toHaveBeenCalledWith('foo');
+  });
+
+  it('passes error through as-is if it is a react node', function() {
+    const component = getShallowComponent({ error: <em>foo</em> });
+
+    expect(shallow(component.prop('error'))).toMatchElement(<em>foo</em>);
+
+    expect(mockMessages.getHttpErrorMessage).not.toHaveBeenCalled();
   });
 });

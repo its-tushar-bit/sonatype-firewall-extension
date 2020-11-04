@@ -19,7 +19,7 @@
   "dependencies": {
     "@fortawesome/pro-regular-svg-icons": "^5.11.2",
     "@fortawesome/pro-solid-svg-icons": "^5.11.2",
-    "@sonatype/react-shared-components": "^0.44.10",
+    "@sonatype/react-shared-components": "^2.4.1",
     "@uirouter/angularjs": "^1.0.5",
     "angular": "~1.6.10",
     "angular-aria": "~1.6.10",
@@ -98,8 +98,8 @@
     "karma-jasmine": "^3.1.1",
     "karma-junit-reporter": "^2.0.1",
     "karma-spec-reporter": "^0.0.32",
-    "karma-webpack": "^3.0.5",
     "karma-summary-reporter": "^1.8.0",
+    "karma-webpack": "^3.0.5",
     "moment-timezone": "^0.5.25",
     "node-sass": "^4.14.1",
     "npm-run-all": "^4.1.5",

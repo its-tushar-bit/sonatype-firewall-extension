@@ -62,10 +62,9 @@ export default function ListWaiversTable(props) {
         <NxTableCell>{ waiver.expiryTime ? moment(waiver.expiryTime).fromNow() : 'Does not expire' }</NxTableCell>
         <NxTableCell>{ waiver.comment || '- -' }</NxTableCell>
         <NxTableCell>
-          <NxButton variant="tertiary"
+          <NxButton variant="icon-only"
                     key={ key }
                     className="list-waivers-row__delete-btn"
-                    iconOnly={ true }
                     onClick={ () => setWaiverToDelete(waiver) }>
             <NxFontAwesomeIcon icon={faTrashAlt} />
           </NxButton>
@@ -74,27 +73,15 @@ export default function ListWaiversTable(props) {
     );
   });
 
-  const waiverTableBody = (
-    <NxTableBody>
-      { activeWaivers && map(displayWaiverInTableRow(false), sort(descend(prop('createTime')), activeWaivers)) }
-      { expiredWaivers && map(displayWaiverInTableRow(true), sort(descend(prop('createTime')), expiredWaivers)) }
-    </NxTableBody>
+  const emptyMessage = (
+    <span>
+      You don&apos;t have any waivers: to learn more about waivers you can check
+      our{' '}
+      <NxExternalLink href="https://help.sonatype.com/iqserver/reporting/application-composition-report/waivers">
+        help documentation.
+      </NxExternalLink>
+    </span>
   );
-
-  const emptyTableBody = (
-    <NxTableBody>
-      <NxTableRow>
-        <NxTableCell colSpan='5' className='nx-cell--empty'>
-          You don&#39;t have any waivers: to learn more about waivers you can check
-          our <NxExternalLink
-            href={'https://help.sonatype.com/iqserver/reporting/application-composition-report/waivers'}>help
-          documentation.</NxExternalLink>
-        </NxTableCell>
-      </NxTableRow>
-    </NxTableBody>
-  );
-
-  const hasWaiversToDisplay = activeWaivers && activeWaivers.length || expiredWaivers && expiredWaivers.length;
 
   return (
     <NxTable id="list-waivers-page-waiver-table">
@@ -108,7 +95,10 @@ export default function ListWaiversTable(props) {
           <NxTableCell>{' '}</NxTableCell>
         </NxTableRow>
       </NxTableHead>
-      { hasWaiversToDisplay ? waiverTableBody : emptyTableBody }
+      <NxTableBody emptyMessage={emptyMessage}>
+        { activeWaivers && map(displayWaiverInTableRow(false), sort(descend(prop('createTime')), activeWaivers)) }
+        { expiredWaivers && map(displayWaiverInTableRow(true), sort(descend(prop('createTime')), expiredWaivers)) }
+      </NxTableBody>
     </NxTable>
   );
 }

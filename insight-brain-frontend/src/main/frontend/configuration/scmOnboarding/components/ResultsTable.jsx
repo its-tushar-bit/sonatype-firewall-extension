@@ -27,7 +27,8 @@ export default function ResultsTable(props) {
     importedRepositoryCount,
 
     // actions
-    importSelectedRepositories
+    importSelectedRepositories,
+    loadRepositories
   } = props;
 
   function importPercentage() {
@@ -60,96 +61,98 @@ export default function ResultsTable(props) {
 
   return (
     <Fragment>
-      <div className="iq-tile-header">
-        <h2 className="iq-tile-header__title">Import Repositories</h2>
+      <header className="nx-tile-header nx-tile-header--hrule">
+        <div className="nx-tile-header__title">
+          <h2 className="nx-h2">Import Repositories</h2>
+        </div>
         {repositories.length > 0 &&
-          <div className='iq-scmonboarding-stats'>
-            <div className='iq-scmonboarding-stats-row'>
-              <h3 id='repository-count'
-                  className='iq-caption_text iq-scmonboarding-stats-highlight'>{repositories.length}</h3>
-              <div className='iq-scmonboarding-stats-column'>
-                <h3 className='iq-caption_text'>REPOSITORIES</h3>
-                <div className='iq-caption_subtext'>found</div>
+          <div className="nx-tile-header__subtitle iq-scmonboarding-stats">
+            <div className="iq-scmonboarding-stats-row">
+              <h3 id="repository-count"
+                  className="iq-caption_text iq-scmonboarding-stats-highlight">{repositories.length}</h3>
+              <div className="iq-scmonboarding-stats-column">
+                <h3 className="iq-caption_text">REPOSITORIES</h3>
+                <div className="iq-caption_subtext">found</div>
               </div>
             </div>
-            <div className='iq-scmonboarding-stats-row'>
-              <h3 className='iq-caption_text iq-scmonboarding-stats-highlight'>{importedRepositoryCount}</h3>
-              <div className='iq-scmonboarding-stats-column'>
-                <h3 className='iq-caption_text'>ALREADY IMPORTED</h3>
-                <div className='iq-caption_subtext'>({importPercentage()}%)</div>
+            <div className="iq-scmonboarding-stats-row">
+              <h3 className="iq-caption_text iq-scmonboarding-stats-highlight">{importedRepositoryCount}</h3>
+              <div className="iq-scmonboarding-stats-column">
+                <h3 className="iq-caption_text">ALREADY IMPORTED</h3>
+                <div className="iq-caption_subtext">({importPercentage()}%)</div>
               </div>
             </div>
           </div>
         }
-      </div>
-      <hr/>
-      <LoadWrapper loading={loadingRepositories}>
-        <div className='nx-scrollable nx-scrollable-table-container'>
-          <NxTable id="iq-scm-onboarding-repositories" className="nx-table--scrollable nx-table--scm-onboarding">
-            <NxTableHead>
-              <NxTableRow isHeader={true}>
-                <NxTableCell isHeader isSortable={true}>Namespace</NxTableCell>
-                <NxTableCell isHeader isSortable={true}>Project</NxTableCell>
-                <NxTableCell isHeader isSortable={true}>Description</NxTableCell>
-                <NxTableCell isHeader isSortable={true}>Selection</NxTableCell>
-              </NxTableRow>
-              <NxTableRow isHeader>
-                <NxTableCell className="nx-cell--filter">
-                  <NxFilterInput
-                      value={ filters.namespace }
-                      onChange={ filterValue => changeFilter('namespace', filterValue)}
-                      onClear={ () => changeFilter('namespace', '') }/>
-                </NxTableCell>
-                <NxTableCell hasIcon={true} className="nx-cell--filter">
-                  <NxFilterInput
-                      id="project-filter"
-                      value={ filters.project }
-                      onChange={ filterValue => changeFilter('project', filterValue)}
-                      onClear={ () => changeFilter('project', '') }/>
-                </NxTableCell>
-                <NxTableCell className="nx-cell--filter">
-                  <NxFilterInput
-                      value={ filters.description }
-                      onChange={ filterValue => changeFilter('description', filterValue)}
-                      onClear={ () => changeFilter('description', '') }/>
-                </NxTableCell>
-                <NxTableCell className="nx-cell--select-all">
-                  <NxCheckbox checkboxId='select-all'
-                              isChecked={isAllChecked}
-                              onChange={toggleSelectAll}>All</NxCheckbox>
-                </NxTableCell>
-              </NxTableRow>
-            </NxTableHead>
-            <NxTableBody>
-              { repositories.filter(repo => isRepositorySelectedByFilter(repo)).map(repo =>
-                <RepositoryRow repo={repo} key={repo.httpCloneUrl} rowKey={repo.httpCloneUrl}
-                               selectedRepositories={selectedRepositories}
-                               setSelectedRepositories={setSelectedRepositories} />
-              )}
-            </NxTableBody>
-          </NxTable>
-        </div>
-      </LoadWrapper>
-      {repositories.length > 0 &&
-      <div className="nx-footer nx-footer--scmonboarding">
-        <div className='iq-scmonboarding-stats-row'>
-          <h3 className='iq-caption_text iq-scmonboarding-stats-highlight'
-              id="selected-repository-count">{selectedRepositories.length}</h3>
-          <div className='iq-scmonboarding-stats-column'>
-            <h3 id='selected-total-count' className='iq-caption_text'>OF {repositories.length} REPOSITORIES</h3>
-            <div className='iq-caption_subtext'>selected to import</div>
+      </header>
+      <div className="nx-tile-content">
+        <LoadWrapper loading={loadingRepositories} retryHandler={loadRepositories}>
+          <div className="nx-scrollable nx-scrollable--table-container">
+            <NxTable id="iq-scm-onboarding-repositories" className="nx-table--scrollable nx-table--scm-onboarding">
+              <NxTableHead>
+                <NxTableRow>
+                  <NxTableCell isSortable>Namespace</NxTableCell>
+                  <NxTableCell isSortable>Project</NxTableCell>
+                  <NxTableCell isSortable>Description</NxTableCell>
+                  <NxTableCell isSortable>Selection</NxTableCell>
+                </NxTableRow>
+                <NxTableRow isFilterHeader>
+                  <NxTableCell className="iq-scmonboarding__filter-cell">
+                    <NxFilterInput value={filters.namespace}
+                                   onChange={filterValue => changeFilter('namespace', filterValue)} />
+                  </NxTableCell>
+                  <NxTableCell className="iq-scmonboarding__filter-cell">
+                    <NxFilterInput id="project-filter"
+                                   value={filters.project}
+                                   onChange={filterValue => changeFilter('project', filterValue)} />
+                  </NxTableCell>
+                  <NxTableCell className="iq-scmonboarding__filter-cell">
+                    <NxFilterInput value={filters.description}
+                                   onChange={filterValue => changeFilter('description', filterValue)} />
+                  </NxTableCell>
+                  <NxTableCell className="iq-scmonboarding__select-all-cell">
+                    <NxCheckbox checkboxId="iq-scmonboarding-select-all"
+                                isChecked={isAllChecked}
+                                onChange={toggleSelectAll}>
+                      All
+                    </NxCheckbox>
+                  </NxTableCell>
+                </NxTableRow>
+              </NxTableHead>
+              <NxTableBody emptyMessage="No matching repositories.">
+                { repositories.filter(repo => isRepositorySelectedByFilter(repo)).map(repo =>
+                  <RepositoryRow repo={repo}
+                                 key={repo.httpCloneUrl}
+                                 rowKey={repo.httpCloneUrl}
+                                 selectedRepositories={selectedRepositories}
+                                 setSelectedRepositories={setSelectedRepositories} />
+                )}
+              </NxTableBody>
+            </NxTable>
           </div>
-        </div>
-        <div className="nx-btn-bar">
-          <NxButton
-            id="iq-scm-import-button"
-            variant="primary"
-            disabled={selectedRepositories.length <= 0}
-            onClick={() => importSelectedRepositories()}>
-            Import Repositories
-          </NxButton>
-        </div>
+        </LoadWrapper>
       </div>
+      { repositories.length > 0 &&
+        <footer className="nx-footer nx-footer--scmonboarding">
+          <div className="iq-scmonboarding-stats-row">
+            <h3 id="selected-repository-count"
+                className="iq-caption_text iq-scmonboarding-stats-highlight">
+              {selectedRepositories.length}
+            </h3>
+            <div className="iq-scmonboarding-stats-column">
+              <h3 id="selected-total-count" className="iq-caption_text">OF {repositories.length} REPOSITORIES</h3>
+              <div className="iq-caption_subtext">selected to import</div>
+            </div>
+          </div>
+          <div className="nx-btn-bar">
+            <NxButton id="iq-scm-import-button"
+                      variant="primary"
+                      disabled={selectedRepositories.length <= 0}
+                      onClick={() => importSelectedRepositories()}>
+              Import Repositories
+            </NxButton>
+          </div>
+        </footer>
       }
     </Fragment>
   );
@@ -164,7 +167,8 @@ ResultsTable.propTypes = {
 
   // actions
   onRepositorySelectionChanged: PropTypes.func.isRequired,
-  importSelectedRepositories: PropTypes.func.isRequired
+  importSelectedRepositories: PropTypes.func.isRequired,
+  loadRepositories: PropTypes.func.isRequired
 };
 
 function RepositoryRow(props) {
@@ -187,7 +191,7 @@ function RepositoryRow(props) {
       <NxTableCell className='iq-scm-repository-project'>{repo.project}</NxTableCell>
       <NxTableCell className='iq-scm-repository-description'>
         <NxTooltip title={repo.description} className='iq-scm-repo-description-tooltip'>
-          <span>{repo.description}</span>
+          <div className="nx-truncate-ellipsis">{repo.description}</div>
         </NxTooltip>
       </NxTableCell>
       <NxTableCell>

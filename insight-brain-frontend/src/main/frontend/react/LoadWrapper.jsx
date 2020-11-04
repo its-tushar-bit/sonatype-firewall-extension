@@ -14,11 +14,14 @@ import { Messages } from '../util/CommonServices';
  * the specified children.  The children may optionally be specified as a function in order to compute their VDOM
  * lazily
  */
-export default function LoadWrapper(props) {
-  return <NxLoadWrapper { ...props } error={Messages.getHttpErrorMessage(props.error)} />;
+export default function LoadWrapper({ error, ...otherProps }) {
+  const errorIsReactNode = React.isValidElement(error),
+      processedError = errorIsReactNode ? error : Messages.getHttpErrorMessage(error);
+
+  return <NxLoadWrapper { ...otherProps } error={processedError} />;
 }
 
 LoadWrapper.propTypes = {
   ...NxLoadWrapper.propTypes,
-  error: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object])
+  error: PropTypes.oneOfType([PropTypes.string, PropTypes.node, PropTypes.instanceOf(Error), PropTypes.object])
 };

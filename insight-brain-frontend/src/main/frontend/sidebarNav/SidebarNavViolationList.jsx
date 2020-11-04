@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import { NxThreatBar } from '@sonatype/react-shared-components';
+import { NxThreatIndicator } from '@sonatype/react-shared-components';
 import classnames from 'classnames';
 
 import { MAXIMIZE_HEIGHT_TIMEOUT, UPDATE_DIMENSIONS_TIMEOUT } from '../util/AngularCommon';
@@ -52,16 +52,14 @@ export default function SidebarNavViolationList(props) {
         onClick={() => onClick(item.policyViolationId)}
         className={listClass(item)}
         ref={isItemSelected(item) ? selectedElementRef : null}>
-      <NxThreatBar policyThreatLevel={item.threatLevel}></NxThreatBar>
-      <span className="iq-sidebar-nav-violation--policy">{ getFullPolicyName(item) }</span>
-      <div className="nx-list__subtext">
-        { getArtifactName(item) }
-      </div>
+      <NxThreatIndicator policyThreatLevel={item.threatLevel}></NxThreatIndicator>
+      <span className="nx-list__text">{ getFullPolicyName(item) }</span>
+      <div className="nx-list__subtext">{ getArtifactName(item) }</div>
     </li>
   );
 
   return (
-    <ul>
+    <ul className="nx-list nx-list--clickable">
       {listItems}
     </ul>
   );

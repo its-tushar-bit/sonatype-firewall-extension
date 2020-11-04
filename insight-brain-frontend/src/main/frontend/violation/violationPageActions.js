@@ -52,7 +52,7 @@ export function loadViolation(id) {
             selectedViolationId: id
           }));
         })
-        .then(({ payload }) => dispatch(loadVulnerabilityDetails(payload)))
+        .then(() => dispatch(loadVulnerabilityDetails()))
         .catch(err => {
           dispatch(loadViolationFailed(err));
           return Promise.reject(err);
@@ -68,12 +68,13 @@ const isNotNil = complement(isNil),
     isSecurityReference = both(isNotNil, propEq('type', 'SECURITY_VULNERABILITY_REFID')),
     hasSecurityReference = propSatisfies(isSecurityReference, 'reference');
 
-function loadVulnerabilityDetails({ violationDetails }) {
-  return function(dispatch) {
-    const { constraintViolations, componentIdentifier } = violationDetails;
+export function loadVulnerabilityDetails() {
+  return function(dispatch, getState) {
+    const { violationPage: { violationDetails } } = getState(),
+        { constraintViolations, componentIdentifier } = violationDetails;
 
     if (isNilOrEmpty(constraintViolations) || isNilOrEmpty(constraintViolations[0].reasons)) {
-      return;
+      return Promise.resolve();
     }
 
     const reasonWithRefId = find(hasSecurityReference, constraintViolations[0].reasons);
@@ -84,6 +85,9 @@ function loadVulnerabilityDetails({ violationDetails }) {
       return axios.get(getVulnerabilityJsonDetailUrl(refId, componentIdentifier))
           .then(({ data }) => dispatch(loadVulnerabilityDetailsFulfilled(data)))
           .catch(err => dispatch(loadVulnerabilityDetailsFailed(err)));
+    }
+    else {
+      return Promise.resolve();
     }
   };
 }
@@ -105,7 +109,6 @@ export function loadApplicableWaivers(policyViolationId) {
         })
         .catch((err) => {
           dispatch(loadApplicableWaiversFailed(err));
-          return Promise.reject(err);
         });
   };
 }

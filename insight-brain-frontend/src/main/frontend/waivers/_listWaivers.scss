@@ -14,14 +14,6 @@
     align-items: baseline;
   }
 
-  .list-waivers--threat-indicator {
-    font-size: 16px;
-  }
-
-  .list-waivers--constraint, .list-waivers--conditions, .list-waivers--component-name {
-    margin-bottom: $nx-spacing-xl;
-  }
-
   .list-waivers-row--expired {
     background-color: $nx-grey-2;
   }

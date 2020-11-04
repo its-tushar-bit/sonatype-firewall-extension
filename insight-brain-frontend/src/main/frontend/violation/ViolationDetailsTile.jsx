@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { Fragment } from 'react';
 import * as PropTypes from 'prop-types';
 import { compose, keys, map, max, prop, reduce, values } from 'ramda';
 import classnames from 'classnames';
@@ -31,7 +31,8 @@ export default function ViolationDetailsTile(props) {
       policyExists = !!policyOwner.ownerId,
 
       threatLevelCategory = categoryByPolicyThreatLevel[threatLevel],
-      threatLevelClassName = classnames('iq-threat-level', `iq-threat-level--${threatLevelCategory}`),
+      threatLevelClassName = classnames('iq-read-only-data', 'iq-threat-level',
+          `iq-threat-level--${threatLevelCategory}`),
 
       parseISODate = (time) => new Date(time),
       openTime = timeAgo(parseISODate(violationDetails.openTime)),
@@ -44,7 +45,7 @@ export default function ViolationDetailsTile(props) {
       // pair each possible stage type with its respective (optional) data from the backend
       stageDisplayData = map(stageType => [stageType, stageData[stageType.stageTypeId]], stageTypes),
       createStageDisplay = ([stageType, stageData]) => (
-        <dd key={stageType.stageTypeId}>
+        <dd className="iq-read-only-data" key={stageType.stageTypeId}>
           <StageDisplay { ...({ $state, stageType, stageData, applicationPublicId }) } />
         </dd>
       ),
@@ -58,7 +59,7 @@ export default function ViolationDetailsTile(props) {
       },
 
       manageWaiversButton = (
-        <NxButton id="violation-page-manage-waivers" onClick={onManageWaiversClick}>
+        <NxButton id="violation-page-manage-waivers" variant="tertiary" onClick={onManageWaiversClick}>
           <NxFontAwesomeIcon icon={faEye}/>
           <span>Manage Waivers</span>
         </NxButton>
@@ -70,15 +71,12 @@ export default function ViolationDetailsTile(props) {
     return $state.href($state.get(`management.view.${owner.ownerType}`), { [ownerIdType]: ownerId });
   }
 
+  const secondFormGroupClasses =
+      'nx-form-group iq-read-only iq-read-only-data--horizontal nx-grid-col iq-violation-details__right-details';
+
   return (
-    <div id="violation-details-tile" className="nx-tile iq-violation-details">
-      { policyExists &&
-        <div className="nx-tile__actions">
-          { manageWaiversButton }
-          <ActiveWaiversIndicator noOfWaivers={ activeWaivers.length }/>
-        </div>
-      }
-      <div className="nx-tile-header">
+    <section id="violation-details-tile" className="nx-tile iq-violation-details">
+      <header className="nx-tile-header">
         <div className="nx-tile-header__title">
           <h2 className="nx-h2">
             <ViolationExclamation threatLevelCategory={threatLevelCategory} />
@@ -86,45 +84,55 @@ export default function ViolationDetailsTile(props) {
           </h2>
         </div>
         <ViolationDetailsSubtitle { ...violationDetails } />
-      </div>
+        { policyExists &&
+          <Fragment>
+            <div className="nx-tile__actions">{ manageWaiversButton }</div>
+            <ActiveWaiversIndicator noOfWaivers={ activeWaivers.length }/>
+          </Fragment>
+        }
+      </header>
       <div className="nx-tile-content nx-grid-row">
-        <dl className="iq-read-only nx-grid-col iq-violation-details__left-details">
+        <dl className="nx-form-group iq-read-only nx-grid-col iq-violation-details__left-details">
           <div className="iq-violation-details__threat-level">
             <dt>Threat Level</dt>
             <dd className={threatLevelClassName}>{threatLevel}</dd>
           </div>
           <div className="iq-violation-details__policy-type">
             <dt>Policy Type</dt>
-            <dd>{capitalize(violationDetails.policyThreatCategory)}</dd>
+            <dd className="iq-read-only-data">{capitalize(violationDetails.policyThreatCategory)}</dd>
           </div>
           <div className="iq-violation-details__first-reported">
             <dt>First Reported</dt>
-            <dd>{openTime.age} {openTime.qualifier}</dd>
+            <dd className="iq-read-only-data">{openTime.age} {openTime.qualifier}</dd>
           </div>
           <div className="iq-violation-details__last-reported">
             <dt>Last Reported</dt>
-            <dd>{mostRecentEvaluationTime.age} {mostRecentEvaluationTime.qualifier}</dd>
+            <dd className="iq-read-only-data">
+              {mostRecentEvaluationTime.age} {mostRecentEvaluationTime.qualifier}
+            </dd>
           </div>
         </dl>
-        <dl className="iq-read-only iq-read-only-data--horizontal nx-grid-col iq-violation-details__right-details">
+        <dl className={secondFormGroupClasses}>
           <div className="iq-violation-details__stages">
             <dt>Stages</dt>
             { map(createStageDisplay, stageDisplayData) }
           </div>
           <div className="iq-violation-details__policy-owner">
             <dt>Policy Owner</dt>
-            { policyExists ? (
-              <dd>
-                <img className="iq-violation-details__policy-owner-icon"
-                     src={ getOwnerImageUrl({ publicId: policyOwner.ownerPublicId, id: policyOwner.ownerId }) } />
-                <a href={ getOwnerHref(policyOwner) }>{ policyOwner.ownerName }</a>
-              </dd>)
-              : <dd>Policy no longer exists</dd>
-            }
+            <dd className="iq-read-only-data">
+              { policyExists ?
+                <Fragment>
+                  <img className="iq-violation-details__policy-owner-icon"
+                       src={ getOwnerImageUrl({ publicId: policyOwner.ownerPublicId, id: policyOwner.ownerId }) } />
+                  <a href={ getOwnerHref(policyOwner) }>{ policyOwner.ownerName }</a>
+                </Fragment>
+                : 'Policy no longer exists'
+              }
+            </dd>
           </div>
         </dl>
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -161,7 +169,12 @@ export const applicableWaiverPropTypes = {
 ViolationDetailsTile.propTypes = {
   $state: PropTypes.shape({
     get: PropTypes.func.isRequired,
-    href: PropTypes.func.isRequired
+    href: PropTypes.func.isRequired,
+    params: PropTypes.shape({
+      id: PropTypes.string,
+      type: PropTypes.string,
+      sidebarReference: PropTypes.string
+    })
   }).isRequired,
   violationDetails: PropTypes.shape(violationDetailsPropTypes),
   stageTypes: PropTypes.arrayOf(PropTypes.shape({

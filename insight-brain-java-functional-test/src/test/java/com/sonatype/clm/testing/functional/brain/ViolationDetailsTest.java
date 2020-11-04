@@ -195,7 +195,7 @@ public class ViolationDetailsTest
     constraintInfoTile.reason(0).shouldHave(exactText("sonatype-2017-0507"));
 
     securityDetailsInfoTile.vulnerabilityDetailsHeader().shouldBe(visible)
-        .shouldHave(exactText("VULNERABILITY ISSUE sonatype-2017-0507"));
+        .shouldHave(exactText("sonatype-2017-0507"));
   }
 
   @Test
@@ -238,17 +238,17 @@ public class ViolationDetailsTest
     SidebarNavListItem item1 = sidebarNav.navItem(0);
     item1.shouldHave(cssClass("selected"));
     item1.policyName().shouldHave(text("7 Policy 1"));
-    item1.threatBar().shouldHave(cssClass("nx-threat-bar--severe"));
+    item1.threatIndicator().shouldHave(cssClass("nx-threat-indicator--severe"));
     item1.artifactName().shouldHave(text("Artifact1"));
 
     SidebarNavListItem item2 = sidebarNav.navItem(1);
     item2.policyName().shouldHave(text("3 Policy 2"));
-    item2.threatBar().shouldHave(cssClass("nx-threat-bar--moderate"));
+    item2.threatIndicator().shouldHave(cssClass("nx-threat-indicator--moderate"));
     item2.artifactName().shouldHave(text("Artifact1"));
 
     SidebarNavListItem item3 = sidebarNav.navItem(2);
     item3.policyName().shouldHave(text("2 Deleted Policy"));
-    item3.threatBar().shouldHave(cssClass("nx-threat-bar--moderate"));
+    item3.threatIndicator().shouldHave(cssClass("nx-threat-indicator--moderate"));
     item3.artifactName().shouldHave(text("Artifact1"));
   }
 
@@ -266,7 +266,7 @@ public class ViolationDetailsTest
     item1.shouldHave(cssClass("selected"));
     item1.policyName().shouldHave(text("7 Policy 1"));
     item1.artifactName().shouldHave(text("Artifact1"));
-    item1.threatBar().shouldHave(cssClass("nx-threat-bar--severe"));
+    item1.threatIndicator().shouldHave(cssClass("nx-threat-indicator--severe"));
   }
 
   @Test

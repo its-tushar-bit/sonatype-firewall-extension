@@ -12,6 +12,7 @@ import {
 } from '../../../main/frontend/util/CLMLocation';
 import {
   loadViolation,
+  loadVulnerabilityDetails,
   LOAD_VIOLATION_REQUESTED,
   LOAD_VIOLATION_FULFILLED,
   LOAD_VIOLATION_FAILED,
@@ -29,9 +30,10 @@ describe('violationPageActions', function() {
   let store;
 
   describe('loadViolation', function() {
+    let state;
 
     beforeEach(function() {
-      const state = {
+      state = {
         violationPage: {
           violationDetails: {
             policyViolationId: 'baz'
@@ -77,7 +79,7 @@ describe('violationPageActions', function() {
     });
 
     it('dispatches LOAD_VIOLATION_REQUESTED immediately if the violation is not already loaded', function() {
-      spyOn(axios, 'get').and.returnValue(Promise.resolve());
+      spyOn(axios, 'get').and.returnValue(Promise.resolve({ data: {} }));
 
       store.dispatch(loadViolation('foo'));
 
@@ -159,6 +161,8 @@ describe('violationPageActions', function() {
             }]
           }]
         };
+
+        Object.assign(state.violationPage.violationDetails, violationDetailsResponseData);
       });
 
       it('also dispatches LOAD_VULNERABILITY_DETAILS_REQUESTED', function(done) {
@@ -226,6 +230,12 @@ describe('violationPageActions', function() {
     });
 
     it('starts the request', function() {
+      mockAxiosCalls({
+        get: {
+          [getApplicableWaiversUrl('foo')]: Promise.reject('ERR')
+        }
+      });
+
       store.dispatch(loadApplicableWaivers('foo'));
       expect(store.getActions()[0].type).toEqual(VIOLATION_LOAD_APPLICABLE_WAIVERS_REQUESTED);
     });
@@ -260,11 +270,89 @@ describe('violationPageActions', function() {
       });
 
       store.dispatch(loadApplicableWaivers('foo'))
-          .catch(() => {
+          .then(() => {
             expect(store.getActions()[1].type).toEqual(VIOLATION_LOAD_APPLICABLE_WAIVERS_FAILED);
             expect(store.getActions()[1].payload).toEqual('ERR');
             done();
           });
+    });
+  });
+
+  describe('loadVulnerabilityDetails', function() {
+    let store;
+
+    const expectedUrl = getVulnerabilityJsonDetailUrl('CVE-2016-1000027', 'foo : bar : 1.0');
+
+    beforeEach(function() {
+      const state = {
+        violationPage: {
+          violationDetails: {
+            policyViolationId: 'bar',
+            constraintViolations: [{
+              reasons: [{
+                reference: {
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                  value: 'CVE-2016-1000027'
+                }
+              }]
+            }],
+            componentIdentifier: 'foo : bar : 1.0'
+          }
+        }
+      };
+      store = SpecUtil.mockReduxStore(state);
+    });
+
+    it('dispatches LOAD_VULNERABILITY_DETAILS_REQUESTED', function(done) {
+      spyOn(axios, 'get').and.returnValue(Promise.resolve({}));
+
+      store.dispatch(loadVulnerabilityDetails()).then(() => {
+        expect(store.getActions()[0].type).toEqual(LOAD_VULNERABILITY_DETAILS_REQUESTED);
+        done();
+      });
+
+      expect(store.getActions().length).toBe(1);
+      expect(axios.get).toHaveBeenCalledWith(expectedUrl);
+    });
+
+    it('dispatches LOAD_VULNERABILITY_DETAILS_FULFILLED with vulnerability details response data', function(done) {
+      const vulnerabilityResponseData = { bar: 'baz' };
+
+      mockAxiosCalls({
+        get: {
+          [expectedUrl]: Promise.resolve({ data: vulnerabilityResponseData })
+        }
+      });
+
+      store.dispatch(loadVulnerabilityDetails()).then(() => {
+        expect(store.getActions().length).toBe(2);
+        expect(store.getActions()[0].type).toEqual(LOAD_VULNERABILITY_DETAILS_REQUESTED);
+        expect(store.getActions()[1].type).toEqual(LOAD_VULNERABILITY_DETAILS_FULFILLED);
+        expect(store.getActions()[1].payload).toEqual({ bar: 'baz' });
+        done();
+      });
+
+      expect(store.getActions().length).toBe(1);
+    });
+
+    it('dispatches LOAD_VULNERABILITY_DETAILS_FAILED when the vulnerability details response fails', function(done) {
+      const vulnerabilityResponseError = 'errrr!';
+
+      mockAxiosCalls({
+        get: {
+          [expectedUrl]: Promise.reject(vulnerabilityResponseError)
+        }
+      });
+
+      store.dispatch(loadVulnerabilityDetails()).then(() => {
+        expect(store.getActions().length).toBe(2);
+        expect(store.getActions()[0].type).toEqual(LOAD_VULNERABILITY_DETAILS_REQUESTED);
+        expect(store.getActions()[1].type).toEqual(LOAD_VULNERABILITY_DETAILS_FAILED);
+        expect(store.getActions()[1].payload).toEqual(vulnerabilityResponseError);
+        done();
+      });
+
+      expect(store.getActions().length).toBe(1);
     });
   });
 });

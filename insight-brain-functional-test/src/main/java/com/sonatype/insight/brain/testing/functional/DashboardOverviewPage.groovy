@@ -50,7 +50,7 @@ class DashboardOverviewPage
     componentHeatMapHelpClose(required: false) { $('#component-heat-map-help-close') }
     modalBackdrop(required: false) { $('div.modal-backdrop') }
 
-    filters { $('.dashboard-filter-container').module(FilterModule) }
+    filters { $('#dashboard-filter-container').module(FilterModule) }
 
     applyFilterModal { module(new ClmModalModule(title: 'Filter Settings Changed')) }
 

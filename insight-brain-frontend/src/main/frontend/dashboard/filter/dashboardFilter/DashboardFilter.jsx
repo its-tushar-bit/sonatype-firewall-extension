@@ -93,14 +93,11 @@ export default function DashboardFilter(props) {
   const applicationCategoryTooltip = (prop) => prop && prop.owner && `in ${prop.owner}` || '';
 
   return (
-    <div className="dashboard-filter-container">
+    <Fragment>
       { showSaveFilterModal && <SaveFilterModalContainer/> }
       { filterToDelete && <DeleteFilterModalContainer/> }
-      <div className="dashboard-filter-header" id="dashboard-filter-header">
-        {/* Not wrapping ManageFiltersDropdown with label to prevent label clicks from triggering dropdown toggle */}
-        <label className="nx-label">
-          <span className="nx-label__text">Filter</span>
-        </label>
+      <header className="dashboard-filter-header" id="dashboard-filter-header">
+        <h3 className="nx-h3">Filter</h3>
         {!loading && !loadError &&
           <ManageFiltersDropdown {...{
             appliedFilterName,
@@ -115,7 +112,7 @@ export default function DashboardFilter(props) {
           }}/>
         }
         {loadErrorFilterName && <NxErrorAlert>Failed to load {loadErrorFilterName}</NxErrorAlert>}
-      </div>
+      </header>
 
       <div className="dashboard-filter">
         <LoadWrapper loading={loading} error={loadError} retryHandler={loadFilter}>
@@ -195,7 +192,7 @@ export default function DashboardFilter(props) {
         onApplyCurrentFilter: () => applyFilter(filterToJson(selected), appliedFilterName),
         onCancelApplyFilter: applyFilterCancelled
       })} />
-    </div>
+    </Fragment>
   );
 }
 

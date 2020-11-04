@@ -21,12 +21,12 @@ export default function UnsavedChangesModal({onContinue, onClose}) {
           </span>
         </NxWarningAlert>
       </div>
-      <footer className="nx-modal-footer">
+      <footer className="nx-footer">
         <div className="nx-btn-bar">
+          <NxButton onClick={onClose} id="unsaved-changes-modal-cancel-button">Cancel</NxButton>
           <NxButton variant="primary" id="unsaved-changes-modal-continue-button" onClick={onContinue}>
             Continue
           </NxButton>
-          <NxButton onClick={onClose} id="unsaved-changes-modal-cancel-button">Cancel</NxButton>
         </div>
       </footer>
     </NxModal>

@@ -1,11 +1,8 @@
-<div class="iq-root-container">
-  <span ng-if="!$state.is('dashboard.component')">
-    <div class="iq-sidebar iq-sidebar--dashboard" ui-view="filter" maximize-container-height></div><!--
- --><div class="iq-body-container">
-      <div class="dashboard-container tile-container">
-        <div ui-view="content"></div>
-      </div>
-    </div>
-  </span>
-  <div class="component-container" ng-if="$state.is('dashboard.component')" ui-view></div>
+<div class="nx-page-content nx-page-content--dashboard" maximize-container-height>
+  <aside id="dashboard-filter-container" ng-if="!$state.is('dashboard.component')"
+       class="nx-page-sidebar"
+       ui-view="filter"></aside>
+  <main id="dashboard-container" ng-if="!$state.is('dashboard.component')" class="nx-page-main" ui-view="content">
+  </main>
+  <main ng-if="$state.is('dashboard.component')" class="nx-page-main component-container" ui-view></main>
 </div>

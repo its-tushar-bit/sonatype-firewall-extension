@@ -9,7 +9,6 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.Button;
 import com.sonatype.clm.testing.functional.elements.NxRadio;
 import com.sonatype.clm.testing.functional.elements.NxVulnerabilityModal;
-import com.sonatype.clm.testing.functional.elements.ReactTextInput;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.ElementsCollection;
@@ -47,11 +46,11 @@ public class AddWaiverPage
   }
 
   public ElementsCollection conditions() {
-    return children(".iq-add-waiver-form__conditions span");
+    return children(".iq-add-waiver-form__conditions .iq-read-only-data span");
   }
 
   public SelenideElement condition(int index) {
-    return child(".iq-add-waiver-form__conditions span", nthChild(index));
+    return child(".iq-add-waiver-form__conditions .iq-read-only-data span", nthChild(index));
   }
 
   public SelenideElement vulnerabilityDetailsLink() {
@@ -86,8 +85,8 @@ public class AddWaiverPage
     return children("#waiver-expiration-select option");
   }
 
-  public ReactTextInput comments() {
-    return new ReactTextInput(child(".iq-add-waiver-form__comments .nx-text-input"));
+  public SelenideElement comments() {
+    return child(".iq-add-waiver-form__comments .nx-text-input textarea");
   }
 
   public Button saveButton() {
@@ -99,6 +98,6 @@ public class AddWaiverPage
   }
 
   public SelenideElement submitError() {
-    return child(".nx-btn-bar .nx-alert");
+    return child(".nx-footer .nx-alert");
   }
 }

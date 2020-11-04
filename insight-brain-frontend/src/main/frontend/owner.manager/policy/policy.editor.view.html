@@ -1,9 +1,9 @@
 <div id="policy-editor-summary">
   <div load-wrapper="vm.loadError" loading="!vm.dirtyPolicy" reload="vm.doLoad()">
     <div class="nx-page-title iq-page-title">
-      <i class="fa fa-university slate nx-page-title__page-icon"></i>
       <h1 class="nx-h1">
-        {{::vm.dirtyPolicy.id ? (vm.readOnly ? 'View' : 'Edit') : 'New'}} Policy
+        <i class="fa fa-university slate nx-page-title__page-icon"></i><!--
+     --><span>{{::vm.dirtyPolicy.id ? (vm.readOnly ? 'View' : 'Edit') : 'New'}} Policy</span>
       </h1>
     </div>
     <ul class="nav nav-pills iq-nav-pills">

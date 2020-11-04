@@ -36,7 +36,9 @@ describe('ReportContainer component', function() {
         substringFilters: {
           policyName: 'policyName',
           derivedComponentName: 'derivedComponentName'
-        }
+        },
+        pendingLoads: new Set(),
+        loadError: null
       },
       router: {
         currentParams: {
@@ -66,6 +68,7 @@ describe('ReportContainer component', function() {
     expect(wrapper).toHaveProp('metadata', { reportTitle: 'title' });
     expect(wrapper).toHaveProp('selectedReport', { reportVersion: 5 });
     expect(wrapper).toHaveProp('aggregate', true);
+    expect(wrapper).toHaveProp('loadError', null);
     expect(wrapper).toHaveProp('exactValueFilters', { matchState: 'unknown'});
     expect(wrapper).toHaveProp('substringFilters', {
       policyName: 'policyName',
@@ -73,4 +76,32 @@ describe('ReportContainer component', function() {
     });
   });
 
+  it('maps the loading flag as true if the metadata is not defined', function() {
+    state.applicationReport.metadata = null;
+    store.dispatch({ type: 'ANY_ACTION' });
+    const wrapper = shallow(vdom).dive();
+    expect(wrapper).toHaveProp('loading', true);
+  });
+
+  it('maps the loading flag as true if the pendingLoads set is not empty', function() {
+    state.applicationReport.pendingLoads = new Set(['asdf']);
+    store.dispatch({ type: 'ANY_ACTION' });
+    const wrapper = shallow(vdom).dive();
+    expect(wrapper).toHaveProp('loading', true);
+  });
+
+  it('maps the loading flag as false if the pendingLoads set is empty and metadata is present', function() {
+    store.dispatch({ type: 'ANY_ACTION' });
+    const wrapper = shallow(vdom).dive();
+    expect(wrapper).toHaveProp('loading', false);
+  });
+
+  it('maps the loading flag as false if the loadError is set', function() {
+    state.applicationReport.pendingLoads = new Set(['asdf']);
+    state.applicationReport.metadata = null;
+    state.applicationReport.loadError = 'foobar';
+    store.dispatch({ type: 'ANY_ACTION' });
+    const wrapper = shallow(vdom).dive();
+    expect(wrapper).toHaveProp('loading', false);
+  });
 });

@@ -161,7 +161,6 @@ function fetchReportData(forceReload = true) {
           })
           .catch(error => {
             dispatch(loadReportFailed(error));
-            return Promise.reject(error);
           });
     }
     else {
@@ -190,7 +189,6 @@ function fetchReportRawData(forceReload = true) {
           })
           .catch(error => {
             dispatch(loadReportRawDataFailed(error));
-            return Promise.reject(error);
           });
     }
     else {
@@ -205,7 +203,9 @@ export function loadReport(forceClearMetadata = false) {
       type: LOAD_REPORT_REQUESTED
     });
 
-    return dispatch(fetchCommonData(forceClearMetadata)).then(() => dispatch(fetchReportData()));
+    return dispatch(fetchCommonData(forceClearMetadata))
+        .then(() => dispatch(fetchReportData()))
+        .catch(() => {});
   };
 }
 
@@ -214,7 +214,12 @@ function loadReportRawData() {
     dispatch({
       type: LOAD_REPORT_RAW_DATA_REQUESTED
     });
-    return dispatch(fetchCommonData()).then(() => dispatch(fetchReportRawData()));
+
+    // Rejected promised from `fetchCommonData` simply mean not to proceed to the next step, but the
+    // error handling has already been done. So just swallow them
+    return dispatch(fetchCommonData())
+        .then(() => dispatch(fetchReportRawData()))
+        .catch(() => {});
   };
 }
 
@@ -225,7 +230,8 @@ function loadReportAllData() {
     });
     return dispatch(fetchCommonData())
         .then(() => Promise.all(map(dispatch, [fetchReportRawData(false), fetchReportData(false)])))
-        .then(() => dispatch(generateVulnerabilityEntries()));
+        .then(() => dispatch(generateVulnerabilityEntries()))
+        .catch(() => {});
   };
 }
 
@@ -296,13 +302,12 @@ export function reevaluateReport() {
     });
 
     return axios.post(getReportReevaluateUrl(appId, scanId))
-        .catch(error => {
-          dispatch(reevaluateReportFailed(error));
-          return Promise.reject(error);
-        })
         .then(() => {
           dispatch(reevaluateReportFulfilled());
           return dispatch(loadReport(true));
+        })
+        .catch(error => {
+          dispatch(reevaluateReportFailed(error));
         });
   };
 }

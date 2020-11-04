@@ -5,10 +5,18 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import { NxThreatBar } from '@sonatype/react-shared-components';
+import {
+  NxFontAwesomeIcon,
+  NxTable,
+  NxTableRow,
+  NxTableBody,
+  NxTableHead,
+  NxTableCell,
+  NxThreatIndicator
+} from '@sonatype/react-shared-components';
+import { faCheck, faHistory } from '@fortawesome/free-solid-svg-icons';
 
 import ComponentDisplay, { componentPropTypes } from '../../ComponentDisplay/ReactComponentDisplay';
-import MaximizedContainer from '../../react/MaximizedContainer';
 import { getBaseUrl } from '../../util/urlUtil';
 
 function createRow(data, $state) {
@@ -16,62 +24,57 @@ function createRow(data, $state) {
   const linkUrl = getBaseUrl(window.location.href) + '/ui/links/vln/' + encodeURIComponent(securityCode);
 
   return (
-    <tr key={key} className="nx-table-row">
-      <td className="nx-cell nx-cell--threat-bar iq-cell--vulnerability-policy-threat-level">
-        <NxThreatBar policyThreatLevel={policyThreatLevel} />
+    <NxTableRow key={key}>
+      <NxTableCell>
+        <NxThreatIndicator policyThreatLevel={policyThreatLevel} />
         <span className="nx-threat-number">{policyThreatLevel}</span>
-      </td>
-      <td className="nx-cell iq-cell--vulnerability-security-code">
-        <a href={$state.href('vulnerabilitySearchDetail', { id: securityCode })}>
+      </NxTableCell>
+      <NxTableCell>
+        <a className="iq-vulnerability-refid-link"
+           href={$state.href('vulnerabilitySearchDetail', { id: securityCode })}>
           {securityCode}
         </a>
         <a className="iq-vulnerability-printable-link" href={linkUrl}>{linkUrl}</a>
-      </td>
-      <td className="nx-cell iq-cell--vulnerability-cvss">{cvssScore.toFixed(1)}</td>
-      <td className="nx-cell iq-cell--vulnerability-component-display">
-        { data.waived &&
-          <span className="iq-text-indicator iq-text-indicator--waived iq-pull-right">
-            Waived<i className="fa fa-check" />
-          </span>
-        }
-        { data.grandfathered &&
-          <span className="iq-text-indicator iq-text-indicator--grandfathered iq-pull-right">
-            Grandfathered<i className="fa fa-history" />
-          </span>
-        }
-        <ComponentDisplay component={data} truncate={true} />
-      </td>
-    </tr>
+      </NxTableCell>
+      <NxTableCell isNumeric>{cvssScore.toFixed(1)}</NxTableCell>
+      <NxTableCell>
+        <div className="iq-vulnerability-component-name">
+          { data.waived &&
+            <span className="iq-text-indicator iq-text-indicator--waived iq-pull-right">
+              <span>Waived</span><NxFontAwesomeIcon icon={faCheck} />
+            </span>
+          }
+          { data.grandfathered &&
+            <span className="iq-text-indicator iq-text-indicator--grandfathered iq-pull-right">
+              <span>Grandfathered</span><NxFontAwesomeIcon icon={faHistory} />
+            </span>
+          }
+          <ComponentDisplay component={data} truncate={true} />
+        </div>
+      </NxTableCell>
+    </NxTableRow>
   );
 }
 
-const emptyRow = (
-  <tr className="nx-table-row">
-    <td colSpan="4" className="nx-cell nx-cell--empty">
-      This report contains no vulnerabilities.
-    </td>
-  </tr>
-);
-
 export default function ApplicationReportVulnerabilitiesTable({ vulnerabilities, $state }) {
-  const rows = vulnerabilities.length ? vulnerabilities.map(vuln => createRow(vuln, $state)) : emptyRow;
+  const rows = vulnerabilities.map(vuln => createRow(vuln, $state));
 
   return (
-    <MaximizedContainer className="nx-tile-content">
-      <div className="iq-scrollable iq-scrollable--full-height">
-        <table id="application-report-vulnerabilities-table" className="nx-table">
-          <thead>
-            <tr className="nx-table-row nx-table-row--header">
-              <th className="nx-cell nx-cell--header iq-cell--vulnerability-policy-threat-level">Threat</th>
-              <th className="nx-cell nx-cell--header iq-cell--vulnerability-security-code">Security Issue</th>
-              <th className="nx-cell nx-cell--header iq-cell--vulnerability-cvss">CVSS Score</th>
-              <th className="nx-cell nx-cell--header iq-cell--vulnerability-component-display">Component</th>
-            </tr>
-          </thead>
-          <tbody>{ rows }</tbody>
-        </table>
+    <div className="nx-tile-content">
+      <div className="nx-scrollable nx-scrollable--table-container">
+        <NxTable id="application-report-vulnerabilities-table" className="nx-table--scrollable">
+          <NxTableHead>
+            <NxTableRow>
+              <NxTableCell>Threat</NxTableCell>
+              <NxTableCell>Security Issue</NxTableCell>
+              <NxTableCell isNumeric>CVSS Score</NxTableCell>
+              <NxTableCell>Component</NxTableCell>
+            </NxTableRow>
+          </NxTableHead>
+          <NxTableBody emptyMessage="This report contains no vulnerabilities.">{ rows }</NxTableBody>
+        </NxTable>
       </div>
-    </MaximizedContainer>
+    </div>
   );
 }
 

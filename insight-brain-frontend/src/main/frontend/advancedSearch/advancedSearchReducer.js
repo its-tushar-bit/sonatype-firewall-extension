@@ -21,7 +21,7 @@ import { pathSet } from '../util/jsUtil';
 const initialState = {
   viewState: {
     loading: true,
-    error: null,
+    loadError: null,
     waitingSearchResponse: false,
     showHelp: false
   },
@@ -47,7 +47,7 @@ function loadRequested() {
     viewState: {
       ...initialState.viewState,
       loading: true,
-      error: null
+      loadError: null
     }
   };
 }
@@ -58,7 +58,7 @@ function loadFulfilled(payload, state) {
     viewState: {
       ...state.viewState,
       loading: false,
-      error: null
+      loadError: null
     },
     configurationState: payload
   };
@@ -70,7 +70,7 @@ function loadFailed(payload, state) {
     viewState: {
       ...state.viewState,
       loading: false,
-      error: payload
+      loadError: payload
     }
   };
 }
@@ -115,7 +115,7 @@ function queryFailed(payload, state) {
   return {
     ...state,
     formState: {
-      ...initialState.formState,
+      ...state.formState,
       queryError: payload
     },
     viewState: {

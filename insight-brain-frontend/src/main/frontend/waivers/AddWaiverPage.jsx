@@ -40,11 +40,13 @@ export default function AddWaiverPage(props) {
     cancelAction
   } = props;
 
-  useEffect(() => {
+  function load() {
     if (violationId) {
       loadAddWaiverData(violationId);
     }
-  }, [violationId]);
+  }
+
+  useEffect(load, [violationId]);
 
   const getFormProps = () => {
     if (!violationDetails) {
@@ -71,25 +73,27 @@ export default function AddWaiverPage(props) {
 
   return (
     <MaximizedContainer id="add-waiver-page" className="nx-page-content">
-      <div className="nx-page-main">
+      <main className="nx-page-main">
         <div className="nx-page-title">
           <h1 className="nx-h1">Add Waiver</h1>
         </div>
 
-        <div className="nx-tile">
+        <section className="nx-tile">
           { submitMaskState !== null &&
             <NxSubmitMask success={ submitMaskState }
                           message="Creating waiver…"
                           successMessage="Success!" />
           }
 
-          <LoadWrapper loading={ loading || !violationDetails || !availableWaiverScopes } error={loadError}>
+          <LoadWrapper loading={ loading || !violationDetails || !availableWaiverScopes }
+                       error={loadError}
+                       retryHandler={load}>
             {() =>
               <AddWaiverForm {...getFormProps()} />
             }
           </LoadWrapper>
-        </div>
-      </div>
+        </section>
+      </main>
     </MaximizedContainer>
   );
 }

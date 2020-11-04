@@ -11,6 +11,7 @@ import LoadWrapper from '../../react/LoadWrapper';
 import ApplicationReportVulnerabilitiesHeader, { metadataPropType } from './ApplicationReportVulnerabilitiesHeader';
 import ApplicationReportVulnerabilitiesTable, { vulnerabilitiesPropType }
   from './ApplicationReportVulnerabilitiesTable';
+import MaximizedContainer from '../../react/MaximizedContainer';
 
 export default class ApplicationReportVulnerabilitiesPage extends Component {
   componentDidMount() {
@@ -23,7 +24,7 @@ export default class ApplicationReportVulnerabilitiesPage extends Component {
         'Re-evaluate in order to enable this page') || undefined;
 
     return (
-      <div id="application-report-vulnerabilities" className="nx-page-content">
+      <MaximizedContainer id="application-report-vulnerabilities" className="nx-page-content">
         <div className="nx-page-main">
           <BackButton stateName="applicationReport.policy" $state={this.props.$state} />
           <LoadWrapper loading={!this.props.metadata || this.props.loading}
@@ -38,7 +39,7 @@ export default class ApplicationReportVulnerabilitiesPage extends Component {
             }
           </LoadWrapper>
         </div>
-      </div>
+      </MaximizedContainer>
     );
   }
 }

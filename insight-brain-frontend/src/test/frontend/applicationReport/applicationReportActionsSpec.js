@@ -197,7 +197,7 @@ describe('applicationReportActions', function() {
 
       expectCommonDataCalls(false, expectAdditionalCalls);
 
-      store.dispatch(applicationReportActions[actionCreatorName]()).catch(() => {
+      store.dispatch(applicationReportActions[actionCreatorName]()).then(() => {
         expect(store.getActions().length).toBe(2);
         expect(store.getActions()[1]).toEqual({
           type: 'LOAD_COMMON_DATA_FAILED',
@@ -217,7 +217,7 @@ describe('applicationReportActions', function() {
         }
       });
 
-      store.dispatch(applicationReportActions[actionCreatorName]()).catch(() => {
+      store.dispatch(applicationReportActions[actionCreatorName]()).then(() => {
         expect(store.getActions().length).toBe(2);
         expect(store.getActions()[1]).toEqual({
           type: STATE_GO,
@@ -242,7 +242,7 @@ describe('applicationReportActions', function() {
         }
       });
 
-      store.dispatch(applicationReportActions[actionCreatorName]()).catch(() => {
+      store.dispatch(applicationReportActions[actionCreatorName]()).then(() => {
         expect(spyRedirect).toHaveBeenCalledWith(CLMLocation.getExpandedCoverageEmbeddableUrl('appId', 'scanId'));
         done();
       });
@@ -280,7 +280,7 @@ describe('applicationReportActions', function() {
 
       expectCommonDataCalls(true, expectReportDataCalls(false));
 
-      store.dispatch(applicationReportActions.loadReport()).catch(() => {
+      store.dispatch(applicationReportActions.loadReport()).then(() => {
         expect(store.getActions().length).toBe(3);
         expect(store.getActions()[2].type).toEqual('LOAD_REPORT_FAILED');
         done();
@@ -353,8 +353,7 @@ describe('applicationReportActions', function() {
   describe('loadReportRawData', function() {
     it('dispatches a LOAD_REPORT_RAW_DATA_REQUESTED action', function() {
       const store = SpecUtil.mockReduxStore(createMockState(false, mockBomData, mockUnknownJsData, mockMetadata));
-      const errorSpy = jasmine.createSpy('errorSpy');
-      store.dispatch(applicationReportActions.loadReportRawData()).catch(errorSpy);
+      store.dispatch(applicationReportActions.loadReportRawData());
 
       expect(store.getActions().length).toBe(2);
       expect(store.getActions()[0]).toEqual({
@@ -367,19 +366,19 @@ describe('applicationReportActions', function() {
     it('fires LOAD_REPORT_RAW_DATA_FAILED action if report request fails', function(done) {
       const store = SpecUtil.mockReduxStore(createMockState(true, undefined, mockUnknownJsData, mockMetadata));
 
-      expectCommonDataCalls(true, expectReportDataCalls(false));
+      expectCommonDataCalls(true, expectReportRawDataCalls(false));
 
-      store.dispatch(applicationReportActions.loadReportRawData()).catch(() => {
+      store.dispatch(applicationReportActions.loadReportRawData()).then(() => {
         expect(store.getActions().length).toBe(3);
         expect(store.getActions()[2].type).toEqual('LOAD_REPORT_RAW_DATA_FAILED');
         done();
       });
     });
 
-    it('fires LOAD_REPORT_RAW_DATA_FULFILLED action if report request succeeds', function () {
+    it('fires LOAD_REPORT_RAW_DATA_FULFILLED action if report request succeeds', function(done) {
       const bomData = { aaData: [{ foo: 'bar' }] };
       const store = SpecUtil.mockReduxStore(createMockState(false, bomData, undefined, mockMetadata));
-      expectCommonDataCalls(true, expectReportDataCalls(true));
+      expectCommonDataCalls(true, expectReportRawDataCalls(true));
 
       store.dispatch(applicationReportActions.loadReportRawData()).then(() => {
         expect(store.getActions().length).toBe(3);
@@ -392,6 +391,8 @@ describe('applicationReportActions', function() {
             foo: 'bar'
           }]
         });
+
+        done();
       });
 
       expect(store.getActions().length).toBe(2);
@@ -502,7 +503,7 @@ describe('applicationReportActions', function() {
         }
       });
 
-      store.dispatch(applicationReportActions.reevaluateReport()).catch(() => {
+      store.dispatch(applicationReportActions.reevaluateReport()).then(() => {
         expect(store.getActions().length).toBe(2);
         expect(store.getActions()[0]).toEqual({
           type: 'REEVALUATE_REPORT_REQUESTED'
@@ -581,7 +582,7 @@ describe('applicationReportActions', function() {
 
       expectCommonDataCalls(true, expectReportDataCalls(false));
 
-      store.dispatch(applicationReportActions.reevaluateReport()).catch(() => {
+      store.dispatch(applicationReportActions.reevaluateReport()).then(() => {
         expect(store.getActions().length).toBe(5);
         expect(store.getActions()[0]).toEqual({
           type: 'REEVALUATE_REPORT_REQUESTED'
@@ -644,7 +645,7 @@ describe('applicationReportActions', function() {
 
       const store = SpecUtil.mockReduxStore(state);
 
-      store.dispatch(applicationReportActions.loadReportAllData()).catch(() => {
+      store.dispatch(applicationReportActions.loadReportAllData()).then(() => {
         expect(store.getActions()[2].type).toEqual('LOAD_REPORT_RAW_DATA_UNNECESSARY');
         done();
       });

@@ -28,10 +28,8 @@ describe('DashboardFilter footer', function() {
         saveBtn = footer.find('#dashboard-filter-save').dive();
 
     expect(applyBtn).toHaveClassName('nx-btn--primary', 'nx-btn');
-
     expect(revertBtn).toHaveClassName('nx-btn--tertiary', 'nx-btn');
-
-    expect(saveBtn).toHaveClassName('nx-btn--tertiary', 'nx-btn');
+    expect(saveBtn).toHaveClassName('nx-btn');
   });
 
   it('changes disabled class in apply button depending on filtersAreDirty and needsAcknowledgement', function () {

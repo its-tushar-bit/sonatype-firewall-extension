@@ -12,11 +12,14 @@
     font-family: sans-serif !important;
   }
 
+  .nx-html, .nx-body {
+    height: auto !important;
+    overflow-y: initial !important;
+    position: static;
+  }
+
   body {
     background-color: #fff;
-    overflow-y: initial;
-    position: static;
-
   }
 
   body.iq-body, .iq-main-view {
@@ -51,7 +54,7 @@
   }
 
   main-header, application-report-root, application-report-vulnerabilities, ui-view, .iq-body-container,
-  .nx-page-content, .nx-tile {
+  .nx-page-main, .nx-page-content, .nx-tile {
     border: none !important;
     display: block !important;
   }
@@ -72,6 +75,10 @@
     .nx-tile {
       margin-left: 0;
       margin-right: 0;
+    }
+
+    .nx-tile-content {
+      display: block;
     }
   }
 
@@ -101,33 +108,23 @@
         vertical-align: top;
       }
 
-      .iq-cell--vulnerability-security-code {
-        overflow: visible;
+      .iq-vulnerability-printable-link {
+        display: block;
+        line-height: $link-line-height;
+        font-size: $link-line-height;
+        white-space: nowrap;
 
-        .iq-vulnerability-printable-link {
-          display: block;
-          line-height: $link-line-height;
-          font-size: $link-line-height;
-          white-space: nowrap;
-        }
+        // effectively, don't consider this link when computing column widths
+        width: 1px;
       }
 
-      .iq-cell--vulnerability-component-display {
-        .iq-text-indicator {
-          i {
-            display: none;
-          }
-        }
+      .iq-vulnerability-component-name {
+        max-width: 500px;
       }
 
-      .nx-threat-bar {
-        margin: 0 12px 0 0;
-        width: 0;
+      .nx-icon {
+        display: none;
       }
-    }
-
-    .iq-cell--vulnerability-security-code {
-      width: 150px; // due to the generic "sans-serif" font in print view, this needs more room on some systems
     }
   }
 }

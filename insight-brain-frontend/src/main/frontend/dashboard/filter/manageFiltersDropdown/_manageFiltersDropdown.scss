@@ -9,64 +9,55 @@
 
 .nx-dropdown.iq-manage-filters-dropdown {
   display: block;
-  margin-top: 8px;
+  width: auto;
 
   .nx-dropdown__toggle {
-    align-items: center;
-    display: flex;
-    padding: 0 $nx-spacing-xs;
-    text-align: inherit;
+    box-sizing: border-box;
     width: 100%;
 
-    .iq-manage-filters-dropdown__label {
-      @include truncate-ellipsis;
-      flex-grow: 1;
-    }
-
     .iq-manage-filters-dropdown__dirty-asterisk {
-      color: $nx-off-black;
-      font-size: 16px;
+      color: $nx-text-color-dark;
     }
   }
 
   .nx-dropdown-menu {
-    @include vertically-scrollable($iq-scrollable-default-height);
-    $menu-padding: $nx-spacing-xs;
-    $menu-border: 1px;
-
-    padding: $menu-padding;
-    width: calc(100% - #{2 * ($menu-padding + $menu-border)});
+    box-sizing: border-box;
+    width: 100%;
 
     .iq-manage-filters-dropdown__option {
+      @include container-horizontal;
       display: flex;
+      padding: 0 8px;
+
+      // without this the first one, which doesn't have a delete button, is shorter
+      height: 32px;
+
+      &.iq-manage-filters-dropdown__option--selected {
+        background-color: $iq-blue-light;
+      }
 
       &:hover, &:focus {
         background-color: $nx-grey-1;
       }
 
-      &.iq-manage-filters-dropdown__option--selected {
-        background-color: $iq-blue-light;
-
-        .nx-dropdown-button {
-          @include semi-bold();
-          color: $nx-off-black
-        }
+      .nx-dropdown-button {
+        padding: 0;
       }
 
       .nx-dropdown-button--select-filter {
-        background-color: unset;
-        flex-grow: 1;
-        padding-left: $nx-spacing-xxs;
+        flex-shrink: 1;
 
         &:hover, &:focus {
-          color: $nx-off-black
+          background: none;
+        }
+
+        &:focus {
+          outline: 1px solid #43cbf5;
         }
       }
 
       .nx-btn--delete-filter {
-        margin: 0;
-        min-width: auto;
-        padding: 0 8px;
+        background: none;
       }
     }
   }

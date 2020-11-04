@@ -100,7 +100,7 @@ describe('dashboard.data.service.spec', function() {
 
       mockAxiosCalls({
         post: {
-          [newRisksUrl]: Promise.resolve({})
+          [newRisksUrl]: Promise.resolve({data: { dashboardResults: [], numResults: 0 } })
         }
       });
 
@@ -186,7 +186,7 @@ describe('dashboard.data.service.spec', function() {
 
       mockAxiosCalls({
         post: {
-          [applicationsRiskUrl]: Promise.resolve({})
+          [applicationsRiskUrl]: Promise.resolve({ data: { dashboardResults: [], numResults: 0 } })
         }
       });
 
@@ -269,7 +269,7 @@ describe('dashboard.data.service.spec', function() {
 
       mockAxiosCalls({
         post: {
-          [componentRisksUrl]: Promise.resolve({})
+          [componentRisksUrl]: Promise.resolve({ data: { dashboardResults: [], numResults: 0 } })
         }
       });
 

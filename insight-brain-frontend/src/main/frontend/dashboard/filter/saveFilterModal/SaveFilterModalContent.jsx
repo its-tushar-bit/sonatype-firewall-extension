@@ -3,22 +3,21 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, {Fragment, useState} from 'react';
+import React, { useState } from 'react';
 
 import {
-  NxAlert,
   NxButton,
   NxFontAwesomeIcon,
   NxModal,
   NxRadio,
   NxSubmitMask,
   NxTextInput,
-  NxWarningAlert
+  NxWarningAlert,
+  NxLoadError
 } from '@sonatype/react-shared-components';
 import { initialState, userInput } from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
-import { faExclamationTriangle, faSave, faSync } from '@fortawesome/free-solid-svg-icons';
+import { faSave } from '@fortawesome/free-solid-svg-icons';
 import * as PropTypes from 'prop-types';
-import classnames from 'classnames';
 import {validateMaxLength, validateNonEmpty, hasValidationErrors} from '../../../util/validationUtil';
 import { isNil, reject } from 'ramda';
 import { DEFAULT_FILTER_NAME } from '../defaultFilter';
@@ -118,8 +117,8 @@ export default function SaveFilterModalContent(props) {
     </NxWarningAlert>;
 
   const formContent =
-    <fieldset className="nx-fieldset nx-form-group">
-      <legend className="nx-label">Choose an Option</legend>
+    <fieldset className="nx-fieldset">
+      <legend className="nx-legend">Choose an Option</legend>
       <NxRadio id="dashboard-filter-overwrite"
                name="saveMode"
                isChecked={saveMode === SAVE_MODE_OVERWRITE}
@@ -139,6 +138,7 @@ export default function SaveFilterModalContent(props) {
         saveMode === SAVE_MODE_SAVE_AS &&
         <div id="filter-name-section">
           <NxTextInput {...filterName}
+                       validatable
                        autoFocus
                        onChange={filterNameChangeHandler}/>
         </div>
@@ -147,44 +147,34 @@ export default function SaveFilterModalContent(props) {
 
   return (
     <NxModal id="save-filter-modal" onClose={onCancel}>
-      { (saveFilterSaving || saveFilterSuccess) &&
-        <NxSubmitMask message="Saving…" success={saveFilterSuccess} /> }
-      <header className="nx-modal-header">
-        <h2 className="nx-h2">
-          <NxFontAwesomeIcon icon={faSave}/>
-          <span>{headerLabel}</span>
-        </h2>
-      </header>
-      <form className="nx-form nx-form--simple" onSubmit={trySave} noValidate>
+      <form className="nx-form" onSubmit={trySave} noValidate>
+        { (saveFilterSaving || saveFilterSuccess) &&
+          <NxSubmitMask message="Saving…" success={saveFilterSuccess} /> }
+        <header className="nx-modal-header">
+          <h2 className="nx-h2">
+            <NxFontAwesomeIcon icon={faSave}/>
+            <span>{headerLabel}</span>
+          </h2>
+        </header>
         <div className="nx-modal-content">
           { warning ? warningContent : formContent }
         </div>
-        <footer className={classnames('nx-modal-footer', { 'nx-error': saveError })}>
+        <footer className="nx-footer">
           { saveError &&
-            <NxAlert className="nx-alert nx-alert--error">
-              <NxFontAwesomeIcon icon={faExclamationTriangle}/>
-              <span>{saveError}</span>
-            </NxAlert>
+            <NxLoadError error={saveError} retryHandler={trySave} titleMessage="An error occurred saving data." />
           }
           <div className="nx-btn-bar">
-            <NxButton variant={ saveError ? 'error' : 'primary' }
-                      id="save-filter-modal-continue-button"
-                      disabled={!isSaveEnabled()}
-                      type="submit">
-              { saveError ?
-                <Fragment>
-                  <NxFontAwesomeIcon icon={faSync}/>
-                  <span>Retry</span>
-                </Fragment>
-                :
-                warning ? 'Continue' : 'Save'
-              }
-            </NxButton>
-            <NxButton id="save-filter-modal-cancel-button"
-                      type="button"
-                      onClick={onCancel}>
+            <NxButton id="save-filter-modal-cancel-button" type="button" onClick={onCancel}>
               Cancel
             </NxButton>
+            { !saveError &&
+              <NxButton variant="primary"
+                        id="save-filter-modal-continue-button"
+                        disabled={!isSaveEnabled()}
+                        type="submit">
+                { warning ? 'Continue' : 'Save' }
+              </NxButton>
+            }
           </div>
         </footer>
       </form>

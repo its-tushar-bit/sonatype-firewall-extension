@@ -3,19 +3,18 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { Fragment } from 'react';
+import React from 'react';
 
 import {
   NxButton,
-  NxErrorAlert,
   NxFontAwesomeIcon,
   NxModal,
   NxSubmitMask,
-  NxWarningAlert
+  NxWarningAlert,
+  NxLoadError
 } from '@sonatype/react-shared-components';
-import { faTrashAlt, faSync } from '@fortawesome/free-solid-svg-icons/index';
+import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/index';
 import * as PropTypes from 'prop-types';
-import classnames from 'classnames';
 
 export default function DeleteFilterModal(props) {
 
@@ -28,59 +27,55 @@ export default function DeleteFilterModal(props) {
     deleteFilterSuccess
   } = props;
 
-  const handleDeleteFilter = event => {
-    event.preventDefault();
+  const handleDeleteFilter = evt => {
+    if (evt) {
+      evt.preventDefault();
+    }
+
     deleteFilter(filterToDelete);
   };
 
-  const handleCancelButtonClick = event => {
+  const handleCancelButtonClick = evt => {
     // needs this to keep filters dropdown open
-    event.nativeEvent.stopImmediatePropagation();
+    evt.nativeEvent.stopImmediatePropagation();
     hideDeleteFilterModal();
   };
 
   return (
     <NxModal id="delete-filter-modal"
              onClose={hideDeleteFilterModal}>
-      <header className="nx-modal-header">
-        <h2 className="nx-h2">
-          <NxFontAwesomeIcon icon={faTrashAlt}/>
-          <span>Delete Filter</span>
-        </h2>
-      </header>
-      <form className="nx-form nx-form--simple" onSubmit={handleDeleteFilter} noValidate>
+      <form className="nx-form" onSubmit={handleDeleteFilter} noValidate>
         { (deleteFilterSaving || deleteFilterSuccess) &&
           <NxSubmitMask message="Removing…" success={deleteFilterSuccess} />
         }
-        { !deleteFilterError &&
-          <div className="nx-modal-content">
-            <NxWarningAlert id="delete-filter-confirmation">
-              You are about to delete &quot;{filterToDelete}&quot; filter. This action can not be undone.
-            </NxWarningAlert>
-          </div>
-        }
-        <footer className={classnames('nx-modal-footer', { 'nx-error': deleteFilterError })}>
+        <header className="nx-modal-header">
+          <h2 className="nx-h2">
+            <NxFontAwesomeIcon icon={faTrashAlt}/>
+            <span>Delete Filter</span>
+          </h2>
+        </header>
+        <div className="nx-modal-content">
+          <NxWarningAlert id="delete-filter-confirmation">
+            You are about to delete &quot;{filterToDelete}&quot; filter. This action can not be undone.
+          </NxWarningAlert>
+        </div>
+        <footer className="nx-footer">
           { deleteFilterError &&
-            <NxErrorAlert>{deleteFilterError}</NxErrorAlert>
+            <NxLoadError error={deleteFilterError}
+                         retryHandler={handleDeleteFilter}
+                         titleMessage="An error occurred deleting data." />
           }
           <div className="nx-btn-bar">
-            <NxButton variant={ deleteFilterError ? 'error' : 'primary' }
-                      id="delete-filter-modal-continue-button"
-                      type="submit">
-              { deleteFilterError ?
-                <Fragment>
-                  <NxFontAwesomeIcon icon={faSync}/>
-                  <span>Retry</span>
-                </Fragment>
-                :
-                'Continue'
-              }
-            </NxButton>
             <NxButton id="delete-filter-modal-cancel-button"
                       type="button"
                       onClick={handleCancelButtonClick}>
               Cancel
             </NxButton>
+            { !deleteFilterError &&
+              <NxButton variant="primary" id="delete-filter-modal-continue-button" type="submit">
+                Continue
+              </NxButton>
+            }
           </div>
         </footer>
       </form>

@@ -74,11 +74,6 @@ describe('ReportFilters component', function() {
     getShallowComponent = enzymeUtils.getShallowComponent(ReportFilters, minimalProps());
   });
 
-  it('renders a nav', function() {
-    let filterContainer = getShallowComponent().find('.filters-nav');
-    expect(filterContainer).toExist();
-  });
-
   it('renders a BackButton with the violations state name and the provided $state object, ', function() {
     const backButton = getShallowComponent().find(BackButton);
 

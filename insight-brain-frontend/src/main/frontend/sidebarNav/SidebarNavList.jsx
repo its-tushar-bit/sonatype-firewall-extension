@@ -7,7 +7,6 @@ import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 
 import BackButton from '../react/BackButton';
-import MaximizedContainer from '../react/MaximizedContainer';
 import LoadWrapper from '../react/LoadWrapper';
 import SidebarNavViolationList from './SidebarNavViolationList';
 
@@ -27,9 +26,11 @@ export default function SidebarNavList(props) {
 
   const { id, sidebarId, sidebarReference, type } = stateParams;
 
-  useEffect(() => {
+  function load() {
     loadSidebarNav(stateParams);
-  }, [sidebarId, sidebarReference, type]);
+  }
+
+  useEffect(load, [sidebarId, sidebarReference, type]);
 
   const sidebarDisplayComponent = (function(contentType) {
     switch (contentType) {
@@ -44,16 +45,14 @@ export default function SidebarNavList(props) {
   }(contentType));
 
   return (
-    <aside className="nx-page-scrollbar nx-page-scrollbar--violations-list">
+    <aside id="sidebar-nav-list">
       { backButtonStateName && <BackButton $state={$state} stateName={backButtonStateName} /> }
-      <LoadWrapper error={error} loading={loading}>
-        <div id="sidebar-nav-list" className="nx-list nx-list--clickable sidebar-nav-list">
-          <h4 className="nx-list__title">
-            {contentType}
-          </h4>
-          <MaximizedContainer className="nx-scrollable nx-scrollable--violations-list">
-            { sidebarDisplayComponent }
-          </MaximizedContainer>
+      <LoadWrapper error={error} loading={loading} retryHandler={load}>
+        <h4 className="nx-h4">
+          {contentType}
+        </h4>
+        <div className="nx-scrollable nx-scrollable--nav-list">
+          { sidebarDisplayComponent }
         </div>
       </LoadWrapper>
     </aside>

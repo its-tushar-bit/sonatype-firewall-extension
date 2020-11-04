@@ -31,7 +31,10 @@ describe('advancedSearchConfigReducer', function() {
 
       // viewState
       expect(newState.viewState.loading).toBeTruthy();
-      expect(newState.viewState.error).toBeNull();
+      expect(newState.viewState.loadError).toBeNull();
+      expect(newState.viewState.saveError).toBeNull();
+      expect(newState.viewState.reIndexError).toBeNull();
+      expect(newState.viewState.pollError).toBeNull();
       expect(newState.viewState.submitMaskState).toBeNull();
       expect(newState.viewState.submitMaskMessage).toBeNull();
       expect(newState.viewState.isDirty).toBeFalsy();
@@ -178,7 +181,7 @@ describe('advancedSearchConfigReducer', function() {
   });
 
   describe('ADVANCED_SEARCH_RE_INDEX_FAILED action', function() {
-    it('sets the error and that a full index is not triggered', function() {
+    it('sets the reIndexError and that a full index is not triggered', function() {
       const state = Object.freeze({
         other: otherObject,
         formState: {
@@ -191,7 +194,7 @@ describe('advancedSearchConfigReducer', function() {
         payload: 'some error'
       });
       expect(newState.formState.isFullIndexTriggered).toBeFalsy();
-      expect(newState.viewState.error).toBe('some error');
+      expect(newState.viewState.reIndexError).toBe('some error');
       // other properties are not modified
       expect(newState.other).toBe(otherObject);
       expect(newState.formState.other).toBe(otherObject);
@@ -199,12 +202,12 @@ describe('advancedSearchConfigReducer', function() {
   });
 
   describe('ADVANCED_SEARCH_POLL_STATE_SUCCESS action', function() {
-    it('updates the state and sets the error to null', function() {
+    it('updates the state and sets the pollError to null', function() {
       const state = Object.freeze({
         other: otherObject,
         viewState: {
           other: otherObject,
-          error: 'error!'
+          pollError: 'error!'
         },
         formState: {
           isEnabled: true,
@@ -222,7 +225,7 @@ describe('advancedSearchConfigReducer', function() {
         type: 'ADVANCED_SEARCH_POLL_STATE_SUCCESS',
         payload: payload
       });
-      expect(newState.viewState.error).toBeNull();
+      expect(newState.viewState.pollError).toBeNull();
       expect(newState.formState).not.toBeNull();
       expect(newState.formState.isEnabled).toBeTruthy();
       expect(newState.formState.lastIndexTime).toBe('some time');
@@ -235,7 +238,7 @@ describe('advancedSearchConfigReducer', function() {
   });
 
   describe('ADVANCED_SEARCH_POLL_STATE_FAILED action', function() {
-    it('updates the state, sets that a full index is not triggered, sets the error, and that polling is stopped',
+    it('updates the state, sets that a full index is not triggered, sets the pollError, and that polling is stopped',
         function() {
           const state = Object.freeze({
             other: otherObject,
@@ -245,7 +248,7 @@ describe('advancedSearchConfigReducer', function() {
             },
             viewState: {
               other: otherObject,
-              error: null
+              pollError: null
             },
             currentlyPolling: true
           });
@@ -253,7 +256,7 @@ describe('advancedSearchConfigReducer', function() {
             type: 'ADVANCED_SEARCH_POLL_STATE_FAILED',
             payload: 'error!'
           });
-          expect(newState.viewState.error).toBe('error!');
+          expect(newState.viewState.pollError).toBe('error!');
           expect(newState.currentlyPolling).toBeFalsy();
           expect(newState.formState.isFullIndexTriggered).toBeFalsy();
           // other properties are not modified
@@ -279,7 +282,10 @@ describe('advancedSearchConfigReducer', function() {
 
       // viewState
       expect(newState.viewState.loading).toBeTruthy();
-      expect(newState.viewState.error).toBeNull();
+      expect(newState.viewState.loadError).toBeNull();
+      expect(newState.viewState.saveError).toBeNull();
+      expect(newState.viewState.reIndexError).toBeNull();
+      expect(newState.viewState.pollError).toBeNull();
       expect(newState.viewState.submitMaskState).toBeNull();
       expect(newState.viewState.submitMaskMessage).toBeNull();
       expect(newState.viewState.isDirty).toBeFalsy();
@@ -307,7 +313,10 @@ describe('advancedSearchConfigReducer', function() {
         viewState: {
           other: otherObject,
           loading: true,
-          error: 'error!'
+          loadError: 'error!',
+          saveError: 'error!',
+          reIndexError: 'error!',
+          pollError: 'error!'
         },
         formState: otherObject,
         serverData: otherObject
@@ -322,7 +331,10 @@ describe('advancedSearchConfigReducer', function() {
         payload: payload
       });
       expect(newState.viewState.loading).toBeFalsy();
-      expect(newState.viewState.error).toBeNull();
+      expect(newState.viewState.loadError).toBeNull();
+      expect(newState.viewState.saveError).toBeNull();
+      expect(newState.viewState.reIndexError).toBeNull();
+      expect(newState.viewState.pollError).toBeNull();
       expect(newState.formState).toBe(payload);
       expect(newState.serverData).toBe(payload);
       // other properties are not modified
@@ -332,13 +344,13 @@ describe('advancedSearchConfigReducer', function() {
   });
 
   describe('ADVANCED_SEARCH_CONFIG_LOAD_FAILED action', function() {
-    it('updates the state and sets the error to the payload', function() {
+    it('updates the state and sets the loadError to the payload', function() {
       const state = Object.freeze({
         other: otherObject,
         viewState: {
           other: otherObject,
           loading: true,
-          error: null
+          loadError: null
         }
       });
       const newState = reduce(state, {
@@ -346,7 +358,7 @@ describe('advancedSearchConfigReducer', function() {
         payload: 'error!'
       });
       expect(newState.viewState.loading).toBeFalsy();
-      expect(newState.viewState.error).toBe('error!');
+      expect(newState.viewState.loadError).toBe('error!');
       // other properties are not modified
       expect(newState.other).toBe(otherObject);
       expect(newState.viewState.other).toEqual(otherObject);

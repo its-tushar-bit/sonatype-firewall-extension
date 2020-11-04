@@ -18,7 +18,6 @@ import javax.mail.Session;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.NxCheckbox;
-import com.sonatype.clm.testing.functional.elements.ReactTextInput;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.EmailConfigurationPage;
@@ -27,6 +26,7 @@ import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.InsightMail;
 
+import com.codeborne.selenide.SelenideElement;
 import org.codehaus.plexus.util.IOUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -65,7 +65,7 @@ public class EmailConfigurationPageTest
   @Test
   public void testCrud() {
     refreshOrOpen(EmailConfigurationPage.url());
-    emailConfigurationPage.insufficientPermissionsError().shouldNotBe(visible);
+    emailConfigurationPage.loadError().shouldNotBe(visible);
 
     // ## -- CREATE -- ##
     assertNoMailServerIsConfigured();
@@ -514,10 +514,10 @@ public class EmailConfigurationPageTest
       login(user.getUsername(), user.getPassword());
       refreshOrOpen(EmailConfigurationPage.url());
       emailConfigurationPage.hostName().shouldNotBe(visible);
-      emailConfigurationPage.insufficientPermissionsError()
+      emailConfigurationPage.loadError()
           .shouldBe(visible)
-          .shouldHave(text("Error It appears you do not have permission to access this page. If you believe this to " +
-              "be incorrect please contact your administrator."));
+          .shouldHave(text("An error occurred loading data. It appears you do not have permission to access this " +
+              "page. If you believe this to be incorrect please contact your administrator."));
       eyesWatcher.eyesCheck("Email Configuration Page - Insufficient Permissions");
     }
     finally {
@@ -527,7 +527,7 @@ public class EmailConfigurationPageTest
     }
   }
 
-  private void dirtyBehaviourTextInput(ReactTextInput reactTextInput) {
+  private void dirtyBehaviourTextInput(SelenideElement reactTextInput) {
     reactTextInput.setValue("koray-was-here");
     assertButtonsAndTooltipMessageAndClickCancel();
     reactTextInput.shouldBe(value(""));

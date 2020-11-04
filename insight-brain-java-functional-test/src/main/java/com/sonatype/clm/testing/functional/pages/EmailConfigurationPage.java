@@ -7,7 +7,6 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.NxCheckbox;
-import com.sonatype.clm.testing.functional.elements.ReactTextInput;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.SelenideElement;
@@ -15,7 +14,7 @@ import com.codeborne.selenide.SelenideElement;
 public class EmailConfigurationPage
     extends BasicElement<EmailConfigurationPage>
 {
-  public static final String ROOT = "#email-configuration";
+  public static final String ROOT = "#mail-config-page-container";
 
   public static class DeleteModal
       extends BasicElement<DeleteModal>
@@ -47,28 +46,28 @@ public class EmailConfigurationPage
     return BaseUrl.resolvePageUrl("/mailConfig");
   }
 
-  public ReactTextInput hostName() {
-    return new ReactTextInput(child("#email-config-hostname"));
+  public SelenideElement hostName() {
+    return child("#email-config-hostname");
   }
 
-  public ReactTextInput port() {
-    return new ReactTextInput(child("#email-config-port"));
+  public SelenideElement port() {
+    return child("#email-config-port");
   }
 
-  public ReactTextInput username() {
-    return new ReactTextInput(child("#email-config-username"));
+  public SelenideElement username() {
+    return child("#email-config-username");
   }
 
-  public ReactTextInput password() {
-    return new ReactTextInput(child("#email-config-password"));
+  public SelenideElement password() {
+    return child("#email-config-password");
   }
 
-  public ReactTextInput systemEmail() {
-    return new ReactTextInput(child("#email-config-systemEmail"));
+  public SelenideElement systemEmail() {
+    return child("#email-config-systemEmail");
   }
 
-  public ReactTextInput testEmailRecipient() {
-    return new ReactTextInput(child("#email-config-test-email-recipient"));
+  public SelenideElement testEmailRecipient() {
+    return child("#email-config-test-email-recipient");
   }
 
   public SelenideElement testEmailSend() {
@@ -95,7 +94,7 @@ public class EmailConfigurationPage
     return child("#email-config-delete");
   }
 
-  public SelenideElement insufficientPermissionsError() {
-    return child("#email-config-insufficient-permissions-error");
+  public SelenideElement loadError() {
+    return child(".nx-alert--load-error");
   }
 }

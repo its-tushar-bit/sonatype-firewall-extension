@@ -11,7 +11,6 @@ import classnames from 'classnames';
 import { faTrashAlt } from '@fortawesome/pro-regular-svg-icons';
 import {
   NxButton,
-  NxErrorAlert,
   NxModal,
   NxTextInput,
   NxTooltip,
@@ -20,7 +19,11 @@ import {
   NxFontAwesomeIcon
 } from '@sonatype/react-shared-components';
 import LoadWrapper from '../../react/LoadWrapper';
+import LoadError from '../../react/LoadError';
 import MaximizedContainer from '../../react/MaximizedContainer';
+
+const authErrorMessage = `It appears you do not have permission to access this page.
+    If you believe this to be incorrect, please contact your administrator.`;
 
 export default function ProxyConfig(props) {
   const {
@@ -42,7 +45,9 @@ export default function ProxyConfig(props) {
         hasAllRequiredData,
         isDirty,
         isValid,
-        error,
+        loadError: loadErrorProp,
+        saveError,
+        deleteError,
         serverData,
         showDeleteModal,
         hostnameState,
@@ -56,29 +61,34 @@ export default function ProxyConfig(props) {
         $state
       } = props,
       isSubmitEnabled = hasAllRequiredData && isDirty && isValid && !mustReenterPassword,
-      productLicenseUrl = $state.href($state.get('productlicense'));
+      productLicenseUrl = $state.href($state.get('productlicense')),
+      loadError = isAuthorized ? loadErrorProp : authErrorMessage;
 
   // Fetch Proxy Configuration when page is opened
   useEffect(() => { load(); }, []);
 
   function onSubmit(evt) {
-    evt.preventDefault();
+    if (evt) {
+      evt.preventDefault();
+    }
 
     if (isSubmitEnabled) {
       save();
     }
   }
 
-  function field(fieldState, onChange, placeholder, id, label) {
+  function field(fieldState, onChange, placeholder, id, label, optional = false, validatable = true) {
+    const labelClasses = classnames('nx-label', { 'nx-label--optional': optional });
+
     // The autoComplete setting is a hack to stop chrome autofilling the user's username and password
     // https://stackoverflow.com/a/55292734
     return (
       <div className="nx-form-group">
-        <label className="nx-label">
+        <label className={labelClasses}>
           <span className="nx-label__text">{label}</span>
           <NxTextInput { ...fieldState }
-                       { ...({ onChange, placeholder, id }) }
-                       className="nx-text-input nx-text-input--long"
+                       { ...({ onChange, placeholder, id, validatable }) }
+                       className="nx-text-input--long"
                        autoComplete="new-password"/>
         </label>
       </div>
@@ -93,45 +103,37 @@ export default function ProxyConfig(props) {
       <div className="nx-modal-content">
         <NxWarningAlert>This will remove the configured proxy.</NxWarningAlert>
       </div>
-      <footer className="nx-modal-footer">
+      <footer className="nx-footer">
         <div className="nx-btn-bar">
-          <NxButton type="button"
-                    id="proxy-config-delete-ok"
-                    onClick={del}
-                    className="nx-btn nx-btn--primary">
-            OK
-          </NxButton>
           <NxButton type="button"
                     id="proxy-config-delete-cancel"
                     onClick={() => setShowDeleteModal(false)}
                     className="nx-btn">
             Cancel
           </NxButton>
+          <NxButton type="button"
+                    id="proxy-config-delete-ok"
+                    onClick={del}
+                    className="nx-btn nx-btn--primary">
+            OK
+          </NxButton>
         </div>
       </footer>
     </NxModal>
   );
 
-  const tooltipText = !hasAllRequiredData || !isValid ? 'Hostname and Port are required details.'
-    : 'Password must be provided when updating Hostname or Port.';
+  const tooltipText = !isDirty || isSubmitEnabled ? '' :
+    !hasAllRequiredData || !isValid ? 'Hostname and Port are required details.' :
+      'Password must be provided when updating Hostname or Port.';
 
-  const saveButton =
-    <NxButton type="submit"
-              className={classnames({ disabled: !isSubmitEnabled })}
-              id="proxy-config-save"
-              variant="primary">
-      Save
-    </NxButton>;
-
-  const isTooltipHidden = !isDirty || isSubmitEnabled;
   const form = (
-    <form className="nx-form" onSubmit={onSubmit}>
+    <Fragment>
       {/* Input Fields */}
       {field(hostnameState, setHostname, 'proxy.server', 'proxy-config-hostname', 'Hostname')}
       {field(portState, setPort, '8080', 'proxy-config-port', 'Port')}
-      {field(usernameState, setUsername, 'admin', 'proxy-config-username', 'Username')}
+      {field(usernameState, setUsername, 'admin', 'proxy-config-username', 'Username', true, false)}
       <div className="nx-form-group">
-        <label className="nx-label">
+        <label className="nx-label nx-label--optional">
           <span className="nx-label__text">Password</span>
           {
             hasAllRequiredData && mustReenterPassword &&
@@ -141,38 +143,35 @@ export default function ProxyConfig(props) {
                        id="proxy-config-password"
                        onChange={setPassword}
                        onFocus={evt => { evt.target.select(); }}
-                       className="nx-text-input nx-text-input--long"
+                       className="nx-text-input--long"
                        type="password"
                        autoComplete="new-password" />
         </label>
       </div>
       <div className="nx-form-group">
-        <label className="nx-label">
+        <label className="nx-label nx-label--optional">
           <span className="nx-label__text">Exclude Hosts</span>
           <span className="nx-sub-label">Must be comma delimited.</span>
           <NxTextInput { ...excludeHostsState }
                        id="proxy-config-exclude-hosts"
                        onChange={setExcludeHosts}
-                       className="nx-text-input nx-text-input--long"
+                       className="nx-text-input--long"
                        type="textarea"/>
         </label>
       </div>
-      {/* Messages */}
-      { error && <NxErrorAlert>{error}</NxErrorAlert> }
       {/* Buttons */}
-      <div className="iq-tile-footer">
+      <footer className="nx-footer">
+        { saveError &&
+          <LoadError titleMessage="An error occurred while saving the configuration."
+                     error={saveError}
+                     retryHandler={onSubmit} />
+        }
+        { deleteError &&
+          <LoadError titleMessage="An error occurred while deleting the configuration."
+                     error={deleteError}
+                     retryHandler={del} />
+        }
         <div className="nx-btn-bar">
-          {isTooltipHidden ? saveButton :
-          <NxTooltip id="save-button-tooltip" title={tooltipText}>
-            {saveButton}
-          </NxTooltip>
-          }
-          <NxButton type="button"
-                    id="proxy-config-cancel"
-                    onClick={resetForm}
-                    disabled={!isDirty}>
-            Cancel
-          </NxButton>
           <NxButton type="button"
                     id="proxy-config-delete"
                     onClick={() => setShowDeleteModal(true)}
@@ -180,52 +179,57 @@ export default function ProxyConfig(props) {
             <NxFontAwesomeIcon icon={faTrashAlt}/>
             <span>Delete Configuration</span>
           </NxButton>
-          { showDeleteModal && deleteModal }
+          <NxButton type="button"
+                    id="proxy-config-cancel"
+                    onClick={resetForm}
+                    disabled={!isDirty}>
+            Cancel
+          </NxButton>
+          <NxTooltip id="save-button-tooltip" title={tooltipText}>
+            <NxButton type="submit"
+                      className={classnames({ disabled: !isSubmitEnabled })}
+                      id="proxy-config-save"
+                      variant="primary">
+              Save
+            </NxButton>
+          </NxTooltip>
         </div>
-      </div>
-    </form>
+      </footer>
+      { showDeleteModal && deleteModal }
+    </Fragment>
   );
 
   return (
-    <LoadWrapper loading={loading}>
-      <MaximizedContainer id="proxy-config-container" className="nx-page-content">
-        <div className="nx-page-main">
-          <div id="proxy-configuration" className="iq-tile iq-tile--sys-prefs">
-            {isAuthorized &&
-              <Fragment>
-                <div className="iq-tile-header">
-                  <div className="iq-tile-header__title">
-                    <h2>Proxy</h2>
-                  </div>
+    <MaximizedContainer id="proxy-config-container" className="nx-page-content">
+      <main className="nx-page-main">
+        <LoadWrapper loading={loading} error={loadError} retryHandler={load}>
+          <form className="nx-form" onSubmit={onSubmit}>
+            <section id="proxy-configuration" className="nx-tile">
+              <header className="nx-tile-header">
+                <div className="nx-tile-header__title">
+                  <h2 className="nx-h2">Proxy</h2>
                 </div>
-                <div>
-                  <p>
-                    To use a Proxy Server for outbound requests, configure it here.
+              </header>
+              <div className="nx-tile-content">
+                <p className="nx-p">
+                  To use a Proxy Server for outbound requests, configure it here.
+                </p>
+                {/* This page is accessible without a license, so that users can configure their Proxy Servers */}
+                {/* before attempting to install a license. If they are accessing this page without a license */}
+                {/* most likely they want to navigate to license install page next. */}
+                {!licensed &&
+                  <p id="proxy-config-product-license-navigation" className="nx-p">
+                    Continue installing your license <a href={productLicenseUrl}>here.</a>
                   </p>
-                  {/* This page is accessible without a license, so that users can configure their Proxy Servers */}
-                  {/* before attempting to install a license. If they are accessing this page without a license */}
-                  {/* most likely they want to navigate to license install page next. */}
-                  {!licensed &&
-                    <p id="proxy-config-product-license-navigation">
-                      Continue installing your license <a href={productLicenseUrl}>here.</a>
-                    </p>
-                  }
-                  {submitMaskState !== null &&
-                    <NxSubmitMask success={submitMaskState} message={submitMaskMessage}/>}
-                  {form}
-                </div>
-              </Fragment>
-            }
-            {!isAuthorized &&
-              <NxErrorAlert id="proxy-config-insufficient-permissions-error">
-                <strong>Error</strong> It appears you do not have permission to access this page.
-                If you believe this to be incorrect please contact your administrator.
-              </NxErrorAlert>
-            }
-          </div>
-        </div>
-      </MaximizedContainer>
-    </LoadWrapper>
+                }
+                {submitMaskState !== null && <NxSubmitMask success={submitMaskState} message={submitMaskMessage}/>}
+                {form}
+              </div>
+            </section>
+          </form>
+        </LoadWrapper>
+      </main>
+    </MaximizedContainer>
   );
 }
 
@@ -253,7 +257,9 @@ ProxyConfig.propTypes = {
   hasAllRequiredData: PropTypes.bool.isRequired,
   isDirty: PropTypes.bool.isRequired,
   isValid: PropTypes.bool.isRequired,
-  error: PropTypes.string,
+  loadError: PropTypes.string,
+  saveError: PropTypes.string,
+  deleteError: PropTypes.string,
   serverData: PropTypes.any,
   showDeleteModal: PropTypes.bool.isRequired,
   mustReenterPassword: PropTypes.bool.isRequired,

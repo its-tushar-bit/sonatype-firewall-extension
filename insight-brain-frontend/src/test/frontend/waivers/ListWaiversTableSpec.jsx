@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { shallow } from 'enzyme';
+
 import * as enzymeUtils from '../enzymeUtils';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/index';
 import {
@@ -63,20 +65,15 @@ describe('ListWaiversTable', function() {
     expect(tableHeaderCells.length).toBe(6);
   });
 
-  it('renders an empty NxTableBody if there are no active or expired waivers', function() {
+  it('sets the emptyMessage on NxTableBody including a link to the waivers help docs', function() {
     const component = getShallowComponent();
-    const table = component.find(NxTable);
-    expect(table).toExist();
-    const tableBody = table.find(NxTableBody);
-    const emptyCell = tableBody.find(NxTableRow).find(NxTableCell);
-    expect(emptyCell).toHaveClassName('nx-cell--empty');
-    expect(emptyCell.childAt(0).text())
-        .toBe('You don\'t have any waivers: to learn more about waivers you can check our ');
-    const linkNode = emptyCell.find(NxExternalLink);
-    const linkElement = linkNode.getElement();
-    const { children, href } = linkElement.props;
-    expect(children).toBe('help documentation.');
-    expect(href).toBe('https://help.sonatype.com/iqserver/reporting/application-composition-report/waivers');
+    const tableBody = component.find(NxTableBody);
+
+    expect(tableBody).toHaveProp('emptyMessage');
+
+    const emptyMessageShallowRender = shallow(tableBody.prop('emptyMessage'));
+    expect(emptyMessageShallowRender.find(NxExternalLink))
+        .toHaveProp('href', 'https://help.sonatype.com/iqserver/reporting/application-composition-report/waivers');
   });
 
   const assertDeleteWaiverBtn = (tableCell, waiver) => {

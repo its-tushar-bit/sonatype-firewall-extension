@@ -3,86 +3,100 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+.iq-app-report {
+  align-items: stretch;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 
-.filters-nav {
-  height: 100%;
-  background-color: $iq-grey-1;
-}
-
-.iq-report-actions.nx-dropdown--navigation {
-
-  .nx-dropdown-menu{
-    right: 0px;
-    z-index: 2;
+  .nx-alert {
+    margin-left: 0;
+    margin-right: 0;
   }
-}
 
-.iq-report-cell-component {
-  display: inline-block;
-  margin-left: 8px;
-}
+  // these grid styles largely copy the nx-tile-header styles, since RSC doesn't yet have
+  // styles for action buttons in the page title area
+  .nx-page-title {
+    align-items: center;
+    display: grid;
+    display: -ms-grid;
+    grid-template-columns: 1fr auto;
+    -ms-grid-columns: 1fr auto;
 
-.nx-scrollable.nx-scrollable--report-table {
-  max-height: 600px;
-  width: 100%;
-}
+    .nx-h1 {
+      @include nx-truncate-ellipsis;
+      grid-column-start: 1;
+      grid-column-end: 1;
+      grid-row-start: 1;
+      grid-row-end: 1;
+      -ms-grid-row: 1;
+      -ms-grid-column: 1;
+      margin: 0;
+    }
 
-.nx-table--scrollable {
-  border-style: none;
-  border-radius: 0;
-  overflow: visible;
+    .nx-page-title__description {
+      @include semi-bold();
 
-  // In Chrome (at least), tables are forced to have a whole number of pixels for their width. This means that
-  // if a container has a fractional number of pixels width, the table width will be truncated down and a visible
-  // gap will appear.  This calc ensures that when in a fractional-width container, the table will get an extra
-  // pixel of width
-  width: calc(100% + 0.9999px);
+      grid-column-start: 1;
+      grid-column-end: 2;
+      grid-row-start: 2;
+      grid-row-end: 2;
+      -ms-grid-row: 2;
+      -ms-grid-column: 1;
+      -ms-grid-column-span: 2;
+    }
 
-  > thead > :first-child, > tbody > :last-child, {
-    > .nx-cell {
-      &:first-child, &:last-child {
-        border-radius: 0;
-      }
+    .iq-page-title__actions {
+      @include container-horizontal;
+
+      float: none;
+      grid-column-start: 2;
+      grid-column-end: 2;
+      grid-row-start: 1;
+      grid-row-end: 1;
+      -ms-grid-row: 1;
+      -ms-grid-column: 2;
+      margin-left: $nx-spacing-l;
     }
   }
 
-  // create a stacking context so the headers don't appear over other content outside the table
-  position: relative;
-  z-index: 0;
-
-  .nx-cell--header {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    border-bottom: transparent;
-  }
-
-  .nx-cell-policy-name {
-    width: 215px;
-  }
-
-  .nx-cell-component-name {
-    width: 656px;
-  }
-
-}
-
-.nx-table-row--filter-header > .nx-cell--header {
-  top: 28px;
-  border-bottom: 1px solid transparent;
-  border-top: 1px solid $iq-grey-5;
-}
-
-.nx-filter-input {
-  width: 100%;
-
-  > .nx-filter-text-input {
-    height: 18px;
-    padding-left: 0;
-    width: calc(100% - 30px);
+  .nx-tile {
+    // since parent is a flexbox, margin collapsing won't work
+    margin-top: 0;
   }
 }
 
-.nx-table-border.nx-table {
-  border-collapse: separate;
+.iq-app-report__results-table-tile {
+  $component-cell-max-width: 610px;
+
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex: 1;
+  white-space: nowrap;
+
+  > .nx-tile-content {
+    flex: 1;
+    max-height: none;
+  }
+
+  .iq-component-display {
+    display: inline;
+  }
+
+  .iq-dependency-indicator {
+    margin-right: 8px;
+  }
+
+  .nx-table-row--filter-header .nx-filter-input {
+    width: 100%;
+  }
+}
+
+.iq-app-report__threat-cell {
+  width: 90px;
+}
+
+.iq-app-report__policy-name-cell {
+  width: 225px;
 }

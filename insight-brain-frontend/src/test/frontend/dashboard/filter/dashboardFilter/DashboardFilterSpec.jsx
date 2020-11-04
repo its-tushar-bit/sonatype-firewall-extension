@@ -132,7 +132,7 @@ describe('DashboardFilter', function() {
   });
 
   describe('filter header', function() {
-    it('renders ManageFiltersDropdown outside of label element', function() {
+    it('renders ManageFiltersDropdown outside of header element', function() {
       const props = {
             appliedFilterName: 'some filter',
             showDirtyAsterisk: true
@@ -140,7 +140,7 @@ describe('DashboardFilter', function() {
           shallowRender = getShallowComponent(props),
           header = shallowRender.find('.dashboard-filter-header');
 
-      expect(header.childAt(0)).toHaveClassName('nx-label');
+      expect(header.childAt(0)).toMatchSelector('h3.nx-h3');
       expect(header.childAt(0)).toHaveText('Filter');
 
       expect(header.childAt(1)).toContainReact(

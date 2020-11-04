@@ -3,41 +3,24 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
-import * as PropTypes from 'prop-types';
 import { always } from 'ramda';
 
 import * as enzymeUtils from '../enzymeUtils';
 import ViolationDetailsTile from '../../../main/frontend/violation/ViolationDetailsTile';
 import LoadWrapper from '../../../main/frontend/react/LoadWrapper';
-import SecurityVulnerabilityDetailsTile
-  from '../../../main/frontend/violation/SecurityVulnerabilityDetailsTile';
+import ViolationPage from '../../../main/frontend/violation/ViolationPage';
+import SecurityVulnerabilityDetailsTile from '../../../main/frontend/violation/SecurityVulnerabilityDetailsTile';
 import PolicyViolationConstraintInfoTile from '../../../main/frontend/violation/PolicyViolationConstraintInfoTile';
-
-// MaximizedContainer must be mocked because it depends on an angular service
-function MaximizedContainer({ children }) {
-  return <div>{children}</div>;
-}
-
-MaximizedContainer.propTypes = {
-  children: PropTypes.node
-};
 
 describe('ViolationPage', function() {
   let minimalProps,
       loadViolationSpy,
       fetchStageTypesSpy,
       stateGoSpy,
-      ViolationPage,
       getShallowComponent,
       getMountedComponent;
 
   beforeEach(function() {
-    ViolationPage =
-        require('inject-loader!../../../main/frontend/violation/ViolationPage')({
-          '../react/MaximizedContainer': MaximizedContainer
-        }).default;
-
     loadViolationSpy = jasmine.createSpy('loadViolation');
     fetchStageTypesSpy = jasmine.createSpy('fetchStageTypes');
     stateGoSpy = jasmine.createSpy('stateGo');
@@ -62,13 +45,6 @@ describe('ViolationPage', function() {
     getMountedComponent = enzymeUtils.getMountedComponent(ViolationPage, minimalProps);
   });
 
-  it('renders a MaximizedContainer with the "violation-page" id', function() {
-    const component = getShallowComponent();
-
-    expect(component).toMatchSelector(MaximizedContainer);
-    expect(component).toMatchSelector('#violation-page');
-  });
-
   it('renders a LoadWrapper within the page', function() {
     expect(getShallowComponent().find(LoadWrapper)).toExist();
   });
@@ -90,6 +66,19 @@ describe('ViolationPage', function() {
     expect(getLoadWrapper({ violationDetailsError: 'foo' })).toHaveProp('error', 'foo');
     expect(getLoadWrapper({ stageTypesError: 'foo' })).toHaveProp('error', 'foo');
     expect(getLoadWrapper({ violationDetailsError: 'foo', stageTypesError: 'bar' })).toHaveProp('error', 'foo');
+  });
+
+  it('sets the LoadWrapper\'s retryHandler to a function that calls loadViolation and fetchStateTypes', function() {
+    const loadWrapper = getShallowComponent().find(LoadWrapper),
+        retryHandler = loadWrapper.prop('retryHandler');
+
+    expect(loadViolationSpy).not.toHaveBeenCalled();
+    expect(fetchStageTypesSpy).not.toHaveBeenCalled();
+
+    retryHandler();
+
+    expect(loadViolationSpy).toHaveBeenCalledWith('foo');
+    expect(fetchStageTypesSpy).toHaveBeenCalledWith('dashboard');
   });
 
   it('calls loadViolation with the $state id param, and fetchStageTypes with the `dashboard` param, on first load',
@@ -151,8 +140,8 @@ describe('ViolationPage', function() {
 
     expect(tile).toExist();
     expect(tile.prop('vulnerabilityDetails')).toBe(vulnerabilityDetails);
-    expect(tile.prop('vulnerabilityDetailsError')).toBe('Test Error');
-    expect(tile.prop('vulnerabilityDetailsLoading')).toBe(true);
+    expect(tile.prop('error')).toBe('Test Error');
+    expect(tile.prop('loading')).toBe(true);
   });
 
   it('does not render a SecurityVulnerabilityDetailsTile if it\'s not a security vulnerability', function() {

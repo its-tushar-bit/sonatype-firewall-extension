@@ -56,7 +56,7 @@ export default function ManageFiltersDropdown(props) {
                 className="nx-dropdown-button nx-dropdown-button--select-filter">
           <span>{filter.name}</span>
         </button>
-        <NxButton onClick={() => handleDeleteFilter(filter)} variant="tertiary" className="nx-btn--delete-filter">
+        <NxButton onClick={() => handleDeleteFilter(filter)} variant="icon-only" className="nx-btn--delete-filter">
           <NxFontAwesomeIcon icon={faTrashAlt}/>
         </NxButton>
       </div>
@@ -84,8 +84,7 @@ export default function ManageFiltersDropdown(props) {
                 onKeyDown={handleKeyPress}
                 onToggleCollapse={handleDropdownToggle}
                 label={dropdownLabel}
-                tabIndex={0}
-                variant="secondary">
+                tabIndex={0}>
       <DocumentClickListenerWrapper onDocumentClick={handleDocumentClick}>
         <div key='Default' className={getOptionClassNames(DEFAULT_FILTER_NAME === appliedFilterName)}>
           <button onClick={applyDefaultFilter}

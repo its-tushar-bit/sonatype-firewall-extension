@@ -13,21 +13,16 @@ describe('SidebarNavList', function() {
   let minimalProps,
       loadSidebarNavSpy,
       gotoNewVulnerabilitySpy,
-      MaximizedContainerMock,
       SidebarNavViolationListMock,
       SidebarNavList,
       getShallowComponent,
       getMountedComponent;
 
   beforeEach(function() {
-    MaximizedContainerMock = jasmine.createSpy('MaximizedContainerMock')
-        .and.returnValue(<div>MaximizedContainer</div>);
-
     SidebarNavViolationListMock = jasmine.createSpy('SidebarNavViolationListMock')
         .and.returnValue(<div>SidebarNavViolationList</div>);
 
     SidebarNavList = require('inject-loader!../../../main/frontend/sidebarNav/SidebarNavList')({
-      '../react/MaximizedContainer': MaximizedContainerMock,
       './SidebarNavViolationList': SidebarNavViolationListMock
     }).default;
 
@@ -65,8 +60,9 @@ describe('SidebarNavList', function() {
     getMountedComponent = enzymeUtils.getMountedComponent(SidebarNavList, minimalProps);
   });
 
-  it('renders an aside component with the "nx-page-sidebar" class', function() {
-    expect(getShallowComponent()).toMatchSelector('aside.nx-page-scrollbar--violations-list');
+  it('renders an aside component with the sidebar-nav-list id', function() {
+    expect(getShallowComponent()).toMatchSelector('aside');
+    expect(getShallowComponent()).toHaveProp('id', 'sidebar-nav-list');
   });
 
   it('renders a BackButton using the supplied $state and stateName', function() {
@@ -99,6 +95,18 @@ describe('SidebarNavList', function() {
 
     expect(getLoadWrapper({ error: 'error' })).toHaveProp('error', 'error');
     expect(getLoadWrapper({ error: null })).toHaveProp('error', null);
+  });
+
+  it('sets the LoadWrapper\'s retryHandler to a function that calls loadSidebarNav', function () {
+    const loadWrapper = getShallowComponent().find(LoadWrapper),
+        retryHandler = loadWrapper.prop('retryHandler');
+
+    expect(loadSidebarNavSpy).toHaveBeenCalledTimes(0);
+
+    retryHandler();
+
+    expect(loadSidebarNavSpy).toHaveBeenCalledTimes(1);
+    expect(loadSidebarNavSpy).toHaveBeenCalledWith(minimalProps.stateParams);
   });
 
   it('calls loadViolation with the value of the stateParams object on first load', function() {
@@ -201,14 +209,13 @@ describe('SidebarNavList', function() {
   });
 
   it('renders the correct div and h4 elements within the LoadWrapper', function() {
-    const getLoadWrapper = props => getShallowComponent(props).find(LoadWrapper);
+    const loadWrapper = getShallowComponent().find(LoadWrapper);
 
-    const wrappingDiv = getLoadWrapper().find('div');
-    expect(wrappingDiv).toMatchSelector('.nx-list');
-    expect(wrappingDiv).toMatchSelector('.nx-list--clickable');
-    expect(wrappingDiv).toMatchSelector('#sidebar-nav-list');
-    const sidebarTitle = wrappingDiv.find('h4');
-    expect(sidebarTitle).toMatchSelector('.nx-list__title');
+    const wrappingDiv = loadWrapper.find('div');
+    expect(wrappingDiv).toHaveClassName('nx-scrollable');
+    expect(wrappingDiv).toHaveClassName('nx-scrollable--nav-list');
+    const sidebarTitle = loadWrapper.find('h4');
+    expect(sidebarTitle).toMatchSelector('.nx-h4');
     expect(sidebarTitle.text()).toEqual('violations');
   });
 
@@ -223,13 +230,13 @@ describe('SidebarNavList', function() {
       threatLevel: 2,
       policyName: 'barName'
     }];
-    const wrappingContainer = getLoadWrapper({
+    const loadWrapper = getLoadWrapper({
       contentType: 'violations',
       gotoNewVulnerability: gotoNewVulnerabilitySpy,
       data
-    }).find(MaximizedContainerMock);
-    expect(wrappingContainer.find(SidebarNavViolationListMock)).toHaveProp('currentViolationId', '123456');
-    expect(wrappingContainer.find(SidebarNavViolationListMock)).toHaveProp('violations', data);
-    expect(wrappingContainer.find(SidebarNavViolationListMock)).toHaveProp('onClick', gotoNewVulnerabilitySpy);
+    });
+    expect(loadWrapper.find(SidebarNavViolationListMock)).toHaveProp('currentViolationId', '123456');
+    expect(loadWrapper.find(SidebarNavViolationListMock)).toHaveProp('violations', data);
+    expect(loadWrapper.find(SidebarNavViolationListMock)).toHaveProp('onClick', gotoNewVulnerabilitySpy);
   });
 });

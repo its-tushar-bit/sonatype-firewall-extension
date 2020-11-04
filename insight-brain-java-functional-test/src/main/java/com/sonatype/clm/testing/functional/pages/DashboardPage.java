@@ -42,7 +42,7 @@ public class DashboardPage
     return BaseUrl.resolvePageUrl("/dashboard/newest-risk");
   }
 
-  public static final String ROOT =  ".dashboard-container";
+  public static final String ROOT =  "#dashboard-container";
 
   public static final String NEEDS_ACKNOWLEDGEMENT_MESSAGE = "Select your filter criteria on the left, and click " +
       "'apply' to see results.";

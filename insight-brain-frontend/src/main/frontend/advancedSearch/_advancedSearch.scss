@@ -8,11 +8,10 @@
 }
 
 .nx-container--advanced-search-help-container {
-  margin-top: 30px;
-  margin-bottom: 30px;
+  margin-bottom: $nx-spacing-xl;
 }
 
-.nx-adv-search-help__toggle {
+.iq-adv-search-help__toggle {
   cursor: pointer;
 }
 
@@ -20,17 +19,17 @@
   color: $nx-grey-5;
 }
 
-.nx-adv-search-help__explanation {
+.iq-adv-search-help__explanation {
   display:inline-block;
   margin-left:$nx-spacing-md;
 }
 
-.nx-adv-search-help__note {
+.iq-adv-search-help__note {
   color: $nx-grey-5;
   margin-left: $nx-spacing-md;
 }
 
-.nx-adv-search-help__example {
+.iq-adv-search-help__example {
   background-color: $nx-off-white;
   border: 1px solid $nx-grey-5;
   cursor: pointer;
@@ -40,22 +39,28 @@
   user-select: all;
 }
 
-.nx-adv-search__query-builder {
+.iq-adv-search__query-builder {
   background: $nx-off-white;
   border: 1px solid #c1c1c1;
   box-shadow: 0 2px 5px 0 $nx-grey-5;
   color: #575757;
+  margin-top: $nx-spacing-xs;
+  margin-bottom: $nx-spacing-md;
   padding: $nx-spacing-md;
   position: absolute;
   width: 1000px;
-  z-index: $iq-form-mask-zindex;
+  text-align: initial;
+
+  // cancel out the bottom margin on the form row
+  transform: translateY(-$nx-spacing-xl);
+  z-index: 1;
 }
 
-.nx-adv-search__query-group {
+.iq-adv-search__query-group {
   display: flow-root;
 }
 
-.nx-tag {
+.iq-tag {
   border: solid $nx-grey-5 1px;
   border-radius:$nx-spacing-sm;
   cursor: pointer;
@@ -69,13 +74,6 @@
   }
 }
 
-.nx-tile-content--adv-search-results {
-  // we don't want the extra border on the first group
-  &:not(:nth-child(2)) {
-    border-top: 1px solid $nx-grey-2;
-  }
-}
-
 .nx-table--advanced-search > tbody > tr > td:nth-child(1) {
   width: 2%;
 }
@@ -84,13 +82,18 @@
   width: 18%;
 }
 
-.nx-form.nx-form--advanced-search {
-  display: flex;
-  margin-bottom: $nx-spacing-md;
-}
+.nx-form--advanced-search {
+  .nx-form-row {
+    display: flex;
+  }
 
-.nx-text-input--advanced-search {
-  flex-grow: 1
+  .nx-form-group {
+    flex: 1;
+  }
+
+  .nx-text-input {
+    width: 100%;
+  }
 }
 
 .nx-table--advanced-search {

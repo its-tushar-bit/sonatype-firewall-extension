@@ -76,6 +76,7 @@ describe('waiverActions', function() {
 
   describe('saveWaiver', function() {
     it('immediately dispatches an WAIVERS_SAVE_WAIVER_REQUESTED action', function() {
+      spyOn(axios, 'post').and.returnValue(Promise.resolve());
       store.dispatch(saveWaiver('policyViolationId', 'waiverScope', 'ownerId', 'some comments', true));
 
       expect(store.getActions().length).toBe(1);
@@ -730,7 +731,7 @@ describe('waiverActions', function() {
         });
 
         store.dispatch(deleteWaiver('application', 'ownerId', 'waiverId'))
-            .catch(() => {
+            .then(() => {
               expect(axios.delete).toHaveBeenCalledWith(url);
               expect(store.getActions().length).toBe(2);
               expect(store.getActions()[1].type).toBe(WAIVERS_DELETE_WAIVER_FAILED);

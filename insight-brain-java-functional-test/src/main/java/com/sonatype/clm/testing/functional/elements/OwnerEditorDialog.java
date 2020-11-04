@@ -21,6 +21,10 @@ public class OwnerEditorDialog
     return root().find(".iq-modal-header h2");
   }
 
+  public static SelenideElement titleIcon() {
+    return root().find(".iq-modal-header .fa");
+  }
+
   public static SelenideElement name() {
     return root().find(".iq-modal-content input[name=name]");
   }

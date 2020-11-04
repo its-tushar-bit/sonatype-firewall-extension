@@ -31,12 +31,8 @@ public class ScmOnboardingPage
     super(ROOT_SELECTOR);
   }
 
-  public SelenideElement featureFlagError() {
-    return child("#scm-onboarding-feature-flag-disabled-error");
-  }
-
-  public SelenideElement permissionDeniedError() {
-    return child("#scm-onboarding-insufficient-permissions-error");
+  public SelenideElement loadError() {
+    return child(".nx-alert--load-error");
   }
 
   public SelenideElement scmInvalidTokenError() {
@@ -56,7 +52,7 @@ public class ScmOnboardingPage
   }
 
   public ElementsCollection resultsTableDescription() {
-    return children(".iq-scm-repository-description span");
+    return children(".iq-scm-repository-description .nx-truncate-ellipsis");
   }
 
   public SelenideElement descriptionTooltip() {
@@ -69,7 +65,7 @@ public class ScmOnboardingPage
   }
 
   public SelenideElement resultsTableSelectAll() {
-    return child("#select-all");
+    return child("#iq-scmonboarding-select-all");
   }
 
   public SelenideElement selectionCheckboxById(String id) {

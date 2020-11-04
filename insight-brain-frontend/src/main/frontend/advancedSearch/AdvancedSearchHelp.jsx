@@ -28,7 +28,7 @@ export default function AdvancedSearchHelp(props) {
           'Search by application name focused on security vulnerabilities')}
       {helpRow('applicationName:Nexus* AND vulnerabilityStatus:Open',
           'Search by application name focused on *open* security vulnerabilities')}
-      <div className="nx-adv-search-help__note">
+      <div className="iq-adv-search-help__note">
         Note: Do not need <i>itemType:SECURITY_VULNERABILITY</i> anymore, since vulnerabilityStatus:Open will already
         return search results that are of item type <i>SECURITY_VULNERABILITY</i>.
       </div>
@@ -37,21 +37,21 @@ export default function AdvancedSearchHelp(props) {
       'Search specific components with specific state')}
       {helpRow('componentFormat:(a-name npm) AND vulnerabilityStatus:(Acknowledged "Not Applicable")',
           'Search specific components with specific state (alternative version)')}
-      <div className="nx-adv-search-help__note">
+      <div className="iq-adv-search-help__note">
         Tip:  Both queries above are equivalent, they return the same result. It is a good example of not actually
         requiring the itemType. OR is the default operator so it can be omitted.
       </div>
       <p className="nx-text--advanced-search-help-row">
-        <span className="nx-adv-search-help__explanation">
+        <span className="iq-adv-search-help__explanation">
           Also watch out for special characters that need escaping e.g. ( ) and “ “
         </span>
       </p>
       <p>
-        <span className="nx-adv-search-help__explanation">
+        <span className="iq-adv-search-help__explanation">
           Read additional <NxExternalLink
             href="https://links.sonatype.com/products/nxiq/doc/advanced-search">documentation</NxExternalLink>
         </span>
-        <span className="nx-adv-search-help__explanation">
+        <span className="iq-adv-search-help__explanation">
           Send feedback to the{' '}
           <NxExternalLink href="https://links.sonatype.com/products/nxiq/feedback/advanced-search">
             community board
@@ -66,7 +66,7 @@ export default function AdvancedSearchHelp(props) {
       <div className="nx-container--advanced-search-help-container">
         <NxFontAwesomeIcon className="nx-icon--advanced-search-bulb" icon={faLightbulb}/>
         <span id="advanced-search-help-container-toggle"
-              className="nx-adv-search-help__toggle"
+              className="iq-adv-search-help__toggle"
               onClick={toggleHelp}><strong>Craft your search terms for the best results.</strong>
           {
             !showHelp && <NxFontAwesomeIcon icon={faCaretRight}/>
@@ -85,8 +85,8 @@ export default function AdvancedSearchHelp(props) {
   function helpRow(example, explanation) {
     return (
       <p>
-        <span className="nx-adv-search-help__example">{example}</span>
-        <span className="nx-adv-search-help__explanation">{explanation}</span>
+        <span className="iq-adv-search-help__example">{example}</span>
+        <span className="iq-adv-search-help__explanation">{explanation}</span>
       </p>
     );
   }

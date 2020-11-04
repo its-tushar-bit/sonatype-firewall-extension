@@ -81,6 +81,17 @@ describe('AddWaiverPage', function() {
     expect(loadWrapper).toHaveProp('loading', true);
   });
 
+  it('calls loadAddWaiverData when the LoadWrapper retryHandler is invoked', function() {
+    const loadWrapper = getShallowComponent().find(LoadWrapper),
+        retryHandler = loadWrapper.prop('retryHandler');
+
+    expect(loadAddWaiverDataSpy).not.toHaveBeenCalled();
+
+    retryHandler();
+
+    expect(loadAddWaiverDataSpy).toHaveBeenCalledWith('violationId');
+  });
+
   it('renders the AddWaiverForm with props if the page is not loading', function() {
     const fullProps = {
       loading: false,

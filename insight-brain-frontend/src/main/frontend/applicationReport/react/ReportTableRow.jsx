@@ -4,7 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { NxFontAwesomeIcon, NxTableCell, NxTableRow, NxThreatBar, NxTooltip } from '@sonatype/react-shared-components';
+import { NxFontAwesomeIcon, NxTableCell, NxTableRow, NxThreatIndicator, NxTooltip }
+  from '@sonatype/react-shared-components';
 import { faCheck, faHistory } from '@fortawesome/pro-solid-svg-icons';
 import ComponentDisplay from '../../ComponentDisplay/ReactComponentDisplay';
 import React from 'react';
@@ -28,37 +29,35 @@ export default function ReportTableRow(props) {
 
   return (
     <NxTableRow key={ index }>
-      <NxTableCell className="nx-cell nx-cell--threat-bar">
-        <NxThreatBar policyThreatLevel={component.policyThreatLevel} />
+      <NxTableCell className="iq-app-report__threat-cell">
+        <NxThreatIndicator policyThreatLevel={component.policyThreatLevel} />
         <span className="nx-threat-number">{component.policyThreatLevel}</span>
       </NxTableCell>
-      <NxTableCell >
+      <NxTableCell className="iq-app-report__policy-name-cell">
         <span>{component.policyName}</span>
       </NxTableCell>
-      <NxTableCell>
-        {component.waived &&
-          <span className="iq-text-indicator iq-text-indicator--waived iq-pull-right">
-            <span>Waived</span>
-            <NxFontAwesomeIcon icon={faCheck}/>
-          </span>
+      <NxTableCell className="iq-app-report__component-name-cell">
+        <div className="nx-truncate-ellipsis">
+          { component.waived &&
+            <span className="iq-text-indicator iq-text-indicator--waived iq-pull-right">
+              <span>Waived</span>
+              <NxFontAwesomeIcon icon={faCheck}/>
+            </span>
+            }
+          { component.grandfathered &&
+            <span className="iq-text-indicator iq-text-indicator--grandfathered iq-pull-right">
+              <span>Grandfathered</span>
+              <NxFontAwesomeIcon icon={faHistory}/>
+            </span>
+            }
+          { component.derivedDependencyType !== 'unknown' &&
+            <NxTooltip title={dependencyTooltipTitle} placement="top">
+              <div className={dependencyIndicatorClasses}>
+                <span>{dependencyIndicator}</span>
+              </div>
+            </NxTooltip>
           }
-        {component.grandfathered &&
-          <span className="iq-text-indicator iq-text-indicator--grandfathered iq-pull-right">
-            <span>Grandfathered</span>
-            <NxFontAwesomeIcon icon={faHistory}/>
-          </span>
-          }
-        {component.derivedDependencyType !== 'unknown' &&
-          <NxTooltip
-              title={dependencyTooltipTitle}
-              placement="top">
-            <div className={dependencyIndicatorClasses}>
-              <span>{dependencyIndicator}</span>
-            </div>
-          </NxTooltip>
-        }
-        <div className="iq-report-cell-component">
-          <ComponentDisplay component={component} truncate={true}/>
+          <ComponentDisplay component={component} />
         </div>
       </NxTableCell>
     </NxTableRow>

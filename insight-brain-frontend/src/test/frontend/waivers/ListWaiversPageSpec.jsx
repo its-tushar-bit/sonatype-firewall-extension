@@ -15,7 +15,7 @@ describe('ListWaiversPage', function() {
       ListWaiversPage,
       ListWaiversTableMock,
       MaximizedContainerMock,
-      loadViolationSpy,
+      loadManageWaiversDataSpy,
       stateMock,
       stateGoSpy,
       stateHrefSpy,
@@ -38,7 +38,7 @@ describe('ListWaiversPage', function() {
       './deleteWaiverModal/DeleteWaiverModalContainer': DeleteWaiverModalMock
     }).default;
 
-    loadViolationSpy = jasmine.createSpy('loadViolationSpy');
+    loadManageWaiversDataSpy = jasmine.createSpy('loadManageWaiversDataSpy');
     setWaiverToDeleteMock = () => {};
     stateGoSpy = jasmine.createSpy();
     stateHrefSpy = jasmine.createSpy().and.returnValue('href');
@@ -74,7 +74,7 @@ describe('ListWaiversPage', function() {
       },
       $state: stateMock,
       backButtonStateName: 'backButtonStateName',
-      loadViolation: loadViolationSpy,
+      loadManageWaiversData: loadManageWaiversDataSpy,
       hasPermissionForAppWaivers: false,
       setWaiverToDelete: setWaiverToDeleteMock,
       waiverToDelete: null
@@ -144,9 +144,20 @@ describe('ListWaiversPage', function() {
     expect(loadWrapper).toHaveProp('error', 'error');
   });
 
+  it('calls loadManageWaiversData when the LoadWrapper retryHandler is invoked', function() {
+    const loadWrapper = getShallowComponent().find(LoadWrapper),
+        retryHandler = loadWrapper.prop('retryHandler');
+
+    expect(loadManageWaiversDataSpy).not.toHaveBeenCalled();
+
+    retryHandler();
+
+    expect(loadManageWaiversDataSpy).toHaveBeenCalledWith('violationId');
+  });
+
   it('has the policy name and the correct threat level classes in the header', function() {
     const component = getShallowComponent({ violationDetails: violationDetailsMock });
-    const policyNameSpan = component.find('.list-waivers--threat-indicator span');
+    const policyNameSpan = component.find('.list-waivers__threat-indicator span');
     expect(policyNameSpan).toHaveText('policyName');
     expect(policyNameSpan).toMatchSelector('.iq-threat-level');
     expect(policyNameSpan).toMatchSelector('.iq-threat-level--severe');
@@ -162,23 +173,17 @@ describe('ListWaiversPage', function() {
 
   it('properly renders the constraint section', function() {
     const component = getShallowComponent({ violationDetails: violationDetailsMock });
-    const constraintSection = component.find('.list-waivers--constraint');
-    expect(constraintSection.find('h3.nx-label')).toHaveText('Constraint Name');
-    expect(constraintSection.find('div.iq-read-only-data')).toHaveText('constraint name');
+    expect(component.find('#list-waivers-constraint-name')).toHaveText('constraint name');
   });
 
   it('properly renders the conditions section', function() {
     const component = getShallowComponent({ violationDetails: violationDetailsMock });
-    const conditionsSection = component.find('.list-waivers--conditions');
-    expect(conditionsSection.find('h3.nx-label')).toHaveText('Conditions');
-    expect(conditionsSection.find('span')).toHaveText('reason');
+    expect(component.find('#list-waivers-conditions')).toHaveText('reason');
   });
 
   it('properly renders the component name section', function() {
     const component = getShallowComponent({ violationDetails: violationDetailsMock });
-    const componentNameSection = component.find('.list-waivers--component-name');
-    expect(componentNameSection.find('h3.nx-label')).toHaveText('Component Name');
-    expect(componentNameSection.find('div.iq-read-only-data')).toHaveText('filename');
+    expect(component.find('#list-waivers-component-name')).toHaveText('filename');
   });
 
   it('shows a button on the waiver list table header', function() {

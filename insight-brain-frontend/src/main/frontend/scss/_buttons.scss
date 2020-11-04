@@ -45,7 +45,7 @@
   }
 
   &.btn-primary {
-    background-color: $nx-background-color-interactive;
+    background-color: #2476c3;
     border-color: transparent;
     color: $iq-off-white;
 
@@ -54,12 +54,12 @@
     }
 
     &:hover:not(.disabled):not([disabled]), &:focus:not(.disabled):not([disabled]) {
-      border-color: $nx-background-color-interactive-active;
+      border-color: #0046b1;
       color: $iq-off-white;
     }
 
     &:active:not(.disabled):not([disabled]) {
-      background: $nx-background-color-interactive-active;
+      background: #0046b1;
     }
   }
 

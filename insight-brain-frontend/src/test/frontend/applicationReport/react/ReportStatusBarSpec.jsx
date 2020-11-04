@@ -27,12 +27,17 @@ describe('ReportStatusBar component', function() {
     getShallowComponent = enzymeUtils.getShallowComponent(ReportStatusBar, minimalProps);
   });
 
+  it('renders a tile', function() {
+    const shallowComponent = getShallowComponent();
+    expect(shallowComponent).toMatchSelector('.nx-tile');
+  });
+
   it('renders a div for threats', function() {
     const shallowComponent = getShallowComponent();
     const indicator = shallowComponent.find('.iq-threat-indicators');
-    const critical = shallowComponent.find('.iq-threat-indicator.nx-threat-bar--critical');
-    const severe = shallowComponent.find('.iq-threat-indicator.nx-threat-bar--severe');
-    const moderate = shallowComponent.find('.iq-threat-indicator.nx-threat-bar--moderate');
+    const critical = shallowComponent.find('.iq-threat-indicator.critical');
+    const severe = shallowComponent.find('.iq-threat-indicator.severe');
+    const moderate = shallowComponent.find('.iq-threat-indicator.moderate');
 
     expect(indicator).toExist();
     expect(critical).toExist();

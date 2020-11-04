@@ -8,7 +8,6 @@ import * as PropTypes from 'prop-types';
 
 import LoadWrapper from '../react/LoadWrapper';
 import ViolationDetailsTile, { violationDetailsPropTypes } from './ViolationDetailsTile';
-import MaximizedContainer from '../react/MaximizedContainer';
 import PolicyViolationConstraintInfoTile, { constraintViolationsPropType } from './PolicyViolationConstraintInfoTile';
 import SecurityVulnerabilityDetailsTile from './SecurityVulnerabilityDetailsTile';
 
@@ -16,6 +15,7 @@ export default function ViolationPage(props) {
   const {
     $state,
     loadViolation,
+    loadVulnerabilityDetails,
     stateGo,
     fetchStageTypes,
     loading,
@@ -43,17 +43,18 @@ export default function ViolationPage(props) {
   }
 
   return (
-    <MaximizedContainer id="violation-page">
-      <LoadWrapper error={error} loading={loading || !(violationDetails && stageTypes)}>
+    <div id="violation-page">
+      <LoadWrapper error={error} loading={loading || !(violationDetails && stageTypes)} retryHandler={load}>
         <ViolationDetailsTile { ...({ $state, stageTypes, violationDetails, stateGo, activeWaivers }) } />
         <PolicyViolationConstraintInfoTile constraintViolations={constraintViolations} />
-        { isSecurityVulnerability && <SecurityVulnerabilityDetailsTile {...({
-          vulnerabilityDetails,
-          vulnerabilityDetailsError,
-          vulnerabilityDetailsLoading
-        })}/> }
+        { isSecurityVulnerability &&
+          <SecurityVulnerabilityDetailsTile vulnerabilityDetails={vulnerabilityDetails}
+                                            error={vulnerabilityDetailsError}
+                                            loading={vulnerabilityDetailsLoading}
+                                            retryLoad={loadVulnerabilityDetails} />
+        }
       </LoadWrapper>
-    </MaximizedContainer>
+    </div>
   );
 }
 
@@ -66,6 +67,7 @@ ViolationPage.propTypes = {
     href: PropTypes.func.isRequired
   }).isRequired,
   loadViolation: PropTypes.func.isRequired,
+  loadVulnerabilityDetails: PropTypes.func.isRequired,
   fetchStageTypes: PropTypes.func.isRequired,
   stateGo: PropTypes.func.isRequired,
   loading: PropTypes.bool.isRequired,

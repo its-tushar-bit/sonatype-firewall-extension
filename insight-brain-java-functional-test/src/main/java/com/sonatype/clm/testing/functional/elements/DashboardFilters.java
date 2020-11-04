@@ -173,7 +173,7 @@ public class DashboardFilters
     }
 
     public SelenideElement saveButton() {
-      return child(".nx-modal-footer", ".nx-btn--primary");
+      return child(".nx-footer", ".nx-btn--primary");
     }
 
     public SelenideElement cancelButton() {

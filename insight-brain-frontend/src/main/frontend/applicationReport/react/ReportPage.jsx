@@ -30,6 +30,7 @@ export default function ReportPage(props) {
     embeddable,
     policyViolationId,
     metadata,
+    loading,
     loadError,
     selectedReport,
     stateGo,
@@ -48,41 +49,31 @@ export default function ReportPage(props) {
   }, [publicId, scanId]);
 
   return (
-    <MaximizedContainer id="app-react-report">
-      <div className="nx-page">
-        <div className="nx-page-content">
-          <aside className="nx-page-sidebar" id="report-sidebar">
-            <ReportFilters {...({
-              $state,
-              setAggregateReportEntries,
-              setExactValueFilter,
-              exactValueFilters,
-              aggregate
-            })}/>
-          </aside>
-          <div className="nx-page-main">
-            <LoadWrapper loading={!metadata} error={loadError} retryHandler={loadReport}>
-              <ReportTitle metadataDetails={metadata}
-                           scanId={scanId}
-                           publicId={publicId}
-                           selectedReport={selectedReport}
-                           reevaluateReport={reevaluateReport}
-                           stateGo={stateGo} />
-              <div className="nx-tile">
-                <ReportStatusBar selectedReport={selectedReport}/>
-              </div>
-              <div className="nx-tile">
-                <ReportContent selectedReport={selectedReport}
-                               substringFilters={substringFilters}
-                               setSorting={setSorting}
-                               sortConfiguration={sortConfiguration}
-                               setStringFieldFilter={setStringFieldFilter}
-                               setSortingParameters={setSortingParameters}/>
-              </div>
-            </LoadWrapper>
-          </div>
-        </div>
-      </div>
+    <MaximizedContainer id="app-react-report" className="nx-page-content">
+      <ReportFilters {...({
+        $state,
+        setAggregateReportEntries,
+        setExactValueFilter,
+        exactValueFilters,
+        aggregate
+      })}/>
+      <main className="nx-page-main iq-app-report">
+        <LoadWrapper loading={loading} error={loadError} retryHandler={loadReport}>
+          <ReportTitle metadataDetails={metadata}
+                       scanId={scanId}
+                       publicId={publicId}
+                       selectedReport={selectedReport}
+                       reevaluateReport={reevaluateReport}
+                       stateGo={stateGo} />
+          <ReportStatusBar selectedReport={selectedReport} />
+          <ReportContent selectedReport={selectedReport}
+                         substringFilters={substringFilters}
+                         setSorting={setSorting}
+                         sortConfiguration={sortConfiguration}
+                         setStringFieldFilter={setStringFieldFilter}
+                         setSortingParameters={setSortingParameters}/>
+        </LoadWrapper>
+      </main>
     </MaximizedContainer>
   );
 }

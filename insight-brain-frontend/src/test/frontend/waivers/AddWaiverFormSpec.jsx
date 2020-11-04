@@ -86,7 +86,7 @@ describe('AddWaiverForm', function() {
 
   it('renders a form with the appropriate classes', function() {
     const component = getShallowComponent();
-    expect(component).toMatchSelector('form.nx-tile-content.nx-form.iq-add-waiver-form');
+    expect(component).toMatchSelector('form.nx-form.iq-add-waiver-form');
   });
 
   it('renders a tile header with the artifact and component names', function() {
@@ -288,12 +288,11 @@ describe('AddWaiverForm', function() {
     expect(setWaiverCommentSpy).toHaveBeenCalledWith('Foo');
   });
 
-  it('renders a btn bar with action buttons', function() {
+  it('renders a btn bar with action buttons in the footer', function() {
     const component = getShallowComponent(),
-        buttonBar = component.find('.nx-btn-bar'),
+        buttonBar = component.find('.nx-footer .nx-btn-bar'),
         buttons = buttonBar.find(NxButton);
 
-    expect(buttonBar).toHaveClassName('.nx-btn-bar--forms');
     expect(buttons.length).toBe(2);
 
     expect(buttons.at(0)).toHaveProp('id', 'add-waiver-cancel');
@@ -351,8 +350,7 @@ describe('AddWaiverForm', function() {
   it('renders an LoadError when submitError is present', function() {
     const submitErrorObject = new Error('an error');
     const component = getShallowComponent({ submitError: submitErrorObject }),
-        buttonBar = component.find('.nx-btn-bar'),
-        loadError = buttonBar.find(LoadError);
+        loadError = component.find(LoadError);
 
     expect(loadError).toHaveProp('error', submitErrorObject);
   });

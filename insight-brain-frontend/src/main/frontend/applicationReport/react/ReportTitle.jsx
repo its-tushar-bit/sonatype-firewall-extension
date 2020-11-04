@@ -25,7 +25,7 @@ export default function ReportTitle(props) {
 
   const pdfUrl = getDownloadPdfUrl(publicId, scanId);
   const vulnerabilitiesPageDisable = selectedReport && selectedReport.reportVersion < 5 ? true : false;
-  const applyBtnClasses = classnames('nx-dropdown-button', {'disabled': vulnerabilitiesPageDisable});
+  const applyBtnClasses = classnames('nx-dropdown-link', {'disabled': vulnerabilitiesPageDisable});
 
   const formatDate = date => moment(date).format('YYYY-MM-DD HH:mm:ss [UTC]Z');
 
@@ -50,6 +50,9 @@ export default function ReportTitle(props) {
     });
   };
 
+  const vulnPageTooltip =
+      vulnerabilitiesPageDisable ? 'Reevaluate the report in order to enable Vulnerabilities view' : '';
+
   return (
     <div className="nx-page-title">
       <div className='iq-page-title__actions'>
@@ -58,49 +61,31 @@ export default function ReportTitle(props) {
           <span>Re-Evaluate Report</span>
         </NxButton>
         <NxStatefulDropdown label="Options" className="nx-dropdown--navigation iq-report-actions">
-          <a className="nx-dropdown-button"
-             href={pdfUrl}>
+          <a className="nx-dropdown-button" href={pdfUrl}>
             <NxFontAwesomeIcon icon={faFilePdf}/>
             <span>Generate PDF</span>
           </a>
           <NxDropdownDivider/>
-          <a className="nx-dropdown-button"
-             onClick={onRawDataClick}>
+          <a className="nx-dropdown-link" onClick={onRawDataClick}>
             <NxFontAwesomeIcon icon={faFile}/>
             <span>View raw data</span>
           </a>
-          <NxTooltip
-                title={vulnerabilitiesPageDisable
-                  ? 'Reevaluate the report in order to enable Vulnerabilities view'
-                  : ''}
-                placement="top">
-            <a className={applyBtnClasses}
-               onClick={onVulnerabilitiesDetailsClick}
-               id="viewVulnBtn">
+          <NxTooltip title={vulnPageTooltip} placement="top">
+            <a className={applyBtnClasses} onClick={onVulnerabilitiesDetailsClick} id="viewVulnBtn">
               <NxFontAwesomeIcon icon={faFile}/>
               <span>View vulnerabilities</span>
             </a>
           </NxTooltip>
-          <a className="nx-dropdown-button"
-             onClick={onLegacyReportClick}>
+          <a className="nx-dropdown-link" onClick={onLegacyReportClick}>
             <NxFontAwesomeIcon icon={faFile}/>
             <span>View legacy report</span>
           </a>
         </NxStatefulDropdown>
       </div>
-      <div className="nx-tile-header">
-        <div className="nx-tile-header__title">
-          <h1 className="nx-h1">{metadataDetails.application.name} {metadataDetails.reportTitle}
-          </h1>
-        </div>
-      </div>
-      <div className="nx-tile-content">
-        {metadataDetails.reportTime &&
-        <span>{formatDate(metadataDetails.reportTime)}</span>
-        }
-        {metadataDetails.commitHash &&
-        <span> — Commit {metadataDetails.commitHash}</span>
-        }
+      <h1 className="nx-h1">{metadataDetails.application.name} {metadataDetails.reportTitle}</h1>
+      <div className="nx-page-title__description">
+        { metadataDetails.reportTime && <span>{formatDate(metadataDetails.reportTime)}</span> }
+        { metadataDetails.commitHash && <span> — Commit {metadataDetails.commitHash}</span> }
       </div>
     </div>
   );

@@ -53,7 +53,7 @@ describe('DeleteWaiverModal', function() {
     expect(modalContent).toExist();
     expect(modalContent).toHaveText('Are you sure you want to delete this waiver?');
 
-    const modalFooter = component.find('.nx-modal-footer');
+    const modalFooter = component.find('.nx-footer');
     expect(modalFooter).toExist();
 
     const noButton = modalFooter.find('#delete-waiver-modal-cancel-button');

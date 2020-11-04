@@ -17,7 +17,7 @@
 }
 
 .iq-add-waiver-form__scope .nx-radio {
-  @include truncate-ellipsis;
+  @include nx-truncate-ellipsis;
   max-width: 1024px;
 }
 
@@ -27,10 +27,10 @@
   width: 100%;
 }
 
-.iq-add-waiver-form .iq-read-only > .iq-read-only-data {
-  padding-left: $nx-spacing-l;
-}
-
 .iq-add-waiver-form .nx-btn-bar {
   @include container-vertical;
+}
+
+.nx-form-group.iq-add-waiver-form__vulnerability_details_link {
+  margin-bottom: $nx-spacing-xl;
 }

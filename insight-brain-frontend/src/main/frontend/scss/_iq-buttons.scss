@@ -54,23 +54,23 @@
 }
 
 .iq-btn--primary {
-  background-color: $nx-background-color-interactive;
+  background-color: #2476c3;
   border-color: transparent;
   border-width: 2px;
   color: $iq-off-white;
   padding: 4px 11px;
 
   &:hover, &:focus, &:active {
-    border-color: $nx-background-color-interactive-active;
+    border-color: #0046b1;
     color: $iq-off-white;
   }
 
   &:active {
-    background: $nx-background-color-interactive-active;
+    background: #0046b1;
   }
 
   &.disabled, &[disabled] {
-    background-color: $nx-background-color-interactive-disabled;
+    background-color: #97cbee;
     border-color: transparent;
     color: $iq-off-white;
   }

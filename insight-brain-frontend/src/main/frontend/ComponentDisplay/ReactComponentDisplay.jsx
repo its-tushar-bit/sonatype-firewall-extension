@@ -15,7 +15,7 @@ import { getComponentName } from '../util/componentNameUtils';
  */
 export default function ComponentDisplay({ component, truncate }) {
   const textTag = isFilenameOrUnknown(component) ? 'em' : 'span',
-      divClass = classnames({ 'truncate-ellipsis': truncate }),
+      divClass = classnames('iq-component-display', { 'truncate-ellipsis': truncate }),
       componentName = getComponentName(component);
 
   return (

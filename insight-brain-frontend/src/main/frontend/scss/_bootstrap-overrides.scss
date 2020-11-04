@@ -7,6 +7,7 @@
  * Styles required to override Bootstraps default styles
  * Please list the location in the app of any changes
  */
+@import "~@sonatype/react-shared-components/scss-shared/nx-variables";
 
 .nx-list {
   ul, ol {
@@ -52,14 +53,75 @@
 
 .nx-fieldset {
   // override bootstrap <legend> styles and apply normal label styles
-  legend.nx-label {
+  legend.nx-legend {
     @include semi-bold();
 
     // use the same styling as <label>s
     border-style: none;
-    color: $iq-off-black;
     font-size: 16px;
-    line-height: normal;
+    line-height: $nx-line-height;
     margin-bottom: 7px;
   }
+}
+
+.nx-label {
+  margin-bottom: 0;
+  line-height: $nx-line-height;
+}
+
+.nx-text-input__invalid-message {
+  font-weight: normal;
+}
+
+.nx-text-input {
+  input[type=text], input[type=password], textarea {
+    background: none;
+    box-shadow: none;
+    border: none;
+    border-radius: 0;
+    color: $nx-text-color;
+    height: auto;
+    line-height: $nx-line-height;
+    margin: 0;
+    transition: none;
+    vertical-align: initial;
+  }
+
+  &:not(.nx-filter-input) {
+    .nx-text-input__input {
+      padding: 0;
+    }
+  }
+}
+
+.nx-radio-checkbox__input {
+  &[type=checkbox], &[type=radio] {
+    margin: 0;
+    width: 0;
+  }
+}
+
+.nx-h1,
+.nx-h2,
+.nx-h3,
+.nx-h4,
+.nx-h5,
+.nx-h6 {
+  line-height: $nx-line-height;
+}
+
+.nx-p {
+  margin-top: 0;
+}
+
+.nx-table {
+  border-collapse: separate;
+}
+
+.nx-btn {
+  vertical-align: baseline;
+}
+
+.nx-form {
+  margin: 0;
 }

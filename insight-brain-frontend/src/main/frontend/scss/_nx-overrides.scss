@@ -30,10 +30,6 @@
   font-weight: normal;
 }
 
-.nx-page-title.iq-page-title {
-  margin: 0 0 $nx-spacing-md $nx-spacing-sm;
-}
-
 .nx-tree-view--collapsed {
   .nx-tree-view__child {
     visibility: hidden;
@@ -46,37 +42,18 @@
     margin-left: $nx-spacing-xs;
   }
 }
-.dashboard-filter {
-  .nx-tree-view {
-    margin-right: $nx-spacing-xs;
-  }
 
-  .nx-counter {
-    background-color: $iq-off-white;
-    border: 1px solid $iq-grey-3;
-    color: $iq-slate;
-
-    &.nx-counter--active {
-      background-color: $iq-blue-light;
-      border-color: $iq-blue-light;
-      color: $iq-blue;
-    }
-  }
+.nx-page-title.iq-page-title {
+  margin-right: $iq-spacing-sm;
+  margin-left: $iq-spacing-sm;
 }
 
-#application-report-vulnerabilities-table {
-  .nx-cell {
-    box-sizing: content-box;
-    padding-top: 0;
-    padding-bottom: 0;
-  }
+.nx-page-title__page-icon.fa {
+  margin: 0 8px;
+  vertical-align: baseline;
 }
 
 @media (max-width: 1366px) {
-  .nx-page-title.iq-page-title {
-    margin-right: $iq-spacing-sm;
-  }
-
   .iq-dashboard-summary {
     .nx-page-title.iq-page-title {
       margin-right: 0;

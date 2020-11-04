@@ -26,11 +26,9 @@
   font-weight: normal;
 }
 
-body {
-  @include regular();
-
-  font-size: 14px;
-  line-height: 18px;
+.iq-body {
+  // overrides some bootstrap font sizes
+  @include font-size($nx-font-size);
 }
 
 $h1-font-size: 26px;

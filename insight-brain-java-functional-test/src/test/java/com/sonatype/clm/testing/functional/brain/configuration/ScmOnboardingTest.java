@@ -25,7 +25,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -127,9 +126,7 @@ public class ScmOnboardingTest
     loginAsAdmin();
 
     // then the onboarding page is disabled
-    scmOnboardingPage.featureFlagError().shouldBe(visible).shouldNotBe(empty);
-    scmOnboardingPage.permissionDeniedError().shouldBe(hidden);
-    scmOnboardingPage.scmInvalidTokenError().shouldBe(hidden);
+    scmOnboardingPage.loadError().shouldBe(visible).shouldHave(text("This feature has not been enabled"));
   }
 
   @Test
@@ -143,9 +140,7 @@ public class ScmOnboardingTest
     loginAsAdmin();
 
     // then the feature flag error is hidden
-    scmOnboardingPage.featureFlagError().shouldBe(hidden);
-    scmOnboardingPage.permissionDeniedError().shouldBe(hidden);
-    scmOnboardingPage.scmInvalidTokenError().shouldBe(hidden);
+    scmOnboardingPage.loadError().shouldBe(hidden);
   }
 
   @Test
@@ -159,9 +154,7 @@ public class ScmOnboardingTest
     login(user.getUsername(), user.getPassword());
 
     // then a permission denied error is shown
-    scmOnboardingPage.permissionDeniedError().shouldBe(visible).shouldNotBe(empty);
-    scmOnboardingPage.featureFlagError().shouldBe(hidden);
-    scmOnboardingPage.scmInvalidTokenError().shouldBe(hidden);
+    scmOnboardingPage.loadError().shouldBe(visible).shouldHave(text("you do not have permission to access this page"));
   }
 
   @Test
@@ -174,9 +167,7 @@ public class ScmOnboardingTest
     loginAsAdmin();
 
     // then a permission denied error is shown
-    scmOnboardingPage.permissionDeniedError().shouldBe(hidden);
-    scmOnboardingPage.featureFlagError().shouldBe(hidden);
-    scmOnboardingPage.scmInvalidTokenError().shouldBe(visible).shouldNotBe(empty);
+    scmOnboardingPage.loadError().shouldHave(text("The selected Organization does not have SCM configured."));
   }
 
   @Test
@@ -227,8 +218,11 @@ public class ScmOnboardingTest
     // then the page title block is populated
     scmOnboardingPage.repositoryCount().waitUntil(text("13"), 5000);
     scmOnboardingPage.backButton().shouldBe(text("Back to Organization Management"));
+
+    // NOTE the missing space before the org name is deliberate. In the UI there is an icon there with
+    // appropriate margins.
     scmOnboardingPage.onboardingPageTitle().shouldBe(visible)
-        .waitUntil(text("Import Applications from Github to Test Org"), 5000);
+        .waitUntil(text("Import Applications from Github toTest Org"), 5000);
   }
 
   @Test

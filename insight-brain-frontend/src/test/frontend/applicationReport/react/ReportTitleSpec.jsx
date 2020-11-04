@@ -76,7 +76,7 @@ describe('ReportTitle component', function() {
     };
     const shallowComponent = getShallowComponent(props);
     const button = shallowComponent.find(NxTooltip).find('a');
-    expect(button).toHaveClassName('nx-dropdown-button');
+    expect(button).toHaveClassName('nx-dropdown-link');
     expect(button).not.toHaveClassName('disabled');
   });
 
@@ -87,15 +87,15 @@ describe('ReportTitle component', function() {
     expect(mockedReevaluateReport).toHaveBeenCalled();
   });
 
-  it('renders a tile header with title value', function() {
+  it('renders a page title value', function() {
     const component = getShallowComponent(),
-        title = component.find('.nx-tile-header').find('.nx-h1');
+        title = component.find('.nx-page-title').find('.nx-h1');
     expect(title).toHaveText('App Name Title');
   });
 
-  it('renders a tile content with time value', function() {
+  it('renders a description with time value', function() {
     const component = getShallowComponent(),
-        content = component.find('.nx-tile-content').find('span');
+        content = component.find('.nx-page-title__description');
     expect(content).toHaveText('2018-11-11 15:13:11 UTC-05:00');
   });
 });

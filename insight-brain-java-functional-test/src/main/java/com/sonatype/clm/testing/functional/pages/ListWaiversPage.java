@@ -58,23 +58,23 @@ public class ListWaiversPage
   }
 
   public SelenideElement policyName() {
-    return child(".list-waivers--threat-indicator .iq-threat-level");
+    return child(".list-waivers__threat-indicator .iq-threat-level");
   }
 
   public SelenideElement constraintName() {
-    return child(".list-waivers--constraint div");
+    return child("#list-waivers-constraint-name");
   }
 
   public ElementsCollection conditions() {
-    return children(".list-waivers--conditions span");
+    return children("#list-waivers-conditions span");
   }
 
   public SelenideElement condition(int index) {
-    return child(".list-waivers--conditions span", nthChild(index));
+    return child("#list-waivers-conditions span", nthChild(index));
   }
 
   public SelenideElement componentName() {
-    return child(".list-waivers--component-name div");
+    return child("#list-waivers-component-name");
   }
 
   public WaiverListTable waiverListTable() {
@@ -107,7 +107,7 @@ public class ListWaiversPage
     }
 
     public SelenideElement noWaiversMessage() {
-      return child("tbody tr td.nx-cell--empty");
+      return child("tbody tr td.nx-cell--meta-info");
     }
   }
 

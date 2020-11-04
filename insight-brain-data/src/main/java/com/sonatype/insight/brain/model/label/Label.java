@@ -138,8 +138,4 @@ public class Label
   @SuppressWarnings("unused")
   private void setLabelLowercase(String labelLowercase) {
   }
-
-  public void fixLabelLowercase() {
-    setLabel(label);
-  }
 }

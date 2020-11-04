@@ -82,10 +82,10 @@ public class LabelDAO
     return getList(sQuery, ownerId, hash);
   }
 
-  public Label getByOwnerIdAndLabelLowercase(TransactionContext tx, String ownerId, String labelLowercase) {
+  public Label getByOwnerIdAndLabel(TransactionContext tx, String ownerId, String label) {
     final String sQuery = "SELECT label FROM Label label" + //
         " WHERE  label.ownerId=?1 AND label.labelLowercase=?2";
-    return get(tx, sQuery, ownerId, labelLowercase);
+    return get(tx, sQuery, ownerId, Label.normalizeLabel(label));
   }
 
   @Override
@@ -162,7 +162,7 @@ public class LabelDAO
 
     // first, check the same label does not exist in for the same owner
     // this is enforced by db unique key, but checking in java gives nicer error message
-    Label otherLabel = getByOwnerIdAndLabelLowercase(tx, label.getOwnerId(), label.getLabelLowercase());
+    Label otherLabel = getByOwnerIdAndLabel(tx, label.getOwnerId(), label.getLabelLowercase());
     if (otherLabel != null && (!update || !otherLabel.getId().equals(label.getId()))) {
       final Application app = appDAO.getById(tx, label.getOwnerId());
       if (app != null) {
@@ -213,7 +213,7 @@ public class LabelDAO
 
     List<Owner> children = ownerDAO.getChildOwners(tx, owner);
     for (Owner child : children) {
-      Label otherLabel = getByOwnerIdAndLabelLowercase(tx, child.getId(), label.getLabelLowercase());
+      Label otherLabel = getByOwnerIdAndLabel(tx, child.getId(), label.getLabelLowercase());
       if (otherLabel != null) {
         getOwnersForType(childrenWithDuplicatesByType, child.getType()).add(child.getName());
       }
@@ -226,7 +226,7 @@ public class LabelDAO
       return;
     }
     Organization parentOrganization = orgDAO.getByIdNotNull(parentId);
-    Label otherLabel = getByOwnerIdAndLabelLowercase(tx, parentOrganization.getId(), label.getLabelLowercase());
+    Label otherLabel = getByOwnerIdAndLabel(tx, parentOrganization.getId(), label.getLabelLowercase());
     if (otherLabel != null) {
       final String message = String.format("A label with name '%s' already exists in organization '%s'.",
           otherLabel.getLabel(), parentOrganization.getName());

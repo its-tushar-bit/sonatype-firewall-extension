@@ -395,7 +395,7 @@ public class ApplicationMoveService
       for (Label oldLabel : oldLabels) {
         Label newLabel = null;
         for (String ownerId : newAncestorIds) {
-          newLabel = labelDAO.getByOwnerIdAndLabelLowercase(tx, ownerId, oldLabel.getLabelLowercase());
+          newLabel = labelDAO.getByOwnerIdAndLabel(tx, ownerId, oldLabel.getLabel());
           if (newLabel != null) {
             break;
           }

@@ -94,7 +94,7 @@ public class Label
   public void setLabel(String label) {
     if (label != null) {
       label = label.trim();
-      labelLowercase = label.toLowerCase(Locale.ENGLISH);
+      labelLowercase = normalizeLabel(label);
     }
     else {
       labelLowercase = null;
@@ -137,5 +137,9 @@ public class Label
   @Deprecated
   @SuppressWarnings("unused")
   private void setLabelLowercase(String labelLowercase) {
+  }
+
+  public static String normalizeLabel(String label) {
+    return label.trim().toLowerCase(Locale.ENGLISH);
   }
 }

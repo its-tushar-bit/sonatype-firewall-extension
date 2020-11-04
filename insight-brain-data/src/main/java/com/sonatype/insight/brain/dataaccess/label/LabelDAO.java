@@ -88,12 +88,6 @@ public class LabelDAO
     return get(tx, sQuery, ownerId, labelLowercase);
   }
 
-  public List<Label> getByLabelLowercase(String labelLowercase) {
-    String sQuery = "SELECT label FROM Label label" + //
-        " WHERE label.labelLowercase=?1";
-    return getList(sQuery, labelLowercase);
-  }
-
   @Override
   public Label getById(TransactionContext tx, String id) {
     String sQuery = "SELECT label FROM Label label" + //

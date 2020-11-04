@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationRep
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalMetadataDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApplicationLicenseUsageTelemetry;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -45,6 +47,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.dto.model.ComponentLegalCommentDTO;
@@ -53,9 +56,12 @@ import com.sonatype.insight.license.dto.model.LegalCopyrightDTO;
 import com.sonatype.insight.license.dto.model.LegalFileDTO;
 import com.sonatype.insight.license.dto.model.LicenseMetadataDTO;
 import com.sonatype.insight.license.dto.model.LicenseObligationDTO;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.inject.Binder;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -106,6 +112,9 @@ public class ApiLicenseLegalServiceTest
   @Mock
   private ApiLicenseLegalHdsService mockApiLicenseLegalHdsService;
 
+  @Mock
+  private TelemetrySender telemetrySenderMock;
+
   @Captor
   private ArgumentCaptor<Collection<String>> licenseIdArgumentCaptor;
 
@@ -115,6 +124,7 @@ public class ApiLicenseLegalServiceTest
   @Override
   public void configure(Binder binder) {
     binder.bind(ApiLicenseLegalHdsService.class).toInstance(mockApiLicenseLegalHdsService);
+    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
     super.configure(binder);
   }
 
@@ -207,6 +217,8 @@ public class ApiLicenseLegalServiceTest
     assertThat(queriedComponents).hasSize(2);
     queriedComponents.forEach(componentIdentifiers -> assertThat(componentIdentifiers)
         .containsExactlyInAnyOrder(expectedComponentIdentifiers));
+
+    assertApplicationTelemetry(app, rawReport);
   }
 
   @Test
@@ -226,12 +238,15 @@ public class ApiLicenseLegalServiceTest
     verify(mockApiLicenseLegalHdsService, never()).getLicenseMetadata(any());
     assertThat(licenseMetadataReport.components).hasSize(3);
     assertThat(licenseMetadataReport.licenseLegalMetadata).isEmpty();
+
+    assertApplicationTelemetry(app, rawReport);
   }
 
   @Test
   public void testGetLicenseLegalApplicationReport_NoReport() {
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(
         () -> apiLicenseLegalService.getLicenseLegalApplicationReport(tempEntity.newApplicationWithParent().getId()));
+    verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
   }
 
   private void assertlicenseLegalMetadata(
@@ -419,5 +434,34 @@ public class ApiLicenseLegalServiceTest
     catch (IOException e) {
       throw new UncheckedIOException(e);
     }
+  }
+
+  private void assertApplicationTelemetry(Application application, ApiReportRawDataDTOV2 rawReport) {
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock).send(telemetryDataArgumentCaptor.capture());
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+    Map<String, Object> expectedAttributes = new HashMap<>();
+    expectedAttributes.put(ApplicationLicenseUsageTelemetry.ATTRIBUTE_NAME, new ApplicationLicenseUsageTelemetry(
+        application.getPublicId(),
+        rawReport.components.stream()
+            .map(component -> component.hash)
+            .filter(StringUtils::isNotBlank)
+            .collect(Collectors.toSet()),
+        rawReport.components.stream().filter(component -> component.licenseData != null)
+            .map(component -> component.licenseData)
+            .flatMap(licenseData -> Stream.concat(
+                Stream.concat(licenseData.declaredLicenses.stream(), licenseData.observedLicenses.stream()),
+                licenseData.effectiveLicenses.stream()))
+            .map(license -> license.licenseId)
+            .collect(Collectors.toSet())));
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.APPLICATION_LICENSE_USAGE);
+    assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
+    assertThat(telemetryData.getAttributes()).hasSize(1);
+    assertThat(telemetryData.getAttributes().keySet().iterator().next())
+        .isEqualTo(expectedAttributes.keySet().iterator().next());
+    assertThat((ApplicationLicenseUsageTelemetry) telemetryData.getAttributes().values().iterator().next())
+        .usingRecursiveComparison().isEqualTo(expectedAttributes.values().iterator().next());
   }
 }

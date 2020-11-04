@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApplicationLicenseUsageTelemetry;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -35,11 +36,15 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.dto.model.ComponentLegalCommentDTO;
 import com.sonatype.insight.license.dto.model.ComponentLegalFileDTO;
 import com.sonatype.insight.license.dto.model.LicenseMetadataDTO;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,6 +70,8 @@ public class ApiLicenseLegalService
 
   private final LegalReportBuilder legalReportBuilder;
 
+  private final TelemetrySender telemetrySender;
+
   @Inject
   public ApiLicenseLegalService(
       MultiLicenseDAO multiLicenseDAO,
@@ -72,7 +79,8 @@ public class ApiLicenseLegalService
       ApplicationDAO applicationDAO,
       PolicyEvaluationDAO policyEvaluationDAO,
       ApiReportDataServiceV2 apiReportDataServiceV2,
-      LegalReportBuilder legalReportBuilder)
+      LegalReportBuilder legalReportBuilder,
+      TelemetrySender telemetrySender)
   {
     this.multiLicenseDAO = multiLicenseDAO;
     this.apiLicenseLegalHdsService = apiLicenseLegalHdsService;
@@ -80,6 +88,7 @@ public class ApiLicenseLegalService
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.apiReportDataServiceV2 = apiReportDataServiceV2;
     this.legalReportBuilder = legalReportBuilder;
+    this.telemetrySender = telemetrySender;
   }
 
   @Authorize(permission = Permission.READ)
@@ -94,6 +103,9 @@ public class ApiLicenseLegalService
         .map(multiLicense -> multiLicense.licenseId)
         .flatMap(multiLicenseId -> multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(multiLicenseId).stream())
         .collect(Collectors.toSet());
+
+    sendApplicationTelemetryData(applicationPublicId, latestRawReport, multiLicenses);
+
     Map<String, LicenseMetadataDTO> licenseMetadataById = multiLicenses.isEmpty() ? Collections.emptyMap() :
         apiLicenseLegalHdsService.getLicenseMetadata(
             licenses.stream()
@@ -175,5 +187,25 @@ public class ApiLicenseLegalService
     catch (IOException e) {
       throw new UncheckedIOException(e.getMessage(), e);
     }
+  }
+
+  private void sendApplicationTelemetryData(
+      String applicationPublicId,
+      ApiReportRawDataDTOV2 latestRawReport,
+      Set<ApiLicenseDTO> multiLicenses)
+  {
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.APPLICATION_LICENSE_USAGE);
+    telemetryData.put(ApplicationLicenseUsageTelemetry.ATTRIBUTE_NAME,
+        new ApplicationLicenseUsageTelemetry(
+            applicationPublicId,
+            latestRawReport.components.stream()
+                .map(component -> component.hash)
+                .filter(StringUtils::isNotBlank)
+                .collect(Collectors.toSet()),
+            multiLicenses.stream()
+                .map(license -> license.licenseId)
+                .collect(Collectors.toSet())));
+
+    telemetrySender.send(telemetryData);
   }
 }

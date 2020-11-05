@@ -83,6 +83,16 @@
             <configuration>
               <skip>${jasmine.tests.skip}</skip>
               <arguments>run karma</arguments>
+
+               <!--
+                   CI is set up to ignore test failures within the actual testing phase and then to inspect
+                   the junit.xml file for failures later. The jasmine test suite unfortunately is prone to
+                   failing due to uncaught promise rejections - which aren't recorded as part of any one test
+                   and thus don't show up in junit.xml. Those uncaught promises _do_ cause the test process
+                   to return an error code, but testFailureIgnore=true ignores that. So we need to override
+                   it to false here
+               -->
+              <testFailureIgnore>false</testFailureIgnore>
             </configuration>
           </execution>
         </executions>

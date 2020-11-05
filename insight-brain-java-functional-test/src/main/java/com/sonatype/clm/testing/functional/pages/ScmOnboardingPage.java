@@ -63,6 +63,14 @@ public class ScmOnboardingPage
   public ElementsCollection resultsTableNamespace() {
     return children(".iq-scm-repository-namespace");
   }
+  
+  public SelenideElement resultsTablePercentageImported() {
+    return $("#scm-import-percentage");
+  }
+
+  public SelenideElement resultsTableAlreadyImported() {
+    return $("#scm-already-imported");
+  }
 
   public SelenideElement resultsTableSelectAll() {
     return child("#iq-scmonboarding-select-all");

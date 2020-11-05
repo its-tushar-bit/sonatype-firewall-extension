@@ -24,7 +24,7 @@ export default function ResultsTable(props) {
   const {
     loadingRepositories,
     repositories,
-    importedRepositoryCount,
+    totalRepositories,
 
     // actions
     importSelectedRepositories,
@@ -33,7 +33,7 @@ export default function ResultsTable(props) {
 
   function importPercentage() {
     if (repositories && repositories.length > 0) {
-      return Math.round(importedRepositoryCount / repositories.length * 100.0);
+      return Math.round((totalRepositories - repositories.length) / totalRepositories * 100.0);
     }
     return 0.0;
   }
@@ -76,10 +76,12 @@ export default function ResultsTable(props) {
               </div>
             </div>
             <div className="iq-scmonboarding-stats-row">
-              <h3 className="iq-caption_text iq-scmonboarding-stats-highlight">{importedRepositoryCount}</h3>
+              <h3 id="scm-already-imported"
+                  className='iq-caption_text iq-scmonboarding-stats-highlight'>{totalRepositories -
+              repositories.length}</h3>
               <div className="iq-scmonboarding-stats-column">
                 <h3 className="iq-caption_text">ALREADY IMPORTED</h3>
-                <div className="iq-caption_subtext">({importPercentage()}%)</div>
+                <div id="scm-import-percentage" className="iq-caption_subtext">({importPercentage()}%)</div>
               </div>
             </div>
           </div>
@@ -188,7 +190,7 @@ function RepositoryRow(props) {
   return (
     <NxTableRow key={rowKey}>
       <NxTableCell className='iq-scm-repository-namespace'>{repo.namespace}</NxTableCell>
-      <NxTableCell className='iq-scm-repository-project'>{repo.project}</NxTableCell>
+      <NxTableCell className='iq-scm-repository-project'><a href={repo.httpCloneUrl}>{repo.project}</a></NxTableCell>
       <NxTableCell className='iq-scm-repository-description'>
         <NxTooltip title={repo.description} className='iq-scm-repo-description-tooltip'>
           <div className="nx-truncate-ellipsis">{repo.description}</div>

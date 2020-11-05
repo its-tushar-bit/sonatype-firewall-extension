@@ -42,7 +42,7 @@ export default function ScmOnboarding(props) {
     repositories,
     loadingRepositories,
     selectedRepositoryCount,
-    importedRepositoryCount,
+    totalRepositories,
 
     // from angular URL router
     isAuthorized,
@@ -135,7 +135,7 @@ export default function ScmOnboarding(props) {
               repositories,
               loadingRepositories,
               selectedRepositoryCount,
-              importedRepositoryCount,
+              totalRepositories,
               onRepositorySelectionChanged,
               importSelectedRepositories,
               loadRepositories
@@ -183,7 +183,7 @@ ScmOnboarding.propTypes = {
   loadingRepositories: PropTypes.bool.isRequired,
   repositories: PropTypes.arrayOf(PropTypes.shape(repositoryPropType)).isRequired,
   selectedRepositoryCount: PropTypes.number.isRequired,
-  importedRepositoryCount: PropTypes.number,
+  totalRepositories: PropTypes.number,
 
   // from angular router
   isAuthorized: PropTypes.bool.isRequired,

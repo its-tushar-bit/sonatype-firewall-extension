@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.brain.configuration;
 
 import java.io.IOException;
+import java.util.Date;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.ScmOnboardingPage;
@@ -193,7 +194,9 @@ public class ScmOnboardingTest
         "ci-project-16", "create-react-app", "nexus-repository-p2", "nexus-repository-puppet",
         "nexus-repository-terraform", "nexus-repository-vgo", "nexus-scripting-examples",
         "nexus-webhook-example-collection", "nxrm-cli", "ossindex-gradle-plugin", "oysteR", "prime-nexus-proxy-repos");
-
+    scmOnboardingPage.resultsTablePercentageImported().shouldBe(text("0%"));
+    scmOnboardingPage.resultsTableAlreadyImported().shouldBe(text("0"));
+    
     // the long descriptions are trimmed
     assertThat(scmOnboardingPage.resultsTableDescription().get(0).getCssValue("text-overflow")).isEqualTo("ellipsis");
 
@@ -202,6 +205,13 @@ public class ScmOnboardingTest
     String tooltipText = scmOnboardingPage.descriptionTooltip().text();
     assertThat(tooltipText.length() > 100).isTrue();
     assertThat(tooltipText).doesNotContain("...");
+
+    Application application = tempEntity.newApplication(org.getId());
+    tempEntity.newSourceControl(application.getId(), "https://github.com/depshield-ci/ci-project-1.git", new Date());
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
+    assertThat(scmOnboardingPage.resultsTableProject().texts()).doesNotContain("ci-project-1");
+    scmOnboardingPage.resultsTablePercentageImported().shouldBe(text("8%"));
+    scmOnboardingPage.resultsTableAlreadyImported().shouldBe(text("1"));    
   }
 
   @Test

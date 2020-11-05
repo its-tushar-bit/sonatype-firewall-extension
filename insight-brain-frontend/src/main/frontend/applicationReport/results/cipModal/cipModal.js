@@ -90,9 +90,14 @@ function CipModalController($ngRedux, $scope, applicationReportActions, Selected
 }
 
 export function mapStateToThis({applicationReport}) {
-  const {selectedReport, selectedComponentIndex, selectedRootAncestor, metadata} = applicationReport;
-  let selectedComponent = selectedReport.displayedEntries[selectedComponentIndex],
-      previousComponent = null;
+  let {
+    selectedReport,
+    selectedComponentIndex,
+    selectedRootAncestor,
+    metadata,
+    selectedComponent
+  } = applicationReport;
+  let previousComponent = null;
 
   if (selectedRootAncestor) {
     previousComponent = selectedComponent;

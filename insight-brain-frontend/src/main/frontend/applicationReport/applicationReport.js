@@ -66,7 +66,7 @@ function ApplicationReportController($scope, $ngRedux, applicationReportActions,
       const actions = {
         ...pick(
             ['setAggregateReportEntries', 'setExactValueFilter', 'reevaluateReport',
-              'reevaluateReportCancelled', 'loadReport'],
+              'reevaluateReportCancelled', 'loadReport', 'loadInnerSourceReports'],
             applicationReportActions),
         fetchStageTypes
       };

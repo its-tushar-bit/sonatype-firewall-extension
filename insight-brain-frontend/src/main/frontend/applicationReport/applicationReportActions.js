@@ -20,6 +20,7 @@ import {
   getReportSecurityUrl,
   getReportLicenseUrl,
   getReportReevaluateUrl,
+  getApplicationReportsUrl,
   redirectTo
 } from '../util/CLMLocation';
 import { Messages } from '../util/CommonServices';
@@ -39,7 +40,6 @@ export const LOAD_COMMON_DATA_UNNECESSARY = 'LOAD_COMMON_DATA_UNNECESSARY';
 export const LOAD_REPORT_ALL_DATA_REQUESTED = 'LOAD_REPORT_ALL_DATA_REQUESTED';
 export const SET_AGGREGATE_REPORT_ENTRIES = 'SET_AGGREGATE_REPORT_ENTRIES';
 export const SET_REPORT_PARAMETERS = 'SET_REPORT_PARAMETERS';
-export const SELECT_COMPONENT = 'SELECT_COMPONENT';
 export const SELECT_ROOT_ANCESTOR = 'SELECT_ROOT_ANCESTOR';
 export const UNSELECT_ROOT_ANCESTOR = 'UNSELECT_ROOT_ANCESTOR';
 export const REEVALUATE_REPORT_REQUESTED = 'REEVALUATE_REPORT_REQUESTED';
@@ -48,6 +48,9 @@ export const REEVALUATE_REPORT_FAILED = 'REEVALUATE_REPORT_FAILED';
 export const REEVALUATE_REPORT_CANCELLED = 'REEVALUATE_REPORT_CANCELLED';
 export const GENERATE_VULNERABILITY_ENTRIES = 'GENERATE_VULNERABILITY_ENTRIES';
 export const SET_SORTING_PARAMETERS = 'SET_SORTING_PARAMETERS';
+export const SELECT_COMPONENT_REQUESTED = 'SELECT_COMPONENT_REQUESTED';
+export const SELECT_COMPONENT_FULFILLED = 'SELECT_COMPONENT_FULFILLED';
+export const SELECT_COMPONENT_FAILED = 'SELECT_COMPONENT_FAILED';
 
 // To be used for filters that are done by substring matching, as opposed to matching a discrete set of values
 export const SET_SUBSTRING_FIELD_FILTER = 'SET_SUBSTRING_FIELD_FILTER';
@@ -235,6 +238,37 @@ function loadReportAllData() {
   };
 }
 
+function selectComponent(componentIndex) {
+  return (dispatch, getState) => {
+
+    const { selectedReport, metadata } = getState().applicationReport;
+    dispatch({
+      type: SELECT_COMPONENT_REQUESTED
+    });
+
+    const component = selectedReport.displayedEntries[componentIndex];
+    if (component.innerSource && component.ownerApplicationId) {
+      return axios.get(getApplicationReportsUrl(component.ownerApplicationId))
+          .catch(error => {
+            dispatch(selectComponentFailed(error));
+            return Promise.reject(error);
+          })
+          .then(result => {
+            let lastInnerSourceReportData = {};
+            if (metadata) {
+              lastInnerSourceReportData = result.data.find(report => report.stage === metadata.stageId) || {};
+              component.latestReport = {
+                stage: lastInnerSourceReportData.stage,
+                url: lastInnerSourceReportData.latestReportHtmlUrl
+              };
+            }
+            return dispatch(selectComponentFulfilled({component, componentIndex}));
+          });
+    }
+    return dispatch(selectComponentFulfilled({component, componentIndex}));
+  };
+}
+
 const httpErrorMessageActionCreator = type => mappedPayloadParamActionCreator(type, Messages.getHttpErrorMessage);
 
 const loadCommonDataFulfilled = mappedPayloadParamActionCreator(LOAD_COMMON_DATA_FULFILLED,
@@ -250,6 +284,8 @@ const loadReportRawDataFailed = httpErrorMessageActionCreator(LOAD_REPORT_RAW_DA
 const loadReportRawDataUnnecessary = httpErrorMessageActionCreator(LOAD_REPORT_RAW_DATA_UNNECESSARY);
 const setSortingRawData = payloadParamActionCreator(SET_SORTING_RAW_DATA);
 const generateVulnerabilityEntries = noPayloadActionCreator(GENERATE_VULNERABILITY_ENTRIES);
+const selectComponentFulfilled = payloadParamActionCreator(SELECT_COMPONENT_FULFILLED);
+const selectComponentFailed = httpErrorMessageActionCreator(SELECT_COMPONENT_FAILED);
 export const setSorting = payloadParamActionCreator(SET_SORTING);
 
 export const setAggregateReportEntries = payloadParamActionCreator(SET_AGGREGATE_REPORT_ENTRIES);
@@ -289,7 +325,6 @@ export function setExactValueFilter(fieldName, allowedValues) {
   };
 }
 
-const selectComponent = payloadParamActionCreator(SELECT_COMPONENT);
 const selectRootAncestor = payloadParamActionCreator(SELECT_ROOT_ANCESTOR);
 const unselectRootAncestor = noPayloadActionCreator(UNSELECT_ROOT_ANCESTOR);
 

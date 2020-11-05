@@ -34,7 +34,7 @@ function ComponentDisplayController($scope) {
     updateDisplay() {
       vm.componentName = getComponentName(vm.component);
       vm.ownerApplicationName = vm.component.ownerApplicationName || null;
-      vm.innerSourceIndicator = vm.component.innerSourceIndicator;
+      vm.innerSourceTDIndicator = vm.component.innerSourceTDIndicator;
       vm.dependencyType = vm.component.dependencyType || null;
       vm.isFilenameOrUnknown = isFilenameOrUnknown(vm.component);
     }

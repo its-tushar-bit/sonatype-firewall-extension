@@ -45,11 +45,13 @@ import {
   REEVALUATE_REPORT_CANCELLED,
   SET_SORTING,
   SET_SORTING_RAW_DATA,
-  SELECT_COMPONENT,
   SELECT_ROOT_ANCESTOR,
   UNSELECT_ROOT_ANCESTOR,
   GENERATE_VULNERABILITY_ENTRIES,
-  SET_SORTING_PARAMETERS
+  SET_SORTING_PARAMETERS,
+  SELECT_COMPONENT_REQUESTED,
+  SELECT_COMPONENT_FULFILLED,
+  SELECT_COMPONENT_FAILED
 } from './applicationReportActions';
 
 import { sortItemsByFields } from '../util/sortUtils';
@@ -96,7 +98,8 @@ const initState = Object.freeze({
     key: 'policyThreatLevel',
     sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
     dir: 'desc'
-  }
+  },
+  selectedComponent: null
 });
 
 export default function applicationReportReducer(state = initState, {type, payload}) {
@@ -191,9 +194,6 @@ export default function applicationReportReducer(state = initState, {type, paylo
     case SET_SORTING_RAW_DATA:
       return updateRawDataDisplayedEntries({...state, rawDataSortFields: payload});
 
-    case SELECT_COMPONENT:
-      return {...state, selectedComponentIndex: payload, selectedRootAncestor: null};
-
     case SELECT_ROOT_ANCESTOR:
       return {...state, selectedRootAncestor: payload};
 
@@ -202,6 +202,15 @@ export default function applicationReportReducer(state = initState, {type, paylo
 
     case GENERATE_VULNERABILITY_ENTRIES:
       return generateVulnerabilityEntries(state);
+
+    case SELECT_COMPONENT_REQUESTED:
+      return {...state, selectedComponent: null, selectedComponentIndex: null};
+
+    case SELECT_COMPONENT_FULFILLED:
+      return setSelectedComponent(state, payload);
+
+    case SELECT_COMPONENT_FAILED:
+      return {...state, selectedComponent: null, selectedComponentIndex: null, loadError: payload};
 
     default:
       return state;
@@ -212,6 +221,15 @@ function setReportParameters(state, payload) {
   return {
     ...initState,
     reportParameters: payload
+  };
+}
+
+function setSelectedComponent(state, payload) {
+  return {
+    ...state,
+    selectedComponent: payload.component,
+    selectedComponentIndex: payload.componentIndex,
+    selectedRootAncestor: null
   };
 }
 
@@ -231,7 +249,10 @@ function setSelectedReport(state, report) {
     policyTypeFilterEnabled: report.reportVersion && report.reportVersion >= 4,
     vulnerabilitiesPageEnabled: !!(report.reportVersion && report.reportVersion >= 5),
     selectedReport: {...report, ...getViolationCountsPerThreatLevel(report.allEntries)},
-    isInnerSourceEnabled: report.isInnerSourceEnabled
+    isInnerSourceEnabled: report.isInnerSourceEnabled,
+    sortFields: report.isInnerSourceEnabled ? [
+      'ownerApplicationName', 'derivedDependencyType', '-policyThreatLevel', 'policyName', 'derivedComponentName'
+    ] : state.sortFields
   });
 
   // if there is selected component, update selectedComponentIndex
@@ -307,14 +328,8 @@ function updateRawDataDisplayedEntries(state) {
  * based on `allEntries` and the various sorting, filtering, and aggregation settings stored in the state
  */
 function updateDisplayedEntries(state) {
-  let { selectedReport, sortFields, aggregate, exactValueFilters, substringFilters, isInnerSourceEnabled } = state;
-
+  let { selectedReport, sortFields, aggregate, exactValueFilters, substringFilters } = state;
   if (selectedReport) {
-    if (isInnerSourceEnabled) {
-      sortFields = [
-        'ownerApplicationName', 'dependencyType', '-policyThreatLevel', 'policyName', 'derivedComponentName'
-      ];
-    }
     const { allEntries } = selectedReport,
         processEntries = pipe(
             aggregate ? aggregateReportEntries : identity,

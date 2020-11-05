@@ -139,7 +139,8 @@ describe('applicationReportReducer', function() {
           key: 'policyThreatLevel',
           sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
           dir: 'desc'
-        }
+        },
+        selectedComponent: null
       });
     });
   });
@@ -204,11 +205,16 @@ describe('applicationReportReducer', function() {
         loadError: null,
         selectedReport: null,
         policyTypeFilterEnabled: null,
-        other: otherObject
+        other: otherObject,
+        sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName']
       });
       const entries = [
         {policyThreatLevel: 1}, {policyThreatLevel: 3}, {policyThreatLevel: 4, waived: true}, {policyThreatLevel: 6},
         {policyThreatLevel: 9}, {policyThreatLevel: 10, grandfathered: true}
+      ];
+      const sortedEntries = [
+        {policyThreatLevel: 10, grandfathered: true}, {policyThreatLevel: 9}, {policyThreatLevel: 6},
+        {policyThreatLevel: 4, waived: true}, {policyThreatLevel: 3}, {policyThreatLevel: 1}
       ];
       const newState = reduce(state, {
         type: 'LOAD_REPORT_FULFILLED',
@@ -223,7 +229,7 @@ describe('applicationReportReducer', function() {
         loadError: null,
         selectedReport: {
           allEntries: entries,
-          displayedEntries: entries,
+          displayedEntries: sortedEntries,
           moderateViolationCount: 1,
           severeViolationCount: 1,
           criticalViolationCount: 1,
@@ -234,7 +240,8 @@ describe('applicationReportReducer', function() {
         policyTypeFilterEnabled: false,
         vulnerabilitiesPageEnabled: jasmine.anything(),
         isInnerSourceEnabled: false,
-        other: otherObject
+        other: otherObject,
+        sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName']
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
@@ -289,7 +296,9 @@ describe('applicationReportReducer', function() {
         policyTypeFilterEnabled: false,
         vulnerabilitiesPageEnabled: jasmine.anything(),
         isInnerSourceEnabled: true,
-        other: otherObject
+        other: otherObject,
+        sortFields: ['ownerApplicationName', 'derivedDependencyType', '-policyThreatLevel',
+          'policyName', 'derivedComponentName']
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
@@ -567,6 +576,67 @@ describe('applicationReportReducer', function() {
     });
   });
 
+  describe('SELECT_COMPONENT_REQUESTED action', function() {
+    it('unset selectedComponent value', function() {
+      const state = Object.freeze({
+        selectedComponent: {},
+        selectedComponentIndex: 3,
+        other: otherObject
+      });
+      const newState = reduce(state, {type: 'SELECT_COMPONENT_REQUESTED'});
+      expect(newState).toEqual({
+        selectedComponent: null,
+        selectedComponentIndex: null,
+        other: otherObject
+      });
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('SELECT_COMPONENT_FULFILLED action', function() {
+    it('set selectedComponent, selectedComponentIndex values and unset selectedRootAncestor  value', function() {
+      const state = Object.freeze({
+        selectedComponent: {},
+        selectedComponentIndex: 0,
+        other: otherObject
+      });
+      const selectedComponent = {
+        component: 'myComponent',
+        componentIndex: 2
+      };
+      const newState = reduce(state, {
+        type: 'SELECT_COMPONENT_FULFILLED',
+        payload: selectedComponent
+      });
+      expect(newState).toEqual({
+        selectedComponent: selectedComponent.component,
+        selectedComponentIndex: selectedComponent.componentIndex,
+        selectedRootAncestor: null,
+        other: otherObject
+      });
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('SELECT_COMPONENT_FAILED action', function() {
+    it('unsets selectedComponent, selectedComponentIndex values and sets the loadError to the payload', function() {
+      const state = Object.freeze({
+        selectedComponent: {},
+        selectedComponentIndex: 0,
+        other: otherObject
+      });
+      const payload = 'Error!';
+      const newState = reduce(state, { type: 'SELECT_COMPONENT_FAILED', payload });
+      expect(newState).toEqual({
+        selectedComponent: null,
+        selectedComponentIndex: null,
+        loadError: payload,
+        other: otherObject
+      });
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
   describe('LOAD_REPORT_ALL_DATA_REQUESTED', () => {
     it('adds "policy", "raw" and "common" to the pendingLoads', function() {
       const state = Object.freeze({
@@ -766,23 +836,6 @@ describe('applicationReportReducer', function() {
       const newState = reduce(state, { type: 'LOAD_COMMON_DATA_UNNECESSARY' });
       expect(newState).toEqual({
         pendingLoads: new Set(['foo']),
-        other: otherObject
-      });
-      expect(newState.other).toBe(otherObject); // other properties are not modified
-    });
-  });
-
-  describe('SELECT_COMPONENT action', function() {
-    it('sets selectedComponentIndex to payload and unsets selectedRootAncestor', function() {
-      const state = Object.freeze({
-        selectedComponentIndex: null,
-        selectedRootAncestor: {},
-        other: otherObject
-      });
-      const newState = reduce(state, {type: 'SELECT_COMPONENT', payload: 42});
-      expect(newState).toEqual({
-        selectedComponentIndex: 42,
-        selectedRootAncestor: null,
         other: otherObject
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified

@@ -232,6 +232,7 @@ describe('cipModal', function() {
           applicationReport: {
             selectedRootAncestor: null,
             selectedComponentIndex: 1,
+            selectedComponent: selectedComponent,
             selectedReport: {
               displayedEntries: [{}, selectedComponent, {}]
             }
@@ -263,6 +264,7 @@ describe('cipModal', function() {
               applicationReport: {
                 selectedRootAncestor,
                 selectedComponentIndex: 0,
+                selectedComponent: selectedComponent,
                 selectedReport: {
                   displayedEntries: [selectedComponent]
                 }

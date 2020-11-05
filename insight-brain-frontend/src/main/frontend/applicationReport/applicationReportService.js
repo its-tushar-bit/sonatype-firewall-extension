@@ -178,14 +178,11 @@ const addPartialMatchData = curry(function(partialMatchesByKey, entry) {
 function augmentInnerSourceIndicator(components) {
   let result = [];
   let isInnerSourceEnabled = false;
-  const isIndicators = ['is-0', 'is-1', 'is-2', 'is-3'];
   const groupedResult = groupBy(c => c.ownerApplicationName || '', components);
-  toPairs(groupedResult).forEach(([app, entries], index) => {
+  toPairs(groupedResult).forEach(([app, entries]) => {
     if (app !== '') {
-      const indicator = isIndicators [index % 4];
       entries.forEach(entry => {
-        entry.innerSourceIndicator = indicator;
-        entry.dependencyType = entry.innerSource ? 'D' : 'TD';
+        entry.innerSourceTDIndicator = !entry.innerSource;
         isInnerSourceEnabled = true;
         result.push(entry);
       });

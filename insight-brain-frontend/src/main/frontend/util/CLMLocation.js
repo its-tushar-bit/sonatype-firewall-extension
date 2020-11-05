@@ -133,6 +133,10 @@ export function getApplicableWaiversUrl(policyViolationId) {
   return uriTemplate`/api/v2/policyViolations/${policyViolationId}/applicableWaivers`;
 }
 
+export function getApplicationReportsUrl(applicationId) {
+  return uriTemplate`/api/v2/reports/applications/${applicationId}`;
+}
+
 function getBaseReportUrl(applicationPublicId, scanId) {
   return uriTemplate`/rest/report/${applicationPublicId}/${scanId}`;
 }

@@ -22,6 +22,10 @@
   &.transitive {
     background: $iq-dark-purple;
   }
+
+  &.inner-source {
+    background: #11A499;
+  }
 }
 
 .iq-dependency-indicator--long {

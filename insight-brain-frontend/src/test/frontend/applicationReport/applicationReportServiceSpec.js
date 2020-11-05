@@ -973,6 +973,114 @@ describe('applicationReportService', function() {
       expect(bazHashEntry.dependencyInfo).toBeUndefined();
       expect(bazHashEntry.derivedDependencyType).toBe('unknown');
     });
+
+    it('report entries with inner source data', function() {
+      const bomData = {
+            aaData: [{
+              hash: 'fooHash',
+              componentIdentifier: {
+                format: 'a-name',
+                coordinates: {
+                  name: 'foo',
+                  version: '1'
+                }
+              },
+              innerSource: true,
+              ownerApplicationName: 'app',
+              ownerApplicationId: '123'
+            }, {
+              hash: 'barHash',
+              componentIdentifier: {
+                format: 'maven',
+                coordinates: {
+                  groupId: 'barGroup',
+                  artifactId: 'bar',
+                  version: '2'
+                }
+              },
+              ownerApplicationName: 'app',
+              ownerApplicationId: '123'
+            }]
+          }, policyThreatData = {
+            aaData: []
+          },
+          dependencies = {
+            dependencyGraph: [{
+              children: [{
+                componentIdentifier: {
+                  format: 'a-name',
+                  coordinates: {
+                    name: 'foo',
+                    version: '1'
+                  }
+                }
+              }]
+            }, {
+              componentIdentifier: {
+                format: 'a-name',
+                coordinates: {
+                  name: 'foo',
+                  version: '1'
+                }
+              },
+              children: [{
+                componentIdentifier: {
+                  format: 'maven',
+                  coordinates: {
+                    groupId: 'barGroup',
+                    artifactId: 'bar',
+                    version: '2'
+                  }
+                }
+              }]
+            }, {
+              componentIdentifier: {
+                format: 'maven',
+                coordinates: {
+                  groupId: 'barGroup',
+                  artifactId: 'bar',
+                  version: '2'
+                }
+              }
+            }]
+          },
+          result = applicationReportService.createReportEntries(policyThreatData, bomData,
+              unknownJSData, partialMatchData, dependencies).policies;
+
+      expect(result.length).toEqual(3);
+
+      expect(result).toContain(jasmine.objectContaining({
+        hash: 'fooHash',
+        componentIdentifier: {
+          format: 'a-name',
+          coordinates: {
+            name: 'foo',
+            version: '1'
+          }
+        },
+        derivedDependencyType: 'direct',
+        innerSource: true,
+        innerSourceTDIndicator: false,
+        ownerApplicationName: 'app',
+        ownerApplicationId: '123'
+      }));
+
+      expect(result).toContain(jasmine.objectContaining({
+        hash: 'barHash',
+        componentIdentifier: {
+          format: 'maven',
+          coordinates: {
+            groupId: 'barGroup',
+            artifactId: 'bar',
+            version: '2'
+          }
+        },
+        innerSourceTDIndicator: true,
+        ownerApplicationName: 'app',
+        ownerApplicationId: '123',
+        derivedDependencyType: 'transitive'
+      }));
+    });
   });
 
   describe('aggregation, filtering and sorting', function() {

@@ -239,25 +239,53 @@ window.SpecUtil = {
 
       if (get) {
         spyOn(axios, 'get').and.callFake(function(url) {
-          return get[url];
+          const mock = get[url];
+
+          if (typeof mock === 'function') {
+            return mock();
+          }
+          else {
+            return mock;
+          }
         });
       }
 
       if (post) {
         spyOn(axios, 'post').and.callFake(function(url) {
-          return post[url];
+          const mock = post[url];
+
+          if (typeof mock === 'function') {
+            return mock();
+          }
+          else {
+            return mock;
+          }
         });
       }
 
       if (put) {
         spyOn(axios, 'put').and.callFake(function(url) {
-          return put[url];
+          const mock = put[url];
+
+          if (typeof mock === 'function') {
+            return mock();
+          }
+          else {
+            return mock;
+          }
         });
       }
 
       if (del) {
         spyOn(axios, 'delete').and.callFake(function(url) {
-          return del[url];
+          const mock = del[url];
+
+          if (typeof mock === 'function') {
+            return mock();
+          }
+          else {
+            return mock;
+          }
         });
       }
     };

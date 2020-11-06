@@ -249,10 +249,6 @@ function selectComponent(componentIndex) {
     const component = selectedReport.displayedEntries[componentIndex];
     if (component.innerSource && component.ownerApplicationId) {
       return axios.get(getApplicationReportsUrl(component.ownerApplicationId))
-          .catch(error => {
-            dispatch(selectComponentFailed(error));
-            return Promise.reject(error);
-          })
           .then(result => {
             let lastInnerSourceReportData = {};
             if (metadata) {
@@ -263,9 +259,13 @@ function selectComponent(componentIndex) {
               };
             }
             return dispatch(selectComponentFulfilled({component, componentIndex}));
+          })
+          .catch(error => {
+            dispatch(selectComponentFailed(error));
           });
     }
-    return dispatch(selectComponentFulfilled({component, componentIndex}));
+
+    return Promise.resolve(dispatch(selectComponentFulfilled({component, componentIndex})));
   };
 }
 

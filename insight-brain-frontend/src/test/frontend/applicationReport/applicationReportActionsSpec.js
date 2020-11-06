@@ -252,8 +252,7 @@ describe('applicationReportActions', function() {
   describe('loadReport', function() {
     it('dispatches a LOAD_REPORT_REQUESTED action', function() {
       const store = SpecUtil.mockReduxStore(createMockState(false, mockBomData, mockUnknownJsData, mockMetadata));
-      const errorSpy = jasmine.createSpy('errorSpy');
-      store.dispatch(applicationReportActions.loadReport()).catch(errorSpy);
+      store.dispatch(applicationReportActions.loadReport());
 
       expect(store.getActions().length).toBe(2);
       expect(store.getActions()[0]).toEqual({
@@ -485,16 +484,18 @@ describe('applicationReportActions', function() {
         componentName: 'b'
       };
 
-      store.dispatch(applicationReportActions.selectComponent(1));
-      expect(store.getActions().length).toBe(2);
-      expect(store.getActions()[1]).toEqual({
-        type: 'SELECT_COMPONENT_FULFILLED',
-        payload: {
-          component: selectedComponent,
-          componentIndex: 1
-        }
+      store.dispatch(applicationReportActions.selectComponent(1)).then(function() {
+        expect(store.getActions().length).toBe(2);
+        expect(store.getActions()[1]).toEqual({
+          type: 'SELECT_COMPONENT_FULFILLED',
+          payload: {
+            component: selectedComponent,
+            componentIndex: 1
+          }
+        });
+        done();
       });
-      done();
+
       expect(store.getActions()[0]).toEqual({
         type: 'SELECT_COMPONENT_REQUESTED'
       });
@@ -519,9 +520,9 @@ describe('applicationReportActions', function() {
         status: 500,
         data: 'Failed request'
       };
-      spyOn(axios, 'get').and.returnValue(Promise.reject(error));
+      spyOn(axios, 'get').and.callFake(() => Promise.reject(error));
 
-      store.dispatch(applicationReportActions.selectComponent(0)).catch(() => {
+      store.dispatch(applicationReportActions.selectComponent(0)).then(() => {
         expect(store.getActions().length).toBe(2);
         expect(store.getActions()[1].type).toEqual('SELECT_COMPONENT_FAILED');
         expect(store.getActions()[1].payload).toEqual('Failed request');
@@ -684,7 +685,8 @@ describe('applicationReportActions', function() {
 
       mockAxiosCalls({
         post: {
-          [CLMLocation.getReportReevaluateUrl('appId', 'scanId')]: Promise.reject({ status: 500, data: 'test error' })
+          [CLMLocation.getReportReevaluateUrl('appId', 'scanId')]:
+              () => Promise.reject({ status: 500, data: 'test error' })
         }
       });
 
@@ -809,8 +811,7 @@ describe('applicationReportActions', function() {
   describe('loadReportAllData', function() {
     it('dispatches a LOAD_REPORT_ALL_DATA_REQUESTED action', function() {
       const store = SpecUtil.mockReduxStore(createMockState(false, mockBomData, mockUnknownJsData, mockMetadata));
-      const errorSpy = jasmine.createSpy('errorSpy');
-      store.dispatch(applicationReportActions.loadReportAllData()).catch(errorSpy);
+      store.dispatch(applicationReportActions.loadReportAllData());
 
       expect(store.getActions().length).toBe(2);
       expect(store.getActions()[0]).toEqual({
@@ -858,7 +859,7 @@ describe('applicationReportActions', function() {
         ...expectReportRawDataCalls(true)
       });
 
-      store.dispatch(applicationReportActions.loadReportAllData()).finally(() => {
+      store.dispatch(applicationReportActions.loadReportAllData()).then(() => {
         expect(store.getActions().length).toBe(5);
         expect(store.getActions()[4]).toEqual({ type: 'GENERATE_VULNERABILITY_ENTRIES' });
         done();
@@ -908,9 +909,9 @@ describe('applicationReportActions', function() {
     mockAxiosCalls({
       get: {
         [CLMLocation.getReportBomUrl('appId', 'scanId')]:
-          isSuccess ? { data: mockBomData } : Promise.reject({ status: 500 }),
+          isSuccess ? { data: mockBomData } : () => Promise.reject({ status: 500 }),
         [CLMLocation.getReportMetadataUrl('appId', 'scanId')]:
-          isSuccess ? { data: mockMetadata } : Promise.reject({ status: 500 }),
+          isSuccess ? { data: mockMetadata } : () => Promise.reject({ status: 500 }),
         [CLMLocation.getReportUnknownJsUrl('appId', 'scanId')]: { data: mockUnknownJsData },
         ...additionalCalls
       }
@@ -920,11 +921,11 @@ describe('applicationReportActions', function() {
   function expectReportDataCalls(isSuccess) {
     return {
       [CLMLocation.getReportPolicyThreatsUrl('appId', 'scanId')]:
-        isSuccess ? { data: { version: 3, aaData: [] } } : Promise.reject({ status: 500 }),
+        isSuccess ? { data: { version: 3, aaData: [] } } : () => Promise.reject({ status: 500 }),
       [CLMLocation.getReportDataUrl('appId', 'scanId')]:
-        isSuccess ? { data: mockReportData } : Promise.reject({ status: 500 }),
+        isSuccess ? { data: mockReportData } : () => Promise.reject({ status: 500 }),
       [CLMLocation.getReportPartialMatchedUrl('appId', 'scanId')]:
-        isSuccess ? { data: { aaData: [] } } : Promise.reject({ status: 500 }),
+        isSuccess ? { data: { aaData: [] } } : () => Promise.reject({ status: 500 }),
       [CLMLocation.getDependenciesUrl('appId', 'scanId')]:
         isSuccess ? {
           data: {
@@ -954,16 +955,16 @@ describe('applicationReportActions', function() {
               }
             }]
           }
-        } : Promise.reject({ status: 500 })
+        } : () => Promise.reject({ status: 500 })
     };
   }
 
   function expectReportRawDataCalls(isSuccess) {
     return {
       [CLMLocation.getReportSecurityUrl('appId', 'scanId')]:
-        isSuccess ? { data: { aaData: [] } } : Promise.reject({ status: 500 }),
+        isSuccess ? { data: { aaData: [] } } : () => Promise.reject({ status: 500 }),
       [CLMLocation.getReportLicenseUrl('appId', 'scanId')]:
-        isSuccess ? { data: mockLicenseData } : Promise.reject({ status: 500 })
+        isSuccess ? { data: mockLicenseData } : () => Promise.reject({ status: 500 })
     };
   }
 });

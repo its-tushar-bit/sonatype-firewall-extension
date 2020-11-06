@@ -23,6 +23,7 @@ import addWaiverReducer from '../waivers/addWaiverReducer';
 import manageWaiversReducer from '../waivers/manageWaiversReducer';
 import scmOnboardingReducer from '../configuration/scmOnboarding/scmOnboardingReducer';
 import deleteWaiverReducer from '../waivers/deleteWaiverModal/deleteWaiverReducer';
+import advancedLegalReducer from '../advancedLegal/advancedLegalReducer';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -43,5 +44,6 @@ export default combineReducers({
   addWaiver: addWaiverReducer,
   manageWaivers: manageWaiversReducer,
   scmOnboarding: scmOnboardingReducer,
-  deleteWaiver: deleteWaiverReducer
+  deleteWaiver: deleteWaiverReducer,
+  advancedLegal: advancedLegalReducer
 });

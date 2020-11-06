@@ -206,6 +206,10 @@ export function getOwnerContextHierarchyUrl(ownerType, ownerId, policyId) {
   return uriTemplate`/rest/policyWaiver/${ownerType}/${ownerId}/applicable/context/${policyId}`;
 }
 
+export function getLicenseLegalApplicationReportUrl(applicationPublicId) {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/application/${applicationPublicId}`;
+}
+
 export default
 angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl', '$window', function(baseUrl, $window) {

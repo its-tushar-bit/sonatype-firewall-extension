@@ -205,4 +205,9 @@ describe('CLMLocation.js', function() {
     expect(CLMLocation.deleteWaiverUrl('organization', 'orgId', 'waiverId'))
         .toBe('/api/v2/policyWaivers/organization/orgId/waiverId/');
   });
+
+  it('should return the license legal metadata url for the application', function() {
+    expect(CLMLocation.getLicenseLegalApplicationReportUrl('appPublicId'))
+        .toBe('/api/experimental/licenseLegalMetadata/application/appPublicId');
+  });
 });

@@ -73,6 +73,8 @@ public class LdapServiceTest
   public RuleChain ruleChain = RuleChain.outerRule(tempDir) //
       .around(testLdapServer1).around(testLdapServer2).around(testLdapServer3).around(testLdapServer4);
 
+  private static final String CONNECTION_ERROR_PATTERN = "(?i)(connection (closed|refused)|socket closed)";
+
   @Before
   public void before() {
     String testClassName = getClass().getSimpleName();
@@ -117,7 +119,7 @@ public class LdapServiceTest
     LdapConnectionStatus ldapConnectionStatus =
         ldapService.testLdapConnection(ldapConnection.getServerId(), ldapConnection);
     assertThat(ldapConnectionStatus.getStatus()).isEqualTo(LdapConnectionStatus.Status.FAILURE);
-    assertThat(ldapConnectionStatus.getMessage()).containsPattern("(?i)(connection refused|socket closed)");
+    assertThat(ldapConnectionStatus.getMessage()).containsPattern(CONNECTION_ERROR_PATTERN);
   }
 
   @Test
@@ -984,7 +986,7 @@ public class LdapServiceTest
     LdapConnectionStatus ldapConnectionStatus =
         ldapService.testUserLogin(ldapUserMapping.getServerId(), ldapUserMapping, username, password.toCharArray());
     assertThat(ldapConnectionStatus.getStatus()).isEqualTo(LdapConnectionStatus.Status.FAILURE);
-    assertThat(ldapConnectionStatus.getMessage()).containsPattern("(?i)connection (refused|closed)");
+    assertThat(ldapConnectionStatus.getMessage()).containsPattern(CONNECTION_ERROR_PATTERN);
   }
 
   @Test

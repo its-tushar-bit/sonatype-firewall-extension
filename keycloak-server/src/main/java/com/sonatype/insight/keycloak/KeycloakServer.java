@@ -90,8 +90,8 @@ class KeycloakServer
     try {
       dockerClient = DefaultDockerClient.fromEnv().apiVersion("v1.30").build();
       hostname = dockerClient.getHost();
-      log.info("Creating keycloak server");
-      String image = "jboss/keycloak:7.0.0";
+      String image = applyRegistry("jboss/keycloak:7.0.0");
+      log.info("Creating keycloak server from image {}", image);
       try {
         dockerClient.inspectImage(image);
       }
@@ -122,6 +122,11 @@ class KeycloakServer
       hostname = findHostIpAddress();
     }
     log.info("Started keycloak server {}:{}", hostname, port);
+  }
+
+  private static String applyRegistry(String image) {
+    String registry = System.getProperty("docker.registry", "");
+    return (registry.isEmpty() ? "" : registry + '/') + image;
   }
 
   private void awaitServerPort() {

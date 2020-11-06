@@ -107,8 +107,8 @@ public class PostgresServer
     try {
       dockerClient = DefaultDockerClient.fromEnv().apiVersion("v1.30").build();
       hostname = dockerClient.getHost();
-      log.info("Creating postgres server");
-      String image = "postgres:10.7-alpine";
+      String image = applyRegistry("postgres:10.7-alpine");
+      log.info("Creating postgres server from image {}", image);
       try {
         dockerClient.inspectImage(image);
       }
@@ -137,6 +137,11 @@ public class PostgresServer
     }
     awaitServerPort();
     log.info("Started postgres server {}:{}", hostname, port);
+  }
+
+  private static String applyRegistry(String image) {
+    String registry = System.getProperty("docker.registry", "");
+    return (registry.isEmpty() ? "" : registry + '/') + image;
   }
 
   private void awaitServerPort() {

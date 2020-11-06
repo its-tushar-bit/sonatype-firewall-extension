@@ -86,7 +86,7 @@ class SamlFilter
     String requestPath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
     boolean samlEndpoint = requestPath.equals("/saml");
 
-    ServletHttpFacade httpFacade = new ServletHttpFacade(httpRequest, httpResponse);
+    ServletHttpFacade httpFacade = newServletHttpFacade(httpRequest, httpResponse);
     SamlSessionStore samlSessionStore = newSamlSessionStore(httpRequest, httpFacade, samlDeployment);
     SamlAuthenticator samlAuthenticator =
         newSamlAuthenticator(samlEndpoint, httpFacade, samlDeployment, samlSessionStore);
@@ -103,7 +103,7 @@ class SamlFilter
       return !samlEndpoint;
     }
     if (outcome == AuthOutcome.NOT_ATTEMPTED && isAccessAllowed(request, response, mappedValue)) {
-      return true;
+      return !httpFacade.isEnded();
     }
     if (outcome == AuthOutcome.LOGGED_OUT) {
       samlSessionStore.logoutAccount();
@@ -156,6 +156,11 @@ class SamlFilter
     URI uri = UriBuilder.fromUri(landingService.getDestination()).replaceQuery("").fragment(hash).build();
     uri = URI.create(uri.toString().replaceAll("%2F", "/"));
     return uri.toString();
+  }
+
+  @VisibleForTesting
+  ServletHttpFacade newServletHttpFacade(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+    return new ServletHttpFacade(httpRequest, httpResponse);
   }
 
   @VisibleForTesting

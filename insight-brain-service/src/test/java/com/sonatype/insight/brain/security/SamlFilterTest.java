@@ -19,10 +19,12 @@ import com.sonatype.insight.jaxrs.error.ErrorResponse;
 
 import org.apache.shiro.subject.support.DefaultSubjectContext;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.keycloak.adapters.saml.SamlAuthenticator;
 import org.keycloak.adapters.saml.SamlDeployment;
 import org.keycloak.adapters.saml.SamlSessionStore;
+import org.keycloak.adapters.servlet.ServletHttpFacade;
 import org.keycloak.adapters.spi.AuthChallenge;
 import org.keycloak.adapters.spi.AuthOutcome;
 import org.keycloak.adapters.spi.HttpFacade;
@@ -69,6 +71,13 @@ public class SamlFilterTest
   @Mock
   private AuthChallenge mockAuthChallenge;
 
+  private ServletHttpFacade spyServletHttpFacade;
+
+  @Before
+  public void before() {
+    spyServletHttpFacade = spy(new ServletHttpFacade(mockHttpServletRequest, mockHttpServletResponse));
+  }
+
   @After
   public void exit() {
     baseUrl.release();
@@ -99,6 +108,14 @@ public class SamlFilterTest
   @Test
   public void testOnPrehandle_NotAttemptedAndAllowed_ReturnsTrue() throws Exception {
     when(subject.isAuthenticated()).thenReturn(true);
+
+    testOnPrehandle("http://localhost:8070/assets/index.html", "/saml", "", AuthOutcome.NOT_ATTEMPTED, true);
+  }
+
+  @Test
+  public void testOnPrehandle_NotAttemptedAndAllowed_ResponseNotEnded_ReturnsTrue() throws Exception {
+    when(subject.isAuthenticated()).thenReturn(true);
+    when(spyServletHttpFacade.isEnded()).thenReturn(false);
 
     testOnPrehandle("http://localhost:8070/assets/index.html", "/saml", "", AuthOutcome.NOT_ATTEMPTED, true);
   }
@@ -241,6 +258,8 @@ public class SamlFilterTest
     lenient().when(mockSamlAuthenticator.authenticate()).thenReturn(authOutcome);
     lenient().doReturn(mockSamlAuthenticator).when(spySamlFilter).newSamlAuthenticator(anyBoolean(),
         any(HttpFacade.class), any(SamlDeployment.class), any(SamlSessionStore.class));
+    lenient().when(spySamlFilter.newServletHttpFacade(any(HttpServletRequest.class), any(HttpServletResponse.class)))
+        .thenReturn(spyServletHttpFacade);
     assertThat(spySamlFilter.onPreHandle(mockHttpServletRequest, mockHttpServletResponse, null))
         .isSameAs(expectedResult);
   }

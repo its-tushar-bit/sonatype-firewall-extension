@@ -60,27 +60,31 @@ public class ApiLicenseDataAdapter
     convert(component, licenseDataDTO);
 
     for (LicenseThreatGroup ltg : component.getLicenseThreatGroups()) {
-      ApiLicenseThreatDTOV2 threat = new ApiLicenseThreatDTOV2();
-      threat.licenseThreatGroupLevel = ltg.getThreatLevel();
-      threat.licenseThreatGroupName = ltg.getName();
-
-      if (ltg.getThreatLevel() > 7) {
-        threat.licenseThreatGroupCategory = "critical";
-      }
-      else if (ltg.getThreatLevel() > 3) {
-        threat.licenseThreatGroupCategory = "severe";
-      }
-      else if (ltg.getThreatLevel() > 0) {
-        threat.licenseThreatGroupCategory = "moderate";
-      }
-      else {
-        threat.licenseThreatGroupCategory = "no-threat";
-      }
-
-      licenseDataDTO.effectiveLicenseThreats.add(threat);
+      licenseDataDTO.effectiveLicenseThreats.add(convert(ltg));
     }
 
     return licenseDataDTO;
+  }
+
+  // Visible for testing
+  public ApiLicenseThreatDTOV2 convert(LicenseThreatGroup ltg) {
+    ApiLicenseThreatDTOV2 threat = new ApiLicenseThreatDTOV2();
+    threat.licenseThreatGroupLevel = ltg.getThreatLevel();
+    threat.licenseThreatGroupName = ltg.getName();
+
+    if (ltg.getThreatLevel() > 7) {
+      threat.licenseThreatGroupCategory = "critical";
+    }
+    else if (ltg.getThreatLevel() > 3) {
+      threat.licenseThreatGroupCategory = "severe";
+    }
+    else if (ltg.getThreatLevel() > 0) {
+      threat.licenseThreatGroupCategory = "moderate";
+    }
+    else {
+      threat.licenseThreatGroupCategory = "no-threat";
+    }
+    return threat;
   }
 
   private void convert(final Component component, final ApiLicenseDataDTO licenseDataDTO) {

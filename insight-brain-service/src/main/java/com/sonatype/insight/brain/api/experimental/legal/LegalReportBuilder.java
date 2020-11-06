@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationRep
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalMetadataDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.license.dto.model.ComponentLegalCommentDTO;
 import com.sonatype.insight.license.dto.model.ComponentLegalFileDTO;
@@ -68,7 +69,7 @@ public class LegalReportBuilder
     return new ComponentIdentifier(componentIdentifier.getFormat(), coordinates);
   }
 
-  private ApiLicenseLegalDataDTO getLicenseLegalData(
+  ApiLicenseLegalDataDTO getLicenseLegalData(
       ApiLicenseDataDTOV2 sourceData,
       Set<ComponentLegalCommentDTO> componentLegalComments,
       Set<ComponentLegalFileDTO> componentLegalFiles)
@@ -101,7 +102,7 @@ public class LegalReportBuilder
     return licenses.stream().map(license -> license.licenseId).collect(Collectors.toList());
   }
 
-  private Set<ApiLicenseLegalMetadataDTO> getLicenseLegalMetadata(
+  Set<ApiLicenseLegalMetadataDTO> getLicenseLegalMetadata(
       Set<License> licenses,
       Map<String, LicenseMetadataDTO> licenseMetadataById)
   {
@@ -111,7 +112,9 @@ public class LegalReportBuilder
             new ApiLicenseLegalMetadataDTO(license.getId(),
                 license.getShortDisplayName(),
                 licenseMetadataById.get(license.getId()).getLicenseText(),
-                licenseMetadataById.get(license.getId()).getLicenseObligations()))
+                licenseMetadataById.get(license.getId()).getLicenseObligations().stream()
+                    .map(licenseObligationDTO -> new ApiLicenseLegalObligationDTO(licenseObligationDTO, 0))
+                    .collect(Collectors.toSet())))
         .collect(Collectors.toSet());
   }
 }

@@ -5,7 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2.dto.legal;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 
 /**
@@ -17,7 +18,7 @@ public class ApiLicenseLegalComponentDTO
 
   public String hash;
 
-  public ComponentIdentifier componentIdentifier;
+  public ApiComponentIdentifierDTOV2 componentIdentifier;
 
   public String displayName;
 
@@ -30,7 +31,15 @@ public class ApiLicenseLegalComponentDTO
   public ApiLicenseLegalComponentDTO(ApiReportComponentDTOV2 component, ApiLicenseLegalDataDTO licenseLegalData) {
     this.packageUrl = component.packageUrl;
     this.hash = component.hash;
-    this.componentIdentifier = component.componentIdentifier.toComponentIdentifier();
+    this.componentIdentifier = component.componentIdentifier;
+    this.displayName = component.displayName;
+    this.licenseLegalData = licenseLegalData;
+  }
+
+  public ApiLicenseLegalComponentDTO(ApiComponentDTOV2 component, ApiLicenseLegalDataDTO licenseLegalData) {
+    this.packageUrl = component.packageUrl;
+    this.hash = component.hash;
+    this.componentIdentifier = component.componentIdentifier;
     this.displayName = component.displayName;
     this.licenseLegalData = licenseLegalData;
   }

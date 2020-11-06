@@ -212,11 +212,13 @@ public class ComponentInfoService
     return componentDetails;
   }
 
-  private NamedComponentDetails getComponentDetailsFromHDS(String matchState,
-                                                           final String hash,
-                                                           final ComponentIdentifier identifier,
-                                                           final HttpServletRequest httpRequest,
-                                                           final String identificationSource) throws IOException
+  // Visible for testing
+  public NamedComponentDetails getComponentDetailsFromHDS(
+      String matchState,
+      final String hash,
+      final ComponentIdentifier identifier,
+      final HttpServletRequest httpRequest,
+      final String identificationSource) throws IOException
   {
     return ComponentDetailsLoader.getComponentDetails(identifier, hash, matchState,
         new ComponentDetailsLoader.HostedDataServicesSource()
@@ -594,12 +596,13 @@ public class ComponentInfoService
    * @since 1.76
    */
   @Authorize(permission = Permission.READ)
-  public ComponentLicenses getLicenses(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-                                       @AuthzContext(AuthzContext.Key.ID) final String ownerId,
-                                       ComponentIdentifier componentIdentifier,
-                                       HttpServletRequest httpRequest,
-                                       String identificationSource,
-                                       String scanId) throws IOException
+  public ComponentLicenses getLicenses(
+      @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) final String ownerId,
+      ComponentIdentifier componentIdentifier,
+      HttpServletRequest httpRequest,
+      String identificationSource,
+      String scanId) throws IOException
   {
     auditComponentAccess(componentIdentifier, null);
     if (componentIdentifier == null) {
@@ -610,6 +613,24 @@ public class ComponentInfoService
 
     ComponentLicenses result = new ComponentLicenses();
 
+    ComponentDetails componentDetails =
+        getUnaugmentedComponentDetails(owner, componentIdentifier, httpRequest, identificationSource, scanId);
+    augmentComponentDetails(owner, componentDetails);
+    result.declaredlicenses = getLicensesWithThreatLevels(owner, componentDetails.getDeclaredLicenses());
+    result.observedlicenses = getLicensesWithThreatLevels(owner, componentDetails.getObservedLicenses());
+    result.effectiveLicenses = getLicensesWithThreatLevels(owner, componentDetails.getEffectiveLicenses());
+    result.selectableLicenses = new ArrayList<>(getSelectableLicenses(componentDetails.getDeclaredLicenses(),
+        componentDetails.getObservedLicenses()));
+    return result;
+  }
+
+  public ComponentDetails getUnaugmentedComponentDetails(
+      Owner owner,
+      ComponentIdentifier componentIdentifier,
+      HttpServletRequest httpRequest,
+      String identificationSource,
+      String scanId) throws IOException
+  {
     ComponentDetails componentDetails;
     if (IdentificationSource.isThirdPartyIdentificationSource(identificationSource)) {
       componentDetails =
@@ -618,14 +639,12 @@ public class ComponentInfoService
     else {
       componentDetails = getComponentDetailsFromHDS(null, null, componentIdentifier, httpRequest, identificationSource);
     }
+    return componentDetails;
+  }
+
+  public Component augmentComponentDetails(Owner owner, ComponentDetails componentDetails) {
     augmentEmptyLicensesAsUnspecified(componentDetails);
-    new ComponentDetailsLoader(owner).augmentComponentDetails(componentDetails);
-    result.declaredlicenses = getLicensesWithThreatLevels(owner, componentDetails.getDeclaredLicenses());
-    result.observedlicenses = getLicensesWithThreatLevels(owner, componentDetails.getObservedLicenses());
-    result.effectiveLicenses = getLicensesWithThreatLevels(owner, componentDetails.getEffectiveLicenses());
-    result.selectableLicenses = new ArrayList<>(getSelectableLicenses(componentDetails.getDeclaredLicenses(),
-        componentDetails.getObservedLicenses()));
-    return result;
+    return new ComponentDetailsLoader(owner).augmentComponentDetails(componentDetails);
   }
 
   /**

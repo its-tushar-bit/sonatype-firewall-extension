@@ -12,19 +12,27 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentReportDTO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Test;
@@ -72,6 +80,99 @@ public class ApiLicenseLegalResourceTest
         .isEqualTo("Could not find an application with public ID " + applicationPublicId + ".");
   }
 
+  @Test
+  public void testGetLicenseLegalComponentReport_ComponentIdentifier() throws Exception {
+    Owner owner = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.METADATA_URL);
+    hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
+    hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.LEGAL_FILE_URL);
+
+    HttpResponse response = restRequest().path(ApiLicenseLegalResource.COMPONENT_PATH)
+        .parameter(owner.getType().toString(), owner.getPublicId())
+        .query("componentIdentifier", componentIdentifier)
+        .get();
+
+    assertResponseStatus(200, response);
+    ApiLicenseLegalComponentReportDTO apiLicenseLegalComponentDTO =
+        response.getBody(ApiLicenseLegalComponentReportDTO.class);
+    assertThat(apiLicenseLegalComponentDTO).isNotNull();
+    assertThat(apiLicenseLegalComponentDTO.component.componentIdentifier.toComponentIdentifier())
+        .isEqualTo(componentIdentifier);
+  }
+
+  @Test
+  public void testGetLicenseLegalComponentReport_PackageUrl() throws Exception {
+    Owner owner = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.METADATA_URL);
+    hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
+    hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.LEGAL_FILE_URL);
+
+    HttpResponse response = restRequest().path(ApiLicenseLegalResource.COMPONENT_PATH)
+        .parameter(owner.getType().toString(), owner.getPublicId())
+        .query("packageUrl", PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl())
+        .get();
+
+    assertResponseStatus(200, response);
+    ApiLicenseLegalComponentReportDTO apiLicenseLegalComponentDTO =
+        response.getBody(ApiLicenseLegalComponentReportDTO.class);
+    assertThat(apiLicenseLegalComponentDTO).isNotNull();
+    assertThat(apiLicenseLegalComponentDTO.component.componentIdentifier.toComponentIdentifier())
+        .isEqualTo(componentIdentifier);
+  }
+
+  @Test
+  public void testGetLicenseLegalComponentReport_Hash() throws Exception {
+    Owner owner = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    String hash = "hash";
+    tempEntity.newApplicationComponent(owner.getId(), BuildStageType.ID, hash, componentIdentifier);
+    hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.METADATA_URL);
+    hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
+    hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.LEGAL_FILE_URL);
+
+    HttpResponse response = restRequest().path(ApiLicenseLegalResource.COMPONENT_PATH)
+        .parameter(owner.getType().toString(), owner.getPublicId())
+        .query("hash", hash)
+        .get();
+
+    assertResponseStatus(200, response);
+    ApiLicenseLegalComponentReportDTO apiLicenseLegalComponentDTO =
+        response.getBody(ApiLicenseLegalComponentReportDTO.class);
+    assertThat(apiLicenseLegalComponentDTO).isNotNull();
+    assertThat(apiLicenseLegalComponentDTO.component.componentIdentifier.toComponentIdentifier())
+        .isEqualTo(componentIdentifier);
+  }
+
+  @Test
+  public void testGetLicenseLegalComponentReport_ThirdParty() throws Exception {
+    Owner owner = tempEntity.newApplicationWithParent();
+    Map<String, String> coordinates = new HashMap<>();
+    coordinates.put("name", "glibc");
+    coordinates.put(ComponentIdentifier.VERSION, "2.24-11+deb9u3");
+    ComponentIdentifier componentIdentifier = new ComponentIdentifier("debian-9", coordinates);
+    hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.METADATA_URL);
+    hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
+    hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.LEGAL_FILE_URL);
+    String scanId = "scanId";
+    mockThirdPartyReport(owner.getId(), scanId);
+
+    HttpResponse response = restRequest().path(ApiLicenseLegalResource.COMPONENT_PATH)
+        .parameter(owner.getType().toString(), owner.getPublicId())
+        .query("componentIdentifier", componentIdentifier)
+        .query("identificationSource", IdentificationSource.CLAIR.getId())
+        .query("scanId", scanId)
+        .get();
+
+    assertResponseStatus(200, response);
+    ApiLicenseLegalComponentReportDTO apiLicenseLegalComponentDTO =
+        response.getBody(ApiLicenseLegalComponentReportDTO.class);
+    assertThat(apiLicenseLegalComponentDTO).isNotNull();
+    assertThat(apiLicenseLegalComponentDTO.component.componentIdentifier.toComponentIdentifier())
+        .isEqualTo(componentIdentifier);
+  }
+
   private void mockReport(PolicyEvaluation evaluation) {
     try {
       Path reportDir = getCLMServer().getInstance(InsightWork.class)
@@ -88,7 +189,28 @@ public class ApiLicenseLegalResourceTest
       };
       for (String filename : filenames) {
         File file = Report.getCacheFile(reportFile, filename);
-        FileUtils.copyURLToFile(getClass().getResource("/LicenseLegalResourceTest/report/" + filename), file);
+        FileUtils.copyURLToFile(getClass().getResource("/" + getClass().getSimpleName() + "/report/" + filename), file);
+      }
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  private void mockThirdPartyReport(String applicationId, String scanId) {
+    try {
+      Path reportDir = getCLMServer().getInstance(InsightWork.class).getReportDir(applicationId, scanId).toPath();
+      Files.createDirectories(reportDir);
+      Files.write(reportDir.resolve("report.zip"), Collections.singletonList("report.zip"));
+      File reportFile = reportDir.resolve("report.zip").toFile();
+      String[] filenames = {
+          ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME,
+          ThirdPartyComponentDAO.THIRD_PARTY_LICENSE_JSON_FILENAME,
+          ThirdPartyComponentDAO.THIRD_PARTY_SECURITY_JSON_FILENAME
+      };
+      for (String filename : filenames) {
+        File file = Report.getCacheFile(reportFile, filename);
+        FileUtils.copyURLToFile(getClass().getResource("/" + getClass().getSimpleName() + "/report/" + filename), file);
       }
     }
     catch (IOException e) {

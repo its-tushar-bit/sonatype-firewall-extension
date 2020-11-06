@@ -7,8 +7,6 @@ package com.sonatype.insight.brain.api.v2.dto.legal;
 
 import java.util.Set;
 
-import com.sonatype.insight.license.dto.model.LicenseObligationDTO;
-
 /**
  * @since 1.101
  */
@@ -20,7 +18,7 @@ public class ApiLicenseLegalMetadataDTO
 
   public String licenseText;
 
-  public Set<LicenseObligationDTO> obligations;
+  public Set<ApiLicenseLegalObligationDTO> obligations;
 
   public ApiLicenseLegalMetadataDTO() {
     // for jackson
@@ -30,7 +28,7 @@ public class ApiLicenseLegalMetadataDTO
       String licenseId,
       String licenseName,
       String licenseText,
-      Set<LicenseObligationDTO> obligations)
+      Set<ApiLicenseLegalObligationDTO> obligations)
   {
     this.licenseId = licenseId;
     this.licenseName = licenseName;

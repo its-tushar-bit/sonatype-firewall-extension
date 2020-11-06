@@ -101,6 +101,8 @@ public class ScmOnboardingTest
 
     // TODO INT-3695 adds default host support, until then have to prime the pump
     tempEntity.newSourceControl(app.getId(), gitService.baseUrl() + "/org/repo.git", null);
+    Application app2 = tempEntity.newApplication(org.getId());
+    tempEntity.newSourceControl(app2.getId(), gitService.baseUrl() + "/org/repo2.git", null);
   }
 
   private void mockRepoForPage(int page, String json) {

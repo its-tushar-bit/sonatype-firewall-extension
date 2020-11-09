@@ -5,21 +5,25 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.io.IOException;
 import java.io.StringReader;
 import java.net.URI;
 import java.util.List;
 import java.util.Objects;
 
 import javax.inject.Named;
+import javax.xml.XMLConstants;
 import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Validator;
 
 import org.keycloak.dom.saml.v2.metadata.EndpointType;
 import org.keycloak.dom.saml.v2.metadata.EntitiesDescriptorType;
 import org.keycloak.dom.saml.v2.metadata.EntityDescriptorType;
-import org.keycloak.dom.saml.v2.metadata.IDPSSODescriptorType;
 import org.keycloak.dom.saml.v2.metadata.EntityDescriptorType.EDTDescriptorChoiceType;
+import org.keycloak.dom.saml.v2.metadata.IDPSSODescriptorType;
 import org.keycloak.saml.processing.core.parsers.saml.SAMLParser;
 import org.keycloak.saml.processing.core.util.JAXPValidationUtil;
+import org.xml.sax.SAXException;
 
 import static java.util.stream.Collectors.toList;
 
@@ -29,6 +33,16 @@ public class SamlMetadataTool
   public static final URI POST_BINDING = URI.create("urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST");
 
   public static final URI REDIRECT_BINDING = URI.create("urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect");
+
+  public SamlMetadataTool() throws IOException, SAXException {
+    configureValidator();
+  }
+
+  private void configureValidator() throws IOException, SAXException {
+    Validator validator = JAXPValidationUtil.validator();
+    validator.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+    validator.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+  }
 
   public EntityDescriptorType parseEntityDescriptor(String xmlMetadata) {
     Object metadata;

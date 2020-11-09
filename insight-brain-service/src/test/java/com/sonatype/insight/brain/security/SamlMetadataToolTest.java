@@ -122,4 +122,12 @@ public class SamlMetadataToolTest
         "urn:oasis:names:tc:SAML:2.0:nameid-format:transient", "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified",
         "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress");
   }
+
+  @Test
+  public void testParseEntityDescriptor_ExternalDTD() {
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
+      parse("external-dtd.xml");
+    }).withMessageStartingWith("Invalid SAML metadata")
+        .withMessageContaining("'http' access is not allowed due to restriction set by the accessExternalDTD property");
+  }
 }

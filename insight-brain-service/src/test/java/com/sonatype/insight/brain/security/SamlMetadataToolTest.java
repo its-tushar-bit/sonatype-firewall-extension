@@ -127,7 +127,6 @@ public class SamlMetadataToolTest
   public void testParseEntityDescriptor_ExternalDTD() {
     assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
       parse("external-dtd.xml");
-    }).withMessageStartingWith("Invalid SAML metadata")
-        .withMessageContaining("'http' access is not allowed due to restriction set by the accessExternalDTD property");
+    }).withMessageStartingWith("Invalid SAML metadata").withMessageContaining("http", "accessExternalDTD");
   }
 }

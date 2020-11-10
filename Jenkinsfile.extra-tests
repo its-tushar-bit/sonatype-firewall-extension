@@ -32,6 +32,7 @@ def functionalTests(String browser, String testRegex) {
     mavenOptions += ' -Drun-functional-tests=docker'
     mavenOptions += " -Dbrowser=${browser}"
     mavenOptions += " -DapplitoolsKey=${applitoolsKey}"
+    mavenOptions += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
     def testConfig = testConfig(mavenOptions, 'insight-brain-java-functional-test/pom.xml')
     mvn testConfig, 'clean verify'
   }

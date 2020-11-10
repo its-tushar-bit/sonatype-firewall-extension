@@ -125,6 +125,7 @@ public class ManifestScanServiceTest
     sourceControlConfig.setCloneDirectory(sourceControlDir.getAbsolutePath());
 
     application = new Application();
+    application.setId(APP_ID);
     application.setPublicId("public-app-id");
     when(mockApplicationDAO.getByIdNotNull(eq(APP_ID))).thenReturn(application);
 
@@ -160,9 +161,6 @@ public class ManifestScanServiceTest
     sourceControlEvent.setApplicationId(APP_ID);
     sourceControlEvent.setStageTypeId(Stage.ID_DEVELOP);
     sourceControlEvent.setUserAgent("userAgent");
-
-    // and an application
-    when(mockApplicationDAO.getById(sourceControlEvent.getApplicationId())).thenReturn(application);
 
     // and a source control configuration
     when(mockInsightConfig.getSourceControl()).thenReturn(sourceControlConfig);

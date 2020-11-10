@@ -87,44 +87,54 @@ public class ManifestScanService
 
   /**
    * process a SourceControlEvent to do a manifest scan inside the server.
+   *
    * @param event a SourceControlEvent providing application id, branch, and stage
    * @throws GitException when a git operation fails
    */
   public void onManifestScan(final SourceControlEvent event) throws GitException, IOException {
-    String applicationId = event.getApplicationId();
-    String statusId = event.getStatusId();
+    log.trace("Manifest scan initiated for application '{}' on branch '{}'", event.getApplicationId(),
+        event.getBranchName());
+
     final GitRepositoryInfo gitRepositoryInfo =
-        sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
+        sourceControlUtils.getGitRepositoryInfoForApplication(event.getApplicationId());
 
     if (gitRepositoryInfo == null) {
       return;
     }
 
-    final String branch = event.getBranchName();
+    final Application application = applicationDAO.getByIdNotNull(event.getApplicationId());
 
-    log.trace("Manifest scan initiated for application '{}' on branch '{}'",
-        event.getApplicationId(), branch);
     final File repositoryDirectory = GitRepositoryTask.getCheckoutDirectory(
         insightConfig,
-        applicationDAO.getById(event.getApplicationId()).getPublicId(),
+        application.getPublicId(),
         event.getApplicationId(),
-        branch);
+        event.getBranchName());
 
+    RepositorySyncResult repoSyncResult = checkout(gitRepositoryInfo, event.getBranchName(), repositoryDirectory);
+    ScanResult scanResult = scan(application, repositoryDirectory);
+    evaluate(event, application, scanResult);
+
+    log.trace("Manifest scan completed for application '{}': {}", event.getApplicationId(), repoSyncResult);
+  }
+
+  private RepositorySyncResult checkout(GitRepositoryInfo gitRepositoryInfo, String branch, File repositoryDirectory)
+      throws GitException
+  {
     final GitApi gitApi = gitApiFactory.createGitApi(gitRepositoryInfo);
 
-    final RepositorySyncResult result = new RepositorySyncExecutor().execute(
+    return new RepositorySyncExecutor().execute(
         new RepositorySyncCommand(gitApi, branch, repositoryDirectory));
+  }
 
-    Application application = applicationDAO.getByIdNotNull(applicationId);
-
+  private ScanResult scan(Application application, File repositoryDirectory) throws IOException {
     ProprietaryConfig proprietaryConfig = proprietaryConfigService.getProprietaryConfig(OwnerType.APPLICATION,
         application.getPublicId());
-    ScanResult scanResult = scanner.scan(repositoryDirectory, null, work.getScanDir(applicationId), proprietaryConfig);
+    return scanner.scan(repositoryDirectory, null, work.getScanDir(application.getId()), proprietaryConfig);
+  }
 
-    policyEvaluateService.evaluateWithPolling(statusId, application, ClientScanType.SONATYPE,
+  private void evaluate(SourceControlEvent event, Application application, ScanResult scanResult) {
+    policyEvaluateService.evaluateWithPolling(event.getStatusId(), application, ClientScanType.SONATYPE,
         new Stage(event.getStageTypeId()), scanResult.getScanFile(), "api",
         event.getUserAgent());
-
-    log.trace("Manifest scan completed for application '{}': {}", event.getApplicationId(), result);
   }
 }

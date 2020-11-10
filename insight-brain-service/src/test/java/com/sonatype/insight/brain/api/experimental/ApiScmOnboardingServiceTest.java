@@ -91,8 +91,11 @@ public class ApiScmOnboardingServiceTest
     // configure urls to point to our mock git server, as these are used to guess at a base api url
     String repo1Url = "https://github.com/depshield-ci/ci-project-1.git";
     String repo2Url = "https://github.com/depshield-ci/ci-project-16.git";
-    String repo1ReplacementUrl = gitService.baseUrl() + "/org/repo1.git";
-    String repo2ReplacementUrl = gitService.baseUrl() + "/org/repo2.git";
+    String repo1 = "/org/repo1.git";
+    String repo2 = "/org/repo2.git";
+    String repo1ReplacementUrl = gitService.baseUrl().replace("localhost", "admin:admin123@localhost")
+        + repo1;
+    String repo2ReplacementUrl = gitService.baseUrl().replace("localhost", "admin@localhost") + repo2;
     
     mockRepoForPage(gitService, 0, 
         getResourceAsString("/ApiScmOnboardingServiceTest/allRepos0.json")
@@ -106,12 +109,12 @@ public class ApiScmOnboardingServiceTest
         .newSourceControl(ROOT_ORGANIZATION_ID, null, plexusCipher.encrypt("TOKEN", ENC), SourceControlProvider.GITHUB);
 
     // given some of the repositories are already configured for SCM
-    tempEntity.newSourceControl(app.getId(), repo1ReplacementUrl, new Date());
+    tempEntity.newSourceControl(app.getId(), gitService.baseUrl() + repo1, new Date());
     Application tmpapp2 = tempEntity.newApplication("tmpapp2", org.getId());
-    tempEntity.newSourceControl(tmpapp2.getId(), repo2ReplacementUrl, new Date());
+    tempEntity.newSourceControl(tmpapp2.getId(), gitService.baseUrl() + repo2, new Date());
     // duplicate repo url entries as they can be configured as such to scan different modules(a la insight-brain)
     Application tmpapp3 = tempEntity.newApplication("tmpapp3", org.getId());
-    tempEntity.newSourceControl(tmpapp3.getId(), repo2ReplacementUrl, new Date());
+    tempEntity.newSourceControl(tmpapp3.getId(), gitService.baseUrl() + repo2, new Date());
     
     // then loading repositories returns the trimmed results
     SCMRepositories repositories = apiScmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());

@@ -15,13 +15,13 @@
     "name": "create-react-app",
     "description": "the",
     "private": false,
-    "clone_url": "https://github.com/depshield-ci/create-react-app.git"
+    "clone_url": "https://admin:admin123@github.com/depshield-ci/create-react-app.git"
   },
   {
     "name": "nexus-repository-p2",
     "description": "days",
     "private": false,
-    "clone_url": "https://github.com/sonatype-nexus-community/nexus-repository-p2.git"
+    "clone_url": "https://admin@github.com/sonatype-nexus-community/nexus-repository-p2.git"
   },
   {
     "name": "nexus-repository-puppet",

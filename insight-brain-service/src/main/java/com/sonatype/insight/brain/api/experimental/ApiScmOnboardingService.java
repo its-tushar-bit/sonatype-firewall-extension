@@ -11,7 +11,6 @@ import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -36,6 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.nexus.git.utils.repository.RepositoryUrlFinderUtils.sanitizeUrl;
 import static java.util.stream.Collectors.counting;
 
 /**
@@ -170,14 +170,17 @@ public class ApiScmOnboardingService
   private List<SCMRepository> trimAlreadyConfigured(final List<SCMRepository> listAllRepositories) {
     List<String> existing =
         sourceControlDAO.getAll().stream()
-            .map(SourceControl::getRepositoryUrl)
-            .filter(Objects::nonNull)
+            .filter(sourceControl -> sourceControl.getRepositoryUrl() != null)
+            .map(sourceControl -> sanitizeUrl(sourceControl.getRepositoryUrl()))
             .distinct()
             .collect(Collectors.toList());
 
     return listAllRepositories.stream()
-        .filter(repo -> !existing.contains(repo.getHttpCloneUrl()) &&
-            !existing.contains(repo.getHttpCloneUrl().replace(".git", "")))
+        .filter(repo -> {
+          String httpCloneUrl = sanitizeUrl(repo.getHttpCloneUrl());
+          return !existing.contains(httpCloneUrl) &&
+              !existing.contains(httpCloneUrl.replace(".git", ""));
+        })
         .collect(Collectors.toList());
   }
 }

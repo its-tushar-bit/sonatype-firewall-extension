@@ -22,6 +22,7 @@ import pendoModule from './pendo/module';
 import externalLinkModule from './externalLink/module';
 import utilityServicesModule from './utility/services/utility.services.module';
 import unsavedChangesModalModule from './unsavedChangesModal/module';
+import legalModule from './legal/module';
 import { not, contains } from 'ramda';
 
 // this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
@@ -41,7 +42,7 @@ export const InitModule = angular.module('InitModule', [
   ReportModule.name, Report.name, mainHeaderModule.name, 'ngRoute', unauthenticatedResponseHttpInterceptor.name,
   'xeditable', productFeaturesModule.name, httpInterceptors.name, IqHttpInterceptorsModule.name, dashboardModule.name,
   formsModule.name, SessionSecurityModule.name, gettingStartedModule.name, pendoModule.name, externalLinkModule.name,
-  utilityServicesModule.name, unsavedChangesModalModule.name
+  utilityServicesModule.name, unsavedChangesModalModule.name, legalModule.name
 ], [
   '$stateProvider', '$urlRouterProvider',
   function($stateProvider, $urlRouterProvider) {

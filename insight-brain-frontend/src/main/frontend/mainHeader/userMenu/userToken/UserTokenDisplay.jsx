@@ -1,0 +1,76 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import React from 'react';
+import * as PropTypes from 'prop-types';
+import { faCopy } from '@fortawesome/free-solid-svg-icons';
+import {
+  NxButton,
+  NxTextInput,
+  NxFontAwesomeIcon,
+  NxTooltip
+} from '@sonatype/react-shared-components';
+
+export default function UserTokenDisplay(props) {
+  const { userToken, copyToClipboard } = props,
+      { userCode, passCode } = userToken;
+
+  const onSubmit = (evt) => { evt.preventDefault(); };
+
+  return (
+    <form onSubmit={onSubmit}>
+      <div className="nx-form-row">
+        <div className="nx-form-group">
+          <label className="nx-label">
+            <span className="nx-label__text">User Code</span>
+            <NxTextInput id="user-token-usercode"
+                         isPristine={true}
+                         value={userCode}
+                         className="user-token-modal__input"/>
+          </label>
+        </div>
+        <div className="nx-btn-bar">
+          <NxTooltip title="Copy to clipboard">
+            <NxButton id="user-token-copy-usercode"
+                      variant="tertiary"
+                      onClick={() => copyToClipboard(userCode, 'userCode')}>
+              <NxFontAwesomeIcon icon={faCopy}/>
+            </NxButton>
+          </NxTooltip>
+        </div>
+      </div>
+      <div className="nx-form-row">
+        <div className="nx-form-group">
+          <label className="nx-label">
+            <span className="nx-label__text">Passcode</span>
+            <NxTextInput id="user-token-passcode"
+                         isPristine={true}
+                         value={passCode}
+                         className="user-token-modal__input"/>
+          </label>
+        </div>
+        <div className="nx-btn-bar">
+          <NxTooltip title="Copy to clipboard">
+            <NxButton id="user-token-copy-passcode"
+                      variant="tertiary"
+                      onClick={() => copyToClipboard(passCode, 'passCode')}>
+              <NxFontAwesomeIcon icon={faCopy}/>
+            </NxButton>
+          </NxTooltip>
+        </div>
+      </div>
+    </form>
+  );
+}
+
+export const userTokenType = {
+  userCode: PropTypes.string.isRequired,
+  passCode: PropTypes.string.isRequired
+};
+
+UserTokenDisplay.propTypes = {
+  userToken: PropTypes.shape(userTokenType).isRequired,
+  copyToClipboard: PropTypes.func.isRequired
+};

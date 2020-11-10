@@ -23,6 +23,7 @@ import addWaiverReducer from '../waivers/addWaiverReducer';
 import manageWaiversReducer from '../waivers/manageWaiversReducer';
 import scmOnboardingReducer from '../configuration/scmOnboarding/scmOnboardingReducer';
 import deleteWaiverReducer from '../waivers/deleteWaiverModal/deleteWaiverReducer';
+import userTokenReducer from '../mainHeader/userMenu/userToken/userTokenReducer';
 import advancedLegalReducer from '../advancedLegal/advancedLegalReducer';
 
 export default combineReducers({
@@ -45,5 +46,6 @@ export default combineReducers({
   manageWaivers: manageWaiversReducer,
   scmOnboarding: scmOnboardingReducer,
   deleteWaiver: deleteWaiverReducer,
+  userToken: userTokenReducer,
   advancedLegal: advancedLegalReducer
 });

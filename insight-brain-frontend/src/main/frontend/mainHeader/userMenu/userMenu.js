@@ -8,6 +8,7 @@ import modalWrapperTemplate from './userDetailsModalWrapper.html';
 import { faUserAlt } from '@fortawesome/pro-regular-svg-icons';
 import { faCaretDown } from '@fortawesome/free-solid-svg-icons';
 import template from './userMenu.html';
+import { showUserTokenModal } from './userToken/userTokenActions';
 
 function UserMenuController($rootScope, $scope, $http, $ngRedux, CLMLocations, Modal, messages, pendoService, actions) {
   var vm = this;
@@ -16,9 +17,14 @@ function UserMenuController($rootScope, $scope, $http, $ngRedux, CLMLocations, M
   vm.faUserAlt = faUserAlt;
   vm.faCaretDown = faCaretDown;
 
+  const mapDispatchToProps = {
+    ...actions,
+    showUserTokenModal
+  };
+
   Object.assign(vm, {
     $onInit() {
-      vm.unsubscribe = $ngRedux.connect(mapStateToThis, actions)(vm);
+      vm.unsubscribe = $ngRedux.connect(mapStateToThis, mapDispatchToProps)(vm);
       vm.loadUser();
     },
 
@@ -74,6 +80,10 @@ function UserMenuController($rootScope, $scope, $http, $ngRedux, CLMLocations, M
       });
     },
 
+    manageUserToken() {
+      vm.showUserTokenModal();
+    },
+
     details() {
       function modalController($scope) {
         $scope.currentUser = vm.currentUser;
@@ -89,8 +99,11 @@ function UserMenuController($rootScope, $scope, $http, $ngRedux, CLMLocations, M
   });
 }
 
-function mapStateToThis({user}) {
-  return pick(['currentUser', 'shouldDisplayNotice', 'canChangePassword'], user);
+function mapStateToThis({user, userToken}) {
+  return {
+    ...pick(['currentUser', 'shouldDisplayNotice', 'canChangePassword'], user),
+    ...pick(['isUserTokenModalVisible'], userToken)
+  };
 }
 
 UserMenuController.$inject = [

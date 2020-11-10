@@ -62,6 +62,7 @@
       </form>
     </div>
   </script>
+  <user-token-modal ng-if="vm.isUserTokenModalVisible"></user-token-modal>
   <div id="user-menu" class="dropdown iq-dropdown iq-dropdown--user-menu">
     <a id="user-menu-dropdown-toggle"
        class="iq-dropdown-toggle iq-dropdown-toggle--main-header iq-dropdown-toggle--user-menu"
@@ -84,6 +85,11 @@
           Change Password
         </a>
       </div>
+      <a id="user-token-management"
+         ng-click="vm.manageUserToken()"
+         class="iq-dropdown-menu__link--main-header">
+         Manage User Token
+      </a>
       <a id="user-details" ng-click="vm.details()" class="iq-dropdown-menu__link--main-header">
         Details
       </a>

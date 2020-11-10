@@ -206,6 +206,14 @@ export function getOwnerContextHierarchyUrl(ownerType, ownerId, policyId) {
   return uriTemplate`/rest/policyWaiver/${ownerType}/${ownerId}/applicable/context/${policyId}`;
 }
 
+export function userTokenUrl() {
+  return uriTemplate`/api/v2/userTokens/currentUser`;
+}
+
+export function checkUserTokenExistenceUrl() {
+  return `${userTokenUrl()}/hasToken`;
+}
+
 export function getLicenseLegalApplicationReportUrl(applicationPublicId) {
   return uriTemplate`/api/experimental/licenseLegalMetadata/application/${applicationPublicId}`;
 }

@@ -3,6 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { react2angular } from 'react2angular';
+
+import withStoreProvider from '../reactAdapter/StoreProvider';
 import utilityServicesModule from '../utility/services/utility.services.module';
 import angularCommonModule from '../util/AngularCommon';
 import CLMLocationModule from '../util/CLMLocation';
@@ -19,6 +22,7 @@ import userActions from '../user/userActions';
 import userReducer from '../user/userReducer';
 import userDetailsModal from './userMenu/userDetailsModal';
 import reactComponentsModule from '../react/module.js';
+import UserTokenModalContainer from './userMenu/userToken/UserTokenModalContainer';
 
 export default angular.module('mainHeader',
     [
@@ -34,4 +38,5 @@ export default angular.module('mainHeader',
     .component('notificationsMenu', notificationsMenu)
     .component('systemConfigurationMenu', systemConfigurationMenu)
     .component('mainHeader', mainHeader)
-    .component('userDetailsModal', userDetailsModal);
+    .component('userDetailsModal', userDetailsModal)
+    .component('userTokenModal', react2angular(withStoreProvider(UserTokenModalContainer), [], ['$ngRedux']));

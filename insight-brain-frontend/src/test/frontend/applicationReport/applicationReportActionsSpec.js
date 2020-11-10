@@ -350,7 +350,7 @@ describe('applicationReportActions', function() {
   });
 
   describe('selectComponent', function() {
-    it('request and set the selected component with inner source report', function(done) {
+    it('request and set the selected component with inner source report for latest stage', function(done) {
       const state = createMockState(false, mockBomData, mockUnknownJsData, mockMetadata);
 
       state.applicationReport.selectedReport = {
@@ -376,6 +376,10 @@ describe('applicationReportActions', function() {
         {
           stage: 'release',
           latestReportHtmlUrl: 'url'
+        },
+        {
+          stage: 'develop',
+          latestReportHtmlUrl: 'url'
         }];
       spyOn(axios, 'get').and.returnValue(new Promise(resolve => resolve({
         status: 200,
@@ -384,7 +388,7 @@ describe('applicationReportActions', function() {
 
       const selectedComponent = {
         latestReport: {
-          stage: 'build',
+          stage: 'release',
           url: 'url'
         },
         componentName: 'a',
@@ -410,59 +414,174 @@ describe('applicationReportActions', function() {
       });
     });
 
-    it('request and set the selected component with inner source and not existing stage', function(done) {
-      const state = createMockState(false, mockBomData, mockUnknownJsData, mockMetadata);
+    it('request and set the selected component with inner source report with a report with a non existing stage',
+        function(done) {
+          const state = createMockState(false, mockBomData, mockUnknownJsData, mockMetadata);
 
-      state.applicationReport.selectedReport = {
-        displayedEntries: [
-          {
+          state.applicationReport.selectedReport = {
+            displayedEntries: [
+              {
+                componentName: 'a',
+                innerSource: true,
+                ownerApplicationId: 'id'
+              }
+            ]
+          };
+
+          const store = SpecUtil.mockReduxStore(state);
+
+          const response = [
+            {
+              stage: 'develop',
+              latestReportHtmlUrl: 'url'
+            },
+            {
+              stage: 'fake',
+              latestReportHtmlUrl: 'url'
+            },
+            {
+              stage: 'build',
+              latestReportHtmlUrl: 'url'
+            }];
+          spyOn(axios, 'get').and.returnValue(new Promise(resolve => resolve({
+            status: 200,
+            data: response
+          })));
+
+          const selectedComponent = {
+            latestReport: { stage: 'build', url: 'url'},
             componentName: 'a',
             innerSource: true,
             ownerApplicationId: 'id'
-          }
-        ]
-      };
+          };
 
-      const store = SpecUtil.mockReduxStore(state);
+          store.dispatch(applicationReportActions.selectComponent(0)).then(() => {
+            expect(store.getActions().length).toBe(2);
+            expect(store.getActions()[1]).toEqual({
+              type: 'SELECT_COMPONENT_FULFILLED',
+              payload: {
+                component: selectedComponent,
+                componentIndex: 0
+              }
+            });
+            done();
+          });
 
-      const response = [
-        {
-          stage: 'develop',
-          latestReportHtmlUrl: 'url'
-        },
-        {
-          stage: 'release',
-          latestReportHtmlUrl: 'url'
-        }];
-      spyOn(axios, 'get').and.returnValue(new Promise(resolve => resolve({
-        status: 200,
-        data: response
-      })));
-
-      const selectedComponent = {
-        latestReport: { stage: undefined, url: undefined},
-        componentName: 'a',
-        innerSource: true,
-        ownerApplicationId: 'id'
-      };
-
-      store.dispatch(applicationReportActions.selectComponent(0)).then(() => {
-        expect(store.getActions().length).toBe(2);
-        expect(store.getActions()[1]).toEqual({
-          type: 'SELECT_COMPONENT_FULFILLED',
-          payload: {
-            component: selectedComponent,
-            componentIndex: 0
-          }
+          expect(store.getActions().length).toBe(1);
+          expect(store.getActions()[0]).toEqual({
+            type: 'SELECT_COMPONENT_REQUESTED'
+          });
         });
-        done();
-      });
 
-      expect(store.getActions().length).toBe(1);
-      expect(store.getActions()[0]).toEqual({
-        type: 'SELECT_COMPONENT_REQUESTED'
-      });
-    });
+    it('request and set the selected component with inner source having reports with non existing stage',
+        function(done) {
+          const state = createMockState(false, mockBomData, mockUnknownJsData, mockMetadata);
+
+          state.applicationReport.selectedReport = {
+            displayedEntries: [
+              {
+                componentName: 'a',
+                innerSource: true,
+                ownerApplicationId: 'id'
+              },
+              {
+                componentName: 'b'
+              }
+            ]
+          };
+
+          const store = SpecUtil.mockReduxStore(state);
+
+          const response = [
+            {
+              stage: 'a',
+              latestReportHtmlUrl: 'url'
+            },
+            {
+              stage: 'b',
+              latestReportHtmlUrl: 'url'
+            }];
+
+          spyOn(axios, 'get').and.returnValue(new Promise(resolve => resolve({
+            status: 200,
+            data: response
+          })));
+
+          const selectedComponent = {
+            latestReport: {
+              stage: 'a',
+              url: 'url'
+            },
+            componentName: 'a',
+            innerSource: true,
+            ownerApplicationId: 'id'
+          };
+
+          store.dispatch(applicationReportActions.selectComponent(0)).then(() => {
+            expect(store.getActions().length).toBe(2);
+            expect(store.getActions()[1]).toEqual({
+              type: 'SELECT_COMPONENT_FULFILLED',
+              payload: {
+                component: selectedComponent,
+                componentIndex: 0
+              }
+            });
+            done();
+          });
+
+          expect(store.getActions().length).toBe(1);
+          expect(store.getActions()[0]).toEqual({
+            type: 'SELECT_COMPONENT_REQUESTED'
+          });
+        });
+
+    it('request and set the selected component with inner source having any report',
+        function(done) {
+          const state = createMockState(false, mockBomData, mockUnknownJsData, mockMetadata);
+
+          state.applicationReport.selectedReport = {
+            displayedEntries: [
+              {
+                componentName: 'a',
+                innerSource: true,
+                ownerApplicationId: 'id'
+              },
+              {
+                componentName: 'b'
+              }
+            ]
+          };
+
+          const store = SpecUtil.mockReduxStore(state);
+
+          spyOn(axios, 'get').and.returnValue(new Promise(resolve => resolve({
+            status: 200,
+            data: []
+          })));
+
+          const selectedComponent = {
+            componentName: 'a',
+            innerSource: true,
+            ownerApplicationId: 'id'
+          };
+
+          store.dispatch(applicationReportActions.selectComponent(0)).then(() => {
+            expect(store.getActions().length).toBe(2);
+            expect(store.getActions()[1]).toEqual({
+              type: 'SELECT_COMPONENT_FULFILLED',
+              payload: {
+                component: selectedComponent,
+                componentIndex: 0
+              }
+            });
+            done();
+          });
+
+          expect(store.getActions().length).toBe(1);
+          expect(store.getActions()[0]).toEqual({
+            type: 'SELECT_COMPONENT_REQUESTED'
+          });
+        });
 
     it('request and set the selected component without inner source', function(done) {
       const state = createMockState(false, mockBomData, mockUnknownJsData, mockMetadata);

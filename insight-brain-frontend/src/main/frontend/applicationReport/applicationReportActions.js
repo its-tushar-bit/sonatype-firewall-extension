@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { map, pick } from 'ramda';
+import { map, pick, comparator, sort } from 'ramda';
 import axios from 'axios';
 
 import { createReportEntries, createRawDataEntries } from './applicationReportService';
@@ -238,10 +238,25 @@ function loadReportAllData() {
   };
 }
 
+const stagesOrder = {
+  'operate': 1,
+  'release': 2,
+  'stage': 3,
+  'build': 4,
+  'develop': 5,
+  'proxy': 6
+};
+
+const getStageOrder = (report) => {
+  return stagesOrder[report['stage']] !== undefined ? stagesOrder[report['stage']] : 7;
+};
+
+const byStage = comparator((reportA, reportB) => getStageOrder(reportA) < getStageOrder(reportB));
+
 function selectComponent(componentIndex) {
   return (dispatch, getState) => {
 
-    const { selectedReport, metadata } = getState().applicationReport;
+    const { selectedReport } = getState().applicationReport;
     dispatch({
       type: SELECT_COMPONENT_REQUESTED
     });
@@ -250,9 +265,8 @@ function selectComponent(componentIndex) {
     if (component.innerSource && component.ownerApplicationId) {
       return axios.get(getApplicationReportsUrl(component.ownerApplicationId))
           .then(result => {
-            let lastInnerSourceReportData = {};
-            if (metadata) {
-              lastInnerSourceReportData = result.data.find(report => report.stage === metadata.stageId) || {};
+            if (result.data && result.data.length > 0) {
+              const lastInnerSourceReportData = sort(byStage, result.data)[0];
               component.latestReport = {
                 stage: lastInnerSourceReportData.stage,
                 url: lastInnerSourceReportData.latestReportHtmlUrl

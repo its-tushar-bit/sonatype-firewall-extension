@@ -32,11 +32,13 @@ function ComponentDisplayController($scope) {
     },
 
     updateDisplay() {
-      vm.componentName = getComponentName(vm.component);
-      vm.ownerApplicationName = vm.component.ownerApplicationName || null;
-      vm.innerSourceTDIndicator = vm.component.innerSourceTDIndicator;
-      vm.dependencyType = vm.component.dependencyType || null;
-      vm.isFilenameOrUnknown = isFilenameOrUnknown(vm.component);
+      if (vm.component) {
+        vm.componentName = getComponentName(vm.component);
+        vm.ownerApplicationName = vm.component.ownerApplicationName || null;
+        vm.innerSourceTDIndicator = vm.component.innerSourceTDIndicator;
+        vm.dependencyType = vm.component.dependencyType || null;
+        vm.isFilenameOrUnknown = isFilenameOrUnknown(vm.component);
+      }
     }
   });
 }

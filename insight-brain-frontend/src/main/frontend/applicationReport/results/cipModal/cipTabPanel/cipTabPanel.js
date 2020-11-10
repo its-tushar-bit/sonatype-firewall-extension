@@ -71,10 +71,12 @@ function CipTabPanelController($scope) {
   }
 
   $scope.$watch('vm.selectedComponent', function() {
-    updateTabs();
+    if (vm.selectedComponent) {
+      updateTabs();
 
-    if (!find(propEq('name', vm.selectedTab), vm.tabs)) {
-      vm.selectedTab = vm.tabs[0].name;
+      if (!find(propEq('name', vm.selectedTab), vm.tabs)) {
+        vm.selectedTab = vm.tabs[0].name;
+      }
     }
   });
 }

@@ -40,8 +40,10 @@ function RootAncestorsController($scope, $ngRedux, applicationReportActions) {
       vm.unsubscribe = $ngRedux.connect(mapStateToThis, actions)(vm);
 
       $scope.$watch('vm.selectedComponent', selectedComponent => {
-        vm.rootAncestors = findRootAncestors(selectedComponent.dependencyInfo, vm.selectedReport.allEntries);
-        vm.isShowMoreLinkDisplayed = vm.rootAncestors.length > SHOWN_ENTRIES_LIMIT;
+        if (selectedComponent) {
+          vm.rootAncestors = findRootAncestors(selectedComponent.dependencyInfo, vm.selectedReport.allEntries);
+          vm.isShowMoreLinkDisplayed = vm.rootAncestors.length > SHOWN_ENTRIES_LIMIT;
+        }
       });
     },
 
@@ -58,7 +60,7 @@ function RootAncestorsController($scope, $ngRedux, applicationReportActions) {
     },
 
     isRootAncestorsSectionDisplayed() {
-      return vm.rootAncestors.length > 0;
+      return vm.rootAncestors && vm.rootAncestors.length > 0;
     }
   });
 }

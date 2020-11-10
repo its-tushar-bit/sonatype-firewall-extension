@@ -104,6 +104,14 @@ public class ScmOnboardingPage
     return child(".iq-scmonboarding-title");
   }
 
+  public SelenideElement hostUrl() {
+    return child("#iq-scm-default-host-field");
+  }
+
+  public SelenideElement reloadRepoButton() {
+    return child("#iq-scm-load-button");
+  }
+
   public SelenideElement loadingSpinner() {
     return child(".nx-loading-spinner");
   }

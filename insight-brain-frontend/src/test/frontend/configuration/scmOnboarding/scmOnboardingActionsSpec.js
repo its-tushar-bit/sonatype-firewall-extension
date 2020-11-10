@@ -247,6 +247,18 @@ describe('scmOnboardingActions', function() {
     });
   });
 
+  describe('setCurrentHostUrl', function() {
+    it('dispatches an event', function() {
+      store = SpecUtil.mockReduxStore(state);
+
+      let hostUrlValue = 'https://github.com';
+      store.dispatch(scmOnboardingActions.setCurrentHostUrl(hostUrlValue));
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0]).toEqual({type: 'SCM_ONBOARDING_SET_CURRENT_HOST_URL', payload: hostUrlValue});
+    });
+  });
+
   describe('loadOrgHostUrl', function() {
     it('requests a default host URL', function(done) {
       mockAxiosCalls({

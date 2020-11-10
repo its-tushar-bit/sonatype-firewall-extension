@@ -27,13 +27,14 @@ export default function ScmOnboarding(props) {
     loadCompositeSourceControl,
     importSelectedRepositories,
     onRepositorySelectionChanged,
-    defaultHostUrl,
     loadOrgHostUrl,
+    setCurrentHostUrl,
 
     // configuration state
     loadingConfig,
     isScmOnboardingFeatureEnabled,
     scmTokenConfigured,
+    scmProvider,
 
     // orgs
     selectedOrganization,
@@ -43,6 +44,10 @@ export default function ScmOnboarding(props) {
     loadingRepositories,
     selectedRepositoryCount,
     totalRepositories,
+
+    // host URL
+    defaultHostUrl,
+    currentHostUrl,
 
     // from angular URL router
     isAuthorized,
@@ -66,24 +71,30 @@ export default function ScmOnboarding(props) {
           !scmTokenConfigured ? tokenNotConfiguredError :
             errorProp;
 
-  let hostUrl = defaultHostUrl;
-
-  function onDefaultHostUrlChanged(val) {
-    hostUrl = val;
-  }
-
   function load() {
     loadConfig();
-    // todo use dynamic provider
-    loadOrgHostUrl(preselectedOrganizationId, 'github');
     loadOrganizations(preselectedOrganizationId);
-    if (preselectedOrganizationId) {
-      loadRepositories(preselectedOrganizationId, hostUrl);
-      loadCompositeSourceControl('organization', preselectedOrganizationId);
-    }
+    loadCompositeSourceControl('organization', preselectedOrganizationId);
   }
 
-  useEffect(load, []);
+  useEffect(() => {
+    load();
+  }, []);
+
+  useEffect(() => {
+    loadOrgHostUrl(preselectedOrganizationId, scmProvider);
+  }, [scmProvider]);
+
+  useEffect(() => {
+    if (preselectedOrganizationId && defaultHostUrl) {
+      loadRepositories(preselectedOrganizationId, currentHostUrl);
+    }
+  }, [defaultHostUrl]);
+
+  function handleLoadRepositories(event) {
+    event.preventDefault();
+    loadRepositories(preselectedOrganizationId, currentHostUrl);
+  }
 
   return (
     <MaximizedContainer id="scm-onboarding-container" className="nx-page-content">
@@ -95,7 +106,7 @@ export default function ScmOnboarding(props) {
         <div className="nx-page-title iq-scmonboarding-title">
           { selectedOrganization &&
             <h1 className="nx-h1">
-              <span>Import Applications from Github to</span>
+              <span>Import Applications to</span>
               <NxFontAwesomeIcon icon={faSitemap}/>
               <span>{selectedOrganization.name}</span>
             </h1>
@@ -104,17 +115,16 @@ export default function ScmOnboarding(props) {
             <p className="nx-p">Use the filters and checkboxes to select repositories to import</p>
           </div>
         </div>
-        <section className="nx-tile">
+        <section className="nx-tile host-url-tile">
           <form className="nx-form">
             <div className="nx-form-row">
               <div className="nx-form-group">
                 <label className="nx-label">
                   <span className="nx-label__text">Host URL</span>
                   <NxTextInput id="iq-scm-default-host-field"
-                               defaultValue={defaultHostUrl}
-                               isPristine={defaultHostUrl === hostUrl}
-                               onChange={onDefaultHostUrlChanged}
-                               value={hostUrl}/>
+                               isPristine={defaultHostUrl === currentHostUrl}
+                               onChange={setCurrentHostUrl}
+                               value={currentHostUrl}/>
                 </label>
               </div>
               <div className="nx-btn-bar">
@@ -122,7 +132,7 @@ export default function ScmOnboarding(props) {
                     id="iq-scm-load-button"
                     variant="primary"
                     disabled={loadingRepositories}
-                    onClick={() => loadRepositories(preselectedOrganizationId, hostUrl)}>
+                    onClick={handleLoadRepositories}>
                   Reload Repositories
                 </NxButton>
               </div>
@@ -192,9 +202,11 @@ ScmOnboarding.propTypes = {
   // actions
   importSelectedRepositories: PropTypes.func.isRequired,
   onRepositorySelectionChanged: PropTypes.func.isRequired,
+  setCurrentHostUrl: PropTypes.func.isRequired,
   loadCompositeSourceControl: PropTypes.func.isRequired,
 
   // base URL
   defaultHostUrl: PropTypes.string,
+  currentHostUrl: PropTypes.string,
   error: LoadWrapper.propTypes.error
 };

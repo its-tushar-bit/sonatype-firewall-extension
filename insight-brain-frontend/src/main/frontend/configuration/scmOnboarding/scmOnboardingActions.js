@@ -31,6 +31,7 @@ export const SCM_ONBOARDING_REPOSITORY_SELECTION_CHANGED = 'SCM_ONBOARDING_REPOS
 export const SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_REQUESTED = 'SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_REQUESTED';
 export const SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FULFILLED = 'SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FULFILLED';
 export const SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FAILED = 'SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FAILED';
+export const SCM_ONBOARDING_SET_CURRENT_HOST_URL = 'SCM_ONBOARDING_SET_CURRENT_HOST_URL';
 
 export const SCM_ONBOARDING_SET_TARGET_ORGANIZATION = 'SCM_ONBOARDING_SET_TARGET_ORGANIZATION';
 
@@ -58,11 +59,11 @@ export function loadOrganizations(preselectedOrganizationId) {
   };
 }
 
-export function loadRepositories(orgId, defaultHostUrl) {
+export function loadRepositories(orgId, scmUrl) {
   return function(dispatch) {
     dispatch(loadRepositoriesRequested());
 
-    return axios.get(getScmRepositoriesUrl(orgId, defaultHostUrl))
+    return axios.get(getScmRepositoriesUrl(orgId, scmUrl))
         .then(({ data }) => { dispatch(loadRepositoriesFulfilled(data)); })
         .catch(error => { dispatch(loadRepositoriesFailed(error)); });
   };
@@ -117,6 +118,8 @@ const loadOrgDefaultHostUrlRequested = noPayloadActionCreator(SCM_ONBOARDING_LOA
 const loadOrgDefaultHostUrlFulfilled = payloadParamActionCreator(SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FULFILLED);
 const loadOrgDefaultHostUrlFailed = payloadParamActionCreator(SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FAILED);
 
+export const setCurrentHostUrl = payloadParamActionCreator(SCM_ONBOARDING_SET_CURRENT_HOST_URL);
+
 const loadCompositeSourceControlRequested = noPayloadActionCreator(SCM_ONBOARDING_LOAD_COMPOSITE_SCM_REQUESTED);
 const loadCompositeSourceControlFulfilled = payloadParamActionCreator(SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FULFILLED);
 const loadCompositeSourceControlFailed = payloadParamActionCreator(SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FAILED);
@@ -124,6 +127,7 @@ const loadCompositeSourceControlFailed = payloadParamActionCreator(SCM_ONBOARDIN
 export default function scmOnboarding() {
   return {
     setSelectedOrganization,
+    setCurrentHostUrl,
     loadCompositeSourceControl,
     loadConfig,
     loadOrganizations,

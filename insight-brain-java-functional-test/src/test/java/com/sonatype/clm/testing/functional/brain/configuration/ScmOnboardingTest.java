@@ -25,9 +25,12 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.openqa.selenium.Keys;
 
+import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
@@ -60,8 +63,6 @@ public class ScmOnboardingTest
 
   private Organization org;
 
-  private Application app;
-
   @Rule
   public final WireMockRule gitService = new WireMockRule(wireMockConfig().dynamicPort());
 
@@ -84,9 +85,7 @@ public class ScmOnboardingTest
             .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
             .withBody("{\"username\":\"foo\"}")));
 
-    // TODO INT-3695 adds default host support, until then have to prime the pump
     org = tempEntity.newOrganization("Test Org");
-    app = tempEntity.newApplication(org.getId());
   }
 
   private void setupMockRepos() throws IOException {
@@ -100,6 +99,7 @@ public class ScmOnboardingTest
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, encryptedPwd, GITHUB);
 
     // TODO INT-3695 adds default host support, until then have to prime the pump
+    Application app = tempEntity.newApplication(org.getId());
     tempEntity.newSourceControl(app.getId(), gitService.baseUrl() + "/org/repo.git", null);
     Application app2 = tempEntity.newApplication(org.getId());
     tempEntity.newSourceControl(app2.getId(), gitService.baseUrl() + "/org/repo2.git", null);
@@ -174,6 +174,25 @@ public class ScmOnboardingTest
   }
 
   @Test
+  public void testPopulatesRepositories_inferredHostUrl() throws Exception {
+    // given an SCM with git repos
+    setupMockRepos();
+    setupSourceControl();
+
+    // given an existing app with a source control value configured
+    Application app = tempEntity.newApplication(org.getId());
+    tempEntity.newSourceControl(app.getId(), gitService.baseUrl() + "/org/repo.git", null);
+
+    // given SCM onboarding page with a selected organization
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url() + "/" + org.getId());
+    loginAsAdmin();
+
+    // then all repositories were loaded
+    verifyAllReposLoaded(scmOnboardingPage);
+  }
+
+  @Test
   public void testPopulatesRepositories() throws Exception {
     // given an SCM with git repos
     setupMockRepos();
@@ -184,18 +203,13 @@ public class ScmOnboardingTest
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
 
-    // then results are automatically displayed in the table
-    scmOnboardingPage.loadingSpinner().waitWhile(visible, 5000);
-    scmOnboardingPage.resultsTable().waitUntil(visible, 5000);
-    scmOnboardingPage.repositoryCount().shouldBe(text("13"));
-    scmOnboardingPage.selectedTotalCount().shouldBe(text("OF 13 REPOSITORIES"));
-    scmOnboardingPage.resultsTableProject().shouldHaveSize(13);
-    assertThat(scmOnboardingPage.resultsTableNamespace().texts()).containsAnyOf("depshield-ci",
-        "sonatype-nexus-community");
-    assertThat(scmOnboardingPage.resultsTableProject().texts()).containsExactlyInAnyOrder("ci-project-1",
-        "ci-project-16", "create-react-app", "nexus-repository-p2", "nexus-repository-puppet",
-        "nexus-repository-terraform", "nexus-repository-vgo", "nexus-scripting-examples",
-        "nexus-webhook-example-collection", "nxrm-cli", "ossindex-gradle-plugin", "oysteR", "prime-nexus-proxy-repos");
+    // update the default host URL
+    updateHostUrl(scmOnboardingPage);
+    scmOnboardingPage.reloadRepoButton().waitUntil(enabled, 2000).click();
+
+    // then all repositories were loaded
+    verifyAllReposLoaded(scmOnboardingPage);
+
     scmOnboardingPage.resultsTablePercentageImported().shouldBe(text("0%"));
     scmOnboardingPage.resultsTableAlreadyImported().shouldBe(text("0"));
     
@@ -213,7 +227,30 @@ public class ScmOnboardingTest
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     assertThat(scmOnboardingPage.resultsTableProject().texts()).doesNotContain("ci-project-1");
     scmOnboardingPage.resultsTablePercentageImported().shouldBe(text("8%"));
-    scmOnboardingPage.resultsTableAlreadyImported().shouldBe(text("1"));    
+    scmOnboardingPage.resultsTableAlreadyImported().shouldBe(text("1"));
+  }
+
+  private void updateHostUrl(final ScmOnboardingPage scmOnboardingPage) {
+    scmOnboardingPage.hostUrl().sendKeys(Keys.CONTROL, "a");
+    scmOnboardingPage.hostUrl().sendKeys(Keys.BACK_SPACE);
+    scmOnboardingPage.hostUrl().setValue(gitService.baseUrl());
+    scmOnboardingPage.hostUrl().waitUntil(value(gitService.baseUrl()), 2000);
+  }
+
+  private void verifyAllReposLoaded(final ScmOnboardingPage scmOnboardingPage) {
+    // then results are automatically displayed in the table
+    scmOnboardingPage.loadingSpinner().waitWhile(visible, 5000);
+    scmOnboardingPage.resultsTable().waitUntil(visible, 5000);
+    scmOnboardingPage.repositoryCount().waitUntil(visible, 5000);
+    scmOnboardingPage.repositoryCount().shouldBe(text("13"));
+    scmOnboardingPage.selectedTotalCount().shouldBe(text("OF 13 REPOSITORIES"));
+    scmOnboardingPage.resultsTableProject().shouldHaveSize(13);
+    assertThat(scmOnboardingPage.resultsTableNamespace().texts()).containsAnyOf("depshield-ci",
+        "sonatype-nexus-community");
+    assertThat(scmOnboardingPage.resultsTableProject().texts()).containsExactlyInAnyOrder("ci-project-1",
+        "ci-project-16", "create-react-app", "nexus-repository-p2", "nexus-repository-puppet",
+        "nexus-repository-terraform", "nexus-repository-vgo", "nexus-scripting-examples",
+        "nexus-webhook-example-collection", "nxrm-cli", "ossindex-gradle-plugin", "oysteR", "prime-nexus-proxy-repos");
   }
 
   @Test
@@ -228,13 +265,12 @@ public class ScmOnboardingTest
     loginAsAdmin();
 
     // then the page title block is populated
-    scmOnboardingPage.repositoryCount().waitUntil(text("13"), 5000);
     scmOnboardingPage.backButton().shouldBe(text("Back to Organization Management"));
 
     // NOTE the missing space before the org name is deliberate. In the UI there is an icon there with
     // appropriate margins.
     scmOnboardingPage.onboardingPageTitle().shouldBe(visible)
-        .waitUntil(text("Import Applications from Github toTest Org"), 5000);
+        .waitUntil(text("Import Applications toTest Org"), 5000);
   }
 
   @Test
@@ -247,6 +283,10 @@ public class ScmOnboardingTest
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
+
+    // update the default host URL
+    updateHostUrl(scmOnboardingPage);
+    scmOnboardingPage.reloadRepoButton().waitUntil(enabled, 2000).click();
 
     // when select all is clicked
     scmOnboardingPage.repositoryCount().waitUntil(text("13"), 5000);
@@ -274,6 +314,10 @@ public class ScmOnboardingTest
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
 
+    // update the default host URL
+    updateHostUrl(scmOnboardingPage);
+    scmOnboardingPage.reloadRepoButton().waitUntil(enabled, 2000).click();
+
     // when select all is clicked while a filter is active
     scmOnboardingPage.resultsTableSelectAll().parent().waitUntil(visible, 5000);
     scmOnboardingPage.projectFilter().setValue("ci-");
@@ -295,6 +339,10 @@ public class ScmOnboardingTest
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
+
+    // update the default host URL
+    updateHostUrl(scmOnboardingPage);
+    scmOnboardingPage.reloadRepoButton().waitUntil(enabled, 2000).click();
 
     // and given that select all is clicked while a filter is active
     scmOnboardingPage.resultsTableSelectAll().parent().waitUntil(visible, 5000);
@@ -323,6 +371,10 @@ public class ScmOnboardingTest
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
+
+    // update the default host URL
+    updateHostUrl(scmOnboardingPage);
+    scmOnboardingPage.reloadRepoButton().waitUntil(enabled, 2000).click();
 
     // and given that select all is clicked while a filter is active
     scmOnboardingPage.resultsTableSelectAll().parent().waitUntil(visible, 5000);
@@ -377,6 +429,10 @@ public class ScmOnboardingTest
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
+
+    // update the default host URL
+    updateHostUrl(scmOnboardingPage);
+    scmOnboardingPage.reloadRepoButton().waitUntil(enabled, 2000).click();
 
     // when a repository is clicked
     scmOnboardingPage.resultsTableSelectAll().parent().waitUntil(visible, 5000);

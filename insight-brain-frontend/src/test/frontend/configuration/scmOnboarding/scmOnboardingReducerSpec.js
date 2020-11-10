@@ -197,7 +197,8 @@ describe('scmOnboardingReducer', function() {
       // given a clean host URL state
       const state = Object.freeze({
         other: otherObject,
-        defaultHostUrlState: {isPristine: true, value: ''}
+        defaultHostUrl: '',
+        currentHostUrl: ''
       });
 
       const defaultHostPayload = {
@@ -211,10 +212,58 @@ describe('scmOnboardingReducer', function() {
       });
 
       // then state is updated
-      expect(newState.defaultHostUrlState).toEqual({
-        isPristine: false,
-        value: 'https://github.com/'
+      expect(newState.defaultHostUrl).toEqual('https://github.com/');
+      expect(newState.currentHostUrl).toEqual('https://github.com/');
+
+      // and other properties are not modified
+      expect(newState.other).toBe(otherObject);
+    });
+
+    it('doesn\'t override currentHostUrl', function() {
+      // given a dirty host URL state
+      const state = Object.freeze({
+        other: otherObject,
+        defaultHostUrl: '',
+        currentHostUrl: 'http://example.com'
       });
+
+      const defaultHostPayload = {
+        'defaultHostUrl': 'https://github.com/'
+      };
+
+      // when reduce is invoked
+      const newState = reduce(state, {
+        type: 'SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FULFILLED',
+        payload: defaultHostPayload
+      });
+
+      // then default host url is updated
+      expect(newState.defaultHostUrl).toEqual('https://github.com/');
+      expect(newState.currentHostUrl).toEqual('http://example.com');
+
+      // and other properties are not modified
+      expect(newState.other).toBe(otherObject);
+    });
+  });
+
+  describe('SCM_ONBOARDING_SET_CURRENT_HOST_URL action', function() {
+    it('sets the default host URL', function() {
+      // given a clean host URL
+      const state = Object.freeze({
+        other: otherObject,
+        currentHostUrl: ''
+      });
+
+      const defaultHostPayload = 'https://github.com/';
+
+      // when reduce is invoked
+      const newState = reduce(state, {
+        type: 'SCM_ONBOARDING_SET_CURRENT_HOST_URL',
+        payload: defaultHostPayload
+      });
+
+      // then state is updated
+      expect(newState.currentHostUrl).toEqual('https://github.com/');
 
       // and other properties are not modified
       expect(newState.other).toBe(otherObject);

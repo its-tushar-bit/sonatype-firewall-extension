@@ -70,6 +70,9 @@ public class ApiScmOnboardingService
     if (orgId == null) {
       throw new BadRequestException("No organization specified");
     }
+    if (StringUtils.isEmpty(hostUrl) || "undefined".equalsIgnoreCase(hostUrl)) {
+      throw new BadRequestException("No host URL defined");
+    }
 
     SourceControl orgSourceControl = apiSourceControlService.getSourceControlByOwnerDecrypted(orgId);
     if (orgSourceControl == null) {
@@ -83,9 +86,7 @@ public class ApiScmOnboardingService
     }
 
     GitApiClientUtils gitUtils = gitApiClientFactory.getGitApiClientUtils(orgSourceControl.getProvider());
-    String defaultHostUrl = getDefaultHostUrl(orgSourceControl.getProvider().name(), orgId);
-    // TODO use hostUrl when that gets passed in: INT-3695
-    String serverUrl = gitUtils.getBaseApiUrl(defaultHostUrl);
+    String serverUrl = gitUtils.getBaseApiUrl(hostUrl);
     log.debug("Attempting to retrieving repositories using base url: {}", serverUrl);
     Configuration configuration = gitApiClientFactory.createConfiguration();
     configuration.setServerUrl(serverUrl);

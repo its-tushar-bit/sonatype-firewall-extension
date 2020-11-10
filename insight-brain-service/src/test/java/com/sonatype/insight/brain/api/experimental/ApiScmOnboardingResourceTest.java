@@ -10,7 +10,6 @@ import java.util.Map;
 
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.experimental.dto.SCMRepositories;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -43,12 +42,9 @@ public class ApiScmOnboardingResourceTest
 
   private Organization org;
 
-  private Application app;
-
   @Before
   public void setup() {
     org = tempEntity.newOrganization();
-    app = tempEntity.newApplication("tmpapp", org.getId());
     gitService.stubFor(get(urlPathEqualTo("/api/v3/user"))
         .willReturn(aResponse()
             .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
@@ -65,12 +61,11 @@ public class ApiScmOnboardingResourceTest
     String encryptedPwd = new String(pwHandler.encryptPassword("TOKEN".toCharArray()));
     tempEntity
         .newSourceControl(ROOT_ORGANIZATION_ID, null, encryptedPwd, SourceControlProvider.GITHUB);
-    // TODO INT-3695 adds default host support, until then prime the pump
-    tempEntity.newSourceControl(app.getId(), gitService.baseUrl() + "/org/repo.git", null);
 
     // when repositories are loaded
     HttpResponse response = restRequest().path(RESOURCE_PATH + "/" + LOAD_REPO_PATH)
         .query("orgId", org.getId())
+        .query("defaultHostUrl", gitService.baseUrl())
         .get();
 
     // then the response is OK

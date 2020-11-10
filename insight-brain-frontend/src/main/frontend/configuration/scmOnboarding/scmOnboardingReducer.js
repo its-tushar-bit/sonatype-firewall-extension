@@ -20,6 +20,7 @@ import {
   SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED,
   SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED,
   SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED,
+  SCM_ONBOARDING_SET_CURRENT_HOST_URL,
   SCM_ONBOARDING_SET_TARGET_ORGANIZATION
 } from './scmOnboardingActions';
 import {Messages} from '../../util/CommonServices';
@@ -41,10 +42,8 @@ const initialState = {
   selectedRepositoryCount: 0,
   importedRepositoryCount: 0,
 
-  defaultHostUrlState: {
-    isPristine: true,
-    value: ''
-  }
+  defaultHostUrl: '',
+  currentHostUrl: ''
 };
 
 function loadConfigRequested() {
@@ -139,27 +138,37 @@ function loadRepositoriesFailed(payload, state) {
 
 function loadOrgDefaultHostUrlRequested(payload, state) {
   return {
-    ...state,
-    defaultHostUrlState: {
-      isPristine: true,
-      value: ''
-    }
+    ...state
   };
 }
 
 function loadOrgDefaultHostUrlFulfilled(payload, state) {
-  return {
-    ...state,
-    defaultHostUrlState: {
-      isPristine: false,
-      value: payload.defaultHostUrl
-    }
-  };
+  if (state.currentHostUrl === state.defaultHostUrl) {
+    // user has not changed the current value from the default, safe to update both
+    return {
+      ...state,
+      defaultHostUrl: payload.defaultHostUrl,
+      currentHostUrl: payload.defaultHostUrl
+    };
+  }
+  else {
+    return {
+      ...state,
+      defaultHostUrl: payload.defaultHostUrl
+    };
+  }
 }
 
 function loadOrgDefaultHostUrlFailed(payload, state) {
   return {
     ...state
+  };
+}
+
+function setCurrentHostUrl(payload, state) {
+  return {
+    ...state,
+    currentHostUrl: payload
   };
 }
 
@@ -196,6 +205,8 @@ const reducerActionMap = {
   [SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_REQUESTED]: loadOrgDefaultHostUrlRequested,
   [SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FULFILLED]: loadOrgDefaultHostUrlFulfilled,
   [SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FAILED]: loadOrgDefaultHostUrlFailed,
+
+  [SCM_ONBOARDING_SET_CURRENT_HOST_URL]: setCurrentHostUrl,
 
   [SCM_ONBOARDING_LOAD_COMPOSITE_SCM_REQUESTED]: loadCompositeSourceControlRequested,
   [SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FULFILLED]: loadCompositeSourceControlFulfilled,

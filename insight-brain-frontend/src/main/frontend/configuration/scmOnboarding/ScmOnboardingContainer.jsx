@@ -14,7 +14,6 @@ function mapStateToProps({ scmOnboarding, router }) {
     // config
     loadingConfig: scmOnboarding.loadingConfig,
     isScmOnboardingFeatureEnabled: scmOnboarding.isScmOnboardingFeatureEnabled,
-    defaultHostUrlState: scmOnboarding.defaultHostUrlState,
     scmProvider: scmOnboarding.scmProvider,
     scmTokenConfigured: scmOnboarding.scmTokenConfigured,
 
@@ -29,6 +28,10 @@ function mapStateToProps({ scmOnboarding, router }) {
     totalRepositories: scmOnboarding.totalRepositories,
     selectedRepositoryCount: scmOnboarding.selectedRepositoryCount,
     importedRepositoryCount: scmOnboarding.importedRepositoryCount,
+
+    // host URL
+    defaultHostUrl: scmOnboarding.defaultHostUrl,
+    currentHostUrl: scmOnboarding.currentHostUrl,
 
     // actions
     onRepositorySelectionChanged: scmOnboarding.onRepositorySelectionChanged,

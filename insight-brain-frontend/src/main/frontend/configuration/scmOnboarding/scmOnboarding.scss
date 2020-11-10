@@ -27,6 +27,10 @@
     overflow-y: hidden;
   }
 
+  .host-url-tile {
+    flex-shrink: 0 !important;
+  }
+
   .nx-tile-header, .nx-footer {
     flex-shrink: 0;
   }

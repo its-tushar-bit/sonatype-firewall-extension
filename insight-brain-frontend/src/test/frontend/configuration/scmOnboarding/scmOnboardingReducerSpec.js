@@ -281,7 +281,10 @@ describe('scmOnboardingReducer', function() {
         // given previous state with token
         const state = Object.freeze({
           other: otherObject,
-          scmTokenConfigured: false
+          viewState: {
+            isScmTokenConfigured: false,
+            loadingCompositeSourceControl: true
+          }
         });
 
         // when reduce is invoked
@@ -290,12 +293,40 @@ describe('scmOnboardingReducer', function() {
           payload: compositeSourceControlPayload
         });
 
-        // then state is updated
-        expect(newState.scmTokenConfigured).toBe(expectedValue);
+        // then SCM token presence value is updated
+        expect(newState.viewState.isScmTokenConfigured).toBe(expectedValue);
+
+        // and loading state is updated
+        expect(newState.viewState.loadingCompositeSourceControl).toBe(false);
 
         // and other properties are not modified
         expect(newState.other).toBe(otherObject);
       });
     }
+  });
+
+  describe('SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FAILED action', () => {
+    it('sets lastErrorMessage field to value of Error.message', function() {
+      const state = Object.freeze({
+        viewState: {
+          loadingCompositeSourceControl: null,
+          isScmTokenConfigured: null,
+          lastErrorMessage: null
+        },
+        other: otherObject
+      });
+
+      const newState = reduce(state, {type: 'SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FAILED', payload: {status: 502}});
+
+      expect(newState).toEqual({
+        viewState: {
+          loadingCompositeSourceControl: false,
+          isScmTokenConfigured: null,
+          lastErrorMessage: 'Bad Gateway'
+        },
+        other: otherObject
+      });
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
   });
 });

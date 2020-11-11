@@ -33,7 +33,7 @@ export default function ScmOnboarding(props) {
     // configuration state
     loadingConfig,
     isScmOnboardingFeatureEnabled,
-    scmTokenConfigured,
+    isScmTokenConfigured,
     scmProvider,
 
     // orgs
@@ -54,7 +54,8 @@ export default function ScmOnboarding(props) {
     preselectedOrganizationId,
     $state,
 
-    error: errorProp
+    // errors
+    lastErrorMessage
   } = props;
 
   const scmConfigurationHref = $state.href($state.get('management.edit.organization.edit-source-control'), {
@@ -67,9 +68,9 @@ export default function ScmOnboarding(props) {
         </Fragment>
       ),
       error = !isAuthorized ? permissionsError :
-        !isScmOnboardingFeatureEnabled ? disabledError :
-          !scmTokenConfigured ? tokenNotConfiguredError :
-            errorProp;
+        isScmOnboardingFeatureEnabled === false ? disabledError :
+          isScmTokenConfigured === false ? tokenNotConfiguredError :
+            lastErrorMessage;
 
   function load() {
     loadConfig();
@@ -177,7 +178,7 @@ ScmOnboarding.propTypes = {
   loadingConfig: PropTypes.bool.isRequired,
   isScmOnboardingFeatureEnabled: PropTypes.bool.isRequired,
   $state: PropTypes.object.isRequired,
-  scmTokenConfigured: PropTypes.bool.isRequired,
+  isScmTokenConfigured: PropTypes.bool.isRequired,
   scmProvider: PropTypes.string.isRequired,
 
   // organizations
@@ -208,5 +209,7 @@ ScmOnboarding.propTypes = {
   // base URL
   defaultHostUrl: PropTypes.string,
   currentHostUrl: PropTypes.string,
-  error: LoadWrapper.propTypes.error
+
+  // errors
+  lastErrorMessage: LoadWrapper.propTypes.string
 };

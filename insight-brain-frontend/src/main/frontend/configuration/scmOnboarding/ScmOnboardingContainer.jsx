@@ -15,7 +15,10 @@ function mapStateToProps({ scmOnboarding, router }) {
     loadingConfig: scmOnboarding.loadingConfig,
     isScmOnboardingFeatureEnabled: scmOnboarding.isScmOnboardingFeatureEnabled,
     scmProvider: scmOnboarding.scmProvider,
-    scmTokenConfigured: scmOnboarding.scmTokenConfigured,
+
+    // compositeSourceControl data
+    isScmTokenConfigured: scmOnboarding.viewState.isScmTokenConfigured,
+    loadingCompositeSourceControl: scmOnboarding.viewState.loadingCompositeSourceControl,
 
     // organizations
     loadingOrganizations: scmOnboarding.loadingOrganizations,
@@ -40,7 +43,10 @@ function mapStateToProps({ scmOnboarding, router }) {
     loadOrgHostUrl: scmOnboarding.loadOrgHostUrl,
 
     // router state
-    preselectedOrganizationId: router.currentParams.organizationId
+    preselectedOrganizationId: router.currentParams.organizationId,
+
+    // error state
+    lastErrorMessage: scmOnboarding.viewState.lastErrorMessage
   };
 }
 

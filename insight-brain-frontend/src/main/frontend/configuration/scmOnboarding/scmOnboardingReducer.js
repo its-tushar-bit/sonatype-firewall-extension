@@ -27,10 +27,17 @@ import {Messages} from '../../util/CommonServices';
 
 const initialState = {
   loadingConfig: true,
-  loadingScmConfig: true,
-  isScmOnboardingFeatureEnabled: false,
-  scmTokenConfigured: false,
+  isScmOnboardingFeatureEnabled: null,
   scmProvider: '',
+
+  viewState: {
+    // composite source control
+    loadingCompositeSourceControl: null,
+    isScmTokenConfigured: null,
+
+    // generic (http) error message
+    lastErrorMessage: null
+  },
 
   loadingOrganizations: false,
   organizations: [],
@@ -50,13 +57,6 @@ function loadConfigRequested() {
   return {
     ...initialState,
     loadingConfig: true
-  };
-}
-
-function loadCompositeSourceControlRequested(payload, state) {
-  return {
-    ...state,
-    loadingScmConfig: true
   };
 }
 
@@ -172,18 +172,38 @@ function setCurrentHostUrl(payload, state) {
   };
 }
 
+function loadCompositeSourceControlRequested(payload, state) {
+  return {
+    ...state,
+    viewState: {
+      ...state.viewState,
+      loadingCompositeSourceControl: true,
+      isScmTokenConfigured: null
+    }
+  };
+}
+
 function loadCompositeSourceControlFulfilled(payload, state) {
   return {
     ...state,
     scmProvider: payload.provider, // TODO entry point for INT-3695
-    scmTokenConfigured: !!payload.token.value || !!payload.token.parentValue
+    viewState: {
+      ...state.viewState,
+      loadingCompositeSourceControl: false,
+      isScmTokenConfigured: !!payload.token.value || !!payload.token.parentValue
+    }
   };
 }
 
 function loadCompositeSourceControlFailed(payload, state) {
   return {
     ...state,
-    compositeSourceControlError: payload
+    viewState: {
+      ...state.viewState,
+      loadingCompositeSourceControl: false,
+      isScmTokenConfigured: null,
+      lastErrorMessage: Messages.getHttpErrorMessage(payload)
+    }
   };
 }
 

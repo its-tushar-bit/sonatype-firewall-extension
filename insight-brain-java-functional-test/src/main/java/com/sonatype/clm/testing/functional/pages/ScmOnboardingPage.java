@@ -35,10 +35,6 @@ public class ScmOnboardingPage
     return child(".nx-alert--load-error");
   }
 
-  public SelenideElement scmInvalidTokenError() {
-    return child("#scm-onboarding-invalid-token");
-  }
-
   public OrganizationsDropdown organizationsDropdown() {
     return new OrganizationsDropdown();
   }

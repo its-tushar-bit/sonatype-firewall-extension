@@ -54,9 +54,7 @@ export default function AdvancedLegalApplicationPage(props) {
                               </div>
                             </header>
                             <div className="nx-tile-content">
-                              {licenseLegalData.effectiveLicenses.map((license, index) =>
-                                <p key={index}>{license}</p>
-                              )}
+                              {licenseLegalData.effectiveLicenses.join(', ')}
                             </div>
                           </section>
                         }
@@ -117,13 +115,15 @@ export default function AdvancedLegalApplicationPage(props) {
                             <div className="nx-tile-content">
                               {licenseLegalData.effectiveLicenses.map((effectiveLicense, index) => {
                                 const license = applicationReport.licenseLegalMetadata
-                                    .find(licenseMetadata => licenseMetadata.licenseId === effectiveLicense) || '';
+                                    .find(licenseMetadata => licenseMetadata.licenseId === effectiveLicense);
 
-                                return (
-                                  <pre key={index}>
-                                    {license.licenseText}
-                                  </pre>
-                                );
+                                if (license && license.licenseText) {
+                                  return (
+                                    <pre key={index}>
+                                      {license.licenseText}
+                                    </pre>
+                                  );
+                                }
                               }
                               )}
                             </div>

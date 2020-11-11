@@ -20,6 +20,7 @@
     <it.includes>**/*Test.*</it.includes>
     <selenide.driverManagerEnabled>false</selenide.driverManagerEnabled>
     <selenide.timeout>4000</selenide.timeout>
+    <docker.image.registry></docker.image.registry>
     <docker.image.version>3.141.59-20200409</docker.image.version>
     <docker.image>standalone-chrome:${docker.image.version}</docker.image>
     <webdriver.chrome.driver>${project.build.directory}/chromedriver</webdriver.chrome.driver>
@@ -200,6 +201,17 @@
       </properties>
     </profile>
     <profile>
+      <id>docker-registry</id>
+      <activation>
+        <property>
+          <name>docker.registry</name>
+        </property>
+      </activation>
+      <properties>
+        <docker.image.registry>${docker.registry}/</docker.image.registry>
+      </properties>
+    </profile>
+    <profile>
       <id>docker-functional-tests</id>
       <activation>
         <property>
@@ -230,7 +242,7 @@
               <skip>${skip.functional.tests}</skip>
               <images>
                 <image>
-                  <name>selenium/${docker.image}</name>
+                  <name>${docker.image.registry}selenium/${docker.image}</name>
                   <run>
                     <ports>
                       <port>+host:port:4444</port>

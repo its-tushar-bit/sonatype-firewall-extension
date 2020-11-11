@@ -6,9 +6,11 @@
 package com.sonatype.insight.brain.innersource;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.sonatype.clm.dto.model.component.AnalysisSource;
@@ -23,6 +25,8 @@ import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.dependency.DependencyNode;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -54,7 +58,8 @@ public final class ReportInnerSource
       final JsonNode bomJson,
       final JsonNode dataJson,
       final JsonNode summaryJson,
-      final Application application) throws IOException
+      final Application application,
+      final TelemetrySender telemetrySender) throws IOException
   {
     if (dependenciesJson != null) {
       JsonNode dependencyTreeNode = dependenciesJson.path("dependencyTree");
@@ -67,7 +72,7 @@ public final class ReportInnerSource
               saveInnerSourceComponent(tree.getComponentIdentifier(), application.getId(), innerSourceComponentDAO);
           if (isValidRootArtifact) {
             processInnerSourceDependencies(tree.getChildren(), bomJson, dataJson, summaryJson, application,
-                innerSourceComponentDAO);
+                innerSourceComponentDAO, telemetrySender);
           }
         }
       }
@@ -118,7 +123,8 @@ public final class ReportInnerSource
       final JsonNode dataJson,
       final JsonNode summaryJson,
       final Application application,
-      final InnerSourceComponentDAO innerSourceComponentDAO)
+      final InnerSourceComponentDAO innerSourceComponentDAO,
+      final TelemetrySender telemetrySender)
   {
     if (!children.isEmpty()) {
       AtomicInteger knownArtifactCount = new AtomicInteger(summaryJson.path(KNOWN_ARTIFACT_COUNT).asInt());
@@ -126,22 +132,36 @@ public final class ReportInnerSource
           new AtomicInteger(dataJson.path(EXACTLY_MATCHED_COMPONENT_COUNT).asInt());
       ApplicationDAO applicationDAO = new ApplicationDAO();
 
+      Set<String> innerSourceAppIds = new HashSet<>();
       for (DependencyNode dependencyChild : children) {
         if (dependencyChild.isModule()) {
-          associateModuleToApp(dependencyChild, applicationDAO, innerSourceComponentDAO, bomJson, application,
-              knownArtifactCount, exactlyMatchedComponentCount);
+          Set<String> moduleInnerSourceAppIds = associateModuleToApp(dependencyChild, applicationDAO,
+              innerSourceComponentDAO, bomJson, application, knownArtifactCount, exactlyMatchedComponentCount);
+          innerSourceAppIds.addAll(moduleInnerSourceAppIds);
         }
         else if (dependencyChild.isDirect()) {
           processDirectDependency(dependencyChild, applicationDAO, innerSourceComponentDAO, bomJson,
-              application, knownArtifactCount, exactlyMatchedComponentCount);
+              application, knownArtifactCount, exactlyMatchedComponentCount, innerSourceAppIds);
         }
       }
       updateReportSummaryWithInnerSourceResults(dataJson, summaryJson, knownArtifactCount,
           exactlyMatchedComponentCount);
+
+      sendTelemetryData(application.getId(), innerSourceAppIds, telemetrySender);
     }
   }
 
-  private static void associateModuleToApp(
+  private static void sendTelemetryData(
+      final String consumerId,
+      final Set<String> innerSourceAppIds,
+      final TelemetrySender telemetrySender)
+  {
+    if (!innerSourceAppIds.isEmpty()) {
+      telemetrySender.send(TelemetryUtils.buildInnerSourceTelemetryData(consumerId, innerSourceAppIds));
+    }
+  }
+
+  private static Set<String> associateModuleToApp(
       final DependencyNode moduleDependency,
       final ApplicationDAO applicationDAO,
       final InnerSourceComponentDAO innerSourceComponentDAO,
@@ -155,10 +175,12 @@ public final class ReportInnerSource
 
     saveInnerSourceComponent(moduleComponent, currentApplication.getId(), innerSourceComponentDAO);
 
+    Set<String> innerSourceAppIds = new HashSet<>();
     for (DependencyNode directDependencyChild : moduleDependency.getChildren()) {
-      processDirectDependency(directDependencyChild, applicationDAO, innerSourceComponentDAO, bom,
-          currentApplication, knownArtifactCount, exactlyMatchedComponentCount);
+      processDirectDependency(directDependencyChild, applicationDAO, innerSourceComponentDAO, bom, currentApplication,
+          knownArtifactCount, exactlyMatchedComponentCount, innerSourceAppIds);
     }
+    return innerSourceAppIds;
   }
 
   private static void processDirectDependency(
@@ -168,7 +190,8 @@ public final class ReportInnerSource
       final JsonNode bom,
       final Application currentApplication,
       final AtomicInteger knownArtifactCount,
-      final AtomicInteger exactlyMatchedComponentCount)
+      final AtomicInteger exactlyMatchedComponentCount,
+      final Set<String> innerSourceAppIds)
   {
     ComponentIdentifier parentComponent = directDependency.getComponentIdentifier();
 
@@ -190,6 +213,8 @@ public final class ReportInnerSource
               exactlyMatchedComponentCount);
 
       if (dependencyUpdated) {
+        innerSourceAppIds.add(innerSourceApp.getId());
+
         List<DependencyNode> childrenComponents = getAllTransitiveDependencies(directDependency.getChildren());
 
         log.info("InnerSource component found '{}' with {} transitive dependencies", parentComponent,

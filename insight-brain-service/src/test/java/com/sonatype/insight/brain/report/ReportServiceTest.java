@@ -42,6 +42,7 @@ import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyApplicationReportDTO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyBillOfMaterialsRowDTO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyDataService;
@@ -59,6 +60,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -92,6 +94,9 @@ public class ReportServiceTest
   // No default constructor, can't use @Spy
   private ThirdPartyDataService thirdPartyDataServiceSpy;
 
+  @Mock
+  private TelemetrySender telemetrySender;
+
   /**
    * To be configured/mocked by each test.
    */
@@ -105,7 +110,7 @@ public class ReportServiceTest
 
   private ReportService createReportService() {
     return new ReportService(insightWork, reportDownloader, new PolicyEvaluationDAO(), insightConfig,
-        new ApplicationDAO(), thirdPartyDataServiceSpy);
+        new ApplicationDAO(), thirdPartyDataServiceSpy, telemetrySender);
   }
 
   @Test

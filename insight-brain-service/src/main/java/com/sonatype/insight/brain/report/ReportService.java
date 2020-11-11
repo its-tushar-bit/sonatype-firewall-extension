@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyApplicationReportDTO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyDataService;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -63,6 +64,8 @@ public class ReportService
 
   private final ThirdPartyDataService thirdPartyDataService;
 
+  private final TelemetrySender telemetrySender;
+
   @Inject
   public ReportService(
       InsightWork work,
@@ -70,7 +73,8 @@ public class ReportService
       PolicyEvaluationDAO policyEvaluationDAO,
       InsightConfig insightConfig,
       ApplicationDAO applicationDAO,
-      ThirdPartyDataService thirdPartyDataService)
+      ThirdPartyDataService thirdPartyDataService,
+      TelemetrySender telemetrySender)
   {
     this.work = work;
     this.reportDownloader = reportDownloader;
@@ -78,6 +82,7 @@ public class ReportService
     this.insightConfig = insightConfig;
     this.applicationDAO = applicationDAO;
     this.thirdPartyDataService = thirdPartyDataService;
+    this.telemetrySender = telemetrySender;
   }
 
   public File fetchReport(final Application app, final String scanId)
@@ -99,7 +104,7 @@ public class ReportService
         insightConfig.getExperimentalFeatures() != null && !insightConfig.getExperimentalFeatures().isEmpty()
             ? insightConfig.getExperimentalFeatures().getOrDefault(Feature.INNER_SOURCE.getFlag(), false)
             : false;
-    Report.applyChanges(app, reportFile, isEnableInnerSource);
+    Report.applyChanges(app, reportFile, isEnableInnerSource, telemetrySender);
 
     return reportFile;
   }

@@ -47,6 +47,7 @@ import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.report.pdf.PdfGenerator;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -176,7 +177,11 @@ public final class Report
     return securityCounts;
   }
 
-  static void applyChanges(final Application application, final File reportFile, boolean isEnableInnerSource)
+  static void applyChanges(
+      final Application application,
+      final File reportFile,
+      boolean isEnableInnerSource,
+      final TelemetrySender telemetrySender)
       throws IOException
   {
     long start = System.currentTimeMillis();
@@ -194,7 +199,7 @@ public final class Report
 
     embedApplicationPublicId(application, reportFile);
 
-    applyComponentRelatedChanges(application, reportFile, isEnableInnerSource);
+    applyComponentRelatedChanges(application, reportFile, isEnableInnerSource, telemetrySender);
     cacheThirdPartyData(reportFile);
 
     // these data items have already had changes applied as part of applyComponentRelatedChanges above
@@ -635,7 +640,8 @@ public final class Report
    */
   private static void applyComponentRelatedChanges(final Application application,
                                                    final File reportFile,
-                                                   final boolean isEnableInnerSource) throws IOException
+                                                   final boolean isEnableInnerSource,
+                                                   final TelemetrySender telemetrySender) throws IOException
   {
     long start = System.currentTimeMillis();
 
@@ -670,7 +676,8 @@ public final class Report
 
     if (isEnableInnerSource) {
       ReportInnerSource
-          .processDependencyTree(dependenciesJsonData, bomJsonData, dataJson, summaryJsonData, application);
+          .processDependencyTree(dependenciesJsonData, bomJsonData, dataJson, summaryJsonData, application,
+              telemetrySender);
     }
 
     saveReportEntry(reportFile, DATA_JSON_FILENAME, dataJson);

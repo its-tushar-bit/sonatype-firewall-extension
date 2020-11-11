@@ -6,7 +6,11 @@
 package com.sonatype.insight.brain.innersource;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.AnalysisSource;
 import com.sonatype.clm.dto.model.component.AnalysisType;
@@ -19,17 +23,25 @@ import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Sets;
+import com.google.inject.Binder;
+import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -37,10 +49,12 @@ import static org.mockito.Mockito.verify;
 /**
  * @since 1.99
  */
-public class ReportInnerSourceTest
+public class ReportInnerSourceTest extends InjectedTest
 {
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
+
+  private TelemetrySender telemetrySender;
 
   private InnerSourceComponentDAO innerSourceComponentDAOSpy;
 
@@ -52,6 +66,13 @@ public class ReportInnerSourceTest
   public void init() {
     innerSourceComponentDAOSpy = spy(innerSourceComponentDAO);
     app = tempEntity.newApplicationWithParent();
+  }
+
+  @Override
+  public void configure(Binder binder) {
+    telemetrySender = mock(TelemetrySender.class);
+    binder.bind(TelemetrySender.class).toInstance(telemetrySender);
+    super.configure(binder);
   }
 
   @Test
@@ -137,7 +158,8 @@ public class ReportInnerSourceTest
     Application appInnerSource = tempEntity.newApplicationWithParent();
     tempEntity
         .newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing-asm60", appInnerSource);
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing", appInnerSource);
+    InnerSourceComponent innerSourceComponent = tempEntity
+        .newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing", appInnerSource);
 
     ObjectMapper objectMapper = new ObjectMapper();
 
@@ -150,7 +172,7 @@ public class ReportInnerSourceTest
     JsonNode dataJson = objectMapper
         .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-multi-module/data.json"));
 
-    ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app);
+    ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender);
 
     List<InnerSourceComponent> innerSourceComponents = innerSourceComponentDAO.getByApplicationId(app.getId());
     assertThat(innerSourceComponents).hasSize(8);
@@ -167,6 +189,7 @@ public class ReportInnerSourceTest
     assertInnerSourceParent(bomInnerSourceParent.get(0), appInnerSource, innerSourceParent);
 
     assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
+    assertTelemetryInformation(app.getId(), Sets.newHashSet(innerSourceComponent.getApplicationId()));
   }
 
   @Test
@@ -181,9 +204,12 @@ public class ReportInnerSourceTest
         .createMavenCoordinates("com.sonatype.insight.scan", "insight-client-utils", "1.0.0-SNAPSHOT", "",
             "jar");
 
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-module-model", appInnerSource);
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive", appInnerSource);
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-client-utils", appInnerSource);
+    InnerSourceComponent model =
+        tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-module-model", appInnerSource);
+    InnerSourceComponent archive = tempEntity
+        .newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive", appInnerSource);
+    InnerSourceComponent utils =
+        tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-client-utils", appInnerSource);
     tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api", app);
 
     ObjectMapper objectMapper = new ObjectMapper();
@@ -197,7 +223,7 @@ public class ReportInnerSourceTest
     JsonNode dataJson =
         objectMapper.readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource/data.json"));
 
-    ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app);
+    ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender);
 
     List<JsonNode> bomInnerSourceParent = new ArrayList<>();
     List<JsonNode> bomInnerSourceDependencies = new ArrayList<>();
@@ -210,15 +236,24 @@ public class ReportInnerSourceTest
     assertInnerSourceParent(bomInnerSourceParent.get(0), appInnerSource, innerSourceClient);
 
     assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
+
+    Set<String> innerSourceIds = new HashSet<>();
+    innerSourceIds.add(model.getApplicationId());
+    innerSourceIds.add(archive.getApplicationId());
+    innerSourceIds.add(utils.getApplicationId());
+    assertTelemetryInformation(app.getId(), innerSourceIds);
   }
 
   @Test
   public void processInnerSource_knownInnerSourceParent() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
 
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-module-model", appInnerSource);
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive", appInnerSource);
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-client-utils", appInnerSource);
+    InnerSourceComponent model =
+        tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-module-model", appInnerSource);
+    InnerSourceComponent archive = tempEntity
+        .newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive", appInnerSource);
+    InnerSourceComponent utils =
+        tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-client-utils", appInnerSource);
     tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api", app);
 
     ObjectMapper objectMapper = new ObjectMapper();
@@ -232,7 +267,7 @@ public class ReportInnerSourceTest
     JsonNode dataJson =
         objectMapper.readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-known/data.json"));
 
-    ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app);
+    ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender);
 
     List<JsonNode> bomInnerSourceParent = new ArrayList<>();
     List<JsonNode> bomInnerSourceDependencies = new ArrayList<>();
@@ -251,6 +286,12 @@ public class ReportInnerSourceTest
         analyzerFeaturesPackageManifest);
 
     assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
+
+    Set<String> innerSourceIds = new HashSet<>();
+    innerSourceIds.add(model.getApplicationId());
+    innerSourceIds.add(archive.getApplicationId());
+    innerSourceIds.add(utils.getApplicationId());
+    assertTelemetryInformation(app.getId(), innerSourceIds);
   }
 
   private void assertInnerSourceInformation(
@@ -296,9 +337,12 @@ public class ReportInnerSourceTest
   public void processInnerSource_nested_transitive_dep() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
 
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-module-model", appInnerSource);
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive", appInnerSource);
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-client-utils", appInnerSource);
+    InnerSourceComponent model =
+        tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-module-model", appInnerSource);
+    InnerSourceComponent archive = tempEntity
+        .newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive", appInnerSource);
+    InnerSourceComponent utils =
+        tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-client-utils", appInnerSource);
     tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api", app);
 
     ObjectMapper objectMapper = new ObjectMapper();
@@ -312,20 +356,27 @@ public class ReportInnerSourceTest
     JsonNode dataJson = objectMapper
         .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-nested-transitive/data.json"));
 
-    ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app);
+    ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender);
 
     List<JsonNode> bomInnerSourceDependencies = new ArrayList<>();
     assertInnerSourceInformation(bomJson, 3, 15, null, bomInnerSourceDependencies);
 
     assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
     assertSummaryCounters(summaryJson, dataJson, 25);
+
+    Set<String> innerSourceIds = new HashSet<>();
+    innerSourceIds.add(model.getApplicationId());
+    innerSourceIds.add(archive.getApplicationId());
+    innerSourceIds.add(utils.getApplicationId());
+    assertTelemetryInformation(app.getId(), innerSourceIds);
   }
 
   @Test
   public void processInnerSource_unknown_components() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
 
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-module-model", appInnerSource);
+    InnerSourceComponent model =
+        tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-module-model", appInnerSource);
     tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api", app);
 
     ObjectMapper objectMapper = new ObjectMapper();
@@ -339,13 +390,15 @@ public class ReportInnerSourceTest
     JsonNode dataJson = objectMapper
         .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-unknown-components/data.json"));
 
-    ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app);
+    ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender);
 
     List<JsonNode> bomInnerSourceDependencies = new ArrayList<>();
     assertInnerSourceInformation(bomJson, 1, 1, null, bomInnerSourceDependencies);
 
     assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
     assertSummaryCounters(summaryJson, dataJson, 1);
+
+    assertTelemetryInformation(app.getId(), Sets.newHashSet(model.getApplicationId()));
   }
 
   @Test
@@ -367,10 +420,12 @@ public class ReportInnerSourceTest
     JsonNode dataJson =
         objectMapper.readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-not-root/data.json"));
 
-    ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app);
+    ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender);
 
     assertInnerSourceInformation(bomJson, 0, 0, null, null);
     assertSummaryCounters(summaryJson, dataJson, 3);
+
+    verify(telemetrySender, never()).send(Mockito.any(TelemetryData.class));
   }
 
   @Test
@@ -392,7 +447,7 @@ public class ReportInnerSourceTest
     JsonNode dataJson = objectMapper
         .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-not-children/data.json"));
 
-    ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app);
+    ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender);
 
     List<JsonNode> bomInnerSourceParent = new ArrayList<>();
     assertInnerSourceInformation(bomJson, 0, 0, bomInnerSourceParent, null);
@@ -405,6 +460,7 @@ public class ReportInnerSourceTest
     assertThat(dataJson.get("knownArtifactCount").asInt()).isEqualTo(3);
 
     assertSummaryCounters(summaryJson, dataJson, 3);
+    verify(telemetrySender, never()).send(Mockito.any(TelemetryData.class));
   }
 
   @Test
@@ -422,10 +478,12 @@ public class ReportInnerSourceTest
     JsonNode dataJson = objectMapper
         .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-not-children/data.json"));
 
-    ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app);
+    ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender);
 
     assertInnerSourceInformation(bomJson, 0, 0, null, null);
     assertSummaryCounters(summaryJson, dataJson, 3);
+
+    verify(telemetrySender, never()).send(Mockito.any(TelemetryData.class));
   }
 
   private void assertInnerSourceParent(
@@ -474,5 +532,25 @@ public class ReportInnerSourceTest
       assertThat(transitiveDependencies.get("ownerApplicationId").asText()).isEqualTo(appInnerSource.getId());
       assertThat(transitiveDependencies.get("componentIdentifier")).isNotNull();
     }
+  }
+
+  private void assertTelemetryInformation(String consumerId, Set<String> innerSourceComponents) {
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender).send(telemetryDataArgumentCaptor.capture());
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.INNER_SOURCE_REPORT_USAGE);
+    assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
+    assertThat(telemetryData.getAttributes()).hasSize(1);
+
+    Map<String, Object> expectedAttributes = new HashMap<>();
+    expectedAttributes.put(InnerSourceReportUsageTelemetry.ATTRIBUTE_NAME,
+        new InnerSourceReportUsageTelemetry(consumerId, innerSourceComponents));
+
+    assertThat(telemetryData.getAttributes().keySet().iterator().next())
+        .isEqualTo(expectedAttributes.keySet().iterator().next());
+    assertThat((InnerSourceReportUsageTelemetry) telemetryData.getAttributes().values().iterator().next())
+        .usingRecursiveComparison().isEqualTo(expectedAttributes.values().iterator().next());
   }
 }

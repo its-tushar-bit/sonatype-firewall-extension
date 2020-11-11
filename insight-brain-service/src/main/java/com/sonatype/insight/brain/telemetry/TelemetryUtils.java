@@ -7,8 +7,10 @@ package com.sonatype.insight.brain.telemetry;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.innersource.InnerSourceReportUsageTelemetry;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -32,6 +34,16 @@ public final class TelemetryUtils
 
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.THIRD_PARTY_SCAN_USAGE);
     telemetryData.setAttributes(attributes);
+    return telemetryData;
+  }
+
+  public static TelemetryData buildInnerSourceTelemetryData(
+      final String consumerId,
+      final Set<String> innerSourceComponentsIds)
+  {
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.INNER_SOURCE_REPORT_USAGE);
+    telemetryData.put(InnerSourceReportUsageTelemetry.ATTRIBUTE_NAME,
+        new InnerSourceReportUsageTelemetry(consumerId, innerSourceComponentsIds));
     return telemetryData;
   }
 }

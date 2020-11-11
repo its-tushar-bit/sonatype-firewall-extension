@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.Optional;
 
 import javax.inject.Inject;
 
@@ -20,6 +21,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.nexus.scm.SourceControlProvider;
+import com.sonatype.nexus.scm.api.model.SCMRepository;
 
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 
@@ -42,6 +44,10 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class ApiScmOnboardingServiceTest
     extends AbstractComponentTest
 {
+  private static final String PAGE_0 = "/ApiScmOnboardingServiceTest/allRepos0.json";
+
+  public static final String PAGE_1 = "/ApiScmOnboardingServiceTest/emptyResponse.json";
+
   @Rule
   public WireMockRule gitService = new WireMockRule(wireMockConfig().dynamicPort());
 
@@ -71,8 +77,8 @@ public class ApiScmOnboardingServiceTest
 
   @Test
   public void testLoadRepositories() throws Exception {
-    mockRepoForPage(gitService, 0, getResourceAsString("/ApiScmOnboardingServiceTest/allRepos0.json"));
-    mockRepoForPage(gitService, 1, getResourceAsString("/ApiScmOnboardingServiceTest/emptyResponse.json"));
+    mockRepoForPage(gitService, 0, getResourceAsString(PAGE_0));
+    mockRepoForPage(gitService, 1, getResourceAsString(PAGE_1));
 
     // and given root org is configured for github
     tempEntity
@@ -87,7 +93,7 @@ public class ApiScmOnboardingServiceTest
   }
   
   @Test
-  public void testFilteringAlreadyConfiguredRepositories() throws Exception {
+  public void testLoadRepositories_trimExistingConfiguredRepositories() throws Exception {
     // configure urls to point to our mock git server, as these are used to guess at a base api url
     String repo1Url = "https://github.com/depshield-ci/ci-project-1.git";
     String repo2Url = "https://github.com/depshield-ci/ci-project-16.git";
@@ -98,11 +104,11 @@ public class ApiScmOnboardingServiceTest
     String repo2ReplacementUrl = gitService.baseUrl().replace("localhost", "admin@localhost") + repo2;
     
     mockRepoForPage(gitService, 0, 
-        getResourceAsString("/ApiScmOnboardingServiceTest/allRepos0.json")
+        getResourceAsString(PAGE_0)
         .replaceFirst(repo1Url, repo1ReplacementUrl)
         .replaceFirst(repo2Url, repo2ReplacementUrl)
     );
-    mockRepoForPage(gitService, 1, getResourceAsString("/ApiScmOnboardingServiceTest/emptyResponse.json"));
+    mockRepoForPage(gitService, 1, getResourceAsString(PAGE_1));
 
     // given root org is configured for github
     tempEntity
@@ -120,6 +126,31 @@ public class ApiScmOnboardingServiceTest
     SCMRepositories repositories = apiScmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
     assertThat(repositories.availableRepositories.size()).isEqualTo(11);
     assertThat(repositories.totalRepositories).isEqualTo(13);
+  }
+
+  @Test
+  public void testLoadRepositories_sanitizeCloneUrls() throws Exception {
+    String page0 = getResourceAsString(PAGE_0);
+    mockRepoForPage(gitService, 0, page0);
+    mockRepoForPage(gitService, 1, getResourceAsString(PAGE_1));
+
+    // given root org is configured for github
+    tempEntity
+        .newSourceControl(ROOT_ORGANIZATION_ID, null, plexusCipher.encrypt("TOKEN", ENC), SourceControlProvider.GITHUB);
+    
+    // when the raw data contains urls with embedded information
+    assertThat(page0).contains("https://admin:admin123@github.com/depshield-ci/create-react-app.git");
+    assertThat(page0).contains("https://admin@github.com/sonatype-nexus-community/nexus-repository-p2.git");
+
+    // then the repository listing will strip out this embedded information to ensure it doesn't leak
+    SCMRepositories repositories = apiScmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
+    Optional<SCMRepository> createReactApp = repositories.availableRepositories.stream()
+        .filter(repository -> repository.getProject().equals("create-react-app")).findFirst();
+    assertThat(createReactApp.get().getHttpCloneUrl()).isEqualTo("https://github.com/depshield-ci/create-react-app");
+    Optional<SCMRepository> nxrmP2 = repositories.availableRepositories.stream()
+        .filter(repository -> repository.getProject().equals("nexus-repository-p2")).findFirst();
+    assertThat(nxrmP2.get().getHttpCloneUrl())
+        .isEqualTo("https://github.com/sonatype-nexus-community/nexus-repository-p2");
   }
 
   private String getResourceAsString(String filename) throws IOException {

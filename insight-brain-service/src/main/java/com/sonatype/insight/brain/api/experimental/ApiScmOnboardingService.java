@@ -93,7 +93,7 @@ public class ApiScmOnboardingService
     GeneralSCMApiClient generalClient = gitApiClientFactory
         .getGeneralSCMApiClient(orgSourceControl.getProvider(), configuration, orgSourceControl.getUsername(),
             orgSourceControl.getToken());
-    List<SCMRepository> allRepositories = generalClient.listAllRepositories();
+    List<SCMRepository> allRepositories = postProcess(generalClient.listAllRepositories());
     List<SCMRepository> availableRepositories = trimAlreadyConfigured(allRepositories);
     return new SCMRepositories(allRepositories.size(), availableRepositories);  
   }
@@ -167,7 +167,7 @@ public class ApiScmOnboardingService
   /**
    * Trim the passed in list to remove any entries for already configured repositories.
    */
-  private List<SCMRepository> trimAlreadyConfigured(final List<SCMRepository> listAllRepositories) {
+  private List<SCMRepository> trimAlreadyConfigured(final List<SCMRepository> allRepositories) {
     List<String> existing =
         sourceControlDAO.getAll().stream()
             .filter(sourceControl -> sourceControl.getRepositoryUrl() != null)
@@ -175,12 +175,19 @@ public class ApiScmOnboardingService
             .distinct()
             .collect(Collectors.toList());
 
-    return listAllRepositories.stream()
-        .filter(repo -> {
-          String httpCloneUrl = sanitizeUrl(repo.getHttpCloneUrl());
-          return !existing.contains(httpCloneUrl) &&
-              !existing.contains(httpCloneUrl.replace(".git", ""));
-        })
+    return allRepositories.stream()
+        .filter(repo -> !existing.contains(repo.getHttpCloneUrl()))
         .collect(Collectors.toList());
+  }
+
+  /**
+   * Post process the clone urls in this data structure to ensure they don't accidentally leak
+   * user details that can be embedded in the urls.
+   */
+  private List<SCMRepository> postProcess(final List<SCMRepository> repositories) {
+    for (SCMRepository repository : repositories) {
+      repository.setHttpCloneUrl(sanitizeUrl(repository.getHttpCloneUrl()));
+    }
+    return repositories;
   }
 }

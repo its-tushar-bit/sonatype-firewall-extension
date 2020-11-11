@@ -28,7 +28,7 @@ export default function UserTokenDisplay(props) {
             <NxTextInput id="user-token-usercode"
                          isPristine={true}
                          value={userCode}
-                         className="user-token-modal__input"/>
+                         className="user-token-modal__input visual-testing-ignore"/>
           </label>
         </div>
         <div className="nx-btn-bar">
@@ -48,7 +48,7 @@ export default function UserTokenDisplay(props) {
             <NxTextInput id="user-token-passcode"
                          isPristine={true}
                          value={passCode}
-                         className="user-token-modal__input"/>
+                         className="user-token-modal__input visual-testing-ignore"/>
           </label>
         </div>
         <div className="nx-btn-bar">

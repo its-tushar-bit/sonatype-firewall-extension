@@ -558,6 +558,22 @@ public class LabelDAOTest
     assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(label.getId());
   }
 
+  @Test
+  public void testGetByOwnerIdAndLabel() {
+    String labelText = "Org-Label";
+    LabelDAO labelDAO = new LabelDAO();
+    tempEntity.newLabel(tempEntity.newOrganization().getId(), labelText);
+    tempEntity.newLabel(organization.getId(), "Another-" + labelText);
+
+    assertThat(labelDAO.getByLabelWithHierarchy(labelText, application.getId())).isNull();
+
+    Label label = tempEntity.newLabel(organization.getId(), labelText);
+
+    Label found = labelDAO.getByLabelWithHierarchy(labelText, application.getId());
+    assertThat(found).isNotNull();
+    assertThat(found.getId()).isEqualTo(label.getId());
+  }
+
   private void assertLabels(Collection<Label> expected, Collection<Label> actual) {
     assertThat(actual).usingElementComparator(Comparator.comparing(Label::getId))
         .containsExactlyInAnyOrderElementsOf(expected);

@@ -88,6 +88,19 @@ public class LabelDAO
     return get(tx, sQuery, ownerId, Label.normalizeLabel(label));
   }
 
+  public Label getByLabelWithHierarchy(String label, String ownerId) {
+    Label entity = null;
+    try (TransactionContext tx = createTransactionContext()) {
+      for (Owner owner : ownerDAO.walkHierarchy(tx, ownerId)) {
+        entity = getByOwnerIdAndLabel(tx, owner.getId(), label);
+        if (entity != null) {
+          break;
+        }
+      }
+    }
+    return entity;
+  }
+
   @Override
   public Label getById(TransactionContext tx, String id) {
     String sQuery = "SELECT label FROM Label label" + //

@@ -83,7 +83,9 @@ export default function ScmOnboarding(props) {
   }, []);
 
   useEffect(() => {
-    loadOrgHostUrl(preselectedOrganizationId, scmProvider);
+    if (scmProvider) {
+      loadOrgHostUrl(preselectedOrganizationId, scmProvider);
+    }
   }, [scmProvider]);
 
   useEffect(() => {

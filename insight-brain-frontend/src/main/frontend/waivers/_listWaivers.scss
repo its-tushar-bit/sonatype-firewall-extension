@@ -18,3 +18,7 @@
     background-color: $nx-grey-2;
   }
 }
+
+#list-waivers-page .list-waivers-row--expired > .nx-cell {
+  border-bottom-color: #c7c7c7;
+}

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.experimental.legal;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -52,13 +53,13 @@ public class ApiLicenseLegalHdsService
         Iterables.partition(componentIdentifiers, insightConfig.getLicenseLegalHdsRequestLimit()).spliterator(), true)
         .flatMap(
             partition -> Arrays.stream(hdsClient.post(ComponentLegalCommentDTO[].class, LEGAL_COMMENT_URL, partition)))
-        .collect(Collectors.toSet());
+        .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
   public Set<ComponentLegalFileDTO> getComponentLegalFiles(Collection<ComponentIdentifier> componentIdentifiers) {
     return StreamSupport.stream(
         Iterables.partition(componentIdentifiers, insightConfig.getLicenseLegalHdsRequestLimit()).spliterator(), true)
         .flatMap(partition -> Arrays.stream(hdsClient.post(ComponentLegalFileDTO[].class, LEGAL_FILE_URL, partition)))
-        .collect(Collectors.toSet());
+        .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 }

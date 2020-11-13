@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.experimental.legal;
 
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -105,7 +106,7 @@ public class ApiLicenseLegalHdsServiceTest
     componentLegalComment2.setComments(Sets.newHashSet(legalComment3));
 
     Set<ComponentLegalCommentDTO> expectedLegalComments =
-        Sets.newHashSet(componentLegalComment1, componentLegalComment2);
+        new LinkedHashSet<>(Arrays.asList(componentLegalComment1, componentLegalComment2));
 
     when(mockHdsClient
         .post(eq(ComponentLegalCommentDTO[].class), eq(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL), eq(components)))
@@ -153,7 +154,8 @@ public class ApiLicenseLegalHdsServiceTest
     legalFile2.setType("Type 2");
     componentLegalFile2.setLegalFiles(Sets.newHashSet(legalFile2));
 
-    Set<ComponentLegalFileDTO> expectedLegalFiles = Sets.newHashSet(componentLegalFile1, componentLegalFile2);
+    Set<ComponentLegalFileDTO> expectedLegalFiles =
+        new LinkedHashSet<>(Arrays.asList(componentLegalFile1, componentLegalFile2));
 
     when(mockHdsClient
         .post(eq(ComponentLegalFileDTO[].class), eq(ApiLicenseLegalHdsService.LEGAL_FILE_URL), eq(components)))

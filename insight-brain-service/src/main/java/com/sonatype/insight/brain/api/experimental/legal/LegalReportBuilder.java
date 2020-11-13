@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.api.experimental.legal;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -56,8 +56,8 @@ public class LegalReportBuilder
         .map(component -> {
           ComponentIdentifier key = removeClassifierAndExtension(component.componentIdentifier.toComponentIdentifier());
           return new ApiLicenseLegalComponentDTO(component, getLicenseLegalData(component.licenseData,
-              componentLegalCommentsByComponentIdentifier.getOrDefault(key, new HashSet<>()),
-              componentLegalFilesByComponentIdentifier.getOrDefault(key, new HashSet<>())));
+              componentLegalCommentsByComponentIdentifier.getOrDefault(key, new LinkedHashSet<>()),
+              componentLegalFilesByComponentIdentifier.getOrDefault(key, new LinkedHashSet<>())));
         })
         .collect(Collectors.toList());
   }
@@ -114,7 +114,7 @@ public class LegalReportBuilder
                 licenseMetadataById.get(license.getId()).getLicenseText(),
                 licenseMetadataById.get(license.getId()).getLicenseObligations().stream()
                     .map(licenseObligationDTO -> new ApiLicenseLegalObligationDTO(licenseObligationDTO, 0))
-                    .collect(Collectors.toSet())))
-        .collect(Collectors.toSet());
+                    .collect(Collectors.toCollection(LinkedHashSet::new))))
+        .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 }

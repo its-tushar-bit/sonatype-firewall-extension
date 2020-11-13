@@ -10,6 +10,7 @@ import java.io.UncheckedIOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -141,7 +142,7 @@ public class ApiLicenseLegalService
     Set<License> licenses = multiLicenses.stream()
         .map(multiLicense -> multiLicense.licenseId)
         .flatMap(multiLicenseId -> multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(multiLicenseId).stream())
-        .collect(Collectors.toSet());
+        .collect(Collectors.toCollection(LinkedHashSet::new));
 
     sendApplicationTelemetryData(applicationPublicId, latestRawReport, multiLicenses);
 
@@ -149,7 +150,7 @@ public class ApiLicenseLegalService
         apiLicenseLegalHdsService.getLicenseMetadata(
             licenses.stream()
                 .map(License::getId)
-                .collect(Collectors.toSet()))
+                .collect(Collectors.toCollection(LinkedHashSet::new)))
             .stream()
             .collect(Collectors.toMap(LicenseMetadataDTO::getLicenseId, Function.identity()));
     Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>> componentLegalCommentsByComponentIdentifier =
@@ -211,13 +212,13 @@ public class ApiLicenseLegalService
     Set<License> licenses = licenseData.effectiveLicenses.stream()
         .map(multiLicense -> multiLicense.licenseId)
         .flatMap(multiLicenseId -> multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(multiLicenseId).stream())
-        .collect(Collectors.toSet());
+        .collect(Collectors.toCollection(LinkedHashSet::new));
     Map<String, LicenseMetadataDTO> licenseMetadataById =
         licenseData.effectiveLicenses.isEmpty() ? Collections.emptyMap() :
             apiLicenseLegalHdsService.getLicenseMetadata(
                 licenses.stream()
                     .map(License::getId)
-                    .collect(Collectors.toSet()))
+                    .collect(Collectors.toCollection(LinkedHashSet::new)))
                 .stream()
                 .collect(Collectors.toMap(LicenseMetadataDTO::getLicenseId, Function.identity()));
     Set<ComponentLegalCommentDTO> componentLegalComments =
@@ -284,7 +285,7 @@ public class ApiLicenseLegalService
   private Set<ComponentIdentifier> getComponentIdentifiers(Collection<ApiReportRawDataDTOV2> rawReports) {
     return rawReports.stream()
         .flatMap(rawReport -> getComponentIdentifiers(rawReport).stream())
-        .collect(Collectors.toSet());
+        .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
   private Set<ComponentIdentifier> getComponentIdentifiers(ApiReportRawDataDTOV2 rawReport) {
@@ -292,19 +293,19 @@ public class ApiLicenseLegalService
         .map(component -> component.componentIdentifier)
         .filter(Objects::nonNull)
         .map(apiComponentIdentifierDTOV2 -> apiComponentIdentifierDTOV2.toComponentIdentifier())
-        .collect(Collectors.toSet());
+        .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
   private Set<ApiLicenseDTO> getReportMultiLicenses(ApiReportRawDataDTOV2 rawReport) {
     return rawReport.components.stream()
         .filter(component -> component.licenseData != null)
         .flatMap(component -> getAllLicenses(component.licenseData).stream())
-        .collect(Collectors.toSet());
+        .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
   private Set<ApiLicenseDTO> getAllLicenses(ApiLicenseDataDTOV2 licenses) {
     return Stream.concat(Stream.concat(licenses.declaredLicenses.stream(), licenses.observedLicenses.stream()),
-        licenses.effectiveLicenses.stream()).collect(Collectors.toSet());
+        licenses.effectiveLicenses.stream()).collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
   private Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>> getComponentLegalCommentsByComponentIdentifier(
@@ -312,8 +313,8 @@ public class ApiLicenseLegalService
   {
     return apiLicenseLegalHdsService.getComponentLegalComments(
         getComponentIdentifiers(rawReports)).stream()
-        .collect(Collectors.groupingBy(
-            c -> LegalReportBuilder.removeClassifierAndExtension(c.getComponentIdentifier()), Collectors.toSet()));
+        .collect(Collectors.groupingBy(c -> LegalReportBuilder.removeClassifierAndExtension(c.getComponentIdentifier()),
+            Collectors.toCollection(LinkedHashSet::new)));
   }
 
   private Map<ComponentIdentifier, Set<ComponentLegalFileDTO>> getComponentLegalFilesByComponentIdentifier(
@@ -321,8 +322,8 @@ public class ApiLicenseLegalService
   {
     return apiLicenseLegalHdsService.getComponentLegalFiles(
         getComponentIdentifiers(rawReports)).stream()
-        .collect(Collectors.groupingBy(
-            c -> LegalReportBuilder.removeClassifierAndExtension(c.getComponentIdentifier()), Collectors.toSet()));
+        .collect(Collectors.groupingBy(c -> LegalReportBuilder.removeClassifierAndExtension(c.getComponentIdentifier()),
+            Collectors.toCollection(LinkedHashSet::new)));
   }
 
   // Visible for testing
@@ -359,10 +360,10 @@ public class ApiLicenseLegalService
             latestRawReport.components.stream()
                 .map(component -> component.hash)
                 .filter(StringUtils::isNotBlank)
-                .collect(Collectors.toSet()),
+                .collect(Collectors.toCollection(LinkedHashSet::new)),
             multiLicenses.stream()
                 .map(license -> license.licenseId)
-                .collect(Collectors.toSet())));
+                .collect(Collectors.toCollection(LinkedHashSet::new))));
 
     telemetrySender.send(telemetryData);
   }

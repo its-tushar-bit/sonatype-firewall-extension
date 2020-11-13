@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.report;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -54,10 +55,10 @@ public class ReportBundleUpdaterTest
     try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(originalFile))) {
       ZipEntry entry = new ZipEntry("one.txt");
       zos.putNextEntry(entry);
-      zos.write("test".getBytes("UTF-8"));
+      zos.write("test".getBytes(StandardCharsets.UTF_8));
       entry = new ZipEntry("two.html");
       zos.putNextEntry(entry);
-      zos.write("test".getBytes("UTF-8"));
+      zos.write("test".getBytes(StandardCharsets.UTF_8));
     }
   }
 
@@ -73,7 +74,7 @@ public class ReportBundleUpdaterTest
   @Test
   public void testAdd_Bytes() throws Exception {
     try (ReportBundleUpdater updater = new ReportBundleUpdater(originalFile, updatedFile)) {
-      updater.add("added.pdf", "added".getBytes("UTF-8"));
+      updater.add("added.pdf", "added".getBytes(StandardCharsets.UTF_8));
     }
     assertThat(read(updatedFile).keySet()).containsExactlyInAnyOrder("one.txt", "two.html", "added.pdf");
     assertThat(read(updatedFile).get("added.pdf")).isEqualTo("added");

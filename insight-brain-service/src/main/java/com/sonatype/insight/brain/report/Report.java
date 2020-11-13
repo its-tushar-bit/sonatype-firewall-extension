@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.report;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -117,7 +117,7 @@ public final class Report
   }
 
   public static void putEntry(final File reportFile, final String name, final String text) throws IOException {
-    putEntry(reportFile, name, text.getBytes("UTF-8"));
+    putEntry(reportFile, name, text.getBytes(StandardCharsets.UTF_8));
   }
 
   public static String toEntryName(final String path) {
@@ -148,19 +148,20 @@ public final class Report
   private static void embedApplicationPublicId(Application application, File reportFile) throws IOException {
     String filename = "index.html";
     ReportEntry reportEntry = extractEntry(reportFile, filename);
-    String originalIndexHtmlContent = new String(reportEntry.buf, Charset.forName("UTF-8"));
+    String originalIndexHtmlContent = new String(reportEntry.buf, StandardCharsets.UTF_8);
     String augmentedIndexHtmlContent = originalIndexHtmlContent.replace("applicationId = ''", "applicationId = '"
         + application.getPublicId() + "'");
     if (!augmentedIndexHtmlContent.equals(originalIndexHtmlContent)) {
-      cache(getCacheFile(reportFile, filename), augmentedIndexHtmlContent.getBytes("UTF-8"));
+      cache(getCacheFile(reportFile, filename), augmentedIndexHtmlContent.getBytes(StandardCharsets.UTF_8));
     }
   }
 
-  public static ReportEntry appendCacheBustingParams(ReportEntry reportEntry, String clmVersion) throws IOException {
-    String originalIndexHtmlContent = new String(reportEntry.buf, Charset.forName("UTF-8"));
+  public static ReportEntry appendCacheBustingParams(ReportEntry reportEntry, String clmVersion) {
+    String originalIndexHtmlContent = new String(reportEntry.buf, StandardCharsets.UTF_8);
     String augmentedIndexHtmlContent = originalIndexHtmlContent.replace("/brain.client.js",
         "/brain.client.js?" + clmVersion).replace("/cip-loader.js", "/cip-loader.js?" + clmVersion);
-    return new ReportEntry(reportEntry.name, reportEntry.time, augmentedIndexHtmlContent.getBytes("UTF-8"));
+    return new ReportEntry(reportEntry.name, reportEntry.time,
+        augmentedIndexHtmlContent.getBytes(StandardCharsets.UTF_8));
   }
 
   private static int[] getSecurityCounts(ObjectNode dataJson) {

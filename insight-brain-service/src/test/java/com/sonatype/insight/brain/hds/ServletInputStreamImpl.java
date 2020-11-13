@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.hds;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 import javax.servlet.ReadListener;
 import javax.servlet.ServletInputStream;
@@ -18,8 +18,8 @@ class ServletInputStreamImpl
   // ByteArrayInputStream.close is a noop, so we don't need to close this stream
   private ByteArrayInputStream wrappedInputStream;
 
-  public ServletInputStreamImpl(String data) throws UnsupportedEncodingException {
-    wrappedInputStream = new ByteArrayInputStream(data.getBytes("UTF-8"));
+  public ServletInputStreamImpl(String data) {
+    this(data.getBytes(StandardCharsets.UTF_8));
   }
 
   public ServletInputStreamImpl(byte[] data) {

@@ -79,7 +79,8 @@ public class ReportTest
     String expectedIndexContent = "<script type='text/javascript' src='../brain/policy-assets/js/brain.client.js?1.0'>"
         + "</script><script type='text/javascript' src='../brain/policy-assets/js/cip-loader.js?1.0'></script>";
 
-    ReportEntry entry = new ReportEntry("index.html", System.currentTimeMillis(), indexContent.getBytes("UTF-8"));
+    ReportEntry entry =
+        new ReportEntry("index.html", System.currentTimeMillis(), indexContent.getBytes(StandardCharsets.UTF_8));
     entry = Report.appendCacheBustingParams(entry, "1.0");
 
     assertThat(entry.buf).isEqualTo(expectedIndexContent.getBytes(StandardCharsets.UTF_8));

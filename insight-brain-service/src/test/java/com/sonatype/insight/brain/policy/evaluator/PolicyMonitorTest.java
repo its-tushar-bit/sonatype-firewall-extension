@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.Permission;
@@ -665,7 +664,7 @@ public class PolicyMonitorTest
 
     try {
       Files.createDirectories(scanFile.getParentFile().toPath());
-      Files.write(scanFile.toPath(), fileContent.getBytes(Charset.forName("UTF-8")));
+      Files.write(scanFile.toPath(), fileContent.getBytes(StandardCharsets.UTF_8));
     }
     catch (IOException e) {
       throw new RuntimeException(e);

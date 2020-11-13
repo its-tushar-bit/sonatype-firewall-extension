@@ -10,6 +10,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -353,8 +354,8 @@ class SupportService
 
   private static void copyLimited(final LimitedFileInputStream input, final OutputStream output) throws IOException {
     if (input.isToBeTruncated()) {
-      output.write(TRUNCATED_TOKEN.getBytes("UTF-8"));
-      output.write("\n".getBytes("UTF-8"));
+      output.write(TRUNCATED_TOKEN.getBytes(StandardCharsets.UTF_8));
+      output.write("\n".getBytes(StandardCharsets.UTF_8));
     }
     ByteStreams.copy(input, output);
   }

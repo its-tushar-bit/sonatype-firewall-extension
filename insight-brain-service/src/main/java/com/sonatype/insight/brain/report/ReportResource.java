@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.report;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -611,7 +612,7 @@ public class ReportResource
     if (encodedKey == null) {
       return null;
     }
-    ContainerNode<?> decodedKey = JsonUtils.parse(encodedKey.getBytes("UTF-8"));
+    ContainerNode<?> decodedKey = JsonUtils.parse(encodedKey.getBytes(StandardCharsets.UTF_8));
     ComponentIdentifierAdapter.replaceGavWithComponentIdentifier((ObjectNode) decodedKey);
     return decodedKey;
   }

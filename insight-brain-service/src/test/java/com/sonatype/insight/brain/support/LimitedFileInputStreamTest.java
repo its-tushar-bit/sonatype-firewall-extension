@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.support;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import org.junit.After;
 import org.junit.Before;
@@ -119,6 +120,6 @@ public class LimitedFileInputStreamTest
     assertThat(limitedInputStream.isReadLimitMet()).isTrue();
     String expected = "son_seq-passwords: [3, 2, 1, \"takeoff\"]" + System.lineSeparator();
     expected = expected.substring(expected.length() - readLimit);
-    assertThat(new String(buf, "UTF-8")).isEqualTo(expected);
+    assertThat(new String(buf, StandardCharsets.UTF_8)).isEqualTo(expected);
   }
 }

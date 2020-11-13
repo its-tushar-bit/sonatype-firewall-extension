@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.hds;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -206,16 +207,16 @@ public class TelemetryIdTest
   }
 
   @Test
-  public void testCalculateDerivedId() throws Exception {
+  public void testCalculateDerivedId() {
     List<byte[]> hardwareAddresses = new ArrayList<>();
-    hardwareAddresses.add("123456789ABC".getBytes("UTF-8"));
+    hardwareAddresses.add("123456789ABC".getBytes(StandardCharsets.UTF_8));
     assertThat(TelemetryId.calculateDerivedId("somehost", "7788", hardwareAddresses)).isEqualTo("e7c7e");
 
     assertThat(TelemetryId.calculateDerivedId("otherhost", "7788", hardwareAddresses)).isEqualTo("9ee29");
 
     assertThat(TelemetryId.calculateDerivedId("somehost", "8899", hardwareAddresses)).isEqualTo("17868");
 
-    hardwareAddresses.add("123456789DEF".getBytes("UTF-8"));
+    hardwareAddresses.add("123456789DEF".getBytes(StandardCharsets.UTF_8));
     assertThat(TelemetryId.calculateDerivedId("somehost", "7788", hardwareAddresses)).isEqualTo("e1380");
   }
 

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.diagnostics;
 
 import java.io.File;
 import java.io.RandomAccessFile;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -101,7 +102,7 @@ public class DiagnosticsCli
     File versionFile = new File(ods + ".ver");
     String version;
     if (versionFile.isFile()) {
-      version = new String(Files.readAllBytes(versionFile.toPath()), "UTF-8");
+      version = new String(Files.readAllBytes(versionFile.toPath()), StandardCharsets.UTF_8);
     }
     else {
       version = "(unknown - " + versionFile + " missing)";

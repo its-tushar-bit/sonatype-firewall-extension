@@ -297,7 +297,7 @@ describe('applicationReportReducer', function() {
         vulnerabilitiesPageEnabled: jasmine.anything(),
         isInnerSourceEnabled: true,
         other: otherObject,
-        sortFields: ['ownerApplicationName', 'derivedDependencyType', '-policyThreatLevel',
+        sortFields: ['ownerApplicationName', 'dependencyType', '-policyThreatLevel',
           'policyName', 'derivedComponentName']
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified

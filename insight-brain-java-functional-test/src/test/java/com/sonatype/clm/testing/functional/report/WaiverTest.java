@@ -57,7 +57,7 @@ public class WaiverTest
 
   private static final InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
 
-  public static final int numberOfComponents = 8;
+  public static final int numberOfComponents = 9;
 
   private Application app;
 

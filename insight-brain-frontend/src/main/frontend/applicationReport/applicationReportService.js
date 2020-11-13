@@ -183,6 +183,7 @@ function augmentInnerSourceIndicator(components) {
     if (app !== '') {
       entries.forEach(entry => {
         entry.innerSourceTDIndicator = !entry.innerSource;
+        entry.dependencyType = entry.innerSource ? 'D' : 'TD';
         isInnerSourceEnabled = true;
         result.push(entry);
       });

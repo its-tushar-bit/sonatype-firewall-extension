@@ -190,5 +190,32 @@
     "lastModifiedTime" : 1413088396000,
     "lastModifiedEntryTime" : 1054324540000,
     "website" : null
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "joda-time",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "joda-time",
+        "version" : "1.3.1"
+      }
+    },
+    "groupId" : "joda-time",
+    "artifactId" : "joda-time",
+    "version" : "1.3.1",
+    "filenames" : [ "joda-time-1.3.1.jar" ],
+    "pathnames" : [ "full.jar/WebGoat-6.0.1/WEB-INF/lib/joda-time-1.3.1.jar" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "18d393ad345b03b49d62",
+    "relativePopularity" : 1.0,
+    "createTime" : 1138653346000,
+    "lastModifiedTime" : 1413088396000,
+    "lastModifiedEntryTime" : 1054324540000,
+    "ownerApplicationName": "ApplicationReportTest",
+    "innerSource": false,
+    "website" : null
   }]
 }

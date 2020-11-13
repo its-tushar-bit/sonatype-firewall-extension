@@ -44,6 +44,17 @@
           "version" : "1.3.1"
         }
       }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "j3h",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "java3html",
+          "version" : "1.3.1"
+        }
+      }
     }]
   }, {
     "componentIdentifier" : {
@@ -137,13 +148,49 @@
         }
       }
     }]
-  }, {
+  },{
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "j3h",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "java3html",
+        "version" : "1.3.1"
+      }
+    },
+    "children": [{
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "groupId" : "joda-time",
+          "artifactId" : "joda-time",
+          "version" : "1.3.1",
+          "extension": "jar",
+          "classifier": ""
+        }
+      }
+    }]
+  },
+    {
     "componentIdentifier" : {
       "format" : "maven",
       "coordinates" : {
         "groupId" : "ch.qos.logback",
         "artifactId" : "logback-access",
         "version" : "0.6",
+        "extension": "jar",
+        "classifier": ""
+      }
+    }
+  },
+  {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "joda-time",
+        "artifactId" : "joda-time",
+        "version" : "1.3.1",
         "extension": "jar",
         "classifier": ""
       }

@@ -242,7 +242,11 @@ public class ApplicationReportPage
     }
 
     public SelenideElement dependencyIndicator() {
-      return header().$(".iq-dependency-indicator");
+      return header().$(".iq-dependency-indicator--long");
+    }
+
+    public SelenideElement dependencyInnerSourceIndicator() {
+      return header().$(".iq-modal-header__inner-source-info");
     }
 
     public SelenideElement tabLink(int i) {

@@ -1062,7 +1062,8 @@ describe('applicationReportService', function() {
         innerSource: true,
         innerSourceTDIndicator: false,
         ownerApplicationName: 'app',
-        ownerApplicationId: '123'
+        ownerApplicationId: '123',
+        dependencyType: 'D'
       }));
 
       expect(result).toContain(jasmine.objectContaining({
@@ -1078,7 +1079,8 @@ describe('applicationReportService', function() {
         innerSourceTDIndicator: true,
         ownerApplicationName: 'app',
         ownerApplicationId: '123',
-        derivedDependencyType: 'transitive'
+        derivedDependencyType: 'transitive',
+        dependencyType: 'TD'
       }));
     });
   });

@@ -251,7 +251,7 @@ function setSelectedReport(state, report) {
     selectedReport: {...report, ...getViolationCountsPerThreatLevel(report.allEntries)},
     isInnerSourceEnabled: report.isInnerSourceEnabled,
     sortFields: report.isInnerSourceEnabled ? [
-      'ownerApplicationName', 'derivedDependencyType', '-policyThreatLevel', 'policyName', 'derivedComponentName'
+      'ownerApplicationName', 'dependencyType', '-policyThreatLevel', 'policyName', 'derivedComponentName'
     ] : state.sortFields
   });
 

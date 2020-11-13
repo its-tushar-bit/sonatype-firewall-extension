@@ -1,11 +1,19 @@
 <section id="cip-modal">
   <header id="cip-modal-header" class="iq-modal-header">
-    <h2>
+    <h2 ng-class="vm.selectedComponent.innerSourceTDIndicator ? 'iq-modal-header__component-info' : ''">
       <component-display component="vm.selectedComponent" truncate="true"></component-display>
     </h2>
+    <div ng-if="vm.selectedComponent.ownerApplicationName && !vm.selectedComponent.innerSource"
+         ng-class="vm.selectedComponent.innerSourceTDIndicator ? 'iq-modal-header__inner-source-info' : ''"
+         class="iq-dependency-indicator inner-source">
+      <span>IS</span>
+    </div>
     <div ng-if="vm.selectedComponent.dependencyInfo"
-         class="iq-dependency-indicator iq-dependency-indicator--long"
-         ng-class="vm.selectedComponent.innerSource ? 'inner-source' : vm.selectedComponent.dependencyInfo.isDirectDependency ? 'direct' : 'transitive'">
+         class="iq-modal-header__dependency-info iq-dependency-indicator iq-dependency-indicator--long"
+         ng-class="vm.selectedComponent.innerSource ? 'inner-source' :
+          vm.selectedComponent.innerSourceTDIndicator && vm.selectedComponent.dependencyInfo.isDirectDependency ? 'iq-modal-header__dependency-info direct' :
+          vm.selectedComponent.innerSourceTDIndicator && vm.selectedComponent.dependencyInfo.isDirectDependency ? 'iq-modal-header__dependency-info transitive' :
+          vm.selectedComponent.dependencyInfo.isDirectDependency ? 'direct' : 'transitive'">
       <span ng-if="vm.selectedComponent.innerSource">InnerSource</span>
       <span ng-if="vm.selectedComponent.dependencyInfo.isDirectDependency && !vm.selectedComponent.innerSource">Direct Dependency</span>
       <span ng-if="!vm.selectedComponent.dependencyInfo.isDirectDependency">Transitive Dependency</span>

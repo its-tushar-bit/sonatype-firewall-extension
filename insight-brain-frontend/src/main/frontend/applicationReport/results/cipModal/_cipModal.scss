@@ -274,3 +274,15 @@ cip-similar {
     display: inline;
   }
 }
+
+.iq-modal-header__component-info {
+  flex: 0 0 calc(100% - 250px);
+}
+
+.iq-modal-header__dependency-info {
+  flex: 0 0 content;
+}
+
+.iq-modal-header__inner-source-info {
+  flex: 0 0 content;
+}

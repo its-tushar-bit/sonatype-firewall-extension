@@ -154,7 +154,7 @@ public class ApplicationReportCipTest
     cipModal.getElement().shouldBe(visible);
 
     cipModal.header().shouldHave(exactText("unknown.jar"));
-    cipModal.nextButton().shouldBe(disabled);
+    cipModal.nextButton().shouldBe(enabled);
     cipModal.dependencyIndicator().shouldNot(exist);
     cipModal.previousButton().shouldBe(enabled).click();
 
@@ -186,6 +186,7 @@ public class ApplicationReportCipTest
     cipModal.tabLink(1).shouldHave(ACTIVE_CLASS).shouldHave(exactText("Component Info"));
     cipModal.closeButton().click();
 
+    testInnerSourceDependencyComponentHeader();
     testComponentInfoTab();
     testPolicyTab();
     testLicensesTab();
@@ -886,6 +887,19 @@ public class ApplicationReportCipTest
     cipModal.previousButton().click();
     cipModal.tabLink(1).shouldHave(ACTIVE_CLASS);
     cipModal.tabLink(5).shouldNotHave(ACTIVE_CLASS);
+  }
+
+  private void testInnerSourceDependencyComponentHeader() {
+    CipModal cipModal = reportPage.cipModal();
+    reportPage.resultRow(9).click();
+
+    cipModal.getElement().shouldBe(visible);
+    cipModal.header().shouldHave(text("joda-time : joda-time : 1.3.1"));
+    cipModal.previousButton().shouldBe(enabled);
+    cipModal.dependencyInnerSourceIndicator().shouldBe(visible);
+    cipModal.dependencyIndicator().shouldBe(visible).shouldHave(cssClass("transitive"))
+        .shouldHave(exactText("Transitive Dependency"));
+    cipModal.closeButton().click();
   }
 
   private Policy createPolicy(String ownerId,

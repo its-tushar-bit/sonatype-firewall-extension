@@ -101,6 +101,9 @@ public class PolicyEvaluatorCli
     }
   }
 
+  /**
+   * @throws ExitException Subclasses can throw this exception for errors with specific exit codes
+   */
   protected <T extends PolicyEvaluator> T instantiate(final Class<T> type, final AbstractParameters params)
       throws ExitException
   {

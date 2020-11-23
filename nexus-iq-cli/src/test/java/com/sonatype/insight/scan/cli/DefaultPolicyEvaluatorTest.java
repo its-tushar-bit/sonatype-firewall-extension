@@ -293,6 +293,35 @@ public abstract class DefaultPolicyEvaluatorTest
   }
 
   @Test
+  public void testRun_ScanWithBaseDirAdjustsComponentPath() throws Exception {
+    // given an application
+    Application app = tempEntity.newApplicationWithParent("the-app-id");
+    tempEntity.newProprietaryConfig(app.getId(), Collections.singletonList("com.sonatype"), Collections.emptyList());
+
+    // when we run the CLI with required parameters and a base directory
+    List<String> params = ImmutableList.of(
+        "-s", insightServerUrl,
+        "-a", "admin:admin123",
+        "-i", "the-app-id",
+        "--output-directory", tempDir.getRoot().getAbsolutePath(),
+        "-b", "src/test",
+        "src/test/data/artifact.jar");
+    withTestRunner(params)
+        .doPolicyEvaluationRun();
+    // and we read into the resulting scan file
+    File scanFile = findScanFile();
+    Scan scan = scanReader.read(scanFile);
+
+    // then we find one artifact is reported
+    assertThat(scan.getItems()).hasSize(1);
+    ScanItem jar = scan.getItems().get(0);
+    // and its path is relative to the base dir
+    assertThat(jar.getPath()).isEqualTo("data/artifact.jar");
+    // and its sha1 remains the same
+    assertThat(jar.getSha1()).isEqualTo("87cf012929052d02c3f1");
+  }
+
+  @Test
   public void testRun_GlobalProprietaryConfigOverriddenByClient() throws Exception {
     Application app = tempEntity.newApplicationWithParent("the-app-id");
     tempEntity.newProprietaryConfig(app.getId(), Collections.singletonList("com.overridden"), Collections.emptyList());

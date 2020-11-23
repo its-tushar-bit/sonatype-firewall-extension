@@ -162,8 +162,11 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
       for (String scanTarget : params.getScanTargets()) {
         files.add(new File(scanTarget));
       }
+
       log.debug("Saving scan file to {}", scanFile.getAbsolutePath());
-      return scanner.scan(scanFile, files, getScanConfiguration(params, proprietaryConfig), scanMetadata);
+
+      return scanner.scan(scanFile, params.getBaseDir(), files,
+          getScanConfiguration(params, proprietaryConfig), scanMetadata);
     }
     catch (IOException e) {
       log.error("The scan could not be performed", e);

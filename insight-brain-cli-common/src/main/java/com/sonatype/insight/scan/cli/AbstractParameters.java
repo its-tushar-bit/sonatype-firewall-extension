@@ -101,6 +101,10 @@ public abstract class AbstractParameters
   @Parameter(names = { "-h", "--help" }, description = "Show this help screen")
   private boolean help;
 
+  @Parameter(names = { "-b", "--base-dir" }, description = "Set the Base Directory for paths of components in reports",
+      hidden = true)
+  private File baseDir = null;
+
   public AbstractParameters() {
   }
 
@@ -234,6 +238,10 @@ public abstract class AbstractParameters
 
   public ScanMetadata getScanMetadata() {
     return scanMetadata;
+  }
+
+  public File getBaseDir() {
+    return baseDir;
   }
 
   /*

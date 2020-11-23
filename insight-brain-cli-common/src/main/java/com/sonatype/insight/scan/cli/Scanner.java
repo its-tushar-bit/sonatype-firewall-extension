@@ -58,10 +58,21 @@ public class Scanner
     return this.scan(scanFile, targets, config, null);
   }
 
-  public ClientScanResult scan(File scanFile,
-                               List<File> targets,
-                               Properties config,
-                               ScanMetadata metadata) throws IOException
+  public ClientScanResult scan(
+      final File scanFile,
+      final List<File> targets,
+      final Properties config,
+      final ScanMetadata metadata) throws IOException
+  {
+    return this.scan(scanFile, null, targets, config, metadata);
+  }
+
+  public ClientScanResult scan(
+      final File scanFile,
+      final File baseDir,
+      final List<File> targets,
+      final Properties config,
+      final ScanMetadata metadata) throws IOException
   {
     log.info("Starting scan...");
 
@@ -75,11 +86,12 @@ public class Scanner
       scan.getSummary().setStartTime();
       ScanSession scanSession = new ScanSession(scan, writer);
       clientScanner.scan(new ClientScanRequest(scan));
-      fileScanner.scan(new FileScanRequest(scanSession, targets));
+      FileScanRequest fileScanRequest = new FileScanRequest(scanSession, targets);
+      fileScanRequest.setBasedir(baseDir);
+      fileScanner.scan(fileScanRequest);
       scan.getSummary().setEndTime();
       writer.writeSummary(scan.getSummary());
       writer.closeScan();
-      writer.close();
     }
     log.info("Fingerprinting completed in {} seconds for {} archives, {} total files",
         scan.getSummary().getElapsedSeconds(), scan.getSummary().getArchives(), scan.getSummary().getFiles());

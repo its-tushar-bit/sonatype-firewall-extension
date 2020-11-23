@@ -12,7 +12,7 @@
          class="iq-modal-header__dependency-info iq-dependency-indicator iq-dependency-indicator--long"
          ng-class="vm.selectedComponent.innerSource ? 'inner-source' :
           vm.selectedComponent.innerSourceTDIndicator && vm.selectedComponent.dependencyInfo.isDirectDependency ? 'iq-modal-header__dependency-info direct' :
-          vm.selectedComponent.innerSourceTDIndicator && vm.selectedComponent.dependencyInfo.isDirectDependency ? 'iq-modal-header__dependency-info transitive' :
+          vm.selectedComponent.innerSourceTDIndicator && !vm.selectedComponent.dependencyInfo.isDirectDependency ? 'iq-modal-header__dependency-info transitive' :
           vm.selectedComponent.dependencyInfo.isDirectDependency ? 'direct' : 'transitive'">
       <span ng-if="vm.selectedComponent.innerSource">InnerSource</span>
       <span ng-if="vm.selectedComponent.dependencyInfo.isDirectDependency && !vm.selectedComponent.innerSource">Direct Dependency</span>

@@ -280,6 +280,18 @@ public class ApplicationReportPage
     public CipAuditTab getAuditTab() {
       return new CipAuditTab(".tab-content > cip-audit");
     }
+
+    public SelenideElement ownerApplication() {
+      return child("h3");
+    }
+
+    public SelenideElement latestReportLink() {
+      return child("a");
+    }
+
+    public SelenideElement innerSourceAlertInfo() {
+      return child(".iq-alert--info");
+    }
   }
 
   public static class CipOccurrencesTab

@@ -1,4 +1,18 @@
 <div id="informationPanel" class="iq-cip-tab-panel">
+  <div ng-if="vm.selectedComponent.innerSource" class="iq-grid-row">
+    <div class="iq-grid-col iq-grid-col--33">
+      <h3>{{vm.selectedComponent.ownerApplicationName}}</h3>
+      <em>InnerSource</em>
+      <p><a title="View Latest Report" href="{{vm.latestReportUrl}}" target="_blank">View Latest Report</a></p>
+    </div>
+    <div class="iq-grid-col iq-grid-col--67">
+      <div class="iq-alert iq-alert--info">
+        <i class='fa fa-info-circle'></i>InnerSource components are software components that are developed internally
+        and shared with other internal projects.
+      </div>
+    </div>
+  </div>
+
   <div class="iq-tab-bar">
     <a ng-repeat="tab in vm.tabs"
        ng-click="vm.selectedTab = tab.name"

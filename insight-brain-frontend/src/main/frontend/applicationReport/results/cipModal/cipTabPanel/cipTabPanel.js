@@ -26,7 +26,7 @@ export default {
   }
 };
 
-function CipTabPanelController($scope) {
+function CipTabPanelController($scope, CLMLocations) {
   const vm = this;
 
   Object.assign(vm, {
@@ -70,6 +70,12 @@ function CipTabPanelController($scope) {
     }]);
   }
 
+  function latestReportUrl() {
+    if (vm.selectedComponent != null && vm.selectedComponent.latestReport) {
+      return CLMLocations.getAbsoluteUrl(vm.selectedComponent.latestReport.url);
+    }
+  }
+
   $scope.$watch('vm.selectedComponent', function() {
     if (vm.selectedComponent) {
       updateTabs();
@@ -78,7 +84,8 @@ function CipTabPanelController($scope) {
         vm.selectedTab = vm.tabs[0].name;
       }
     }
+    vm.latestReportUrl = latestReportUrl();
   });
 }
 
-CipTabPanelController.$inject = ['$scope'];
+CipTabPanelController.$inject = ['$scope', 'CLMLocations'];

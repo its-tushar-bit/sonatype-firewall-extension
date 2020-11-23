@@ -569,6 +569,13 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
        */
       getSourceControlMetricsUrl: function(ownerType, ownerId) {
         return baseUrl.get() + `/api/v2/sourceControlMetrics/${ownerType}/${ownerId}`;
+      },
+
+      /**
+       * @since 1.102.0
+       */
+      getAbsoluteUrl: function(url) {
+        return baseUrl.get() + `/${url}`;
       }
     };
   }

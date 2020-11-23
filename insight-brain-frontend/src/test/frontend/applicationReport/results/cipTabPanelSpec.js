@@ -22,12 +22,37 @@ describe('cipTabPanel', function() {
 
   describe('selectedComponent watcher', function() {
     let $scope,
-        controller;
+        controller,
+        innerSourceComponent;
 
     beforeEach(inject(function($rootScope) {
       $scope = $rootScope.$new();
       controller = $componentController('cipTabPanel', { $scope }, { selectedComponent: {} });
+
+      innerSourceComponent = {
+        hash: '1249e25aebb15358bedd',
+        matchState: 'test-match-state',
+        identificationSource: 'test-identification-source',
+        componentIdentifier: {
+          coordinates: 'coordinates',
+          format: 'format'
+        },
+        dependencyInfo: {isDirectDependency: false},
+        innerSource: true,
+        ownerApplicationName: 'AppName',
+        latestReport: {
+          stage: 'stage',
+          url: 'http://localhost:8070/assets/index.html#/applicationReport/AppName/scanId/policy'
+        }
+      };
     }));
+
+    it('sets vm.latestReportUrl', function() {
+      controller.selectedComponent = innerSourceComponent;
+      $scope.$digest();
+      expect(controller.latestReportUrl).toContain(
+          'http://localhost:8070/assets/index.html#/applicationReport/AppName/scanId/policy');
+    });
 
     ['exact', 'similar'].forEach(function(matchState) {
       it(`updates vm.tabs to include tabs for non-unknown components if the matchState is ${matchState}`, function() {

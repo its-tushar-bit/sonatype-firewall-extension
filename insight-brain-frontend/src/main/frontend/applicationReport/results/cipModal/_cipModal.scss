@@ -28,7 +28,7 @@ $cip-modal-vertical-margins: 100px;
 // $cip-modal-height variable we are required to repeat this calculation again. If you ever change
 // the $cip-modal-height calculation on the below line, make sure to change it in the 3 other places in this file
 $cip-modal-height: calc(100vh - #{$cip-modal-vertical-margins});
-$cip-modal-max-height: 550px;
+$cip-modal-max-height: 600px;
 
 .iq-modal__cip {
   height: $cip-modal-height;

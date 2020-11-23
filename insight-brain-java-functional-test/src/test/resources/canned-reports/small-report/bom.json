@@ -189,7 +189,9 @@
     "createTime" : 1138653346000,
     "lastModifiedTime" : 1413088396000,
     "lastModifiedEntryTime" : 1054324540000,
-    "website" : null
+    "website" : null,
+    "ownerApplicationName": "ApplicationReportTest",
+    "innerSource": true
   }, {
     "componentIdentifier" : {
       "format" : "maven",

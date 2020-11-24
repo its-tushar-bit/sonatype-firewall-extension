@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.nexus.scm.GitApiClientFactory;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
@@ -82,7 +83,7 @@ public class ApiScmOnboardingService
     if (orgSourceControl == null) {
       log.error("Not able to retrieve source control entries at org {} or root, repository scan exiting",
           orgId);
-      throw new BadRequestException("No source control entries found for organization ID " + orgId);
+      throw new NotFoundException("No source control entries found for organization ID " + orgId);
     }
 
     GitApiClientUtils gitUtils = gitApiClientFactory.getGitApiClientUtils(orgSourceControl.getProvider());

@@ -136,7 +136,9 @@ public class ScmOnboardingTest
   public void testFeatureIsEnabled() {
     // given the onboarding page
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
-    tempEntity.newSourceControl(org.getParentOwnerId(), null, "token", GITHUB);
+    PasswordHandler pwHandler = testCLMServer.getCLMServer().getInstance(PasswordHandler.class);
+    String encryptedPwd = new String(pwHandler.encryptPassword("TOKEN".toCharArray()));
+    tempEntity.newSourceControl(org.getParentOwnerId(), null, encryptedPwd, GITHUB);
 
     // when we open the onboarding page as admin
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
@@ -158,11 +160,33 @@ public class ScmOnboardingTest
 
     // then a permission denied error is shown
     scmOnboardingPage.loadError().shouldBe(visible).shouldHave(text("you do not have permission to access this page"));
+
+    // and form elements are hidden
+    scmOnboardingPage.hostUrl().shouldBe(hidden);
+    scmOnboardingPage.resultsTable().shouldBe(hidden);
   }
 
   @Test
-  public void testScmTokenNotConfigured() {
-    // given the onboarding page and a new user
+  public void testGenericErrorsForwardedFromIq() {
+    // given the onboarding page
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+
+    // and an invalid configuration
+    PasswordHandler pwHandler = testCLMServer.getCLMServer().getInstance(PasswordHandler.class);
+    String encryptedPwd = new String(pwHandler.encryptPassword("".toCharArray()));
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, encryptedPwd, GITHUB);
+
+    // when we open the onboarding page as unprivileged user
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
+    loginAsAdmin();
+
+    // then the message from IQ server is forwarded
+    scmOnboardingPage.loadError().shouldHave(text("An error occurred loading data. Internal Server Error"));
+  }
+
+  @Test
+  public void testScmDoesNotExist() {
+    // given the onboarding page
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
 
     // when we open the onboarding page as unprivileged user
@@ -170,7 +194,12 @@ public class ScmOnboardingTest
     loginAsAdmin();
 
     // then a permission denied error is shown
-    scmOnboardingPage.loadError().shouldHave(text("The selected Organization does not have SCM configured."));
+    scmOnboardingPage.loadError().shouldHave(text("An error occurred loading data. The selected Organization does not" +
+            " have SCM configured. You can configure it here. Retry"));
+
+    // and form elements are hidden
+    scmOnboardingPage.hostUrl().shouldBe(hidden);
+    scmOnboardingPage.resultsTable().shouldBe(hidden);
   }
 
   @Test

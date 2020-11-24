@@ -106,42 +106,46 @@ export default function ScmOnboarding(props) {
             href={$state.href($state.get('management.view.organization'),
                 {organizationId: preselectedOrganizationId})}
             targetPageTitle={$state.get('management.view.organization').data.title} />
-        <div className="nx-page-title iq-scmonboarding-title">
-          { selectedOrganization &&
-            <h1 className="nx-h1">
-              <span>Import Applications to</span>
-              <NxFontAwesomeIcon icon={faSitemap}/>
-              <span>{selectedOrganization.name}</span>
-            </h1>
-          }
-          <div className="nx-page-title__description">
-            <p className="nx-p">Use the filters and checkboxes to select repositories to import</p>
-          </div>
-        </div>
-        <section className="nx-tile host-url-tile">
-          <form className="nx-form">
-            <div className="nx-form-row">
-              <div className="nx-form-group">
-                <label className="nx-label">
-                  <span className="nx-label__text">Host URL</span>
-                  <NxTextInput id="iq-scm-default-host-field"
-                               isPristine={defaultHostUrl === currentHostUrl}
-                               onChange={setCurrentHostUrl}
-                               value={currentHostUrl}/>
-                </label>
-              </div>
-              <div className="nx-btn-bar">
-                <NxButton
-                    id="iq-scm-load-button"
-                    variant="primary"
-                    disabled={loadingRepositories}
-                    onClick={handleLoadRepositories}>
-                  Reload Repositories
-                </NxButton>
+        {!error &&
+          <fragment>
+            <div className="nx-page-title iq-scmonboarding-title">
+              { selectedOrganization &&
+              <h1 className="nx-h1">
+                <span>Import Applications to</span>
+                <NxFontAwesomeIcon icon={faSitemap}/>
+                <span>{selectedOrganization.name}</span>
+              </h1>
+              }
+              <div className="nx-page-title__description">
+                <p className="nx-p">Use the filters and checkboxes to select repositories to import</p>
               </div>
             </div>
-          </form>
-        </section>
+            <section className="nx-tile host-url-tile">
+              <form className="nx-form">
+                <div className="nx-form-row">
+                  <div className="nx-form-group">
+                    <label className="nx-label">
+                      <span className="nx-label__text">Host URL</span>
+                      <NxTextInput id="iq-scm-default-host-field"
+                                   isPristine={defaultHostUrl === currentHostUrl}
+                                   onChange={setCurrentHostUrl}
+                                   value={currentHostUrl}/>
+                    </label>
+                  </div>
+                  <div className="nx-btn-bar">
+                    <NxButton
+                        id="iq-scm-load-button"
+                        variant="primary"
+                        disabled={loadingRepositories}
+                        onClick={handleLoadRepositories}>
+                      Reload Repositories
+                    </NxButton>
+                  </div>
+                </div>
+              </form>
+            </section>
+          </fragment>
+        }
         <section className="nx-tile">
           <LoadWrapper loading={loadingConfig} error={error} retryHandler={load}>
             <ResultsTable { ...{
@@ -176,9 +180,8 @@ export const repositoryPropType = {
 
 ScmOnboarding.propTypes = {
   // config
-  loadConfig: PropTypes.func.isRequired,
   loadingConfig: PropTypes.bool.isRequired,
-  isScmOnboardingFeatureEnabled: PropTypes.bool.isRequired,
+  isScmOnboardingFeatureEnabled: PropTypes.bool,
   $state: PropTypes.object.isRequired,
   isScmTokenConfigured: PropTypes.bool.isRequired,
   scmProvider: PropTypes.string.isRequired,
@@ -203,6 +206,7 @@ ScmOnboarding.propTypes = {
   preselectedOrganizationId: PropTypes.string,
 
   // actions
+  loadConfig: PropTypes.func.isRequired,
   importSelectedRepositories: PropTypes.func.isRequired,
   onRepositorySelectionChanged: PropTypes.func.isRequired,
   setCurrentHostUrl: PropTypes.func.isRequired,

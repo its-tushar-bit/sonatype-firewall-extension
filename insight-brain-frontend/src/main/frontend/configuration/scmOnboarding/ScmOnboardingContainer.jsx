@@ -12,29 +12,29 @@ import ScmOnboarding from '../scmOnboarding/ScmOnboarding';
 function mapStateToProps({ scmOnboarding, router }) {
   return {
     // config
-    loadingConfig: scmOnboarding.loadingConfig,
-    isScmOnboardingFeatureEnabled: scmOnboarding.isScmOnboardingFeatureEnabled,
-    scmProvider: scmOnboarding.scmProvider,
+    loadingConfig: scmOnboarding.configState.loadingConfig,
+    isScmOnboardingFeatureEnabled: scmOnboarding.configState.isScmOnboardingFeatureEnabled,
+    scmProvider: scmOnboarding.configState.scmProvider,
 
     // compositeSourceControl data
-    isScmTokenConfigured: scmOnboarding.viewState.isScmTokenConfigured,
+    isScmTokenConfigured: scmOnboarding.configState.isScmTokenConfigured,
     loadingCompositeSourceControl: scmOnboarding.viewState.loadingCompositeSourceControl,
 
     // organizations
-    loadingOrganizations: scmOnboarding.loadingOrganizations,
-    organizations: scmOnboarding.organizations,
-    selectedOrganization: scmOnboarding.selectedOrganization,
+    loadingOrganizations: scmOnboarding.viewState.loadingOrganizations,
+    organizations: scmOnboarding.formState.organizations,
+    selectedOrganization: scmOnboarding.formState.selectedOrganization,
 
     // repositories
-    loadingRepositories: scmOnboarding.loadingRepositories,
-    repositories: scmOnboarding.repositories,
-    totalRepositories: scmOnboarding.totalRepositories,
-    selectedRepositoryCount: scmOnboarding.selectedRepositoryCount,
-    importedRepositoryCount: scmOnboarding.importedRepositoryCount,
+    loadingRepositories: scmOnboarding.viewState.loadingRepositories,
+    repositories: scmOnboarding.formState.repositories,
+    totalRepositories: scmOnboarding.formState.totalRepositories,
+    selectedRepositoryCount: scmOnboarding.formState.selectedRepositoryCount,
+    importedRepositoryCount: scmOnboarding.formState.importedRepositoryCount,
 
     // host URL
-    defaultHostUrl: scmOnboarding.defaultHostUrl,
-    currentHostUrl: scmOnboarding.currentHostUrl,
+    defaultHostUrl: scmOnboarding.formState.defaultHostUrl,
+    currentHostUrl: scmOnboarding.formState.currentHostUrl,
 
     // actions
     onRepositorySelectionChanged: scmOnboarding.onRepositorySelectionChanged,

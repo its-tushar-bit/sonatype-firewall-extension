@@ -270,7 +270,7 @@ function OwnerTreeViewController($q, $scope, $state, $stateParams, $http, $ngRed
 
   function mapStateToThis(state) {
     return ({
-      isScmOnboardingFeatureEnabled: state.scmOnboarding.isScmOnboardingFeatureEnabled
+      isScmOnboardingFeatureEnabled: state.scmOnboarding.configState.isScmOnboardingFeatureEnabled
     });
   }
 }

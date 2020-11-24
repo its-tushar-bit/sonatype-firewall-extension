@@ -26,142 +26,221 @@ import {
 import {Messages} from '../../util/CommonServices';
 
 const initialState = {
-  loadingConfig: true,
-  isScmOnboardingFeatureEnabled: null,
-  scmProvider: '',
-
-  viewState: {
-    // composite source control
-    loadingCompositeSourceControl: null,
+  configState: {
+    isScmOnboardingFeatureEnabled: null,
     isScmTokenConfigured: null,
+    scmProvider: ''
+  },
+  viewState: {
+    loadingConfig: false,
+    loadingOrganizations: false,
+    loadingRepositories: false,
+    loadingCompositeSourceControl: false,
 
-    // generic (http) error message
     lastErrorMessage: null
   },
-
-  loadingOrganizations: false,
-  organizations: [],
-  selectedOrganization: null,
-  preselectedOrganizationId: null,
-
-  loadingRepositories: false,
-  repositories: [],
-  selectedRepositoryCount: 0,
-  importedRepositoryCount: 0,
-
-  defaultHostUrl: '',
-  currentHostUrl: ''
+  formState: {
+    organizations: [],
+    selectedOrganization: null,
+    preselectedOrganizationId: null,
+    repositories: [],
+    selectedRepositoryCount: 0,
+    importedRepositoryCount: 0,
+    totalRepositories: 0,
+    defaultHostUrl: '',
+    currentHostUrl: ''
+  }
 };
 
 function loadConfigRequested() {
   return {
     ...initialState,
-    loadingConfig: true
+    viewState: {
+      ...initialState.viewState,
+      loadingConfig: true
+    }
   };
 }
 
 function loadConfigFulfilled(payload, state) {
   return {
     ...state,
-    isScmOnboardingFeatureEnabled: payload.scmOnboardingFeatureEnabled,
-    loadingConfig: false
+    viewState: {
+      ...state.viewState,
+      loadingConfig: false
+    },
+    configState: {
+      ...state.configState,
+      isScmOnboardingFeatureEnabled: payload.scmOnboardingFeatureEnabled
+    }
   };
 }
 
-function loadConfigFailed(payload) {
+function loadConfigFailed(payload, state) {
   return {
-    ...initialState,
-    loadingConfig: false,
-    error: payload.response && payload.response.status === 404 ? null : Messages.getHttpErrorMessage(payload)
+    ...state,
+    viewState: {
+      ...state.viewState,
+      loadingConfig: false,
+      lastErrorMessage: Messages.getHttpErrorMessage(payload)
+    },
+    configState: {
+      ...state.configState,
+      isScmOnboardingFeatureEnabled: null
+    }
   };
 }
 
 function loadOrganizationsRequested(payload, state) {
   return {
     ...state,
-    loadingOrganizations: true,
-    preselectedOrganizationId: payload
+    viewState: {
+      ...state.viewState,
+      loadingOrganizations: true
+    },
+    formState: {
+      ...state.formState,
+      preselectedOrganizationId: payload
+    }
   };
 }
 
 function loadOrganizationsFulfilled(payload, state) {
   return {
     ...state,
-    loadingOrganizations: false,
-    organizations: payload,
-    selectedOrganization: payload.find(org => org.id === state.preselectedOrganizationId) || state.selectedOrganization
+    viewState: {
+      ...state.viewState,
+      loadingOrganizations: false
+    },
+    formState: {
+      ...state.formState,
+      selectedOrganization: payload.find(org => org.id === state.formState.preselectedOrganizationId)
+          || state.selectedOrganization,
+      organizations: payload
+    }
   };
 }
 
 function loadOrganizationsFailed(payload, state) {
   return {
     ...state,
-    loadingOrganizations: false,
-    error: payload.response && payload.response.status === 404 ? null : Messages.getHttpErrorMessage(payload)
+    viewState: {
+      ...state.viewState,
+      loadingOrganizations: false,
+      lastErrorMessage: Messages.getHttpErrorMessage(payload)
+    },
+    formState: {
+      organizations: null,
+      selectedOrganization: null
+    }
   };
 }
 
 function setSelectedOrganization(payload, state) {
   return {
     ...state,
-    selectedOrganization: payload
+    formState: {
+      ...state.formState,
+      selectedOrganization: payload
+    }
   };
 }
 
 function loadRepositoriesRequested(payload, state) {
   return {
     ...state,
-    repositories: [],
-    loadingRepositories: true
+    viewState: {
+      ...state.viewState,
+      loadingRepositories: true
+    },
+    formState: {
+      ...state.formState,
+      repositories: []
+    }
   };
 }
 
 function loadRepositoriesFulfilled(payload, state) {
   return {
     ...state,
-    loadingRepositories: false,
-    repositories: payload.availableRepositories,
-    totalRepositories: payload.totalRepositories,
-    selectedRepositoryCount: 0,
-    // todo gather correct values INT-3479
-    importedRepositoryCount: 0
+    viewState: {
+      ...state.viewState,
+      loadingRepositories: false
+    },
+    formState: {
+      ...state.formState,
+      repositories: payload.availableRepositories,
+      totalRepositories: payload.totalRepositories,
+      importedRepositoryCount: 0,
+      selectedRepositoryCount: 0
+    }
   };
 }
 
 function loadRepositoriesFailed(payload, state) {
   return {
     ...state,
-    loadingRepositories: false,
-    error: payload.response && payload.response.status === 404 ? null : Messages.getHttpErrorMessage(payload)
+    viewState: {
+      ...state.viewState,
+      loadingRepositories: false,
+      lastErrorMessage: Messages.getHttpErrorMessage(payload)
+    },
+    formState: {
+      ...state.formState,
+      repositories: null,
+      totalRepositories: 0,
+      importedRepositoryCount: 0,
+      selectedRepositoryCount: 0
+    }
   };
 }
 
 function loadOrgDefaultHostUrlRequested(payload, state) {
   return {
-    ...state
+    ...state,
+    formState: {
+      ...state.formState,
+      defaultHostUrl: '',
+      currentHostUrl: ''
+    }
   };
 }
 
 function loadOrgDefaultHostUrlFulfilled(payload, state) {
-  if (state.currentHostUrl === state.defaultHostUrl) {
+  if (state.formState.currentHostUrl === state.formState.defaultHostUrl) {
     // user has not changed the current value from the default, safe to update both
     return {
       ...state,
-      defaultHostUrl: payload.defaultHostUrl,
-      currentHostUrl: payload.defaultHostUrl
+      formState: {
+        ...state.formState,
+        defaultHostUrl: payload.defaultHostUrl,
+        currentHostUrl: payload.defaultHostUrl
+      }
     };
   }
   else {
     return {
       ...state,
-      defaultHostUrl: payload.defaultHostUrl
+      formState: {
+        ...state.formState,
+        defaultHostUrl: payload.defaultHostUrl
+      }
     };
   }
 }
 
 function loadOrgDefaultHostUrlFailed(payload, state) {
   return {
-    ...state
+    ...state,
+    viewState: {
+      ...state.viewState,
+      lastErrorMessage: Messages.getHttpErrorMessage(payload)
+    },
+    configState: {
+      ...state.configState,
+      defaultHostUrl: '',
+      currentHostUrl: ''
+    }
   };
 }
 
@@ -177,8 +256,12 @@ function loadCompositeSourceControlRequested(payload, state) {
     ...state,
     viewState: {
       ...state.viewState,
-      loadingCompositeSourceControl: true,
-      isScmTokenConfigured: null
+      loadingCompositeSourceControl: true
+    },
+    configState: {
+      ...state.configState,
+      isScmTokenConfigured: null,
+      scmProvider: null
     }
   };
 }
@@ -186,11 +269,14 @@ function loadCompositeSourceControlRequested(payload, state) {
 function loadCompositeSourceControlFulfilled(payload, state) {
   return {
     ...state,
-    scmProvider: payload.provider, // TODO entry point for INT-3695
     viewState: {
       ...state.viewState,
-      loadingCompositeSourceControl: false,
-      isScmTokenConfigured: !!payload.token.value || !!payload.token.parentValue
+      loadingCompositeSourceControl: false
+    },
+    configState: {
+      ...state.configState,
+      isScmTokenConfigured: !!payload.token.value || !!payload.token.parentValue,
+      scmProvider: payload.provider
     }
   };
 }
@@ -201,8 +287,12 @@ function loadCompositeSourceControlFailed(payload, state) {
     viewState: {
       ...state.viewState,
       loadingCompositeSourceControl: false,
-      isScmTokenConfigured: null,
       lastErrorMessage: Messages.getHttpErrorMessage(payload)
+    },
+    configState: {
+      ...state.configState,
+      isScmTokenConfigured: null,
+      scmProvider: null
     }
   };
 }

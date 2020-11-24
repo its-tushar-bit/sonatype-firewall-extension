@@ -220,7 +220,7 @@ public final class ReportInnerSource
         log.info("InnerSource component found '{}' with {} transitive dependencies", parentComponent,
             childrenComponents.size());
         processTransitiveDependencies(bom, childrenComponents, innerSourceApp, innerSourceComponentDAO,
-            knownArtifactCount, exactlyMatchedComponentCount);
+            knownArtifactCount, exactlyMatchedComponentCount, directDependency);
       }
     }
   }
@@ -265,6 +265,7 @@ public final class ReportInnerSource
         bomObjectNode.put("ownerApplicationName", innerSourceApp.getName());
         bomObjectNode.put("ownerApplicationId", innerSourceApp.getId());
         bomObjectNode.put("innerSource", true);
+        setInnerSourceComponentName(innerSourceComponent, bomObjectNode);
 
         if (MatchState.UNKNOWN.getId().equals(bomChild.get(MATCH_STATE).asText())) {
           markInnerSourceComponentAsKnown(bomObjectNode, bomComponentIdentifier, knownArtifactCount,
@@ -305,7 +306,8 @@ public final class ReportInnerSource
       final Application innerSourceApp,
       final InnerSourceComponentDAO innerSourceComponentDAO,
       final AtomicInteger knownArtifactCount,
-      final AtomicInteger exactlyMatchedComponentCount)
+      final AtomicInteger exactlyMatchedComponentCount,
+      final DependencyNode parentDependency)
   {
     for (DependencyNode dependency : transitiveDependencies) {
       for (JsonNode bomChild : bom.get("aaData")) {
@@ -319,6 +321,8 @@ public final class ReportInnerSource
           log.debug("Component {} associated with InnerSource app {}", bomComponentIdentifier,
               innerSourceApp.getName());
 
+          setInnerSourceComponentName(parentDependency.getComponentIdentifier(), bomObjectNode);
+
           if (MatchState.UNKNOWN.getId().equals(bomChild.get(MATCH_STATE).asText())) {
             updateUnknownTransitiveDependencyAsKnown(innerSourceComponentDAO, knownArtifactCount,
                 exactlyMatchedComponentCount, bomComponentIdentifier, bomObjectNode);
@@ -327,6 +331,10 @@ public final class ReportInnerSource
         }
       }
     }
+  }
+
+  private static void setInnerSourceComponentName(ComponentIdentifier componentIdentifier, ObjectNode bomObjectNode) {
+    bomObjectNode.put("innerSourceComponentName", componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID));
   }
 
   private static ComponentIdentifier getBomComponentIdentifier(JsonNode bomChild) {

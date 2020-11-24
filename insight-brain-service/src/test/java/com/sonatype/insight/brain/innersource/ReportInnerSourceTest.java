@@ -237,6 +237,24 @@ public class ReportInnerSourceTest extends InjectedTest
 
     assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
 
+    Map<ComponentIdentifier, String> dependencyComponentNameMap = new HashMap<>();
+    dependencyComponentNameMap
+        .put(ComponentIdentifier.createMavenCoordinates("com.google.code.gson", "gson", "2.8.1", "", "jar"),
+            "insight-scanner-archive");
+    dependencyComponentNameMap
+        .put(ComponentIdentifier.createMavenCoordinates("xmlpull", "xmlpull", "1.1.3.1", "", "jar"),
+            "insight-module-model");
+    dependencyComponentNameMap.put(
+        ComponentIdentifier.createMavenCoordinates("org.seleniumhq.selenium", "selenium-leg-rc", "2.48.2", "", "jar"),
+        "insight-scanner-archive");
+    dependencyComponentNameMap
+        .put(ComponentIdentifier.createMavenCoordinates("org.slf4j", "slf4j-api", "1.7.30", "", "jar"),
+            "insight-module-model");
+    dependencyComponentNameMap.put(ComponentIdentifier
+            .createMavenCoordinates("org.seleniumhq.selenium", "selenium-remote-driver", "2.48.2", "", "jar"),
+        "insight-scanner-archive");
+    assertComponentNameForTransitiveDependencies(bomInnerSourceDependencies, dependencyComponentNameMap);
+
     Set<String> innerSourceIds = new HashSet<>();
     innerSourceIds.add(model.getApplicationId());
     innerSourceIds.add(archive.getApplicationId());
@@ -498,6 +516,8 @@ public class ReportInnerSourceTest extends InjectedTest
     assertThat(bomInnerSource.get("matchState").asText()).isEqualTo(MatchState.EXACT.getId());
     assertThat(bomInnerSource.get("ownerApplicationName").asText()).isEqualTo(app.getName());
     assertThat(bomInnerSource.get("ownerApplicationId").asText()).isEqualTo(app.getId());
+    assertThat(bomInnerSource.get("innerSourceComponentName").asText())
+        .isEqualTo(componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID));
 
     assertThat(bomInnerSource.get(ComponentIdentifier.MAVEN_GROUP_ID).asText()).isNotNull();
     assertThat(bomInnerSource.get(ComponentIdentifier.MAVEN_ARTIFACT_ID).asText()).isNotNull();
@@ -531,6 +551,18 @@ public class ReportInnerSourceTest extends InjectedTest
       assertThat(transitiveDependencies.get("ownerApplicationName").asText()).isEqualTo(appInnerSource.getName());
       assertThat(transitiveDependencies.get("ownerApplicationId").asText()).isEqualTo(appInnerSource.getId());
       assertThat(transitiveDependencies.get("componentIdentifier")).isNotNull();
+    }
+  }
+
+  private void assertComponentNameForTransitiveDependencies(
+      final List<JsonNode> bomInnerSourceDependencies,
+      final Map<ComponentIdentifier, String> dependencyComponentNameMap)
+  {
+    for (JsonNode transitiveDependencies : bomInnerSourceDependencies) {
+      ComponentIdentifier componentIdentifier =
+          ComponentIdentifierAdapter.getComponentIdentifier(transitiveDependencies);
+      String expectedComponentName = dependencyComponentNameMap.get(componentIdentifier);
+      assertThat(transitiveDependencies.get("innerSourceComponentName").asText()).isEqualTo(expectedComponentName);
     }
   }
 

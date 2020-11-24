@@ -101,4 +101,6 @@ public class PublicApiPaths
   public static final String CONFIG_FEATURES_PATH = EXPERIMENTAL_PATH + "config/features";
   
   public static final String LICENSE_LEGAL_RESOURCE_PATH = EXPERIMENTAL_PATH + "licenseLegalMetadata";
+
+  public static final String PING_RESOURCE_PATH = "/ping";
 }

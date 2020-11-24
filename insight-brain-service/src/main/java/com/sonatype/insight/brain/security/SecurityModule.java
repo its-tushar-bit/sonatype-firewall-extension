@@ -94,6 +94,7 @@ public class SecurityModule
         anonFilters + ", noSessionCreation, " +
         "reverseProxy[" + ReverseProxyAuthenticationFilter.NO_SESSION_CREATION + ",permissive], " +
         "authcBasic[permissive]");
+    manager.createChain("/ping", anonFilters);
 
     // public REST API
     manager.createChain("/api/**", "noSessionCreation, antiCsrf[" + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED + "], " +

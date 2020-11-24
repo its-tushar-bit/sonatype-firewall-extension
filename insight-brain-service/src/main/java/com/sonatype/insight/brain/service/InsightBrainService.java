@@ -24,6 +24,7 @@ import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.validation.Validator;
 
+import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.audit.AuditFilter;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
@@ -47,6 +48,7 @@ import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.jaxrs.ComponentIdentifierParamConverterProvider;
 import com.sonatype.insight.jaxrs.error.JaxRsExceptionMapper;
 
+import com.codahale.metrics.servlets.PingServlet;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
@@ -369,6 +371,8 @@ public class InsightBrainService
     replaceGenericExceptionMapper(env, config);
     env.jersey().register(new InsightJacksonMessageBodyProvider(env.getObjectMapper()));
     env.jersey().register(new ComponentIdentifierParamConverterProvider(env.getObjectMapper()));
+    env.servlets().addServlet(PingServlet.class.getSimpleName(), PingServlet.class)
+        .addMapping(PublicApiPaths.PING_RESOURCE_PATH);
 
     addServletFilter(env, BaseUrlFilter.class, "/*");
     addServletFilter(env, AuditFilter.class, AuditFilter.URL_PATTERNS);

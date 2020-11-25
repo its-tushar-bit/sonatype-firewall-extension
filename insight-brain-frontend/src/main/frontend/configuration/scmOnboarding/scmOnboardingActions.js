@@ -11,7 +11,8 @@ import {
   getScmOnboardingConfigUrl,
   getOrganizationsUrl,
   getScmRepositoriesUrl,
-  getScmDefaultHostUrl
+  getScmDefaultHostUrl,
+  getImportRepositoriesUrl
 } from '../../util/CLMLocation';
 
 export const SCM_ONBOARDING_LOAD_CONFIG_REQUESTED = 'SCM_ONBOARDING_LOAD_CONFIG_REQUESTED';
@@ -32,6 +33,10 @@ export const SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_REQUESTED = 'SCM_ONBOARDIN
 export const SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FULFILLED = 'SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FULFILLED';
 export const SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FAILED = 'SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FAILED';
 export const SCM_ONBOARDING_SET_CURRENT_HOST_URL = 'SCM_ONBOARDING_SET_CURRENT_HOST_URL';
+
+export const SCM_ONBOARDING_IMPORT_REPOS_REQUESTED = 'SCM_ONBOARDING_IMPORT_REPOS_REQUESTED';
+export const SCM_ONBOARDING_IMPORT_REPOS_FULFILLED = 'SCM_ONBOARDING_IMPORT_REPOS_FULFILLED';
+export const SCM_ONBOARDING_IMPORT_REPOS_FAILED = 'SCM_ONBOARDING_IMPORT_REPOS_FAILED';
 
 export const SCM_ONBOARDING_SET_TARGET_ORGANIZATION = 'SCM_ONBOARDING_SET_TARGET_ORGANIZATION';
 
@@ -85,8 +90,14 @@ export function onRepositorySelectionChanged(repo) {
   };
 }
 
-export function importSelectedRepositories() {
-  // TODO INT-3482
+export function importSelectedRepositories(orgId, selectedRepositories) {
+  return function(dispatch) {
+    dispatch(importSelectedRepositoriesRequested());
+
+    return axios.post(getImportRepositoriesUrl(orgId), selectedRepositories)
+        .then(({ data }) => { dispatch(importSelectedRepositoriesFulfilled(data)); })
+        .catch(error => { dispatch(importSelectedRepositoriesFailed(error)); });
+  };
 }
 
 export function loadOrgHostUrl(orgId, provider) {
@@ -119,6 +130,10 @@ const loadOrgDefaultHostUrlFulfilled = payloadParamActionCreator(SCM_ONBOARDING_
 const loadOrgDefaultHostUrlFailed = payloadParamActionCreator(SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FAILED);
 
 export const setCurrentHostUrl = payloadParamActionCreator(SCM_ONBOARDING_SET_CURRENT_HOST_URL);
+
+const importSelectedRepositoriesRequested = noPayloadActionCreator(SCM_ONBOARDING_IMPORT_REPOS_REQUESTED);
+const importSelectedRepositoriesFulfilled = payloadParamActionCreator(SCM_ONBOARDING_IMPORT_REPOS_FULFILLED);
+const importSelectedRepositoriesFailed = payloadParamActionCreator(SCM_ONBOARDING_IMPORT_REPOS_FAILED);
 
 const loadCompositeSourceControlRequested = noPayloadActionCreator(SCM_ONBOARDING_LOAD_COMPOSITE_SCM_REQUESTED);
 const loadCompositeSourceControlFulfilled = payloadParamActionCreator(SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FULFILLED);

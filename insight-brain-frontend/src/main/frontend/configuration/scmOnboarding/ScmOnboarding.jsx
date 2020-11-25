@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, {useEffect, Fragment} from 'react';
+import React, {useEffect, Fragment, useState} from 'react';
 
 import MaximizedContainer from '../../react/MaximizedContainer';
 import * as PropTypes from 'prop-types';
@@ -12,6 +12,7 @@ import LoadWrapper from '../../react/LoadWrapper';
 import ResultsTable from './components/ResultsTable';
 import {faSitemap} from '@fortawesome/pro-regular-svg-icons';
 import NxButton from '@sonatype/react-shared-components/components/NxButton/NxButton';
+import {NxSuccessAlert} from '@sonatype/react-shared-components/components/NxAlert/NxAlert';
 
 const permissionsError = `It appears you do not have permission to access this page.
         If you believe this to be incorrect please contact your administrator.`,
@@ -44,6 +45,7 @@ export default function ScmOnboarding(props) {
     loadingRepositories,
     selectedRepositoryCount,
     totalRepositories,
+    newlyImportedRepos,
 
     // host URL
     defaultHostUrl,
@@ -94,6 +96,16 @@ export default function ScmOnboarding(props) {
     }
   }, [defaultHostUrl]);
 
+  const [isSuccessMessageOpen, setIsSuccessMessageOpen] = useState(false);
+
+  useEffect(() => {
+    setIsSuccessMessageOpen(newlyImportedRepos.length > 0);
+  }, [newlyImportedRepos]);
+
+  function dismissSuccessMessage() {
+    setIsSuccessMessageOpen(false);
+  }
+
   function handleLoadRepositories(event) {
     event.preventDefault();
     loadRepositories(preselectedOrganizationId, currentHostUrl);
@@ -119,6 +131,12 @@ export default function ScmOnboarding(props) {
               <div className="nx-page-title__description">
                 <p className="nx-p">Use the filters and checkboxes to select repositories to import</p>
               </div>
+              {isSuccessMessageOpen && newlyImportedRepos.length > 0 &&
+              <NxSuccessAlert onClose={dismissSuccessMessage}>
+                {newlyImportedRepos.length} repositories were successfully imported to IQ Server as applications under
+                the {selectedOrganization.name} Organization.
+              </NxSuccessAlert>
+              }
             </div>
             <section className="nx-tile host-url-tile">
               <form className="nx-form">
@@ -155,7 +173,8 @@ export default function ScmOnboarding(props) {
               totalRepositories,
               onRepositorySelectionChanged,
               importSelectedRepositories,
-              loadRepositories
+              loadRepositories,
+              preselectedOrganizationId
             }} />
           </LoadWrapper>
         </section>
@@ -200,6 +219,8 @@ ScmOnboarding.propTypes = {
   repositories: PropTypes.arrayOf(PropTypes.shape(repositoryPropType)).isRequired,
   selectedRepositoryCount: PropTypes.number.isRequired,
   totalRepositories: PropTypes.number,
+  importedRepositoryCount: PropTypes.number,
+  newlyImportedRepos: PropTypes.arrayOf(PropTypes.shape(repositoryPropType)).isRequired,
 
   // from angular router
   isAuthorized: PropTypes.bool.isRequired,

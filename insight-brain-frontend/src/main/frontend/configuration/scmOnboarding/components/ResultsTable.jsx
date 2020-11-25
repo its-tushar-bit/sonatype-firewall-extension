@@ -25,6 +25,7 @@ export default function ResultsTable(props) {
     loadingRepositories,
     repositories,
     totalRepositories,
+    preselectedOrganizationId,
 
     // actions
     importSelectedRepositories,
@@ -57,6 +58,11 @@ export default function ResultsTable(props) {
     setFilters(Object.assign({}, filters, {[filterName]: filterValue}));
     setSelectedRepositories(repositories.filter(repo => repo[filterName].includes(filterValue)
         && selectedRepositories.includes(repo)));
+  }
+
+  function handleImportSelectedRepositories() {
+    importSelectedRepositories(preselectedOrganizationId, selectedRepositories);
+    setSelectedRepositories([]);
   }
 
   return (
@@ -150,7 +156,7 @@ export default function ResultsTable(props) {
             <NxButton id="iq-scm-import-button"
                       variant="primary"
                       disabled={selectedRepositories.length <= 0}
-                      onClick={() => importSelectedRepositories()}>
+                      onClick={handleImportSelectedRepositories}>
               Import Repositories
             </NxButton>
           </div>
@@ -166,6 +172,7 @@ ResultsTable.propTypes = {
   totalRepositories: PropTypes.number,
   selectedRepositoryCount: PropTypes.number.isRequired,
   importedRepositoryCount: PropTypes.number,
+  preselectedOrganizationId: PropTypes.string,
 
   // actions
   onRepositorySelectionChanged: PropTypes.func.isRequired,

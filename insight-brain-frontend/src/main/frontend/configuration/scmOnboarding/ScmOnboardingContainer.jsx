@@ -31,6 +31,7 @@ function mapStateToProps({ scmOnboarding, router }) {
     totalRepositories: scmOnboarding.formState.totalRepositories,
     selectedRepositoryCount: scmOnboarding.formState.selectedRepositoryCount,
     importedRepositoryCount: scmOnboarding.formState.importedRepositoryCount,
+    newlyImportedRepos: scmOnboarding.formState.newlyImportedRepos,
 
     // host URL
     defaultHostUrl: scmOnboarding.formState.defaultHostUrl,

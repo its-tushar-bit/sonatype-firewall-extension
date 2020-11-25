@@ -98,7 +98,6 @@ public class ScmOnboardingTest
     String encryptedPwd = new String(pwHandler.encryptPassword("TOKEN".toCharArray()));
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, encryptedPwd, GITHUB);
 
-    // TODO INT-3695 adds default host support, until then have to prime the pump
     Application app = tempEntity.newApplication(org.getId());
     tempEntity.newSourceControl(app.getId(), gitService.baseUrl() + "/org/repo.git", null);
     Application app2 = tempEntity.newApplication(org.getId());
@@ -233,6 +232,9 @@ public class ScmOnboardingTest
     loginAsAdmin();
 
     // update the default host URL
+    scmOnboardingPage.hostUrl().waitUntil(value(gitService.baseUrl()), 2000);
+    updateHostUrl(scmOnboardingPage);
+    scmOnboardingPage.reloadRepoButton().click();
     updateHostUrl(scmOnboardingPage);
     scmOnboardingPage.reloadRepoButton().waitUntil(enabled, 2000).click();
 
@@ -356,6 +358,61 @@ public class ScmOnboardingTest
     scmOnboardingPage.selectedRepositoryCount().shouldBe(text("2"));
     assertThat(scmOnboardingPage.resultsTableProject().texts()).containsExactlyInAnyOrder("ci-project-1",
         "ci-project-16");
+
+  }
+
+  @Test
+  public void testSelectAndImport() throws Exception {
+    // given an SCM with git repos
+    setupMockRepos();
+    setupSourceControl();
+
+    // given SCM onboarding page with a selected organization
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
+    loginAsAdmin();
+
+    // update the default host URL
+    updateHostUrl(scmOnboardingPage);
+    scmOnboardingPage.reloadRepoButton().waitUntil(enabled, 2000).click();
+
+    // when select all is clicked while a filter is active
+    scmOnboardingPage.resultsTableSelectAll().parent().waitUntil(visible, 5000);
+    scmOnboardingPage.projectFilter().setValue("ci-");
+    scmOnboardingPage.resultsTableSelectAll().parent().click();
+
+    // then selected count is updated with the number of filtered repositories
+    scmOnboardingPage.selectedRepositoryCount().shouldBe(text("2"));
+    assertThat(scmOnboardingPage.resultsTableProject().texts()).containsExactlyInAnyOrder("ci-project-1",
+        "ci-project-16");
+
+    // when we import the selected repos
+    scmOnboardingPage.importRepoButton().click();
+
+    // then we see a success message
+    scmOnboardingPage.successMessage().waitUntil(visible, 5000);
+    scmOnboardingPage.successMessage().shouldBe(text(
+        "2 repositories were successfully imported to IQ Server as applications under the Test Org Organization."));
+
+    // and the imported count is incremented
+    scmOnboardingPage.alreadyImportedCount().shouldBe(text("2"));
+
+    // and the initially selected elements are no longer visible
+    scmOnboardingPage.selectedRepositoryCount().shouldBe(text("0"));
+    assertThat(scmOnboardingPage.resultsTableProject().texts()).isEmpty();
+
+    // and they are not there when the filter is updated
+    scmOnboardingPage.projectFilter().sendKeys(Keys.CONTROL, "a");
+    scmOnboardingPage.projectFilter().sendKeys(Keys.BACK_SPACE);
+    scmOnboardingPage.resultsTableSelectAll().parent().click();
+    scmOnboardingPage.repositoryCount().shouldBe(text("11"));
+    scmOnboardingPage.selectedTotalCount().shouldBe(text("OF 11 REPOSITORIES"));
+    scmOnboardingPage.resultsTableProject().shouldHaveSize(11);
+    assertThat(scmOnboardingPage.resultsTableNamespace().texts()).containsAnyOf("sonatype-nexus-community");
+    assertThat(scmOnboardingPage.resultsTableProject().texts()).containsExactlyInAnyOrder(
+        "create-react-app", "nexus-repository-p2", "nexus-repository-puppet",
+        "nexus-repository-terraform", "nexus-repository-vgo", "nexus-scripting-examples",
+        "nexus-webhook-example-collection", "nxrm-cli", "ossindex-gradle-plugin", "oysteR", "prime-nexus-proxy-repos");
   }
 
   @Test

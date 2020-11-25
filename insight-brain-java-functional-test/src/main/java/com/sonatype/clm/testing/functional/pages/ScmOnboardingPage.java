@@ -92,6 +92,10 @@ public class ScmOnboardingPage
     return child("#selected-repository-count");
   }
 
+  public SelenideElement alreadyImportedCount() {
+    return child("#scm-already-imported");
+  }
+
   public SelenideElement backButton() {
     return child(".nx-back-button");
   }
@@ -110,6 +114,14 @@ public class ScmOnboardingPage
 
   public SelenideElement loadingSpinner() {
     return child(".nx-loading-spinner");
+  }
+
+  public SelenideElement importRepoButton() {
+    return child("#iq-scm-import-button");
+  }
+
+  public SelenideElement successMessage() {
+    return child(".nx-alert--success");
   }
 
   public static class OrganizationsDropdown

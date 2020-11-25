@@ -6,14 +6,20 @@
 package com.sonatype.insight.brain.api.experimental;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
+import javax.ws.rs.core.UriBuilder;
+
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.experimental.dto.SCMRepositories;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
+import com.sonatype.nexus.scm.api.model.SCMRepository;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.apache.http.HttpHeaders;
@@ -29,6 +35,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.sonatype.insight.brain.api.experimental.ApiScmOnboardingResource.DEFAULT_HOST_URL;
+import static com.sonatype.insight.brain.api.experimental.ApiScmOnboardingResource.IMPORT_REPO_PATH;
 import static com.sonatype.insight.brain.api.experimental.ApiScmOnboardingResource.LOAD_REPO_PATH;
 import static com.sonatype.insight.brain.api.experimental.ApiScmOnboardingResource.RESOURCE_PATH;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
@@ -51,6 +58,11 @@ public class ApiScmOnboardingResourceTest
             .withBody("{\"username\":\"foo\"}")));
   }
 
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(RESOURCE_PATH);
+  }
+
   @Test
   public void testLoadRepositories() throws Exception {
     mockRepoForPage(gitService, 0, getResourceAsString("/ApiScmOnboardingServiceTest/allRepos0.json"));
@@ -63,7 +75,7 @@ public class ApiScmOnboardingResourceTest
         .newSourceControl(ROOT_ORGANIZATION_ID, null, encryptedPwd, SourceControlProvider.GITHUB);
 
     // when repositories are loaded
-    HttpResponse response = restRequest().path(RESOURCE_PATH + "/" + LOAD_REPO_PATH)
+    HttpResponse response = restRequest().path(LOAD_REPO_PATH)
         .query("orgId", org.getId())
         .query("defaultHostUrl", gitService.baseUrl())
         .get();
@@ -71,7 +83,7 @@ public class ApiScmOnboardingResourceTest
     // then the response is OK
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SC_OK);
     SCMRepositories responseList = response.getBody(SCMRepositories.class);
-    assertThat(responseList.availableRepositories.size()).isEqualTo(13);
+    assertThat(responseList.availableRepositories).hasSize(13);
   }
 
   private String getResourceAsString(String filename) throws IOException {
@@ -90,7 +102,7 @@ public class ApiScmOnboardingResourceTest
   @Test
   public void testDefaultHostUrl() throws Exception {
     // when
-    HttpResponse response = restRequest().path(RESOURCE_PATH + "/" + DEFAULT_HOST_URL)
+    HttpResponse response = restRequest().path(DEFAULT_HOST_URL)
         .query("provider", "github")
         .query("orgId", "no-org-here")
         .get();
@@ -98,7 +110,49 @@ public class ApiScmOnboardingResourceTest
     // then the response is OK
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SC_OK);
     Map<String, String> responseList = response.getBody(Map.class);
-    assertThat(responseList.size()).isEqualTo(1);
+    assertThat(responseList).hasSize(1);
     assertThat(responseList.get("defaultHostUrl")).isEqualTo("https://github.com/");
+  }
+
+  @Test
+  public void testImportRepositories() throws Exception {
+    // given we are configured to use Github
+    PasswordHandler pwHandler = getCLMServer().getInstance(PasswordHandler.class);
+    String encryptedPwd = new String(pwHandler.encryptPassword("TOKEN".toCharArray()));
+    tempEntity
+        .newSourceControl(ROOT_ORGANIZATION_ID, null, encryptedPwd, SourceControlProvider.GITHUB);
+
+    // when we make a call to import a repository
+    String repoUrl = "https://localhost:5333/org/repo.git";
+    List<SCMRepository> toAdd = Arrays.asList(new SCMRepository(SourceControlProvider.GITHUB,
+        repoUrl, true, "org", "repo", null));
+    HttpResponse response = restRequest()
+        .path(UriBuilder.fromPath(IMPORT_REPO_PATH).build(org.getId()).toString())
+        .body(toAdd)
+        .post();
+
+    // then the response is OK
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SC_OK);
+    Map<String, List<Map<String, Object>>> responseList = response.getBody(Map.class);
+    assertThat(responseList).hasSize(1);
+    List<Map<String, Object>> importedRepoList = responseList.get("importedRepositories");
+    assertThat(importedRepoList).hasSize(1);
+    Map<String, Object> importedRepo = importedRepoList.get(0);
+    assertThat(importedRepo.get("httpCloneUrl")).isEqualTo(repoUrl);
+  }
+
+  @Test
+  public void testImportRepositories_missingOrg() throws Exception {
+    // when we make a call to import a repository that doesn't exist
+    String repoUrl = "https://localhost:5333/org/repo.git";
+    List<SCMRepository> toAdd = Arrays.asList(new SCMRepository(SourceControlProvider.GITHUB,
+        repoUrl, true, "org", "repo", null));
+    HttpResponse response = restRequest()
+        .path(UriBuilder.fromPath(IMPORT_REPO_PATH).build("missing-org-id").toString())
+        .body(toAdd)
+        .post();
+
+    // then the response is NOT_FOUND
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SC_NOT_FOUND);
   }
 }

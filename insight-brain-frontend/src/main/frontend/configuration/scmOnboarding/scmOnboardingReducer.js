@@ -20,8 +20,11 @@ import {
   SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED,
   SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED,
   SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED,
+  SCM_ONBOARDING_IMPORT_REPOS_REQUESTED,
+  SCM_ONBOARDING_IMPORT_REPOS_FULFILLED,
   SCM_ONBOARDING_SET_CURRENT_HOST_URL,
-  SCM_ONBOARDING_SET_TARGET_ORGANIZATION
+  SCM_ONBOARDING_SET_TARGET_ORGANIZATION,
+  SCM_ONBOARDING_IMPORT_REPOS_FAILED
 } from './scmOnboardingActions';
 import {Messages} from '../../util/CommonServices';
 
@@ -47,6 +50,7 @@ const initialState = {
     selectedRepositoryCount: 0,
     importedRepositoryCount: 0,
     totalRepositories: 0,
+    newlyImportedRepos: [],
     defaultHostUrl: '',
     currentHostUrl: ''
   }
@@ -195,6 +199,44 @@ function loadRepositoriesFailed(payload, state) {
   };
 }
 
+function importRepositoriesRequested(payload, state) {
+  return {
+    ...state,
+    formState: {
+      ...state.formState,
+      selectedRepositoryCount: 0,
+      newlyImportedRepos: []
+    }
+  };
+}
+
+function importRepositoriesFulfilled(payload, state) {
+  let importedRepos = payload.importedRepositories;
+  let newRepositoryList = state.formState.repositories.filter(function(repo) {
+    return !importedRepos.some(imported => imported.httpCloneUrl === repo.httpCloneUrl);
+  });
+  return {
+    ...state,
+    formState: {
+      ...state.formState,
+      repositories: newRepositoryList,
+      importedRepositoryCount: state.formState.importedRepositoryCount + importedRepos.length,
+      selectedRepositoryCount: 0,
+      newlyImportedRepos: importedRepos
+    }
+  };
+}
+
+function importRepositoriesFailed(payload, state) {
+  return {
+    ...state,
+    viewState: {
+      ...state.viewState,
+      lastErrorMessage: Messages.getHttpErrorMessage(payload)
+    }
+  };
+}
+
 function loadOrgDefaultHostUrlRequested(payload, state) {
   return {
     ...state,
@@ -309,6 +351,10 @@ const reducerActionMap = {
   [SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED]: loadRepositoriesRequested,
   [SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED]: loadRepositoriesFulfilled,
   [SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED]: loadRepositoriesFailed,
+
+  [SCM_ONBOARDING_IMPORT_REPOS_REQUESTED]: importRepositoriesRequested,
+  [SCM_ONBOARDING_IMPORT_REPOS_FULFILLED]: importRepositoriesFulfilled,
+  [SCM_ONBOARDING_IMPORT_REPOS_FAILED]: importRepositoriesFailed,
 
   [SCM_ONBOARDING_SET_TARGET_ORGANIZATION]: setSelectedOrganization,
 

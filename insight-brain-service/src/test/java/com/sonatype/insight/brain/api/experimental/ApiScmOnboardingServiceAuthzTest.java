@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.experimental;
 
+import java.util.Collections;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
@@ -85,5 +87,22 @@ public class ApiScmOnboardingServiceAuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void test_getDefaultHostUrl_Unauthenticated() throws Exception {
     apiScmOnboardingService.getDefaultHostUrl(PROVIDER, org.getId());
+  }
+
+  @Test(expected = None.class /* no exception expected */)
+  public void test_importRepositories_Authorized() throws Exception {
+    grantManageAutomaticSourceControlPermission();
+    apiScmOnboardingService.importRepositories(org.getId(), Collections.emptyList());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void test_importRepositories_Unauthorized() throws Exception {
+    login();
+    apiScmOnboardingService.importRepositories(org.getId(), Collections.emptyList());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void test_importRepositories_Unauthenticated() throws Exception {
+    apiScmOnboardingService.importRepositories(org.getId(), Collections.emptyList());
   }
 }

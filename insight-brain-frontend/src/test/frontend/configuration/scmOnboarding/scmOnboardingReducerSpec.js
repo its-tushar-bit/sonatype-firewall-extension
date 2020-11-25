@@ -485,4 +485,77 @@ describe('scmOnboardingReducer', function() {
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });
+
+  describe('import repositories', () => {
+    describe('succeeds', () => {
+      it('updates the new repository list', function() {
+        // given previous state with token
+        let initialRepos = [
+          {httpCloneUrl: 'http://host/prj/a'},
+          {httpCloneUrl: 'http://host/prj/b'},
+          {httpCloneUrl: 'http://host/prj/c'},
+          {httpCloneUrl: 'http://host/prj/d'},
+          {httpCloneUrl: 'http://host/prj/e'},
+          {httpCloneUrl: 'http://host/prj/f'}
+        ];
+        const state = Object.freeze({
+          formState: {
+            repositories: initialRepos,
+            importedRepositoryCount: 0,
+            importedRepos: [],
+            selectedRepositoryCount: 1,
+            newlyImportedRepos: []
+          },
+          other: otherObject
+        });
+
+        // when reduce is invoked
+        let importedRepos = [
+          {httpCloneUrl: 'http://host/prj/a'},
+          {httpCloneUrl: 'http://host/prj/b'}
+        ];
+        const newState = reduce(state, {
+          type: 'SCM_ONBOARDING_IMPORT_REPOS_FULFILLED',
+          payload: {
+            importedRepositories: importedRepos
+          }
+        });
+
+        // then imported state is updated
+        expect(newState.formState.importedRepositoryCount).toBe(2);
+        expect(newState.formState.selectedRepositoryCount).toBe(0);
+        expect(newState.formState.newlyImportedRepos).toBe(importedRepos);
+        expect(newState.formState.repositories).toEqual([
+          {httpCloneUrl: 'http://host/prj/c'},
+          {httpCloneUrl: 'http://host/prj/d'},
+          {httpCloneUrl: 'http://host/prj/e'},
+          {httpCloneUrl: 'http://host/prj/f'}
+        ]);
+
+        // and other properties are not modified
+        expect(newState.other).toBe(otherObject);
+      });
+    });
+
+    describe('fails', () => {
+      it('sets lastErrorMessage field to value of Error.message', function() {
+        const state = Object.freeze({
+          viewState: {
+            lastErrorMessage: null
+          },
+          other: otherObject
+        });
+
+        const newState = reduce(state, {type: 'SCM_ONBOARDING_IMPORT_REPOS_FAILED', payload: {status: 502}});
+
+        expect(newState).toEqual({
+          viewState: {
+            lastErrorMessage: 'Bad Gateway'
+          },
+          other: otherObject
+        });
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+    });
+  });
 });

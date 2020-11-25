@@ -8,12 +8,16 @@ package com.sonatype.insight.brain.api.experimental;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.experimental.dto.SCMRepositories;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -58,7 +62,11 @@ public class ApiScmOnboardingServiceTest
 
   private Organization org;
 
-  private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
+  @Inject
+  private SourceControlDAO sourceControlDAO;
+
+  @Inject
+  private ApplicationDAO applicationDAO;
 
   @Inject
   private PlexusCipher plexusCipher;
@@ -66,25 +74,21 @@ public class ApiScmOnboardingServiceTest
   private static final String ENC = "CMMDwoV";
 
   @Before
-  public void setup() {
+  public void setup() throws Exception {
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication("tmpapp", org.getId());
     gitService.stubFor(get(urlPathEqualTo("/api/v3/user"))
         .willReturn(aResponse()
         .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
         .withBody("{\"username\":\"foo\"}")));
+    tempEntity
+        .newSourceControl(ROOT_ORGANIZATION_ID, null, plexusCipher.encrypt("TOKEN", ENC), SourceControlProvider.GITHUB);
   }
 
   @Test
   public void testLoadRepositories() throws Exception {
     mockRepoForPage(gitService, 0, getResourceAsString(PAGE_0));
     mockRepoForPage(gitService, 1, getResourceAsString(PAGE_1));
-
-    // and given root org is configured for github
-    tempEntity
-        .newSourceControl(ROOT_ORGANIZATION_ID, null, plexusCipher.encrypt("TOKEN", ENC), SourceControlProvider.GITHUB);
-    // TODO INT-3695 adds default host support, until then prime the pump
-    tempEntity.newSourceControl(app.getId(), gitService.baseUrl() + "/org/repo.git", null);
 
     // then loading repositories returns the expected results
     SCMRepositories repositories = apiScmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
@@ -110,10 +114,6 @@ public class ApiScmOnboardingServiceTest
     );
     mockRepoForPage(gitService, 1, getResourceAsString(PAGE_1));
 
-    // given root org is configured for github
-    tempEntity
-        .newSourceControl(ROOT_ORGANIZATION_ID, null, plexusCipher.encrypt("TOKEN", ENC), SourceControlProvider.GITHUB);
-
     // given some of the repositories are already configured for SCM
     tempEntity.newSourceControl(app.getId(), gitService.baseUrl() + repo1, new Date());
     Application tmpapp2 = tempEntity.newApplication("tmpapp2", org.getId());
@@ -134,11 +134,7 @@ public class ApiScmOnboardingServiceTest
     mockRepoForPage(gitService, 0, page0);
     mockRepoForPage(gitService, 1, getResourceAsString(PAGE_1));
 
-    // given root org is configured for github
-    tempEntity
-        .newSourceControl(ROOT_ORGANIZATION_ID, null, plexusCipher.encrypt("TOKEN", ENC), SourceControlProvider.GITHUB);
-    
-    // when the raw data contains urls with embedded information
+    // given the raw data contains urls with embedded information
     assertThat(page0).contains("https://admin:admin123@github.com/depshield-ci/create-react-app.git");
     assertThat(page0).contains("https://admin@github.com/sonatype-nexus-community/nexus-repository-p2.git");
 
@@ -201,9 +197,6 @@ public class ApiScmOnboardingServiceTest
 
   @Test
   public void testDefaultHostUrl_orgWithScm() {
-    // given a root org SCM entry for github
-    tempEntity.newSourceControl(org.getParentOrganizationId(), null, null, SourceControlProvider.GITHUB);
-
     // test a variety of different hosts
     testDefaultHostUrl_repoUrl("http://example.com:8899/owner/app", "http://example.com:8899");
     testDefaultHostUrl_repoUrl("https://example.com:8443/owner/app", "https://example.com:8443");
@@ -236,9 +229,7 @@ public class ApiScmOnboardingServiceTest
 
   @Test
   public void testDefaultHostUrl_otherOrgsWithScm() {
-    // given a root org SCM entry for github
-    tempEntity.newSourceControl(org.getParentOrganizationId(), null, null, SourceControlProvider.GITHUB);
-    // and an app with a custom repo URL
+    // given an app with a custom repo URL
     SourceControl scApp1a = new SourceControl.Builder()
         .setOwnerId(app.getId())
         .setRepositoryUrl("http://example.com/owner/app")
@@ -277,5 +268,93 @@ public class ApiScmOnboardingServiceTest
 
     // then it should be the default
     assertThat(defaultHostUrl).isEqualTo("https://github.com/");
+  }
+
+  @Test
+  public void testImportRepos_allNew() throws Exception {
+    // given a list of repos to import
+    SCMRepository[] reposToImport = new SCMRepository[]{
+        new SCMRepository(SourceControlProvider.GITHUB, "http://github.com/org/repo1", false, "org", "repo1", ""),
+        new SCMRepository(SourceControlProvider.GITHUB, "http://github.com/org/repo2", false, "org", "repo2", ""),
+        new SCMRepository(SourceControlProvider.GITHUB, "http://github.com/org/repo3", false, "org", "repo3", "")
+    };
+
+    // then the repos can be imported
+    List<SCMRepository> imported =
+        apiScmOnboardingService.importRepositories(org.getId(), Arrays.asList(reposToImport));
+    assertThat(imported).containsExactlyInAnyOrder(reposToImport);
+
+    // and they exist in the DB
+    List<Application> allApps = sourceControlDAO.getAll().stream()
+        .filter(sc -> sc.getOwnerId() != ROOT_ORGANIZATION_ID)
+        .map(sc -> applicationDAO.getById(sc.getOwnerId()))
+        .collect(Collectors.toList());
+    assertThat(allApps.stream().map(Application::getPublicId))
+        .containsExactlyInAnyOrder("org__repo1", "org__repo2", "org__repo3");
+    assertThat(allApps.stream().map(Application::getName))
+        .containsExactlyInAnyOrder("Org - Repo1", "Org - Repo2", "Org - Repo3");
+  }
+
+  @Test
+  public void testImportRepos_existingApp() throws Exception {
+    // given an existing application which will match a repo which we'll import
+    tempEntity.newApplication("org__repo1", org.getId());
+
+    // and a list of repos to import
+    SCMRepository[] reposToImport = new SCMRepository[]{
+        new SCMRepository(SourceControlProvider.GITHUB, "http://github.com/org/repo1", false, "org", "repo1", "")
+    };
+
+    // then the repos can be imported
+    List<SCMRepository> imported =
+        apiScmOnboardingService.importRepositories(org.getId(), Arrays.asList(reposToImport));
+    assertThat(imported).containsExactlyInAnyOrder(reposToImport);
+
+    // and the only apps that are present are the ones for our selected repos
+    List<Application> allApps = applicationDAO.getAll();
+    assertThat(allApps.stream().map(Application::getOrganizationId).distinct().collect(Collectors.toList()))
+        .containsExactlyInAnyOrder(org.getId());
+    assertThat(allApps.stream().map(Application::getPublicId))
+        .containsExactlyInAnyOrder("org__repo1", app.getPublicId());
+
+    // and the source control entries was created
+    List<Application> allSourceControlApps = sourceControlDAO.getAll().stream()
+        .filter(sc -> sc.getOwnerId() != ROOT_ORGANIZATION_ID)
+        .map(sc -> applicationDAO.getById(sc.getOwnerId()))
+        .collect(Collectors.toList());
+    assertThat(allSourceControlApps.stream().map(Application::getPublicId))
+        .containsExactlyInAnyOrder("org__repo1");
+  }
+
+  @Test
+  public void testImportRepos_existingSourceControl() {
+    // given an existing application with a Source Control entry that matches one we'll import
+    Application targetApp = tempEntity.newApplication("org__repo1", org.getId());
+    tempEntity.newSourceControl(targetApp.getId(), "http://github.com/org/repo1", new Date());
+
+    // and a list of repos to import
+    SCMRepository[] reposToImport = new SCMRepository[]{
+        new SCMRepository(SourceControlProvider.GITHUB, "http://github.com/org/repo1", false, "org", "repo1", "")
+    };
+
+    // then the repos can be imported
+    List<SCMRepository> imported =
+        apiScmOnboardingService.importRepositories(org.getId(), Arrays.asList(reposToImport));
+    assertThat(imported).containsExactlyInAnyOrder(reposToImport);
+
+    // and the only apps that are present are the ones for our selected repos
+    List<Application> allApps = applicationDAO.getAll();
+    assertThat(allApps.stream().map(Application::getOrganizationId).distinct().collect(Collectors.toList()))
+        .containsExactlyInAnyOrder(org.getId());
+    assertThat(allApps.stream().map(Application::getPublicId))
+        .containsExactlyInAnyOrder("org__repo1", app.getPublicId());
+
+    // and all of the source control entries were created
+    List<Application> allSourceControlApps = sourceControlDAO.getAll().stream()
+        .filter(sc -> sc.getOwnerId() != ROOT_ORGANIZATION_ID)
+        .map(sc -> applicationDAO.getById(sc.getOwnerId()))
+        .collect(Collectors.toList());
+    assertThat(allSourceControlApps.stream().map(Application::getPublicId))
+        .containsExactlyInAnyOrder("org__repo1");
   }
 }

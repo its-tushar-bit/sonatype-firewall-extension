@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.experimental;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
@@ -18,10 +19,14 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.experimental.dto.SCMRepositories;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.organization.ApplicationHelper;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -50,16 +55,28 @@ public class ApiScmOnboardingService
 
   private final SourceControlDAO sourceControlDAO;
 
+  private final ApplicationDAO appDAO;
+
+  private final OrganizationDAO orgDAO;
+
+  private final ApplicationHelper applicationHelper;
+
   private final ApiSourceControlService apiSourceControlService;
 
   private final GitApiClientFactory gitApiClientFactory;
 
   @Inject
   public ApiScmOnboardingService(final SourceControlDAO sourceControlDAO,
+                                 final ApplicationDAO appDAO,
+                                 final OrganizationDAO orgDAO,
+                                 final ApplicationHelper applicationHelper,
                                  final ApiSourceControlService apiSourceControlService,
                                  final GitApiClientFactory gitApiClientFactory)
   {
     this.sourceControlDAO = sourceControlDAO;
+    this.appDAO = appDAO;
+    this.orgDAO = orgDAO;
+    this.applicationHelper = applicationHelper;
     this.apiSourceControlService = apiSourceControlService;
     this.gitApiClientFactory = gitApiClientFactory;
   }
@@ -190,5 +207,73 @@ public class ApiScmOnboardingService
       repository.setHttpCloneUrl(sanitizeUrl(repository.getHttpCloneUrl()));
     }
     return repositories;
+  }
+    
+  /**
+   * Import the selected repositories into the given organization
+   * @param orgId the org in which to import the repos
+   * @param scmRepositories the list of repositories to import
+   * @return list of all imported repositories
+   */
+  @Authorize(permission = Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION)
+  public List<SCMRepository> importRepositories(final String orgId, final List<SCMRepository> scmRepositories) {
+    log.debug("importing repositories into org {}, using: {}", orgId, scmRepositories);
+
+    // validate org ID
+    if (orgDAO.getById(orgId) == null) {
+      throw new NotFoundException("No organization found for ID " + orgId);
+    }
+
+    ArrayList<SCMRepository> importedRepos = new ArrayList<>();
+    for (SCMRepository scmRepository : scmRepositories) {
+      try {
+        importRepository(orgId, scmRepository);
+        importedRepos.add(scmRepository);
+      }
+      catch (Exception e) {
+        log.error("Unable to import repository {}", scmRepository, e);
+      }
+    }
+    return importedRepos;
+  }
+
+  private void importRepository(final String orgId, final SCMRepository scmRepository) {
+    String publicId = buildPublicId(scmRepository);
+    String name = buildName(scmRepository);
+    String cloneUrl = sanitizeUrl(scmRepository.getHttpCloneUrl());
+    Application app = appDAO.getByPublicId(publicId);
+    if (app == null) {
+      log.debug("Creating Application entry, name: [{}], publicId: [{}]", name, publicId);
+      app = new Application(publicId, name, orgId);
+      applicationHelper.addApplication(app);
+    }
+    SourceControl existingSourceControl = sourceControlDAO.getByOwnerId(app.getId());
+    if (existingSourceControl != null) {
+      log.debug("SourceControl entry for app {} already exists, updating the URL");
+      existingSourceControl.setRepositoryUrl(cloneUrl);
+      sourceControlDAO.update(existingSourceControl);
+    }
+    else {
+      log.debug("Creating SourceControl entry, name: [{}], publicId: [{}], cloneUrl: [{}]", name, publicId, cloneUrl);
+      SourceControl sourceControl =
+          new SourceControl.Builder()
+              .setOwnerId(app.getId())
+              .setRepositoryUrl(cloneUrl)
+              .build();
+      sourceControlDAO.insert(sourceControl);
+    }
+  }
+
+  private String buildPublicId(SCMRepository scmRepository) {
+    return scmRepository.getNamespace() + "__" + scmRepository.getProject();
+  }
+
+  private String buildName(SCMRepository scmRepository) {
+    return toReadableName(scmRepository.getNamespace()) +
+        " - " + toReadableName(scmRepository.getProject());
+  }
+
+  private String toReadableName(String name) {
+    return StringUtils.capitalize(name.replaceAll("[-_]", " "));
   }
 }

@@ -5,12 +5,12 @@
     </h2>
     <div ng-if="vm.selectedComponent.ownerApplicationName && !vm.selectedComponent.innerSource"
          ng-class="vm.selectedComponent.innerSourceTDIndicator ? 'iq-modal-header__inner-source-info' : ''"
-         class="iq-dependency-indicator inner-source">
+         class="iq-dependency-indicator inner-source tm-inner-source-transitive">
       <span>IS</span>
     </div>
     <div ng-if="vm.selectedComponent.dependencyInfo"
          class="iq-modal-header__dependency-info iq-dependency-indicator iq-dependency-indicator--long"
-         ng-class="vm.selectedComponent.innerSource ? 'inner-source' :
+         ng-class="vm.selectedComponent.innerSource ? 'inner-source tm-inner-source' :
           vm.selectedComponent.innerSourceTDIndicator && vm.selectedComponent.dependencyInfo.isDirectDependency ? 'iq-modal-header__dependency-info direct' :
           vm.selectedComponent.innerSourceTDIndicator && !vm.selectedComponent.dependencyInfo.isDirectDependency ? 'iq-modal-header__dependency-info transitive' :
           vm.selectedComponent.dependencyInfo.isDirectDependency ? 'direct' : 'transitive'">

@@ -13,6 +13,7 @@ export const extractViolationDetails = (violationDetails) => {
   }
 
   const {
+    componentIdentifier,
     constraintViolations,
     policyName,
     policyViolationId,
@@ -26,6 +27,7 @@ export const extractViolationDetails = (violationDetails) => {
       artifactName = getArtifactName(violationDetails);
 
   return {
+    componentIdentifier,
     artifactName,
     componentName,
     constraintName,

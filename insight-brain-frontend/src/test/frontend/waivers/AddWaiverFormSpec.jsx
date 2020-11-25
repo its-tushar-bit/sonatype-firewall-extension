@@ -38,6 +38,7 @@ describe('AddWaiverForm', function() {
     setExpiryTimeSpy = jasmine.createSpy('setExpiryTime');
 
     minimalProps = {
+      componentIdentifier: { format: 'maven', coordinates: 'test' },
       applyToAllComponents: false,
       artifactName: 'artifact name',
       componentName: 'component name',
@@ -139,7 +140,8 @@ describe('AddWaiverForm', function() {
     expect(openVulnerabilityDetailsModalSpy).not.toHaveBeenCalled();
     vulnerabilityDetailsLink.simulate('click');
     expect(openVulnerabilityDetailsModalSpy).toHaveBeenCalledWith({
-      vulnerabilityId: 'CVE-12345'
+      vulnerabilityId: 'CVE-12345',
+      componentIdentifier: { format: 'maven', coordinates: 'test' }
     });
   });
 

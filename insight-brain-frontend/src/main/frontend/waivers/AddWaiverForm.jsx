@@ -22,6 +22,7 @@ const ALL_COMPONENTS = 'ALL_COMPONENTS';
 
 export default function AddWaiverForm(props) {
   const {
+    componentIdentifier,
     applyToAllComponents,
     artifactName,
     componentName,
@@ -57,7 +58,8 @@ export default function AddWaiverForm(props) {
 
   const onVulnerabilityDetailsClick = () => {
     openVulnerabilityDetailsModal({
-      vulnerabilityId: vulnerabilityId
+      vulnerabilityId: vulnerabilityId,
+      componentIdentifier
     });
   };
 
@@ -245,5 +247,6 @@ AddWaiverForm.propTypes = {
   saveWaiver: PropTypes.func.isRequired,
   openVulnerabilityDetailsModal: PropTypes.func.isRequired,
   vulnerabilityId: PropTypes.string,
-  cancelAction: PropTypes.func.isRequired
+  cancelAction: PropTypes.func.isRequired,
+  componentIdentifier: PropTypes.object
 };

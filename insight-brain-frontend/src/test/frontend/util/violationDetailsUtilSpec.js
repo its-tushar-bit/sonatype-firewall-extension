@@ -36,6 +36,7 @@ describe('violationDetailsUtil', function() {
       };
 
       expect(extractViolationDetails(violationDetails)).toEqual({
+        componentIdentifier: { format: 'maven', coordinates: null },
         artifactName: 'artifactName',
         componentName: 'componentName',
         constraintName: 'constraintName',

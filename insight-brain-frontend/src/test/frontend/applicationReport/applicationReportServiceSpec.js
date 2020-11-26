@@ -985,9 +985,12 @@ describe('applicationReportService', function() {
                   version: '1'
                 }
               },
-              innerSource: true,
-              ownerApplicationName: 'app',
-              ownerApplicationId: '123'
+              innerSourceData: {
+                innerSource: true,
+                ownerApplicationName: 'app',
+                ownerApplicationId: '123',
+                ownerComponentName: 'A'
+              }
             }, {
               hash: 'barHash',
               componentIdentifier: {
@@ -998,8 +1001,11 @@ describe('applicationReportService', function() {
                   version: '2'
                 }
               },
-              ownerApplicationName: 'app',
-              ownerApplicationId: '123'
+              innerSourceData: {
+                ownerApplicationName: 'app',
+                ownerApplicationId: '123',
+                ownerComponentName: 'A'
+              }
             }]
           }, policyThreatData = {
             aaData: []
@@ -1059,10 +1065,13 @@ describe('applicationReportService', function() {
           }
         },
         derivedDependencyType: 'direct',
-        innerSource: true,
+        innerSourceData: {
+          innerSource: true,
+          ownerApplicationName: 'app',
+          ownerApplicationId: '123',
+          ownerComponentName: 'A'
+        },
         innerSourceTDIndicator: false,
-        ownerApplicationName: 'app',
-        ownerApplicationId: '123',
         dependencyType: 'D'
       }));
 
@@ -1076,9 +1085,12 @@ describe('applicationReportService', function() {
             version: '2'
           }
         },
+        innerSourceData: {
+          ownerApplicationName: 'app',
+          ownerApplicationId: '123',
+          ownerComponentName: 'A'
+        },
         innerSourceTDIndicator: true,
-        ownerApplicationName: 'app',
-        ownerApplicationId: '123',
         derivedDependencyType: 'transitive',
         dependencyType: 'TD'
       }));

@@ -82,8 +82,6 @@ public class ApiReportDataServiceV2
 
   private final ApiSecurityDataAdapter securityDataAdapter;
 
-  private final ApiInnerSourceDataAdapter innerSourceDataAdapter;
-
   private final InsightConfig insightConfig;
 
   @Inject
@@ -92,14 +90,12 @@ public class ApiReportDataServiceV2
       ReportService reportService,
       ApiLicenseDataAdapter licenseDataAdapter,
       ApiSecurityDataAdapter securityDataAdapter,
-      ApiInnerSourceDataAdapter innerSourceDataAdapter,
       InsightConfig insightConfig)
   {
     this.appDAO = appDAO;
     this.reportService = reportService;
     this.licenseDataAdapter = licenseDataAdapter;
     this.securityDataAdapter = securityDataAdapter;
-    this.innerSourceDataAdapter = innerSourceDataAdapter;
     this.insightConfig = insightConfig;
   }
 
@@ -315,8 +311,8 @@ public class ApiReportDataServiceV2
       boolean isEnableInnerSource = insightConfig.getExperimentalFeatures() != null &&
           !insightConfig.getExperimentalFeatures().isEmpty() ? insightConfig.getExperimentalFeatures().getOrDefault(
           Feature.INNER_SOURCE.getFlag(), false) : false;
-      if (isEnableInnerSource) {
-        component.innerSourceData = innerSourceDataAdapter.convertToDTO(comp);
+      if (isEnableInnerSource && comp.getInnerSourceData() != null) {
+        component.innerSourceData = comp.getInnerSourceData();
       }
       data.components.add(component);
     }

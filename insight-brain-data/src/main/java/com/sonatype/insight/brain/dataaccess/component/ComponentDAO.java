@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.ComponentCategory;
 import com.sonatype.insight.brain.model.component.HygieneRating;
+import com.sonatype.insight.brain.model.component.InnerSourceData;
 import com.sonatype.insight.brain.model.component.IntegrityRating;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
@@ -269,20 +270,8 @@ public class ComponentDAO
           JsonNode analyzerFeaturesNode = componentJson.get("analyzerFeatures");
           setAnalyzerFeatures(analyzerFeaturesNode, component);
 
-          JsonNode innerSourceNode = componentJson.get("innerSource");
-          if (innerSourceNode != null) {
-            component.setInnerSource(innerSourceNode.asBoolean());
-          }
-
-          JsonNode ownerApplicationNameNode = componentJson.get("ownerApplicationName");
-          if (ownerApplicationNameNode != null) {
-            component.setOwnerApplicationName(ownerApplicationNameNode.asText());
-          }
-
-          JsonNode ownerApplicationIdNode = componentJson.get("ownerApplicationId");
-          if (ownerApplicationIdNode != null) {
-            component.setOwnerApplicationId(ownerApplicationIdNode.asText());
-          }
+          JsonNode innerSourceDataNode = componentJson.get("innerSourceData");
+          setInnerSourceData(innerSourceDataNode, component);
 
           components.add(component);
         }
@@ -299,6 +288,21 @@ public class ComponentDAO
 
         if (analyzerFeatures != null) {
           component.setAnalyzerFeatures(analyzerFeatures);
+        }
+      }
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  private void setInnerSourceData(JsonNode innerSourceNode, Component component) {
+    try {
+      if (innerSourceNode != null) {
+        InnerSourceData innerSourceData = JsonUtils.asPojo(innerSourceNode, InnerSourceData.class);
+
+        if (innerSourceData != null) {
+          component.setInnerSourceData(innerSourceData);
         }
       }
     }

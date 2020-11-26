@@ -80,13 +80,9 @@ public class Component
 
   private AnalyzerFeatures analyzerFeatures;
 
+  private InnerSourceData innerSourceData;
+
   private Boolean directDependency;
-
-  private Boolean innerSource;
-
-  private String ownerApplicationName;
-
-  private String ownerApplicationId;
 
   public Component() {
   }
@@ -430,27 +426,11 @@ public class Component
     this.directDependency = directDependency;
   }
 
-  public String getOwnerApplicationName() {
-    return ownerApplicationName;
+  public InnerSourceData getInnerSourceData() {
+    return innerSourceData;
   }
 
-  public void setOwnerApplicationName(final String ownerApplicationName) {
-    this.ownerApplicationName = ownerApplicationName;
-  }
-
-  public Boolean getInnerSource() {
-    return innerSource;
-  }
-
-  public void  setInnerSource(final Boolean innerSource) {
-    this.innerSource = innerSource;
-  }
-
-  public String getOwnerApplicationId() {
-    return ownerApplicationId;
-  }
-
-  public void setOwnerApplicationId(final String ownerApplicationId) {
-    this.ownerApplicationId = ownerApplicationId;
+  public void setInnerSourceData(final InnerSourceData innerSourceData) {
+    this.innerSourceData = innerSourceData;
   }
 }

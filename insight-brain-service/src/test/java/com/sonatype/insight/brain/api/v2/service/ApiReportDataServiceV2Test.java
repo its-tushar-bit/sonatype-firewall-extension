@@ -181,8 +181,10 @@ public class ApiReportDataServiceV2Test
         !insightConfig.getExperimentalFeatures().isEmpty() ? insightConfig.getExperimentalFeatures().getOrDefault(
         Feature.INNER_SOURCE.getFlag(), false) : false;
     if (isEnableInnerSource) {
-      assertThat(component.innerSourceData.innerSource).isTrue();
-      assertThat(component.innerSourceData.ownerApplicationName).isEqualTo("owningApplicationName");
+      assertThat(component.innerSourceData.isInnerSource()).isTrue();
+      assertThat(component.innerSourceData.getOwnerApplicationName()).isEqualTo("owningApplicationName");
+      assertThat(component.innerSourceData.getOwnerApplicationId()).isEqualTo("123");
+      assertThat(component.innerSourceData.getOwnerComponentName()).isEqualTo("A");
     }
 
     component = data.components.get(1);
@@ -196,8 +198,10 @@ public class ApiReportDataServiceV2Test
     assertThat(component.licenseData).isNull();
     assertThat(component.securityData).isNull();
     if (isEnableInnerSource) {
-      assertThat(component.innerSourceData.innerSource).isNull();
-      assertThat(component.innerSourceData.ownerApplicationName).isNull();
+      assertThat(component.innerSourceData.isInnerSource()).isFalse();
+      assertThat(component.innerSourceData.getOwnerApplicationName()).isNull();
+      assertThat(component.innerSourceData.getOwnerApplicationId()).isNull();
+      assertThat(component.innerSourceData.getOwnerComponentName()).isNull();
     }
   }
 

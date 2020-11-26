@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.component.InnerSourceData;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -262,10 +263,10 @@ public final class ReportInnerSource
       if (Objects.equals(bomComponentIdentifier, innerSourceComponent)) {
         //If the component is direct and exists as InnerSource, it needs to be updated as such
         ObjectNode bomObjectNode = (ObjectNode) bomChild;
-        bomObjectNode.put("ownerApplicationName", innerSourceApp.getName());
-        bomObjectNode.put("ownerApplicationId", innerSourceApp.getId());
-        bomObjectNode.put("innerSource", true);
-        setInnerSourceComponentName(innerSourceComponent, bomObjectNode);
+        String innerSourceComponentName = getComponentName(innerSourceComponent);
+        InnerSourceData innerSourceData =
+            new InnerSourceData(innerSourceApp.getName(), innerSourceApp.getId(), innerSourceComponentName, true);
+        bomObjectNode.set("innerSourceData", JsonUtils.asTree(innerSourceData));
 
         if (MatchState.UNKNOWN.getId().equals(bomChild.get(MATCH_STATE).asText())) {
           markInnerSourceComponentAsKnown(bomObjectNode, bomComponentIdentifier, knownArtifactCount,
@@ -316,12 +317,12 @@ public final class ReportInnerSource
         if (Objects.equals(bomComponentIdentifier, dependency.getComponentIdentifier())) {
           ObjectNode bomObjectNode = (ObjectNode) bomChild;
 
-          bomObjectNode.put("ownerApplicationName", innerSourceApp.getName());
-          bomObjectNode.put("ownerApplicationId", innerSourceApp.getId());
+          String innerSourceComponentName = getComponentName(parentDependency.getComponentIdentifier());
+          InnerSourceData innerSourceData =
+              new InnerSourceData(innerSourceApp.getName(), innerSourceApp.getId(), innerSourceComponentName);
+          bomObjectNode.set("innerSourceData", JsonUtils.asTree(innerSourceData));
           log.debug("Component {} associated with InnerSource app {}", bomComponentIdentifier,
               innerSourceApp.getName());
-
-          setInnerSourceComponentName(parentDependency.getComponentIdentifier(), bomObjectNode);
 
           if (MatchState.UNKNOWN.getId().equals(bomChild.get(MATCH_STATE).asText())) {
             updateUnknownTransitiveDependencyAsKnown(innerSourceComponentDAO, knownArtifactCount,
@@ -333,8 +334,10 @@ public final class ReportInnerSource
     }
   }
 
-  private static void setInnerSourceComponentName(ComponentIdentifier componentIdentifier, ObjectNode bomObjectNode) {
-    bomObjectNode.put("innerSourceComponentName", componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID));
+  private static String getComponentName(ComponentIdentifier componentIdentifier) {
+    PackageUrlIdentifier packageUrlIdentifier =
+        PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
+    return packageUrlIdentifier.getName();
   }
 
   private static ComponentIdentifier getBomComponentIdentifier(JsonNode bomChild) {

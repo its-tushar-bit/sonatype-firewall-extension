@@ -255,8 +255,22 @@ describe('applicationReportReducer', function() {
         other: otherObject
       });
       const entries = [
-        {policyThreatLevel: 10, grandfathered: true, ownerApplicationName: 'myISApp', innerSource: true},
-        {policyThreatLevel: 10}, {policyThreatLevel: 6, ownerApplicationName: 'myISApp'}
+        {
+          policyThreatLevel: 10,
+          grandfathered: true,
+          innerSourceData: {
+            innerSource: true,
+            ownerApplicationName: 'myISApp',
+            ownerComponentName: 'A'
+          }
+        },
+        {policyThreatLevel: 10},
+        {policyThreatLevel: 6,
+          innerSourceData: {
+            ownerApplicationName: 'myISApp',
+            ownerComponentName: 'A'
+          }
+        }
       ];
       const newState = reduce(state, {
         type: 'LOAD_REPORT_FULFILLED',
@@ -277,12 +291,18 @@ describe('applicationReportReducer', function() {
             },
             {
               grandfathered: true,
-              innerSource: true,
-              ownerApplicationName: 'myISApp',
+              innerSourceData: {
+                innerSource: true,
+                ownerApplicationName: 'myISApp',
+                ownerComponentName: 'A'
+              },
               policyThreatLevel: 10
             },
             {
-              ownerApplicationName: 'myISApp',
+              innerSourceData: {
+                ownerApplicationName: 'myISApp',
+                ownerComponentName: 'A'
+              },
               policyThreatLevel: 6
             }
           ],
@@ -297,8 +317,14 @@ describe('applicationReportReducer', function() {
         vulnerabilitiesPageEnabled: jasmine.anything(),
         isInnerSourceEnabled: true,
         other: otherObject,
-        sortFields: ['ownerApplicationName', 'innerSourceComponentName', 'dependencyType', '-policyThreatLevel',
-          'policyName', 'derivedComponentName']
+        sortFields: [
+          'innerSourceData.ownerApplicationName',
+          'innerSourceData.ownerComponentName',
+          'dependencyType',
+          '-policyThreatLevel',
+          'policyName',
+          'derivedComponentName'
+        ]
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });

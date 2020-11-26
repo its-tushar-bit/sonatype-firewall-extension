@@ -178,12 +178,12 @@ const addPartialMatchData = curry(function(partialMatchesByKey, entry) {
 function augmentInnerSourceIndicator(components) {
   let result = [];
   let isInnerSourceEnabled = false;
-  const groupedResult = groupBy(c => c.ownerApplicationName || '', components);
-  toPairs(groupedResult).forEach(([app, entries]) => {
-    if (app !== '') {
+  const groupedResult = groupBy(c => c.innerSourceData || '', components);
+  toPairs(groupedResult).forEach(([innerSource, entries]) => {
+    if (innerSource !== '') {
       entries.forEach(entry => {
-        entry.innerSourceTDIndicator = !entry.innerSource;
-        entry.dependencyType = entry.innerSource ? 'D' : 'TD';
+        entry.innerSourceTDIndicator = !entry.innerSourceData.innerSource;
+        entry.dependencyType = entry.innerSourceData.innerSource ? 'D' : 'TD';
         isInnerSourceEnabled = true;
         result.push(entry);
       });

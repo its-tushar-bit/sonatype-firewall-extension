@@ -357,8 +357,12 @@ describe('applicationReportActions', function() {
         displayedEntries: [
           {
             componentName: 'a',
-            innerSource: true,
-            ownerApplicationId: 'id'
+            innerSourceData: {
+              innerSource: true,
+              ownerApplicationId: 'id',
+              ownerApplicationName: 'appName',
+              ownerComponentName: 'componentName'
+            }
           },
           {
             componentName: 'b'
@@ -392,8 +396,12 @@ describe('applicationReportActions', function() {
           url: 'url'
         },
         componentName: 'a',
-        innerSource: true,
-        ownerApplicationId: 'id'
+        innerSourceData: {
+          innerSource: true,
+          ownerApplicationId: 'id',
+          ownerApplicationName: 'appName',
+          ownerComponentName: 'componentName'
+        }
       };
 
       store.dispatch(applicationReportActions.selectComponent(0)).then(() => {
@@ -422,8 +430,12 @@ describe('applicationReportActions', function() {
             displayedEntries: [
               {
                 componentName: 'a',
-                innerSource: true,
-                ownerApplicationId: 'id'
+                innerSourceData: {
+                  innerSource: true,
+                  ownerApplicationId: 'id',
+                  ownerApplicationName: 'appName',
+                  ownerComponentName: 'componentName'
+                }
               }
             ]
           };
@@ -451,8 +463,12 @@ describe('applicationReportActions', function() {
           const selectedComponent = {
             latestReport: { stage: 'build', url: 'url'},
             componentName: 'a',
-            innerSource: true,
-            ownerApplicationId: 'id'
+            innerSourceData: {
+              innerSource: true,
+              ownerApplicationId: 'id',
+              ownerApplicationName: 'appName',
+              ownerComponentName: 'componentName'
+            }
           };
 
           store.dispatch(applicationReportActions.selectComponent(0)).then(() => {
@@ -481,8 +497,12 @@ describe('applicationReportActions', function() {
             displayedEntries: [
               {
                 componentName: 'a',
-                innerSource: true,
-                ownerApplicationId: 'id'
+                innerSourceData: {
+                  innerSource: true,
+                  ownerApplicationId: 'id',
+                  ownerApplicationName: 'appName',
+                  ownerComponentName: 'componentName'
+                }
               },
               {
                 componentName: 'b'
@@ -513,8 +533,12 @@ describe('applicationReportActions', function() {
               url: 'url'
             },
             componentName: 'a',
-            innerSource: true,
-            ownerApplicationId: 'id'
+            innerSourceData: {
+              innerSource: true,
+              ownerApplicationId: 'id',
+              ownerApplicationName: 'appName',
+              ownerComponentName: 'componentName'
+            }
           };
 
           store.dispatch(applicationReportActions.selectComponent(0)).then(() => {
@@ -543,8 +567,12 @@ describe('applicationReportActions', function() {
             displayedEntries: [
               {
                 componentName: 'a',
-                innerSource: true,
-                ownerApplicationId: 'id'
+                innerSourceData: {
+                  innerSource: true,
+                  ownerApplicationId: 'id',
+                  ownerApplicationName: 'appName',
+                  ownerComponentName: 'componentName'
+                }
               },
               {
                 componentName: 'b'
@@ -561,8 +589,12 @@ describe('applicationReportActions', function() {
 
           const selectedComponent = {
             componentName: 'a',
-            innerSource: true,
-            ownerApplicationId: 'id'
+            innerSourceData: {
+              innerSource: true,
+              ownerApplicationId: 'id',
+              ownerApplicationName: 'appName',
+              ownerComponentName: 'componentName'
+            }
           };
 
           store.dispatch(applicationReportActions.selectComponent(0)).then(() => {
@@ -627,8 +659,10 @@ describe('applicationReportActions', function() {
         displayedEntries: [
           {
             componentName: 'a',
-            innerSource: true,
-            ownerApplicationId: 'id'
+            innerSourceData: {
+              innerSource: true,
+              ownerApplicationId: 'id'
+            }
           }
         ]
       };

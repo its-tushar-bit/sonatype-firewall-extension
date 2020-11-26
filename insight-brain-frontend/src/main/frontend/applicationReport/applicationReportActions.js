@@ -262,8 +262,9 @@ function selectComponent(componentIndex) {
     });
 
     const component = selectedReport.displayedEntries[componentIndex];
-    if (component.innerSource && component.ownerApplicationId) {
-      return axios.get(getApplicationReportsUrl(component.ownerApplicationId))
+    const innerSourceData = component.innerSourceData;
+    if (innerSourceData && innerSourceData.innerSource && innerSourceData.ownerApplicationId) {
+      return axios.get(getApplicationReportsUrl(innerSourceData.ownerApplicationId))
           .then(result => {
             if (result.data && result.data.length > 0) {
               const lastInnerSourceReportData = sort(byStage, result.data)[0];

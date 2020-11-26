@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.api.v2.dto;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.insight.brain.model.component.InnerSourceData;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
@@ -31,5 +33,5 @@ public class ApiReportComponentDTOV2
   public ApiSecurityDataDTO securityData;
 
   @JsonInclude(Include.NON_NULL)
-  public ApiInnerSourceDataDTO innerSourceData;
+  public InnerSourceData innerSourceData;
 }

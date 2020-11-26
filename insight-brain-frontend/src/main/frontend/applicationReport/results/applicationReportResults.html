@@ -160,7 +160,7 @@
               {{component.policyName}}</td><!--
               --><td class="iq-cell iq-cell--application-report-component-display {{component.innerSourceTDIndicator ?
                   'iq-inner-source-td-indicator' : ''}}"
-                     data-tooltip="{{component.ownerApplicationName ? component.ownerApplicationName : ''}}"
+                     data-tooltip="{{component.innerSourceData && component.innerSourceData.ownerApplicationName ? component.innerSourceData.ownerApplicationName : ''}}"
                      data-tooltip-append-to-body="true">
                 <span class="iq-text-indicator iq-text-indicator--waived iq-pull-right" ng-show="component.waived">
                   Waived<i class="fa fa-check"></i>
@@ -171,13 +171,13 @@
                 </span>
                 <div ng-if="component.dependencyInfo"
                      class="iq-dependency-indicator"
-                     data-tooltip="{{component.dependencyInfo.isDirectDependency && !component.innerSource ? 'Direct Dependency' :
-                     component.innerSource ? 'InnerSource' : 'Transitive Dependency'}}"
+                     data-tooltip="{{component.dependencyInfo.isDirectDependency && !component.innerSourceData ? 'Direct Dependency' :
+                     component.innerSourceData.innerSource ? 'InnerSource' : 'Transitive Dependency'}}"
                      data-tooltip-append-to-body="true"
-                     ng-class="component.innerSource ? 'inner-source' : component.dependencyInfo.isDirectDependency ? 'direct' : 'transitive'">
-                  <span ng-if="component.dependencyInfo.isDirectDependency && !component.innerSource">D</span>
+                     ng-class="component.innerSourceData.innerSource ? 'inner-source' : component.dependencyInfo.isDirectDependency ? 'direct' : 'transitive'">
+                  <span ng-if="component.dependencyInfo.isDirectDependency && !component.innerSourceData">D</span>
                   <span ng-if="!component.dependencyInfo.isDirectDependency">T</span>
-                  <span ng-if="component.innerSource">IS</span>
+                  <span ng-if="component.innerSourceData.innerSource">IS</span>
                 </div><!--
              --><component-display component="component" truncate="true"></component-display>
               </td>

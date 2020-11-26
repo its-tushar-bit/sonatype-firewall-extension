@@ -33,12 +33,6 @@ public class Parameters
   @Parameter(description = "Archives or directories to scan", required = true)
   private List<String> scanTargets;
 
-  /**
-   * @since 1.34
-   */
-  @Parameter(names = { "-xc", "--expanded-coverage" }, description = "Enable Expanded Coverage analysis.")
-  private boolean expandedCoverageMode;
-
   @Override
   protected String getProgramName() {
     return "java -jar nexus-iq-cli.jar";
@@ -71,9 +65,5 @@ public class Parameters
   @Override
   public List<String> getScanTargets() {
     return scanTargets;
-  }
-
-  public boolean isExpandedCoverageMode() {
-    return expandedCoverageMode;
   }
 }

@@ -27,11 +27,7 @@ public class GraalPolicyEvaluatorCli
 {
   public static void main(String[] args) {
     GraalParameters params = new GraalParameters(args);
-
-    Class<? extends PolicyEvaluator> policyEvaluatorClass = params
-        .isExpandedCoverageMode() ? ExpandedCoveragePolicyEvaluator.class : DefaultPolicyEvaluator.class;
-
-    new GraalPolicyEvaluatorCli().run(policyEvaluatorClass, params);
+    new GraalPolicyEvaluatorCli().run(DefaultPolicyEvaluator.class, params);
   }
 
   @Override
@@ -50,8 +46,6 @@ public class GraalPolicyEvaluatorCli
     Scanner scanner = new Scanner(scanPropertiesLoader, clientScanner, fileScanner, scanWriterFactory);
     RestClientFactory restClientFactory = new RestClientFactory();
 
-    return type.isAssignableFrom(ExpandedCoveragePolicyEvaluator.class)
-        ? type.cast(new ExpandedCoveragePolicyEvaluator(scanner, restClientFactory))
-        : type.cast(new DefaultPolicyEvaluator(scanner, restClientFactory));
+    return type.cast(new DefaultPolicyEvaluator(scanner, restClientFactory));
   }
 }

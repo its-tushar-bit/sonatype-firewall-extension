@@ -445,7 +445,7 @@ public class ApiLicenseLegalServiceTest
     assertThat(licenseLegalComponent.packageUrl).isNotNull()
         .isEqualTo(PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl());
     assertThat(licenseLegalComponent.displayName).isNotNull().isEqualTo(
-        ComponentDisplayNameUtil.fromIdentifier(component.getComponentIdentifier()).getName());
+        ComponentDisplayNameUtil.fromIdentifier(component.getComponentIdentifier()).toString());
     assertThat(licenseLegalComponent.licenseLegalData).isNotNull();
     assertThat(licenseLegalComponent.licenseLegalData.declaredLicenses)
         .containsExactly(namedComponentDetails.getDeclaredLicenseIds().toArray(new String[0]));

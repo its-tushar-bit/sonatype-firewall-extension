@@ -275,7 +275,7 @@ public class ApiLicenseLegalService
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
     componentDTO.packageUrl = PackageUrlIdentifier.toPackageUrl(componentIdentifier);
     componentDTO.hash = hash;
-    componentDTO.displayName = ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).getName();
+    componentDTO.displayName = ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString();
     componentDTO.proprietary = component.isProprietary();
     componentDTO.thirdParty =
         IdentificationSource.isThirdPartyIdentificationSource(component.getIdentificationSource().getId());

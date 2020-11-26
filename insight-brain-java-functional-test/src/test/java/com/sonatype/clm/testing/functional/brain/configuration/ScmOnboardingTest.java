@@ -132,12 +132,11 @@ public class ScmOnboardingTest
   }
 
   @Test
-  public void testFeatureIsEnabled() {
+  public void testFeatureIsEnabled() throws IOException {
     // given the onboarding page
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
-    PasswordHandler pwHandler = testCLMServer.getCLMServer().getInstance(PasswordHandler.class);
-    String encryptedPwd = new String(pwHandler.encryptPassword("TOKEN".toCharArray()));
-    tempEntity.newSourceControl(org.getParentOwnerId(), null, encryptedPwd, GITHUB);
+    setupSourceControl();
+    setupMockRepos();
 
     // when we open the onboarding page as admin
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
@@ -253,9 +252,12 @@ public class ScmOnboardingTest
     assertThat(tooltipText.length() > 100).isTrue();
     assertThat(tooltipText).doesNotContain("...");
 
+    // when the application already exists in IQ
     Application application = tempEntity.newApplication(org.getId());
     tempEntity.newSourceControl(application.getId(), "https://github.com/depshield-ci/ci-project-1.git", new Date());
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
+
+    // it is no longer displayed in the table and the UI is updated
     assertThat(scmOnboardingPage.resultsTableProject().texts()).doesNotContain("ci-project-1");
     scmOnboardingPage.resultsTablePercentageImported().shouldBe(text("8%"));
     scmOnboardingPage.resultsTableAlreadyImported().shouldBe(text("1"));

@@ -12,6 +12,7 @@ import java.util.Objects;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -96,6 +97,9 @@ public class ManifestScanServiceTest
 
   private ScanResult scanResult;
 
+  @Mock
+  private FileCleaner fileCleaner;
+
   private ProprietaryConfig proprietaryConfig;
 
   // subject
@@ -112,7 +116,7 @@ public class ManifestScanServiceTest
 
     service = new ManifestScanService(
         mockInsightConfig, mockGitApiFactory, mockSourceControlUtils, mockApplicationDAO, proprietaryConfigService,
-        policyEvaluateService, work, scanner);
+        policyEvaluateService, work, scanner, fileCleaner);
 
     try {
       sourceControlDir = tmpDir.newFolder();
@@ -163,6 +167,7 @@ public class ManifestScanServiceTest
     sourceControlEvent.setUserAgent("userAgent");
 
     // and a source control configuration
+    when(mockGitRepositoryInfo.getBaseBranch()).thenReturn("master");
     when(mockInsightConfig.getSourceControl()).thenReturn(sourceControlConfig);
     when(mockSourceControlUtils.getGitRepositoryInfoForApplication(sourceControlEvent.getApplicationId()))
         .thenReturn(mockGitRepositoryInfo);
@@ -180,7 +185,7 @@ public class ManifestScanServiceTest
 
     // then it creates the target directory
     assertThat(Arrays.stream(Objects.requireNonNull(sourceControlDir.list())).anyMatch(filename ->
-        filename.startsWith("public-app-id-branch-"))).isTrue();
+        filename.startsWith("public-app-id-master-"))).isTrue();
 
     // and it calls the repository sync
     verify(mockGitApi).cloneOrPullRepository(isA(File.class), eq(sourceControlEvent.getBranchName()));

@@ -90,7 +90,8 @@ public class PullRequestLocationDiscoveryService
 
         String applicationPublicId = applicationDAO.getById(applicationId).getPublicId();
 
-        checkoutDir = GitRepositoryTask.getCheckoutDirectory(insightConfig, applicationPublicId, applicationId, branch);
+        checkoutDir = GitRepositoryTask.getCheckoutDirectory(
+            insightConfig, applicationPublicId, applicationId, gitRepositoryInfo.getBaseBranch());
 
         GitApi gitApi = gitApiFactory.createGitApi(gitRepositoryInfo);
         LocationDiscoveryRequest request =
@@ -102,8 +103,6 @@ public class PullRequestLocationDiscoveryService
       }
       catch (Exception e) {
         log.error("Failed to execute pull request location discovery", e);
-      }
-      finally {
         GitRepositoryTask.cleanDirectory(fileCleaner, checkoutDir);
       }
     }

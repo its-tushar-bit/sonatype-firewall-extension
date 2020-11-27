@@ -14,6 +14,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -61,6 +62,8 @@ public class ManifestScanService
 
   private final Scanner scanner;
 
+  private final FileCleaner fileCleaner;
+
   /**
    * constructor for the manifest scan service
    */
@@ -73,7 +76,8 @@ public class ManifestScanService
       final ProprietaryConfigService proprietaryConfigService,
       final PolicyEvaluateService policyEvaluateService,
       final InsightWork work,
-      final Scanner scanner)
+      final Scanner scanner,
+      final FileCleaner fileCleaner)
   {
     this.gitApiFactory = gitApiFactory;
     this.insightConfig = insightConfig;
@@ -83,6 +87,7 @@ public class ManifestScanService
     this.policyEvaluateService = policyEvaluateService;
     this.work = work;
     this.scanner = scanner;
+    this.fileCleaner = fileCleaner;
   }
 
   /**
@@ -108,7 +113,7 @@ public class ManifestScanService
         insightConfig,
         application.getPublicId(),
         event.getApplicationId(),
-        event.getBranchName());
+        gitRepositoryInfo.getBaseBranch());
 
     RepositorySyncResult repoSyncResult = checkout(gitRepositoryInfo, event.getBranchName(), repositoryDirectory);
     ScanResult scanResult = scan(application, repositoryDirectory);
@@ -122,8 +127,14 @@ public class ManifestScanService
   {
     final GitApi gitApi = gitApiFactory.createGitApi(gitRepositoryInfo);
 
-    return new RepositorySyncExecutor().execute(
-        new RepositorySyncCommand(gitApi, branch, repositoryDirectory));
+    try {
+      return new RepositorySyncExecutor().execute(new RepositorySyncCommand(gitApi, branch, repositoryDirectory));
+    }
+    catch (GitException e) {
+      // clean up the local repo directory on exception; it will start fresh next time
+      GitRepositoryTask.cleanDirectory(fileCleaner, repositoryDirectory);
+      throw e;
+    }
   }
 
   private ScanResult scan(Application application, File repositoryDirectory) throws IOException {

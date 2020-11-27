@@ -13,7 +13,7 @@ export default {
 
 function SourceControlEditorController(CLMContextLocations, OrganizationStore, ApplicationStore, $q, Messages,
                                        SameOwnerStateNavigationService, DeleteModalService, SourceControlService,
-                                       $scope, ProductFeatures) {
+                                       $scope, ProductFeatures, UpdateSourceControlModalService) {
   var vm = this;
 
   vm.ownerName = undefined;
@@ -189,18 +189,29 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
     let savePromise;
     let sourceControl = modelToSourceControl(vm.dirtySourceControl);
 
-    if (vm.dirtySourceControl.id) {
-      savePromise = SourceControlService.updateSourceControlRecord(vm.ownerType, vm.ownerId, sourceControl);
+    if (vm.dirtySourceControl.id && vm.isApp && sourceControl.repositoryUrl !==
+        vm.originalSourceControl.repositoryUrl) {
+      UpdateSourceControlModalService.updateSourceControl(function() {
+        return SourceControlService.updateSourceControlRecord(vm.ownerType, vm.ownerId, sourceControl);
+      }).then(function() {
+        doLoad();
+      }).catch(function(e) {
+        vm.submitError = Messages.getHttpErrorMessage(e);
+      });
     }
     else {
-      savePromise = SourceControlService.addSourceControlRecord(vm.ownerType, vm.ownerId, sourceControl);
+      if (vm.dirtySourceControl.id) {
+        savePromise = SourceControlService.updateSourceControlRecord(vm.ownerType, vm.ownerId, sourceControl);
+      }
+      else {
+        savePromise = SourceControlService.addSourceControlRecord(vm.ownerType, vm.ownerId, sourceControl);
+      }
+      vm.sourceControlEditorMask.wrap(savePromise).then(function() {
+        doLoad();
+      }).catch(function(e) {
+        vm.submitError = Messages.getHttpErrorMessage(e);
+      });
     }
-
-    vm.sourceControlEditorMask.wrap(savePromise).then(function() {
-      doLoad();
-    }).catch(function(e) {
-      vm.submitError = Messages.getHttpErrorMessage(e);
-    });
   }
 
   function isDirty() {
@@ -375,5 +386,5 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
 
 SourceControlEditorController.$inject = [
   'CLMContextLocations', 'OrganizationStore', 'ApplicationStore', '$q', 'Messages', 'SameOwnerStateNavigationService',
-  'DeleteModalService', 'SourceControlService', '$scope', 'ProductFeatures'
+  'DeleteModalService', 'SourceControlService', '$scope', 'ProductFeatures', 'UpdateSourceControlModalService'
 ];

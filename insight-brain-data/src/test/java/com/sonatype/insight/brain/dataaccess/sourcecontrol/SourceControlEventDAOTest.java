@@ -24,6 +24,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_NEW;
 import static java.lang.System.currentTimeMillis;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -67,7 +68,7 @@ public class SourceControlEventDAOTest
     SourceControlEvent sourceControlEvent = new SourceControlEvent();
 
     // then the initial event status is new
-    assertThat(sourceControlEvent.getEventStatus()).isEqualTo(SourceControlEvent.EVENT_STATUS_NEW);
+    assertThat(sourceControlEvent.getEventStatus()).isEqualTo(EVENT_STATUS_NEW);
   }
 
   @Test
@@ -331,6 +332,23 @@ public class SourceControlEventDAOTest
 
     // then: still doesn't exist
     assertThat(sourceControlEventDAO.hasRemediationEventForBranch(app.getId(), branchName)).isTrue();
+  }
+
+  @Test
+  public void testClearEventsAndInsert() {
+    //Given: Application with 2 existing events
+    createNewSourceControlEvents(2);
+    assertThat(sourceControlEventDAO.getAllByApplicationId(app.getId())).hasSize(2);
+
+    //When: Clear and add new event
+    SourceControlEvent sourceControlEvent = getNewSourceControlEvent();
+    sourceControlEventDAO.clearEventsAndInsert(sourceControlEvent);
+
+    //Then: existing events for application is cleared and new event inserted
+    List<SourceControlEvent> sourceControlEvents = sourceControlEventDAO.getAllByApplicationId(app.getId());
+    assertThat(sourceControlEvents).isNotNull();
+    assertThat(sourceControlEvents).hasSize(1);
+    assertThat(sourceControlEvents.get(0).getEventStatus()).isEqualTo(EVENT_STATUS_NEW);
   }
 
   private SourceControlEvent getNewSourceControlEvent() {

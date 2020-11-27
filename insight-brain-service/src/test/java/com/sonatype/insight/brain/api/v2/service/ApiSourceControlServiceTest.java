@@ -18,11 +18,14 @@ import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService.METHOD;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -45,6 +48,10 @@ import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControl.FAKE_SECRET_KEY;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.DISCOVERED_PULL_REQUEST_EVENT;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_PRIORITY_HIGHER;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_PRIORITY_NORMAL;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.REPOSITORY_URL_UPDATED_EVENT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.reset;
@@ -79,6 +86,8 @@ public class ApiSourceControlServiceTest
   private Organization org;
 
   private SourceControl rootOrgSourcecontrol;
+
+  private final SourceControlEventDAO sourceControlEventDAO = new SourceControlEventDAO();
 
   @Override
   public void configure(final Binder binder) {
@@ -727,13 +736,65 @@ public class ApiSourceControlServiceTest
         .isThrownBy(() -> sourceControlService.convertUrlIfNeeded("git://server/owner/repo.git"));
   }
 
+  @Test
+  public void testUpdateSourceControlByOwner_createsEventOnUrlChange() {
+    //given : Create sourcecontrol, with associated event
+    ApiSourceControlDTO persistedSourceControlDTO = sourceControlService.addSourceControlByOwner(
+        OwnerType.APPLICATION,
+        app.getId(),
+        createSourceControlDtoForTesting()
+    );
+    assertThat(persistedSourceControlDTO).isNotNull();
+    tempEntity.newSourceControlEvent(app, new PolicyEvaluation(), null);
+
+    //when : repo url is updated
+    persistedSourceControlDTO.repositoryUrl = "http://www.github.com/myOrg/myApp2";
+    sourceControlService.updateSourceControlByOwner(
+        OwnerType.APPLICATION,
+        app.getId(),
+        persistedSourceControlDTO
+    );
+
+    //then : events are cleared and new event added
+    List<SourceControlEvent> events = sourceControlEventDAO.getAllByApplicationId(app.getId());
+    assertThat(events).hasSize(1);
+    assertThat(events.get(0).getEventType()).isEqualTo(REPOSITORY_URL_UPDATED_EVENT);
+    assertThat(events.get(0).getEventPriority()).isEqualTo(EVENT_PRIORITY_HIGHER);
+  }
+
+  @Test
+  public void testUpdateSourceControlByOwner_doesNotCreateEventWhenUrlNotChanged() {
+    //given : Create sourcecontrol, with associated eval and comment
+    ApiSourceControlDTO persistedSourceControlDTO = sourceControlService.addSourceControlByOwner(
+        OwnerType.APPLICATION,
+        app.getId(),
+        createSourceControlDtoForTesting()
+    );
+    assertThat(persistedSourceControlDTO).isNotNull();
+    tempEntity.newSourceControlEvent(app, new PolicyEvaluation(), null);
+
+    //when : update with constant repo url
+    persistedSourceControlDTO.enablePullRequests = true;
+    sourceControlService.updateSourceControlByOwner(
+        OwnerType.APPLICATION,
+        app.getId(),
+        persistedSourceControlDTO
+    );
+
+    //then : events are not cleared and new event not added
+    List<SourceControlEvent> events = sourceControlEventDAO.getAllByApplicationId(app.getId());
+    assertThat(events).hasSize(1);
+    assertThat(events.get(0).getEventType()).isEqualTo(DISCOVERED_PULL_REQUEST_EVENT);
+    assertThat(events.get(0).getEventPriority()).isEqualTo(EVENT_PRIORITY_NORMAL);
+  }
+
   private ApiSourceControlDTO createSourceControlDtoForTesting() {
     return apiSourceControlAdapter.convertToDTO(
-            new SourceControl.Builder()
-                .setOwnerId(testName.getMethodName())
-                .setRepositoryUrl("http://www.github.com/myOrg/myApp")
-                .setToken("baz")
-                .build()
+        new SourceControl.Builder()
+            .setOwnerId(testName.getMethodName())
+            .setRepositoryUrl("http://www.github.com/myOrg/myApp")
+            .setToken("baz")
+            .build()
     );
   }
 

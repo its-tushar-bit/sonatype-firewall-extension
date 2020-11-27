@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.git.ManifestScanService;
 import com.sonatype.insight.brain.git.PullRequestCommentingService;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
 import com.sonatype.insight.brain.git.SourceControlInstanceManager;
+import com.sonatype.insight.brain.git.SourceControlService;
 import com.sonatype.insight.brain.git.VerifiableLoggingTestBase;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 
@@ -77,6 +78,9 @@ public class SourceControlEventServiceTest
 
   private SourceControlEventService eventService;
 
+  @Mock
+  private SourceControlService mockSourceControlService;
+
   public SourceControlEventServiceTest() {
     super(SourceControlEventService.class);
   }
@@ -88,7 +92,7 @@ public class SourceControlEventServiceTest
     super.setup();
     eventService = spy(new SourceControlEventService(mockSourceControlEventDAO, mockSourceControlInstanceManager,
         mockPullRequestCommentingService, mockPullRequestRemediationService, mockGitCommitStatusService,
-        mockManifestScanService));
+        mockManifestScanService, mockSourceControlService));
     when(mockSourceControlInstanceManager.canProcessEvents()).thenReturn(true);
   }
 
@@ -228,6 +232,32 @@ public class SourceControlEventServiceTest
     verifyProcessEventsActions(events.get(0),
         EventProcessAction.markedInProgress,
         EventProcessAction.onManifestScan,
+        EventProcessAction.markedComplete);
+
+    assertThatLogMessagesEqual(
+        debug("Requested " + SourceControlEventService.TASK_QUEUE_CAPACITY + " source control events, processing 1"),
+        debug(getProcessedEventMessage(events.get(0)))
+    );
+  }
+
+  @Test
+  public void testProcessEvents_onRepoUrlChangedEvent() throws Exception {
+    // given: an event DAO setup to return a manifest scan event
+    List<SourceControlEvent> events = generateEvents("1:app1:" + SourceControlEvent.REPOSITORY_URL_UPDATED_EVENT);
+    when(mockSourceControlEventDAO
+        .selectEventsForInstance(eq(eventService.getInstanceId()), anyInt()))
+        .thenReturn(events);
+
+    CountDownLatch eventsProcessedLatch = createOnEventFinishedLatch(events.get(0));
+
+    // when: process the events
+    eventService.processEvents();
+
+    // then: manifest scan invoked for the given event
+    verifyUnlatched(eventsProcessedLatch);
+    verifyProcessEventsActions(events.get(0),
+        EventProcessAction.markedInProgress,
+        EventProcessAction.onRepositoryUrlUpdated,
         EventProcessAction.markedComplete);
 
     assertThatLogMessagesEqual(
@@ -705,7 +735,7 @@ public class SourceControlEventServiceTest
   private enum EventProcessAction
   {
     noPropagation, markedInProgress, markedComplete, markedHasError, onAppEval, onPrDiscovered, onComponentRemediation,
-    onManifestScan, onStatusUpdate
+    onManifestScan, onStatusUpdate, onRepositoryUrlUpdated
   }
 
   private void verifyProcessEventsActions(SourceControlEvent event, EventProcessAction... conditions)
@@ -749,6 +779,7 @@ public class SourceControlEventServiceTest
       verify(mockPullRequestRemediationService, never()).onRemediateComponent(eq(event));
       verify(mockManifestScanService, never()).onManifestScan(any(SourceControlEvent.class));
       verify(mockGitCommitStatusService, never()).onSendCommitStatus(eq(event));
+      verify(mockSourceControlService, never()).onRepositoryUrlUpdated(eq(event));
     }
     else if (actionSet.contains(EventProcessAction.onAppEval)) {
       verify(mockPullRequestCommentingService, times(1)).onApplicationEvaluation(eq(event));
@@ -756,6 +787,7 @@ public class SourceControlEventServiceTest
       verify(mockPullRequestRemediationService, never()).onRemediateComponent(eq(event));
       verify(mockManifestScanService, never()).onManifestScan(any(SourceControlEvent.class));
       verify(mockGitCommitStatusService, never()).onSendCommitStatus(eq(event));
+      verify(mockSourceControlService, never()).onRepositoryUrlUpdated(eq(event));
     }
     else if (actionSet.contains(EventProcessAction.onPrDiscovered)) {
       verify(mockPullRequestCommentingService, times(1)).onDiscoveredPullRequest(eq(event));
@@ -763,6 +795,7 @@ public class SourceControlEventServiceTest
       verify(mockPullRequestRemediationService, never()).onRemediateComponent(eq(event));
       verify(mockManifestScanService, never()).onManifestScan(any(SourceControlEvent.class));
       verify(mockGitCommitStatusService, never()).onSendCommitStatus(eq(event));
+      verify(mockSourceControlService, never()).onRepositoryUrlUpdated(eq(event));
     }
     else if (actionSet.contains(EventProcessAction.onComponentRemediation)) {
       verify(mockPullRequestRemediationService, times(1)).onRemediateComponent(eq(event));
@@ -770,16 +803,22 @@ public class SourceControlEventServiceTest
       verify(mockPullRequestCommentingService, never()).onApplicationEvaluation(eq(event));
       verify(mockManifestScanService, never()).onManifestScan(any(SourceControlEvent.class));
       verify(mockGitCommitStatusService, never()).onSendCommitStatus(eq(event));
+      verify(mockSourceControlService, never()).onRepositoryUrlUpdated(eq(event));
     }
     else if (actionSet.contains(EventProcessAction.onManifestScan)) {
       verify(mockManifestScanService, times(1)).onManifestScan(eq(event));
       verifyNoMoreInteractions(mockPullRequestCommentingService, mockPullRequestRemediationService,
-          mockGitCommitStatusService);
+          mockGitCommitStatusService, mockSourceControlService);
     }
     else if (actionSet.contains(EventProcessAction.onStatusUpdate)) {
       verify(mockGitCommitStatusService, times(1)).onSendCommitStatus(eq(event));
       verifyNoMoreInteractions(mockPullRequestCommentingService, mockPullRequestRemediationService,
-          mockManifestScanService);
+          mockManifestScanService, mockSourceControlService);
+    }
+    else if (actionSet.contains(EventProcessAction.onRepositoryUrlUpdated)) {
+      verify(mockSourceControlService, times(1)).onRepositoryUrlUpdated(eq(event));
+      verifyNoMoreInteractions(mockPullRequestCommentingService, mockPullRequestRemediationService,
+          mockManifestScanService, mockSourceControlService);
     }
   }
 }

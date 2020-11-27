@@ -26,11 +26,18 @@ describe('source.control.editor.spec', function() {
       mockSourceControlService,
       getSourceControlDeferred,
       deleteServiceResourceDefer,
+      updateUrlDefer,
       saveResourceDefer,
       mockDeleteService = {
         deleteCustom: function(headerText, bodyText, maskText, continueAction) {
           continueAction();
           return deleteServiceResourceDefer.promise;
+        }
+      },
+      mockUpdateUrlService = {
+        updateSourceControl: function(continueAction) {
+          continueAction();
+          return updateUrlDefer.promise;
         }
       },
       mockSameOwnerStateNavigationService = {
@@ -66,6 +73,7 @@ describe('source.control.editor.spec', function() {
     getByIdDeferred = $q.defer();
     getSourceControlDeferred = $q.defer();
     deleteServiceResourceDefer = $q.defer();
+    updateUrlDefer = $q.defer();
     saveResourceDefer = $q.defer();
     loadProductFeaturesDefer = $q.defer();
     $timeout = _$timeout_;
@@ -164,7 +172,8 @@ describe('source.control.editor.spec', function() {
         SourceControlService: mockSourceControlService,
         DeleteModalService: mockDeleteService,
         SameOwnerStateNavigationService: mockSameOwnerStateNavigationService,
-        ProductFeatures: mockProductFeatures
+        ProductFeatures: mockProductFeatures,
+        UpdateSourceControlModalService: mockUpdateUrlService
       });
       vm.sourceControlEditor = {
         $setPristine: function() {
@@ -930,7 +939,8 @@ describe('source.control.editor.spec', function() {
         SourceControlService: mockSourceControlService,
         DeleteModalService: mockDeleteService,
         SameOwnerStateNavigationService: mockSameOwnerStateNavigationService,
-        ProductFeatures: mockProductFeatures
+        ProductFeatures: mockProductFeatures,
+        UpdateSourceControlModalService: mockUpdateUrlService
       });
       vm.sourceControlEditor = {
         $setPristine: function() {
@@ -1646,7 +1656,8 @@ describe('source.control.editor.spec', function() {
         SourceControlService: mockSourceControlService,
         DeleteModalService: mockDeleteService,
         SameOwnerStateNavigationService: mockSameOwnerStateNavigationService,
-        ProductFeatures: mockProductFeatures
+        ProductFeatures: mockProductFeatures,
+        UpdateSourceControlModalService: mockUpdateUrlService
       });
 
       vm.sourceControlEditor = {
@@ -1889,6 +1900,7 @@ describe('source.control.editor.spec', function() {
 
         // when
         vm.save();
+        updateUrlDefer.resolve();
         $scope.$digest();
 
         // then
@@ -1939,6 +1951,7 @@ describe('source.control.editor.spec', function() {
 
         // when
         vm.save();
+        updateUrlDefer.resolve();
         $scope.$digest();
 
         // then
@@ -1978,8 +1991,7 @@ describe('source.control.editor.spec', function() {
         vm.dirtySourceControl.repositoryUrl = REPOSITORY_URL;
         getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
-        saveResourceDefer.reject({status: '400', data: 'bad request'});
-
+        updateUrlDefer.reject({status: '400', data: 'bad request'});
         // when
         vm.save();
         $scope.$digest();
@@ -2007,6 +2019,108 @@ describe('source.control.editor.spec', function() {
 
         // then
         expect(vm.scmConfigValidationResult).toBeUndefined();
+      });
+
+      it('requires confirmation when URL is updated', function() {
+
+        const savedSourceControl = {
+          username: null,
+          token: null,
+          ownerId: APPLICATION_ID,
+          id: 'ID',
+          baseBranch: 'BASE_BRANCH',
+          enablePullRequests: true,
+          enableStatusChecks: true,
+          repositoryUrl: REPOSITORY_URL
+        };
+
+        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        loadProductFeaturesDefer.resolve({});
+        getSourceControlDeferred.resolve(compositeSourceControl);
+
+        $scope.$digest();
+
+        expect(vm.ownerName).toEqual('applicationName');
+        expect(vm.loadError).toBeUndefined();
+        expect(vm.dirtySourceControl).toEqual(sourceControlModel);
+        expect(vm.originalSourceControl).toEqual(sourceControlModel);
+
+        let sourceControlModelCopy = angular.copy(sourceControlModel);
+        let compositeSourceControlCopy = angular.copy(compositeSourceControl);
+        vm.dirtySourceControl = sourceControlModelCopy;
+        vm.dirtySourceControl.enablePullRequests = true;
+        vm.dirtySourceControl.repositoryUrl = REPOSITORY_URL;
+        getByIdDeferred = $q.defer();
+        getSourceControlDeferred = $q.defer();
+        saveResourceDefer.resolve();
+        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        loadProductFeaturesDefer.resolve({});
+        compositeSourceControlCopy.enablePullRequests.value = true;
+        compositeSourceControlCopy.repositoryUrl = REPOSITORY_URL;
+        getSourceControlDeferred.resolve(compositeSourceControlCopy);
+
+        // when
+        vm.save();
+        updateUrlDefer.resolve();
+        $scope.$digest();
+
+        // then
+        expect(mockSourceControlService.updateSourceControlRecord).toHaveBeenCalledWith('application',
+            APPLICATION_ID, savedSourceControl);
+        expect(vm.loadError).toBeUndefined();
+        expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
+        expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
+      });
+
+      it('does not require confirmation when URL is not updated', function() {
+
+        const savedSourceControl = {
+          username: null,
+          token: null,
+          ownerId: APPLICATION_ID,
+          id: 'ID',
+          baseBranch: 'BASE_BRANCH',
+          enablePullRequests: true,
+          enableStatusChecks: true,
+          repositoryUrl: REPOSITORY_URL
+        };
+
+        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        loadProductFeaturesDefer.resolve({});
+        getSourceControlDeferred.resolve(compositeSourceControl);
+
+        $scope.$digest();
+
+        expect(vm.ownerName).toEqual('applicationName');
+        expect(vm.loadError).toBeUndefined();
+        expect(vm.dirtySourceControl).toEqual(sourceControlModel);
+        expect(vm.originalSourceControl).toEqual(sourceControlModel);
+
+        let sourceControlModelCopy = angular.copy(sourceControlModel);
+        let compositeSourceControlCopy = angular.copy(compositeSourceControl);
+        vm.dirtySourceControl = sourceControlModelCopy;
+        vm.dirtySourceControl.enablePullRequests = true;
+        vm.dirtySourceControl.repositoryUrl = REPOSITORY_URL;
+        vm.originalSourceControl.repositoryUrl = REPOSITORY_URL;
+        getByIdDeferred = $q.defer();
+        getSourceControlDeferred = $q.defer();
+        saveResourceDefer.resolve();
+        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        loadProductFeaturesDefer.resolve({});
+        compositeSourceControlCopy.enablePullRequests.value = true;
+        compositeSourceControlCopy.repositoryUrl = REPOSITORY_URL;
+        getSourceControlDeferred.resolve(compositeSourceControlCopy);
+
+        // when
+        vm.save();
+        $scope.$digest();
+
+        // then
+        expect(mockSourceControlService.updateSourceControlRecord).toHaveBeenCalledWith('application',
+            APPLICATION_ID, savedSourceControl);
+        expect(vm.loadError).toBeUndefined();
+        expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
+        expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
       });
     });
 

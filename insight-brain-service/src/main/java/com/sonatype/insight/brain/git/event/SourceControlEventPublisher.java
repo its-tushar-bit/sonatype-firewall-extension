@@ -34,6 +34,18 @@ public class SourceControlEventPublisher
     }
   }
 
+  /**
+   * Clears the existing events for the relevant application and persists the given event to the durable event queue
+   * (i.e. DB table)
+   *
+   * @param event the event to persist which also holds the application id for which events will be cleared
+   */
+  public void clearEventsForApplicationAndPublishEvent(SourceControlEvent event) {
+    if (null != event) {
+      sourceControlEventDAO.clearEventsAndInsert(event);
+    }
+  }
+
   public boolean doesRemediationEventExistForBranch(String applicationId, String branchName) {
     return sourceControlEventDAO.hasRemediationEventForBranch(applicationId, branchName);
   }

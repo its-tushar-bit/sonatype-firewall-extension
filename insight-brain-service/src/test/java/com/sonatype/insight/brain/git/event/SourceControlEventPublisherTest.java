@@ -65,4 +65,18 @@ public class SourceControlEventPublisherTest
     assertThat(sourceControlEventPublisher.doesRemediationEventExistForBranch("app1", "no")).isFalse();
     assertThat(sourceControlEventPublisher.doesRemediationEventExistForBranch("app2", "yes")).isTrue();
   }
+
+  @Test
+  public void testClearEventsForApplicationAndPublishEvent() {
+    //when: clear existing and publish an event
+    final String appId = "xyz-012";
+    SourceControlEvent event = new SourceControlEvent().setApplicationId(appId);
+    sourceControlEventPublisher.clearEventsForApplicationAndPublishEvent(event);
+
+    // then: DAO tries to clear events and save event
+    ArgumentCaptor<SourceControlEvent> eventCaptor = ArgumentCaptor.forClass(SourceControlEvent.class);
+    verify(mockSourceControlEventDAO, times(1)).clearEventsAndInsert(eventCaptor.capture());
+    SourceControlEvent persistedEvent = eventCaptor.getValue();
+    assertThat(persistedEvent.getApplicationId()).isEqualTo(appId);
+  }
 }

@@ -20,11 +20,13 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
+import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
@@ -48,6 +50,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControl.FAKE_SECRET_KEY;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_PRIORITY_HIGHER;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.REPOSITORY_URL_UPDATED_EVENT;
 import static com.sonatype.nexus.git.utils.repository.RepositoryUrlFinderUtils.sanitizeUrl;
 import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -71,14 +75,16 @@ public class ApiSourceControlService
   private final AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO;
 
   private final ApiSourceControlAdapter apiSourceControlAdapter;
-  
+
   private final ApiSourceControlMetricsAdapter apiSourceControlMetricsAdapter;
 
   private final ProductLicense productLicense;
 
   private final TelemetrySender telemetrySender;
-  
+
   private final SourceControlPullRequestMetrics sourceControlPullRequestMetrics;
+
+  private final SourceControlEventPublisher sourceControlEventPublisher;
 
   @Inject
   public ApiSourceControlService(
@@ -90,7 +96,8 @@ public class ApiSourceControlService
       final ApiSourceControlMetricsAdapter apiSourceControlMetricsAdapter,
       final ProductLicense productLicense,
       final TelemetrySender telemetrySender,
-      final SourceControlPullRequestMetrics sourceControlPullRequestMetrics)
+      final SourceControlPullRequestMetrics sourceControlPullRequestMetrics,
+      final SourceControlEventPublisher sourceControlEventPublisher)
   {
     this.plexusCipher = plexusCipher;
     this.sourceControlDAO = sourceControlDAO;
@@ -101,6 +108,7 @@ public class ApiSourceControlService
     this.productLicense = productLicense;
     this.telemetrySender = telemetrySender;
     this.sourceControlPullRequestMetrics = sourceControlPullRequestMetrics;
+    this.sourceControlEventPublisher = sourceControlEventPublisher;
   }
 
   @Authorize(permission = Permission.READ)
@@ -225,7 +233,15 @@ public class ApiSourceControlService
     }
     convertRepositoryUrlIfNeeded(sourceControl);
 
+    boolean hasRepositoryUrlChanged = storedSourceControl.getRepositoryUrl() != null &&
+        !storedSourceControl.getRepositoryUrl().equalsIgnoreCase(sourceControl.getRepositoryUrl());
     sourceControlDAO.update(sourceControl);
+    if (hasRepositoryUrlChanged) {
+      sourceControlEventPublisher.clearEventsForApplicationAndPublishEvent(new SourceControlEvent()
+          .setApplicationId(ownerId)
+          .setEventType(REPOSITORY_URL_UPDATED_EVENT)
+          .setEventPriority(EVENT_PRIORITY_HIGHER));
+    }
     auditSourceControl(sourceControl);
     setTokenValueForReturn(sourceControl);
     sendSourceControlTelemetryData(METHOD.UPDATE, ownerId, sourceControl);

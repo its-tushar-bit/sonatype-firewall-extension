@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Test;
 
@@ -320,6 +321,43 @@ public class SourceControlPullRequestCommentDAOTest
     // then : expect 1 result
     assertThat(pullRequestComments).isNotNull();
     assertThat(pullRequestComments.size()).isEqualTo(1);
+    pullRequestComments.forEach(comment -> assertThat(comment.getApplicationId()).isEqualTo(app2.getId()));
+  }
+
+  @Test
+  public void testDeleteByApplicationId() {
+    // given : add some pull request data
+    String sourcePolicyEvalId = tempEntity
+        .newPolicyEvaluation(application.getId(), BuildStageType.ID, "sourceScan", "sourceCommit").getId();
+    String targetPolicyEvalId = tempEntity
+        .newPolicyEvaluation(application.getId(), BuildStageType.ID, "targetScan", "targetCommit").getId();
+    tempEntity.newSourceControlPullRequestComment(application.getId(), 1, 11, 111, "contentHash1",
+        sourcePolicyEvalId, targetPolicyEvalId);
+    tempEntity.newSourceControlPullRequestComment(application.getId(), 2, 22, 222, "contentHash2",
+        sourcePolicyEvalId, targetPolicyEvalId);
+
+    // given : add a 2nd app
+    Application app2 = tempEntity.newApplication("app2", "app2", organization.getId());
+
+    // given : add data for 2nd app
+    tempEntity.newSourceControlPullRequestComment(app2.getId(), 3, 33, 333, "contentHash2",
+        sourcePolicyEvalId, targetPolicyEvalId);
+
+    // when :  delete all for first app
+    try (TransactionContext tx = pullRequestCommentDAO.createTransactionContext()) {
+      tx.begin();
+      pullRequestCommentDAO.deleteByApplicationId(tx, application.getId());
+      tx.commit();
+    }
+
+    // then : fetch for original app expects no results
+    List<SourceControlPullRequestComment> pullRequestComments =
+        pullRequestCommentDAO.getByApplicationId(application.getId());
+    assertThat(pullRequestComments).isNotNull().isEmpty();
+
+    // then : fetch for 2nd app then expect 1 result
+    pullRequestComments = pullRequestCommentDAO.getByApplicationId(app2.getId());
+    assertThat(pullRequestComments).isNotNull().hasSize(1);
     pullRequestComments.forEach(comment -> assertThat(comment.getApplicationId()).isEqualTo(app2.getId()));
   }
 }

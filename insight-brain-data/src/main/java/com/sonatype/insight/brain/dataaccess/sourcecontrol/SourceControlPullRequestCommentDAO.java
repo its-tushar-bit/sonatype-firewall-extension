@@ -181,4 +181,10 @@ public class SourceControlPullRequestCommentDAO
     // we bypass this method when deleting all expired entities.
     super.delete(entity);
   }
+
+  public void deleteByApplicationId(final TransactionContext tx, final String applicationId) {
+    for (SourceControlPullRequestComment pullRequestComment : getByApplicationId(tx, applicationId)) {
+      delete(tx, pullRequestComment);
+    }
+  }
 }

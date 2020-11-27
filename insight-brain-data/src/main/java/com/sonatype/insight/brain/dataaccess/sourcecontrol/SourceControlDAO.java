@@ -264,13 +264,22 @@ public class SourceControlDAO
   public void updatePollTimeAndErrorCounts(String sourceControlId, Date pollTime, int errorCount) {
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();
-      SourceControl sourceControl = getById(tx, sourceControlId);
-      if (null != sourceControl) {
-        sourceControl.setPullRequestErrorCount(errorCount);
-        sourceControl.setPullRequestPollTime(pollTime);
-        super.update(tx, sourceControl);
-      }
+      updatePollTimeAndErrorCounts(tx, sourceControlId, pollTime, errorCount);
       tx.commit();
+    }
+  }
+
+  public void updatePollTimeAndErrorCounts(
+      TransactionContext tx,
+      String sourceControlId,
+      Date pollTime,
+      int errorCount)
+  {
+    SourceControl sourceControl = getById(tx, sourceControlId);
+    if (null != sourceControl) {
+      sourceControl.setPullRequestErrorCount(errorCount);
+      sourceControl.setPullRequestPollTime(pollTime);
+      super.update(tx, sourceControl);
     }
   }
 

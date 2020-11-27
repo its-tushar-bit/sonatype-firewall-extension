@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.git.ManifestScanService;
 import com.sonatype.insight.brain.git.PullRequestCommentingService;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
 import com.sonatype.insight.brain.git.SourceControlInstanceManager;
+import com.sonatype.insight.brain.git.SourceControlService;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -93,6 +94,8 @@ public class SourceControlEventService
 
   private final ManifestScanService manifestScanService;
 
+  private final SourceControlService sourceControlService;
+
   @Inject
   public SourceControlEventService(
       SourceControlEventDAO sourceControlEventDAO,
@@ -100,7 +103,8 @@ public class SourceControlEventService
       PullRequestCommentingService pullRequestCommentingService,
       PullRequestRemediationService pullRequestRemediationService,
       GitCommitStatusService gitCommitStatusService,
-      ManifestScanService manifestScanService)
+      ManifestScanService manifestScanService,
+      SourceControlService sourceControlService)
   {
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.sourceControlInstanceManager = sourceControlInstanceManager;
@@ -108,6 +112,7 @@ public class SourceControlEventService
     this.pullRequestRemediationService = pullRequestRemediationService;
     this.gitCommitStatusService = gitCommitStatusService;
     this.manifestScanService = manifestScanService;
+    this.sourceControlService = sourceControlService;
   }
 
   /**
@@ -263,6 +268,10 @@ public class SourceControlEventService
 
         case SourceControlEvent.STATUS_UPDATE_EVENT:
           gitCommitStatusService.onSendCommitStatus(event);
+          break;
+
+        case SourceControlEvent.REPOSITORY_URL_UPDATED_EVENT:
+          sourceControlService.onRepositoryUrlUpdated(event);
           break;
 
         default:

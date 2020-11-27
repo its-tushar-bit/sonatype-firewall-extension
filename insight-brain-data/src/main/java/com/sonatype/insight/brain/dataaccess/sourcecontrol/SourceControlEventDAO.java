@@ -190,4 +190,18 @@ public class SourceControlEventDAO
     // we bypass this method when deleting all expired entities.
     super.delete(entity);
   }
+
+  public void clearEventsAndInsert(SourceControlEvent sourceControlEvent) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      deleteByApplicationId(tx, sourceControlEvent.getApplicationId());
+      insert(tx, sourceControlEvent);
+      tx.commit();
+    }
+  }
+
+  public List<SourceControlEvent> getAllByApplicationId(String applicationId) {
+    String sQuery = SELECT_ENTITY + "WHERE entity.applicationId =?1";
+    return getList(sQuery, applicationId);
+  }
 }

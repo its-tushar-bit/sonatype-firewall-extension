@@ -13,6 +13,7 @@ import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.pages.SourceControlEditorPage;
 import com.sonatype.clm.testing.functional.pages.SourceControlEditorPage.MetricsTableRow;
 import com.sonatype.clm.testing.functional.pages.SourceControlEditorPage.TestResults;
+import com.sonatype.clm.testing.functional.pages.SourceControlRepositoryUrlUpdateModal;
 import com.sonatype.insight.brain.git.EnhancedPullRequestResult;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -31,6 +32,7 @@ import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.matchText;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
@@ -335,7 +337,11 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.repositoryUrl().setValue(REPOSITORY_URL + "-changed");
     SourceControlEditorPage.saveButton().shouldBe(enabled);
     SourceControlEditorPage.saveButton().click();
+
+    SourceControlRepositoryUrlUpdateModal.root().shouldBe(visible);
+    SourceControlRepositoryUrlUpdateModal.continueButton().click();
     FormMask.seeAndWaitForDismissal();
+    SourceControlRepositoryUrlUpdateModal.root().shouldBe(hidden);
 
     // then the test results are hidden
     SourceControlEditorPage.testResultsElement().shouldNot(exist);
@@ -780,6 +786,47 @@ public class ApplicationSourceControlEditorTest
     assertThat(row2.errors()).isEqualTo("true");
     assertThat(row2.totalTime()).isEqualTo("0");
     assertThat(row2.started()).isNotEmpty();
+  }
+
+  @Test
+  public void testSourceControlEditor_testUpdateRepositoryUrl() {
+    // given: we set up source control and go to the source control editor
+    tempEntity.newSourceControl(rootOrganization.getId(), null, TOKEN, SourceControlProvider.GITHUB);
+    tempEntity.newSourceControl(organization.getId(), null, TOKEN, null);
+    tempEntity.newSourceControl(application.getId(), REPOSITORY_URL, TOKEN, null);
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
+
+    // when: we make a change to repo url and save
+    SourceControlEditorPage.repositoryUrl().setValue(REPOSITORY_URL + "-changed");
+    SourceControlEditorPage.saveButton().shouldBe(enabled);
+    SourceControlEditorPage.saveButton().click();
+
+    // then the confirmation modal is shown
+    eyesWatcher.eyesCheck("Source Control Editor - Show confirmation dialog for updating repo url");
+    SourceControlRepositoryUrlUpdateModal.root().shouldBe(visible);
+    SourceControlRepositoryUrlUpdateModal.continueButton().click();
+    FormMask.seeAndWaitForDismissal();
+    SourceControlRepositoryUrlUpdateModal.root().shouldBe(hidden);
+  }
+
+  @Test
+  public void testSourceControlEditor_testUpdateNotRepoUrl() {
+    // given: we set up source control and go to the source control editor
+    tempEntity.newSourceControl(rootOrganization.getId(), null, TOKEN, SourceControlProvider.GITHUB);
+    tempEntity.newSourceControl(organization.getId(), null, TOKEN, null);
+    tempEntity.newSourceControl(application.getId(), REPOSITORY_URL, TOKEN, null);
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
+
+    // when: we make a change to repo url and save
+    SourceControlEditorPage.advancedSettingsTree().click();
+    SourceControlEditorPage.pullRequestsEnableRadio().click();
+    SourceControlEditorPage.saveButton().shouldBe(enabled);
+    SourceControlEditorPage.saveButton().click();
+
+    // then the confirmation modal is shown
+    SourceControlRepositoryUrlUpdateModal.root().shouldBe(hidden);
+    FormMask.seeAndWaitForDismissal();
+    SourceControlRepositoryUrlUpdateModal.root().shouldBe(hidden);
   }
 
   @Override

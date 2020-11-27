@@ -35,6 +35,8 @@ public class  SourceControlEvent
 
   public static final String STATUS_UPDATE_EVENT = "status update";
 
+  public static final String REPOSITORY_URL_UPDATED_EVENT = "url update";
+
   public static final String EVENT_STATUS_NEW = "new";
 
   public static final String EVENT_STATUS_IN_PROGRESS = "in progress";

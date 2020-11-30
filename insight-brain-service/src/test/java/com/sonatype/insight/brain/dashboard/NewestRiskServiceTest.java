@@ -7,12 +7,15 @@ package com.sonatype.insight.brain.dashboard;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.Objects;
+import java.util.Optional;
 
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.clm.dto.model.policy.TriggerReference.Type;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
@@ -565,6 +568,18 @@ public class NewestRiskServiceTest
       assertThat(actual.displayName).isNull();
     }
     assertThat(actual.filename).isEqualTo(policyViolation.getFilename());
+
+    Optional<ConditionFact> conditionFact =
+        policyViolation.getConstraintFacts().isEmpty() ? Optional.empty() : policyViolation.getConstraintFacts().get(0)
+            .getConditionFacts().stream().filter(
+                Objects::nonNull).findFirst();
+    if (conditionFact.filter(condition -> condition.getReference() != null &&
+        Type.SECURITY_VULNERABILITY_REFID.equals(condition.getReference().getType())).isPresent()) {
+      assertThat(actual.referenceId).isEqualTo(conditionFact.get().getReference().getValue());
+    }
+    else {
+      assertThat(actual.referenceId).isNull();
+    }
   }
 
   private void assertNewestRiskDTOContainsStageDetail(NewestRiskDTO actual,

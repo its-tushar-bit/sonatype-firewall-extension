@@ -40,6 +40,7 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.dashboard.DashboardResource.GET_APPLICATION_RISKS_EXPORT_PATH;
 import static com.sonatype.insight.brain.dashboard.DashboardResource.GET_COMPONENT_RISKS_EXPORT_PATH;
 import static com.sonatype.insight.brain.dashboard.DashboardResource.GET_NEWEST_RISKS_EXPORT_PATH;
+import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DashboardResourceTest
@@ -197,20 +198,24 @@ public class DashboardResourceTest
     RisksFilterDTO filter = new RisksFilterDTO();
     filter.orderBy = "-POLICY_NAME";
     HttpResponse response = restRequest().path(GET_NEWEST_RISKS_EXPORT_PATH).part("filter", filter).post();
-
     assertResponseOkAndCsvHeadersSet(response, "results-violations");
+
     String[] lines = response.getBodyText().split("\r\n");
-    assertThat(lines).containsExactly(NewestRiskDTO.getCsvHeader(),
-        "5,stage policy,test organization,test application,Group1 : Artifact1 : Version1," + getTimestamps(v2),
-        "5,build policy,test organization,test application,Group1 : Artifact1 : Version1," + getTimestamps(v1));
+    String expectedFirstLine = format("5,%s,test organization,test application,Group1 : Artifact1 : Version1,%s,,%s",
+        "stage policy", getTimestamps(v2), v2.getId());
+    String expectedSecondLine = format("5,%s,test organization,test application,Group1 : Artifact1 : Version1,%s,,%s",
+        "build policy", getTimestamps(v1), v1.getId());
+    assertThat(lines).containsExactly(NewestRiskDTO.getCsvHeader(), expectedFirstLine, expectedSecondLine);
 
     filter.stageIds = Sets.newHashSet(StageReleaseStageType.ID);
     response = restRequest().path(GET_NEWEST_RISKS_EXPORT_PATH).part("filter", filter).post();
-
     assertResponseOkAndCsvHeadersSet(response, "results-violations");
+
     lines = response.getBodyText().split("\r\n");
-    assertThat(lines).containsExactly(NewestRiskDTO.getCsvHeader(),
-        "5,stage policy,test organization,test application,Group1 : Artifact1 : Version1," + getTimestamps(v2));
+    String expectedLine =
+        format("5,stage policy,test organization,test application,Group1 : Artifact1 : Version1,%s,,%s",
+            getTimestamps(v2), v2.getId());
+    assertThat(lines).containsExactly(NewestRiskDTO.getCsvHeader(), expectedLine);
   }
 
   @Test

@@ -28,32 +28,41 @@ public class NewestRiskDTOTest
     risk.displayName.add("nameField", "nameValue");
     risk.filename = "filename";
     risk.hash = "theHash";
+    risk.policyViolationId = "policyViolationId1";
   }
 
   @Test
   public void testToCsvLine_WithDisplayName() throws Exception {
-    assertThat(risk.toCsvLine()).isEqualTo("7,p,o,a,nameValue,1970-01-01T00:00:00Z,0");
+    assertThat(risk.toCsvLine()).isEqualTo("7,p,o,a,nameValue,1970-01-01T00:00:00Z,0,,policyViolationId1");
   }
 
   @Test
   public void testToCsvLine_WithoutDisplayName() throws Exception {
     risk.displayName = null;
-    assertThat(risk.toCsvLine()).isEqualTo("7,p,o,a,filename,1970-01-01T00:00:00Z,0");
+    assertThat(risk.toCsvLine()).isEqualTo("7,p,o,a,filename,1970-01-01T00:00:00Z,0,,policyViolationId1");
   }
 
   @Test
   public void testToCsvLine_WithoutDisplayNameOrFilename() throws Exception {
     risk.displayName = null;
     risk.filename = null;
-    assertThat(risk.toCsvLine()).isEqualTo("7,p,o,a,(Anonymized Path) SHA1: theHash,1970-01-01T00:00:00Z,0");
+    assertThat(risk.toCsvLine())
+        .isEqualTo("7,p,o,a,(Anonymized Path) SHA1: theHash,1970-01-01T00:00:00Z,0,,policyViolationId1");
     risk.filename = "";
-    assertThat(risk.toCsvLine()).isEqualTo("7,p,o,a,(Anonymized Path) SHA1: theHash,1970-01-01T00:00:00Z,0");
+    assertThat(risk.toCsvLine())
+        .isEqualTo("7,p,o,a,(Anonymized Path) SHA1: theHash,1970-01-01T00:00:00Z,0,,policyViolationId1");
   }
 
   @Test
   public void testToCsvLine_QuotedIfNecessary() {
     risk.displayName = null;
     risk.filename = "c,d.jar";
-    assertThat(risk.toCsvLine()).isEqualTo("7,p,o,a,\"c,d.jar\",1970-01-01T00:00:00Z,0");
+    assertThat(risk.toCsvLine()).isEqualTo("7,p,o,a,\"c,d.jar\",1970-01-01T00:00:00Z,0,,policyViolationId1");
+  }
+
+  @Test
+  public void testToCsvLine_WithCVEReference() throws Exception {
+    risk.referenceId = "CVE-12345";
+    assertThat(risk.toCsvLine()).isEqualTo("7,p,o,a,nameValue,1970-01-01T00:00:00Z,0,CVE-12345,policyViolationId1");
   }
 }

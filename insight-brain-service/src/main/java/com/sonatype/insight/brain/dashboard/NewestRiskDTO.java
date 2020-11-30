@@ -54,9 +54,12 @@ public class NewestRiskDTO implements CsvWritable
 
   public long lastOccurrenceTime;
 
+  public String referenceId;
+
   public static String getCsvHeader() {
+    // this is the dto involved in the export
     return "Threat Level,Policy Name,Organization Name,Application Name,Component Name,Date First Seen"
-        + ",Timestamp First Seen";
+        + ",Timestamp First Seen, Reference, Policy Violation Id";
   }
 
   @Override
@@ -69,8 +72,9 @@ public class NewestRiskDTO implements CsvWritable
     }
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
     formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+    String referenceIdOrDefault = referenceId == null ? "" : referenceId;
     return joiner.join(threatLevel, policyName, organizationName, applicationName, componentName,
-        formatter.format(firstOccurrenceTime), firstOccurrenceTime);
+        formatter.format(firstOccurrenceTime), firstOccurrenceTime, referenceIdOrDefault, policyViolationId);
   }
 
   public String getApplicationName() {

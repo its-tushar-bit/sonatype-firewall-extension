@@ -26,6 +26,10 @@ import java.util.function.Predicate;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.policy.ConditionFact;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.clm.dto.model.policy.TriggerReference;
+import com.sonatype.clm.dto.model.policy.TriggerReference.Type;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditUtils;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
@@ -295,5 +299,22 @@ public class NewestRiskService
       // See also ApiCrossStageViolationService::getCrossStageViolationById
       newestRiskDTO.policyViolationId = policyViolation.getId();
     }
+
+    if (newestRiskDTO.referenceId == null) {
+      newestRiskDTO.referenceId = findReferenceIdForPolicyViolation(policyViolation);
+    }
+  }
+
+  private String findReferenceIdForPolicyViolation(final PolicyViolation policyViolation) {
+    for (ConstraintFact constraintFact : policyViolation.getConstraintFacts()) {
+      for (ConditionFact fact : constraintFact.getConditionFacts()) {
+        TriggerReference reference = fact.getReference();
+        if (reference != null && Type.SECURITY_VULNERABILITY_REFID.equals(reference.getType())) {
+          // All security vulnerability references must point to the same CVE/reference
+          return reference.getValue();
+        }
+      }
+    }
+    return null;
   }
 }

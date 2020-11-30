@@ -52,6 +52,7 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 
 import com.codeborne.selenide.SelenideElement;
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.lang3.tuple.Pair;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -79,8 +80,8 @@ public class DashboardViolationsTest
 
   private static final String MAX_RESULTS_MSG = "First 100 results shown";
 
-  private static final String CSV_HEADERS =
-      "Threat Level,Policy Name,Organization Name,Application Name,Component Name,Date First Seen,Timestamp First Seen";
+  private static final String CSV_HEADERS = "Threat Level,Policy Name,Organization Name,Application Name," +
+      "Component Name,Date First Seen,Timestamp First Seen, Reference, Policy Violation Id";
 
   private static final ViolationsHeaders headers = DashboardPage.violationsView().headers();
 
@@ -167,16 +168,23 @@ public class DashboardViolationsTest
     table.noDataMessage().shouldBe(visible).shouldHave(text(NO_DATA_MSG));
 
     // add a few violations
-    tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy, 1,
+    PolicyViolation licViolationRelease2DaysAgo = tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy, 1,
         LICENSE, releaseComponent.getComponentIdentifier(), releaseComponent.getHash(), FailActionType.ID);
-    tempEntity.newPolicyViolation(operateEval1WeekAgo, licensePolicy, 3,
+    PolicyViolation licViolationOperate1WeekAgo = tempEntity.newPolicyViolation(operateEval1WeekAgo, licensePolicy, 3,
         LICENSE, operateComponent.getComponentIdentifier(), operateComponent.getHash(), FailActionType.ID);
-    tempEntity.newPolicyViolation(releaseEval2DaysAgo, securityPolicy, 10,
+    PolicyViolation secViolationRelease2DaysAgo = tempEntity.newPolicyViolation(releaseEval2DaysAgo, securityPolicy, 10,
         SECURITY, releaseComponent.getComponentIdentifier(), releaseComponent.getHash(), FailActionType.ID);
-    tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, 7,
+    PolicyViolation licViolationBuildNow = tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, 7,
         LICENSE, buildComponent.getComponentIdentifier(), buildComponent.getHash(), FailActionType.ID);
-    tempEntity.newPolicyViolation(buildEval2MonthsAgo, licensePolicy, 7,
+    PolicyViolation licViolationBuild2MonthsAgo = tempEntity.newPolicyViolation(buildEval2MonthsAgo, licensePolicy, 7,
         LICENSE, buildComponent.getComponentIdentifier(), buildComponent.getHash(), FailActionType.ID);
+
+    Map<Pair<String, Date>, PolicyViolation> policyViolationsByPolicyAndDate =
+        ImmutableMap.of(Pair.of(licensePolicy.getName(), twoDaysAgo), licViolationRelease2DaysAgo,//
+            Pair.of(licensePolicy.getName(), oneWeekAgo), licViolationOperate1WeekAgo,//
+            Pair.of(securityPolicy.getName(), twoDaysAgo), secViolationRelease2DaysAgo,//
+            Pair.of(licensePolicy.getName(), now), licViolationBuildNow,//
+            Pair.of(licensePolicy.getName(), twoMonthsAgo), licViolationBuild2MonthsAgo);
 
     refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
@@ -257,7 +265,7 @@ public class DashboardViolationsTest
         twoDaysAgo, //
         "3,DVTLicensePolicy,DVT Org1,DVT App1,g3 : a3 : v3", oneWeekAgo //
     );
-    assertViolationsCsv(exportCsv, expectedResults);
+    assertViolationsCsv(exportCsv, expectedResults, policyViolationsByPolicyAndDate);
 
     headers.ageHeader().click();
     firstViolation.shouldHave(text("7d"));
@@ -276,7 +284,7 @@ public class DashboardViolationsTest
         twoDaysAgo, //
         "7,DVTLicensePolicy,DVT Org1,DVT App1,g1 : a1 : v1", now //
     );
-    assertViolationsCsv(exportCsv, expectedResults);
+    assertViolationsCsv(exportCsv, expectedResults, policyViolationsByPolicyAndDate);
 
     // sort by threat
     headers.threatHeader().click();
@@ -297,7 +305,7 @@ public class DashboardViolationsTest
             + "Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890",
         twoDaysAgo //
     );
-    assertViolationsCsv(exportCsv, expectedResults);
+    assertViolationsCsv(exportCsv, expectedResults, policyViolationsByPolicyAndDate);
 
     // sort by licensePolicy name
     headers.policyHeader().click();
@@ -320,7 +328,7 @@ public class DashboardViolationsTest
         twoDaysAgo, //
         "3,DVTLicensePolicy,DVT Org1,DVT App1,g3 : a3 : v3", oneWeekAgo //
     );
-    assertViolationsCsv(exportCsv, expectedResults);
+    assertViolationsCsv(exportCsv, expectedResults, policyViolationsByPolicyAndDate);
 
     // sort by application name
     headers.applicationHeader().click();
@@ -343,7 +351,7 @@ public class DashboardViolationsTest
         "7,DVTLicensePolicy,DVT Org1,DVT App1,g1 : a1 : v1", now, //
         "3,DVTLicensePolicy,DVT Org1,DVT App1,g3 : a3 : v3", oneWeekAgo //
     );
-    assertViolationsCsv(exportCsv, expectedResults);
+    assertViolationsCsv(exportCsv, expectedResults, policyViolationsByPolicyAndDate);
 
     // sort by component name
     headers.componentHeader().click();
@@ -366,7 +374,7 @@ public class DashboardViolationsTest
         twoDaysAgo, //
         "7,DVTLicensePolicy,DVT Org1,DVT App1,g1 : a1 : v1", now //
     );
-    assertViolationsCsv(exportCsv, expectedResults);
+    assertViolationsCsv(exportCsv, expectedResults, policyViolationsByPolicyAndDate);
 
     // CSV export - filter out threat level 1
     DashboardFilters.policyThreatLevelFilter().twisty().click();
@@ -381,7 +389,7 @@ public class DashboardViolationsTest
         twoDaysAgo, //
         "7,DVTLicensePolicy,DVT Org1,DVT App1,g1 : a1 : v1", now //
     );
-    assertViolationsCsv(exportCsv, expectedResults);
+    assertViolationsCsv(exportCsv, expectedResults, policyViolationsByPolicyAndDate);
 
     // CSV export - filter out Build violations
     DashboardFilters.stageFilter().twisty().click();
@@ -396,7 +404,7 @@ public class DashboardViolationsTest
             + "Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890",
         twoDaysAgo //
     );
-    assertViolationsCsv(exportCsv, expectedResults);
+    assertViolationsCsv(exportCsv, expectedResults, policyViolationsByPolicyAndDate);
 
     // CSV export - filter out Security policy type violations
     DashboardFilters.policyTypeFilter().twisty().click();
@@ -408,7 +416,7 @@ public class DashboardViolationsTest
     expectedResults = ImmutableMap.of(
         "3,DVTLicensePolicy,DVT Org1,DVT App1,g3 : a3 : v3", oneWeekAgo
     );
-    assertViolationsCsv(exportCsv, expectedResults);
+    assertViolationsCsv(exportCsv, expectedResults, policyViolationsByPolicyAndDate);
 
     // CSV export - filter out App1
     DashboardFilters.applicationFilter().twisty().click();
@@ -771,7 +779,11 @@ public class DashboardViolationsTest
     table.lastViolation().threatNumber().shouldHave(text("5"));
   }
 
-  private void assertViolationsCsv(String csv, Map<String, Date> expectedSortedResults) {
+  private void assertViolationsCsv(
+      String csv,
+      Map<String, Date> expectedSortedResults,
+      Map<Pair<String, Date>, PolicyViolation> policyViolations)
+  {
     String[] lines = csv.split("\r\n");
 
     // assert CSV header
@@ -787,16 +799,21 @@ public class DashboardViolationsTest
       Map.Entry<String, Date> expectedResult = it.next();
       String expectedResultWithoutTimestamps = expectedResult.getKey();
       Date expectedDate = expectedResult.getValue();
+      String expectedPolicy = expectedResultWithoutTimestamps
+          .contains("License") ? licensePolicy.getName() : securityPolicy.getName();
+      PolicyViolation expectedPolicyViolation = policyViolations.get(Pair.of(expectedPolicy, expectedDate));
 
-      Matcher matcher = Pattern.compile("^(.*),([-T:0-9]+Z),(\\d+)$").matcher(result);
+      Matcher matcher = Pattern.compile("^(.*),([-T:0-9]+Z),(\\d+),(\\w?),(\\w+)$").matcher(result);
       if (matcher.find()) {
         String actualResultWithoutTimestamps = matcher.group(1);
         String dateFirstSeen = matcher.group(2);
         String dateFirstSeenMillis = matcher.group(3);
+        String policyViolationId = matcher.group(5);
 
         assertThat(actualResultWithoutTimestamps).isEqualTo(expectedResultWithoutTimestamps);
         assertThat(dateFirstSeen).isEqualTo(dateFormat.format(expectedDate));
         assertThat(Long.parseLong(dateFirstSeenMillis)).isEqualTo(expectedDate.getTime());
+        assertThat(policyViolationId).isEqualTo(expectedPolicyViolation.getId());
       }
       else {
         fail("The CSV line was not in expected format: " + result);

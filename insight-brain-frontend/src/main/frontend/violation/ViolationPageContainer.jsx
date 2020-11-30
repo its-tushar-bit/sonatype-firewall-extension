@@ -6,12 +6,12 @@
 import {connect} from 'react-redux';
 import {pick} from 'ramda';
 
-import { loadViolation, loadVulnerabilityDetails } from './violationPageActions';
+import { loadViolation, loadVulnerabilityDetails } from './violationActions';
 import { stateGo } from '../reduxUiRouter/routerActions';
 import { fetchStageTypes } from '../stages/stagesActions';
 import ViolationPage from './ViolationPage';
 
-function mapStateToProps({ stages, violationPage }) {
+function mapStateToProps({ stages, violation }) {
   const stageData = stages.dashboard;
 
   return {
@@ -23,7 +23,7 @@ function mapStateToProps({ stages, violationPage }) {
       'vulnerabilityDetails',
       'vulnerabilityDetailsError',
       'activeWaivers'
-    ], violationPage),
+    ], violation),
     stageTypes: stageData.stageTypes,
     stageTypesError: stageData.error
   };

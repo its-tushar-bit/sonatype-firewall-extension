@@ -10,9 +10,9 @@ import { UI_ROUTER_ON_FINISH } from '../reduxUiRouter/routerActions';
 
 import { createReducerFromActionMap, propSetConst } from '../util/reduxUtil';
 import {
-  WAIVERS_LOAD_SCOPE_DATA_REQUESTED,
-  WAIVERS_LOAD_SCOPE_DATA_FULFILLED,
-  WAIVERS_LOAD_SCOPE_DATA_FAILED,
+  WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED,
+  WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED,
+  WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED,
   WAIVERS_SAVE_WAIVER_REQUESTED,
   WAIVERS_SAVE_WAIVER_FULFILLED,
   WAIVERS_SAVE_WAIVER_FAILED,
@@ -70,9 +70,9 @@ const setWaiverComment = (payload, state) => ({
 });
 
 const reducerActionMap = {
-  [WAIVERS_LOAD_SCOPE_DATA_REQUESTED]: propSetConst('loading', true),
-  [WAIVERS_LOAD_SCOPE_DATA_FULFILLED]: setWaiverData,
-  [WAIVERS_LOAD_SCOPE_DATA_FAILED]: loadDataFailed,
+  [WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED]: propSetConst('loading', true),
+  [WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED]: setWaiverData,
+  [WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED]: loadDataFailed,
   [WAIVERS_SAVE_WAIVER_REQUESTED]: saveWaiverRequested,
   [WAIVERS_SAVE_WAIVER_FULFILLED]: propSetConst('submitMaskState', true),
   [WAIVERS_SAVE_WAIVER_FAILED]: saveWaiverFailed,

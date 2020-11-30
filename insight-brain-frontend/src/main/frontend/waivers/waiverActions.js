@@ -16,14 +16,14 @@ import {
   deleteWaiverUrl
 } from '../util/CLMLocation';
 
-import { loadViolation, loadApplicableWaivers } from '../violation/violationPageActions';
 import { stateGo } from '../reduxUiRouter/routerActions';
 import { getPermissionContextTestUrl } from '../util/CLMContextLocation';
 import { getApplicationSummaryUrl } from '../util/CLMLocation';
+import { fetchCrossStageViolation, fetchApplicableWaivers } from '../violation/violationActions';
 
-export const WAIVERS_LOAD_SCOPE_DATA_REQUESTED = 'WAIVERS_LOAD_SCOPE_DATA_REQUESTED';
-export const WAIVERS_LOAD_SCOPE_DATA_FULFILLED = 'WAIVERS_LOAD_SCOPE_DATA_FULFILLED';
-export const WAIVERS_LOAD_SCOPE_DATA_FAILED = 'WAIVERS_LOAD_SCOPE_DATA_FAILED';
+export const WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED';
+export const WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED';
+export const WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED';
 export const WAIVERS_SAVE_WAIVER_REQUESTED = 'WAIVERS_SAVE_WAIVER_REQUESTED';
 export const WAIVERS_SAVE_WAIVER_FULFILLED = 'WAIVERS_SAVE_WAIVER_FULFILLED';
 export const WAIVERS_SAVE_WAIVER_FAILED = 'WAIVERS_SAVE_WAIVER_FAILED';
@@ -45,9 +45,9 @@ export const WAIVERS_DELETE_MASK_TIMER_DONE = 'WAIVERS_DELETE_MASK_TIMER_DONE';
 const saveWaiverRequested = noPayloadActionCreator(WAIVERS_SAVE_WAIVER_REQUESTED);
 const saveWaiverFulfilled = noPayloadActionCreator(WAIVERS_SAVE_WAIVER_FULFILLED);
 const saveWaiverFailed = payloadParamActionCreator(WAIVERS_SAVE_WAIVER_FAILED);
-const loadAddWaiverDataRequested = noPayloadActionCreator(WAIVERS_LOAD_SCOPE_DATA_REQUESTED);
-const loadAddWaiverDataFailed = payloadParamActionCreator(WAIVERS_LOAD_SCOPE_DATA_FAILED);
-const loadAddWaiverDataFulfilled = payloadParamActionCreator(WAIVERS_LOAD_SCOPE_DATA_FULFILLED);
+const loadAddWaiverDataRequested = noPayloadActionCreator(WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED);
+const loadAddWaiverDataFailed = payloadParamActionCreator(WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED);
+const loadAddWaiverDataFulfilled = payloadParamActionCreator(WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED);
 const loadManageWaiversDataRequested = noPayloadActionCreator(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED);
 const loadManageWaiversDataFulfilled = payloadParamActionCreator(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED);
 const loadManageWaiversDataFailed = payloadParamActionCreator(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED);
@@ -92,8 +92,7 @@ export function saveWaiver(policyViolationId, waiverScope, ownerId, comment, app
           return dispatch(returnToAddWaiverOriginPage());
         })
         .catch((err) => {
-          dispatch(saveWaiverFailed(err));
-          return Promise.reject(err);
+          return dispatch(saveWaiverFailed(err));
         });
   };
 }
@@ -105,11 +104,11 @@ export function loadAddWaiverData(violationId) {
   return (dispatch, getState) => {
 
     dispatch(loadAddWaiverDataRequested());
-    return dispatch(loadViolation(violationId))
+    return dispatch(fetchCrossStageViolation(violationId))
         .then(() => {
           const ownerType = 'application',
-              { violationPage } = getState(),
-              { violationDetails } = violationPage,
+              { violation } = getState(),
+              { violationDetails } = violation,
               { applicationPublicId, policyId } = violationDetails;
           // ToDo verify that ownerType is always application
           return loadOwnerContextHierarchy(ownerType, applicationPublicId, policyId);
@@ -125,8 +124,14 @@ export function loadAddWaiverData(violationId) {
 export function loadManageWaiversData(violationId) {
   return (dispatch, getState) => {
     dispatch(loadManageWaiversDataRequested());
-    return dispatch(loadViolation(violationId))
-        .then(() => loadPermissionForAppWaivers(getState().violationPage.violationDetails.applicationPublicId))
+
+    const parallelRequests = [
+      dispatch(fetchCrossStageViolation(violationId)),
+      dispatch(fetchApplicableWaivers(violationId))
+    ];
+
+    return Promise.all(parallelRequests)
+        .then(() => loadPermissionForAppWaivers(getState().violation.violationDetails.applicationPublicId))
         .then(compose(dispatch, loadManageWaiversDataFulfilled))
         .catch(compose(dispatch, loadManageWaiversDataFailed));
   };
@@ -195,7 +200,7 @@ const deleteWaiverMaskTimerDone = noPayloadActionCreator(WAIVERS_DELETE_MASK_TIM
 export function deleteWaiver(ownerType, ownerId, waiverId) {
   return (dispatch, getState) => {
     dispatch(deleteWaiverRequested());
-    const { policyViolationId } = path(['violationPage', 'violationDetails'], getState());
+    const { policyViolationId } = path(['violation', 'violationDetails'], getState());
     const endpointUrl = deleteWaiverUrl(ownerType, ownerId, waiverId);
 
     return axios.delete(endpointUrl)
@@ -203,7 +208,7 @@ export function deleteWaiver(ownerType, ownerId, waiverId) {
           dispatch(deleteWaiverFulfilled());
           setTimeout(() => {
             dispatch(deleteWaiverMaskTimerDone());
-            dispatch(loadApplicableWaivers(policyViolationId));
+            dispatch(fetchApplicableWaivers(policyViolationId));
           }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
         })
         .catch((err) => {

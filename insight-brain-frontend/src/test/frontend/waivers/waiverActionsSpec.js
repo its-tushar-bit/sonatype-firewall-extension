@@ -16,9 +16,9 @@ import {
 } from '../../../main/frontend/util/CLMLocation';
 import { getPermissionContextTestUrl } from '../../../main/frontend/util/CLMContextLocation';
 import {
-  WAIVERS_LOAD_SCOPE_DATA_REQUESTED,
-  WAIVERS_LOAD_SCOPE_DATA_FULFILLED,
-  WAIVERS_LOAD_SCOPE_DATA_FAILED,
+  WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED,
+  WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED,
+  WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED,
   WAIVERS_SAVE_WAIVER_REQUESTED,
   WAIVERS_SAVE_WAIVER_FULFILLED,
   WAIVERS_SAVE_WAIVER_FAILED,
@@ -49,11 +49,9 @@ import {
   hideDeleteWaiverModal
 } from '../../../main/frontend/waivers/waiverActions';
 import {
-  LOAD_VIOLATION_REQUESTED,
-  LOAD_VIOLATION_FULFILLED,
-  LOAD_VIOLATION_FAILED,
-  VIOLATION_LOAD_APPLICABLE_WAIVERS_REQUESTED
-} from '../../../main/frontend/violation/violationPageActions';
+  VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED,
+  VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED
+} from '../../../main/frontend/violation/violationActions';
 import { STATE_GO } from '../../../main/frontend/reduxUiRouter/routerActions';
 import { getFutureDate } from '../../../main/frontend/util/jsUtil';
 
@@ -62,7 +60,7 @@ describe('waiverActions', function() {
 
   beforeEach(function() {
     const state = {
-      violationPage: {
+      violation: {
         violationDetails: {
           applicationPublicId: 'appPublicId',
           policyId: 'policyId'
@@ -107,7 +105,7 @@ describe('waiverActions', function() {
       expect(axios.post).toHaveBeenCalledWith(expectedUrl, expectedPayload);
     });
 
-    describe('after a succesful POST', function() {
+    describe('after a successful POST', function() {
       it('dispatches the WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE action once the timer is done', function(done) {
         const url = getAddPolicyViolationWaiverUrl('application', 'ownerId', 'policyViolationId'),
             expectedPayload = {
@@ -171,7 +169,7 @@ describe('waiverActions', function() {
         spyOn(axios, 'post').and.returnValue(Promise.reject('Err'));
 
         store.dispatch(saveWaiver('policyViolationId', 'application', 'ownerId', '', false, null))
-            .catch(() => {
+            .then(() => {
               expect(store.getActions().length).toBe(2);
               expect(store.getActions()[1].type).toBe(WAIVERS_SAVE_WAIVER_FAILED);
               done();
@@ -184,29 +182,37 @@ describe('waiverActions', function() {
   });
 
   describe('loadAddWaiverData', function() {
-    it('immediately dispatches a WAIVERS_LOAD_SCOPE_DATA_REQUESTED action', function() {
-      spyOn(axios, 'get').and.returnValue(Promise.resolve());
+    it('immediately dispatches a WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED action', function() {
       store.dispatch(loadAddWaiverData('foo'));
 
-      expect(store.getActions().length).toBe(2);
-      expect(store.getActions()[0].type).toEqual(WAIVERS_LOAD_SCOPE_DATA_REQUESTED);
+      expect(store.getActions().length).toBe(1);
+      expect(store.getActions()[0].type).toEqual(WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED);
     });
 
-    it('calls loadViolation actionCreator', function() {
-      spyOn(axios, 'get').and.returnValue(Promise.resolve());
-      store.dispatch(loadAddWaiverData('foo'));
+    it('calls fetchCrossStageViolation actionCreator', function(done) {
+      const violationDetailsUrl = getViolationDetailsUrl('foo'),
+          violationDetails = {
+            applicationPublicId: 'appPublicId',
+            policyId: 'policyId'
+          };
+      mockAxiosCalls({
+        get: {
+          [violationDetailsUrl]: Promise.resolve({ data: violationDetails })
+        }
+      });
 
-      expect(store.getActions().length).toBe(2);
-      expect(store.getActions()[0].type).toEqual(WAIVERS_LOAD_SCOPE_DATA_REQUESTED);
-      expect(store.getActions()[1].type).toEqual(LOAD_VIOLATION_REQUESTED);
+      store.dispatch(loadAddWaiverData('foo')).then(() => {
+        expect(store.getActions()[1].type).toEqual(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
+        done();
+      });
 
-      expect(axios.get).toHaveBeenCalledWith(getViolationDetailsUrl('foo'));
+      expect(store.getActions()[0].type).toEqual(WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED);
+      expect(axios.get).toHaveBeenCalledWith(violationDetailsUrl);
     });
 
-    describe('when loadViolation succeeds', function() {
+    describe('when fetchCrossStageViolation succeeds', function() {
       it('calls loadOwnerContextHierarchy', function(done) {
         const loadViolationDetailsUrl = getViolationDetailsUrl('foo'),
-            applicableWaiversUrl = getApplicableWaiversUrl('foo'),
             ownerContextHierarchyUrl = getOwnerContextHierarchyUrl('application', 'appPublicId', 'policyId'),
             violationDetails = {
               applicationPublicId: 'appPublicId',
@@ -216,68 +222,32 @@ describe('waiverActions', function() {
         mockAxiosCalls({
           get: {
             [loadViolationDetailsUrl]: Promise.resolve({ data: violationDetails }),
-            [applicableWaiversUrl]: Promise.resolve({ data: { activeWaivers: [], expiredWaivers: [] } }),
-            [ownerContextHierarchyUrl]: Promise.resolve({ data: {} })
+            [ownerContextHierarchyUrl]: Promise.resolve({
+              data: {
+                type: 'type',
+                id: 'id',
+                name: 'name'
+              }
+            })
           }
         });
 
         store.dispatch(loadAddWaiverData('foo'))
             .then(() => {
-              expect(axios.get.calls.argsFor(2)).toEqual([ownerContextHierarchyUrl]);
-              expect(store.getActions().length).toBe(4);
-              expect(store.getActions()[1].type).toBe(LOAD_VIOLATION_REQUESTED);
-              expect(store.getActions()[2].type).toBe(LOAD_VIOLATION_FULFILLED);
+              expect(axios.get.calls.argsFor(1)).toEqual([ownerContextHierarchyUrl]);
+              expect(store.getActions().length).toBe(3);
+              expect(store.getActions()[1].type).toBe(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
+              expect(store.getActions()[2].type).toBe(WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED);
+              expect(store.getActions()[2].payload).toEqual([{ type: 'type', id: 'id', name: 'name', label: 'Type' }]);
               done();
             });
 
-        expect(store.getActions().length).toBe(2);
-        expect(store.getActions()[0].type).toBe(WAIVERS_LOAD_SCOPE_DATA_REQUESTED);
-      });
-
-      describe('when loadOwnerContextHierarchy succeeds', function() {
-        it('dispatches WAIVERS_LOAD_SCOPE_DATA_FULFILLED', function(done) {
-          const loadViolationDetailsUrl = getViolationDetailsUrl('foo'),
-              applicableWaiversUrl = getApplicableWaiversUrl('foo'),
-              ownerContextHierarchyUrl = getOwnerContextHierarchyUrl('application', 'appPublicId', 'policyId'),
-              violationDetails = {
-                applicationPublicId: 'appPublicId',
-                policyId: 'policyId'
-              };
-
-          mockAxiosCalls({
-            get: {
-              [loadViolationDetailsUrl]: Promise.resolve({ data: violationDetails }),
-              [applicableWaiversUrl]: Promise.resolve({ data: { activeWaivers: [], expiredWaivers: [] } }),
-              [ownerContextHierarchyUrl]: Promise.resolve({
-                data: {
-                  type: 'type',
-                  id: 'id',
-                  name: 'name'
-                }
-              })
-            }
-          });
-
-          store.dispatch(loadAddWaiverData('foo'))
-              .then(() => {
-                expect(axios.get.calls.argsFor(2)).toEqual([ownerContextHierarchyUrl]);
-                expect(store.getActions().length).toBe(4);
-                expect(store.getActions()[1].type).toBe(LOAD_VIOLATION_REQUESTED);
-                expect(store.getActions()[2].type).toBe(LOAD_VIOLATION_FULFILLED);
-                expect(store.getActions()[3].type).toBe(WAIVERS_LOAD_SCOPE_DATA_FULFILLED);
-                done();
-              });
-
-          expect(store.getActions().length).toBe(2);
-          expect(store.getActions()[0].type).toBe(WAIVERS_LOAD_SCOPE_DATA_REQUESTED);
-          expect(store.getActions()[1].type).toBe(LOAD_VIOLATION_REQUESTED);
-        });
+        expect(store.getActions()[0].type).toBe(WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED);
       });
 
       describe('when loadOwnerContextHierarchy fails', function() {
-        it('dispatches WAIVERS_LOAD_SCOPE_DATA_FAILED', function(done) {
+        it('dispatches WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED', function(done) {
           const loadViolationDetailsUrl = getViolationDetailsUrl('foo'),
-              applicableWaiversUrl = getApplicableWaiversUrl('foo'),
               ownerContextHierarchyUrl = getOwnerContextHierarchyUrl('application', 'appPublicId', 'policyId'),
               violationDetails = {
                 applicationPublicId: 'appPublicId',
@@ -287,29 +257,26 @@ describe('waiverActions', function() {
           mockAxiosCalls({
             get: {
               [loadViolationDetailsUrl]: Promise.resolve({ data: violationDetails }),
-              [applicableWaiversUrl]: Promise.resolve({ data: 'applicableWaivers' }),
               [ownerContextHierarchyUrl]: Promise.reject('err')
             }
           });
 
           store.dispatch(loadAddWaiverData('foo'))
               .then(() => {
-                expect(axios.get.calls.argsFor(2)).toEqual([ownerContextHierarchyUrl]);
-                expect(store.getActions().length).toBe(4);
-                expect(store.getActions()[2].type).toBe(LOAD_VIOLATION_FULFILLED);
-                expect(store.getActions()[3].type).toBe(WAIVERS_LOAD_SCOPE_DATA_FAILED);
+                expect(axios.get.calls.argsFor(1)).toEqual([ownerContextHierarchyUrl]);
+                expect(store.getActions().length).toBe(3);
+                expect(store.getActions()[1].type).toBe(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
+                expect(store.getActions()[2].type).toBe(WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED);
                 done();
               });
 
-          expect(store.getActions().length).toBe(2);
-          expect(store.getActions()[0].type).toBe(WAIVERS_LOAD_SCOPE_DATA_REQUESTED);
-          expect(store.getActions()[1].type).toBe(LOAD_VIOLATION_REQUESTED);
+          expect(store.getActions()[0].type).toBe(WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED);
         });
       });
     });
 
-    describe('when loadViolation fails', function() {
-      it('dispatches WAIVERS_LOAD_SCOPE_DATA_FAILED', function(done) {
+    describe('when fetchCrossStageViolation fails', function() {
+      it('dispatches WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED', function(done) {
         const applicableWaiversUrl = '/api/v2/policyViolations/foo/applicableWaivers';
         const loadViolationDetailsUrl = '/api/v2/policyViolations/crossStage/?constituentId=foo';
         mockAxiosCalls({
@@ -321,15 +288,13 @@ describe('waiverActions', function() {
 
         store.dispatch(loadAddWaiverData('foo'))
             .then(() => {
-              expect(store.getActions().length).toBe(4);
-              expect(store.getActions()[2].type).toBe(LOAD_VIOLATION_FAILED);
-              expect(store.getActions()[3].type).toEqual(WAIVERS_LOAD_SCOPE_DATA_FAILED);
+              expect(store.getActions().length).toBe(2);
+              expect(store.getActions()[1].type).toEqual(WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED);
+              expect(store.getActions()[1].payload).toEqual('Err');
               done();
             });
 
-        expect(store.getActions().length).toBe(2);
-        expect(store.getActions()[0].type).toBe(WAIVERS_LOAD_SCOPE_DATA_REQUESTED);
-        expect(store.getActions()[1].type).toBe(LOAD_VIOLATION_REQUESTED);
+        expect(store.getActions()[0].type).toBe(WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED);
       });
     });
   });
@@ -340,18 +305,32 @@ describe('waiverActions', function() {
       expect(store.getActions()[0].type).toEqual(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED);
     });
 
-    it('dispatches loadViolation action', function() {
-      spyOn(axios, 'get').and.returnValue(Promise.resolve());
-      store.dispatch(loadManageWaiversData('foo'));
+    it('calls fetchCrossStageViolation and fetchApplicableWaivers actionCreators', function(done) {
+      const violationDetailsUrl = getViolationDetailsUrl('foo'),
+          applicableWaiversUrl = getApplicableWaiversUrl('foo'),
+          violationDetails = {
+            applicationPublicId: 'appPublicId',
+            policyId: 'policyId'
+          };
+      mockAxiosCalls({
+        get: {
+          [violationDetailsUrl]: Promise.resolve({ data: violationDetails }),
+          [applicableWaiversUrl]: Promise.resolve({ data: 'applicableWaivers' })
+        }
+      });
 
-      expect(store.getActions().length).toBe(2);
+      store.dispatch(loadManageWaiversData('foo')).then(() => {
+        expect(store.getActions()[1].type).toEqual(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
+        expect(store.getActions()[2].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
+        done();
+      });
+
       expect(store.getActions()[0].type).toEqual(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED);
-      expect(store.getActions()[1].type).toEqual(LOAD_VIOLATION_REQUESTED);
-
-      expect(axios.get).toHaveBeenCalledWith(getViolationDetailsUrl('foo'));
+      expect(axios.get).toHaveBeenCalledWith(violationDetailsUrl);
+      expect(axios.get).toHaveBeenCalledWith(applicableWaiversUrl);
     });
 
-    describe('when loadViolation succeeds', function() {
+    describe('when fetchCrossStageViolation succeeds', function() {
       let loadViolationDetailsUrl, applicableWaiversUrl, applicationSummaryUrl, violationDetails, applicationSummary,
           permissionContextTestUrl;
 
@@ -385,14 +364,13 @@ describe('waiverActions', function() {
             store.dispatch(loadManageWaiversData('foo'))
                 .then(() => {
                   expect(store.getActions().length).toBe(4);
-                  expect(store.getActions()[1].type).toBe(LOAD_VIOLATION_REQUESTED);
-                  expect(store.getActions()[2].type).toBe(LOAD_VIOLATION_FULFILLED);
+                  expect(store.getActions()[1].type).toBe(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
+                  expect(store.getActions()[2].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
                   expect(store.getActions()[3].type).toBe(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED);
                   expect(store.getActions()[3].payload).toBe(true);
                   done();
                 });
 
-            expect(store.getActions().length).toBe(2);
             expect(store.getActions()[0].type).toBe(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED);
           });
         });
@@ -413,14 +391,13 @@ describe('waiverActions', function() {
             store.dispatch(loadManageWaiversData('foo'))
                 .then(() => {
                   expect(store.getActions().length).toBe(4);
-                  expect(store.getActions()[1].type).toBe(LOAD_VIOLATION_REQUESTED);
-                  expect(store.getActions()[2].type).toBe(LOAD_VIOLATION_FULFILLED);
+                  expect(store.getActions()[1].type).toBe(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
+                  expect(store.getActions()[2].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
                   expect(store.getActions()[3].type).toBe(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED);
                   expect(store.getActions()[3].payload).toBe(false);
                   done();
                 });
 
-            expect(store.getActions().length).toBe(2);
             expect(store.getActions()[0].type).toBe(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED);
           });
         });
@@ -439,14 +416,13 @@ describe('waiverActions', function() {
           store.dispatch(loadManageWaiversData('foo'))
               .then(() => {
                 expect(store.getActions().length).toBe(4);
-                expect(store.getActions()[1].type).toBe(LOAD_VIOLATION_REQUESTED);
-                expect(store.getActions()[2].type).toBe(LOAD_VIOLATION_FULFILLED);
+                expect(store.getActions()[1].type).toBe(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
+                expect(store.getActions()[2].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
                 expect(store.getActions()[3].type).toBe(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED);
                 expect(store.getActions()[3].payload).toBe('app summary error');
                 done();
               });
 
-          expect(store.getActions().length).toBe(2);
           expect(store.getActions()[0].type).toBe(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED);
         });
       });
@@ -467,38 +443,58 @@ describe('waiverActions', function() {
           store.dispatch(loadManageWaiversData('foo'))
               .then(() => {
                 expect(store.getActions().length).toBe(4);
-                expect(store.getActions()[1].type).toBe(LOAD_VIOLATION_REQUESTED);
-                expect(store.getActions()[2].type).toBe(LOAD_VIOLATION_FULFILLED);
+                expect(store.getActions()[1].type).toBe(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
+                expect(store.getActions()[2].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
                 expect(store.getActions()[3].type).toBe(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED);
                 expect(store.getActions()[3].payload).toBe('load permission error');
                 done();
               });
 
-          expect(store.getActions().length).toBe(2);
           expect(store.getActions()[0].type).toBe(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED);
         });
       });
     });
 
-    describe('when loadViolation fails', function() {
+    describe('when fetchCrossStageViolation fails', function() {
       it('dispatches WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED', function(done) {
         mockAxiosCalls({
           get: {
-            [getViolationDetailsUrl('foo')]: Promise.reject('load violation details error')
+            [getViolationDetailsUrl('foo')]: Promise.reject('load violation details error'),
+            [getApplicableWaiversUrl('foo')]: Promise.resolve({ data: 'applicableWaivers' })
           }
         });
 
         store.dispatch(loadManageWaiversData('foo'))
             .then(() => {
-              expect(store.getActions().length).toBe(4);
-              expect(store.getActions()[1].type).toBe(LOAD_VIOLATION_REQUESTED);
-              expect(store.getActions()[2].type).toBe(LOAD_VIOLATION_FAILED);
-              expect(store.getActions()[3].type).toBe(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED);
-              expect(store.getActions()[3].payload).toBe('load violation details error');
+              expect(store.getActions().length).toBe(3);
+              expect(store.getActions()[1].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
+              expect(store.getActions()[2].type).toBe(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED);
+              expect(store.getActions()[2].payload).toBe('load violation details error');
               done();
             });
 
-        expect(store.getActions().length).toBe(2);
+        expect(store.getActions()[0].type).toBe(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED);
+      });
+    });
+
+    describe('when fetchApplicableWaivers fails', function() {
+      it('dispatches WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED', function(done) {
+        mockAxiosCalls({
+          get: {
+            [getViolationDetailsUrl('foo')]: Promise.resolve({ data: { applicationPublicId: '' } }),
+            [getApplicableWaiversUrl('foo')]: Promise.reject('load applicable waivers error')
+          }
+        });
+
+        store.dispatch(loadManageWaiversData('foo'))
+            .then(() => {
+              expect(store.getActions().length).toBe(3);
+              expect(store.getActions()[1].type).toEqual(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
+              expect(store.getActions()[2].type).toBe(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED);
+              expect(store.getActions()[2].payload).toBe('load applicable waivers error');
+              done();
+            });
+
         expect(store.getActions()[0].type).toBe(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED);
       });
     });
@@ -695,11 +691,13 @@ describe('waiverActions', function() {
 
       it('hides the delete modal and the mask, and then reloads the applicable waivers when the timer is done',
           function(done) {
-            const requestUrl = deleteWaiverUrl('application', 'ownerId', 'waiverId');
+            const requestUrl = deleteWaiverUrl('application', 'ownerId', 'waiverId'),
+                applicableWaiversUrl = getApplicableWaiversUrl('foo');
 
             mockAxiosCalls({
               del: {
-                [requestUrl]: Promise.resolve()
+                [requestUrl]: Promise.resolve(),
+                [applicableWaiversUrl]: Promise.resolve({ data: 'applicableWaivers' })
               }
             });
 
@@ -710,9 +708,9 @@ describe('waiverActions', function() {
                     expect(store.getActions().length).toBe(4);
                     expect(store.getActions()[1].type).toBe(WAIVERS_DELETE_WAIVER_FULFILLED);
                     expect(store.getActions()[2].type).toBe(WAIVERS_DELETE_MASK_TIMER_DONE);
-                    expect(store.getActions()[3].type).toBe(VIOLATION_LOAD_APPLICABLE_WAIVERS_REQUESTED);
-                    done();
+                    expect(store.getActions()[3].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
                   }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+                  done();
                 });
 
             expect(store.getActions().length).toBe(1);

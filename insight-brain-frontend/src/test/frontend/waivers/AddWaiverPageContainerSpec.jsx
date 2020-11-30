@@ -73,7 +73,7 @@ describe('AddWaiverPageContainer', function() {
           isPristine: true
         }
       },
-      violationPage: {
+      violation: {
         violationDetails: {}
       },
       router: {
@@ -99,7 +99,7 @@ describe('AddWaiverPageContainer', function() {
       addWaiver: {
         loading: true
       },
-      violationPage: {
+      violation: {
         violationDetails: {
           id: 'bar'
         }

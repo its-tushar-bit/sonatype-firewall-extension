@@ -12,20 +12,18 @@ import {
 } from '../../../main/frontend/util/CLMLocation';
 import {
   loadViolation,
-  loadVulnerabilityDetails,
-  LOAD_VIOLATION_REQUESTED,
-  LOAD_VIOLATION_FULFILLED,
-  LOAD_VIOLATION_FAILED,
-  LOAD_VULNERABILITY_DETAILS_REQUESTED,
-  LOAD_VULNERABILITY_DETAILS_FULFILLED,
-  LOAD_VULNERABILITY_DETAILS_FAILED,
-  VIOLATION_LOAD_APPLICABLE_WAIVERS_FAILED,
-  VIOLATION_LOAD_APPLICABLE_WAIVERS_REQUESTED,
-  VIOLATION_LOAD_APPLICABLE_WAIVERS_FULFILLED,
-  loadApplicableWaivers
-} from '../../../main/frontend/violation/violationPageActions';
+  VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED,
+  VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED,
+  VIOLATION_LOAD_VIOLATION_DETAILS_FAILED,
+  VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED,
+  VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED,
+  VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED,
+  VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED,
+  VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED,
+  loadVulnerabilityDetails
+} from '../../../main/frontend/violation/violationActions';
 
-describe('violationPageActions', function() {
+describe('violationActions', function() {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   let store;
 
@@ -34,7 +32,7 @@ describe('violationPageActions', function() {
 
     beforeEach(function() {
       state = {
-        violationPage: {
+        violation: {
           violationDetails: {
             policyViolationId: 'baz'
           },
@@ -53,8 +51,8 @@ describe('violationPageActions', function() {
           get: {
             [violationDetailsUrl]: Promise.resolve({ data: 'violationDetails' }),
             [applicableWaiversUrl]: Promise.resolve({ data: {
-              activeWaivers: [],
-              expiredWaivers: []
+              activeWaivers: ['foo'],
+              expiredWaivers: ['bar']
             } })
           }
         });
@@ -64,13 +62,14 @@ describe('violationPageActions', function() {
           expect(axios.get).not.toHaveBeenCalledWith(violationDetailsUrl);
           // make sure that a request for applicable waivers was sent
           expect(axios.get).toHaveBeenCalledWith(applicableWaiversUrl);
-          expect(store.getActions()[1].type).toEqual(LOAD_VIOLATION_FULFILLED);
-          // verify that payload for violationDetails matches state and not return value of mock request
+          expect(store.getActions().length).toBe(3);
+          expect(store.getActions()[1].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
           expect(store.getActions()[1].payload).toEqual({
-            violationDetails: { policyViolationId: 'baz' },
-            applicableWaivers: { activeWaivers: [], expiredWaivers: [] },
-            selectedViolationId: 'bar'
+            activeWaivers: ['foo'],
+            expiredWaivers: ['bar']
           });
+          expect(store.getActions()[2].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED);
+          expect(store.getActions()[2].payload).toBeUndefined();
           done();
         });
 
@@ -78,30 +77,41 @@ describe('violationPageActions', function() {
       });
     });
 
-    it('dispatches LOAD_VIOLATION_REQUESTED immediately if the violation is not already loaded', function() {
-      spyOn(axios, 'get').and.returnValue(Promise.resolve({ data: {} }));
+    it('dispatches VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED immediately if the violation is not already loaded',
+        function() {
+          spyOn(axios, 'get').and.returnValue(Promise.resolve());
 
-      store.dispatch(loadViolation('foo'));
+          store.dispatch(loadViolation('foo'));
 
-      expect(store.getActions().length).toBe(1);
-      expect(store.getActions()[0].type).toEqual(LOAD_VIOLATION_REQUESTED);
-    });
+          expect(store.getActions().length).toBe(1);
+          expect(store.getActions()[0].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED);
+        }
+    );
 
-    it('dispatches LOAD_VIOLATION_FULFILLED with vulnerability and waivers data', function(done) {
+    it('dispatches "fetch fulfilled" actions with cross-stage violation and waivers data', function(done) {
       mockAxiosCalls({
         get: {
           [getViolationDetailsUrl('foo')]: Promise.resolve({ data: 'violationDetails' }),
-          [getApplicableWaiversUrl('foo')]: Promise.resolve({ data: { activeWaivers: [], expiredWaivers: [] } })
+          [getApplicableWaiversUrl('foo')]: Promise.resolve({
+            data: { activeWaivers: ['foo'], expiredWaivers: ['bar'] }
+          })
         }
       });
 
       store.dispatch(loadViolation('foo')).then(() => {
-        expect(store.getActions()[1].type).toEqual(LOAD_VIOLATION_FULFILLED);
+        expect(store.getActions().length).toBe(4);
+        expect(store.getActions()[1].type).toEqual(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
         expect(store.getActions()[1].payload).toEqual({
           violationDetails: 'violationDetails',
-          applicableWaivers: { activeWaivers: [], expiredWaivers: [] },
           selectedViolationId: 'foo'
         });
+        expect(store.getActions()[2].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
+        expect(store.getActions()[2].payload).toEqual({
+          activeWaivers: ['foo'],
+          expiredWaivers: ['bar']
+        });
+        expect(store.getActions()[3].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED);
+        expect(store.getActions()[3].payload).toBeUndefined();
 
         done();
       });
@@ -109,43 +119,58 @@ describe('violationPageActions', function() {
       expect(axios.get).toHaveBeenCalledWith(getApplicableWaiversUrl('foo'));
     });
 
-    it('dispatches LOAD_VIOLATION_FAILED when the violation details request fails', function(done) {
+    it('dispatches VIOLATION_LOAD_VIOLATION_DETAILS_FAILED when the violation details request fails', function(done) {
       const responseError = 'errrr!';
 
       mockAxiosCalls({
         get: {
-          [getViolationDetailsUrl()]: Promise.reject(responseError)
+          [getViolationDetailsUrl('foo')]: Promise.reject(responseError),
+          [getApplicableWaiversUrl('foo')]: Promise.resolve({
+            data: { activeWaivers: ['foo'], expiredWaivers: ['bar'] }
+          })
         }
       });
 
-      store.dispatch(loadViolation()).catch(() => {
-        expect(store.getActions()[1].type).toEqual(LOAD_VIOLATION_FAILED);
-        expect(store.getActions()[1].payload).toEqual(responseError);
+      store.dispatch(loadViolation('foo')).then(() => {
+        expect(store.getActions().length).toBe(3);
+        expect(store.getActions()[1].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
+        expect(store.getActions()[1].payload).toEqual({
+          activeWaivers: ['foo'],
+          expiredWaivers: ['bar']
+        });
+        expect(store.getActions()[2].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_FAILED);
+        expect(store.getActions()[2].payload).toEqual(responseError);
         done();
       });
 
-      expect(axios.get).toHaveBeenCalledWith(getViolationDetailsUrl());
-      expect(axios.get).toHaveBeenCalledWith(getApplicableWaiversUrl());
+      expect(axios.get).toHaveBeenCalledWith(getViolationDetailsUrl('foo'));
+      expect(axios.get).toHaveBeenCalledWith(getApplicableWaiversUrl('foo'));
     });
 
-    it('dispatches LOAD_VIOLATION_FAILED when the applicable waivers request fails', function(done) {
+    it('dispatches VIOLATION_LOAD_VIOLATION_DETAILS_FAILED when the applicable waivers request fails', function(done) {
       const responseError = 'applicableWaiversError!';
 
       mockAxiosCalls({
         get: {
-          [getViolationDetailsUrl()]: Promise.resolve({ data: 'violationDetails' }),
-          [getApplicableWaiversUrl()]: Promise.reject(responseError)
+          [getViolationDetailsUrl('foo')]: Promise.resolve({ data: 'violationDetails' }),
+          [getApplicableWaiversUrl('foo')]: Promise.reject(responseError)
         }
       });
 
-      store.dispatch(loadViolation()).catch(() => {
-        expect(store.getActions()[1].type).toEqual(LOAD_VIOLATION_FAILED);
-        expect(store.getActions()[1].payload).toEqual(responseError);
+      store.dispatch(loadViolation('foo')).then(() => {
+        expect(store.getActions().length).toBe(3);
+        expect(store.getActions()[1].type).toEqual(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
+        expect(store.getActions()[1].payload).toEqual({
+          violationDetails: 'violationDetails',
+          selectedViolationId: 'foo'
+        });
+        expect(store.getActions()[2].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_FAILED);
+        expect(store.getActions()[2].payload).toEqual(responseError);
         done();
       });
 
-      expect(axios.get).toHaveBeenCalledWith(getViolationDetailsUrl());
-      expect(axios.get).toHaveBeenCalledWith(getViolationDetailsUrl());
+      expect(axios.get).toHaveBeenCalledWith(getViolationDetailsUrl('foo'));
+      expect(axios.get).toHaveBeenCalledWith(getViolationDetailsUrl('foo'));
     });
 
     describe('when violation has a security vulnerability reference', function() {
@@ -162,119 +187,60 @@ describe('violationPageActions', function() {
           }]
         };
 
-        Object.assign(state.violationPage.violationDetails, violationDetailsResponseData);
+        // loadVulnerabilityDetails() reads violationDetails data from the store
+        Object.assign(state.violation.violationDetails, violationDetailsResponseData);
       });
 
-      it('also dispatches LOAD_VULNERABILITY_DETAILS_REQUESTED', function(done) {
-        spyOn(axios, 'get').and.returnValue(Promise.resolve({data: violationDetailsResponseData}));
+      it('dispatches VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED with vulnerability details response data',
+          function(done) {
+            const vulnerabilityResponseData = { bar: 'baz' };
 
-        store.dispatch(loadViolation('foo')).then(() => {
-          expect(store.getActions()[1].type).toEqual(LOAD_VIOLATION_FULFILLED);
-          expect(store.getActions()[2].type).toEqual(LOAD_VULNERABILITY_DETAILS_REQUESTED);
-          done();
-        });
-      });
-
-      it('dispatches LOAD_VULNERABILITY_DETAILS_FULFILLED with vulnerability details response data', function(done) {
-        const vulnerabilityResponseData = { bar: 'baz' };
-
-        mockAxiosCalls({
-          get: {
-            [getViolationDetailsUrl('foo')]: Promise.resolve({ data: violationDetailsResponseData }),
-            [getApplicableWaiversUrl('foo')]: Promise.resolve({ data: { activeWaivers: [], expiredWaivers: [] } }),
-            [getVulnerabilityJsonDetailUrl('CVE-2016-1000027')]: Promise.resolve({ data: vulnerabilityResponseData })
-          }
-        });
-
-        store.dispatch(loadViolation('foo')).then(() => {
-          expect(store.getActions()[1].type).toEqual(LOAD_VIOLATION_FULFILLED);
-          expect(store.getActions()[2].type).toEqual(LOAD_VULNERABILITY_DETAILS_REQUESTED);
-          expect(store.getActions()[3].type).toEqual(LOAD_VULNERABILITY_DETAILS_FULFILLED);
-          expect(store.getActions()[3].payload).toEqual({ bar: 'baz' });
-          done();
-        });
-      });
-
-      it('dispatches LOAD_VULNERABILITY_DETAILS_FAILED when the vulnerability details response fails', function(done) {
-        const vulnerabilityResponseError = 'errrr!';
-
-        mockAxiosCalls({
-          get: {
-            [getViolationDetailsUrl('foo')]: Promise.resolve({data: violationDetailsResponseData}),
-            [getApplicableWaiversUrl('foo')]: Promise.resolve({ data: { activeWaivers: [], expiredWaivers: [] } }),
-            [getVulnerabilityJsonDetailUrl('CVE-2016-1000027')]: Promise.reject(vulnerabilityResponseError)
-          }
-        });
-
-        store.dispatch(loadViolation('foo')).then(() => {
-          expect(store.getActions()[1].type).toEqual(LOAD_VIOLATION_FULFILLED);
-          expect(store.getActions()[2].type).toEqual(LOAD_VULNERABILITY_DETAILS_REQUESTED);
-          expect(store.getActions()[3].type).toEqual(LOAD_VULNERABILITY_DETAILS_FAILED);
-          expect(store.getActions()[3].payload).toEqual(vulnerabilityResponseError);
-          done();
-        });
-      });
-    });
-  });
-
-  describe('loadApplicableWaivers', function() {
-    beforeEach(function() {
-      const state = {
-        violationPage: {
-          loading: false,
-          activeWaivers: [],
-          expiredWaivers: []
-        }
-      };
-      store = SpecUtil.mockReduxStore(state);
-    });
-
-    it('starts the request', function() {
-      mockAxiosCalls({
-        get: {
-          [getApplicableWaiversUrl('foo')]: Promise.reject('ERR')
-        }
-      });
-
-      store.dispatch(loadApplicableWaivers('foo'));
-      expect(store.getActions()[0].type).toEqual(VIOLATION_LOAD_APPLICABLE_WAIVERS_REQUESTED);
-    });
-
-    it('sets the payload when the request is succesful', function(done) {
-      mockAxiosCalls({
-        get: {
-          [getApplicableWaiversUrl('foo')]: Promise.resolve({
-            data: {
-              activeWaivers: [{ id: 'active' }],
-              expiredWaivers: [{ id: 'expired' }]
-            }
-          })}
-      });
-
-      store.dispatch(loadApplicableWaivers('foo'))
-          .then(() => {
-            expect(store.getActions()[1].type).toEqual(VIOLATION_LOAD_APPLICABLE_WAIVERS_FULFILLED);
-            expect(store.getActions()[1].payload).toEqual({
-              activeWaivers: [{ id: 'active' }],
-              expiredWaivers: [{ id: 'expired' }]
+            mockAxiosCalls({
+              get: {
+                [getViolationDetailsUrl('foo')]: Promise.resolve({ data: violationDetailsResponseData }),
+                [getApplicableWaiversUrl('foo')]: Promise.resolve({ data: { activeWaivers: [], expiredWaivers: [] } }),
+                [getVulnerabilityJsonDetailUrl('CVE-2016-1000027')]: Promise.resolve(
+                    { data: vulnerabilityResponseData })
+              }
             });
-            done();
-          });
-    });
 
-    it('handles erros when the request fails', function(done) {
-      mockAxiosCalls({
-        get: {
-          [getApplicableWaiversUrl('foo')]: Promise.reject('ERR')
-        }
-      });
+            store.dispatch(loadViolation('foo')).then(() => {
+              expect(store.getActions().length).toBe(6);
+              expect(store.getActions()[1].type).toEqual(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
+              expect(store.getActions()[2].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
+              expect(store.getActions()[3].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED);
+              expect(store.getActions()[4].type).toEqual(VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED);
+              expect(store.getActions()[5].type).toEqual(VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED);
+              expect(store.getActions()[5].payload).toEqual({ bar: 'baz' });
+              done();
+            });
+          }
+      );
 
-      store.dispatch(loadApplicableWaivers('foo'))
-          .then(() => {
-            expect(store.getActions()[1].type).toEqual(VIOLATION_LOAD_APPLICABLE_WAIVERS_FAILED);
-            expect(store.getActions()[1].payload).toEqual('ERR');
-            done();
-          });
+      it('dispatches VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED when the vulnerability details response fails',
+          function(done) {
+            const vulnerabilityResponseError = 'errrr!';
+
+            mockAxiosCalls({
+              get: {
+                [getViolationDetailsUrl('foo')]: Promise.resolve({ data: violationDetailsResponseData }),
+                [getApplicableWaiversUrl('foo')]: Promise.resolve({ data: { activeWaivers: [], expiredWaivers: [] } }),
+                [getVulnerabilityJsonDetailUrl('CVE-2016-1000027')]: Promise.reject(vulnerabilityResponseError)
+              }
+            });
+
+            store.dispatch(loadViolation('foo')).then(() => {
+              expect(store.getActions().length).toBe(6);
+              expect(store.getActions()[1].type).toEqual(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
+              expect(store.getActions()[2].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
+              expect(store.getActions()[3].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED);
+              expect(store.getActions()[4].type).toEqual(VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED);
+              expect(store.getActions()[5].type).toEqual(VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED);
+              expect(store.getActions()[5].payload).toEqual(vulnerabilityResponseError);
+              done();
+            });
+          }
+      );
     });
   });
 
@@ -285,7 +251,7 @@ describe('violationPageActions', function() {
 
     beforeEach(function() {
       const state = {
-        violationPage: {
+        violation: {
           violationDetails: {
             policyViolationId: 'bar',
             constraintViolations: [{
@@ -307,7 +273,7 @@ describe('violationPageActions', function() {
       spyOn(axios, 'get').and.returnValue(Promise.resolve({}));
 
       store.dispatch(loadVulnerabilityDetails()).then(() => {
-        expect(store.getActions()[0].type).toEqual(LOAD_VULNERABILITY_DETAILS_REQUESTED);
+        expect(store.getActions()[0].type).toEqual(VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED);
         done();
       });
 
@@ -326,8 +292,8 @@ describe('violationPageActions', function() {
 
       store.dispatch(loadVulnerabilityDetails()).then(() => {
         expect(store.getActions().length).toBe(2);
-        expect(store.getActions()[0].type).toEqual(LOAD_VULNERABILITY_DETAILS_REQUESTED);
-        expect(store.getActions()[1].type).toEqual(LOAD_VULNERABILITY_DETAILS_FULFILLED);
+        expect(store.getActions()[0].type).toEqual(VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED);
+        expect(store.getActions()[1].type).toEqual(VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED);
         expect(store.getActions()[1].payload).toEqual({ bar: 'baz' });
         done();
       });
@@ -346,8 +312,8 @@ describe('violationPageActions', function() {
 
       store.dispatch(loadVulnerabilityDetails()).then(() => {
         expect(store.getActions().length).toBe(2);
-        expect(store.getActions()[0].type).toEqual(LOAD_VULNERABILITY_DETAILS_REQUESTED);
-        expect(store.getActions()[1].type).toEqual(LOAD_VULNERABILITY_DETAILS_FAILED);
+        expect(store.getActions()[0].type).toEqual(VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED);
+        expect(store.getActions()[1].type).toEqual(VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED);
         expect(store.getActions()[1].payload).toEqual(vulnerabilityResponseError);
         done();
       });

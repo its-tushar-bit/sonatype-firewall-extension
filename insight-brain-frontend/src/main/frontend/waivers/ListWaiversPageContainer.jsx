@@ -10,9 +10,9 @@ import { pick } from 'ramda';
 import { loadManageWaiversData } from './waiverActions';
 import { setWaiverToDelete } from './waiverActions';
 
-function mapStateToProps({ violationPage, manageWaivers, router, deleteWaiver }) {
+function mapStateToProps({ violation, manageWaivers, router, deleteWaiver }) {
   return {
-    ...pick(['activeWaivers', 'expiredWaivers', 'violationDetails'], violationPage),
+    ...pick(['activeWaivers', 'expiredWaivers', 'violationDetails'], violation),
     ...pick(['violationId'], router.currentParams),
     ...pick(['loading', 'loadError', 'hasPermissionForAppWaivers'], manageWaivers),
     ...pick(['waiverToDelete'], deleteWaiver)

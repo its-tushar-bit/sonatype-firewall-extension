@@ -72,7 +72,7 @@ describe('addWaiverReducer', function() {
     });
   });
 
-  describe('WAIVERS_LOAD_SCOPE_DATA_REQUESTED action', function() {
+  describe('WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED action', function() {
     it('sets the loading prop to true', function() {
       const initialState = {
         loading: false,
@@ -87,14 +87,14 @@ describe('addWaiverReducer', function() {
         otherProp: { prop: 'foo' }
       };
 
-      const newState = reducer(initialState, { type: 'WAIVERS_LOAD_SCOPE_DATA_REQUESTED' });
+      const newState = reducer(initialState, { type: 'WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED' });
 
       expect(newState.loading).toBe(true);
       expect(newState.otherProp).toBe(initialState.otherProp);
     });
   });
 
-  describe('WAIVERS_LOAD_SCOPE_DATA_FULFILLED action', function() {
+  describe('WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED action', function() {
     const initialState = {
       loading: true,
       loadError: null,
@@ -108,7 +108,7 @@ describe('addWaiverReducer', function() {
       otherProp: { prop: 'foo' }
     };
     const action = {
-      type: 'WAIVERS_LOAD_SCOPE_DATA_FULFILLED',
+      type: 'WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED',
       payload: ['target1', 'target2']
     };
     const payload = ['target1', 'target2'];
@@ -127,7 +127,7 @@ describe('addWaiverReducer', function() {
     });
   });
 
-  describe('WAIVERS_LOAD_SCOPE_DATA_FAILED action', function() {
+  describe('WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED action', function() {
     it('unsets the loading flag and sets the loadError', function() {
       const initialState = {
         loading: true,
@@ -143,7 +143,7 @@ describe('addWaiverReducer', function() {
       };
 
       const newState = reducer(initialState, {
-        type: 'WAIVERS_LOAD_SCOPE_DATA_FAILED',
+        type: 'WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED',
         payload: 'Err'
       });
 

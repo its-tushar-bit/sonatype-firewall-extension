@@ -19,10 +19,10 @@ import {
 } from './waiverActions';
 import { openVulnerabilityDetailsModal } from '../vulnerabilityDetails/vulnerabilityDetailsModalActions';
 
-function mapStateToProps({ addWaiver, violationPage, router }) {
+function mapStateToProps({ addWaiver, violation, router }) {
   return {
     ...addWaiver,
-    ...pick(['violationDetails'], violationPage),
+    ...pick(['violationDetails'], violation),
     ...pick(['violationId'], router.currentParams)
   };
 }

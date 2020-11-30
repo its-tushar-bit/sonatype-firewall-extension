@@ -34,7 +34,7 @@ describe('ListWaiversPageContainer', function() {
         }).default;
 
     state = {
-      violationPage: {
+      violation: {
         activeWaivers: [],
         expiredWaivers: [],
         violationDetails: {}
@@ -68,7 +68,7 @@ describe('ListWaiversPageContainer', function() {
     expect(wrapper).toHaveProp('hasPermissionForAppWaivers', false);
     state = {
       ...state,
-      violationPage: {
+      violation: {
         violationDetails: {
           id: 'bar'
         }

@@ -13,7 +13,7 @@ import userReducer from '../user/userReducer';
 import vulnerabilitySearchReducer from '../vulnerabilitySearch/vulnerabilitySearchReducer';
 import vulnerabilityDetailsModalReducer from '../vulnerabilityDetails/vulnerabilityDetailsModalReducer';
 import mailConfigReducer from '../configuration/mail/mailConfigReducer';
-import violationPageReducer from '../violation/violationPageReducer';
+import violationReducer from '../violation/violationReducer';
 import proxyConfigReducer from '../configuration/proxy/proxyConfigReducer';
 import stagesReducer from '../stages/stagesReducer';
 import advancedSearchConfigReducer from '../configuration/advancedSearch/advancedSearchConfigReducer';
@@ -38,7 +38,7 @@ export default combineReducers({
   vulnerabilityDetailsModal: vulnerabilityDetailsModalReducer,
   vulnerabilitySearch: vulnerabilitySearchReducer,
   mailConfig: mailConfigReducer,
-  violationPage: violationPageReducer,
+  violation: violationReducer,
   proxyConfig: proxyConfigReducer,
   advancedSearchConfig: advancedSearchConfigReducer,
   advancedSearch: advancedSearchReducer,

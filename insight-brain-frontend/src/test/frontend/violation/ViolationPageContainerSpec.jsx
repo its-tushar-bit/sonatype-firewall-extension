@@ -29,7 +29,7 @@ describe('ViolationPageContainer', function() {
 
     ViolationPageContainer =
         require('inject-loader!../../../main/frontend/violation/ViolationPageContainer')({
-          './violationPageActions': {
+          './violationActions': {
             loadViolation: loadViolationActionMock,
             loadVulnerabilityDetails: loadVulnerabilityDetailsActionMock
           },
@@ -42,7 +42,7 @@ describe('ViolationPageContainer', function() {
         }).default;
 
     state = {
-      violationPage: {
+      violation: {
         loading: false,
         violationDetailsError: null
       },
@@ -60,7 +60,7 @@ describe('ViolationPageContainer', function() {
     vdom = <ViolationPageContainer store={store} $state={mock$State}/>;
   });
 
-  it('maps the state slice ("violationPage") to ViolationPageContainer props', () => {
+  it('maps the state slice ("violation") to ViolationPageContainer props', () => {
     let wrapper = shallow(vdom).dive();
 
     expect(wrapper).toHaveProp('loading', false);
@@ -68,7 +68,7 @@ describe('ViolationPageContainer', function() {
 
     state = {
       ...state,
-      violationPage: {
+      violation: {
         loading: true,
         violationDetailsError: 'foo'
       }

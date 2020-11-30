@@ -9,16 +9,16 @@ import { connect } from 'react-redux';
 import { gotoNewVulnerability, loadSidebarNav } from './sidebarNavListActions';
 import SidebarNavList from './SidebarNavList';
 
-function mapStateToProps({ sidebarNavList, router, violationPage }) {
+function mapStateToProps({ sidebarNavList, router, violation }) {
   let props = pick(['data', 'error', 'loading', 'contentType', 'backButtonStateName'], sidebarNavList);
 
   if (!props.contentType) {
     const currentStateName = router.currentState.name;
     switch (currentStateName) {
       case 'sidebarView.violation':
-        if (violationPage.violationDetails) {
+        if (violation.violationDetails) {
           props = {
-            data: [violationPage.violationDetails],
+            data: [violation.violationDetails],
             loading: false,
             contentType: 'violations',
             backButtonStateName: 'dashboard.overview.violations',

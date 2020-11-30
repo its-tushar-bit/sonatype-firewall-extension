@@ -47,7 +47,7 @@ describe('SidebarNavListContainer', function() {
           name: ''
         }
       },
-      violationPage: {
+      violation: {
         violationDetails: {
           policyViolationId: 'idFromDetailsPage'
         }

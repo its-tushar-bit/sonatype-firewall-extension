@@ -3,9 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reducer from '../../../main/frontend/violation/violationPageReducer';
+import reducer from '../../../main/frontend/violation/violationReducer';
 
-describe('violationPageReducer', function() {
+describe('violationReducer', function() {
   describe('unknown action', function() {
     it('returns original state', function() {
       const state = Object.freeze({foo: 'bar'});
@@ -68,7 +68,7 @@ describe('violationPageReducer', function() {
     });
   });
 
-  describe('LOAD_VIOLATION_REQUESTED action', function() {
+  describe('VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED action', function() {
     it('resets to default state and sets the loading flag to true', function() {
       const initialState = {
         violationDetails: {},
@@ -81,7 +81,7 @@ describe('violationPageReducer', function() {
         otherProp: 'asdf'
       };
 
-      const newState = reducer(initialState, { type: 'LOAD_VIOLATION_REQUESTED' });
+      const newState = reducer(initialState, { type: 'VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED' });
 
       expect(newState).toEqual({
         loading: true,
@@ -97,41 +97,23 @@ describe('violationPageReducer', function() {
     });
   });
 
-  describe('LOAD_VIOLATION_FULFILLED', function() {
+  describe('VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED', function() {
     it('unsets loading and violationDetailsError and sets violationDetails & activeWaivers to the payload', function() {
       const initialState = {
-        violationDetails: {},
-        selectedViolationId: null,
         violationDetailsError: 'baz',
         loading: true,
-        otherProp: 'asdf'
+        otherProp: { prop: 'foo' }
       };
 
-      const newState = reducer(initialState, {
-        type: 'LOAD_VIOLATION_FULFILLED',
-        payload: {
-          violationDetails: { foo: 'bar' },
-          applicableWaivers: {
-            activeWaivers: ['activeWaiver'],
-            expiredWaivers: ['expiredWaiver']
-          },
-          selectedViolationId: '123'
-        }
-      });
+      const newState = reducer(initialState, { type: 'VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED' });
 
-      expect(newState).toEqual({
-        loading: false,
-        violationDetailsError: null,
-        violationDetails: { foo: 'bar' },
-        otherProp: 'asdf',
-        activeWaivers: ['activeWaiver'],
-        expiredWaivers: ['expiredWaiver'],
-        selectedViolationId: '123'
-      });
+      expect(newState.violationDetailsError).toBeNull();
+      expect(newState.loading).toBe(false);
+      expect(newState.otherProp).toBe(initialState.otherProp);
     });
   });
 
-  describe('LOAD_VIOLATION_FAILED', function() {
+  describe('VIOLATION_LOAD_VIOLATION_DETAILS_FAILED', function() {
     it('unsets the loading flag and sets the violationDetailsError to the payload', function() {
       const initialState = {
         violationDetails: null,
@@ -141,7 +123,7 @@ describe('violationPageReducer', function() {
       };
 
       const newState = reducer(initialState, {
-        type: 'LOAD_VIOLATION_FAILED',
+        type: 'VIOLATION_LOAD_VIOLATION_DETAILS_FAILED',
         payload: 'ERRRRRRRRRRRRRRRRR'
       });
 
@@ -154,7 +136,7 @@ describe('violationPageReducer', function() {
     });
   });
 
-  describe('LOAD_VULNERABILITY_DETAILS_REQUESTED action', function() {
+  describe('VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED action', function() {
     it('sets vulnerabilityDetailsLoading flag to true', function() {
       const initialState = {
         violationDetails: {},
@@ -164,7 +146,7 @@ describe('violationPageReducer', function() {
         otherProp: 'asdf'
       };
 
-      const newState = reducer(initialState, { type: 'LOAD_VULNERABILITY_DETAILS_REQUESTED' });
+      const newState = reducer(initialState, { type: 'VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED' });
 
       expect(newState).toEqual({
         violationDetails: {},
@@ -176,7 +158,7 @@ describe('violationPageReducer', function() {
     });
   });
 
-  describe('LOAD_VULNERABILITY_DETAILS_FULFILLED', function() {
+  describe('VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED', function() {
     it('unsets vulnerabilityDetailsError and vulnerabilityDetailsLoading and sets vulnerabilityDetails to the payload',
         function() {
           const initialState = {
@@ -187,7 +169,7 @@ describe('violationPageReducer', function() {
           };
 
           const newState = reducer(initialState, {
-            type: 'LOAD_VULNERABILITY_DETAILS_FULFILLED',
+            type: 'VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED',
             payload: { foo: 'bar' }
           });
 
@@ -201,7 +183,7 @@ describe('violationPageReducer', function() {
     );
   });
 
-  describe('LOAD_VULNERABILITY_DETAILS_FAILED', function() {
+  describe('VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED', function() {
     it('unsets vulnerabilityDetailsLoading flag and sets the vulnerabilityDetailsError to the payload', function() {
       const initialState = {
         vulnerabilityDetailsLoading: true,
@@ -211,7 +193,7 @@ describe('violationPageReducer', function() {
       };
 
       const newState = reducer(initialState, {
-        type: 'LOAD_VULNERABILITY_DETAILS_FAILED',
+        type: 'VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED',
         payload: 'ERRRRRRRRRRRRRRRRR'
       });
 
@@ -240,31 +222,37 @@ describe('violationPageReducer', function() {
     });
   });
 
-  describe('VIOLATION_LOAD_APPLICABLE_WAIVERS_REQUESTED', function() {
-    it('sets the loading prop to true', function() {
-      const state = {
-        loading: false,
-        otherProp: 'whatever'
-      };
-
-      const newState = reducer(state, {
-        type: 'VIOLATION_LOAD_APPLICABLE_WAIVERS_REQUESTED'
-      });
-
-      expect(newState.loading).toBe(true);
-      expect(newState.otherProp).toEqual(state.otherProp);
-    });
-  });
-
-  describe('VIOLATION_LOAD_APPLICABLE_WAIVERS_FULFILLED', function() {
+  describe('VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED', function() {
     it('sets the waivers in the state', function() {
       const state = {
         loading: true,
-        otherProp: 'whatever'
+        otherProp: { prop: 'foo' }
       };
 
       const newState = reducer(state, {
-        type: 'VIOLATION_LOAD_APPLICABLE_WAIVERS_FULFILLED',
+        type: 'VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED',
+        payload: {
+          violationDetails: { foo: 'bar' },
+          selectedViolationId: '123'
+        }
+      });
+
+      expect(newState.violationDetails).toEqual({ foo: 'bar' });
+      expect(newState.selectedViolationId).toEqual('123');
+      expect(newState.loading).toBe(true);
+      expect(newState.otherProp).toBe(state.otherProp);
+    });
+  });
+
+  describe('VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED', function() {
+    it('sets the waivers in the state', function() {
+      const state = {
+        loading: true,
+        otherProp: { prop: 'foo' }
+      };
+
+      const newState = reducer(state, {
+        type: 'VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED',
         payload: {
           activeWaivers: ['foo'],
           expiredWaivers: ['bar']
@@ -273,25 +261,7 @@ describe('violationPageReducer', function() {
 
       expect(newState.activeWaivers).toEqual(['foo']);
       expect(newState.expiredWaivers).toEqual(['bar']);
-      expect(newState.loading).toBe(false);
-    });
-  });
-
-  describe('VIOLATION_LOAD_APPLICABLE_WAIVERS_FAILED', function() {
-    it('sets the error on the state', function() {
-      const state = {
-        loading: true,
-        violationDetailsError: null,
-        otherProp: 'whatever'
-      };
-
-      const newState = reducer(state, {
-        type: 'VIOLATION_LOAD_APPLICABLE_WAIVERS_FAILED',
-        payload: 'Err!'
-      });
-
-      expect(newState.loading).toBe(false);
-      expect(newState.violationDetailsError).toBe('Err!');
+      expect(newState.loading).toBe(true);
       expect(newState.otherProp).toBe(state.otherProp);
     });
   });

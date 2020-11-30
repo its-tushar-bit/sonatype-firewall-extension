@@ -38,5 +38,32 @@ make(
     ],
     usePMD: true,
     useCheckstyle: true,
-    releaseRetentionPolicy: RetentionPolicy.TEN_BUILDS
+    releaseRetentionPolicy: RetentionPolicy.TEN_BUILDS,
+    onSuccess: {
+        if(env.BRANCH_NAME == "master") {
+            pushDockerImage()
+        }
+    },
+    onUnstable: {
+      if(env.BRANCH_NAME == "master") {
+            pushDockerImage()
+        }
+    }
 )
+
+def pushDockerImage(){
+    def version = getMavenProjectVersion('.')
+    dir("nexus-iq-server") {
+        withSonatypeDockerRegistry() {
+            def shortImage = "iq/snapshot:${version.split("-")[0]}"
+            sh "docker build --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} --build-arg IQ_SERVER_VERSION=${version} --tag ${shortImage} ."
+            def fullImage = "${sonatypeDockerRegistryId()}/${shortImage}"
+            def latest = "${sonatypeDockerRegistryId()}/iq/snapshot:latest"
+            runSafely "docker tag ${shortImage} ${fullImage}"
+            runSafely "docker push ${fullImage}"
+            // Also tag as latest
+            runSafely "docker tag ${shortImage} ${latest}"
+            runSafely "docker push ${latest}"
+        }
+    }
+}

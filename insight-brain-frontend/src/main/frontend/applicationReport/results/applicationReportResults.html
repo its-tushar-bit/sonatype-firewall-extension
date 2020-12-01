@@ -147,7 +147,7 @@
             </tr>
           </thead>
           <tbody id="iq-application-report-results" class="iq-table--fixed__content iq-table--fixed__content--filtered">
-            <tr class="iq-table-row iq-clickable"
+            <tr class="iq-table-row iq-clickable {{component.innerSourceData && component.innerSourceData.innerSource ? 'tm-inner-source' : component.innerSourceTDIndicator ? 'tm-inner-source-transitive' : ''}}"
                 ng-repeat="component in vm.renderedEntries"
                 ng-click="vm.openCipModal($index)">
               <td class="iq-cell iq-cell--application-report-policy-threat-level {{component.innerSourceTDIndicator ?

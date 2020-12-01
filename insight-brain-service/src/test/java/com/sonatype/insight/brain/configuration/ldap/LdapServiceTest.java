@@ -73,7 +73,7 @@ public class LdapServiceTest
   public RuleChain ruleChain = RuleChain.outerRule(tempDir) //
       .around(testLdapServer1).around(testLdapServer2).around(testLdapServer3).around(testLdapServer4);
 
-  private static final String CONNECTION_ERROR_PATTERN = "(?i)(connection (closed|refused)|socket closed)";
+  private static final String CONNECTION_ERROR_PATTERN = "(?i)(connection (closed|refused|reset)|socket closed)";
 
   @Before
   public void before() {
@@ -307,16 +307,13 @@ public class LdapServiceTest
     loadLdapServer(testLdapServer1, "Test Server1");
     loadLdapServer(testLdapServer2, "Test Server2");
 
-    final int ldapServer1Port = testLdapServer1.getPort();
     testLdapServer1.stop();
     assertThatThrownBy(() -> {
       ldapService.authenticateUser("test_user4", "anything".toCharArray());
-    }).isInstanceOf(NamingException.class).hasMessage("LDAP Server: Test Server1 -> localhost:" + ldapServer1Port
-        + ";\n" + "LDAP Server: Test Server2 -> LDAP user with username 'test_user4' does not exist;\n")
-        .satisfies(e -> {
+    }).isInstanceOf(NamingException.class).hasMessageContainingAll("LDAP Server: Test Server1 -> ",
+        "LDAP Server: Test Server2 -> LDAP user with username 'test_user4' does not exist;\n").satisfies(e -> {
           assertThat(e.getSuppressed()).hasSize(2);
-          // Use startsWith because the error message depends on the OS.
-          assertThat(e.getSuppressed()[0].getCause()).hasMessageStartingWith("Connection refused");
+          assertThat(e.getSuppressed()[0].getCause()).hasMessageFindingMatch(CONNECTION_ERROR_PATTERN);
           assertThat(e.getSuppressed()[1]).hasMessage("LDAP user with username 'test_user4' does not exist");
         });
   }

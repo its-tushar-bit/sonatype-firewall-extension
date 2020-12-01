@@ -17,8 +17,5 @@ logging:
     - type: console
       logFormat: "%date %-5level [%thread] %logger - %msg%n"
 
-experimentalFeatures:
-  innerSource: false
-
 matcherConfiguration:
   disableConanNamespaceMatching: false

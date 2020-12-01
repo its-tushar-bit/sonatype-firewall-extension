@@ -181,7 +181,6 @@ public final class Report
   static void applyChanges(
       final Application application,
       final File reportFile,
-      boolean isEnableInnerSource,
       final TelemetrySender telemetrySender)
       throws IOException
   {
@@ -200,7 +199,7 @@ public final class Report
 
     embedApplicationPublicId(application, reportFile);
 
-    applyComponentRelatedChanges(application, reportFile, isEnableInnerSource, telemetrySender);
+    applyComponentRelatedChanges(application, reportFile, telemetrySender);
     cacheThirdPartyData(reportFile);
 
     // these data items have already had changes applied as part of applyComponentRelatedChanges above
@@ -641,7 +640,6 @@ public final class Report
    */
   private static void applyComponentRelatedChanges(final Application application,
                                                    final File reportFile,
-                                                   final boolean isEnableInnerSource,
                                                    final TelemetrySender telemetrySender) throws IOException
   {
     long start = System.currentTimeMillis();
@@ -675,11 +673,9 @@ public final class Report
     augmentDependenciesGraph(dependenciesJsonData);
     saveReportEntry(reportFile, DEPENDENCIES_JSON_FILENAME, dependenciesJsonData);
 
-    if (isEnableInnerSource) {
-      ReportInnerSource
-          .processDependencyTree(dependenciesJsonData, bomJsonData, dataJson, summaryJsonData, application,
-              telemetrySender);
-    }
+    ReportInnerSource
+        .processDependencyTree(dependenciesJsonData, bomJsonData, dataJson, summaryJsonData, application,
+            telemetrySender);
 
     saveReportEntry(reportFile, DATA_JSON_FILENAME, dataJson);
     saveReportEntry(reportFile, SUMMARY_JSON_FILENAME, summaryJsonData);

@@ -33,7 +33,6 @@ import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyApplicationReportDTO;
@@ -100,11 +99,7 @@ public class ReportService
       FileUtils.rename(tempFile, reportFile);
     }
 
-    boolean isEnableInnerSource =
-        insightConfig.getExperimentalFeatures() != null && !insightConfig.getExperimentalFeatures().isEmpty()
-            ? insightConfig.getExperimentalFeatures().getOrDefault(Feature.INNER_SOURCE.getFlag(), false)
-            : false;
-    Report.applyChanges(app, reportFile, isEnableInnerSource, telemetrySender);
+    Report.applyChanges(app, reportFile, telemetrySender);
 
     return reportFile;
   }

@@ -44,5 +44,4 @@ server:
       port: 8070
 
 experimentalFeatures:
-  innerSource: false
   scmOnboarding: false

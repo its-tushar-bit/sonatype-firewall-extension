@@ -31,8 +31,6 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -53,9 +51,6 @@ public class ApiReportDataServiceV2Test
 
   @Inject
   private InsightWork work;
-
-  @Inject
-  private InsightConfig insightConfig;
 
   private MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
 
@@ -177,15 +172,10 @@ public class ApiReportDataServiceV2Test
         "http://osvdb.org/36079", "moderate");
     assertSv(component.securityData.securityIssues.get(1), "Open", "osvdb", "62054", null, "http://osvdb.org/62054",
         "moderate");
-    boolean isEnableInnerSource = insightConfig.getExperimentalFeatures() != null &&
-        !insightConfig.getExperimentalFeatures().isEmpty() ? insightConfig.getExperimentalFeatures().getOrDefault(
-        Feature.INNER_SOURCE.getFlag(), false) : false;
-    if (isEnableInnerSource) {
-      assertThat(component.innerSourceData.isInnerSource()).isTrue();
-      assertThat(component.innerSourceData.getOwnerApplicationName()).isEqualTo("owningApplicationName");
-      assertThat(component.innerSourceData.getOwnerApplicationId()).isEqualTo("123");
-      assertThat(component.innerSourceData.getOwnerComponentName()).isEqualTo("A");
-    }
+    assertThat(component.innerSourceData.isInnerSource()).isTrue();
+    assertThat(component.innerSourceData.getOwnerApplicationName()).isEqualTo("owningApplicationName");
+    assertThat(component.innerSourceData.getOwnerApplicationId()).isEqualTo("123");
+    assertThat(component.innerSourceData.getOwnerComponentName()).isEqualTo("A");
 
     component = data.components.get(1);
     assertThat(component.hash).isEqualTo("69b58197caabec2e0d06");
@@ -197,12 +187,7 @@ public class ApiReportDataServiceV2Test
     assertThat(component.displayName).isEqualTo("sample-application.zip");
     assertThat(component.licenseData).isNull();
     assertThat(component.securityData).isNull();
-    if (isEnableInnerSource) {
-      assertThat(component.innerSourceData.isInnerSource()).isFalse();
-      assertThat(component.innerSourceData.getOwnerApplicationName()).isNull();
-      assertThat(component.innerSourceData.getOwnerApplicationId()).isNull();
-      assertThat(component.innerSourceData.getOwnerComponentName()).isNull();
-    }
+    assertThat(component.innerSourceData).isNull();
   }
 
   @Test(expected = BadRequestException.class)

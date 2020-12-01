@@ -927,7 +927,6 @@ public class InsightConfig
     PR_COMMENTING("prCommenting"),
     PR_LINE_COMMENTING("prLineCommenting"),
     CODE_INSIGHTS("codeInsights"),
-    INNER_SOURCE("innerSource"),
     SCM_ONBOARDING("scmOnboarding");
 
     private String flag;

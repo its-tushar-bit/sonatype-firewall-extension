@@ -22,6 +22,7 @@ $iq-cip-tab-content-padding-top: 5px;
 $cip-modal-header-height: 37px;
 $cip-modal-tab-bar-height: 42px;
 $cip-modal-footer-height: 60px;
+$cip-modal-inner-source-height: 129px;
 $cip-modal-vertical-margins: 100px;
 
 // IE 11 does not support nested calc() functions. So in calculations below that should use the
@@ -51,6 +52,7 @@ $cip-modal-max-height: 600px;
         overflow: hidden;
         padding-top: $iq-cip-tab-content-padding-top;
         width: 100%;
+        --inner-source-height: 0px;
 
         .well .form-horizontal {
           .controls {
@@ -113,6 +115,10 @@ $cip-modal-max-height: 600px;
           }
         }
       }
+
+      .tab-content__inner-source {
+        --inner-source-height: 129px;
+      }
     }
 
     .iq-alert {
@@ -147,12 +153,14 @@ cip-audit,
                  - #{$cip-modal-header-height}
                  - #{$cip-modal-tab-bar-height}
                  - #{$cip-modal-footer-height}
+                 - var(--inner-source-height)
                  - #{$iq-cip-tab-content-padding-top});
-  max-height: $cip-modal-max-height
-              - $cip-modal-header-height
-              - $cip-modal-tab-bar-height
-              - $cip-modal-footer-height
-              - $iq-cip-tab-content-padding-top;
+  max-height: calc( #{$cip-modal-max-height}
+              - #{$cip-modal-header-height}
+              - #{$cip-modal-tab-bar-height}
+              - #{$cip-modal-footer-height}
+              - var(--inner-source-height)
+              - #{$iq-cip-tab-content-padding-top});
 }
 
 .cip-policy-wrapper {
@@ -161,13 +169,15 @@ cip-audit,
                  - #{$cip-modal-tab-bar-height}
                  - #{$cip-modal-footer-height}
                  - #{$iq-spacing-xs}
+                 - var(--inner-source-height)
                  - 42px); // button bar & margins
-  max-height: $cip-modal-max-height
-              - $cip-modal-header-height
-              - $cip-modal-tab-bar-height
-              - $cip-modal-footer-height
-              - $iq-spacing-xs
-              - 42px; // button bar & margins
+  max-height: calc( #{$cip-modal-max-height}
+              - #{$cip-modal-header-height}
+              - #{$cip-modal-tab-bar-height}
+              - #{$cip-modal-footer-height}
+              - #{$iq-spacing-xs}
+              - var(--inner-source-height)
+              - 42px); // button bar & margins
 }
 
 cip-audit {

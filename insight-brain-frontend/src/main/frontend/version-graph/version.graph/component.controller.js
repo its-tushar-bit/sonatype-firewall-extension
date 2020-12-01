@@ -231,6 +231,10 @@ export default function ComponentController($scope, Coordinates, OwnerContext, e
     return getPathNames().length !== 0;
   };
 
+  $scope.isInnerSource = function() {
+    return Properties.isInnerSource();
+  };
+
   function getPathNames() {
     // SelectedComponent is available only in the context of CIP (if clmEndpoint.canAddProprietary)
     var SelectedComponent = $injector.get('SelectedComponent');

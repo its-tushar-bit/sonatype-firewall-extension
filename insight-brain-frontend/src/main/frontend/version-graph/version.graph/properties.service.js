@@ -27,6 +27,9 @@ export default function PropertiesService(Coordinates) {
     getDependencyType: function() {
       return properties.dependencyType;
     },
+    isInnerSource: function() {
+      return properties.innerSource;
+    },
     reset: function () {
       properties = {};
     },
@@ -50,6 +53,9 @@ export default function PropertiesService(Coordinates) {
     },
     setDependencyType: function(dependencyType) {
       properties.dependencyType = dependencyType;
+    },
+    setInnerSource: function(innerSource) {
+      properties.innerSource = innerSource;
     },
     isUnknown: function () {
       return (properties.matchState || '').toLowerCase() === 'unknown';

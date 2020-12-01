@@ -51,6 +51,7 @@ describe('cipModal', function() {
         spyOn(Properties, 'setProprietary');
         spyOn(Properties, 'setMatchState');
         spyOn(Properties, 'setDependencyType');
+        spyOn(Properties, 'setInnerSource');
 
         component = {
           hash: '1249e25aebb15358bedd',
@@ -60,7 +61,8 @@ describe('cipModal', function() {
             coordinates: 'coordinates',
             format: 'format'
           },
-          dependencyInfo: { isDirectDependency: false }
+          dependencyInfo: { isDirectDependency: false },
+          innerSourceData: { innerSource: true }
         };
       });
 
@@ -135,6 +137,12 @@ describe('cipModal', function() {
         vm.selectedComponent = { ...component, dependencyInfo: undefined };
         scope.$digest();
         expect(Properties.setDependencyType).toHaveBeenCalledWith(undefined);
+      });
+
+      it('calls Properties.setInnerSource', function() {
+        vm.selectedComponent = component;
+        scope.$digest();
+        expect(Properties.setInnerSource).toHaveBeenCalledWith(true);
       });
 
       it('enhances legacy report data with component identifier', function() {

@@ -7,6 +7,12 @@
   padding: 5px;
 }
 
+.version-graph-content__inner-source {
+  max-height: 310px;
+  height: fit-content;
+  overflow: auto;
+}
+
 #infoPanelArtifactTable .content-name td:first-child {
   text-transform: capitalize;
 }

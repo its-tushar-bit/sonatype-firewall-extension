@@ -33,7 +33,8 @@
         Select an application.
       </div>
     </div>
-    <div ng-if='canLoad()' ng-controller='ComponentController' class='version-graph-content'>
+    <div ng-if='canLoad()' ng-controller='ComponentController' class="version-graph-content"
+         ng-class="isInnerSource() ? 'version-graph-content__inner-source' : ''">
       <div ng-include='"error"'></div>
       <div ng-controller='StatusController' ng-show='!coordinates'>
         <div id='select-component' ng-if='!state' class='alert alert-info alert-centered fade in'>

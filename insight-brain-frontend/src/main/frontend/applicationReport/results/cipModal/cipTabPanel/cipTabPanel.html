@@ -23,7 +23,8 @@
       {{::tab.displayName}}
     </a>
   </div>
-  <div ng-switch="vm.selectedTab" class="tab-content">
+  <div ng-switch="vm.selectedTab" class="tab-content" ng-class="vm.selectedComponent && vm.selectedComponent.innerSourceData &&
+        vm.selectedComponent.innerSourceData.innerSource ? 'tab-content__inner-source' : ''">
     <div ng-switch-when="componentInfo" information-panel></div>
     <div ng-switch-when="policy"
          cip-policy-violations

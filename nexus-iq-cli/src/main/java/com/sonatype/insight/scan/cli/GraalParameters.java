@@ -24,7 +24,7 @@ public class GraalParameters
 
   @Parameter(names = {"--ssl-key-store-type"},
       description = "Type of custom SSL key store (equivalent to -Djavax.net.ssl.keyStoreType JVM property)")
-  private String keyStoreType = "JKS";
+  private String keyStoreType;
 
   @Parameter(names = {"--ssl-trust-store-password"}, description =
       "Password for custom SSL trust store (equivalent to -Djavax.net.ssl.trustStorePassword JVM property)",
@@ -37,7 +37,7 @@ public class GraalParameters
 
   @Parameter(names = {"--ssl-trust-store-type"},
       description = "Type of custom SSL trust store (equivalent to -Djavax.net.ssl.trustStoreType JVM property)")
-  private String trustStoreType = "JKS";
+  private String trustStoreType;
 
   public GraalParameters() {
     super();
@@ -45,10 +45,6 @@ public class GraalParameters
 
   public GraalParameters(final String[] args) {
     super(args);
-  }
-
-  public boolean hasKeyStoreSsl() {
-    return keyStorePassword != null && keyStorePath != null;
   }
 
   public String getKeyStorePassword() {
@@ -63,10 +59,6 @@ public class GraalParameters
     return keyStoreType;
   }
 
-  public boolean hasTrustStoreSsl() {
-    return trustStorePassword != null && trustStorePath != null;
-  }
-
   public String getTrustStorePassword() {
     return trustStorePassword;
   }
@@ -77,6 +69,10 @@ public class GraalParameters
 
   public String getTrustStoreType() {
     return trustStoreType;
+  }
+
+  public boolean hasSslParams() {
+    return keyStorePath != null || trustStorePath != null;
   }
 
   @Override

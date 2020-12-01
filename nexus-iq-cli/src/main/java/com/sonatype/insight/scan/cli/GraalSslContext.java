@@ -8,7 +8,7 @@ package com.sonatype.insight.scan.cli;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.security.GeneralSecurityException;
+import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -22,6 +22,7 @@ import java.util.Arrays;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509KeyManager;
@@ -60,41 +61,63 @@ public class GraalSslContext
   public static void maybeDoCustomSslContext(final AbstractParameters params) throws ExitException {
     GraalParameters graalParameters = (GraalParameters) params;
 
-    if (!graalParameters.hasKeyStoreSsl() && !graalParameters.hasTrustStoreSsl()) {
+    if (!graalParameters.hasSslParams()) {
       return;
     }
 
     try {
-      KeyManager[] keyManagers = null;
-      TrustManager[] trustManagers = null;
-
-      if (graalParameters.hasKeyStoreSsl()) {
-        char[] keyStorePassword = graalParameters.getKeyStorePassword().toCharArray();
-        KeyStore keyStore = KeyStore.getInstance(graalParameters.getKeyStoreType());
-        keyStore.load(new FileInputStream(graalParameters.getKeyStorePath()), keyStorePassword);
-        X509KeyManager keyManager = new SimpleX509KeyManager(keyStore, keyStorePassword);
-        keyManagers = new KeyManager[]{keyManager};
-        log.info("Loaded provided custom key store '{}'", graalParameters.getKeyStorePath());
-      }
-
-      if (graalParameters.hasTrustStoreSsl()) {
-        char[] trustStorePassword = graalParameters.getTrustStorePassword().toCharArray();
-        KeyStore trustStore = KeyStore.getInstance(graalParameters.getTrustStoreType());
-        trustStore.load(new FileInputStream(graalParameters.getTrustStorePath()), trustStorePassword);
-        X509TrustManager trustManager = new SimpleX509TrustManager(trustStore);
-        trustManagers = new TrustManager[]{trustManager};
-        log.info("Loaded provided custom trust store '{}'", graalParameters.getTrustStorePath());
-      }
+      KeyManager[] keyManagers = getKeyManager(graalParameters);
+      TrustManager[] trustManagers = getTrustManager(graalParameters);
 
       SSLContext context = SSLContext.getInstance("SSL");
       context.init(keyManagers, trustManagers, null);
       SSLContext.setDefault(context);
       log.info("Set custom default SSL Context");
     }
-    catch (IOException | GeneralSecurityException ex) {
+    catch (NoSuchAlgorithmException | KeyManagementException | SSLException ex) {
       log.error("Failed to load custom SSL configuration", ex);
       throw new ExitException(1);
     }
+  }
+
+  private static KeyManager[] getKeyManager(final GraalParameters graalParameters) throws SSLException {
+    if (graalParameters.getKeyStorePath() == null) {
+      return null;
+    }
+    try {
+      char[] keyStorePassword = getStorePassword(graalParameters.getKeyStorePassword());
+      KeyStore keyStore = KeyStore.getInstance(getStoreType(graalParameters.getKeyStoreType()));
+      keyStore.load(new FileInputStream(graalParameters.getKeyStorePath()), keyStorePassword);
+      log.info("Loaded provided custom key store '{}'", graalParameters.getKeyStorePath());
+      return new KeyManager[]{new SimpleX509KeyManager(keyStore, keyStorePassword)};
+    }
+    catch (IOException | CertificateException | NoSuchAlgorithmException | KeyStoreException e) {
+      throw new SSLException("Error loading custom key store. Check your '--ssl-key-store-*' parameters.", e);
+    }
+  }
+
+  private static TrustManager[] getTrustManager(final GraalParameters graalParameters) throws SSLException {
+    if (graalParameters.getTrustStorePath() == null) {
+      return null;
+    }
+    try {
+      char[] trustStorePassword = getStorePassword(graalParameters.getTrustStorePassword());
+      KeyStore trustStore = KeyStore.getInstance(getStoreType(graalParameters.getTrustStoreType()));
+      trustStore.load(new FileInputStream(graalParameters.getTrustStorePath()), trustStorePassword);
+      log.info("Loaded provided custom trust store '{}'", graalParameters.getTrustStorePath());
+      return new TrustManager[]{new SimpleX509TrustManager(trustStore)};
+    }
+    catch (IOException | CertificateException | NoSuchAlgorithmException | KeyStoreException e) {
+      throw new SSLException("Error loading custom trust store. Check your '--ssl-trust-store-*' parameters.", e);
+    }
+  }
+
+  private static String getStoreType(final String storeType) {
+    return storeType != null ? storeType : KeyStore.getDefaultType();
+  }
+
+  private static char[] getStorePassword(final String storePassword) {
+    return storePassword != null ? storePassword.toCharArray() : null;
   }
 
   private static class SimpleX509KeyManager

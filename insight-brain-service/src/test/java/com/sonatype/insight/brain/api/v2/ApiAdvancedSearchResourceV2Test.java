@@ -57,7 +57,7 @@ public class ApiAdvancedSearchResourceV2Test
 
   @Test
   public void testCreateSearchIndex() throws Exception {
-    HttpResponse response = restRequest().path(ApiAdvancedSearchResourceV2.INDEX_PATH).post();
+    HttpResponse response = restRequest().path(DefaultApiAdvancedSearchResourceV2.INDEX_PATH).post();
     awaitIndexCompletion();
 
     assertResponseStatus(204, response);
@@ -68,7 +68,7 @@ public class ApiAdvancedSearchResourceV2Test
   @Test
   public void testSearchIndex() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
-    restRequest().path(ApiAdvancedSearchResourceV2.INDEX_PATH).post();
+    restRequest().path(DefaultApiAdvancedSearchResourceV2.INDEX_PATH).post();
     awaitIndexCompletion();
 
     HttpResponse response =
@@ -85,7 +85,7 @@ public class ApiAdvancedSearchResourceV2Test
 
   @Test
   public void testSearchIndex_TokenMgrError() throws Exception {
-    restRequest().path(ApiAdvancedSearchResourceV2.INDEX_PATH).post();
+    restRequest().path(DefaultApiAdvancedSearchResourceV2.INDEX_PATH).post();
     awaitIndexCompletion();
 
     HttpResponse response = restRequest().query("query", "\"").get();

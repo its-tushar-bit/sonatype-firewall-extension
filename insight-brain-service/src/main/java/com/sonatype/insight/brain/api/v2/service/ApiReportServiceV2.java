@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
-import com.sonatype.insight.brain.api.v2.ApiReportDataResourceV2;
+import com.sonatype.insight.brain.api.v2.DefaultApiReportDataResourceV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationReportDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportHistoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportResultsDTO;
@@ -129,7 +129,7 @@ public class ApiReportServiceV2
     report.reportHtmlUrl = UserInterfaceLinksResource.getReportUrl(app.getPublicId(), eval.getScanId());
     report.embeddableReportHtmlUrl = UserInterfaceLinksResource.getEmbeddableReportUrl(app.getPublicId(),
         eval.getScanId());
-    report.reportDataUrl = ApiReportDataResourceV2.getDataUrl(app.getPublicId(), eval.getScanId());
+    report.reportDataUrl = DefaultApiReportDataResourceV2.getDataUrl(app.getPublicId(), eval.getScanId());
   }
 
   private void loadReportHistory(ApiReportHistoryDTO apiReportHistoryDTO, Application application) {

@@ -40,7 +40,7 @@ public class ApiUserTokenResourceTest
 
     HttpResponse response = HttpRequest.to(getRestBaseUrl())
         .auth("victor.wooten", "secret")
-        .path(PublicApiPaths.USER_TOKEN_RESOURCE_PATH_V2, ApiUserTokenResource.CURRENT_USER)
+        .path(PublicApiPaths.USER_TOKEN_RESOURCE_PATH_V2, DefaultApiUserTokenResource.CURRENT_USER)
         .post();
     assertResponseStatus(200, response);
 
@@ -65,7 +65,7 @@ public class ApiUserTokenResourceTest
     // Token for non-existing LDAP user, should be purged.
     UserToken userTokenLdapUseInvalid = tempEntity.newUserToken("no-such-user", ldapServer.getId());
 
-    HttpResponse response = restRequest().path(ApiUserTokenResource.PURGE).delete();
+    HttpResponse response = restRequest().path(DefaultApiUserTokenResource.PURGE).delete();
 
     assertResponseStatus(204, response);
     assertThat(userTokenDAO.getById(userTokenInternalUser.getId())).isNotNull();
@@ -76,7 +76,7 @@ public class ApiUserTokenResourceTest
   @Test
   public void testDeleteCurrentUserToken() throws Exception {
     UserToken userToken = tempEntity.newUserToken(getUsername(), InternalRealm.ID);
-    HttpResponse response = restRequest().path(ApiUserTokenResource.CURRENT_USER).delete();
+    HttpResponse response = restRequest().path(DefaultApiUserTokenResource.CURRENT_USER).delete();
 
     assertResponseStatus(204, response);
     assertThat(userTokenDAO.getById(userToken.getId())).isNull();
@@ -109,7 +109,7 @@ public class ApiUserTokenResourceTest
   public void testDeleteUserTokenByUserCode() throws Exception {
     UserToken userToken = tempEntity.newUserToken(getUsername(), InternalRealm.ID);
     HttpResponse response = restRequest()
-        .path(ApiUserTokenResource.USER_CODE)
+        .path(DefaultApiUserTokenResource.USER_CODE)
         .parameter(userToken.getUserCode())
         .delete();
 
@@ -119,7 +119,7 @@ public class ApiUserTokenResourceTest
 
   @Test
   public void testGetUserTokenExistsForCurrentUser() throws Exception {
-    HttpResponse response = restRequest().path(ApiUserTokenResource.CURRENT_USER_HAS_TOKEN).get();
+    HttpResponse response = restRequest().path(DefaultApiUserTokenResource.CURRENT_USER_HAS_TOKEN).get();
 
     assertResponseStatus(200, response);
     ApiUserTokenExistsDTO responseBody = response.getBody(ApiUserTokenExistsDTO.class);
@@ -127,7 +127,7 @@ public class ApiUserTokenResourceTest
 
     tempEntity.newUserToken(getUsername(), InternalRealm.ID);
 
-    response = restRequest().path(ApiUserTokenResource.CURRENT_USER_HAS_TOKEN).get();
+    response = restRequest().path(DefaultApiUserTokenResource.CURRENT_USER_HAS_TOKEN).get();
 
     assertResponseStatus(200, response);
     responseBody = response.getBody(ApiUserTokenExistsDTO.class);

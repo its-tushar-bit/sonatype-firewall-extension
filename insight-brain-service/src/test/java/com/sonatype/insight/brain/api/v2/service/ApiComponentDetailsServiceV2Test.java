@@ -53,7 +53,7 @@ public class ApiComponentDetailsServiceV2Test
   private static final int CHUNK_SIZE = 5;
 
   @Inject
-  private ApiComponentDetailsServiceV2 apiComponentDetailsServiceV2;
+  private DefaultApiComponentDetailsServiceV2 apiComponentDetailsServiceV2;
 
   @Mock
   private HdsClient client;
@@ -84,8 +84,8 @@ public class ApiComponentDetailsServiceV2Test
 
   private void mockHdsRequest(ComponentEvaluationDataRequestList hdsRequest, ComponentEvaluationDataList hdsResult) {
     doReturn(hdsResult).when(client).post(eq(ComponentEvaluationDataList.class),
-        eq(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH), eq(hdsRequest),
-        eq(ApiComponentDetailsServiceV2.PURPOSE_INTEGRATION));
+        eq(DefaultApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH), eq(hdsRequest),
+        eq(DefaultApiComponentDetailsServiceV2.PURPOSE_INTEGRATION));
   }
 
   @Test

@@ -17,7 +17,7 @@ import com.sonatype.insight.brain.service.AbstractAuditTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.api.v2.ApiReportDataResourceV2.SCAN_PATH;
+import static com.sonatype.insight.brain.api.v2.DefaultApiReportDataResourceV2.SCAN_PATH;
 
 public class ApiReportDataResourceV2AuditTest
     extends AbstractAuditTest
@@ -38,7 +38,7 @@ public class ApiReportDataResourceV2AuditTest
     restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
         .query("scanId", SCAN_ID).body(new Stage(Stage.ID_BUILD)).post();
 
-    reportDataRequest(app.getPublicId(), SCAN_ID, ApiReportDataResourceV2.RAW_DATA_PATH).get();
+    reportDataRequest(app.getPublicId(), SCAN_ID, DefaultApiReportDataResourceV2.RAW_DATA_PATH).get();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT, null);
     assertApplicationData(auditDTO, app);
@@ -47,7 +47,8 @@ public class ApiReportDataResourceV2AuditTest
 
   @Test
   public void testGetRawData_Unauthorized() throws Exception {
-    reportDataRequest(app.getPublicId(), SCAN_ID, ApiReportDataResourceV2.RAW_DATA_PATH).with(unauthorizedUser()).get();
+    reportDataRequest(app.getPublicId(), SCAN_ID, DefaultApiReportDataResourceV2.RAW_DATA_PATH)
+        .with(unauthorizedUser()).get();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT, "unauthorized");
     assertApplicationData(auditDTO, app);
@@ -60,7 +61,7 @@ public class ApiReportDataResourceV2AuditTest
     restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
         .query("scanId", SCAN_ID).body(new Stage(Stage.ID_BUILD)).post();
 
-    reportDataRequest(app.getPublicId(), SCAN_ID, ApiReportDataResourceV2.POLICY_DATA_PATH).get();
+    reportDataRequest(app.getPublicId(), SCAN_ID, DefaultApiReportDataResourceV2.POLICY_DATA_PATH).get();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT, null);
     assertApplicationData(auditDTO, app);
@@ -69,7 +70,7 @@ public class ApiReportDataResourceV2AuditTest
 
   @Test
   public void testGetPolicyViolations_Unauthorized() throws Exception {
-    reportDataRequest(app.getPublicId(), SCAN_ID, ApiReportDataResourceV2.POLICY_DATA_PATH)
+    reportDataRequest(app.getPublicId(), SCAN_ID, DefaultApiReportDataResourceV2.POLICY_DATA_PATH)
         .with(unauthorizedUser()).get();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT, "unauthorized");

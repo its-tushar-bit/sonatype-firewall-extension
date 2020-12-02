@@ -58,7 +58,7 @@ public class ApiSourceControlResourceTest
     SourceControl sourceControl = tempEntity.newSourceControl(
         org.getId(), null, "token", null);
     HttpResponse response = restRequest()
-        .path(ApiSourceControlResource.BY_OWNER)
+        .path(DefaultApiSourceControlResource.BY_OWNER)
         .parameter(OwnerType.ORGANIZATION, org.getId())
         .get();
     assertResponseStatus(200, response);
@@ -74,7 +74,7 @@ public class ApiSourceControlResourceTest
     SourceControl sourceControl = tempEntity.newSourceControl(
         app.getId(), VALID_URL, "token", null);
     HttpResponse response = restRequest()
-        .path(ApiSourceControlResource.BY_OWNER)
+        .path(DefaultApiSourceControlResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, app.getId())
         .get();
     assertResponseStatus(200, response);
@@ -91,7 +91,7 @@ public class ApiSourceControlResourceTest
         new SourceControl.Builder().setOwnerId(org.getId()).setToken("token")
             .build());
     HttpResponse response = restRequest()
-        .path(ApiSourceControlResource.BY_OWNER)
+        .path(DefaultApiSourceControlResource.BY_OWNER)
         .parameter(OwnerType.ORGANIZATION, org.getId())
         .body(sourceControl)
         .post();
@@ -120,7 +120,7 @@ public class ApiSourceControlResourceTest
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(givenUrl).setToken("token")
             .build());
     HttpResponse response = restRequest()
-        .path(ApiSourceControlResource.BY_OWNER)
+        .path(DefaultApiSourceControlResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, app.getId())
         .body(sourceControl).post();
     assertResponseStatus(200, response);
@@ -139,7 +139,7 @@ public class ApiSourceControlResourceTest
         org.getId(), null, "token", null);
     sourceControl.setToken("NEW_TOKEN");
     HttpResponse response = restRequest()
-        .path(ApiSourceControlResource.BY_OWNER)
+        .path(DefaultApiSourceControlResource.BY_OWNER)
         .parameter(OwnerType.ORGANIZATION, org.getId())
         .body(apiSourceControlAdapter.convertToDTO(sourceControl))
         .put();
@@ -167,7 +167,7 @@ public class ApiSourceControlResourceTest
         app.getId(), VALID_URL, "token", null);
     sourceControl.setRepositoryUrl(givenUrl);
     HttpResponse response = restRequest()
-        .path(ApiSourceControlResource.BY_OWNER)
+        .path(DefaultApiSourceControlResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, app.getId())
         .body(apiSourceControlAdapter.convertToDTO(sourceControl))
         .put();
@@ -191,7 +191,7 @@ public class ApiSourceControlResourceTest
     node.put("provider", "invalid_scm");
 
     HttpResponse response = restRequest()
-        .path(ApiSourceControlResource.BY_OWNER)
+        .path(DefaultApiSourceControlResource.BY_OWNER)
         .parameter(OwnerType.ORGANIZATION, org.getId())
         .body(node)
         .post();
@@ -212,7 +212,7 @@ public class ApiSourceControlResourceTest
     node.put("provider", "invalid_scm");
 
     HttpResponse response = restRequest()
-        .path(ApiSourceControlResource.BY_OWNER)
+        .path(DefaultApiSourceControlResource.BY_OWNER)
         .parameter(OwnerType.ORGANIZATION, org.getId())
         .body(node).put();
     assertResponseStatus(400, response);
@@ -226,7 +226,7 @@ public class ApiSourceControlResourceTest
     tempEntity.newSourceControl(
         org.getId(), null, "token", null);
     HttpResponse response = restRequest()
-        .path(ApiSourceControlResource.BY_OWNER)
+        .path(DefaultApiSourceControlResource.BY_OWNER)
         .parameter(OwnerType.ORGANIZATION, org.getId())
         .delete();
     assertResponseStatus(204, response);
@@ -237,7 +237,7 @@ public class ApiSourceControlResourceTest
     tempEntity.newSourceControl(
         app.getId(), VALID_URL, "token", null);
     HttpResponse response = restRequest()
-        .path(ApiSourceControlResource.BY_OWNER)
+        .path(DefaultApiSourceControlResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, app.getId())
         .delete();
     assertResponseStatus(204, response);
@@ -334,7 +334,7 @@ public class ApiSourceControlResourceTest
   @Test
   public void testAddOrUpdateSourceControl_CannotValidateRepositoryUrl() throws Exception {
     restRequest()
-        .path(ApiSourceControlResource.BY_OWNER)
+        .path(DefaultApiSourceControlResource.BY_OWNER)
         .parameter(OwnerType.ORGANIZATION, ROOT_ORGANIZATION_ID)
         .delete();
     AutomaticSourceControlConfigurationDAO sourceControlConfigurationDAO = new AutomaticSourceControlConfigurationDAO();

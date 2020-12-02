@@ -20,9 +20,9 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiManifestEvaluationRequestDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
-import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentEvaluationServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ComponentEvaluationV2Helper;
+import com.sonatype.insight.brain.api.v2.service.DefaultApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
@@ -60,7 +60,8 @@ public class ApiEvaluationResourceV2AuditTest
   @Test
   public void testPromoteScan_NullPromoteScanRequest() throws Exception {
     assertResponseStatus(400,
-        restRequest().path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, ApiEvaluationResourceV2.PROMOTE_SCAN_PATH)
+        restRequest()
+            .path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, DefaultApiEvaluationResourceV2.PROMOTE_SCAN_PATH)
             .parameter(app.getId()).post());
     assertEvaluationAuditLog("bad-request", app.getId(), app.getPublicId(), app.getName(), null, null, null);
   }
@@ -93,8 +94,9 @@ public class ApiEvaluationResourceV2AuditTest
 
   @Test
   public void testEvaluateComponents() throws Exception {
-    hdsRespondWith(new ComponentEvaluationDataList()).atUri(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH
-        .replace("{purpose: evaluation|integration}", ApiComponentEvaluationServiceV2.PURPOSE_EVALUATION));
+    hdsRespondWith(new ComponentEvaluationDataList())
+        .atUri(DefaultApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH
+            .replace("{purpose: evaluation|integration}", ApiComponentEvaluationServiceV2.PURPOSE_EVALUATION));
     int componentCount = 3;
 
     ApiComponentEvaluationTicketDTOV2 result = evaluateComponents(createEvaluateRequest(componentCount)).post()
@@ -108,8 +110,9 @@ public class ApiEvaluationResourceV2AuditTest
 
   @Test
   public void testEvaluateComponents_ErrorDuringAsyncComponentEvaluationTask() throws Exception {
-    hdsRespondWith("Service Unavailable").andStatus(503).atUri(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH
-        .replace("{purpose: evaluation|integration}", ApiComponentEvaluationServiceV2.PURPOSE_EVALUATION));
+    hdsRespondWith("Service Unavailable").andStatus(503)
+        .atUri(DefaultApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH
+            .replace("{purpose: evaluation|integration}", ApiComponentEvaluationServiceV2.PURPOSE_EVALUATION));
 
     evaluateComponents(createEvaluateRequest(1)).post();
 
@@ -171,7 +174,7 @@ public class ApiEvaluationResourceV2AuditTest
         new String(pwHandler.encryptPassword("TOKEN".toCharArray())), null, null, true, "TestBaseBranchName", null);
 
     return restRequest().with(user)
-        .path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, ApiEvaluationResourceV2.MANIFEST_EVALUATION_PATH)
+        .path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, DefaultApiEvaluationResourceV2.MANIFEST_EVALUATION_PATH)
         .parameter(applicationId).body(new ApiManifestEvaluationRequestDTO(stageId, "TestBranchName")).post();
   }
 
@@ -189,7 +192,7 @@ public class ApiEvaluationResourceV2AuditTest
       mockReport(RestHandler.SCAN_ID, "/AbstractAuditTest/report");
     }
     return restRequest().with(user)
-        .path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, ApiEvaluationResourceV2.PROMOTE_SCAN_PATH)
+        .path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, DefaultApiEvaluationResourceV2.PROMOTE_SCAN_PATH)
         .parameter(applicationId).body(ApiPromoteScanRequestDTOV2.fromScan(scanId, stageId)).post();
   }
 

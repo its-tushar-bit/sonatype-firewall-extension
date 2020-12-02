@@ -29,7 +29,7 @@ public class ApiComponentsWithWaiversReportingResourceAuditTest
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest()
-        .path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2 + ApiComponentsWithWaiversReportingResource.PATH);
+        .path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2 + DefaultApiComponentsWithWaiversReportingResource.PATH);
   }
 
   @Test

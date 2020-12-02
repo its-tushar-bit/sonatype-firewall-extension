@@ -276,22 +276,6 @@ public class LabelService
     managementEventService.postEvent(DELETED, label);
   }
 
-  public static class ApplicableLabels
-  {
-    public List<LabelsByOwner> labelsByOwner;
-  }
-
-  public static class LabelsByOwner
-  {
-    public String ownerId;
-
-    public String ownerName;
-
-    public OwnerType ownerType;
-
-    public List<ApiLabelDTO> labels;
-  }
-
   private void validateLabelNotUsedInAnyPolicy(Owner owner, Label label) {
     for (Policy policy : policyDAO.getByOwnerId(owner.getId())) {
       if (isLabelUsedInPolicy(label.getId(), policy)) {

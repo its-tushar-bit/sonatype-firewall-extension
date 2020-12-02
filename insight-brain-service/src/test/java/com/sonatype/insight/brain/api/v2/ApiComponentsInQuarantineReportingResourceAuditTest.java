@@ -37,7 +37,7 @@ public class ApiComponentsInQuarantineReportingResourceAuditTest
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest()
-        .path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2 + ApiComponentsInQuarantineReportingResource.PATH);
+        .path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2 + DefaultApiComponentsInQuarantineReportingResource.PATH);
   }
 
   @Test

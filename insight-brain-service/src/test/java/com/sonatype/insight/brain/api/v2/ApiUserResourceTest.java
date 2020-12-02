@@ -46,7 +46,7 @@ public class ApiUserResourceTest
     assertMatchingUser(inputUserDTO);
 
     // Read
-    response = restRequest().path(ApiUserResource.USERNAME_PATH).parameter(inputUserDTO.username).get();
+    response = restRequest().path(DefaultApiUserResource.USERNAME_PATH).parameter(inputUserDTO.username).get();
 
     assertResponseStatus(200, response);
     ApiUserDTO outputUserDTO = response.getBody(ApiUserDTO.class);
@@ -56,7 +56,11 @@ public class ApiUserResourceTest
     inputUserDTO = createUserDTOToUpdate(user);
 
     response =
-        restRequest().path(ApiUserResource.USERNAME_PATH).parameter(inputUserDTO.username).body(inputUserDTO).put();
+        restRequest()
+            .path(DefaultApiUserResource.USERNAME_PATH)
+            .parameter(inputUserDTO.username)
+            .body(inputUserDTO)
+            .put();
 
     assertResponseStatus(200, response);
     outputUserDTO = response.getBody(ApiUserDTO.class);
@@ -65,7 +69,7 @@ public class ApiUserResourceTest
     assertEqualExceptNullDTOPassword(user, outputUserDTO);
 
     // Delete
-    response = restRequest().path(ApiUserResource.USERNAME_PATH).parameter(user.getUsername()).delete();
+    response = restRequest().path(DefaultApiUserResource.USERNAME_PATH).parameter(user.getUsername()).delete();
 
     assertResponseStatus(204, response);
     assertThat(userDAO.getById(user.getId())).isNull();

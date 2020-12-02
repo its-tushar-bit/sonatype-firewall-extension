@@ -9,7 +9,7 @@ import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.ApiReportDataResourceV2;
+import com.sonatype.insight.brain.api.v2.DefaultApiReportDataResourceV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationResultDTOV2;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
@@ -51,7 +51,7 @@ class AbstractApiApplicationEvaluationService
         result.reportPdfUrl = UserInterfaceLinksResource.getPdfUrl(applicationPublicId, scanId);
         result.reportHtmlUrl = UserInterfaceLinksResource.getReportUrl(applicationPublicId, scanId);
         result.embeddableReportHtmlUrl = UserInterfaceLinksResource.getEmbeddableReportUrl(applicationPublicId, scanId);
-        result.reportDataUrl = ApiReportDataResourceV2.getDataUrl(applicationPublicId, scanId);
+        result.reportDataUrl = DefaultApiReportDataResourceV2.getDataUrl(applicationPublicId, scanId);
         break;
       case FAILED:
         result.reason = policyEvaluationPollingResult.getReason();

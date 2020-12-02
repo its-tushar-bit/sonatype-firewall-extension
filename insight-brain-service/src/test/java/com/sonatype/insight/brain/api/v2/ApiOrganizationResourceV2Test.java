@@ -53,7 +53,7 @@ public class ApiOrganizationResourceV2Test
   public TestLdapServer embeddedLdapServer = new TestLdapServer();
 
   private HttpRequest roleMembersRequest(final String organizationId) {
-    return restRequest().subpath(ApiOrganizationResourceV2.ROLE_MEMBERS_PATH).parameter(organizationId);
+    return restRequest().subpath(DefaultApiOrganizationResourceV2.ROLE_MEMBERS_PATH).parameter(organizationId);
   }
 
   @Before
@@ -118,7 +118,7 @@ public class ApiOrganizationResourceV2Test
     Tag tag = tempEntity.newTag(organization.getId());
 
     HttpResponse response =
-        restRequest().path(ApiOrganizationResourceV2.ORGANIZATION_ID).parameter(organization.getId()).get();
+        restRequest().path(DefaultApiOrganizationResourceV2.ORGANIZATION_ID).parameter(organization.getId()).get();
 
     assertResponseStatus(200, response);
     ApiOrganizationDTO apiOrganizationDTO = response.getBody(ApiOrganizationDTO.class);
@@ -129,7 +129,7 @@ public class ApiOrganizationResourceV2Test
   @Test
   public void testGetOrganization_NotFound() throws Exception {
     HttpResponse response =
-        restRequest().path(ApiOrganizationResourceV2.ORGANIZATION_ID).parameter("doesNotExist").get();
+        restRequest().path(DefaultApiOrganizationResourceV2.ORGANIZATION_ID).parameter("doesNotExist").get();
 
     assertResponseStatus(404, response);
     assertThat(response.getBodyText()).isEqualTo("Cannot find organization with ID doesNotExist.");

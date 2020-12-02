@@ -100,7 +100,8 @@ public class ApiMailConfigurationResourceTest
     configurationDTO.sslEnabled = true;
     configurationDTO.systemEmail = "nxiq@test";
 
-    assertResponseStatus(204, restRequest().path(ApiMailConfigurationResource.TEST_CONFIGURATION).parameter("user@test")
-        .body(configurationDTO).post());
+    assertResponseStatus(204,
+        restRequest().path(DefaultApiMailConfigurationResource.TEST_CONFIGURATION).parameter("user@test")
+            .body(configurationDTO).post());
   }
 }

@@ -88,7 +88,7 @@ public class ApiSamlConfigurationResourceTest
     SamlDeploymentManager samlDeploymentManager = getCLMServer().getInstance(SamlDeploymentManager.class);
     samlDeploymentManager.updateFromConfiguration();
 
-    HttpResponse response = restRequest().path(ApiSamlConfigurationResource.METADATA).get();
+    HttpResponse response = restRequest().path(DefaultApiSamlConfigurationResource.METADATA).get();
 
     assertResponseStatus(200, response);
     String xmlMetadata = response.getBodyText();

@@ -17,8 +17,8 @@ import com.sonatype.insight.brain.security.Member;
 
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.api.v2.ApiRoleMembershipResource.APPLICATION_OR_ORGANIZATION;
-import static com.sonatype.insight.brain.api.v2.ApiRoleMembershipResource.GLOBAL_OR_REPOSITORY_CONTAINER;
+import static com.sonatype.insight.brain.api.v2.DefaultApiRoleMembershipResource.APPLICATION_OR_ORGANIZATION;
+import static com.sonatype.insight.brain.api.v2.DefaultApiRoleMembershipResource.GLOBAL_OR_REPOSITORY_CONTAINER;
 import static com.sonatype.insight.brain.model.security.MembershipMapping.*;
 import static com.sonatype.insight.brain.model.security.Role.DEVELOPER_ROLE_ID;
 import static com.sonatype.insight.brain.model.security.Role.SYSTEM_ADMIN_ROLE_ID;

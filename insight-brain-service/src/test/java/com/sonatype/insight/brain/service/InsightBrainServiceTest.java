@@ -24,8 +24,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.ApiRoleMembershipResource;
-import com.sonatype.insight.brain.api.v2.ApiUserResource;
+import com.sonatype.insight.brain.api.v2.DefaultApiRoleMembershipResource;
+import com.sonatype.insight.brain.api.v2.DefaultApiUserResource;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.hds.TelemetryId;
@@ -56,6 +56,7 @@ import com.sonatype.insight.test.LogOutput;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.dropwizard.logging.AppenderFactory;
 import io.dropwizard.logging.ConsoleAppenderFactory;
 import io.dropwizard.logging.FileAppenderFactory;
@@ -241,12 +242,14 @@ public class InsightBrainServiceTest
       responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());
     }).andStatus(204).atUri(TelemetrySender.RESOURCE_PATH));
 
-    assertResponseStatus(404, restRequest().path(PublicApiPaths.USER_RESOURCE_PATH_V2, ApiUserResource.USERNAME_PATH)
-        .parameter("sensitiveUsername").get());
-    assertResponseStatus(404, restRequest().path(PublicApiPaths.USER_RESOURCE_PATH_V2, ApiUserResource.USERNAME_PATH)
-        .parameter("otherUsername").get());
+    assertResponseStatus(404,
+        restRequest().path(PublicApiPaths.USER_RESOURCE_PATH_V2, DefaultApiUserResource.USERNAME_PATH)
+            .parameter("sensitiveUsername").get());
+    assertResponseStatus(404,
+        restRequest().path(PublicApiPaths.USER_RESOURCE_PATH_V2, DefaultApiUserResource.USERNAME_PATH)
+            .parameter("otherUsername").get());
     assertResponseStatus(404, restRequest()
-        .path(PublicApiPaths.ROLE_MEMBERSHIP_PATH_V2, ApiRoleMembershipResource.APPLICATION_OR_ORGANIZATION)
+        .path(PublicApiPaths.ROLE_MEMBERSHIP_PATH_V2, DefaultApiRoleMembershipResource.APPLICATION_OR_ORGANIZATION)
         .parameter("organization", "orgId", "roleId", "user", "sensitiveUsername")
         .put());
 
@@ -261,7 +264,7 @@ public class InsightBrainServiceTest
     Collection<TelemetryData> restEndpointUsageTelemetryData =
         allTelemetryData.stream().filter(t -> t.getPurpose().equals(TelemetryPurpose.REST_ENDPOINT_USAGE))
             .collect(Collectors.toList());
-    RestEndpointTelemetry[] expected = new RestEndpointTelemetry[]{
+    RestEndpointTelemetry[] expected = new RestEndpointTelemetry[] {
         new RestEndpointTelemetry("GET", "/api/v2/users/{username}", 2),
         new RestEndpointTelemetry("PUT",
             "/api/v2/roleMemberships/{ownerType}/{internalOwnerId}/role/{roleId}/{memberType}/{memberName}", 1)

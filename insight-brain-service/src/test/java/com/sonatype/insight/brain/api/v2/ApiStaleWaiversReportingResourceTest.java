@@ -36,7 +36,9 @@ public class ApiStaleWaiversReportingResourceTest
     tempEntity.newWaiver(orgPolicy.getId(), app.getParentOwnerId());
 
     HttpResponse response =
-        restRequest().path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2 + ApiStaleWaiversReportingResource.PATH).get();
+        restRequest()
+            .path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2 + DefaultApiStaleWaiversReportingResource.PATH)
+            .get();
 
     assertResponseStatus(200, response);
     ApiStaleWaiversResponseDTO responseDTO = response.getBody(ApiStaleWaiversResponseDTO.class);
@@ -67,7 +69,9 @@ public class ApiStaleWaiversReportingResourceTest
         legacyWaiverId, legacyWaiverComment, legacyWaiverDate);
 
     HttpResponse response =
-        restRequest().path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2 + ApiStaleWaiversReportingResource.PATH).get();
+        restRequest()
+            .path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2 + DefaultApiStaleWaiversReportingResource.PATH)
+            .get();
 
     assertResponseStatus(409, response);
   }

@@ -107,10 +107,10 @@ public class ApiPolicyViolationResourceV2Test
     Application app = tempEntity.newApplication(org.getId());
     Policy orgPolicy = tempEntity.newPolicy(org);
     PolicyEvaluation pe1App1 = tempEntity
-            .newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId1App1", false, false, date);
+        .newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId1App1", false, false, date);
     PolicyViolation pv1App1 = tempEntity.newPolicyViolation(pe1App1, orgPolicy, "g1", "a1", "v1", "h1", "r1");
-    String fullPath = ApiPolicyViolationResourceV2.CROSS_STAGE_POLICY_VIOLATION_SUBPATH
-            + ApiPolicyViolationResourceV2.VIOLATIONID;
+    String fullPath = DefaultApiPolicyViolationResourceV2.CROSS_STAGE_POLICY_VIOLATION_SUBPATH
+        + DefaultApiPolicyViolationResourceV2.VIOLATIONID;
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
@@ -139,18 +139,18 @@ public class ApiPolicyViolationResourceV2Test
     Application app = tempEntity.newApplication(org.getId());
     Policy orgPolicy = tempEntity.newPolicy(org);
     PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId1App1", false,
-            false, baseDate);
+        false, baseDate);
     PolicyViolation violation1 = tempEntity.newPolicyViolation(evaluation1, orgPolicy, "g1", "a1", "v1", "h1", "r1");
     // Equivalent, opened while violation1 was still open
     PolicyEvaluation evaluation2 = tempEntity
-            .newPolicyEvaluation(app.getId(), DevelopStageType.ID, "scanId2App1", false, false, later);
+        .newPolicyEvaluation(app.getId(), DevelopStageType.ID, "scanId2App1", false, false, later);
     tempEntity.newPolicyViolation(evaluation2, orgPolicy, "g1", "a1", "v1", "h1", "r1");
 
     HttpResponse response = restRequest()
-            .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
-            .path(ApiPolicyViolationResourceV2.CROSS_STAGE_POLICY_VIOLATION_SUBPATH)
-            .query("constituentId", violation1.getId())
-            .get();
+        .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
+        .path(DefaultApiPolicyViolationResourceV2.CROSS_STAGE_POLICY_VIOLATION_SUBPATH)
+        .query("constituentId", violation1.getId())
+        .get();
 
     assertResponseStatus(200, response);
     ApiCrossStageViolationDTOV2 resultDTO = response.getBody(ApiCrossStageViolationDTOV2.class);
@@ -204,7 +204,8 @@ public class ApiPolicyViolationResourceV2Test
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
-        .path(ApiPolicyViolationResourceV2.VIOLATIONID + ApiPolicyViolationResourceV2.APPLICABLE_WAIVERS_PATH)
+        .path(DefaultApiPolicyViolationResourceV2.VIOLATIONID +
+            DefaultApiPolicyViolationResourceV2.APPLICABLE_WAIVERS_PATH)
         .parameter(violation.getId())
         .get();
 

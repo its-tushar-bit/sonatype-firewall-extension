@@ -29,9 +29,9 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiManifestEvaluationRequestDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
-import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentEvaluationServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ComponentEvaluationV2Helper;
+import com.sonatype.insight.brain.api.v2.service.DefaultApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -494,7 +494,7 @@ public class ApiEvaluationResourceV2Test
   }
 
   private void mockHDSInternalServiceError() {
-    hdsRespondWith("Internal Error").andStatus(500).atUri(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH
+    hdsRespondWith("Internal Error").andStatus(500).atUri(DefaultApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH
         .replace("{purpose: evaluation|integration}", ApiComponentEvaluationServiceV2.PURPOSE_EVALUATION));
   }
 
@@ -506,7 +506,7 @@ public class ApiEvaluationResourceV2Test
         .fromScan(SCAN_ID, Stage.ID_OPERATE);
 
     HttpResponse response = restRequest()
-        .path(APPLICATION_EVALUATION_PATH_V2, ApiEvaluationResourceV2.PROMOTE_SCAN_PATH)
+        .path(APPLICATION_EVALUATION_PATH_V2, DefaultApiEvaluationResourceV2.PROMOTE_SCAN_PATH)
         .parameter(app.getId()).body(apiPromoteScanRequestDTOV2).post();
 
     assertResponseStatus(200, response);
@@ -520,7 +520,7 @@ public class ApiEvaluationResourceV2Test
     createScanFile(app.getId(), SCAN_ID);
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
     HttpResponse response = restRequest()
-        .path(APPLICATION_EVALUATION_PATH_V2, ApiEvaluationResourceV2.PROMOTE_SCAN_PATH)
+        .path(APPLICATION_EVALUATION_PATH_V2, DefaultApiEvaluationResourceV2.PROMOTE_SCAN_PATH)
         .parameter(app.getId()).body(ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE)).post();
     assertResponseStatus(200, response);
     ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 =
@@ -559,7 +559,7 @@ public class ApiEvaluationResourceV2Test
     ApiManifestEvaluationRequestDTO apiManifestEvaluationRequestDTO =
         new ApiManifestEvaluationRequestDTO(Stage.ID_DEVELOP, "customBranch");
     HttpResponse response = restRequest() //
-        .path(APPLICATION_EVALUATION_PATH_V2, ApiEvaluationResourceV2.MANIFEST_EVALUATION_PATH) //
+        .path(APPLICATION_EVALUATION_PATH_V2, DefaultApiEvaluationResourceV2.MANIFEST_EVALUATION_PATH) //
         .parameter(app.getId()) //
         .body(apiManifestEvaluationRequestDTO).post();
 
@@ -582,7 +582,7 @@ public class ApiEvaluationResourceV2Test
   }
 
   private void mockComponentDetails(final ComponentEvaluationDataList componentEvaluationDataList) {
-    hdsRespondWith(componentEvaluationDataList).atUri(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH
+    hdsRespondWith(componentEvaluationDataList).atUri(DefaultApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH
         .replace("{purpose: evaluation|integration}", ApiComponentEvaluationServiceV2.PURPOSE_EVALUATION));
   }
 

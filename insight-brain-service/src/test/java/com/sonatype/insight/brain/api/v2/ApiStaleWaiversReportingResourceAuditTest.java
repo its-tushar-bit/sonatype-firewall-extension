@@ -27,7 +27,7 @@ public class ApiStaleWaiversReportingResourceAuditTest
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest()
-        .path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2 + ApiStaleWaiversReportingResource.PATH);
+        .path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2 + DefaultApiStaleWaiversReportingResource.PATH);
   }
 
   @Test

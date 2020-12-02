@@ -13,7 +13,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.api.v2.ApiReportDataResourceV2;
+import com.sonatype.insight.brain.api.v2.DefaultApiReportDataResourceV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationReportDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportHistoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportResultsDTO;
@@ -165,7 +165,7 @@ public class ApiReportServiceV2Test
         assertThat(report.embeddableReportHtmlUrl)
             .isEqualTo(UserInterfaceLinksResource.getEmbeddableReportUrl(app.getPublicId(), expectedScanId));
         assertThat(report.reportDataUrl)
-            .isEqualTo(ApiReportDataResourceV2.getDataUrl(app.getPublicId(), expectedScanId));
+            .isEqualTo(DefaultApiReportDataResourceV2.getDataUrl(app.getPublicId(), expectedScanId));
         return;
       }
     }

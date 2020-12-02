@@ -75,7 +75,7 @@ public class ApiApplicationResourceV2Test
   public TestLdapServer embeddedLdapServer = new TestLdapServer();
 
   private HttpRequest roleMembersRequest(String applicationId) {
-    return restRequest().subpath(ApiApplicationResourceV2.ROLE_MEMBERS_PATH).parameter(applicationId);
+    return restRequest().subpath(DefaultApiApplicationResourceV2.ROLE_MEMBERS_PATH).parameter(applicationId);
   }
 
   @Before
@@ -474,7 +474,7 @@ public class ApiApplicationResourceV2Test
 
   @Test
   public void testGetApplicationRoles() throws Exception {
-    HttpResponse response = restRequest().path(ApiApplicationResourceV2.ROLE_PATH).get();
+    HttpResponse response = restRequest().path(DefaultApiApplicationResourceV2.ROLE_PATH).get();
     assertResponseStatus(200, response);
 
     ApiRoleListDTO appRoles = response.getBody(ApiRoleListDTO.class);
@@ -490,7 +490,7 @@ public class ApiApplicationResourceV2Test
     String clonedAppName = "Cloned App Name";
     String clonedAppPublicId = "ClonedAppPublicId";
 
-    HttpResponse response = restRequest().path(ApiApplicationResourceV2.CLONE_PATH).parameter(app.getId())
+    HttpResponse response = restRequest().path(DefaultApiApplicationResourceV2.CLONE_PATH).parameter(app.getId())
         .query("clonedApplicationName", clonedAppName).query("clonedApplicationPublicId", clonedAppPublicId).post();
 
     assertResponseStatus(200, response);
@@ -504,7 +504,8 @@ public class ApiApplicationResourceV2Test
     assertThat(returnedDTO.contactUserName).isEqualTo(app.getContactInternalName());
     assertThat(returnedDTO.applicationTags).isEmpty();
 
-    String expectedTelemetryPath = "/" + PublicApiPaths.APP_RESOURCE_PATH + "/" + ApiApplicationResourceV2.CLONE_PATH;
+    String expectedTelemetryPath = "/" + PublicApiPaths.APP_RESOURCE_PATH + "/" +
+        DefaultApiApplicationResourceV2.CLONE_PATH;
     TelemetryContainerRequestFilter telemetryContainerRequestFilter =
         getCLMServer().getInstance(TelemetryContainerRequestFilter.class);
     List<TelemetryData> telemetryData = telemetryContainerRequestFilter.collectAllData();
@@ -523,7 +524,7 @@ public class ApiApplicationResourceV2Test
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplicationWithParent("test-app-id");
 
-    HttpResponse response = restRequest().path(ApiApplicationResourceV2.MOVE_PATH)
+    HttpResponse response = restRequest().path(DefaultApiApplicationResourceV2.MOVE_PATH)
         .parameter(app.getId(), org.getId()).post();
     assertResponseStatus(200, response);
     List<String> warnings = response.getBody(ApiMoveApplicationResponseDTOV2.class).warnings;
@@ -538,7 +539,7 @@ public class ApiApplicationResourceV2Test
     Application app = tempEntity.newApplication("My App", "test-app-id", org2.getId());
     tempEntity.newPolicy(app.getOrganizationId(), "Missing Policy");
 
-    HttpResponse response = restRequest().path(ApiApplicationResourceV2.MOVE_PATH)
+    HttpResponse response = restRequest().path(DefaultApiApplicationResourceV2.MOVE_PATH)
         .parameter(app.getId(), org1.getId()).post();
     assertResponseStatus(409, response);
     ApiMoveApplicationResponseDTOV2 issues = response.getBody(ApiMoveApplicationResponseDTOV2.class);
@@ -554,7 +555,7 @@ public class ApiApplicationResourceV2Test
     tempEntity.newApplicationWithParent();
 
     HttpResponse response =
-        restRequest().path(ApiApplicationResourceV2.ORGANIZATION_PATH).parameter(app1.getOrganizationId()).get();
+        restRequest().path(DefaultApiApplicationResourceV2.ORGANIZATION_PATH).parameter(app1.getOrganizationId()).get();
 
     assertResponseStatus(200, response);
     ApiApplicationListDTO apiApplicationListDTO = response.getBody(ApiApplicationListDTO.class);

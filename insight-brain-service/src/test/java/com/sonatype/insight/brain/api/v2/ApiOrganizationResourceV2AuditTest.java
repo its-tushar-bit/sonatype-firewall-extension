@@ -71,7 +71,7 @@ public class ApiOrganizationResourceV2AuditTest
   private HttpRequest setMembershipMappingRequest(String organizationId,
                                                   ApiRoleMemberMappingListDTO apiRoleMemberMappingListDTO)
   {
-    return organizationApiRequest().path(ApiOrganizationResourceV2.ROLE_MEMBERS_PATH)
+    return organizationApiRequest().path(DefaultApiOrganizationResourceV2.ROLE_MEMBERS_PATH)
         .parameter(organizationId).body(apiRoleMemberMappingListDTO);
   }
 }

@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.tag;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.api.v2.ApiApplicationCategoryResource;
+import com.sonatype.insight.brain.api.v2.DefaultApiApplicationCategoryResource;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoryDTO;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
@@ -29,11 +29,12 @@ public class ApiApplicationCategoryResourceTest
     tempEntity.newTag(org.getParentOrganizationId(), "Root Tag");
 
     HttpRequest request = restRequest()
-        .path(ApiApplicationCategoryResource.RESOURCE_PATH, ApiApplicationCategoryResource.ORGANIZATION_PATH)
+        .path(DefaultApiApplicationCategoryResource.RESOURCE_PATH,
+            DefaultApiApplicationCategoryResource.ORGANIZATION_PATH)
         .parameter(org.getId());
 
-    HttpRequest getApplicableTagsPath = restRequest().path(ApiApplicationCategoryResource.RESOURCE_PATH,
-        ApiApplicationCategoryResource.ORGANIZATION_APPLICABLE_TAGS_PATH).parameter(org.getId());
+    HttpRequest getApplicableTagsPath = restRequest().path(DefaultApiApplicationCategoryResource.RESOURCE_PATH,
+        DefaultApiApplicationCategoryResource.ORGANIZATION_APPLICABLE_TAGS_PATH).parameter(org.getId());
 
     // Get
     HttpResponse response = getApplicableTagsPath.get();
@@ -94,7 +95,8 @@ public class ApiApplicationCategoryResourceTest
     tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID, "Root Tag");
 
     HttpRequest request = restRequest()
-        .path(ApiApplicationCategoryResource.RESOURCE_PATH, ApiApplicationCategoryResource.ORGANIZATION_PATH)
+        .path(DefaultApiApplicationCategoryResource.RESOURCE_PATH,
+            DefaultApiApplicationCategoryResource.ORGANIZATION_PATH)
         .parameter(Organization.ROOT_ORGANIZATION_ID);
 
     HttpResponse response = request.get();

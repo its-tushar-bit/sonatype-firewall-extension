@@ -11,7 +11,10 @@ import {
   ADVANCED_LEGAL_LOAD_APPLICATIONS_FAILED,
   ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_REQUESTED,
   ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FULFILLED,
-  ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FAILED
+  ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FAILED,
+  ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED,
+  ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
+  ADVANCED_LEGAL_LOAD_COMPONENT_FAILED
 } from './advancedLegalActions';
 
 const initialState = {
@@ -24,7 +27,8 @@ const initialState = {
     loading: false,
     error: null
   },
-  applicationReport: null
+  applicationReport: null,
+  component: null
 };
 
 function loadApplicationsRequested() {
@@ -92,13 +96,46 @@ function loadApplicationReportFailed(payload, state) {
   };
 }
 
+function loadComponentRequested() {
+  return {
+    ...initialState,
+    component: {
+      loading: true,
+      error: null
+    }
+  };
+}
+
+function loadComponentFulfilled(payload, state) {
+  return {
+    ...state,
+    component: {
+      loading: false,
+      ...payload
+    }
+  };
+}
+
+function loadComponentFailed(payload, state) {
+  return {
+    ...state,
+    component: {
+      loading: false,
+      error: payload
+    }
+  };
+}
+
 const reducerActionMap = {
   [ADVANCED_LEGAL_LOAD_APPLICATIONS_REQUESTED]: loadApplicationsRequested,
   [ADVANCED_LEGAL_LOAD_APPLICATIONS_FULFILLED]: loadApplicationsFulfilled,
   [ADVANCED_LEGAL_LOAD_APPLICATIONS_FAILED]: loadApplicationsFailed,
   [ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_REQUESTED]: loadApplicationReportRequested,
   [ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FULFILLED]: loadApplicationReportFulfilled,
-  [ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FAILED]: loadApplicationReportFailed
+  [ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FAILED]: loadApplicationReportFailed,
+  [ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED]: loadComponentRequested,
+  [ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED]: loadComponentFulfilled,
+  [ADVANCED_LEGAL_LOAD_COMPONENT_FAILED]: loadComponentFailed
 };
 
 const advancedLegalReducer = createReducerFromActionMap(reducerActionMap, initialState);

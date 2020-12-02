@@ -14,42 +14,65 @@ import LicenseDetailsTile from './LicenseDetailsTile';
 import CopyrightStatementsTile from './CopyrightStatementsTile';
 import NoticeTextsTile from './NoticeTextsTile';
 import LicenseTextsTile from './LicenseTextsTile';
+import LoadWrapper from '../react/LoadWrapper';
 
 export default function ComponentLegalOverviewPage(props) {
   const {
-    components,
-    loadComponentDetails
+    component,
+    licenseLegalMetadata,
+    loading,
+    error,
+    hash,
+    loadComponent
   } = props;
 
-  useEffect(() => { loadComponentDetails('an id'); }, []);
+  function load() {
+    if (hash) {
+      loadComponent('organization', 'ROOT_ORGANIZATION_ID', hash);
+    }
+  }
+
+  useEffect(load, [hash]);
 
   return (
-    <MaximizedContainer className="nx-page-content">
-      <main className="nx-page-main">
-        <NxBackButton href="#" />
-        <div className="nx-page-title">
-          <h1 className="nx-h1">com.google.greatgooglymoogly : jsr305 : 3.0.2</h1>
-          <div className="nx-page-title__description">
-            <NxFontAwesomeIcon icon = { faSitemap } />
-            <span>Root Organization</span>
+    <LoadWrapper loading={ loading }
+                 error={ error }
+                 retryHandler={ load }>
+      <MaximizedContainer className="nx-page-content">
+        <main className="nx-page-main">
+          <NxBackButton href="#" />
+          <div className="nx-page-title">
+            <h1 className="nx-h1">
+              { component && component.displayName }
+            </h1>
+            <div className="nx-page-title__description">
+              <NxFontAwesomeIcon icon = { faSitemap } />
+              <span>Root Organization</span>
+            </div>
           </div>
-        </div>
-        <div id="component-legal-overview-details">
-          <ComponentOverviewTile { ...components } />
-          <LicenseObligationsTile />
-          <div id="component-legal-overview-details-right">
-            <LicenseDetailsTile />
-            <CopyrightStatementsTile />
-            <NoticeTextsTile />
-            <LicenseTextsTile />
+          <div id="component-legal-overview-details">
+            <ComponentOverviewTile />
+            <LicenseObligationsTile { ...licenseLegalMetadata } />
+            <div id="component-legal-overview-details-right">
+              <LicenseDetailsTile />
+              <CopyrightStatementsTile />
+              <NoticeTextsTile />
+              <LicenseTextsTile />
+            </div>
           </div>
-        </div>
-      </main>
-    </MaximizedContainer>
+        </main>
+      </MaximizedContainer>
+    </LoadWrapper>
   );
 }
 
 ComponentLegalOverviewPage.propTypes = {
-  components: PropTypes.any,
-  loadComponentDetails: PropTypes.func
+  component: PropTypes.shape({
+    displayName: PropTypes.string.isRequired
+  }),
+  loading: PropTypes.bool,
+  error: PropTypes.string,
+  hash: PropTypes.string.isRequired,
+  licenseLegalMetadata: PropTypes.any,
+  loadComponent: PropTypes.func
 };

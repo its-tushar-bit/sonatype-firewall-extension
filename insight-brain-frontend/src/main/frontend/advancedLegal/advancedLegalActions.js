@@ -4,7 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { getApplicationsUrl, getLicenseLegalApplicationReportUrl } from '../util/CLMLocation';
+import {
+  getApplicationsUrl,
+  getLicenseLegalApplicationReportUrl,
+  getLicenseLegalComponentUrl
+} from '../util/CLMLocation';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
 
 export const ADVANCED_LEGAL_LOAD_APPLICATIONS_REQUESTED = 'ADVANCED_LEGAL_LOAD_APPLICATIONS_REQUESTED';
@@ -15,6 +19,10 @@ export const ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_REQUESTED = 'ADVANCED_LEGAL_
 export const ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FULFILLED = 'ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FULFILLED';
 export const ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FAILED = 'ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FAILED';
 
+export const ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED = 'ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED';
+export const ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED = 'ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED';
+export const ADVANCED_LEGAL_LOAD_COMPONENT_FAILED = 'ADVANCED_LEGAL_LOAD_COMPONENT_FAILED';
+
 const loadApplicationsRequested = noPayloadActionCreator(ADVANCED_LEGAL_LOAD_APPLICATIONS_REQUESTED);
 const loadApplicationsFulfilled = payloadParamActionCreator(ADVANCED_LEGAL_LOAD_APPLICATIONS_FULFILLED);
 const loadApplicationsFailed = payloadParamActionCreator(ADVANCED_LEGAL_LOAD_APPLICATIONS_FAILED);
@@ -22,6 +30,10 @@ const loadApplicationsFailed = payloadParamActionCreator(ADVANCED_LEGAL_LOAD_APP
 const loadApplicationReportRequested = noPayloadActionCreator(ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_REQUESTED);
 const loadApplicationReportFulfilled = payloadParamActionCreator(ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FULFILLED);
 const loadApplicationReportFailed = payloadParamActionCreator(ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FAILED);
+
+const loadComponentRequested = noPayloadActionCreator(ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED);
+const loadComponentFulfilled = payloadParamActionCreator(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
+const loadComponentFailed = payloadParamActionCreator(ADVANCED_LEGAL_LOAD_COMPONENT_FAILED);
 
 export function loadApplications() {
   return (dispatch) => {
@@ -47,6 +59,20 @@ export function loadApplicationReport(publicId) {
         })
         .catch(error => {
           dispatch(loadApplicationReportFailed(error));
+        });
+  };
+}
+
+export function loadComponent(orgOrApp, ownerId, hash) {
+  return (dispatch) => {
+    dispatch(loadComponentRequested());
+
+    return axios.get(getLicenseLegalComponentUrl(orgOrApp, ownerId, hash))
+        .then(({ data }) => {
+          dispatch(loadComponentFulfilled(data));
+        })
+        .catch(error => {
+          dispatch(loadComponentFailed(error));
         });
   };
 }

@@ -6,7 +6,7 @@
 import axios from 'axios';
 import {
   getApplicationsUrl,
-  getLicenseLegalApplicationReportUrl
+  getLicenseLegalApplicationReportUrl, getLicenseLegalComponentUrl
 } from '../../../main/frontend/util/CLMLocation';
 import {
   ADVANCED_LEGAL_LOAD_APPLICATIONS_REQUESTED,
@@ -15,8 +15,12 @@ import {
   ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_REQUESTED,
   ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FULFILLED,
   ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FAILED,
+  ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED,
+  ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
+  ADVANCED_LEGAL_LOAD_COMPONENT_FAILED,
   loadApplications,
-  loadApplicationReport
+  loadApplicationReport,
+  loadComponent
 } from '../../../main/frontend/advancedLegal/advancedLegalActions';
 
 describe('advancedLegalActions', function () {
@@ -128,6 +132,59 @@ describe('advancedLegalActions', function () {
         const actions = store.getActions();
         expect(actions.length).toBe(2);
         expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FAILED);
+        expect(actions[1].payload).toBe(errorTest);
+        done();
+      });
+    });
+  });
+
+  describe('loadComponent', function () {
+    let store;
+
+    beforeEach(function () {
+      store = SpecUtil.mockReduxStore({});
+    });
+
+    it('immediately dispatches a ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED action', function () {
+      store.dispatch(loadComponent('orgOrApp', 'ownerId', 'hash'));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED);
+      expect(actions[0].payload).toBeUndefined();
+    });
+
+    it('dispatches a ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED action with applications', function (done) {
+      const componentInfo = {
+        foo: 'bar'
+      };
+      mockAxiosCalls({
+        get: {
+          [getLicenseLegalComponentUrl('orgOrApp', 'ownerId', 'hash')]: Promise.resolve({ data: componentInfo })
+        }
+      });
+
+      store.dispatch(loadComponent('orgOrApp', 'ownerId', 'hash')).then(() => {
+        const actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
+        expect(actions[1].payload).toBe(componentInfo);
+        done();
+      });
+    });
+
+    it('dispatches a ADVANCED_LEGAL_LOAD_COMPONENT_FAILED action when API fails', function (done) {
+      const errorTest = 'Error test';
+      mockAxiosCalls({
+        get: {
+          [getLicenseLegalComponentUrl('orgOrApp', 'ownerId', 'hash')]: Promise.reject(errorTest)
+        }
+      });
+
+      store.dispatch(loadComponent('orgOrApp', 'ownerId', 'hash')).then(() => {
+        const actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FAILED);
         expect(actions[1].payload).toBe(errorTest);
         done();
       });

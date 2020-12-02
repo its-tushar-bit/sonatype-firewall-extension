@@ -7,17 +7,17 @@
 import { connect } from 'react-redux';
 import { pick } from 'ramda';
 import ComponentLegalOverviewPage from './ComponentLegalOverviewPage';
+import { loadComponent } from '../advancedLegal/advancedLegalActions';
 
-function mapStateToProps({ dashboard }) {
+function mapStateToProps({ advancedLegal, router }) {
   return {
-    ...pick(['components'], dashboard)
+    ...pick(['component', 'licenseLegalMetadata', 'loading', 'error'], advancedLegal.component || {}),
+    ...pick(['hash'], router.currentParams)
   };
 }
 
 const mapDispatchToProps = {
-  loadComponentDetails: () => ({
-    type: 'NOOP'
-  })
+  loadComponent
 };
 
 const ComponentLegalOverviewContainer = connect(mapStateToProps, mapDispatchToProps)(ComponentLegalOverviewPage);

@@ -11,12 +11,13 @@ import LicenseTextsTile from '../../../main/frontend/legal/LicenseTextsTile';
 import LicenseObligationsTile from '../../../main/frontend/legal/LicenseObligationsTile';
 import LicenseDetailsTile from '../../../main/frontend/legal/LicenseDetailsTile';
 import CopyrightStatementsTile from '../../../main/frontend/legal/CopyrightStatementsTile';
+import { mount } from 'enzyme/build';
 
 describe('ComponentLegalOverviewPage', function() {
   let minimalProps,
       ComponentLegalOverviewPage,
       MaximizedContainerMock,
-      loadResultsSpy,
+      loadComponentSpy,
       getShallowComponent;
 
   beforeEach(function() {
@@ -28,18 +29,30 @@ describe('ComponentLegalOverviewPage', function() {
           '../react/MaximizedContainer': MaximizedContainerMock
         }).default;
 
-    loadResultsSpy = jasmine.createSpy('loadResults');
+    loadComponentSpy = jasmine.createSpy('loadComponent');
 
     minimalProps = {
-      components: 'components',
-      loadResults: loadResultsSpy
+      loadComponent: loadComponentSpy,
+      hash: '1e48256a2341047e7d72'
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ComponentLegalOverviewPage, minimalProps);
   });
 
+  it('fires the loadFilter action', function() {
+    const component = mount(<ComponentLegalOverviewPage {...minimalProps} />);
+    expect(loadComponentSpy).toHaveBeenCalledWith('organization', 'ROOT_ORGANIZATION_ID', '1e48256a2341047e7d72');
+    component.unmount();
+  });
+
+  it('does not fire the loadFilter action if there is no hash', function() {
+    const component = mount(<ComponentLegalOverviewPage loadComponent={ loadComponentSpy } />);
+    expect(loadComponentSpy).not.toHaveBeenCalled();
+    component.unmount();
+  });
+
   it('renders a component with the "nx-page-content" class', function() {
-    expect(getShallowComponent()).toMatchSelector('.nx-page-content');
+    expect(getShallowComponent().find('.nx-page-content')).toExist();
   });
 
   it('renders the ComponentOverviewTile', function() {

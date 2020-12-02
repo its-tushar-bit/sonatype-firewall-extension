@@ -11,7 +11,10 @@ import {
   ADVANCED_LEGAL_LOAD_APPLICATIONS_FAILED,
   ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_REQUESTED,
   ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FULFILLED,
-  ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FAILED
+  ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FAILED,
+  ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED,
+  ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
+  ADVANCED_LEGAL_LOAD_COMPONENT_FAILED
 } from '../../../main/frontend/advancedLegal/advancedLegalActions.js';
 
 describe('advancedLegalReducer', function () {
@@ -32,7 +35,8 @@ describe('advancedLegalReducer', function () {
 
       expect(newState.viewStateApplicationReport.loading).toBeFalsy();
       expect(newState.viewStateApplicationReport.error).toBeNull();
-      expect(newState.applicationReport).toBeNull(0);
+      expect(newState.applicationReport).toBeNull();
+      expect(newState.component).toBeNull();
     });
   });
 
@@ -44,6 +48,61 @@ describe('advancedLegalReducer', function () {
       };
       const newState = reduce(state, action);
       expect(newState).toBe(state);
+    });
+  });
+
+  describe('ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED action', function () {
+    it('sets in viewStateApplications loading to true and error to null', function () {
+      const newState = reduce(undefined, {
+        type: ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED
+      });
+
+      const { component } = newState;
+      expect(component.loading).toBeTruthy();
+      expect(component.error).toBeNull();
+    });
+  });
+
+  describe('ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED action', function () {
+    it('sets in viewStateApplications loading to false, applications to payload and error to null', function () {
+      const state = {
+        component: {
+          loading: true,
+          error: null
+        }
+      };
+      const componentInfo = {
+        foo: 'bar'
+      };
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
+        payload: componentInfo
+      });
+
+      const { component } = newState;
+      expect(component.loading).toBeFalsy();
+      expect(component.error).toBeUndefined();
+      expect(component.foo).toBe('bar');
+    });
+  });
+
+  describe('ADVANCED_LEGAL_LOAD_COMPONENT_FAILED action', function () {
+    it('sets in viewStateApplications loading to false and error to payload', function () {
+      const state = {
+        component: {
+          loading: true,
+          error: null
+        }
+      };
+      const errorTest = 'Error test';
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_LOAD_COMPONENT_FAILED,
+        payload: errorTest
+      });
+
+      const { component } = newState;
+      expect(component.loading).toBeFalsy();
+      expect(component.error).toBe(errorTest);
     });
   });
 

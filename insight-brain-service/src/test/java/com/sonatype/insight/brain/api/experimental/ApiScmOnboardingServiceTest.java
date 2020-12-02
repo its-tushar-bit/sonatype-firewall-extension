@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.model.SCMRepository;
 
@@ -147,6 +148,13 @@ public class ApiScmOnboardingServiceTest
         .filter(repository -> repository.getProject().equals("nexus-repository-p2")).findFirst();
     assertThat(nxrmP2.get().getHttpCloneUrl())
         .isEqualTo("https://github.com/sonatype-nexus-community/nexus-repository-p2");
+  }
+
+  @Test
+  public void testLoadRepositories_invalidOrgId() {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
+      apiScmOnboardingService.loadRepositories("organizationThatDoesntExist", gitService.baseUrl());
+    }).withMessageContaining("Cannot find organization with ID organizationThatDoesntExist.");
   }
 
   private String getResourceAsString(String filename) throws IOException {

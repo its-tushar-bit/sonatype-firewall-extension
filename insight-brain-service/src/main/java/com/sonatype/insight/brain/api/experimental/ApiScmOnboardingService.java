@@ -88,6 +88,7 @@ public class ApiScmOnboardingService
     if (orgId == null) {
       throw new BadRequestException("No organization specified");
     }
+    orgDAO.getByIdNotNull(orgId);
     if (StringUtils.isEmpty(hostUrl) || "undefined".equalsIgnoreCase(hostUrl)) {
       throw new BadRequestException("No host URL defined");
     }

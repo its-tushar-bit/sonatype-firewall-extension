@@ -206,15 +206,35 @@ public class ApiScmOnboardingServiceTest
   @Test
   public void testDefaultHostUrl_orgWithScm() {
     // test a variety of different hosts
-    testDefaultHostUrl_repoUrl("http://example.com:8899/owner/app", "http://example.com:8899");
-    testDefaultHostUrl_repoUrl("https://example.com:8443/owner/app", "https://example.com:8443");
-    testDefaultHostUrl_repoUrl("http://example.com/owner/app", "http://example.com");
-    testDefaultHostUrl_repoUrl("http://example.com:80/owner/app", "http://example.com:80");
-    testDefaultHostUrl_repoUrl("https://example.com/owner/app", "https://example.com");
-    testDefaultHostUrl_repoUrl("https://example.com:443/owner/app", "https://example.com:443");
+    testDefaultHostUrl_repoUrlGH("http://example.com:8899/owner/app", "http://example.com:8899");
+    testDefaultHostUrl_repoUrlGH("https://example.com:8443/owner/app", "https://example.com:8443");
+    testDefaultHostUrl_repoUrlGH("http://example.com/owner/app", "http://example.com");
+    testDefaultHostUrl_repoUrlGH("http://example.com:80/owner/app", "http://example.com:80");
+    testDefaultHostUrl_repoUrlGH("https://example.com/owner/app", "https://example.com");
+    testDefaultHostUrl_repoUrlGH("https://example.com:443/owner/app", "https://example.com:443");
   }
 
-  private void testDefaultHostUrl_repoUrl(String repoUrl, String expectedDefaultHosturl) {
+  @Test
+  public void testDefaultHostUrl_bitbucketOrgWithScm() {
+    // test a variety of different hosts
+    testDefaultHostUrl_repoUrlBB("https://localhost:7990/biz/scm/scm/org/project", "https://localhost:7990/biz/scm");
+    testDefaultHostUrl_repoUrlBB("https://localhost:7990/scm/biz/scm/org/project", "https://localhost:7990/scm/biz");
+    testDefaultHostUrl_repoUrlBB("https://example.com:5000/bitbucket/scm/org/proj",
+        "https://example.com:5000/bitbucket");
+    testDefaultHostUrl_repoUrlBB("https://example.com/scm/org/proj", "https://example.com");
+    testDefaultHostUrl_repoUrlBB("https://bitbucket.org/org/proj", "https://bitbucket.org");
+    testDefaultHostUrl_repoUrlBB("https://example.com:443/scm/owner/app", "https://example.com:443");
+  }
+
+  private void testDefaultHostUrl_repoUrlGH(String repoUrl, String expectedDefaultHostUrl) {
+    testDefaultHostUrl_repoUrl(repoUrl, expectedDefaultHostUrl, SourceControlProvider.GITHUB.name());
+  }
+
+  private void testDefaultHostUrl_repoUrlBB(String repoUrl, String expectedDefaultHostUrl) {
+    testDefaultHostUrl_repoUrl(repoUrl, expectedDefaultHostUrl, SourceControlProvider.BITBUCKET.name());
+  }
+
+  private void testDefaultHostUrl_repoUrl(String repoUrl, String expectedDefaultHosturl, String provider) {
     // given an org
     Organization organization = tempEntity.newOrganization();
 
@@ -229,7 +249,7 @@ public class ApiScmOnboardingServiceTest
     sourceControlDAO.insert(sourceControl);
 
     // when we get the host URL
-    String defaultHostUrl = apiScmOnboardingService.getDefaultHostUrl("github", organization.getId());
+    String defaultHostUrl = apiScmOnboardingService.getDefaultHostUrl(provider, organization.getId());
 
     // then it should be custom, not the github default
     assertThat(defaultHostUrl).isEqualTo(expectedDefaultHosturl);

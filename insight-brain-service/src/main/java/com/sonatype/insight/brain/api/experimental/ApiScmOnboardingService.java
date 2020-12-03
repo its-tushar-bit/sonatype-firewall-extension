@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.experimental;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -135,7 +134,7 @@ public class ApiScmOnboardingService
     }
 
     // if org is provided, try to gather URL from an app within the org
-    String repoUrl = getMostCommonRepoBaseUrlForOrg(orgId);
+    String repoUrl = getMostCommonRepoBaseUrlForOrg(orgId, provider);
     if (!StringUtils.isEmpty(repoUrl)) {
       return repoUrl;
     }
@@ -152,7 +151,7 @@ public class ApiScmOnboardingService
     }
   }
 
-  private String getMostCommonRepoBaseUrlForOrg(final String orgId) {
+  private String getMostCommonRepoBaseUrlForOrg(final String orgId, SourceControlProvider provider) {
     List<SourceControl> sourceControls = Collections.emptyList();
     if (StringUtils.isNotEmpty(orgId)) {
       sourceControls =
@@ -164,7 +163,7 @@ public class ApiScmOnboardingService
     if (!sourceControls.isEmpty()) {
       Optional<Entry<String, Long>> maxEntry = sourceControls.stream()
           .map(SourceControl::getRepositoryUrl)
-          .collect(Collectors.groupingBy(this::getBaseUrl, counting()))
+          .collect(Collectors.groupingBy(repoUrl -> getBaseUrl(repoUrl, provider), counting()))
           .entrySet().stream()
           .max(Entry.comparingByValue());
       return maxEntry.get().getKey();
@@ -172,10 +171,9 @@ public class ApiScmOnboardingService
     return null;
   }
 
-  private String getBaseUrl(String repoUrl) {
+  private String getBaseUrl(String repoUrl, SourceControlProvider provider) {
     try {
-      URI url = new URI(repoUrl);
-      return new URI(url.getScheme(), url.getUserInfo(), url.getHost(), url.getPort(), null, null, null).toString();
+      return gitApiClientFactory.getGitApiClientUtils(provider).getBaseUrlFromRepo(repoUrl);
     }
     catch (URISyntaxException e) {
       log.info("Was not able to parse repo url {}, falling back to default for the provider", repoUrl, e);

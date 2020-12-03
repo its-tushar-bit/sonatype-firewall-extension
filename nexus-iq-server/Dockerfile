@@ -47,7 +47,7 @@ RUN mkdir -m 0755 ${TEMP}/iq-work \
 && rm -rf ${TEMP}
 
 # Create start script
-RUN echo "/usr/bin/java ${JAVA_OPTS} -jar nexus-iq-server-${IQ_SERVER_VERSION}.jar server ${CONFIG_HOME}/config.yml 2> ${LOGS_HOME}/stderr.log" > ${IQ_HOME}/start.sh \
+RUN echo "/usr/bin/java \${JAVA_OPTS} -jar nexus-iq-server-${IQ_SERVER_VERSION}.jar server ${CONFIG_HOME}/config.yml 2> ${LOGS_HOME}/stderr.log" > ${IQ_HOME}/start.sh \
 && chmod 0755 ${IQ_HOME}/start.sh
 
 # Add group and user

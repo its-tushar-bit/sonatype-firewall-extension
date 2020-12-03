@@ -9,33 +9,59 @@ import { createReducerFromActionMap, propSetConst } from '../util/reduxUtil';
 import {
   WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED,
   WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED,
-  WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED
+  WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED,
+  WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED,
+  WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED,
+  WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED
 } from './waiverActions';
 import { UI_ROUTER_ON_FINISH } from '../reduxUiRouter/routerActions';
 
 export const initState = Object.freeze({
-  loading: false,
-  loadError: null,
+  loadingManageWaiversData: false,
+  loadManageWaiversDataError: null,
+  loadingApplicableWaivers: false,
+  loadApplicableWaiversError: null,
   hasPermissionForAppWaivers: null
 });
 
 const setLoadError = (payload, state) => ({
   ...state,
-  loading: false,
-  loadError: payload
+  loadingManageWaiversData: false,
+  loadManageWaiversDataError: payload
 });
 
 const setData = (payload, state) => ({
   ...state,
-  loading: false,
-  loadError: null,
+  loadingManageWaiversData: false,
+  loadManageWaiversDataError: null,
   hasPermissionForAppWaivers: payload
 });
 
+const loadApplicableWaiversRequested = (payload, state) => ({
+  ...state,
+  loadingApplicableWaivers: true,
+  loadApplicableWaiversError: null
+});
+
+const loadApplicableWaiversFulfilled = (payload, state) => ({
+  ...state,
+  loadingApplicableWaivers: false,
+  loadApplicableWaiversError: null
+});
+
+const loadApplicableWaiversFailed = (payload, state) => ({
+  ...state,
+  loadingApplicableWaivers: false,
+  loadApplicableWaiversError: payload
+});
+
 const reducerActionMap = {
-  [WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED]: propSetConst('loading', true),
+  [WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED]: propSetConst('loadingManageWaiversData', true),
   [WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED]: setLoadError,
   [WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED]: setData,
+  [WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED]: loadApplicableWaiversRequested,
+  [WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED]: loadApplicableWaiversFulfilled,
+  [WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED]: loadApplicableWaiversFailed,
   [UI_ROUTER_ON_FINISH]: always(initState)
 };
 

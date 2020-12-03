@@ -76,6 +76,35 @@ describe('ListWaiversTable', function() {
         .toHaveProp('href', 'https://help.sonatype.com/iqserver/reporting/application-composition-report/waivers');
   });
 
+  it('sets the isLoading on NxTableBody', function() {
+    const component = getShallowComponent({
+      loadingApplicableWaivers: true
+    });
+    const tableBody = component.find(NxTableBody);
+    expect(tableBody).toHaveProp('isLoading', true);
+  });
+
+  it('sets the error on NxTableBody', function() {
+    const component = getShallowComponent({
+      loadApplicableWaiversError: {
+        response: {
+          data: 'load waivers error'
+        }
+      }
+    });
+    const tableBody = component.find(NxTableBody);
+    expect(tableBody).toHaveProp('error', 'load waivers error');
+  });
+
+  it('sets the retryHandler on NxTableBody', function() {
+    const reloadApplicableWaiversSpy = jasmine.createSpy();
+    const component = getShallowComponent({
+      reloadApplicableWaivers: reloadApplicableWaiversSpy
+    });
+    const tableBody = component.find(NxTableBody);
+    expect(tableBody).toHaveProp('retryHandler', reloadApplicableWaiversSpy);
+  });
+
   const assertDeleteWaiverBtn = (tableCell, waiver) => {
     const btn = tableCell.childAt(0);
     expect(btn).toMatchSelector(NxButton);

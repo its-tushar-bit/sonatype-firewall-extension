@@ -7,7 +7,10 @@ import reducer, { initState } from '../../../main/frontend/waivers/manageWaivers
 import {
   WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED,
   WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED,
-  WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED
+  WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED,
+  WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED,
+  WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED,
+  WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED
 } from '../../../main/frontend/waivers/waiverActions';
 import { UI_ROUTER_ON_FINISH } from '../../../main/frontend/reduxUiRouter/routerActions';
 
@@ -45,15 +48,15 @@ describe('manageWaiversReducer', function() {
       }).toThrowError(TypeError);
 
       expect(() => {
-        state.loadError = 'error';
+        state.loadManageWaiversDataError = 'error';
       }).toThrowError(TypeError);
     });
   });
 
   describe('WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED action', function() {
-    it('sets loading to true', function() {
+    it('sets loadingManageWaiversData to true', function() {
       const state = {
-        loading: false,
+        loadingManageWaiversData: false,
         otherProp: { prop: 'foo' }
       };
 
@@ -61,16 +64,16 @@ describe('manageWaiversReducer', function() {
         type: WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED
       });
 
-      expect(newState.loading).toBe(true);
+      expect(newState.loadingManageWaiversData).toBe(true);
       expect(newState.otherProp).toBe(state.otherProp);
     });
   });
 
   describe('WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED action', function() {
-    it('sets loadError and resets loading', function() {
+    it('sets loadManageWaiversDataError and resets loadingManageWaiversData', function() {
       const state = {
-        loading: true,
-        loadError: null,
+        loadingManageWaiversData: true,
+        loadManageWaiversDataError: null,
         otherProp: { prop: 'foo' }
       };
 
@@ -79,29 +82,85 @@ describe('manageWaiversReducer', function() {
         payload: 'load manage waivers data error'
       });
 
-      expect(newState.loading).toBe(initState.loading);
-      expect(newState.loadError).toBe('load manage waivers data error');
+      expect(newState.loadingManageWaiversData).toBe(initState.loadingManageWaiversData);
+      expect(newState.loadManageWaiversDataError).toBe('load manage waivers data error');
       expect(newState.otherProp).toBe(state.otherProp);
     });
   });
 
   describe('WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED action', function() {
-    it('sets hasPermissionForAppWaivers and resets loading and loadError', function() {
+    it('sets hasPermissionForAppWaivers and resets loadingManageWaiversData and loadManageWaiversDataError',
+        function() {
+          const state = {
+            loadingManageWaiversData: true,
+            loadManageWaiversDataError: 'error',
+            hasPermissionForAppWaivers: null,
+            otherProp: { prop: 'foo' }
+          };
+
+          const newState = reducer(state, {
+            type: WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED,
+            payload: true
+          });
+
+          expect(newState.loadingManageWaiversData).toBe(initState.loadingManageWaiversData);
+          expect(newState.loadManageWaiversDataError).toBe(initState.loadManageWaiversDataError);
+          expect(newState.hasPermissionForAppWaivers).toBe(true);
+          expect(newState.otherProp).toBe(state.otherProp);
+        });
+  });
+
+  describe('WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED action', function() {
+    it('sets loadingApplicableWaivers to true and loadApplicableWaiversError to null ', function() {
       const state = {
-        loading: true,
-        loadError: 'error',
-        hasPermissionForAppWaivers: null,
+        loadingApplicableWaivers: false,
+        loadApplicableWaiversError: 'error',
         otherProp: { prop: 'foo' }
       };
 
       const newState = reducer(state, {
-        type: WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED,
-        payload: true
+        type: WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED
       });
 
-      expect(newState.loading).toBe(initState.loading);
-      expect(newState.loadError).toBe(initState.loadError);
-      expect(newState.hasPermissionForAppWaivers).toBe(true);
+      expect(newState.loadingApplicableWaivers).toBe(true);
+      expect(newState.loadApplicableWaiversError).toBeNull();
+      expect(newState.otherProp).toBe(state.otherProp);
+    });
+  });
+
+  describe('WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED action', function() {
+    it('sets loadingApplicableWaivers to false and loadApplicableWaiversError to null ', function() {
+      const state = {
+        loadingApplicableWaivers: true,
+        loadApplicableWaiversError: 'error',
+        otherProp: { prop: 'foo' }
+      };
+
+      const newState = reducer(state, {
+        type: WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED
+      });
+
+      expect(newState.loadingApplicableWaivers).toBe(false);
+      expect(newState.loadApplicableWaiversError).toBeNull();
+      expect(newState.otherProp).toBe(state.otherProp);
+    });
+  });
+
+  describe('WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED action', function() {
+    it('sets loadingApplicableWaivers to false and loadApplicableWaiversError to null ', function() {
+      const state = {
+        loadingApplicableWaivers: true,
+        loadApplicableWaiversError: 'error',
+        otherProp: { prop: 'foo' }
+      };
+
+      const newState = reducer(state, {
+        type: WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED,
+        payload: 'load applicable waivers error'
+      });
+
+      expect(newState.loadingApplicableWaivers).toBe(false);
+      expect(newState.loadApplicableWaiversError).toBe('load applicable waivers error');
       expect(newState.otherProp).toBe(state.otherProp);
     });
   });
@@ -109,8 +168,8 @@ describe('manageWaiversReducer', function() {
   describe('UI_ROUTER_ON_FINISH action', function() {
     it('resets state to initState', function() {
       const state = {
-        loading: true,
-        loadError: 'error',
+        loadingManageWaiversData: true,
+        loadManageWaiversDataError: 'error',
         hasPermissionForAppWaivers: true
       };
 

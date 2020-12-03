@@ -24,13 +24,17 @@ import ComponentDisplay from '../ComponentDisplay/ReactComponentDisplay';
 import { violationDetailsPropTypes } from '../violation/ViolationDetailsTile';
 import { constraintViolationsPropType } from '../violation/PolicyViolationConstraintInfoTile';
 import NxExternalLink from '../react/NxExternalLink';
+import { Messages } from '../util/CommonServices';
 
 export default function ListWaiversTable(props) {
   const {
     activeWaivers,
     expiredWaivers,
     violationDetails,
-    setWaiverToDelete
+    setWaiverToDelete,
+    loadingApplicableWaivers,
+    loadApplicableWaiversError,
+    reloadApplicableWaivers
   } = props;
 
   const displayWaiverScope = (waiver) => {
@@ -95,7 +99,10 @@ export default function ListWaiversTable(props) {
           <NxTableCell>{' '}</NxTableCell>
         </NxTableRow>
       </NxTableHead>
-      <NxTableBody emptyMessage={emptyMessage}>
+      <NxTableBody emptyMessage={ emptyMessage }
+                   isLoading={ loadingApplicableWaivers }
+                   error={ Messages.getHttpErrorMessage(loadApplicableWaiversError) }
+                   retryHandler={ reloadApplicableWaivers }>
         { activeWaivers && map(displayWaiverInTableRow(false), sort(descend(prop('createTime')), activeWaivers)) }
         { expiredWaivers && map(displayWaiverInTableRow(true), sort(descend(prop('createTime')), expiredWaivers)) }
       </NxTableBody>
@@ -118,6 +125,7 @@ ListWaiversTable.propTypes = {
   activeWaivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
   expiredWaivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
   setWaiverToDelete: PropTypes.func.isRequired,
+  reloadApplicableWaivers: PropTypes.func.isRequired,
   violationDetails: PropTypes.shape({
     ...violationDetailsPropTypes,
     constraintViolations: constraintViolationsPropType.isRequired,
@@ -126,5 +134,7 @@ ListWaiversTable.propTypes = {
     }),
     filename: PropTypes.string,
     policyViolationId: PropTypes.string.isRequired
-  })
+  }),
+  loadApplicableWaiversError: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object]),
+  loadingApplicableWaivers: PropTypes.bool
 };

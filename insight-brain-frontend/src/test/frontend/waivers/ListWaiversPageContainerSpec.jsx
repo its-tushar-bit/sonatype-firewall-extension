@@ -43,8 +43,8 @@ describe('ListWaiversPageContainer', function() {
         currentParams: { violationId: 'foo' }
       },
       manageWaivers: {
-        loading: false,
-        loadError: 'test error',
+        loadingManageWaiversData: false,
+        loadManageWaiversDataError: 'test error',
         hasPermissionForAppWaivers: false
       },
       deleteWaiver: {
@@ -61,10 +61,10 @@ describe('ListWaiversPageContainer', function() {
 
     expect(wrapper).toHaveProp('activeWaivers', []);
     expect(wrapper).toHaveProp('expiredWaivers', []);
-    expect(wrapper).toHaveProp('loading', false);
+    expect(wrapper).toHaveProp('loadingManageWaiversData', false);
     expect(wrapper).toHaveProp('violationId', 'foo');
     expect(wrapper).toHaveProp('violationDetails', {});
-    expect(wrapper).toHaveProp('loadError', 'test error');
+    expect(wrapper).toHaveProp('loadManageWaiversDataError', 'test error');
     expect(wrapper).toHaveProp('hasPermissionForAppWaivers', false);
     state = {
       ...state,
@@ -74,17 +74,17 @@ describe('ListWaiversPageContainer', function() {
         }
       },
       manageWaivers: {
-        loading: true,
-        loadError: null,
+        loadingManageWaiversData: true,
+        loadManageWaiversDataError: null,
         hasPermissionForAppWaivers: true
       }
     };
     wrapper = shallow(vdom).dive();
 
-    expect(wrapper).toHaveProp('loading', true);
+    expect(wrapper).toHaveProp('loadingManageWaiversData', true);
     expect(wrapper).toHaveProp('violationId', 'foo');
     expect(wrapper).toHaveProp('violationDetails', { id: 'bar' });
-    expect(wrapper).toHaveProp('loadError', null);
+    expect(wrapper).toHaveProp('loadManageWaiversDataError', null);
     expect(wrapper).toHaveProp('hasPermissionForAppWaivers', true);
     expect(wrapper).toHaveProp('waiverToDelete', { waiverId: 'foo' });
   });

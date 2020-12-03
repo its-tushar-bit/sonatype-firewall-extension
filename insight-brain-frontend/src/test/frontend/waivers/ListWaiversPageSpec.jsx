@@ -66,7 +66,7 @@ describe('ListWaiversPage', function() {
     };
 
     minimalProps = {
-      loading: false,
+      loadingManageWaiversData: false,
       violationId: 'violationId',
       waiverComments: {
         value: '',
@@ -126,8 +126,8 @@ describe('ListWaiversPage', function() {
     expect(component.find(DeleteWaiverModalMock)).not.toExist();
   });
 
-  it('renders a loading LoadWrapper when loading is true', function() {
-    const component = getShallowComponent({ loading: true});
+  it('renders a loading LoadWrapper when loadingManageWaiversData is true', function() {
+    const component = getShallowComponent({ loadingManageWaiversData: true});
     const loadWrapper = component.find(LoadWrapper);
     expect(loadWrapper).toHaveProp('loading', true);
   });
@@ -139,7 +139,7 @@ describe('ListWaiversPage', function() {
   });
 
   it('passes any error to the LoadWrapper', function() {
-    const component = getShallowComponent({ loadError: 'error' });
+    const component = getShallowComponent({ loadManageWaiversDataError: 'error' });
     const loadWrapper = component.find(LoadWrapper);
     expect(loadWrapper).toHaveProp('error', 'error');
   });
@@ -237,12 +237,18 @@ describe('ListWaiversPage', function() {
   });
 
   it('renders the ListWaiversTable component', function() {
-    const activeWaivers = [{ foo: 'bar1'}];
-    const expiredWaivers = [{ foo: 'bar2'}];
+    const activeWaivers = [{ foo: 'bar1'}],
+        expiredWaivers = [{ foo: 'bar2'}],
+        loadingApplicableWaivers = false,
+        loadApplicableWaiversError = 'error',
+        loadApplicableWaiversSpy = jasmine.createSpy();
     const component = getShallowComponent({
       activeWaivers: activeWaivers,
       expiredWaivers: expiredWaivers,
-      violationDetails: violationDetailsMock
+      violationDetails: violationDetailsMock,
+      loadingApplicableWaivers,
+      loadApplicableWaiversError,
+      loadApplicableWaivers: loadApplicableWaiversSpy
     });
     const table = component.find(ListWaiversTableMock);
     expect(table).toExist();
@@ -250,5 +256,11 @@ describe('ListWaiversPage', function() {
     expect(table).toHaveProp('expiredWaivers', expiredWaivers);
     expect(table).toHaveProp('violationDetails', violationDetailsMock);
     expect(table).toHaveProp('setWaiverToDelete', setWaiverToDeleteMock);
+    expect(table).toHaveProp('loadingApplicableWaivers', loadingApplicableWaivers);
+    expect(table).toHaveProp('loadApplicableWaiversError', loadApplicableWaiversError);
+
+    const reloadApplicableWaiversCallback = table.prop('reloadApplicableWaivers');
+    reloadApplicableWaiversCallback();
+    expect(loadApplicableWaiversSpy).toHaveBeenCalledWith('violationId');
   });
 });

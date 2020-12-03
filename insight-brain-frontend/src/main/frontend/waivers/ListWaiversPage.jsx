@@ -24,12 +24,15 @@ export default function ListWaiversPage(props) {
     expiredWaivers,
     loadManageWaiversData,
     violationId,
-    loading,
+    loadingManageWaiversData,
+    loadingApplicableWaivers,
     violationDetails,
-    loadError,
+    loadManageWaiversDataError,
+    loadApplicableWaiversError,
     hasPermissionForAppWaivers,
     waiverToDelete,
     setWaiverToDelete,
+    loadApplicableWaivers,
     $state
   } = props;
 
@@ -37,6 +40,10 @@ export default function ListWaiversPage(props) {
     if (violationId) {
       loadManageWaiversData(violationId);
     }
+  }
+
+  function reloadApplicableWaivers() {
+    loadApplicableWaivers(violationId);
   }
 
   useEffect(load, [violationId]);
@@ -64,7 +71,9 @@ export default function ListWaiversPage(props) {
     <MaximizedContainer id="list-waivers-page" className="nx-page-content">
       <div className="nx-page-main list-waivers-page">
         { waiverToDelete && <DeleteWaiverModalContainer/> }
-        <LoadWrapper loading={ loading || !violationDetails } error={ loadError } retryHandler={load}>
+        <LoadWrapper loading={ loadingManageWaiversData || !violationDetails }
+                     error={ loadManageWaiversDataError }
+                     retryHandler={ load }>
           <NxBackButton targetPageTitle="Violation Details" href={ violationDetailsHref } />
           <div className="nx-page-title">
             <h1 className="nx-h1">Waivers for Violation</h1>
@@ -121,7 +130,15 @@ export default function ListWaiversPage(props) {
               </div>
             </div>
             <div className="nx-tile-content">
-              <ListWaiversTable { ...({ activeWaivers, expiredWaivers, violationDetails, setWaiverToDelete }) }/>
+              <ListWaiversTable { ...({
+                activeWaivers,
+                expiredWaivers,
+                violationDetails,
+                setWaiverToDelete,
+                loadingApplicableWaivers,
+                loadApplicableWaiversError,
+                reloadApplicableWaivers
+              }) }/>
             </div>
           </div>
         </LoadWrapper>
@@ -133,11 +150,14 @@ export default function ListWaiversPage(props) {
 ListWaiversPage.propTypes = {
   activeWaivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
   expiredWaivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
-  loadError: PropTypes.any,
-  loading: PropTypes.bool,
+  loadManageWaiversDataError: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object]),
+  loadingManageWaiversData: PropTypes.bool,
+  loadApplicableWaiversError: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object]),
+  loadingApplicableWaivers: PropTypes.bool,
   loadManageWaiversData: PropTypes.func.isRequired,
   waiverToDelete: PropTypes.shape(waiverType),
   setWaiverToDelete: PropTypes.func.isRequired,
+  loadApplicableWaivers: PropTypes.func.isRequired,
   $state: PropTypes.shape({
     go: PropTypes.func.isRequired,
     href: PropTypes.func.isRequired,

@@ -42,6 +42,10 @@ export const WAIVERS_DELETE_WAIVER_FULFILLED = 'WAIVERS_DELETE_WAIVER_FULFILLED'
 export const WAIVERS_DELETE_WAIVER_FAILED = 'WAIVERS_DELETE_WAIVER_FAILED';
 export const WAIVERS_DELETE_MASK_TIMER_DONE = 'WAIVERS_DELETE_MASK_TIMER_DONE';
 
+export const WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED = 'WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED';
+export const WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED = 'WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED';
+export const WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED = 'WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED';
+
 const saveWaiverRequested = noPayloadActionCreator(WAIVERS_SAVE_WAIVER_REQUESTED);
 const saveWaiverFulfilled = noPayloadActionCreator(WAIVERS_SAVE_WAIVER_FULFILLED);
 const saveWaiverFailed = payloadParamActionCreator(WAIVERS_SAVE_WAIVER_FAILED);
@@ -124,13 +128,9 @@ export function loadAddWaiverData(violationId) {
 export function loadManageWaiversData(violationId) {
   return (dispatch, getState) => {
     dispatch(loadManageWaiversDataRequested());
+    dispatch(loadApplicableWaivers(violationId));
 
-    const parallelRequests = [
-      dispatch(fetchCrossStageViolation(violationId)),
-      dispatch(fetchApplicableWaivers(violationId))
-    ];
-
-    return Promise.all(parallelRequests)
+    return dispatch(fetchCrossStageViolation(violationId))
         .then(() => loadPermissionForAppWaivers(getState().violation.violationDetails.applicationPublicId))
         .then(compose(dispatch, loadManageWaiversDataFulfilled))
         .catch(compose(dispatch, loadManageWaiversDataFailed));
@@ -206,13 +206,26 @@ export function deleteWaiver(ownerType, ownerId, waiverId) {
     return axios.delete(endpointUrl)
         .then(() => {
           dispatch(deleteWaiverFulfilled());
+          dispatch(loadApplicableWaivers(policyViolationId));
           setTimeout(() => {
             dispatch(deleteWaiverMaskTimerDone());
-            dispatch(fetchApplicableWaivers(policyViolationId));
           }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
         })
         .catch((err) => {
           dispatch(deleteWaiverFailed(Messages.getHttpErrorMessage(err)));
         });
+  };
+}
+
+const loadApplicableWaiversRequested = noPayloadActionCreator(WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED);
+const loadApplicableWaiversFulfilled = noPayloadActionCreator(WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED);
+const loadApplicableWaiversFailed = payloadParamActionCreator(WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED);
+
+export function loadApplicableWaivers(policyViolationId) {
+  return function(dispatch) {
+    dispatch(loadApplicableWaiversRequested());
+    return dispatch(fetchApplicableWaivers(policyViolationId))
+        .then(compose(dispatch, loadApplicableWaiversFulfilled))
+        .catch(compose(dispatch, loadApplicableWaiversFailed));
   };
 }

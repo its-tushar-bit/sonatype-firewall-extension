@@ -33,10 +33,10 @@ export default function ResultsTable(props) {
   } = props;
 
   function importPercentage() {
-    if (repositories && repositories.length > 0) {
-      return Math.round((totalRepositories - repositories.length) / totalRepositories * 100.0);
+    if (repositories && totalRepositories > 0) {
+      return Math.round(((totalRepositories - repositories.length) / totalRepositories) * 100.0);
     }
-    return 0.0;
+    return 0;
   }
 
   const [filters, setFilters] = useState({project: '', namespace: '', description: ''}),
@@ -71,7 +71,7 @@ export default function ResultsTable(props) {
         <div className="nx-tile-header__title">
           <h2 className="nx-h2">Import Repositories</h2>
         </div>
-        {repositories.length > 0 &&
+        { !loadingRepositories &&
           <div className="nx-tile-header__subtitle iq-scmonboarding-stats">
             <div className="iq-scmonboarding-stats-row">
               <h3 id="repository-count"

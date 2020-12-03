@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.brain.configuration;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Date;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -17,6 +18,7 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
 
 import com.codeborne.selenide.Selenide;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.apache.http.HttpHeaders;
 import org.codehaus.plexus.util.IOUtil;
@@ -94,14 +96,20 @@ public class ScmOnboardingTest
   }
 
   private void setupSourceControl() {
+    setupOrgSourceControl();
+    setupAppSourceControl("/org/repo.git");
+    setupAppSourceControl("/org/repo2.git");
+  }
+
+  private void setupAppSourceControl(final String repoUrl) {
+    Application app = tempEntity.newApplication(org.getId());
+    tempEntity.newSourceControl(app.getId(), gitService.baseUrl() + repoUrl, null);
+  }
+
+  private void setupOrgSourceControl() {
     PasswordHandler pwHandler = testCLMServer.getCLMServer().getInstance(PasswordHandler.class);
     String encryptedPwd = new String(pwHandler.encryptPassword("TOKEN".toCharArray()));
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, encryptedPwd, GITHUB);
-
-    Application app = tempEntity.newApplication(org.getId());
-    tempEntity.newSourceControl(app.getId(), gitService.baseUrl() + "/org/repo.git", null);
-    Application app2 = tempEntity.newApplication(org.getId());
-    tempEntity.newSourceControl(app2.getId(), gitService.baseUrl() + "/org/repo2.git", null);
   }
 
   private void mockRepoForPage(int page, String json) {
@@ -207,8 +215,7 @@ public class ScmOnboardingTest
     setupSourceControl();
 
     // given an existing app with a source control value configured
-    Application app = tempEntity.newApplication(org.getId());
-    tempEntity.newSourceControl(app.getId(), gitService.baseUrl() + "/org/repo.git", null);
+    setupAppSourceControl("/org/repo.git");
 
     // given SCM onboarding page with a selected organization
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
@@ -260,6 +267,57 @@ public class ScmOnboardingTest
     // it is no longer displayed in the table and the UI is updated
     assertThat(scmOnboardingPage.resultsTableProject().texts()).doesNotContain("ci-project-1");
     scmOnboardingPage.resultsTablePercentageImported().shouldBe(text("8%"));
+    scmOnboardingPage.resultsTableAlreadyImported().shouldBe(text("1"));
+  }
+
+  @Test
+  public void testPopulatesRepositories_noAvailableRepositories() throws Exception {
+    // given an SCM without git repos
+    mockRepoForPage(0, getResourceAsString("/ScmOnboardingTest/emptyResponse.json"));
+    setupSourceControl();
+
+    // given SCM onboarding page with a selected organization
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
+    loginAsAdmin();
+
+    // then the table is empty
+    scmOnboardingPage.repositoryCount().waitUntil(text("0"), 2000);
+
+    // the statistics are shown and indicate no available repositories (and none already imported)
+    scmOnboardingPage.resultsTablePercentageImported().shouldBe(text("0%"));
+    scmOnboardingPage.resultsTableAlreadyImported().shouldBe(text("0"));
+  }
+
+  @Test
+  public void testPopulatesRepositories_allRepositoriesAlreadyImported() throws Exception {
+    // given an SCM with a single, already imported, git repo
+    ObjectMapper mapper = new ObjectMapper();
+    String repoUrl = "/org/repo.git";
+    String cloneUrl = gitService.baseUrl() + repoUrl;
+    String json = mapper.writeValueAsString(
+        Arrays.asList(of(
+            "name", "test", 
+            "description", "", 
+            "private", false, 
+            "clone_url", cloneUrl)
+        )
+    );
+    mockRepoForPage(0, json);
+    mockRepoForPage(1, getResourceAsString("/ScmOnboardingTest/emptyResponse.json"));
+    setupOrgSourceControl();
+    setupAppSourceControl(repoUrl);
+
+    // given SCM onboarding page with a selected organization
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
+    loginAsAdmin();
+
+    // then the table is empty
+    scmOnboardingPage.repositoryCount().waitUntil(text("0"), 2000);
+
+    // the statistics are shown and indicate no available repositories (and one already imported)
+    scmOnboardingPage.resultsTablePercentageImported().shouldBe(text("100%"));
     scmOnboardingPage.resultsTableAlreadyImported().shouldBe(text("1"));
   }
 

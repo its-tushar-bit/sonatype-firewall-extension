@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.report;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -52,25 +51,5 @@ public class ReportServiceAuthzTest
   public void testGetReportMetadata_Unauthorized() throws Exception {
     login();
     reportService.getReportMetadata(app.getPublicId(), "12345678");
-  }
-
-  @Test
-  public void testPrepareExpandedCoverageReport_Authorized() throws Exception {
-    grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
-
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      reportService.prepareExpandedCoverageReport(app.getPublicId(), "12345678");
-    }).withMessage("Could not download the report for scan ID 12345678");
-  }
-
-  @Test(expected = UnauthenticatedException.class)
-  public void testPrepareExpandedCoverageReport_Unauthenticated() throws Exception {
-    reportService.prepareExpandedCoverageReport(app.getPublicId(), "12345678");
-  }
-
-  @Test(expected = UnauthorizedException.class)
-  public void testPrepareExpandedCoverageReport_Unauthorized() throws Exception {
-    login();
-    reportService.prepareExpandedCoverageReport(app.getPublicId(), "12345678");
   }
 }

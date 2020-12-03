@@ -9,22 +9,19 @@ import axios from 'axios';
 import { createReportEntries, createRawDataEntries } from './applicationReportService';
 import { mappedPayloadParamActionCreator, noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
 import {
-  getReportMetadataUrl,
-  getReportBomUrl,
-  getReportUnknownJsUrl,
-  getExpandedCoverageEmbeddableUrl,
-  getReportPolicyThreatsUrl,
-  getReportDataUrl,
-  getReportPartialMatchedUrl,
-  getDependenciesUrl,
-  getReportSecurityUrl,
-  getReportLicenseUrl,
-  getReportReevaluateUrl,
   getApplicationReportsUrl,
-  redirectTo
+  getDependenciesUrl,
+  getReportBomUrl,
+  getReportDataUrl,
+  getReportLicenseUrl,
+  getReportMetadataUrl,
+  getReportPartialMatchedUrl,
+  getReportPolicyThreatsUrl,
+  getReportReevaluateUrl,
+  getReportSecurityUrl,
+  getReportUnknownJsUrl
 } from '../util/CLMLocation';
-import { Messages } from '../util/CommonServices';
-import { stateGo } from '../reduxUiRouter/routerActions';
+import {Messages} from '../util/CommonServices';
 
 export const LOAD_REPORT_REQUESTED = 'LOAD_REPORT_REQUESTED';
 export const LOAD_REPORT_FULFILLED = 'LOAD_REPORT_FULFILLED';
@@ -78,7 +75,7 @@ export function setSortingParameters(key, sortFields, dir) {
 function fetchCommonData(forceClearMetadata = false) {
   return (dispatch, getState) => {
     const {bomData, unknownJsData, metadata, reportParameters} = getState().applicationReport;
-    const {appId, scanId, isUnknownJs, embeddable} = reportParameters;
+    const {appId, scanId, isUnknownJs} = reportParameters;
 
     if (forceClearMetadata || (!metadata || !bomData || (!unknownJsData && isUnknownJs))) {
       const promises = [
@@ -96,28 +93,11 @@ function fetchCommonData(forceClearMetadata = false) {
             const metadataResult = results[1].data;
             const unknownJsResult = (isUnknownJs && results[2].data) || undefined;
 
-            if (metadataResult.expandedCoverage) {
-              // this is an Expanded Coverage report and should not be viewed on the Policy Centric app report
-              // page. Redirect to the old report page, or if embeddable was requested, then to the iframe URL
-              if (embeddable) {
-                redirectTo(getExpandedCoverageEmbeddableUrl(appId, scanId));
-              }
-              else {
-                dispatch(stateGo('report', {
-                  publicId: appId,
-                  scanId
-                }));
-              }
-
-              return Promise.reject('XC Report');
-            }
-            else {
-              return dispatch(loadCommonDataFulfilled({
-                bomData: bomResult,
-                metadata: metadataResult,
-                unknownJsData: unknownJsResult
-              }));
-            }
+            return dispatch(loadCommonDataFulfilled({
+              bomData: bomResult,
+              metadata: metadataResult,
+              unknownJsData: unknownJsResult
+            }));
           })
           .catch(error => {
             if (error !== 'XC Report') {

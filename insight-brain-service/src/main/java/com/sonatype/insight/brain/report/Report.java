@@ -410,8 +410,7 @@ public final class Report
       String matchStateString = bomObjectNode.get("matchState").asText();
       MatchState matchState = MatchState.getById(matchStateString);
 
-      // matchState is null for Expanded Coverage reports.
-      if (matchState != null && !matchState.equals(MatchState.UNKNOWN)) {
+      if (!matchState.equals(MatchState.UNKNOWN)) {
         knownArtifactCount++;
         if (matchState.equals(MatchState.SIMILAR)) {
           partiallyMatchedComponentCount++;

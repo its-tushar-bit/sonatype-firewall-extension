@@ -15,7 +15,6 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -172,21 +171,14 @@ public class ReportService
 
     File reportFile = getReport(application.getId(), scanId);
     final ContainerNode<?> data = JsonUtils.parse(Report.getEntry(reportFile, Report.DATA_JSON_FILENAME).buf);
-    metadata.setExpandedCoverage(data.path("globals").path("expandedCoverage").booleanValue());
 
-    if (metadata.isExpandedCoverage()) {
-      metadata.setReportTime(new Date(data.path("globals").path("currentDate").longValue()));
-      metadata.setReportTitle("Expanded Coverage Report");
-    }
-    else {
-      PolicyEvaluation evaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(application.getId(),
-          scanId);
-      metadata.setReportTime(evaluation.getTime());
-      metadata.setReportTitle(StageTypes.getById(evaluation.getStageTypeId()).getName() + " Report");
-      metadata.setStageId(evaluation.getStageTypeId());
-      metadata.setCommitHash(evaluation.getCommitHash());
-      metadata.setInitiator(evaluation.getInitiator());
-    }
+    PolicyEvaluation evaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(application.getId(),
+        scanId);
+    metadata.setReportTime(evaluation.getTime());
+    metadata.setReportTitle(StageTypes.getById(evaluation.getStageTypeId()).getName() + " Report");
+    metadata.setStageId(evaluation.getStageTypeId());
+    metadata.setCommitHash(evaluation.getCommitHash());
+    metadata.setInitiator(evaluation.getInitiator());
 
     // For NVS where a scanLabel is set for the application name and the stage name doesn't matter
     if (Report.getEntry(reportFile, "template.properties") != null) {
@@ -198,22 +190,6 @@ public class ReportService
     }
 
     return metadata;
-  }
-
-  /**
-   * Prepares the report for an expanded coverage scan to be available when the customer loads it in a browser.
-   * It waits for the report to become available on the HDS.
-   * 
-   * @since 1.37
-   */
-  @Authorize(permission = Permission.EVALUATE_APPLICATION)
-  void prepareExpandedCoverageReport(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
-                                     String scanId)
-      throws IOException
-  {
-    Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-
-    fetchReport(application, scanId);
   }
 
   public ReportEntry getBomForPolicyEvaluation(PolicyEvaluation policyEvaluation) throws IOException {

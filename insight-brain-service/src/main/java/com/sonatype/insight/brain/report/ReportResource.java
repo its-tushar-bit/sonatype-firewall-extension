@@ -616,19 +616,4 @@ public class ReportResource
     ComponentIdentifierAdapter.replaceGavWithComponentIdentifier((ObjectNode) decodedKey);
     return decodedKey;
   }
-
-  /**
-   * Prepares the report for an expanded coverage scan to be available when the customer loads it in a browser.
-   * It waits for the report to become available on the HDS.
-   *
-   * @since 1.37
-   */
-  @POST
-  @Path(PREPARE_PATH)
-  public void prepareExpandedCoverageReport(@PathParam("applicationPublicId") String applicationPublicId,
-                                            @PathParam("scanId") String scanId)
-      throws IOException
-  {
-    reportService.prepareExpandedCoverageReport(applicationPublicId, scanId);
-  }
 }

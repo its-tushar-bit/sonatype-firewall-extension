@@ -7,7 +7,6 @@ import axios from 'axios';
 import applicationReportModule from '../../../main/frontend/applicationReport/module';
 import { serializeComponentIdentifier } from '../../../main/frontend/util/componentIdentifierUtils';
 import * as CLMLocation from '../../../main/frontend/util/CLMLocation';
-import { STATE_GO } from '../../../main/frontend/reduxUiRouter/routerActions';
 
 const createMockState = (isUnknownJs, bomData, unknownJsData, metadata, embeddable) => ({
   applicationReport: {
@@ -203,47 +202,6 @@ describe('applicationReportActions', function() {
           type: 'LOAD_COMMON_DATA_FAILED',
           payload: 'Error 500'
         });
-        done();
-      });
-    });
-
-    it('redirects to the old app report page if this is an XC report', function(done) {
-      const store = SpecUtil.mockReduxStore(createMockState(false, undefined, undefined, undefined));
-
-      mockAxiosCalls({
-        get: {
-          [CLMLocation.getReportBomUrl('appId', 'scanId')]: { data: mockBomData },
-          [CLMLocation.getReportMetadataUrl('appId', 'scanId')]: { data: { expandedCoverage: true } }
-        }
-      });
-
-      store.dispatch(applicationReportActions[actionCreatorName]()).then(() => {
-        expect(store.getActions().length).toBe(2);
-        expect(store.getActions()[1]).toEqual({
-          type: STATE_GO,
-          payload: {
-            to: 'report',
-            params: { publicId: 'appId', scanId: 'scanId' },
-            options: undefined
-          }
-        });
-        done();
-      });
-    });
-
-    it('redirects to the old iframe URL if this is an XC report and the embeddable flag is set', function (done) {
-      const store = SpecUtil.mockReduxStore(createMockState(false, undefined, undefined, undefined, true));
-      const spyRedirect = spyOn(CLMLocation, 'redirectTo').and.callFake(() => {});
-
-      mockAxiosCalls({
-        get: {
-          [CLMLocation.getReportBomUrl('appId', 'scanId')]: { data: mockBomData },
-          [CLMLocation.getReportMetadataUrl('appId', 'scanId')]: { data: { expandedCoverage: true } }
-        }
-      });
-
-      store.dispatch(applicationReportActions[actionCreatorName]()).then(() => {
-        expect(spyRedirect).toHaveBeenCalledWith(CLMLocation.getExpandedCoverageEmbeddableUrl('appId', 'scanId'));
         done();
       });
     });

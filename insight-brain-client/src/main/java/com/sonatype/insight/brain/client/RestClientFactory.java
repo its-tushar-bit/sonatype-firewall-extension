@@ -142,16 +142,6 @@ public class RestClientFactory
       new ReportClient(config, appId, scanId).downloadBundle(bundleFile);
     }
 
-    /**
-     * Prepares the report for an expanded coverage scan to be available when the customer loads it in a browser.
-     * It waits for the report to become available on the HDS.
-     * 
-     * @since 1.37
-     */
-    public void prepareExpandedCoverageReport(String appId, String scanId) throws IOException {
-      new ReportClient(config, appId, scanId).prepareExpandedCoverageReport();
-    }
-
     public void saveResults(String appId,
                             File resultFile,
                             ScanReceipt receipt,

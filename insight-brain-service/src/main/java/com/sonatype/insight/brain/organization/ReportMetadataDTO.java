@@ -11,8 +11,6 @@ import com.sonatype.insight.brain.model.Application;
 
 public class ReportMetadataDTO
 {
-  private boolean expandedCoverage;
-
   private Date reportTime;
 
   private String reportTitle;
@@ -24,14 +22,6 @@ public class ReportMetadataDTO
   private String commitHash;
 
   private String initiator;
-
-  public boolean isExpandedCoverage() {
-    return expandedCoverage;
-  }
-
-  public void setExpandedCoverage(final boolean expandedCoverage) {
-    this.expandedCoverage = expandedCoverage;
-  }
 
   public Date getReportTime() {
     return reportTime;

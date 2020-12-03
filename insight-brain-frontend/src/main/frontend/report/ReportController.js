@@ -54,7 +54,6 @@ reportModule.controller('ReportController', ['$scope', '$state', '$http', '$q', 
           .then(function(response) {
             var metadata = response.data;
             $scope.application = metadata.application;
-            $scope.expandedCoverage = metadata.expandedCoverage;
             $scope.reportTime = metadata.reportTime;
             $scope.reportTitle = metadata.reportTitle;
           }, function(error) {

@@ -131,35 +131,6 @@ public class ReportResourceTest
   }
 
   @Test
-  public void testBrowseReportEntryExpirationDate_ExpandedCoverageIndexHtml() throws Exception {
-    final String scanId = "ReportResourceTest_ScanId";
-    HttpRequest request = restRequest(app.getPublicId(), scanId).path("browseReport");
-
-    createReportFile(app.getId(), scanId, "/ReportResourceTest/report-expanded_coverage");
-
-    TimeZone gmt = TimeZone.getTimeZone("GMT");
-    final Calendar calendar = Calendar.getInstance(gmt);
-    final SimpleDateFormat expirationHeaderFormat = new SimpleDateFormat("E, dd MMM yyyy HH:mm", Locale.ENGLISH);
-    expirationHeaderFormat.setTimeZone(gmt);
-
-    calendar.setTime(new Date());
-    HttpResponse response = request.subpath("index.html").get();
-    assertResponseStatus(200, response);
-    String expiresHeader = response.getHeader("Expires");
-    Date expires = expirationHeaderFormat.parse(expiresHeader);
-    assertThat(Math.abs(calendar.getTimeInMillis() - expires.getTime()))
-        .as("index.html expires immediately: " + expires + " vs " + calendar.getTime()).isLessThan(2 * 60 * 1000);
-
-    calendar.set(Calendar.DAY_OF_MONTH, calendar.get(Calendar.DAY_OF_MONTH) + 1);
-    String ifModifiedSinceHeader = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss", Locale.ENGLISH).format(calendar
-        .getTime());
-
-    // make sure index.html always returns 200, no 304s here
-    response = request.subpath("index.html").header("If-Modified-Since", ifModifiedSinceHeader).get();
-    assertResponseStatus(200, response);
-  }
-
-  @Test
   public void testBrowseSecurityReport() throws Exception {
     assertSecurityReport("security", 2);
   }
@@ -710,19 +681,6 @@ public class ReportResourceTest
     assertThat(response.getBodyText()).isEqualTo("Could not find a report with ID 12345678");
   }
 
-  @Test
-  public void testGetReportMetadata_expandedCoverage() throws Exception {
-    final String scanId = "ScanId";
-    createReportFile(app.getId(), scanId, "/ReportResourceTest/report-expanded_coverage");
-
-    HttpResponse response = restRequest(app.getPublicId(), scanId).path(ReportResource.METADATA_PATH).get();
-    assertResponseStatus(200, response);
-    ReportMetadataDTO metadata = response.getBody(ReportMetadataDTO.class);
-    assertThat(metadata.getApplication().getId()).isEqualTo(app.getId());
-    assertThat(metadata.getReportTitle()).isEqualTo("Expanded Coverage Report");
-    assertThat(metadata.getReportTime().getTime()).isEqualTo(1503511338632L);
-  }
-
   private static ComponentIdentifier identifier(Character c) {
     return new ComponentIdentifier("bb", Collections.singletonMap("x", String.valueOf(c)));
   }
@@ -893,19 +851,6 @@ public class ReportResourceTest
       default:
         fail("Unexpected format " + componentIdentifier.getFormat());
     }
-  }
-
-  @Test
-  public void testPrepareExpandedCoverageReport() throws Exception {
-    String scanId = "ScanId";
-    mockReport(scanId, "/ReportResourceTest/report-expanded_coverage");
-
-    File reportFile = new InsightWork(getCLMServer().getConfiguration()).getReportFile(app.getId(), scanId);
-    assertThat(reportFile).doesNotExist();
-
-    HttpResponse response = restRequest(app.getPublicId(), scanId).path(ReportResource.PREPARE_PATH).post();
-    assertResponseStatus(204, response);
-    assertThat(reportFile).isFile();
   }
 
   private int testLicenseThreatsApplyChanges(JsonNode licenses) {

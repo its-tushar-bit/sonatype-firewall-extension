@@ -58,26 +58,6 @@ public class ScanHandlerTest
   }
 
   @Test
-  public void testHandle_ExpandedConverageScanType() throws Exception {
-    Application app = tempEntity.newApplicationWithParent("test-app-id");
-    ScanReceipt scanReceipt = new ScanReceipt();
-    String scanId = "test-scan-id";
-    scanReceipt.setScanId(scanId);
-
-    String scanFileContent = "test scan file content";
-    HttpServletRequest servletRequest = mock(HttpServletRequest.class);
-    when(servletRequest.getInputStream()).thenReturn(new ServletInputStreamImpl(scanFileContent));
-    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class),
-        anyMap()))
-        .thenReturn(scanReceipt);
-
-    scanReceipt = scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.EXPANDED_COVERAGE);
-    assertThat(scanReceipt.getScanId()).isEqualTo(scanId);
-    File scanFile = work.getScanFile(app.getId(), scanId);
-    assertThat(scanFile).doesNotExist();
-  }
-
-  @Test
   public void testHandle_SonatypeScanType() throws Exception {
     Application app = tempEntity.newApplicationWithParent("test-app-id");
     ScanReceipt scanReceipt = new ScanReceipt();

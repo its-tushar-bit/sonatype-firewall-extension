@@ -6,14 +6,11 @@
 package com.sonatype.insight.brain.report;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -25,11 +22,9 @@ import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
-import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -66,7 +61,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -314,19 +308,6 @@ public class ReportServiceTest
   }
 
   @Test
-  public void testGetReportMetadata_expandedCoverage() throws Exception {
-    createReportFile(app.getId(), scanId, zipReportDir("/ReportResourceTest/report-expanded_coverage"));
-    ReportService reportService = createReportService();
-
-    // Verify Response for scan
-    ReportMetadataDTO metadata = reportService.getReportMetadata(app.getPublicId(), scanId);
-    assertThat(metadata).isNotNull();
-    assertThat(metadata.getApplication().getId()).isEqualTo(app.getId());
-    assertThat(metadata.getReportTitle()).isEqualTo("Expanded Coverage Report");
-    assertThat(metadata.getReportTime().getTime()).isEqualTo(1503511338632L);
-  }
-
-  @Test
   public void testGetReportMetadata_ScanLabelForNVS() throws Exception {
     createReportFile(app.getId(), scanId, zipReportDir("/" + getClass().getSimpleName() + "/report-scan_label"));
     ReportService reportService = createReportService();
@@ -336,27 +317,6 @@ public class ReportServiceTest
     assertThat(metadata).isNotNull();
     assertThat(metadata.getApplication().getName()).isEqualTo("My Awesome Artifact");
     assertThat(metadata.getReportTitle()).isEqualTo("Report");
-  }
-
-  @Test
-  public void testPrepareExpandedCoverageReport() throws Exception {
-    HdsClient hdsClient = mock(HdsClient.class);
-    Map<String, String> queryParams = null;
-    // The tested method is supposed to wait for the report to become available on the HDS.
-    // We verify that it waits by returning NotFound on the first attempt to download the report for HDS.
-    // Only the second attempt is successful. If the tested method does not wait, then it fails on the first attempt.
-    when(hdsClient.get(eq(InputStream.class), eq(ReportDownloader.HDS_PATH), eq(queryParams), eq(scanId)))
-        .thenThrow(new NotFoundException("test exception"))
-        .thenReturn(new FileInputStream(zipReportDir("/ReportResourceTest/report-expanded_coverage")));
-    reportDownloader = new ReportDownloader(hdsClient, new FileCleaner());
-    ReportService reportService = createReportService();
-
-    File reportFile = insightWork.getReportFile(app.getId(), scanId);
-    assertThat(reportFile).doesNotExist();
-
-    reportService.prepareExpandedCoverageReport(app.getPublicId(), scanId);
-
-    assertThat(reportFile).isFile();
   }
 
   @Test

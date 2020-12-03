@@ -91,13 +91,8 @@ public class ScanHandler
         scanReceipt = scanUploader.upload(tempScanFile, app, stageTypeId);
       }
 
-      if (ClientScanType.EXPANDED_COVERAGE.equals(clientScanType)) {
-        Files.delete(tempScanFile.toPath());
-      }
-      else {
-        File scanFile = work.getScanFile(app.getId(), scanReceipt.getScanId());
-        FileUtils.rename(tempScanFile, scanFile);
-      }
+      File scanFile = work.getScanFile(app.getId(), scanReceipt.getScanId());
+      FileUtils.rename(tempScanFile, scanFile);
 
       log.debug("Handled {} scan id {} for application public id {} in {} ms.", clientScanType, scanReceipt.getScanId(),
           app.getPublicId(), System.currentTimeMillis() - start);

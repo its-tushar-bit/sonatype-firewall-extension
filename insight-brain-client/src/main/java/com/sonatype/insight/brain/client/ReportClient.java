@@ -51,15 +51,4 @@ public final class ReportClient
       fos.write(data);
     }
   }
-
-  /**
-   * Prepares the report for an expanded coverage scan to be available when the customer loads it in a browser.
-   * It waits for the report to become available on the HDS.
-   * 
-   * @since 1.37
-   */
-  public void prepareExpandedCoverageReport() throws IOException {
-    Result result = path("rest/report", appId, scanId, "prepareReport").post(null /* entity */);
-    verifyStatusCode(result);
-  }
 }

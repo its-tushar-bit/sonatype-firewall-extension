@@ -31,17 +31,6 @@
 }
 // end styles from /application/application.css
 
-.report--expanded-coverage {
-  background-color: $iq-slate;
-}
-.report__title--expanded-coverage {
-  @include bold();
-
-  margin: auto;
-  padding: 10px 0px;
-  color: $iq-off-white;
-}
-
 // Begin styles from management.css
 .marginless-alert .alert {
   margin-bottom: 0px;

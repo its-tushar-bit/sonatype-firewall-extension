@@ -37,7 +37,6 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.Violation
 import com.sonatype.clm.testing.functional.pages.ApplicationReportRawDataPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportVulnerabilitiesPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
-import com.sonatype.clm.testing.functional.pages.ExpandedCoverageReportPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.WaiverCip;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
@@ -62,7 +61,6 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
-import com.codeborne.selenide.Selenide;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -847,23 +845,6 @@ public class ApplicationReportTest
     optionsDropdown.menu().entries().get(2).shouldHave(DISABLED).click();
     // should remain on report page
     reportPage.shouldBe(visible);
-  }
-
-  @Test
-  public void testExpandedCoverageRedirect() throws Exception {
-    final String SCAN_ID2 = "e16caf35769f4b3186a7e3476d34c2798";
-    Application app2 = tempEntity.newApplicationWithParent();
-    URL zippedReport = ReportHelper.zipReport("/canned-reports/report-expanded_coverage", tempDir);
-    InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
-    FileUtils.copyURLToFile(zippedReport, work.getReportFile(app2.getId(), SCAN_ID2));
-    refreshOrOpen(ApplicationReportPage.url(app2, SCAN_ID2));
-
-    waitUntilUrl(ApplicationReportContainerPage.url(app2.getPublicId(), SCAN_ID2));
-
-    ApplicationReportContainerPage.getIframe().shouldBe(visible);
-    Selenide.switchTo().frame(ApplicationReportContainerPage.getIframe());
-
-    ExpandedCoverageReportPage.componentTabButton().shouldBe(visible);
   }
 
   private void checkSecondarySortByNameDescending(final ElementsCollection violations) {

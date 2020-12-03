@@ -75,10 +75,10 @@ public class ApiScmOnboardingResource
   @Path(IMPORT_REPO_PATH)
   @POST
   @Produces(MediaType.APPLICATION_JSON)
-  public Map<String, List<SCMRepository>> importRepositories(
+  public ImportResults importRepositories(
       @PathParam("orgId") String orgId,
       final List<SCMRepository> scmRepositories)
   {
-    return ImmutableMap.of("importedRepositories", apiScmOnboardingService.importRepositories(orgId, scmRepositories));
+    return apiScmOnboardingService.importRepositories(orgId, scmRepositories);
   }
 }

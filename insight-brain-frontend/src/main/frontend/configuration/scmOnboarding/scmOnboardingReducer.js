@@ -52,7 +52,8 @@ const initialState = {
     totalRepositories: 0,
     newlyImportedRepos: [],
     defaultHostUrl: '',
-    currentHostUrl: ''
+    currentHostUrl: '',
+    failedImportCount: 0
   }
 };
 
@@ -205,7 +206,7 @@ function importRepositoriesRequested(payload, state) {
     formState: {
       ...state.formState,
       selectedRepositoryCount: 0,
-      newlyImportedRepos: []
+      failedImportCount: 0
     }
   };
 }
@@ -222,7 +223,8 @@ function importRepositoriesFulfilled(payload, state) {
       repositories: newRepositoryList,
       importedRepositoryCount: state.formState.importedRepositoryCount + importedRepos.length,
       selectedRepositoryCount: 0,
-      newlyImportedRepos: importedRepos
+      newlyImportedRepos: importedRepos,
+      failedImportCount: payload.failedImportCount
     }
   };
 }

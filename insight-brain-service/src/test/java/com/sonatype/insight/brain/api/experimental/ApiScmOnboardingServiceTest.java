@@ -18,6 +18,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.experimental.dto.SCMRepositories;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -68,6 +69,9 @@ public class ApiScmOnboardingServiceTest
 
   @Inject
   private ApplicationDAO applicationDAO;
+
+  @Inject
+  private AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO;
 
   @Inject
   private PlexusCipher plexusCipher;
@@ -300,16 +304,22 @@ public class ApiScmOnboardingServiceTest
 
   @Test
   public void testImportRepos_allNew() throws Exception {
+    // given SCM imports are enabled
+    automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
+
     // given a list of repos to import
     SCMRepository[] reposToImport = new SCMRepository[]{
         new SCMRepository(SourceControlProvider.GITHUB, "http://github.com/org/repo1", false, "org", "repo1", ""),
         new SCMRepository(SourceControlProvider.GITHUB, "http://github.com/org/repo2", false, "org", "repo2", ""),
-        new SCMRepository(SourceControlProvider.GITHUB, "http://github.com/org/repo3", false, "org", "repo3", "")
+        new SCMRepository(SourceControlProvider.GITHUB, "http://github.com/org/repo3", false, "org", "repo3", ""),
+        // use org & app names with IQ app name restrictions
+        new SCMRepository(SourceControlProvider.GITHUB, "http://github.com/org/repo4", false,
+            "--bad-__-org", "--bad_name_99--", ""),
     };
 
     // then the repos can be imported
     List<SCMRepository> imported =
-        apiScmOnboardingService.importRepositories(org.getId(), Arrays.asList(reposToImport));
+        apiScmOnboardingService.importRepositories(org.getId(), Arrays.asList(reposToImport)).getImportedRepositories();
     assertThat(imported).containsExactlyInAnyOrder(reposToImport);
 
     // and they exist in the DB
@@ -318,13 +328,16 @@ public class ApiScmOnboardingServiceTest
         .map(sc -> applicationDAO.getById(sc.getOwnerId()))
         .collect(Collectors.toList());
     assertThat(allApps.stream().map(Application::getPublicId))
-        .containsExactlyInAnyOrder("org__repo1", "org__repo2", "org__repo3");
+        .containsExactlyInAnyOrder("org__repo1", "org__repo2", "org__repo3", "--bad-__-org__--bad_name_99--");
     assertThat(allApps.stream().map(Application::getName))
-        .containsExactlyInAnyOrder("Org - Repo1", "Org - Repo2", "Org - Repo3");
+        .containsExactlyInAnyOrder("Org - Repo1", "Org - Repo2", "Org - Repo3", "Bad __ Org - Bad_name_99");
   }
 
   @Test
   public void testImportRepos_existingApp() throws Exception {
+    // given SCM imports are enabled
+    automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
+
     // given an existing application which will match a repo which we'll import
     tempEntity.newApplication("org__repo1", org.getId());
 
@@ -335,7 +348,7 @@ public class ApiScmOnboardingServiceTest
 
     // then the repos can be imported
     List<SCMRepository> imported =
-        apiScmOnboardingService.importRepositories(org.getId(), Arrays.asList(reposToImport));
+        apiScmOnboardingService.importRepositories(org.getId(), Arrays.asList(reposToImport)).getImportedRepositories();
     assertThat(imported).containsExactlyInAnyOrder(reposToImport);
 
     // and the only apps that are present are the ones for our selected repos
@@ -356,6 +369,9 @@ public class ApiScmOnboardingServiceTest
 
   @Test
   public void testImportRepos_existingSourceControl() {
+    // given SCM imports are enabled
+    automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
+
     // given an existing application with a Source Control entry that matches one we'll import
     Application targetApp = tempEntity.newApplication("org__repo1", org.getId());
     tempEntity.newSourceControl(targetApp.getId(), "http://github.com/org/repo1", new Date());
@@ -367,7 +383,7 @@ public class ApiScmOnboardingServiceTest
 
     // then the repos can be imported
     List<SCMRepository> imported =
-        apiScmOnboardingService.importRepositories(org.getId(), Arrays.asList(reposToImport));
+        apiScmOnboardingService.importRepositories(org.getId(), Arrays.asList(reposToImport)).getImportedRepositories();
     assertThat(imported).containsExactlyInAnyOrder(reposToImport);
 
     // and the only apps that are present are the ones for our selected repos

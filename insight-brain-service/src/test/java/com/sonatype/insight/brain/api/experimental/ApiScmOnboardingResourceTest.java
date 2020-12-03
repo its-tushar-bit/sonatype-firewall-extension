@@ -133,12 +133,12 @@ public class ApiScmOnboardingResourceTest
 
     // then the response is OK
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SC_OK);
-    Map<String, List<Map<String, Object>>> responseList = response.getBody(Map.class);
-    assertThat(responseList).hasSize(1);
-    List<Map<String, Object>> importedRepoList = responseList.get("importedRepositories");
+    ImportResults importResults = response.getBody(ImportResults.class);
+    List<SCMRepository> importedRepoList = importResults.getImportedRepositories();
     assertThat(importedRepoList).hasSize(1);
-    Map<String, Object> importedRepo = importedRepoList.get(0);
-    assertThat(importedRepo.get("httpCloneUrl")).isEqualTo(repoUrl);
+    SCMRepository importedRepo = importedRepoList.get(0);
+    assertThat(importedRepo.getHttpCloneUrl()).isEqualTo(repoUrl);
+    assertThat(importResults.getFailedImportCount()).isEqualTo(0);
   }
 
   @Test

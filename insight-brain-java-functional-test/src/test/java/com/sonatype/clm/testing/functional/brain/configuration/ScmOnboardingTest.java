@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Selenide;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -31,6 +32,7 @@ import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
@@ -238,7 +240,7 @@ public class ScmOnboardingTest
     loginAsAdmin();
 
     // update the default host URL
-    scmOnboardingPage.hostUrl().waitUntil(value(gitService.baseUrl()), 2000);
+    scmOnboardingPage.hostUrl().shouldBe(value(gitService.baseUrl()));
     updateHostUrl(scmOnboardingPage);
     scmOnboardingPage.reloadRepoButton().click();
     updateHostUrl(scmOnboardingPage);
@@ -325,23 +327,23 @@ public class ScmOnboardingTest
     scmOnboardingPage.hostUrl().sendKeys(Keys.CONTROL, "a");
     scmOnboardingPage.hostUrl().sendKeys(Keys.BACK_SPACE);
     scmOnboardingPage.hostUrl().setValue(gitService.baseUrl());
-    scmOnboardingPage.hostUrl().waitUntil(value(gitService.baseUrl()), 2000);
+    scmOnboardingPage.hostUrl().shouldBe(value(gitService.baseUrl()));
   }
 
   private void verifyAllReposLoaded(final ScmOnboardingPage scmOnboardingPage) {
     // then results are automatically displayed in the table
     scmOnboardingPage.loadingSpinner().waitWhile(visible, 5000);
-    scmOnboardingPage.resultsTable().waitUntil(visible, 5000);
-    scmOnboardingPage.repositoryCount().waitUntil(visible, 5000);
+    scmOnboardingPage.resultsTable().shouldBe(visible);
+    scmOnboardingPage.repositoryCount().shouldBe(visible);
     scmOnboardingPage.repositoryCount().shouldBe(text("13"));
     scmOnboardingPage.selectedTotalCount().shouldBe(text("OF 13 REPOSITORIES"));
     scmOnboardingPage.resultsTableProject().shouldHaveSize(13);
     assertThat(scmOnboardingPage.resultsTableNamespace().texts()).containsAnyOf("depshield-ci",
         "sonatype-nexus-community");
-    assertThat(scmOnboardingPage.resultsTableProject().texts()).containsExactlyInAnyOrder("ci-project-1",
+    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.exactTexts("ci-project-1",
         "ci-project-16", "create-react-app", "nexus-repository-p2", "nexus-repository-puppet",
         "nexus-repository-terraform", "nexus-repository-vgo", "nexus-scripting-examples",
-        "nexus-webhook-example-collection", "nxrm-cli", "ossindex-gradle-plugin", "oysteR", "prime-nexus-proxy-repos");
+        "nexus-webhook-example-collection", "nxrm-cli", "ossindex-gradle-plugin", "oysteR", "prime-nexus-proxy-repos"));
   }
 
   @Test
@@ -361,7 +363,7 @@ public class ScmOnboardingTest
     // NOTE the missing space before the org name is deliberate. In the UI there is an icon there with
     // appropriate margins.
     scmOnboardingPage.onboardingPageTitle().shouldBe(visible)
-        .waitUntil(text("Import Applications toTest Org"), 5000);
+        .shouldBe(text("Import Applications toTest Org"));
   }
 
   @Test
@@ -377,11 +379,11 @@ public class ScmOnboardingTest
 
     // update the default host URL
     updateHostUrl(scmOnboardingPage);
-    scmOnboardingPage.reloadRepoButton().waitUntil(enabled, 2000).click();
+    scmOnboardingPage.reloadRepoButton().shouldBe(enabled).click();
 
     // when select all is clicked
-    scmOnboardingPage.repositoryCount().waitUntil(text("13"), 5000);
-    scmOnboardingPage.resultsTableSelectAll().parent().waitUntil(visible, 5000);
+    scmOnboardingPage.repositoryCount().shouldBe(text("13"));
+    scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
     scmOnboardingPage.resultsTableSelectAll().parent().click();
 
     // then selected count is updated
@@ -407,22 +409,22 @@ public class ScmOnboardingTest
 
     // update the default host URL
     updateHostUrl(scmOnboardingPage);
-    scmOnboardingPage.reloadRepoButton().waitUntil(enabled, 2000).click();
+    scmOnboardingPage.reloadRepoButton().shouldBe(enabled).click();
 
     // when select all is clicked while a filter is active
-    scmOnboardingPage.resultsTableSelectAll().parent().waitUntil(visible, 5000);
+    scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
     scmOnboardingPage.projectFilter().setValue("ci-");
     scmOnboardingPage.resultsTableSelectAll().parent().click();
 
     // then selected count is updated with the number of filtered repositories
     scmOnboardingPage.selectedRepositoryCount().shouldBe(text("2"));
-    assertThat(scmOnboardingPage.resultsTableProject().texts()).containsExactlyInAnyOrder("ci-project-1",
-        "ci-project-16");
+    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.exactTexts("ci-project-1",
+        "ci-project-16"));
 
   }
 
   @Test
-  public void testSelectAndImport() throws Exception {
+  public void testSelectAndImport_success() throws Exception {
     // given an SCM with git repos
     setupMockRepos();
     setupSourceControl();
@@ -434,32 +436,38 @@ public class ScmOnboardingTest
 
     // update the default host URL
     updateHostUrl(scmOnboardingPage);
-    scmOnboardingPage.reloadRepoButton().waitUntil(enabled, 2000).click();
+    scmOnboardingPage.reloadRepoButton().shouldBe(enabled).click();
 
     // when select all is clicked while a filter is active
-    scmOnboardingPage.resultsTableSelectAll().parent().waitUntil(visible, 5000);
+    scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
     scmOnboardingPage.projectFilter().setValue("ci-");
     scmOnboardingPage.resultsTableSelectAll().parent().click();
 
     // then selected count is updated with the number of filtered repositories
     scmOnboardingPage.selectedRepositoryCount().shouldBe(text("2"));
-    assertThat(scmOnboardingPage.resultsTableProject().texts()).containsExactlyInAnyOrder("ci-project-1",
-        "ci-project-16");
+    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.texts("ci-project-1",
+        "ci-project-16"));
 
     // when we import the selected repos
     scmOnboardingPage.importRepoButton().click();
 
     // then we see a success message
-    scmOnboardingPage.successMessage().waitUntil(visible, 5000);
+    scmOnboardingPage.successMessage().shouldBe(visible);
+    scmOnboardingPage.errorMessage().shouldBe(hidden);
+    scmOnboardingPage.infoMessage().shouldBe(hidden);
     scmOnboardingPage.successMessage().shouldBe(text(
         "2 repositories were successfully imported to IQ Server as applications under the Test Org Organization."));
+
+    // and can dismiss the message
+    scmOnboardingPage.successMessage().$("button").click();
+    scmOnboardingPage.successMessage().shouldBe(hidden);
 
     // and the imported count is incremented
     scmOnboardingPage.alreadyImportedCount().shouldBe(text("2"));
 
     // and the initially selected elements are no longer visible
     scmOnboardingPage.selectedRepositoryCount().shouldBe(text("0"));
-    assertThat(scmOnboardingPage.resultsTableProject().texts()).isEmpty();
+    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.size(0));
 
     // and they are not there when the filter is updated
     scmOnboardingPage.projectFilter().sendKeys(Keys.CONTROL, "a");
@@ -469,10 +477,101 @@ public class ScmOnboardingTest
     scmOnboardingPage.selectedTotalCount().shouldBe(text("OF 11 REPOSITORIES"));
     scmOnboardingPage.resultsTableProject().shouldHaveSize(11);
     assertThat(scmOnboardingPage.resultsTableNamespace().texts()).containsAnyOf("sonatype-nexus-community");
-    assertThat(scmOnboardingPage.resultsTableProject().texts()).containsExactlyInAnyOrder(
+    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.textsInAnyOrder(
         "create-react-app", "nexus-repository-p2", "nexus-repository-puppet",
         "nexus-repository-terraform", "nexus-repository-vgo", "nexus-scripting-examples",
-        "nexus-webhook-example-collection", "nxrm-cli", "ossindex-gradle-plugin", "oysteR", "prime-nexus-proxy-repos");
+        "nexus-webhook-example-collection", "nxrm-cli", "ossindex-gradle-plugin", "oysteR", "prime-nexus-proxy-repos"));
+  }
+
+  @Test
+  public void testSelectAndImport_error() throws Exception {
+    // given an SCM with git repos but with bad URLs
+    mockRepoForPage(0, getResourceAsString("/ScmOnboardingTest/reposWithErrors.json"));
+    mockRepoForPage(1, getResourceAsString("/ScmOnboardingTest/emptyResponse.json"));
+    setupSourceControl();
+
+    // given SCM onboarding page with a selected organization
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
+    loginAsAdmin();
+
+    // update the default host URL
+    updateHostUrl(scmOnboardingPage);
+    scmOnboardingPage.reloadRepoButton().shouldBe(enabled).click();
+
+    // select project which will fail import
+    scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
+    scmOnboardingPage.projectFilter().setValue("broken");
+    scmOnboardingPage.resultsTableSelectAll().parent().click();
+
+    // then selected count is updated with the number of filtered repositories
+    scmOnboardingPage.selectedRepositoryCount().shouldBe(text("2"));
+    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.textsInAnyOrder("broken-url-1",
+        "broken-url-2"));
+
+    // when we import the selected repos
+    scmOnboardingPage.importRepoButton().click();
+
+    // then we see a success message
+    scmOnboardingPage.errorMessage().shouldBe(visible);
+    scmOnboardingPage.successMessage().shouldBe(hidden);
+    scmOnboardingPage.infoMessage().shouldBe(hidden);
+    scmOnboardingPage.errorMessage().shouldBe(text(
+        "2 repositories failed to import."));
+
+    // and can dismiss the message
+    scmOnboardingPage.errorMessage().$("button").click();
+    scmOnboardingPage.errorMessage().shouldBe(hidden);
+
+    // and the imported count is unchanged
+    scmOnboardingPage.alreadyImportedCount().shouldBe(text("0"));
+
+    // and the initially selected elements are still visible
+    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.texts("broken-url-1",
+        "broken-url-2"));
+  }
+
+  @Test
+  public void testSelectAndImport_successAndError() throws Exception {
+    // given an SCM with git repos but with bad URLs
+    mockRepoForPage(0, getResourceAsString("/ScmOnboardingTest/reposWithErrors.json"));
+    mockRepoForPage(1, getResourceAsString("/ScmOnboardingTest/emptyResponse.json"));
+    setupSourceControl();
+
+    // given SCM onboarding page with a selected organization
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
+    loginAsAdmin();
+
+    // update the default host URL
+    updateHostUrl(scmOnboardingPage);
+    scmOnboardingPage.reloadRepoButton().shouldBe(enabled).click();
+
+    // select all projects, a mix of good & bad
+    scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
+    scmOnboardingPage.resultsTableSelectAll().parent().click();
+
+    // when we import the selected repos
+    scmOnboardingPage.importRepoButton().click();
+
+    // then we see an info message
+    scmOnboardingPage.infoMessage().shouldBe(visible);
+    scmOnboardingPage.successMessage().shouldBe(hidden);
+    scmOnboardingPage.errorMessage().shouldBe(hidden);
+    scmOnboardingPage.infoMessage().shouldBe(text(
+        "1 repositories were successfully imported to IQ Server as applications under the Test Org Organization.\n" +
+            "2 repositories failed to import."));
+
+    // and can dismiss the message
+    scmOnboardingPage.infoMessage().$("button").click();
+    scmOnboardingPage.infoMessage().shouldBe(hidden);
+
+    // and the imported count is incremented
+    scmOnboardingPage.alreadyImportedCount().shouldBe(text("1"));
+
+    // and the broken elements are still visible
+    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.texts("broken-url-1",
+        "broken-url-2"));
   }
 
   @Test
@@ -488,10 +587,10 @@ public class ScmOnboardingTest
 
     // update the default host URL
     updateHostUrl(scmOnboardingPage);
-    scmOnboardingPage.reloadRepoButton().waitUntil(enabled, 2000).click();
+    scmOnboardingPage.reloadRepoButton().shouldBe(enabled).click();
 
     // and given that select all is clicked while a filter is active
-    scmOnboardingPage.resultsTableSelectAll().parent().waitUntil(visible, 5000);
+    scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
     scmOnboardingPage.projectFilter().setValue("ci-");
     scmOnboardingPage.resultsTableSelectAll().parent().click();
     scmOnboardingPage.selectedRepositoryCount().shouldBe(text("2"));
@@ -501,10 +600,10 @@ public class ScmOnboardingTest
     scmOnboardingPage.resultsTableSelectAll().parent().click(); // uncheck box
     scmOnboardingPage.resultsTableSelectAll().parent().click(); // check box
     scmOnboardingPage.selectedRepositoryCount().shouldBe(text("7"));
-    assertThat(scmOnboardingPage.resultsTableProject().texts()).containsExactlyInAnyOrder(
+    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.texts(
         "nexus-repository-p2", "nexus-repository-puppet", "nexus-repository-terraform",
         "nexus-repository-vgo", "nexus-scripting-examples", "nexus-webhook-example-collection",
-        "prime-nexus-proxy-repos");
+        "prime-nexus-proxy-repos"));
   }
 
   @Test
@@ -520,17 +619,17 @@ public class ScmOnboardingTest
 
     // update the default host URL
     updateHostUrl(scmOnboardingPage);
-    scmOnboardingPage.reloadRepoButton().waitUntil(enabled, 2000).click();
+    scmOnboardingPage.reloadRepoButton().shouldBe(enabled).click();
 
     // and given that select all is clicked while a filter is active
-    scmOnboardingPage.resultsTableSelectAll().parent().waitUntil(visible, 5000);
+    scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
     scmOnboardingPage.projectFilter().setValue("nexus");
     scmOnboardingPage.resultsTableSelectAll().parent().click();
     scmOnboardingPage.selectedRepositoryCount().shouldBe(text("7"));
-    assertThat(scmOnboardingPage.resultsTableProject().texts()).containsExactlyInAnyOrder(
+    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.texts(
         "nexus-repository-p2", "nexus-repository-puppet", "nexus-repository-terraform",
         "nexus-repository-vgo", "nexus-scripting-examples", "nexus-webhook-example-collection",
-        "prime-nexus-proxy-repos");
+        "prime-nexus-proxy-repos"));
 
     // when a new selection is made
     scmOnboardingPage.projectFilter().setValue("nexus-repository");
@@ -539,27 +638,27 @@ public class ScmOnboardingTest
     scmOnboardingPage.selectedRepositoryCount().shouldBe(text("4"));
 
     // and the result table contains exactly 4 projects
-    assertThat(scmOnboardingPage.resultsTableProject().texts()).containsExactlyInAnyOrder(
+    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.texts(
         "nexus-repository-p2", "nexus-repository-puppet", "nexus-repository-terraform",
-        "nexus-repository-vgo");
+        "nexus-repository-vgo"));
 
     // and the repositories checkboxes are selected
-    assertThat(scmOnboardingPage.selectionCheckboxById(REPOSITORY_P_2_GIT).isSelected()).isTrue();
-    assertThat(scmOnboardingPage.selectionCheckboxById(REPOSITORY_PUPPET_GIT).isSelected()).isTrue();
-    assertThat(scmOnboardingPage.selectionCheckboxById(REPOSITORY_TERRAFORM_GIT).isSelected()).isTrue();
-    assertThat(scmOnboardingPage.selectionCheckboxById(REPOSITORY_VGO_GIT).isSelected()).isTrue();
+    scmOnboardingPage.selectionCheckboxById(REPOSITORY_P_2_GIT).shouldBe(selected);
+    scmOnboardingPage.selectionCheckboxById(REPOSITORY_PUPPET_GIT).shouldBe(selected);
+    scmOnboardingPage.selectionCheckboxById(REPOSITORY_TERRAFORM_GIT).shouldBe(selected);
+    scmOnboardingPage.selectionCheckboxById(REPOSITORY_VGO_GIT).shouldBe(selected);
 
     // when the filter is changed
     scmOnboardingPage.projectFilter().setValue("i");
 
     // then the selections remain selected
-    assertThat(scmOnboardingPage.selectionCheckboxById(REPOSITORY_P_2_GIT).isSelected()).isTrue();
-    assertThat(scmOnboardingPage.selectionCheckboxById(REPOSITORY_PUPPET_GIT).isSelected()).isTrue();
-    assertThat(scmOnboardingPage.selectionCheckboxById(REPOSITORY_TERRAFORM_GIT).isSelected()).isTrue();
-    assertThat(scmOnboardingPage.selectionCheckboxById(REPOSITORY_VGO_GIT).isSelected()).isTrue();
+    scmOnboardingPage.selectionCheckboxById(REPOSITORY_P_2_GIT).shouldBe(selected);
+    scmOnboardingPage.selectionCheckboxById(REPOSITORY_PUPPET_GIT).shouldBe(selected);
+    scmOnboardingPage.selectionCheckboxById(REPOSITORY_TERRAFORM_GIT).shouldBe(selected);
+    scmOnboardingPage.selectionCheckboxById(REPOSITORY_VGO_GIT).shouldBe(selected);
 
     // and other repositories remain deselected
-    assertThat(scmOnboardingPage.selectionCheckboxById(CI_PROJECT_1_GIT).isSelected()).isFalse();
+    scmOnboardingPage.selectionCheckboxById(CI_PROJECT_1_GIT).shouldNotBe(selected);
 
     // and the selected count is unchanged
     scmOnboardingPage.selectedRepositoryCount().shouldBe(text("4"));
@@ -578,10 +677,10 @@ public class ScmOnboardingTest
 
     // update the default host URL
     updateHostUrl(scmOnboardingPage);
-    scmOnboardingPage.reloadRepoButton().waitUntil(enabled, 2000).click();
+    scmOnboardingPage.reloadRepoButton().shouldBe(enabled).click();
 
     // when a repository is clicked
-    scmOnboardingPage.resultsTableSelectAll().parent().waitUntil(visible, 5000);
+    scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
     scmOnboardingPage.selectionCheckboxById(CI_PROJECT_1_GIT).parent().click();
 
     // then the checkbox is selected

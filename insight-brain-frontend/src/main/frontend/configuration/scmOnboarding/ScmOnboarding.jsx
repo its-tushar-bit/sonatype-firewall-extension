@@ -12,7 +12,7 @@ import LoadWrapper from '../../react/LoadWrapper';
 import ResultsTable from './components/ResultsTable';
 import {faSitemap} from '@fortawesome/pro-regular-svg-icons';
 import NxButton from '@sonatype/react-shared-components/components/NxButton/NxButton';
-import {NxSuccessAlert} from '@sonatype/react-shared-components/components/NxAlert/NxAlert';
+import {NxSuccessAlert, NxErrorAlert, NxInfoAlert} from '@sonatype/react-shared-components/components/NxAlert/NxAlert';
 
 const permissionsError = `It appears you do not have permission to access this page.
         If you believe this to be incorrect please contact your administrator.`,
@@ -46,6 +46,7 @@ export default function ScmOnboarding(props) {
     selectedRepositoryCount,
     totalRepositories,
     newlyImportedRepos,
+    failedImportCount,
 
     // host URL
     defaultHostUrl,
@@ -96,14 +97,26 @@ export default function ScmOnboarding(props) {
     }
   }, [defaultHostUrl]);
 
-  const [isSuccessMessageOpen, setIsSuccessMessageOpen] = useState(false);
+  const [isSuccessMessageOpen, setIsSuccessMessageOpen] = useState(false),
+      [isFormErrorOpen, setIsFormErrorOpen] = useState(false),
+      [isFormInfoOpen, setIsFormInfoOpen] = useState(false);
 
   useEffect(() => {
-    setIsSuccessMessageOpen(newlyImportedRepos.length > 0);
-  }, [newlyImportedRepos]);
+    setIsSuccessMessageOpen(newlyImportedRepos.length > 0 && failedImportCount === 0);
+    setIsFormErrorOpen(newlyImportedRepos.length === 0 && failedImportCount > 0);
+    setIsFormInfoOpen(newlyImportedRepos.length > 0 && failedImportCount > 0);
+  }, [failedImportCount, newlyImportedRepos]);
 
   function dismissSuccessMessage() {
     setIsSuccessMessageOpen(false);
+  }
+
+  function dismissFormError() {
+    setIsFormErrorOpen(false);
+  }
+
+  function dismissFormInfo() {
+    setIsFormInfoOpen(false);
   }
 
   function handleLoadRepositories(event) {
@@ -131,11 +144,23 @@ export default function ScmOnboarding(props) {
               <div className="nx-page-title__description">
                 <p className="nx-p">Use the filters and checkboxes to select repositories to import</p>
               </div>
-              {isSuccessMessageOpen && newlyImportedRepos.length > 0 &&
+              {isSuccessMessageOpen &&
               <NxSuccessAlert onClose={dismissSuccessMessage}>
                 {newlyImportedRepos.length} repositories were successfully imported to IQ Server as applications under
                 the {selectedOrganization.name} Organization.
               </NxSuccessAlert>
+              }
+              {isFormInfoOpen &&
+              <NxInfoAlert onClose={dismissFormInfo}>
+                {newlyImportedRepos.length} repositories were successfully imported to IQ Server as applications under
+                the {selectedOrganization.name} Organization.<br/>
+                {failedImportCount} repositories failed to import.
+              </NxInfoAlert>
+              }
+              {isFormErrorOpen &&
+              <NxErrorAlert onClose={dismissFormError}>
+                {failedImportCount} repositories failed to import.
+              </NxErrorAlert>
               }
             </div>
             <section className="nx-tile host-url-tile">
@@ -220,6 +245,7 @@ ScmOnboarding.propTypes = {
   selectedRepositoryCount: PropTypes.number.isRequired,
   totalRepositories: PropTypes.number,
   importedRepositoryCount: PropTypes.number,
+  failedImportCount: PropTypes.number,
   newlyImportedRepos: PropTypes.arrayOf(PropTypes.shape(repositoryPropType)).isRequired,
 
   // from angular router

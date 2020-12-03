@@ -36,6 +36,7 @@ import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
 import com.sonatype.nexus.scm.api.GitApiClientUtils;
 import com.sonatype.nexus.scm.api.model.SCMRepository;
 
+import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -215,7 +216,7 @@ public class ApiScmOnboardingService
    * @return list of all imported repositories
    */
   @Authorize(permission = Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION)
-  public List<SCMRepository> importRepositories(final String orgId, final List<SCMRepository> scmRepositories) {
+  public ImportResults importRepositories(final String orgId, final List<SCMRepository> scmRepositories) {
     log.debug("importing repositories into org {}, using: {}", orgId, scmRepositories);
 
     // validate org ID
@@ -224,6 +225,7 @@ public class ApiScmOnboardingService
     }
 
     ArrayList<SCMRepository> importedRepos = new ArrayList<>();
+    int failedImportCount = 0;
     for (SCMRepository scmRepository : scmRepositories) {
       try {
         importRepository(orgId, scmRepository);
@@ -231,9 +233,10 @@ public class ApiScmOnboardingService
       }
       catch (Exception e) {
         log.error("Unable to import repository {}", scmRepository, e);
+        ++failedImportCount;
       }
     }
-    return importedRepos;
+    return new ImportResults(importedRepos, failedImportCount);
   }
 
   private void importRepository(final String orgId, final SCMRepository scmRepository) {
@@ -246,21 +249,7 @@ public class ApiScmOnboardingService
       app = new Application(publicId, name, orgId);
       applicationHelper.addApplication(app);
     }
-    SourceControl existingSourceControl = sourceControlDAO.getByOwnerId(app.getId());
-    if (existingSourceControl != null) {
-      log.debug("SourceControl entry for app {} already exists, updating the URL");
-      existingSourceControl.setRepositoryUrl(cloneUrl);
-      sourceControlDAO.update(existingSourceControl);
-    }
-    else {
-      log.debug("Creating SourceControl entry, name: [{}], publicId: [{}], cloneUrl: [{}]", name, publicId, cloneUrl);
-      SourceControl sourceControl =
-          new SourceControl.Builder()
-              .setOwnerId(app.getId())
-              .setRepositoryUrl(cloneUrl)
-              .build();
-      sourceControlDAO.insert(sourceControl);
-    }
+    apiSourceControlService.addOrUpdateSourceControl(app.getPublicId(), cloneUrl);
   }
 
   private String buildPublicId(SCMRepository scmRepository) {
@@ -273,6 +262,6 @@ public class ApiScmOnboardingService
   }
 
   private String toReadableName(String name) {
-    return StringUtils.capitalize(name.replaceAll("[-_]", " "));
+    return WordUtils.capitalizeFully(name.replaceAll("[^\\w\\d]+", " ").trim());
   }
 }

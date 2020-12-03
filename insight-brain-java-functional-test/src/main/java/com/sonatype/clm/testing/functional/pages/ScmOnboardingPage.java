@@ -124,6 +124,14 @@ public class ScmOnboardingPage
     return child(".nx-alert--success");
   }
 
+  public SelenideElement infoMessage() {
+    return child(".nx-alert--info");
+  }
+
+  public SelenideElement errorMessage() {
+    return child(".nx-alert--error");
+  }
+
   public static class OrganizationsDropdown
       extends BasicElement<OrganizationsDropdown>
   {

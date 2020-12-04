@@ -6,6 +6,7 @@
 
 @import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
 @import '~@sonatype/react-shared-components/scss-shared/nx-variables';
+@import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
 #component-legal-overview-details {
   display: grid;
@@ -14,6 +15,24 @@
 
   #component-overview-tile {
     grid-column: 1 / span 2;
+
+    .nx-grid-col {
+      margin-top: 0px;
+      padding-left: $nx-spacing-xxl;
+      padding-right: $nx-spacing-xxl;
+
+      &:first-child {
+        padding-left: 0px;
+      }
+
+      > * {
+        @include nx-truncate-ellipsis;
+      }
+
+      dt {
+        margin-bottom: 8px;
+      }
+    }
   }
 
   #license-obligations-tile {

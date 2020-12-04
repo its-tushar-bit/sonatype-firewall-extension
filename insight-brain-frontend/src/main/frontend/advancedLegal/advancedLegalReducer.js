@@ -28,7 +28,9 @@ const initialState = {
     error: null
   },
   applicationReport: null,
-  component: null
+  component: {
+    loading: true
+  }
 };
 
 function loadApplicationsRequested() {

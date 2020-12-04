@@ -6,16 +6,45 @@
 import * as enzymeUtils from '../enzymeUtils';
 import ComponentOverviewTile from '../../../main/frontend/legal/ComponentOverviewTile';
 
-describe('ComponentOverviewTile component', function() {
+describe('ComponentOverviewTile component', function () {
 
   let getShallowComponent;
 
-  beforeEach(function() {
-    getShallowComponent = enzymeUtils.getShallowComponent(ComponentOverviewTile);
+  const minimalProps = {
+    licenseLegalMetadata: [
+      {
+        licenseName: 'License-1.0',
+        obligations: [
+          {
+            'licenseObligationStatus': 0
+          },
+          {
+            'licenseObligationStatus': 0
+          }
+        ]
+      },
+      {
+        licenseName: 'License-2.0',
+        obligations: [
+          {
+            'licenseObligationStatus': 0
+          }
+        ]
+      }
+    ]
+  };
+
+  beforeEach(function () {
+    getShallowComponent = enzymeUtils.getShallowComponent(ComponentOverviewTile, minimalProps);
   });
 
-  it('renders a header with label `Component Overview`', function() {
+  it('renders the count of obligations', function () {
     const wrapper = getShallowComponent();
-    expect(wrapper.find('h2.nx-h2')).toHaveText('Component Overview');
+    expect(wrapper.find('dd.obligations-count')).toHaveText('3');
+  });
+
+  it('renders the licenses', function () {
+    const wrapper = getShallowComponent();
+    expect(wrapper.find('dd.license-names')).toHaveText('License-1.0, License-2.0');
   });
 });

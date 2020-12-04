@@ -4,19 +4,44 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import * as PropTypes from 'prop-types';
 
-export default function ComponentOverviewTile() {
+export default function ComponentOverviewTile(props) {
+  const {
+    licenseLegalMetadata
+  } = props;
+
+  let obligationsCount = 0;
+  licenseLegalMetadata.forEach(metadata => {
+    obligationsCount += metadata.obligations.length;
+  });
 
   return (
     <section id="component-overview-tile" className="nx-tile">
-      <header className="nx-tile-header">
-        <div className="nx-tile-header__title">
-          <h2 className="nx-h2">Component Overview</h2>
-        </div>
-      </header>
-      <div className="nx-tile-content">
-        Review status, last edited by, Obligations, Licenses, etc.
+      <div className="nx-tile-content nx-grid-row nx-form-group iq-read-only">
+        <dl className="nx-grid-col nx-grid-col--33">
+          <dt>Review Status</dt>
+          <dd className="iq-read-only-data">Open</dd>
+        </dl>
+        <dl className="nx-grid-col nx-grid-col--33">
+          <dt>Obligations</dt>
+          <dd className="iq-read-only-data obligations-count">{obligationsCount}</dd>
+        </dl>
+        <dl className="nx-grid-col nx-grid-col--33">
+          <dt>Licenses</dt>
+          <dd className="iq-read-only-data license-names">
+            {licenseLegalMetadata.map(license => license.licenseName).join(', ')}
+          </dd>
+        </dl>
       </div>
     </section>
   );
 }
+
+ComponentOverviewTile.propTypes =
+  PropTypes.arrayOf(
+      PropTypes.shape({
+        licenseName: PropTypes.string.isRequired,
+        obligations: PropTypes.array.isRequired
+      }).isRequired
+  ).isRequired;

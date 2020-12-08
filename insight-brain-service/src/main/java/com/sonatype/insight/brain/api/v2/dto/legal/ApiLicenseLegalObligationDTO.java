@@ -9,15 +9,12 @@ import com.sonatype.insight.license.dto.model.LicenseObligationDTO;
 
 public class ApiLicenseLegalObligationDTO
 {
-  public LicenseObligationDTO licenseObligationDTO;
+  public LicenseObligationDTO licenseObligation;
 
   public int licenseObligationStatus;
 
-  public ApiLicenseLegalObligationDTO(
-      LicenseObligationDTO licenseObligationDTO,
-      int licenseObligationStatus)
-  {
-    this.licenseObligationDTO = licenseObligationDTO;
+  public ApiLicenseLegalObligationDTO(LicenseObligationDTO licenseObligation, int licenseObligationStatus) {
+    this.licenseObligation = licenseObligation;
     this.licenseObligationStatus = licenseObligationStatus;
   }
 }

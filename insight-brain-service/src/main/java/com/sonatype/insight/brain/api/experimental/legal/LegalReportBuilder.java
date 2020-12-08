@@ -113,7 +113,7 @@ public class LegalReportBuilder
                 license.getShortDisplayName(),
                 licenseMetadataById.get(license.getId()).getLicenseText(),
                 licenseMetadataById.get(license.getId()).getLicenseObligations().stream()
-                    .map(licenseObligationDTO -> new ApiLicenseLegalObligationDTO(licenseObligationDTO, 0))
+                    .map(licenseObligation -> new ApiLicenseLegalObligationDTO(licenseObligation, 0))
                     .collect(Collectors.toCollection(LinkedHashSet::new))))
         .collect(Collectors.toCollection(LinkedHashSet::new));
   }

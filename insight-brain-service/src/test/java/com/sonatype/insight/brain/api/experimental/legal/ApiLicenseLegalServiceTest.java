@@ -692,12 +692,12 @@ public class ApiLicenseLegalServiceTest
           getLicenseObligationByLicenseId(licenseLegalMetadata, lm.getLicenseId());
       lm.getLicenseObligations().forEach(lo -> {
         Optional<ApiLicenseLegalObligationDTO> legalLicenseObligation = legalLicenseObligations.stream()
-            .filter(llo -> llo.licenseObligationDTO.getName().equals(lo.getName()))
+            .filter(llo -> llo.licenseObligation.getName().equals(lo.getName()))
             .findFirst();
         assertThat(legalLicenseObligation.isPresent())
             .withFailMessage("Legal Report Data did not contain License Obligation: " + lo.getName()).isTrue();
         assertThat(lo.getObligationTexts())
-            .isEqualTo(legalLicenseObligation.get().licenseObligationDTO.getObligationTexts());
+            .isEqualTo(legalLicenseObligation.get().licenseObligation.getObligationTexts());
       });
     });
   }

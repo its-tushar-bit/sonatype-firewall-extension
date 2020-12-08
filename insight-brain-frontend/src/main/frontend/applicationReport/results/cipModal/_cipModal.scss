@@ -29,7 +29,7 @@ $cip-modal-vertical-margins: 100px;
 // $cip-modal-height variable we are required to repeat this calculation again. If you ever change
 // the $cip-modal-height calculation on the below line, make sure to change it in the 3 other places in this file
 $cip-modal-height: calc(100vh - #{$cip-modal-vertical-margins});
-$cip-modal-max-height: 600px;
+$cip-modal-max-height: 550px;
 
 .iq-modal__cip {
   height: $cip-modal-height;
@@ -45,7 +45,10 @@ $cip-modal-max-height: 600px;
       height: calc((100vh - #{$cip-modal-vertical-margins})
                   - #{$cip-modal-header-height}
                   - #{$cip-modal-footer-height});
-      max-height: $cip-modal-max-height - $cip-modal-header-height - $cip-modal-footer-height;
+      max-height: calc(#{$cip-modal-max-height}
+                  + var(--inner-source-banner-height)
+                  - #{$cip-modal-header-height}
+                  - #{$cip-modal-footer-height});
 
       .tab-content {
         height: 100%;
@@ -156,6 +159,7 @@ cip-audit,
                  - var(--inner-source-height)
                  - #{$iq-cip-tab-content-padding-top});
   max-height: calc( #{$cip-modal-max-height}
+              + var(--inner-source-banner-height)
               - #{$cip-modal-header-height}
               - #{$cip-modal-tab-bar-height}
               - #{$cip-modal-footer-height}
@@ -172,6 +176,7 @@ cip-audit,
                  - var(--inner-source-height)
                  - 42px); // button bar & margins
   max-height: calc( #{$cip-modal-max-height}
+              + var(--inner-source-banner-height)
               - #{$cip-modal-header-height}
               - #{$cip-modal-tab-bar-height}
               - #{$cip-modal-footer-height}

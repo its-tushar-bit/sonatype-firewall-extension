@@ -1,4 +1,4 @@
-<div id="informationPanel" class="iq-cip-tab-panel">
+<div id="informationPanel" class="iq-cip-tab-panel" ng-class="vm.selectedComponent.innerSourceData.innerSource ? 'iq-cip-tab-panel__inner-source' : ''">
   <div ng-if="vm.selectedComponent.innerSourceData.innerSource" class="iq-grid-row iq-grid-row__inner-source-info">
     <div class="iq-grid-col iq-grid-col--33">
       <h3>{{vm.selectedComponent.innerSourceData.ownerApplicationName}}</h3>

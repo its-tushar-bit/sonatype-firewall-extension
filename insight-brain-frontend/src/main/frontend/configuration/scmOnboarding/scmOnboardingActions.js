@@ -44,6 +44,9 @@ export const SCM_ONBOARDING_LOAD_COMPOSITE_SCM_REQUESTED = 'SCM_ONBOARDING_LOAD_
 export const SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FULFILLED = 'SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FULFILLED';
 export const SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FAILED = 'SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FAILED';
 
+export const SCM_ONBOARDING_SET_SORTING_PARAMETERS = 'SCM_ONBOARDING_SET_SORTING_PARAMETERS';
+export const SCM_ONBOARDING_SET_SORTING = 'SCM_ONBOARDING_SET_SORTING';
+
 export function loadConfig() {
   return function(dispatch) {
     dispatch(loadConfigRequested());
@@ -110,6 +113,12 @@ export function loadOrgHostUrl(orgId, provider) {
   };
 }
 
+export function setSortingParameters(key, sortFields, dir) {
+  return function(dispatch) {
+    return dispatch(setSortingParamDispatch({key, sortFields, dir}));
+  };
+}
+
 const loadConfigRequested = noPayloadActionCreator(SCM_ONBOARDING_LOAD_CONFIG_REQUESTED);
 const loadConfigFulfilled = payloadParamActionCreator(SCM_ONBOARDING_LOAD_CONFIG_FULFILLED);
 const loadConfigFailed = payloadParamActionCreator(SCM_ONBOARDING_LOAD_CONFIG_FAILED);
@@ -139,6 +148,9 @@ const loadCompositeSourceControlRequested = noPayloadActionCreator(SCM_ONBOARDIN
 const loadCompositeSourceControlFulfilled = payloadParamActionCreator(SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FULFILLED);
 const loadCompositeSourceControlFailed = payloadParamActionCreator(SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FAILED);
 
+export const setSorting = payloadParamActionCreator(SCM_ONBOARDING_SET_SORTING);
+const setSortingParamDispatch = payloadParamActionCreator(SCM_ONBOARDING_SET_SORTING_PARAMETERS);
+
 export default function scmOnboarding() {
   return {
     setSelectedOrganization,
@@ -149,6 +161,8 @@ export default function scmOnboarding() {
     loadRepositories,
     onRepositorySelectionChanged,
     loadOrgHostUrl,
-    importSelectedRepositories
+    importSelectedRepositories,
+    setSortingParameters,
+    setSorting
   };
 }

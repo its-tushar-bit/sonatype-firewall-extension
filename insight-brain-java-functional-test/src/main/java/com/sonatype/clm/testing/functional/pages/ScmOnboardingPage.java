@@ -132,6 +132,18 @@ public class ScmOnboardingPage
     return child(".nx-alert--error");
   }
 
+  public SelenideElement namespaceHeader() {
+    return child("#namespace-header");
+  }
+
+  public SelenideElement descriptionHeader() {
+    return child("#description-header");
+  }
+
+  public SelenideElement projectHeader() {
+    return child("#project-header");
+  }
+
   public static class OrganizationsDropdown
       extends BasicElement<OrganizationsDropdown>
   {

@@ -84,8 +84,17 @@ describe('scmOnboardingReducer', function() {
       // given empty repositories list
       const state = Object.freeze({
         other: otherObject,
-        loadingRepositories: true,
-        repositories: []
+        viewState: {
+          loadingRepositories: true
+        },
+        formState: {
+          repositories: []
+        },
+        sortConfiguration: {
+          key: 'namespace',
+          sortingOrder: ['namespace'],
+          dir: 'asc'
+        }
       });
 
       const repositoriesPayload = {
@@ -106,8 +115,58 @@ describe('scmOnboardingReducer', function() {
       });
 
       // then state is updated
-      expect(newState.formState.repositories).toBe(repositoriesPayload.availableRepositories);
-      expect(newState.formState.totalRepositories).toBe(repositoriesPayload.totalRepositories);
+      expect(newState.formState.repositories).toEqual(repositoriesPayload.availableRepositories);
+      expect(newState.formState.totalRepositories).toEqual(repositoriesPayload.totalRepositories);
+      expect(newState.viewState.loadingRepositories).toBe(false);
+
+      // and other properties are not modified
+      expect(newState.sortConfiguration).toBe(state.sortConfiguration);
+      expect(newState.other).toEqual(otherObject);
+    });
+
+    it('sorts when repositories are populated', function() {
+      // given empty repositories list
+      const state = Object.freeze({
+        other: otherObject,
+        viewState: {
+          loadingRepositories: true
+        },
+        formState: {
+          repositories: []
+        },
+        sortConfiguration: {
+          sortingOrder: ['namespace']
+        }
+      });
+
+      const repositoriesPayload = {
+        'totalRepositories': 2,
+        'availableRepositories': [
+          {
+            'namespace': 'b'
+          },
+          {
+            'namespace': 'a'
+          }
+        ]
+      };
+
+      // when reduce is invoked
+      const newState = reduce(state, {
+        type: 'SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED',
+        payload: repositoriesPayload
+      });
+
+      // then state is updated
+      expect(newState.formState.repositories).toEqual([
+        {
+          'namespace': 'a'
+        },
+        {
+          'namespace': 'b'
+        }
+      ]);
+      expect(newState.formState.totalRepositories).toEqual(repositoriesPayload.totalRepositories);
       expect(newState.viewState.loadingRepositories).toBe(false);
 
       // and other properties are not modified
@@ -259,42 +318,6 @@ describe('scmOnboardingReducer', function() {
 
       // then state is updated
       expect(newState.formState.selectedOrganization).toBe(selectedOrganization);
-
-      // and other properties are not modified
-      expect(newState.other).toBe(otherObject);
-    });
-  });
-
-  describe('SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED action', function() {
-    it('populates state repositories list', function() {
-      // given empty repositories list
-      const state = Object.freeze({
-        other: otherObject,
-        formState: {
-          repositories: []
-        }
-      });
-
-      const repositoriesPayload = {
-        'totalRepositories': 1,
-        'availableRepositories': [
-          {
-            'project': 'project',
-            'namespace': 'namespace',
-            'description': 'description'
-          }
-        ]
-      };
-
-      // when reduce is invoked
-      const newState = reduce(state, {
-        type: 'SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED',
-        payload: repositoriesPayload
-      });
-
-      // then state is updated
-      expect(newState.formState.repositories).toBe(repositoriesPayload.availableRepositories);
-      expect(newState.formState.totalRepositories).toBe(repositoriesPayload.totalRepositories);
 
       // and other properties are not modified
       expect(newState.other).toBe(otherObject);

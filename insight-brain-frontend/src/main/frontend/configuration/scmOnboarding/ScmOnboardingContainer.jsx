@@ -38,11 +38,16 @@ function mapStateToProps({ scmOnboarding, router }) {
     defaultHostUrl: scmOnboarding.formState.defaultHostUrl,
     currentHostUrl: scmOnboarding.formState.currentHostUrl,
 
+    // sorting
+    sortConfiguration: scmOnboarding.sortConfiguration,
+
     // actions
     onRepositorySelectionChanged: scmOnboarding.onRepositorySelectionChanged,
     importSelectedRepositories: scmOnboarding.importSelectedRepositories,
     setSelectedOrganization: scmOnboarding.setSelectedOrganization,
     loadOrgHostUrl: scmOnboarding.loadOrgHostUrl,
+    setSorting: scmOnboarding.setSorting,
+    setSortingParameters: scmOnboarding.setSortingParameters,
 
     // router state
     preselectedOrganizationId: router.currentParams.organizationId,

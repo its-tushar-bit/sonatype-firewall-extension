@@ -27,7 +27,12 @@ export default function ResultsTable(props) {
     totalRepositories,
     preselectedOrganizationId,
 
+    // sorting
+    sortConfiguration,
+
     // actions
+    setSorting,
+    setSortingParameters,
     importSelectedRepositories,
     loadRepositories
   } = props;
@@ -42,6 +47,47 @@ export default function ResultsTable(props) {
   const [filters, setFilters] = useState({project: '', namespace: '', description: ''}),
       [isAllChecked, setIsAllChecked] = useState(false),
       [selectedRepositories, setSelectedRepositories] = useState([]);
+
+  const sortDirProject = getDirection(sortConfiguration, 'project');
+  const sortDirNamespace = getDirection(sortConfiguration, 'namespace');
+  const sortDirDescription = getDirection(sortConfiguration, 'description');
+
+  function getDirection(sortConfig, key) {
+    return sortConfig && sortConfig.key === key ? sortConfig.dir : null;
+  }
+
+  const sortSettingsProject = {
+    key: 'project',
+    sortingOrder: ['project', 'namespace', 'description']
+  };
+  const sortSettingsNamespace = {
+    key: 'namespace',
+    sortingOrder: ['namespace', 'project', 'description']
+  };
+  const sortSettingsDescription = {
+    key: 'description',
+    sortingOrder: ['description', 'namespace', 'project']
+  };
+
+  function requestSort(settings) {
+    let direction = 'asc';
+    if (
+      sortConfiguration &&
+      sortConfiguration.key === settings.key &&
+      sortConfiguration.dir === 'asc'
+    ) {
+      direction = 'desc';
+    }
+    const sortingOrder = settings.sortingOrder;
+    if (direction === 'desc' && !sortingOrder[0].startsWith('-')) {
+      sortingOrder[0] = '-'.concat(sortingOrder[0]);
+    }
+    if (direction === 'asc' && sortingOrder[0].startsWith('-')) {
+      sortingOrder[0] = sortingOrder[0].substring(1);
+    }
+    setSortingParameters(settings.key, sortingOrder, direction);
+    setSorting(sortingOrder, repositories);
+  }
 
   function isRepositorySelectedByFilter(repository) {
     return repository.project.includes(filters.project)
@@ -99,9 +145,12 @@ export default function ResultsTable(props) {
             <NxTable id="iq-scm-onboarding-repositories" className="nx-table--scrollable nx-table--scm-onboarding">
               <NxTableHead>
                 <NxTableRow>
-                  <NxTableCell isSortable>Namespace</NxTableCell>
-                  <NxTableCell isSortable>Project</NxTableCell>
-                  <NxTableCell isSortable>Description</NxTableCell>
+                  <NxTableCell id='namespace-header' isSortable sortDir={sortDirNamespace}
+                               onClick={() => requestSort(sortSettingsNamespace)}>Namespace</NxTableCell>
+                  <NxTableCell id='project-header' isSortable sortDir={sortDirProject}
+                               onClick={() => requestSort(sortSettingsProject)}>Project</NxTableCell>
+                  <NxTableCell id='description-header' isSortable sortDir={sortDirDescription}
+                               onClick={() => requestSort(sortSettingsDescription)}>Description</NxTableCell>
                   <NxTableCell isSortable>Selection</NxTableCell>
                 </NxTableRow>
                 <NxTableRow isFilterHeader>
@@ -173,8 +222,15 @@ ResultsTable.propTypes = {
   selectedRepositoryCount: PropTypes.number.isRequired,
   importedRepositoryCount: PropTypes.number,
   preselectedOrganizationId: PropTypes.string,
+  sortConfiguration: PropTypes.shape({
+    sortFields: PropTypes.arrayOf(PropTypes.string),
+    dir: PropTypes.string,
+    key: PropTypes.string
+  }),
 
   // actions
+  setSorting: PropTypes.func,
+  setSortingParameters: PropTypes.func,
   onRepositorySelectionChanged: PropTypes.func.isRequired,
   importSelectedRepositories: PropTypes.func.isRequired,
   loadRepositories: PropTypes.func.isRequired
@@ -197,7 +253,9 @@ function RepositoryRow(props) {
   return (
     <NxTableRow key={rowKey}>
       <NxTableCell className='iq-scm-repository-namespace'>{repo.namespace}</NxTableCell>
-      <NxTableCell className='iq-scm-repository-project'><a href={repo.httpCloneUrl}>{repo.project}</a></NxTableCell>
+      <NxTableCell className='iq-scm-repository-project'>
+        <a href={repo.httpCloneUrl} target="_blank" rel="noreferrer">{repo.project}</a>
+      </NxTableCell>
       <NxTableCell className='iq-scm-repository-description'>
         <NxTooltip title={repo.description} className='iq-scm-repo-description-tooltip'>
           <div className="nx-truncate-ellipsis">{repo.description}</div>

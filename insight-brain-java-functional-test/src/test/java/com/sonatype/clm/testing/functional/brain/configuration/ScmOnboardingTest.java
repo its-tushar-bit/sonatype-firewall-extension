@@ -7,7 +7,9 @@ package com.sonatype.clm.testing.functional.brain.configuration;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.ScmOnboardingPage;
@@ -30,6 +32,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.openqa.selenium.Keys;
 
+import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
@@ -685,5 +688,91 @@ public class ScmOnboardingTest
 
     // then the checkbox is selected
     assertThat(scmOnboardingPage.selectionCheckboxById(CI_PROJECT_1_GIT).isSelected()).isTrue();
+  }
+
+  @Test
+  public void testSort() throws Exception {
+    // given an SCM with git repos
+    setupMockRepos();
+    setupSourceControl();
+
+    // given SCM onboarding page with a selected organization
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
+    loginAsAdmin();
+
+    // update the default host URL
+    updateHostUrl(scmOnboardingPage);
+    scmOnboardingPage.reloadRepoButton().waitUntil(enabled, 2000).click();
+    scmOnboardingPage.resultsTableSelectAll().parent().waitUntil(visible, 5000);
+
+    // then the repos are initially sorted by namespace first and project second
+    List<String> namespaceTexts = scmOnboardingPage.resultsTableNamespace().texts();
+    assertThat(namespaceTexts).isSorted();
+
+    // and project are sorted within their namespace
+    scmOnboardingPage.resultsTableProject().shouldHave(exactTexts(
+        "ci-project-1",
+        "ci-project-16",
+        "create-react-app",
+        "nexus-repository-p2",
+        "nexus-repository-puppet",
+        "nexus-repository-terraform",
+        "nexus-repository-vgo",
+        "nexus-scripting-examples",
+        "nexus-webhook-example-collection",
+        "nxrm-cli",
+        "ossindex-gradle-plugin",
+        "oysteR",
+        "prime-nexus-proxy-repos"));
+
+    // when namespace is clicked
+    scmOnboardingPage.namespaceHeader().click();
+    namespaceTexts = scmOnboardingPage.resultsTableNamespace().texts();
+    assertThat(namespaceTexts).isSortedAccordingTo(Comparator.reverseOrder());
+
+    // and project keeps the same order within their project
+    scmOnboardingPage.resultsTableProject().shouldHave(exactTexts(
+        "nexus-repository-p2",
+        "nexus-repository-puppet",
+        "nexus-repository-terraform",
+        "nexus-repository-vgo",
+        "nexus-scripting-examples",
+        "nexus-webhook-example-collection",
+        "nxrm-cli",
+        "ossindex-gradle-plugin",
+        "oysteR",
+        "prime-nexus-proxy-repos",
+        "ci-project-1",
+        "ci-project-16",
+        "create-react-app"));
+
+    // when project is clicked
+    scmOnboardingPage.projectHeader().click();
+
+    // then it is sorted descending
+    List<String> projectTexts = scmOnboardingPage.resultsTableProject().texts();
+    assertThat(projectTexts).isSorted();
+
+    // when project is clicked again
+    scmOnboardingPage.projectHeader().click();
+
+    // then sort order is reversed
+    projectTexts = scmOnboardingPage.resultsTableProject().texts();
+    assertThat(projectTexts).isSortedAccordingTo(Comparator.reverseOrder());
+
+    // when description is clicked
+    scmOnboardingPage.descriptionHeader().click();
+
+    // then it is sorted
+    List<String> descriptionTexts = scmOnboardingPage.resultsTableDescription().texts();
+    assertThat(descriptionTexts).isSorted();
+
+    // when description is clicked again
+    scmOnboardingPage.descriptionHeader().click();
+
+    // then it is sorted ascending
+    descriptionTexts = scmOnboardingPage.resultsTableDescription().texts();
+    assertThat(descriptionTexts).isSortedAccordingTo(Comparator.reverseOrder());
   }
 }

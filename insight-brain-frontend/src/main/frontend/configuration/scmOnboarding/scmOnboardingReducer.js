@@ -24,9 +24,12 @@ import {
   SCM_ONBOARDING_IMPORT_REPOS_FULFILLED,
   SCM_ONBOARDING_SET_CURRENT_HOST_URL,
   SCM_ONBOARDING_SET_TARGET_ORGANIZATION,
-  SCM_ONBOARDING_IMPORT_REPOS_FAILED
+  SCM_ONBOARDING_IMPORT_REPOS_FAILED,
+  SCM_ONBOARDING_SET_SORTING_PARAMETERS,
+  SCM_ONBOARDING_SET_SORTING
 } from './scmOnboardingActions';
 import {Messages} from '../../util/CommonServices';
+import { sortItemsByFields } from '../../util/sortUtils';
 
 const initialState = {
   configState: {
@@ -54,6 +57,11 @@ const initialState = {
     defaultHostUrl: '',
     currentHostUrl: '',
     failedImportCount: 0
+  },
+  sortConfiguration: {
+    key: 'namespace',
+    sortingOrder: ['namespace', 'project', 'description'],
+    dir: 'asc'
   }
 };
 
@@ -174,7 +182,7 @@ function loadRepositoriesFulfilled(payload, state) {
     },
     formState: {
       ...state.formState,
-      repositories: payload.availableRepositories,
+      repositories: sortItemsByFields(state.sortConfiguration.sortingOrder, payload.availableRepositories),
       totalRepositories: payload.totalRepositories,
       importedRepositoryCount: 0,
       selectedRepositoryCount: 0
@@ -341,6 +349,26 @@ function loadCompositeSourceControlFailed(payload, state) {
   };
 }
 
+function setSortingParameters(payload, state) {
+  console.log('>> setSortingParameters', payload);
+  return {
+    ...state,
+    sortConfiguration: payload
+  };
+}
+
+function setSorting(payload, state) {
+  console.log('>> setSorting, sortConfiguration', state.sortConfiguration);
+  let newEntries = sortItemsByFields(state.sortConfiguration.sortFields, state.formState.repositories);
+  return {
+    ...state,
+    formState: {
+      ...state.formState,
+      repositories: newEntries
+    }
+  };
+}
+
 const reducerActionMap = {
   [SCM_ONBOARDING_LOAD_CONFIG_REQUESTED]: loadConfigRequested,
   [SCM_ONBOARDING_LOAD_CONFIG_FULFILLED]: loadConfigFulfilled,
@@ -368,7 +396,10 @@ const reducerActionMap = {
 
   [SCM_ONBOARDING_LOAD_COMPOSITE_SCM_REQUESTED]: loadCompositeSourceControlRequested,
   [SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FULFILLED]: loadCompositeSourceControlFulfilled,
-  [SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FAILED]: loadCompositeSourceControlFailed
+  [SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FAILED]: loadCompositeSourceControlFailed,
+
+  [SCM_ONBOARDING_SET_SORTING_PARAMETERS]: setSortingParameters,
+  [SCM_ONBOARDING_SET_SORTING]: setSorting
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

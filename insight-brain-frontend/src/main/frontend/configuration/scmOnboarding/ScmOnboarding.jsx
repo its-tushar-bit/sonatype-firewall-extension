@@ -21,7 +21,12 @@ const permissionsError = `It appears you do not have permission to access this p
 
 export default function ScmOnboarding(props) {
   const {
+    // sorting
+    sortConfiguration,
+
     // actions
+    setSorting,
+    setSortingParameters,
     loadConfig,
     loadOrganizations,
     loadRepositories,
@@ -199,7 +204,10 @@ export default function ScmOnboarding(props) {
               onRepositorySelectionChanged,
               importSelectedRepositories,
               loadRepositories,
-              preselectedOrganizationId
+              preselectedOrganizationId,
+              sortConfiguration,
+              setSorting,
+              setSortingParameters
             }} />
           </LoadWrapper>
         </section>
@@ -252,7 +260,16 @@ ScmOnboarding.propTypes = {
   isAuthorized: PropTypes.bool.isRequired,
   preselectedOrganizationId: PropTypes.string,
 
+  // sorting
+  sortConfiguration: PropTypes.shape({
+    sortFields: PropTypes.arrayOf(PropTypes.string),
+    dir: PropTypes.string,
+    key: PropTypes.string
+  }),
+
   // actions
+  setSorting: PropTypes.func,
+  setSortingParameters: PropTypes.func,
   loadConfig: PropTypes.func.isRequired,
   importSelectedRepositories: PropTypes.func.isRequired,
   onRepositorySelectionChanged: PropTypes.func.isRequired,

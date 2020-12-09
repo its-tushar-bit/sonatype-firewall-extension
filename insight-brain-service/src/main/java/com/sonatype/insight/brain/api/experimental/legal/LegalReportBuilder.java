@@ -21,13 +21,13 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalDataDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalMetadataDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.license.dto.model.ComponentLegalCommentDTO;
 import com.sonatype.insight.license.dto.model.ComponentLegalFileDTO;
 import com.sonatype.insight.license.dto.model.LegalCopyrightDTO;
-import com.sonatype.insight.license.dto.model.LegalFileDTO;
 import com.sonatype.insight.license.dto.model.LicenseMetadataDTO;
 
 @Named
@@ -89,12 +89,12 @@ public class LegalReportBuilder
         componentLegalFiles.stream()
             .flatMap(c -> c.getLegalFiles().stream())
             .filter(c -> c.getType().equals("LICENSE"))
-            .map(LegalFileDTO::getContent)
+            .map(legalFileDTO -> new ApiLicenseLegalFileDTO(legalFileDTO.getRelPath(), legalFileDTO.getContent()))
             .collect(Collectors.toList()),
         componentLegalFiles.stream()
             .flatMap(c -> c.getLegalFiles().stream())
             .filter(c -> c.getType().equals("NOTICE"))
-            .map(LegalFileDTO::getContent)
+            .map(legalFileDTO -> new ApiLicenseLegalFileDTO(legalFileDTO.getRelPath(), legalFileDTO.getContent()))
             .collect(Collectors.toList()));
   }
 

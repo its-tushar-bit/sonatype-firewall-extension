@@ -24,9 +24,9 @@ public class ApiLicenseLegalDataDTO
 
   public List<String> copyrights;
 
-  public List<String> licenseFiles;
+  public List<ApiLicenseLegalFileDTO> licenseFiles;
 
-  public List<String> noticeFiles;
+  public List<ApiLicenseLegalFileDTO> noticeFiles;
 
   public ApiLicenseLegalDataDTO() {
     // for jackson
@@ -38,8 +38,8 @@ public class ApiLicenseLegalDataDTO
       List<String> effectiveLicenses,
       List<ApiLicenseThreatDTOV2> effectiveLicenseThreats,
       List<String> copyrights,
-      List<String> licenseFiles,
-      List<String> noticeFiles)
+      List<ApiLicenseLegalFileDTO> licenseFiles,
+      List<ApiLicenseLegalFileDTO> noticeFiles)
   {
     this.declaredLicenses = declaredLicenses;
     this.observedLicenses = observedLicenses;

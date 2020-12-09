@@ -9,6 +9,10 @@ export const componentPropType = PropTypes.shape({
   displayName: PropTypes.string.isRequired,
   licenseLegalData: PropTypes.shape({
     effectiveLicenses: PropTypes.arrayOf(PropTypes.string.isRequired).isRequired,
-    copyrights: PropTypes.arrayOf(PropTypes.string.isRequired).isRequired
+    copyrights: PropTypes.arrayOf(PropTypes.string.isRequired).isRequired,
+    noticeFiles: PropTypes.arrayOf(PropTypes.shape({
+      content: PropTypes.string.isRequired,
+      relPath: PropTypes.string.isRequired
+    }).isRequired).isRequired
   }).isRequired
 });

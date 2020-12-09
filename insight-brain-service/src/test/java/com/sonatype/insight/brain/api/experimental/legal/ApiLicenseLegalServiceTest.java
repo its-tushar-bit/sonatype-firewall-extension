@@ -44,6 +44,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationRep
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalDataDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalMetadataDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApplicationLicenseUsageTelemetry;
@@ -461,9 +462,9 @@ public class ApiLicenseLegalServiceTest
     assertThat(licenseLegalComponent.licenseLegalData.copyrights).hasSize(8)
         .allMatch(copyright -> copyright.endsWith("content"));
     assertThat(licenseLegalComponent.licenseLegalData.licenseFiles).hasSize(4)
-        .allMatch(licenseFile -> licenseFile.endsWith("contentLicense"));
+        .allMatch(licenseFile -> licenseFile.content.endsWith("contentLicense"));
     assertThat(licenseLegalComponent.licenseLegalData.noticeFiles).hasSize(4)
-        .allMatch(noticeFile -> noticeFile.endsWith("contentNotice"));
+        .allMatch(noticeFile -> noticeFile.content.endsWith("contentNotice"));
     Set<com.sonatype.insight.brain.model.license.License> licenses =
         licenseLegalComponent.licenseLegalData.effectiveLicenses.stream()
             .flatMap(multiLicenseId -> multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(multiLicenseId).stream())
@@ -734,26 +735,24 @@ public class ApiLicenseLegalServiceTest
       Set<ComponentLegalFileDTO> componentLegalFiles)
   {
     licenseLegalComponents.forEach(lrc -> {
-      assertThat(lrc.licenseLegalData.noticeFiles).containsExactly(
+      assertThat(lrc.licenseLegalData.noticeFiles).usingRecursiveFieldByFieldElementComparator().containsExactly(
           componentLegalFiles.stream()
               .filter(clf -> LegalReportBuilder.removeClassifierAndExtension(clf.getComponentIdentifier())
                   .equals(
                       LegalReportBuilder.removeClassifierAndExtension(lrc.componentIdentifier.toComponentIdentifier())))
               .flatMap(clf -> clf.getLegalFiles().stream())
               .filter(c -> c.getType().equals("NOTICE"))
-              .map(LegalFileDTO::getContent)
-              .toArray(String[]::new)
-      );
-      assertThat(lrc.licenseLegalData.licenseFiles).containsExactly(
+              .map(legalFileDTO -> new ApiLicenseLegalFileDTO(legalFileDTO.getRelPath(), legalFileDTO.getContent()))
+              .toArray(ApiLicenseLegalFileDTO[]::new));
+      assertThat(lrc.licenseLegalData.licenseFiles).usingRecursiveFieldByFieldElementComparator().containsExactly(
           componentLegalFiles.stream()
               .filter(clf -> LegalReportBuilder.removeClassifierAndExtension(clf.getComponentIdentifier())
                   .equals(
                       LegalReportBuilder.removeClassifierAndExtension(lrc.componentIdentifier.toComponentIdentifier())))
               .flatMap(clf -> clf.getLegalFiles().stream())
               .filter(c -> c.getType().equals("LICENSE"))
-              .map(LegalFileDTO::getContent)
-              .toArray(String[]::new)
-      );
+              .map(legalFileDTO -> new ApiLicenseLegalFileDTO(legalFileDTO.getRelPath(), legalFileDTO.getContent()))
+              .toArray(ApiLicenseLegalFileDTO[]::new));
     });
   }
 

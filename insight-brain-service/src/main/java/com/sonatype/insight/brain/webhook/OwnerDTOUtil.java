@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.webhook.ManagementEvent.OwnerEvent;
 import com.sonatype.insight.brain.webhook.dto.PolicyManagementPayload.OwnerDTO;
 import com.sonatype.insight.brain.webhook.dto.PolicyManagementPayload.OwnerDTO.LabelDTO;
 import com.sonatype.insight.brain.webhook.dto.PolicyManagementPayload.OwnerDTO.LicenseThreatGroupDTO;
@@ -78,7 +79,14 @@ public class OwnerDTOUtil
 
   public OwnerDTO buildOwnerDTO(ManagementEvent managementEvent) {
     // Populate Owner
-    Owner owner = ownerDAO.getById(managementEvent.ownerId);
+    Owner owner;
+    if (managementEvent instanceof OwnerEvent) {
+      // not just more efficient but in case of deletion, the owner cannot be loaded from DB
+      owner = ((OwnerEvent) managementEvent).owner;
+    }
+    else {
+      owner = ownerDAO.getById(managementEvent.ownerId);
+    }
     OwnerDTO ownerDTO = new OwnerDTO();
     ownerDTO.id = owner.getId();
     ownerDTO.publicId = owner.getPublicId();

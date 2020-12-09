@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.webhook;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Label;
@@ -18,6 +19,7 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.webhook.ManagementEvent.OwnerEvent;
 import com.sonatype.insight.brain.webhook.dto.PolicyManagementPayload.OwnerDTO;
 
 import org.junit.Test;
@@ -125,5 +127,27 @@ public class OwnerDTOUtilTest
     assertThat(payload.roles.get(0).members).hasSize(1);
     assertThat(payload.roles.get(0).members.get(0).name).isEqualTo(member.getMemberName());
     assertThat(payload.roles.get(0).members.get(0).type).isEqualTo(member.getMemberType().name());
+  }
+
+  @Test
+  public void testBuildOwnerDTO_DeletedOwner() {
+    Application application = tempEntity.newApplicationWithParent("publicId");
+    new ApplicationDAO().delete(application);
+
+    OwnerEvent event = new OwnerEvent();
+    event.owner = application;
+    event.ownerId = application.getId();
+
+    OwnerDTO payload = ownerDTOUtil.buildOwnerDTO(event);
+    assertThat(payload.id).isEqualTo(application.getId());
+    assertThat(payload.publicId).isEqualTo(application.getPublicId());
+    assertThat(payload.type).isEqualTo(application.getType().name());
+    assertThat(payload.name).isEqualTo(application.getName());
+    assertThat(payload.parentOwnerId).isEqualTo(application.getParentOwnerId());
+    assertThat(payload.applicationCategories).isNull();
+    assertThat(payload.labels).isEmpty();
+    assertThat(payload.licenseThreatGroups).isEmpty();
+    assertThat(payload.policies).isEmpty();
+    assertThat(payload.roles).isEmpty();
   }
 }

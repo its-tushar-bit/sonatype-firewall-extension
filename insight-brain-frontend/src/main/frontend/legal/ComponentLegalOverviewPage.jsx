@@ -55,7 +55,7 @@ export default function ComponentLegalOverviewPage(props) {
             <ComponentOverviewTile licenseLegalMetadata={ licenseLegalMetadata } />
             <LicenseObligationsTile { ...licenseLegalMetadata } />
             <div id="component-legal-overview-details-right">
-              <LicenseDetailsTile />
+              <LicenseDetailsTile component={ component }/>
               <CopyrightStatementsTile component={ component }/>
               <NoticeTextsTile />
               <LicenseTextsTile />

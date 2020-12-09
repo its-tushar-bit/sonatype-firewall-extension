@@ -8,6 +8,7 @@ import * as PropTypes from 'prop-types';
 export const componentPropType = PropTypes.shape({
   displayName: PropTypes.string.isRequired,
   licenseLegalData: PropTypes.shape({
+    effectiveLicenses: PropTypes.arrayOf(PropTypes.string.isRequired).isRequired,
     copyrights: PropTypes.arrayOf(PropTypes.string.isRequired).isRequired
   }).isRequired
 });

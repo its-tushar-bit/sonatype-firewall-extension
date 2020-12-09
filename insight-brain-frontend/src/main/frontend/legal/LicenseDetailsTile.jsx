@@ -4,10 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
-import { faEdit } from '@fortawesome/free-solid-svg-icons';
+import { componentPropType } from './advancedLegalPropTypes';
 
-export default function LicenseDetailsTile() {
+export default function LicenseDetailsTile(props) {
+  const {
+    component
+  } = props;
 
   return (
     <section id="license-details-tile" className="nx-tile">
@@ -17,22 +19,27 @@ export default function LicenseDetailsTile() {
         </div>
         <div className="nx-tile__actions">
           <a href="">View Details</a>
-          <NxButton variant="tertiary">
-            <NxFontAwesomeIcon icon={ faEdit }/>
-            <span>Edit</span>
-          </NxButton>
         </div>
       </header>
       <div className="nx-tile-content">
         <ul className="nx-list">
-          <li className="nx-list__item">
-            <span className="nx-list__text">Apache 2.0</span>
-          </li>
-          <li className="nx-list__item">
-            <span className="nx-list__text">Apache 53.0</span>
-          </li>
+          { component.licenseLegalData.effectiveLicenses.map(createItem) }
         </ul>
       </div>
     </section>
   );
 }
+
+const createItem = (license, index) => {
+  return (
+    <li className="nx-list__item" key={ index }>
+      <span className="nx-list__text">
+        { license }
+      </span>
+    </li>
+  );
+};
+
+LicenseDetailsTile.propTypes = {
+  component: componentPropType
+};

@@ -36,7 +36,7 @@ describe('advancedLegalReducer', function () {
       expect(newState.viewStateApplicationReport.loading).toBeFalsy();
       expect(newState.viewStateApplicationReport.error).toBeNull();
       expect(newState.applicationReport).toBeNull();
-      expect(newState.component.loading).toBeTrue();
+      expect(newState.component.loading).toBeTruthy();
     });
   });
 

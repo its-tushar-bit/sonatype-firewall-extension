@@ -10,12 +10,28 @@ describe('CopyrightStatementsTile component', function() {
 
   let getShallowComponent;
 
+  const minimalProps = {
+    component: {
+      licenseLegalData: {
+        copyrights: ['Copyright 2043', 'Copyright 0']
+      }
+    }
+  };
+
   beforeEach(function() {
-    getShallowComponent = enzymeUtils.getShallowComponent(CopyrightStatementsTile);
+    getShallowComponent = enzymeUtils.getShallowComponent(CopyrightStatementsTile, minimalProps);
   });
 
   it('renders a header with label `Copyright Statements`', function() {
     const wrapper = getShallowComponent();
     expect(wrapper.find('h2.nx-h2')).toHaveText('Copyright Statements');
+  });
+
+  it('renders the given copyright statements', function() {
+    const wrapper = getShallowComponent();
+    let copyrightSpans = wrapper.find('span.nx-list__text');
+    expect(copyrightSpans.length).toBe(2);
+    expect(copyrightSpans.at(0)).toHaveText('Copyright 2043');
+    expect(copyrightSpans.at(1)).toHaveText('Copyright 0');
   });
 });

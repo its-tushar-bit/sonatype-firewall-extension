@@ -160,7 +160,7 @@ public class ApiLicenseLegalService
     log.info("Building license metadata report.");
     return legalReportBuilder
         .getLicenseLegalApplicationReport(latestRawReport, componentLegalCommentsByComponentIdentifier,
-            componentLegalFilesByComponentIdentifier, licenses, licenseMetadataById);
+            componentLegalFilesByComponentIdentifier, multiLicenses, licenses, licenseMetadataById);
   }
 
   /**
@@ -230,7 +230,7 @@ public class ApiLicenseLegalService
     ApiLicenseLegalComponentDTO componentDTO =
         new ApiLicenseLegalComponentDTO(toComponentDTO(component), licenseLegalData);
     return new ApiLicenseLegalComponentReportDTO(componentDTO,
-        legalReportBuilder.getLicenseLegalMetadata(licenses, licenseMetadataById));
+        legalReportBuilder.getLicenseLegalMetadata(licenseData.effectiveLicenses, licenses, licenseMetadataById));
   }
 
   private ComponentIdentifier getComponentIdentifier(

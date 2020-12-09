@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.experimental.legal;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -37,12 +39,14 @@ public class LegalReportBuilder
       ApiReportRawDataDTOV2 rawReport,
       Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>> componentLegalCommentsByComponentIdentifier,
       Map<ComponentIdentifier, Set<ComponentLegalFileDTO>> componentLegalFilesByComponentIdentifier,
+      Set<ApiLicenseDTO> multiLicenses,
       Set<License> licenses,
       Map<String, LicenseMetadataDTO> licenseMetadataById)
   {
     List<ApiLicenseLegalComponentDTO> components = getLicenseLegalComponents(rawReport,
         componentLegalCommentsByComponentIdentifier, componentLegalFilesByComponentIdentifier);
-    Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata = getLicenseLegalMetadata(licenses, licenseMetadataById);
+    Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata =
+        getLicenseLegalMetadata(multiLicenses, licenses, licenseMetadataById);
     return new ApiLicenseLegalApplicationReportDTO(components, licenseLegalMetadata);
   }
 
@@ -103,18 +107,34 @@ public class LegalReportBuilder
   }
 
   Set<ApiLicenseLegalMetadataDTO> getLicenseLegalMetadata(
+      Collection<ApiLicenseDTO> multiLicenses,
       Set<License> licenses,
       Map<String, LicenseMetadataDTO> licenseMetadataById)
   {
-    return licenses.stream()
-        .filter(license -> licenseMetadataById.containsKey(license.getId()))
-        .map(license ->
-            new ApiLicenseLegalMetadataDTO(license.getId(),
-                license.getShortDisplayName(),
-                licenseMetadataById.get(license.getId()).getLicenseText(),
-                licenseMetadataById.get(license.getId()).getLicenseObligations().stream()
-                    .map(licenseObligation -> new ApiLicenseLegalObligationDTO(licenseObligation, 0))
-                    .collect(Collectors.toCollection(LinkedHashSet::new))))
-        .collect(Collectors.toCollection(LinkedHashSet::new));
+    Set<ApiLicenseLegalMetadataDTO> allLicenseLegalMetadata = new LinkedHashSet<>();
+    Set<String> licenseIds = new HashSet<>();
+    for (License license : licenses) {
+      ApiLicenseLegalMetadataDTO licenseLegalMetadata = new ApiLicenseLegalMetadataDTO();
+      licenseLegalMetadata.licenseId = license.getId();
+      licenseLegalMetadata.licenseName = license.getShortDisplayName();
+      if (licenseMetadataById.containsKey(license.getId())) {
+        LicenseMetadataDTO licenseMetadataDTO = licenseMetadataById.get(license.getId());
+        licenseLegalMetadata.licenseText = licenseMetadataDTO.getLicenseText();
+        licenseLegalMetadata.obligations = licenseMetadataDTO.getLicenseObligations().stream()
+            .map(licenseObligation -> new ApiLicenseLegalObligationDTO(licenseObligation, 0))
+            .collect(Collectors.toCollection(LinkedHashSet::new));
+      }
+      allLicenseLegalMetadata.add(licenseLegalMetadata);
+      licenseIds.add(license.getId());
+    }
+    for (ApiLicenseDTO multiLicense : multiLicenses) {
+      if (licenseIds.add(multiLicense.licenseId)) {
+        ApiLicenseLegalMetadataDTO licenseLegalMetadata = new ApiLicenseLegalMetadataDTO();
+        licenseLegalMetadata.licenseId = multiLicense.licenseId;
+        licenseLegalMetadata.licenseName = multiLicense.licenseName;
+        allLicenseLegalMetadata.add(licenseLegalMetadata);
+      }
+    }
+    return allLicenseLegalMetadata;
   }
 }

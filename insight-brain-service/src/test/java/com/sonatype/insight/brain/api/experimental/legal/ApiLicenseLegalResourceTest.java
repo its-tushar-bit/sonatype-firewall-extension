@@ -65,7 +65,7 @@ public class ApiLicenseLegalResourceTest
         apiLicenseLegalApplicationReportDTO = response.getBody(ApiLicenseLegalApplicationReportDTO.class);
     assertThat(apiLicenseLegalApplicationReportDTO).isNotNull();
     assertThat(apiLicenseLegalApplicationReportDTO.components).hasSize(14);
-    assertThat(apiLicenseLegalApplicationReportDTO.licenseLegalMetadata).hasSize(0);
+    assertThat(apiLicenseLegalApplicationReportDTO.licenseLegalMetadata).hasSize(8);
   }
 
   @Test

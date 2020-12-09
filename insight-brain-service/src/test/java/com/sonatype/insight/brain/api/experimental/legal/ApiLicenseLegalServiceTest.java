@@ -37,6 +37,7 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
@@ -469,7 +470,12 @@ public class ApiLicenseLegalServiceTest
         licenseLegalComponent.licenseLegalData.effectiveLicenses.stream()
             .flatMap(multiLicenseId -> multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(multiLicenseId).stream())
             .collect(Collectors.toCollection(LinkedHashSet::new));
-    ApiLicenseLegalMetadataDTO[] expectedLicenseLegalMetadata = legalReportBuilder.getLicenseLegalMetadata(licenses,
+    ApiLicenseLegalMetadataDTO[] expectedLicenseLegalMetadata = legalReportBuilder.getLicenseLegalMetadata(
+        licenseLegalComponent.licenseLegalData.effectiveLicenses.stream()
+            .map(multiLicenseDAO::getByIdNotNull)
+            .map(license -> new ApiLicenseDTO(license.getId(), license.getShortDisplayName()))
+        .collect(Collectors.toList()), 
+        licenses,
         expectedLicenseMetadataDTOs.stream()
             .collect(Collectors.toMap(LicenseMetadataDTO::getLicenseId, Function.identity())))
         .toArray(new ApiLicenseLegalMetadataDTO[0]);
@@ -650,9 +656,16 @@ public class ApiLicenseLegalServiceTest
     List<Collection<String>> licenseIds = licenseIdArgumentCaptor.getAllValues();
     assertThat(licenseIds).hasSize(1);
     assertThat(licenseIds.get(0)).containsExactly(expectedLicenseIds);
-    assertThat(licenseLegalMetadata).hasSize(expectedLicenseIds.length);
+    Set<String> expectedLicenseLegalMetadataLicenseIds = new LinkedHashSet<>(Arrays.asList(expectedLicenseIds));
+    expectedLicenseLegalMetadataLicenseIds.addAll(rawReport.components.stream()
+        .flatMap(component -> Stream.concat(Stream.concat(component.licenseData.declaredLicenses.stream(),
+                    component.licenseData.observedLicenses.stream()),
+            component.licenseData.effectiveLicenses.stream()))
+        .map(license -> license.licenseId)
+        .collect(Collectors.toCollection(LinkedHashSet::new)));
+    assertThat(licenseLegalMetadata).hasSize(expectedLicenseLegalMetadataLicenseIds.size());
     assertThat(licenseLegalMetadata).extracting(license -> license.licenseId)
-        .containsExactly(expectedLicenseIds);
+        .containsExactly(expectedLicenseLegalMetadataLicenseIds.toArray(new String[0]));
     assertThat(components.stream()
         .flatMap(c -> c.licenseLegalData.copyrights.stream())
         .collect(Collectors.toSet())).hasSize(3);

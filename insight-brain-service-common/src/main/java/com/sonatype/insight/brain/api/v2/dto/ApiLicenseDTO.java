@@ -10,4 +10,12 @@ public class ApiLicenseDTO
   public String licenseId;
 
   public String licenseName;
+
+  public ApiLicenseDTO() {
+  }
+
+  public ApiLicenseDTO(String licenseId, String licenseName) {
+    this.licenseId = licenseId;
+    this.licenseName = licenseName;
+  }
 }

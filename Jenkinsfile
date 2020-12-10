@@ -40,12 +40,12 @@ make(
     useCheckstyle: true,
     releaseRetentionPolicy: RetentionPolicy.TEN_BUILDS,
     onSuccess: {
-        if(env.BRANCH_NAME == "master") {
+        if(env.GIT_BRANCH == "origin/master") {
             pushDockerImage()
         }
     },
     onUnstable: {
-      if(env.BRANCH_NAME == "master") {
+        if(env.GIT_BRANCH == "origin/master") {
             pushDockerImage()
         }
     }

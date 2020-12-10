@@ -115,6 +115,6 @@ public class DefaultApiSourceControlResource implements ApiSourceControlResource
     if (Strings.isNullOrEmpty(repositoryUrl)) {
       throw new BadRequestException("Query parameter 'repositoryUrl' is required");
     }
-    return sourceControlService.addOrUpdateSourceControl(publicId, repositoryUrl);
+    return sourceControlService.addOrUpdateSourceControlFromAppEvaluation(publicId, repositoryUrl);
   }
 }

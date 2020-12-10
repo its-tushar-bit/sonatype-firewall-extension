@@ -331,6 +331,12 @@ public class ApiScmOnboardingServiceTest
         .containsExactlyInAnyOrder("org__repo1", "org__repo2", "org__repo3", "--bad-__-org__--bad_name_99--");
     assertThat(allApps.stream().map(Application::getName))
         .containsExactlyInAnyOrder("Org - Repo1", "Org - Repo2", "Org - Repo3", "Bad __ Org - Bad_name_99");
+
+    // and that all of the clone URLs were added
+    assertThat(sourceControlDAO.getAll().stream()
+        .filter(sc -> sc.getOwnerId() != ROOT_ORGANIZATION_ID)
+        .map(SourceControl::getRepositoryUrl)).containsExactly("http://github.com/org/repo1",
+        "http://github.com/org/repo2", "http://github.com/org/repo3", "http://github.com/org/repo4");
   }
 
   @Test

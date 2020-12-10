@@ -144,7 +144,8 @@ public class ApiSourceControlServiceTest
   @Test
   public void testAddOrUpdateSourceControl_InvalidPublicId() {
     assertThatExceptionOfType(NotFoundException.class)
-        .isThrownBy(() -> sourceControlService.addOrUpdateSourceControl("abcdefg", "https://e.com/org/proj"));
+        .isThrownBy(
+            () -> sourceControlService.addOrUpdateSourceControlFromAppEvaluation("abcdefg", "https://e.com/org/proj"));
   }
 
   @Test
@@ -238,7 +239,7 @@ public class ApiSourceControlServiceTest
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(enabled);
 
     ApiSourceControlDTO result =
-        sourceControlService.addOrUpdateSourceControl(app.getPublicId(), collectedUrl);
+        sourceControlService.addOrUpdateSourceControlFromAppEvaluation(app.getPublicId(), collectedUrl);
     if (!enabled && initialUrl == null) {
       assertThat(result).isNull();
     }

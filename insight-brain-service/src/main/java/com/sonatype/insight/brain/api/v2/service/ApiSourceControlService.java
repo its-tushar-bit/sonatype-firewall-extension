@@ -122,9 +122,25 @@ public class ApiSourceControlService
   }
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
+  public ApiSourceControlDTO addOrUpdateSourceControlFromAppEvaluation(
+      @AuthzContext(Key.APPLICATION_PUBLIC_ID) final String publicId,
+      final String repositoryUrl)
+  {
+    return addOrUpdateSourceControl(publicId, repositoryUrl, false);
+  }
+
+  @Authorize(permission = Permission.ADD_APPLICATION)
   public ApiSourceControlDTO addOrUpdateSourceControl(
       @AuthzContext(Key.APPLICATION_PUBLIC_ID) final String publicId,
       final String repositoryUrl)
+  {
+    return addOrUpdateSourceControl(publicId, repositoryUrl, true);
+  }
+
+  private ApiSourceControlDTO addOrUpdateSourceControl(
+      @AuthzContext(Key.APPLICATION_PUBLIC_ID) final String publicId,
+      final String repositoryUrl,
+      final boolean bypassAutomatedSCM)
   {
     checkLicense();
 
@@ -135,8 +151,8 @@ public class ApiSourceControlService
     SourceControl sourceControl = sourceControlDAO.getByOwnerId(application.getId());
     String convertedRepositoryUrl = convertUrlIfNeeded(repositoryUrl);
 
-    // check if automatic source control is enabled
-    if (automaticSourceControlConfigurationDAO.isSourceControlConfigurationEnabled()) {
+    // check if automatic source control is enabled or bypassed
+    if (bypassAutomatedSCM || automaticSourceControlConfigurationDAO.isSourceControlConfigurationEnabled()) {
       if (sourceControl == null) { // create new record
         sourceControl = new SourceControl.Builder()
             .setOwnerId(application.getId())

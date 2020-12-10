@@ -159,7 +159,7 @@ public class ApiSourceControlServiceAuthzTest
     tempEntity.newSourceControl(app.getOrganizationId(), null, "token", null);
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
     grantEvaluateApplicationPermission(org.getId());
-    sourceControlService.addOrUpdateSourceControl(app.getPublicId(), VALID_URL);
+    sourceControlService.addOrUpdateSourceControlFromAppEvaluation(app.getPublicId(), VALID_URL);
   }
 
   @Test
@@ -168,33 +168,33 @@ public class ApiSourceControlServiceAuthzTest
     tempEntity.newSourceControl(app.getOrganizationId(), null, "token", null);
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(false);
     grantEvaluateApplicationPermission(org.getId());
-    sourceControlService.addOrUpdateSourceControl(app.getPublicId(), VALID_URL);
+    sourceControlService.addOrUpdateSourceControlFromAppEvaluation(app.getPublicId(), VALID_URL);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testAddOrUpdateSourceControl_AutomaticScmEnabled_Unauthorized() {
     login();
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
-    sourceControlService.addOrUpdateSourceControl(app.getPublicId(), VALID_URL);
+    sourceControlService.addOrUpdateSourceControlFromAppEvaluation(app.getPublicId(), VALID_URL);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testAddOrUpdateSourceControl_AutomaticScmDisabled_Unauthorized() {
     login();
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(false);
-    sourceControlService.addOrUpdateSourceControl(app.getPublicId(), VALID_URL);
+    sourceControlService.addOrUpdateSourceControlFromAppEvaluation(app.getPublicId(), VALID_URL);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testAddOrUpdateSourceControl_AutomaticScmEnabled_Unauthenticated() {
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
-    sourceControlService.addOrUpdateSourceControl(app.getPublicId(), VALID_URL);
+    sourceControlService.addOrUpdateSourceControlFromAppEvaluation(app.getPublicId(), VALID_URL);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testAddOrUpdateSourceControl_AutomaticScmDisabled_Unauthenticated() {
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(false);
-    sourceControlService.addOrUpdateSourceControl(app.getPublicId(), VALID_URL);
+    sourceControlService.addOrUpdateSourceControlFromAppEvaluation(app.getPublicId(), VALID_URL);
   }
 
   @Test

@@ -13,6 +13,10 @@ export const componentPropType = PropTypes.shape({
     noticeFiles: PropTypes.arrayOf(PropTypes.shape({
       content: PropTypes.string.isRequired,
       relPath: PropTypes.string.isRequired
+    }).isRequired).isRequired,
+    licenseFiles: PropTypes.arrayOf(PropTypes.shape({
+      content: PropTypes.string.isRequired,
+      relPath: PropTypes.string.isRequired
     }).isRequired).isRequired
   }).isRequired
 });

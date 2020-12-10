@@ -20,3 +20,14 @@ export const componentPropType = PropTypes.shape({
     }).isRequired).isRequired
   }).isRequired
 });
+
+export const licenseLegalMetadataPropType = PropTypes.arrayOf(PropTypes.shape({
+  licenseId: PropTypes.string.isRequired,
+  licenseName: PropTypes.string.isRequired,
+  obligations: PropTypes.arrayOf(PropTypes.shape({
+    licenseObligation: PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      obligationTexts: PropTypes.arrayOf(PropTypes.string).isRequired
+    })
+  }))
+}).isRequired);

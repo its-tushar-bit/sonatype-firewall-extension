@@ -4,16 +4,21 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import * as PropTypes from 'prop-types';
+import { componentPropType, licenseLegalMetadataPropType } from './advancedLegalPropTypes';
 
 export default function ComponentOverviewTile(props) {
   const {
+    component,
     licenseLegalMetadata
   } = props;
 
   let obligationsCount = 0;
-  licenseLegalMetadata.forEach(metadata => {
-    obligationsCount += metadata.obligations.length;
+  let licenseNames = [];
+
+  component.licenseLegalData.effectiveLicenses.forEach(effectiveLicense => {
+    const licenseMetadata = licenseLegalMetadata.find(license => license.licenseId === effectiveLicense);
+    licenseNames.push(licenseMetadata.licenseName);
+    obligationsCount += licenseMetadata.obligations ? licenseMetadata.obligations.length : 0;
   });
 
   return (
@@ -30,7 +35,7 @@ export default function ComponentOverviewTile(props) {
         <dl className="nx-grid-col nx-grid-col--33">
           <dt>Licenses</dt>
           <dd className="iq-read-only-data license-names">
-            {licenseLegalMetadata.map(license => license.licenseName).join(', ')}
+            {licenseNames.join(', ')}
           </dd>
         </dl>
       </div>
@@ -38,10 +43,7 @@ export default function ComponentOverviewTile(props) {
   );
 }
 
-ComponentOverviewTile.propTypes =
-  PropTypes.arrayOf(
-      PropTypes.shape({
-        licenseName: PropTypes.string.isRequired,
-        obligations: PropTypes.array.isRequired
-      }).isRequired
-  ).isRequired;
+ComponentOverviewTile.propTypes = {
+  component: componentPropType,
+  licenseLegalMetadata: licenseLegalMetadataPropType
+};

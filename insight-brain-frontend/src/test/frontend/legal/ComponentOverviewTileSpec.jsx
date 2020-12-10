@@ -11,9 +11,19 @@ describe('ComponentOverviewTile component', function () {
   let getShallowComponent;
 
   const minimalProps = {
+    component: {
+      licenseLegalData: {
+        effectiveLicenses: [
+          'License-1.0',
+          'License-2.0',
+          'License-1.0-License-2.0'
+        ]
+      }
+    },
     licenseLegalMetadata: [
       {
-        licenseName: 'License-1.0',
+        licenseId: 'License-1.0',
+        licenseName: 'License 1.0',
         obligations: [
           {
             'licenseObligationStatus': 0
@@ -24,12 +34,17 @@ describe('ComponentOverviewTile component', function () {
         ]
       },
       {
-        licenseName: 'License-2.0',
+        licenseId: 'License-2.0',
+        licenseName: 'License 2.0',
         obligations: [
           {
             'licenseObligationStatus': 0
           }
         ]
+      },
+      {
+        licenseId: 'License-1.0-License-2.0',
+        licenseName: 'License 1.0 or License 2.0'
       }
     ]
   };
@@ -45,6 +60,6 @@ describe('ComponentOverviewTile component', function () {
 
   it('renders the licenses', function () {
     const wrapper = getShallowComponent();
-    expect(wrapper.find('dd.license-names')).toHaveText('License-1.0, License-2.0');
+    expect(wrapper.find('dd.license-names')).toHaveText('License 1.0, License 2.0, License 1.0 or License 2.0');
   });
 });

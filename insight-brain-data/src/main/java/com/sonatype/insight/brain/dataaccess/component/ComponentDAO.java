@@ -21,6 +21,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.ComponentInfo;
+import com.sonatype.clm.dto.model.component.AggregateFile;
 import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -223,6 +224,9 @@ public class ComponentDAO
           for (JsonNode path : componentJson.path("pathnames")) {
             component.addPathname(path.asText());
           }
+          for (JsonNode aggregateFileNode : componentJson.path("aggregateFiles")) {
+            addAggregateFile(aggregateFileNode, component);
+          }
           component.setDisplayName(getDisplayName(componentJson));
           if (!matchState.equals(MatchState.UNKNOWN)) {
             component.setComponentIdentifier(ComponentIdentifierAdapter.getComponentIdentifier(componentJson));
@@ -303,6 +307,21 @@ public class ComponentDAO
 
         if (innerSourceData != null) {
           component.setInnerSourceData(innerSourceData);
+        }
+      }
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  private void addAggregateFile(JsonNode aggregateFileNode, Component component) {
+    try {
+      if (!aggregateFileNode.isNull()) {
+        AggregateFile aggregateFile = JsonUtils.asPojo(aggregateFileNode, AggregateFile.class);
+
+        if (aggregateFile != null) {
+          component.addAggregateFile(aggregateFile);
         }
       }
     }

@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import com.sonatype.clm.dto.model.component.AggregateFile;
 import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -67,6 +68,8 @@ public class Component
   private IdentificationSource identificationSource = IdentificationSource.SONATYPE;
 
   private List<String> pathnames = new ArrayList<>();
+
+  private List<AggregateFile> aggregateFiles = new ArrayList<>();
 
   private String displayName;
 
@@ -357,6 +360,14 @@ public class Component
 
   public void addPathname(String pathname) {
     pathnames.add(pathname);
+  }
+
+  public List<AggregateFile> getAggregateFiles() {
+    return aggregateFiles;
+  }
+
+  public void addAggregateFile(AggregateFile aggregateFile) {
+    aggregateFiles.add(aggregateFile);
   }
 
   public ComponentIdentifier getComponentIdentifier() {

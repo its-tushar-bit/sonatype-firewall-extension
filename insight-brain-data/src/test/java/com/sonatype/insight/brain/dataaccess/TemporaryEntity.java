@@ -95,6 +95,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Color;
@@ -341,6 +342,8 @@ public class TemporaryEntity
   private final PersistedScanTicketDAO persistedScanTicketDAO = new PersistedScanTicketDAO();
 
   private final RepositoryMigrationDAO repositoryMigrationDAO = new RepositoryMigrationDAO();
+
+  private final AggregateFileDAO aggregateFileDAO = new AggregateFileDAO();
 
   private MailConfiguration savedMailConfiguration;
 
@@ -2681,5 +2684,11 @@ public class TemporaryEntity
     repositoryMigration.setState(MigrationState.RUNNING);
     repositoryMigrationDAO.insert(repositoryMigration);
     return repositoryMigration;
+  }
+
+  public AggregateFile newAggregateFile(String applicationComponentId, String hash, Set<String> pathnames) {
+    AggregateFile aggregateFile = new AggregateFile(applicationComponentId, hash, pathnames);
+    aggregateFileDAO.insert(aggregateFile);
+    return aggregateFile;
   }
 }

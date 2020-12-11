@@ -441,6 +441,17 @@ CREATE TABLE application_component (
 CREATE INDEX application_component_hash_idx ON application_component(hash);
 CREATE INDEX application_component_time_idx ON application_component(time);
 
+CREATE TABLE aggregate_file (
+  aggregate_file_id varchar(50) NOT NULL,
+  application_component_id varchar(50) NOT NULL,
+  hash varchar(20) NOT NULL,
+  pathnames text,
+  CONSTRAINT aggregate_file_pk PRIMARY KEY (aggregate_file_id),
+  CONSTRAINT aggregate_file_application_component_fk FOREIGN KEY (application_component_id) REFERENCES application_component(application_component_id),
+  CONSTRAINT aggregate_file_uk UNIQUE (application_component_id, hash)
+);
+CREATE INDEX aggregate_file_application_component_id_idx ON aggregate_file(application_component_id);
+
 CREATE TABLE last_policy_evaluation (
   policy_evaluation_id varchar(50) NOT NULL,
   application_id varchar(50) NOT NULL,

@@ -36,6 +36,7 @@ import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentDisplayFilename;
+import com.sonatype.insight.brain.dataaccess.AggregateFileDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
@@ -43,6 +44,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
+import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.component.Component;
@@ -117,6 +119,8 @@ public class ScanPolicyEvaluator
   private PolicyDAO policyDAO = new PolicyDAO();
 
   private PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+
+  private AggregateFileDAO aggregateFileDAO = new AggregateFileDAO();
 
   private final PolicyThreatsAdapter policyThreatsAdapter;
 
@@ -622,8 +626,12 @@ public class ScanPolicyEvaluator
 
       ApplicationComponent applicationComponent = new ApplicationComponent(appId, stage.getStageTypeId(), time,
           component.getHash(), component.getComponentIdentifier(), component.getMatchState().getId(), component
-              .getIdentificationSource().getId(), component.isProprietary(), component.getPathnames());
+          .getIdentificationSource().getId(), component.isProprietary(), component.getPathnames());
       applicationComponentDAO.insert(tx, applicationComponent);
+      for (com.sonatype.clm.dto.model.component.AggregateFile aggregateFile : component.getAggregateFiles()) {
+        aggregateFileDAO
+            .insert(tx, new AggregateFile(applicationComponent.getId(), aggregateFile.hash, aggregateFile.pathnames));
+      }
     }
   }
 

@@ -31,6 +31,7 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.dataaccess.AggregateFileDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -40,6 +41,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
+import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
@@ -1867,6 +1869,45 @@ public class ScanPolicyEvaluatorTest
     for (TelemetryData telemetryData : telemetryDataList) {
       assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.TIME_TO_REMEDIATE_POLICY_VIOLATION);
     }
+  }
+
+  @Test
+  public void testEvaluate_StoresAggregateFiles() throws Exception {
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("testEvaluate_StoresAggregateFiles");
+    AggregateFileDAO aggregateFileDAO = new AggregateFileDAO();
+
+    scanPolicyEvaluator.evaluate(application, scanId, stage);
+
+    List<ApplicationComponent> applicationComponents =
+        new ApplicationComponentDAO().getByApplicationId(application.getId());
+    assertThat(applicationComponents).hasSize(2);
+    ApplicationComponent aggregateComponent = applicationComponents.stream()
+        .filter(applicationComponent -> applicationComponent.getHash().equals("a567564b25bb307a55ef")).findFirst()
+        .orElse(null);
+    assertThat(aggregateComponent).isNotNull();
+    List<AggregateFile> aggregateFiles = aggregateFileDAO.getByApplicationComponentId(aggregateComponent.getId());
+    assertThat(aggregateFiles).hasSize(2);
+    assertThat(findAggregateFileByHash(aggregateFiles, "b688552e098a688d71ed").getPathnames())
+        .containsExactlyInAnyOrder("hawkTest.zip/duplicate/index.js", "hawkTest.zip/index.js",
+            "hawkTest.zip/nested/index/index.js", "hawkTest.zip/reversed/server.js");
+    assertThat(findAggregateFileByHash(aggregateFiles, "d19dcac7f0ce105e3369").getPathnames())
+        .containsExactlyInAnyOrder("hawkTest.zip/duplicate/server.js", "hawkTest.zip/nested/server/server.js",
+            "hawkTest.zip/reversed/index.js", "hawkTest.zip/server.js");
+    ApplicationComponent nonAggregateComponent = applicationComponents.stream()
+        .filter(applicationComponent -> applicationComponent.getHash().equals("ab4e6f3b97ec4831f018")).findFirst()
+        .orElse(null);
+    assertThat(nonAggregateComponent).isNotNull();
+    assertThat(aggregateFileDAO.getByApplicationComponentId(nonAggregateComponent.getId())).isEmpty();
+  }
+
+  private AggregateFile findAggregateFileByHash(List<AggregateFile> aggregateFiles, String hash) {
+    AggregateFile result = aggregateFiles.stream()
+        .filter(aggregateFile -> aggregateFile.getHash().equals(hash))
+        .findFirst()
+        .orElse(null);
+    assertThat(result).isNotNull();
+    return result;
   }
 
   @Test

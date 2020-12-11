@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -29,6 +30,17 @@ public class ApplicationComponentDAO
   @Override
   public void update(TransactionContext tx, ApplicationComponent entity) {
     throw new UnsupportedOperationException("ApplicationComponent does not support update operations");
+  }
+
+  @Override
+  public void delete(TransactionContext tx, ApplicationComponent applicationComponent) {
+    // Cascade to aggregate files
+    AggregateFileDAO aggregateFileDAO = new AggregateFileDAO();
+    List<AggregateFile> aggregateFiles = aggregateFileDAO.getByApplicationComponentId(tx, applicationComponent.getId());
+    for (AggregateFile aggregateFile : aggregateFiles) {
+      aggregateFileDAO.delete(tx, aggregateFile);
+    }
+    super.delete(tx, applicationComponent);
   }
 
   public List<ApplicationComponent> getByApplicationId(TransactionContext tx, String appId) {

@@ -14,11 +14,13 @@ import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 
+import com.google.common.collect.Sets;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
@@ -29,6 +31,8 @@ public class ApplicationComponentDAOTest
     extends AbstractDbDAOTest
 {
   private ApplicationComponentDAO dao = new ApplicationComponentDAO();
+
+  private AggregateFileDAO aggregateFileDAO = new AggregateFileDAO();
 
   @Test
   public void testCRUD() throws Exception {
@@ -250,6 +254,26 @@ public class ApplicationComponentDAOTest
         new Date(date.getTime() + 2000)).getId();
 
     assertThat(dao.getCount()).isEqualTo(2);
+  }
+
+  @Test
+  public void testCascadeDeleteToAggregateFiles() {
+    ApplicationComponent applicationComponent1 = tempEntity.newApplicationComponent(application.getId(),
+        BuildStageType.ID, "hash1", ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
+    ApplicationComponent applicationComponent2 = tempEntity.newApplicationComponent(application.getId(),
+        BuildStageType.ID, "hash2", ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
+    tempEntity.newAggregateFile(applicationComponent1.getId(), "hash3", null);
+    tempEntity.newAggregateFile(applicationComponent1.getId(), "hash4",
+        Sets.newLinkedHashSet(Arrays.asList("pathname1", "pathname2")));
+    AggregateFile aggregateFile3 = tempEntity.newAggregateFile(applicationComponent2.getId(), "hash5", null);
+    AggregateFile aggregateFile4 = tempEntity.newAggregateFile(applicationComponent2.getId(), "hash6",
+        Sets.newLinkedHashSet(Arrays.asList("pathname3", "pathname4")));
+
+    dao.delete(applicationComponent1);
+
+    assertThat(aggregateFileDAO.getByApplicationComponentId(applicationComponent1.getId())).isEmpty();
+    assertThat(aggregateFileDAO.getByApplicationComponentId(applicationComponent2.getId()))
+        .usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(aggregateFile3, aggregateFile4);
   }
 
   public void assertApplicationComponent(ApplicationComponent expected, ApplicationComponent actual) {

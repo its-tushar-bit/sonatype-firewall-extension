@@ -146,7 +146,7 @@ export default function ResultsTable(props) {
             <NxTable id="iq-scm-onboarding-repositories" className="nx-table--scrollable nx-table--scm-onboarding">
               <NxTableHead>
                 <NxTableRow>
-                  <NxTableCell isSortable>Selection</NxTableCell>
+                  <NxTableCell>Selection</NxTableCell>
                   <NxTableCell id='namespace-header' isSortable sortDir={sortDirNamespace}
                                onClick={() => requestSort(sortSettingsNamespace)}>Namespace</NxTableCell>
                   <NxTableCell id='project-header' isSortable sortDir={sortDirProject}

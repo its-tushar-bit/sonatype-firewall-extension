@@ -11,7 +11,6 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
@@ -36,8 +35,8 @@ public class ApiScmOnboardingServiceAuthzTest
 
     assertThatThrownBy(() -> {
       apiScmOnboardingService.loadRepositories(org.getId(), GITHUB_COM);
-    }).isInstanceOf(NotFoundException.class)
-        .hasMessage("No source control entries found for organization ID " + org.getId());
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessage("No provider configured");
   }
 
   @Test

@@ -91,6 +91,43 @@ public class ApiScmOnboardingServiceTest
   }
 
   @Test
+  public void testLoadRepositories_hierarchy() throws Exception {
+    // given root org with no token
+    sourceControlDAO.delete(sourceControlDAO.getByOwnerId(ROOT_ORGANIZATION_ID));
+    tempEntity
+        .newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
+
+    // and an org with a token
+    tempEntity
+        .newSourceControl(org.getId(), null, plexusCipher.encrypt("TOKEN", ENC), null);
+
+    // and a git service
+    mockRepoForPage(gitService, 0, getResourceAsString(PAGE_0));
+    mockRepoForPage(gitService, 1, getResourceAsString(PAGE_1));
+
+    // then loading repositories returns the expected results
+    SCMRepositories repositories = apiScmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
+    assertThat(repositories.availableRepositories.size()).isEqualTo(13);
+  }
+
+  @Test
+  public void testLoadRepositories_hierarchyNoToken() throws Exception {
+    // given root org with no token
+    sourceControlDAO.delete(sourceControlDAO.getByOwnerId(ROOT_ORGANIZATION_ID));
+    tempEntity
+        .newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
+
+    // and an org with no token either
+    tempEntity
+        .newSourceControl(org.getId(), null, null, null);
+
+    // then loading repositories fails
+    assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> {
+      apiScmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
+    }).withMessageContaining("'token' must not be null");
+  }
+
+  @Test
   public void testLoadRepositories() throws Exception {
     mockRepoForPage(gitService, 0, getResourceAsString(PAGE_0));
     mockRepoForPage(gitService, 1, getResourceAsString(PAGE_1));
@@ -328,9 +365,9 @@ public class ApiScmOnboardingServiceTest
         .map(sc -> applicationDAO.getById(sc.getOwnerId()))
         .collect(Collectors.toList());
     assertThat(allApps.stream().map(Application::getPublicId))
-        .containsExactlyInAnyOrder("org__repo1", "org__repo2", "org__repo3", "--bad-__-org__--bad_name_99--");
+        .containsExactlyInAnyOrder("repo1__org", "repo2__org", "repo3__org", "--bad_name_99--__--bad-__-org");
     assertThat(allApps.stream().map(Application::getName))
-        .containsExactlyInAnyOrder("Org - Repo1", "Org - Repo2", "Org - Repo3", "Bad __ Org - Bad_name_99");
+        .containsExactlyInAnyOrder("Repo1 - Org", "Repo2 - Org", "Repo3 - Org", "Bad_name_99 - Bad __ Org");
 
     // and that all of the clone URLs were added
     assertThat(sourceControlDAO.getAll().stream()
@@ -345,7 +382,7 @@ public class ApiScmOnboardingServiceTest
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
 
     // given an existing application which will match a repo which we'll import
-    tempEntity.newApplication("org__repo1", org.getId());
+    tempEntity.newApplication("repo1__org", org.getId());
 
     // and a list of repos to import
     SCMRepository[] reposToImport = new SCMRepository[]{
@@ -362,7 +399,7 @@ public class ApiScmOnboardingServiceTest
     assertThat(allApps.stream().map(Application::getOrganizationId).distinct().collect(Collectors.toList()))
         .containsExactlyInAnyOrder(org.getId());
     assertThat(allApps.stream().map(Application::getPublicId))
-        .containsExactlyInAnyOrder("org__repo1", app.getPublicId());
+        .containsExactlyInAnyOrder("repo1__org", app.getPublicId());
 
     // and the source control entries was created
     List<Application> allSourceControlApps = sourceControlDAO.getAll().stream()
@@ -370,7 +407,7 @@ public class ApiScmOnboardingServiceTest
         .map(sc -> applicationDAO.getById(sc.getOwnerId()))
         .collect(Collectors.toList());
     assertThat(allSourceControlApps.stream().map(Application::getPublicId))
-        .containsExactlyInAnyOrder("org__repo1");
+        .containsExactlyInAnyOrder("repo1__org");
   }
 
   @Test
@@ -379,7 +416,7 @@ public class ApiScmOnboardingServiceTest
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
 
     // given an existing application with a Source Control entry that matches one we'll import
-    Application targetApp = tempEntity.newApplication("org__repo1", org.getId());
+    Application targetApp = tempEntity.newApplication("repo1__org", org.getId());
     tempEntity.newSourceControl(targetApp.getId(), "http://github.com/org/repo1", new Date());
 
     // and a list of repos to import
@@ -397,7 +434,7 @@ public class ApiScmOnboardingServiceTest
     assertThat(allApps.stream().map(Application::getOrganizationId).distinct().collect(Collectors.toList()))
         .containsExactlyInAnyOrder(org.getId());
     assertThat(allApps.stream().map(Application::getPublicId))
-        .containsExactlyInAnyOrder("org__repo1", app.getPublicId());
+        .containsExactlyInAnyOrder("repo1__org", app.getPublicId());
 
     // and all of the source control entries were created
     List<Application> allSourceControlApps = sourceControlDAO.getAll().stream()
@@ -405,6 +442,6 @@ public class ApiScmOnboardingServiceTest
         .map(sc -> applicationDAO.getById(sc.getOwnerId()))
         .collect(Collectors.toList());
     assertThat(allSourceControlApps.stream().map(Application::getPublicId))
-        .containsExactlyInAnyOrder("org__repo1");
+        .containsExactlyInAnyOrder("repo1__org");
   }
 }

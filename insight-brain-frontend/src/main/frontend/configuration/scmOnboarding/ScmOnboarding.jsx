@@ -137,7 +137,7 @@ export default function ScmOnboarding(props) {
                 {organizationId: preselectedOrganizationId})}
             targetPageTitle={$state.get('management.view.organization').data.title} />
         {!error &&
-          <fragment>
+          <Fragment>
             <div className="nx-page-title iq-scmonboarding-title">
               { selectedOrganization &&
               <h1 className="nx-h1">
@@ -192,7 +192,7 @@ export default function ScmOnboarding(props) {
                 </div>
               </form>
             </section>
-          </fragment>
+          </Fragment>
         }
         <section className="nx-tile">
           <LoadWrapper loading={loadingConfig} error={error} retryHandler={load}>
@@ -236,12 +236,12 @@ ScmOnboarding.propTypes = {
   isScmOnboardingFeatureEnabled: PropTypes.bool,
   $state: PropTypes.object.isRequired,
   isScmTokenConfigured: PropTypes.bool.isRequired,
-  scmProvider: PropTypes.string.isRequired,
+  scmProvider: PropTypes.string,
 
   // organizations
   loadOrganizations: PropTypes.func.isRequired,
   loadingOrganizations: PropTypes.bool.isRequired,
-  organizations: PropTypes.arrayOf(PropTypes.shape(organizationPropType)).isRequired,
+  organizations: PropTypes.arrayOf(PropTypes.shape(organizationPropType)),
   setSelectedOrganization: PropTypes.func.isRequired,
   selectedOrganization: PropTypes.shape(organizationPropType),
   loadOrgHostUrl: PropTypes.func.isRequired,
@@ -249,7 +249,7 @@ ScmOnboarding.propTypes = {
   // repositories
   loadRepositories: PropTypes.func.isRequired,
   loadingRepositories: PropTypes.bool.isRequired,
-  repositories: PropTypes.arrayOf(PropTypes.shape(repositoryPropType)).isRequired,
+  repositories: PropTypes.arrayOf(PropTypes.shape(repositoryPropType)),
   selectedRepositoryCount: PropTypes.number.isRequired,
   totalRepositories: PropTypes.number,
   importedRepositoryCount: PropTypes.number,
@@ -281,5 +281,5 @@ ScmOnboarding.propTypes = {
   currentHostUrl: PropTypes.string,
 
   // errors
-  lastErrorMessage: LoadWrapper.propTypes.string
+  lastErrorMessage: PropTypes.string
 };

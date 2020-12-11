@@ -18,6 +18,8 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
+import org.sonatype.plexus.components.cipher.PlexusCipher;
+
 import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,6 +35,8 @@ public class ApiCompositeSourceControlServiceTest
   private static final String VALID_URL = "https://example.com/organization/project";
 
   private static final String TOKEN = "token";
+
+  private static final String ROOT_TOKEN = "root-token";
 
   @Inject
   private ApiCompositeSourceControlService apiCompositeSourceControlService;
@@ -52,6 +56,11 @@ public class ApiCompositeSourceControlServiceTest
 
   private final OrganizationDAO organizationDAO = new OrganizationDAO();
 
+  @Inject
+  private PlexusCipher plexusCipher;
+
+  private static final String ENC = "CMMDwoV";
+
   @Override
   public void configure(final Binder binder) {
     binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
@@ -59,10 +68,12 @@ public class ApiCompositeSourceControlServiceTest
   }
 
   @Before
-  public void setup() {
+  public void setup() throws Exception {
     app = tempEntity.newApplicationWithParent();
     org = tempEntity.newOrganization();
-    rootOrgSourcecontrol = tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
+    rootOrgSourcecontrol = tempEntity
+        .newSourceControl(ROOT_ORGANIZATION_ID, null, plexusCipher.encrypt(ROOT_TOKEN, ENC),
+            SourceControlProvider.GITHUB);
     rootOrganization = organizationDAO.getById(ROOT_ORGANIZATION_ID);
   }
 
@@ -519,5 +530,33 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.baseBranch.value).isNull();
     assertThat(dto.baseBranch.parentName).isNull();
     assertThat(dto.baseBranch.parentValue).isNull();
+  }
+
+  @Test
+  public void getCompositeSourceControlByOwnerDecrypted() throws Exception {
+    // given a token at the root org and overridden at the org level
+    tempEntity.newSourceControl(org.getId(), null, plexusCipher.encrypt(TOKEN, ENC), null);
+
+    // when we get source control decrypted
+    ApiCompositeSourceControlDTO dto =
+        apiCompositeSourceControlService.getCompositeSourceControlByOwnerDecrypted(OwnerType.ORGANIZATION, org.getId());
+
+    // then the passwords at both levels match
+    assertThat(dto.token.value).isEqualTo(TOKEN);
+    assertThat(dto.token.parentValue).isEqualTo(ROOT_TOKEN);
+  }
+
+  @Test
+  public void getCompositeSourceControlByOwner_tokens() throws Exception {
+    // given a token at the root org and overridden at the org level
+    tempEntity.newSourceControl(org.getId(), null, plexusCipher.encrypt(TOKEN, ENC), null);
+
+    // when we get source control not decrypted
+    ApiCompositeSourceControlDTO dto =
+        apiCompositeSourceControlService.getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, org.getId());
+
+    // then the passwords are redacted
+    assertThat(dto.token.value).isEqualTo(FAKE_SECRET_KEY);
+    assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
   }
 }

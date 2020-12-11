@@ -64,7 +64,7 @@ public class ApiSourceControlService
 {
   private static final Logger log = LoggerFactory.getLogger(ApiSourceControlService.class);
 
-  private static final String ENC = "CMMDwoV";
+  static final String ENC = "CMMDwoV";
 
   private final PlexusCipher plexusCipher;
 

@@ -19,6 +19,7 @@ import * as PropTypes from 'prop-types';
 import {repositoryPropType} from '../ScmOnboarding';
 import NxButton from '@sonatype/react-shared-components/components/NxButton/NxButton';
 import NxFilterInput from '@sonatype/react-shared-components/components/NxFilterInput/NxFilterInput';
+import NxExternalLink from '../../../react/NxExternalLink';
 
 export default function ResultsTable(props) {
   const {
@@ -145,15 +146,22 @@ export default function ResultsTable(props) {
             <NxTable id="iq-scm-onboarding-repositories" className="nx-table--scrollable nx-table--scm-onboarding">
               <NxTableHead>
                 <NxTableRow>
+                  <NxTableCell isSortable>Selection</NxTableCell>
                   <NxTableCell id='namespace-header' isSortable sortDir={sortDirNamespace}
                                onClick={() => requestSort(sortSettingsNamespace)}>Namespace</NxTableCell>
                   <NxTableCell id='project-header' isSortable sortDir={sortDirProject}
                                onClick={() => requestSort(sortSettingsProject)}>Project</NxTableCell>
                   <NxTableCell id='description-header' isSortable sortDir={sortDirDescription}
                                onClick={() => requestSort(sortSettingsDescription)}>Description</NxTableCell>
-                  <NxTableCell isSortable>Selection</NxTableCell>
                 </NxTableRow>
                 <NxTableRow isFilterHeader>
+                  <NxTableCell className="iq-scmonboarding__select-all-cell">
+                    <NxCheckbox checkboxId="iq-scmonboarding-select-all"
+                                isChecked={isAllChecked}
+                                onChange={toggleSelectAll}>
+                      All
+                    </NxCheckbox>
+                  </NxTableCell>
                   <NxTableCell className="iq-scmonboarding__filter-cell">
                     <NxFilterInput value={filters.namespace}
                                    onChange={filterValue => changeFilter('namespace', filterValue)} />
@@ -166,13 +174,6 @@ export default function ResultsTable(props) {
                   <NxTableCell className="iq-scmonboarding__filter-cell">
                     <NxFilterInput value={filters.description}
                                    onChange={filterValue => changeFilter('description', filterValue)} />
-                  </NxTableCell>
-                  <NxTableCell className="iq-scmonboarding__select-all-cell">
-                    <NxCheckbox checkboxId="iq-scmonboarding-select-all"
-                                isChecked={isAllChecked}
-                                onChange={toggleSelectAll}>
-                      All
-                    </NxCheckbox>
                   </NxTableCell>
                 </NxTableRow>
               </NxTableHead>
@@ -252,18 +253,18 @@ function RepositoryRow(props) {
 
   return (
     <NxTableRow key={rowKey}>
+      <NxTableCell>
+        <NxCheckbox checkboxId={rowKey} isChecked={selectedRepositories.includes(repo)}
+                    onChange={toggleSelection}/>
+      </NxTableCell>
       <NxTableCell className='iq-scm-repository-namespace'>{repo.namespace}</NxTableCell>
       <NxTableCell className='iq-scm-repository-project'>
-        <a href={repo.httpCloneUrl} target="_blank" rel="noreferrer">{repo.project}</a>
+        <NxExternalLink href={repo.httpCloneUrl}>{repo.project}</NxExternalLink>
       </NxTableCell>
       <NxTableCell className='iq-scm-repository-description'>
         <NxTooltip title={repo.description} className='iq-scm-repo-description-tooltip'>
           <div className="nx-truncate-ellipsis">{repo.description}</div>
         </NxTooltip>
-      </NxTableCell>
-      <NxTableCell>
-        <NxCheckbox checkboxId={rowKey} isChecked={selectedRepositories.includes(repo)}
-                    onChange={toggleSelection}/>
       </NxTableCell>
     </NxTableRow>
   );

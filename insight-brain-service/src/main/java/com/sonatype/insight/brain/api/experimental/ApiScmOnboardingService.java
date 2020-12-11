@@ -17,12 +17,14 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.experimental.dto.SCMRepositories;
+import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiCompositeSourceControlDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiCompositeSourceControlService;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.organization.ApplicationHelper;
@@ -63,6 +65,8 @@ public class ApiScmOnboardingService
 
   private final ApiSourceControlService apiSourceControlService;
 
+  private final ApiCompositeSourceControlService apiCompositeSourceControlService;
+
   private final GitApiClientFactory gitApiClientFactory;
 
   @Inject
@@ -71,6 +75,7 @@ public class ApiScmOnboardingService
                                  final OrganizationDAO orgDAO,
                                  final ApplicationHelper applicationHelper,
                                  final ApiSourceControlService apiSourceControlService,
+                                 final ApiCompositeSourceControlService apiCompositeSourceControlService,
                                  final GitApiClientFactory gitApiClientFactory)
   {
     this.sourceControlDAO = sourceControlDAO;
@@ -78,6 +83,7 @@ public class ApiScmOnboardingService
     this.orgDAO = orgDAO;
     this.applicationHelper = applicationHelper;
     this.apiSourceControlService = apiSourceControlService;
+    this.apiCompositeSourceControlService = apiCompositeSourceControlService;
     this.gitApiClientFactory = gitApiClientFactory;
   }
 
@@ -93,25 +99,29 @@ public class ApiScmOnboardingService
       throw new BadRequestException("No host URL defined");
     }
 
-    SourceControl orgSourceControl = apiSourceControlService.getSourceControlByOwnerDecrypted(orgId);
-    if (orgSourceControl == null) {
-      log.debug("No source control entry defined for org {}, checking for entries at root", orgId);
-      orgSourceControl = apiSourceControlService.getSourceControlByOwnerDecrypted(Organization.ROOT_ORGANIZATION_ID);
-    }
-    if (orgSourceControl == null) {
-      log.error("Not able to retrieve source control entries at org {} or root, repository scan exiting",
-          orgId);
-      throw new NotFoundException("No source control entries found for organization ID " + orgId);
+    ApiCompositeSourceControlDTO sourceControlDTO =
+        apiCompositeSourceControlService.getCompositeSourceControlByOwnerDecrypted(OwnerType.ORGANIZATION, orgId);
+
+    if (StringUtils.isEmpty(sourceControlDTO.provider)) {
+      throw new BadRequestException("No provider configured");
     }
 
-    GitApiClientUtils gitUtils = gitApiClientFactory.getGitApiClientUtils(orgSourceControl.getProvider());
+    SourceControlProvider provider = SourceControlProvider.fromString(sourceControlDTO.provider);
+
+    String username = sourceControlDTO.username.value != null ?
+        sourceControlDTO.username.value :
+        sourceControlDTO.username.parentValue;
+    String token = sourceControlDTO.token.value != null ?
+        sourceControlDTO.token.value :
+        sourceControlDTO.token.parentValue;
+
+    GitApiClientUtils gitUtils = gitApiClientFactory.getGitApiClientUtils(provider);
     String serverUrl = gitUtils.getBaseApiUrl(hostUrl);
-    log.debug("Attempting to retrieving repositories using base url: {}", serverUrl);
+    log.debug("Attempting to retrieve repositories using base url: {}", serverUrl);
     Configuration configuration = gitApiClientFactory.createConfiguration();
     configuration.setServerUrl(serverUrl);
     GeneralSCMApiClient generalClient = gitApiClientFactory
-        .getGeneralSCMApiClient(orgSourceControl.getProvider(), configuration, orgSourceControl.getUsername(),
-            orgSourceControl.getToken());
+        .getGeneralSCMApiClient(provider, configuration, username, token);
     List<SCMRepository> allRepositories = postProcess(generalClient.listAllRepositories());
     List<SCMRepository> availableRepositories = trimAlreadyConfigured(allRepositories);
     return new SCMRepositories(allRepositories.size(), availableRepositories);  
@@ -253,12 +263,12 @@ public class ApiScmOnboardingService
   }
 
   private String buildPublicId(SCMRepository scmRepository) {
-    return scmRepository.getNamespace() + "__" + scmRepository.getProject();
+    return scmRepository.getProject() + "__" + scmRepository.getNamespace();
   }
 
   private String buildName(SCMRepository scmRepository) {
-    return toReadableName(scmRepository.getNamespace()) +
-        " - " + toReadableName(scmRepository.getProject());
+    return toReadableName(scmRepository.getProject()) +
+        " - " + toReadableName(scmRepository.getNamespace());
   }
 
   private String toReadableName(String name) {

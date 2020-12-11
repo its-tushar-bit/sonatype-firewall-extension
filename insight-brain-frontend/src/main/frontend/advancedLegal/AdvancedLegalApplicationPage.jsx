@@ -83,7 +83,7 @@ export default function AdvancedLegalApplicationPage(props) {
                             </header>
                             <div className="nx-tile-content">
                               {licenseLegalData.noticeFiles.map((noticeFile, index) =>
-                                <pre key={index}>{noticeFile}</pre>
+                                <pre key={index}>{noticeFile.content}</pre>
                               )}
                             </div>
                           </section>
@@ -98,7 +98,7 @@ export default function AdvancedLegalApplicationPage(props) {
                             </header>
                             <div className="nx-tile-content">
                               {licenseLegalData.licenseFiles.map((licenseFile, index) =>
-                                <pre key={index}>{licenseFile}</pre>
+                                <pre key={index}>{licenseFile.content}</pre>
                               )}
                             </div>
                           </section>

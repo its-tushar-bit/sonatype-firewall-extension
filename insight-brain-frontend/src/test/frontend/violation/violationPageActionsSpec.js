@@ -34,7 +34,17 @@ describe('violationActions', function() {
       state = {
         violation: {
           violationDetails: {
-            policyViolationId: 'baz'
+            policyViolationId: 'baz',
+            identificationSource: 'Sonatype',
+            stageData: {
+              build: {
+                mostRecentScanId: 'scanId'
+              }
+            },
+            policyOwner: {
+              ownerType: 'organization',
+              ownerId: 'root_org'
+            }
           },
           selectedViolationId: 'bar'
         }
@@ -193,19 +203,26 @@ describe('violationActions', function() {
 
       it('dispatches VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED with vulnerability details response data',
           function(done) {
-            const vulnerabilityResponseData = { bar: 'baz' };
+            const vulnerabilityResponseData = { bar: 'baz' },
+                vulnerabilityRequestUrl = getVulnerabilityJsonDetailUrl('CVE-2016-1000027', null, {
+                  identificationSource: 'Sonatype',
+                  scanId: 'scanId',
+                  ownerId: 'root_org',
+                  ownerType: 'organization'
+                });
 
             mockAxiosCalls({
               get: {
                 [getViolationDetailsUrl('foo')]: Promise.resolve({ data: violationDetailsResponseData }),
                 [getApplicableWaiversUrl('foo')]: Promise.resolve({ data: { activeWaivers: [], expiredWaivers: [] } }),
-                [getVulnerabilityJsonDetailUrl('CVE-2016-1000027')]: Promise.resolve(
+                [vulnerabilityRequestUrl]: Promise.resolve(
                     { data: vulnerabilityResponseData })
               }
             });
 
             store.dispatch(loadViolation('foo')).then(() => {
               expect(store.getActions().length).toBe(6);
+
               expect(store.getActions()[1].type).toEqual(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
               expect(store.getActions()[2].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
               expect(store.getActions()[3].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED);
@@ -219,13 +236,19 @@ describe('violationActions', function() {
 
       it('dispatches VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED when the vulnerability details response fails',
           function(done) {
-            const vulnerabilityResponseError = 'errrr!';
+            const vulnerabilityResponseError = 'errrr!',
+                vulnerabilityRequestUrl = getVulnerabilityJsonDetailUrl('CVE-2016-1000027', null, {
+                  identificationSource: 'Sonatype',
+                  scanId: 'scanId',
+                  ownerId: 'root_org',
+                  ownerType: 'organization'
+                });
 
             mockAxiosCalls({
               get: {
                 [getViolationDetailsUrl('foo')]: Promise.resolve({ data: violationDetailsResponseData }),
                 [getApplicableWaiversUrl('foo')]: Promise.resolve({ data: { activeWaivers: [], expiredWaivers: [] } }),
-                [getVulnerabilityJsonDetailUrl('CVE-2016-1000027')]: Promise.reject(vulnerabilityResponseError)
+                [vulnerabilityRequestUrl]: Promise.reject(vulnerabilityResponseError)
               }
             });
 
@@ -247,12 +270,18 @@ describe('violationActions', function() {
   describe('loadVulnerabilityDetails', function() {
     let store;
 
-    const expectedUrl = getVulnerabilityJsonDetailUrl('CVE-2016-1000027', 'foo : bar : 1.0');
+    const expectedUrl = getVulnerabilityJsonDetailUrl('CVE-2016-1000027', 'foo : bar : 1.0', {
+      identificationSource: 'Sonatype',
+      scanId: 'scanId',
+      ownerId: 'root_org',
+      ownerType: 'organization'
+    });
 
     beforeEach(function() {
       const state = {
         violation: {
           violationDetails: {
+            identificationSource: 'Sonatype',
             policyViolationId: 'bar',
             constraintViolations: [{
               reasons: [{
@@ -262,7 +291,16 @@ describe('violationActions', function() {
                 }
               }]
             }],
-            componentIdentifier: 'foo : bar : 1.0'
+            componentIdentifier: 'foo : bar : 1.0',
+            stageData: {
+              build: {
+                mostRecentScanId: 'scanId'
+              }
+            },
+            policyOwner: {
+              ownerType: 'organization',
+              ownerId: 'root_org'
+            }
           }
         }
       };

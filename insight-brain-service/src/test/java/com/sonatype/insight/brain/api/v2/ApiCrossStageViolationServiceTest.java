@@ -13,12 +13,14 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationReasonDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiCrossStageViolationDTOV2;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -68,6 +70,9 @@ public class ApiCrossStageViolationServiceTest
 
   @Test
   public void testGetCrossStageViolationById() {
+    tempEntity.newApplicationComponent(app.getId(), Stage.ID_BUILD, "1234",
+        componentIdentifier, "", MatchState.EXACT, IdentificationSource.CLAIR, false, baseDate);
+
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
     PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
     violation1.setFixTime(new Date(baseDate.getTime() + 3));
@@ -104,6 +109,7 @@ public class ApiCrossStageViolationServiceTest
 
     ApiCrossStageViolationDTOV2 result = service.getCrossStageViolationById(violation1.getId());
     assertThat(result.policyViolationId).isEqualTo(violation1.getId());
+    assertThat(result.identificationSource).isEqualTo(IdentificationSource.CLAIR.getId());
     assertThat(result.policyId).isEqualTo(policy.getId());
     assertThat(result.policyName).isEqualTo(policy.getName());
     assertThat(result.threatLevel).isEqualTo(policy.getThreatLevel());
@@ -144,6 +150,9 @@ public class ApiCrossStageViolationServiceTest
 
   @Test
   public void testGetCrossStageViolationById_WithFixTime() {
+    tempEntity.newApplicationComponent(app.getId(), Stage.ID_BUILD, "1234",
+        componentIdentifier, "", MatchState.EXACT, IdentificationSource.CLAIR, false, baseDate);
+
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
     PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
     violation1.setFixTime(new Date(baseDate.getTime() + 3));
@@ -186,6 +195,9 @@ public class ApiCrossStageViolationServiceTest
   // this tests the case where the first violation isn't fixed until after the second violation is fixed
   @Test
   public void testGetCrossStageViolationById_ViolationsClosedAfterOthersOpenedAndClosed() {
+    tempEntity.newApplicationComponent(app.getId(), Stage.ID_BUILD, "1234",
+        componentIdentifier, "", MatchState.EXACT, IdentificationSource.CLAIR, false, baseDate);
+
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
     PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
     violation1.setFixTime(new Date(baseDate.getTime() + 5));
@@ -204,6 +216,9 @@ public class ApiCrossStageViolationServiceTest
 
   @Test
   public void testGetCrossStageViolationById_WithWaivers() {
+    tempEntity.newApplicationComponent(app.getId(), Stage.ID_BUILD, "1234",
+        componentIdentifier, "", MatchState.EXACT, IdentificationSource.CLAIR, false, baseDate);
+
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
     PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
     violation1.setFixTime(new Date(baseDate.getTime() + 3));
@@ -255,6 +270,8 @@ public class ApiCrossStageViolationServiceTest
   public void testGetCrossStageViolationById_ApplicationPolicyOwner() {
     Application policyOwnerApp = tempEntity.newApplication("public-foo", org.getId());
     Policy policy = tempEntity.newPolicy(policyOwnerApp.getId(), "p1", 7);
+    tempEntity.newApplicationComponent(app.getId(), Stage.ID_BUILD, "1234",
+        componentIdentifier, "", MatchState.EXACT, IdentificationSource.CLAIR, false, baseDate);
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
     PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
 
@@ -272,6 +289,8 @@ public class ApiCrossStageViolationServiceTest
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
     PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
     new PolicyDAO().delete(policy);
+    tempEntity.newApplicationComponent(app.getId(), Stage.ID_BUILD, "1234",
+        componentIdentifier, "", MatchState.EXACT, IdentificationSource.CLAIR, false, baseDate);
 
     ApiCrossStageViolationDTOV2 result = service.getCrossStageViolationById(violation1.getId());
     assertThat(result.policyOwner).isNotNull();
@@ -283,6 +302,14 @@ public class ApiCrossStageViolationServiceTest
 
   @Test
   public void testGetCrossStageViolationByConstituentId() {
+    tempEntity.newApplicationComponent(app.getId(), Stage.ID_BUILD, "1234",
+        componentIdentifier, "", MatchState.EXACT, IdentificationSource.CLAIR, false, baseDate);
+    tempEntity.newApplicationComponent(app.getId(), Stage.ID_BUILD, "1235",
+        componentIdentifier, "", MatchState.EXACT, IdentificationSource.SONATYPE, false, baseDate);
+    tempEntity.newApplicationComponent(app2.getId(), Stage.ID_BUILD, "1234",
+        componentIdentifier, "", MatchState.EXACT, IdentificationSource.CLAIR, false, baseDate);
+    tempEntity.newApplicationComponent(app2.getId(), Stage.ID_BUILD, "1235",
+        componentIdentifier, "", MatchState.EXACT, IdentificationSource.SONATYPE, false, baseDate);
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
     PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
     violation1.setFixTime(new Date(baseDate.getTime() + 3));
@@ -321,6 +348,7 @@ public class ApiCrossStageViolationServiceTest
     assertThat(crossViolation1.fixTime).isNull();
     assertThat(crossViolation1.policyId).isEqualTo(policy.getId());
     assertThat(crossViolation1.stageData).hasSize(3);
+    assertThat(crossViolation1.identificationSource).isEqualTo(IdentificationSource.CLAIR.getId());
     assertCrossStageData(crossViolation1, Stage.ID_BUILD, baseDate, "scan1", null);
     assertCrossStageData(crossViolation1, Stage.ID_RELEASE, violation2.getOpenTime(), "scan2", null);
     assertCrossStageData(crossViolation1, Stage.ID_STAGE_RELEASE, violation3.getOpenTime(), "scan3", null);
@@ -333,6 +361,7 @@ public class ApiCrossStageViolationServiceTest
     // For an equivalent violation in a different stage it should return the earliest id
     ApiCrossStageViolationDTOV2 crossViolation2 = service.getCrossStageViolationByConstituentId(violation2.getId());
     assertThat(crossViolation2.policyViolationId).isEqualTo(violation1.getId());
+    assertThat(crossViolation2.identificationSource).isEqualTo(IdentificationSource.CLAIR.getId());
     assertThat(crossViolation2.stageData).hasSize(3);
     assertCrossStageData(crossViolation2, Stage.ID_BUILD, baseDate, "scan1", null);
     assertCrossStageData(crossViolation2, Stage.ID_RELEASE, violation2.getOpenTime(), "scan2", null);
@@ -340,6 +369,7 @@ public class ApiCrossStageViolationServiceTest
 
     ApiCrossStageViolationDTOV2 crossViolation3 = service.getCrossStageViolationByConstituentId(violation3.getId());
     assertThat(crossViolation3.policyViolationId).isEqualTo(violation1.getId());
+    assertThat(crossViolation3.identificationSource).isEqualTo(IdentificationSource.CLAIR.getId());
     assertThat(crossViolation3.stageData).hasSize(3);
     assertCrossStageData(crossViolation3, Stage.ID_BUILD, baseDate, "scan1", null);
     assertCrossStageData(crossViolation3, Stage.ID_RELEASE, violation2.getOpenTime(), "scan2", null);
@@ -348,15 +378,18 @@ public class ApiCrossStageViolationServiceTest
     // For a single-stage violation its crossStageViolationId is its own id.
     ApiCrossStageViolationDTOV2 crossViolation4 = service.getCrossStageViolationByConstituentId(violation4.getId());
     assertThat(crossViolation4.policyViolationId).isEqualTo(violation4.getId());
+    assertThat(crossViolation4.identificationSource).isEqualTo(IdentificationSource.SONATYPE.getId());
     assertThat(crossViolation4.stageData).hasSize(1);
     assertCrossStageData(crossViolation4, Stage.ID_STAGE_RELEASE, violation4.getOpenTime(), "scan3", null);
 
     ApiCrossStageViolationDTOV2 crossViolation5 = service.getCrossStageViolationByConstituentId(violation5.getId());
     assertThat(crossViolation5.policyViolationId).isEqualTo(violation5.getId());
+    assertThat(crossViolation5.identificationSource).isEqualTo(IdentificationSource.CLAIR.getId());
     assertThat(crossViolation5.stageData).hasSize(1);
     assertCrossStageData(crossViolation5, Stage.ID_OPERATE, violation5.getOpenTime(), "scan4", null);
 
     ApiCrossStageViolationDTOV2 crossViolation6 = service.getCrossStageViolationByConstituentId(violation6.getId());
+    assertThat(crossViolation6.identificationSource).isEqualTo(IdentificationSource.SONATYPE.getId());
     assertThat(crossViolation6.policyViolationId).isEqualTo(violation6.getId());
     assertThat(crossViolation6.stageData).hasSize(1);
     assertCrossStageData(crossViolation6, Stage.ID_BUILD, violation6.getOpenTime(), "scan6", null);
@@ -364,6 +397,15 @@ public class ApiCrossStageViolationServiceTest
 
   @Test
   public void testGetCrossStageViolationByConstituentId_SingleStages() {
+    tempEntity.newApplicationComponent(app.getId(), Stage.ID_BUILD, "1234",
+        componentIdentifier, "", MatchState.EXACT, IdentificationSource.CLAIR, false, baseDate);
+    tempEntity.newApplicationComponent(app.getId(), Stage.ID_STAGE_RELEASE, "1235",
+        componentIdentifier, "", MatchState.EXACT, IdentificationSource.SONATYPE, false, baseDate);
+    tempEntity.newApplicationComponent(app2.getId(), Stage.ID_BUILD, "1234",
+        componentIdentifier, "", MatchState.EXACT, IdentificationSource.CLAIR, false, baseDate);
+    tempEntity.newApplicationComponent(app2.getId(), Stage.ID_STAGE_RELEASE, "1235",
+        componentIdentifier, "", MatchState.EXACT, IdentificationSource.SONATYPE, false, baseDate);
+
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
     PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
 
@@ -385,16 +427,22 @@ public class ApiCrossStageViolationServiceTest
     // For a single-stage violation its crossStageViolationId is its own id.
     ApiCrossStageViolationDTOV2 crossViolation1 = service.getCrossStageViolationByConstituentId(violation1.getId());
     assertThat(crossViolation1.policyViolationId).isEqualTo(violation1.getId());
+    assertThat(crossViolation1.identificationSource).isEqualTo(IdentificationSource.CLAIR.getId());
     ApiCrossStageViolationDTOV2 crossViolation2 = service.getCrossStageViolationByConstituentId(violation2.getId());
     assertThat(crossViolation2.policyViolationId).isEqualTo(violation2.getId());
+    assertThat(crossViolation2.identificationSource).isEqualTo(IdentificationSource.SONATYPE.getId());
     ApiCrossStageViolationDTOV2 crossViolation3 = service.getCrossStageViolationByConstituentId(violation3.getId());
     assertThat(crossViolation3.policyViolationId).isEqualTo(violation3.getId());
+    assertThat(crossViolation3.identificationSource).isEqualTo(IdentificationSource.CLAIR.getId());
     ApiCrossStageViolationDTOV2 crossViolation4 = service.getCrossStageViolationByConstituentId(violation4.getId());
     assertThat(crossViolation4.policyViolationId).isEqualTo(violation4.getId());
+    assertThat(crossViolation4.identificationSource).isEqualTo(IdentificationSource.SONATYPE.getId());
   }
 
   @Test
   public void testGetCrossStageViolationByConstituentId_WithClosedEquivalentEarlierViolation() {
+    tempEntity.newApplicationComponent(app.getId(), Stage.ID_BUILD, "1234",
+        componentIdentifier, "", MatchState.EXACT, IdentificationSource.CLAIR, false, baseDate);
     // A violation, closed.
     PolicyEvaluation eval1 =
             tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
@@ -424,19 +472,25 @@ public class ApiCrossStageViolationServiceTest
     // If the given id is the id of the earliest violation then the calculated id should be the same
     ApiCrossStageViolationDTOV2 crossViolation1 = service.getCrossStageViolationByConstituentId(violation1.getId());
     assertThat(crossViolation1.policyViolationId).isEqualTo(violation1.getId());
+    assertThat(crossViolation1.identificationSource).isEqualTo(IdentificationSource.CLAIR.getId());
     ApiCrossStageViolationDTOV2 crossViolation2 = service.getCrossStageViolationByConstituentId(violation2.getId());
     assertThat(crossViolation2.policyViolationId).isEqualTo(violation2.getId());
+    assertThat(crossViolation2.identificationSource).isEqualTo(IdentificationSource.CLAIR.getId());
 
     // For an equivalent violation in a different stage it should return the earliest id
     ApiCrossStageViolationDTOV2 crossViolation3 = service.getCrossStageViolationByConstituentId(violation3.getId());
     assertThat(crossViolation3.policyViolationId).isEqualTo(violation2.getId());
+    assertThat(crossViolation3.identificationSource).isEqualTo(IdentificationSource.CLAIR.getId());
 
     ApiCrossStageViolationDTOV2 crossViolation4 = service.getCrossStageViolationByConstituentId(violation4.getId());
     assertThat(crossViolation4.policyViolationId).isEqualTo(violation2.getId());
+    assertThat(crossViolation4.identificationSource).isEqualTo(IdentificationSource.CLAIR.getId());
   }
 
   @Test
   public void testGetCrossStageViolationByConstituentId_WithOpenEquivalentEarlierViolation() {
+    tempEntity.newApplicationComponent(app.getId(), Stage.ID_BUILD, "1234",
+        componentIdentifier, "", MatchState.EXACT, IdentificationSource.CLAIR, false, baseDate);
     // An earlier, closed violation.
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
     PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
@@ -483,6 +537,8 @@ public class ApiCrossStageViolationServiceTest
 
   @Test
   public void testGetCrossStageViolationById_UnwaivedViolation() {
+    tempEntity.newApplicationComponent(app.getId(), Stage.ID_BUILD, "1234",
+        componentIdentifier, "", MatchState.EXACT, IdentificationSource.CLAIR, false, baseDate);
     //A waived violation
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
     PolicyViolation buildStageViolation1 =
@@ -534,6 +590,9 @@ public class ApiCrossStageViolationServiceTest
     PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
     PolicyWaiver waiver1 = tempEntity.newWaiver(policy.getId(), policy.getOwnerId());
 
+    tempEntity.newApplicationComponent(app.getId(), Stage.ID_BUILD, "1234",
+        componentIdentifier, "", MatchState.EXACT, IdentificationSource.CLAIR, false, time1);
+
     violation1.setApplicationId(app.getId());
     violation1.setPolicyWaiverId(waiver1.getId());
     violation1.setOpenTime(time1);
@@ -541,6 +600,7 @@ public class ApiCrossStageViolationServiceTest
     policyViolationDAO.update(violation1);
 
     ApiCrossStageViolationDTOV2 result1 = service.getCrossStageViolationByConstituentId(violation1.getId());
+    assertThat(result1.identificationSource).isEqualTo(IdentificationSource.CLAIR.getId());
     assertThat(result1.openTime).isEqualTo(time1);
     assertThat(result1.fixTime).isEqualTo(time1);
     assertThat(result1.policyViolationId).isEqualTo(violation1.getId());

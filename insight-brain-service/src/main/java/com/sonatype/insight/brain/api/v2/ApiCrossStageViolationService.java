@@ -23,12 +23,14 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiCrossStageViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.service.PolicyViolationAdapter;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
+import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -57,6 +59,8 @@ public class ApiCrossStageViolationService
 
   private final OwnerDAO ownerDAO;
 
+  private final ApplicationComponentDAO applicationComponentDAO;
+
   private final PolicyViolationAdapter policyViolationAdapter;
 
   private final Comparator<PolicyViolationComparable> policyViolationComparator = new PolicyViolationComparator();
@@ -71,7 +75,8 @@ public class ApiCrossStageViolationService
       PolicyEvaluationDAO policyEvaluationDAO,
       PolicyDAO policyDAO,
       OwnerDAO ownerDAO,
-      PolicyViolationAdapter policyViolationAdapter)
+      PolicyViolationAdapter policyViolationAdapter,
+      ApplicationComponentDAO applicationComponentDAO)
   {
     this.policyViolationDAO = policyViolationDAO;
     this.applicationService = applicationService;
@@ -80,6 +85,7 @@ public class ApiCrossStageViolationService
     this.policyDAO = policyDAO;
     this.ownerDAO = ownerDAO;
     this.policyViolationAdapter = policyViolationAdapter;
+    this.applicationComponentDAO = applicationComponentDAO;
   }
 
   /**
@@ -252,6 +258,7 @@ public class ApiCrossStageViolationService
     dto.filename = firstViolation.getFilename();
     dto.componentIdentifier = ApiComponentIdentifierDTOV2
         .fromComponentIdentifier(firstViolation.getComponentIdentifier());
+    dto.identificationSource = getIdentificationSource(app.getId(), firstViolation.getHash());
 
     dto.policyOwner = new ApiCrossStageViolationDTOV2.PolicyOwner();
     if (policyOwner != null) {
@@ -286,6 +293,11 @@ public class ApiCrossStageViolationService
     dto.constraintViolations = policyViolationAdapter.convert(firstViolation);
 
     return dto;
+  }
+
+  private String getIdentificationSource(final String applicationId, final String hash) {
+    ApplicationComponent component = applicationComponentDAO.getLastByApplicationIdAndHash(applicationId, hash);
+    return component != null ? component.getIdentificationSourceId() : null;
   }
 
   private ApiCrossStageViolationDTOV2.StageData createStageData(

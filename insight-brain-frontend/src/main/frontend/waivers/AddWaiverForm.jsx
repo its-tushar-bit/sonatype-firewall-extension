@@ -16,6 +16,7 @@ import {
 import ViolationExclamation from '../react/ViolationExclamation';
 import ArtifactNameDisplay from '../react/ArtifactNameDisplay';
 import VulnerabilityDetailsModalContainer from '../vulnerabilityDetails/VulnerabilityDetailsModalContainer';
+import { thirdPartyScanPropTypes } from '../vulnerabilityDetails/VulnerabilityDetailsModal';
 import LoadError from '../react/LoadError';
 
 const ALL_COMPONENTS = 'ALL_COMPONENTS';
@@ -43,7 +44,8 @@ export default function AddWaiverForm(props) {
     setExpiryTime,
     saveWaiver,
     vulnerabilityId,
-    cancelAction
+    cancelAction,
+    thirdPartyScanParameters
   } = props;
 
   const onSubmit = (evt) => {
@@ -59,7 +61,8 @@ export default function AddWaiverForm(props) {
   const onVulnerabilityDetailsClick = () => {
     openVulnerabilityDetailsModal({
       vulnerabilityId: vulnerabilityId,
-      componentIdentifier
+      componentIdentifier,
+      thirdPartyScanParameters
     });
   };
 
@@ -248,5 +251,6 @@ AddWaiverForm.propTypes = {
   openVulnerabilityDetailsModal: PropTypes.func.isRequired,
   vulnerabilityId: PropTypes.string,
   cancelAction: PropTypes.func.isRequired,
-  componentIdentifier: PropTypes.object
+  componentIdentifier: PropTypes.object,
+  thirdPartyScanParameters: thirdPartyScanPropTypes
 };

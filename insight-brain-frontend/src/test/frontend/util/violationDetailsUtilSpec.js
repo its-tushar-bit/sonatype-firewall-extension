@@ -13,6 +13,7 @@ describe('violationDetailsUtil', function() {
 
     it('returns the correct information from the violationDetails object', function() {
       const violationDetails = {
+        identificationSource: 'Sonatype',
         componentIdentifier: { format: 'maven', coordinates: null },
         constraintViolations: [
           {
@@ -32,7 +33,16 @@ describe('violationDetailsUtil', function() {
         filename: 'componentName',
         policyName: 'policyName',
         policyViolationId: 'policyViolationId',
-        threatLevel: 10
+        threatLevel: 10,
+        policyOwner: {
+          ownerType: 'organization',
+          ownerId: 'root_organization'
+        },
+        stageData: {
+          build: {
+            mostRecentScanId: 'recentScanId'
+          }
+        }
       };
 
       expect(extractViolationDetails(violationDetails)).toEqual({
@@ -44,7 +54,13 @@ describe('violationDetailsUtil', function() {
         policyViolationId: 'policyViolationId',
         reasons: ['reason'],
         threatLevelCategory: 'critical',
-        vulnerabilityId: 'vulnerabilityId'
+        vulnerabilityId: 'vulnerabilityId',
+        thirdPartyScanParameters: {
+          identificationSource: 'Sonatype',
+          ownerId: 'root_organization',
+          ownerType: 'organization',
+          scanId: 'recentScanId'
+        }
       });
     });
   });

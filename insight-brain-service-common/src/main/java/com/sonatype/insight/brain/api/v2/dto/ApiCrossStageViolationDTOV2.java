@@ -38,6 +38,8 @@ public class ApiCrossStageViolationDTOV2
 
   public ApiComponentIdentifierDTOV2 componentIdentifier;
 
+  public String identificationSource;
+
   public String filename;
 
   // keyed by stageTypeId

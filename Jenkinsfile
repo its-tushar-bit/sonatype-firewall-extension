@@ -40,18 +40,18 @@ make(
     useCheckstyle: true,
     releaseRetentionPolicy: RetentionPolicy.TEN_BUILDS,
     onSuccess: {
-        if(env.GIT_BRANCH == "origin/master") {
-            pushDockerImage()
-        }
+        pushDockerImageIfDeployBranch()
     },
     onUnstable: {
-        if(env.GIT_BRANCH == "origin/master") {
-            pushDockerImage()
-        }
+        pushDockerImageIfDeployBranch()
     }
 )
 
-def pushDockerImage(){
+def pushDockerImageIfDeployBranch() {
+    if (!isDeployBranch(env, 'master')) {
+        echo 'Skipping push of docker image for non-deploy branch'
+        return
+    }
     def version = getMavenProjectVersion('.')
     dir("nexus-iq-server") {
         withSonatypeDockerRegistry() {

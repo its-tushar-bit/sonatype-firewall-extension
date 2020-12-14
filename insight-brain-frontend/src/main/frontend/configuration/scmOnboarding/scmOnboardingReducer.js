@@ -288,8 +288,8 @@ function loadOrgDefaultHostUrlFailed(payload, state) {
       ...state.viewState,
       lastErrorMessage: Messages.getHttpErrorMessage(payload)
     },
-    configState: {
-      ...state.configState,
+    formState: {
+      ...state.formState,
       defaultHostUrl: '',
       currentHostUrl: ''
     }
@@ -299,7 +299,10 @@ function loadOrgDefaultHostUrlFailed(payload, state) {
 function setCurrentHostUrl(payload, state) {
   return {
     ...state,
-    currentHostUrl: payload
+    formState: {
+      ...state.formState,
+      currentHostUrl: payload
+    }
   };
 }
 

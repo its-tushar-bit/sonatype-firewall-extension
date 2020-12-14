@@ -389,7 +389,7 @@ describe('scmOnboardingReducer', function() {
         viewState: {
           lastErrorMessage: null
         },
-        configState: {
+        formState: {
           defaultHostUrl: 'http://example.com/',
           currentHostUrl: 'http://example.org/'
         },
@@ -404,7 +404,7 @@ describe('scmOnboardingReducer', function() {
         viewState: {
           lastErrorMessage: 'Bad Gateway'
         },
-        configState: {
+        formState: {
           defaultHostUrl: '',
           currentHostUrl: ''
         },
@@ -419,7 +419,9 @@ describe('scmOnboardingReducer', function() {
       // given a clean host URL
       const state = Object.freeze({
         other: otherObject,
-        currentHostUrl: ''
+        formState: {
+          currentHostUrl: ''
+        }
       });
 
       const defaultHostPayload = 'https://github.com/';
@@ -431,7 +433,7 @@ describe('scmOnboardingReducer', function() {
       });
 
       // then state is updated
-      expect(newState.currentHostUrl).toEqual('https://github.com/');
+      expect(newState.formState.currentHostUrl).toEqual('https://github.com/');
 
       // and other properties are not modified
       expect(newState.other).toBe(otherObject);

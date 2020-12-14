@@ -327,8 +327,7 @@ public class ScmOnboardingTest
   }
 
   private void updateHostUrl(final ScmOnboardingPage scmOnboardingPage) {
-    scmOnboardingPage.hostUrl().sendKeys(Keys.CONTROL, "a");
-    scmOnboardingPage.hostUrl().sendKeys(Keys.BACK_SPACE);
+    scmOnboardingPage.hostUrl().clear();
     scmOnboardingPage.hostUrl().setValue(gitService.baseUrl());
     scmOnboardingPage.hostUrl().shouldBe(value(gitService.baseUrl()));
   }

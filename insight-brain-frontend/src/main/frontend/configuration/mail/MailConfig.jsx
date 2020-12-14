@@ -280,15 +280,17 @@ export default function MailConfig(props) {
                   <h2 className="nx-h2">Email</h2>
                 </div>
               </header>
-              <p className="nx-p">
-                To receive email notifications for events enter the details of your SMTP Server here.
-                For further details see the{' '}
-                <NxExternalLink href="http://links.sonatype.com/products/nxiq/doc/email-configuration">
-                  documentation
-                </NxExternalLink>.
-              </p>
-              {submitMaskState !== null && <NxSubmitMask success={submitMaskState} message={submitMaskMessage} />}
-              {form}
+              <div className="nx-tile-content">
+                <p className="nx-p">
+                  To receive email notifications for events enter the details of your SMTP Server here.
+                  For further details see the{' '}
+                  <NxExternalLink href="http://links.sonatype.com/products/nxiq/doc/email-configuration">
+                    documentation
+                  </NxExternalLink>.
+                </p>
+                {submitMaskState !== null && <NxSubmitMask success={submitMaskState} message={submitMaskMessage} />}
+                {form}
+              </div>
             </form>
           </section>
         </LoadWrapper>

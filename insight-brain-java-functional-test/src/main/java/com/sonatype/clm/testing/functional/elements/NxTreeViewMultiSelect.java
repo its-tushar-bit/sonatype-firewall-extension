@@ -28,15 +28,15 @@ public class NxTreeViewMultiSelect
   }
 
   public ElementsCollection singleSelectList() {
-    return children(".nx-tree-view__child .nx-radio");
+    return children(".nx-tree-view__child.nx-radio");
   }
 
   public NxCheckbox checkboxItem(int index) {
-    return new NxCheckbox(child(".nx-tree-view__children .nx-tree-view__child", nthChild(index), ".nx-checkbox"));
+    return new NxCheckbox(child(".nx-tree-view__children .nx-tree-view__child.nx-checkbox", nthChild(index)));
   }
 
   public NxRadio radioItem(int index) {
-    return new NxRadio(child(".nx-tree-view__children .nx-tree-view__child", nthChild(index), ".nx-radio"));
+    return new NxRadio(child(".nx-tree-view__children .nx-tree-view__child.nx-radio", nthChild(index)));
   }
 
   public NxCheckbox allItems() {

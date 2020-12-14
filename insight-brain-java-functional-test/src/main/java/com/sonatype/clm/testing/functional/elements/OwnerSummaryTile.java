@@ -27,7 +27,7 @@ public class OwnerSummaryTile
   }
 
   public SelenideElement headerIcon() {
-    return child(".nx-page-title__page-icon", "img");
+    return child(".nx-icon", "img");
   }
 
   public SelenideElement contact() {

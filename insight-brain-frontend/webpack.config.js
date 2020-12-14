@@ -123,7 +123,7 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
         exclude: /node_modules|src[\/\\]main[\/\\]frontend[\/\\]lib[\/\\](protovis|Base64)/
       }, {
         ...babelLoaderBaseRule,
-        include: /node_modules[\/\\](fuse\.js|asn1.js|@uirouter)/
+        include: /node_modules[\/\\](fuse\.js|asn1.js|@uirouter|@react-hook)/
       }, {
         test: /\.jsx?$/,
         enforce: 'pre',

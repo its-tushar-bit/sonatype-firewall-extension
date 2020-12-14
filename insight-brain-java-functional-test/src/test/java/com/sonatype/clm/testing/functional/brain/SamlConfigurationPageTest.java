@@ -14,6 +14,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.Dropdown.Option;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.SamlConfigurationPage;
+import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
@@ -99,6 +100,7 @@ public class SamlConfigurationPageTest
     SamlConfigurationPage.identityProviderName().hover();
     Tooltip.get().shouldBe(visible).shouldBe(text("If empty will default to \"identity provider\""));
     SamlConfigurationPage.identityProviderName().clear();
+    ScrollUtil.scrollIntoView(SamlConfigurationPage.entityId());
     SamlConfigurationPage.entityId().click();
     SamlConfigurationPage.identityProviderName().shouldBe(value("identity provider"));
 

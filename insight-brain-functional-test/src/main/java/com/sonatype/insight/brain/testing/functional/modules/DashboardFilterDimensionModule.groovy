@@ -17,7 +17,7 @@ public class DashboardFilterDimensionModule
     counter { $('.iq-counter') }
     trigger { $('.iq-tree-view__trigger')}
     multiSelectList(required: false) { $('.iq-tree-view__child .iq-checkbox__label').moduleList(FilterCheckboxRow) }
-    nxMultiSelectList(required: false) { $('.nx-tree-view__child .nx-checkbox').module(NxFilterCheckboxRow) }
+    nxMultiSelectList(required: false) { $('.nx-tree-view__child.nx-checkbox').module(NxFilterCheckboxRow) }
     tooltip { module TooltipModule }
   }
 

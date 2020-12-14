@@ -76,7 +76,7 @@ module.exports = {
         test: /\.s?css$/,
         use: 'null-loader'
       }, {
-        test: /\.png$/,
+        test: /\.(png|svg)$/,
         loader: 'file-loader',
         options: {
           name: 'images/[name].[ext]'

@@ -81,12 +81,10 @@ export default function AdvancedSearchForm(props) {
                                      showCriteriaBuilder={showCriteriaBuilder}
                                      setShowCriteriaBuilder={setShowCriteriaBuilder}/>
       <AdvancedSearchHelp {...props} />
-      <section className="nx-tile">
-        <header className="nx-tile-header">
-          <div className="nx-tile-header__title">
-            <h2 id="advanced-search-result-count" className="nx-h2">Results: {totalNumberOfHits}</h2>
-          </div>
-          <div className="nx-tile__actions">
+      <section className="nx-tile iq-adv-search__results-control-tile">
+        <div className="nx-tile-content">
+          <h2 id="advanced-search-result-count" className="nx-h2">Results: {totalNumberOfHits}</h2>
+          <div className="nx-btn-bar">
             { numberOfPages() !== 0 &&
               <span id="advanced-search-current-page-info">Page {page} of {numberOfPages()}</span>
             }
@@ -99,7 +97,7 @@ export default function AdvancedSearchForm(props) {
               Next
             </NxButton>
           </div>
-        </header>
+        </div>
       </section>
     </Fragment>
   );

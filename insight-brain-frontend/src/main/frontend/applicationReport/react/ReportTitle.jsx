@@ -55,7 +55,7 @@ export default function ReportTitle(props) {
 
   return (
     <div className="nx-page-title">
-      <div className='iq-page-title__actions'>
+      <div className="nx-btn-bar">
         <NxButton className="nx-btn--tertiary" onClick={reevaluateReport}>
           <NxFontAwesomeIcon icon={faSync} />
           <span>Re-Evaluate Report</span>

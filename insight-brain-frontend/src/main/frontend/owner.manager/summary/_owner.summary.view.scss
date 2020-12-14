@@ -7,9 +7,12 @@
   Owner Summary View
  */
 
-.nx-page-title__page-icon {
+#owner-summary .nx-page-title .nx-h1 .nx-icon {
+  vertical-align: -2px;
+
   img {
     height: 26px;
+    vertical-align: baseline;
   }
 }
 

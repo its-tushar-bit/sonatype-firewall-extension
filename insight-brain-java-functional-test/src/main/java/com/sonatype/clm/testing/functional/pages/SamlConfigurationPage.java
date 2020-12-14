@@ -95,7 +95,7 @@ public class SamlConfigurationPage
 
   // Feedback is welcome.
   public static SelenideElement feedbackWelcomeLink() {
-    return $("#saml-configuration > div.iq-tile-content.iq-load-wrapper > div:nth-child(1) > div > p:nth-child(3) > a");
+    return $("#saml-feedback-link");
   }
 
   public static SelenideElement isConfiguredIcon() {

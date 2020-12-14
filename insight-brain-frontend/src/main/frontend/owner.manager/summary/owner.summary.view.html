@@ -1,7 +1,7 @@
 <div id="owner-summary" ng-controller="OwnerSummaryController as vm">
   <div load-wrapper="vm.error" loading="!vm.owner" reload="vm.doLoad()">
     <div class="nx-page-title iq-page-title">
-      <div class="iq-page-title__actions">
+      <div class="nx-btn-bar">
         <div class="iq-dropdown dropdown iq-pull-right" id="action-dropdown">
           <button class="iq-btn dropdown-toggle iq-btn--tertiary"
                   type="button"
@@ -89,9 +89,9 @@
           </div>
         </div>
       </div>
-      <span owner-image="vm.owner" class="nx-page-title__page-icon"></span>
       <h1 class="nx-h1">
-        {{vm.owner.name}} <span class="iq-owner-public-id" ng-if="vm.isApp">({{vm.owner.publicId}})</span>
+        <span owner-image="vm.owner" class="nx-icon"></span><span>{{vm.owner.name}}</span>
+        <span class="iq-owner-public-id" ng-if="vm.isApp">({{vm.owner.publicId}})</span>
       </h1>
       <div class="nx-page-title__description" ng-if="vm.owner.contact">
         <i class="fa fa-user size-12px iq-owner-contact-icon"></i>{{vm.owner.contact.displayName}}

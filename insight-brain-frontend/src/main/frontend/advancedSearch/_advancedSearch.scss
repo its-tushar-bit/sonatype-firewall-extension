@@ -139,3 +139,19 @@
     }
   }
 }
+
+.iq-adv-search__results-control-tile {
+  .nx-tile-content {
+    align-items: center;
+    display: flex;
+    padding: $nx-spacing-l;
+  }
+
+  .nx-h2 {
+    margin: 0 auto 0 0;
+  }
+
+  .nx-btn-bar {
+    margin: 0;
+  }
+}

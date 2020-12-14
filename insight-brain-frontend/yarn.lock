@@ -321,15 +321,35 @@
   resolved "https://repo.sonatype.com/repository/npm-all/@nodelib/fs.stat/-/fs.stat-1.1.3.tgz#2b5a3ab3f918cca48a8c754c08168e3f03eba61b"
   integrity sha512-shAmDyaQC4H92APFoIaVDHCx5bStIocgvbwQyxPRrbUY20V1EYTbSDchWbuwlMG3V17cprZhA6+78JfB+3DTPw==
 
-"@sonatype/react-shared-components@^2.4.1":
-  version "2.6.3"
-  resolved "https://repo.sonatype.com/repository/npm-all/@sonatype/react-shared-components/-/react-shared-components-2.6.3.tgz#4cf56b8e8bbcc86a0c4976f066e1ab4047a18661"
-  integrity sha512-14k0ZJTmUwvegVi02zVD7RnlhFOnDW93E7bWQ6b0fSHpFO8jeh61u0H6TASszyz37bBlGV7k0RtXKv8rHnLATw==
+"@react-hook/latest@^1.0.2":
+  version "1.0.3"
+  resolved "https://repo.sonatype.com/repository/npm-all/@react-hook/latest/-/latest-1.0.3.tgz#c2d1d0b0af8b69ec6e2b3a2412ba0768ac82db80"
+  integrity sha512-dy6duzl+JnAZcDbNTfmaP3xHiKtbXYOaz3G51MGVljh548Y8MWzTr+PHLOfvpypEVW9zwvl+VyKjbWKEVbV1Rg==
+
+"@react-hook/passive-layout-effect@^1.2.0":
+  version "1.2.1"
+  resolved "https://repo.sonatype.com/repository/npm-all/@react-hook/passive-layout-effect/-/passive-layout-effect-1.2.1.tgz#c06dac2d011f36d61259aa1c6df4f0d5e28bc55e"
+  integrity sha512-IwEphTD75liO8g+6taS+4oqz+nnroocNfWVHWz7j+N+ZO2vYrc6PV1q7GQhuahL0IOR7JccFTsFKQ/mb6iZWAg==
+
+"@react-hook/resize-observer@^1.1.0":
+  version "1.1.0"
+  resolved "https://repo.sonatype.com/repository/npm-all/@react-hook/resize-observer/-/resize-observer-1.1.0.tgz#cb433810894c75f4ced87254507dd84808a7f13b"
+  integrity sha512-ERM7omDqG/ZzNQz061XHCfYXxGiX68Y46sVi8/ZHjjz7NbZQSxt+dnGkhfEbfsK+JxIzSqSfiXh2pNUl6aYQWA==
+  dependencies:
+    "@react-hook/latest" "^1.0.2"
+    "@react-hook/passive-layout-effect" "^1.2.0"
+    resize-observer-polyfill "^1.5.1"
+
+"@sonatype/react-shared-components@^2.18.2":
+  version "2.18.2"
+  resolved "https://repo.sonatype.com/repository/npm-all/@sonatype/react-shared-components/-/react-shared-components-2.18.2.tgz#76cb3db7cffb4a76a8aaf0716b308a56efe2da2b"
+  integrity sha512-etoS6KFjf/8grF5+IQRzrQDntiUwMir3aCK/tRXCVveIpviv/0c4fD79Rpxq1/V+4XiEw5ygUiqEOdvJ4ovEfg==
   dependencies:
     "@fortawesome/fontawesome-svg-core" "1.2.17"
     "@fortawesome/free-solid-svg-icons" "=5.8.1"
     "@fortawesome/react-fontawesome" "=0.1.4"
     "@material-ui/core" "4.5.0"
+    "@react-hook/resize-observer" "^1.1.0"
     "@types/classnames" "=2.2.7"
     "@types/prop-types" "15.7.1"
     "@types/ramda" "0.26.8"
@@ -9053,6 +9073,11 @@ requires-port@^1.0.0:
   version "1.0.0"
   resolved "https://repo.sonatype.com/repository/npm-all/requires-port/-/requires-port-1.0.0.tgz#925d2601d39ac485e091cf0da5c6e694dc3dcaff"
   integrity sha1-kl0mAdOaxIXgkc8NpcbmlNw9yv8=
+
+resize-observer-polyfill@^1.5.1:
+  version "1.5.1"
+  resolved "https://repo.sonatype.com/repository/npm-all/resize-observer-polyfill/-/resize-observer-polyfill-1.5.1.tgz#0e9020dd3d21024458d4ebd27e23e40269810464"
+  integrity sha512-LwZrotdHOo12nQuZlHEmtuXdqGoOD0OhaxopaNFxWzInpEgaLWoVuAMbTzixuosCx2nEG58ngzW3vxdWoxIgdg==
 
 resolve-cwd@^2.0.0:
   version "2.0.0"

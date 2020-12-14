@@ -6,8 +6,10 @@
 
 import {noPayloadActionCreator, payloadParamActionCreator} from '../../util/reduxUtil';
 import axios from 'axios';
+import {debounce} from 'debounce';
 import {
   getCompositeSourceControlUrl,
+  getValidateScmConfigUrl,
   getScmOnboardingConfigUrl,
   getOrganizationsUrl,
   getScmRepositoriesUrl,
@@ -47,6 +49,10 @@ export const SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FAILED = 'SCM_ONBOARDING_LOAD_COM
 export const SCM_ONBOARDING_SET_SORTING_PARAMETERS = 'SCM_ONBOARDING_SET_SORTING_PARAMETERS';
 export const SCM_ONBOARDING_SET_SORTING = 'SCM_ONBOARDING_SET_SORTING';
 
+export const SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_REQUESTED = 'SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_REQUESTED';
+export const SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FULFILLED = 'SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FULFILLED';
+export const SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FAILED = 'SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FAILED';
+
 export function loadConfig() {
   return function(dispatch) {
     dispatch(loadConfigRequested());
@@ -55,6 +61,20 @@ export function loadConfig() {
         .then(({ data }) => { dispatch(loadConfigFulfilled(data)); })
         .catch(error => { dispatch(loadConfigFailed(error)); });
   };
+}
+
+const validateScmHostUrlDebounceTimeout = 300;
+
+const validateScmHostUrlDebounce = debounce((dispatch, scmProvider, scmHostUrl) => {
+  dispatch(validateScmHostUrlRequested());
+
+  return axios.get(getValidateScmConfigUrl(scmProvider, scmHostUrl))
+      .then(({ data }) => { dispatch(validateScmHostUrlFulfilled(data)); })
+      .catch(error => { dispatch(validateScmHostUrlFailed(error)); });
+}, validateScmHostUrlDebounceTimeout);
+
+export function validateScmHostUrl(scmProvider, scmHostUrl) {
+  return (dispatch) => validateScmHostUrlDebounce(dispatch, scmProvider, scmHostUrl);
 }
 
 export function loadOrganizations(preselectedOrganizationId) {
@@ -151,11 +171,17 @@ const loadCompositeSourceControlFailed = payloadParamActionCreator(SCM_ONBOARDIN
 export const setSorting = payloadParamActionCreator(SCM_ONBOARDING_SET_SORTING);
 const setSortingParamDispatch = payloadParamActionCreator(SCM_ONBOARDING_SET_SORTING_PARAMETERS);
 
+const validateScmHostUrlRequested = noPayloadActionCreator(SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_REQUESTED);
+const validateScmHostUrlFulfilled = payloadParamActionCreator(
+    SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FULFILLED);
+const validateScmHostUrlFailed = payloadParamActionCreator(SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FAILED);
+
 export default function scmOnboarding() {
   return {
     setSelectedOrganization,
     setCurrentHostUrl,
     loadCompositeSourceControl,
+    validateScmHostUrl,
     loadConfig,
     loadOrganizations,
     loadRepositories,

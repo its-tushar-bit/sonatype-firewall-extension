@@ -5,9 +5,12 @@
  */
 import {createReducerFromActionMap} from '../../util/reduxUtil';
 import {
-  SCM_ONBOARDING_LOAD_COMPOSITE_SCM_REQUESTED,
+  SCM_ONBOARDING_IMPORT_REPOS_FAILED,
+  SCM_ONBOARDING_IMPORT_REPOS_FULFILLED,
+  SCM_ONBOARDING_IMPORT_REPOS_REQUESTED,
   SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FAILED,
   SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FULFILLED,
+  SCM_ONBOARDING_LOAD_COMPOSITE_SCM_REQUESTED,
   SCM_ONBOARDING_LOAD_CONFIG_FAILED,
   SCM_ONBOARDING_LOAD_CONFIG_FULFILLED,
   SCM_ONBOARDING_LOAD_CONFIG_REQUESTED,
@@ -20,16 +23,19 @@ import {
   SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED,
   SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED,
   SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED,
-  SCM_ONBOARDING_IMPORT_REPOS_REQUESTED,
-  SCM_ONBOARDING_IMPORT_REPOS_FULFILLED,
   SCM_ONBOARDING_SET_CURRENT_HOST_URL,
-  SCM_ONBOARDING_SET_TARGET_ORGANIZATION,
-  SCM_ONBOARDING_IMPORT_REPOS_FAILED,
+  SCM_ONBOARDING_SET_SORTING,
   SCM_ONBOARDING_SET_SORTING_PARAMETERS,
-  SCM_ONBOARDING_SET_SORTING
+  SCM_ONBOARDING_SET_TARGET_ORGANIZATION,
+  SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FAILED,
+  SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FULFILLED,
+  SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_REQUESTED
 } from './scmOnboardingActions';
 import {Messages} from '../../util/CommonServices';
-import { sortItemsByFields } from '../../util/sortUtils';
+import {sortItemsByFields} from '../../util/sortUtils';
+import * as textInputStateHelpers from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
+import {validateHostUrl} from './utils/validators';
+import {hasValidationErrors} from '../../util/validationUtil';
 
 const initialState = {
   configState: {
@@ -42,6 +48,7 @@ const initialState = {
     loadingOrganizations: false,
     loadingRepositories: false,
     loadingCompositeSourceControl: false,
+    validatingCompositeSourceControl: false,
 
     lastErrorMessage: null
   },
@@ -55,7 +62,7 @@ const initialState = {
     totalRepositories: 0,
     newlyImportedRepos: [],
     defaultHostUrl: '',
-    currentHostUrl: '',
+    currentHostUrlState: textInputStateHelpers.initialState(''),
     failedImportCount: 0
   },
   sortConfiguration: {
@@ -253,20 +260,20 @@ function loadOrgDefaultHostUrlRequested(payload, state) {
     formState: {
       ...state.formState,
       defaultHostUrl: '',
-      currentHostUrl: ''
+      currentHostUrlState: textInputStateHelpers.initialState('')
     }
   };
 }
 
 function loadOrgDefaultHostUrlFulfilled(payload, state) {
-  if (state.formState.currentHostUrl === state.formState.defaultHostUrl) {
+  if (state.formState.currentHostUrlState.value === state.formState.defaultHostUrl) {
     // user has not changed the current value from the default, safe to update both
     return {
       ...state,
       formState: {
         ...state.formState,
         defaultHostUrl: payload.defaultHostUrl,
-        currentHostUrl: payload.defaultHostUrl
+        currentHostUrlState: textInputStateHelpers.initialState(payload.defaultHostUrl)
       }
     };
   }
@@ -291,17 +298,7 @@ function loadOrgDefaultHostUrlFailed(payload, state) {
     formState: {
       ...state.formState,
       defaultHostUrl: '',
-      currentHostUrl: ''
-    }
-  };
-}
-
-function setCurrentHostUrl(payload, state) {
-  return {
-    ...state,
-    formState: {
-      ...state.formState,
-      currentHostUrl: payload
+      currentHostUrlState: textInputStateHelpers.initialState('')
     }
   };
 }
@@ -372,6 +369,63 @@ function setSorting(payload, state) {
   };
 }
 
+function validateScmHostUrlRequested(payload, state) {
+  return {
+    ...state,
+    viewState: {
+      ...state.viewState,
+      validatingCompositeSourceControl: true
+    }
+  };
+}
+
+function validateScmHostUrlFulfilled(payload, state) {
+  return {
+    ...state,
+    viewState: {
+      ...state.viewState,
+      validatingCompositeSourceControl: false
+    },
+    formState: {
+      ...state.formState,
+      currentHostUrlState: {
+        ...state.formState.currentHostUrlState,
+        validationErrors: payload.isValid ? null : payload.errorMessages
+      }
+    }
+  };
+}
+
+function validateScmHostUrlFailed(payload, state) {
+  return {
+    ...state,
+    viewState: {
+      ...state.viewState,
+      validatingCompositeSourceControl: false,
+      lastErrorMessage: Messages.getHttpErrorMessage(payload)
+    }
+  };
+}
+
+function setCurrentHostUrl(payload, state) {
+  // stop the visual input validation feedback in the form flip between red and green on every keystroke
+  // aka: given existing data is invalid (red) when data is changed to pass local validation but fail server validation
+  //      don't change the UI to valid (green) then back to invalid (red) when the server side check completes
+  //      instead keep the invalid state and wait for the server side check to complete
+  let currentErrors = validateHostUrl(payload);
+  let previousErrors = state.formState.currentHostUrlState.validationErrors;
+  let validator = payload && hasValidationErrors(previousErrors) && !hasValidationErrors(currentErrors)
+    ? () => previousErrors : validateHostUrl;
+
+  return {
+    ...state,
+    formState: {
+      ...state.formState,
+      currentHostUrlState: textInputStateHelpers.userInput(validator, payload)
+    }
+  };
+}
+
 const reducerActionMap = {
   [SCM_ONBOARDING_LOAD_CONFIG_REQUESTED]: loadConfigRequested,
   [SCM_ONBOARDING_LOAD_CONFIG_FULFILLED]: loadConfigFulfilled,
@@ -402,7 +456,11 @@ const reducerActionMap = {
   [SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FAILED]: loadCompositeSourceControlFailed,
 
   [SCM_ONBOARDING_SET_SORTING_PARAMETERS]: setSortingParameters,
-  [SCM_ONBOARDING_SET_SORTING]: setSorting
+  [SCM_ONBOARDING_SET_SORTING]: setSorting,
+
+  [SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_REQUESTED]: validateScmHostUrlRequested,
+  [SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FULFILLED]: validateScmHostUrlFulfilled,
+  [SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FAILED]: validateScmHostUrlFailed
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

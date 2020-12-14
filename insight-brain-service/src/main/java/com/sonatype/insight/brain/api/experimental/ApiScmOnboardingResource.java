@@ -21,6 +21,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.experimental.dto.SCMRepositories;
+import com.sonatype.insight.brain.api.experimental.dto.ValidationResponse;
 import com.sonatype.nexus.scm.api.model.SCMRepository;
 
 import com.codahale.metrics.annotation.Timed;
@@ -43,6 +44,8 @@ public class ApiScmOnboardingResource
   static final String IMPORT_REPO_PATH = "import-repositories/{orgId}";
 
   static final String DEFAULT_HOST_URL = "default-host-url";
+
+  static final String VALIDATE_SCM_HOST_URL = "validate/{scmProvider}";
 
   private final ApiScmOnboardingService apiScmOnboardingService;
 
@@ -80,5 +83,15 @@ public class ApiScmOnboardingResource
       final List<SCMRepository> scmRepositories)
   {
     return apiScmOnboardingService.importRepositories(orgId, scmRepositories);
+  }
+
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path(VALIDATE_SCM_HOST_URL)
+  public ValidationResponse validateScmHostUrl(
+      @PathParam("scmProvider") String scmProvider,
+      @QueryParam("scmHostUrl") String scmHostUrl)
+  {
+    return apiScmOnboardingService.validateScmHostUrl(scmProvider, scmHostUrl);
   }
 }

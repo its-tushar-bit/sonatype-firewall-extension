@@ -112,6 +112,10 @@ public class ScmOnboardingPage
     return child("#iq-scm-default-host-field");
   }
 
+  public SelenideElement hostUrlInvalidMessage() {
+    return child(".host-url-tile .nx-text-input__invalid-message");
+  }
+
   public SelenideElement reloadRepoButton() {
     return child("#iq-scm-load-button");
   }

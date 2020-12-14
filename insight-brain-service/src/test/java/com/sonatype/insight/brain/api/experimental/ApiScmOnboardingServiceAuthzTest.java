@@ -9,6 +9,7 @@ import java.util.Collections;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -103,5 +104,22 @@ public class ApiScmOnboardingServiceAuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void test_importRepositories_Unauthenticated() throws Exception {
     apiScmOnboardingService.importRepositories(org.getId(), Collections.emptyList());
+  }
+
+  @Test
+  public void testCheckScmUrl_Authorized() {
+    grantGlobalPermission(Permission.READ);
+    apiScmOnboardingService.validateScmHostUrl("GITHUB", "https://github.com/org/proj");
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testCheckScmUrl_Unauthenticated() {
+    apiScmOnboardingService.validateScmHostUrl("GITHUB", "https://github.com/org/proj");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testCheckScmUrl_Unauthorized() {
+    login();
+    apiScmOnboardingService.validateScmHostUrl("GITHUB", "https://github.com/org/proj");
   }
 }

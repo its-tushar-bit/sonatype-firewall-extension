@@ -9,12 +9,14 @@ import {
   getOrganizationsUrl,
   getScmDefaultHostUrl,
   getScmRepositoriesUrl,
-  getCompositeSourceControlUrl
+  getCompositeSourceControlUrl,
+  getValidateScmConfigUrl
 } from '../../../../main/frontend/util/CLMLocation';
 
 describe('scmOnboardingActions', function() {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios),
       manifestScanConfigUrl = getScmOnboardingConfigUrl(),
+      validateScmHostUrl = getValidateScmConfigUrl('provider', 'http://host/'),
       scmOnboardingConfigPayload = {
         scmOnboardingFeatureEnabled: true
       },
@@ -299,6 +301,82 @@ describe('scmOnboardingActions', function() {
       expect(store.getActions().length).toBe(1);
       expect(axios.get).toHaveBeenCalledWith(getScmDefaultHostUrl('orgId', 'github'));
       expect(store.getActions()[0]).toEqual({type: 'SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_REQUESTED'});
+    });
+  });
+
+  describe('validateScmHostUrl', function() {
+
+    const validateScmHostUrlPayload = {
+      scmUrlIsValid: false,
+      scmUrlErrorMessage: 'BOOM'
+    };
+
+    // Mock clock to test debounce
+    beforeAll(() => jasmine.clock().install());
+    afterAll(() => jasmine.clock().uninstall());
+
+    afterEach(function() {
+      expect(axios.get).toHaveBeenCalledWith(validateScmHostUrl);
+    });
+
+    it('dispatches a SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_REQUESTED action', function() {
+      mockAxiosCalls({
+        get: {
+          [validateScmHostUrl]: Promise.resolve(validateScmHostUrlPayload)
+        }
+      });
+
+      jasmine.clock().mockDate();
+
+      store.dispatch(scmOnboardingActions.validateScmHostUrl('provider', 'http://host/'));
+
+      // dispatches no actions until debounce timeout has passed
+      expect(store.getActions().length).toBe(0);
+
+      // turn forward the time
+      jasmine.clock().mockDate(new Date.now() + 3000);
+      jasmine.clock().tick(3000);
+
+      // after the debounce timeout the request is dispatched
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe('SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_REQUESTED');
+      expect(actions[0].payload).toBeUndefined();
+    });
+
+    describe('after successful GET call', function() {
+
+      beforeEach(function() {
+        mockAxiosCalls({
+          get: {
+            [validateScmHostUrl]: Promise.resolve(validateScmHostUrlPayload)
+          }
+        });
+      });
+
+      it('dispatches SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FULFILLED', function(done) {
+
+        store.dispatch(scmOnboardingActions.validateScmHostUrl('provider', 'http://host/'))
+            .then(() => {
+              actions = store.getActions();
+              expect(actions.length).toBe(1);
+              expect(actions[0].type).toBe('SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_REQUESTED');
+              done();
+            })
+            .then(() => {
+              actions = store.getActions();
+              expect(actions.length).toBe(2);
+              expect(actions[1].type).toBe('SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FULFILLED');
+              done();
+            });
+
+        let actions = store.getActions();
+        expect(actions.length).toBe(0);
+
+        // turn time forwards to allow request to continue
+        jasmine.clock().mockDate(new Date.now() + 3000);
+        jasmine.clock().tick(3000);
+      });
     });
   });
 });

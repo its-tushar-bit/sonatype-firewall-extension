@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.ScmOnboardingPage;
@@ -473,8 +474,8 @@ public class ScmOnboardingTest
     scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.size(0));
 
     // and they are not there when the filter is updated
-    scmOnboardingPage.projectFilter().sendKeys(Keys.CONTROL, "a");
-    scmOnboardingPage.projectFilter().sendKeys(Keys.BACK_SPACE);
+    scmOnboardingPage.projectFilter().sendKeys(IntStream.range(0, 3)
+        .mapToObj(i -> Keys.BACK_SPACE).toArray(CharSequence[]::new));
     scmOnboardingPage.resultsTableSelectAll().parent().click();
     scmOnboardingPage.repositoryCount().shouldBe(text("11"));
     scmOnboardingPage.selectedTotalCount().shouldBe(text("OF 11 REPOSITORIES"));
@@ -761,6 +762,40 @@ public class ScmOnboardingTest
     assertThat(descriptionTexts).isSortedAccordingTo(Comparator.reverseOrder());
   }
 
+  @Test
+  public void testValidation() throws Exception {
+    // given a mock git service
+    setupMockRepos();
+    setupSourceControl();
+
+    // given SCM onboarding page with a selected organization
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
+    loginAsAdmin();
+
+    // empty field
+    scmOnboardingPage.hostUrl().clear();
+    scmOnboardingPage.hostUrlInvalidMessage().shouldBe(hidden);
+
+    // invalid data
+    scmOnboardingPage.hostUrl().setValue("f");
+    scmOnboardingPage.hostUrlInvalidMessage().shouldBe(text("Not a valid URL"));
+
+    // invalid protocol
+    scmOnboardingPage.hostUrl().setValue("tp://h");
+    scmOnboardingPage.hostUrlInvalidMessage().shouldBe(text("Protocol must be http or https"));
+
+    // valid URL
+    scmOnboardingPage.hostUrl().setValue("http://host");
+    scmOnboardingPage.hostUrlInvalidMessage().shouldBe(hidden);
+
+    // server side validation (server calls are async so wait is needed)
+    scmOnboardingPage.hostUrl().sendKeys(Keys.SPACE);
+    scmOnboardingPage.hostUrlInvalidMessage().shouldBe(hidden);
+    scmOnboardingPage.hostUrlInvalidMessage().shouldBe(text("Unable to parse repository URL: " +
+        "java.net.URISyntaxException: Illegal character in authority at index 7: http://host"));
+  }
+  
   @Test
   public void testPagination() throws Exception {
     // given an SCM with git repos that are unsorted initially

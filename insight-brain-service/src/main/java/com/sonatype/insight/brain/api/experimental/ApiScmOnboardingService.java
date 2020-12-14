@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.api.experimental;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -19,6 +18,7 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.api.experimental.dto.SCMRepositories;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiCompositeSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiCompositeSourceControlService;
+import com.sonatype.insight.brain.api.experimental.dto.ValidationResponse;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -44,6 +44,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.nexus.git.utils.repository.RepositoryUrlFinderUtils.sanitizeUrl;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.counting;
 
 /**
@@ -163,7 +165,7 @@ public class ApiScmOnboardingService
   }
 
   private String getMostCommonRepoBaseUrlForOrg(final String orgId, SourceControlProvider provider) {
-    List<SourceControl> sourceControls = Collections.emptyList();
+    List<SourceControl> sourceControls = emptyList();
     if (StringUtils.isNotEmpty(orgId)) {
       sourceControls =
           sourceControlDAO.getApplicationSourceControlsByOrganizationWithRepositories(orgId);
@@ -247,6 +249,26 @@ public class ApiScmOnboardingService
       }
     }
     return new ImportResults(importedRepos, failedImportCount);
+  }
+
+  @Authorize(permission = Permission.READ)
+  public ValidationResponse validateScmHostUrl(final String scmProvider, final String scmHostUrl) {
+    try {
+      return new ValidationResponse(checkScmUrl(SourceControlProvider.valueOf(scmProvider.toUpperCase()), scmHostUrl));
+    }
+    catch (IllegalArgumentException e) {
+      return new ValidationResponse(singletonList("Invalid SCM provider."));
+    }
+  }
+
+  private List<String> checkScmUrl(final SourceControlProvider provider, final String scmUrl) {
+    try {
+      new GitApiClientFactory().getGitApiClientUtils(provider).getBaseApiUrl(scmUrl);
+      return emptyList();
+    }
+    catch (IllegalArgumentException e) {
+      return singletonList(e.getMessage());
+    }
   }
 
   private void importRepository(final String orgId, final SCMRepository scmRepository) {

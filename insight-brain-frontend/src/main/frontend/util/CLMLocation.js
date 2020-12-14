@@ -125,6 +125,10 @@ export function getImportRepositoriesUrl(organizationId) {
   return uriTemplate`/api/experimental/onboarding/import-repositories/${organizationId}`;
 }
 
+export function getValidateScmConfigUrl(scmProvider, scmHostUrl) {
+  return uriTemplate`/api/experimental/onboarding/validate/${scmProvider}?scmHostUrl=${scmHostUrl}`;
+}
+
 export function getCompositeSourceControlUrl(ownerType, ownerId) {
   return uriTemplate`/api/v2/compositeSourceControl/${ownerType}/${ownerId}`;
 }

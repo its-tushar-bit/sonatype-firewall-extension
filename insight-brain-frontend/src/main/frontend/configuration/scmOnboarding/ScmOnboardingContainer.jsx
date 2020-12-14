@@ -19,6 +19,7 @@ function mapStateToProps({ scmOnboarding, router }) {
     // compositeSourceControl data
     isScmTokenConfigured: scmOnboarding.configState.isScmTokenConfigured,
     loadingCompositeSourceControl: scmOnboarding.viewState.loadingCompositeSourceControl,
+    validateScmHostUrl: scmOnboarding.viewState.validateScmHostUrl,
 
     // organizations
     loadingOrganizations: scmOnboarding.viewState.loadingOrganizations,
@@ -36,7 +37,7 @@ function mapStateToProps({ scmOnboarding, router }) {
 
     // host URL
     defaultHostUrl: scmOnboarding.formState.defaultHostUrl,
-    currentHostUrl: scmOnboarding.formState.currentHostUrl,
+    currentHostUrlState: scmOnboarding.formState.currentHostUrlState,
 
     // sorting
     sortConfiguration: scmOnboarding.sortConfiguration,
@@ -65,6 +66,7 @@ ScmOnboardingContainer.propTypes = {
   scmOnboardingActions: PropTypes.shape({
     loadConfig: PropTypes.func.isRequired,
     loadOrganizations: PropTypes.func.isRequired,
-    loadRepositories: PropTypes.func.isRequired
+    loadRepositories: PropTypes.func.isRequired,
+    validateScmHostUrl: PropTypes.func.isRequired
   })
 };

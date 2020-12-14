@@ -44,6 +44,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -443,5 +444,23 @@ public class ApiScmOnboardingServiceTest
         .collect(Collectors.toList());
     assertThat(allSourceControlApps.stream().map(Application::getPublicId))
         .containsExactlyInAnyOrder("repo1__org");
+  }
+
+  @Test
+  public void testValidation() {
+    // expect null response when no error is found
+    assertThat(apiScmOnboardingService.validateScmHostUrl("github", "http://example.com/").isValid).isTrue();
+
+    // expect provider to be case insensitive
+    assertThat(apiScmOnboardingService.validateScmHostUrl("GiThUb", "http://example.com/").isValid).isTrue();
+
+    // expect server side parsing error messages
+    assertThat(apiScmOnboardingService.validateScmHostUrl("github", "http://example.com/ ").errorMessages)
+        .isEqualTo(singletonList("Unable to parse repository URL: java.net.URISyntaxException: Illegal character in " +
+            "path at index 19: http://example.com/ "));
+
+    // expect provider to be case insensitive
+    assertThat(apiScmOnboardingService.validateScmHostUrl("invalid", "http://example.com/").errorMessages)
+        .isEqualTo(singletonList("Invalid SCM provider."));
   }
 }

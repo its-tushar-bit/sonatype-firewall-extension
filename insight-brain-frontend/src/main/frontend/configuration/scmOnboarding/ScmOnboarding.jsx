@@ -13,6 +13,8 @@ import ResultsTable from './components/ResultsTable';
 import {faSitemap} from '@fortawesome/pro-regular-svg-icons';
 import NxButton from '@sonatype/react-shared-components/components/NxButton/NxButton';
 import {NxSuccessAlert, NxErrorAlert, NxInfoAlert} from '@sonatype/react-shared-components/components/NxAlert/NxAlert';
+import {validateHostUrl} from './utils/validators';
+import {hasValidationErrors} from '../../util/validationUtil';
 
 const permissionsError = `It appears you do not have permission to access this page.
         If you believe this to be incorrect please contact your administrator.`,
@@ -31,6 +33,7 @@ export default function ScmOnboarding(props) {
     loadOrganizations,
     loadRepositories,
     loadCompositeSourceControl,
+    validateScmHostUrl,
     importSelectedRepositories,
     onRepositorySelectionChanged,
     loadOrgHostUrl,
@@ -55,7 +58,7 @@ export default function ScmOnboarding(props) {
 
     // host URL
     defaultHostUrl,
-    currentHostUrl,
+    currentHostUrlState,
 
     // from angular URL router
     isAuthorized,
@@ -98,7 +101,7 @@ export default function ScmOnboarding(props) {
 
   useEffect(() => {
     if (preselectedOrganizationId && defaultHostUrl) {
-      loadRepositories(preselectedOrganizationId, currentHostUrl);
+      loadRepositories(preselectedOrganizationId, currentHostUrlState.value);
     }
   }, [defaultHostUrl]);
 
@@ -126,7 +129,14 @@ export default function ScmOnboarding(props) {
 
   function handleLoadRepositories(event) {
     event.preventDefault();
-    loadRepositories(preselectedOrganizationId, currentHostUrl);
+    loadRepositories(preselectedOrganizationId, currentHostUrlState.value ? currentHostUrlState.value : defaultHostUrl);
+  }
+
+  function validateAndSetCurrentHostUrl(value) {
+    setCurrentHostUrl(value);
+    if (value && !hasValidationErrors(validateHostUrl(value))) {
+      validateScmHostUrl(scmProvider, value);
+    }
   }
 
   return (
@@ -176,16 +186,17 @@ export default function ScmOnboarding(props) {
                       <label className="nx-label">
                         <span className="nx-label__text">Host URL</span>
                         <NxTextInput id="iq-scm-default-host-field"
-                                     isPristine={defaultHostUrl === currentHostUrl}
-                                     onChange={setCurrentHostUrl}
-                                     value={currentHostUrl}/>
+                                     { ...currentHostUrlState }
+                                     onChange={validateAndSetCurrentHostUrl}
+                                     validatable={true}
+                                     placeholder={defaultHostUrl}/>
                       </label>
                     </div>
                     <div className="nx-btn-bar">
                       <NxButton
                           id="iq-scm-load-button"
                           variant="primary"
-                          disabled={loadingRepositories}
+                          disabled={loadingRepositories || hasValidationErrors(currentHostUrlState.validationErrors) }
                           onClick={handleLoadRepositories}>
                         Reload Repositories
                       </NxButton>
@@ -230,6 +241,13 @@ export const repositoryPropType = {
   description: PropTypes.string,
   isSelected: PropTypes.bool,
   isImported: PropTypes.bool
+};
+
+const textInputPropType = {
+  value: PropTypes.string.isRequired,
+  trimmedValue: PropTypes.string.isRequired,
+  isPristine: PropTypes.bool.isRequired,
+  validationErrors: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.string.isRequired), PropTypes.string])
 };
 
 ScmOnboarding.propTypes = {
@@ -277,10 +295,11 @@ ScmOnboarding.propTypes = {
   onRepositorySelectionChanged: PropTypes.func.isRequired,
   setCurrentHostUrl: PropTypes.func.isRequired,
   loadCompositeSourceControl: PropTypes.func.isRequired,
+  validateScmHostUrl: PropTypes.func.isRequired,
 
   // base URL
   defaultHostUrl: PropTypes.string,
-  currentHostUrl: PropTypes.string,
+  currentHostUrlState: PropTypes.shape(textInputPropType),
 
   // errors
   lastErrorMessage: PropTypes.string

@@ -38,7 +38,10 @@ import static com.sonatype.insight.brain.api.experimental.ApiScmOnboardingResour
 import static com.sonatype.insight.brain.api.experimental.ApiScmOnboardingResource.IMPORT_REPO_PATH;
 import static com.sonatype.insight.brain.api.experimental.ApiScmOnboardingResource.LOAD_REPO_PATH;
 import static com.sonatype.insight.brain.api.experimental.ApiScmOnboardingResource.RESOURCE_PATH;
+import static com.sonatype.insight.brain.api.experimental.ApiScmOnboardingResource.VALIDATE_SCM_HOST_URL;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiScmOnboardingResourceTest
@@ -154,5 +157,60 @@ public class ApiScmOnboardingResourceTest
 
     // then the response is NOT_FOUND
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SC_NOT_FOUND);
+  }
+
+  @Test
+  public void testCheckScmUrl_valid() throws Exception {
+    // when validating the SCM URL
+    HttpResponse response = restRequest().path(VALIDATE_SCM_HOST_URL)
+        .parameter("github")
+        .query("scmHostUrl", "https://github.com")
+        .get();
+
+    // then result is OK
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SC_OK);
+
+    // and value is present
+    @SuppressWarnings("unchecked")
+    Map<String, Object> responseMap = response.getBody(Map.class);
+    assertThat(responseMap).containsEntry("isValid", true)
+        .containsEntry("errorMessages", emptyList());
+  }
+
+  @Test
+  public void testCheckScmUrl_invalidUrl() throws Exception {
+    // when validating the SCM URL
+    HttpResponse response = restRequest().path(VALIDATE_SCM_HOST_URL)
+        .parameter("github")
+        .query("scmHostUrl", "I n v a l i d")
+        .get();
+
+    // then result is OK
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SC_OK);
+
+    // and value is present
+    @SuppressWarnings("unchecked")
+    Map<String, Object> responseMap = response.getBody(Map.class);
+    assertThat(responseMap).containsEntry("isValid", false)
+        .containsEntry("errorMessages", singletonList("Unable to parse repository URL: " +
+            "java.net.URISyntaxException: Illegal character in path at index 1: I n v a l i d"));
+  }
+
+  @Test
+  public void testCheckScmUrl_invalidProvider() throws Exception {
+    // when validating the SCM URL
+    HttpResponse response = restRequest().path(VALIDATE_SCM_HOST_URL)
+        .parameter("invalid")
+        .query("scmHostUrl", "http://example.com/")
+        .get();
+
+    // then result is OK
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SC_OK);
+
+    // and value is present
+    @SuppressWarnings("unchecked")
+    Map<String, Object> responseMap = response.getBody(Map.class);
+    assertThat(responseMap).containsEntry("isValid", false)
+        .containsEntry("errorMessages", singletonList("Invalid SCM provider."));
   }
 }

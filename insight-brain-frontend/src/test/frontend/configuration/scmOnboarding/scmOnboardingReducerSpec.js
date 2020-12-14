@@ -5,6 +5,7 @@
  */
 
 import reduce from '../../../../main/frontend/configuration/scmOnboarding/scmOnboardingReducer';
+import { initialState } from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
 
 describe('scmOnboardingReducer', function() {
   let otherObject;
@@ -331,7 +332,7 @@ describe('scmOnboardingReducer', function() {
         other: otherObject,
         formState: {
           defaultHostUrl: '',
-          currentHostUrl: ''
+          currentHostUrlState: initialState('')
         }
       });
 
@@ -347,19 +348,19 @@ describe('scmOnboardingReducer', function() {
 
       // then state is updated
       expect(newState.formState.defaultHostUrl).toEqual('https://github.com/');
-      expect(newState.formState.currentHostUrl).toEqual('https://github.com/');
+      expect(newState.formState.currentHostUrlState).toEqual(initialState('https://github.com/'));
 
       // and other properties are not modified
       expect(newState.other).toBe(otherObject);
     });
 
-    it('doesn\'t override currentHostUrl', function() {
+    it('doesn\'t override currentHostUrlState', function() {
       // given a dirty host URL state
       const state = Object.freeze({
         other: otherObject,
         formState: {
           defaultHostUrl: '',
-          currentHostUrl: 'http://example.com'
+          currentHostUrlState: initialState('http://example.com')
         }
       });
 
@@ -375,7 +376,7 @@ describe('scmOnboardingReducer', function() {
 
       // then default host url is updated
       expect(newState.formState.defaultHostUrl).toEqual('https://github.com/');
-      expect(newState.formState.currentHostUrl).toEqual('http://example.com');
+      expect(newState.formState.currentHostUrlState).toEqual(initialState('http://example.com'));
 
       // and other properties are not modified
       expect(newState.other).toBe(otherObject);
@@ -391,7 +392,7 @@ describe('scmOnboardingReducer', function() {
         },
         formState: {
           defaultHostUrl: 'http://example.com/',
-          currentHostUrl: 'http://example.org/'
+          currentHostUrlState: 'http://example.org/'
         },
         other: otherObject
       });
@@ -406,7 +407,7 @@ describe('scmOnboardingReducer', function() {
         },
         formState: {
           defaultHostUrl: '',
-          currentHostUrl: ''
+          currentHostUrlState: initialState('')
         },
         other: otherObject
       });
@@ -415,28 +416,85 @@ describe('scmOnboardingReducer', function() {
   });
 
   describe('SCM_ONBOARDING_SET_CURRENT_HOST_URL action', function() {
-    it('sets the default host URL', function() {
-      // given a clean host URL
-      const state = Object.freeze({
-        other: otherObject,
-        formState: {
-          currentHostUrl: ''
-        }
-      });
 
-      const defaultHostPayload = 'https://github.com/';
+    // this table is a full mesh of 3 inputs 1 output
+    const testDataTable = [{
+      currentValue: 'https://example.com/foo/',
+      payload: 'https://example.com/bar/',
+      existingValidationErrors: null,
+      expectedValidationErrors: null
+    }, {
+      currentValue: 'https://example.com/foo/',
+      payload: 'https://example.com/bar/',
+      existingValidationErrors: 'CRASH',
+      expectedValidationErrors: 'CRASH'
+    }, {
+      currentValue: 'https://example.com/',
+      payload: 'invalid',
+      existingValidationErrors: 'BANG',
+      expectedValidationErrors: 'Not a valid URL'
+    }, {
+      currentValue: 'https://example.com/',
+      payload: 'invalid',
+      existingValidationErrors: null,
+      expectedValidationErrors: 'Not a valid URL'
+    }, {
+      currentValue: 'invalid',
+      payload: 'https://example.com/bar/',
+      existingValidationErrors: null,
+      expectedValidationErrors: null
+    }, {
+      currentValue: 'invalid',
+      payload: 'https://example.com/bar/',
+      existingValidationErrors: 'ZAP',
+      expectedValidationErrors: 'ZAP'
+    }, {
+      currentValue: 'invalid',
+      payload: 'invalid',
+      existingValidationErrors: [],
+      expectedValidationErrors: 'Not a valid URL'
+    }, {
+      currentValue: 'invalid',
+      payload: 'invalid',
+      existingValidationErrors: 'KABOOM',
+      expectedValidationErrors: 'Not a valid URL'
+    }, {
+      currentValue: 'h',
+      payload: '',
+      existingValidationErrors: 'BOING',
+      expectedValidationErrors: null
+    }];
 
-      // when reduce is invoked
-      const newState = reduce(state, {
-        type: 'SCM_ONBOARDING_SET_CURRENT_HOST_URL',
-        payload: defaultHostPayload
-      });
+    describe('validation', () => {
+      for (const testData of testDataTable) {
+        it('sets the default host URL', function() {
+          // given a clean host URL
+          const state = Object.freeze({
+            other: otherObject,
+            formState: {
+              currentHostUrlState: {
+                value: testData.currentValue,
+                validationErrors: testData.existingValidationErrors
+              }
+            }
+          });
 
-      // then state is updated
-      expect(newState.formState.currentHostUrl).toEqual('https://github.com/');
+          // when reduce is invoked
+          const newState = reduce(state, {
+            type: 'SCM_ONBOARDING_SET_CURRENT_HOST_URL',
+            payload: testData.payload
+          });
 
-      // and other properties are not modified
-      expect(newState.other).toBe(otherObject);
+          // then state is updated
+          expect(newState.formState.currentHostUrlState.value).toEqual(testData.payload);
+
+          // and no validation errors are displayed
+          expect(newState.formState.currentHostUrlState.validationErrors).toEqual(testData.expectedValidationErrors);
+
+          // and other properties are not modified
+          expect(newState.other).toBe(otherObject);
+        });
+      }
     });
   });
 
@@ -579,6 +637,90 @@ describe('scmOnboardingReducer', function() {
         expect(newState).toEqual({
           viewState: {
             lastErrorMessage: 'Bad Gateway'
+          },
+          other: otherObject
+        });
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+    });
+  });
+
+  describe('validate scm host url', () => {
+
+    describe('succeeds', () => {
+      it('clears validation errors', () => {
+        // given initial state
+        const state = Object.freeze({
+          other: otherObject,
+          formState: {
+            currentHostUrlState: {
+              validationErrors: 'BOOM'
+            }
+          }
+        });
+
+        // when reduce is invoked
+        const newState = reduce(state, {
+          type: 'SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FULFILLED',
+          payload: {
+            isValid: true
+          }
+        });
+
+        // then validation errors are clear
+        expect(newState.formState.currentHostUrlState.validationErrors).toBeNull();
+
+        // and other objects unchanged
+        expect(newState.other).toBe(otherObject);
+      });
+    });
+
+    describe('fails validation', () => {
+      it('clears validation errors', () => {
+        // given initial state
+        const state = Object.freeze({
+          other: otherObject,
+          formState: {
+            currentHostUrlState: initialState('http://example.com/')
+          }
+        });
+
+        // when reduce is invoked
+        const newState = reduce(state, {
+          type: 'SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FULFILLED',
+          payload: {
+            isValid: false,
+            errorMessages: 'CRASH'
+          }
+        });
+
+        // then validation errors is populated with error message
+        expect(newState.formState.currentHostUrlState.validationErrors).toEqual('CRASH');
+
+        // and other objects unchanged
+        expect(newState.other).toBe(otherObject);
+      });
+    });
+
+    describe('fails REST call', () => {
+      it('sets lastErrorMessage field to value of Error.message', function() {
+        const state = Object.freeze({
+          viewState: {
+            validatingCompositeSourceControl: true,
+            lastErrorMessage: null
+          },
+          other: otherObject
+        });
+
+        const newState = reduce(state, {
+          type: 'SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FAILED',
+          payload: {status: 404}
+        });
+
+        expect(newState).toEqual({
+          viewState: {
+            validatingCompositeSourceControl: false,
+            lastErrorMessage: 'Error 404'
           },
           other: otherObject
         });

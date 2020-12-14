@@ -15,7 +15,7 @@ import CopyrightStatementsTile from './CopyrightStatementsTile';
 import NoticeTextsTile from './NoticeTextsTile';
 import LicenseTextsTile from './LicenseTextsTile';
 import LoadWrapper from '../react/LoadWrapper';
-import { componentPropType } from './advancedLegalPropTypes';
+import { componentPropType, licenseLegalMetadataPropType } from './advancedLegalPropTypes';
 
 export default function ComponentLegalOverviewPage(props) {
   const {
@@ -53,7 +53,7 @@ export default function ComponentLegalOverviewPage(props) {
           </div>
           <div id="component-legal-overview-details">
             <ComponentOverviewTile component={ component } licenseLegalMetadata={ licenseLegalMetadata } />
-            <LicenseObligationsTile { ...licenseLegalMetadata } />
+            <LicenseObligationsTile licenseLegalMetadata={ licenseLegalMetadata } />
             <div id="component-legal-overview-details-right">
               <LicenseDetailsTile component={ component }/>
               <CopyrightStatementsTile component={ component }/>
@@ -72,6 +72,6 @@ ComponentLegalOverviewPage.propTypes = {
   loading: PropTypes.bool,
   error: PropTypes.string,
   hash: PropTypes.string.isRequired,
-  licenseLegalMetadata: PropTypes.any,
+  licenseLegalMetadata: licenseLegalMetadataPropType,
   loadComponent: PropTypes.func
 };

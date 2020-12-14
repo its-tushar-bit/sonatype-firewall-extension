@@ -44,6 +44,7 @@ import com.sonatype.insight.brain.thirdparty.ThirdPartyDataService;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyHealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyLicenseRowDTO;
 import com.sonatype.insight.brain.utils.ReportHelper;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -59,6 +60,7 @@ import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -305,6 +307,18 @@ public class ReportServiceTest
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       reportService.getReportMetadata(app.getPublicId(), "12345678");
     }).withMessage("Could not find a report with ID 12345678");
+  }
+
+  @Test
+  public void testGetReportMetadata_expandedCoverage() throws Exception {
+    createReportFile(app.getId(), scanId, zipReportDir("/ReportResourceTest/report-expanded_coverage"));
+    ReportService reportService = createReportService();
+
+    String applicationPublicId = app.getPublicId();
+    assertThatThrownBy(() -> reportService.getReportMetadata(applicationPublicId, scanId))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Expanded Coverage (XC) is no longer supported. " +
+            "We have incorporated support for all languages that were maintained in XC in Lifecycle");
   }
 
   @Test

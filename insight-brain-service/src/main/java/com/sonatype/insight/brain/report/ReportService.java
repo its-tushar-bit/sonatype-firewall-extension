@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyApplicationReportDTO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyDataService;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -171,7 +172,12 @@ public class ReportService
 
     File reportFile = getReport(application.getId(), scanId);
     final ContainerNode<?> data = JsonUtils.parse(Report.getEntry(reportFile, Report.DATA_JSON_FILENAME).buf);
-
+    boolean expandedCoverage = data.path("globals").path("expandedCoverage").booleanValue();
+    if (expandedCoverage) {
+      throw new BadRequestException(
+          "Expanded Coverage (XC) is no longer supported. " +
+          "We have incorporated support for all languages that were maintained in XC in Lifecycle");
+    }
     PolicyEvaluation evaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(application.getId(),
         scanId);
     metadata.setReportTime(evaluation.getTime());

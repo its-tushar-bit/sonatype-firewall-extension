@@ -33,6 +33,7 @@ import org.junit.Test;
 import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.CollectionCondition.exactTexts;
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
@@ -97,7 +98,7 @@ public class ScmOnboardingTest
 
   private void setupMockRepos() throws IOException {
     mockRepoForPage(0, getResourceAsString("/ScmOnboardingTest/allRepos0.json"));
-    mockRepoForPage(1, getResourceAsString("/ScmOnboardingTest/emptyResponse.json"));
+    mockRepoForPage(1, "[]");
   }
 
   private void setupSourceControl() {
@@ -278,7 +279,7 @@ public class ScmOnboardingTest
   @Test
   public void testPopulatesRepositories_noAvailableRepositories() throws Exception {
     // given an SCM without git repos
-    mockRepoForPage(0, getResourceAsString("/ScmOnboardingTest/emptyResponse.json"));
+    mockRepoForPage(0, "[]");
     setupSourceControl();
 
     // given SCM onboarding page with a selected organization
@@ -309,7 +310,7 @@ public class ScmOnboardingTest
         )
     );
     mockRepoForPage(0, json);
-    mockRepoForPage(1, getResourceAsString("/ScmOnboardingTest/emptyResponse.json"));
+    mockRepoForPage(1, "[]");
     setupOrgSourceControl();
     setupAppSourceControl(repoUrl);
 
@@ -319,7 +320,7 @@ public class ScmOnboardingTest
     loginAsAdmin();
 
     // then the table is empty
-    scmOnboardingPage.repositoryCount().waitUntil(text("0"), 2000);
+    scmOnboardingPage.repositoryCount().shouldBe(text("0"));
 
     // the statistics are shown and indicate no available repositories (and one already imported)
     scmOnboardingPage.resultsTablePercentageImported().shouldBe(text("100%"));
@@ -334,7 +335,7 @@ public class ScmOnboardingTest
 
   private void verifyAllReposLoaded(final ScmOnboardingPage scmOnboardingPage) {
     // then results are automatically displayed in the table
-    scmOnboardingPage.loadingSpinner().waitWhile(visible, 5000);
+    scmOnboardingPage.loadingSpinner().shouldNotBe(visible);
     scmOnboardingPage.resultsTable().shouldBe(visible);
     scmOnboardingPage.repositoryCount().shouldBe(visible);
     scmOnboardingPage.repositoryCount().shouldBe(text("13"));
@@ -342,7 +343,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.resultsTableProject().shouldHaveSize(13);
     assertThat(scmOnboardingPage.resultsTableNamespace().texts()).containsAnyOf("depshield-ci",
         "sonatype-nexus-community");
-    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.exactTexts("ci-project-1",
+    scmOnboardingPage.resultsTableProject().shouldHave(exactTexts("ci-project-1",
         "ci-project-16", "create-react-app", "nexus-repository-p2", "nexus-repository-puppet",
         "nexus-repository-terraform", "nexus-repository-vgo", "nexus-scripting-examples",
         "nexus-webhook-example-collection", "nxrm-cli", "ossindex-gradle-plugin", "oysteR", "prime-nexus-proxy-repos"));
@@ -420,7 +421,7 @@ public class ScmOnboardingTest
 
     // then selected count is updated with the number of filtered repositories
     scmOnboardingPage.selectedRepositoryCount().shouldBe(text("2"));
-    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.exactTexts("ci-project-1",
+    scmOnboardingPage.resultsTableProject().shouldHave(exactTexts("ci-project-1",
         "ci-project-16"));
 
   }
@@ -489,7 +490,7 @@ public class ScmOnboardingTest
   public void testSelectAndImport_error() throws Exception {
     // given an SCM with git repos but with bad URLs
     mockRepoForPage(0, getResourceAsString("/ScmOnboardingTest/reposWithErrors.json"));
-    mockRepoForPage(1, getResourceAsString("/ScmOnboardingTest/emptyResponse.json"));
+    mockRepoForPage(1, "[]");
     setupSourceControl();
 
     // given SCM onboarding page with a selected organization
@@ -514,7 +515,7 @@ public class ScmOnboardingTest
     // when we import the selected repos
     scmOnboardingPage.importRepoButton().click();
 
-    // then we see a success message
+    // then we see an error message
     scmOnboardingPage.errorMessage().shouldBe(visible);
     scmOnboardingPage.successMessage().shouldBe(hidden);
     scmOnboardingPage.infoMessage().shouldBe(hidden);
@@ -537,7 +538,7 @@ public class ScmOnboardingTest
   public void testSelectAndImport_successAndError() throws Exception {
     // given an SCM with git repos but with bad URLs
     mockRepoForPage(0, getResourceAsString("/ScmOnboardingTest/reposWithErrors.json"));
-    mockRepoForPage(1, getResourceAsString("/ScmOnboardingTest/emptyResponse.json"));
+    mockRepoForPage(1, "[]");
     setupSourceControl();
 
     // given SCM onboarding page with a selected organization
@@ -691,9 +692,10 @@ public class ScmOnboardingTest
 
   @Test
   public void testSort() throws Exception {
-    // given an SCM with git repos
-    setupMockRepos();
+    // given an SCM with git repos that start unsorted
     setupSourceControl();
+    mockRepoForPage(0, getResourceAsString("/ScmOnboardingTest/mixedOrderRepos.json"));
+    mockRepoForPage(1, "[]");
 
     // given SCM onboarding page with a selected organization
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
@@ -702,8 +704,8 @@ public class ScmOnboardingTest
 
     // update the default host URL
     updateHostUrl(scmOnboardingPage);
-    scmOnboardingPage.reloadRepoButton().waitUntil(enabled, 2000).click();
-    scmOnboardingPage.resultsTableSelectAll().parent().waitUntil(visible, 5000);
+    scmOnboardingPage.reloadRepoButton().shouldBe(enabled).click();
+    scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
 
     // then the repos are initially sorted by namespace first and project second
     List<String> namespaceTexts = scmOnboardingPage.resultsTableNamespace().texts();
@@ -711,19 +713,12 @@ public class ScmOnboardingTest
 
     // and project are sorted within their namespace
     scmOnboardingPage.resultsTableProject().shouldHave(exactTexts(
-        "ci-project-1",
-        "ci-project-16",
-        "create-react-app",
-        "nexus-repository-p2",
-        "nexus-repository-puppet",
-        "nexus-repository-terraform",
-        "nexus-repository-vgo",
-        "nexus-scripting-examples",
-        "nexus-webhook-example-collection",
-        "nxrm-cli",
-        "ossindex-gradle-plugin",
-        "oysteR",
-        "prime-nexus-proxy-repos"));
+        // org-1
+        "dupe-prj", "prj-1", "prj-2", "prj-3",
+        // org-2
+        "dupe-prj", "name-7", "name-8", "name-9",
+        // org-3
+        "a", "b", "c", "d", "dupe-prj", "e", "f"));
 
     // when namespace is clicked
     scmOnboardingPage.namespaceHeader().click();
@@ -732,19 +727,10 @@ public class ScmOnboardingTest
 
     // and project keeps the same order within their project
     scmOnboardingPage.resultsTableProject().shouldHave(exactTexts(
-        "nexus-repository-p2",
-        "nexus-repository-puppet",
-        "nexus-repository-terraform",
-        "nexus-repository-vgo",
-        "nexus-scripting-examples",
-        "nexus-webhook-example-collection",
-        "nxrm-cli",
-        "ossindex-gradle-plugin",
-        "oysteR",
-        "prime-nexus-proxy-repos",
-        "ci-project-1",
-        "ci-project-16",
-        "create-react-app"));
+        // org-3
+        "a", "b", "c", "d", "dupe-prj", "e", "f", "g", "m", "n", "v", "z",
+        // org-2
+        "dupe-prj", "name-7", "name-8"));
 
     // when project is clicked
     scmOnboardingPage.projectHeader().click();
@@ -773,5 +759,73 @@ public class ScmOnboardingTest
     // then it is sorted ascending
     descriptionTexts = scmOnboardingPage.resultsTableDescription().texts();
     assertThat(descriptionTexts).isSortedAccordingTo(Comparator.reverseOrder());
+  }
+
+  @Test
+  public void testPagination() throws Exception {
+    // given an SCM with git repos that are unsorted initially
+    setupSourceControl();
+    mockRepoForPage(0, getResourceAsString("/ScmOnboardingTest/mixedOrderRepos.json"));
+    mockRepoForPage(1, "[]");
+
+    // given SCM onboarding page with a selected organization
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
+    loginAsAdmin();
+
+    // update the default host URL
+    updateHostUrl(scmOnboardingPage);
+    scmOnboardingPage.reloadRepoButton().shouldBe(enabled).click();
+    scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
+
+    // then the repos list has the max page size
+    scmOnboardingPage.resultsTableProject().shouldHaveSize(15);
+
+    // and pagination buttons are present
+    scmOnboardingPage.paginationButtons().shouldHaveSize(2);
+
+    // and be on the first page
+    scmOnboardingPage.paginationButtons().get(0).shouldHave(cssClass("selected"));
+
+    // when the second pagination button is clicked
+    scmOnboardingPage.paginationButtons().get(1).click();
+
+    // then the second page of results appears
+    scmOnboardingPage.resultsTableProject().shouldHaveSize(5);
+    scmOnboardingPage.paginationButtons().get(1).shouldHave(cssClass("selected"));
+  }
+
+  @Test
+  public void testFiltersAndPagination() throws Exception {
+    // given an SCM with git repos that are unsorted initially
+    setupSourceControl();
+    mockRepoForPage(0, getResourceAsString("/ScmOnboardingTest/mixedOrderRepos.json"));
+    mockRepoForPage(1, "[]");
+
+    // given SCM onboarding page with a selected organization
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
+    loginAsAdmin();
+
+    // update the default host URL
+    updateHostUrl(scmOnboardingPage);
+    scmOnboardingPage.reloadRepoButton().shouldBe(enabled).click();
+    scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
+
+    // then the pagination buttons shows the first is selected
+    scmOnboardingPage.paginationButtons().get(0).shouldHave(cssClass("selected"));
+
+    // when the second pagination button is clicked
+    scmOnboardingPage.paginationButtons().get(1).click();
+
+    // then the second shows as selected
+    scmOnboardingPage.paginationButtons().get(1).shouldHave(cssClass("selected"));
+
+    // when the filters are updated
+    scmOnboardingPage.projectFilter().setValue("p");
+
+    // then the page is reset to the first one
+    scmOnboardingPage.paginationButtons().get(0).shouldHave(cssClass("selected"));
+    scmOnboardingPage.paginationButtons().shouldHaveSize(1);
   }
 }

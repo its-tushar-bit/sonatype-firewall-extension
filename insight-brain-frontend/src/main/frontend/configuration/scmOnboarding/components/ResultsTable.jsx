@@ -12,14 +12,16 @@ import {
   NxTableCell,
   NxTableHead,
   NxTableRow,
-  NxTooltip
+  NxTooltip,
+  NxPagination
 } from '@sonatype/react-shared-components';
-import React, {Fragment, useState} from 'react';
+import React, {Fragment, useMemo, useState} from 'react';
 import * as PropTypes from 'prop-types';
 import {repositoryPropType} from '../ScmOnboarding';
 import NxButton from '@sonatype/react-shared-components/components/NxButton/NxButton';
 import NxFilterInput from '@sonatype/react-shared-components/components/NxFilterInput/NxFilterInput';
 import NxExternalLink from '../../../react/NxExternalLink';
+import {propSet} from '../../../util/jsUtil';
 
 export default function ResultsTable(props) {
   const {
@@ -47,7 +49,39 @@ export default function ResultsTable(props) {
 
   const [filters, setFilters] = useState({project: '', namespace: '', description: ''}),
       [isAllChecked, setIsAllChecked] = useState(false),
-      [selectedRepositories, setSelectedRepositories] = useState([]);
+      [selectedRepositories, setSelectedRepositories] = useState([]),
+      [page, setPage] = useState(0);
+
+  const maxRowsPerPage = 15;
+
+  const filteredRepos = useMemo(() => repositories.filter(isRepositorySelectedByFilter),
+      [repositories, filters]);
+
+  function getPageCount() {
+    return Math.ceil(filteredRepos.length / maxRowsPerPage);
+  }
+
+  // gets page without 'undefined'
+  function getDefinedPage() {
+    return page === undefined ? 0 : page;
+  }
+
+  function getPagedRepos() {
+    let currentPage = getDefinedPage();
+    return filteredRepos.slice(currentPage * maxRowsPerPage, (currentPage + 1) * maxRowsPerPage);
+  }
+
+  function getCurrentPage() {
+    if (getPageCount() <= 0) {
+      return undefined;
+    }
+    let currentPage = getDefinedPage();
+    return Math.max(Math.min(currentPage, getPageCount() - 1), 0);
+  }
+
+  function canRenderPagination() {
+    return !loadingRepositories && getPageCount() > 0 && page !== undefined;
+  }
 
   const sortDirProject = getDirection(sortConfiguration, 'project');
   const sortDirNamespace = getDirection(sortConfiguration, 'namespace');
@@ -102,9 +136,12 @@ export default function ResultsTable(props) {
   }
 
   function changeFilter(filterName, filterValue) {
-    setFilters(Object.assign({}, filters, {[filterName]: filterValue}));
+    setFilters(propSet(filterName, filterValue, filters));
     setSelectedRepositories(repositories.filter(repo => repo[filterName].includes(filterValue)
         && selectedRepositories.includes(repo)));
+
+    // when filters change, always reset to the first page
+    setPage(0);
   }
 
   function handleImportSelectedRepositories() {
@@ -142,8 +179,8 @@ export default function ResultsTable(props) {
       </header>
       <div className="nx-tile-content">
         <LoadWrapper loading={loadingRepositories} retryHandler={loadRepositories}>
-          <div className="nx-scrollable nx-scrollable--table-container">
-            <NxTable id="iq-scm-onboarding-repositories" className="nx-table--scrollable nx-table--scm-onboarding">
+          <div className="nx-table-container onboarding-repo-table">
+            <NxTable id="iq-scm-onboarding-repositories">
               <NxTableHead>
                 <NxTableRow>
                   <NxTableCell>Selection</NxTableCell>
@@ -178,7 +215,7 @@ export default function ResultsTable(props) {
                 </NxTableRow>
               </NxTableHead>
               <NxTableBody emptyMessage="No matching repositories.">
-                { repositories.filter(repo => isRepositorySelectedByFilter(repo)).map(repo =>
+                { getPagedRepos().map(repo =>
                   <RepositoryRow repo={repo}
                                  key={repo.httpCloneUrl}
                                  rowKey={repo.httpCloneUrl}
@@ -187,6 +224,11 @@ export default function ResultsTable(props) {
                 )}
               </NxTableBody>
             </NxTable>
+            {canRenderPagination() &&
+            <div className='nx-table-container__footer'>
+              <NxPagination onChange={setPage} pageCount={getPageCount()} currentPage={getCurrentPage()}/>
+            </div>
+            }
           </div>
         </LoadWrapper>
       </div>

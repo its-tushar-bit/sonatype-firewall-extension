@@ -72,6 +72,10 @@ public class ScmOnboardingPage
     return child("#iq-scmonboarding-select-all");
   }
 
+  public ElementsCollection paginationButtons() {
+    return children(".nx-btn--pagination");
+  }
+
   public SelenideElement selectionCheckboxById(String id) {
     return child(".nx-checkbox", "#" + id);
   }

@@ -4,36 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 #scm-onboarding-container {
-  .nx-page-main {
-    display: flex;
-    flex-direction: column;
-    overflow-y: hidden;
-  }
-
-  // because the container is a flex container, margins don't collapse and we have to delete the smaller of each
-  // adjacent pair
-  .nx-back-button {
-    margin-bottom: 0;
-  }
-
-  .nx-tile {
-    margin-top: 0;
-  }
-
-  .nx-tile, .nx-tile-content {
-    display: flex;
-    flex-shrink: 1;
-    flex-direction: column;
-    overflow-y: hidden;
-  }
-
-  .host-url-tile {
-    flex-shrink: 0 !important;
-  }
-
-  .nx-tile-header, .nx-footer {
-    flex-shrink: 0;
-  }
 
   .nx-footer {
     align-items: center;
@@ -44,15 +14,14 @@
     }
   }
 
-  .nx-scrollable {
-    max-height: none;
-    flex-shrink: 1;
-  }
-
   .iq-scm-repository-description {
     .nx-truncate-ellipsis {
       max-width: 400px;
     }
+  }
+
+  .onboarding-repo-table {
+    height: pagination-table-height(15);
   }
 }
 

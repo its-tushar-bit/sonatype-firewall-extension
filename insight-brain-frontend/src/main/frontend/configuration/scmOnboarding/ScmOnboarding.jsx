@@ -170,24 +170,26 @@ export default function ScmOnboarding(props) {
             </div>
             <section className="nx-tile host-url-tile">
               <form className="nx-form">
-                <div className="nx-form-row">
-                  <div className="nx-form-group">
-                    <label className="nx-label">
-                      <span className="nx-label__text">Host URL</span>
-                      <NxTextInput id="iq-scm-default-host-field"
-                                   isPristine={defaultHostUrl === currentHostUrl}
-                                   onChange={setCurrentHostUrl}
-                                   value={currentHostUrl}/>
-                    </label>
-                  </div>
-                  <div className="nx-btn-bar">
-                    <NxButton
-                        id="iq-scm-load-button"
-                        variant="primary"
-                        disabled={loadingRepositories}
-                        onClick={handleLoadRepositories}>
-                      Reload Repositories
-                    </NxButton>
+                <div className='nx-tile-content'>
+                  <div className="nx-form-row">
+                    <div className="nx-form-group">
+                      <label className="nx-label">
+                        <span className="nx-label__text">Host URL</span>
+                        <NxTextInput id="iq-scm-default-host-field"
+                                     isPristine={defaultHostUrl === currentHostUrl}
+                                     onChange={setCurrentHostUrl}
+                                     value={currentHostUrl}/>
+                      </label>
+                    </div>
+                    <div className="nx-btn-bar">
+                      <NxButton
+                          id="iq-scm-load-button"
+                          variant="primary"
+                          disabled={loadingRepositories}
+                          onClick={handleLoadRepositories}>
+                        Reload Repositories
+                      </NxButton>
+                    </div>
                   </div>
                 </div>
               </form>

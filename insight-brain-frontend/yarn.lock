@@ -340,10 +340,10 @@
     "@react-hook/passive-layout-effect" "^1.2.0"
     resize-observer-polyfill "^1.5.1"
 
-"@sonatype/react-shared-components@^2.18.2":
-  version "2.18.2"
-  resolved "https://repo.sonatype.com/repository/npm-all/@sonatype/react-shared-components/-/react-shared-components-2.18.2.tgz#76cb3db7cffb4a76a8aaf0716b308a56efe2da2b"
-  integrity sha512-etoS6KFjf/8grF5+IQRzrQDntiUwMir3aCK/tRXCVveIpviv/0c4fD79Rpxq1/V+4XiEw5ygUiqEOdvJ4ovEfg==
+"@sonatype/react-shared-components@^2.21.1":
+  version "2.21.1"
+  resolved "https://repo.sonatype.com/repository/npm-all/@sonatype/react-shared-components/-/react-shared-components-2.21.1.tgz#baef4cb97005aa3afca2761335c4ff067d84d409"
+  integrity sha512-50wtQlnQHGxzcCKanrzGFR69I4WdJeBrcbSGdYrDjqxNo65vqLWuD5JW93IWOa5drZnyZISkXH3lQ82io0KxVg==
   dependencies:
     "@fortawesome/fontawesome-svg-core" "1.2.17"
     "@fortawesome/free-solid-svg-icons" "=5.8.1"

@@ -24,7 +24,6 @@ export default function UserTokenModal(props) {
     generateUserToken,
     deleteUserToken,
     hideUserTokenModal,
-    copyToClipboard,
     // loading flags
     checkUserTokenLoading,
     generateUserTokenLoading,
@@ -89,7 +88,7 @@ export default function UserTokenModal(props) {
             </NxWarningAlert>
           }
           { userToken && userToken !== true &&
-            <UserTokenDisplay { ...({ userToken, copyToClipboard }) } />
+            <UserTokenDisplay userToken={userToken}/>
           }
         </LoadWrapper>
       </div>
@@ -126,7 +125,6 @@ export default function UserTokenModal(props) {
 UserTokenModal.propTypes = {
   userToken: PropTypes.oneOfType([PropTypes.shape(userTokenType), PropTypes.bool]),
   hideUserTokenModal: PropTypes.func.isRequired,
-  copyToClipboard: PropTypes.func.isRequired,
   checkUserTokenExistence: PropTypes.func.isRequired,
   checkUserTokenLoading: PropTypes.bool,
   checkUserTokenError: PropTypes.object,

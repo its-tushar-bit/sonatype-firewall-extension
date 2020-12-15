@@ -38,7 +38,7 @@ const initialState = Object.freeze({
   deleteUserTokenLoading: null
 });
 
-const checkTokenRequested = (state) => ({
+const checkTokenRequested = (payload, state) => ({
   ...state,
   userToken: null,
   checkUserTokenError: null,

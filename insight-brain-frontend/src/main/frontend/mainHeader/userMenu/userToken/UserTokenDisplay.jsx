@@ -8,16 +8,17 @@ import * as PropTypes from 'prop-types';
 import { faCopy } from '@fortawesome/free-solid-svg-icons';
 import {
   NxButton,
-  NxTextInput,
   NxFontAwesomeIcon,
+  NxTextInput,
   NxTooltip
 } from '@sonatype/react-shared-components';
 
-export default function UserTokenDisplay(props) {
-  const { userToken, copyToClipboard } = props,
-      { userCode, passCode } = userToken;
+export default function UserTokenDisplay({ userToken }) {
+  const { userCode, passCode } = userToken;
 
   const onSubmit = (evt) => { evt.preventDefault(); };
+
+  const copyToClipboard = textToCopy => navigator.clipboard.writeText(textToCopy);
 
   return (
     <form onSubmit={onSubmit}>
@@ -35,7 +36,7 @@ export default function UserTokenDisplay(props) {
           <NxTooltip title="Copy to clipboard">
             <NxButton id="user-token-copy-usercode"
                       variant="tertiary"
-                      onClick={() => copyToClipboard(userCode, 'userCode')}>
+                      onClick={() => copyToClipboard(userCode)}>
               <NxFontAwesomeIcon icon={faCopy}/>
             </NxButton>
           </NxTooltip>
@@ -55,7 +56,7 @@ export default function UserTokenDisplay(props) {
           <NxTooltip title="Copy to clipboard">
             <NxButton id="user-token-copy-passcode"
                       variant="tertiary"
-                      onClick={() => copyToClipboard(passCode, 'passCode')}>
+                      onClick={() => copyToClipboard(passCode)}>
               <NxFontAwesomeIcon icon={faCopy}/>
             </NxButton>
           </NxTooltip>
@@ -71,6 +72,5 @@ export const userTokenType = {
 };
 
 UserTokenDisplay.propTypes = {
-  userToken: PropTypes.shape(userTokenType).isRequired,
-  copyToClipboard: PropTypes.func.isRequired
+  userToken: PropTypes.shape(userTokenType).isRequired
 };

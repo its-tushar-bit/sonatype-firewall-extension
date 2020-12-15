@@ -72,30 +72,19 @@ export function generateUserToken() {
 
 const deleteTokenRequested = noPayloadActionCreator(USER_TOKEN_DELETE_TOKEN_REQUESTED);
 const deleteTokenFailed = payloadParamActionCreator(USER_TOKEN_DELETE_TOKEN_FAILED);
-const deleteTokenFulfilled = payloadParamActionCreator(USER_TOKEN_DELETE_TOKEN_FULFILLED);
+const deleteTokenFulfilled = noPayloadActionCreator(USER_TOKEN_DELETE_TOKEN_FULFILLED);
 
 export function deleteUserToken() {
   return (dispatch) => {
     dispatch(deleteTokenRequested());
 
     return axios.delete(userTokenUrl())
-        .then(({ data }) => {
+        .then(() => {
           startMaskTimer(dispatch);
-          dispatch(deleteTokenFulfilled(data));
+          dispatch(deleteTokenFulfilled());
         })
         .catch((err) => {
           return dispatch(deleteTokenFailed(err));
-        });
-  };
-}
-
-const copyToClipboadFulfilled = payloadParamActionCreator(USER_TOKEN_COPY_TO_CLIPBOARD);
-
-export function copyToClipboard(text) {
-  return (dispatch) => {
-    navigator.clipboard.writeText(text)
-        .then(() => {
-          dispatch(copyToClipboadFulfilled(text));
         });
   };
 }

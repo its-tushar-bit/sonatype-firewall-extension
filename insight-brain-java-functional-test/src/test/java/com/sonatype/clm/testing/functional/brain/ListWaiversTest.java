@@ -156,8 +156,13 @@ public class ListWaiversTest
     tempEntity.newWaiver(null, securityPolicy1.getId(), organization.getId(),
         policyViolation.getConstraintFacts(), null,
         Date.from(LocalDate.parse("2020-05-05").atStartOfDay(ZoneId.of("America/New_York")).toInstant()));
+    String longUnbrokenComment = "Loremipsumdolorsitametconsecteturadipiscingelitseddoeiusmodtempor" +
+        "incididuntutlaboreetdoloremagnaaliquaUtenimadminimveniamquisnostrudexercitationullamco" +
+        "laborisnisiutaliquipexeacommodoconsequatDuisauteiruredolorinreprehenderitinvoluptate " +
+        "velitessecillumdoloreeufugiatnullapariaturExcepteursintoccaecatcupidatatnonproident" +
+        "suntinculpaquiofficiadeseruntmollitanimidestlaborum";
     tempEntity.newWaiver("hash1", securityPolicy1.getId(), application.getId(),
-        policyViolation.getConstraintFacts(), "Comment 1", Date.from(now), Date.from(fiveDaysAgo));
+        policyViolation.getConstraintFacts(), longUnbrokenComment, Date.from(now), Date.from(fiveDaysAgo));
     refreshOrOpen(ListWaiversPage.url(policyViolation.getId()));
 
     ListWaiversPage listWaiversPage = new ListWaiversPage();
@@ -180,9 +185,9 @@ public class ListWaiversTest
     row2.scope().shouldHave(text("Application - App 1"));
     row2.components().shouldHave(text("Group1 : Artifact1 : Version1"));
     row2.waiverExpiration().shouldHave(text("5 days ago"));
-    row2.comments().shouldHave(text("Comment 1"));
+    row2.comments().shouldHave(text(longUnbrokenComment));
 
-    eyesWatcher.eyesCheck();
+    eyesWatcher.eyesCheck("Waivers List");
   }
 
   @Test

@@ -64,7 +64,7 @@ export default function ListWaiversTable(props) {
           { waiver.hash ? <ComponentDisplay component={ violationDetails } truncate={true} /> : 'All' }
         </NxTableCell>
         <NxTableCell>{ waiver.expiryTime ? moment(waiver.expiryTime).fromNow() : 'Does not expire' }</NxTableCell>
-        <NxTableCell>{ waiver.comment || '- -' }</NxTableCell>
+        <NxTableCell className="iq-waivers-table--comments">{ waiver.comment || '- -' }</NxTableCell>
         <NxTableCell>
           <NxButton variant="icon-only"
                     key={ key }

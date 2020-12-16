@@ -290,7 +290,11 @@ cip-similar {
   }
 }
 
-.iq-modal-header__component-info {
+.iq-modal-header__component-info-direct {
+  flex: 0 0 calc(100% - 220px);
+}
+
+.iq-modal-header__component-info-transitive {
   flex: 0 0 calc(100% - 250px);
 }
 

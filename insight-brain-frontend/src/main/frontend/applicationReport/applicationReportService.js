@@ -175,6 +175,21 @@ const addPartialMatchData = curry(function(partialMatchesByKey, entry) {
   return partialMatches ? { ...entry, matchDetails: partialMatches.matchDetails } : entry;
 });
 
+const innerSourceDependencyType = {
+  'innerSource': {
+    'label': 'InnerSource',
+    'shortLabel': 'IS'
+  },
+  'innerSourceDD': {
+    'label': 'Direct Dependency',
+    'shortLabel': 'D'
+  },
+  'innerSourceTD': {
+    'label': 'Transitive Dependency',
+    'shortLabel': 'T'
+  }
+};
+
 function augmentInnerSourceIndicator(components) {
   let result = [];
   let isInnerSourceEnabled = false;
@@ -184,6 +199,13 @@ function augmentInnerSourceIndicator(components) {
       entries.forEach(entry => {
         entry.innerSourceTDIndicator = !entry.innerSourceData.innerSource;
         entry.dependencyType = entry.innerSourceData.innerSource ? 'D' : 'TD';
+        let dependencyType = {};
+        if (entry.dependencyInfo) {
+          dependencyType = entry.dependencyInfo.isDirectDependency ?
+            innerSourceDependencyType.innerSourceDD : innerSourceDependencyType.innerSourceTD;
+        }
+        entry.innerSourceDependencyType = entry.innerSourceData.innerSource ?
+          innerSourceDependencyType.innerSource : dependencyType;
         isInnerSourceEnabled = true;
         result.push(entry);
       });

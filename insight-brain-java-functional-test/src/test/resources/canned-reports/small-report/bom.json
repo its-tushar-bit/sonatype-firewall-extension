@@ -223,5 +223,255 @@
       "ownerApplicationName" : "ApplicationReportTest"
     },
     "website" : null
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "javax.inject",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "javax.inject",
+        "version" : "1"
+      }
+    },
+    "groupId" : "javax.inject",
+    "artifactId" : "javax.inject",
+    "version" : "1",
+    "filenames" : [ "javax.inject-1.jar" ],
+    "pathnames" : [ "dependency:/org.example:Consumer-Service:jar:1.0-SNAPSHOT/javax.inject:javax.inject:jar:1" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "6975da39a7040257bd51",
+    "relativePopularity" : 1.0,
+    "createTime" : 1255476900000,
+    "lastModifiedTime" : 1573591300000,
+    "lastModifiedEntryTime" : 1255442824000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "javax.inject"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "javax.inject"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1"
+      } ],
+      "name" : "javax.inject"
+    },
+    "innerSourceData" : {
+      "ownerApplicationName" : "ApplicationReportTest2",
+      "ownerApplicationId" : "09895fab56384b61adb3161fa1ec58cd",
+      "ownerComponentName" : "test-business",
+      "innerSource" : false
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-io",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-io",
+        "version" : "2.6"
+      }
+    },
+    "groupId" : "commons-io",
+    "artifactId" : "commons-io",
+    "version" : "2.6",
+    "filenames" : [ "commons-io-2.6.jar" ],
+    "pathnames" : [ "dependency:/org.example:Consumer-Service:jar:1.0-SNAPSHOT/commons-io:commons-io:jar:2.6" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "815893df5f31da2ece40",
+    "relativePopularity" : 0.61,
+    "createTime" : 1519358738000,
+    "lastModifiedTime" : 1573693714000,
+    "lastModifiedEntryTime" : 1508061630000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "commons-io"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-io"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.6"
+      } ],
+      "name" : "commons-io"
+    },
+    "innerSourceData" : {
+      "ownerApplicationName" : "ApplicationReportTest2",
+      "ownerApplicationId" : "09895fab56384b61adb3161fa1ec58cd",
+      "ownerComponentName" : "test-business",
+      "innerSource" : false
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "test-business",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.example",
+        "version" : "1.0-SNAPSHOT"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "test-business-1.0-SNAPSHOT.jar" ],
+    "pathnames" : [ "dependency:/org.example:Consumer-Service:jar:1.0-SNAPSHOT/org.example:test-business:jar:1.0-SNAPSHOT" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "cefa389a797ca9d030ef",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1607955468000,
+    "lastModifiedEntryTime" : 1607955380000,
+    "website" : null,
+    "identificationSource" : "Package Manifest",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "mvn",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.example"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "test-business"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.0-SNAPSHOT"
+      } ],
+      "name" : "test-business"
+    },
+    "innerSourceData" : {
+      "ownerApplicationName" : "ApplicationReportTest2",
+      "ownerApplicationId" : "09895fab56384b61adb3161fa1ec58cd",
+      "ownerComponentName" : "test-business",
+      "innerSource" : true
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "test-data",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.example",
+        "version" : "1.0-SNAPSHOT"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "test-data-1.0-SNAPSHOT.jar" ],
+    "pathnames" : [ "dependency:/org.example:Consumer-Service:jar:1.0-SNAPSHOT/org.example:test-data:jar:1.0-SNAPSHOT" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "32032f22af513c6e683d",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1607956230000,
+    "lastModifiedEntryTime" : 1607956128000,
+    "website" : null,
+    "identificationSource" : "Package Manifest",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "mvn",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.example"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "test-data"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.0-SNAPSHOT"
+      } ],
+      "name" : "test-data"
+    },
+    "innerSourceData" : {
+      "ownerApplicationName" : "ApplicationReportTest2",
+      "ownerApplicationId" : "09895fab56384b61adb3161fa1ec58cd",
+      "ownerComponentName" : "test-business",
+      "innerSource" : false
+    }
   }]
 }

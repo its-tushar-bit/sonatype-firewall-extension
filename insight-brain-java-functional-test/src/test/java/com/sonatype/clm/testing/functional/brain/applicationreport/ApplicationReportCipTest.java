@@ -917,6 +917,16 @@ public class ApplicationReportCipTest
     cipModal.dependencyIndicator().shouldBe(visible).shouldHave(cssClass("transitive"))
         .shouldHave(exactText("Transitive Dependency"));
     cipModal.closeButton().click();
+
+    reportPage.resultRow(12).click();
+
+    cipModal.getElement().shouldBe(visible);
+    cipModal.header().shouldHave(text("javax.inject : javax.inject : 1"));
+    cipModal.previousButton().shouldBe(enabled);
+    cipModal.dependencyInnerSourceIndicator().shouldBe(visible);
+    cipModal.dependencyIndicator().shouldBe(visible).shouldHave(cssClass("direct"))
+        .shouldHave(exactText("Direct Dependency"));
+    cipModal.closeButton().click();
   }
 
   private Policy createPolicy(String ownerId,

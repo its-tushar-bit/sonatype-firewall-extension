@@ -95,7 +95,7 @@ public class PolicyCentricReportWaiverTest
     addWaiverPage.should(disappear);
 
     List<PolicyViolation> policyViolations = new PolicyViolationDAO().getByApplicationId(app.getId());
-    assertThat(policyViolations).hasSize(8);
+    assertThat(policyViolations).hasSize(12);
 
     List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(app.getId());
     assertThat(policyWaivers).hasSize(1);
@@ -246,8 +246,9 @@ public class PolicyCentricReportWaiverTest
     evaluator.reevaluatePolicy();
 
     refreshOrOpen(ApplicationReportPage.url(app, scanId));
-    reportPage.resultRows().shouldHave(texts("All Components", "All Components", "All Components",  "All Components",
-        "All Components", "None", "None", "All Components", "All Components"));
+    reportPage.resultRows().shouldHave(texts("All Components", "All Components", "All Components", "All Components",
+        "All Components", "None", "None", "All Components", "All Components", "All Components", "All Components",
+        "All Components", "All Components"));
   }
 
   @Test
@@ -271,7 +272,9 @@ public class PolicyCentricReportWaiverTest
 
     refreshOrOpen(ApplicationReportPage.url(app, scanId));
     reportPage.resultRows()
-        .shouldHave(texts("Waived", "Waived", "Waived", "Waived", "Waived", "Waived", "None", "Waived", "Waived"));
+        .shouldHave(
+            texts("Waived", "Waived", "Waived", "Waived", "Waived", "Waived", "None", "Waived", "Waived", "Waived",
+                "Waived", "Waived", "Waived"));
   }
 
   private void assertWaiver(ExistingWaiver waiver, String comment) {
@@ -288,7 +291,7 @@ public class PolicyCentricReportWaiverTest
 
     CipModal cipModal = reportPage.cipModal();
 
-    reportPage.resultRows().shouldHaveSize(9);
+    reportPage.resultRows().shouldHaveSize(13);
     reportPage.resultRow(2).click();
     cipModal.tabLink(2).click();
     WaiverCip.row(0).waiveButton().shouldBe(visible).click();

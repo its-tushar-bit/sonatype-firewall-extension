@@ -73,7 +73,8 @@ public class LdapServiceTest
   public RuleChain ruleChain = RuleChain.outerRule(tempDir) //
       .around(testLdapServer1).around(testLdapServer2).around(testLdapServer3).around(testLdapServer4);
 
-  private static final String CONNECTION_ERROR_PATTERN = "(?i)(connection (closed|refused|reset)|socket closed)";
+  private static final String CONNECTION_ERROR_PATTERN =
+      "(?i)(connection (closed|refused|reset)|socket closed|read timed out)";
 
   @Before
   public void before() {

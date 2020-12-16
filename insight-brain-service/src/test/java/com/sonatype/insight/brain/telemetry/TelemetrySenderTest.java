@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.telemetry;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -81,8 +82,8 @@ public class TelemetrySenderTest
   public void testSend() throws Exception {
     telemetrySender.start();
 
-    final InvocationOnMock[] invocation = new InvocationOnMock[1];
-    doAnswer(x -> invocation[0] = x).when(mockHdsClient)
+    AtomicReference<InvocationOnMock> invocation = new AtomicReference<>();
+    doAnswer(invoc -> invocation.compareAndSet(null, invoc)).when(mockHdsClient)
         .post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class), eq(null));
 
     TelemetryData telemetryDataSend = new TelemetryData(TelemetryPurpose.DATABASE);
@@ -93,7 +94,7 @@ public class TelemetrySenderTest
     Date expectedMaxCreateTime = new Date();
 
     verify(mockHdsClient, timeout(10000)).post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class), eq(null));
-    HttpEntity httpEntity = (HttpEntity) invocation[0].getArguments()[1];
+    HttpEntity httpEntity = (HttpEntity) invocation.get().getArguments()[1];
     ByteArrayDataSource multipartDataSource = new ByteArrayDataSource(httpEntity.getContent(), "multipart/form-data");
     MimeMultipart multipart = new MimeMultipart(multipartDataSource);
     BodyPart bodyPart = multipart.getBodyPart(0);

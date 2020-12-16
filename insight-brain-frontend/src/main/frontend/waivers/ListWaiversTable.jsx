@@ -59,8 +59,8 @@ export default function ListWaiversTable(props) {
       <NxTableRow className={ rowClass }
                   key={ key }>
         <NxTableCell className="visual-testing-ignore">{ moment(waiver.createTime).format('MM/DD/YYYY') }</NxTableCell>
-        <NxTableCell>{ displayWaiverScope(waiver) }</NxTableCell>
-        <NxTableCell>
+        <NxTableCell className="iq-waivers-table--scope">{ displayWaiverScope(waiver) }</NxTableCell>
+        <NxTableCell className="iq-waivers-table--component-name">
           { waiver.hash ? <ComponentDisplay component={ violationDetails } truncate={true} /> : 'All' }
         </NxTableCell>
         <NxTableCell>{ waiver.expiryTime ? moment(waiver.expiryTime).fromNow() : 'Does not expire' }</NxTableCell>

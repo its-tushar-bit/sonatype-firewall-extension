@@ -6,6 +6,7 @@
 import * as enzymeUtils from '../enzymeUtils';
 
 import ComponentDisplay from '../../../main/frontend/ComponentDisplay/ReactComponentDisplay';
+import { NxOverflowTooltip } from '@sonatype/react-shared-components';
 
 describe('ComponentDisplay (React)', function() {
   const minimalProps = {
@@ -14,14 +15,14 @@ describe('ComponentDisplay (React)', function() {
 
   const getShallowComponent = enzymeUtils.getShallowComponent(ComponentDisplay, minimalProps);
 
-  it('renders a div', function() {
-    expect(getShallowComponent()).toMatchSelector('div');
+  it('renders a Tooltip on the component', function() {
+    expect(getShallowComponent()).toMatchSelector(NxOverflowTooltip);
   });
 
   it('adds the truncate-ellipsis class to the div iff the truncate prop is set', function() {
-    expect(getShallowComponent()).not.toHaveClassName('truncate-ellipsis');
-    expect(getShallowComponent({ truncate: false })).not.toHaveClassName('truncate-ellipsis');
-    expect(getShallowComponent({ truncate: true })).toHaveClassName('truncate-ellipsis');
+    expect(getShallowComponent().find('div')).not.toHaveClassName('truncate-ellipsis');
+    expect(getShallowComponent({ truncate: false }).find('div')).not.toHaveClassName('truncate-ellipsis');
+    expect(getShallowComponent({ truncate: true }).find('div')).toHaveClassName('truncate-ellipsis');
   });
 
   it('renders an em child with "Unknown" if no displayName or filename is set', function() {

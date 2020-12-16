@@ -6,6 +6,7 @@
 import React from 'react';
 import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
+import { NxOverflowTooltip } from '@sonatype/react-shared-components';
 
 import isFilenameOrUnknown from './isFilenameOrUnknown';
 import { getComponentName } from '../util/componentNameUtils';
@@ -19,9 +20,11 @@ export default function ComponentDisplay({ component, truncate }) {
       componentName = getComponentName(component);
 
   return (
-    <div className={divClass}>
-      {React.createElement(textTag, undefined, componentName)}
-    </div>
+    <NxOverflowTooltip>
+      <div className={divClass}>
+        {React.createElement(textTag, undefined, componentName)}
+      </div>
+    </NxOverflowTooltip>
   );
 }
 

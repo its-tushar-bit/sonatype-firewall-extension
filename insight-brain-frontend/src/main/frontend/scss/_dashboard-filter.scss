@@ -57,8 +57,7 @@ dashboard-filter {
   z-index: 1;
 }
 
-.dashboard-filter-footer-btns {
-  display: flex;
+.nx-btn-bar.dashboard-filter-footer-btns {
   justify-content: space-between;
 
   .nx-btn {

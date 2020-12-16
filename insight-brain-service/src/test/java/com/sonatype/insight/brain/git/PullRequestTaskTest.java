@@ -38,7 +38,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.sonatype.insight.brain.git.PullRequestTask.DEFAULT_COMMITTER;
-import static com.sonatype.insight.brain.git.PullRequestTask.DEFAULT_COMMITTER_EMAIL;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -241,7 +240,7 @@ public class PullRequestTaskTest
     
     verify(gitApi).cloneOrPullRepository(targetDirectory, INFO.baseBranch);
     verify(gitApi).branch(targetDirectory, BRANCH);
-    verify(gitApi).commit(targetDirectory, DEFAULT_COMMITTER, DEFAULT_COMMITTER_EMAIL, TITLE);
+    verify(gitApi).commit(targetDirectory, DEFAULT_COMMITTER, GitApi.DEFAULT_COMMITTER_EMAIL, TITLE);
     verify(gitApi).push(targetDirectory);
     verify(auditRecorder).recordSystemEvent(eq(AuditEvent.CREATE_PULL_REQUEST));
     verify(metrics).addResult(anyString(), any(EnhancedPullRequestResult.class));

@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics;
+import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.iq.manager.PullRequestCommand;
 import com.sonatype.nexus.iq.manager.PullRequestCommandBuilder;
 import com.sonatype.nexus.iq.manager.PullRequestExecutor;
@@ -37,9 +38,7 @@ public class PullRequestTask
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestTask.class);
 
-  public static final String DEFAULT_COMMITTER = "Nexus IQ";
-
-  public static final String DEFAULT_COMMITTER_EMAIL = "\"<>\"";
+  public static final String DEFAULT_COMMITTER = "NexusIQ";
 
   private final GitClientFactory gitClientFactory;
 
@@ -99,7 +98,7 @@ public class PullRequestTask
           .withPullRequestBranchName(pullRequestRemediationDetails.getPullRequestBranchName())
           .withCommitMessage(pullRequestRemediationDetails.getTitle())
           .withCommitter(DEFAULT_COMMITTER)
-          .withCommitterEmail(DEFAULT_COMMITTER_EMAIL)
+          .withCommitterEmail(GitApi.DEFAULT_COMMITTER_EMAIL)
           .withPullRequestContent(pullRequestRemediationDetails.getContents())
           .withPullRequestTitle(pullRequestRemediationDetails.getTitle())
           .withRemediationTarget(pullRequestRemediationDetails.getToBeRemediated())

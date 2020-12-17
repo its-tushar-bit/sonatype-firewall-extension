@@ -5,10 +5,9 @@
  */
 import React, { useState } from 'react';
 import { NxAccordion } from '@sonatype/react-shared-components';
-import { chain, groupBy, map, pipe, prop, toPairs, values } from 'ramda';
-import { licenseLegalMetadataPropType } from './advancedLegalPropTypes';
+import { licenseObligationPropTypes } from './advancedLegalPropTypes';
 
-export default function LicenseObligationsTile({ licenseLegalMetadata }) {
+export default function LicenseObligationsTile({ licenseObligations }) {
 
   const createItemContentTexts = (licenseObligationLicenseText, index) => {
     return <p className="obligation-text" key={ index }>{ licenseObligationLicenseText }</p>;
@@ -41,26 +40,6 @@ export default function LicenseObligationsTile({ licenseLegalMetadata }) {
     </NxAccordion>;
   };
 
-  const mapObligationsToLicenseAndTexts = chain(({ licenseName, obligations }) => map(obligation => ({
-    obligationName: obligation.licenseObligation.name,
-    licenseName,
-    texts: obligation.licenseObligation.obligationTexts
-  }), obligations));
-
-  const groupObligationsByLicense = map(([obligationName, licenses]) => ({
-    name: obligationName,
-    licenses: map(({ licenseName, texts }) => ({ name: licenseName, texts }), licenses)
-  }));
-
-  const getLicenseObligationsByName = pipe(
-      mapObligationsToLicenseAndTexts,
-      groupBy(prop('obligationName')),
-      toPairs,
-      groupObligationsByLicense
-  );
-
-  const licenseObligations = getLicenseObligationsByName(values(licenseLegalMetadata));
-
   return (
     <section id="license-obligations-tile" className="nx-tile">
       <header className="nx-tile-header">
@@ -76,5 +55,5 @@ export default function LicenseObligationsTile({ licenseLegalMetadata }) {
 }
 
 LicenseObligationsTile.propTypes = {
-  licenseLegalMetadata: licenseLegalMetadataPropType
+  licenseObligations: licenseObligationPropTypes
 };

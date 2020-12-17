@@ -20,33 +20,7 @@ describe('ComponentOverviewTile component', function () {
         ]
       }
     },
-    licenseLegalMetadata: [
-      {
-        licenseId: 'License-1.0',
-        licenseName: 'License 1.0',
-        obligations: [
-          {
-            'licenseObligationStatus': 0
-          },
-          {
-            'licenseObligationStatus': 0
-          }
-        ]
-      },
-      {
-        licenseId: 'License-2.0',
-        licenseName: 'License 2.0',
-        obligations: [
-          {
-            'licenseObligationStatus': 0
-          }
-        ]
-      },
-      {
-        licenseId: 'License-1.0-License-2.0',
-        licenseName: 'License 1.0 or License 2.0'
-      }
-    ]
+    obligationCount: 3
   };
 
   beforeEach(function () {
@@ -60,6 +34,6 @@ describe('ComponentOverviewTile component', function () {
 
   it('renders the licenses', function () {
     const wrapper = getShallowComponent();
-    expect(wrapper.find('dd.license-names')).toHaveText('License 1.0, License 2.0, License 1.0 or License 2.0');
+    expect(wrapper.find('dd.license-names')).toHaveText('License-1.0, License-2.0, License-1.0-License-2.0');
   });
 });

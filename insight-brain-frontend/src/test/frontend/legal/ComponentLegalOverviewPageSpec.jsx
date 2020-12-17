@@ -30,9 +30,53 @@ describe('ComponentLegalOverviewPage', function() {
         }).default;
 
     loadComponentSpy = jasmine.createSpy('loadComponent');
+    const licenseLegalMetadata = {
+      0: {
+        licenseName: 'license1',
+        obligations: [{
+          licenseObligation: {
+            name: 'obligation 1',
+            obligationTexts: [
+              'text1',
+              'text2'
+            ]
+          }
+        }, {
+          licenseObligation: {
+            name: 'obligation 2',
+            obligationTexts: [
+              'text3',
+              'text4'
+            ]
+          }
+        }]
+      },
+      1: {
+        licenseName: 'license2',
+        obligations: [{
+          licenseObligation: {
+            name: 'obligation 2',
+            obligationTexts: [
+              'text5',
+              'text6'
+            ]
+          },
+          licenseObligationStatus: 0
+        }, {
+          licenseObligation: {
+            name: 'obligation 3',
+            obligationTexts: [
+              'text7',
+              'text8'
+            ]
+          }
+        }]
+      }
+    };
 
     minimalProps = {
       loadComponent: loadComponentSpy,
+      licenseLegalMetadata,
       hash: '1e48256a2341047e7d72'
     };
 
@@ -72,7 +116,31 @@ describe('ComponentLegalOverviewPage', function() {
 
   it('renders the LicenseObligationsTile', function() {
     const wrapper = getShallowComponent();
-    expect(wrapper.find(LicenseObligationsTile)).toExist();
+    const obligationsTile = wrapper.find(LicenseObligationsTile);
+    const expectedObligations = [{
+      name: 'obligation 1',
+      licenses: [{
+        name: 'license1',
+        texts: ['text1', 'text2']
+      }]
+    }, {
+      name: 'obligation 2',
+      licenses: [{
+        name: 'license1',
+        texts: ['text3', 'text4']
+      }, {
+        name: 'license2',
+        texts: ['text5', 'text6']
+      }]
+    }, {
+      name: 'obligation 3',
+      licenses: [{
+        name: 'license2',
+        texts: ['text7', 'text8']
+      }]
+    }];
+    expect(obligationsTile).toExist();
+    expect(obligationsTile).toHaveProp('licenseObligations', expectedObligations);
   });
 
   it('renders the LicenseTextsTile', function() {

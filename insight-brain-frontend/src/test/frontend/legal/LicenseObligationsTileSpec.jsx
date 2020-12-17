@@ -9,53 +9,30 @@ import LicenseObligationsTile from '../../../main/frontend/legal/LicenseObligati
 describe('LicenseObligationsTile component', function() {
 
   let getShallowComponent;
-
-  const licenseLegalMetadata = {
-    0: {
-      licenseName: 'license1',
-      obligations: [{
-        licenseObligation: {
-          name: 'obligation 1',
-          obligationTexts: [
-            'text1',
-            'text2'
-          ]
-        }
-      }, {
-        licenseObligation: {
-          name: 'obligation 2',
-          obligationTexts: [
-            'text3',
-            'text4'
-          ]
-        }
-      }]
-    },
-    1: {
-      licenseName: 'license2',
-      obligations: [{
-        licenseObligation: {
-          name: 'obligation 2',
-          obligationTexts: [
-            'text5',
-            'text6'
-          ]
-        },
-        licenseObligationStatus: 0
-      }, {
-        licenseObligation: {
-          name: 'obligation 3',
-          obligationTexts: [
-            'text7',
-            'text8'
-          ]
-        }
-      }]
-    }
-  };
-
+  const licenseObligations = [{
+    name: 'obligation 1',
+    licenses: [{
+      name: 'license1',
+      texts: ['text1', 'text2']
+    }]
+  }, {
+    name: 'obligation 2',
+    licenses: [{
+      name: 'license1',
+      texts: ['text3', 'text4']
+    }, {
+      name: 'license2',
+      texts: ['text5', 'text6']
+    }]
+  }, {
+    name: 'obligation 3',
+    licenses: [{
+      name: 'license2',
+      texts: ['text7', 'text8']
+    }]
+  }];
   const minimalProps = {
-    licenseLegalMetadata
+    licenseObligations
   };
 
   beforeEach(function() {

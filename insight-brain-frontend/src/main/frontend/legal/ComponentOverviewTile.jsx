@@ -5,21 +5,13 @@
  */
 import React from 'react';
 import { componentPropType, licenseLegalMetadataPropType } from './advancedLegalPropTypes';
+import * as PropTypes from 'prop-types';
 
 export default function ComponentOverviewTile(props) {
   const {
     component,
-    licenseLegalMetadata
+    obligationCount
   } = props;
-
-  let obligationsCount = 0;
-  let licenseNames = [];
-
-  component.licenseLegalData.effectiveLicenses.forEach(effectiveLicense => {
-    const licenseMetadata = licenseLegalMetadata.find(license => license.licenseId === effectiveLicense);
-    licenseNames.push(licenseMetadata.licenseName);
-    obligationsCount += licenseMetadata.obligations ? licenseMetadata.obligations.length : 0;
-  });
 
   return (
     <section id="component-overview-tile" className="nx-tile">
@@ -30,12 +22,12 @@ export default function ComponentOverviewTile(props) {
         </dl>
         <dl className="nx-grid-col nx-grid-col--33">
           <dt>Obligations</dt>
-          <dd className="iq-read-only-data obligations-count">{obligationsCount}</dd>
+          <dd className="iq-read-only-data obligations-count">{ obligationCount }</dd>
         </dl>
         <dl className="nx-grid-col nx-grid-col--33">
           <dt>Licenses</dt>
           <dd className="iq-read-only-data license-names">
-            {licenseNames.join(', ')}
+            { component.licenseLegalData.effectiveLicenses.join(', ') }
           </dd>
         </dl>
       </div>
@@ -45,5 +37,6 @@ export default function ComponentOverviewTile(props) {
 
 ComponentOverviewTile.propTypes = {
   component: componentPropType,
+  obligationCount: PropTypes.number,
   licenseLegalMetadata: licenseLegalMetadataPropType
 };

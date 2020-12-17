@@ -42,10 +42,11 @@ import org.codehaus.plexus.util.xml.XmlStreamReader;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.pull.MXParser;
 import org.codehaus.plexus.util.xml.pull.XmlPullParser;
-import org.cyclonedx.BomParser;
 import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
+import org.cyclonedx.parsers.Parser;
+import org.cyclonedx.parsers.XmlParser;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -403,7 +404,7 @@ public class ThirdPartyScanResultsProcessorTest
   }
 
   private Bom getBom(String content) throws ParseException {
-    BomParser parser = new BomParser();
+    Parser parser = new XmlParser();
     return parser.parse(new StringReader(content));
   }
 

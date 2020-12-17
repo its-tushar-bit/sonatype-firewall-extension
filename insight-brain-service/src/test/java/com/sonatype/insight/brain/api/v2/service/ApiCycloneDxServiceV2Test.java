@@ -22,7 +22,6 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.codehaus.plexus.util.FileUtils;
-import org.cyclonedx.BomParser;
 import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
@@ -31,6 +30,8 @@ import org.cyclonedx.model.Hash;
 import org.cyclonedx.model.Hash.Algorithm;
 import org.cyclonedx.model.License;
 import org.cyclonedx.model.LicenseChoice;
+import org.cyclonedx.parsers.Parser;
+import org.cyclonedx.parsers.XmlParser;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -110,7 +111,7 @@ public class ApiCycloneDxServiceV2Test
   }
 
   private void assertBom(Response response) throws ParseException {
-    BomParser parser = new BomParser();
+    Parser parser = new XmlParser();
     Bom bom = parser.parse(response.getEntity().toString().getBytes(StandardCharsets.UTF_8));
 
     assertThat(bom.getSerialNumber()).isEqualTo(scanId);
@@ -120,7 +121,7 @@ public class ApiCycloneDxServiceV2Test
         "CC0-1.0", "MIT", "Not-Supported");
 
     component.addComponent(createComponent(null, "jQuery", "3.2.1", "pkg:nuget/jQuery@3.2.1", "0babbbd2c221d24484f5",
-        "CC0-1.0", "MIT", "Not-Supported"));
+        true, "CC0-1.0", "MIT", "Not-Supported"));
     component.addComponent(createComponent(null, "knockout.validation", "2.0.0-Pre",
         "pkg:a-name/knockout.validation@2.0.0-Pre", "7c9933a349f37d5f3131", "MPL-1.1", "LGPL-2.1", "Apache-1.1",
         "Apache-1.0", "LGPL-3.0", "Apache-2.0"));
@@ -136,6 +137,18 @@ public class ApiCycloneDxServiceV2Test
       String hashStr,
       String... licenses)
   {
+    return createComponent(namespace, name, version, packageUrl, hashStr, false, licenses);
+  }
+
+  private Component createComponent(
+      String namespace,
+      String name,
+      String version,
+      String packageUrl,
+      String hashStr,
+      boolean modified,
+      String... licenses)
+  {
     Component component = new Component();
     component.setType(Component.Type.LIBRARY);
     component.setGroup(namespace);
@@ -143,6 +156,7 @@ public class ApiCycloneDxServiceV2Test
     component.setVersion(version);
     component.setPurl(packageUrl);
     component.setScope(Scope.REQUIRED);
+    component.setModified(modified);
 
     component.addHash(new Hash(Algorithm.SHA1, hashStr));
 

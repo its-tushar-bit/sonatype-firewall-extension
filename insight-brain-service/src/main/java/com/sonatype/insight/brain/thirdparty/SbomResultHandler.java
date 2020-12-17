@@ -44,9 +44,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.pull.XmlPullParser;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-import org.cyclonedx.BomGenerator;
 import org.cyclonedx.BomGeneratorFactory;
 import org.cyclonedx.CycloneDxSchema.Version;
+import org.cyclonedx.generators.xml.BomXmlGenerator;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
 import org.cyclonedx.model.Hash;
@@ -471,7 +471,7 @@ public class SbomResultHandler
   }
 
   private String generateFilteredSbom(Bom sbom) throws ParserConfigurationException, TransformerException {
-    BomGenerator generator = BomGeneratorFactory.create(Version.VERSION_11, sbom);
+    BomXmlGenerator generator = BomGeneratorFactory.createXml(Version.VERSION_11, sbom);
     generator.generate();
     return generator.toXmlString();
   }

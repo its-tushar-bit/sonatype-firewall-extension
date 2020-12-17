@@ -47,9 +47,9 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
-import org.cyclonedx.BomGenerator;
 import org.cyclonedx.BomGeneratorFactory;
 import org.cyclonedx.CycloneDxSchema.Version;
+import org.cyclonedx.generators.xml.BomXmlGenerator;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
 import org.cyclonedx.model.Component.Type;
@@ -127,7 +127,7 @@ public class ApiCycloneDxServiceV2
       createBomComponents(data.components.stream().filter(c -> !MatchState.UNKNOWN.getId().equals(c.matchState))
           .collect(Collectors.toList())).forEach(bom::addComponent);
 
-      BomGenerator generator = BomGeneratorFactory.create(Version.VERSION_11, bom);
+      BomXmlGenerator generator = BomGeneratorFactory.createXml(Version.VERSION_11, bom);
       generator.generate();
 
       return Response.ok(generator.toXmlString(), MediaType.APPLICATION_XML)

@@ -26,7 +26,7 @@ import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
-import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.hds.DefaultHdsClient;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -99,7 +99,7 @@ public class ArtifactoryRepositoryResource
   {
     repositoryService
         .evaluateComponents(repositoryManagerInstanceId, repositoryPublicId, componentEvaluationDataRequestList, false,
-            HdsClient.getClientUserAgent(request));
+            DefaultHdsClient.getClientUserAgent(request));
   }
 
   @POST
@@ -115,7 +115,7 @@ public class ArtifactoryRepositoryResource
   {
     return repositoryService
         .evaluateComponents(repositoryManagerInstanceId, repositoryPublicId, componentEvaluationDataRequestList, true,
-            HdsClient.getClientUserAgent(request));
+            DefaultHdsClient.getClientUserAgent(request));
   }
 
   @Path(QUARANTINE_PATH)

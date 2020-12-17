@@ -24,7 +24,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiEnhancedPolicyViolationDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.PolicyAuditDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
-import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -105,7 +105,7 @@ public class ApiPolicyViolationServiceV2
         apiPolicyViolationDTO.policyViolationId = policyViolation.getId();
         apiPolicyViolationDTO.threatLevel = policyViolation.getThreatLevel();
         apiPolicyViolationDTO.openTime = policyViolation.getOpenTime();
-        apiPolicyViolationDTO.reportUrl = UserInterfaceLinksResource.getReportUrl(application.getPublicId(),
+        apiPolicyViolationDTO.reportUrl = UserInterfaceLinksHelper.getReportUrl(application.getPublicId(),
             policyEvaluation.getScanId());
         apiPolicyViolationDTO.stageId = policyEvaluation.getStageTypeId();
         apiPolicyViolationDTO.reportId = policyEvaluation.getScanId();

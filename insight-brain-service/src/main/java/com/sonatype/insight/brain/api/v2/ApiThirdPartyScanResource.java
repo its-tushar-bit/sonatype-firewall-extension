@@ -26,7 +26,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiThirdPartyScanService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
-import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.hds.DefaultHdsClient;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -62,7 +62,7 @@ public class ApiThirdPartyScanResource
       final String sbom)
   {
     ApiThirdPartyScanTicketDTO ticket = thirdPartyScanService.scanComponents(applicationId, source, stageId, sbom,
-        HdsClient.getClientUserAgent(request));
+        DefaultHdsClient.getClientUserAgent(request));
     return Response.status(Response.Status.ACCEPTED).entity(ticket).build();
   }
 

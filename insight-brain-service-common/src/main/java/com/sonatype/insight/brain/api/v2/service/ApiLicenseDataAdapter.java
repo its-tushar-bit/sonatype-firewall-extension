@@ -10,34 +10,19 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-
 import com.sonatype.clm.dto.model.License;
-import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
-import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 
-/**
- * @since 1.13.0
- */
-@Named
 public class ApiLicenseDataAdapter
 {
-  private final MultiLicenseDAO multiLicenseDAO;
-
-  @Inject
-  public ApiLicenseDataAdapter(final MultiLicenseDAO multiLicenseDAO) {
-    this.multiLicenseDAO = multiLicenseDAO;
-  }
-
   public ApiLicenseDataDTO convertToDTO(final Component component) {
     ApiLicenseDataDTO licenseDataDTO = new ApiLicenseDataDTO();
     convert(component, licenseDataDTO);
@@ -48,7 +33,7 @@ public class ApiLicenseDataAdapter
   /**
    * @since 1.16.0
    */
-  public ApiLicenseDataDTO convertToDTO(ComponentEvaluationData componentDetailsFromHds) {
+  public ApiLicenseDataDTO convertToDTO(ComponentEvaluationDataList.ComponentEvaluationData componentDetailsFromHds) {
     ApiLicenseDataDTO licenseDataDTO = new ApiLicenseDataDTO();
     convert(componentDetailsFromHds, licenseDataDTO);
 
@@ -87,6 +72,18 @@ public class ApiLicenseDataAdapter
     return threat;
   }
 
+  /**
+   * Protected method to retrieve the license name, allowed/required to be overwritten to get a different more correct
+   * name if needed. By default returns the license id as the default name for the licenes.
+   *
+   * @param licenseId - id to find a license name for
+   * @return name of license
+   */
+  protected String getLicenseNameById(final String licenseId) {
+    // default to what we have been given, allow to be overridden
+    return licenseId;
+  }
+
   private void convert(final Component component, final ApiLicenseDataDTO licenseDataDTO) {
     // For display purposes, multi-license names should always be used as they make the distinction
     // between AND and OR clear. Using only the individual license names loses that distinction and customers
@@ -104,7 +101,9 @@ public class ApiLicenseDataAdapter
         declaredLicenses, observedLicenses, component.getLicenseOverrideIds()));
   }
 
-  private void convert(ComponentEvaluationData componentDetailsFromHds, ApiLicenseDataDTO licenseDataDTO) {
+  private void convert(ComponentEvaluationDataList.ComponentEvaluationData componentDetailsFromHds,
+                       ApiLicenseDataDTO licenseDataDTO)
+  {
     licenseDataDTO.status = LicenseOverrideStatus.OPEN.getName();
     convertLicenses(licenseDataDTO.declaredLicenses, componentDetailsFromHds.declaredLicenses);
     convertLicenses(licenseDataDTO.observedLicenses, componentDetailsFromHds.observedLicenses);
@@ -117,7 +116,7 @@ public class ApiLicenseDataAdapter
     for (String licenseId : licenseIds) {
       ApiLicenseDTO license = new ApiLicenseDTO();
       license.licenseId = licenseId;
-      license.licenseName = multiLicenseDAO.getByIdNotNull(licenseId).getShortDisplayName();
+      license.licenseName = getLicenseNameById(licenseId);
       licenses.add(license);
     }
   }
@@ -126,7 +125,7 @@ public class ApiLicenseDataAdapter
     for (License license : licenses) {
       ApiLicenseDTO licenseDTO = new ApiLicenseDTO();
       licenseDTO.licenseId = license.getLicenseId();
-      licenseDTO.licenseName = multiLicenseDAO.getByIdNotNull(licenseDTO.licenseId).getShortDisplayName();
+      licenseDTO.licenseName = getLicenseNameById(licenseDTO.licenseId);
       licenseDTOs.add(licenseDTO);
     }
   }

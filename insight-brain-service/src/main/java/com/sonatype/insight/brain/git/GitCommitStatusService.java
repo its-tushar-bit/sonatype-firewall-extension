@@ -15,7 +15,7 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
-import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -164,7 +164,7 @@ public class GitCommitStatusService
       final SourceControlProvider provider)
   {
     Application application = applicationDAO.getByIdNotNull(ownerId);
-    String reportPath = UserInterfaceLinksResource.getReportUrl(application.getPublicId(), scanId);
+    String reportPath = UserInterfaceLinksHelper.getReportUrl(application.getPublicId(), scanId);
     reportPath = addSourceQuery(reportPath, provider);
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setReportUrl(reportPath);

@@ -27,7 +27,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportHistoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportResultsDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -123,11 +123,11 @@ public class ApiReportServiceV2
     report.evaluationDate = eval.getTime();
     report.stage = eval.getStageTypeId();
 
-    report.latestReportHtmlUrl = UserInterfaceLinksResource.getLatestReportUrl(app.getPublicId(), report.stage);
+    report.latestReportHtmlUrl = UserInterfaceLinksHelper.getLatestReportUrl(app.getPublicId(), report.stage);
 
-    report.reportPdfUrl = UserInterfaceLinksResource.getPdfUrl(app.getPublicId(), eval.getScanId());
-    report.reportHtmlUrl = UserInterfaceLinksResource.getReportUrl(app.getPublicId(), eval.getScanId());
-    report.embeddableReportHtmlUrl = UserInterfaceLinksResource.getEmbeddableReportUrl(app.getPublicId(),
+    report.reportPdfUrl = UserInterfaceLinksHelper.getPdfUrl(app.getPublicId(), eval.getScanId());
+    report.reportHtmlUrl = UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), eval.getScanId());
+    report.embeddableReportHtmlUrl = UserInterfaceLinksHelper.getEmbeddableReportUrl(app.getPublicId(),
         eval.getScanId());
     report.reportDataUrl = DefaultApiReportDataResourceV2.getDataUrl(app.getPublicId(), eval.getScanId());
   }

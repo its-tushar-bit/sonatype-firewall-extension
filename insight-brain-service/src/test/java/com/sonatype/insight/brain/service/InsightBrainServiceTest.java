@@ -211,7 +211,9 @@ public class InsightBrainServiceTest
         ZipEntry zipEntryData = zipInputStream.getNextEntry();
         assertThat(zipEntryData.getName()).isEqualTo(TelemetrySender.DATA_ENTRY_NAME);
         List<TelemetryData> telemetryDataReceived =
-            objectMapper.readValue(zipInputStream, new TypeReference<List<TelemetryData>>() { });
+            objectMapper.readValue(zipInputStream, new TypeReference<List<TelemetryData>>()
+            {
+            });
         allTelemetryData.addAll(telemetryDataReceived);
       }
     }
@@ -300,7 +302,8 @@ public class InsightBrainServiceTest
     initServer(new Configurator()
     {
       @Override
-      public void configure(final InsightConfig config) { }
+      public void configure(final InsightConfig config) {
+      }
 
       @Override
       public String getConfigFilePath() {

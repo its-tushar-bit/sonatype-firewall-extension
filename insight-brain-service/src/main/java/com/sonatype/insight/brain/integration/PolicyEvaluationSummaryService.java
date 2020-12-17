@@ -13,7 +13,7 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -71,7 +71,7 @@ public class PolicyEvaluationSummaryService
     summary.setCriticalComponentCount(policyEvaluationResult.getCriticalComponentCount());
     summary.setModerateComponentCount(policyEvaluationResult.getModerateComponentCount());
     summary.setSevereComponentCount(policyEvaluationResult.getSevereComponentCount());
-    summary.setReportUrl(UserInterfaceLinksResource.getReportUrl(application.getPublicId(),
+    summary.setReportUrl(UserInterfaceLinksHelper.getReportUrl(application.getPublicId(),
         policyEvaluation.getScanId()));
 
     return summary;

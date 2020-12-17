@@ -26,7 +26,7 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.jira.JiraIssueCreateRequest.JiraIssueCreateResponse;
-import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
@@ -219,7 +219,7 @@ public class JiraPolicyAlertNotifier
     model.put("policyAlertSections", new PolicyAlertSections(policyFacts));
     model.put("policyAlertCounts", counts);
     model.put("contact", appContact);
-    model.put("detailedReportUrl", stringBaseUrl + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), scanId));
+    model.put("detailedReportUrl", stringBaseUrl + UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), scanId));
 
     return model;
   }

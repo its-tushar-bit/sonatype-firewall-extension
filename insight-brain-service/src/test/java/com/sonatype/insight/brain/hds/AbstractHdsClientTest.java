@@ -40,7 +40,7 @@ public abstract class AbstractHdsClientTest
 
   private Server server;
 
-  protected HdsClient client;
+  protected DefaultHdsClient client;
 
   protected AbstractHandler handler;
 

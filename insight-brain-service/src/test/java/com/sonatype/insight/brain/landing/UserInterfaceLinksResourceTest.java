@@ -44,26 +44,26 @@ public class UserInterfaceLinksResourceTest
   }
 
   private HttpResponse get(String path, Object... params) throws Exception {
-    return restRequest().path(UserInterfaceLinksResource.RESOURCE_PATH, path).parameter(params).anon().get();
+    return restRequest().path(UserInterfaceLinksHelper.RESOURCE_PATH, path).parameter(params).anon().get();
   }
 
   @Test
   public void testLinkToManagement_App() throws Exception {
-    HttpResponse response = get(UserInterfaceLinksResource.MANAGEMENT_PATH, "application", "test id");
+    HttpResponse response = get(UserInterfaceLinksHelper.MANAGEMENT_PATH, "application", "test id");
     assertRedirect(response, "assets/index.html#/management/view/application/test%20id");
   }
 
   @Test
   public void testLinkToManagement_Org() throws Exception {
-    HttpResponse response = get(UserInterfaceLinksResource.MANAGEMENT_PATH, "organization", "test id");
+    HttpResponse response = get(UserInterfaceLinksHelper.MANAGEMENT_PATH, "organization", "test id");
     assertRedirect(response, "assets/index.html#/management/view/organization/test%20id");
   }
 
   @Test
   public void testLinkToReport() throws Exception {
-    assertThat(UserInterfaceLinksResource.getReportUrl("app id", "scan id"))
-        .isEqualTo(UserInterfaceLinksResource.RESOURCE_PATH + "/application/app%20id/report/scan%20id");
-    HttpResponse response = get(UserInterfaceLinksResource.REPORT_PATH, "app id", "scan id");
+    assertThat(UserInterfaceLinksHelper.getReportUrl("app id", "scan id"))
+        .isEqualTo(UserInterfaceLinksHelper.RESOURCE_PATH + "/application/app%20id/report/scan%20id");
+    HttpResponse response = get(UserInterfaceLinksHelper.REPORT_PATH, "app id", "scan id");
     assertRedirect(response, "assets/index.html#/applicationReport/app%20id/scan%20id/policy");
   }
 
@@ -90,10 +90,10 @@ public class UserInterfaceLinksResourceTest
     Application application = tempEntity.newApplicationWithParent();
     String appPublicId = application.getPublicId();
 
-    assertThat(UserInterfaceLinksResource.getReportUrl(appPublicId, "scan id"))
-        .isEqualTo(UserInterfaceLinksResource.RESOURCE_PATH + "/application/" + appPublicId + "/report/scan%20id");
+    assertThat(UserInterfaceLinksHelper.getReportUrl(appPublicId, "scan id"))
+        .isEqualTo(UserInterfaceLinksHelper.RESOURCE_PATH + "/application/" + appPublicId + "/report/scan%20id");
     HttpRequest request = restRequest()
-        .path(UserInterfaceLinksResource.RESOURCE_PATH, UserInterfaceLinksResource.REPORT_PATH)
+        .path(UserInterfaceLinksHelper.RESOURCE_PATH, UserInterfaceLinksHelper.REPORT_PATH)
         .parameter(appPublicId, "scan id").query("source=Foo");
     
     if (anonymous) {
@@ -132,9 +132,9 @@ public class UserInterfaceLinksResourceTest
       }).andStatus(204).atUri(TelemetrySender.RESOURCE_PATH);
     });
 
-    assertThat(UserInterfaceLinksResource.getReportUrl("app id", "scan id"))
-        .isEqualTo(UserInterfaceLinksResource.RESOURCE_PATH + "/application/app%20id/report/scan%20id");
-    HttpResponse response = get(UserInterfaceLinksResource.REPORT_PATH, "app id", "scan id");
+    assertThat(UserInterfaceLinksHelper.getReportUrl("app id", "scan id"))
+        .isEqualTo(UserInterfaceLinksHelper.RESOURCE_PATH + "/application/app%20id/report/scan%20id");
+    HttpResponse response = get(UserInterfaceLinksHelper.REPORT_PATH, "app id", "scan id");
     assertRedirect(response, "assets/index.html#/applicationReport/app%20id/scan%20id/policy");
 
     Map<TelemetryPurpose, List<TelemetryItem>> telemetryDataByPurpose = getTelemetryItemsByPurpose(responses);
@@ -143,17 +143,17 @@ public class UserInterfaceLinksResourceTest
 
   @Test
   public void testLinkToEmbeddableReport() throws Exception {
-    assertThat(UserInterfaceLinksResource.getEmbeddableReportUrl("app id", "scan id"))
-        .isEqualTo(UserInterfaceLinksResource.RESOURCE_PATH + "/application/app%20id/report/scan%20id/embeddable");
-    HttpResponse response = get(UserInterfaceLinksResource.EMBEDDABLE_REPORT_PATH, "app id", "scan id");
+    assertThat(UserInterfaceLinksHelper.getEmbeddableReportUrl("app id", "scan id"))
+        .isEqualTo(UserInterfaceLinksHelper.RESOURCE_PATH + "/application/app%20id/report/scan%20id/embeddable");
+    HttpResponse response = get(UserInterfaceLinksHelper.EMBEDDABLE_REPORT_PATH, "app id", "scan id");
     assertRedirect(response, "assets/index.html#/applicationReport/app%20id/scan%20id/policy?embeddable");
   }
 
   @Test
   public void testLinkToPdf() throws Exception {
-    assertThat(UserInterfaceLinksResource.getPdfUrl("app id", "scan id"))
-        .isEqualTo(UserInterfaceLinksResource.RESOURCE_PATH + "/application/app%20id/report/scan%20id/pdf");
-    HttpResponse response = get(UserInterfaceLinksResource.PDF_PATH, "app id", "scan id");
+    assertThat(UserInterfaceLinksHelper.getPdfUrl("app id", "scan id"))
+        .isEqualTo(UserInterfaceLinksHelper.RESOURCE_PATH + "/application/app%20id/report/scan%20id/pdf");
+    HttpResponse response = get(UserInterfaceLinksHelper.PDF_PATH, "app id", "scan id");
     assertRedirect(response, "rest/report/app%20id/scan%20id/printReport");
   }
 
@@ -161,23 +161,23 @@ public class UserInterfaceLinksResourceTest
   public void testLinkToLatestAppReport() throws Exception {
     Application app = tempEntity.newApplicationWithParent("app-id");
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan id");
-    HttpResponse response = get(UserInterfaceLinksResource.LATEST_REPORT_PATH, "app-id", Stage.ID_BUILD);
+    HttpResponse response = get(UserInterfaceLinksHelper.LATEST_REPORT_PATH, "app-id", Stage.ID_BUILD);
     assertRedirect(response, "assets/index.html#/applicationReport/app-id/scan%20id/policy");
   }
 
   @Test
   public void testLinkToRepositoryReport() throws Exception {
-    String url = UserInterfaceLinksResource.getRepositoryReportUrl("repo id");
-    assertThat(url).isEqualTo(UserInterfaceLinksResource.RESOURCE_PATH + "/repository/repo%20id/result");
-    HttpResponse response = get(UserInterfaceLinksResource.REPO_RESULT_PATH, "repo id");
+    String url = UserInterfaceLinksHelper.getRepositoryReportUrl("repo id");
+    assertThat(url).isEqualTo(UserInterfaceLinksHelper.RESOURCE_PATH + "/repository/repo%20id/result");
+    HttpResponse response = get(UserInterfaceLinksHelper.REPO_RESULT_PATH, "repo id");
     assertRedirect(response, "assets/index.html#/repository/repo%20id/result");
   }
 
   @Test
   public void testLinkToVulnerabililtyDetails() throws Exception {
-    String url = UserInterfaceLinksResource.getVulnerabilityDetailsUrl("CVE-8765-4321");
-    assertThat(url).isEqualTo(UserInterfaceLinksResource.RESOURCE_PATH + "/vln/CVE-8765-4321");
-    HttpResponse response = get(UserInterfaceLinksResource.VULNERABILITY_DETAILS_PATH, "CVE-8765-4321");
+    String url = UserInterfaceLinksHelper.getVulnerabilityDetailsUrl("CVE-8765-4321");
+    assertThat(url).isEqualTo(UserInterfaceLinksHelper.RESOURCE_PATH + "/vln/CVE-8765-4321");
+    HttpResponse response = get(UserInterfaceLinksHelper.VULNERABILITY_DETAILS_PATH, "CVE-8765-4321");
     assertRedirect(response, "assets/index.html#/vulnerabilities/CVE-8765-4321");
   }
 

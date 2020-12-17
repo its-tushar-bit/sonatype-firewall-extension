@@ -68,8 +68,8 @@ import org.slf4j.LoggerFactory;
  */
 @Named
 @Singleton
-public class HdsClient
-    implements Managed, ProxyServerConfigurationListener
+public class DefaultHdsClient
+    implements HdsClient, Managed, ProxyServerConfigurationListener
 {
   // Logger is instance variable so that subclasses will have a different one which can be configured differently
   private final Logger log = LoggerFactory.getLogger(getClass());
@@ -105,21 +105,21 @@ public class HdsClient
   static final String TELEMETRY_ID_HEADER = "X-CLM-Instance-Id";
 
   @Inject
-  public HdsClient(final InsightProxy proxy,
-                   ProductLicense productLicense,
-                   InsightConfig insightConfig,
-                   VersionService versionService,
-                   TelemetryId telemetryId)
+  public DefaultHdsClient(final InsightProxy proxy,
+                          ProductLicense productLicense,
+                          InsightConfig insightConfig,
+                          VersionService versionService,
+                          TelemetryId telemetryId)
   {
     this(proxy, productLicense, insightConfig, versionService, telemetryId, 20);
   }
 
-  protected HdsClient(final InsightProxy proxy,
-                      ProductLicense productLicense,
-                      InsightConfig insightConfig,
-                      VersionService versionService,
-                      TelemetryId telemetryId,
-                      int poolSize)
+  protected DefaultHdsClient(final InsightProxy proxy,
+                             ProductLicense productLicense,
+                             InsightConfig insightConfig,
+                             VersionService versionService,
+                             TelemetryId telemetryId,
+                             int poolSize)
   {
     this.proxy = proxy;
     this.productLicense = productLicense;
@@ -183,10 +183,12 @@ public class HdsClient
     log.debug("Applied new proxy server configuration");
   }
 
+  @Override
   public <T> T get(Class<T> clazz, String path, Map<String, String> queryParams, String... uriParams) {
     return internalGet(clazz, buildUri(null, path, queryParams, uriParams));
   }
 
+  @Override
   public <T> T get(Class<T> clazz, String url) {
     return internalGet(clazz, buildUri(url));
   }
@@ -196,10 +198,12 @@ public class HdsClient
     return execute(cloudReq, clazz);
   }
 
+  @Override
   public <T> T relay(HttpServletRequest request, Class<T> clazz, String path, String... uriParams) throws IOException {
     return relay(request, clazz, path, null, uriParams);
   }
 
+  @Override
   public <T> T relay(HttpServletRequest request,
                      Class<T> clazz,
                      String path,
@@ -210,6 +214,7 @@ public class HdsClient
     return relay(request, null, clazz, path, queryParams, uriParams);
   }
 
+  @Override
   public <T> T relay(HttpServletRequest request,
                      HdsClientAnalytics analytics,
                      Class<T> clazz,
@@ -353,18 +358,14 @@ public class HdsClient
     return cloudReq;
   }
 
-  /**
-   * @since 1.46
-   */
+  @Override
   public void post(String path, HttpEntity httpEntity, String clientUserAgent) {
     HttpPost cloudReq = createPostRequest(buildUri(path), null, clientUserAgent);
     cloudReq.setEntity(httpEntity);
     execute(cloudReq, null);
   }
 
-  /**
-   * @since 1.13.0
-   */
+  @Override
   public <T> T post(Class<T> clazz, String path, Object jsonSerializableObject, String... uriParams) {
     return post(null /* analytics */, clazz, path, null /* clientUserAgent */, jsonSerializableObject, uriParams);
   }
@@ -384,9 +385,7 @@ public class HdsClient
     return cloudReq;
   }
 
-  /**
-   * @since 1.43
-   */
+  @Override
   public <T> T post(HdsClientAnalytics analytics,
                     Class<T> clazz,
                     String path,
@@ -415,9 +414,7 @@ public class HdsClient
     return cloudReq;
   }
 
-  /**
-   * @since 1.8
-   */
+  @Override
   public <T> T put(HdsClientAnalytics analytics, Class<T> clazz, String path, File uploadFile,
                    Map<String, String> queryParams, String... uriParams) throws IOException
   {

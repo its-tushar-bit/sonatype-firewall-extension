@@ -12,7 +12,7 @@ import com.sonatype.clm.dto.model.SecurityThreatLevel;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
-import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
@@ -71,7 +71,7 @@ public class ApiSecurityDataAdapter
       return url;
     }
     if ("sonatype".equals(source)) {
-      return baseUrl.get() + UserInterfaceLinksResource.getVulnerabilityDetailsUrl(refId);
+      return baseUrl.get() + UserInterfaceLinksHelper.getVulnerabilityDetailsUrl(refId);
     }
     return null;
   }

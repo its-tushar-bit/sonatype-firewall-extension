@@ -18,7 +18,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
-import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
@@ -138,7 +138,7 @@ public class PolicyAlertEmailer
       model.put("applicationContactName", appContact.getDisplayName());
     }
     model.put("detailedReportUrl",
-        baseUrl.getConfigured() + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), scanId));
+        baseUrl.getConfigured() + UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), scanId));
     model.put("ownerIdLabel", "APP ID");
     model.put("grandfatheredPolicyViolationCount", grandfatheredPolicyViolationCount);
 

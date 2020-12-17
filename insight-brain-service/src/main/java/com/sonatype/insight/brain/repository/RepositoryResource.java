@@ -19,7 +19,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
-import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.hds.DefaultHdsClient;
 import com.sonatype.insight.brain.dto.repository.RepositoriesDTO;
 import com.sonatype.insight.brain.dto.repository.RepositoryDTO;
 
@@ -61,7 +61,7 @@ public class RepositoryResource
                                     @PathParam("pathname") final String pathname,
                                     @Context final HttpServletRequest request)
   {
-    repositoryService.unquarantineComponent(repositoryId, pathname, HdsClient.getClientUserAgent(request));
+    repositoryService.unquarantineComponent(repositoryId, pathname, DefaultHdsClient.getClientUserAgent(request));
   }
 
   /**
@@ -102,6 +102,6 @@ public class RepositoryResource
                                   @PathParam("hash") String componentHash,
                                   @Context final HttpServletRequest request)
   {
-    repositoryService.reevaluateComponent(repositoryId, componentHash, HdsClient.getClientUserAgent(request));
+    repositoryService.reevaluateComponent(repositoryId, componentHash, DefaultHdsClient.getClientUserAgent(request));
   }
 }

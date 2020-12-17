@@ -26,7 +26,7 @@ import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -290,7 +290,7 @@ public class ApiReportViolationsDiffService
     final ApiApplicationEvaluationCommitDTO apiApplicationEvaluationCommitDTO = new ApiApplicationEvaluationCommitDTO();
     apiApplicationEvaluationCommitDTO.commitHash = policyEvaluation.getCommitHash();
     apiApplicationEvaluationCommitDTO.reportUrl =
-        UserInterfaceLinksResource.getReportUrl(applicationPublicId, policyEvaluation.getScanId());
+        UserInterfaceLinksHelper.getReportUrl(applicationPublicId, policyEvaluation.getScanId());
     apiApplicationEvaluationCommitDTO.scanId = policyEvaluation.getScanId();
     apiApplicationEvaluationCommitDTO.scanTime = policyEvaluation.getTime();
     return apiApplicationEvaluationCommitDTO;

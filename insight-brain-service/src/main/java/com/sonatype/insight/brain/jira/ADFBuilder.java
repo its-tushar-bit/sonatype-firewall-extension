@@ -12,7 +12,7 @@ import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.jira.JiraPolicyAlertNotifier.PolicyAlertSections;
 import com.sonatype.insight.brain.jira.JiraPolicyAlertNotifier.PolicyAlertSections.Section;
-import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertCounts;
@@ -49,7 +49,7 @@ public class ADFBuilder
     root.addContent(createHeading(1, "Nexus IQ Notification"));
     root.addContent(createChiclets(counts));
     root.addContent(createEvaluationDetailSection(app.getName(), scanId, stage.getStageName(),
-        baseUrl.getConfigured() + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), scanId),
+        baseUrl.getConfigured() + UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), scanId),
         appContact));
     root.addContent(createHeading(2, "Policy Alerts"));
 

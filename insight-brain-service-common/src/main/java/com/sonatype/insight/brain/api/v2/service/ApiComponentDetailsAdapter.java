@@ -84,9 +84,6 @@ public class ApiComponentDetailsAdapter
     return componentDetailsDTO;
   }
 
-  /**
-   * @since 1.16.0
-   */
   public ApiComponentDetailsDTOV2 convertToDTO(ComponentEvaluationData componentDetailsFromHds) {
     ApiComponentDetailsDTOV2 componentDetailsDTO = new ApiComponentDetailsDTOV2();
     componentDetailsDTO.component = new ApiComponentDTOV2();

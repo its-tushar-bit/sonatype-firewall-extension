@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentDetailsAdapter;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
+import com.sonatype.insight.brain.hds.DefaultComponentDetailsLoader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
@@ -211,7 +212,7 @@ public class ApiComponentEvaluationServiceV2
       evaluationResultDTO.applicationId = application.getId();
 
       try {
-        ComponentDetailsLoader componentDetailsLoader = new ComponentDetailsLoader(application);
+        ComponentDetailsLoader componentDetailsLoader = new DefaultComponentDetailsLoader(application);
         List<ComponentEvaluationData> componentEvaluationDataList = apiComponentDetailsServiceV2
             .getComponentDetailsListFromHds(evaluationRequestDTO, PURPOSE_EVALUATION);
         for (ComponentEvaluationData componentEvaluationData : componentEvaluationDataList) {

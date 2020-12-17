@@ -20,7 +20,7 @@ import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
-import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -37,10 +37,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightMail;
+import com.sonatype.insight.brain.service.*;
 
 import com.google.inject.Binder;
 import org.junit.Before;
@@ -139,7 +136,7 @@ public class RepositoryPolicyAlertEmailerTest
     assertThat(model.get("policyFacts")).isEqualTo(policyFacts);
     assertThat(model.get("cdnUrl")).isEqualTo("http://cdnUrl");
     assertThat(model.get("detailedReportUrl"))
-        .isEqualTo(baseUrl.getConfigured() + UserInterfaceLinksResource.getRepositoryReportUrl(repository.getId()));
+        .isEqualTo(baseUrl.getConfigured() + UserInterfaceLinksHelper.getRepositoryReportUrl(repository.getId()));
     assertThat(model.get("policyThreatRedCount")).isEqualTo(2);
     assertThat(model.get("policyThreatOrangeCount")).isEqualTo(4);
     assertThat(model.get("policyThreatYellowCount")).isEqualTo(2);
@@ -169,7 +166,7 @@ public class RepositoryPolicyAlertEmailerTest
 
     assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
       emailer.createPolicyMailModel(repository, policyFacts);
-    }).withMessage(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
+    }).withMessage(DefaultBaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
   }
 
   private Policy createPolicy(User user) {

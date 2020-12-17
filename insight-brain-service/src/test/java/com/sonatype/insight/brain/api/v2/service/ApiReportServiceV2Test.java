@@ -17,7 +17,7 @@ import com.sonatype.insight.brain.api.v2.DefaultApiReportDataResourceV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationReportDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportHistoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportResultsDTO;
-import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -157,13 +157,13 @@ public class ApiReportServiceV2Test
     for (ApiApplicationReportDTOV2 report : actual) {
       if (app.getId().equals(report.applicationId) && expectedStageId.equals(report.stage)) {
         assertThat(report.latestReportHtmlUrl)
-            .isEqualTo(UserInterfaceLinksResource.getLatestReportUrl(app.getPublicId(), expectedStageId));
+            .isEqualTo(UserInterfaceLinksHelper.getLatestReportUrl(app.getPublicId(), expectedStageId));
         assertThat(report.reportPdfUrl)
-            .isEqualTo(UserInterfaceLinksResource.getPdfUrl(app.getPublicId(), expectedScanId));
+            .isEqualTo(UserInterfaceLinksHelper.getPdfUrl(app.getPublicId(), expectedScanId));
         assertThat(report.reportHtmlUrl)
-            .isEqualTo(UserInterfaceLinksResource.getReportUrl(app.getPublicId(), expectedScanId));
+            .isEqualTo(UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), expectedScanId));
         assertThat(report.embeddableReportHtmlUrl)
-            .isEqualTo(UserInterfaceLinksResource.getEmbeddableReportUrl(app.getPublicId(), expectedScanId));
+            .isEqualTo(UserInterfaceLinksHelper.getEmbeddableReportUrl(app.getPublicId(), expectedScanId));
         assertThat(report.reportDataUrl)
             .isEqualTo(DefaultApiReportDataResourceV2.getDataUrl(app.getPublicId(), expectedScanId));
         return;

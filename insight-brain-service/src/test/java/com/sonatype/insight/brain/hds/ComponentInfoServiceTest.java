@@ -549,7 +549,7 @@ public class ComponentInfoServiceTest
 
     ComponentDetailsList componentDetailsList =
         componentInfoService.getComponentDetailsList(componentIdentifier1, null, null, null);
-    new ComponentDetailsLoader(application).augmentComponentDetails(componentDetailsList.getList(),
+    new DefaultComponentDetailsLoader(application).augmentComponentDetails(componentDetailsList.getList(),
         MatchState.EXACT.getId(), null);
 
     assertThat(componentDetailsList).isNotNull();

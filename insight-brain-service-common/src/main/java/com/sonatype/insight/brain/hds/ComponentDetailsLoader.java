@@ -6,12 +6,7 @@
 package com.sonatype.insight.brain.hds;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.License;
@@ -20,11 +15,8 @@ import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.IdentificationSource;
-import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
-import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.DependencyType;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
@@ -39,33 +31,11 @@ import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.IdentificationSource.isThirdPartyIdentificationSource;
 
-/**
- * Assists in loading data for the CIP.
- */
 public class ComponentDetailsLoader
 {
   private static final Logger log = LoggerFactory.getLogger(ComponentDetailsLoader.class);
 
-  /**
-   * Hook to get the details from the HDS.
-   */
-  public interface HostedDataServicesSource
-  {
-    /**
-     * @return The component details, never {@code null}.
-     */
-    NamedComponentDetails getDetails() throws IOException;
-  }
-
-  private final LicenseDAO licenseDAO = new LicenseDAO();
-
   private static final HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
-
-  private final ComponentDAO componentDAO;
-
-  public ComponentDetailsLoader(Owner owner) {
-    componentDAO = new ComponentDAO(owner);
-  }
 
   /**
    * Gets component details without CLM-specific vulnerability or license augmentation.
@@ -76,7 +46,8 @@ public class ComponentDetailsLoader
       String matchState,
       HostedDataServicesSource hdsSource) throws IOException
   {
-    NamedComponentDetails componentDetails = getComponentDetailsLocally(componentIdentifier, hash);
+    NamedComponentDetails componentDetails = ComponentDetailsLoader
+        .getComponentDetailsLocally(componentIdentifier, hash);
 
     // Get component details from the HDS, if not found locally
     if (componentDetails == null) {
@@ -121,6 +92,67 @@ public class ComponentDetailsLoader
     }
 
     return componentDetails;
+  }
+
+  private static Set<License> calculateEffectiveLicenses(ComponentDetails componentDetails) {
+    Set<String> effectiveLicenseIds = ComponentDetailsLoader.calculateEffectiveLicenses( //
+        ComponentDetailsLoader.getLicenseIds(componentDetails.getDeclaredLicenses()), //
+        ComponentDetailsLoader.getLicenseIds(componentDetails.getObservedLicenses()), //
+        ComponentDetailsLoader.getLicenseIds(componentDetails.getOverriddenLicenses()));
+
+    return ComponentDetailsLoader.loadLicenses(effectiveLicenseIds);
+  }
+
+  public static Set<String> calculateEffectiveLicenses(
+      Set<String> declaredLicenseIds,
+      Set<String> observedLicenseIds,
+      Set<String> overriddenLicenseIds)
+  {
+    if (overriddenLicenseIds != null && !overriddenLicenseIds.isEmpty()) {
+      return overriddenLicenseIds;
+    }
+
+    return ComponentDetailsLoader.calculateEffectiveLicenses(declaredLicenseIds, observedLicenseIds);
+  }
+
+  public static Set<String> calculateEffectiveLicenses(Set<String> declaredLicenseIds, Set<String> observedLicenseIds) {
+    Set<String> effectiveLicenses = new LinkedHashSet<>();
+    effectiveLicenses.addAll(declaredLicenseIds);
+    effectiveLicenses.addAll(observedLicenseIds);
+    return ComponentDetailsLoader.removeNonLicensesUnlessNoOtherLicensesExist(effectiveLicenses);
+  }
+
+  /**
+   * Return a set containing the licenses other than (No-Source-License, No-Sources, Not-Declared, Not-Supported)
+   * unless these are the only licenses in the given set, then return the given set.
+   */
+  private static Set<String> removeNonLicensesUnlessNoOtherLicensesExist(Set<String> licenseIds) {
+    Set<String> filtered = new LinkedHashSet<>();
+    for (String licenseId : licenseIds) {
+      if (!com.sonatype.insight.brain.model.license.License.isEffectivelyUnspecified(licenseId)) {
+        filtered.add(licenseId);
+      }
+    }
+
+    if (filtered.isEmpty()) {
+      return licenseIds;
+    }
+
+    return filtered;
+  }
+
+  private static Set<License> loadLicenses(Set<String> licenseIds) {
+    MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+    Set<License> licenses = new HashSet<>();
+    for (String licenseId : licenseIds) {
+      License license = new License(licenseId, multiLicenseDAO.getByIdNotNull(licenseId).getShortDisplayName());
+      licenses.add(license);
+    }
+    return licenses;
+  }
+
+  private static Set<String> getLicenseIds(Set<License> licenses) {
+    return licenses.stream().map(License::getLicenseId).collect(Collectors.toSet());
   }
 
   /**
@@ -203,17 +235,17 @@ public class ComponentDetailsLoader
    * @return Component augmented Component object
    */
   public Component augmentComponentDetails(ComponentDetails componentDetails) {
-    Component component = componentDAO.getComponent(componentDetails);
+    Component component = getComponent(componentDetails);
 
     // Use CLM data to populate the component details
     for (String licenseId : component.getLicenseOverrideIds()) {
-      com.sonatype.insight.brain.model.license.License overriddenLicense = licenseDAO.getByIdNotNull(licenseId);
+      com.sonatype.insight.brain.model.license.License overriddenLicense = getLicense(licenseId);
       componentDetails.getOverriddenLicenses().add(
           new License(overriddenLicense.getId(), overriddenLicense.getShortDisplayName()));
     }
 
     // Calculate the effective licenses
-    componentDetails.getEffectiveLicenses().addAll(calculateEffectiveLicenses(componentDetails));
+    componentDetails.getEffectiveLicenses().addAll(ComponentDetailsLoader.calculateEffectiveLicenses(componentDetails));
     if (!componentDetails.getOverriddenLicenses().isEmpty()) {
       if (LicenseOverrideStatus.OVERRIDDEN.equals(component.getLicenseOverrideStatus())) {
         componentDetails.setEffectiveLicenseStatus(com.sonatype.clm.dto.model.ide.LicenseStatus.Overridden);
@@ -256,6 +288,14 @@ public class ComponentDetailsLoader
     return component;
   }
 
+  protected Component getComponent(ComponentDetails componentDetails) {
+    return null;
+  }
+
+  protected com.sonatype.insight.brain.model.license.License getLicense(final String licenseId) {
+    return null;
+  }
+
   private boolean isSameSource(final String issueSource, final String svSource) {
     //for third party components the source may not exist
     if (issueSource == null) {
@@ -264,64 +304,14 @@ public class ComponentDetailsLoader
     return issueSource.equals(svSource);
   }
 
-  private static Set<License> calculateEffectiveLicenses(ComponentDetails componentDetails) {
-    Set<String> effectiveLicenseIds = calculateEffectiveLicenses( //
-        getLicenseIds(componentDetails.getDeclaredLicenses()), //
-        getLicenseIds(componentDetails.getObservedLicenses()), //
-        getLicenseIds(componentDetails.getOverriddenLicenses()));
-    
-    return loadLicenses(effectiveLicenseIds);
-  }
-
-  public static Set<String> calculateEffectiveLicenses(
-      Set<String> declaredLicenseIds,
-      Set<String> observedLicenseIds,
-      Set<String> overriddenLicenseIds)
-  {
-    if (overriddenLicenseIds != null && !overriddenLicenseIds.isEmpty()) {
-      return overriddenLicenseIds;
-    }
-
-    return calculateEffectiveLicenses(declaredLicenseIds, observedLicenseIds);
-  }
-
-  public static Set<String> calculateEffectiveLicenses(Set<String> declaredLicenseIds, Set<String> observedLicenseIds) {
-    Set<String> effectiveLicenses = new LinkedHashSet<>();
-    effectiveLicenses.addAll(declaredLicenseIds);
-    effectiveLicenses.addAll(observedLicenseIds);
-    return removeNonLicensesUnlessNoOtherLicensesExist(effectiveLicenses);
-  }
-
   /**
-   * Return a set containing the licenses other than (No-Source-License, No-Sources, Not-Declared, Not-Supported)
-   * unless these are the only licenses in the given set, then return the given set.
+   * Hook to get the details from the HDS.
    */
-  private static Set<String> removeNonLicensesUnlessNoOtherLicensesExist(Set<String> licenseIds) {
-    Set<String> filtered = new LinkedHashSet<>();
-    for (String licenseId : licenseIds) {
-      if (!com.sonatype.insight.brain.model.license.License.isEffectivelyUnspecified(licenseId)) {
-        filtered.add(licenseId);
-      }
-    }
-
-    if (filtered.isEmpty()) {
-      return licenseIds;
-    }
-
-    return filtered;
-  }
-
-  private static Set<License> loadLicenses(Set<String> licenseIds) {
-    MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
-    Set<License> licenses = new HashSet<>();
-    for (String licenseId : licenseIds) {
-      License license = new License(licenseId, multiLicenseDAO.getByIdNotNull(licenseId).getShortDisplayName());
-      licenses.add(license);
-    }
-    return licenses;
-  }
-
-  private static Set<String> getLicenseIds(Set<License> licenses) {
-    return licenses.stream().map(License::getLicenseId).collect(Collectors.toSet());
+  public interface HostedDataServicesSource
+  {
+    /**
+     * @return The component details, never {@code null}.
+     */
+    NamedComponentDetails getDetails() throws IOException;
   }
 }

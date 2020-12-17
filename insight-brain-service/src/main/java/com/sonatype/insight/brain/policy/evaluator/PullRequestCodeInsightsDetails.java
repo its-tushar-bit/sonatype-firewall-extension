@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.git.SourceControlComponentDetails;
-import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -150,7 +150,7 @@ public class PullRequestCodeInsightsDetails
   public URI getReportUri() {
     logBaseUriIfLocalhost();
     return URI.create(baseUrl +
-        UserInterfaceLinksResource.getReportUrl(application.getPublicId(), featureBranchEvaluation.getScanId()));
+        UserInterfaceLinksHelper.getReportUrl(application.getPublicId(), featureBranchEvaluation.getScanId()));
   }
 
   /**

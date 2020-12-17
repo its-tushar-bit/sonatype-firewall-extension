@@ -38,7 +38,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
-import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.hds.DefaultHdsClient;
 import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.jira.JiraClient;
@@ -47,7 +47,7 @@ import com.sonatype.insight.brain.jira.JiraConfig;
 import com.sonatype.insight.brain.jira.JiraField;
 import com.sonatype.insight.brain.jira.JiraIssueCreateRequest;
 import com.sonatype.insight.brain.jira.JiraIssueCreateRequest.JiraIssueCreateResponse;
-import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -350,7 +350,7 @@ public class PolicyEvaluateServiceTest
     assertThat(model.get("policyFacts")).isEqualTo(policyFacts);
     assertThat(model.get("cdnUrl")).isEqualTo("https://cdn.sonatype.com/");
     assertThat(model.get("detailedReportUrl"))
-        .isEqualTo(serverUrl + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), scanId));
+        .isEqualTo(serverUrl + UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), scanId));
     assertThat(model.get("policyThreatRedCount")).isEqualTo(18);
     assertThat(model.get("policyThreatOrangeCount")).isEqualTo(3);
     assertThat(model.get("policyThreatYellowCount")).isEqualTo(13);
@@ -501,7 +501,7 @@ public class PolicyEvaluateServiceTest
         .thenReturn(scanReceipt);
 
     HttpServletRequest req = mock(HttpServletRequest.class);
-    when(req.getHeader(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).thenReturn("userAgent");
+    when(req.getHeader(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).thenReturn("userAgent");
 
     PolicyEvaluationReceipt policyEvaluationReceipt = policyEvaluateService
         .evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE_THIRD_PARTY, req, stage);

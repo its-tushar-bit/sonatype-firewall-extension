@@ -36,6 +36,8 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.codahale.metrics.annotation.Timed;
 import com.google.common.collect.ImmutableMap;
 
+import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.*;
+
 /**
  * Provides URLs to parts of the UI for usage by enforcement points that wish to link to the CLM server's web interface.
  * Clients are expected to present hyperlinks to the REST resources here which when visited by the end user's browser
@@ -47,26 +49,10 @@ import com.google.common.collect.ImmutableMap;
  */
 @Named
 @Timed
-@Path(UserInterfaceLinksResource.RESOURCE_PATH)
+@Path(UserInterfaceLinksHelper.RESOURCE_PATH)
 @UnlicensedPath
 public class UserInterfaceLinksResource
 {
-  public static final String RESOURCE_PATH = "ui/links";
-
-  public static final String MANAGEMENT_PATH = "{ownerType: application|organization}/{ownerId}/management";
-
-  public static final String LATEST_REPORT_PATH = "application/{applicationPublicId}/latestReport/{stageId}";
-
-  public static final String REPORT_PATH = "application/{applicationPublicId}/report/{scanId}";
-
-  public static final String EMBEDDABLE_REPORT_PATH = "application/{applicationPublicId}/report/{scanId}/embeddable";
-
-  public static final String PDF_PATH = "application/{applicationPublicId}/report/{scanId}/pdf";
-
-  public static final String REPO_RESULT_PATH = "repository/{repositoryId}/result";
-
-  public static final String VULNERABILITY_DETAILS_PATH = "vln/{vulnerabilityId}";
-
   private final BaseUrl baseUrl;
 
   private final TelemetrySender telemetrySender;
@@ -193,51 +179,5 @@ public class UserInterfaceLinksResource
             "scan_id", HdsClientAnalytics.obfuscate(scanId),
             "is_logged_in", !currentUser.isAnonymous()));
     telemetrySender.send(telemetryData);
-  }
-
-  private static String buildStableUrl(String path, Object... parameters) {
-    return UriBuilder.fromPath(UserInterfaceLinksResource.RESOURCE_PATH).path(path).build(parameters).toString();
-  }
-
-  public static String getVulnerabilityDetailsUrl(String vulnerabilityId) {
-    return buildStableUrl(VULNERABILITY_DETAILS_PATH, vulnerabilityId);
-  }
-
-  public static String getLatestReportUrl(String applicationPublicId, String stageId) {
-    return buildStableUrl(UserInterfaceLinksResource.LATEST_REPORT_PATH, applicationPublicId, stageId);
-  }
-
-  /**
-   * Gets the relative URL to the stable hyperlink for the HTML report of the given application and scan.
-   */
-  public static String getReportUrl(String applicationPublicId, String scanId) {
-    return buildStableUrl(UserInterfaceLinksResource.REPORT_PATH, applicationPublicId, scanId);
-  }
-
-  /**
-   * Gets the relative URL to the stable hyperlink for the embeddable HTML report of the given application and scan.
-   * 
-   * @since 1.16
-   */
-  public static String getEmbeddableReportUrl(String applicationPublicId, String scanId) {
-    return buildStableUrl(UserInterfaceLinksResource.EMBEDDABLE_REPORT_PATH, applicationPublicId, scanId);
-  }
-
-  /**
-   * Gets the relative URL to the stable hyperlink for the PDF report of the given application and scan.
-   * 
-   * @since 1.9
-   */
-  public static String getPdfUrl(String applicationPublicId, String scanId) {
-    return buildStableUrl(UserInterfaceLinksResource.PDF_PATH, applicationPublicId, scanId);
-  }
-
-  /**
-   * Gets the relative URL to the stable hyperlink for the repository audit report for a given rm/repository
-   *
-   * @since 1.17
-   */
-  public static String getRepositoryReportUrl(String repositoryId) {
-    return buildStableUrl(REPO_RESULT_PATH, repositoryId);
   }
 }

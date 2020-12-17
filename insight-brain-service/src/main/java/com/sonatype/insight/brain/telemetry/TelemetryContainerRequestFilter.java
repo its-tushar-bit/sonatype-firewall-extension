@@ -20,7 +20,7 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.ext.Provider;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -39,7 +39,7 @@ public class TelemetryContainerRequestFilter
     implements ContainerRequestFilter, TelemetryCollector
 {
   private static final Pattern URL_PATTERN =
-      Pattern.compile("^(" + PublicApiPaths.BASE_PATH + "|" + UserInterfaceLinksResource.RESOURCE_PATH + ")/.*$");
+      Pattern.compile("^(" + PublicApiPaths.BASE_PATH + "|" + UserInterfaceLinksHelper.RESOURCE_PATH + ")/.*$");
 
   @VisibleForTesting
   public static final Map<String, LongAdder> REST_ENDPOINT_INVOCATIONS = new ConcurrentHashMap<>();

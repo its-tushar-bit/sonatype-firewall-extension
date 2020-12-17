@@ -27,7 +27,7 @@ import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
-import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.hds.DefaultHdsClient;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -109,7 +109,7 @@ public class RepositoryResource
                                  @Context final HttpServletRequest request)
   {
     repositoryService.evaluateComponents(repositoryManagerInstanceId, repositoryPublicId,
-        componentEvaluationDataRequestList, false, HdsClient.getClientUserAgent(request));
+        componentEvaluationDataRequestList, false, DefaultHdsClient.getClientUserAgent(request));
   }
 
   /**
@@ -127,7 +127,7 @@ public class RepositoryResource
       @Context HttpServletRequest request)
   {
     return repositoryService.evaluateComponentsAdhoc(repositoryManagerInstanceId, repositoryPublicId,
-        componentEvaluationDataRequestList, HdsClient.getClientUserAgent(request));
+        componentEvaluationDataRequestList, DefaultHdsClient.getClientUserAgent(request));
   }
 
   @POST
@@ -142,7 +142,7 @@ public class RepositoryResource
       @Context final HttpServletRequest request)
   {
     return repositoryService.evaluateComponents(repositoryManagerInstanceId, repositoryPublicId,
-        componentEvaluationDataRequestList, true, HdsClient.getClientUserAgent(request));
+        componentEvaluationDataRequestList, true, DefaultHdsClient.getClientUserAgent(request));
   }
 
   @Path(QUARANTINE_PATH)

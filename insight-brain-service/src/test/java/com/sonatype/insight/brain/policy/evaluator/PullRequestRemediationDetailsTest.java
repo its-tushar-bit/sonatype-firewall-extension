@@ -35,7 +35,7 @@ import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.service.DefaultBaseUrl;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
@@ -85,7 +85,7 @@ public class PullRequestRemediationDetailsTest
 
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "3.11.3", "pullRequest", policyNotifications, app,
-            SCAN_ID, Stage.ID_BUILD, lookup(BaseUrl.class).getConfigured(), provider);
+            SCAN_ID, Stage.ID_BUILD, lookup(DefaultBaseUrl.class).getConfigured(), provider);
 
     assertThat(details.getTitle()).isEqualTo("Bump jooq to 3.11.3");
 
@@ -129,7 +129,7 @@ public class PullRequestRemediationDetailsTest
 
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "1.1", "pullRequest", policyNotifications, app,
-            SCAN_ID, Stage.ID_BUILD, lookup(BaseUrl.class).getConfigured(), provider);
+            SCAN_ID, Stage.ID_BUILD, lookup(DefaultBaseUrl.class).getConfigured(), provider);
 
     assertThat(details.getTitle()).isEqualTo("Bump @sonatype/foo to 1.1");
 
@@ -146,7 +146,7 @@ public class PullRequestRemediationDetailsTest
 
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "3.11.3", "pullRequest", policyNotifications, app,
-            SCAN_ID, Stage.ID_BUILD, lookup(BaseUrl.class).getConfigured(), SourceControlProvider.GITHUB);
+            SCAN_ID, Stage.ID_BUILD, lookup(DefaultBaseUrl.class).getConfigured(), SourceControlProvider.GITHUB);
 
     assertThat(details.getContents().replace("\r\n", "\n"))
         .startsWith("## :shield: Automated pull request: Nexus IQ found 1 Policy Violation\n");

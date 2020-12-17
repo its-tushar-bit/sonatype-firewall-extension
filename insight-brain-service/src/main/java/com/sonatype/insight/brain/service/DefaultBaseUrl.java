@@ -15,7 +15,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 @Named
 @Singleton
-public class BaseUrl
+public class DefaultBaseUrl implements BaseUrl
 {
   public static final String ERR_MSG_BASE_URL_NOT_CONFIGURED = "The server base URL (baseUrl) is not configured. "
       + "More information at https://links.sonatype.com/products/clm/docs/base-url";
@@ -25,14 +25,16 @@ public class BaseUrl
   private final ThreadLocal<HttpServletRequest> currentHttpRequest = new ThreadLocal<>();
 
   @Inject
-  public BaseUrl(final InsightConfig appConfig) {
+  public DefaultBaseUrl(final InsightConfig appConfig) {
     this.appConfig = appConfig;
   }
 
+  @Override
   public void capture(HttpServletRequest httpRequest) {
     currentHttpRequest.set(httpRequest);
   }
 
+  @Override
   public void release() {
     currentHttpRequest.remove();
   }
@@ -45,14 +47,7 @@ public class BaseUrl
     return httpRequest;
   }
 
-  /**
-   * Returns the server base URL:
-   * - if the base URL is not forced (in the server configuration), it tries to extract the base URL from the incoming
-   * HTTP request (if any);
-   * - otherwise, it returns the configured server base URL.
-   * 
-   * @throws IllegalStateException if the base URL cannot be determined.
-   */
+  @Override
   public String get() {
     if (!appConfig.isForceBaseUrl()) {
       String url = tryGetBaseUriWithEndingForwardSlash();
@@ -63,11 +58,7 @@ public class BaseUrl
     return getConfigured();
   }
 
-  /**
-   * Returns the configured server base URL.
-   * 
-   * @throws IllegalStateException if the base URL is not configured.
-   */
+  @Override
   public String getConfigured() {
     String url = appConfig.getBaseUrl();
     if (!isBlank(url)) {
@@ -94,6 +85,7 @@ public class BaseUrl
     }
   }
 
+  @Override
   public UriBuilder redirect() {
     return UriBuilder.fromUri(get()).replaceQuery(getHttpRequest().getQueryString());
   }

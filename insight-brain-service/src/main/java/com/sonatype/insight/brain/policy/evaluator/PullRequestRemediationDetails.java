@@ -18,7 +18,7 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
-import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.utils.TemplateUtils;
@@ -191,7 +191,7 @@ public class PullRequestRemediationDetails
         .put("date", DATE_TIME_FORMATTER.format(ZonedDateTime.now(clock)))
         .put("stage", stage)
         .put("detailedReportUrl",
-            baseUrl + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), scanId) + "?source=auto-pr")
+            baseUrl + UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), scanId) + "?source=auto-pr")
         .put("baseIqUrl", baseUrl)
         .put("provider", provider)
         .build();

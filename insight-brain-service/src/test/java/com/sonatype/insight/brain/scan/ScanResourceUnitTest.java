@@ -11,7 +11,7 @@ import java.io.InputStream;
 import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.hds.DefaultHdsClient;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 
@@ -45,7 +45,7 @@ public class ScanResourceUnitTest
   private AntiCsrfFilter antiCsrfFilter;
 
   @Mock
-  private HdsClient hdsClient;
+  private DefaultHdsClient hdsClient;
 
   private HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
 

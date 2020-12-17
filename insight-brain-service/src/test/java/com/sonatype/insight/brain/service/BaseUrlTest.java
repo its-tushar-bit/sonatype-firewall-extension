@@ -55,7 +55,7 @@ public class BaseUrlTest
     appConfig.setBaseUrl(null);
     assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
       baseUrl.get();
-    }).withMessage(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
+    }).withMessage(DefaultBaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
   }
 
   @Test
@@ -121,6 +121,6 @@ public class BaseUrlTest
     appConfig.setBaseUrl(null);
     assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
       baseUrl.getConfigured();
-    }).withMessage(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
+    }).withMessage(DefaultBaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
   }
 }

@@ -23,7 +23,7 @@ import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 @Named
 @Singleton
 public class PingHdsClient
-    extends HdsClient
+    extends DefaultHdsClient
 {
   static final int SOCKET_TIMEOUT = 5000;
 

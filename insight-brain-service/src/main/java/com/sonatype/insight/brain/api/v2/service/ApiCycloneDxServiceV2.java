@@ -32,7 +32,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -116,11 +116,11 @@ public class ApiCycloneDxServiceV2
 
       String url;
       try {
-        url = baseUrl.get() + UserInterfaceLinksResource.getReportUrl(application.getPublicId(), scanId);
+        url = baseUrl.get() + UserInterfaceLinksHelper.getReportUrl(application.getPublicId(), scanId);
       }
       catch (Exception e) {
         log.debug("Failed to locate baseUrl", e);
-        url = UserInterfaceLinksResource.getReportUrl(application.getPublicId(), scanId);
+        url = UserInterfaceLinksHelper.getReportUrl(application.getPublicId(), scanId);
       }
       bom.addExternalReference(createExternalReference(url, "IQ Report", ExternalReference.Type.BOM));
 

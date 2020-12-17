@@ -198,7 +198,7 @@ public class ComponentInfoService
       componentDetails = createEmptyComponentDetails(hash, identifier);
     }
 
-    Component component = new ComponentDetailsLoader(owner)
+    Component component = new DefaultComponentDetailsLoader(owner)
         .augmentComponentDetails(componentDetails, dependencyType);
     component.setProprietary(proprietary);
 
@@ -221,7 +221,7 @@ public class ComponentInfoService
       final String identificationSource) throws IOException
   {
     return ComponentDetailsLoader.getComponentDetails(identifier, hash, matchState,
-        new ComponentDetailsLoader.HostedDataServicesSource()
+        new DefaultComponentDetailsLoader.HostedDataServicesSource()
         {
           @Override
           public NamedComponentDetails getDetails() throws IOException {
@@ -325,7 +325,7 @@ public class ComponentInfoService
     auditComponentAccess(identifier, null);
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     ComponentDetailsList componentDetailsList = getComponentDetailsList(identifier, null, null, null);
-    new ComponentDetailsLoader(app).augmentComponentDetails(componentDetailsList.getList(), matchState, null);
+    new DefaultComponentDetailsLoader(app).augmentComponentDetails(componentDetailsList.getList(), matchState, null);
     return componentDetailsList;
   }
 
@@ -362,7 +362,7 @@ public class ComponentInfoService
     auditComponentAccess(componentIdentifier, null);
     final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
     ComponentDetailsList componentDetailsList = getComponentDetailsList(componentIdentifier, owner, null, null);
-    new ComponentDetailsLoader(owner).augmentComponentDetails(componentDetailsList.getList(), matchState, null);
+    new DefaultComponentDetailsLoader(owner).augmentComponentDetails(componentDetailsList.getList(), matchState, null);
     return componentDetailsList;
   }
 
@@ -436,7 +436,7 @@ public class ComponentInfoService
         getComponentDetailsList(componentIdentifier, owner, identificationSource, scanId).getList();
     // Fix match state to exact as there's no point propagating it to other versions.
     List<Component> components =
-        new ComponentDetailsLoader(owner).augmentComponentDetails(componentDetailsList, MatchState.EXACT.getId(),
+        new DefaultComponentDetailsLoader(owner).augmentComponentDetails(componentDetailsList, MatchState.EXACT.getId(),
             dependencyType);
 
     // Evaluate the policies and get the PolicyAlerts
@@ -644,7 +644,7 @@ public class ComponentInfoService
 
   public Component augmentComponentDetails(Owner owner, ComponentDetails componentDetails) {
     augmentEmptyLicensesAsUnspecified(componentDetails);
-    return new ComponentDetailsLoader(owner).augmentComponentDetails(componentDetails);
+    return new DefaultComponentDetailsLoader(owner).augmentComponentDetails(componentDetails);
   }
 
   /**
@@ -669,7 +669,7 @@ public class ComponentInfoService
 
     ComponentDetails componentDetails =
         getComponentDetails(null, hash, componentIdentifier, httpRequest, owner, identificationSource, scanId);
-    new ComponentDetailsLoader(owner).augmentComponentDetails(componentDetails);
+    new DefaultComponentDetailsLoader(owner).augmentComponentDetails(componentDetails);
     return new ComponentSecurityVulnerabilities(componentDetails.getSecurityVulnerabilities());
   }
 

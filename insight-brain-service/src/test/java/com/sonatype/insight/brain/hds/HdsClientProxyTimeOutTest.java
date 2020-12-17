@@ -116,7 +116,8 @@ public class HdsClientProxyTimeOutTest
 
   @Test(timeout = 5000)
   public void testMustTimeOutAndNotWaitForever() throws InterruptedException {
-    HdsClient client = new HdsClient(insightProxy, productLicense, config, new VersionService(), telemetryId, 20);
+    HdsClient client = new DefaultHdsClient(insightProxy, productLicense, config,
+        new VersionService(), telemetryId, 20);
 
     nonResponsiveServerThread.start();
 

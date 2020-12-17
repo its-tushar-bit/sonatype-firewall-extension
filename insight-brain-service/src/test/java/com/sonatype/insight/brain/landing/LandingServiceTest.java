@@ -12,6 +12,7 @@ import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.service.DefaultBaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
 
 import com.google.inject.Binder;
@@ -33,7 +34,7 @@ public class LandingServiceTest
 
   @Override
   public void configure(Binder binder) {
-    baseUrl = mock(BaseUrl.class);
+    baseUrl = mock(DefaultBaseUrl.class);
     binder.bind(BaseUrl.class).toInstance(baseUrl);
     when(baseUrl.redirect()).thenReturn(UriBuilder.fromUri(BASE_URL));
     super.configure(binder);

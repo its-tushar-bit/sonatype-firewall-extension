@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.git.PullRequestLineCommentDTO;
 import com.sonatype.insight.brain.git.SourceControlComponentDetails;
-import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -365,10 +365,10 @@ public class PullRequestFeedbackDetails
         .put("featureBranchStage", StringUtils.capitalize(featureBranchEvaluation.getStageTypeId()))
         .put("defaultBranchStage", StringUtils.capitalize(defaultBranchEvaluation.getStageTypeId()))
         .put("detailedFeatureBranchReportUrl", baseUrl +
-            UserInterfaceLinksResource.getReportUrl(app.getPublicId(), featureBranchEvaluation.getScanId()) +
+            UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), featureBranchEvaluation.getScanId()) +
             "?source=pr-commenting")
         .put("detailedDefaultBranchReportUrl", baseUrl +
-            UserInterfaceLinksResource.getReportUrl(app.getPublicId(), defaultBranchEvaluation.getScanId()) +
+            UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), defaultBranchEvaluation.getScanId()) +
             "?source=pr-commenting")
         .put("baseIqUrl", baseUrl)
         .put("policiesViolatedCount",

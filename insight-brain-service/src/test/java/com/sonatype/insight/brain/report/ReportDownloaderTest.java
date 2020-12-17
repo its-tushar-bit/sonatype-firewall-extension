@@ -11,6 +11,7 @@ import java.io.InputStream;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.hds.DefaultHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -45,7 +46,7 @@ public class ReportDownloaderTest
 
   @Override
   public void configure(Binder binder) {
-    mockHdsClient = mock(HdsClient.class);
+    mockHdsClient = mock(DefaultHdsClient.class);
     binder.bind(HdsClient.class).toInstance(mockHdsClient);
     super.configure(binder);
   }

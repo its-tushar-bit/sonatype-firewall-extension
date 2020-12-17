@@ -37,11 +37,7 @@ import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
-import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
-import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
-import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
-import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.hds.HdsClientAnalytics;
+import com.sonatype.insight.brain.hds.*;
 import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternService;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -142,7 +138,7 @@ public class RepositoryPolicyEvaluator
     Predicate<String> componentPathnameMatchesIgnorePattern =
         firewallIgnorePatternService.componentPathnameMatchesIgnorePattern(repository);
     List<Component> components = new ArrayList<>();
-    ComponentDetailsLoader componentDetailsLoader = new ComponentDetailsLoader(repository);
+    ComponentDetailsLoader componentDetailsLoader = new DefaultComponentDetailsLoader(repository);
     for (int requestIndex = 0; requestIndex < componentEvaluationDataRequestList.components.size(); requestIndex++) {
       RepositoryComponentEvaluationDataRequest componentEvaluationRequest =
           componentEvaluationDataRequestList.components.get(requestIndex);

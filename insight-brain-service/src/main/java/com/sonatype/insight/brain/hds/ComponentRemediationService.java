@@ -211,7 +211,7 @@ public class ComponentRemediationService
     // Fix match state to exact as there's no point propagating it to other versions.
     // Assume the dependencies are only transitive
     List<Component> components =
-        new ComponentDetailsLoader(owner).augmentComponentDetails(componentDetailsList, MatchState.EXACT.getId(),
+        new DefaultComponentDetailsLoader(owner).augmentComponentDetails(componentDetailsList, MatchState.EXACT.getId(),
             DependencyType.TRANSITIVE);
     Map<PackageUrlIdentifier, List<PolicyAlert>> policyAlertsByComponent =
         evaluateAndGetPolicyAlertsByComponent(owner.getId(), stage, components);

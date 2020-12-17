@@ -12,7 +12,7 @@ import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
@@ -55,7 +55,7 @@ public class ReportClientTest
     String scanId = "scan id";
     ReportClient reportClient = new ReportClient(getCLMServer().getClientConfiguration(), appId, scanId);
     UriBuilder uriBuilder = UriBuilder.fromPath(getCLMServer().getClientConfiguration().getServerUrl());
-    uriBuilder.path(UserInterfaceLinksResource.RESOURCE_PATH).path(UserInterfaceLinksResource.REPORT_PATH);
+    uriBuilder.path(UserInterfaceLinksHelper.RESOURCE_PATH).path(UserInterfaceLinksHelper.REPORT_PATH);
     assertThat(reportClient.linkToReport()).isEqualTo(uriBuilder.build(appId, scanId).toString());
   }
 

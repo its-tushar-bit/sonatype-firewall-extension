@@ -28,10 +28,7 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediation
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
-import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
-import com.sonatype.insight.brain.hds.ComponentInfoService;
-import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.hds.HdsClientAnalytics;
+import com.sonatype.insight.brain.hds.*;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;

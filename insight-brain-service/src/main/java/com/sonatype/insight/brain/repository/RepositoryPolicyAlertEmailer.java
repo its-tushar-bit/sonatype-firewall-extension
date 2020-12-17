@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
-import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -106,7 +106,7 @@ public class RepositoryPolicyAlertEmailer
     Map<String, Object> model = createPolicyMailModel(getMail().getCdnUrl(), repository, StageTypes.PROXY, policyFacts);
 
     model.put("detailedReportUrl",
-        baseUrl.getConfigured() + UserInterfaceLinksResource.getRepositoryReportUrl(repository.getId()));
+        baseUrl.getConfigured() + UserInterfaceLinksHelper.getRepositoryReportUrl(repository.getId()));
     model.put("ownerIdLabel", "REPO ID");
 
     return model;

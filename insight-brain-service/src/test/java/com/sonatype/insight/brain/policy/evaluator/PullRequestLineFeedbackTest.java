@@ -29,7 +29,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.service.DefaultBaseUrl;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
@@ -59,7 +59,7 @@ public class PullRequestLineFeedbackTest
   @Before
   public void before() {
     config.setBaseUrl("http://localhost:1122");
-    String baseUrl = lookup(BaseUrl.class).getConfigured();
+    String baseUrl = lookup(DefaultBaseUrl.class).getConfigured();
     testCases = ImmutableMap.<String, PullRequestLineFeedback>builder()
         .put(MULTIPLE_NO_SUGGESTIONS, new PullRequestLineFeedback(defaultPolicyViolations(10), "Test Component",
             baseUrl, null))
@@ -147,14 +147,15 @@ public class PullRequestLineFeedbackTest
   @Test
   public void testPullRequestFeedback_nullViolations() throws Exception {
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> {
-      new PullRequestLineFeedback(null, "Test Component", lookup(BaseUrl.class).getConfigured(), null);
+      new PullRequestLineFeedback(null, "Test Component", lookup(DefaultBaseUrl.class).getConfigured(), null);
     }).withMessageContaining("violations is required and cannot be null");
   }
 
   @Test
   public void testPullRequestFeedback_emptyViolations() throws Exception {
     assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
-      new PullRequestLineFeedback(new ArrayList<>(), "Test Component", lookup(BaseUrl.class).getConfigured(), null)
+      new PullRequestLineFeedback(new ArrayList<>(), "Test Component",
+          lookup(DefaultBaseUrl.class).getConfigured(), null)
           .renderTemplateAndGetContents(SourceControlProvider.GITHUB);
     }).withMessageContaining("violations cannot be empty");
   }
@@ -162,7 +163,7 @@ public class PullRequestLineFeedbackTest
   @Test
   public void testPullRequestFeedback_nullDisplayName() throws Exception {
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> {
-      new PullRequestLineFeedback(new ArrayList<>(), null, lookup(BaseUrl.class).getConfigured(), null);
+      new PullRequestLineFeedback(new ArrayList<>(), null, lookup(DefaultBaseUrl.class).getConfigured(), null);
     }).withMessageContaining("displayName is required and cannot be null");
   }
 

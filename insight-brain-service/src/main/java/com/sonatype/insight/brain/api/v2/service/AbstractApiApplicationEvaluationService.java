@@ -12,7 +12,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.DefaultApiReportDataResourceV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationResultDTOV2;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.DefaultPolicyEvaluateService;
@@ -48,9 +48,9 @@ class AbstractApiApplicationEvaluationService
       case COMPLETED:
         String applicationPublicId = application.getPublicId();
         String scanId = policyEvaluationPollingResult.getScanReceipt().getScanId();
-        result.reportPdfUrl = UserInterfaceLinksResource.getPdfUrl(applicationPublicId, scanId);
-        result.reportHtmlUrl = UserInterfaceLinksResource.getReportUrl(applicationPublicId, scanId);
-        result.embeddableReportHtmlUrl = UserInterfaceLinksResource.getEmbeddableReportUrl(applicationPublicId, scanId);
+        result.reportPdfUrl = UserInterfaceLinksHelper.getPdfUrl(applicationPublicId, scanId);
+        result.reportHtmlUrl = UserInterfaceLinksHelper.getReportUrl(applicationPublicId, scanId);
+        result.embeddableReportHtmlUrl = UserInterfaceLinksHelper.getEmbeddableReportUrl(applicationPublicId, scanId);
         result.reportDataUrl = DefaultApiReportDataResourceV2.getDataUrl(applicationPublicId, scanId);
         break;
       case FAILED:

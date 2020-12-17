@@ -12,7 +12,7 @@ import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -50,11 +50,11 @@ public class TelemetryContainerRequestFilterTest
     telemetryContainerRequestFilter
         .filter(mockContainerRequestContext("GET", PublicApiPaths.BASE_PATH + "/something"));
     telemetryContainerRequestFilter
-        .filter(mockContainerRequestContext("GET", UserInterfaceLinksResource.RESOURCE_PATH + "/something"));
+        .filter(mockContainerRequestContext("GET", UserInterfaceLinksHelper.RESOURCE_PATH + "/something"));
 
     assertRestEndpointTelemetry(telemetryContainerRequestFilter.collectAllData(),
         new RestEndpointTelemetry("GET", PublicApiPaths.BASE_PATH + "/something", 1),
-        new RestEndpointTelemetry("GET", UserInterfaceLinksResource.RESOURCE_PATH + "/something", 1));
+        new RestEndpointTelemetry("GET", UserInterfaceLinksHelper.RESOURCE_PATH + "/something", 1));
   }
 
   @Test

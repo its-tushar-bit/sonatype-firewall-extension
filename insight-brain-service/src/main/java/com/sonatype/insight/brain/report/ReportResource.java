@@ -61,6 +61,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
+import com.sonatype.insight.brain.hds.DefaultComponentDetailsLoader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -352,7 +353,7 @@ public class ReportResource
       }
 
       try (ZipFile reportZip = new ZipFile(reportFile)) {
-        ComponentDetailsLoader componentDetailsLoader = new ComponentDetailsLoader(app);
+        ComponentDetailsLoader componentDetailsLoader = new DefaultComponentDetailsLoader(app);
 
         for (Enumeration<? extends ZipEntry> en = reportZip.entries(); en.hasMoreElements();) {
           ZipEntry entry = en.nextElement();
@@ -364,7 +365,7 @@ public class ReportResource
                 NamedComponentDetails.class);
             NamedComponentDetails clmDetails =
                 ComponentDetailsLoader.getComponentDetails(hdsDetails.getComponentIdentifier(), hdsDetails.getHash(),
-                    hdsDetails.getMatchState(), new ComponentDetailsLoader.HostedDataServicesSource()
+                    hdsDetails.getMatchState(), new DefaultComponentDetailsLoader.HostedDataServicesSource()
                     {
                       @Override
                       public NamedComponentDetails getDetails() throws IOException {

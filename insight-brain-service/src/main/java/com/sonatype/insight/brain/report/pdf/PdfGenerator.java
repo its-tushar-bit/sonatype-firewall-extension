@@ -28,7 +28,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentPolicyViolationsDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
-import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.component.MatchState;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -443,7 +443,7 @@ public class PdfGenerator
       return cellBuilder(vulnerabilityId).build();
     }
 
-    String url = pdfData.baseUrl + UserInterfaceLinksResource.getVulnerabilityDetailsUrl(vulnerabilityId);
+    String url = pdfData.baseUrl + UserInterfaceLinksHelper.getVulnerabilityDetailsUrl(vulnerabilityId);
     Annotations.HyperlinkAnnotation hyperlink = new Annotations.HyperlinkAnnotation(url, LinkStyle.none);
     AnnotatedStyledText annotatedStyledText =
         new AnnotatedStyledText(vulnerabilityId, tableRowFontStyle.getFontSize(), tableRowFontStyle.getFont(),

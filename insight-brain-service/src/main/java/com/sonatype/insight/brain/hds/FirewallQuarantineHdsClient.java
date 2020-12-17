@@ -22,7 +22,7 @@ import com.sonatype.insight.brain.version.VersionService;
 @Named
 @Singleton
 public class FirewallQuarantineHdsClient
-    extends HdsClient
+    extends DefaultHdsClient
 {
   @Inject
   public FirewallQuarantineHdsClient(final InsightProxy proxy,

@@ -32,7 +32,7 @@ import com.sonatype.insight.brain.api.v2.service.ApiManifestEvaluationService;
 import com.sonatype.insight.brain.api.v2.service.ApiPromoteScanServiceV2;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
-import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.hds.DefaultHdsClient;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -101,7 +101,9 @@ public class DefaultApiEvaluationResourceV2 implements ApiEvaluationResourceV2
       final ApiPromoteScanRequestDTOV2 promoteScanRequest,
       @Context HttpServletRequest request)
   {
-    return promoteScanService.promoteScan(applicationId, promoteScanRequest, HdsClient.getClientUserAgent(request));
+    return promoteScanService.promoteScan(applicationId,
+        promoteScanRequest,
+        DefaultHdsClient.getClientUserAgent(request));
   }
 
   @Override
@@ -116,7 +118,7 @@ public class DefaultApiEvaluationResourceV2 implements ApiEvaluationResourceV2
       @Context HttpServletRequest request)
   {
     return manifestEvaluationService.doManifestEvaluation(applicationId, manifestEvaluationRequest,
-        HdsClient.getClientUserAgent(request));
+        DefaultHdsClient.getClientUserAgent(request));
   }
 
   @Override

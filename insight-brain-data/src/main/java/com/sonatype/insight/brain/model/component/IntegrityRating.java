@@ -21,6 +21,8 @@ public class IntegrityRating
   static {
     byId.put("0", new IntegrityRating("0", "Normal"));
     byId.put("1", new IntegrityRating("1", "Suspicious"));
+    byId.put("2", new IntegrityRating("2", "Pending"));
+    byId.put("3", new IntegrityRating("3", "Not Applicable"));
   }
 
   public IntegrityRating(String id, String name) {

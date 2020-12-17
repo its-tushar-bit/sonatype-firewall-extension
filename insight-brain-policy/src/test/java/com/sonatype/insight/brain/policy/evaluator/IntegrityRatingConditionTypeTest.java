@@ -95,7 +95,8 @@ public class IntegrityRatingConditionTypeTest
         policyAlerts);
     String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts().get(0).getReason();
-    assertThat(actualReason).isEqualTo("Integrity Rating was Suspicious, not Normal");
+    assertThat(actualReason)
+        .isEqualTo(String.format("Integrity Rating was %s, not %s", SUSPICIOUS.getName(), NORMAL.getName()));
   }
 
   @Test

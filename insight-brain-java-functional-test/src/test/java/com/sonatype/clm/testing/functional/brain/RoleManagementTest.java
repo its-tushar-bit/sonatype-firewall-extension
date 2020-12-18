@@ -60,7 +60,7 @@ public class RoleManagementTest
   public void testPageLoadHasTheRightRoles() {
     RoleManagementPage roleManagementPage = new RoleManagementPage();
     roleManagementPage.pageTitle().shouldBe(visible).shouldHave(text("Roles"));
-    roleManagementPage.builtinRoles().shouldHaveSize(6);
+    roleManagementPage.builtinRoles().shouldHaveSize(7);
 
     // verify that the roles are sorted in the right order
     for (int i = 0; i < BUILTIN_ROLES.length; i++) {
@@ -129,13 +129,14 @@ public class RoleManagementTest
     remediationPermissionCategory.shouldBe(visible).shouldHave(text(remediationDisplayName));
 
     // verify permissions under Remediation category, and that they are in the right order
-    roleEditorPage.permissions(remediationDisplayName).shouldHaveSize(3);
+    roleEditorPage.permissions(remediationDisplayName).shouldHaveSize(4);
 
     assertPermission(roleEditorPage.permission(remediationDisplayName, 0), !ON, !ENABLED,
         Permission.WAIVE_POLICY_VIOLATIONS);
     assertPermission(roleEditorPage.permission(remediationDisplayName, 1), !ON, !ENABLED, Permission.CHANGE_LICENSES);
     assertPermission(roleEditorPage.permission(remediationDisplayName, 2), !ON, !ENABLED,
         Permission.CHANGE_SECURITY_VULNERABILITIES);
+    assertPermission(roleEditorPage.permission(remediationDisplayName, 3), !ON, !ENABLED, Permission.LEGAL_REVIEWER);
   }
 
   @Test

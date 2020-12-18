@@ -139,6 +139,10 @@ public class AbstractServiceAuthzTest
     grantPermission(contextId, Permission.MANAGE_PROPRIETARY);
   }
 
+  protected void grantLegalReviewerPermission(String contextId) {
+    grantPermission(contextId, Permission.LEGAL_REVIEWER);
+  }
+
   protected String getUsername() {
     return user.getUsername();
   }

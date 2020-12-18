@@ -47,7 +47,7 @@ public class RoleDAOTest
   public void testGetApplicationRoles() throws Exception {
     List<Role> roles = roleDAO.getApplicationRoles();
     assertThat(roles).noneMatch(Role::isGlobal).extracting(Role::getName).containsExactly("Application Evaluator",
-        "Component Evaluator", "Developer", "Owner");
+        "Component Evaluator", "Developer", "Legal Reviewer", "Owner");
   }
 
   @Test
@@ -176,7 +176,7 @@ public class RoleDAOTest
   @Test
   public void testBuiltInRoles() {
     List<Role> roles = roleDAO.getAll();
-    assertThat(roles).hasSize(6).allMatch(Role::isBuiltIn);
+    assertThat(roles).hasSize(7).allMatch(Role::isBuiltIn);
   }
 
   @Test

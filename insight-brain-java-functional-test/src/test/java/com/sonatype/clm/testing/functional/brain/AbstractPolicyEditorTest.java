@@ -972,6 +972,9 @@ public abstract class AbstractPolicyEditorTest
     addNotification.role().shouldBe(visible).selectedItem().click();
     addNotification.role().listItems().findBy(text("Component Evaluator")).click();
     addNotification.addButton().shouldNotHave(DISABLED).click();
+    addNotification.role().shouldBe(visible).selectedItem().click();
+    addNotification.role().listItems().findBy(text("Legal Reviewer")).click();
+    addNotification.addButton().shouldNotHave(DISABLED).click();
     addNotification.role().shouldHave(text("All roles are being notified."));
     PolicyEditorPage.savePolicy();
     addNotification.role().shouldHave(text("All roles are being notified."));
@@ -984,6 +987,7 @@ public abstract class AbstractPolicyEditorTest
     NotificationsSection.notificationFor("aaa@sonatype.com").deleteButton().click();
     NotificationsSection.notificationFor("Developer").deleteButton().click();
     NotificationsSection.notificationFor("Application Evaluator").deleteButton().click();
+    NotificationsSection.notificationFor("Legal Reviewer").deleteButton().click();
     NotificationsSection.notifications().get(0).shouldHave(text("No notifications configured"));
   }
 
@@ -1503,7 +1507,7 @@ public abstract class AbstractPolicyEditorTest
     addNotification.notificationType().selectedItem().click();
     addNotification.notificationType().listItem(1).click();
     addNotification.email().shouldNot(exist);
-    addNotification.role().listItems().shouldHaveSize(4);
+    addNotification.role().listItems().shouldHaveSize(5);
   }
 
   private void assertNewPolicyStateIsCorrect_actionsSection() {

@@ -486,7 +486,8 @@ public class CLMLicenseManager
         LicensedFeature.EXTERNAL_DATABASE, //
         LicensedFeature.HYGIENE, //
         LicensedFeature.RELEASE_INTEGRITY, //
-        LicensedFeature.NODE_CLUSTERING //
+        LicensedFeature.NODE_CLUSTERING, //
+        LicensedFeature.ADVANCED_LEGAL_PACK //
     );
     for (LicensedFeature feature : hdsControlledFeatures) {
       if (licenseDetails.features.contains(feature.name())) {

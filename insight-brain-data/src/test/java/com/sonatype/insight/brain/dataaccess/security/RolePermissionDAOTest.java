@@ -44,7 +44,7 @@ public class RolePermissionDAOTest
         Permission.EVALUATE_COMPONENT, Permission.CLAIM_COMPONENT, Permission.ADD_APPLICATION,
         Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION, Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION,
         Permission.EDIT_ACCESS_CONTROL, Permission.WAIVE_POLICY_VIOLATIONS, Permission.CHANGE_LICENSES,
-        Permission.CHANGE_SECURITY_VULNERABILITIES);
+        Permission.CHANGE_SECURITY_VULNERABILITIES, Permission.LEGAL_REVIEWER);
   }
 
   @Test
@@ -55,7 +55,7 @@ public class RolePermissionDAOTest
     assertThat(perms).containsExactlyInAnyOrder(Permission.WRITE, Permission.READ, Permission.EVALUATE_APPLICATION,
         Permission.EVALUATE_COMPONENT, Permission.VIEW_ROLES, Permission.ADD_APPLICATION,
         Permission.MANAGE_PROPRIETARY, Permission.EDIT_ACCESS_CONTROL, Permission.WAIVE_POLICY_VIOLATIONS,
-        Permission.CHANGE_LICENSES, Permission.CHANGE_SECURITY_VULNERABILITIES);
+        Permission.CHANGE_LICENSES, Permission.CHANGE_SECURITY_VULNERABILITIES, Permission.LEGAL_REVIEWER);
   }
 
   @Test

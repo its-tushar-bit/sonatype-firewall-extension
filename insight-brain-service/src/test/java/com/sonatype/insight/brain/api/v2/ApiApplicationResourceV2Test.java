@@ -17,9 +17,9 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationListDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiMoveApplicationResponseDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationTagDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiMemberDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiMoveApplicationResponseDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingListDTO;
@@ -479,8 +479,8 @@ public class ApiApplicationResourceV2Test
 
     ApiRoleListDTO appRoles = response.getBody(ApiRoleListDTO.class);
     assertThat(appRoles).isNotNull();
-    assertThat(appRoles.roles).hasSize(4).extracting(dto -> dto.name).containsExactlyInAnyOrder("Owner", "Developer",
-        "Application Evaluator", "Component Evaluator");
+    assertThat(appRoles.roles).hasSize(5).extracting(dto -> dto.name).containsExactlyInAnyOrder("Owner", "Developer",
+        "Application Evaluator", "Component Evaluator", "Legal Reviewer");
   }
 
   @Test

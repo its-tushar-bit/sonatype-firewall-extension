@@ -65,7 +65,7 @@ public class ApiLicenseLegalServiceAuthzTest
 
   @Test(expected = NotFoundException.class)
   public void testGetLicenseLegalApplicationReport_Authorized() {
-    grantReadPermission(app.getId());
+    grantLegalReviewerPermission(app.getId());
     apiLicenseLegalService.getLicenseLegalApplicationReport(app.getPublicId());
   }
 
@@ -84,7 +84,7 @@ public class ApiLicenseLegalServiceAuthzTest
 
   @Test
   public void testGetLicenseLegalComponentReport_ApplicationAuthorized() throws Exception {
-    grantReadPermission(app.getId());
+    grantLegalReviewerPermission(app.getId());
     apiLicenseLegalService.getLicenseLegalComponentReport(app.getType(), app.getPublicId(), ComponentIdentifier
         .createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null, null);
   }
@@ -104,7 +104,7 @@ public class ApiLicenseLegalServiceAuthzTest
 
   @Test
   public void testGetLicenseLegalComponentReport_OrganizationAuthorized() throws Exception {
-    grantReadPermission(org.getId());
+    grantLegalReviewerPermission(org.getId());
     apiLicenseLegalService.getLicenseLegalComponentReport(org.getType(), org.getId(), ComponentIdentifier
         .createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null, null);
   }
@@ -124,7 +124,7 @@ public class ApiLicenseLegalServiceAuthzTest
 
   @Test
   public void testGetLicenseLegalComponentReport_RootOrganizationAuthorized() throws Exception {
-    grantReadPermission(Organization.ROOT_ORGANIZATION_ID);
+    grantLegalReviewerPermission(Organization.ROOT_ORGANIZATION_ID);
     apiLicenseLegalService.getLicenseLegalComponentReport(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID,
         ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null, null);
   }

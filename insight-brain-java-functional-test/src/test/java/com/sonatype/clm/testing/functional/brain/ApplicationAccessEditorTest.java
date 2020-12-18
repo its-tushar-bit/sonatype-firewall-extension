@@ -75,7 +75,7 @@ public class ApplicationAccessEditorTest
     Dropdown roleDropdown = AccessEditorPage.roleDropdown().shouldBe(visible);
     roleDropdown.selectedItem().click();
 
-    SelenideElement roleEntry = roleDropdown.listItem(1).shouldBe(visible);
+    SelenideElement roleEntry = roleDropdown.listItem(2).shouldBe(visible);
     final String roleName = roleEntry.getText();
     roleEntry.click();
 

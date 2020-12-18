@@ -647,6 +647,17 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testInstallLicense_AdvancedLegalPackFromHds() throws Exception {
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).doesNotContain(LicensedFeature.ADVANCED_LEGAL_PACK);
+
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.ADVANCED_LEGAL_PACK));
+    installLicense();
+    assertThat(productLicense.getFeatures()).contains(LicensedFeature.ADVANCED_LEGAL_PACK);
+  }
+
+  @Test
   public void testNotifyListener_LoadLicense() throws Exception {
     ProductLicenseListener listener = mock(ProductLicenseListener.class);
     clmLicenseManager.addListener(listener);

@@ -54,6 +54,8 @@ import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -63,6 +65,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.dto.model.ComponentLegalCommentDTO;
 import com.sonatype.insight.license.dto.model.ComponentLegalFileDTO;
 import com.sonatype.insight.license.dto.model.LicenseMetadataDTO;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -103,6 +106,8 @@ public class ApiLicenseLegalService
 
   private final ApiLicenseDataAdapter apiLicenseDataAdapter;
 
+  private final ProductLicense productLicense;
+
   @Inject
   public ApiLicenseLegalService(
       MultiLicenseDAO multiLicenseDAO,
@@ -115,7 +120,8 @@ public class ApiLicenseLegalService
       ApplicationComponentDAO applicationComponentDAO,
       HashComponentIdentifierDAO hashComponentIdentifierDAO,
       ComponentInfoService componentInfoService,
-      ApiLicenseDataAdapter apiLicenseDataAdapter)
+      ApiLicenseDataAdapter apiLicenseDataAdapter,
+      ProductLicense productLicense)
   {
     this.multiLicenseDAO = multiLicenseDAO;
     this.apiLicenseLegalHdsService = apiLicenseLegalHdsService;
@@ -129,12 +135,15 @@ public class ApiLicenseLegalService
     this.componentInfoService = componentInfoService;
     this.componentInfoService.setToolName("ci");
     this.apiLicenseDataAdapter = apiLicenseDataAdapter;
+    this.productLicense = productLicense;
   }
 
-  @Authorize(permission = Permission.READ)
+  @Authorize(permission = Permission.LEGAL_REVIEWER)
   public ApiLicenseLegalApplicationReportDTO getLicenseLegalApplicationReport(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
   {
+    checkLicense();
+
     log.info("Processing license metadata request for {}", applicationPublicId);
     ApiReportRawDataDTOV2 latestRawReport = getLastRawApplicationReport(applicationPublicId)
         .orElseThrow(() -> new NotFoundException("Report for application " + applicationPublicId + " not found."));
@@ -190,7 +199,7 @@ public class ApiLicenseLegalService
    * @return an {@link ApiLicenseLegalComponentReportDTO} for the given component.
    * @throws IOException if we have issues communicating with HDS.
    */
-  @Authorize(permission = Permission.READ)
+  @Authorize(permission = Permission.LEGAL_REVIEWER)
   public ApiLicenseLegalComponentReportDTO getLicenseLegalComponentReport(
       @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) String ownerId,
@@ -201,6 +210,8 @@ public class ApiLicenseLegalService
       String identificationSource,
       String scanId) throws IOException
   {
+    checkLicense();
+
     Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
     ComponentIdentifier compIdentifier = getComponentIdentifier(componentIdentifier, packageUrl, hash);
     Component component = componentInfoService.augmentComponentDetails(owner, componentInfoService
@@ -366,5 +377,12 @@ public class ApiLicenseLegalService
                 .collect(Collectors.toCollection(LinkedHashSet::new))));
 
     telemetrySender.send(telemetryData);
+  }
+
+  private void checkLicense() {
+    if (!productLicense.hasFeature(LicensedFeature.ADVANCED_LEGAL_PACK)) {
+      log.debug("License does not support Advanced Legal Pack features");
+      throw new InvalidLicenseException();
+    }
   }
 }

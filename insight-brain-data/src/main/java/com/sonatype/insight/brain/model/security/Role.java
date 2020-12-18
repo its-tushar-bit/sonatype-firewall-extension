@@ -55,6 +55,11 @@ public class Role
    */
   public static final String COMPONENT_EVALUATOR_ROLE_ID = "90c7c98683b4471cb77a916744540bcc";
 
+  /**
+   * The id of the "Legal Reviewer" role in the role database table.
+   */
+  public static final String LEGAL_REVIEWER_ROLE_ID = "0df46317c031440795007f4ce9c7f002";
+
   @Id
   @Column(name = "role_id")
   private String id;

@@ -92,9 +92,9 @@ public abstract class AbstractAccessEditorTest
     Dropdown roleDropdown = AccessEditorPage.roleDropdown();
     roleDropdown.selectedItem().shouldHave(AccessEditorPage.DROPDOWN_DEFAULT_TEXT).click();
     eyesWatcher.eyesCheck();
-    String roleName = roleDropdown.listItem(1).text();
+    String roleName = roleDropdown.listItem(2).text();
     assertThat(getMembershipMappings(currentOwner.getId(), roleName)).isEmpty();
-    roleDropdown.listItem(1).click();
+    roleDropdown.listItem(2).click();
     AccessEditorPage.saveButton().shouldHave(DISABLED);
     AccessEditorPage.searchButton().shouldHave(DISABLED);
     AccessEditorPage.searchBox().val("*");

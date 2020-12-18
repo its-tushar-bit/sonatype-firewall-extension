@@ -131,7 +131,7 @@ public class MembershipMappingServiceTest
     ApplicableMembershipMappings applicableMembershipMappings =
         membershipMappingService.getApplicableMembershipMappings(OwnerType.APPLICATION, owner.getId());
 
-    assertThat(applicableMembershipMappings.membersByRole).hasSize(4);
+    assertThat(applicableMembershipMappings.membersByRole).hasSize(5);
 
     MembersByRole membersByRoles = applicableMembershipMappings.membersByRole.get(0);
     Member expectedMember = new Member(MemberType.USER, user.getUsername(), user.calculateDisplayName(),
@@ -150,6 +150,9 @@ public class MembershipMappingServiceTest
     assertMembersByRoleOwner(membersByRoles, new RoleDAO().getById(Role.DEVELOPER_ROLE_ID), owner, expectedMember);
 
     membersByRoles = applicableMembershipMappings.membersByRole.get(3);
+    assertMembersByRoleOwner(membersByRoles, new RoleDAO().getById(Role.LEGAL_REVIEWER_ROLE_ID), owner, null);
+
+    membersByRoles = applicableMembershipMappings.membersByRole.get(4);
     assertMembersByRoleOwner(membersByRoles, new RoleDAO().getById(Role.OWNER_ROLE_ID), owner, null);
   }
 

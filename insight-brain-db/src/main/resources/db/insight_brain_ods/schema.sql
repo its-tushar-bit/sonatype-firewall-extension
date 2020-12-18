@@ -181,6 +181,7 @@ INSERT INTO role (role_id, name, name_lowercase_no_whitespace, sort_order, descr
 INSERT INTO role (role_id, name, name_lowercase_no_whitespace, sort_order, description, global, built_in) VALUES ('1da70fae1fd54d6cb7999871ebdb9a36', 'Developer', 'developer', 300, 'Views all information for their assigned organization or application.', FALSE, TRUE);
 INSERT INTO role (role_id, name, name_lowercase_no_whitespace, sort_order, description, global, built_in) VALUES ('2cb71b3468d649789163ea2e212b541e', 'Application Evaluator', 'applicationevaluator', 400, 'Evaluates applications and views policy violation summary results.', FALSE, TRUE);
 INSERT INTO role (role_id, name, name_lowercase_no_whitespace, sort_order, description, global, built_in) VALUES ('90c7c98683b4471cb77a916744540bcc', 'Component Evaluator', 'componentevaluator', 500, 'Evaluates individual components and views policy violation results for a specified application.', FALSE, TRUE);
+INSERT INTO role (role_id, name, name_lowercase_no_whitespace, sort_order, description, global, built_in) VALUES ('0df46317c031440795007f4ce9c7f002', 'Legal Reviewer', 'legalreviewer', 600, 'Reviews legal obligations for component licenses.', FALSE, TRUE);
 
 CREATE TABLE role_permission (
   role_permission_id varchar(50) NOT NULL,
@@ -209,6 +210,7 @@ INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('0
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('d6760c9dc2d1425a925cfb1296dbbbf9', 'b9646757e98e486da7d730025f5245f8', 'WAIVE_POLICY_VIOLATIONS');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1a837897990c489faf669f2b091427fd', 'b9646757e98e486da7d730025f5245f8', 'CHANGE_LICENSES');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('08dc877fe2664ed995b39f97e253254a', 'b9646757e98e486da7d730025f5245f8', 'CHANGE_SECURITY_VULNERABILITIES');
+INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('7b87527087c24a3c9ba81a55d7da7c0c', 'b9646757e98e486da7d730025f5245f8', 'LEGAL_REVIEWER');
 -- Owner role
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1c8d6f420845466bbc1eb5eaf6d4baa2', '1cddabf7fdaa47d6833454af10e0a3ef', 'WRITE');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1c2587ba144341fd9d937dd36c850f5a', '1cddabf7fdaa47d6833454af10e0a3ef', 'READ');
@@ -221,6 +223,7 @@ INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('938168536594435aaae3e58668b7c46c', '1cddabf7fdaa47d6833454af10e0a3ef', 'WAIVE_POLICY_VIOLATIONS');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('40340d38f51745829f914139ee66764d', '1cddabf7fdaa47d6833454af10e0a3ef', 'CHANGE_LICENSES');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1c65f82a496540a3a6a369875cd988a8', '1cddabf7fdaa47d6833454af10e0a3ef', 'CHANGE_SECURITY_VULNERABILITIES');
+INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('629fe173516645fda0121b2a6602ed0f', '1cddabf7fdaa47d6833454af10e0a3ef', 'LEGAL_REVIEWER');
 -- Developer role
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1a6a3ba60818476781a6a2cb9adcb7f6', '1da70fae1fd54d6cb7999871ebdb9a36', 'READ');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('61159b674eb94cdcb00ebdec77a47373', '1da70fae1fd54d6cb7999871ebdb9a36', 'EVALUATE_COMPONENT');
@@ -228,6 +231,10 @@ INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('6
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('ea7bb57e93e241acbf8da5ebcb5b0074', '2cb71b3468d649789163ea2e212b541e', 'EVALUATE_APPLICATION');
 -- Component Evaluator role
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('f198535bdf2549d38417534e38ae3cda', '90c7c98683b4471cb77a916744540bcc', 'EVALUATE_COMPONENT');
+-- Legal Reviewer role
+INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('6c521879906a4fdf8d27c652787243b4', '0df46317c031440795007f4ce9c7f002', 'LEGAL_REVIEWER');
+INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('9c3d3a466bed410fa8d8c8801f3a0c13', '0df46317c031440795007f4ce9c7f002', 'WRITE');
+INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('4209ad3cdcfd474b865c51c0d664ea2a', '0df46317c031440795007f4ce9c7f002', 'READ');
 
 CREATE TABLE membership_mapping (
   membership_mapping_id varchar(50) NOT NULL,

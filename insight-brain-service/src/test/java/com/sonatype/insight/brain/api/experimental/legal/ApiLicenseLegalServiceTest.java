@@ -65,6 +65,8 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -80,6 +82,7 @@ import com.sonatype.insight.license.dto.model.LegalCopyrightDTO;
 import com.sonatype.insight.license.dto.model.LegalFileDTO;
 import com.sonatype.insight.license.dto.model.LicenseMetadataDTO;
 import com.sonatype.insight.license.dto.model.LicenseObligationDTO;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -171,6 +174,9 @@ public class ApiLicenseLegalServiceTest
 
   @Inject
   private LegalReportBuilder legalReportBuilder;
+
+  @Inject
+  private TestProductLicense testProductLicense;
 
   @Override
   public void configure(Binder binder) {
@@ -304,6 +310,13 @@ public class ApiLicenseLegalServiceTest
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(
         () -> apiLicenseLegalService.getLicenseLegalApplicationReport(tempEntity.newApplicationWithParent().getId()));
     verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
+  }
+
+  @Test
+  public void testGetLicenseLegalApplicationReport_Unlicensed() {
+    setUnlicensedForAdvancedLegalPack();
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(
+        () -> apiLicenseLegalService.getLicenseLegalApplicationReport("someAppId"));
   }
 
   @Test
@@ -570,6 +583,13 @@ public class ApiLicenseLegalServiceTest
         .isThrownBy(() -> apiLicenseLegalService.getLicenseLegalComponentReport(OwnerType.APPLICATION,
             application.getId(), componentIdentifier, packageUrl, "hash", null, null, null))
         .withMessageContaining("Only one of componentIdentifier, packageUrl, or hash must be specified.");
+  }
+
+  @Test
+  public void testGetLicenseLegalComponentReport_Unlicensed() {
+    setUnlicensedForAdvancedLegalPack();
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> apiLicenseLegalService
+        .getLicenseLegalComponentReport(OwnerType.APPLICATION, "someAppId", null, null, "hash", null, null, null));
   }
 
   private NamedComponentDetails createNamedComponentDetails() {
@@ -891,5 +911,9 @@ public class ApiLicenseLegalServiceTest
         .isEqualTo(expectedAttributes.keySet().iterator().next());
     assertThat((ApplicationLicenseUsageTelemetry) telemetryData.getAttributes().values().iterator().next())
         .usingRecursiveComparison().isEqualTo(expectedAttributes.values().iterator().next());
+  }
+
+  private void setUnlicensedForAdvancedLegalPack() {
+    testProductLicense.setMissingFeatures(LicensedFeature.ADVANCED_LEGAL_PACK);
   }
 }

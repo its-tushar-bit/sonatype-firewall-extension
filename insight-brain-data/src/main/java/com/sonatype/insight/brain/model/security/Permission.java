@@ -54,7 +54,10 @@ public enum Permission
       true /* global */, true /* allowedInCustomRoles */),
 
   MANAGE_AUTOMATIC_SCM_CONFIGURATION("Manage", PermissionCategory.IQ, "Automatic Source Control Configuration",
-      true /* global */, true /* allowedInCustomRoles */);
+      true /* global */, true /* allowedInCustomRoles */),
+
+  LEGAL_REVIEWER("Review", PermissionCategory.REMEDIATION, "Legal obligations for components licenses",
+      false /* global */, true /* allowedInCustomRoles */);
 
   private final String displayName;
 

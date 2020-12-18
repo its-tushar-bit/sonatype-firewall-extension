@@ -67,7 +67,7 @@ describe('UserTokenDisplay', function() {
     });
 
     it('calls copyToClipboard function on click with the value of the userCode from userToken', function() {
-      const copyToClipboardSpy = jasmine.createSpy('copyToClipboard').and.resolveTo(true);
+      const copyToClipboardSpy = jasmine.createSpy('copyToClipboard');
       navigator.clipboard.writeText = copyToClipboardSpy;
       const component = getShallowComponent(),
           userCodeInputCopyButtonContainer = component.find('.nx-btn-bar').at(0),
@@ -106,7 +106,7 @@ describe('UserTokenDisplay', function() {
     });
 
     it('calls copyToClipboard function on click with the value of the passCode from userToken', function() {
-      const copyToClipboardSpy = jasmine.createSpy('copyToClipboard').and.resolveTo(true);
+      const copyToClipboardSpy = jasmine.createSpy('copyToClipboard');
       navigator.clipboard.writeText = copyToClipboardSpy;
       const component = getShallowComponent(),
           passCodeInputCopyButtonContainer = component.find('.nx-btn-bar').at(1),

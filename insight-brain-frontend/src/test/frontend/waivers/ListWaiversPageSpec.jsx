@@ -50,7 +50,6 @@ describe('ListWaiversPage', function() {
     };
 
     violationDetailsMock = {
-      identificationSource: 'Sonatype',
       filename: 'filename',
       constraintViolations: [{
         constraintName: 'constraint name',
@@ -63,16 +62,7 @@ describe('ListWaiversPage', function() {
       }],
       policyName: 'policyName',
       policyViolationId: 'policyViolationId',
-      threatLevel: 5,
-      stageData: {
-        build: {
-          mostRecentScanId: 'scanId'
-        }
-      },
-      policyOwner: {
-        ownerType: 'organization',
-        ownerId: 'root_org'
-      }
+      threatLevel: 5
     };
 
     minimalProps = {

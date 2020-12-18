@@ -257,29 +257,6 @@ public class ApplicationComponentDAOTest
   }
 
   @Test
-  public void testGetLastByApplicationIdAndHash() {
-    String appId1 = application.getId();
-    String appId2 = tempEntity.newApplication(organization.getId()).getId();
-
-    Date date = new Date();
-    tempEntity.newApplicationComponent(appId1, BuildStageType.ID, "hash-1",
-        ComponentIdentifier.createMavenCoordinates("g", "a", "1"), null, MatchState.EXACT, false,
-        new Date(date.getTime() + 1000)).getId();
-    String componentId2 = tempEntity.newApplicationComponent(appId1, ReleaseStageType.ID, "hash-1",
-        ComponentIdentifier.createMavenCoordinates("g", "a", "2"), null, MatchState.EXACT, false,
-        new Date(date.getTime() + 2000)).getId();
-    String componentId3 = tempEntity.newApplicationComponent(appId2, BuildStageType.ID, "hash-1",
-        ComponentIdentifier.createMavenCoordinates("g", "a", "3"), null, MatchState.EXACT, false,
-        new Date(date.getTime() + 3000)).getId();
-
-    ApplicationComponent foundComponent = dao.getLastByApplicationIdAndHash(appId1, "hash-1");
-    assertThat(foundComponent.getId()).isEqualTo(componentId2);
-
-    ApplicationComponent foundComponent2 = dao.getLastByApplicationIdAndHash(appId2, "hash-1");
-    assertThat(foundComponent2.getId()).isEqualTo(componentId3);
-  }
-
-  @Test
   public void testCascadeDeleteToAggregateFiles() {
     ApplicationComponent applicationComponent1 = tempEntity.newApplicationComponent(application.getId(),
         BuildStageType.ID, "hash1", ComponentIdentifier.createMavenCoordinates("g", "a", "v"));

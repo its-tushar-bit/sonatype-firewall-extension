@@ -9,6 +9,16 @@ import {pick} from 'ramda';
 import commonServicesModule from '../util/CommonServices';
 import {toURIParams, uriTemplate} from './urlUtil';
 
+/**
+ * Generates the url to fetch the vulnerability details of a given refId.
+ *
+ * @param {string} refId refId of the vulnerability whose details are wanted
+ * @param {object} componentIdentifier the coordinates of the component where the vulnerability was found.
+ * This parameter is _optional_ but providing it will yield results in the scope of the given component.
+ * @param {object} thirdPartyScanParameters optional. A set of parameters related to the third-party scans.
+ * It is an object of shape `{identificationSource, ownerId, ownerType, scanId}`. If provided it will
+ * save one request to HDS and instead will search directly in the third-party vulnerabilities table.
+ */
 export function getVulnerabilityJsonDetailUrl(refId, componentIdentifier, thirdPartyScanParameters) {
   const urlWithPath = uriTemplate`/api/v2/vulnerabilities/${refId}`;
 

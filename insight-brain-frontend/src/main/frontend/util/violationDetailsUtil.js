@@ -17,25 +17,14 @@ export const extractViolationDetails = (violationDetails) => {
     constraintViolations,
     policyName,
     policyViolationId,
-    threatLevel,
-    identificationSource,
-    stageData,
-    policyOwner
+    threatLevel
   } = violationDetails;
 
   const { constraintName, reasons } = constraintViolations[0],
-      { ownerId, ownerType } = policyOwner,
       vulnerabilityId = path([0, 'reference', 'value'], reasons),
       threatLevelCategory = categoryByPolicyThreatLevel[threatLevel],
       componentName = getComponentName(violationDetails),
-      artifactName = getArtifactName(violationDetails),
-      scanId = Object.values(stageData)[0].mostRecentScanId,
-      thirdPartyScanParameters = {
-        identificationSource,
-        ownerId,
-        ownerType,
-        scanId
-      };
+      artifactName = getArtifactName(violationDetails);
 
   return {
     componentIdentifier,
@@ -46,7 +35,6 @@ export const extractViolationDetails = (violationDetails) => {
     policyViolationId,
     reasons: map(prop('reason'), reasons),
     threatLevelCategory,
-    vulnerabilityId,
-    thirdPartyScanParameters
+    vulnerabilityId
   };
 };

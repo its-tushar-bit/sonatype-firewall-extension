@@ -96,7 +96,6 @@ describe('AddWaiverPage', function() {
     const fullProps = {
       loading: false,
       violationDetails: {
-        identificationSource: 'Sonatype',
         filename: 'filename',
         constraintViolations: [{
           constraintName: 'constraint name',
@@ -109,16 +108,7 @@ describe('AddWaiverPage', function() {
         }],
         policyName: 'policyName',
         policyViolationId: 'policyViolationId',
-        threatLevel: 5,
-        stageData: {
-          build: {
-            mostRecentScanId: 'scanId'
-          }
-        },
-        policyOwner: {
-          ownerType: 'organization',
-          ownerId: 'root_org'
-        }
+        threatLevel: 5
       },
       openVulnerabilityDetailsModal: openVulnerabilityDetailsModalMock,
       applyToAllComponents: true,

@@ -89,13 +89,6 @@ public class ApplicationComponentDAO
     return createQuery(sQuery, hash).forceSingleResult().get();
   }
 
-  public ApplicationComponent getLastByApplicationIdAndHash(String appId, String hash) {
-    String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
-        " WHERE entity.applicationId=?1 AND entity.hash=?2" + //
-        " ORDER BY entity.time DESC";
-    return createQuery(sQuery, appId, hash).forceSingleResult().get();
-  }
-
   public List<ApplicationComponent> getByApplicationIdsAndStageTypeIdsSince(Set<String> applicationIds,
                                                                             Set<String> stageTypeIds,
                                                                             Date date)

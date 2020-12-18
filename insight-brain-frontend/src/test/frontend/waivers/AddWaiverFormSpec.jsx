@@ -79,13 +79,7 @@ describe('AddWaiverForm', function() {
       saveWaiver: saveWaiverSpy,
       openVulnerabilityDetailsModal: openVulnerabilityDetailsModalSpy,
       vulnerabilityId: 'CVE-12345',
-      cancelAction: cancelActionSpy,
-      thirdPartyScanParameters: {
-        identificationSource: 'Sonatype',
-        scanId: 'scanId',
-        ownerId: 'root_org',
-        ownerType: 'organization'
-      }
+      cancelAction: cancelActionSpy
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(AddWaiverForm, minimalProps);
@@ -147,13 +141,7 @@ describe('AddWaiverForm', function() {
     vulnerabilityDetailsLink.simulate('click');
     expect(openVulnerabilityDetailsModalSpy).toHaveBeenCalledWith({
       vulnerabilityId: 'CVE-12345',
-      componentIdentifier: { format: 'maven', coordinates: 'test' },
-      thirdPartyScanParameters: {
-        identificationSource: 'Sonatype',
-        scanId: 'scanId',
-        ownerId: 'root_org',
-        ownerType: 'organization'
-      }
+      componentIdentifier: { format: 'maven', coordinates: 'test' }
     });
   });
 

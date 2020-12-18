@@ -34,17 +34,7 @@ describe('violationActions', function() {
       state = {
         violation: {
           violationDetails: {
-            policyViolationId: 'baz',
-            identificationSource: 'Sonatype',
-            stageData: {
-              build: {
-                mostRecentScanId: 'scanId'
-              }
-            },
-            policyOwner: {
-              ownerType: 'organization',
-              ownerId: 'root_org'
-            }
+            policyViolationId: 'baz'
           },
           selectedViolationId: 'bar'
         }
@@ -203,19 +193,13 @@ describe('violationActions', function() {
 
       it('dispatches VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED with vulnerability details response data',
           function(done) {
-            const vulnerabilityResponseData = { bar: 'baz' },
-                vulnerabilityRequestUrl = getVulnerabilityJsonDetailUrl('CVE-2016-1000027', null, {
-                  identificationSource: 'Sonatype',
-                  scanId: 'scanId',
-                  ownerId: 'root_org',
-                  ownerType: 'organization'
-                });
+            const vulnerabilityResponseData = { bar: 'baz' };
 
             mockAxiosCalls({
               get: {
                 [getViolationDetailsUrl('foo')]: Promise.resolve({ data: violationDetailsResponseData }),
                 [getApplicableWaiversUrl('foo')]: Promise.resolve({ data: { activeWaivers: [], expiredWaivers: [] } }),
-                [vulnerabilityRequestUrl]: Promise.resolve(
+                [getVulnerabilityJsonDetailUrl('CVE-2016-1000027')]: Promise.resolve(
                     { data: vulnerabilityResponseData })
               }
             });
@@ -236,19 +220,13 @@ describe('violationActions', function() {
 
       it('dispatches VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED when the vulnerability details response fails',
           function(done) {
-            const vulnerabilityResponseError = 'errrr!',
-                vulnerabilityRequestUrl = getVulnerabilityJsonDetailUrl('CVE-2016-1000027', null, {
-                  identificationSource: 'Sonatype',
-                  scanId: 'scanId',
-                  ownerId: 'root_org',
-                  ownerType: 'organization'
-                });
+            const vulnerabilityResponseError = 'errrr!';
 
             mockAxiosCalls({
               get: {
                 [getViolationDetailsUrl('foo')]: Promise.resolve({ data: violationDetailsResponseData }),
                 [getApplicableWaiversUrl('foo')]: Promise.resolve({ data: { activeWaivers: [], expiredWaivers: [] } }),
-                [vulnerabilityRequestUrl]: Promise.reject(vulnerabilityResponseError)
+                [getVulnerabilityJsonDetailUrl('CVE-2016-1000027')]: Promise.reject(vulnerabilityResponseError)
               }
             });
 
@@ -270,18 +248,12 @@ describe('violationActions', function() {
   describe('loadVulnerabilityDetails', function() {
     let store;
 
-    const expectedUrl = getVulnerabilityJsonDetailUrl('CVE-2016-1000027', 'foo : bar : 1.0', {
-      identificationSource: 'Sonatype',
-      scanId: 'scanId',
-      ownerId: 'root_org',
-      ownerType: 'organization'
-    });
+    const expectedUrl = getVulnerabilityJsonDetailUrl('CVE-2016-1000027', 'foo : bar : 1.0');
 
     beforeEach(function() {
       const state = {
         violation: {
           violationDetails: {
-            identificationSource: 'Sonatype',
             policyViolationId: 'bar',
             constraintViolations: [{
               reasons: [{
@@ -291,16 +263,7 @@ describe('violationActions', function() {
                 }
               }]
             }],
-            componentIdentifier: 'foo : bar : 1.0',
-            stageData: {
-              build: {
-                mostRecentScanId: 'scanId'
-              }
-            },
-            policyOwner: {
-              ownerType: 'organization',
-              ownerId: 'root_org'
-            }
+            componentIdentifier: 'foo : bar : 1.0'
           }
         }
       };

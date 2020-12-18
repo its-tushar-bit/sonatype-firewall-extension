@@ -79,32 +79,18 @@ const isNotNil = complement(isNil),
 export function loadVulnerabilityDetails() {
   return function(dispatch, getState) {
     const { violation: { violationDetails } } = getState(),
-        {
-          constraintViolations,
-          componentIdentifier,
-          identificationSource,
-          stageData,
-          policyOwner
-        } = violationDetails,
-        { ownerId, ownerType } = policyOwner;
+        { constraintViolations, componentIdentifier } = violationDetails;
 
     if (isNilOrEmpty(constraintViolations) || isNilOrEmpty(constraintViolations[0].reasons)) {
       return Promise.resolve();
     }
 
     const reasonWithRefId = find(hasSecurityReference, constraintViolations[0].reasons);
-    const scanId = Object.values(stageData)[0].mostRecentScanId;
-    const thirdPartyScanParameters = {
-      identificationSource,
-      scanId,
-      ownerId,
-      ownerType
-    };
 
     if (reasonWithRefId) {
       dispatch(loadVulnerabilityDetailsRequested());
       const refId = reasonWithRefId.reference.value;
-      return axios.get(getVulnerabilityJsonDetailUrl(refId, componentIdentifier, thirdPartyScanParameters))
+      return axios.get(getVulnerabilityJsonDetailUrl(refId, componentIdentifier))
           .then(({ data }) => dispatch(loadVulnerabilityDetailsFulfilled(data)))
           .catch(err => dispatch(loadVulnerabilityDetailsFailed(err)));
     }

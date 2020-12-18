@@ -11,7 +11,7 @@ const transformJsx = require('babel-plugin-transform-react-jsx');
 
 const outputPath = path.resolve(__dirname, 'target/classes/assets');
 
-module.exports = {
+const config = {
   context: path.resolve(__dirname, 'src/test/frontend'),
   entry: './specRoot.js',
   output: {
@@ -30,17 +30,6 @@ module.exports = {
   },
   module: {
     rules: [
-      {
-        test: /\.jsx?$/,
-        include: /src[\/\\]main[\/\\]frontend/,
-        exclude: /[\/\\]lib[\/\\]/,
-        use: {
-          loader: 'istanbul-instrumenter-loader',
-          options: {
-            esModules: true
-          }
-        }
-      },
       {
         test: /\.jsx?$/,
         exclude: /node_modules|src[\/\\]main[\/\\]frontend[\/\\]lib[\/\\](protovis|Base64)/,
@@ -90,4 +79,24 @@ module.exports = {
     port: 8235,
     host: '0.0.0.0'
   }
+};
+
+module.exports = function(env) {
+  env = env || {};
+
+  if (!env.skipTestCoverage) {
+    config.module.rules.unshift({
+      test: /\.jsx?$/,
+      include: /src[\/\\]main[\/\\]frontend/,
+      exclude: /[\/\\]lib[\/\\]/,
+      use: {
+        loader: 'istanbul-instrumenter-loader',
+        options: {
+          esModules: true
+        }
+      }
+    });
+  }
+
+  return config;
 };

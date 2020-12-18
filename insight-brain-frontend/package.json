@@ -13,7 +13,7 @@
     "test-webpack": "webpack --display=errors-only --config webpack.config.brain-test.js",
     "karma": "karma start",
     "test-watch": "npm-run-all test-lint test-start",
-    "test-start": "webpack-dev-server --config webpack.config.brain-test.js",
+    "test-start": "webpack-dev-server --config webpack.config.brain-test.js --env.skipTestCoverage",
     "clean": "rimraf target/classes/assets"
   },
   "dependencies": {

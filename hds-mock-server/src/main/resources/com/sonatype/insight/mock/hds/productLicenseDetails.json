@@ -2,6 +2,10 @@
   "version": 1,
   "maxApplications": 100,
   "features": [
+    "ADVANCED_LEGAL_PACK",
+    "ADVANCED_RECOMMENDATION_STRATEGIES",
+    "AUTOMATION",
+    "BREAKING_CHANGE",
     "CI_INTEGRATION",
     "CLI_INTEGRATION",
     "DASHBOARD",
@@ -9,7 +13,10 @@
     "EXTERNAL_DATABASE",
     "FIREWALL",
     "FIREWALL_FOR_ARTIFACTORY",
+    "HYGIENE",
+    "RELEASE_INTEGRITY",
     "IDE_INTEGRATION",
+    "NODE_CLUSTERING",
     "NOTIFICATIONS",
     "POLICY_GRANDFATHERING",
     "POLICY_MONITORING",
@@ -28,6 +35,6 @@
     "release",
     "stage-release"
   ],
-  "signature": "CzQDU28GdBQSwY10A4unnGb29C/gTjsn2uY3LqTgbtWkMmSi2SW6eMDiDZtkIDn1yuUFCKcQN3/62M8Gk70S/e0KX+t3Ek/rixlyXzx7p75rBBg8/e2lThTt2cbTIliuvZiMurb0Ck9Oc2Po/dM13BdbriFPyztudHjY2YHyRpbm7pOFSPMKmS5ZDHMjzaHRQuP7aoTT6Lp4udVTT22mAshJXI7n5PUfhu1yN/z7nmXG8Kr+gVLSuKHleBNE+1CyWecRiUqkuBHFTNoIaO71GpxBzIikHxGhlMwesWBXByckLUr8PkCz+VZkzqHZLywVmzq8hmSNOGrIbbbv+b7tkw==",
+  "signature": "IohlMJww/aguwRT3nWj7A3DDl9GyO4zpq1PUJdXik6JmxeMBvLdRCf4IN34a0kOKNkrrUyneTVTWEtRMqPZwmbODCTSHziFuzIoEjR4E+FjXVDZiUoOQFt42rJy3LeU/tR3DcO6AbYVaqoD5w2QLs3zNnDg7vZj+JM8Jsw2qGUEV5HTF2004Xkba7mmRA/ugDPOpEfeo8w42KSkb478SWSh+7EoWXAVLgkehRwu2tnY04cCcKdWdzdcgp0LF6GCarB2JplnBrwsboZQzJbzSfR1MFRE98Mm7zWya97XwWn/jE6iEiZjoWk5p3XKqOCYeUjUMFBXkvPhCANdWk9zsvg==",
   "signatureKeyAlias": "licensing-key-test"
 }

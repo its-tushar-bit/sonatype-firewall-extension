@@ -9,6 +9,8 @@ import com.sonatype.insight.mock.hds.HdsMockResponse;
 import com.sonatype.insight.mock.hds.HdsMockServer;
 
 import org.junit.rules.ExternalResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @since 1.9.1
@@ -16,6 +18,8 @@ import org.junit.rules.ExternalResource;
 public class HdsMockServerRule
     extends ExternalResource
 {
+  private final Logger log = LoggerFactory.getLogger(getClass());
+
   private final int port;
 
   private final boolean isProxyRequired;
@@ -44,7 +48,7 @@ public class HdsMockServerRule
   public void start() throws Exception {
     long start = System.currentTimeMillis();
 
-    System.out.println("Starting HDS mock on port " + port);
+    log.info("Starting HDS mock on port {}", port);
     hdsMockServer = new HdsMockServer();
     hdsMockServer.setHttpPort(port);
     if (isProxyRequired) {
@@ -52,8 +56,7 @@ public class HdsMockServerRule
       hdsMockServer.setProxyAuthentication("proxyuser", "proxypass");
     }
     hdsMockServer.start();
-    System.out.println("Started HDS mock on port " + hdsMockServer.getHttpPort() + " in "
-        + (System.currentTimeMillis() - start) + " ms.");
+    log.info("Started HDS mock on port {} in {} ms.", hdsMockServer.getHttpPort(), System.currentTimeMillis() - start);
   }
 
   public void stop() {
@@ -63,7 +66,7 @@ public class HdsMockServerRule
       hdsMockServer = null;
     }
 
-    System.out.println("Stopped HDS mock in " + (System.currentTimeMillis() - start) + " ms.");
+    log.info("Stopped HDS mock in {} ms.", System.currentTimeMillis() - start);
   }
 
   public HdsMockResponse respondWith(Object body) {
@@ -72,6 +75,7 @@ public class HdsMockServerRule
 
   public void reset() {
     hdsMockServer.reset();
+    log.info("Reset HDS mock on port {}", port);
   }
 
   public boolean isReusable(boolean isProxyRequired) {

@@ -13,6 +13,8 @@ import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 
 import com.google.inject.Module;
 import org.junit.rules.ExternalResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * TestInsightBrainService as Junit ExternalResource (which is a Junit TestRule).
@@ -22,6 +24,8 @@ import org.junit.rules.ExternalResource;
 public class TestInsightBrainServiceRule
     extends ExternalResource
 {
+  private final Logger log = LoggerFactory.getLogger(getClass());
+
   private final int port;
 
   private final int adminPort;
@@ -62,7 +66,7 @@ public class TestInsightBrainServiceRule
   void start() throws Exception {
     long start = System.currentTimeMillis();
 
-    System.out.println("Starting TestInsightBrainService on port " + port + ", admin port " + adminPort);
+    log.info("Starting TestInsightBrainService on port {}, admin port {}", port, adminPort);
     brain = new TestInsightBrainService();
     brain.setHttpPort(port);
     brain.setHttpAdminPort(adminPort);
@@ -78,7 +82,7 @@ public class TestInsightBrainServiceRule
     brain.setConfigurator(configurator);
     brain.start();
 
-    System.out.println("Started TestInsightBrainService in " + (System.currentTimeMillis() - start) + " ms.");
+    log.info("Started TestInsightBrainService in {} ms.", System.currentTimeMillis() - start);
   }
 
   void stop() {
@@ -94,7 +98,7 @@ public class TestInsightBrainServiceRule
       brain = null;
     }
 
-    System.out.println("Stopped test servers in " + (System.currentTimeMillis() - start) + " ms.");
+    log.info("Stopped test servers in {} ms.", System.currentTimeMillis() - start);
   }
 
   public Configuration getClientConfiguration() {
@@ -128,6 +132,7 @@ public class TestInsightBrainServiceRule
   public void resetDisableForTesting() {
     if (brain != null && brain.getInjector() != null) {
       brain.disableForTesting();
+      log.info("Reset TestInsightBrainService");
     }
   }
 }

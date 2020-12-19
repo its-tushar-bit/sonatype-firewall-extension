@@ -112,7 +112,7 @@ public class EmbeddedLdapServer
     //   src/main/java/org/apache/directory/server/core/factory/DefaultDirectoryServiceFactory.java
 
     directoryService = new DefaultDirectoryService();
-
+    directoryService.setShutdownHookEnabled(false); // avoid memory leak
     directoryService.setInstanceLayout(new InstanceLayout(workingDirectory));
 
     SchemaManager schemaManager = new DefaultSchemaManager();

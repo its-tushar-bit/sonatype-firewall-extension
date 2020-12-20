@@ -65,6 +65,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
+import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.codeborne.selenide.Configuration;
@@ -951,6 +952,9 @@ public class ApplicationReportCipTest
     testCLMServer.getHdsServer()
         .respondWith(getClass().getResource("/componentDetails/javancssComponentDetails-29.50.json"))
         .atUri("rest/ci/componentDetails");
+    testCLMServer.getHdsServer()
+        .respondWith(new ComponentDependenciesDTO(Collections.emptyMap(), Collections.emptyMap()))
+        .atUri("rest/component/dependencies");
   }
 
   private void mockHdsResponseForSecondComponent() {

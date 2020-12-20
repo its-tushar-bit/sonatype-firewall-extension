@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionTy
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupLevelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
+import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -279,6 +280,9 @@ public abstract class AbstractVersionGraphMavenTest
     testCLMServer.getHdsServer()
         .respondWith(getClass().getResource("/componentDetails/javancssComponentDetails-29.50.json"))
         .atUri("rest/rm/componentDetails");
+    testCLMServer.getHdsServer()
+        .respondWith(new ComponentDependenciesDTO(Collections.emptyMap(), Collections.emptyMap()))
+        .atUri("rest/component/dependencies");
   }
 
   protected void setupHdsResponses() {

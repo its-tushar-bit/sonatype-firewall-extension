@@ -28,6 +28,7 @@ import org.junit.Test;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.exactText;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 
@@ -60,14 +61,23 @@ public abstract class AbstractVersionGraphMavenTest
     createPolicy(Organization.ROOT_ORGANIZATION_ID, 1, "CoordinatesPolicy", CoordinatesConditionType.ID, "match",
         "maven:javancss*");
 
-    refreshOrOpen("assets/version-graph/ide/eclipse/index.html");
+    refreshOrOpen(getStartPageUrl());
+    if (isApplicationSelectionNeeded()) {
+      VersionsCIP.selectApplications().selectByIndex(0);
+    }
   }
+
+  protected abstract String getStartPageUrl();
 
   @Test
   public void testCIPWithRemediation() {
     setupHdsResponses();
     mockHdsResponseForRemediation();
     mockHdsResponseForFirstComponent();
+
+    if (isApplicationSelectionNeeded()) {
+      VersionsCIP.selectApplications().selectByVisibleText("ApplicationReportTest (ApplicationReportTest)");
+    }
 
     executeJavaScript(JAVA_SCRIPT_TO_EXECUTE);
 
@@ -88,10 +98,16 @@ public abstract class AbstractVersionGraphMavenTest
     VersionsCIP.matchState().shouldHave(text("exact"));
     VersionsCIP.identificationSource().shouldHave(text("Sonatype"));
     VersionsCIP.componentCategory().shouldHave(text("Programming Language Utilites"));
-    VersionsCIP.recommendedVersionsHeader().shouldBe(visible);
-    VersionsCIP.nextNoViolationVersionLink().shouldBe(visible);
-    VersionsCIP.nextNoViolationVersionLink().shouldHave(text("Select 31.52"));
-    VersionsCIP.nextNoFailVersionLink().shouldNotBe(visible);
+    if (isVersionRecommendationSupported()) {
+      VersionsCIP.recommendedVersionsHeader().shouldBe(visible);
+      VersionsCIP.nextNoViolationVersionLink().shouldBe(visible).shouldHave(text("Select 31.52"));
+      VersionsCIP.nextNoFailVersionLink().shouldBe(hidden);
+    }
+    else {
+      VersionsCIP.recommendedVersionsHeader().shouldBe(hidden);
+      VersionsCIP.nextNoViolationVersionLink().shouldBe(hidden);
+      VersionsCIP.nextNoFailVersionLink().shouldBe(hidden);
+    }
     VersionsCIP.viewDetailsButton().shouldBe(visible);
     if (shouldShowMigrateButton()) {
       VersionsCIP.migrateButton().shouldBe(visible);
@@ -138,26 +154,27 @@ public abstract class AbstractVersionGraphMavenTest
     VersionsCIP.securityCount().shouldNotBe(visible);
     VersionsCIP.hygieneRating().shouldNotBe(visible);
 
-    // mock request for version 31.52
-    testCLMServer.getHdsServer()
-        .respondWith(getClass().getResource("/componentDetails/javancssComponentDetails-31.52.json"))
-        .atUri("rest/ide/componentDetails");
-    testCLMServer.getHdsServer()
-        .respondWith(getClass().getResource("/componentDetails/javancssComponentDetails-31.52.json"))
-        .atUri("rest/rm/componentDetails");
+    if (isVersionRecommendationSupported()) {
+      // mock request for version 31.52
+      testCLMServer.getHdsServer()
+          .respondWith(getClass().getResource("/componentDetails/javancssComponentDetails-31.52.json"))
+          .atUri("rest/ide/componentDetails");
+      testCLMServer.getHdsServer()
+          .respondWith(getClass().getResource("/componentDetails/javancssComponentDetails-31.52.json"))
+          .atUri("rest/rm/componentDetails");
 
-    VersionsCIP.selectNoViolation().shouldBe(visible).click();
+      VersionsCIP.selectNoViolation().shouldBe(visible).click();
 
-    VersionsCIP.version().shouldHave(text("31.52"));
-    VersionsCIP.declaredLicenses().shouldHave(texts("BSD-3-Clause"));
-    VersionsCIP.observedLicenses().shouldHave(texts("BSD-3-Clause"));
-    VersionsCIP.effectiveLicenses().shouldHave(texts("BSD-3-Clause"));
-    VersionsCIP.highestPolicyThreat().shouldHave(text("NA"), cssClass("unspecified"));
-    VersionsCIP.policyCount().shouldNotBe(visible);
-    VersionsCIP.highestSecurityThreat().shouldHave(text("NA"));
-    VersionsCIP.securityCount().shouldNotBe(visible);
-    VersionsCIP.hygieneRating().shouldNotBe(visible);
-
+      VersionsCIP.version().shouldHave(text("31.52"));
+      VersionsCIP.declaredLicenses().shouldHave(texts("BSD-3-Clause"));
+      VersionsCIP.observedLicenses().shouldHave(texts("BSD-3-Clause"));
+      VersionsCIP.effectiveLicenses().shouldHave(texts("BSD-3-Clause"));
+      VersionsCIP.highestPolicyThreat().shouldHave(text("NA"), cssClass("unspecified"));
+      VersionsCIP.policyCount().shouldNotBe(visible);
+      VersionsCIP.highestSecurityThreat().shouldHave(text("NA"));
+      VersionsCIP.securityCount().shouldNotBe(visible);
+      VersionsCIP.hygieneRating().shouldNotBe(visible);
+    }
   }
 
   @Test
@@ -165,6 +182,10 @@ public abstract class AbstractVersionGraphMavenTest
     setupHdsResponsesForNoRemediation();
     mockHdsResponseForFirstComponent();
     mockHdsResponseForRemediation();
+
+    if (isApplicationSelectionNeeded()) {
+      VersionsCIP.selectApplications().selectByVisibleText("ApplicationReportTest (ApplicationReportTest)");
+    }
 
     executeJavaScript(JAVA_SCRIPT_TO_EXECUTE);
 
@@ -183,9 +204,18 @@ public abstract class AbstractVersionGraphMavenTest
     VersionsCIP.matchState().shouldHave(text("exact"));
     VersionsCIP.identificationSource().shouldHave(text("Sonatype"));
     VersionsCIP.componentCategory().shouldHave(text("Programming Language Utilites"));
-    VersionsCIP.recommendedVersionsHeader().shouldBe(visible);
-    VersionsCIP.nextNoViolationVersionLink().shouldNotBe(visible);
-    VersionsCIP.nextNoFailVersionLink().shouldNotBe(visible);
+    if (isVersionRecommendationSupported()) {
+      VersionsCIP.recommendedVersionsHeader().shouldBe(visible);
+      VersionsCIP.nextNoViolationVersionLink().shouldBe(hidden);
+      VersionsCIP.nextNoFailVersionLink().shouldBe(hidden);
+      VersionsCIP.noVersionsAvailable().shouldBe(visible);
+    }
+    else {
+      VersionsCIP.recommendedVersionsHeader().shouldBe(hidden);
+      VersionsCIP.nextNoViolationVersionLink().shouldBe(hidden);
+      VersionsCIP.nextNoFailVersionLink().shouldBe(hidden);
+      VersionsCIP.noVersionsAvailable().shouldBe(hidden);
+    }
     VersionsCIP.viewDetailsButton().shouldBe(visible);
     if (shouldShowMigrateButton()) {
       VersionsCIP.migrateButton().shouldBe(visible);
@@ -193,7 +223,6 @@ public abstract class AbstractVersionGraphMavenTest
     else {
       VersionsCIP.migrateButton().shouldNotBe(visible);
     }
-    VersionsCIP.noVersionsAvailable().shouldBe(visible);
 
     VersionsCIP.showDetailsLink().shouldBe(visible).click();
     VersionsCIP.hideDetailsLink().shouldBe(visible);
@@ -204,6 +233,10 @@ public abstract class AbstractVersionGraphMavenTest
     setupHdsResponses();
     mockHdsResponseForRemediation();
     mockHdsResponseForFirstComponent();
+
+    if (isApplicationSelectionNeeded()) {
+      VersionsCIP.selectApplications().selectByVisibleText("ApplicationReportTest (ApplicationReportTest)");
+    }
 
     executeJavaScript(JAVA_SCRIPT_TO_EXECUTE);
 
@@ -244,6 +277,10 @@ public abstract class AbstractVersionGraphMavenTest
   @Test
   public void testBreakingChangesHeatmap() {
     setupHdsResponsesForBreakingChanges();
+
+    if (isApplicationSelectionNeeded()) {
+      VersionsCIP.selectApplications().selectByVisibleText("ApplicationReportTest (ApplicationReportTest)");
+    }
 
     executeJavaScript(JAVA_SCRIPT_TO_EXECUTE);
 
@@ -332,4 +369,12 @@ public abstract class AbstractVersionGraphMavenTest
   }
 
   protected abstract boolean shouldShowMigrateButton();
+
+  protected boolean isVersionRecommendationSupported() {
+    return true;
+  }
+
+  protected boolean isApplicationSelectionNeeded() {
+    return false;
+  }
 }

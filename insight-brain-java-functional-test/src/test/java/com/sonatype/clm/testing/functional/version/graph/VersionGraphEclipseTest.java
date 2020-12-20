@@ -5,16 +5,12 @@
  */
 package com.sonatype.clm.testing.functional.version.graph;
 
-import org.junit.Before;
-
 public class VersionGraphEclipseTest
     extends AbstractVersionGraphMavenTest
 {
   @Override
-  @Before
-  public void start() {
-    super.start();
-    refreshOrOpen("assets/version-graph/ide/eclipse/index.html");
+  protected String getStartPageUrl() {
+    return "assets/version-graph/ide/eclipse/index.html";
   }
 
   @Override

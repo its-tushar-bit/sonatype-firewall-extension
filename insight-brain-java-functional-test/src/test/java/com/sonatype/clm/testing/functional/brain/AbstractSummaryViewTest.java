@@ -701,7 +701,7 @@ public abstract class AbstractSummaryViewTest
       actionTypeId = "no action";
     }
     policy.chevron().shouldBe(visible);
-    policy.threadLegend().shouldBe(visible).shouldHave(threatLevel(actualPolicy.getThreatLevel()));
+    policy.threatLegend().shouldBe(visible).shouldHave(threatLevel(actualPolicy.getThreatLevel()));
     policy.name().shouldBe(visible).shouldHave(text(actualPolicy.getName()));
     policy.proxy().shouldBe(visible).shouldHave(PolicyTile.noActionText());
     policy.develop().shouldBe(visible).shouldHave(PolicyTile.noActionText());
@@ -747,7 +747,7 @@ public abstract class AbstractSummaryViewTest
     PolicyTileList list = policyTile.policyList(0);
 
     PolicyTileListElement policyElement = list.row(1);
-    policyElement.threadLegend().shouldBe(visible).shouldHave(threatLevel(policy.getThreatLevel()));
+    policyElement.threatLegend().shouldBe(visible).shouldHave(threatLevel(policy.getThreatLevel()));
     policyElement.name().shouldBe(visible).shouldHave(text(policy.getName()));
 
     HeaderColumn proxy = list.header(2);
@@ -809,7 +809,7 @@ public abstract class AbstractSummaryViewTest
     list.header(4).name().shouldNot(exist);
 
     policyElement.chevron().shouldBe(visible);
-    policyElement.threadLegend().shouldBe(visible).shouldHave(threatLevel(actualPolicy.getThreatLevel()));
+    policyElement.threatLegend().shouldBe(visible).shouldHave(threatLevel(actualPolicy.getThreatLevel()));
     policyElement.name().shouldBe(visible).shouldHave(text(actualPolicy.getName()));
     policyElement.column(2).shouldBe(visible).shouldHave(PolicyTile.noActionText());
     policyElement.column(3).shouldBe(visible).shouldHave(text(actualPolicy.getActions().get(Stage.ID_RELEASE)));

@@ -68,7 +68,7 @@ public class PolicyTileList
       super(selectors);
     }
 
-    public SelenideElement threadLegend() {
+    public SelenideElement threatLegend() {
       return child(".iq-threat-bar");
     }
 

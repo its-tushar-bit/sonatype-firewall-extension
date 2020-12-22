@@ -195,7 +195,7 @@ public abstract class AbstractPolicyEditorTest
     assertThat(constraint.getName()).isEqualTo("New Constraint");
     assertThat(constraint.getOperator()).isEqualTo(LogicalOperator.OR);
 
-    assertThat(constraint.getConditions()).hasSize(27);
+    assertThat(constraint.getConditions()).hasSize(28);
     assertCondition(constraint.getConditions().get(0), AgeInDaysConditionType.ID, "older than",
         Integer.toString(3 * 365));
     assertCondition(constraint.getConditions().get(1), CoordinatesConditionType.ID, "match",
@@ -240,6 +240,7 @@ public abstract class AbstractPolicyEditorTest
         "configuration");
     assertCondition(constraint.getConditions().get(26), IntegrityRatingConditionType.ID, "is not",
         IntegrityRating.getById("1").getId());
+    assertCondition(constraint.getConditions().get(27), DependencyTypeConditionType.ID, "is", "innersource");
 
     assertThat(newPolicy.getActions().get(Stage.ID_BUILD)).isEqualTo("warn");
 
@@ -1364,6 +1365,14 @@ public abstract class AbstractPolicyEditorTest
     integrityRating.operator().listItem(1).shouldHave(text("is not")).click();
     integrityRating.value().selectedItem().shouldHave(text("Normal")).click();
     integrityRating.value().listItem(1).shouldHave(text("Suspicious")).click();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
+    newConstraint.addConditionButton().click();
+    DropdownConditionEditSection dependencyInnerSourceType = newConstraint.dropdownCondition(27);
+    dependencyInnerSourceType.type().chooseOption(conditionTypesOptionMap.get(DependencyTypeConditionType.class));
+    dependencyInnerSourceType.operator().selectedItem().shouldHave(text("is"));
+    dependencyInnerSourceType.value().selectedItem().shouldHave(text("Direct")).click();
+    dependencyInnerSourceType.value().listItem(2).shouldHave(text("InnerSource")).click();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
 
     newConstraint.conditionUnsupportedMessages().shouldHaveSize(0);

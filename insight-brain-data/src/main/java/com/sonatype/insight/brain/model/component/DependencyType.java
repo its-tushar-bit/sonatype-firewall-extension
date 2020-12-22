@@ -17,6 +17,8 @@ public class DependencyType
 
   public static final DependencyType TRANSITIVE = new DependencyType("transitive", "Transitive");
 
+  public static final DependencyType INNER_SOURCE = new DependencyType("innersource", "InnerSource");
+
   private final String id;
 
   private final String name;
@@ -26,6 +28,7 @@ public class DependencyType
   static {
     byId.put(DIRECT.getId(), DIRECT);
     byId.put(TRANSITIVE.getId(), TRANSITIVE);
+    byId.put(INNER_SOURCE.getId(), INNER_SOURCE);
   }
 
   DependencyType(final String id, final String name) {

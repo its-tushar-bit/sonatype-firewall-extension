@@ -35,12 +35,13 @@ public class DependencyTypeConditionType
   protected boolean internalEvaluateCondition(
       final Component component, final String operator, final String value)
   {
-    if (component.getDirectDependency() == null) {
+    if (component.getDirectDependency() == null && component.getInnerSourceData() == null) {
       return false;
     }
 
-    boolean result = value.equals(
-        component.getDirectDependency() ? DependencyType.DIRECT.getId() : DependencyType.TRANSITIVE.getId());
+    boolean isInnerSource = component.getInnerSourceData() != null && component.getInnerSourceData().isInnerSource();
+    String dependencyTypeValue = getDependencyType(component).getId();
+    boolean result = value.equals(isInnerSource ? DependencyType.INNER_SOURCE.getId() : dependencyTypeValue);
     return "is".equals(operator) ? result : !result;
   }
 
@@ -75,9 +76,11 @@ public class DependencyTypeConditionType
   public String explainMatch(
       final Condition condition, final MatchFact matchFact)
   {
+    Component component = matchFact.getComponent();
+    boolean isInnerSource = component.getInnerSourceData() != null && component.getInnerSourceData().isInnerSource();
+    String dependencyTypeName = getDependencyType(component).getName();
     return "Dependency type was " +
-        (matchFact.getComponent().getDirectDependency() ? DependencyType.DIRECT.getName() : DependencyType.TRANSITIVE
-            .getName()) +
+        (isInnerSource ? DependencyType.INNER_SOURCE.getName() : dependencyTypeName) +
         ("is not".equals(condition.getOperator()) ?
             ", not " + DependencyType.getById(condition.getValue()).getName() : "");
   }
@@ -97,5 +100,9 @@ public class DependencyTypeConditionType
     if (DependencyType.getById(condition.getValue()) == null) {
       throw new InvalidConditionException(condition, "Value not supported: " + condition.getValue());
     }
+  }
+
+  private DependencyType getDependencyType(final Component component) {
+    return component.getDirectDependency() ? DependencyType.DIRECT : DependencyType.TRANSITIVE;
   }
 }

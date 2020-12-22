@@ -103,6 +103,7 @@ public class DependencyTypeConditionType
   }
 
   private DependencyType getDependencyType(final Component component) {
-    return component.getDirectDependency() ? DependencyType.DIRECT : DependencyType.TRANSITIVE;
+    return component != null && component.getDirectDependency() != null &&
+        component.getDirectDependency() ? DependencyType.DIRECT : DependencyType.TRANSITIVE;
   }
 }

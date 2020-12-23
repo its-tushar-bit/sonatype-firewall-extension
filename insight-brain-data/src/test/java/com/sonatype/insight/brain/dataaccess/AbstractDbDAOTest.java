@@ -17,6 +17,9 @@ public abstract class AbstractDbDAOTest
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
 
+  @Rule
+  public DatamartUpdaterState datamartUpdaterState = new DatamartUpdaterState();
+
   protected Application application;
 
   protected Organization organization;

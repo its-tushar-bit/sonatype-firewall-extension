@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dataaccess.license;
 import java.util.Comparator;
 import java.util.List;
 
+import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.license.License;
 
 import org.junit.Test;
@@ -15,7 +16,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class LicenseDAOTest
-    extends AbstractLicenseDAOTest
+    extends AbstractDbDAOTest
 {
   @Test
   public void testGetAll() {

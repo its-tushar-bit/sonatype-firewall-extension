@@ -10,8 +10,6 @@ import java.util.List;
 
 import com.sonatype.insight.brain.model.component.ComponentCategory;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,18 +18,6 @@ import static org.mockito.Mockito.mock;
 public class ComponentCategoryDAOTest
     extends AbstractDbDAOTest
 {
-  private AbstractComponentCategoryUpdater savedComponentCategoryUpdater;
-
-  @Before
-  public void before() {
-    savedComponentCategoryUpdater = AbstractComponentCategoryUpdater.getUpdater();
-  }
-
-  @After
-  public void after() {
-    AbstractComponentCategoryUpdater.setUpdater(savedComponentCategoryUpdater);
-  }
-
   @Test
   public void test_getAll() {
     ComponentCategoryDAO componentCategoryDAO = new ComponentCategoryDAO();

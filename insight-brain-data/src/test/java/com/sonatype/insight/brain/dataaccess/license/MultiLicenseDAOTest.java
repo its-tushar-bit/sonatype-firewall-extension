@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess.license;
 
 import java.util.Collection;
 
+import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.license.MultiLicenseLicenseInternal;
@@ -19,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class MultiLicenseDAOTest
-    extends AbstractLicenseDAOTest
+    extends AbstractDbDAOTest
 {
   private static String MOCK_REMOTE_LICENSE_ID = "test";
 

@@ -12,6 +12,7 @@ import java.util.Collection;
 
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.dataaccess.DatamartUpdaterState;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
@@ -62,6 +63,9 @@ public class AbstractComponentTest
     extends InjectedTest
 {
   private final Logger log = LoggerFactory.getLogger(getClass());
+
+  @Rule
+  public DatamartUpdaterState datamartUpdaterState = new DatamartUpdaterState();
 
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();

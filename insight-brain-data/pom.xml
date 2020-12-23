@@ -201,6 +201,7 @@
             <configuration>
               <includes>
                 <include>**/JPA*</include>
+                <include>**/DatamartUpdaterState*</include>
                 <include>**/TemporaryEntity*</include>
                 <include>**/TemporaryEntity/**</include>
                 <include>**/PolicyViolationAggregationDataHelper*</include>

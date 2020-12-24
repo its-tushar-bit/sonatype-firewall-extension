@@ -100,7 +100,7 @@ public class PolicyMonitoringResourceTest
   }
 
   @Test
-  public void testGetApplicablePolicyMonitoring() throws Exception {
+  public void testGetApplicable() throws Exception {
     Organization organization = tempEntity.newOrganization("testGetApplicablePolicyMonitoringOrgId");
     Owner organizationParent = new OwnerDAO().getParentOwner(organization);
     Application application = tempEntity.newApplication("testGetApplicablePolicyMonitoringAppId",

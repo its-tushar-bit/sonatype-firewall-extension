@@ -34,15 +34,21 @@
               class="iq-table-row">
           </tr>
         </tbody>
+        <tfoot>
+          <tr class="iq-footer-row">
+            <td class="iq-footer-cell">
+              <dashboard-common-results results="vm.results.violations.results"
+                                        is-violations-tab="true"
+                                        needs-acknowledgement="vm.needsAcknowledgement"
+                                        max-results="vm.maxResults"
+                                        max-days-old="vm.appliedFilter.maxDaysOld"
+                                        error="vm.results.violations.error"
+                                        reload="vm.reload()">
+              </dashboard-common-results>
+            </td>
+          </tr>
+        </tfoot>
       </table>
-      <dashboard-common-results results="vm.results.violations.results"
-                                is-violations-tab="true"
-                                needs-acknowledgement="vm.needsAcknowledgement"
-                                max-results="vm.maxResults"
-                                max-days-old="vm.appliedFilter.maxDaysOld"
-                                error="vm.results.violations.error"
-                                reload="vm.reload()">
-      </dashboard-common-results>
     </div>
   </div>
 </div>

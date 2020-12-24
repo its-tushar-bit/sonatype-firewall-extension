@@ -15,6 +15,7 @@ import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.DashboardComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.clm.testing.functional.utils.proxy.ResponseCopyHandler;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -92,6 +93,8 @@ public class DashboardComponentsTest
     refreshOrOpen(DashboardPage.urlToComponents());
     DashboardPage.dashboardContainer().shouldBe(visible);
     table.maxResultsMessage().shouldBe(visible).shouldHave(text(MAX_RESULTS_MSG));
+    ScrollUtil.scrollIntoView(table.maxResultsMessage());
+    eyesWatcher.eyesCheck();
   }
 
   @Test

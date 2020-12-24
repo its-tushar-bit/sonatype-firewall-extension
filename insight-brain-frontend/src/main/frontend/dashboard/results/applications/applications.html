@@ -86,14 +86,20 @@
          --><td class="iq-cell iq-cell--low-risk iq-cell--heatmap">{{::stage.risk.lowRisk}}</td>
           </tr>
         </tbody>
+        <tfoot>
+          <tr class="iq-footer-row">
+            <td class="iq-footer-cell">
+              <dashboard-common-results results="vm.results.applications.results"
+                                        is-violations-tab="false"
+                                        needs-acknowledgement="vm.needsAcknowledgement"
+                                        max-results="vm.maxResults"
+                                        error="vm.results.applications.error"
+                                        reload="vm.reload()">
+              </dashboard-common-results>
+            </td>
+          </tr>
+        </tfoot>
       </table>
-      <dashboard-common-results results="vm.results.applications.results"
-                                is-violations-tab="false"
-                                needs-acknowledgement="vm.needsAcknowledgement"
-                                max-results="vm.maxResults"
-                                error="vm.results.applications.error"
-                                reload="vm.reload()">
-      </dashboard-common-results>
     </div>
   </div>
 </div>

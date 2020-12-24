@@ -65,6 +65,7 @@ applications > div,
   border: none;
   color: $iq-slate;
   text-align: center;
+  padding: 0;
 
   .iq-alert {
     margin: 8px 0;
@@ -146,6 +147,14 @@ applications > div,
       > a {
         padding: $iq-spacing-xs $iq-spacing-sm $iq-spacing-xs 0;
       }
+    }
+  }
+
+  > tfoot {
+    display: block;
+
+    .iq-footer-row, .iq-footer-cell {
+      display: block;
     }
   }
 }

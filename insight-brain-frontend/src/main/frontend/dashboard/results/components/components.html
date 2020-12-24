@@ -73,14 +73,20 @@
             </td>
           </tr>
         </tbody>
+        <tfoot>
+          <tr class="iq-footer-row">
+            <td class="iq-footer-cell">
+              <dashboard-common-results results="vm.results.components.results"
+                                        is-violations-tab="false"
+                                        needs-acknowledgement="vm.needsAcknowledgement"
+                                        max-results="vm.maxResults"
+                                        error="vm.results.components.error"
+                                        reload="vm.reload()">
+              </dashboard-common-results>
+            </td>
+          </tr>
+        </tfoot>
       </table>
-      <dashboard-common-results results="vm.results.components.results"
-                                is-violations-tab="false"
-                                needs-acknowledgement="vm.needsAcknowledgement"
-                                max-results="vm.maxResults"
-                                error="vm.results.components.error"
-                                reload="vm.reload()">
-      </dashboard-common-results>
     </div>
   </div>
 </div>

@@ -15,6 +15,7 @@ import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.clm.testing.functional.utils.proxy.ResponseCopyHandler;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -106,6 +107,8 @@ public class DashboardApplicationsTest
     createViolation(createApp("101"), BuildStageType.ID, 5);
     refresh();
     table.maxResultsMessage().shouldBe(visible).shouldHave(text(MAX_RESULTS_MSG));
+    ScrollUtil.scrollIntoView(table.maxResultsMessage());
+    eyesWatcher.eyesCheck();
   }
 
   @Test

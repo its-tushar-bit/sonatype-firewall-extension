@@ -29,6 +29,7 @@ import com.sonatype.clm.testing.functional.elements.DashboardViolations.Violatio
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
+import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.clm.testing.functional.utils.proxy.ResponseCopyHandler;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -474,7 +475,12 @@ public class DashboardViolationsTest
     createViolations(101, buildEvalNow);
     refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
-    DashboardPage.violationsView().results().maxResultsMessage().shouldBe(visible).shouldHave(text(MAX_RESULTS_MSG));
+    SelenideElement maxResultsMessage = DashboardPage.violationsView().results().maxResultsMessage();
+    maxResultsMessage.shouldBe(visible).shouldHave(text(MAX_RESULTS_MSG));
+    // order results before the screenshot
+    DashboardPage.violationsView().headers().componentHeader().click();
+    ScrollUtil.scrollIntoView(maxResultsMessage);
+    eyesWatcher.eyesCheck();
   }
 
   @Test

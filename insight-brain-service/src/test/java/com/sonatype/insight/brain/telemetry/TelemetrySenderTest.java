@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.telemetry;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Date;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -33,13 +32,12 @@ import com.google.inject.Binder;
 import org.apache.http.HttpEntity;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
+import org.mockito.ArgumentCaptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
@@ -83,10 +81,6 @@ public class TelemetrySenderTest
   public void testSend() throws Exception {
     telemetrySender.start();
 
-    AtomicReference<InvocationOnMock> invocation = new AtomicReference<>();
-    doAnswer(invoc -> invocation.compareAndSet(null, invoc)).when(mockHdsClient)
-        .post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class), eq(null));
-
     TelemetryData telemetryDataSend = new TelemetryData(TelemetryPurpose.DATABASE);
     telemetryDataSend.put("test-key", "test-value");
 
@@ -94,8 +88,9 @@ public class TelemetrySenderTest
     telemetrySender.send(telemetryDataSend);
     Date expectedMaxCreateTime = new Date();
 
-    verify(mockHdsClient, timeout(10000)).post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class), eq(null));
-    HttpEntity httpEntity = (HttpEntity) invocation.get().getArguments()[1];
+    ArgumentCaptor<HttpEntity> entityCaptor = ArgumentCaptor.forClass(HttpEntity.class);
+    verify(mockHdsClient, timeout(10000)).post(eq(TelemetrySender.RESOURCE_PATH), entityCaptor.capture(), eq(null));
+    HttpEntity httpEntity = entityCaptor.getValue();
     ByteArrayDataSource multipartDataSource = new ByteArrayDataSource(httpEntity.getContent(), "multipart/form-data");
     MimeMultipart multipart = new MimeMultipart(multipartDataSource);
     BodyPart bodyPart = multipart.getBodyPart(0);

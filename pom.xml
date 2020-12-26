@@ -41,7 +41,7 @@
     <jackson.version>2.11.4</jackson.version>
     <openjpa.version>3.1.2</openjpa.version>
     <shiro.version>1.6.0</shiro.version>
-    <keycloak.version>11.0.3</keycloak.version>
+    <keycloak.version>12.0.1</keycloak.version>
     <sisu-inject.version>0.3.4</sisu-inject.version>
     <clm.dto.model.version>1.35.0-01</clm.dto.model.version>
     <jetty.version>9.4.35.v20201120</jetty.version>

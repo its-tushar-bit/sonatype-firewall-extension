@@ -7,10 +7,12 @@ package com.sonatype.insight.brain.api.experimental.legal;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -32,6 +34,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentReportDTO;
@@ -44,7 +47,9 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.Owner;
@@ -53,13 +58,18 @@ import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.StageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.IdUtils;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.dto.model.ComponentLegalCommentDTO;
@@ -70,6 +80,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,6 +119,10 @@ public class ApiLicenseLegalService
 
   private final ProductLicense productLicense;
 
+  private final ApplicationService applicationService;
+
+  private final TagDAO tagDAO;
+
   @Inject
   public ApiLicenseLegalService(
       MultiLicenseDAO multiLicenseDAO,
@@ -121,7 +136,9 @@ public class ApiLicenseLegalService
       HashComponentIdentifierDAO hashComponentIdentifierDAO,
       ComponentInfoService componentInfoService,
       ApiLicenseDataAdapter apiLicenseDataAdapter,
-      ProductLicense productLicense)
+      ProductLicense productLicense,
+      ApplicationService applicationService,
+      TagDAO tagDAO)
   {
     this.multiLicenseDAO = multiLicenseDAO;
     this.apiLicenseLegalHdsService = apiLicenseLegalHdsService;
@@ -136,6 +153,53 @@ public class ApiLicenseLegalService
     this.componentInfoService.setToolName("ci");
     this.apiLicenseDataAdapter = apiLicenseDataAdapter;
     this.productLicense = productLicense;
+    this.applicationService = applicationService;
+    this.tagDAO = tagDAO;
+  }
+
+  @Authorize(permission = Permission.LEGAL_REVIEWER)
+  public List<ApiLicenseLegalApplicationDashboardDTO> getLicenseLegalApplicationsDashboard(
+      Set<String> organizationIds,
+      Set<String> applicationIds,
+      Set<String> tagIds,
+      Set<String> stageTypeIds)
+  {
+    checkLicense();
+
+    List<Application> applications =
+        applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds, applicationIds, tagIds);
+    Set<String> stageTypeIdsToCheck = CollectionUtils.isEmpty(stageTypeIds)
+        ? StageTypes.getAll().stream().map(StageType::getId).collect(Collectors.toSet())
+        : stageTypeIds;
+    List<ApiLicenseLegalApplicationDashboardDTO> result = new ArrayList<>();
+
+    try (TransactionContext tx = policyEvaluationDAO.createTransactionContext()) {
+      for (Application application : applications) {
+        for (String stageTypeId : stageTypeIdsToCheck) {
+          PolicyEvaluation policyEvaluation =
+              policyEvaluationDAO.getLastByApplicationIdAndStageId(tx, application.getId(), stageTypeId);
+
+          if (policyEvaluation == null) {
+            continue;
+          }
+
+          ApiLicenseLegalApplicationDashboardDTO dto = new ApiLicenseLegalApplicationDashboardDTO();
+          dto.applicationId = application.getId();
+          dto.applicationName = application.getName();
+          dto.applicationPublicId = application.getPublicId();
+          dto.lastScanTime = policyEvaluation.getTime().getTime();
+
+          List<Tag> tags = tagDAO.getByApplicationId(tx, application.getId());
+          for (Tag tag : tags) {
+            dto.applicationTagNames.add(tag.getName());
+          }
+
+          result.add(dto);
+        }
+      }
+    }
+
+    return result;
   }
 
   @Authorize(permission = Permission.LEGAL_REVIEWER)

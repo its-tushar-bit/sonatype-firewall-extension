@@ -11,8 +11,10 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -22,19 +24,24 @@ import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentReportDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalFilterDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.codehaus.plexus.util.FileUtils;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -45,6 +52,52 @@ public class ApiLicenseLegalResourceTest
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(PublicApiPaths.LICENSE_LEGAL_RESOURCE_PATH);
+  }
+
+  @Before
+  public void setup() throws Exception {
+    setFeatures(LicensedFeature.ADVANCED_LEGAL_PACK);
+  }
+
+  @Test
+  public void testGetLicenseLegalApplicationsDashboard_NoResults() throws Exception {
+    HttpResponse response =
+        restRequest().path(ApiLicenseLegalResource.DASHBOARD_APPLICATIONS_PATH).body(new LicenseLegalFilterDTO()).auth()
+            .post();
+
+    assertResponseStatus(200, response);
+    List<ApiLicenseLegalApplicationDashboardDTO> result =
+        Arrays.asList(response.getBody(ApiLicenseLegalApplicationDashboardDTO[].class));
+    assertThat(result).isNotNull().isEmpty();
+  }
+
+  @Test
+  public void testGetLicenseLegalApplicationsDashboard() throws Exception {
+    LicenseLegalFilterDTO filter = new LicenseLegalFilterDTO();
+
+    Application application = tempEntity.newApplicationWithParent();
+    Tag tag = tempEntity.newTag(application.getOrganizationId(), "Test-Tag");
+    tempEntity.newApplicationTag(application.getId(), tag.getId());
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+    mockReport(policyEvaluation);
+
+    HttpResponse response =
+        restRequest().path(ApiLicenseLegalResource.DASHBOARD_APPLICATIONS_PATH).body(filter).auth().post();
+
+    assertResponseStatus(200, response);
+    List<ApiLicenseLegalApplicationDashboardDTO> result =
+        Arrays.asList(response.getBody(ApiLicenseLegalApplicationDashboardDTO[].class));
+    assertThat(result).isNotEmpty();
+
+    ApiLicenseLegalApplicationDashboardDTO dto = result.get(0);
+    assertThat(dto.applicationId).isEqualTo(application.getId());
+    assertThat(dto.applicationName).isEqualTo(application.getName());
+    assertThat(dto.applicationPublicId).isEqualTo(application.getPublicId());
+    assertThat(dto.applicationTagNames).containsExactly(tag.getName());
+    assertThat(dto.lastScanTime).isEqualTo(policyEvaluation.getTime().getTime());
+    assertThat(dto.reviewCompletedCount).isZero();
+    assertThat(dto.reviewTotalCount).isZero();
   }
 
   @Test

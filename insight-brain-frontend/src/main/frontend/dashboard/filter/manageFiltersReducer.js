@@ -20,7 +20,10 @@ import {
   TOGGLE_FILTERS_DROPDOWN,
   SELECT_FILTER_TO_DELETE,
   HIDE_DELETE_FILTER_MODAL,
-  DOCUMENT_CLICKED
+  DOCUMENT_CLICKED,
+  SAVE_FILTER_OVERWRITE_REQUESTED,
+  SAVE_DUPLICATE_FILTER_REQUESTED,
+  SAVE_CONFIRM_CANCELLED
 } from './manageFiltersActions';
 
 import {
@@ -34,6 +37,7 @@ const initState = {
   savedFilters: null,
   savedFilterListError: null,
   saveFilterError: null,
+  saveFilterWarning: null,
   saveFilterSaving: false,
   saveFilterSuccess: false,
   appliedFilter: null,
@@ -46,6 +50,9 @@ const initState = {
   deleteFilterSuccess: false
 };
 
+export const WARNING_NAME_IN_USE = 'nameInUseWarning';
+export const WARNING_OVERWRITE = 'overwriteWarning';
+
 /*
  * Create a function for reducerActionMap which resets the specified properties back to their values from initState.
  * the payload parameter is ignored
@@ -56,6 +63,7 @@ const resetProps = curry((propNames, payload, state) => merge(state, pick(propNa
  * A map from action name to reducer function.  The reducer functions must all take two parameters: the payload and
  * the state
  */
+
 const reducerActionMap = {
   [FETCH_CURRENT_FILTER_FULFILLED]: updateAppliedFilterName,
   [APPLY_FILTER_FULFILLED]: updateAppliedFilterName,
@@ -72,7 +80,10 @@ const reducerActionMap = {
   [SELECT_FILTER_TO_DELETE]: selectFilterToDelete,
   [HIDE_DELETE_FILTER_MODAL]: resetProps(['filterToDelete']),
   [DOCUMENT_CLICKED]: closeFiltersMenuIfNeeded,
-  [APPLY_FILTER_REQUESTED]: closeFiltersMenuIfNeeded
+  [APPLY_FILTER_REQUESTED]: closeFiltersMenuIfNeeded,
+  [SAVE_FILTER_OVERWRITE_REQUESTED]: saveFilterOverwriteRequested,
+  [SAVE_DUPLICATE_FILTER_REQUESTED]: saveDuplicateFilterRequested,
+  [SAVE_CONFIRM_CANCELLED]: saveConfirmCancelled
 };
 
 function closeFiltersMenuIfNeeded(payload, state) {
@@ -102,7 +113,8 @@ function saveFilterFulfilled(payload, state) {
     savedFilters: append(payload, state.savedFilters),
     appliedFilterName: payload.name,
     saveFilterSuccess: true,
-    showDirtyAsterisk: false
+    showDirtyAsterisk: false,
+    saveFilterWarning: null
   };
 }
 
@@ -112,6 +124,30 @@ function saveFilterFailed(payload, state) {
     saveFilterError: payload,
     saveFilterSaving: false,
     saveFilterSuccess: false
+  };
+}
+
+function saveFilterOverwriteRequested(payload, state) {
+  return {
+    ...state,
+    saveFilterError: null,
+    saveFilterWarning: WARNING_OVERWRITE
+  };
+}
+
+function saveDuplicateFilterRequested(payload, state) {
+  return {
+    ...state,
+    saveFilterError: null,
+    saveFilterWarning: WARNING_NAME_IN_USE
+  };
+}
+
+function saveConfirmCancelled(payload, state) {
+  return {
+    ...state,
+    saveFilterError: null,
+    saveFilterWarning: null
   };
 }
 

@@ -21,18 +21,11 @@ describe('SaveFilterModalContent component', function() {
 
   MockMaximizedContainer.propTypes = {children: PropTypes.node};
 
-  let state,
-      getShallowComponent,
+  let getShallowComponent,
       mountedComponent;
 
   beforeEach(function() {
-    state = {
-      manageFilters: {
-        appliedFilterName: 'appliedFilterName'
-      }
-    };
-    getShallowComponent = enzymeUtils.getShallowComponent(SaveFilterModalContent, state);
-
+    getShallowComponent = enzymeUtils.getShallowComponent(SaveFilterModalContent);
   });
 
   afterEach(function() {
@@ -48,15 +41,15 @@ describe('SaveFilterModalContent component', function() {
     expect(wrapper.find(NxModal)).toExist();
   });
 
-  it('calls the setDisplaySaveFilterModal function if you hit the cancel button', function() {
-    let displaySaveFilterModalSpy = jasmine.createSpy('setDisplaySaveFilterModal');
+  it('calls the cancelSaveFilter action if you hit the cancel button', function() {
+    let cancelSaveFilterSpy = jasmine.createSpy('cancelSaveFilter');
     const wrapper = getShallowComponent({
-      setDisplaySaveFilterModal: displaySaveFilterModalSpy
+      cancelSaveFilter: cancelSaveFilterSpy
     });
     const cancelButton = wrapper.find('#save-filter-modal-cancel-button');
     expect(cancelButton).toExist();
     cancelButton.simulate('click');
-    expect(displaySaveFilterModalSpy).toHaveBeenCalledWith(false);
+    expect(cancelSaveFilterSpy).toHaveBeenCalled();
   });
 
   it('returns an NxSubmitMask component iff saveFilterSuccess or saveFilterSaving is true', function() {
@@ -134,8 +127,7 @@ describe('SaveFilterModalContent component', function() {
   it('submits a filter to save (adding new filter)', () => {
     const saveFilterSpy = jasmine.createSpy('saveFilter');
     const wrapper = getShallowComponent({
-      saveFilter: saveFilterSpy,
-      savedFilters: []
+      saveFilter: saveFilterSpy
     });
     const saveAsRadioButton = wrapper.find('#dashboard-filter-save-as');
     saveAsRadioButton.simulate('change', 'saveAs');
@@ -151,16 +143,16 @@ describe('SaveFilterModalContent component', function() {
     };
     form.simulate('submit', simulatedEvent);
     expect(preventDefaultSpy).toHaveBeenCalled();
-    expect(saveFilterSpy).toHaveBeenCalledWith('awesome new filter');
+    expect(saveFilterSpy).toHaveBeenCalledWith({ name: 'awesome new filter', isOverwriting: false });
   });
 
   it('submits a filter to save (overwriting existing filter)', () => {
     const saveFilterSpy = jasmine.createSpy('saveFilter');
     const wrapper = getShallowComponent({
       appliedFilterName: 'mario',
-      saveFilter: saveFilterSpy,
-      savedFilters: []
+      saveFilter: saveFilterSpy
     });
+
     expect(wrapper.find('#dashboard-filter-overwrite')).toHaveProp('isChecked', true);
     const submitButton = wrapper.find('#save-filter-modal-continue-button');
     expect(submitButton).toHaveProp('disabled', false);
@@ -172,94 +164,33 @@ describe('SaveFilterModalContent component', function() {
     };
     form.simulate('submit', simulatedEvent);
     expect(preventDefaultSpy).toHaveBeenCalled();
-
-    const warningAlert = wrapper.find(NxWarningAlert);
-    expect(warningAlert).toExist();
-
-    expect(submitButton).toHaveProp('disabled', false);
-    form = wrapper.find('form');
-    form.simulate('submit', simulatedEvent);
-    expect(preventDefaultSpy).toHaveBeenCalled();
-
-    expect(saveFilterSpy).toHaveBeenCalledWith('mario');
+    expect(saveFilterSpy).toHaveBeenCalledWith({ name: 'mario', isOverwriting: true });
   });
 
-  it('shows the overwrite warning if you try to overwrite an existing filter', () => {
+  it('saves the filter with trimmed value if filter name contains leading or trailing spaces', () => {
+    const saveFilterSpy = jasmine.createSpy('saveFilter');
     const wrapper = getShallowComponent({
-      appliedFilterName: 'mario',
-      savedFilters: []
+      saveFilter: saveFilterSpy
     });
-    expect(wrapper.find('#dashboard-filter-overwrite')).toHaveProp('isChecked', true);
-    let warningAlert = wrapper.find(NxWarningAlert);
-    expect(warningAlert).not.toExist();
-
-    const submitButton = wrapper.find('#save-filter-modal-continue-button');
-    expect(submitButton).toHaveProp('disabled', false);
-    expect(wrapper.find('fieldset')).toExist();
-
-    const form = wrapper.find('form');
-    const preventDefaultSpy = jasmine.createSpy('preventDefault');
-    const simulatedEvent = {
-      preventDefault: preventDefaultSpy
-    };
-    form.simulate('submit', simulatedEvent);
-    expect(preventDefaultSpy).toHaveBeenCalled();
-
-    warningAlert = wrapper.find(NxWarningAlert);
-    expect(warningAlert).toExist();
-
-    let warningAlertSpan = warningAlert.find('span');
-    expect(warningAlertSpan).toExist();
-    expect(warningAlertSpan.text()).toBe('You are about to permanently overwrite mario. This action cannot be undone.');
-    expect(wrapper.find('form')).toExist();
-    expect(wrapper.find('fieldset')).not.toExist();
-
-    const cancelButton = wrapper.find('#save-filter-modal-cancel-button');
-    expect(submitButton).toExist();
-    cancelButton.simulate('click');
-    warningAlert = wrapper.find(NxWarningAlert);
-    expect(warningAlert).not.toExist();
-    expect(wrapper.find('fieldset')).toExist();
-  });
-
-  it('shows the name in use warning if you try to save a filter with an existing name', () => {
-    const wrapper = getShallowComponent({
-      savedFilters: [{name: 'mario'}]
-    });
+    const saveAsRadioButton = wrapper.find('#dashboard-filter-save-as');
+    saveAsRadioButton.simulate('change', 'saveAs');
     const saveAsTextBox = wrapper.find(NxTextInput);
-    expect(saveAsTextBox).toExist();
-    saveAsTextBox.simulate('change', 'mario');
+    saveAsTextBox.simulate('change', ' mario   ');
+
+    expect(wrapper.find('#save-filter-modal-continue-button')).toHaveProp('disabled', false);
+
     let warningAlert = wrapper.find(NxWarningAlert);
     expect(warningAlert).not.toExist();
-    expect(wrapper.find('fieldset')).toExist();
-
-    const submitButton = wrapper.find('#save-filter-modal-continue-button');
-    expect(submitButton).toHaveProp('disabled', false);
 
     const form = wrapper.find('form');
     const preventDefaultSpy = jasmine.createSpy('preventDefault');
     const simulatedEvent = {
       preventDefault: preventDefaultSpy
     };
+
     form.simulate('submit', simulatedEvent);
     expect(preventDefaultSpy).toHaveBeenCalled();
-
-    warningAlert = wrapper.find(NxWarningAlert);
-    expect(warningAlert).toExist();
-
-    let warningAlertSpan = warningAlert.find('span');
-    expect(warningAlertSpan).toExist();
-    expect(warningAlertSpan.text()).toBe('"mario" is already in use. Continuing will permanently overwrite mario. ' +
-        'This action cannot be undone.');
-    expect(wrapper.find('fieldset')).not.toExist();
-
-    const cancelButton = wrapper.find('#save-filter-modal-cancel-button');
-    expect(submitButton).toExist();
-    cancelButton.simulate('click');
-    warningAlert = wrapper.find(NxWarningAlert);
-    expect(warningAlert).not.toExist();
-    expect(wrapper.find('form')).toExist();
-    expect(wrapper.find('fieldset')).toExist();
+    expect(saveFilterSpy).toHaveBeenCalledWith({ name: 'mario', isOverwriting: false });
   });
 
   it('disables the save button if there is no value in the save as text box', () => {

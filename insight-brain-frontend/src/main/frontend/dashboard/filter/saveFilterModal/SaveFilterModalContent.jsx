@@ -18,15 +18,13 @@ import {
 import { initialState, userInput } from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
 import { faSave } from '@fortawesome/free-solid-svg-icons';
 import * as PropTypes from 'prop-types';
-import {validateMaxLength, validateNonEmpty, hasValidationErrors} from '../../../util/validationUtil';
+import { validateMaxLength, validateNonEmpty, hasValidationErrors } from '../../../util/validationUtil';
 import { isNil, reject } from 'ramda';
 import { DEFAULT_FILTER_NAME } from '../defaultFilter';
+import { WARNING_OVERWRITE, WARNING_NAME_IN_USE } from '../manageFiltersReducer';
 
 const SAVE_MODE_OVERWRITE = 'overwrite';
 const SAVE_MODE_SAVE_AS = 'saveAs';
-
-const WARNING_NAME_IN_USE = 'nameInUseWarning';
-const WARNING_OVERWRITE = 'overwriteWarning';
 
 export default function SaveFilterModalContent(props) {
 
@@ -36,39 +34,19 @@ export default function SaveFilterModalContent(props) {
     saveFilter,
     saveFilterSaving,
     saveFilterSuccess,
-    savedFilters,
-    setDisplaySaveFilterModal
+    saveFilterWarning,
+    cancelSaveFilter
   } = props;
 
   const [saveMode, setSaveMode] = useState(appliedFilterName ? SAVE_MODE_OVERWRITE : SAVE_MODE_SAVE_AS);
-  const [warning, setWarning] = useState(undefined);
   const [filterName, setFilterName] = useState(initialState(''));
 
   const trySave = (e) => {
     e.preventDefault();
-    if (!isSaveEnabled()) {
-      return;
-    }
-    else if (warning) {
-      // if a warning is already up and the user hit Continue, then go ahead and save
-      doSave();
-    }
-    else {
-      if (saveMode === SAVE_MODE_OVERWRITE) {
-        setWarning(WARNING_OVERWRITE);
-      }
-      else {
-        const duplicate = savedFilters.some(filter => filterName.value === filter.name);
-
-        if (duplicate) {
-          setWarning(WARNING_NAME_IN_USE);
-        }
-        else {
-          // no warning needed when creating a new filter with unused name
-          doSave();
-        }
-      }
-    }
+    saveFilter({
+      name: getFilterNameToSave(),
+      isOverwriting: saveMode === SAVE_MODE_OVERWRITE
+    });
   };
 
   const validateIsNotDefault = val => val === DEFAULT_FILTER_NAME ? 'Can not overwrite Default filter' : null;
@@ -76,44 +54,30 @@ export default function SaveFilterModalContent(props) {
   const validateNameChange = (val) => reject(isNil,
       [validateNonEmpty(val), validateMaxLength(60, val), validateIsNotDefault(val)]);
 
-  const filterNameChangeHandler =
-      (newValue) => setFilterName(userInput(validateNameChange, newValue));
+  const filterNameChangeHandler = (newValue) => setFilterName(userInput(validateNameChange, newValue));
 
   const getFilterNameToSave = () => {
-    return saveMode === SAVE_MODE_OVERWRITE ? appliedFilterName : filterName.value;
-  };
-
-  const doSave = () => {
-    saveFilter(getFilterNameToSave());
-  };
-
-  const onCancel = () => {
-    if (warning === undefined) {
-      setDisplaySaveFilterModal(false);
-    }
-    else {
-      setWarning();
-    }
+    return saveMode === SAVE_MODE_OVERWRITE ? appliedFilterName : filterName.trimmedValue;
   };
 
   // Save is enabled if we are overwriting the existing filter or if the text box is valid
   const isSaveEnabled = () =>
     saveMode === SAVE_MODE_OVERWRITE || (!filterName.isPristine && !hasValidationErrors(filterName.validationErrors));
 
-  const headerLabel = warning === undefined ? 'Save Filter' :
-    warning === WARNING_OVERWRITE ? 'Overwrite Filter' :
-      warning === WARNING_NAME_IN_USE ? 'Name in Use' :
+  const headerLabel = saveFilterWarning == null ? 'Save Filter' :
+    saveFilterWarning === WARNING_OVERWRITE ? 'Overwrite Filter' :
+      saveFilterWarning === WARNING_NAME_IN_USE ? 'Name in Use' :
         '';
 
   const warningContentMap = {
     [WARNING_OVERWRITE]: `You are about to permanently overwrite ${appliedFilterName}. This action cannot be undone.`,
-    [WARNING_NAME_IN_USE]: '"' + filterName.value + '" is already in use. Continuing will permanently ' +
-      'overwrite ' + filterName.value + '. This action cannot be undone.'
+    [WARNING_NAME_IN_USE]: '"' + filterName.trimmedValue + '" is already in use. Continuing will permanently ' +
+      'overwrite ' + filterName.trimmedValue + '. This action cannot be undone.'
   };
 
   const warningContent =
     <NxWarningAlert id="save-filter-confirmation">
-      <span>{ warningContentMap[warning] }</span>
+      <span>{ warningContentMap[saveFilterWarning] }</span>
     </NxWarningAlert>;
 
   const formContent =
@@ -146,7 +110,7 @@ export default function SaveFilterModalContent(props) {
     </fieldset>;
 
   return (
-    <NxModal id="save-filter-modal" onClose={onCancel}>
+    <NxModal id="save-filter-modal" onClose={cancelSaveFilter}>
       <form className="nx-form" onSubmit={trySave} noValidate>
         { (saveFilterSaving || saveFilterSuccess) &&
           <NxSubmitMask message="Saving…" success={saveFilterSuccess} /> }
@@ -157,14 +121,14 @@ export default function SaveFilterModalContent(props) {
           </h2>
         </header>
         <div className="nx-modal-content">
-          { warning ? warningContent : formContent }
+          { saveFilterWarning ? warningContent : formContent }
         </div>
         <footer className="nx-footer">
           { saveError &&
             <NxLoadError error={saveError} retryHandler={trySave} titleMessage="An error occurred saving data." />
           }
           <div className="nx-btn-bar">
-            <NxButton id="save-filter-modal-cancel-button" type="button" onClick={onCancel}>
+            <NxButton id="save-filter-modal-cancel-button" type="button" onClick={cancelSaveFilter}>
               Cancel
             </NxButton>
             { !saveError &&
@@ -172,7 +136,7 @@ export default function SaveFilterModalContent(props) {
                         id="save-filter-modal-continue-button"
                         disabled={!isSaveEnabled()}
                         type="submit">
-                { warning ? 'Continue' : 'Save' }
+                { saveFilterWarning ? 'Continue' : 'Save' }
               </NxButton>
             }
           </div>
@@ -188,6 +152,6 @@ SaveFilterModalContent.propTypes = {
   saveFilter: PropTypes.func,
   saveFilterSaving: PropTypes.bool,
   saveFilterSuccess: PropTypes.bool,
-  setDisplaySaveFilterModal: PropTypes.func,
-  savedFilters: PropTypes.array
+  saveFilterWarning: PropTypes.string,
+  cancelSaveFilter: PropTypes.func
 };

@@ -7,21 +7,20 @@ import { pick } from 'ramda';
 import { connect } from 'react-redux';
 
 import SaveFilterModalContent from './SaveFilterModalContent';
-import { saveFilter } from '../manageFiltersActions';
-import { setDisplaySaveFilterModal } from '../dashboardFilterActions';
+import { saveFilter, cancelSaveFilter } from '../manageFiltersActions';
 import { Messages } from '../../../util/CommonServices';
 
 const mapDispatchToProps = {
   saveFilter,
-  setDisplaySaveFilterModal
+  cancelSaveFilter
 };
 
 function mapStateToProps({ manageFilters }) {
   return {
-    ...pick(['savedFilters',
-      'appliedFilterName',
+    ...pick(['appliedFilterName',
       'saveFilterSaving',
-      'saveFilterSuccess'
+      'saveFilterSuccess',
+      'saveFilterWarning'
     ], manageFilters),
     saveError: Messages.getHttpErrorMessage(manageFilters.saveFilterError)
   };

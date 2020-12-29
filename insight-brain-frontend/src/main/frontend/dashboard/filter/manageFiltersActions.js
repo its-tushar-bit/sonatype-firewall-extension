@@ -24,6 +24,9 @@ export const DELETE_FILTER_FULFILLED = 'DELETE_FILTER_FULFILLED';
 export const DELETE_FILTER_FAILED = 'DELETE_FILTER_FAILED';
 export const TOGGLE_FILTERS_DROPDOWN = 'TOGGLE_FILTERS_DROPDOWN';
 export const DOCUMENT_CLICKED = 'DOCUMENT_CLICKED';
+export const SAVE_FILTER_OVERWRITE_REQUESTED = 'SAVE_FILTER_OVERWRITE_REQUESTED';
+export const SAVE_DUPLICATE_FILTER_REQUESTED = 'SAVE_DUPLICATE_FILTER_REQUESTED';
+export const SAVE_CONFIRM_CANCELLED = 'SAVE_CONFIRM_CANCELLED';
 
 export function fetchSavedFilters() {
   return dispatch => {
@@ -40,12 +43,25 @@ const fetchSavedFiltersFulfilled = payloadParamActionCreator(FETCH_SAVED_FILTERS
 
 const fetchSavedFiltersFailed = payloadParamActionCreator(FETCH_SAVED_FILTERS_FAILED);
 
-export function saveFilter(name) {
+export function saveFilter({name, isOverwriting}) {
   return (dispatch, getState) => {
-    const { dashboardFilter } = getState(),
+    const { dashboardFilter, manageFilters } = getState(),
         { appliedFilter } = dashboardFilter,
         filter = filterToJson(appliedFilter),
-        namedFilter = { name, filter };
+        namedFilter = { name, filter },
+        { saveFilterWarning, savedFilters } = manageFilters;
+
+    if (!saveFilterWarning) {
+      if (isOverwriting) {
+        return dispatch({ type: SAVE_FILTER_OVERWRITE_REQUESTED });
+      }
+
+      const duplicate = savedFilters.some(filterName => name === filterName.name);
+
+      if (duplicate) {
+        return dispatch({ type: SAVE_DUPLICATE_FILTER_REQUESTED });
+      }
+    }
 
     dispatch({ type: SAVE_FILTER_REQUESTED });
 
@@ -62,6 +78,19 @@ export function saveFilter(name) {
 
           return dispatch(fetchSavedFilters());
         });
+  };
+}
+
+export function cancelSaveFilter() {
+  return (dispatch, getState) => {
+    const { manageFilters } = getState(),
+        { saveFilterWarning } = manageFilters;
+    if (saveFilterWarning == null) {
+      dispatch({ type: SET_DISPLAY_SAVE_FILTER_MODAL, payload: false });
+    }
+    else {
+      dispatch({ type: SAVE_CONFIRM_CANCELLED });
+    }
   };
 }
 

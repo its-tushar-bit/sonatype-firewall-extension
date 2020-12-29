@@ -5,7 +5,8 @@
  */
 import defaultFilter from '../../../../main/frontend/dashboard/filter/defaultFilter';
 import { filterToJson } from '../../../../main/frontend/dashboard/filter/dashboardFilterService';
-import reduce from '../../../../main/frontend/dashboard/filter/manageFiltersReducer';
+import reduce, { WARNING_OVERWRITE, WARNING_NAME_IN_USE }
+  from '../../../../main/frontend/dashboard/filter/manageFiltersReducer';
 
 describe('manageFiltersReducer', function() {
   let otherObject;
@@ -170,6 +171,39 @@ describe('manageFiltersReducer', function() {
     });
   });
 
+  describe('SAVE_FILTER_OVERWRITE_REQUESTED action', function() {
+    it('sets saveFilterError to null, saveFilterWarning to WARNING_OVERWRITE', function() {
+      const state = Object.freeze({ saveFilterError: 'xyz', saveFilterWarning: null, other: otherObject });
+      const action = { type: 'SAVE_FILTER_OVERWRITE_REQUESTED' };
+      const newState = reduce(state, action);
+      expect(newState.saveFilterError).toBeNull();
+      expect(newState.saveFilterWarning).toBe(WARNING_OVERWRITE);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('SAVE_DUPLICATE_FILTER_REQUESTED action', function() {
+    it('sets saveFilterError to null, saveFilterWarning to WARNING_NAME_IN_USE', function() {
+      const state = Object.freeze({ saveFilterError: 'xyz', saveFilterWarning: null, other: otherObject });
+      const action = { type: 'SAVE_DUPLICATE_FILTER_REQUESTED' };
+      const newState = reduce(state, action);
+      expect(newState.saveFilterError).toBeNull();
+      expect(newState.saveFilterWarning).toBe(WARNING_NAME_IN_USE);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('SAVE_CONFIRM_CANCELLED action', function() {
+    it('sets saveFilterError to null, saveFilterWarning to null', function() {
+      const state = Object.freeze({ saveFilterError: 'yyy', saveFilterWarning: 'zzz', other: otherObject });
+      const action = { type: 'SAVE_CONFIRM_CANCELLED' };
+      const newState = reduce(state, action);
+      expect(newState.saveFilterError).toBeNull();
+      expect(newState.saveFilterWarning).toBeNull();
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
   describe('SAVE_FILTER_FULFILLED action', function() {
     it('sets saveFilterSuccess to true, sets appliedFilterName from the payload name, appends the payload to ' +
         'savedFilters and resets showDirtyAsterisk', function() {
@@ -178,6 +212,7 @@ describe('manageFiltersReducer', function() {
         showDirtyAsterisk: true,
         appliedFilterName: 'bar',
         savedFilters: Object.freeze([{ name: 'bar' }]),
+        saveFilterWarning: 'foo',
         other: otherObject
       });
       const action = {
@@ -189,6 +224,7 @@ describe('manageFiltersReducer', function() {
       expect(newState.appliedFilterName).toBe('foo');
       expect(newState.saveFilterSuccess).toBe(true);
       expect(newState.showDirtyAsterisk).toBe(false);
+      expect(newState.saveFilterWarning).toBeNull();
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });

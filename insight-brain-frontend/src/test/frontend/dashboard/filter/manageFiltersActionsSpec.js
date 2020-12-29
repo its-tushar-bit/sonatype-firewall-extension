@@ -7,6 +7,7 @@ import axios from 'axios';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 import { getDashboardDeleteFilterUrl, getDashboardSavedFilters } from '../../../../main/frontend/util/CLMLocation';
+import { cancelSaveFilter } from '../../../../main/frontend/dashboard/filter/manageFiltersActions';
 
 describe('manageFilterActions', function() {
   let saveFilter, fetchSavedFilters, deleteFilter;
@@ -86,6 +87,9 @@ describe('manageFilterActions', function() {
               policyThreatLevels: [1, 2]
             },
             filterJson: { applications: ['1234'] }
+          },
+          manageFilters: {
+            savedFilters: [{ name: 'bar' }]
           }
         },
         expectedPUTBody = {
@@ -99,7 +103,7 @@ describe('manageFilterActions', function() {
       filterJsonSpy.and.returnValue(expectedPUTBody.filter);
     });
 
-    it('immediately sends a SAVE_FILTER_REQUESTED action', function(done) {
+    it('dispatches SAVE_FILTER_REQUESTED action if filter name is not duplicate and not overwriting', function(done) {
       mockAxiosCalls({
         get: {
           [dashboardSavedFiltersUrl]: Promise.resolve({ data: {} })
@@ -109,14 +113,45 @@ describe('manageFilterActions', function() {
         }
       });
 
-      store.dispatch(saveFilter('foo')).then(done);
+      store.dispatch(saveFilter({ name: 'foo' })).then(done);
 
-      var actions = store.getActions();
+      const actions = store.getActions();
 
       expect(actions.length).toBe(1);
       expect(actions[0].type).toBe('SAVE_FILTER_REQUESTED');
       expect(actions[0].payload).toBeUndefined();
     });
+
+    it('dispatches SAVE_FILTER_OVERWRITE_REQUESTED action if overwriting and warning is not displayed', function() {
+      store.dispatch(saveFilter({ name: 'foo', isOverwriting: true }));
+
+      const actions = store.getActions();
+
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe('SAVE_FILTER_OVERWRITE_REQUESTED');
+      expect(actions[0].payload).toBeUndefined();
+    });
+
+    it('dispatches SAVE_FILTER_OVERWRITE_REQUESTED action if name is duplicate and overwriting', function() {
+      store.dispatch(saveFilter({ name: 'bar', isOverwriting: true }));
+
+      const actions = store.getActions();
+
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe('SAVE_FILTER_OVERWRITE_REQUESTED');
+      expect(actions[0].payload).toBeUndefined();
+    });
+
+    it('dispatches SAVE_DUPLICATE_FILTER_REQUESTED if name is duplicate, not overwriting and warning is not displayed',
+        function() {
+          store.dispatch(saveFilter({ name: 'bar', isOverwriting: false }));
+
+          const actions = store.getActions();
+
+          expect(actions.length).toBe(1);
+          expect(actions[0].type).toBe('SAVE_DUPLICATE_FILTER_REQUESTED');
+          expect(actions[0].payload).toBeUndefined();
+        });
 
     it('PUTs the filter to the server and then dispatches SAVE_FILTERS_FULFILLED and fetches the saved filters',
         function(done) {
@@ -132,7 +167,7 @@ describe('manageFilterActions', function() {
             }
           });
 
-          store.dispatch(saveFilter('foo'))
+          store.dispatch(saveFilter({ name: 'foo', isOverwriting: false }))
               .then(() => {
                 actions = store.getActions();
                 expect(axios.get).toHaveBeenCalledWith(dashboardSavedFiltersUrl);
@@ -157,7 +192,7 @@ describe('manageFilterActions', function() {
         }
       });
 
-      store.dispatch(saveFilter('foo'))
+      store.dispatch(saveFilter({ name: 'foo', isOverwriting: false }))
           .catch(() => {
             const actions = store.getActions();
             expect(axios.put).toHaveBeenCalledWith(dashboardSavedFiltersUrl, expectedPUTBody);
@@ -182,7 +217,7 @@ describe('manageFilterActions', function() {
         }
       });
 
-      store.dispatch(saveFilter('foo'))
+      store.dispatch(saveFilter({ name: 'foo', isOverwriting: false }))
           .catch(() => {
             const actions = store.getActions();
             expect(axios.get).toHaveBeenCalledWith(dashboardSavedFiltersUrl);
@@ -194,6 +229,96 @@ describe('manageFilterActions', function() {
           });
 
       expect(store.getActions().length).toBe(1);
+    });
+  });
+
+  describe('when warning is displayed', function() {
+    let store;
+
+    const initialStateWithWarning = {
+          dashboardFilter: {
+            appliedFilter: {
+              policyThreatLevels: [1, 2]
+            },
+            filterJson: {applications: ['1234']}
+          },
+          manageFilters: {
+            savedFilters: [{name: 'bar'}],
+            saveFilterWarning: 'xyz'
+          }
+        },
+        dashboardSavedFiltersUrl = getDashboardSavedFilters();
+
+    beforeEach(function() {
+      store = SpecUtil.mockReduxStore(initialStateWithWarning);
+      mockAxiosCalls({
+        get: {
+          [dashboardSavedFiltersUrl]: Promise.resolve({ data: {} })
+        },
+        put: {
+          [dashboardSavedFiltersUrl]: Promise.resolve({ data: {} })
+        }
+      });
+    });
+
+    it('dispatches SAVE_FILTER_REQUESTED if filter name is duplicate but warning is displayed', function(done) {
+      store.dispatch(saveFilter({ name: 'bar' })).then(done);
+
+      const actions = store.getActions();
+      const state = store.getState();
+
+      expect(state.manageFilters.saveFilterWarning).toBe('xyz');
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe('SAVE_FILTER_REQUESTED');
+      expect(actions[0].payload).toBeUndefined();
+    });
+
+    it('dispatches SAVE_FILTER_REQUESTED if overwriting but warning is displayed', function(done) {
+      store.dispatch(saveFilter({ name: 'foo', isOverwriting: true })).then(done);
+
+      const actions = store.getActions();
+      const state = store.getState();
+
+      expect(state.manageFilters.saveFilterWarning).toBe('xyz');
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe('SAVE_FILTER_REQUESTED');
+      expect(actions[0].payload).toBeUndefined();
+    });
+  });
+
+  describe('cancelSaveFilter', function() {
+    it('immediately sends a SET_DISPLAY_SAVE_FILTER_MODAL action when saveFilterWarning is null', function() {
+      const initialState = {
+        manageFilters: {
+          saveFilterWarning: null
+        }
+      };
+
+      const store = SpecUtil.mockReduxStore(initialState);
+
+      store.dispatch(cancelSaveFilter());
+
+      const actions = store.getActions();
+
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe('SET_DISPLAY_SAVE_FILTER_MODAL');
+    });
+
+    it('immediately sends a SAVE_CONFIRM_CANCELLED action when saveFilterWarning is not null', function() {
+      const initialState = {
+        manageFilters: {
+          saveFilterWarning: 'xyz'
+        }
+      };
+
+      const store = SpecUtil.mockReduxStore(initialState);
+
+      store.dispatch(cancelSaveFilter());
+
+      const actions = store.getActions();
+
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe('SAVE_CONFIRM_CANCELLED');
     });
   });
 

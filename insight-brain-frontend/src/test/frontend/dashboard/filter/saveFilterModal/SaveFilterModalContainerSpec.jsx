@@ -19,8 +19,8 @@ describe('SaveFilterModalContainer', function() {
       MockSaveFilterModalContent,
       vdom;
 
-  const mockSaveFilters = ['filter1', 'filter2'];
   const mockSaveFilterError = 'saveFilterError';
+  const mockSaveFilterWarning = 'saveFilterWarning';
   const mockErrorMessage = 'mockErrorMessage';
 
   beforeEach(function() {
@@ -50,11 +50,11 @@ describe('SaveFilterModalContainer', function() {
 
     state = {
       manageFilters: {
-        savedFilters: mockSaveFilters,
         appliedFilterName: 'appliedFilterName',
         saveFilterSaving: true,
         saveFilterSuccess: false,
-        saveFilterError: mockSaveFilterError
+        saveFilterError: mockSaveFilterError,
+        saveFilterWarning: mockSaveFilterWarning
       }
     };
 
@@ -73,13 +73,12 @@ describe('SaveFilterModalContainer', function() {
   it('passes the correct properties to SaveFilterModalContent from mapStateToPops and mapDispatchToProps', function() {
     const wrapper = mount(vdom);
     const modalContent = wrapper.find(MockSaveFilterModalContent).props();
-    expect(modalContent.savedFilters).toEqual(mockSaveFilters);
     expect(modalContent.appliedFilterName).toEqual('appliedFilterName');
     expect(modalContent.saveFilterSaving).toEqual(true);
     expect(modalContent.saveFilterSuccess).toEqual(false);
-    expect(modalContent.setDisplaySaveFilterModal).toEqual(jasmine.any(Function));
     expect(modalContent.saveFilter).toEqual(jasmine.any(Function));
     expect(modalContent.saveError).toEqual(mockErrorMessage);
+    expect(modalContent.saveFilterWarning).toEqual(mockSaveFilterWarning);
     expect(mockMessages.getHttpErrorMessage).toHaveBeenCalledWith(mockSaveFilterError);
   });
 });

@@ -98,6 +98,7 @@ import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.ApplicationComponentLicense;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.NameHelper;
@@ -344,6 +345,8 @@ public class TemporaryEntity
   private final RepositoryMigrationDAO repositoryMigrationDAO = new RepositoryMigrationDAO();
 
   private final AggregateFileDAO aggregateFileDAO = new AggregateFileDAO();
+
+  private final ApplicationComponentLicenseDAO applicationComponentLicenseDAO = new ApplicationComponentLicenseDAO();
 
   private MailConfiguration savedMailConfiguration;
 
@@ -2690,5 +2693,15 @@ public class TemporaryEntity
     AggregateFile aggregateFile = new AggregateFile(applicationComponentId, hash, pathnames);
     aggregateFileDAO.insert(aggregateFile);
     return aggregateFile;
+  }
+
+  public ApplicationComponentLicense newApplicationComponentLicense(
+      String applicationComponentId,
+      String effectiveLicenseId)
+  {
+    ApplicationComponentLicense applicationComponentLicense =
+        new ApplicationComponentLicense(applicationComponentId, effectiveLicenseId);
+    applicationComponentLicenseDAO.insert(applicationComponentLicense);
+    return applicationComponentLicense;
   }
 }

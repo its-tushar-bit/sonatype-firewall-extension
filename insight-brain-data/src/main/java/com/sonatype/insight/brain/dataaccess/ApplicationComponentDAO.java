@@ -12,6 +12,7 @@ import java.util.Set;
 
 import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.ApplicationComponentLicense;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
@@ -39,6 +40,14 @@ public class ApplicationComponentDAO
     List<AggregateFile> aggregateFiles = aggregateFileDAO.getByApplicationComponentId(tx, applicationComponent.getId());
     for (AggregateFile aggregateFile : aggregateFiles) {
       aggregateFileDAO.delete(tx, aggregateFile);
+    }
+
+    // Cascade to application component licenses
+    ApplicationComponentLicenseDAO applicationComponentLicenseDAO = new ApplicationComponentLicenseDAO();
+    List<ApplicationComponentLicense> applicationComponentLicenses =
+        applicationComponentLicenseDAO.getByApplicationComponentId(tx, applicationComponent.getId());
+    for (ApplicationComponentLicense applicationComponentLicense : applicationComponentLicenses) {
+      applicationComponentLicenseDAO.delete(tx, applicationComponentLicense);
     }
     super.delete(tx, applicationComponent);
   }

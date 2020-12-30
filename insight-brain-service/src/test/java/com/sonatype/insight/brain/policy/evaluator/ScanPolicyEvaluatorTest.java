@@ -33,7 +33,9 @@ import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.AggregateFileDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
+import com.sonatype.insight.brain.dataaccess.ApplicationComponentLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -44,6 +46,7 @@ import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.ApplicationComponentLicense;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.label.Label;
@@ -111,6 +114,7 @@ import com.sonatype.insight.test.LogOutput;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.inject.Binder;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -1899,6 +1903,37 @@ public class ScanPolicyEvaluatorTest
         .orElse(null);
     assertThat(nonAggregateComponent).isNotNull();
     assertThat(aggregateFileDAO.getByApplicationComponentId(nonAggregateComponent.getId())).isEmpty();
+  }
+
+  @Test
+  public void testEvaluate_StoresApplicationComponentLicenses() throws Exception {
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("testEvaluate_StoresApplicationComponentLicenses");
+    ApplicationComponentLicenseDAO applicationComponentLicenseDAO = new ApplicationComponentLicenseDAO();
+
+    scanPolicyEvaluator.evaluate(application, scanId, stage);
+
+    List<ApplicationComponent> applicationComponents =
+        new ApplicationComponentDAO().getByApplicationId(application.getId());
+    assertThat(applicationComponents).hasSize(1);
+
+    ApplicationComponent applicationComponent = applicationComponents.get(0);
+
+    List<ApplicationComponentLicense> applicationComponentLicenses =
+        applicationComponentLicenseDAO.getByApplicationComponentId(applicationComponent.getId());
+    assertThat(applicationComponentLicenses).hasSize(3);
+
+    ApplicationComponentLicense applicationComponentLicense1 =
+        new ApplicationComponentLicense(applicationComponent.getId(), "EPL-1.0");
+    ApplicationComponentLicense applicationComponentLicense2 =
+        new ApplicationComponentLicense(applicationComponent.getId(), "LGPL-2.1");
+    ApplicationComponentLicense applicationComponentLicense3 =
+        new ApplicationComponentLicense(applicationComponent.getId(), "EPL-1.0-LGPL-2.1");
+
+    assertThat(applicationComponentLicenses)
+        .usingElementComparatorIgnoringFields(ArrayUtils.add(JPA.IGNORE_FIELDS, "id"))
+        .containsExactlyInAnyOrder(applicationComponentLicense1, applicationComponentLicense2,
+            applicationComponentLicense3);
   }
 
   private AggregateFile findAggregateFileByHash(List<AggregateFile> aggregateFiles, String hash) {

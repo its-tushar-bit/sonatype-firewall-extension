@@ -38,15 +38,18 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentDisplayFilename;
 import com.sonatype.insight.brain.dataaccess.AggregateFileDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
+import com.sonatype.insight.brain.dataaccess.ApplicationComponentLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.ApplicationComponentLicense;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
@@ -86,6 +89,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -121,6 +125,8 @@ public class ScanPolicyEvaluator
   private PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
 
   private AggregateFileDAO aggregateFileDAO = new AggregateFileDAO();
+
+  private ApplicationComponentLicenseDAO applicationComponentLicenseDAO = new ApplicationComponentLicenseDAO();
 
   private final PolicyThreatsAdapter policyThreatsAdapter;
 
@@ -631,6 +637,16 @@ public class ScanPolicyEvaluator
       for (com.sonatype.clm.dto.model.component.AggregateFile aggregateFile : component.getAggregateFiles()) {
         aggregateFileDAO
             .insert(tx, new AggregateFile(applicationComponent.getId(), aggregateFile.hash, aggregateFile.pathnames));
+      }
+
+      Set<String> effectiveLicenseIds = ComponentDetailsLoader.calculateEffectiveLicenses(
+          Sets.union(component.getDeclaredLicenseIds(), component.getDeclaredMultiLicenseIds()),
+          Sets.union(component.getObservedLicenseIds(), component.getObservedMultiLicenseIds()),
+          component.getLicenseOverrideIds());
+      for (String effectiveLicenseId : effectiveLicenseIds) {
+        ApplicationComponentLicense applicationComponentLicense =
+            new ApplicationComponentLicense(applicationComponent.getId(), effectiveLicenseId);
+        applicationComponentLicenseDAO.insert(tx, applicationComponentLicense);
       }
     }
   }

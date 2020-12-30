@@ -69,6 +69,7 @@
     <class>com.sonatype.insight.brain.model.scan.PersistedScanTicket</class>
     <class>com.sonatype.insight.brain.model.repository.RepositoryMigration</class>
     <class>com.sonatype.insight.brain.model.AggregateFile</class>
+    <class>com.sonatype.insight.brain.model.ApplicationComponentLicense</class>
     <properties>
       <!--
       <property name="openjpa.ConnectionURL" value="jdbc:hsqldb:tutorial_database"/>

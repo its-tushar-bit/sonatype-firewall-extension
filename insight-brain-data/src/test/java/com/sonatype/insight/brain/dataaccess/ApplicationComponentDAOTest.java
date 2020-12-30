@@ -16,6 +16,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.ApplicationComponentLicense;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
@@ -33,6 +34,8 @@ public class ApplicationComponentDAOTest
   private ApplicationComponentDAO dao = new ApplicationComponentDAO();
 
   private AggregateFileDAO aggregateFileDAO = new AggregateFileDAO();
+
+  private ApplicationComponentLicenseDAO applicationComponentLicenseDAO = new ApplicationComponentLicenseDAO();
 
   @Test
   public void testCRUD() throws Exception {
@@ -274,6 +277,29 @@ public class ApplicationComponentDAOTest
     assertThat(aggregateFileDAO.getByApplicationComponentId(applicationComponent1.getId())).isEmpty();
     assertThat(aggregateFileDAO.getByApplicationComponentId(applicationComponent2.getId()))
         .usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(aggregateFile3, aggregateFile4);
+  }
+
+  @Test
+  public void testCascadeDeleteToApplicationComponentLicense() {
+    ApplicationComponent applicationComponent1 = tempEntity.newApplicationComponent(application.getId(),
+        BuildStageType.ID, "hash1", ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
+    ApplicationComponent applicationComponent2 = tempEntity.newApplicationComponent(application.getId(),
+        BuildStageType.ID, "hash2", ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"));
+
+    tempEntity.newApplicationComponentLicense(applicationComponent1.getId(), "license-1");
+    tempEntity.newApplicationComponentLicense(applicationComponent1.getId(), "license-2");
+
+    ApplicationComponentLicense applicationComponentLicense3 =
+        tempEntity.newApplicationComponentLicense(applicationComponent2.getId(), "license-3");
+    ApplicationComponentLicense applicationComponentLicense4 =
+        tempEntity.newApplicationComponentLicense(applicationComponent2.getId(), "license-4");
+
+    dao.delete(applicationComponent1);
+
+    assertThat(applicationComponentLicenseDAO.getByApplicationComponentId(applicationComponent1.getId())).isEmpty();
+    assertThat(applicationComponentLicenseDAO.getByApplicationComponentId(applicationComponent2.getId()))
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(applicationComponentLicense3, applicationComponentLicense4);
   }
 
   public void assertApplicationComponent(ApplicationComponent expected, ApplicationComponent actual) {

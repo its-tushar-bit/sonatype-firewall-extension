@@ -39,7 +39,7 @@ public class DependencyTypeConditionType
       return false;
     }
 
-    boolean isInnerSource = component.getInnerSourceData() != null && component.getInnerSourceData().isInnerSource();
+    boolean isInnerSource = component.getInnerSourceData() != null;
     String dependencyTypeValue = getDependencyType(component).getId();
     boolean result = value.equals(isInnerSource ? DependencyType.INNER_SOURCE.getId() : dependencyTypeValue);
     return "is".equals(operator) ? result : !result;
@@ -77,7 +77,7 @@ public class DependencyTypeConditionType
       final Condition condition, final MatchFact matchFact)
   {
     Component component = matchFact.getComponent();
-    boolean isInnerSource = component.getInnerSourceData() != null && component.getInnerSourceData().isInnerSource();
+    boolean isInnerSource = component.getInnerSourceData() != null;
     String dependencyTypeName = getDependencyType(component).getName();
     return "Dependency type was " +
         (isInnerSource ? DependencyType.INNER_SOURCE.getName() : dependencyTypeName) +

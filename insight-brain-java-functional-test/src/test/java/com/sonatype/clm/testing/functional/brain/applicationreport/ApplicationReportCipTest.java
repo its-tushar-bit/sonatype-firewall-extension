@@ -381,8 +381,6 @@ public class ApplicationReportCipTest
     addWaiverPage.scope(1).label().shouldHave(text("Organization - " + app.getName()));
     addWaiverPage.scope(2).label().shouldHave(text("Organization - Root Organization"));
 
-    eyesWatcher.eyesCheck("Policy Tab");
-
     addWaiverPage.scope(0).click();
 
     addWaiverPage.comments().setValue("TEST COMMENT");
@@ -401,6 +399,8 @@ public class ApplicationReportCipTest
         policyName,
         new String[]{constraintName},
         new String[]{conditions});
+
+    eyesWatcher.eyesCheck("Policy Tab");
 
     // check that there is new waiver
     WaiverCip.viewWaivers().shouldBe(visible).click();

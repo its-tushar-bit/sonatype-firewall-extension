@@ -25,7 +25,7 @@ import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.test.InjectedTest;
-import com.sonatype.insight.test.PortAllocator;
+import com.sonatype.insight.test.networking.PortAllocator;
 
 import org.junit.After;
 import org.junit.Before;
@@ -93,7 +93,7 @@ public class HdsClientProxyTimeOutTest
 
   @Before
   public void init() {
-    port = PortAllocator.findFreePort(8090);
+    port = PortAllocator.nextFreePort();
 
     tempEntity.setProxyServerConfiguration("localhost", port);
 

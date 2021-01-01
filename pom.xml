@@ -88,7 +88,6 @@
     <module>nexus-iq-diagnostics</module>
     <module>insight-brain-java-functional-test</module>
     <module>insight-brain-functional-test</module>
-    <module>insight-brain-functional-performance-test</module>
     <module>nexus-iq-tools</module>
     <module>keycloak-server</module>
   </modules>

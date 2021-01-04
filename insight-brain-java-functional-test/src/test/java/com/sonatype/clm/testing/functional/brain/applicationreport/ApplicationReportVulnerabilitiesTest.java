@@ -131,11 +131,11 @@ public class ApplicationReportVulnerabilitiesTest
 
     vulnerabilityTable.rows().shouldHaveSize(59);
 
-    eyesWatcher.eyesCheck("Test Raw Data View");
-
     VulnerabilityRow jacksonDatabindRow = vulnerabilityTable.row(2);
     checkRow(jacksonDatabindRow, "com.fasterxml.jackson.core : jackson-databind : 2.0.4", "CVE-2017-7525", "9.8", "9",
         false, false);
+
+    eyesWatcher.eyesCheck("Test Raw Data View");
 
     VulnerabilityRow angularRow = vulnerabilityTable.row(59);
     ScrollUtil.scrollIntoView(angularRow.getElement());

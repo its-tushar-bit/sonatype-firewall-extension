@@ -12,7 +12,7 @@ import static com.codeborne.selenide.Selenide.$;
 public class MainView
 {
   public static SelenideElement mainView() {
-    return $(".iq-main-view");
+    return $(".nx-page");
   }
 
   /**
@@ -20,10 +20,6 @@ public class MainView
    * modals and the MainHeader is within this element
    */
   public static SelenideElement uiView() {
-    return $(".iq-main-view > [ui-view]");
-  }
-
-  public static SelenideElement loginBackground() {
-    return $("#login-body-container");
+    return $(".nx-page > [ui-view]");
   }
 }

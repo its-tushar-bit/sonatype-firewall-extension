@@ -1,53 +1,63 @@
-<div class="container container--repo-report">
-  <div style="width:990px; margin:auto">
-    <div load-wrapper="vm.error" reload="vm.doLoad()" error-message="Unable to load repository data." loading="!vm.repository">
-      <h3 id='report-title'>
-        <div id="report-title-left">
-          <div>
-            Repository results for <em>{{vm.repository.publicId}}</em>
+<div class="nx-page-main iq-legacy-report-container nx-viewport-sized">
+  <div class="container container--repo-report nx-viewport-sized__container">
+    <div style="width:990px; margin:auto" class="nx-viewport-sized__container">
+      <div class="nx-viewport-sized__container"
+           load-wrapper="vm.error"
+           reload="vm.doLoad()"
+           error-message="Unable to load repository data."
+           loading="!vm.repository">
+        <h3 id='report-title'>
+          <div id="report-title-left">
+            <div>
+              Repository results for <em>{{vm.repository.publicId}}</em>
+            </div>
+            <div ng-if="vm.repository.oldestEvalTimestamp" class="last-eval" ng-attr-title="{{vm.repository.oldestEvalTimestamp | date:'medium'}}">
+              Oldest evaluation {{vm.repository.oldestEvalTimestamp | ago}}
+            </div>
           </div>
-          <div ng-if="vm.repository.oldestEvalTimestamp" class="last-eval" ng-attr-title="{{vm.repository.oldestEvalTimestamp | date:'medium'}}">
-            Oldest evaluation {{vm.repository.oldestEvalTimestamp | ago}}
+          <div id="report-title-right">
+            <button class="btn btn-primary" title="Re-evaluate Policy" ng-click="vm.reEvaluatePolicy()" id="reevaluate-policy">
+              <i class="icon-white icon-refresh"></i>
+            </button>
           </div>
+        </h3>
+        <div id='evaluation-report-container' class="nx-viewport-sized__container">
+          <iframe class="nx-viewport-sized__scrollable" ng-src="{{vm.reportUrl}}" width="100%" border="0"
+                  frameborder="0" scrolling="yes" style="overflow:auto;">
+          </iframe>
         </div>
-        <div id="report-title-right">
-          <button class="btn btn-primary" title="Re-evaluate Policy" ng-click="vm.reEvaluatePolicy()" id="reevaluate-policy">
-            <i class="icon-white icon-refresh"></i>
-          </button>
-        </div>
-      </h3>
-      <div id='evaluation-report-container' expandable-iframe='vm.reportUrl'></div>
-    </div>
-  </div>
-  <script type='text/ng-template' id='repository-reevaluate-modal-template'>
-    <div id="repository-reevaluate-modal">
-      <div class="iq-modal-header">
-        <h2>Re-evaluate policy</h2>
       </div>
-      <form ng-submit="vm.reEvaluatePolicy()" form-mask="vm.reEvaluatePolicyMask" mask-message="Starting evaluation">
-        <div class="iq-modal-content">
-          <span>
-            Note: Re-evaluating policy can be a time-consuming process depending on repository size. If you proceed,
-            the re-evaluation will run in the background and update the results as it progresses.
-          </span>
-          <p>
-            To view updated results, click the browser’s refresh button. The oldest evaluation time will be updated as
-            the re-evaluation progresses.
-          </p>
-        </div>
-        <div class="iq-modal-footer" ng-class="{ error : vm.error }">
-          <div ng-if="vm.error" class="iq-alert iq-alert--error">
-            <i class="fa fa-warning"></i>{{vm.error}}
-          </div>
-          <button id="perform-re-evaluate" ng-if="!vm.error" class="btn btn-primary" type="submit">
-            Re-evaluate
-          </button>
-          <button id="perform-re-evaluate-retry" ng-if="vm.error" class="btn btn-error" type="submit">
-            <i class="fa fa-refresh"></i>Retry
-          </button>
-          <button id="close-re-evaluate" class="btn" ng-click="$dismiss()" type="button">Cancel</button>
-        </div>
-      </form>
     </div>
-  </script>
+    <script type='text/ng-template' id='repository-reevaluate-modal-template'>
+      <div id="repository-reevaluate-modal">
+        <div class="iq-modal-header">
+          <h2>Re-evaluate policy</h2>
+        </div>
+        <form ng-submit="vm.reEvaluatePolicy()" form-mask="vm.reEvaluatePolicyMask" mask-message="Starting evaluation">
+          <div class="iq-modal-content">
+            <span>
+              Note: Re-evaluating policy can be a time-consuming process depending on repository size. If you proceed,
+              the re-evaluation will run in the background and update the results as it progresses.
+            </span>
+            <p>
+              To view updated results, click the browser’s refresh button. The oldest evaluation time will be updated as
+              the re-evaluation progresses.
+            </p>
+          </div>
+          <div class="iq-modal-footer" ng-class="{ error : vm.error }">
+            <div ng-if="vm.error" class="iq-alert iq-alert--error">
+              <i class="fa fa-warning"></i>{{vm.error}}
+            </div>
+            <button id="perform-re-evaluate" ng-if="!vm.error" class="btn btn-primary" type="submit">
+              Re-evaluate
+            </button>
+            <button id="perform-re-evaluate-retry" ng-if="vm.error" class="btn btn-error" type="submit">
+              <i class="fa fa-refresh"></i>Retry
+            </button>
+            <button id="close-re-evaluate" class="btn" ng-click="$dismiss()" type="button">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </script>
+  </div>
 </div>

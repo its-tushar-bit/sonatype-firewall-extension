@@ -7,7 +7,6 @@
 import React, {useEffect} from 'react';
 import LoadWrapper from '../react/LoadWrapper';
 import * as PropTypes from 'prop-types';
-import MaximizedContainer from '../react/MaximizedContainer';
 import AdvancedSearchForm from './AdvancedSearchForm';
 import AdvancedSearchResultCard from './AdvancedSearchResultCard';
 
@@ -47,19 +46,17 @@ export default function AdvancedSearch(props) {
   useEffect(load, []);
 
   return (
-    <MaximizedContainer id="advanced-search-page" className="nx-page-content">
-      <main className="nx-page-main nx-page-main--advanced-search">
-        <LoadWrapper loading={loading} error={loadError} retryHandler={load}>
-          <div className="nx-page-title">
-            <h1 className="nx-h1" id="advanced-search-page-title">Advanced Search</h1>
-          </div>
-          <AdvancedSearchForm {...props} />
-          <LoadWrapper loading={waitingSearchResponse} error={queryError} retryHandler={() =>searchFormSubmit()}>
-            {groupingByDTOS.map(advancedSearchResultsGroupedBy)}
-          </LoadWrapper>
+    <main id="advanced-search-page" className="nx-page-main nx-page-main--advanced-search">
+      <LoadWrapper loading={loading} error={loadError} retryHandler={load}>
+        <div className="nx-page-title">
+          <h1 className="nx-h1" id="advanced-search-page-title">Advanced Search</h1>
+        </div>
+        <AdvancedSearchForm {...props} />
+        <LoadWrapper loading={waitingSearchResponse} error={queryError} retryHandler={() =>searchFormSubmit()}>
+          {groupingByDTOS.map(advancedSearchResultsGroupedBy)}
         </LoadWrapper>
-      </main>
-    </MaximizedContainer>
+      </LoadWrapper>
+    </main>
   );
 
   function advancedSearchResultsGroupedBy(groupingByDto) {

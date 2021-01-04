@@ -457,6 +457,11 @@ $dashboard-border: $dashboard-border-width solid #CCC;
   }
 }
 
+.component-total-risk {
+  grid-area: actions;
+  text-align: right;
+}
+
 // used by component details
 @media (max-width: 1249px) {
   table {

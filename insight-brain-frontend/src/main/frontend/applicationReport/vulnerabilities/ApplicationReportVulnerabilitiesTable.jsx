@@ -60,9 +60,9 @@ export default function ApplicationReportVulnerabilitiesTable({ vulnerabilities,
   const rows = vulnerabilities.map(vuln => createRow(vuln, $state));
 
   return (
-    <div className="nx-tile-content">
-      <div className="nx-scrollable nx-scrollable--table-container">
-        <NxTable id="application-report-vulnerabilities-table" className="nx-table--scrollable">
+    <div className="nx-tile-content nx-viewport-sized__container">
+      <div className="nx-scrollable nx-table-container nx-viewport-sized__scrollable">
+        <NxTable id="application-report-vulnerabilities-table">
           <NxTableHead>
             <NxTableRow>
               <NxTableCell>Threat</NxTableCell>

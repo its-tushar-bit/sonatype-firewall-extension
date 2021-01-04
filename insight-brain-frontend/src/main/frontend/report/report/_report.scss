@@ -6,3 +6,16 @@
 .container--old-report, .container--repo-report {
   background: $iq-off-white;
 }
+
+.iq-legacy-report-container.nx-page-main {
+  padding: 0;
+
+  > .container {
+    width: 1105px;
+    padding-bottom: 8px;
+  }
+}
+
+.iq-legacy-report__app-wrapper {
+  display: contents;
+}

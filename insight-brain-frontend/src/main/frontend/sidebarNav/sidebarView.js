@@ -6,9 +6,7 @@
 
 export default {
   template: `
-    <div maximize-container-height class="nx-page-content">
-      <sidebar-nav-list class="nx-page-sidebar nx-page-sidebar--nav-sidebar"></sidebar-nav-list>
-      <div class="nx-page-main" ui-view></div>
-    </div>
+    <sidebar-nav-list class="nx-page-sidebar nx-page-sidebar--nav-sidebar nx-viewport-sized"></sidebar-nav-list>
+    <div class="nx-page-main" ui-view></div>
   `
 };

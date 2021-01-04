@@ -11,24 +11,15 @@ import LicenseTextsTile from '../../../main/frontend/legal/LicenseTextsTile';
 import LicenseObligationsTile from '../../../main/frontend/legal/LicenseObligationsTile';
 import LicenseDetailsTile from '../../../main/frontend/legal/LicenseDetailsTile';
 import CopyrightStatementsTile from '../../../main/frontend/legal/CopyrightStatementsTile';
+import ComponentLegalOverviewPage from '../../../main/frontend/legal/ComponentLegalOverviewPage';
 import { mount } from 'enzyme/build';
 
 describe('ComponentLegalOverviewPage', function() {
   let minimalProps,
-      ComponentLegalOverviewPage,
-      MaximizedContainerMock,
       loadComponentSpy,
       getShallowComponent;
 
   beforeEach(function() {
-    MaximizedContainerMock = jasmine.createSpy('MaximizedContainerMock')
-        .and.returnValue(<div>MaximizedContainer</div>);
-
-    ComponentLegalOverviewPage =
-        require('inject-loader!../../../main/frontend/legal/ComponentLegalOverviewPage')({
-          '../react/MaximizedContainer': MaximizedContainerMock
-        }).default;
-
     loadComponentSpy = jasmine.createSpy('loadComponent');
     const licenseLegalMetadata = {
       0: {
@@ -84,19 +75,19 @@ describe('ComponentLegalOverviewPage', function() {
   });
 
   it('fires the loadFilter action', function() {
-    const component = mount(<ComponentLegalOverviewPage {...minimalProps} />);
+    const component = mount(<ComponentLegalOverviewPage {...minimalProps} loading={true} />);
     expect(loadComponentSpy).toHaveBeenCalledWith('organization', 'ROOT_ORGANIZATION_ID', '1e48256a2341047e7d72');
     component.unmount();
   });
 
   it('does not fire the loadFilter action if there is no hash', function() {
-    const component = mount(<ComponentLegalOverviewPage loadComponent={ loadComponentSpy } />);
+    const component = mount(<ComponentLegalOverviewPage loadComponent={ loadComponentSpy } loading={true} />);
     expect(loadComponentSpy).not.toHaveBeenCalled();
     component.unmount();
   });
 
-  it('renders a component with the "nx-page-content" class', function() {
-    expect(getShallowComponent().find('.nx-page-content')).toExist();
+  it('renders a component with the "nx-page-main" class', function() {
+    expect(getShallowComponent().find('.nx-page-main')).toExist();
   });
 
   it('renders the ComponentOverviewTile', function() {

@@ -20,7 +20,6 @@ import {
 } from '@sonatype/react-shared-components';
 import LoadWrapper from '../../react/LoadWrapper';
 import LoadError from '../../react/LoadError';
-import MaximizedContainer from '../../react/MaximizedContainer';
 
 const authErrorMessage = `It appears you do not have permission to access this page.
     If you believe this to be incorrect, please contact your administrator.`;
@@ -200,36 +199,34 @@ export default function ProxyConfig(props) {
   );
 
   return (
-    <MaximizedContainer id="proxy-config-container" className="nx-page-content">
-      <main className="nx-page-main">
-        <LoadWrapper loading={loading} error={loadError} retryHandler={load}>
-          <form className="nx-form" onSubmit={onSubmit}>
-            <section id="proxy-configuration" className="nx-tile">
-              <header className="nx-tile-header">
-                <div className="nx-tile-header__title">
-                  <h2 className="nx-h2">Proxy</h2>
-                </div>
-              </header>
-              <div className="nx-tile-content">
-                <p className="nx-p">
-                  To use a Proxy Server for outbound requests, configure it here.
-                </p>
-                {/* This page is accessible without a license, so that users can configure their Proxy Servers */}
-                {/* before attempting to install a license. If they are accessing this page without a license */}
-                {/* most likely they want to navigate to license install page next. */}
-                {!licensed &&
-                  <p id="proxy-config-product-license-navigation" className="nx-p">
-                    Continue installing your license <a href={productLicenseUrl}>here.</a>
-                  </p>
-                }
-                {submitMaskState !== null && <NxSubmitMask success={submitMaskState} message={submitMaskMessage}/>}
-                {form}
+    <main id="proxy-config-container" className="nx-page-main">
+      <LoadWrapper loading={loading} error={loadError} retryHandler={load}>
+        <form className="nx-form" onSubmit={onSubmit}>
+          <section id="proxy-configuration" className="nx-tile">
+            <header className="nx-tile-header">
+              <div className="nx-tile-header__title">
+                <h2 className="nx-h2">Proxy</h2>
               </div>
-            </section>
-          </form>
-        </LoadWrapper>
-      </main>
-    </MaximizedContainer>
+            </header>
+            <div className="nx-tile-content">
+              <p className="nx-p">
+                To use a Proxy Server for outbound requests, configure it here.
+              </p>
+              {/* This page is accessible without a license, so that users can configure their Proxy Servers */}
+              {/* before attempting to install a license. If they are accessing this page without a license */}
+              {/* most likely they want to navigate to license install page next. */}
+              {!licensed &&
+                <p id="proxy-config-product-license-navigation" className="nx-p">
+                  Continue installing your license <a href={productLicenseUrl}>here.</a>
+                </p>
+              }
+              {submitMaskState !== null && <NxSubmitMask success={submitMaskState} message={submitMaskMessage}/>}
+              {form}
+            </div>
+          </section>
+        </form>
+      </LoadWrapper>
+    </main>
   );
 }
 

@@ -21,7 +21,6 @@ import {
 } from '@sonatype/react-shared-components';
 import LoadWrapper from '../../react/LoadWrapper';
 import LoadError from '../../react/LoadError';
-import MaximizedContainer from '../../react/MaximizedContainer';
 import NxExternalLink from '../../react/NxExternalLink';
 
 const authErrorMessage = 'It appears you do not have permission to access this page.  ' +
@@ -270,32 +269,30 @@ export default function MailConfig(props) {
   );
 
   return (
-    <MaximizedContainer id="mail-config-page-container" className="nx-page-content">
-      <main className="nx-page-main">
-        <LoadWrapper loading={loading} error={loadError} retryHandler={load}>
-          <section id="email-configuration" className="nx-tile">
-            <form className="nx-form" onSubmit={onSubmit}>
-              <header className="nx-tile-header">
-                <div className="nx-tile-header__title">
-                  <h2 className="nx-h2">Email</h2>
-                </div>
-              </header>
-              <div className="nx-tile-content">
-                <p className="nx-p">
-                  To receive email notifications for events enter the details of your SMTP Server here.
-                  For further details see the{' '}
-                  <NxExternalLink href="http://links.sonatype.com/products/nxiq/doc/email-configuration">
-                    documentation
-                  </NxExternalLink>.
-                </p>
-                {submitMaskState !== null && <NxSubmitMask success={submitMaskState} message={submitMaskMessage} />}
-                {form}
+    <main id="mail-config-page-container" className="nx-page-main">
+      <LoadWrapper loading={loading} error={loadError} retryHandler={load}>
+        <section id="email-configuration" className="nx-tile">
+          <form className="nx-form" onSubmit={onSubmit}>
+            <header className="nx-tile-header">
+              <div className="nx-tile-header__title">
+                <h2 className="nx-h2">Email</h2>
               </div>
-            </form>
-          </section>
-        </LoadWrapper>
-      </main>
-    </MaximizedContainer>
+            </header>
+            <div className="nx-tile-content">
+              <p className="nx-p">
+                To receive email notifications for events enter the details of your SMTP Server here.
+                For further details see the{' '}
+                <NxExternalLink href="http://links.sonatype.com/products/nxiq/doc/email-configuration">
+                  documentation
+                </NxExternalLink>.
+              </p>
+              {submitMaskState !== null && <NxSubmitMask success={submitMaskState} message={submitMaskMessage} />}
+              {form}
+            </div>
+          </form>
+        </section>
+      </LoadWrapper>
+    </main>
   );
 }
 

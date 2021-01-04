@@ -11,7 +11,6 @@ import LoadWrapper from '../../react/LoadWrapper';
 import ApplicationReportVulnerabilitiesHeader, { metadataPropType } from './ApplicationReportVulnerabilitiesHeader';
 import ApplicationReportVulnerabilitiesTable, { vulnerabilitiesPropType }
   from './ApplicationReportVulnerabilitiesTable';
-import MaximizedContainer from '../../react/MaximizedContainer';
 
 export default class ApplicationReportVulnerabilitiesPage extends Component {
   componentDidMount() {
@@ -24,22 +23,20 @@ export default class ApplicationReportVulnerabilitiesPage extends Component {
         'Re-evaluate in order to enable this page') || undefined;
 
     return (
-      <MaximizedContainer id="application-report-vulnerabilities" className="nx-page-content">
-        <div className="nx-page-main">
-          <BackButton stateName="applicationReport.policy" $state={this.props.$state} />
-          <LoadWrapper loading={!this.props.metadata || this.props.loading}
-                       error={error}
-                       retryHandler={this.props.loadReportAllData}>
-            {() =>
-              <div className="nx-tile">
-                <ApplicationReportVulnerabilitiesHeader metadata={this.props.metadata} />
-                <ApplicationReportVulnerabilitiesTable vulnerabilities={this.props.vulnerabilities}
-                                                       $state = {this.props.$state} />
-              </div>
-            }
-          </LoadWrapper>
-        </div>
-      </MaximizedContainer>
+      <div id="application-report-vulnerabilities" className="nx-page-main nx-viewport-sized">
+        <BackButton stateName="applicationReport.policy" $state={this.props.$state} />
+        <LoadWrapper loading={!this.props.metadata || this.props.loading}
+                     error={error}
+                     retryHandler={this.props.loadReportAllData}>
+          {() =>
+            <div className="nx-tile nx-viewport-sized__container">
+              <ApplicationReportVulnerabilitiesHeader metadata={this.props.metadata} />
+              <ApplicationReportVulnerabilitiesTable vulnerabilities={this.props.vulnerabilities}
+                                                     $state = {this.props.$state} />
+            </div>
+          }
+        </LoadWrapper>
+      </div>
     );
   }
 }

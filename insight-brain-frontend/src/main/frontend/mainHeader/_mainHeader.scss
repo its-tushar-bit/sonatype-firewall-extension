@@ -465,3 +465,11 @@ $main-header-nav-breakpoint: 1150px;
   flex-grow: 1;
   justify-content: flex-end;
 }
+
+system-notice, change-default-admin-password-notice {
+  align-self: stretch;
+}
+
+main-header.nx-page-header {
+  border-bottom: none;
+}

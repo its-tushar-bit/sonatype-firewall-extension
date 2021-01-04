@@ -1,9 +1,7 @@
-<div>
-  <div class="iq-root-container">
-    <div class="iq-sidebar" ui-view="navigation" maximize-container-height></div><!--
- --><div class="iq-body-container">
-      <root-organization-migrate></root-organization-migrate>
-      <ui-view></ui-view>
-    </div>
-  </div>
+<div class="nx-page-sidebar" ui-view="navigation"></div>
+<div id="owner-manager-main"
+     class="nx-page-main"
+     ng-class="{ 'nx-viewport-sized': $state.$current.data.viewportSized }">
+  <root-organization-migrate></root-organization-migrate>
+  <ui-view></ui-view>
 </div>

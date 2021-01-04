@@ -124,13 +124,6 @@
   text-shadow: none;
 }
 
-// For now we scope min-width to new elements
-.iq-root-container {
-  .btn:not(.btn-icon-only) {
-    min-width: 100px;
-  }
-}
-
 // mini buttons (only used in legacy UI pages)
 #ldapName, #proprietary-component-form, .accordion-group.users {
   .btn-mini {

@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView.RootOrganizationNode;
+import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.RoutingErrorBox;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
@@ -55,6 +56,7 @@ public class RoutingErrorTest
   public void invalidRoutesShowErrorThenHiddenOnNewValidRoute() {
     refreshOrOpen(invalidUrl());
     RoutingErrorBox.errorBox().shouldBe(Condition.visible);
+    MainHeader.get().shouldBe(Condition.visible);
     RoutingErrorBox.errorMessage().shouldHave(RoutingErrorBox.errorText("Unknown Address"));
     eyesWatcher.eyesCheck();
 

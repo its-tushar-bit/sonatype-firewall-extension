@@ -25,7 +25,7 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 public class ApplicationReportPage
     extends BasicElement<ApplicationReportPage>
 {
-  public static final String ROOT = "#application-report";
+  public static final String ROOT = "application-report";
 
   public static final Condition DIRECT_DEPENDENCY_CLASS = cssClass("direct");
   

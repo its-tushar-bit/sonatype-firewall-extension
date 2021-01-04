@@ -7,7 +7,6 @@ import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { NxBackButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { faSitemap } from '@fortawesome/free-solid-svg-icons';
-import MaximizedContainer from '../react/MaximizedContainer';
 import ComponentOverviewTile from './ComponentOverviewTile';
 import LicenseObligationsTile from './LicenseObligationsTile';
 import LicenseDetailsTile from './LicenseDetailsTile';
@@ -57,35 +56,33 @@ export default function ComponentLegalOverviewPage(props) {
   const licenseObligations = getLicenseObligationsByName(values(licenseLegalMetadata));
 
   return (
-    <LoadWrapper loading={ loading }
-                 error={ error }
-                 retryHandler={ load }>
-      <MaximizedContainer className="nx-page-content">
-        <main className="nx-page-main">
-          <NxBackButton href="#" />
-          <div className="nx-page-title">
-            <h1 className="nx-h1">
-              { component && component.displayName }
-            </h1>
-            <div className="nx-page-title__description">
-              <NxFontAwesomeIcon icon = { faSitemap } />
-              <span>Root Organization</span>
-            </div>
+    <main className="nx-page-main">
+      <LoadWrapper loading={ loading }
+                   error={ error }
+                   retryHandler={ load }>
+        <NxBackButton href="#" />
+        <div className="nx-page-title">
+          <h1 className="nx-h1">
+            { component && component.displayName }
+          </h1>
+          <div className="nx-page-title__description">
+            <NxFontAwesomeIcon icon = { faSitemap } />
+            <span>Root Organization</span>
           </div>
-          <div id="component-legal-overview-details">
-            <ComponentOverviewTile component={ component } obligationCount={ licenseObligations.length }
-            />
-            <LicenseObligationsTile licenseObligations={ licenseObligations } />
-            <div id="component-legal-overview-details-right">
-              <LicenseDetailsTile component={ component }/>
-              <CopyrightStatementsTile component={ component }/>
-              <NoticeTextsTile component={ component }/>
-              <LicenseTextsTile component={ component }/>
-            </div>
+        </div>
+        <div id="component-legal-overview-details">
+          <ComponentOverviewTile component={ component } obligationCount={ licenseObligations.length }
+          />
+          <LicenseObligationsTile licenseObligations={ licenseObligations } />
+          <div id="component-legal-overview-details-right">
+            <LicenseDetailsTile component={ component }/>
+            <CopyrightStatementsTile component={ component }/>
+            <NoticeTextsTile component={ component }/>
+            <LicenseTextsTile component={ component }/>
           </div>
-        </main>
-      </MaximizedContainer>
-    </LoadWrapper>
+        </div>
+      </LoadWrapper>
+    </main>
   );
 }
 

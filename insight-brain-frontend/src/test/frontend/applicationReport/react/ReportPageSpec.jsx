@@ -53,11 +53,6 @@ describe('Report Page component', function() {
     getShallowComponent = enzymeUtils.getShallowComponent(ReportPage, minimalProps);
   });
 
-  it('renders a MaximizedContainer', function() {
-    const shallowComponent = getShallowComponent();
-    expect(shallowComponent).toMatchSelector('MaximizedContainer');
-  });
-
   it('renders a ReportTitle wrapped in a LoadWrapper', function() {
     const component = getShallowComponent();
 

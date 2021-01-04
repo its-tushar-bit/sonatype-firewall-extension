@@ -14,7 +14,6 @@ describe('ListWaiversPage', function() {
   let minimalProps,
       ListWaiversPage,
       ListWaiversTableMock,
-      MaximizedContainerMock,
       loadManageWaiversDataSpy,
       stateMock,
       stateGoSpy,
@@ -27,13 +26,10 @@ describe('ListWaiversPage', function() {
   beforeEach(function() {
     ListWaiversTableMock = jasmine.createSpy('ListWaiversTableMock')
         .and.returnValue(<div>ListWaiversTable</div>);
-    MaximizedContainerMock = jasmine.createSpy('MaximizedContainerMock')
-        .and.returnValue(<div>MaximizedContainer</div>);
     DeleteWaiverModalMock = jasmine.createSpy('DeleteWaiverModalMock')
         .and.returnValue(<div>Delete Waiver Modal</div>);
 
     ListWaiversPage = require('inject-loader!../../../main/frontend/waivers/ListWaiversPage')({
-      '../react/MaximizedContainer': MaximizedContainerMock,
       './ListWaiversTable': ListWaiversTableMock,
       './deleteWaiverModal/DeleteWaiverModalContainer': DeleteWaiverModalMock
     }).default;
@@ -83,8 +79,8 @@ describe('ListWaiversPage', function() {
     getShallowComponent = enzymeUtils.getShallowComponent(ListWaiversPage, minimalProps);
   });
 
-  it('renders a component with the "nx-page-content" class', function() {
-    expect(getShallowComponent()).toMatchSelector('.nx-page-content');
+  it('renders a component with the "nx-page-main" class', function() {
+    expect(getShallowComponent()).toMatchSelector('.nx-page-main');
   });
 
   it('renders a NxBackButton with correct href and targetPageTitle properties', function() {

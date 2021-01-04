@@ -6,21 +6,15 @@
 @import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
 @import "../dashboard/filter/manageFiltersDropdown/manageFiltersDropdown";
 
-.nx-page-content--dashboard .nx-page-sidebar {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+dashboard-filter {
+  display: contents;
 }
 
-dashboard-filter {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  flex: 1;
+#dashboard-filter-container {
+  min-width: 342px;
 }
 
 .dashboard-filter {
-  flex: 1;
   box-sizing: border-box;
   overflow-y: auto;
   padding-right: $nx-spacing-xs;

@@ -4,28 +4,19 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../enzymeUtils';
-import React from 'react';
 import LoadWrapper from '../../../main/frontend/react/LoadWrapper';
 import AddWaiverForm from '../../../main/frontend/waivers/AddWaiverForm';
 import { NxSubmitMask } from '@sonatype/react-shared-components';
+import AddWaiverPage from '../../../main/frontend/waivers/AddWaiverPage';
 
 describe('AddWaiverPage', function() {
   let minimalProps,
-      AddWaiverPage,
-      MaximizedContainerMock,
       openVulnerabilityDetailsModalMock,
       loadAddWaiverDataSpy,
       getShallowComponent,
       getMountedComponent;
 
   beforeEach(function() {
-    MaximizedContainerMock = jasmine.createSpy('MaximizedContainerMock')
-        .and.returnValue(<div>MaximizedContainer</div>);
-
-    AddWaiverPage = require('inject-loader!../../../main/frontend/waivers/AddWaiverPage')({
-      '../react/MaximizedContainer': MaximizedContainerMock
-    }).default;
-
     loadAddWaiverDataSpy = jasmine.createSpy('loadAddWaiverDataSpy');
 
     openVulnerabilityDetailsModalMock = jasmine.createSpy('openVulnerabilityDetailsModal').and.returnValue({
@@ -53,8 +44,8 @@ describe('AddWaiverPage', function() {
     getMountedComponent = enzymeUtils.getMountedComponent(AddWaiverPage, minimalProps);
   });
 
-  it('renders a component with the "nx-page-content" class', function() {
-    expect(getShallowComponent()).toMatchSelector('.nx-page-content');
+  it('renders a component with the "nx-page-main" class', function() {
+    expect(getShallowComponent()).toMatchSelector('.nx-page-main');
   });
 
   it('renders a page title', function() {

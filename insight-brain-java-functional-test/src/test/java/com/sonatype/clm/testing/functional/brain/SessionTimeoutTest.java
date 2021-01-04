@@ -240,12 +240,10 @@ public class SessionTimeoutTest
   }
 
   private void assertUiCleared() {
-    // ensure that the main UI is empty aside from the login background - we can't directly test that the page was
+    // ensure that the main UI is empty - we can't directly test that the page was
     // refreshed but this is close
     MainHeader.mainHeaderButtons().shouldBe(hidden);
-    MainView.uiView().$$("*").shouldHaveSize(1);
-    MainView.loginBackground().shouldBe(visible);
-    MainView.loginBackground().$$("*").shouldHaveSize(0);
+    MainView.uiView().$$("*").shouldHaveSize(0);
   }
 
   private void assertUiClearedAndLogBackIn() {

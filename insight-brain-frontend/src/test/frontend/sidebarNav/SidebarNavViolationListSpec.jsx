@@ -125,7 +125,7 @@ describe('SidebarNavViolationList', function() {
         // use the flag to differentiate all the calls to `setTimeout`
         if (flag === 'sidebar-nav') {
           expect(typeof callback).toEqual('function');
-          expect(time).toEqual(220);
+          expect(time).toEqual(200);
           const selectedItem = container.querySelector('.nx-list__item.selected');
           expect(selectedItem).not.toBeNull();
           const scrollSpy = spyOn(selectedItem, 'scrollIntoView');

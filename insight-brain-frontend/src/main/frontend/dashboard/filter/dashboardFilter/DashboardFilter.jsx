@@ -114,7 +114,7 @@ export default function DashboardFilter(props) {
         {loadErrorFilterName && <NxErrorAlert>Failed to load {loadErrorFilterName}</NxErrorAlert>}
       </header>
 
-      <div className="dashboard-filter">
+      <div className="dashboard-filter nx-viewport-sized__scrollable">
         <LoadWrapper loading={loading} error={loadError} retryHandler={loadFilter}>
           {() =>
             <Fragment>

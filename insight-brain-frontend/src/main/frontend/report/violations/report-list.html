@@ -1,7 +1,7 @@
-<div class="iq-body-container iq-body-container--single-pane">
+<div class="nx-page-main nx-viewport-sized">
   <root-organization-migrate></root-organization-migrate>
-    <div class="iq-report-list-container">
-      <div class="nx-page-title iq-page-title">
+    <div class="iq-report-list-container nx-viewport-sized__container">
+      <div class="nx-page-title">
         <h1 class="nx-h1">Reporting</h1>
       </div>
       <div class="iq-tile iq-tile--report-list-filter">
@@ -23,12 +23,11 @@
           </button>
         </div>
       </div>
-      <div class="iq-tile iq-tile--report-list iq-tile--fixed-table"
+      <div class="iq-tile iq-tile--report-list iq-tile--fixed-table nx-viewport-sized__container"
            load-wrapper="vm.error"
            loading="!vm.stages"
            reload="vm.doLoad()">
-        <div class="iq-scrollable iq-scrollable--report-list"
-             maximize-container-height="100px"
+        <div class="iq-scrollable iq-scrollable--report-list nx-viewport-sized__scrollable"
              detect-scrollbar="vm.applications">
           <table id="report-list-table" class="iq-table iq-table--fixed iq-table--report-list">
             <thead class="iq-table--fixed__header">

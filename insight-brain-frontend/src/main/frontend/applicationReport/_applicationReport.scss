@@ -16,18 +16,13 @@ $iq-application-report-vulnerability-security-issue-width: 130px;
 $iq-application-report-vulnerability-cvss-issue-width: 100px;
 $iq-application-report-vulnerability-threat-level-width: 62px;
 
-#application-report {
-  .iq-sidebar {
-    padding-right: $iq-spacing-xs;
-    padding-left: $iq-spacing-xs;
-  }
+application-report-root, application-report, application-report-results, application-report-vulnerabilities {
+  display: contents;
+}
 
+#application-report {
   .iq-page-title {
     margin-right: 12px;
-  }
-
-  .iq-body-container {
-    overflow-y: hidden;
   }
 
   .iq-spinner__wrapper {
@@ -45,6 +40,14 @@ $iq-application-report-vulnerability-threat-level-width: 62px;
   .nx-page-title__description--application-report {
     max-width: 700px;
   }
+
+  .iq-tile {
+    margin-top: 0;
+  }
+}
+
+.iq-tile--application-report {
+  margin-bottom: 0;
 }
 
 .iq-dropdown--application-results-options {

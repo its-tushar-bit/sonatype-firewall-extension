@@ -13,7 +13,6 @@ import ApplicationReportVulnerabilitiesPage from
 
 import LoadWrapper from '../../../../main/frontend/react/LoadWrapper';
 import BackButton from '../../../../main/frontend/react/BackButton';
-import MaximizedContainer from '../../../../main/frontend/react/MaximizedContainer';
 
 describe('ApplicationReportVulnerabilitiesPage', function() {
   let loadReportAllDataSpy,
@@ -39,10 +38,6 @@ describe('ApplicationReportVulnerabilitiesPage', function() {
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ApplicationReportVulnerabilitiesPage, minimalProps);
-  });
-
-  it('wraps everything in a MaximizedContainer', function() {
-    expect(getShallowComponent()).toMatchSelector(MaximizedContainer);
   });
 
   it('renders a BackButton with the applicationReport.policy state name and the provided $state object, ', function() {

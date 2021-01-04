@@ -7,9 +7,6 @@
 import CommonServicesModule from './CommonServices';
 import escapeHtmlString from './escapeHtmlString';
 
-export let maximizeHeightServiceInstance;
-
-export const MAXIMIZE_HEIGHT_TIMEOUT = 20;
 export const UPDATE_DIMENSIONS_TIMEOUT = 100;
 
 var angularCommon = angular.module('AngularCommon',
@@ -672,133 +669,6 @@ angularCommon.directive('threatClass', function() {
   };
 });
 
-angularCommon.service('maximizeHeightService', ['$timeout', '$window', '$rootScope', 'stable.body.service',
-  function ($timeout, $window, $rootScope, StableBodyService) {
-    const maximizeHeightService = {
-      maximizeHeight(element) {
-        var timerId;
-
-        // This directive can optionally be provided an argument that is taken as an initial height value to be
-        // applied immediately (as opposed to after the page settles down).  This can help avoid certain race
-        // conditions
-        const initialHeight = element.attr('maximize-container-height');
-
-        function debounce() {
-          if (timerId) {
-            $timeout.cancel(timerId);
-          }
-          timerId = $timeout(function() {
-            var updateDimensionsTimerId = maximizeHeightService.updateDimensions(element, {
-              bottomPadding: 0,
-              checkBodyScroll: true,
-              minHeight: 0
-            });
-            timerId = updateDimensionsTimerId || timerId;
-          }, MAXIMIZE_HEIGHT_TIMEOUT);
-        }
-
-        $rootScope.$on('recalculateContainerHeights', debounce);
-
-        if (initialHeight) {
-          element.css('height', initialHeight);
-        }
-
-        $($window).resize(debounce);
-        StableBodyService.whenStable(debounce);
-        debounce();
-
-        return function() {
-          if (timerId) {
-            $timeout.cancel(timerId);
-          }
-          $($window).unbind('resize', debounce);
-        };
-      },
-
-      getOffset: function (element) {
-        return element.offset().top;
-      },
-      setDimensions: function (element, options) {
-        const { overflowY } = element[0].style;
-
-        options = angular.extend({
-          bottomPadding: 35,
-          checkBodyScroll: false,
-          minHeight: 400
-        }, options);
-
-        // first decrease to min height in order to pre-remove any possible container scrollbars which might cause
-        // narrowing and thus extra word-wrapping that can change the calculations
-        element[0].style.height = options.minHeight + 'px';
-        element[0].style.overflowY = 'hidden';
-
-        var windowHeight = ($window.innerHeight) ? $window.innerHeight : $(document.body).height(),
-            containerTop = this.getOffset(element) + parseInt(element.css('padding-top')),
-            bottomPadding = options.bottomPadding,
-            scrollWidth = options.checkBodyScroll ? (windowHeight - $('body')[0].clientHeight) : 0,
-            height = Math.max(options.minHeight, windowHeight - containerTop - bottomPadding - scrollWidth);
-
-        // use native CSS API to set height, not jquery, because jquery will only set the content-box height and we want
-        // to set the border-box height (NOTE: this assumes box-sizing: border-box is applied to element)
-        element[0].style.height = height + 'px';
-        element[0].style.overflowY = overflowY;
-
-      },
-      updateDimensions: function (element, options) {
-        var me = this;
-        if (element.is(':visible')) {
-          me.setDimensions(element, options);
-        }
-        // guard against infinitely checking an element that was removed from DOM
-        else if (document.body.contains(element[0])) {
-          return $timeout(function () {
-            me.updateDimensions(element, options);
-          }, UPDATE_DIMENSIONS_TIMEOUT);
-        }
-      }
-    };
-
-    return maximizeHeightService;
-  }
-]);
-
-angularCommon.directive('maximizeHeight', ['$timeout', '$window', 'maximizeHeightService',
-  function ($timeout, $window, maximizeHeightService) {
-    return function(scope, element) {
-      var timerId;
-
-      function debounce() {
-        if (timerId) {
-          $timeout.cancel(timerId);
-        }
-        timerId = $timeout(function() {
-          timerId = maximizeHeightService.updateDimensions(element) || timerId;
-        }, MAXIMIZE_HEIGHT_TIMEOUT);
-      }
-
-      scope.$on('$destroy', function() {
-        if (timerId) {
-          $timeout.cancel(timerId);
-        }
-        $($window).unbind('resize', debounce);
-      });
-
-      $timeout(debounce, UPDATE_DIMENSIONS_TIMEOUT);
-      $($window).resize(debounce);
-
-    };
-  }]);
-
-angularCommon.directive('maximizeContainerHeight', ['$timeout', '$window', 'maximizeHeightService',
-  function ($timeout, $window, maximizeHeightService) {
-    return function(scope, element) {
-      const teardown = maximizeHeightService.maximizeHeight(element);
-
-      scope.$on('$destroy', teardown);
-    };
-  }
-]);
-
 angularCommon.directive('entersubmit', function() {
   return {
     restrict: 'A',
@@ -816,9 +686,5 @@ angularCommon.directive('entersubmit', function() {
     }
   };
 });
-
-angularCommon.run(['$injector', function($injector) {
-  maximizeHeightServiceInstance = $injector.get('maximizeHeightService');
-}]);
 
 export default angularCommon;

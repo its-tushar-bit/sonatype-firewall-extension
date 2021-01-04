@@ -6,73 +6,35 @@
 
 @import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
 
-/*
-  #Layout
-*/
-html {
-  overflow-y: hidden; // prevents programmatic window scrolling
-}
-
 body {
-  background-color: $iq-main-background-color;
-  color: $iq-off-black;
-  display: block;
-  height: auto;
-  overflow-y: hidden; // we want to let the sidebar-container and body-container control the vertical scrolling
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  &:not(.nx-body) {
+    // styles for the other pages outside the main brain bundle
+    color: $iq-off-black;
+  }
 
-  &.iq-body { // for styles that shouldn't leak out of IQ to e.g. audit reports
-    min-width: $iq-page-width-min;
+  &.nx-body {
+    // override bootstrap
+    @include font-size($nx-font-size);
   }
 }
 
-.iq-main-view {
-  box-sizing: border-box;
-  margin: 0 auto;
-  max-width: $iq-page-width-max;
-  min-width: $iq-page-width-min;
+ui-view {
+  display: contents;
 }
 
-.iq-sidebar {
-  background-color: $iq-main-background-color;
-  box-sizing: border-box;
-  display: inline-block;
-  height: 100%;
-  overflow-x: hidden;
-  position: relative;
-  vertical-align: top;
-  white-space: normal;
-  width: $iq-sidebar-width;
-  z-index: $iq-sidebar-zindex;
+[authorization-wrapper] > div {
+  display: contents;
+}
 
-  // box and display properties to handle non-HTML tags like <owner-tree-view>
-  & > :first-child {
-    box-sizing: border-box;
-    display: block;
-    margin-top: 32px;
+// global errors
+.nx-page-content > .iq-alert {
+  align-self: flex-start;
+  margin-top: 86px;
+  width: 50%;
+  max-width: 400px;
+
+  &:first-child:last-child {
+    margin-left: auto;
+    margin-right: auto;
   }
-}
-
-.iq-body-container {
-  background-color: $iq-main-background-color;
-  box-sizing: border-box;
-  display: inline-block;
-  height: 100%;
-  overflow-x: hidden;
-  margin-top: $iq-spacing-xl;
-  vertical-align: top;
-  white-space: normal;
-  width: $iq-content-width;
-}
-
-.iq-body-container--single-pane {
-  width: 100%;
-}
-
-.maximized-container {
-  @include container-vertical;
 }

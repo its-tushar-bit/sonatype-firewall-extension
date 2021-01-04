@@ -3,20 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-vulnerability-search {
+system-notice-configuration, success-metrics-configuration, mail-config, proxy-config,
+automatic-applications-configuration, saml-configuration, automatic-source-control-configuration,
+advanced-search-config {
   display: contents;
-}
-
-.iq-vuln-lookup-tile {
-  @include container-vertical;
-
-  .nx-form:last-child {
-    .nx-form-row {
-      margin-bottom: 0;
-    }
-  }
-
-  .nx-tile-subsection:first-of-type {
-    margin-top: 0;
-  }
 }

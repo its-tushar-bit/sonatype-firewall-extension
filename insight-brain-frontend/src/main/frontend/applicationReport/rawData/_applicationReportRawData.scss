@@ -6,9 +6,17 @@
 $iq-cell-report-raw-data-security-code-width: 200px;
 $iq-cell-report-raw-data-cvss-width: 120px;
 
+application-report-raw-data {
+  display: contents;
+}
+
 #application-report-raw-data {
   .iq-spinner__wrapper {
     padding: 8px;
+  }
+
+  .iq-tile {
+    margin-bottom: 0;
   }
 }
 

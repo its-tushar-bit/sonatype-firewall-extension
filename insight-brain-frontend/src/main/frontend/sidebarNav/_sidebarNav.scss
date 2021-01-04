@@ -6,24 +6,20 @@
 @import "~@sonatype/react-shared-components/scss-shared/nx-variables";
 @import "~@sonatype/react-shared-components/scss-shared/nx-container-helpers";
 
+sidebar-view {
+  display: contents;
+}
+
 .nx-page-sidebar.nx-page-sidebar--nav-sidebar {
   //allow scrolling list to go all the way to the bottom
   padding-bottom: 0;
 
   > aside {
     @include container-vertical;
-
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    overflow: hidden;
   }
 }
 
 .nx-scrollable.nx-scrollable--nav-list {
-  flex: 1 auto;
-  max-height: none;
-
   .nx-list__subtext {
     margin-top: $nx-spacing-xs;
   }

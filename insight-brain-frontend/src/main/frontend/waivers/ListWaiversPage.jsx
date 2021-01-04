@@ -10,7 +10,6 @@ import { faPlus } from '@fortawesome/free-solid-svg-icons';
 
 import { NxBackButton, NxButton, NxFontAwesomeIcon, NxTooltip } from '@sonatype/react-shared-components';
 import LoadWrapper from '../react/LoadWrapper';
-import MaximizedContainer from '../react/MaximizedContainer';
 import ViolationExclamation from '../react/ViolationExclamation';
 import { extractViolationDetails } from '../util/violationDetailsUtil';
 import { violationDetailsPropTypes } from '../violation/ViolationDetailsTile';
@@ -68,82 +67,80 @@ export default function ListWaiversPage(props) {
   const policyClassnames = classnames('iq-threat-level', `iq-threat-level--${threatLevelCategory}`);
 
   return (
-    <MaximizedContainer id="list-waivers-page" className="nx-page-content">
-      <div className="nx-page-main list-waivers-page">
-        { waiverToDelete && <DeleteWaiverModalContainer/> }
-        <LoadWrapper loading={ loadingManageWaiversData || !violationDetails }
-                     error={ loadManageWaiversDataError }
-                     retryHandler={ load }>
-          <NxBackButton targetPageTitle="Violation Details" href={ violationDetailsHref } />
-          <div className="nx-page-title">
-            <h1 className="nx-h1">Waivers for Violation</h1>
-            <div className="list-waivers__threat-indicator">
-              { threatLevelCategory && <ViolationExclamation threatLevelCategory={ threatLevelCategory } /> }
-              <span className={ policyClassnames }>{ policyName }</span>
+    <div id="list-waivers-page" className="nx-page-main list-waivers-page">
+      { waiverToDelete && <DeleteWaiverModalContainer/> }
+      <LoadWrapper loading={ loadingManageWaiversData || !violationDetails }
+                   error={ loadManageWaiversDataError }
+                   retryHandler={ load }>
+        <NxBackButton targetPageTitle="Violation Details" href={ violationDetailsHref } />
+        <div className="nx-page-title">
+          <h1 className="nx-h1">Waivers for Violation</h1>
+          <div className="list-waivers__threat-indicator">
+            { threatLevelCategory && <ViolationExclamation threatLevelCategory={ threatLevelCategory } /> }
+            <span className={ policyClassnames }>{ policyName }</span>
+          </div>
+        </div>
+        <div className="nx-tile">
+          <div className="nx-tile-header nx-tile-header--hrule">
+            <h2 className="nx-h2">Violation Details</h2>
+          </div>
+          <div className="nx-tile-content">
+            <div className="nx-form-group iq-read-only">
+              <label className="nx-label">
+                <span className="nx-label__text">Constraint Name</span>
+              </label>
+              <div id="list-waivers-constraint-name" className="iq-read-only-data">{ constraintName }</div>
+            </div>
+            <div className="nx-form-group iq-read-only">
+              <label className="nx-label">
+                <span className="nx-label__text">Conditions</span>
+              </label>
+              <div id="list-waivers-conditions" className="iq-read-only-data iq-read-only-data--vertical">
+                {reasons && reasons.map((reason, index) =>
+                  <span key={index}>{reason}</span>
+                )}
+              </div>
+            </div>
+            <div className="nx-form-group iq-read-only">
+              <label className="nx-label">
+                <span className="nx-label__text">Component Name</span>
+              </label>
+              <div id="list-waivers-component-name" className="iq-read-only-data">{ componentName }</div>
             </div>
           </div>
-          <div className="nx-tile">
-            <div className="nx-tile-header nx-tile-header--hrule">
-              <h2 className="nx-h2">Violation Details</h2>
+        </div>
+        <div className="nx-tile">
+          <div className="nx-tile-header">
+            <div className="nx-tile-header__title">
+              <h2 className="nx-h2">Applicable Waivers</h2>
             </div>
-            <div className="nx-tile-content">
-              <div className="nx-form-group iq-read-only">
-                <label className="nx-label">
-                  <span className="nx-label__text">Constraint Name</span>
-                </label>
-                <div id="list-waivers-constraint-name" className="iq-read-only-data">{ constraintName }</div>
-              </div>
-              <div className="nx-form-group iq-read-only">
-                <label className="nx-label">
-                  <span className="nx-label__text">Conditions</span>
-                </label>
-                <div id="list-waivers-conditions" className="iq-read-only-data iq-read-only-data--vertical">
-                  {reasons && reasons.map((reason, index) =>
-                    <span key={index}>{reason}</span>
-                  )}
-                </div>
-              </div>
-              <div className="nx-form-group iq-read-only">
-                <label className="nx-label">
-                  <span className="nx-label__text">Component Name</span>
-                </label>
-                <div id="list-waivers-component-name" className="iq-read-only-data">{ componentName }</div>
-              </div>
+            <div className="nx-tile__actions">
+              <NxTooltip id="add-waiver-btn-tooltip"
+                         title={ hasPermissionForAppWaivers ? '' : 'Insufficient permissions to Add Waiver' }>
+                <NxButton className={ classnames({disabled: !hasPermissionForAppWaivers}) }
+                          variant="tertiary"
+                          onClick={ redirectToAddWaiverPage }
+                          id="add-waiver-btn">
+                  <NxFontAwesomeIcon icon={ faPlus }/>
+                  <span>Add Waiver</span>
+                </NxButton>
+              </NxTooltip>
             </div>
           </div>
-          <div className="nx-tile">
-            <div className="nx-tile-header">
-              <div className="nx-tile-header__title">
-                <h2 className="nx-h2">Applicable Waivers</h2>
-              </div>
-              <div className="nx-tile__actions">
-                <NxTooltip id="add-waiver-btn-tooltip"
-                           title={ hasPermissionForAppWaivers ? '' : 'Insufficient permissions to Add Waiver' }>
-                  <NxButton className={ classnames({disabled: !hasPermissionForAppWaivers}) }
-                            variant="tertiary"
-                            onClick={ redirectToAddWaiverPage }
-                            id="add-waiver-btn">
-                    <NxFontAwesomeIcon icon={ faPlus }/>
-                    <span>Add Waiver</span>
-                  </NxButton>
-                </NxTooltip>
-              </div>
-            </div>
-            <div className="nx-tile-content">
-              <ListWaiversTable { ...({
-                activeWaivers,
-                expiredWaivers,
-                violationDetails,
-                setWaiverToDelete,
-                loadingApplicableWaivers,
-                loadApplicableWaiversError,
-                reloadApplicableWaivers
-              }) }/>
-            </div>
+          <div className="nx-tile-content">
+            <ListWaiversTable { ...({
+              activeWaivers,
+              expiredWaivers,
+              violationDetails,
+              setWaiverToDelete,
+              loadingApplicableWaivers,
+              loadApplicableWaiversError,
+              reloadApplicableWaivers
+            }) }/>
           </div>
-        </LoadWrapper>
-      </div>
-    </MaximizedContainer>
+        </div>
+      </LoadWrapper>
+    </div>
   );
 }
 

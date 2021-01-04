@@ -1,4 +1,7 @@
-<div class="iq-tile-container" load-wrapper="vm.loadError" reload="vm.reload()" loading="vm.loading">
+<div class="iq-tile-container nx-viewport-sized__container"
+     load-wrapper="vm.loadError"
+     reload="vm.reload()"
+     loading="vm.loading">
   <div ng-if="!vm.policyTypeFilterEnabled"
        id="application-report-policy-type-filter-warning"
        class="iq-alert iq-alert--error">
@@ -97,10 +100,9 @@
       </div>
     </div>
   </div>
-  <div class="iq-tile iq-tile--application-report">
-    <div class="iq-tile-content iq-tile-content--fixed-table">
-      <div class="iq-scrollable iq-scrollable--fixed-table"
-           maximize-container-height
+  <div class="iq-tile iq-tile--application-report nx-viewport-sized__container">
+    <div class="iq-tile-content iq-tile-content--fixed-table nx-viewport-sized__container">
+      <div class="iq-scrollable iq-scrollable--fixed-table nx-viewport-sized__scrollable"
            detect-scrollbar="vm.renderedEntries">
         <table class="iq-table iq-table--fixed iq-table--application-report">
           <thead class="iq-table--fixed__header">

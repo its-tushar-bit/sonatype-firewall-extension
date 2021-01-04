@@ -3,8 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect } from 'react';
-import MaximizedContainer from '../../react/MaximizedContainer';
+import React, { Fragment, useEffect } from 'react';
 import ReportStatusBar from './ReportStatusBar';
 import ReportContent from './ReportContent';
 import ReportFilters from './ReportFilters';
@@ -49,7 +48,7 @@ export default function ReportPage(props) {
   }, [publicId, scanId]);
 
   return (
-    <MaximizedContainer id="app-react-report" className="nx-page-content">
+    <Fragment>
       <ReportFilters {...({
         $state,
         setAggregateReportEntries,
@@ -74,7 +73,7 @@ export default function ReportPage(props) {
                          setSortingParameters={setSortingParameters}/>
         </LoadWrapper>
       </main>
-    </MaximizedContainer>
+    </Fragment>
   );
 }
 

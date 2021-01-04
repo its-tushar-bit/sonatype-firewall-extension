@@ -8,7 +8,7 @@ import * as PropTypes from 'prop-types';
 import { NxThreatIndicator } from '@sonatype/react-shared-components';
 import classnames from 'classnames';
 
-import { MAXIMIZE_HEIGHT_TIMEOUT, UPDATE_DIMENSIONS_TIMEOUT } from '../util/AngularCommon';
+import { UPDATE_DIMENSIONS_TIMEOUT } from '../util/AngularCommon';
 import { getArtifactName } from '../util/componentNameUtils';
 
 export default function SidebarNavViolationList(props) {
@@ -19,8 +19,7 @@ export default function SidebarNavViolationList(props) {
     scrollToSelection
   } = props;
 
-  // wait time should be bigger than whatever MaximizedContainer takes
-  const SCROLL_TIMEOUT = MAXIMIZE_HEIGHT_TIMEOUT + UPDATE_DIMENSIONS_TIMEOUT + 100;
+  const SCROLL_TIMEOUT = UPDATE_DIMENSIONS_TIMEOUT + 100;
 
   // Have to access `useRef` and `useEffect` through the React object due to testing limitations
   const selectedElementRef = React.useRef(null);

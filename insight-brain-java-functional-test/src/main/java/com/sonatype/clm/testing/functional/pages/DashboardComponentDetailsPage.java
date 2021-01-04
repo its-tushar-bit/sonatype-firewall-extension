@@ -28,7 +28,7 @@ public class DashboardComponentDetailsPage
   }
 
   public SelenideElement totalRisk() {
-    return $("#total-risk + h2");
+    return $("#total-risk");
   }
 
   public ApplicationRow getApplicationRow(int index) {

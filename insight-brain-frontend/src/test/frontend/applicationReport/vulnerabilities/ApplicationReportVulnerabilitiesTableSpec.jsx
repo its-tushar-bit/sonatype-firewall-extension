@@ -40,7 +40,7 @@ describe('ApplicationReportVulnerabilitiesTable', function() {
   it('renders an nx-tile-content containing a scrollable NxTable', function() {
     expect(getShallowComponent()).toMatchSelector('.nx-tile-content');
     expect(getShallowComponent().children()).toHaveClassName('nx-scrollable');
-    expect(getShallowComponent().children()).toHaveClassName('nx-scrollable--table-container');
+    expect(getShallowComponent().children()).toHaveClassName('nx-table-container');
     expect(getShallowComponent().children().children()).toMatchSelector(NxTable);
   });
 

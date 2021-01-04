@@ -5,7 +5,6 @@
  */
 import React, {useEffect, Fragment, useState} from 'react';
 
-import MaximizedContainer from '../../react/MaximizedContainer';
 import * as PropTypes from 'prop-types';
 import {NxBackButton, NxFontAwesomeIcon, NxTextInput} from '@sonatype/react-shared-components';
 import LoadWrapper from '../../react/LoadWrapper';
@@ -140,92 +139,90 @@ export default function ScmOnboarding(props) {
   }
 
   return (
-    <MaximizedContainer id="scm-onboarding-container" className="nx-page-content">
-      <main className="nx-page-main">
-        <NxBackButton
-            href={$state.href($state.get('management.view.organization'),
-                {organizationId: preselectedOrganizationId})}
-            targetPageTitle={$state.get('management.view.organization').data.title} />
-        {!error &&
-          <Fragment>
-            <div className="nx-page-title iq-scmonboarding-title">
-              { selectedOrganization &&
-              <h1 className="nx-h1">
-                <span>Import Applications to</span>
-                <NxFontAwesomeIcon icon={faSitemap}/>
-                <span>{selectedOrganization.name}</span>
-              </h1>
-              }
-              <div className="nx-page-title__description">
-                <p className="nx-p">Use the filters and checkboxes to select repositories to import</p>
-              </div>
-              {isSuccessMessageOpen &&
-              <NxSuccessAlert onClose={dismissSuccessMessage}>
-                {newlyImportedRepos.length} repositories were successfully imported to IQ Server as applications under
-                the {selectedOrganization.name} Organization.
-              </NxSuccessAlert>
-              }
-              {isFormInfoOpen &&
-              <NxInfoAlert onClose={dismissFormInfo}>
-                {newlyImportedRepos.length} repositories were successfully imported to IQ Server as applications under
-                the {selectedOrganization.name} Organization.<br/>
-                {failedImportCount} repositories failed to import.
-              </NxInfoAlert>
-              }
-              {isFormErrorOpen &&
-              <NxErrorAlert onClose={dismissFormError}>
-                {failedImportCount} repositories failed to import.
-              </NxErrorAlert>
-              }
+    <main id="scm-onboarding-container" className="nx-page-main">
+      <NxBackButton
+          href={$state.href($state.get('management.view.organization'),
+              {organizationId: preselectedOrganizationId})}
+          targetPageTitle={$state.get('management.view.organization').data.title} />
+      {!error &&
+        <Fragment>
+          <div className="nx-page-title iq-scmonboarding-title">
+            { selectedOrganization &&
+            <h1 className="nx-h1">
+              <span>Import Applications to</span>
+              <NxFontAwesomeIcon icon={faSitemap}/>
+              <span>{selectedOrganization.name}</span>
+            </h1>
+            }
+            <div className="nx-page-title__description">
+              <p className="nx-p">Use the filters and checkboxes to select repositories to import</p>
             </div>
-            <section className="nx-tile host-url-tile">
-              <form className="nx-form">
-                <div className='nx-tile-content'>
-                  <div className="nx-form-row">
-                    <div className="nx-form-group">
-                      <label className="nx-label">
-                        <span className="nx-label__text">Host URL</span>
-                        <NxTextInput id="iq-scm-default-host-field"
-                                     { ...currentHostUrlState }
-                                     onChange={validateAndSetCurrentHostUrl}
-                                     validatable={true}
-                                     placeholder={defaultHostUrl}/>
-                      </label>
-                    </div>
-                    <div className="nx-btn-bar">
-                      <NxButton
-                          id="iq-scm-load-button"
-                          variant="primary"
-                          disabled={loadingRepositories || hasValidationErrors(currentHostUrlState.validationErrors) }
-                          onClick={handleLoadRepositories}>
-                        Reload Repositories
-                      </NxButton>
-                    </div>
+            {isSuccessMessageOpen &&
+            <NxSuccessAlert onClose={dismissSuccessMessage}>
+              {newlyImportedRepos.length} repositories were successfully imported to IQ Server as applications under
+              the {selectedOrganization.name} Organization.
+            </NxSuccessAlert>
+            }
+            {isFormInfoOpen &&
+            <NxInfoAlert onClose={dismissFormInfo}>
+              {newlyImportedRepos.length} repositories were successfully imported to IQ Server as applications under
+              the {selectedOrganization.name} Organization.<br/>
+              {failedImportCount} repositories failed to import.
+            </NxInfoAlert>
+            }
+            {isFormErrorOpen &&
+            <NxErrorAlert onClose={dismissFormError}>
+              {failedImportCount} repositories failed to import.
+            </NxErrorAlert>
+            }
+          </div>
+          <section className="nx-tile host-url-tile">
+            <form className="nx-form">
+              <div className='nx-tile-content'>
+                <div className="nx-form-row">
+                  <div className="nx-form-group">
+                    <label className="nx-label">
+                      <span className="nx-label__text">Host URL</span>
+                      <NxTextInput id="iq-scm-default-host-field"
+                                   { ...currentHostUrlState }
+                                   onChange={validateAndSetCurrentHostUrl}
+                                   validatable={true}
+                                   placeholder={defaultHostUrl}/>
+                    </label>
+                  </div>
+                  <div className="nx-btn-bar">
+                    <NxButton
+                        id="iq-scm-load-button"
+                        variant="primary"
+                        disabled={loadingRepositories || hasValidationErrors(currentHostUrlState.validationErrors) }
+                        onClick={handleLoadRepositories}>
+                      Reload Repositories
+                    </NxButton>
                   </div>
                 </div>
-              </form>
-            </section>
-          </Fragment>
-        }
-        <section className="nx-tile">
-          <LoadWrapper loading={loadingConfig} error={error} retryHandler={load}>
-            <ResultsTable { ...{
-              repositories,
-              loadingRepositories,
-              selectedRepositoryCount,
-              totalRepositories,
-              onRepositorySelectionChanged,
-              importSelectedRepositories,
-              loadRepositories,
-              preselectedOrganizationId,
-              sortConfiguration,
-              setSorting,
-              setSortingParameters
-            }} />
-          </LoadWrapper>
-        </section>
-      </main>
-    </MaximizedContainer>
+              </div>
+            </form>
+          </section>
+        </Fragment>
+      }
+      <section className="nx-tile">
+        <LoadWrapper loading={loadingConfig} error={error} retryHandler={load}>
+          <ResultsTable { ...{
+            repositories,
+            loadingRepositories,
+            selectedRepositoryCount,
+            totalRepositories,
+            onRepositorySelectionChanged,
+            importSelectedRepositories,
+            loadRepositories,
+            preselectedOrganizationId,
+            sortConfiguration,
+            setSorting,
+            setSortingParameters
+          }} />
+        </LoadWrapper>
+      </section>
+    </main>
   );
 }
 

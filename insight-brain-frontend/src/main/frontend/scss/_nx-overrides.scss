@@ -6,12 +6,6 @@
 @import '~@sonatype/react-shared-components/scss-shared/nx-variables';
 
 // Tweaks necessary to get RSC nx-* classes to work within iq-* containers
-.iq-body-container {
-  .nx-loading-spinner {
-    padding: $nx-spacing-xs;
-  }
-}
-
 .iq-scrollable {
   .nx-table:first-child {
     margin-top: 0;
@@ -51,15 +45,4 @@
 .nx-page-title__page-icon.fa {
   margin: 0 8px;
   vertical-align: baseline;
-}
-
-@media (max-width: 1366px) {
-  .iq-dashboard-summary {
-    .nx-page-title.iq-page-title {
-      margin-right: 0;
-    }
-    .iq-page-title__actions {
-      margin-right: 0;
-    }
-  }
 }

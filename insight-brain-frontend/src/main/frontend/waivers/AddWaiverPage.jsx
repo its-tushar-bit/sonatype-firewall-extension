@@ -7,7 +7,6 @@ import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { NxSubmitMask } from '@sonatype/react-shared-components';
 
-import MaximizedContainer from '../react/MaximizedContainer';
 import LoadWrapper from '../react/LoadWrapper';
 import { violationDetailsPropTypes } from '../violation/ViolationDetailsTile';
 import { constraintViolationsPropType } from '../violation/PolicyViolationConstraintInfoTile';
@@ -72,29 +71,27 @@ export default function AddWaiverPage(props) {
   };
 
   return (
-    <MaximizedContainer id="add-waiver-page" className="nx-page-content">
-      <main className="nx-page-main">
-        <div className="nx-page-title">
-          <h1 className="nx-h1">Add Waiver</h1>
-        </div>
+    <main id="add-waiver-page" className="nx-page-main">
+      <div className="nx-page-title">
+        <h1 className="nx-h1">Add Waiver</h1>
+      </div>
 
-        <section className="nx-tile">
-          { submitMaskState !== null &&
-            <NxSubmitMask success={ submitMaskState }
-                          message="Creating waiver…"
-                          successMessage="Success!" />
+      <section className="nx-tile">
+        { submitMaskState !== null &&
+          <NxSubmitMask success={ submitMaskState }
+                        message="Creating waiver…"
+                        successMessage="Success!" />
+        }
+
+        <LoadWrapper loading={ loading || !violationDetails || !availableWaiverScopes }
+                     error={loadError}
+                     retryHandler={load}>
+          {() =>
+            <AddWaiverForm {...getFormProps()} />
           }
-
-          <LoadWrapper loading={ loading || !violationDetails || !availableWaiverScopes }
-                       error={loadError}
-                       retryHandler={load}>
-            {() =>
-              <AddWaiverForm {...getFormProps()} />
-            }
-          </LoadWrapper>
-        </section>
-      </main>
-    </MaximizedContainer>
+        </LoadWrapper>
+      </section>
+    </main>
   );
 }
 

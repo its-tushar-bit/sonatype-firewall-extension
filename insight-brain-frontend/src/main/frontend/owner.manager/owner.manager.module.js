@@ -178,11 +178,12 @@ angular.module('owner.manager.module',
           }
         }).state('management.edit', {
           abstract: true,
-          template: '<div ui-view maximize-container-height></div>'
+          template: '<div ui-view></div>'
         }).state('management.view.repositories', {
           url: '/repositories',
           data: {
-            title: 'Repositories Management'
+            title: 'Repositories Management',
+            viewportSized: true
           },
           views: {
             '@management': {
@@ -223,7 +224,8 @@ angular.module('owner.manager.module',
           $stateProvider.state('management.view.' + ownerType.type, {
             url: '/' + ownerType.type + '/{' + ownerType.id + '}',
             data: {
-              title: ownerType.name + ' Management'
+              title: ownerType.name + ' Management',
+              viewportSized: true
             },
             views: {
               '@management': {
@@ -267,11 +269,10 @@ angular.module('owner.manager.module',
           }).state('management.edit.' + ownerType.type + '.policy', {
             url: '/policy/{policyId}',
             data: {
-              title: ownerType.name + ' Policy'
+              title: ownerType.name + ' Policy',
+              viewportSized: true
             },
             views: {
-              // do not attach to @management.edit because policy.editor.view has its own maximize-container-height
-              // directive
               '@management': {
                 controller: 'policy.editor.controller',
                 controllerAs: 'vm',
@@ -284,8 +285,6 @@ angular.module('owner.manager.module',
               title: ownerType.name + ' Policy'
             },
             views: {
-              // do not attach to @management.edit because policy.editor.view has its own maximize-container-height
-              // directive
               '@management': {
                 controller: 'policy.editor.controller',
                 controllerAs: 'vm',

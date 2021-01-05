@@ -240,6 +240,10 @@ export function getLicenseLegalComponentUrl(orgOrApp, ownerId, hash) {
   return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component?hash=${hash}`;
 }
 
+export function getLegalDashboardApplicationsUrl() {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/dashboard/applications`;
+}
+
 export default
 angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl', '$window', function(baseUrl, $window) {

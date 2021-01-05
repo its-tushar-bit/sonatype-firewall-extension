@@ -5,6 +5,15 @@
  */
 import * as PropTypes from 'prop-types';
 
+export const applicationPropType = PropTypes.shape({
+  applicationId: PropTypes.string.isRequired,
+  applicationName: PropTypes.string.isRequired,
+  lastScanTime: PropTypes.number.isRequired,
+  applicationTagNames: PropTypes.arrayOf(PropTypes.string).isRequired,
+  reviewCompletedCount: PropTypes.number.isRequired,
+  reviewTotalCount: PropTypes.number.isRequired
+});
+
 export const componentPropType = PropTypes.shape({
   displayName: PropTypes.string.isRequired,
   licenseLegalData: PropTypes.shape({

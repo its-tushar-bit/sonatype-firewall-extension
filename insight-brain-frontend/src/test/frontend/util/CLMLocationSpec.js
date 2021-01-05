@@ -215,4 +215,9 @@ describe('CLMLocation.js', function() {
     expect(CLMLocation.getLicenseLegalComponentUrl('orgOrApp', 'ownerId', 'hash'))
         .toBe('/api/experimental/licenseLegalMetadata/orgOrApp/ownerId/component?hash=hash');
   });
+
+  it('should return the legal dashboard applicationsUrl url', function() {
+    expect(CLMLocation.getLegalDashboardApplicationsUrl())
+        .toBe('/api/experimental/licenseLegalMetadata/dashboard/applications');
+  });
 });

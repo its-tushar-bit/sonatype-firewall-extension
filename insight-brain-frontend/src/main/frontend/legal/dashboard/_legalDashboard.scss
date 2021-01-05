@@ -1,0 +1,37 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
+
+legal-dashboard {
+  display: contents
+}
+
+.legal-dashboard-table {
+  .nx-cell {
+    vertical-align: middle;
+  }
+
+  .nx-binary-donut-chart {
+    vertical-align: middle;
+  }
+}
+
+.legal-dashboard-applications-application-name,
+.legal-dashboard-components-component-name {
+  max-width: 250px;
+}
+
+.legal-dashboard-applications-category,
+.legal-dashboard-components-licenses {
+  max-width: 150px;
+}
+
+.legal-dashboard-applications-review-progress > span,
+.legal-dashboard-components-review-progress > span {
+  margin-left: $nx-spacing-xs;
+  vertical-align: middle;
+}

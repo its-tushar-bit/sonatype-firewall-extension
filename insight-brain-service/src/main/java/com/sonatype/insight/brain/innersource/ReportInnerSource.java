@@ -203,17 +203,14 @@ public final class ReportInnerSource
     InnerSourceComponent innerSourceComponent =
         innerSourceComponentDAO.getByPackageUrl(PackageUrlIdentifier.fromComponentIdentifier(simplifiedComponent));
 
-    // If the associated app for the InnerSource component and the current app in context is the same
-    // it does not need to be identified as InnerSource as it belongs to the app of the current report
-    if (innerSourceComponent != null &&
-        !Objects.equals(currentApplication.getId(), innerSourceComponent.getApplicationId())) {
+    if (innerSourceComponent != null) {
       Application innerSourceApp = applicationDAO.getByIdNotNull(innerSourceComponent.getApplicationId());
 
-      boolean dependencyUpdated =
-          updateDependencyBomAsInnerSource(bom, parentComponent, innerSourceApp, knownArtifactCount,
+      boolean isInnerSourceDependency =
+          updateDependencyBomAsInnerSource(bom, parentComponent, innerSourceApp, currentApplication, knownArtifactCount,
               exactlyMatchedComponentCount);
 
-      if (dependencyUpdated) {
+      if (isInnerSourceDependency) {
         innerSourceAppIds.add(innerSourceApp.getId());
 
         List<DependencyNode> childrenComponents = getAllTransitiveDependencies(directDependency.getChildren());
@@ -252,35 +249,46 @@ public final class ReportInnerSource
 
   private static boolean updateDependencyBomAsInnerSource(
       final JsonNode bom,
-      final ComponentIdentifier innerSourceComponent,
+      final ComponentIdentifier innerSourceComponentIdentifier,
       final Application innerSourceApp,
+      final Application currentApplication,
       final AtomicInteger knownArtifactCount,
       final AtomicInteger exactlyMatchedComponentCount)
   {
+    boolean isInnerSourceDependency = false;
+
     for (JsonNode bomChild : bom.get("aaData")) {
       ComponentIdentifier bomComponentIdentifier = getBomComponentIdentifier(bomChild);
 
-      if (Objects.equals(bomComponentIdentifier, innerSourceComponent)) {
+      if (Objects.equals(bomComponentIdentifier, innerSourceComponentIdentifier)) {
         //If the component is direct and exists as InnerSource, it needs to be updated as such
         ObjectNode bomObjectNode = (ObjectNode) bomChild;
-        String innerSourceComponentName = getComponentName(innerSourceComponent);
-        InnerSourceData innerSourceData =
-            new InnerSourceData(innerSourceApp.getName(), innerSourceApp.getId(), innerSourceComponentName, true);
-        bomObjectNode.set("innerSourceData", JsonUtils.asTree(innerSourceData));
+
+        // If the associated app for the InnerSource component and the current app in context is the same
+        // it does not need to be identified as InnerSource as it belongs to the app of the current report,
+        // but it can be marked as a known component
+        if (!Objects.equals(currentApplication.getId(), innerSourceApp.getId())) {
+          String innerSourceComponentName = getComponentName(innerSourceComponentIdentifier);
+          InnerSourceData innerSourceData =
+              new InnerSourceData(innerSourceApp.getName(), innerSourceApp.getId(), innerSourceComponentName, true);
+          bomObjectNode.set("innerSourceData", JsonUtils.asTree(innerSourceData));
+          isInnerSourceDependency = true;
+        }
 
         if (MatchState.UNKNOWN.getId().equals(bomChild.get(MATCH_STATE).asText())) {
-          markInnerSourceComponentAsKnown(bomObjectNode, bomComponentIdentifier, knownArtifactCount,
-              exactlyMatchedComponentCount);
+          markComponentAsKnown(bomObjectNode, bomComponentIdentifier, knownArtifactCount, exactlyMatchedComponentCount);
         }
-        log.debug("InnerSource component '{}' was updated in bom.json as Direct Dependency", bomComponentIdentifier);
-        return true;
+
+        log.debug(isInnerSourceDependency ? "InnerSource component" : "Component" +
+            "'{}' was updated in bom.json as a known component", bomComponentIdentifier);
+
+        return isInnerSourceDependency;
       }
     }
-
     return false;
   }
 
-  private static void markInnerSourceComponentAsKnown(
+  private static void markComponentAsKnown(
       final ObjectNode bomObjectNode,
       final ComponentIdentifier componentIdentifier,
       final AtomicInteger knownArtifactCount,
@@ -362,7 +370,7 @@ public final class ReportInnerSource
     if (is != null) {
       //If the component is transitive and exists as InnerSource, it needs to be updated so it can be marked as
       //Transitive dependency but not as InnerSource
-      markInnerSourceComponentAsKnown(bomObjectNode, bomComponentIdentifier, knownArtifactCount,
+      markComponentAsKnown(bomObjectNode, bomComponentIdentifier, knownArtifactCount,
           exactlyMatchedComponentCount);
       log.debug("InnerSource module {} was updated in bom.json as Transitive InnerSource",
           bomComponentIdentifier);

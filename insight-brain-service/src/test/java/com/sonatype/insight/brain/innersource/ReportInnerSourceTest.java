@@ -7,11 +7,13 @@ package com.sonatype.insight.brain.innersource;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.AnalysisSource;
 import com.sonatype.clm.dto.model.component.AnalysisType;
@@ -163,6 +165,17 @@ public class ReportInnerSourceTest extends InjectedTest
     InnerSourceComponent innerSourceComponent = tempEntity
         .newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing", appInnerSource);
 
+    ComponentIdentifier knownModule1 = ComponentIdentifier
+            .createMavenCoordinates("com.sonatype.insight.scan", "insight-test-reverse-proxy", "2.23.5-SNAPSHOT", "",
+                "jar");
+    ComponentIdentifier knownModule2 = ComponentIdentifier
+            .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-model", "2.23.5-SNAPSHOT", "", "jar");
+    ComponentIdentifier knownModule3 = ComponentIdentifier
+            .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-model-io", "2.23.5-SNAPSHOT", "",
+                "jar");
+    ComponentIdentifier knownModule4 = ComponentIdentifier
+            .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-core", "2.23.5-SNAPSHOT", "", "jar");
+
     ObjectMapper objectMapper = new ObjectMapper();
 
     JsonNode dependenciesJson = objectMapper
@@ -181,9 +194,12 @@ public class ReportInnerSourceTest extends InjectedTest
 
     List<JsonNode> bomInnerSourceParent = new ArrayList<>();
     List<JsonNode> bomInnerSourceDependencies = new ArrayList<>();
+    List<JsonNode> knownDependencies = new ArrayList<>();
     assertThat(innerSourceComponents).extracting(InnerSourceComponent::getApplicationId).containsOnly(app.getId());
-    assertInnerSourceInformation(bomJson, 1, 2, bomInnerSourceParent, bomInnerSourceDependencies);
-    assertSummaryCounters(summaryJson, dataJson, 15);
+    assertInnerSourceInformation(bomJson, 1, 2, bomInnerSourceParent, bomInnerSourceDependencies, knownDependencies);
+    assertSummaryCounters(summaryJson, dataJson, 19);
+
+    assertKnownComponents(knownDependencies, Arrays.asList(knownModule1, knownModule2, knownModule3, knownModule4));
 
     ComponentIdentifier innerSourceParent = ComponentIdentifier
         .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-hashing", "1.12.0-01", "", "jar");
@@ -314,12 +330,34 @@ public class ReportInnerSourceTest extends InjectedTest
     assertTelemetryInformation(app.getId(), innerSourceIds);
   }
 
+  public void assertKnownComponents(
+      List<JsonNode> knownDependencies,
+      List<ComponentIdentifier> expectedKnownComponents)
+  {
+    List<ComponentIdentifier> knownComponents =
+        knownDependencies.stream().map(bom -> ComponentIdentifierAdapter.getComponentIdentifier(bom)).collect(
+            Collectors.toList());
+    assertThat(knownComponents).containsAll(expectedKnownComponents);
+  }
+
   private void assertInnerSourceInformation(
       final JsonNode bomJson,
       int expectedISComponents,
       int expectedISDependencies,
       List<JsonNode> bomInnerSourceParent,
       List<JsonNode> bomInnerSourceDependencies)
+  {
+    assertInnerSourceInformation(bomJson, expectedISComponents, expectedISDependencies, bomInnerSourceParent,
+        bomInnerSourceDependencies, null);
+  }
+
+  private void assertInnerSourceInformation(
+      final JsonNode bomJson,
+      int expectedISComponents,
+      int expectedISDependencies,
+      List<JsonNode> bomInnerSourceParent,
+      List<JsonNode> bomInnerSourceDependencies,
+      List<JsonNode> knownDependencies)
   {
     if (bomInnerSourceParent == null) {
       bomInnerSourceParent = new ArrayList<>();
@@ -337,6 +375,12 @@ public class ReportInnerSourceTest extends InjectedTest
         }
         else {
           bomInnerSourceDependencies.add(bomChild);
+        }
+      }
+      else {
+        JsonNode matchState = bomChild.get("matchState");
+        if (knownDependencies != null && MatchState.getById(matchState.asText()) == MatchState.EXACT) {
+          knownDependencies.add(bomChild);
         }
       }
     }

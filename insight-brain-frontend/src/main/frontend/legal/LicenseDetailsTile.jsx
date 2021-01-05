@@ -4,11 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { componentPropType } from './advancedLegalPropTypes';
+import * as PropTypes from 'prop-types';
 
 export default function LicenseDetailsTile(props) {
   const {
-    component
+    licenseNames
   } = props;
 
   return (
@@ -23,7 +23,7 @@ export default function LicenseDetailsTile(props) {
       </header>
       <div className="nx-tile-content">
         <ul className="nx-list">
-          { component.licenseLegalData.effectiveLicenses.map(createItem) }
+          { licenseNames.map(createItem) }
         </ul>
       </div>
     </section>
@@ -41,5 +41,5 @@ const createItem = (license, index) => {
 };
 
 LicenseDetailsTile.propTypes = {
-  component: componentPropType
+  licenseNames: PropTypes.arrayOf(PropTypes.string.isRequired)
 };

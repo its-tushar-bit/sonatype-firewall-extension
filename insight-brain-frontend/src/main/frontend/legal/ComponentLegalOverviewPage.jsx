@@ -15,7 +15,7 @@ import NoticeTextsTile from './NoticeTextsTile';
 import LicenseTextsTile from './LicenseTextsTile';
 import LoadWrapper from '../react/LoadWrapper';
 import { componentPropType, licenseLegalMetadataPropType } from './advancedLegalPropTypes';
-import { chain, groupBy, map, pipe, prop, toPairs, values } from 'ramda';
+import { chain, find, flip, groupBy, map, pipe, prop, propEq, toPairs, values, reject } from 'ramda';
 
 export default function ComponentLegalOverviewPage(props) {
   const {
@@ -53,7 +53,13 @@ export default function ComponentLegalOverviewPage(props) {
       groupObligationsByLicense
   );
 
-  const licenseObligations = getLicenseObligationsByName(values(licenseLegalMetadata));
+  const licenseObligations = licenseLegalMetadata && getLicenseObligationsByName(
+      reject(licenseLegalMetadata => !licenseLegalMetadata.obligations, values(licenseLegalMetadata)));
+
+  const getLicenseNames = effectiveLicenses => map(
+      pipe(propEq('licenseId'), flip(find)(licenseLegalMetadata), prop('licenseName')), effectiveLicenses);
+
+  const licenseNames = component && getLicenseNames(component.licenseLegalData.effectiveLicenses);
 
   return (
     <main className="nx-page-main">
@@ -71,11 +77,12 @@ export default function ComponentLegalOverviewPage(props) {
           </div>
         </div>
         <div id="component-legal-overview-details">
-          <ComponentOverviewTile component={ component } obligationCount={ licenseObligations.length }
+          <ComponentOverviewTile obligationCount={ licenseObligations && licenseObligations.length }
+                                 licenseNames={ licenseNames }
           />
           <LicenseObligationsTile licenseObligations={ licenseObligations } />
           <div id="component-legal-overview-details-right">
-            <LicenseDetailsTile component={ component }/>
+            <LicenseDetailsTile licenseNames={ licenseNames }/>
             <CopyrightStatementsTile component={ component }/>
             <NoticeTextsTile component={ component }/>
             <LicenseTextsTile component={ component }/>

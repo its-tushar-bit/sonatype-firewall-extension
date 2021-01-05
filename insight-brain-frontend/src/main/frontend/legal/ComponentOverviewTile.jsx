@@ -4,13 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { componentPropType, licenseLegalMetadataPropType } from './advancedLegalPropTypes';
 import * as PropTypes from 'prop-types';
 
 export default function ComponentOverviewTile(props) {
   const {
-    component,
-    obligationCount
+    obligationCount,
+    licenseNames
   } = props;
 
   return (
@@ -27,7 +26,7 @@ export default function ComponentOverviewTile(props) {
         <dl className="nx-grid-col nx-grid-col--33">
           <dt>Licenses</dt>
           <dd className="iq-read-only-data license-names">
-            { component.licenseLegalData.effectiveLicenses.join(', ') }
+            { licenseNames.join(', ') }
           </dd>
         </dl>
       </div>
@@ -36,7 +35,6 @@ export default function ComponentOverviewTile(props) {
 }
 
 ComponentOverviewTile.propTypes = {
-  component: componentPropType,
   obligationCount: PropTypes.number,
-  licenseLegalMetadata: licenseLegalMetadataPropType
+  licenseNames: PropTypes.arrayOf(PropTypes.string.isRequired)
 };

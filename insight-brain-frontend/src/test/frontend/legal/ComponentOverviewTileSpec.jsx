@@ -11,16 +11,8 @@ describe('ComponentOverviewTile component', function () {
   let getShallowComponent;
 
   const minimalProps = {
-    component: {
-      licenseLegalData: {
-        effectiveLicenses: [
-          'License-1.0',
-          'License-2.0',
-          'License-1.0-License-2.0'
-        ]
-      }
-    },
-    obligationCount: 3
+    obligationCount: 3,
+    licenseNames: ['License-1.0', 'License-2.0', 'License-1.0-License-2.0']
   };
 
   beforeEach(function () {

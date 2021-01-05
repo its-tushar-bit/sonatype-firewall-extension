@@ -11,11 +11,7 @@ describe('LicenseDetailsTile component', function() {
   let getShallowComponent;
 
   const minimalProps = {
-    component: {
-      licenseLegalData: {
-        effectiveLicenses: ['Apache 2.0', 'Apache 53.0']
-      }
-    }
+    licenseNames: ['License-1.0', 'License-2.0', 'License-1.0-License-2.0']
   };
 
   beforeEach(function() {
@@ -30,8 +26,9 @@ describe('LicenseDetailsTile component', function() {
   it('renders the given licenses', function() {
     const wrapper = getShallowComponent();
     let licenseSpans = wrapper.find('span.nx-list__text');
-    expect(licenseSpans.length).toBe(2);
-    expect(licenseSpans.at(0)).toHaveText('Apache 2.0');
-    expect(licenseSpans.at(1)).toHaveText('Apache 53.0');
+    expect(licenseSpans.length).toBe(3);
+    expect(licenseSpans.at(0)).toHaveText('License-1.0');
+    expect(licenseSpans.at(1)).toHaveText('License-2.0');
+    expect(licenseSpans.at(2)).toHaveText('License-1.0-License-2.0');
   });
 });

@@ -62,6 +62,10 @@ describe('ComponentLegalOverviewPage', function() {
             ]
           }
         }]
+      },
+      2: {
+        licenseName: 'multilicense',
+        obligations: null
       }
     };
 

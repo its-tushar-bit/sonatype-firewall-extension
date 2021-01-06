@@ -62,7 +62,14 @@ public class ApiThirdPartyScanResourceTest
     ApiThirdPartyScanResultDTO resultDTO = getApiThirdPartyTicketResultDTO(ticketDTO.statusUrl);
     assertThat(resultDTO.errorMessage).isNull();
     assertThat(resultDTO.isError).isFalse();
-    assertThat(resultDTO.reportHtmlUrl).contains("/ui/links/application/" + app.getPublicId() + "/report/" + scanId);
+
+    String reportUrl = "ui/links/application/" + app.getPublicId() + "/report/" + scanId;
+    assertThat(resultDTO.reportHtmlUrl).isEqualTo(reportUrl);
+    assertThat(resultDTO.reportPdfUrl).isEqualTo(reportUrl + "/pdf");
+    assertThat(resultDTO.embeddableReportHtmlUrl).isEqualTo(reportUrl + "/embeddable");
+    assertThat(resultDTO.reportDataUrl)
+        .isEqualTo("api/v2/applications/" + app.getPublicId() + "/reports/" + scanId + "/raw");
+
     assertThat(resultDTO.policyAction).isEqualTo("None");
     assertEvaluationResultCounter(resultDTO.componentsAffected);
     assertEvaluationResultCounter(resultDTO.openPolicyViolations);

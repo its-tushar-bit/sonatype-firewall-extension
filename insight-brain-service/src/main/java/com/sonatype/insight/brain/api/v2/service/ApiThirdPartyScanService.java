@@ -14,6 +14,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
+import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
@@ -26,6 +27,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.cyclonedx.CycloneDxSchemaValidator;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
@@ -39,7 +41,6 @@ import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.scan.Scanner;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -68,8 +69,6 @@ public class ApiThirdPartyScanService
 
   private final ProprietaryConfigService proprietaryConfigService;
 
-  private final BaseUrl baseUrl;
-
   private final InsightWork work;
 
   private final PolicyEvaluateService policyEvaluateService;
@@ -83,7 +82,6 @@ public class ApiThirdPartyScanService
       final CycloneDxSchemaValidator schemaValidator,
       final Scanner scanner,
       final ProprietaryConfigService proprietaryConfigService,
-      final BaseUrl baseUrl,
       final InsightWork work,
       final PolicyEvaluateService policyEvaluateService,
       final ApplicationDAO applicationDAO,
@@ -92,7 +90,6 @@ public class ApiThirdPartyScanService
     this.schemaValidator = schemaValidator;
     this.scanner = scanner;
     this.proprietaryConfigService = proprietaryConfigService;
-    this.baseUrl = baseUrl;
     this.work = work;
     this.policyEvaluateService = policyEvaluateService;
     this.applicationDAO = applicationDAO;
@@ -173,7 +170,7 @@ public class ApiThirdPartyScanService
 
     switch (policyEvaluationPollingResult.getStatus()) {
       case COMPLETED:
-        return completed(policyEvaluationPollingResult);
+        return completed(application, policyEvaluationPollingResult);
       case FAILED:
         return failed(policyEvaluationPollingResult);
       case PENDING:
@@ -187,8 +184,16 @@ public class ApiThirdPartyScanService
     }
   }
 
-  private ApiThirdPartyScanResultDTO completed(final PolicyEvaluationPollingResult policyEvaluationPollingResult) {
-    String reportUrl = policyEvaluationPollingResult.getScanReceipt().resolveReportUrl(baseUrl.get());
+  private ApiThirdPartyScanResultDTO completed(
+      final Application application,
+      final PolicyEvaluationPollingResult policyEvaluationPollingResult)
+  {
+    ScanReceipt scanReceipt = policyEvaluationPollingResult.getScanReceipt();
+    String reportUrl = scanReceipt.getReportUrl();
+    String reportPdfUrl = scanReceipt.getPdfUrl();
+    String reportDataUrl = scanReceipt.getDataUrl();
+    String embeddableReportUrl =
+        UserInterfaceLinksHelper.getEmbeddableReportUrl(application.getPublicId(), scanReceipt.getScanId());
 
     ApiPolicyAction outcome = ApiPolicyAction.NONE;
     for (PolicyAlert alert : policyEvaluationPollingResult.getResult().getAlerts()) {
@@ -214,8 +219,8 @@ public class ApiThirdPartyScanService
     ApiEvaluationResultCounterDTO openPolicyViolations = buildResultCounter(result.getCriticalPolicyViolationCount(),
         result.getModeratePolicyViolationCount(), result.getSeverePolicyViolationCount());
 
-    return new ApiThirdPartyScanResultDTO(outcome.toString(), reportUrl, componentsAffected, openPolicyViolations,
-        result.getGrandfatheredPolicyViolationCount());
+    return new ApiThirdPartyScanResultDTO(outcome.toString(), reportUrl, reportPdfUrl, reportDataUrl,
+        embeddableReportUrl, componentsAffected, openPolicyViolations, result.getGrandfatheredPolicyViolationCount());
   }
 
   private ApiEvaluationResultCounterDTO buildResultCounter(int critical, int moderate, int severe) {

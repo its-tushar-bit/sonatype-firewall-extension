@@ -18,6 +18,12 @@ public class ApiThirdPartyScanResultDTO
 
   public String reportHtmlUrl;
 
+  public String reportPdfUrl;
+
+  public String reportDataUrl;
+
+  public String embeddableReportHtmlUrl;
+
   public boolean isError;
 
   public String errorMessage;
@@ -35,12 +41,18 @@ public class ApiThirdPartyScanResultDTO
   public ApiThirdPartyScanResultDTO(
       String policyAction,
       String reportHtmlUrl,
+      String reportPdfUrl,
+      String reportDataUrl,
+      String embeddableReportHtmlUrl,
       ApiEvaluationResultCounterDTO componentsAffected,
       ApiEvaluationResultCounterDTO openPolicyViolations,
       Integer grandfatheredPolicyViolations)
   {
     this.policyAction = policyAction;
     this.reportHtmlUrl = reportHtmlUrl;
+    this.reportPdfUrl = reportPdfUrl;
+    this.reportDataUrl = reportDataUrl;
+    this.embeddableReportHtmlUrl = embeddableReportHtmlUrl;
     this.componentsAffected = componentsAffected;
     this.openPolicyViolations = openPolicyViolations;
     this.grandfatheredPolicyViolations = grandfatheredPolicyViolations;

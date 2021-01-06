@@ -33,7 +33,6 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -56,9 +55,6 @@ public class ApiThirdPartyScanServiceTest
 
   @Inject
   private TestProductLicenseManager productLicenseManager;
-
-  @Inject
-  private InsightConfig insightConfig;
 
   private Application app;
 
@@ -172,7 +168,9 @@ public class ApiThirdPartyScanServiceTest
 
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(scanId);
-    scanReceipt.setReportUrl("/link_to_report");
+    scanReceipt.setReportUrl("link_to_report");
+    scanReceipt.setPdfUrl("link_to_pdf");
+    scanReceipt.setDataUrl("link_to_data");
 
     List<PolicyAlert> alerts = new ArrayList<>();
     if (actionId != null) {
@@ -196,7 +194,6 @@ public class ApiThirdPartyScanServiceTest
 
     when(mockPolicyEvaluateService.pollEvaluationResult(app.getPublicId(), scanId))
         .thenReturn(pollingResult);
-    insightConfig.setBaseUrl("http://iq.server");
 
     String bom = getBomFile("valid_bom.xml");
 
@@ -204,7 +201,11 @@ public class ApiThirdPartyScanServiceTest
 
     ApiThirdPartyScanResultDTO resultDTO = thirdPartyScanService.getScanStatus(app.getId(), scanId);
     assertThat(resultDTO.policyAction).isEqualTo(policyAction);
-    assertThat(resultDTO.reportHtmlUrl).isEqualTo("http://iq.server/link_to_report");
+    assertThat(resultDTO.reportHtmlUrl).isEqualTo("link_to_report");
+    assertThat(resultDTO.reportPdfUrl).isEqualTo("link_to_pdf");
+    assertThat(resultDTO.reportDataUrl).isEqualTo("link_to_data");
+    assertThat(resultDTO.embeddableReportHtmlUrl)
+        .isEqualTo(String.format("ui/links/application/%s/report/%s/embeddable", app.getPublicId(), scanId));
     assertThat(resultDTO.isError).isFalse();
     assertThat(resultDTO.errorMessage).isNull();
     assertThat(resultDTO.componentsAffected).isNotNull();

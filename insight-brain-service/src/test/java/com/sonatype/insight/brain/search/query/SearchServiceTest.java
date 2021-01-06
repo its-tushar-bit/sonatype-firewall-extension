@@ -14,6 +14,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
@@ -222,8 +223,15 @@ public class SearchServiceTest
 
   @Test
   public void testSearchIndex_ApplicationsReturnedForGlobalContextPermission() throws IOException {
-    Role role = tempEntity.newRole(true, Permission.READ);
+    testSearchIndex_ShouldReturnAll(tempEntity.newRole(true, Permission.READ), MembershipMapping.GLOBAL_CONTEXT_ID);
+  }
 
+  @Test
+  public void testSearchIndex_ApplicationsReturnedForRootOrganizationContextPermission() throws IOException {
+    testSearchIndex_ShouldReturnAll(tempEntity.newRole(false, Permission.READ), Organization.ROOT_ORGANIZATION_ID);
+  }
+
+  private void testSearchIndex_ShouldReturnAll(Role role, String contextId) throws IOException {
     Organization org1 = tempEntity.newOrganization();
     Organization org2 = tempEntity.newOrganization();
 
@@ -235,7 +243,7 @@ public class SearchServiceTest
 
     UserPrincipal userPrincipal = (UserPrincipal) subject.getPrincipal();
 
-    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), userPrincipal.getUsername());
+    tempEntity.newMembershipMapping(contextId, role.getId(), userPrincipal.getUsername());
 
     indexService.createSearchIndex();
 
@@ -244,5 +252,74 @@ public class SearchServiceTest
 
     searchResultDTO = searchService.searchIndex("itemType:APPLICATION", 20, 0);
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(4);  // 4 applications owned by 2 organizations
+  }
+
+  @Test
+  public void testSearchIndex_ApplicationsReturnedForOrganizationContextPermission() throws IOException {
+    Role role = tempEntity.newRole(false, Permission.READ);
+
+    Organization org1 = tempEntity.newOrganization();
+    Organization org2 = tempEntity.newOrganization();
+
+    Application app1 = tempEntity.newApplication(org1.getId());
+    Application app2 = tempEntity.newApplication(org1.getId());
+
+    tempEntity.newApplication(org2.getId());
+    tempEntity.newApplication(org2.getId());
+
+    UserPrincipal userPrincipal = (UserPrincipal) subject.getPrincipal();
+
+    tempEntity.newMembershipMapping(org1.getId(), role.getId(), userPrincipal.getUsername());
+
+    indexService.createSearchIndex();
+
+    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:ORGANIZATION", 20, 0);
+
+    List<String> organizationIds = searchResultDTO.groupingByDTOS.stream()
+        .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
+        .map(searchResultItemDTO -> searchResultItemDTO.organizationId)
+        .collect(toList());
+    assertThat(organizationIds).containsExactly(org1.getId());
+
+    searchResultDTO = searchService.searchIndex("itemType:APPLICATION", 20, 0);
+
+    List<String> applicationIds = searchResultDTO.groupingByDTOS.stream()
+        .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
+        .map(searchResultItemDTO -> searchResultItemDTO.applicationId)
+        .collect(toList());
+    assertThat(applicationIds).containsExactlyInAnyOrder(app1.getId(), app2.getId());
+  }
+
+  @Test
+  public void testSearchIndex_PoliciesReturnedForOrganizationContextPermission() throws IOException {
+    Role role = tempEntity.newRole(false, Permission.READ);
+
+    Organization org1 = tempEntity.newOrganization();
+    Organization org2 = tempEntity.newOrganization();
+
+    Application app1 = tempEntity.newApplication(org1.getId());
+    tempEntity.newApplication(org1.getId());
+
+    Application app3 = tempEntity.newApplication(org2.getId());
+    tempEntity.newApplication(org2.getId());
+
+    Policy policyOrg1 = tempEntity.newPolicy(org1);
+    Policy policyApp1 = tempEntity.newPolicy(app1);
+    tempEntity.newPolicy(org2);
+    tempEntity.newPolicy(app3);
+
+    UserPrincipal userPrincipal = (UserPrincipal) subject.getPrincipal();
+
+    tempEntity.newMembershipMapping(org1.getId(), role.getId(), userPrincipal.getUsername());
+
+    indexService.createSearchIndex();
+
+    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:POLICY", 20, 0);
+
+    List<String> policyIds = searchResultDTO.groupingByDTOS.stream()
+        .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
+        .map(searchResultItemDTO -> searchResultItemDTO.policyId)
+        .collect(toList());
+    assertThat(policyIds).containsExactlyInAnyOrder(policyOrg1.getId(), policyApp1.getId());
   }
 }

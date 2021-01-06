@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
@@ -24,6 +25,10 @@ import javax.inject.Singleton;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -39,6 +44,7 @@ import com.sonatype.insight.brain.security.PermissionService;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryMetrics;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
+import com.sonatype.insight.model.HasStringId;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
@@ -76,18 +82,22 @@ public class SearchService
   private final PermissionService permissionService;
 
   private final CurrentUser currentUser;
+  
+  private OwnerDAO ownerDAO;
 
   @Inject
   public SearchService(
       LuceneComponents luceneComponents,
       AdvancedSearchTelemetryMetrics advancedSearchTelemetryMetrics,
       PermissionService permissionService,
-      CurrentUser currentUser)
+      CurrentUser currentUser,
+      OwnerDAO ownerDAO)
   {
     this.luceneComponents = luceneComponents;
     this.advancedSearchTelemetryMetrics = advancedSearchTelemetryMetrics;
     this.permissionService = permissionService;
     this.currentUser = currentUser;
+    this.ownerDAO = ownerDAO;
   }
 
   public SearchResultDTO searchIndex(String searchQuery, int pageSize, int page) throws IOException {
@@ -327,9 +337,12 @@ public class SearchService
     Set<String> contextIdsWithReadPermission =
         permissionService.getContextIdsForUserWithPermission(currentUser.getUserPrincipal(), Permission.READ);
 
-    if (contextIdsWithReadPermission.contains(MembershipMapping.GLOBAL_CONTEXT_ID)) {
+    if (contextIdsWithReadPermission.contains(MembershipMapping.GLOBAL_CONTEXT_ID) ||
+        contextIdsWithReadPermission.contains(Organization.ROOT_ORGANIZATION_ID)) {
       return query;
     }
+
+    contextIdsWithReadPermission.addAll(getChildContextIds(contextIdsWithReadPermission));
 
     Builder allowedContextIdsQueryBuilder = new Builder();
     for (String contextId : contextIdsWithReadPermission) {
@@ -343,5 +356,17 @@ public class SearchService
             .add(query, Occur.MUST).build();
 
     return allowedContextIdsAndUserQueryConcat;
+  }
+
+  private Set<String> getChildContextIds(Set<String> contextIdsWithReadPermission) {
+    Set<String> childContextIds = new HashSet<>();
+    for (String contextIdWithReadPermission : contextIdsWithReadPermission) {
+      Owner owner = ownerDAO.getById(contextIdWithReadPermission);
+      if (owner != null && OwnerType.ORGANIZATION.equals(owner.getType())) {
+        childContextIds
+            .addAll(ownerDAO.getChildOwners(owner).stream().map(HasStringId::getId).collect(Collectors.toSet()));
+      }
+    }
+    return childContextIds;
   }
 }

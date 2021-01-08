@@ -24,6 +24,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDashboardDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalFilterDTO;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -36,6 +37,8 @@ import com.codahale.metrics.annotation.Timed;
 public class ApiLicenseLegalResource
 {
   public static final String DASHBOARD_APPLICATIONS_PATH = "dashboard/applications";
+
+  public static final String DASHBOARD_COMPONENTS_PATH = "dashboard/components";
 
   public static final String APPLICATION_PATH = "application/{applicationPublicId}";
 
@@ -59,6 +62,14 @@ public class ApiLicenseLegalResource
   {
     return apiLicenseLegalService.getLicenseLegalApplicationsDashboard(filter.organizationIds, filter.applicationIds,
         filter.tagIds, filter.stageTypeIds);
+  }
+
+  @POST
+  @Path(DASHBOARD_COMPONENTS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<ApiLicenseLegalComponentDashboardDTO> getLicenseLegalComponentsDashboard(LicenseLegalFilterDTO filter) {
+    return apiLicenseLegalService.getLicenseLegalComponentsDashboard(filter.organizationIds, filter.applicationIds,
+        filter.tagIds, filter.stageTypeIds, filter.licenseIds);
   }
 
   @GET

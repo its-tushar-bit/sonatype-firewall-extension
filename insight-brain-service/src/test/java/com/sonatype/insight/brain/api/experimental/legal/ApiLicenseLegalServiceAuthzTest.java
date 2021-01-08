@@ -69,6 +69,22 @@ public class ApiLicenseLegalServiceAuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
+  public void testGetLicenseLegalComponentsDashboard_Unauthenticated() {
+    apiLicenseLegalService.getLicenseLegalComponentsDashboard(null, null, null, null, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetLicenseLegalComponentsDashboard_Unauthorized() {
+    login();
+    apiLicenseLegalService.getLicenseLegalComponentsDashboard(null, null, null, null, null);
+  }
+
+  public void testGetLicenseLegalComponentsDashboard_Authorized() {
+    grantLegalReviewerPermission(app.getId());
+    apiLicenseLegalService.getLicenseLegalComponentsDashboard(null, null, null, null, null);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
   public void testGetLicenseLegalApplicationReport_Unauthenticated() {
     apiLicenseLegalService.getLicenseLegalApplicationReport(app.getPublicId());
   }

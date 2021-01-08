@@ -16,4 +16,6 @@ public class LicenseLegalFilterDTO
   public Set<String> stageTypeIds;
 
   public Set<String> tagIds;
+
+  public Set<String> licenseIds;
 }

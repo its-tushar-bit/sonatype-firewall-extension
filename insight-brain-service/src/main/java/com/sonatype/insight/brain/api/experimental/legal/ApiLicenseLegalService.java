@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -37,26 +39,31 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDashboardDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApplicationLicenseUsageTelemetry;
 import com.sonatype.insight.brain.api.v2.service.ApiLicenseDataAdapter;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
+import com.sonatype.insight.brain.dataaccess.ApplicationComponentLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.ApplicationComponentLicense;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.license.License;
+import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -80,10 +87,12 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 /**
  * Provides legal information for application components.
@@ -123,6 +132,10 @@ public class ApiLicenseLegalService
 
   private final TagDAO tagDAO;
 
+  private final ApplicationComponentLicenseDAO applicationComponentLicenseDAO;
+
+  private final LicenseOverrideDAO licenseOverrideDAO;
+
   @Inject
   public ApiLicenseLegalService(
       MultiLicenseDAO multiLicenseDAO,
@@ -138,7 +151,9 @@ public class ApiLicenseLegalService
       ApiLicenseDataAdapter apiLicenseDataAdapter,
       ProductLicense productLicense,
       ApplicationService applicationService,
-      TagDAO tagDAO)
+      TagDAO tagDAO,
+      ApplicationComponentLicenseDAO applicationComponentLicenseDAO,
+      LicenseOverrideDAO licenseOverrideDAO)
   {
     this.multiLicenseDAO = multiLicenseDAO;
     this.apiLicenseLegalHdsService = apiLicenseLegalHdsService;
@@ -155,6 +170,8 @@ public class ApiLicenseLegalService
     this.productLicense = productLicense;
     this.applicationService = applicationService;
     this.tagDAO = tagDAO;
+    this.applicationComponentLicenseDAO = applicationComponentLicenseDAO;
+    this.licenseOverrideDAO = licenseOverrideDAO;
   }
 
   @Authorize(permission = Permission.LEGAL_REVIEWER)
@@ -168,7 +185,8 @@ public class ApiLicenseLegalService
 
     List<Application> applications =
         applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds, applicationIds, tagIds);
-    Set<String> stageTypeIdsToCheck = CollectionUtils.isEmpty(stageTypeIds)
+    Set<String> stageTypeIdsToCheck =
+        isEmpty(stageTypeIds)
         ? StageTypes.getAll().stream().map(StageType::getId).collect(Collectors.toSet())
         : stageTypeIds;
     List<ApiLicenseLegalApplicationDashboardDTO> result = new ArrayList<>();
@@ -200,6 +218,83 @@ public class ApiLicenseLegalService
     }
 
     return result;
+  }
+
+  @Authorize(permission = Permission.LEGAL_REVIEWER)
+  public List<ApiLicenseLegalComponentDashboardDTO> getLicenseLegalComponentsDashboard(
+      Set<String> organizationIds,
+      Set<String> applicationIds,
+      Set<String> tagIds,
+      Set<String> stageTypeIds,
+      Set<String> licenseIds)
+  {
+    checkLicense();
+
+    List<Application> applications =
+        applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds, applicationIds, tagIds);
+    Set<String> stageTypeIdsToCheck = isEmpty(stageTypeIds)
+        ? StageTypes.getAll().stream().map(StageType::getId).collect(Collectors.toSet())
+        : stageTypeIds;
+
+    Map<String, ApiLicenseLegalComponentDashboardDTO> mapHashComponent = new HashMap<>();
+    Map<String, Set<String>> mapHashApplicationOccurrences = new HashMap<>();
+    Map<String, Set<String>> mapHashLicenseIds = new HashMap<>();
+
+    try (TransactionContext tx = applicationComponentDAO.createTransactionContext()) {
+      for (Application application : applications) {
+        for (String stageTypeId : stageTypeIdsToCheck) {
+          List<ApplicationComponent> applicationComponents =
+              applicationComponentDAO.getByApplicationIdAndStageTypeId(tx, application.getId(), stageTypeId);
+
+          for (ApplicationComponent applicationComponent : applicationComponents) {
+            if (applicationComponent.getComponentIdentifier() == null) {
+              continue;
+            }
+
+            ApiLicenseLegalComponentDashboardDTO dto = mapHashComponent.getOrDefault(applicationComponent.getHash(),
+                new ApiLicenseLegalComponentDashboardDTO(applicationComponent));
+
+            Set<String> licensesAlreadyFound =
+                mapHashLicenseIds.getOrDefault(applicationComponent.getHash(), new HashSet<>());
+
+            LicenseOverride licenseOverride = licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifierWithHierarchy(
+                application, applicationComponent.getComponentIdentifier());
+
+            if (licenseOverride != null && isNotEmpty(licenseOverride.getLicenseIds())) {
+              licensesAlreadyFound.addAll(licenseOverride.getLicenseIds());
+            }
+            else {
+              List<ApplicationComponentLicense> applicationComponentLicenses =
+                  applicationComponentLicenseDAO.getByApplicationComponentId(tx, applicationComponent.getId());
+
+              licensesAlreadyFound.addAll(applicationComponentLicenses.stream()
+                  .map(ApplicationComponentLicense::getEffectiveLicenseId)
+                  .collect(Collectors.toSet()));
+            }
+
+            if (isNotEmpty(licensesAlreadyFound)) {
+              Set<String> applicationOccurrences =
+                  mapHashApplicationOccurrences.getOrDefault(applicationComponent.getHash(), new HashSet<>());
+              applicationOccurrences.add(application.getId());
+              dto.applicationOccurrences = applicationOccurrences.size();
+
+              mapHashApplicationOccurrences.put(applicationComponent.getHash(), applicationOccurrences);
+              mapHashLicenseIds.put(applicationComponent.getHash(), licensesAlreadyFound);
+              mapHashComponent.put(applicationComponent.getHash(), dto);
+            }
+          }
+        }
+      }
+    }
+
+    return mapHashComponent.values().stream()
+        .filter(dto -> isEmpty(licenseIds) || !Collections.disjoint(mapHashLicenseIds.get(dto.hash), licenseIds))
+        .map(dto -> {
+          dto.licenseNames.addAll(mapHashLicenseIds.get(dto.hash).stream()
+              .map(licenseId -> multiLicenseDAO.getById(licenseId).getShortDisplayName())
+              .collect(Collectors.toSet()));
+          return dto;
+        }).collect(Collectors.toList());
   }
 
   @Authorize(permission = Permission.LEGAL_REVIEWER)

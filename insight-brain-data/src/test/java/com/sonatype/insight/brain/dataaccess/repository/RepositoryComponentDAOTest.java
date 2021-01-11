@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.repository;
 
+import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 
 import com.sonatype.clm.dto.model.component.AnalysisSource;
 import com.sonatype.clm.dto.model.component.AnalysisType;
@@ -235,5 +237,26 @@ public class RepositoryComponentDAOTest
     finally {
       DataSourceFactory.clear_ForTestsOnly();
     }
+  }
+
+  @Test
+  public void testGetQuarantinedByRepositoryIdAndDate() {
+    Repository repository = tempEntity.newRepository();
+    Date oldQuarantinedDate = Date.from(Instant.now().minusMillis(1000));
+    Date quarantinedDateToQuery = new Date();
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "old-quarantined-path", "hash1",
+        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), new Date(), oldQuarantinedDate);
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "not-quarantined", "hash3",
+        ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3"), new Date(), null /* quarantine time */);
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "un-quarantined", "hash4",
+        ComponentIdentifier.createMavenCoordinates("g4", "a4", "v4"), new Date(), quarantinedDateToQuery, new Date());
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "quarantined-path", "hash2",
+        ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"), new Date(), quarantinedDateToQuery);
+
+    List<RepositoryComponent> results =
+        dao.getQuarantinedByRepositoryIdAndDate(repository.getId(), quarantinedDateToQuery);
+
+    assertThat(results).hasSize(1);
+    assertThat(results.get(0).getPathname()).isEqualTo("quarantined-path");
   }
 }

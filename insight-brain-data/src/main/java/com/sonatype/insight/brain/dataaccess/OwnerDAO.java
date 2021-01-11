@@ -12,6 +12,7 @@ import java.util.NoSuchElementException;
 
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
@@ -21,6 +22,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
+import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
@@ -176,6 +178,13 @@ public class OwnerDAO
     DataRetentionPolicyDAO dataRetentionPolicyDAO = new DataRetentionPolicyDAO();
     for (DataRetentionPolicy dataRetentionPolicy : dataRetentionPolicyDAO.getByOwnerId(tx, owner.getId()).values()) {
       dataRetentionPolicyDAO.delete(tx, dataRetentionPolicy);
+    }
+
+    // Cascade to policy monitoring
+    PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
+    PolicyMonitoring policyMonitoring = policyMonitoringDAO.getByOwnerId(tx, owner.getId());
+    if (policyMonitoring != null) {
+      policyMonitoringDAO.delete(tx, policyMonitoring);
     }
   }
 

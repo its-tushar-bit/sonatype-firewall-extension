@@ -14,7 +14,6 @@ import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
@@ -26,7 +25,6 @@ import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
-import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -189,13 +187,6 @@ public class OrganizationDAO
     MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
     for (MembershipMapping membershipMapping : membershipMappingDAO.getByContextId(tx, organization.getId())) {
       membershipMappingDAO.delete(tx, membershipMapping);
-    }
-
-    // Cascade to policy monitoring
-    PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
-    PolicyMonitoring policyMonitoring = policyMonitoringDAO.getByOwnerId(tx, organization.getId());
-    if (policyMonitoring != null) {
-      policyMonitoringDAO.delete(tx, policyMonitoring);
     }
 
     // Cascade to owned entities

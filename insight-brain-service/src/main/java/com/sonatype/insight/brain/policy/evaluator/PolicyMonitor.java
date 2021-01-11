@@ -8,6 +8,9 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +20,14 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationData;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
+import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.ConditionFact;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -26,13 +37,22 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
+import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
+import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.conditions.IntegrityRatingConditionType;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.report.Report;
+import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
+import com.sonatype.insight.brain.repository.RepositoryService;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanService;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -51,6 +71,8 @@ public class PolicyMonitor
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyMonitor.class);
 
+  static final int MAX_DAYS_FOR_UPDATED_INTEGRITY_RATING = 7;
+
   private final InsightWork work;
 
   private final ScanUploader uploader;
@@ -65,6 +87,10 @@ public class PolicyMonitor
 
   private final ThirdPartyScanService thirdPartyScanService;
 
+  private final RepositoryPolicyEvaluator repositoryPolicyEvaluator;
+
+  private final RepositoryService repositoryService;
+
   @Inject
   public PolicyMonitor(
       InsightWork work,
@@ -73,7 +99,9 @@ public class PolicyMonitor
       PolicyAlertNotifier policyAlertNotifier,
       ProductLicense productLicense,
       AuditRecorder auditRecorder,
-      ThirdPartyScanService thirdPartyScanService)
+      ThirdPartyScanService thirdPartyScanService,
+      RepositoryPolicyEvaluator repositoryPolicyEvaluator,
+      RepositoryService repositoryService)
   {
     this.work = work;
     this.uploader = uploader;
@@ -82,10 +110,12 @@ public class PolicyMonitor
     this.productLicense = productLicense;
     this.auditRecorder = auditRecorder;
     this.thirdPartyScanService = thirdPartyScanService;
+    this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
+    this.repositoryService = repositoryService;
   }
 
   public void run() {
-    // not licensed, back on outta here
+    // not licensed, back on outta here - firewall still requires Risk product for repository monitoring
     if (!productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)) {
       log.debug("Ending task, not licensed for Policy Monitoring.");
       return;
@@ -97,7 +127,7 @@ public class PolicyMonitor
 
     List<PolicyMonitoring> policyMonitorings = new PolicyMonitoringDAO().getAll();
     if (policyMonitorings.isEmpty()) {
-      log.info("Policy monitoring was not configured for any applications or organizations.");
+      log.info("Policy monitoring was not configured for any applications, organizations, or repositories.");
       return;
     }
 
@@ -106,8 +136,28 @@ public class PolicyMonitor
       policyMonitoringsByOwnerId.put(policyMonitoring.getOwnerId(), policyMonitoring);
     }
 
+    try {
+      evaluateApplications(policyMonitoringsByOwnerId);
+    }
+    catch (InterruptedException e) {
+      log.error(e.getMessage(), e);
+      Thread.currentThread().interrupt();
+      return;
+    }
+
+    evaluateApplicableQuarantinedRepositoryComponents(policyMonitoringsByOwnerId);
+
+    log.info("Policy monitoring evaluated in {} ms", System.currentTimeMillis() - start);
+  }
+
+  private void evaluateApplications(final Map<String, PolicyMonitoring> policyMonitoringsByOwnerId)
+      throws InterruptedException
+  {
     OwnerDAO ownerDAO = new OwnerDAO();
     List<Application> apps = new ApplicationDAO().getAll();
+    log.info("Starting policy monitoring of applications");
+    long start = System.currentTimeMillis();
+
     for (Application app : apps) {
       PolicyMonitoring policyMonitoring = null;
       for (Owner owner : ownerDAO.walkHierarchy(app)) {
@@ -128,9 +178,7 @@ public class PolicyMonitor
         }
         catch (InterruptedException e) {
           AuditData.get().setException(e);
-          log.error(e.getMessage(), e);
-          Thread.currentThread().interrupt();
-          return;
+          throw e;
         }
         catch (IOException | RuntimeException e) {
           AuditData.get().setException(e);
@@ -138,8 +186,128 @@ public class PolicyMonitor
         }
       }
     }
+    log.info("Finished policy monitoring applications in {} ms", System.currentTimeMillis() - start);
+  }
 
-    log.info("Policy monitoring evaluated in {} ms", System.currentTimeMillis() - start);
+  private void evaluateApplicableQuarantinedRepositoryComponents(
+      final Map<String, PolicyMonitoring> policyMonitoringsByOwnerId)
+  {
+    // not checking for FIREWALL_FOR_ARTIFACTORY at this time
+    if (!productLicense.hasFeature(LicensedFeature.FIREWALL)) {
+      log.debug("Ending task, not licensed for Firewall Policy Monitoring.");
+      return;
+    }
+
+    OwnerDAO ownerDAO = new OwnerDAO();
+
+    List<Repository> repositories = new RepositoryDAO().getAll();
+    for (Repository repository : repositories) {
+      PolicyMonitoring policyMonitoring = null;
+      for (Owner owner : ownerDAO.walkHierarchy(repository)) {
+        policyMonitoring = policyMonitoringsByOwnerId.get(owner.getId());
+        if (policyMonitoring != null) {
+          break;
+        }
+      }
+
+      if (policyMonitoring == null) {
+        continue;
+      }
+
+      RepositoryComponentEvaluationDataRequestList applicableQuarantinedComponentEvaluationRequestList =
+          getApplicableQuarantinedComponentRequestList(repository);
+      if (applicableQuarantinedComponentEvaluationRequestList.isEmpty()) {
+        continue;
+      }
+
+      try (AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.EVALUATE_REPOSITORY)) {
+        log.info("Re-evaluating {} quarantined components for repository {}",
+            applicableQuarantinedComponentEvaluationRequestList.components.size(), repository.getName());
+        long start = System.currentTimeMillis();
+        auditRepositoryComponentEvaluationList(repository, applicableQuarantinedComponentEvaluationRequestList);
+        RepositoryComponentEvaluationDataList evaluationResults = repositoryPolicyEvaluator
+            .evaluate(repository, applicableQuarantinedComponentEvaluationRequestList, false, false,
+                null);
+        log.info("Re-evaluated {} quarantined components for repository {} in {} ms",
+            evaluationResults.componentEvalResults.size(), repository.getName(), System.currentTimeMillis() - start);
+
+        unquarantineComponentsWithNoViolations(repository, applicableQuarantinedComponentEvaluationRequestList,
+            evaluationResults);
+      }
+    }
+  }
+
+  private void auditRepositoryComponentEvaluationList(
+      Repository repository,
+      RepositoryComponentEvaluationDataRequestList repoComponentEvalList)
+  {
+    AuditData.get().setRepository(repository).setData("componentCount", repoComponentEvalList.components.size())
+        .setData("evaluationCause", RepositoryComponentEvaluationDataRequestList.REEVALUATION);
+
+    AuditData.get().setData("componentCount", repoComponentEvalList.components.size());
+    if (repoComponentEvalList.cause != null) {
+      AuditData.get().setData("evaluationCause", repoComponentEvalList.cause.replace('_', '-'));
+    }
+  }
+
+  private RepositoryComponentEvaluationDataRequestList getApplicableQuarantinedComponentRequestList(
+      final Repository repository)
+  {
+    RepositoryComponentEvaluationDataRequestList evaluationDataRequests =
+        new RepositoryComponentEvaluationDataRequestList(RepositoryComponentEvaluationDataRequestList.REEVALUATION);
+
+    Date minQuarantineDate = Date.from(Instant.now().minus(Duration.ofDays(MAX_DAYS_FOR_UPDATED_INTEGRITY_RATING)));
+
+    List<RepositoryComponent> components =
+        new RepositoryComponentDAO().getQuarantinedByRepositoryIdAndDate(repository.getId(), minQuarantineDate);
+
+    for (RepositoryComponent component : components) {
+      if (shouldCheckForUpdatedIntegrityRating(component)) {
+        RepositoryComponentEvaluationDataRequest evaluationDataRequest =
+            new RepositoryComponentEvaluationDataRequest(repository.getFormat(), component.getPathname(),
+                component.getHash());
+        evaluationDataRequests.components.add(evaluationDataRequest);
+      }
+    }
+    return evaluationDataRequests;
+  }
+
+  private boolean shouldCheckForUpdatedIntegrityRating(final RepositoryComponent quarantinedComponent) {
+    List<RepositoryPolicyViolation> violations = new RepositoryPolicyViolationDAO()
+        .getByRepositoryIdAndPathname(quarantinedComponent.getRepositoryId(), quarantinedComponent.getPathname());
+
+    for (RepositoryPolicyViolation violation : violations) {
+      for (ConstraintFact constraintFact : violation.getConstraintFacts()) {
+        for (ConditionFact conditionFact : constraintFact.getConditionFacts()) {
+          if (conditionFact.getConditionTypeId().equals(IntegrityRatingConditionType.ID)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  private void unquarantineComponentsWithNoViolations(
+      final Repository repository,
+      final RepositoryComponentEvaluationDataRequestList applicableQuarantinedComponentEvaluationRequestList,
+      final RepositoryComponentEvaluationDataList evaluationResults)
+  {
+    int unquarantineCount = 0;
+    for (RepositoryComponentEvaluationData evaluationData: evaluationResults.componentEvalResults) {
+      if (!hasFailViolation(evaluationData.policyAlerts)) {
+        RepositoryComponentEvaluationDataRequest request =
+            applicableQuarantinedComponentEvaluationRequestList.components.get(evaluationData.requestIndex);
+        repositoryService.unquarantineComponentNoAuth(repository.getId(), request.pathname, null);
+        unquarantineCount++;
+      }
+    }
+    log.info("un-quarantined {} components for repository {}", unquarantineCount, repository.getName());
+  }
+
+  private boolean hasFailViolation(final List<PolicyAlert> policyAlerts) {
+    return policyAlerts.stream().flatMap(policyAlert -> policyAlert.getActions().stream())
+        .anyMatch(action -> Action.ID_FAIL.equals(action.getActionTypeId()));
   }
 
   @VisibleForTesting

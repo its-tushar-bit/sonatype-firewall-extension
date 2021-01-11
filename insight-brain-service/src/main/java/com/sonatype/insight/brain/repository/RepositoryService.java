@@ -73,23 +73,35 @@ public class RepositoryService
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
   @Inject
-  public RepositoryService(RepositoryPolicyEvaluator repositoryPolicyEvaluator,
-                           PolicyThreatsAdapter policyThreatsAdapter,
-                           PolicyViolationLoggerFactory policyViolationLoggerFactory)
+  public RepositoryService(
+      RepositoryPolicyEvaluator repositoryPolicyEvaluator,
+      PolicyThreatsAdapter policyThreatsAdapter,
+      PolicyViolationLoggerFactory policyViolationLoggerFactory)
   {
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.policyThreatsAdapter = policyThreatsAdapter;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
-
   }
 
   /**
    * @since 1.19.0
    */
   @Authorize(permission = Permission.WRITE)
-  public void unquarantineComponent(@AuthzContext(Key.REPOSITORY_ID) final String repositoryId,
-                                    final String pathname,
-                                    final String clientUserAgent)
+  public void unquarantineComponent(
+      @AuthzContext(Key.REPOSITORY_ID) final String repositoryId,
+      final String pathname,
+      final String clientUserAgent)
+  {
+    unquarantineComponentNoAuth(repositoryId, pathname, clientUserAgent);
+  }
+
+  /**
+   * @since 1.104
+   */
+  public void unquarantineComponentNoAuth(
+      final String repositoryId,
+      final String pathname,
+      final String clientUserAgent)
   {
     auditComponentPath(pathname);
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repositoryId,

@@ -9,11 +9,13 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.policy.PolicyMonitoringResource.ApplicablePolicyMonitors;
 import com.sonatype.insight.brain.policy.PolicyMonitoringResource.PolicyMonitoringByOwner;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -221,6 +223,90 @@ public class PolicyMonitoringResourceTest
         applicablePolicyMonitors.policyMonitoringByOwner.get(1));
     assertPolicyMonitoringByOwner(organizationParent, Stage.ID_RELEASE,
         applicablePolicyMonitors.policyMonitoringByOwner.get(2));
+  }
+
+  @Test
+  public void testSet_InvalidApplicationStageTypeId() throws Exception {
+    String appPublicId = "PolicyMonitoringResourceTest_AppId";
+    Application application = tempEntity.newApplicationWithParent(appPublicId);
+
+    PolicyMonitoring policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_PROXY);
+    HttpResponse response = restRequest(application.getType(), appPublicId).body(policyMonitoring).put();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("Invalid stage id=proxy");
+    assertThat(new PolicyMonitoringDAO().getAll()).isEmpty();
+  }
+
+  @Test
+  public void testSet_InvalidRepositoryStageTypeId() throws Exception {
+    String repoPublicId = "PolicyMonitoringResourceTest_RepoId";
+    Repository repository = tempEntity.newRepository(repoPublicId);
+
+    PolicyMonitoring policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_RELEASE);
+    HttpResponse response = restRequest(repository.getType(), repository.getId()).body(policyMonitoring).put();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("Invalid stage id=release");
+    assertThat(new PolicyMonitoringDAO().getAll()).isEmpty();
+  }
+
+  @Test
+  public void testSet_InvalidOrganizationStageTypeId() throws Exception {
+    String orgName = "PolicyMonitoringResourceTest_OrgName";
+    Organization organization = tempEntity.newOrganization(orgName);
+
+    PolicyMonitoring policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_PROXY);
+    HttpResponse response = restRequest(OwnerType.ORGANIZATION, organization.getId()).body(policyMonitoring).put();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("Invalid stage id=proxy");
+    assertThat(new PolicyMonitoringDAO().getAll()).isEmpty();
+  }
+
+  @Test
+  public void testSet_RootOrgProxyStageTypeId() throws Exception {
+    HttpResponse response = null;
+    try {
+      PolicyMonitoring policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_PROXY);
+      response =
+          restRequest(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID).body(policyMonitoring).put();
+
+      assertResponseStatus(200, response);
+      assertThat(new PolicyMonitoringDAO().getAll()).hasSize(1);
+    }
+    finally {
+      new PolicyMonitoringDAO().delete(response.getBody(PolicyMonitoring.class));
+    }
+  }
+
+  @Test
+  public void testSet_RootOrgNonProxyStageTypeId() throws Exception {
+    HttpResponse response = null;
+    try {
+      PolicyMonitoring policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_RELEASE);
+      response =
+          restRequest(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID).body(policyMonitoring).put();
+
+      assertResponseStatus(200, response);
+      assertThat(new PolicyMonitoringDAO().getAll()).hasSize(1);
+    }
+    finally {
+      new PolicyMonitoringDAO().delete(response.getBody(PolicyMonitoring.class));
+    }
+  }
+
+  @Test
+  public void testSet_RepositoryProxyStageTypeId() throws Exception {
+    String repoPublicId = "PolicyMonitoringResourceTest_RepoId";
+    Repository repository = tempEntity.newRepository(repoPublicId);
+
+    PolicyMonitoring policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_PROXY);
+    HttpResponse response =
+        restRequest(OwnerType.REPOSITORY, repository.getId()).body(policyMonitoring).put();
+
+    assertResponseStatus(200, response);
+    assertThat(new PolicyMonitoringDAO().getAll()).hasSize(1);
   }
 
   private void assertPolicyMonitoring(String ownerId, String stageTypeId, PolicyMonitoring actual) {

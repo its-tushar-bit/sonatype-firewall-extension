@@ -94,6 +94,16 @@ public class RepositoryComponentDAO
     }
   }
 
+  /**
+   * @since 1.104
+   */
+  public List<RepositoryComponent> getQuarantinedByRepositoryIdAndDate(String repositoryId, Date date) {
+    String sQuery = "SELECT entity FROM RepositoryComponent entity" + //
+        " WHERE entity.repositoryId=?1 AND entity.quarantineTime>=?2 AND entity.unquarantineTime IS NULL";
+
+    return getList(sQuery, repositoryId, date);
+  }
+
   public Date getOldestComponentEvaluationTimeByRepositoryId(String repositoryId) {
     String sQuery = "SELECT MIN(entity.lastEvaluationTime) FROM RepositoryComponent entity" + //
         " WHERE entity.repositoryId=?1";

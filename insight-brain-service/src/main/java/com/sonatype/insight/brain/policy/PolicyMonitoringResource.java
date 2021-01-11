@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -44,7 +45,8 @@ import com.codahale.metrics.annotation.Timed;
 @Path(PolicyMonitoringResource.RESOURCE_PATH)
 public class PolicyMonitoringResource
 {
-  public static final String RESOURCE_PATH = "rest/policyMonitoring/{ownerType: application|organization}/{ownerId}";
+  public static final String RESOURCE_PATH =
+      "rest/policyMonitoring/{ownerType: application|organization|repository}/{ownerId}";
 
   private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
 
@@ -96,7 +98,15 @@ public class PolicyMonitoringResource
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
-    if (!Stage.isValidStageTypeId(policyMonitoring.getStageTypeId())) {
+    if (ProxyStageType.ID.equals(policyMonitoring.getStageTypeId())) {
+      if (!Organization.ROOT_ORGANIZATION_ID.equals(ownerId) && !OwnerType.REPOSITORY.equals(ownerType)) {
+        throw new InvalidStageException(policyMonitoring.getStageTypeId());
+      }
+    }
+    else if (OwnerType.REPOSITORY.equals(ownerType)) {
+      throw new InvalidStageException(policyMonitoring.getStageTypeId());
+    }
+    else if (!Stage.isValidStageTypeId(policyMonitoring.getStageTypeId())) {
       throw new InvalidStageException(policyMonitoring.getStageTypeId());
     }
 

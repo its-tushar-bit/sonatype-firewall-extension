@@ -9,9 +9,11 @@ import java.util.Date;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
@@ -253,6 +255,17 @@ public class RepositoryDAOTest
     new RepositoryDAO().delete(repository);
 
     assertThat(new RepositoryMigrationDAO().getByRepositoryId(repository.getId())).isNull();
+  }
+
+  @Test
+  public void testCascadeDeleteToPolicyMonitoring() {
+    Repository repository = tempEntity.newRepository("testCascadeDeleteToPolicyMonitoring");
+    tempEntity.newPolicyMonitoring(repository.getId(), Stage.ID_PROXY);
+    assertThat(new PolicyMonitoringDAO().getByOwnerId(repository.getId())).isNotNull();
+
+    dao.delete(repository);
+
+    assertThat(new PolicyMonitoringDAO().getByOwnerId(repository.getId())).isNull();
   }
 
   @Test

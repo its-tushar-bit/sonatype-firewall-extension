@@ -5,20 +5,20 @@
  */
 package com.sonatype.insight.brain.git;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.git.utils.api.GitException;
 import com.sonatype.nexus.iq.location.discovery.LocationDiscoveryExecutor;
@@ -27,7 +27,9 @@ import com.sonatype.nexus.iq.location.dto.RankedSourceLocation;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -43,6 +45,9 @@ import static org.mockito.Mockito.when;
 public class PullRequestLocationDiscoveryServiceTest
     extends VerifiableLoggingTestBase
 {
+  @Rule
+  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
   @Mock
   private GitApiFactory gitApiFactory;
 
@@ -52,13 +57,11 @@ public class PullRequestLocationDiscoveryServiceTest
   @Mock
   private LocationDiscoveryExecutor locationDiscoveryExecutor;
 
-  private InsightConfig insightConfig = new InsightConfig();
+  @Mock
+  private SourceControlUtils mockSourceControlUtils;
 
   @Mock
   private ApplicationDAO applicationDAO;
-
-  @Mock
-  private FileCleaner fileCleaner;
 
   private GitRepositoryInfo gitRepositoryInfo =
       new GitRepositoryInfo("https://github.com/org/proj", "user", "token", SourceControlProvider.GITHUB,
@@ -86,9 +89,11 @@ public class PullRequestLocationDiscoveryServiceTest
 
     Application application = new Application("app-one", "app one", Organization.ROOT_ORGANIZATION_ID);
     when(applicationDAO.getById(applicationId)).thenReturn(application);
+    when(mockSourceControlUtils.getCheckoutDirectory(application))
+        .thenReturn(new File(temporaryFolder.getRoot(), applicationId));
 
     locationDiscoveryService = new PullRequestLocationDiscoveryService(
-        gitApiFactory, applicationDAO, locationDiscoveryExecutor, insightConfig, fileCleaner);
+        gitApiFactory, applicationDAO, locationDiscoveryExecutor, mockSourceControlUtils);
   }
 
   @Test

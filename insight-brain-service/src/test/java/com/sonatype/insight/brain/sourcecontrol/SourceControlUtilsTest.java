@@ -5,12 +5,17 @@
  */
 package com.sonatype.insight.brain.sourcecontrol;
 
+import java.io.File;
+import java.nio.file.Files;
+
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.inject.Binder;
@@ -33,13 +38,15 @@ public class SourceControlUtilsTest
 
   private ApiSourceControlService mockSourceControlService;
 
-  private ApplicationDAO applicationDao = new ApplicationDAO();
-
   private Application application;
 
   private Organization org;
 
+  @Inject
   private SourceControlUtils sourceControlUtils;
+
+  @Inject
+  private InsightWork insightWork;
 
   @Override
   public void configure(Binder binder) {
@@ -52,7 +59,6 @@ public class SourceControlUtilsTest
   public void setup() {
     org = tempEntity.newOrganization();
     application = tempEntity.newApplication(org.getId());
-    sourceControlUtils = new SourceControlUtils(mockSourceControlService, applicationDao);
   }
 
   @Test
@@ -265,5 +271,24 @@ public class SourceControlUtilsTest
 
     // expect: source control is enabled
     assertThat(sourceControlUtils.isScmEnabled(application.getId())).isTrue();
+  }
+
+  @Test
+  public void testGetCheckoutDirectory() {
+    File expectedSourceControlDir = insightWork.getSourceControlDir(application.getId());
+    assertThat(expectedSourceControlDir).doesNotExist();
+
+    assertThat(sourceControlUtils.getCheckoutDirectory(application)).isEqualTo(expectedSourceControlDir);
+    assertThat(expectedSourceControlDir).isDirectory();
+  }
+
+  @Test
+  public void testDeleteCheckoutDirectory() throws Exception {
+    File expectedSourceControlDir = insightWork.getSourceControlDir(application.getId());
+    Files.createDirectories(expectedSourceControlDir.toPath());
+    new File(expectedSourceControlDir, "foo.txt").createNewFile();
+
+    sourceControlUtils.deleteCheckoutDirectory(application);
+    assertThat(expectedSourceControlDir).doesNotExist();
   }
 }

@@ -7,8 +7,6 @@ package com.sonatype.insight.brain.git;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Objects;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -21,7 +19,6 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.scan.Scanner;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.SourceControlConfig;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
@@ -43,7 +40,9 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -58,13 +57,9 @@ public class ManifestScanServiceTest
   public TemporaryFolder tmpDir = new TemporaryFolder();
 
   @Mock
-  private InsightConfig mockInsightConfig;
-
-  @Mock
   private GitApiFactory mockGitApiFactory;
 
-  @Mock
-  private SourceControlUtils mockSourceControlUtils;
+  private SourceControlUtils spySourceControlUtils;
 
   @Mock
   private ApplicationDAO mockApplicationDAO;
@@ -82,7 +77,7 @@ public class ManifestScanServiceTest
   private ProprietaryConfigService proprietaryConfigService;
 
   @Mock
-  private InsightWork work;
+  private InsightWork mockInsightWork;
 
   @Mock
   private Scanner scanner;
@@ -114,10 +109,6 @@ public class ManifestScanServiceTest
   public void setup() {
     super.setup();
 
-    service = new ManifestScanService(
-        mockInsightConfig, mockGitApiFactory, mockSourceControlUtils, mockApplicationDAO, proprietaryConfigService,
-        policyEvaluateService, work, scanner, fileCleaner);
-
     try {
       sourceControlDir = tmpDir.newFolder();
     }
@@ -133,8 +124,15 @@ public class ManifestScanServiceTest
     application.setPublicId("public-app-id");
     when(mockApplicationDAO.getByIdNotNull(eq(APP_ID))).thenReturn(application);
 
+    when(mockInsightWork.getSourceControlDir(APP_ID)).thenReturn(new File(sourceControlDir, APP_ID));
+
     sourceControlEvent = new SourceControlEvent();
     sourceControlEvent.setApplicationId(APP_ID);
+
+    spySourceControlUtils = spy(new SourceControlUtils(null, mockApplicationDAO, mockInsightWork, fileCleaner));
+
+    service = new ManifestScanService(mockGitApiFactory, spySourceControlUtils, mockApplicationDAO,
+        proprietaryConfigService, policyEvaluateService, mockInsightWork, scanner);
 
     proprietaryConfig = new ProprietaryConfig();
     when(proprietaryConfigService.getProprietaryConfig(eq(OwnerType.APPLICATION), eq("public-app-id")))
@@ -144,8 +142,8 @@ public class ManifestScanServiceTest
   @Test
   public void testOnManifestScan_WithNoSourceControl() throws Exception {
     // given there is no source control info for an application
-    when(mockSourceControlUtils.getGitRepositoryInfoForApplication(sourceControlEvent.getApplicationId()))
-        .thenReturn(null);
+    doReturn(null).when(spySourceControlUtils)
+        .getGitRepositoryInfoForApplication(sourceControlEvent.getApplicationId());
 
     // when we receive a manifest scan event
     service.onManifestScan(sourceControlEvent);
@@ -167,25 +165,22 @@ public class ManifestScanServiceTest
     sourceControlEvent.setUserAgent("userAgent");
 
     // and a source control configuration
-    when(mockGitRepositoryInfo.getBaseBranch()).thenReturn("master");
-    when(mockInsightConfig.getSourceControl()).thenReturn(sourceControlConfig);
-    when(mockSourceControlUtils.getGitRepositoryInfoForApplication(sourceControlEvent.getApplicationId()))
-        .thenReturn(mockGitRepositoryInfo);
+    doReturn(mockGitRepositoryInfo).when(spySourceControlUtils)
+        .getGitRepositoryInfoForApplication(sourceControlEvent.getApplicationId());
     when(mockGitApiFactory.createGitApi(mockGitRepositoryInfo)).thenReturn(mockGitApi);
 
     // and a scan result
     scanResult = new ScanResult();
     File scanDir = mock(File.class);
     scanResult.setScanFile(mock(File.class));
-    when(work.getScanDir(eq(APP_ID))).thenReturn(scanDir);
+    when(mockInsightWork.getScanDir(eq(APP_ID))).thenReturn(scanDir);
     when(scanner.scan(any(File.class), isNull(), eq(scanDir), eq(proprietaryConfig))).thenReturn(scanResult);
 
     // when we receive a manifest scan event
     service.onManifestScan(sourceControlEvent);
 
     // then it creates the target directory
-    assertThat(Arrays.stream(Objects.requireNonNull(sourceControlDir.list())).anyMatch(filename ->
-        filename.startsWith("public-app-id-master-"))).isTrue();
+    assertThat(new File(sourceControlDir, APP_ID)).isDirectory();
 
     // and it calls the repository sync
     verify(mockGitApi).cloneOrPullRepository(isA(File.class), eq(sourceControlEvent.getBranchName()));

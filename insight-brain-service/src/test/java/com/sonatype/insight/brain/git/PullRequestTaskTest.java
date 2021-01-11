@@ -28,7 +28,6 @@ import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.PullRequestResponse;
 
 import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.StringUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -61,15 +60,11 @@ public class PullRequestTaskTest
 
   private static final String APP_INTERNAL_ID = "8f9a4a2973804402ab5c6bd0ee453ed9";
 
-  private static final String APP_PUBLIC_ID = "sandbox-application";
-
-  private static final String APP_HASH = "-khbn98"; // hash of APP_INTERNAL_ID with leading dash
-
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   @Rule
-  public LogOutput logOutput = new LogOutput(PullRequestTask.class, GitRepositoryTask.class);
+  public LogOutput logOutput = new LogOutput(PullRequestTask.class);
 
   @Mock
   private GitClientFactory gitClientFactory;
@@ -115,8 +110,7 @@ public class PullRequestTaskTest
 
   @Before
   public void setup() {
-    pullRequestTask = new PullRequestTask(gitClientFactory, insightConfig, fileCleaner, metrics,
-        gitApiFactory, auditRecorder, sourceControlUtils);
+    pullRequestTask = new PullRequestTask(gitClientFactory, metrics, gitApiFactory, auditRecorder, sourceControlUtils);
   }
   
   @Test
@@ -137,12 +131,12 @@ public class PullRequestTaskTest
     SourceControlConfig config = new SourceControlConfig();
     File sonatypeWorkDir = temporaryFolder.newFolder();
     config.setSonatypeWorkDir(sonatypeWorkDir);
-    configureExpectations(config);
+    File targetDirectory = new File(config.getCloneDirectory(), APP_INTERNAL_ID);
+    configureExpectations();
+    when(sourceControlUtils.getCheckoutDirectory(app)).thenReturn(targetDirectory);
 
     pullRequestTask.run(pullRequestRemediationDetails, new PullRequestExecutor());
 
-    File targetDirectory = new File(config.getCloneDirectory(), APP_PUBLIC_ID + "-" + INFO.baseBranch + APP_HASH);
-    assertThat(targetDirectory).exists();
     verify(gitApi).cloneOrPullRepository(targetDirectory, INFO.baseBranch);
     verify(gitApi).branch(targetDirectory, BRANCH);
     verifyNoMoreInteractions(gitApi);
@@ -151,72 +145,17 @@ public class PullRequestTaskTest
   }
 
   @Test
-  public void test_strips_special_characters_from_branch() throws Exception {
-    SourceControlConfig config = new SourceControlConfig();
-    File sonatypeWorkDir = temporaryFolder.newFolder();
-    config.setSonatypeWorkDir(sonatypeWorkDir);
-    configureExpectations(config, new GitRepositoryInfo("localhost", null, "token", SourceControlProvider.GITHUB,
-        "d\\e/v_", true, true));
-
-    pullRequestTask.run(pullRequestRemediationDetails, new PullRequestExecutor());
-
-    // then directory is created without special characters
-    File targetDirectory = new File(config.getCloneDirectory(), APP_PUBLIC_ID + "-dev" + APP_HASH);
-    assertThat(targetDirectory).exists();
-    // and git branch name is not modified
-    verify(gitApi).cloneOrPullRepository(targetDirectory, "d\\e/v_");
-  }
-
-  @Test
-  public void test_truncates_long_public_app_names() throws Exception {
-    SourceControlConfig config = new SourceControlConfig();
-    File sonatypeWorkDir = temporaryFolder.newFolder();
-    config.setSonatypeWorkDir(sonatypeWorkDir);
-    configureExpectations(config, new GitRepositoryInfo("localhost", null, "token", SourceControlProvider.GITHUB,
-        "branchname", true, true));
-
-    String longName = StringUtils.repeat("long", 21);
-    when(app.getPublicId()).thenReturn(longName);
-
-    pullRequestTask.run(pullRequestRemediationDetails, new PullRequestExecutor());
-
-    // then directory is created with truncated name and hash appended
-    File targetDirectory = new File(config.getCloneDirectory(), "longlonglonglonglonglongl-branchname" + APP_HASH);
-    assertThat(targetDirectory).exists();
-    // and git branch name is not modified
-    verify(gitApi).cloneOrPullRepository(targetDirectory, "branchname");
-  }
-
-  @Test
-  public void test_truncates_long_branch_names() throws Exception {
-    SourceControlConfig config = new SourceControlConfig();
-    File sonatypeWorkDir = temporaryFolder.newFolder();
-    config.setSonatypeWorkDir(sonatypeWorkDir);
-    configureExpectations(config, new GitRepositoryInfo("localhost", null, "token", SourceControlProvider.GITHUB,
-        StringUtils.repeat("long", 21) + "branchname", true, true));
-
-    pullRequestTask.run(pullRequestRemediationDetails, new PullRequestExecutor());
-
-    // then directory is created with truncated name and hash appended
-    File targetDirectory = new File(config.getCloneDirectory(), APP_PUBLIC_ID + "-longlonglonglon" + APP_HASH);
-    assertThat(targetDirectory).exists();
-    // and git branch name is not modified
-    verify(gitApi).cloneOrPullRepository(targetDirectory, StringUtils.repeat("long", 21) + "branchname");
-  }
-
-  @Test
   public void test_run_nothing_remediated_custom_directory() throws Exception {
     SourceControlConfig config = new SourceControlConfig();
     File sonatypeWorkDir = temporaryFolder.newFolder();
     config.setSonatypeWorkDir(sonatypeWorkDir);
     config.setCloneDirectory(APP_INTERNAL_ID);
-    configureExpectations(config);
+    File targetDirectory = new File(config.getCloneDirectory(), APP_INTERNAL_ID);
+    configureExpectations();
+    when(sourceControlUtils.getCheckoutDirectory(app)).thenReturn(targetDirectory);
 
     pullRequestTask.run(pullRequestRemediationDetails, new PullRequestExecutor());
 
-    File targetDirectory = new File(config.getCloneDirectory(), APP_PUBLIC_ID + "-" + INFO.baseBranch + APP_HASH);
-    assertThat(targetDirectory).exists();
-    assertThat(targetDirectory.getParentFile()).hasName(APP_INTERNAL_ID);
     verify(gitApi).cloneOrPullRepository(targetDirectory, INFO.baseBranch);
     verify(metrics).addResult(anyString(), any(EnhancedPullRequestResult.class));
     verifyNoInteractions(fileCleaner, gitClient);
@@ -227,12 +166,13 @@ public class PullRequestTaskTest
     SourceControlConfig config = new SourceControlConfig();
     File sonatypeWorkDir = temporaryFolder.newFolder();
     config.setSonatypeWorkDir(sonatypeWorkDir);
-    File targetDirectory = new File(config.getCloneDirectory(), APP_PUBLIC_ID + "-" + INFO.baseBranch + APP_HASH);
+    File targetDirectory = new File(config.getCloneDirectory(), APP_INTERNAL_ID);
     targetDirectory.mkdirs();
     File pomFile = new File(targetDirectory, "pom.xml");
     FileUtils.copyURLToFile(getClass().getResource("/PullRequestTaskTest/test-pom.xml"), pomFile);
 
-    configureExpectations(config);
+    configureExpectations();
+    when(sourceControlUtils.getCheckoutDirectory(app)).thenReturn(targetDirectory);
     when(gitClient.createPullRequest(BRANCH, INFO.baseBranch, TITLE, CONTENT)).thenReturn(pullRequestResponse);
     when(pullRequestResponse.getUrl()).thenReturn(INFO.repositoryUrl);
 
@@ -245,7 +185,6 @@ public class PullRequestTaskTest
     verify(auditRecorder).recordSystemEvent(eq(AuditEvent.CREATE_PULL_REQUEST));
     verify(metrics).addResult(anyString(), any(EnhancedPullRequestResult.class));
 
-    assertThat(logOutput).atDebugLevel().contains("Using existing directory for pull request task");
     assertThat(logOutput).atInfoLevel().contains("Pull request task initiated for application");
     assertThat(logOutput).atInfoLevel().contains("Pull request task completed for application");
     assertThat(logOutput).atInfoLevel().contains("successful=true");
@@ -257,23 +196,23 @@ public class PullRequestTaskTest
     File sonatypeWorkDir = temporaryFolder.newFolder();
     config.setSonatypeWorkDir(sonatypeWorkDir);
 
-    configureExpectations(config);
-    File targetDirectory = new File(config.getCloneDirectory(), APP_PUBLIC_ID + "-" + INFO.baseBranch + APP_HASH);
+    File targetDirectory = new File(config.getCloneDirectory(), APP_INTERNAL_ID);
+    configureExpectations();
+    when(sourceControlUtils.getCheckoutDirectory(app)).thenReturn(targetDirectory);
     when(gitApi.cloneOrPullRepository(targetDirectory, INFO.baseBranch))
         .thenThrow(new GitException("Something bad happened"));
 
     pullRequestTask.run(pullRequestRemediationDetails, new PullRequestExecutor());
 
-    verify(fileCleaner).delete(targetDirectory);
+    verify(sourceControlUtils).deleteCheckoutDirectory(app);
     assertThat(logOutput).atErrorLevel().contains("Failed to execute pull request, cleaning pull request directory");
   }
 
-  private void configureExpectations(final SourceControlConfig config) {
-    configureExpectations(config, INFO);
+  private void configureExpectations() {
+    configureExpectations(INFO);
   }
 
-  private void configureExpectations(final SourceControlConfig config, final GitRepositoryInfo info) {
-    when(insightConfig.getSourceControl()).thenReturn(config);
+  private void configureExpectations(final GitRepositoryInfo info) {
     when(pullRequestRemediationDetails.getApp()).thenReturn(app);
     when(pullRequestRemediationDetails.getPullRequestBranchName()).thenReturn(BRANCH);
     when(pullRequestRemediationDetails.getContents()).thenReturn(CONTENT);
@@ -286,6 +225,5 @@ public class PullRequestTaskTest
     when(gitApiFactory.createGitApi(info)).thenReturn(gitApi);
     when(gitClientFactory.createApiClient(info)).thenReturn(gitClient);
     when(app.getId()).thenReturn(APP_INTERNAL_ID);
-    when(app.getPublicId()).thenReturn(APP_PUBLIC_ID);
   }
 }

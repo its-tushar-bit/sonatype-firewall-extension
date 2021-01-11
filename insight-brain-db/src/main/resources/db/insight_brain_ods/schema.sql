@@ -649,6 +649,7 @@ INSERT INTO migration_tracker(migration_tracker_id) VALUES('ignored-repository-c
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('inactive-repository-violations');
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('mail-config');
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('proxy-server-configuration');
+INSERT INTO migration_tracker(migration_tracker_id) VALUES('source-control-file-storage');
 
 CREATE TABLE search_index_change (
   search_index_change_id varchar(50) NOT NULL,

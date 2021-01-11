@@ -112,4 +112,12 @@ public class InsightWork
   public File getSearchIndexDir() {
     return new File(getSearchDir(), "index");
   }
+
+  /**
+   * @since 1.104
+   */
+  public File getSourceControlDir(String appId) {
+    IdValidationUtils.validate(appId);
+    return new File(insightConfig.getSourceControl().getCloneDirectory(), appId);
+  }
 }

@@ -1,0 +1,87 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.migration;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+
+import javax.inject.Inject;
+
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
+import com.sonatype.insight.brain.model.MigrationTracker;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightWork;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class SourceControlFileStorageMigratorTest
+    extends AbstractComponentTest
+{
+  @Inject
+  private MigrationTrackerDAO migrationTrackerDAO;
+
+  @Inject
+  private InsightConfig insightConfig;
+
+  @Inject
+  private InsightWork insightWork;
+
+  @Inject
+  private SourceControlFileStorageMigrator sourceControlFileStorageMigrator;
+
+  @Before
+  public void before() {
+    migrationTrackerDAO.deleteById(SourceControlFileStorageMigrator.MIGRATION_ID);
+  }
+
+  @Test
+  public void testMigrate_mustNotRunIfRunPreviously() throws Exception {
+    migrationTrackerDAO.insert(new MigrationTracker(SourceControlFileStorageMigrator.MIGRATION_ID));
+
+    File sourceControlCloneDir = insightWork.getSourceControlDir("testappid");
+    Files.createDirectories(sourceControlCloneDir.toPath());
+    assertThat(sourceControlCloneDir).isDirectory();
+
+    sourceControlFileStorageMigrator.migrate();
+
+    assertThat(sourceControlCloneDir).isDirectory();
+  }
+
+  @Test
+  public void testMigrate_sourceControlDirDoesNotExist() {
+    assertThat(insightConfig.getSourceControl().getCloneDirectory()).doesNotExist();
+
+    sourceControlFileStorageMigrator.migrate();
+
+    assertThat(migrationTrackerDAO.getById(SourceControlFileStorageMigrator.MIGRATION_ID)).isNotNull();
+  }
+
+  @Test
+  public void testMigrate() throws IOException {
+    assertThat(migrationTrackerDAO.getById(SourceControlFileStorageMigrator.MIGRATION_ID)).isNull();
+
+    createSourceControlCloneDir("testappid1");
+    createSourceControlCloneDir("testappid2");
+    assertThat(insightConfig.getSourceControl().getCloneDirectory().list()).hasSize(2);
+
+    sourceControlFileStorageMigrator.migrate();
+
+    assertThat(insightConfig.getSourceControl().getCloneDirectory().list()).isEmpty();
+    assertThat(migrationTrackerDAO.getById(SourceControlFileStorageMigrator.MIGRATION_ID)).isNotNull();
+  }
+
+  private void createSourceControlCloneDir(String appId) throws IOException {
+    File sourceControlCloneDir = insightWork.getSourceControlDir(appId);
+    Files.createDirectories(sourceControlCloneDir.toPath());
+    new File(sourceControlCloneDir, "foo.txt").createNewFile();
+    assertThat(sourceControlCloneDir.list()).hasSize(1);
+  }
+}

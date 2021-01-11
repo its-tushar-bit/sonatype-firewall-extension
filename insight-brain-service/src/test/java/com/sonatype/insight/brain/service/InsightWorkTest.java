@@ -175,4 +175,19 @@ public class InsightWorkTest
       }).withMessage("Invalid value: " + invalidValue);
     }
   }
+
+  @Test
+  public void testSourceControlDir() {
+    File file = work.getSourceControlDir(VALID_ID);
+    assertThat(file).isNotNull();
+  }
+
+  @Test
+  public void testSourceControlDir_InvalidAppId() {
+    for (String invalidValue : INVALID_CHARACTERS) {
+      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+        work.getSourceControlDir(invalidValue);
+      }).withMessage("Invalid value: " + invalidValue);
+    }
+  }
 }

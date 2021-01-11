@@ -12,10 +12,8 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
-import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics;
@@ -34,7 +32,6 @@ import org.slf4j.LoggerFactory;
  * followed by pushing the changes to a newly created PullRequest.
  */
 public class PullRequestTask
-    extends GitRepositoryTask
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestTask.class);
 
@@ -53,14 +50,11 @@ public class PullRequestTask
   @Inject
   public PullRequestTask(
       final GitClientFactory gitClientFactory,
-      final InsightConfig insightConfig,
-      final FileCleaner fileCleaner,
       final SourceControlPullRequestMetrics metrics,
       final GitApiFactory gitApiFactory,
       final AuditRecorder auditRecorder,
       final SourceControlUtils sourceControlUtils)
   {
-    super(insightConfig, fileCleaner);
     this.gitClientFactory = gitClientFactory;
     this.metrics = metrics;
     this.gitApiFactory = gitApiFactory;
@@ -89,8 +83,7 @@ public class PullRequestTask
       log.info("Pull request task initiated for application '{}', remediation target: [{}]",
           applicationId, pullRequestRemediationDetails.getToBeRemediated());
 
-      checkoutDir = getCheckoutDirectory(pullRequestRemediationDetails.getApp().getPublicId(), applicationId,
-          gitRepositoryInfo.baseBranch);
+      checkoutDir = sourceControlUtils.getCheckoutDirectory(pullRequestRemediationDetails.getApp());
 
       PullRequestCommand command = new PullRequestCommandBuilder()
           .withRepositoryDirectory(checkoutDir)
@@ -124,7 +117,7 @@ public class PullRequestTask
     }
     catch (Exception e) {
       log.error("Failed to execute pull request, cleaning pull request directory", e);
-      cleanDirectory(checkoutDir);
+      sourceControlUtils.deleteCheckoutDirectory(pullRequestRemediationDetails.getApp());
       metrics.addResult(applicationId, new EnhancedPullRequestResult(new PullRequestResult(), start,
           pullRequestRemediationDetails.getToBeRemediated(),
           pullRequestRemediationDetails.getTitle(), true));

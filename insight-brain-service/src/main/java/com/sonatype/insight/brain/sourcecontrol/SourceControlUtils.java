@@ -5,33 +5,56 @@
  */
 package com.sonatype.insight.brain.sourcecontrol;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
+import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.service.InsightWork;
 
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
 public class SourceControlUtils
 {
+  private static final Logger log = LoggerFactory.getLogger(SourceControlUtils.class);
+
   public static final String DEFAULT_BASE_BRANCH = "master";
 
   private final ApiSourceControlService sourceControlService;
 
   private final ApplicationDAO applicationDAO;
 
+  private final InsightWork insightWork;
+
+  private final FileCleaner fileCleaner;
+
   @Inject
-  public SourceControlUtils(ApiSourceControlService sourceControlService, ApplicationDAO applicationDAO) {
+  public SourceControlUtils(
+      ApiSourceControlService sourceControlService,
+      ApplicationDAO applicationDAO,
+      InsightWork insightWork,
+      FileCleaner fileCleaner)
+  {
     this.sourceControlService = sourceControlService;
     this.applicationDAO = applicationDAO;
+    this.insightWork = insightWork;
+    this.fileCleaner = fileCleaner;
   }
 
   /**
@@ -131,6 +154,37 @@ public class SourceControlUtils
 
     if (gitRepositoryInfo.provider == null) {
       gitRepositoryInfo.provider = orgSourceControl.getProvider();
+    }
+  }
+
+  /**
+   * Checks whether the checkout directory exists. If so, it is returned; otherwise it is created.
+   */
+  public File getCheckoutDirectory(Application app) {
+    File checkoutDir = insightWork.getSourceControlDir(app.getId());
+
+    if (checkoutDir.exists()) {
+      log.debug("Using existing directory for pull request task: {}", checkoutDir.getAbsolutePath());
+    }
+    else {
+      try {
+        Files.createDirectories(checkoutDir.toPath());
+      }
+      catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+      log.debug("Created new directory for pull request task: {}", checkoutDir.getAbsolutePath());
+    }
+    return checkoutDir;
+  }
+
+  public void deleteCheckoutDirectory(Application app) {
+    File checkoutDir = insightWork.getSourceControlDir(app.getId());
+    try {
+      fileCleaner.delete(checkoutDir);
+    }
+    catch (FileDeletionException e) {
+      log.error("Failed to remove checkout directory '{}': {}", checkoutDir.getAbsolutePath(), e.getMessage(), e);
     }
   }
 }

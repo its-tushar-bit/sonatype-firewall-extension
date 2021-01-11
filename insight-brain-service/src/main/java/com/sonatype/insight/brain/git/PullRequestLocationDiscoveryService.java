@@ -14,12 +14,12 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.iq.location.discovery.LocationDiscoveryExecutor;
 import com.sonatype.nexus.iq.location.dto.LocationDiscoveryRequest;
@@ -38,25 +38,21 @@ public class PullRequestLocationDiscoveryService
 
   private final LocationDiscoveryExecutor locationDiscoveryExecutor;
 
-  private final InsightConfig insightConfig;
+  private final SourceControlUtils sourceControlUtils;
 
   private final ApplicationDAO applicationDAO;
-
-  private final FileCleaner fileCleaner;
 
   @Inject
   public PullRequestLocationDiscoveryService(
       final GitApiFactory gitApiFactory,
       final ApplicationDAO applicationDAO,
       final LocationDiscoveryExecutor locationDiscoveryExecutor,
-      final InsightConfig insightConfig,
-      final FileCleaner fileCleaner)
+      final SourceControlUtils sourceControlUtils)
   {
     this.gitApiFactory = gitApiFactory;
     this.applicationDAO = applicationDAO;
     this.locationDiscoveryExecutor = locationDiscoveryExecutor;
-    this.insightConfig = insightConfig;
-    this.fileCleaner = fileCleaner;
+    this.sourceControlUtils = sourceControlUtils;
   }
 
   /**
@@ -85,13 +81,11 @@ public class PullRequestLocationDiscoveryService
 
     if (!componentIdentifierSet.isEmpty()) {
       File checkoutDir = null;
+      Application app = applicationDAO.getById(applicationId);
       try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
         log.debug("Pull request location discovery initiated for application '{}'", applicationId);
 
-        String applicationPublicId = applicationDAO.getById(applicationId).getPublicId();
-
-        checkoutDir = GitRepositoryTask.getCheckoutDirectory(
-            insightConfig, applicationPublicId, applicationId, gitRepositoryInfo.getBaseBranch());
+        checkoutDir = sourceControlUtils.getCheckoutDirectory(app);
 
         GitApi gitApi = gitApiFactory.createGitApi(gitRepositoryInfo);
         LocationDiscoveryRequest request =
@@ -103,7 +97,7 @@ public class PullRequestLocationDiscoveryService
       }
       catch (Exception e) {
         log.error("Failed to execute pull request location discovery", e);
-        GitRepositoryTask.cleanDirectory(fileCleaner, checkoutDir);
+        sourceControlUtils.deleteCheckoutDirectory(app);
       }
     }
     return result;

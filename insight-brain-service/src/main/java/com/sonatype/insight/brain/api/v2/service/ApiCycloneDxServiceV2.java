@@ -112,7 +112,7 @@ public class ApiCycloneDxServiceV2
       ApiReportRawDataDTOV2 data = apiReportDataServiceV2.getDataNoAuth(application.getPublicId(), scanId);
 
       Bom bom = new Bom();
-      bom.setSerialNumber(scanId);
+      bom.setSerialNumber(toUuid(scanId));
 
       String url;
       try {
@@ -138,6 +138,13 @@ public class ApiCycloneDxServiceV2
     catch (IOException | ParserConfigurationException | TransformerException e) {
       throw new InternalServerException("An error occurred generating report", e);
     }
+  }
+
+  private String toUuid(String scanId) {
+    if (scanId != null && scanId.length() == 32) {
+      return "urn:uuid:" + scanId.replaceAll("(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})", "$1-$2-$3-$4-$5");
+    }
+    return scanId;
   }
 
   private static List<Component> createBomComponents(List<ApiReportComponentDTOV2> reportComponents) {

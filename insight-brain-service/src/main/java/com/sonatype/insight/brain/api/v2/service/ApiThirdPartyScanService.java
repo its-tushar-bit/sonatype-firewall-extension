@@ -25,7 +25,6 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiEvaluationResultCounterDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
-import com.sonatype.insight.brain.cyclonedx.CycloneDxSchemaValidator;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
@@ -52,7 +51,6 @@ import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.SAXException;
 
 /**
  * @since 1.76
@@ -62,8 +60,6 @@ import org.xml.sax.SAXException;
 public class ApiThirdPartyScanService
 {
   private static final Logger log = LoggerFactory.getLogger(ApiThirdPartyScanService.class);
-
-  private final CycloneDxSchemaValidator schemaValidator;
 
   private final Scanner scanner;
 
@@ -79,7 +75,6 @@ public class ApiThirdPartyScanService
 
   @Inject
   public ApiThirdPartyScanService(
-      final CycloneDxSchemaValidator schemaValidator,
       final Scanner scanner,
       final ProprietaryConfigService proprietaryConfigService,
       final InsightWork work,
@@ -87,7 +82,6 @@ public class ApiThirdPartyScanService
       final ApplicationDAO applicationDAO,
       StageTypeService stageTypeService)
   {
-    this.schemaValidator = schemaValidator;
     this.scanner = scanner;
     this.proprietaryConfigService = proprietaryConfigService;
     this.work = work;
@@ -129,13 +123,6 @@ public class ApiThirdPartyScanService
   private void validateSbom(final String sbom) {
     if (StringUtils.isBlank(sbom)) {
       throw new BadRequestException("sbom content is null or empty");
-    }
-
-    try {
-      schemaValidator.validate(sbom);
-    }
-    catch (SAXException ex) {
-      throw new BadRequestException(ex.getMessage());
     }
   }
 

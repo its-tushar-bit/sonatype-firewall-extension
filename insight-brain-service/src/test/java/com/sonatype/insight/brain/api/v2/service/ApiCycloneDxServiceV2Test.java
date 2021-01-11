@@ -114,7 +114,7 @@ public class ApiCycloneDxServiceV2Test
     Parser parser = new XmlParser();
     Bom bom = parser.parse(response.getEntity().toString().getBytes(StandardCharsets.UTF_8));
 
-    assertThat(bom.getSerialNumber()).isEqualTo(scanId);
+    assertThat(bom.getSerialNumber()).isEqualTo(toUuid(scanId));
     assertThat(bom.getExternalReferences()).hasSize(1);
 
     Component component = createComponent(null, "jQuery", "3.4.1", "pkg:nuget/jQuery@3.4.1", "5408e54a94044d1f1f21",
@@ -127,6 +127,10 @@ public class ApiCycloneDxServiceV2Test
         "Apache-1.0", "LGPL-3.0", "Apache-2.0"));
 
     assertThat(bom.getComponents()).contains(component);
+  }
+
+  private String toUuid(final String scanId) {
+    return "urn:uuid:" + scanId.replaceAll("(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})", "$1-$2-$3-$4-$5");
   }
 
   private Component createComponent(

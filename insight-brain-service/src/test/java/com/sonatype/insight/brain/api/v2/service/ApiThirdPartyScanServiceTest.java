@@ -278,16 +278,6 @@ public class ApiThirdPartyScanServiceTest
   }
 
   @Test
-  public void testScanComponents_InvalidBom() throws Exception {
-    String bom = getBomFile("invalid_bom.xml");
-
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      thirdPartyScanService.scanComponents(app.getId(), "clair", Stage.ID_BUILD, bom, null);
-    }).withMessageMatching("Error on line number: 14, column number: 21 message: "
-        + "cvc-complex-type.4:.*['\"]name['\"].*['\"]v:source['\"].*");
-  }
-
-  @Test
   public void testScanComponents_NullBom() throws Exception {
     String bom = null;
 

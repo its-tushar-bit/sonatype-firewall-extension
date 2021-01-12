@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.innersource;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -65,6 +66,8 @@ public class ReportInnerSourceTest extends InjectedTest
   private final InnerSourceComponentDAO innerSourceComponentDAO = new InnerSourceComponentDAO();
 
   private Application app;
+
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   @Before
   public void init() {
@@ -176,16 +179,10 @@ public class ReportInnerSourceTest extends InjectedTest
     ComponentIdentifier knownModule4 = ComponentIdentifier
             .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-core", "2.23.5-SNAPSHOT", "", "jar");
 
-    ObjectMapper objectMapper = new ObjectMapper();
-
-    JsonNode dependenciesJson = objectMapper
-        .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-multi-module/dependencies.json"));
-    JsonNode bomJson = objectMapper
-        .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-multi-module/bom.json"));
-    JsonNode summaryJson = objectMapper
-        .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-multi-module/summary.json"));
-    JsonNode dataJson = objectMapper
-        .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-multi-module/data.json"));
+    JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-multi-module/dependencies.json");
+    JsonNode bomJson = getJsonNodeInformation("report-innersource-multi-module/bom.json");
+    JsonNode summaryJson = getJsonNodeInformation("report-innersource-multi-module/summary.json");
+    JsonNode dataJson = getJsonNodeInformation("report-innersource-multi-module/data.json");
 
     ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender);
 
@@ -230,16 +227,10 @@ public class ReportInnerSourceTest extends InjectedTest
         tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-client-utils", appInnerSource);
     tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api", app);
 
-    ObjectMapper objectMapper = new ObjectMapper();
-
-    JsonNode dependenciesJson =
-        objectMapper.readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource/dependencies.json"));
-    JsonNode bomJson =
-        objectMapper.readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource/bom.json"));
-    JsonNode summaryJson =
-        objectMapper.readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource/summary.json"));
-    JsonNode dataJson =
-        objectMapper.readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource/data.json"));
+    JsonNode dependenciesJson = getJsonNodeInformation("report-innersource/dependencies.json");
+    JsonNode bomJson = getJsonNodeInformation("report-innersource/bom.json");
+    JsonNode summaryJson = getJsonNodeInformation("report-innersource/summary.json");
+    JsonNode dataJson = getJsonNodeInformation("report-innersource/data.json");
 
     ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender);
 
@@ -292,16 +283,10 @@ public class ReportInnerSourceTest extends InjectedTest
         tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-client-utils", appInnerSource);
     tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api", app);
 
-    ObjectMapper objectMapper = new ObjectMapper();
-
-    JsonNode dependenciesJson = objectMapper
-        .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-known/dependencies.json"));
-    JsonNode bomJson =
-        objectMapper.readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-known/bom.json"));
-    JsonNode summaryJson =
-        objectMapper.readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-known/summary.json"));
-    JsonNode dataJson =
-        objectMapper.readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-known/data.json"));
+    JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-known/dependencies.json");
+    JsonNode bomJson = getJsonNodeInformation("report-innersource-known/bom.json");
+    JsonNode summaryJson = getJsonNodeInformation("report-innersource-known/summary.json");
+    JsonNode dataJson = getJsonNodeInformation("report-innersource-known/data.json");
 
     ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender);
 
@@ -335,8 +320,8 @@ public class ReportInnerSourceTest extends InjectedTest
       List<ComponentIdentifier> expectedKnownComponents)
   {
     List<ComponentIdentifier> knownComponents =
-        knownDependencies.stream().map(bom -> ComponentIdentifierAdapter.getComponentIdentifier(bom)).collect(
-            Collectors.toList());
+        knownDependencies.stream().map(ComponentIdentifierAdapter::getComponentIdentifier)
+            .collect(Collectors.toList());
     assertThat(knownComponents).containsAll(expectedKnownComponents);
   }
 
@@ -409,16 +394,10 @@ public class ReportInnerSourceTest extends InjectedTest
         tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-client-utils", appInnerSource);
     tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api", app);
 
-    ObjectMapper objectMapper = new ObjectMapper();
-
-    JsonNode dependenciesJson = objectMapper.readTree(
-        getClass().getResource("/InnerSourceServiceTest/report-innersource-nested-transitive/dependencies.json"));
-    JsonNode bomJson = objectMapper
-        .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-nested-transitive/bom.json"));
-    JsonNode summaryJson = objectMapper
-        .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-nested-transitive/summary.json"));
-    JsonNode dataJson = objectMapper
-        .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-nested-transitive/data.json"));
+    JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-nested-transitive/dependencies.json");
+    JsonNode bomJson = getJsonNodeInformation("report-innersource-nested-transitive/bom.json");
+    JsonNode summaryJson = getJsonNodeInformation("report-innersource-nested-transitive/summary.json");
+    JsonNode dataJson = getJsonNodeInformation("report-innersource-nested-transitive/data.json");
 
     ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender);
 
@@ -443,16 +422,10 @@ public class ReportInnerSourceTest extends InjectedTest
         tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-module-model", appInnerSource);
     tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api", app);
 
-    ObjectMapper objectMapper = new ObjectMapper();
-
-    JsonNode dependenciesJson = objectMapper.readTree(
-        getClass().getResource("/InnerSourceServiceTest/report-innersource-unknown-components/dependencies.json"));
-    JsonNode bomJson = objectMapper
-        .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-unknown-components/bom.json"));
-    JsonNode summaryJson = objectMapper
-        .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-unknown-components/summary.json"));
-    JsonNode dataJson = objectMapper
-        .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-unknown-components/data.json"));
+    JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-unknown-components/dependencies.json");
+    JsonNode bomJson = getJsonNodeInformation("report-innersource-unknown-components/bom.json");
+    JsonNode summaryJson = getJsonNodeInformation("report-innersource-unknown-components/summary.json");
+    JsonNode dataJson = getJsonNodeInformation("report-innersource-unknown-components/data.json");
 
     ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender);
 
@@ -473,16 +446,10 @@ public class ReportInnerSourceTest extends InjectedTest
     tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.innersource.data/innersource-data", app);
     tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.innersource.main/innersource-main", app);
 
-    ObjectMapper objectMapper = new ObjectMapper();
-
-    JsonNode dependenciesJson = new ObjectMapper()
-        .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-not-root/dependencies.json"));
-    JsonNode summaryJson = objectMapper
-        .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-not-root/summary.json"));
-    JsonNode bomJson =
-        objectMapper.readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-not-root/bom.json"));
-    JsonNode dataJson =
-        objectMapper.readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-not-root/data.json"));
+    JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-not-root/dependencies.json");
+    JsonNode bomJson = getJsonNodeInformation("report-innersource-not-root/bom.json");
+    JsonNode summaryJson = getJsonNodeInformation("report-innersource-not-root/summary.json");
+    JsonNode dataJson = getJsonNodeInformation("report-innersource-not-root/data.json");
 
     ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender);
 
@@ -500,16 +467,10 @@ public class ReportInnerSourceTest extends InjectedTest
     tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.innersource.data/innersource-data", appInnerSource);
     tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.innersource.main/innersource-main", app);
 
-    ObjectMapper objectMapper = new ObjectMapper();
-
-    JsonNode dependenciesJson = objectMapper
-        .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-not-children/dependencies.json"));
-    JsonNode bomJson = objectMapper
-        .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-not-children/bom.json"));
-    JsonNode summaryJson = objectMapper.readTree(getClass().getResource(
-        "/InnerSourceServiceTest/report-innersource-not-children/summary.json"));
-    JsonNode dataJson = objectMapper
-        .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-not-children/data.json"));
+    JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-not-children/dependencies.json");
+    JsonNode bomJson = getJsonNodeInformation("report-innersource-not-children/bom.json");
+    JsonNode summaryJson = getJsonNodeInformation("report-innersource-not-children/summary.json");
+    JsonNode dataJson = getJsonNodeInformation("report-innersource-not-children/data.json");
 
     ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender);
 
@@ -528,19 +489,55 @@ public class ReportInnerSourceTest extends InjectedTest
   }
 
   @Test
+  public void testProcessInnerSourceDependencies_dependencyIsTransitiveAndDirect() throws Exception {
+
+    Application appInnerSource = tempEntity.newApplicationWithParent();
+
+    tempEntity.newInnerSourceComponent("pkg:maven/org.example/ACME-data", appInnerSource);
+    tempEntity.newInnerSourceComponent("pkg:maven/org.example/ACME-business", appInnerSource);
+    InnerSourceComponent innerSourceComponent =
+        tempEntity.newInnerSourceComponent("pkg:maven/org.example/ACME-Producer", appInnerSource);
+
+    JsonNode dependenciesJson =
+        getJsonNodeInformation("report-innersource-direct-transitive-dependency/dependencies.json");
+    JsonNode bomJson = getJsonNodeInformation("report-innersource-direct-transitive-dependency/bom.json");
+    JsonNode summaryJson = getJsonNodeInformation("report-innersource-direct-transitive-dependency/summary.json");
+    JsonNode dataJson = getJsonNodeInformation("report-innersource-direct-transitive-dependency/data.json");
+
+    ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender);
+
+    List<InnerSourceComponent> innerSourceComponents = innerSourceComponentDAO.getByApplicationId(app.getId());
+    assertThat(innerSourceComponents).hasSize(2);
+
+    List<JsonNode> bomInnerSourceParent = new ArrayList<>();
+    List<JsonNode> bomInnerSourceDependencies = new ArrayList<>();
+    List<JsonNode> knownDependencies = new ArrayList<>();
+    assertThat(innerSourceComponents).extracting(InnerSourceComponent::getApplicationId).containsOnly(app.getId());
+    assertInnerSourceInformation(bomJson, 1, 2, bomInnerSourceParent, bomInnerSourceDependencies, knownDependencies);
+    assertSummaryCounters(summaryJson, dataJson, 5);
+
+    ComponentIdentifier directDep = ComponentIdentifier
+        .createMavenCoordinates("javax.inject", "javax.inject", "1", "", "jar");
+    assertKnownComponents(knownDependencies, Collections.singletonList(directDep));
+
+    ComponentIdentifier innerSourceParent = ComponentIdentifier
+        .createMavenCoordinates("org.example", "ACME-business", "1.0-SNAPSHOT", "", "jar");
+
+    assertInnerSourceParent(bomInnerSourceParent.get(0), appInnerSource, innerSourceParent);
+
+    assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
+    assertTelemetryInformation(app.getId(), Sets.newHashSet(innerSourceComponent.getApplicationId()));
+  }
+
+  @Test
   public void testProcessInnerSourceDependencies_producer_not_exists() throws Exception {
 
     tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.innersource.main/innersource-main", app);
-    ObjectMapper objectMapper = new ObjectMapper();
 
-    JsonNode dependenciesJson = objectMapper
-        .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-not-children/dependencies.json"));
-    JsonNode bomJson = objectMapper
-        .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-not-children/bom.json"));
-    JsonNode summaryJson = objectMapper
-        .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-not-children/summary.json"));
-    JsonNode dataJson = objectMapper
-        .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource-not-children/data.json"));
+    JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-not-children/dependencies.json");
+    JsonNode bomJson = getJsonNodeInformation("report-innersource-not-children/bom.json");
+    JsonNode summaryJson = getJsonNodeInformation("report-innersource-not-children/summary.json");
+    JsonNode dataJson = getJsonNodeInformation("report-innersource-not-children/data.json");
 
     ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender);
 
@@ -570,7 +567,7 @@ public class ReportInnerSourceTest extends InjectedTest
         new AnalyzerFeatures(AnalysisSource.THIRD_PARTY, AnalysisType.COORDINATE, "mvn");
     assertIdentificationSourceAndAnalyzerFeatures(bomInnerSource, IdentificationSource.PACKAGE_MANIFEST.getId(),
         analyzerFeaturesExpected);
-    assertInnerSourceTree(bomInnerSource, app, true, componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID));
+    assertInnerSourceTree(bomInnerSource, app, componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID));
   }
 
   private void assertIdentificationSourceAndAnalyzerFeatures(
@@ -634,14 +631,17 @@ public class ReportInnerSourceTest extends InjectedTest
   private void assertInnerSourceTree(
       JsonNode innerSourceNode,
       Application app,
-      boolean isInnerSource,
       String innerSourceComponentName)
       throws IOException
   {
     InnerSourceData expectedInnerSourceData =
-        new InnerSourceData(app.getName(), app.getId(), innerSourceComponentName, isInnerSource);
+        new InnerSourceData(app.getName(), app.getId(), innerSourceComponentName, true);
     InnerSourceData innerSourceDataInBom =
         JsonUtils.asPojo(innerSourceNode.get("innerSourceData"), InnerSourceData.class);
     assertThat(innerSourceDataInBom).usingRecursiveComparison().isEqualTo(expectedInnerSourceData);
+  }
+
+  private JsonNode getJsonNodeInformation(String path) throws IOException {
+    return objectMapper.readTree(getClass().getResource("/InnerSourceServiceTest/" + path));
   }
 }

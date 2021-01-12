@@ -134,15 +134,18 @@ public final class ReportInnerSource
       ApplicationDAO applicationDAO = new ApplicationDAO();
 
       Set<String> innerSourceAppIds = new HashSet<>();
+      Set<ComponentIdentifier> directDependencies = getDirectDependencies(children);
+
       for (DependencyNode dependencyChild : children) {
         if (dependencyChild.isModule()) {
           Set<String> moduleInnerSourceAppIds = associateModuleToApp(dependencyChild, applicationDAO,
-              innerSourceComponentDAO, bomJson, application, knownArtifactCount, exactlyMatchedComponentCount);
+              innerSourceComponentDAO, bomJson, application, knownArtifactCount, exactlyMatchedComponentCount,
+              directDependencies);
           innerSourceAppIds.addAll(moduleInnerSourceAppIds);
         }
         else if (dependencyChild.isDirect()) {
           processDirectDependency(dependencyChild, applicationDAO, innerSourceComponentDAO, bomJson,
-              application, knownArtifactCount, exactlyMatchedComponentCount, innerSourceAppIds);
+              application, knownArtifactCount, exactlyMatchedComponentCount, innerSourceAppIds, directDependencies);
         }
       }
       updateReportSummaryWithInnerSourceResults(dataJson, summaryJson, knownArtifactCount,
@@ -150,6 +153,22 @@ public final class ReportInnerSource
 
       sendTelemetryData(application.getId(), innerSourceAppIds, telemetrySender);
     }
+  }
+
+  private static Set<ComponentIdentifier> getDirectDependencies(List<DependencyNode> children) {
+    Set<ComponentIdentifier> directDependencies = new HashSet<>();
+    for (DependencyNode child : children) {
+      if (!child.isModule() && child.isDirect()) {
+        directDependencies.add(child.getComponentIdentifier());
+      }
+
+      for (DependencyNode firstLevel : child.getChildren()) {
+        if (firstLevel.isDirect()) {
+          directDependencies.add(firstLevel.getComponentIdentifier());
+        }
+      }
+    }
+    return directDependencies;
   }
 
   private static void sendTelemetryData(
@@ -169,7 +188,8 @@ public final class ReportInnerSource
       final JsonNode bom,
       final Application currentApplication,
       final AtomicInteger knownArtifactCount,
-      final AtomicInteger exactlyMatchedComponentCount)
+      final AtomicInteger exactlyMatchedComponentCount,
+      final Set<ComponentIdentifier> directDependencies)
   {
     ComponentIdentifier moduleComponent = moduleDependency.getComponentIdentifier();
     log.debug("InnerSource module '{}' found", moduleComponent);
@@ -179,7 +199,7 @@ public final class ReportInnerSource
     Set<String> innerSourceAppIds = new HashSet<>();
     for (DependencyNode directDependencyChild : moduleDependency.getChildren()) {
       processDirectDependency(directDependencyChild, applicationDAO, innerSourceComponentDAO, bom, currentApplication,
-          knownArtifactCount, exactlyMatchedComponentCount, innerSourceAppIds);
+          knownArtifactCount, exactlyMatchedComponentCount, innerSourceAppIds, directDependencies);
     }
     return innerSourceAppIds;
   }
@@ -192,7 +212,8 @@ public final class ReportInnerSource
       final Application currentApplication,
       final AtomicInteger knownArtifactCount,
       final AtomicInteger exactlyMatchedComponentCount,
-      final Set<String> innerSourceAppIds)
+      final Set<String> innerSourceAppIds,
+      final Set<ComponentIdentifier> directDependencies)
   {
     ComponentIdentifier parentComponent = directDependency.getComponentIdentifier();
 
@@ -218,7 +239,7 @@ public final class ReportInnerSource
         log.info("InnerSource component found '{}' with {} transitive dependencies", parentComponent,
             childrenComponents.size());
         processTransitiveDependencies(bom, childrenComponents, innerSourceApp, innerSourceComponentDAO,
-            knownArtifactCount, exactlyMatchedComponentCount, directDependency);
+            knownArtifactCount, exactlyMatchedComponentCount, directDependency, directDependencies);
       }
     }
   }
@@ -316,13 +337,15 @@ public final class ReportInnerSource
       final InnerSourceComponentDAO innerSourceComponentDAO,
       final AtomicInteger knownArtifactCount,
       final AtomicInteger exactlyMatchedComponentCount,
-      final DependencyNode parentDependency)
+      final DependencyNode parentDependency,
+      final Set<ComponentIdentifier> directDependencies)
   {
     for (DependencyNode dependency : transitiveDependencies) {
       for (JsonNode bomChild : bom.get("aaData")) {
         ComponentIdentifier bomComponentIdentifier = getBomComponentIdentifier(bomChild);
 
-        if (Objects.equals(bomComponentIdentifier, dependency.getComponentIdentifier())) {
+        if (!directDependencies.contains(bomComponentIdentifier) &&
+            Objects.equals(bomComponentIdentifier, dependency.getComponentIdentifier())) {
           ObjectNode bomObjectNode = (ObjectNode) bomChild;
 
           String innerSourceComponentName = getComponentName(parentDependency.getComponentIdentifier());

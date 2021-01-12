@@ -1,0 +1,223 @@
+{
+  "dependencyGraph" : [ {
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "javax.inject",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "javax.inject",
+          "version" : "1"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "commons-collections",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "commons-collections",
+          "version" : "3.2.2"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "ACME-business",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.example",
+          "version" : "1.0-SNAPSHOT"
+        }
+      }
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-collections",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-collections",
+        "version" : "3.2.2"
+      }
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "javax.inject",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "javax.inject",
+        "version" : "1"
+      }
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-lang3",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.commons",
+        "version" : "3.9"
+      }
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ACME-business",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.example",
+        "version" : "1.0-SNAPSHOT"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "commons-lang3",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.apache.commons",
+          "version" : "3.9"
+        }
+      }
+    } ]
+  } ],
+  "gavDepths" : {
+    "org.apache.commons:commons-lang3:3.9" : [ 2 ],
+    "javax.inject:javax.inject:1" : [ 1 ],
+    "commons-collections:commons-collections:3.2.2" : [ 1 ]
+  },
+  "componentDepths" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "javax.inject",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "javax.inject",
+        "version" : "1"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-collections",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-collections",
+        "version" : "3.2.2"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-lang3",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.commons",
+        "version" : "3.9"
+      }
+    },
+    "depths" : [ 2 ]
+  } ],
+  "dependencyTree" : {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ACME-Consumer",
+        "classifier" : "",
+        "extension" : "pom",
+        "groupId" : "org.example",
+        "version" : "1.0-SNAPSHOT"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "Consumer-Service",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.example",
+          "version" : "1.0-SNAPSHOT"
+        }
+      },
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "javax.inject",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "javax.inject",
+            "version" : "1"
+          }
+        },
+        "direct" : true
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "commons-collections",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "commons-collections",
+            "version" : "3.2.2"
+          }
+        },
+        "direct" : true
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ACME-business",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.example",
+            "version" : "1.0-SNAPSHOT"
+          }
+        },
+        "children" : [ {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "commons-lang3",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.apache.commons",
+              "version" : "3.9"
+            }
+          }
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "ACME-data",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.example",
+              "version" : "1.0-SNAPSHOT"
+            }
+          }
+        } ],
+        "direct" : true
+      } ],
+      "direct" : true,
+      "module" : true
+    } ],
+    "module" : true
+  }
+}

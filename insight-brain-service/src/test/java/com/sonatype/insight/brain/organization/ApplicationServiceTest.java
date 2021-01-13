@@ -252,6 +252,7 @@ public class ApplicationServiceTest
     Files.createDirectories(insightWork.getScanDir(applicationId).toPath());
     Files.createDirectories(insightWork.getAuditDir(applicationId).toPath());
     Files.createDirectories(insightWork.getReportDir(applicationId).toPath());
+    Files.createDirectories(insightWork.getSourceControlDir(applicationId).toPath());
 
     applicationService.deleteApplicationByPublicId(app1.getPublicId());
     assertThat(new ApplicationDAO().getById(applicationId)).isNull();
@@ -259,6 +260,7 @@ public class ApplicationServiceTest
     assertThat(insightWork.getScanDir(applicationId)).doesNotExist();
     assertThat(insightWork.getAuditDir(applicationId)).doesNotExist();
     assertThat(insightWork.getReportDir(applicationId)).doesNotExist();
+    assertThat(insightWork.getSourceControlDir(applicationId)).doesNotExist();
   }
 
   @Test

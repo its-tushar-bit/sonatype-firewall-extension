@@ -35,7 +35,6 @@ import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.DefaultBaseUrl;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
@@ -85,7 +84,7 @@ public class PullRequestRemediationDetailsTest
 
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "3.11.3", "pullRequest", policyNotifications, app,
-            SCAN_ID, Stage.ID_BUILD, lookup(DefaultBaseUrl.class).getConfigured(), provider);
+            SCAN_ID, Stage.ID_BUILD, config.getBaseUrl(), provider);
 
     assertThat(details.getTitle()).isEqualTo("Bump jooq to 3.11.3");
 
@@ -129,9 +128,54 @@ public class PullRequestRemediationDetailsTest
 
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "1.1", "pullRequest", policyNotifications, app,
-            SCAN_ID, Stage.ID_BUILD, lookup(DefaultBaseUrl.class).getConfigured(), provider);
+            SCAN_ID, Stage.ID_BUILD, config.getBaseUrl(), provider);
 
     assertThat(details.getTitle()).isEqualTo("Bump @sonatype/foo to 1.1");
+
+    Path path = Paths.get(getClass().getResource(expectedResultResource).toURI());
+    String expectedContent = new String(Files.readAllBytes(path));
+    assertThat(details.getContents()).isEqualTo(expectedContent);
+  }
+
+  @Test
+  public void testSecurityVulnerabilityReport_golangComponent() throws Exception {
+    testSecurityVulnerabilityReport_golangComponent(SourceControlProvider.GITHUB,
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_golang.md");
+  }
+
+  @Test
+  public void testMinimalMarkdownSecurityVulnerabilityReport_golangComponent() throws Exception {
+    testSecurityVulnerabilityReport_golangComponent(SourceControlProvider.BITBUCKET,
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_golang_bitbucket.md");
+  }
+
+  private void testSecurityVulnerabilityReport_golangComponent(
+      SourceControlProvider provider,
+      String expectedResultResource) throws Exception
+  {
+    ComponentIdentifier componentIdentifier =
+        ComponentIdentifier.createGolangCoordinates("golang.org/x/text", "v0.3.0");
+
+    List<PolicyNotification> policyNotifications = new ArrayList<>();
+
+    PolicyNotification criticalPolicyNotification = new PolicyNotification(
+        new PolicyFact("critical-id", "Security-Critical", 9), null);
+    ComponentFact criticalComponentFact = new ComponentFact(componentIdentifier, "dummy-hash");
+    ConstraintFact criticalConstraintFact = new ConstraintFact("constraint-id", "Critical risk CVSS score", "OR");
+    criticalConstraintFact.addConditionFact(new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID, 0,
+        "Security Vulnerability Severity >= 9",
+        "Found security vulnerability CVE-2020-14040 with severity >= 9 (severity = 9.8)",
+        new TriggerReference(Type.SECURITY_VULNERABILITY_REFID, "CVE-2020-14040")));
+    criticalComponentFact.addConstraintFact(criticalConstraintFact);
+    criticalPolicyNotification.getPolicyFact().addComponentFact(criticalComponentFact);
+
+    policyNotifications.add(criticalPolicyNotification);
+
+    PullRequestRemediationDetails details =
+        new PullRequestRemediationDetails(componentIdentifier, "v0.3.3", "pullRequest", policyNotifications, app,
+            SCAN_ID, Stage.ID_BUILD, config.getBaseUrl(), provider);
+
+    assertThat(details.getTitle()).isEqualTo("Bump golang.org/x/text to v0.3.3");
 
     Path path = Paths.get(getClass().getResource(expectedResultResource).toURI());
     String expectedContent = new String(Files.readAllBytes(path));
@@ -146,7 +190,7 @@ public class PullRequestRemediationDetailsTest
 
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "3.11.3", "pullRequest", policyNotifications, app,
-            SCAN_ID, Stage.ID_BUILD, lookup(DefaultBaseUrl.class).getConfigured(), SourceControlProvider.GITHUB);
+            SCAN_ID, Stage.ID_BUILD, config.getBaseUrl(), SourceControlProvider.GITHUB);
 
     assertThat(details.getContents().replace("\r\n", "\n"))
         .startsWith("## :shield: Automated pull request: Nexus IQ found 1 Policy Violation\n");

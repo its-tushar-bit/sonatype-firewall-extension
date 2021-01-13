@@ -75,7 +75,8 @@ public class PullRequestLocationDiscoveryService
         .filter(pv -> pv.getComponentIdentifier() != null)
         .map(PolicyViolation::getComponentIdentifier)
         .filter(ci -> ci.getFormat().equalsIgnoreCase(ComponentIdentifier.FORMAT_MAVEN) ||
-                      ci.getFormat().equalsIgnoreCase(ComponentIdentifier.FORMAT_NPM))
+                      ci.getFormat().equalsIgnoreCase(ComponentIdentifier.FORMAT_NPM) ||
+                      ci.getFormat().equalsIgnoreCase(ComponentIdentifier.FORMAT_GOLANG))
         .distinct()
         .collect(Collectors.toList());
 

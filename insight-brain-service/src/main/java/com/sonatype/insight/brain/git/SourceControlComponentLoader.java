@@ -138,7 +138,8 @@ public class SourceControlComponentLoader
       ComponentIdentifier componentIdentifier = pullRequestLineComment.getComponentIdentifier();
       if (componentIdentifier != null && byIdentifierMap.containsKey(componentIdentifier)) {
         ComponentInfo componentInfo = byIdentifierMap.get(componentIdentifier);
-        if (componentInfo != null && !componentInfo.getDirectDependency()) {
+        if (componentInfo != null &&
+            (componentInfo.getDirectDependency() == null || !componentInfo.getDirectDependency())) {
           componentInfo =
               new ComponentInfo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString(), true);
           byIdentifierMap.put(componentIdentifier, componentInfo);

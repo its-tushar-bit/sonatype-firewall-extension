@@ -228,6 +228,8 @@ public class PullRequestRemediationDetails
         return componentIdentifier.get(MAVEN_ARTIFACT_ID);
       case ComponentIdentifier.FORMAT_NPM:
         return componentIdentifier.get(ComponentIdentifier.NPM_PACKAGE_ID);
+      case ComponentIdentifier.FORMAT_GOLANG:
+        return componentIdentifier.get(ComponentIdentifier.GOLANG_NAME);
       default:
         return sanitizeDisplayName(componentIdentifier);
     }
@@ -239,6 +241,8 @@ public class PullRequestRemediationDetails
         return String.join(" : ", componentIdentifier.get(MAVEN_GROUP_ID), componentIdentifier.get(MAVEN_ARTIFACT_ID));
       case ComponentIdentifier.FORMAT_NPM:
         return componentIdentifier.get(ComponentIdentifier.NPM_PACKAGE_ID);
+      case ComponentIdentifier.FORMAT_GOLANG:
+        return componentIdentifier.get(ComponentIdentifier.GOLANG_NAME);
       default:
         return sanitizeDisplayName(componentIdentifier);
     }

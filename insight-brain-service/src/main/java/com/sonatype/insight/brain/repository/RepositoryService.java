@@ -92,7 +92,7 @@ public class RepositoryService
       final String pathname,
       final String clientUserAgent)
   {
-    unquarantineComponentNoAuth(repositoryId, pathname, clientUserAgent);
+    unquarantineComponentNoAuth(repositoryId, pathname, clientUserAgent, false);
   }
 
   /**
@@ -101,7 +101,8 @@ public class RepositoryService
   public void unquarantineComponentNoAuth(
       final String repositoryId,
       final String pathname,
-      final String clientUserAgent)
+      final String clientUserAgent,
+      final boolean autoUnquarantined)
   {
     auditComponentPath(pathname);
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repositoryId,
@@ -126,7 +127,12 @@ public class RepositoryService
     }
     // Retrieve the component again before saving as the re-evaluation may have changed the component
     repositoryComponent = repositoryComponentDAO.getById(repositoryComponent.getId());
-    repositoryComponent.setUnquarantineTime(new Date());
+    if (autoUnquarantined) {
+      repositoryComponent.setUnquarantineTimeForMonitoring(new Date());
+    }
+    else {
+      repositoryComponent.setUnquarantineTimeForManualRelease(new Date());
+    }
     repositoryComponentDAO.update(repositoryComponent);
   }
 

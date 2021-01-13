@@ -22,7 +22,7 @@ public class RepositoryComponentTest
     component.setQuarantineTime(now);
     assertThat(component.isQuarantined()).as("Only 'QuarantineTime' == quarantined.").isTrue();
 
-    component.setUnquarantineTime(now);
+    component.setUnquarantineTimeForManualRelease(now);
     assertThat(component.isQuarantined()).as("Both 'Un/QuarantineTime' != quarantined.").isFalse();
   }
 }

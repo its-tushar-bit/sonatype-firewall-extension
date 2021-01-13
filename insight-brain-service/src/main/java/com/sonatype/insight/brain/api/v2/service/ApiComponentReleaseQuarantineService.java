@@ -143,7 +143,7 @@ public class ApiComponentReleaseQuarantineService
         policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, repositoryPolicyViolation);
       }
 
-      repositoryComponent.setUnquarantineTime(now);
+      repositoryComponent.setUnquarantineTimeForManualRelease(now);
       repositoryComponentDAO.update(tx, repositoryComponent);
 
       log.debug(

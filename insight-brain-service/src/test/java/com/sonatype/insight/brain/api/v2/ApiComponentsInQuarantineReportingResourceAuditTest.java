@@ -106,7 +106,7 @@ public class ApiComponentsInQuarantineReportingResourceAuditTest
       repositoryComponent.setQuarantineTime(new Date());
     }
     if (isReleasedFromQuarantine) {
-      repositoryComponent.setUnquarantineTime(new Date());
+      repositoryComponent.setUnquarantineTimeForManualRelease(new Date());
     }
     tempEntity.newRepositoryComponent(repositoryComponent);
   }

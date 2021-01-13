@@ -298,7 +298,7 @@ public class PolicyMonitor
       if (!hasFailViolation(evaluationData.policyAlerts)) {
         RepositoryComponentEvaluationDataRequest request =
             applicableQuarantinedComponentEvaluationRequestList.components.get(evaluationData.requestIndex);
-        repositoryService.unquarantineComponentNoAuth(repository.getId(), request.pathname, null);
+        repositoryService.unquarantineComponentNoAuth(repository.getId(), request.pathname, null, true);
         unquarantineCount++;
       }
     }

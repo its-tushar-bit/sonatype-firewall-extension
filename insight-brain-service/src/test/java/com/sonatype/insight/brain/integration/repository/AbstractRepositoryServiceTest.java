@@ -864,7 +864,7 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(repositoryComponent.isQuarantined()).isTrue();
 
     // Unquarantine the component
-    repositoryComponent.setUnquarantineTime(new Date());
+    repositoryComponent.setUnquarantineTimeForManualRelease(new Date());
     repositoryComponentDAO.update(repositoryComponent);
     repositoryComponent = repositoryComponentDAO.getById(repositoryComponent.getId());
     assertThat(repositoryComponent.isQuarantined()).isFalse();

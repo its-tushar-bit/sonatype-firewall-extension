@@ -1951,7 +1951,9 @@ public class TemporaryEntity
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"), MatchState.EXACT.getId(),
         IdentificationSource.SONATYPE.getId(), evalTime);
     repositoryComponent.setQuarantineTime(quarantineTime);
-    repositoryComponent.setUnquarantineTime(unquarantineTime);
+    if (unquarantineTime != null) {
+      repositoryComponent.setUnquarantineTimeForManualRelease(unquarantineTime);
+    }
     repositoryComponentDAO.insert(repositoryComponent);
     return repositoryComponent;
   }
@@ -2028,7 +2030,9 @@ public class TemporaryEntity
         matchState.getId(), IdentificationSource.SONATYPE.getId(), time);
 
     repositoryComponent.setQuarantineTime(quarantineTime);
-    repositoryComponent.setUnquarantineTime(unquarantineTime);
+    if (unquarantineTime != null) {
+      repositoryComponent.setUnquarantineTimeForManualRelease(unquarantineTime);
+    }
 
     repositoryComponentDAO.insert(repositoryComponent);
     return repositoryComponent;

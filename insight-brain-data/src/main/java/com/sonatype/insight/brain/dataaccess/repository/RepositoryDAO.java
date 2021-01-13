@@ -152,7 +152,7 @@ public class RepositoryDAO
       List<RepositoryComponent> quarantinedComponents = repositoryComponentDAO.getQuarantinedByRepositoryId(tx,
           repository.getId());
       for (RepositoryComponent quarantinedComponent : quarantinedComponents) {
-        quarantinedComponent.setUnquarantineTime(unquarantineTime);
+        quarantinedComponent.setUnquarantineTimeForManualRelease(unquarantineTime);
         repositoryComponentDAO.update(tx, quarantinedComponent);
       }
     }

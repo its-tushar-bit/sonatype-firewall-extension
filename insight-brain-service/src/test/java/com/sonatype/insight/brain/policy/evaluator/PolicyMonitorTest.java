@@ -693,6 +693,7 @@ public class PolicyMonitorTest
     policyMonitor.run();
 
     assertThat(new RepositoryComponentDAO().getById(component.getId()).isQuarantined()).isTrue();
+    assertThat(new RepositoryComponentDAO().getById(component.getId()).getAutoUnquarantined()).isNull();
     assertThat(new RepositoryPolicyViolationDAO().getByRepositoryId(repository.getId())).hasSize(1);
   }
 
@@ -716,6 +717,7 @@ public class PolicyMonitorTest
     policyMonitor.run();
 
     assertThat(new RepositoryComponentDAO().getById(component.getId()).isQuarantined()).isTrue();
+    assertThat(new RepositoryComponentDAO().getById(component.getId()).getAutoUnquarantined()).isNull();
     assertThat(new RepositoryPolicyViolationDAO().getByRepositoryId(repository.getId())).hasSize(1);
   }
 
@@ -764,6 +766,7 @@ public class PolicyMonitorTest
     policyMonitor.run();
 
     assertThat(new RepositoryComponentDAO().getById(component.getId()).isQuarantined()).isTrue();
+    assertThat(new RepositoryComponentDAO().getById(component.getId()).getAutoUnquarantined()).isNull();
     assertThat(new RepositoryPolicyViolationDAO().getByRepositoryId(repository.getId())).hasSize(1);
   }
 
@@ -845,6 +848,7 @@ public class PolicyMonitorTest
     policyMonitor.run();
 
     assertThat(new RepositoryComponentDAO().getById(component.getId()).isQuarantined()).isTrue();
+    assertThat(new RepositoryComponentDAO().getById(component.getId()).getAutoUnquarantined()).isNull();
     assertThat(new RepositoryPolicyViolationDAO().getByRepositoryId(repository.getId())).hasSize(1);
   }
 

@@ -62,6 +62,12 @@ public class RepositoryComponent
   @Column(name = "analyzer_features_json")
   private String analyzerFeaturesJson;
 
+  /**
+   * @since 1.104
+   */
+  @Column(name = "auto_unquarantined")
+  private Boolean autoUnquarantined;
+
   public RepositoryComponent() {
   }
 
@@ -154,8 +160,14 @@ public class RepositoryComponent
     return unquarantineTime;
   }
 
-  public void setUnquarantineTime(Date unquarantineTime) {
+  public void setUnquarantineTimeForManualRelease(Date unquarantineTime) {
     this.unquarantineTime = unquarantineTime;
+    this.autoUnquarantined = false;
+  }
+
+  public void setUnquarantineTimeForMonitoring(Date unquarantineTime) {
+    this.unquarantineTime = unquarantineTime;
+    this.autoUnquarantined = true;
   }
 
   @Transient
@@ -185,5 +197,9 @@ public class RepositoryComponent
 
   public void setAnalyzerFeaturesJson(final String analyzerFeaturesJson) {
     this.analyzerFeaturesJson = analyzerFeaturesJson;
+  }
+
+  public Boolean getAutoUnquarantined() {
+    return autoUnquarantined;
   }
 }

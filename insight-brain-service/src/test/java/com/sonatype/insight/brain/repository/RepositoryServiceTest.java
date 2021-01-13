@@ -137,6 +137,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
     repositoryComponent = repositoryComponentDAO.getById(repositoryComponent.getId());
 
     assertThat(repositoryComponent.isQuarantined()).isFalse();
+    assertThat(repositoryComponent.getAutoUnquarantined()).isFalse();
   }
 
   @Test
@@ -152,6 +153,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
     repositoryComponent = repositoryComponentDAO.getById(repositoryComponent.getId());
 
     assertThat(repositoryComponent.isQuarantined()).isFalse();
+    assertThat(repositoryComponent.getAutoUnquarantined()).isNull();
   }
 
   @Test
@@ -183,6 +185,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
     repositoryComponent = repositoryComponentDAO.getById(repositoryComponent.getId());
 
     assertThat(repositoryComponent.isQuarantined()).isFalse();
+    assertThat(repositoryComponent.getAutoUnquarantined()).isFalse();
   }
 
   private void mockHdsRequestForComponent(RepositoryComponent repositoryComponent, boolean withSecurityVulnerabilities)

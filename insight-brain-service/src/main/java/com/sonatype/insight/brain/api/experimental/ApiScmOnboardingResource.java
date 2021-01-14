@@ -39,11 +39,11 @@ public class ApiScmOnboardingResource
 {
   static final String RESOURCE_PATH = PublicApiPaths.BASE_PATH + "/experimental/onboarding";
 
-  static final String LOAD_REPO_PATH = "load-repositories";
+  static final String LOAD_REPO_PATH = "loadRepositories";
 
-  static final String IMPORT_REPO_PATH = "import-repositories/{orgId}";
+  static final String IMPORT_REPO_PATH = "importRepositories/{orgId}";
 
-  static final String DEFAULT_HOST_URL = "default-host-url";
+  static final String DEFAULT_HOST_URL = "defaultHostUrl";
 
   static final String VALIDATE_SCM_HOST_URL = "validate/{scmProvider}";
 

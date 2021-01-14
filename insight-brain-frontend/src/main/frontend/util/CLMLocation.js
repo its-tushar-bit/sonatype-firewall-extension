@@ -119,20 +119,21 @@ export function getAdvancedSearchUrl(query, page) {
 }
 
 export function getScmOnboardingConfigUrl() {
-  return uriTemplate`/api/experimental/config/scm-onboarding`;
+  return uriTemplate`/api/experimental/config/scmOnboarding`;
 }
 
 export function getScmRepositoriesUrl(organizationId, defaultHostUrl) {
-  return uriTemplate`/api/experimental/onboarding/load-repositories?` +
+  return uriTemplate`/api/experimental/onboarding/loadRepositories?` +
     `orgId=${organizationId}&defaultHostUrl=${defaultHostUrl}`;
 }
 
 export function getScmDefaultHostUrl(organizationId, provider) {
-  return uriTemplate`/api/experimental/onboarding/default-host-url?orgId=${organizationId}&provider=${provider}`;
+  return uriTemplate`/api/experimental/onboarding/defaultHostUrl?orgId=${organizationId}&provider=${provider}`;
 }
 
-export function getImportRepositoriesUrl(organizationId) {
-  return uriTemplate`/api/experimental/onboarding/import-repositories/${organizationId}`;
+export function getImportRepositoriesUrl(organizationId, totalRepoCount, prevImportedCount) {
+  return uriTemplate`/api/experimental/onboarding/importRepositories/${organizationId}?` +
+    `totalRepoCount=${totalRepoCount}&prevImportedCount=${prevImportedCount}`;
 }
 
 export function getValidateScmConfigUrl(scmProvider, scmHostUrl) {

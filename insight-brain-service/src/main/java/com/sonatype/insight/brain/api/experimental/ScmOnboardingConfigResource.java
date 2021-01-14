@@ -29,7 +29,7 @@ import com.google.common.collect.ImmutableMap;
 @Path(ScmOnboardingConfigResource.RESOURCE_PATH)
 public class ScmOnboardingConfigResource
 {
-  static final String RESOURCE_PATH = PublicApiPaths.BASE_PATH + "/experimental/config/scm-onboarding";
+  static final String RESOURCE_PATH = PublicApiPaths.BASE_PATH + "/experimental/config/scmOnboarding";
 
   private final ScmOnboardingConfigService scmOnboardingConfigService;
 

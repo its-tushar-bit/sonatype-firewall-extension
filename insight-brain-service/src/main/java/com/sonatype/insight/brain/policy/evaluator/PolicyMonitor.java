@@ -47,6 +47,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.IntegrityRatingConditionType;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -167,7 +168,7 @@ public class PolicyMonitor
         }
       }
 
-      if (policyMonitoring == null) {
+      if (policyMonitoring == null || !Stage.isValidStageTypeId(policyMonitoring.getStageTypeId())) {
         continue;
       }
 
@@ -194,7 +195,7 @@ public class PolicyMonitor
   {
     // not checking for FIREWALL_FOR_ARTIFACTORY at this time
     if (!productLicense.hasFeature(LicensedFeature.FIREWALL)) {
-      log.debug("Ending task, not licensed for Firewall Policy Monitoring.");
+      log.debug("Not licensed for Firewall Policy Monitoring.");
       return;
     }
 
@@ -210,7 +211,7 @@ public class PolicyMonitor
         }
       }
 
-      if (policyMonitoring == null) {
+      if (policyMonitoring == null || !policyMonitoring.getStageTypeId().equals(ProxyStageType.ID)) {
         continue;
       }
 

@@ -852,6 +852,52 @@ public class PolicyMonitorTest
     assertThat(new RepositoryPolicyViolationDAO().getByRepositoryId(repository.getId())).hasSize(1);
   }
 
+  @Test
+  public void testApplicationNotMonitored_RootOrgAndProxyStage() {
+    tempEntity.newPolicyMonitoring(Organization.ROOT_ORGANIZATION_ID, ProxyStageType.ID);
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication("app", org.getId());
+
+    String scanId1 = "PolicyMonitorTest_scanId";
+    createScanFile(app, scanId1);
+
+    tempEntity.newPolicyEvaluation(app.getId(), ProxyStageType.ID, scanId1);
+
+    // second scan file should not appear if there has not been an evaluation
+    String scanId2 = "PolicyMonitorTest_scanId2";
+    mockScanReceiptAndReport(scanId2);
+
+    policyMonitor.run();
+
+    // If the second scan file does not exist, then evaluation was not attempted and the scan file was not uploaded.
+    // Invalid stage type exception would be still be thrown, but is caught and logged so can't be verified here.
+    assertThat(insightWork.getScanFile(app.getId(), scanId2).exists()).isFalse();
+  }
+
+  @Test
+  public void testRepositoryNotMonitored_RootOrgAndNonProxyStage() {
+    tempEntity.newPolicyMonitoring(Organization.ROOT_ORGANIZATION_ID, ReleaseStageType.ID);
+
+    Condition condition = new Condition(IntegrityRatingConditionType.ID, "is", "2");
+    Constraint constraint = new Constraint("c1", "constraint1", LogicalOperator.OR);
+    constraint.addCondition(condition);
+    Policy policy = createPolicy("policy", new Stage(ProxyStageType.ID), FailActionType.ID, constraint);
+    Repository repository = tempEntity.newRepository();
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
+        "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
+    assertThat(component.isQuarantined()).isTrue();
+
+    createPolicyViolation(policy, component, FailActionType.ID);
+
+    mockFirewallResponse(getFirewallHdsResponse(component, "hash1", new IntegrityRating(0, "Normal")));
+
+    policyMonitor.run();
+
+    assertThat(new RepositoryComponentDAO().getById(component.getId()).isQuarantined()).isTrue();
+    assertThat(new RepositoryComponentDAO().getById(component.getId()).getAutoUnquarantined()).isNull();
+    assertThat(new RepositoryPolicyViolationDAO().getByRepositoryId(repository.getId())).hasSize(1);
+  }
+
   private ComponentEvaluationDataList getFirewallHdsResponse(
       final RepositoryComponent component,
       final String hash,

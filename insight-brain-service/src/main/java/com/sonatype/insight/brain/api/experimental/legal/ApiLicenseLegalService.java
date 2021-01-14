@@ -193,19 +193,26 @@ public class ApiLicenseLegalService
 
     try (TransactionContext tx = policyEvaluationDAO.createTransactionContext()) {
       for (Application application : applications) {
+        PolicyEvaluation mostRecentPolicyEvaluation = null;
+
         for (String stageTypeId : stageTypeIdsToCheck) {
           PolicyEvaluation policyEvaluation =
               policyEvaluationDAO.getLastByApplicationIdAndStageId(tx, application.getId(), stageTypeId);
 
-          if (policyEvaluation == null) {
-            continue;
+          if (policyEvaluation != null && (mostRecentPolicyEvaluation == null
+              || mostRecentPolicyEvaluation.getTime().before(policyEvaluation.getTime()))) {
+            mostRecentPolicyEvaluation = policyEvaluation;
           }
+        }
 
+        if (mostRecentPolicyEvaluation != null) {
           ApiLicenseLegalApplicationDashboardDTO dto = new ApiLicenseLegalApplicationDashboardDTO();
           dto.applicationId = application.getId();
           dto.applicationName = application.getName();
           dto.applicationPublicId = application.getPublicId();
-          dto.lastScanTime = policyEvaluation.getTime().getTime();
+          dto.lastScanTime = mostRecentPolicyEvaluation.getTime().getTime();
+          dto.stageTypeId = mostRecentPolicyEvaluation.getStageTypeId();
+          dto.stageTypeName = StageTypes.getById(mostRecentPolicyEvaluation.getStageTypeId()).getName();
 
           List<Tag> tags = tagDAO.getByApplicationId(tx, application.getId());
           for (Tag tag : tags) {

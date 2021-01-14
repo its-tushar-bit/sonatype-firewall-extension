@@ -68,6 +68,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
@@ -258,6 +259,23 @@ public class ApiLicenseLegalServiceTest
       assertLegalLicenseApplicationDashboardDTO(app2, tag2, policyEvaluation2, dto);
       assertLegalLicenseApplicationDashboardDTO(app1, tag1, policyEvaluation1, result.get(1));
     }
+  }
+
+  @Test
+  public void testGetLicenseLegalApplicationsDashboard_MultipleStageTypesByApplication() {
+    Triple<Application, Tag, PolicyEvaluation> triple =
+        setupApplicationDashboardEntities("Test-Tag-1", ReleaseStageType.ID);
+    Application app = triple.getLeft();
+    Tag tag = triple.getMiddle();
+    PolicyEvaluation policyEvaluation = triple.getRight();
+
+    PolicyEvaluation mostRecentPolicyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID,
+        tempEntity.uuid(), new Date(policyEvaluation.getTime().getTime() + 1));
+
+    List<ApiLicenseLegalApplicationDashboardDTO> result =
+        apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null);
+    assertThat(result).hasSize(1);
+    assertLegalLicenseApplicationDashboardDTO(app, tag, mostRecentPolicyEvaluation, result.get(0));
   }
 
   @Test
@@ -1214,7 +1232,6 @@ public class ApiLicenseLegalServiceTest
 
     PolicyEvaluation policyEvaluation =
         tempEntity.newPolicyEvaluation(app.getId(), stageTypeId, tempEntity.uuid(), new Date());
-    mockReport(policyEvaluation);
 
     return new ImmutableTriple<>(app, tag, policyEvaluation);
   }
@@ -1230,6 +1247,8 @@ public class ApiLicenseLegalServiceTest
     assertThat(dto.applicationPublicId).isEqualTo(app.getPublicId());
     assertThat(dto.applicationTagNames).containsExactly(tag.getName());
     assertThat(dto.lastScanTime).isEqualTo(latestPolicyEvaluation.getTime().getTime());
+    assertThat(dto.stageTypeId).isEqualTo(latestPolicyEvaluation.getStageTypeId());
+    assertThat(dto.stageTypeName).isEqualTo(StageTypes.getById(latestPolicyEvaluation.getStageTypeId()).getName());
     assertThat(dto.reviewCompletedCount).isZero();
     assertThat(dto.reviewTotalCount).isZero();
   }

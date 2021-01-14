@@ -20,6 +20,10 @@ public class ApiLicenseLegalApplicationDashboardDTO
 
   public long lastScanTime;
 
+  public String stageTypeId;
+
+  public String stageTypeName;
+
   public int reviewCompletedCount;
 
   public int reviewTotalCount;

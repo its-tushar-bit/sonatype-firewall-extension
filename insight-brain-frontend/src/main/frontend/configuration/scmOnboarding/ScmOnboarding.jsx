@@ -28,18 +28,15 @@ export default function ScmOnboarding(props) {
     // actions
     setSorting,
     setSortingParameters,
-    loadConfig,
-    loadOrganizations,
+    loadPage,
     loadRepositories,
-    loadCompositeSourceControl,
     validateScmHostUrl,
     importSelectedRepositories,
     onRepositorySelectionChanged,
-    loadOrgHostUrl,
     setCurrentHostUrl,
 
     // configuration state
-    loadingConfig,
+    loadingPage,
     isScmOnboardingFeatureEnabled,
     isScmTokenConfigured,
     scmProvider,
@@ -83,20 +80,11 @@ export default function ScmOnboarding(props) {
             lastErrorMessage;
 
   function load() {
-    loadConfig();
-    loadOrganizations(preselectedOrganizationId);
-    loadCompositeSourceControl('organization', preselectedOrganizationId);
+    loadPage(preselectedOrganizationId);
   }
-
   useEffect(() => {
     load();
   }, []);
-
-  useEffect(() => {
-    if (scmProvider) {
-      loadOrgHostUrl(preselectedOrganizationId, scmProvider);
-    }
-  }, [scmProvider]);
 
   useEffect(() => {
     if (preselectedOrganizationId && defaultHostUrl) {
@@ -144,8 +132,10 @@ export default function ScmOnboarding(props) {
           href={$state.href($state.get('management.view.organization'),
               {organizationId: preselectedOrganizationId})}
           targetPageTitle={$state.get('management.view.organization').data.title} />
-      {!error &&
-        <Fragment>
+      {
+        <LoadWrapper
+            loading={loadingPage}
+            error={error} retryHandler={load}>
           <div className="nx-page-title iq-scmonboarding-title">
             { selectedOrganization &&
             <h1 className="nx-h1">
@@ -203,25 +193,25 @@ export default function ScmOnboarding(props) {
               </div>
             </form>
           </section>
-        </Fragment>
-      }
-      <section className="nx-tile">
-        <LoadWrapper loading={loadingConfig} error={error} retryHandler={load}>
-          <ResultsTable { ...{
-            repositories,
-            loadingRepositories,
-            selectedRepositoryCount,
-            totalRepositories,
-            onRepositorySelectionChanged,
-            importSelectedRepositories,
-            loadRepositories,
-            preselectedOrganizationId,
-            sortConfiguration,
-            setSorting,
-            setSortingParameters
-          }} />
+          <section className="nx-tile">
+            <LoadWrapper loading={loadingRepositories} error={error} retryHandler={loadRepositories}>
+              <ResultsTable { ...{
+                repositories,
+                loadingRepositories,
+                selectedRepositoryCount,
+                totalRepositories,
+                onRepositorySelectionChanged,
+                importSelectedRepositories,
+                loadRepositories,
+                preselectedOrganizationId,
+                sortConfiguration,
+                setSorting,
+                setSortingParameters
+              }} />
+            </LoadWrapper>
+          </section>
         </LoadWrapper>
-      </section>
+      }
     </main>
   );
 }
@@ -249,19 +239,16 @@ const textInputPropType = {
 
 ScmOnboarding.propTypes = {
   // config
-  loadingConfig: PropTypes.bool.isRequired,
+  loadingPage: PropTypes.bool.isRequired,
   isScmOnboardingFeatureEnabled: PropTypes.bool,
   $state: PropTypes.object.isRequired,
   isScmTokenConfigured: PropTypes.bool.isRequired,
   scmProvider: PropTypes.string,
 
   // organizations
-  loadOrganizations: PropTypes.func.isRequired,
-  loadingOrganizations: PropTypes.bool.isRequired,
   organizations: PropTypes.arrayOf(PropTypes.shape(organizationPropType)),
   setSelectedOrganization: PropTypes.func.isRequired,
   selectedOrganization: PropTypes.shape(organizationPropType),
-  loadOrgHostUrl: PropTypes.func.isRequired,
 
   // repositories
   loadRepositories: PropTypes.func.isRequired,
@@ -287,11 +274,10 @@ ScmOnboarding.propTypes = {
   // actions
   setSorting: PropTypes.func,
   setSortingParameters: PropTypes.func,
-  loadConfig: PropTypes.func.isRequired,
+  loadPage: PropTypes.func.isRequired,
   importSelectedRepositories: PropTypes.func.isRequired,
   onRepositorySelectionChanged: PropTypes.func.isRequired,
   setCurrentHostUrl: PropTypes.func.isRequired,
-  loadCompositeSourceControl: PropTypes.func.isRequired,
   validateScmHostUrl: PropTypes.func.isRequired,
 
   // base URL

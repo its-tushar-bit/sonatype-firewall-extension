@@ -144,6 +144,27 @@ public class ScmOnboardingTest
 
     // then the onboarding page is disabled
     scmOnboardingPage.loadError().shouldBe(visible).shouldHave(text("This feature has not been enabled"));
+
+    // and no page titles are visible
+    scmOnboardingPage.getPageTitleElements().shouldHaveSize(0);
+  }
+
+  @Test
+  public void testFeatureIsDisabled_WithOrg() {
+    // given the feature flag is false and source control is configured
+    setupSourceControl();
+    testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(of(SCM_ONBOARDING.getFlag(), false));
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+
+    // when we open the onboarding page as admin
+    refreshOrOpen(ScmOnboardingPage.url());
+    loginAsAdmin();
+
+    // then the onboarding page is disabled
+    scmOnboardingPage.loadError().shouldBe(visible).shouldHave(text("This feature has not been enabled"));
+
+    // and no page titles are visible
+    scmOnboardingPage.getPageTitleElements().shouldHaveSize(0);
   }
 
   @Test
@@ -159,6 +180,9 @@ public class ScmOnboardingTest
 
     // then the feature flag error is hidden
     scmOnboardingPage.loadError().shouldBe(hidden);
+
+    // and page titles are visible
+    scmOnboardingPage.getPageTitleElements().shouldHaveSize(1);
   }
 
   @Test
@@ -192,6 +216,9 @@ public class ScmOnboardingTest
     // when we open the onboarding page as unprivileged user
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
+
+    // and no page titles are visible
+    scmOnboardingPage.getPageTitleElements().shouldHaveSize(0);
 
     // then the message from IQ server is forwarded
     scmOnboardingPage.loadError().shouldHave(text("An error occurred loading data. Internal Server Error"));

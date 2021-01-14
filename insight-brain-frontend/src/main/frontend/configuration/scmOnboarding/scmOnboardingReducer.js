@@ -8,18 +8,11 @@ import {
   SCM_ONBOARDING_IMPORT_REPOS_FAILED,
   SCM_ONBOARDING_IMPORT_REPOS_FULFILLED,
   SCM_ONBOARDING_IMPORT_REPOS_REQUESTED,
-  SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FAILED,
-  SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FULFILLED,
-  SCM_ONBOARDING_LOAD_COMPOSITE_SCM_REQUESTED,
   SCM_ONBOARDING_LOAD_CONFIG_FAILED,
   SCM_ONBOARDING_LOAD_CONFIG_FULFILLED,
-  SCM_ONBOARDING_LOAD_CONFIG_REQUESTED,
-  SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FAILED,
-  SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FULFILLED,
-  SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_REQUESTED,
-  SCM_ONBOARDING_LOAD_ORGANIZATIONS_FAILED,
-  SCM_ONBOARDING_LOAD_ORGANIZATIONS_FULFILLED,
-  SCM_ONBOARDING_LOAD_ORGANIZATIONS_REQUESTED,
+  SCM_ONBOARDING_LOAD_PAGE_REQUESTED,
+  SCM_ONBOARDING_LOAD_PAGE_FULFILLED,
+  SCM_ONBOARDING_LOAD_PAGE_FAILED,
   SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED,
   SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED,
   SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED,
@@ -44,10 +37,8 @@ const initialState = {
     scmProvider: ''
   },
   viewState: {
-    loadingConfig: false,
-    loadingOrganizations: false,
+    loadingPage: false,
     loadingRepositories: false,
-    loadingCompositeSourceControl: false,
     validatingCompositeSourceControl: false,
 
     lastErrorMessage: null
@@ -72,23 +63,9 @@ const initialState = {
   }
 };
 
-function loadConfigRequested() {
-  return {
-    ...initialState,
-    viewState: {
-      ...initialState.viewState,
-      loadingConfig: true
-    }
-  };
-}
-
 function loadConfigFulfilled(payload, state) {
   return {
     ...state,
-    viewState: {
-      ...state.viewState,
-      loadingConfig: false
-    },
     configState: {
       ...state.configState,
       isScmOnboardingFeatureEnabled: payload.scmOnboardingFeatureEnabled
@@ -101,7 +78,6 @@ function loadConfigFailed(payload, state) {
     ...state,
     viewState: {
       ...state.viewState,
-      loadingConfig: false,
       lastErrorMessage: Messages.getHttpErrorMessage(payload)
     },
     configState: {
@@ -111,12 +87,12 @@ function loadConfigFailed(payload, state) {
   };
 }
 
-function loadOrganizationsRequested(payload, state) {
+function loadPageRequested(payload, state) {
   return {
     ...state,
     viewState: {
       ...state.viewState,
-      loadingOrganizations: true
+      loadingPage: true
     },
     formState: {
       ...state.formState,
@@ -125,33 +101,43 @@ function loadOrganizationsRequested(payload, state) {
   };
 }
 
-function loadOrganizationsFulfilled(payload, state) {
+function loadPageFulfilled(payload, state) {
   return {
     ...state,
     viewState: {
       ...state.viewState,
-      loadingOrganizations: false
+      loadingPage: false
+    },
+    configState: {
+      ...state.configState,
+      isScmOnboardingFeatureEnabled: payload.configResults.scmOnboardingFeatureEnabled,
+      isScmTokenConfigured: payload.compositeSourceControlResults === null ? false :
+        !!payload.compositeSourceControlResults.token.value ||
+        !!payload.compositeSourceControlResults.token.parentValue,
+      scmProvider: payload.compositeSourceControlResults !== null
+        ? payload.compositeSourceControlResults.provider : null
     },
     formState: {
       ...state.formState,
-      selectedOrganization: payload.find(org => org.id === state.formState.preselectedOrganizationId)
-          || state.selectedOrganization,
-      organizations: payload
+      selectedOrganization: payload.organizationsResults.find(org =>
+        org.id === state.formState.preselectedOrganizationId),
+      organizations: payload.organizationsResults,
+      defaultHostUrl: payload.hostUrlResult !== null
+        ? payload.hostUrlResult.defaultHostUrl : null,
+      currentHostUrlState: payload.hostUrlResult !== null
+        ? textInputStateHelpers.initialState(payload.hostUrlResult.defaultHostUrl)
+        : textInputStateHelpers.initialState('')
     }
   };
 }
 
-function loadOrganizationsFailed(payload, state) {
+function loadPageFailed(payload) {
   return {
-    ...state,
+    ...initialState,
     viewState: {
-      ...state.viewState,
-      loadingOrganizations: false,
+      ...initialState.viewState,
+      loadingPage: false,
       lastErrorMessage: Messages.getHttpErrorMessage(payload)
-    },
-    formState: {
-      organizations: null,
-      selectedOrganization: null
     }
   };
 }
@@ -254,103 +240,7 @@ function importRepositoriesFailed(payload, state) {
   };
 }
 
-function loadOrgDefaultHostUrlRequested(payload, state) {
-  return {
-    ...state,
-    formState: {
-      ...state.formState,
-      defaultHostUrl: '',
-      currentHostUrlState: textInputStateHelpers.initialState('')
-    }
-  };
-}
-
-function loadOrgDefaultHostUrlFulfilled(payload, state) {
-  if (state.formState.currentHostUrlState.value === state.formState.defaultHostUrl) {
-    // user has not changed the current value from the default, safe to update both
-    return {
-      ...state,
-      formState: {
-        ...state.formState,
-        defaultHostUrl: payload.defaultHostUrl,
-        currentHostUrlState: textInputStateHelpers.initialState(payload.defaultHostUrl)
-      }
-    };
-  }
-  else {
-    return {
-      ...state,
-      formState: {
-        ...state.formState,
-        defaultHostUrl: payload.defaultHostUrl
-      }
-    };
-  }
-}
-
-function loadOrgDefaultHostUrlFailed(payload, state) {
-  return {
-    ...state,
-    viewState: {
-      ...state.viewState,
-      lastErrorMessage: Messages.getHttpErrorMessage(payload)
-    },
-    formState: {
-      ...state.formState,
-      defaultHostUrl: '',
-      currentHostUrlState: textInputStateHelpers.initialState('')
-    }
-  };
-}
-
-function loadCompositeSourceControlRequested(payload, state) {
-  return {
-    ...state,
-    viewState: {
-      ...state.viewState,
-      loadingCompositeSourceControl: true
-    },
-    configState: {
-      ...state.configState,
-      isScmTokenConfigured: null,
-      scmProvider: null
-    }
-  };
-}
-
-function loadCompositeSourceControlFulfilled(payload, state) {
-  return {
-    ...state,
-    viewState: {
-      ...state.viewState,
-      loadingCompositeSourceControl: false
-    },
-    configState: {
-      ...state.configState,
-      isScmTokenConfigured: !!payload.token.value || !!payload.token.parentValue,
-      scmProvider: payload.provider
-    }
-  };
-}
-
-function loadCompositeSourceControlFailed(payload, state) {
-  return {
-    ...state,
-    viewState: {
-      ...state.viewState,
-      loadingCompositeSourceControl: false,
-      lastErrorMessage: Messages.getHttpErrorMessage(payload)
-    },
-    configState: {
-      ...state.configState,
-      isScmTokenConfigured: null,
-      scmProvider: null
-    }
-  };
-}
-
 function setSortingParameters(payload, state) {
-  console.log('>> setSortingParameters', payload);
   return {
     ...state,
     sortConfiguration: payload
@@ -358,7 +248,6 @@ function setSortingParameters(payload, state) {
 }
 
 function setSorting(payload, state) {
-  console.log('>> setSorting, sortConfiguration', state.sortConfiguration);
   let newEntries = sortItemsByFields(state.sortConfiguration.sortFields, state.formState.repositories);
   return {
     ...state,
@@ -427,13 +316,12 @@ function setCurrentHostUrl(payload, state) {
 }
 
 const reducerActionMap = {
-  [SCM_ONBOARDING_LOAD_CONFIG_REQUESTED]: loadConfigRequested,
   [SCM_ONBOARDING_LOAD_CONFIG_FULFILLED]: loadConfigFulfilled,
   [SCM_ONBOARDING_LOAD_CONFIG_FAILED]: loadConfigFailed,
 
-  [SCM_ONBOARDING_LOAD_ORGANIZATIONS_REQUESTED]: loadOrganizationsRequested,
-  [SCM_ONBOARDING_LOAD_ORGANIZATIONS_FULFILLED]: loadOrganizationsFulfilled,
-  [SCM_ONBOARDING_LOAD_ORGANIZATIONS_FAILED]: loadOrganizationsFailed,
+  [SCM_ONBOARDING_LOAD_PAGE_REQUESTED]: loadPageRequested,
+  [SCM_ONBOARDING_LOAD_PAGE_FULFILLED]: loadPageFulfilled,
+  [SCM_ONBOARDING_LOAD_PAGE_FAILED]: loadPageFailed,
 
   [SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED]: loadRepositoriesRequested,
   [SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED]: loadRepositoriesFulfilled,
@@ -445,15 +333,7 @@ const reducerActionMap = {
 
   [SCM_ONBOARDING_SET_TARGET_ORGANIZATION]: setSelectedOrganization,
 
-  [SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_REQUESTED]: loadOrgDefaultHostUrlRequested,
-  [SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FULFILLED]: loadOrgDefaultHostUrlFulfilled,
-  [SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FAILED]: loadOrgDefaultHostUrlFailed,
-
   [SCM_ONBOARDING_SET_CURRENT_HOST_URL]: setCurrentHostUrl,
-
-  [SCM_ONBOARDING_LOAD_COMPOSITE_SCM_REQUESTED]: loadCompositeSourceControlRequested,
-  [SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FULFILLED]: loadCompositeSourceControlFulfilled,
-  [SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FAILED]: loadCompositeSourceControlFailed,
 
   [SCM_ONBOARDING_SET_SORTING_PARAMETERS]: setSortingParameters,
   [SCM_ONBOARDING_SET_SORTING]: setSorting,

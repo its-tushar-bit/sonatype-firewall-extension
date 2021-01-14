@@ -6,6 +6,7 @@
 
 import reduce from '../../../../main/frontend/configuration/scmOnboarding/scmOnboardingReducer';
 import { initialState } from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
+import * as textInputStateHelpers from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
 
 describe('scmOnboardingReducer', function() {
   let otherObject;
@@ -25,58 +26,131 @@ describe('scmOnboardingReducer', function() {
     });
   });
 
-  describe('SCM_ONBOARDING_LOAD_CONFIG_FULFILLED action', function() {
-    it('populates state from configuration', function() {
-      // given SCM configuration from IQ server
-      const state = Object.freeze({
+  describe('SCM_ONBOARDING_LOAD_PAGE', function() {
+    let previousState, defaultOrganizationsPayload;
+
+    beforeEach(() => {
+      previousState = {
         other: otherObject,
-        loadingConfig: true,
-        scmOnboardingFeatureEnabled: false
-      });
-
-      // when reduce is invoked
-      const newState = reduce(state, {
-        type: 'SCM_ONBOARDING_LOAD_CONFIG_FULFILLED',
-        payload: {
-          scmOnboardingFeatureEnabled: true
+        viewState: {
+          loadingPage: true
+        },
+        configState: {
+          isScmTokenConfigured: null,
+          scmProvider: null
+        },
+        formState: {
+          selectedOrganization: null,
+          organizations: null,
+          defaultHostUrl: null,
+          currentHostUrlState: textInputStateHelpers.initialState(''),
+          preselectedOrganizationId: 'id1'
         }
-      });
-
-      // then state is updated
-      expect(newState.configState.isScmOnboardingFeatureEnabled).toBe(true);
-      expect(newState.viewState.loadingConfig).toBe(false);
-
-      // and other properties are not modified
-      expect(newState.other).toBe(otherObject);
+      };
+      defaultOrganizationsPayload = [{
+        'name': 'name0',
+        'id': 'id0'
+      }, {
+        'name': 'name1',
+        'id': 'id1'
+      }];
     });
-  });
 
-  describe('SCM_ONBOARDING_LOAD_CONFIG_FAILED action', function() {
-    it('sets lastErrorMessage field to value of Error.message', function() {
-      const state = Object.freeze({
-        viewState: {
-          loadingConfig: true,
-          lastErrorMessage: null
-        },
-        configState: {
-          isScmOnboardingFeatureEnabled: true
-        },
-        other: otherObject
+    describe('FULFILLED', function() {
+      it('updates the state with the data loaded from IQ', function() {
+        // given an initial state
+        const state = Object.freeze(previousState);
+
+        // and several orgs returned in the payload
+        const payload = {
+          configResults: { scmOnboardingFeatureEnabled: true },
+          organizationsResults: defaultOrganizationsPayload,
+          compositeSourceControlResults: {provider: 'github', token: {value: 'token'}},
+          hostUrlResult: {defaultHostUrl: 'http://github.com/'}
+        };
+
+        // when reduce is invoked
+        const newState = reduce(state, {type: 'SCM_ONBOARDING_LOAD_PAGE_FULFILLED', payload: payload});
+
+        // then state is updated
+        expect(newState).toEqual({
+          other: otherObject,
+          viewState: {
+            loadingPage: false
+          },
+          configState: {
+            isScmOnboardingFeatureEnabled: true,
+            isScmTokenConfigured: true,
+            scmProvider: 'github'
+          },
+          formState: {
+            selectedOrganization: defaultOrganizationsPayload[1],
+            organizations: defaultOrganizationsPayload,
+            defaultHostUrl: 'http://github.com/',
+            currentHostUrlState: initialState('http://github.com/'),
+            preselectedOrganizationId: 'id1'
+          }
+        });
       });
 
-      const newState = reduce(state, {type: 'SCM_ONBOARDING_CONFIG_LOAD_FAILED', payload: {status: 502}});
+      it('updates the state with the data loaded from IQ with token in root organization', () => {
+        // given an initial state
+        const state = Object.freeze(previousState);
 
-      expect(newState).toEqual({
-        viewState: {
-          loadingConfig: false,
+        // and the token is configured in the root organization
+        const payload = {
+          configResults: { scmOnboardingFeatureEnabled: true },
+          organizationsResults: defaultOrganizationsPayload,
+          compositeSourceControlResults: {provider: 'github', token: {parentValue: 'token'}},
+          hostUrlResult: {defaultHostUrl: 'http://github.com/'}
+        };
+
+        // when reduce is invoked
+        const newState = reduce(state, {type: 'SCM_ONBOARDING_LOAD_PAGE_FULFILLED', payload: payload});
+
+        // then state is updated
+        expect(newState).toEqual({
+          other: otherObject,
+          viewState: {
+            loadingPage: false
+          },
+          configState: {
+            isScmOnboardingFeatureEnabled: true,
+            isScmTokenConfigured: true,
+            scmProvider: 'github'
+          },
+          formState: {
+            selectedOrganization: defaultOrganizationsPayload[1],
+            organizations: defaultOrganizationsPayload,
+            defaultHostUrl: 'http://github.com/',
+            currentHostUrlState: initialState('http://github.com/'),
+            preselectedOrganizationId: 'id1'
+          }
+        });
+      });
+    });
+
+    describe('FAILED', function() {
+      it('sets lastErrorMessage field to value of Error.message', function() {
+        const state = Object.freeze({
+          viewState: {
+            loadingPage: true,
+            lastErrorMessage: null
+          },
+          configState: {
+            isScmOnboardingFeatureEnabled: null
+          }
+        });
+
+        const newState = reduce(state, {type: 'SCM_ONBOARDING_LOAD_PAGE_FAILED', payload: {status: 502}});
+
+        expect(newState.viewState).toEqual({
+          loadingPage: false,
+          loadingRepositories: false,
+          validatingCompositeSourceControl: false,
           lastErrorMessage: 'Bad Gateway'
-        },
-        configState: {
-          isScmOnboardingFeatureEnabled: null
-        },
-        other: otherObject
+        });
       });
-      expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });
 
@@ -213,88 +287,6 @@ describe('scmOnboardingReducer', function() {
     });
   });
 
-  describe('SCM_ONBOARDING_LOAD_ORGANIZATIONS_FULFILLED action', function() {
-    const organizationsPayload = [{
-      'name': 'name0',
-      'id': 'id0'
-    }, {
-      'name': 'name1',
-      'id': 'id1'
-    }];
-
-    let testdata = [{
-      preselectedOrganizationId: 'id1',
-      expectedOrg: organizationsPayload[1]
-    }, {
-      preselectedOrganizationId: undefined,
-      expectedOrg: undefined
-    }];
-
-    for (let i in testdata) {
-      it('populates state organizations list (' + testdata[i].preselectedOrganizationId + ')', function() {
-        // given empty organizations list
-        const state = Object.freeze({
-          other: otherObject,
-          viewState: {
-            loadingOrganizations: true
-          },
-          formState: {
-            organizations: [],
-            preselectedOrganizationId: testdata[i].preselectedOrganizationId
-          }
-        });
-
-        // when reduce is invoked
-        const newState = reduce(state, {
-          type: 'SCM_ONBOARDING_LOAD_ORGANIZATIONS_FULFILLED',
-          payload: organizationsPayload
-        });
-
-        // then state is updated
-        expect(newState.formState.organizations).toBe(organizationsPayload);
-        expect(newState.viewState.loadingOrganizations).toBe(false);
-        expect(newState.formState.selectedOrganization).toBe(testdata[i].expectedOrg);
-
-        // and other properties are not modified
-        expect(newState.other).toBe(otherObject);
-      });
-    }
-  });
-
-  describe('SCM_ONBOARDING_LOAD_ORGANIZATIONS_FAILED action', function() {
-    it('sets lastErrorMessage field to value of Error.message', function() {
-      // given an initial state
-      const state = Object.freeze({
-        viewState: {
-          loadingOrganizations: true,
-          lastErrorMessage: null
-        },
-        formState: {
-          organizations: [{name: 'name', id: 'id'}],
-          selectedOrganization: 'id'
-        },
-        other: otherObject
-      });
-
-      // when the reducer is invoked
-      const newState = reduce(state, {type: 'SCM_ONBOARDING_CONFIG_ORGS_FAILED', payload: {status: 502}});
-
-      // the state is updated as expected
-      expect(newState).toEqual({
-        viewState: {
-          loadingOrganizations: false,
-          lastErrorMessage: 'Bad Gateway'
-        },
-        formState: {
-          organizations: null,
-          selectedOrganization: null
-        },
-        other: otherObject
-      });
-      expect(newState.other).toBe(otherObject); // other properties are not modified
-    });
-  });
-
   describe('SCM_ONBOARDING_SET_TARGET_ORGANIZATION action', function() {
     it('populates selected organization', function() {
       // given no organization is selected
@@ -322,96 +314,6 @@ describe('scmOnboardingReducer', function() {
 
       // and other properties are not modified
       expect(newState.other).toBe(otherObject);
-    });
-  });
-
-  describe('SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FULFILLED action', function() {
-    it('sets the default host url state', function() {
-      // given a clean host URL state
-      const state = Object.freeze({
-        other: otherObject,
-        formState: {
-          defaultHostUrl: '',
-          currentHostUrlState: initialState('')
-        }
-      });
-
-      const defaultHostPayload = {
-        'defaultHostUrl': 'https://github.com/'
-      };
-
-      // when reduce is invoked
-      const newState = reduce(state, {
-        type: 'SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FULFILLED',
-        payload: defaultHostPayload
-      });
-
-      // then state is updated
-      expect(newState.formState.defaultHostUrl).toEqual('https://github.com/');
-      expect(newState.formState.currentHostUrlState).toEqual(initialState('https://github.com/'));
-
-      // and other properties are not modified
-      expect(newState.other).toBe(otherObject);
-    });
-
-    it('doesn\'t override currentHostUrlState', function() {
-      // given a dirty host URL state
-      const state = Object.freeze({
-        other: otherObject,
-        formState: {
-          defaultHostUrl: '',
-          currentHostUrlState: initialState('http://example.com')
-        }
-      });
-
-      const defaultHostPayload = {
-        'defaultHostUrl': 'https://github.com/'
-      };
-
-      // when reduce is invoked
-      const newState = reduce(state, {
-        type: 'SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FULFILLED',
-        payload: defaultHostPayload
-      });
-
-      // then default host url is updated
-      expect(newState.formState.defaultHostUrl).toEqual('https://github.com/');
-      expect(newState.formState.currentHostUrlState).toEqual(initialState('http://example.com'));
-
-      // and other properties are not modified
-      expect(newState.other).toBe(otherObject);
-    });
-  });
-
-  describe('SCM_ONBOARDING_LOAD_ORGANIZATIONS_FAILED action', function() {
-    it('sets lastErrorMessage field to value of Error.message', function() {
-      // given an initial state
-      const state = Object.freeze({
-        viewState: {
-          lastErrorMessage: null
-        },
-        formState: {
-          defaultHostUrl: 'http://example.com/',
-          currentHostUrlState: 'http://example.org/'
-        },
-        other: otherObject
-      });
-
-      // when the reducer is invoked
-      const newState = reduce(state, {type: 'SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FAILED', payload: {status: 502}});
-
-      // the state is updated as expected
-      expect(newState).toEqual({
-        viewState: {
-          lastErrorMessage: 'Bad Gateway'
-        },
-        formState: {
-          defaultHostUrl: '',
-          currentHostUrlState: initialState('')
-        },
-        other: otherObject
-      });
-      expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });
 
@@ -495,77 +397,6 @@ describe('scmOnboardingReducer', function() {
           expect(newState.other).toBe(otherObject);
         });
       }
-    });
-  });
-
-  describe('SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FULFILLED action', function() {
-
-    dataDrivenCompositeSourceControlTest({provider: 'scmProvider', token: {value: 'token'}}, true);
-    dataDrivenCompositeSourceControlTest({provider: 'scmProvider', token: {value: null}}, false);
-    dataDrivenCompositeSourceControlTest({provider: 'scmProvider', token: {parentValue: 'token'}}, true);
-
-    function dataDrivenCompositeSourceControlTest(compositeSourceControlPayload, expectedValue) {
-      it(`sets scmTokenConfigured field to ${expectedValue}`, function() {
-        // given previous state with token
-        const state = Object.freeze({
-          other: otherObject,
-          viewState: {
-            loadingCompositeSourceControl: true
-          },
-          configState: {
-            isScmTokenConfigured: false,
-            scmProvider: ''
-          }
-        });
-
-        // when reduce is invoked
-        const newState = reduce(state, {
-          type: 'SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FULFILLED',
-          payload: compositeSourceControlPayload
-        });
-
-        // then SCM token presence value is updated
-        expect(newState.configState.isScmTokenConfigured).toBe(expectedValue);
-
-        // and loading state is updated
-        expect(newState.viewState.loadingCompositeSourceControl).toBe(false);
-
-        // and provider is set
-        expect(newState.configState.scmProvider).toBe('scmProvider');
-
-        // and other properties are not modified
-        expect(newState.other).toBe(otherObject);
-      });
-    }
-  });
-
-  describe('SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FAILED action', function() {
-    it('sets lastErrorMessage field to value of Error.message', function() {
-      const state = Object.freeze({
-        viewState: {
-          loadingCompositeSourceControl: null,
-          lastErrorMessage: null
-        },
-        configState: {
-          isScmTokenConfigured: null
-        },
-        other: otherObject
-      });
-
-      const newState = reduce(state, {type: 'SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FAILED', payload: {status: 502}});
-
-      expect(newState).toEqual({
-        viewState: {
-          loadingCompositeSourceControl: false,
-          lastErrorMessage: 'Bad Gateway'
-        },
-        configState: {
-          isScmTokenConfigured: null,
-          scmProvider: null
-        },
-        other: otherObject
-      });
-      expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });
 

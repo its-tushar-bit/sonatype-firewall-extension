@@ -17,13 +17,12 @@ import {
   getImportRepositoriesUrl
 } from '../../util/CLMLocation';
 
-export const SCM_ONBOARDING_LOAD_CONFIG_REQUESTED = 'SCM_ONBOARDING_LOAD_CONFIG_REQUESTED';
 export const SCM_ONBOARDING_LOAD_CONFIG_FULFILLED = 'SCM_ONBOARDING_LOAD_CONFIG_FULFILLED';
 export const SCM_ONBOARDING_LOAD_CONFIG_FAILED = 'SCM_ONBOARDING_CONFIG_LOAD_FAILED';
 
-export const SCM_ONBOARDING_LOAD_ORGANIZATIONS_REQUESTED = 'SCM_ONBOARDING_LOAD_ORGANIZATIONS_REQUESTED';
-export const SCM_ONBOARDING_LOAD_ORGANIZATIONS_FULFILLED = 'SCM_ONBOARDING_LOAD_ORGANIZATIONS_FULFILLED';
-export const SCM_ONBOARDING_LOAD_ORGANIZATIONS_FAILED = 'SCM_ONBOARDING_CONFIG_ORGS_FAILED';
+export const SCM_ONBOARDING_LOAD_PAGE_REQUESTED = 'SCM_ONBOARDING_LOAD_PAGE_REQUESTED';
+export const SCM_ONBOARDING_LOAD_PAGE_FULFILLED = 'SCM_ONBOARDING_LOAD_PAGE_FULFILLED';
+export const SCM_ONBOARDING_LOAD_PAGE_FAILED = 'SCM_ONBOARDING_LOAD_PAGE_FAILED';
 
 export const SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED = 'SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED';
 export const SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED = 'SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED';
@@ -31,9 +30,6 @@ export const SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED = 'SCM_ONBOARDING_LOAD_REPO
 
 export const SCM_ONBOARDING_REPOSITORY_SELECTION_CHANGED = 'SCM_ONBOARDING_REPOSITORY_SELECTION_CHANGED';
 
-export const SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_REQUESTED = 'SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_REQUESTED';
-export const SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FULFILLED = 'SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FULFILLED';
-export const SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FAILED = 'SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FAILED';
 export const SCM_ONBOARDING_SET_CURRENT_HOST_URL = 'SCM_ONBOARDING_SET_CURRENT_HOST_URL';
 
 export const SCM_ONBOARDING_IMPORT_REPOS_REQUESTED = 'SCM_ONBOARDING_IMPORT_REPOS_REQUESTED';
@@ -42,10 +38,6 @@ export const SCM_ONBOARDING_IMPORT_REPOS_FAILED = 'SCM_ONBOARDING_IMPORT_REPOS_F
 
 export const SCM_ONBOARDING_SET_TARGET_ORGANIZATION = 'SCM_ONBOARDING_SET_TARGET_ORGANIZATION';
 
-export const SCM_ONBOARDING_LOAD_COMPOSITE_SCM_REQUESTED = 'SCM_ONBOARDING_LOAD_COMPOSITE_SCM_REQUESTED';
-export const SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FULFILLED = 'SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FULFILLED';
-export const SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FAILED = 'SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FAILED';
-
 export const SCM_ONBOARDING_SET_SORTING_PARAMETERS = 'SCM_ONBOARDING_SET_SORTING_PARAMETERS';
 export const SCM_ONBOARDING_SET_SORTING = 'SCM_ONBOARDING_SET_SORTING';
 
@@ -53,10 +45,40 @@ export const SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_REQUESTED = 'SCM_ONBOARDING_VA
 export const SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FULFILLED = 'SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FULFILLED';
 export const SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FAILED = 'SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FAILED';
 
+export function loadPage(orgId) {
+  return function(dispatch) {
+    dispatch(loadPageRequested(orgId));
+
+    let config = axios.get(getScmOnboardingConfigUrl());
+    let organizations = axios.get(getOrganizationsUrl());
+    let scm = orgId ? axios.get(getCompositeSourceControlUrl('organization', orgId)) : Promise.resolve(null);
+    let hostUrl = scm.then(compositeSCResults => {
+      return compositeSCResults !== null && compositeSCResults.data.provider !== null
+        ? axios.get(getScmDefaultHostUrl(orgId, compositeSCResults.data.provider))
+        : Promise.resolve(null);
+    });
+
+    return Promise.all([config, organizations, scm, hostUrl])
+        .then(([configResults, organizationsResults, compositeSourceControlResults, hostUrlResult]) => {
+          return dispatch(loadPageFulfilled({
+            configResults: configResults.data,
+            organizationsResults: organizationsResults.data,
+            compositeSourceControlResults: compositeSourceControlResults ? compositeSourceControlResults.data : null,
+            hostUrlResult: hostUrlResult ? hostUrlResult.data : null
+          }));
+        })
+        .catch(error => {
+          dispatch(loadPageFailed(error));
+        });
+  };
+}
+
+/*
+ this should be only be used to determine whether to render menu items, not to determine if the page
+ itself should load
+ */
 export function loadConfig() {
   return function(dispatch) {
-    dispatch(loadConfigRequested());
-
     return axios.get(getScmOnboardingConfigUrl())
         .then(({ data }) => { dispatch(loadConfigFulfilled(data)); })
         .catch(error => { dispatch(loadConfigFailed(error)); });
@@ -77,16 +99,6 @@ export function validateScmHostUrl(scmProvider, scmHostUrl) {
   return (dispatch) => validateScmHostUrlDebounce(dispatch, scmProvider, scmHostUrl);
 }
 
-export function loadOrganizations(preselectedOrganizationId) {
-  return function(dispatch) {
-    dispatch(loadOrganizationsRequested(preselectedOrganizationId));
-
-    return axios.get(getOrganizationsUrl())
-        .then(({ data }) => { dispatch(loadOrganizationsFulfilled(data)); })
-        .catch(error => { dispatch(loadOrganizationsFailed(error)); });
-  };
-}
-
 export function loadRepositories(orgId, scmUrl) {
   return function(dispatch) {
     dispatch(loadRepositoriesRequested());
@@ -94,16 +106,6 @@ export function loadRepositories(orgId, scmUrl) {
     return axios.get(getScmRepositoriesUrl(orgId, scmUrl))
         .then(({ data }) => { dispatch(loadRepositoriesFulfilled(data)); })
         .catch(error => { dispatch(loadRepositoriesFailed(error)); });
-  };
-}
-
-export function loadCompositeSourceControl(ownerType, internalOwnerId) {
-  return function(dispatch) {
-    dispatch(loadCompositeSourceControlRequested());
-
-    return axios.get(getCompositeSourceControlUrl(ownerType, internalOwnerId))
-        .then(({ data }) => { dispatch(loadCompositeSourceControlFulfilled(data)); })
-        .catch(error => { dispatch(loadCompositeSourceControlFailed(error)); });
   };
 }
 
@@ -123,29 +125,18 @@ export function importSelectedRepositories(orgId, selectedRepositories) {
   };
 }
 
-export function loadOrgHostUrl(orgId, provider) {
-  return function(dispatch) {
-    dispatch(loadOrgDefaultHostUrlRequested());
-
-    return axios.get(getScmDefaultHostUrl(orgId, provider))
-        .then(({ data }) => { dispatch(loadOrgDefaultHostUrlFulfilled(data)); })
-        .catch(error => { dispatch(loadOrgDefaultHostUrlFailed(error)); });
-  };
-}
-
 export function setSortingParameters(key, sortFields, dir) {
   return function(dispatch) {
     return dispatch(setSortingParamDispatch({key, sortFields, dir}));
   };
 }
 
-const loadConfigRequested = noPayloadActionCreator(SCM_ONBOARDING_LOAD_CONFIG_REQUESTED);
 const loadConfigFulfilled = payloadParamActionCreator(SCM_ONBOARDING_LOAD_CONFIG_FULFILLED);
 const loadConfigFailed = payloadParamActionCreator(SCM_ONBOARDING_LOAD_CONFIG_FAILED);
 
-const loadOrganizationsRequested = payloadParamActionCreator(SCM_ONBOARDING_LOAD_ORGANIZATIONS_REQUESTED);
-const loadOrganizationsFulfilled = payloadParamActionCreator(SCM_ONBOARDING_LOAD_ORGANIZATIONS_FULFILLED);
-const loadOrganizationsFailed = payloadParamActionCreator(SCM_ONBOARDING_LOAD_ORGANIZATIONS_FAILED);
+const loadPageRequested = payloadParamActionCreator(SCM_ONBOARDING_LOAD_PAGE_REQUESTED);
+const loadPageFulfilled = payloadParamActionCreator(SCM_ONBOARDING_LOAD_PAGE_FULFILLED);
+const loadPageFailed = payloadParamActionCreator(SCM_ONBOARDING_LOAD_PAGE_FAILED);
 
 const loadRepositoriesRequested = noPayloadActionCreator(SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED);
 const loadRepositoriesFulfilled = payloadParamActionCreator(SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED);
@@ -154,19 +145,11 @@ const repositorySelectionChanged = payloadParamActionCreator(SCM_ONBOARDING_REPO
 
 export const setSelectedOrganization = payloadParamActionCreator(SCM_ONBOARDING_SET_TARGET_ORGANIZATION);
 
-const loadOrgDefaultHostUrlRequested = noPayloadActionCreator(SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_REQUESTED);
-const loadOrgDefaultHostUrlFulfilled = payloadParamActionCreator(SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FULFILLED);
-const loadOrgDefaultHostUrlFailed = payloadParamActionCreator(SCM_ONBOARDING_LOAD_ORG_DEFAULT_HOST_URL_FAILED);
-
 export const setCurrentHostUrl = payloadParamActionCreator(SCM_ONBOARDING_SET_CURRENT_HOST_URL);
 
 const importSelectedRepositoriesRequested = noPayloadActionCreator(SCM_ONBOARDING_IMPORT_REPOS_REQUESTED);
 const importSelectedRepositoriesFulfilled = payloadParamActionCreator(SCM_ONBOARDING_IMPORT_REPOS_FULFILLED);
 const importSelectedRepositoriesFailed = payloadParamActionCreator(SCM_ONBOARDING_IMPORT_REPOS_FAILED);
-
-const loadCompositeSourceControlRequested = noPayloadActionCreator(SCM_ONBOARDING_LOAD_COMPOSITE_SCM_REQUESTED);
-const loadCompositeSourceControlFulfilled = payloadParamActionCreator(SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FULFILLED);
-const loadCompositeSourceControlFailed = payloadParamActionCreator(SCM_ONBOARDING_LOAD_COMPOSITE_SCM_FAILED);
 
 export const setSorting = payloadParamActionCreator(SCM_ONBOARDING_SET_SORTING);
 const setSortingParamDispatch = payloadParamActionCreator(SCM_ONBOARDING_SET_SORTING_PARAMETERS);
@@ -180,13 +163,11 @@ export default function scmOnboarding() {
   return {
     setSelectedOrganization,
     setCurrentHostUrl,
-    loadCompositeSourceControl,
     validateScmHostUrl,
     loadConfig,
-    loadOrganizations,
+    loadPage,
     loadRepositories,
     onRepositorySelectionChanged,
-    loadOrgHostUrl,
     importSelectedRepositories,
     setSortingParameters,
     setSorting

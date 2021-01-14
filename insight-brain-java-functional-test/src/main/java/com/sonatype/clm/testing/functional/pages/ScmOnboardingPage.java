@@ -31,12 +31,12 @@ public class ScmOnboardingPage
     super(ROOT_SELECTOR);
   }
 
-  public SelenideElement loadError() {
-    return child(".nx-alert--load-error");
+  public ElementsCollection getPageTitleElements() {
+    return children(".nx-page-title");
   }
 
-  public OrganizationsDropdown organizationsDropdown() {
-    return new OrganizationsDropdown();
+  public SelenideElement loadError() {
+    return child(".nx-alert--load-error");
   }
 
   public SelenideElement resultsTable() {

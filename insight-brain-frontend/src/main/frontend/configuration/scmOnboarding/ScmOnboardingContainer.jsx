@@ -12,17 +12,15 @@ import ScmOnboarding from '../scmOnboarding/ScmOnboarding';
 function mapStateToProps({ scmOnboarding, router }) {
   return {
     // config
-    loadingConfig: scmOnboarding.configState.loadingConfig,
+    loadingPage: scmOnboarding.viewState.loadingPage,
     isScmOnboardingFeatureEnabled: scmOnboarding.configState.isScmOnboardingFeatureEnabled,
     scmProvider: scmOnboarding.configState.scmProvider,
 
     // compositeSourceControl data
     isScmTokenConfigured: scmOnboarding.configState.isScmTokenConfigured,
-    loadingCompositeSourceControl: scmOnboarding.viewState.loadingCompositeSourceControl,
     validateScmHostUrl: scmOnboarding.viewState.validateScmHostUrl,
 
     // organizations
-    loadingOrganizations: scmOnboarding.viewState.loadingOrganizations,
     organizations: scmOnboarding.formState.organizations,
     selectedOrganization: scmOnboarding.formState.selectedOrganization,
 
@@ -43,10 +41,10 @@ function mapStateToProps({ scmOnboarding, router }) {
     sortConfiguration: scmOnboarding.sortConfiguration,
 
     // actions
+    loadPage: scmOnboarding.loadPage,
     onRepositorySelectionChanged: scmOnboarding.onRepositorySelectionChanged,
     importSelectedRepositories: scmOnboarding.importSelectedRepositories,
     setSelectedOrganization: scmOnboarding.setSelectedOrganization,
-    loadOrgHostUrl: scmOnboarding.loadOrgHostUrl,
     setSorting: scmOnboarding.setSorting,
     setSortingParameters: scmOnboarding.setSortingParameters,
 
@@ -64,8 +62,7 @@ export default ScmOnboardingContainer;
 ScmOnboardingContainer.propTypes = {
   preselectedOrganizationId: PropTypes.string,
   scmOnboardingActions: PropTypes.shape({
-    loadConfig: PropTypes.func.isRequired,
-    loadOrganizations: PropTypes.func.isRequired,
+    loadPage: PropTypes.func.isRequired,
     loadRepositories: PropTypes.func.isRequired,
     validateScmHostUrl: PropTypes.func.isRequired
   })

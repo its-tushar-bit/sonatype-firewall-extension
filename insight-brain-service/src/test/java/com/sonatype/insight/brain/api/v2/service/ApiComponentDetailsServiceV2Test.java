@@ -383,20 +383,6 @@ public class ApiComponentDetailsServiceV2Test
       Set<License> observedLicenses,
       Set<License> effectiveLicenses,
       List<SecurityVulnerability> securityVulnerabilities,
-      Integer relativePopularity)
-  {
-    assertComponentDetails(resultComponentDTO, requestComponentDTO, matchState, declaredLicenses, observedLicenses,
-        effectiveLicenses, securityVulnerabilities, relativePopularity, null);
-  }
-
-  private void assertComponentDetails(
-      ApiComponentDetailsDTOV2 resultComponentDTO,
-      ApiComponentDTOV2 requestComponentDTO,
-      String matchState,
-      Set<License> declaredLicenses,
-      Set<License> observedLicenses,
-      Set<License> effectiveLicenses,
-      List<SecurityVulnerability> securityVulnerabilities,
       Integer relativePopularity,
       ComponentProjectDetails projectDetails)
   {

@@ -174,7 +174,7 @@ public class ReportResource
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String appPublicId,
       @PathParam("scanId") final String scanId,
       @PathParam("path") final String path,
-      @Context final HttpServletRequest httpRequest) throws IOException
+      @Context final HttpServletRequest httpRequest)
   {
     Application application = applicationDAO.getByPublicIdNotNull(appPublicId);
     String appId = application.getId();

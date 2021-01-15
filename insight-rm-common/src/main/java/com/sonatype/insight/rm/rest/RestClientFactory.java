@@ -87,6 +87,16 @@ public class RestClientFactory
     }
 
     @Override
+    public void validateServerVersion(String version) throws IOException {
+      try {
+        newConfigurationClient(config).validateServerVersion(version);
+      }
+      catch (IOException e) {
+        throw handleError(e);
+      }
+    }
+
+    @Override
     public ApplicationSummaryList getApplicationsForApplicationEvaluation() throws IOException {
       try {
         return newConfigurationClient(config).getApplicationsForApplicationEvaluation();

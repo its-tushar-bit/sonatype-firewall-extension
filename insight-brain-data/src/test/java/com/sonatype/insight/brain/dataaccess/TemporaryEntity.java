@@ -386,6 +386,8 @@ public class TemporaryEntity
 
   private Collection<RepositoryManager> repositoryManagers;
 
+  private Collection<Repository> repositories;
+
   private Collection<SecurityVulnerabilityOverride> securityVulnerabilityOverrides;
 
   private Collection<MembershipMapping> membershipMappings;
@@ -438,6 +440,7 @@ public class TemporaryEntity
     licenseThreatGroups = new ArrayList<>();
     policyMonitorings = new ArrayList<>();
     repositoryManagers = new ArrayList<>();
+    repositories = new ArrayList<>();
     securityVulnerabilityOverrides = new ArrayList<>();
     membershipMappings = new ArrayList<>();
     webhooks = new ArrayList<>();
@@ -492,6 +495,7 @@ public class TemporaryEntity
     delete(tags, tagDAO);
     delete(licenseThreatGroups, licenseThreatGroupDAO);
     delete(policyMonitorings, policyMonitoringDAO);
+    delete(repositories, repositoryDAO);
     delete(repositoryManagers, repositoryManagerDAO);
     delete(webhooks, webhookDAO);
     delete(policyViolationAggregations, policyViolationAggregationDAO);
@@ -1761,6 +1765,7 @@ public class TemporaryEntity
   public Repository newRepository(RepositoryManager repositoryManager, String publicId) {
     Repository repository = new Repository(repositoryManager.getId(), publicId);
     repositoryDAO.insert(repository);
+    repositories.add(repository);
     return repository;
   }
 
@@ -1773,6 +1778,7 @@ public class TemporaryEntity
     Repository repository = new Repository(repositoryManager.getId(), publicId);
     repository.setFormat(format);
     repositoryDAO.insert(repository);
+    repositories.add(repository);
     return repository;
   }
 
@@ -1789,6 +1795,7 @@ public class TemporaryEntity
     repository.setEnabled(enabled);
     repository.setQuarantineEnabled(quarantineEnabled);
     repositoryDAO.insert(repository);
+    repositories.add(repository);
     return repository;
   }
 

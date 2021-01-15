@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.rm.rest;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,9 +26,12 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -384,5 +388,19 @@ public class RestClientFactoryTest
         + "upgrade it to version 1.35, or newer, to support it.");
     verify(configClient).getFirewallIgnorePatterns();
     verifyNoMoreInteractions(configClient);
+  }
+
+  @Test
+  public void testValidateServerVersion() throws Exception {
+    ConfigurationClient configClient = mock(ConfigurationClient.class);
+    RestClientFactory factory = spy(new RestClientFactory());
+    doReturn(configClient).when(factory).newConfigurationClient(any(Configuration.class));
+    RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
+
+    // test that the interals are properly called - exceptions are re-thrown otherwise it falls through
+    doThrow(IOException.class).when(configClient).validateServerVersion("throw");
+    doNothing().when(configClient).validateServerVersion("do-not-throw");
+    assertThatThrownBy(() -> client.validateServerVersion("throw")).isInstanceOf(IOException.class);
+    client.validateServerVersion("do-not-throw");
   }
 }

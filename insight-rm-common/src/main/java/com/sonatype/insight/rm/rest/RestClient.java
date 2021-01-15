@@ -28,6 +28,8 @@ public interface RestClient
   {
     void validateConfiguration() throws IOException;
 
+    void validateServerVersion(String version) throws IOException;
+
     ApplicationSummaryList getApplicationsForApplicationEvaluation() throws IOException;
 
     /**

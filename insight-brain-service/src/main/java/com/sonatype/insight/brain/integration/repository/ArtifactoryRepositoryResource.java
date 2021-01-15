@@ -56,10 +56,10 @@ public class ArtifactoryRepositoryResource
 
   static final String UNQUARANTINED_COMPONENTS_PATH = REPOSITORY_PATH + "components/unquarantined";
 
-  private final AbstractRepositoryService repositoryService;
+  private final ArtifactoryRepositoryServiceWrapper repositoryService;
 
   @Inject
-  public ArtifactoryRepositoryResource(final ArtifactoryRepositoryService repositoryService) {
+  public ArtifactoryRepositoryResource(final ArtifactoryRepositoryServiceWrapper repositoryService) {
     this.repositoryService = repositoryService;
   }
 

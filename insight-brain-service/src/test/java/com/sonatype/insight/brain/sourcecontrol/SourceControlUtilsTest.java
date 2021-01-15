@@ -62,7 +62,7 @@ public class SourceControlUtilsTest
   }
 
   @Test
-  public void testGetGitRepositoryInfo_ProviderAndTokenFromApplication() {
+  public void testGetGitRepositoryInfoForApplication_ProviderAndTokenFromApplication() {
     SourceControl sourceControl = new SourceControl.Builder()
         .setOwnerId(application.getParentOwnerId())
         .setRepositoryUrl(VALID_URL)
@@ -88,7 +88,7 @@ public class SourceControlUtilsTest
   }
 
   @Test
-  public void testGetGitRepositoryInfo_ProviderAndTokenFromOrganization() {
+  public void testGetGitRepositoryInfoForApplication_ProviderAndTokenFromOrganization() {
     SourceControl sourceControl = new SourceControl.Builder()
         .setOwnerId(application.getId())
         .setRepositoryUrl(VALID_URL)
@@ -122,7 +122,7 @@ public class SourceControlUtilsTest
   }
 
   @Test
-  public void testGetGitRepositoryInfo_ProviderAndTokenFromRootOrganization() {
+  public void testGetGitRepositoryInfoForApplication_ProviderAndTokenFromRootOrganization() {
     SourceControl sourceControl = new SourceControl.Builder()
         .setOwnerId(application.getId())
         .setRepositoryUrl(VALID_URL)
@@ -159,7 +159,7 @@ public class SourceControlUtilsTest
   }
 
   @Test
-  public void testGetGitRepositoryInfo_defaultBranch() {
+  public void testGetGitRepositoryInfoForApplication_defaultBranch() {
     // given : source control for app and root with null base branch
     SourceControl sourceControl = new SourceControl.Builder()
         .setOwnerId(application.getId())
@@ -197,7 +197,7 @@ public class SourceControlUtilsTest
   }
 
   @Test
-  public void testGetGitRepositoryInfo_NoApplicationSourceControl() {
+  public void testGetGitRepositoryInfoForApplication_NoApplicationSourceControl() {
     GitRepositoryInfo value = sourceControlUtils.getGitRepositoryInfoForApplication("INVALID");
     assertThat(value).isNull();
     assertThat(sourceControlUtils.isScmEnabled(application.getId())).isFalse();
@@ -250,7 +250,7 @@ public class SourceControlUtilsTest
   }
 
   @Test
-  public void testGetGitRepositoryInfo_RequiresUsername() {
+  public void testIsScmEnabled_RequiresUsername() {
     // given: source control is setup for a provider that requires username, but does not set the username
     SourceControl sourceControl = new SourceControl.Builder()
         .setOwnerId(application.getParentOwnerId())

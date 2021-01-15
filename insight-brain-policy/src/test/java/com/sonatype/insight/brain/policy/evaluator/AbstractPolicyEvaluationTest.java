@@ -32,7 +32,6 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.DroolsGenerator;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import org.codehaus.plexus.util.StringUtils;
 import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Rule;
 
@@ -106,7 +105,7 @@ public abstract class AbstractPolicyEvaluationTest
           && policyAlertContainsAction(actualPolicyAlert, expectedActionTypeId)) {
         for (ComponentFact componentFact : policyFact.getComponentFacts()) {
           if (Objects.equals(expectedComponent.getComponentIdentifier(), componentFact.getComponentIdentifier())
-              && StringUtils.equals(expectedComponent.getHash(), componentFact.getHash())) {
+              && Objects.equals(expectedComponent.getHash(), componentFact.getHash())) {
             for (ConstraintFact constraintFact : componentFact.getConstraintFacts()) {
               if (expectedConstraint.getId().equals(constraintFact.getConstraintId())
                   && expectedConstraint.getName().equals(constraintFact.getConstraintName())) {

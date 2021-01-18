@@ -34,6 +34,7 @@ import org.junit.Test;
 import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.CollectionCondition.exactTexts;
+import static com.codeborne.selenide.Condition.checked;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.hidden;
@@ -512,6 +513,9 @@ public class ScmOnboardingTest
         "create-react-app", "nexus-repository-p2", "nexus-repository-puppet",
         "nexus-repository-terraform", "nexus-repository-vgo", "nexus-scripting-examples",
         "nexus-webhook-example-collection", "nxrm-cli", "ossindex-gradle-plugin", "oysteR", "prime-nexus-proxy-repos"));
+
+    // and the select all checkbox is checked
+    scmOnboardingPage.resultsTableSelectAll().shouldBe(checked);
   }
 
   @Test
@@ -560,6 +564,9 @@ public class ScmOnboardingTest
     // and the initially selected elements are still visible
     scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.texts("broken-url-1",
         "broken-url-2"));
+
+    // and the select all checkbox is unchecked
+    scmOnboardingPage.resultsTableSelectAll().shouldNotBe(checked);
   }
 
   @Test
@@ -603,6 +610,9 @@ public class ScmOnboardingTest
     // and the broken elements are still visible
     scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.texts("broken-url-1",
         "broken-url-2"));
+
+    // and the select all checkbox is unchecked
+    scmOnboardingPage.resultsTableSelectAll().shouldNotBe(checked);
   }
 
   @Test

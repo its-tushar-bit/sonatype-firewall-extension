@@ -147,6 +147,7 @@ export default function ResultsTable(props) {
   function handleImportSelectedRepositories() {
     importSelectedRepositories(preselectedOrganizationId, selectedRepositories);
     setSelectedRepositories([]);
+    setIsAllChecked(false);
   }
 
   return (

@@ -23,7 +23,7 @@ function routes($stateProvider) {
         resolve: {
           isAuthorized: [
             'PermissionService', function(PermissionService) {
-              return PermissionService.isAuthorized(['LEGAL_REVIEWER'], true);
+              return PermissionService.isContextAuthorized(['LEGAL_REVIEWER'], 'organization', 'ROOT_ORGANIZATION_ID');
             }
           ]
         }

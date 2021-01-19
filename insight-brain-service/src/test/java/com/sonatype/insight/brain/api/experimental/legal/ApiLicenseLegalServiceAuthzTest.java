@@ -6,15 +6,18 @@
 package com.sonatype.insight.brain.api.experimental.legal;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
+import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -24,6 +27,7 @@ import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 
@@ -52,36 +56,51 @@ public class ApiLicenseLegalServiceAuthzTest
     binder.bind(ApiLicenseLegalHdsService.class).toInstance(mockApiLicenseLegalHdsService);
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testGetLicenseLegalApplicationsDashboard_Unauthenticated() {
-    apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null);
+    setupResultForDashboard();
+    assertThat(apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null)).isEmpty();
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testGetLicenseLegalApplicationsDashboard_Unauthorized() {
+    setupResultForDashboard();
     login();
-    apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null);
+    assertThat(apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null)).isEmpty();
   }
 
+  @Test
   public void testGetLicenseLegalApplicationsDashboard_Authorized() {
+    setupResultForDashboard();
     grantLegalReviewerPermission(app.getId());
-    apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null);
+    assertThat(apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null)).isNotEmpty();
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testGetLicenseLegalComponentsDashboard_Unauthenticated() {
-    apiLicenseLegalService.getLicenseLegalComponentsDashboard(null, null, null, null, null);
+    setupResultForDashboard();
+    assertThat(apiLicenseLegalService.getLicenseLegalComponentsDashboard(null, null, null, null, null)).isEmpty();
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testGetLicenseLegalComponentsDashboard_Unauthorized() {
+    setupResultForDashboard();
     login();
-    apiLicenseLegalService.getLicenseLegalComponentsDashboard(null, null, null, null, null);
+    assertThat(apiLicenseLegalService.getLicenseLegalComponentsDashboard(null, null, null, null, null)).isEmpty();
   }
 
+  @Test
   public void testGetLicenseLegalComponentsDashboard_Authorized() {
+    setupResultForDashboard();
     grantLegalReviewerPermission(app.getId());
-    apiLicenseLegalService.getLicenseLegalComponentsDashboard(null, null, null, null, null);
+    assertThat(apiLicenseLegalService.getLicenseLegalComponentsDashboard(null, null, null, null, null)).isNotEmpty();
+  }
+
+  private void setupResultForDashboard() {
+    ApplicationComponent applicationComponent = tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID,
+        "hash", ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
+    tempEntity.newApplicationComponentLicense(applicationComponent.getId(), "MIT");
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, tempEntity.uuid(), new Date());
   }
 
   @Test(expected = UnauthenticatedException.class)

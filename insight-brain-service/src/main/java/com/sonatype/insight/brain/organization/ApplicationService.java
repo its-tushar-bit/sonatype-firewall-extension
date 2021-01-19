@@ -164,6 +164,14 @@ public class ApplicationService
                                                                            @Nullable final Set<String> applicationIds,
                                                                            @Nullable final Set<String> tagIds)
   {
+    return getApplicationsByIdsAndOrganizationIdsAndTagIdsNoAuthz(organizationIds, applicationIds, tagIds);
+  }
+
+  public List<Application> getApplicationsByIdsAndOrganizationIdsAndTagIdsNoAuthz(
+      @Nullable final Set<String> organizationIds,
+      @Nullable final Set<String> applicationIds,
+      @Nullable final Set<String> tagIds)
+  {
     if (isEmpty(applicationIds) && isEmpty(tagIds) && isEmpty(organizationIds)) {
       // none filled
       return applicationDAO.getAll();

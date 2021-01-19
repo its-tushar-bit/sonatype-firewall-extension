@@ -53,8 +53,18 @@ public class LicenseOverrideDAO
       Owner owner,
       ComponentIdentifier componentIdentifier)
   {
+    try (TransactionContext tx = licenseOverrideInternalDAO.createTransactionContext()) {
+      return getAppliedByOwnerIdAndComponentIdentifierWithHierarchy(tx, owner, componentIdentifier);
+    }
+  }
+
+  public LicenseOverride getAppliedByOwnerIdAndComponentIdentifierWithHierarchy(
+      TransactionContext tx,
+      Owner owner,
+      ComponentIdentifier componentIdentifier)
+  {
     for (Owner anOwner : ownerDAO.walkHierarchy(owner)) {
-      LicenseOverride override = getByOwnerIdAndComponentIdentifier(anOwner.getId(), componentIdentifier);
+      LicenseOverride override = getByOwnerIdAndComponentIdentifier(tx, anOwner.getId(), componentIdentifier);
       if (override != null) {
         return override;
       }

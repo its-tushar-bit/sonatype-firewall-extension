@@ -74,6 +74,7 @@ import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -174,60 +175,96 @@ public class ApiLicenseLegalService
     this.licenseOverrideDAO = licenseOverrideDAO;
   }
 
-  @Authorize(permission = Permission.LEGAL_REVIEWER)
   public List<ApiLicenseLegalApplicationDashboardDTO> getLicenseLegalApplicationsDashboard(
       Set<String> organizationIds,
       Set<String> applicationIds,
       Set<String> tagIds,
-      Set<String> stageTypeIds)
+      Set<String> stageTypeIds,
+      Set<String> licenseIds)
   {
     checkLicense();
 
     List<Application> applications =
-        applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds, applicationIds, tagIds);
+        getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds, applicationIds, tagIds);
     Set<String> stageTypeIdsToCheck =
         isEmpty(stageTypeIds)
-        ? StageTypes.getAll().stream().map(StageType::getId).collect(Collectors.toSet())
-        : stageTypeIds;
-    List<ApiLicenseLegalApplicationDashboardDTO> result = new ArrayList<>();
+            ? StageTypes.getAll().stream().map(StageType::getId).collect(Collectors.toSet())
+            : stageTypeIds;
+    Map<String, List<ApiLicenseLegalApplicationDashboardDTO>> mapApplicationIdResults = new HashMap<>();
+    Map<String, Set<String>> mapApplicationIdLicenseIds = new HashMap<>();
 
     try (TransactionContext tx = policyEvaluationDAO.createTransactionContext()) {
       for (Application application : applications) {
-        PolicyEvaluation mostRecentPolicyEvaluation = null;
-
+        Set<String> licensesAlreadyFound =
+            mapApplicationIdLicenseIds.computeIfAbsent(application.getId(), key -> new HashSet<>());
         for (String stageTypeId : stageTypeIdsToCheck) {
           PolicyEvaluation policyEvaluation =
               policyEvaluationDAO.getLastByApplicationIdAndStageId(tx, application.getId(), stageTypeId);
 
-          if (policyEvaluation != null && (mostRecentPolicyEvaluation == null
-              || mostRecentPolicyEvaluation.getTime().before(policyEvaluation.getTime()))) {
-            mostRecentPolicyEvaluation = policyEvaluation;
+          if (policyEvaluation == null) {
+            continue;
           }
-        }
 
-        if (mostRecentPolicyEvaluation != null) {
           ApiLicenseLegalApplicationDashboardDTO dto = new ApiLicenseLegalApplicationDashboardDTO();
           dto.applicationId = application.getId();
           dto.applicationName = application.getName();
           dto.applicationPublicId = application.getPublicId();
-          dto.lastScanTime = mostRecentPolicyEvaluation.getTime().getTime();
-          dto.stageTypeId = mostRecentPolicyEvaluation.getStageTypeId();
-          dto.stageTypeName = StageTypes.getById(mostRecentPolicyEvaluation.getStageTypeId()).getName();
+          dto.lastScanTime = policyEvaluation.getTime().getTime();
+          dto.stageTypeId = stageTypeId;
+          dto.stageTypeName = StageTypes.getById(stageTypeId).getName();
 
           List<Tag> tags = tagDAO.getByApplicationId(tx, application.getId());
           for (Tag tag : tags) {
             dto.applicationTagNames.add(tag.getName());
           }
 
-          result.add(dto);
+          mapApplicationIdResults.computeIfAbsent(application.getId(), key -> new ArrayList<>()).add(dto);
+
+          if (isEmpty(licenseIds)) {
+            continue;
+          }
+
+          licensesAlreadyFound.addAll(getApplicationComponentEffectiveLicenses(tx, application, stageTypeId));
         }
       }
     }
 
-    return result;
+    return mapApplicationIdResults.entrySet().stream().filter(entry -> isEmpty(licenseIds) ||
+        !Collections.disjoint(mapApplicationIdLicenseIds.get(entry.getKey()), licenseIds))
+        .flatMap(entry -> entry.getValue().stream()).collect(Collectors.toList());
   }
 
-  @Authorize(permission = Permission.LEGAL_REVIEWER)
+  private Set<String> getApplicationComponentEffectiveLicenses(
+      TransactionContext tx,
+      Application application,
+      String stageTypeId)
+  {
+    Set<String> effectiveLicenseIds = new HashSet<>();
+    List<ApplicationComponent> applicationComponents =
+        applicationComponentDAO.getByApplicationIdAndStageTypeId(tx, application.getId(), stageTypeId);
+    for (ApplicationComponent applicationComponent : applicationComponents) {
+      if (applicationComponent.getComponentIdentifier() == null) {
+        continue;
+      }
+
+      LicenseOverride licenseOverride = licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifierWithHierarchy(tx,
+          application, applicationComponent.getComponentIdentifier());
+
+      if (licenseOverride != null && isNotEmpty(licenseOverride.getLicenseIds())) {
+        effectiveLicenseIds.addAll(licenseOverride.getLicenseIds());
+      }
+      else {
+        List<ApplicationComponentLicense> applicationComponentLicenses =
+            applicationComponentLicenseDAO.getByApplicationComponentId(tx, applicationComponent.getId());
+
+        effectiveLicenseIds.addAll(applicationComponentLicenses.stream()
+            .map(ApplicationComponentLicense::getEffectiveLicenseId)
+            .collect(Collectors.toSet()));
+      }
+    }
+    return effectiveLicenseIds;
+  }
+
   public List<ApiLicenseLegalComponentDashboardDTO> getLicenseLegalComponentsDashboard(
       Set<String> organizationIds,
       Set<String> applicationIds,
@@ -238,7 +275,7 @@ public class ApiLicenseLegalService
     checkLicense();
 
     List<Application> applications =
-        applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds, applicationIds, tagIds);
+        getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds, applicationIds, tagIds);
     Set<String> stageTypeIdsToCheck = isEmpty(stageTypeIds)
         ? StageTypes.getAll().stream().map(StageType::getId).collect(Collectors.toSet())
         : stageTypeIds;
@@ -265,7 +302,7 @@ public class ApiLicenseLegalService
                 mapHashLicenseIds.getOrDefault(applicationComponent.getHash(), new HashSet<>());
 
             LicenseOverride licenseOverride = licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifierWithHierarchy(
-                application, applicationComponent.getComponentIdentifier());
+                tx, application, applicationComponent.getComponentIdentifier());
 
             if (licenseOverride != null && isNotEmpty(licenseOverride.getLicenseIds())) {
               licensesAlreadyFound.addAll(licenseOverride.getLicenseIds());
@@ -302,6 +339,16 @@ public class ApiLicenseLegalService
               .collect(Collectors.toSet()));
           return dto;
         }).collect(Collectors.toList());
+  }
+
+  @AuthzFilter(permission = Permission.LEGAL_REVIEWER, context = AuthzFilter.Context.APPLICATION)
+  protected List<Application> getApplicationsByIdsAndOrganizationIdsAndTagIds(
+      Set<String> organizationIds,
+      Set<String> applicationIds,
+      Set<String> tagIds)
+  {
+    return applicationService
+        .getApplicationsByIdsAndOrganizationIdsAndTagIdsNoAuthz(organizationIds, applicationIds, tagIds);
   }
 
   @Authorize(permission = Permission.LEGAL_REVIEWER)

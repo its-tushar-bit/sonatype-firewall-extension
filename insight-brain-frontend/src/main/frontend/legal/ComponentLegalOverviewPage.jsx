@@ -13,9 +13,11 @@ import LicenseDetailsTile from './LicenseDetailsTile';
 import CopyrightStatementsTile from './CopyrightStatementsTile';
 import NoticeTextsTile from './NoticeTextsTile';
 import LicenseTextsTile from './LicenseTextsTile';
+import LicenseObligationAttributionTileContainer from './LicenseObligationAttributionTileContainer';
 import LoadWrapper from '../react/LoadWrapper';
 import { componentPropType, licenseLegalMetadataPropType } from './advancedLegalPropTypes';
 import { chain, find, flip, groupBy, map, pipe, prop, propEq, toPairs, values, reject } from 'ramda';
+import { TEXT_BASED_OBLIGATIONS } from './advancedLegalConstants';
 
 export default function ComponentLegalOverviewPage(props) {
   const {
@@ -61,6 +63,14 @@ export default function ComponentLegalOverviewPage(props) {
 
   const licenseNames = component && getLicenseNames(component.licenseLegalData.effectiveLicenses);
 
+  const isTextBasedObligation = (licenseObligation) => {
+    return TEXT_BASED_OBLIGATIONS.includes(licenseObligation.name);
+  };
+
+  const createLicenseObligationAttributionTileContainer = (licenseObligation, index) => {
+    return <LicenseObligationAttributionTileContainer key={ index } name={ licenseObligation.name } />;
+  };
+
   return (
     <main className="nx-page-main">
       <LoadWrapper loading={ loading }
@@ -86,6 +96,8 @@ export default function ComponentLegalOverviewPage(props) {
             <CopyrightStatementsTile component={ component }/>
             <NoticeTextsTile component={ component }/>
             <LicenseTextsTile component={ component }/>
+            { licenseObligations &&
+            licenseObligations.filter(isTextBasedObligation).map(createLicenseObligationAttributionTileContainer) }
           </div>
         </div>
       </LoadWrapper>

@@ -41,10 +41,12 @@ export const licenseLegalMetadataPropType = PropTypes.arrayOf(PropTypes.shape({
   }))
 }).isRequired);
 
+export const licenseObligationLicensesPropTypes = PropTypes.arrayOf(PropTypes.shape({
+  name: PropTypes.string.isRequired,
+  texts: PropTypes.arrayOf(PropTypes.string).isRequired
+}));
+
 export const licenseObligationPropTypes = PropTypes.arrayOf(PropTypes.shape({
   name: PropTypes.string.isRequired,
-  licenses: PropTypes.arrayOf(PropTypes.shape({
-    name: PropTypes.string.isRequired,
-    texts: PropTypes.arrayOf(PropTypes.string).isRequired
-  }))
+  licenses: licenseObligationLicensesPropTypes
 }).isRequired);

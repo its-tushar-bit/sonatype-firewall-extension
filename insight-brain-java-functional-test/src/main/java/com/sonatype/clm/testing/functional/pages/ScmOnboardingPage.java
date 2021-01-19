@@ -81,7 +81,7 @@ public class ScmOnboardingPage
   }
 
   public SelenideElement projectFilter() {
-    return child("#project-filter input");
+    return child("#project-filter");
   }
 
   public SelenideElement repositoryCount() {

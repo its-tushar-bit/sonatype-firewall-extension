@@ -26,6 +26,7 @@ import deleteWaiverReducer from '../waivers/deleteWaiverModal/deleteWaiverReduce
 import userTokenReducer from '../mainHeader/userMenu/userToken/userTokenReducer';
 import advancedLegalReducer from '../advancedLegal/advancedLegalReducer';
 import legalDashboardReducer from '../legal/dashboard/legalDashboardReducer';
+import licenseObligationAttributionTileReducer from '../legal/licenseObligationAttributionTileReducer';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -49,5 +50,6 @@ export default combineReducers({
   deleteWaiver: deleteWaiverReducer,
   userToken: userTokenReducer,
   advancedLegal: advancedLegalReducer,
-  legalDashboard: legalDashboardReducer
+  legalDashboard: legalDashboardReducer,
+  licenseObligationAttributionTile: licenseObligationAttributionTileReducer
 });

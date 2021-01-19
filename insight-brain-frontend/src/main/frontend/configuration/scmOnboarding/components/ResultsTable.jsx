@@ -145,7 +145,8 @@ export default function ResultsTable(props) {
   }
 
   function handleImportSelectedRepositories() {
-    importSelectedRepositories(preselectedOrganizationId, selectedRepositories);
+    const prevImportedCount = totalRepositories - repositories.length;
+    importSelectedRepositories(preselectedOrganizationId, totalRepositories, prevImportedCount, selectedRepositories);
     setSelectedRepositories([]);
     setIsAllChecked(false);
   }

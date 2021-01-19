@@ -8,17 +8,20 @@ package com.sonatype.insight.brain.api.experimental;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.experimental.dto.ImportRepositoriesRequest;
 import com.sonatype.insight.brain.api.experimental.dto.SCMRepositories;
+import com.sonatype.insight.brain.api.experimental.dto.ValidationResponse;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiCompositeSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiCompositeSourceControlService;
-import com.sonatype.insight.brain.api.experimental.dto.ValidationResponse;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -29,9 +32,12 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.organization.ApplicationHelper;
 import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.nexus.scm.GitApiClientFactory;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
@@ -71,6 +77,8 @@ public class ApiScmOnboardingService
 
   private final GitApiClientFactory gitApiClientFactory;
 
+  private final TelemetrySender telemetrySender;
+
   @Inject
   public ApiScmOnboardingService(final SourceControlDAO sourceControlDAO,
                                  final ApplicationDAO appDAO,
@@ -78,7 +86,8 @@ public class ApiScmOnboardingService
                                  final ApplicationHelper applicationHelper,
                                  final ApiSourceControlService apiSourceControlService,
                                  final ApiCompositeSourceControlService apiCompositeSourceControlService,
-                                 final GitApiClientFactory gitApiClientFactory)
+                                 final GitApiClientFactory gitApiClientFactory,
+                                 final TelemetrySender telemetrySender)
   {
     this.sourceControlDAO = sourceControlDAO;
     this.appDAO = appDAO;
@@ -87,6 +96,7 @@ public class ApiScmOnboardingService
     this.apiSourceControlService = apiSourceControlService;
     this.apiCompositeSourceControlService = apiCompositeSourceControlService;
     this.gitApiClientFactory = gitApiClientFactory;
+    this.telemetrySender = telemetrySender;
   }
 
   @Authorize(permission = Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION)
@@ -224,21 +234,25 @@ public class ApiScmOnboardingService
   /**
    * Import the selected repositories into the given organization
    * @param orgId the org in which to import the repos
-   * @param scmRepositories the list of repositories to import
+   * @param importReposRequest the repositories to import with associated telemetry data
    * @return list of all imported repositories
    */
   @Authorize(permission = Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION)
-  public ImportResults importRepositories(final String orgId, final List<SCMRepository> scmRepositories) {
-    log.debug("importing repositories into org {}, using: {}", orgId, scmRepositories);
+  public ImportResults importRepositories(final String orgId, final ImportRepositoriesRequest importReposRequest) {
+    log.debug("importing repositories into org {}, using: {}", orgId, importReposRequest);
 
     // validate org ID
     if (orgDAO.getById(orgId) == null) {
       throw new NotFoundException("No organization found for ID " + orgId);
     }
 
+    if (importReposRequest.scmRepositories == null) {
+      throw new BadRequestException("SCM Repositories must not be null");
+    }
+
     ArrayList<SCMRepository> importedRepos = new ArrayList<>();
     int failedImportCount = 0;
-    for (SCMRepository scmRepository : scmRepositories) {
+    for (SCMRepository scmRepository : importReposRequest.scmRepositories) {
       try {
         importRepository(orgId, scmRepository);
         importedRepos.add(scmRepository);
@@ -248,7 +262,30 @@ public class ApiScmOnboardingService
         ++failedImportCount;
       }
     }
+    sendImportTelemetry(importReposRequest);
     return new ImportResults(importedRepos, failedImportCount);
+  }
+
+  private void sendImportTelemetry(final ImportRepositoriesRequest importReposRequest) {
+    final int importedSize = importReposRequest.scmRepositories.size();
+
+    Map<String, Object> attributes = new HashMap<>();
+    attributes.put("onboarding_batch_count", importedSize);
+
+    if (importReposRequest.totalRepoCount == 0) {
+      // log at debug because telemetry errors are our bug and not something customers should care about
+      log.debug("importRepositories failed preconditions: totalRepoCount == 0");
+    }
+    else {
+      attributes
+          .put("onboarding_batch_percent", (int) Math.round(importedSize * 100.0 / importReposRequest.totalRepoCount));
+      attributes.put("onboarding_total_percent", (int) Math
+          .round((importedSize + importReposRequest.prevImportedCount) * 100.0 / importReposRequest.totalRepoCount));
+    }
+
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.SOURCE_CONTROL_ONBOARDING);
+    telemetryData.setAttributes(attributes);
+    telemetrySender.send(telemetryData);
   }
 
   @Authorize(permission = Permission.READ)

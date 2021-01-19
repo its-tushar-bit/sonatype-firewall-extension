@@ -10,12 +10,15 @@ import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.experimental.dto.ImportRepositoriesRequest;
 import com.sonatype.insight.brain.api.experimental.dto.SCMRepositories;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
@@ -24,19 +27,25 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.model.SCMRepository;
 
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.google.inject.Binder;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
@@ -47,6 +56,9 @@ import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class ApiScmOnboardingServiceTest
     extends AbstractComponentTest
@@ -78,6 +90,15 @@ public class ApiScmOnboardingServiceTest
   private PlexusCipher plexusCipher;
 
   private static final String ENC = "CMMDwoV";
+
+  @Mock
+  private TelemetrySender telemetrySenderMock;
+
+  @Override
+  public void configure(final Binder binder) {
+    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
+    super.configure(binder);
+  }
 
   @Before
   public void setup() throws Exception {
@@ -354,10 +375,15 @@ public class ApiScmOnboardingServiceTest
         new SCMRepository(SourceControlProvider.GITHUB, "http://github.com/org/repo4", false,
             "--bad-__-org", "--bad_name_99--", ""),
     };
+    int totalRepoCount = 50;
+    int prevImportedCount = 10;
 
     // then the repos can be imported
     List<SCMRepository> imported =
-        apiScmOnboardingService.importRepositories(org.getId(), Arrays.asList(reposToImport)).getImportedRepositories();
+        apiScmOnboardingService
+            .importRepositories(org.getId(),
+                new ImportRepositoriesRequest(Arrays.asList(reposToImport), totalRepoCount, prevImportedCount))
+            .getImportedRepositories();
     assertThat(imported).containsExactlyInAnyOrder(reposToImport);
 
     // and they exist in the DB
@@ -375,6 +401,12 @@ public class ApiScmOnboardingServiceTest
         .filter(sc -> sc.getOwnerId() != ROOT_ORGANIZATION_ID)
         .map(SourceControl::getRepositoryUrl)).containsExactly("http://github.com/org/repo1",
         "http://github.com/org/repo2", "http://github.com/org/repo3", "http://github.com/org/repo4");
+
+    // and the telemetry was sent properly
+    int batchPercent = 8;
+    int batchCount = reposToImport.length;
+    int totalPercent = (int)((prevImportedCount + batchCount) * 100.0 / totalRepoCount);
+    assertTelemetry(batchPercent, batchCount, totalPercent, batchCount);
   }
 
   @Test
@@ -389,10 +421,15 @@ public class ApiScmOnboardingServiceTest
     SCMRepository[] reposToImport = new SCMRepository[]{
         new SCMRepository(SourceControlProvider.GITHUB, "http://github.com/org/repo1", false, "org", "repo1", "")
     };
+    int totalRepoCount = 50;
+    int prevImportedCount = 8;
 
     // then the repos can be imported
     List<SCMRepository> imported =
-        apiScmOnboardingService.importRepositories(org.getId(), Arrays.asList(reposToImport)).getImportedRepositories();
+        apiScmOnboardingService
+            .importRepositories(org.getId(),
+                new ImportRepositoriesRequest(Arrays.asList(reposToImport), totalRepoCount, prevImportedCount))
+            .getImportedRepositories();
     assertThat(imported).containsExactlyInAnyOrder(reposToImport);
 
     // and the only apps that are present are the ones for our selected repos
@@ -409,6 +446,12 @@ public class ApiScmOnboardingServiceTest
         .collect(Collectors.toList());
     assertThat(allSourceControlApps.stream().map(Application::getPublicId))
         .containsExactlyInAnyOrder("repo1__org");
+
+    // and the telemetry was sent properly indicating no items were imported
+    int batchPercent = reposToImport.length * 2;
+    int batchCount = reposToImport.length;
+    int totalPercent = (int)((prevImportedCount + batchCount) * 100.0 / totalRepoCount);
+    assertTelemetry(batchPercent, batchCount, totalPercent, reposToImport.length);
   }
 
   @Test
@@ -424,10 +467,15 @@ public class ApiScmOnboardingServiceTest
     SCMRepository[] reposToImport = new SCMRepository[]{
         new SCMRepository(SourceControlProvider.GITHUB, "http://github.com/org/repo1", false, "org", "repo1", "")
     };
+    int totalRepoCount = 50;
+    int prevImportedCount = 8;
 
     // then the repos can be imported
     List<SCMRepository> imported =
-        apiScmOnboardingService.importRepositories(org.getId(), Arrays.asList(reposToImport)).getImportedRepositories();
+        apiScmOnboardingService
+            .importRepositories(org.getId(),
+                new ImportRepositoriesRequest(Arrays.asList(reposToImport), totalRepoCount, prevImportedCount))
+            .getImportedRepositories();
     assertThat(imported).containsExactlyInAnyOrder(reposToImport);
 
     // and the only apps that are present are the ones for our selected repos
@@ -444,6 +492,68 @@ public class ApiScmOnboardingServiceTest
         .collect(Collectors.toList());
     assertThat(allSourceControlApps.stream().map(Application::getPublicId))
         .containsExactlyInAnyOrder("repo1__org");
+
+    // and the telemetry was sent properly indicating no items were imported
+    int batchPercent = reposToImport.length * 2;
+    int batchCount = reposToImport.length;
+    // note that the totalPercent goes up (because we return the repo that we attempted to import but
+    // which was not changed so that the UI can remove it) but updatedApps is 0 (because no actual
+    // DB changes were made)
+    int totalPercent = (int)((prevImportedCount + batchCount) * 100.0 / totalRepoCount);
+    int updatedApps = 0;
+    assertTelemetry(batchPercent, batchCount, totalPercent, updatedApps);
+  }
+
+  @Test(expected = BadRequestException.class)
+  public void testImportRepos_nullScmRepos() {
+    // when import with null scm repos, it throws an exception
+    apiScmOnboardingService.importRepositories(org.getId(), new ImportRepositoriesRequest());
+  }
+
+  @Test
+  public void testImportRepos_invalidBatchParams_zeroTotalRepoCount() {
+    // given invalid totalRepoCount
+    int totalRepoCount = 0;
+
+    // given arbitrary prevImportedCount
+    int prevImportedCount = 5;
+
+    // given SCM imports are enabled
+    automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
+
+    // given a list of repos to import
+    SCMRepository[] reposToImport = new SCMRepository[]{
+        new SCMRepository(SourceControlProvider.GITHUB, "http://github.com/org/repo1", false, "org", "repo1", "")
+        };
+
+    // and we call import
+    apiScmOnboardingService
+        .importRepositories(org.getId(),
+            new ImportRepositoriesRequest(Arrays.asList(reposToImport), totalRepoCount, prevImportedCount))
+        .getImportedRepositories();
+
+    // and the telemetry was sent properly
+    int batchCount = reposToImport.length;
+
+    final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock, times(2)).send(telemetryDataArgumentCaptor.capture());
+    final List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getAllValues();
+    TelemetryData telemetryData = telemetryDataList.stream()
+        .filter(td -> td.getPurpose().equals(TelemetryPurpose.SOURCE_CONTROL_ONBOARDING))
+        .findFirst()
+        .get();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SOURCE_CONTROL_ONBOARDING);
+    assertThat(telemetryData.getTimestamp())
+        .isBetween(System.currentTimeMillis() - 10_000, System.currentTimeMillis());
+
+    // no onboarding_batch_percent or onboarding_total_percent
+    final Map<String, Object> expectedAttributes = new HashMap<>();
+    expectedAttributes.put("onboarding_batch_count", batchCount);
+    assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
+
+    reset(telemetrySenderMock);
   }
 
   @Test
@@ -462,5 +572,25 @@ public class ApiScmOnboardingServiceTest
     // expect provider to be case insensitive
     assertThat(apiScmOnboardingService.validateScmHostUrl("invalid", "http://example.com/").errorMessages)
         .isEqualTo(singletonList("Invalid SCM provider."));
+  }
+
+  private void assertTelemetry(final int batchPercent, final int batchCount, final int totalPercent, int updateCount) {
+    final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock, times(1 + updateCount)).send(telemetryDataArgumentCaptor.capture());
+    final List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getAllValues();
+    TelemetryData telemetryData = telemetryDataList.stream()
+        .filter(td -> td.getPurpose().equals(TelemetryPurpose.SOURCE_CONTROL_ONBOARDING))
+        .findFirst()
+        .get();
+    final Map<String, Object> expectedAttributes = new HashMap<>();
+    expectedAttributes.put("onboarding_batch_percent", batchPercent);
+    expectedAttributes.put("onboarding_batch_count", batchCount);
+    expectedAttributes.put("onboarding_total_percent", totalPercent);
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SOURCE_CONTROL_ONBOARDING);
+    assertThat(telemetryData.getTimestamp())
+        .isBetween(System.currentTimeMillis() - 10_000, System.currentTimeMillis());
+    assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
+    reset(telemetrySenderMock);
   }
 }

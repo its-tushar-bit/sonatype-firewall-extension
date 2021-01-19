@@ -115,11 +115,17 @@ export function onRepositorySelectionChanged(repo) {
   };
 }
 
-export function importSelectedRepositories(orgId, selectedRepositories) {
+export function importSelectedRepositories(orgId, totalRepoCount, prevImportedCount, selectedRepositories) {
   return function(dispatch) {
     dispatch(importSelectedRepositoriesRequested());
 
-    return axios.post(getImportRepositoriesUrl(orgId), selectedRepositories)
+    let postBody = {
+      totalRepoCount: totalRepoCount,
+      prevImportedCount: prevImportedCount,
+      scmRepositories: selectedRepositories
+    };
+
+    return axios.post(getImportRepositoriesUrl(orgId), postBody)
         .then(({ data }) => { dispatch(importSelectedRepositoriesFulfilled(data)); })
         .catch(error => { dispatch(importSelectedRepositoriesFailed(error)); });
   };

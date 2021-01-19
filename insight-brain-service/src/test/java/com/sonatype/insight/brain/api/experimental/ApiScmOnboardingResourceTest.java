@@ -14,6 +14,7 @@ import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.experimental.dto.ImportRepositoriesRequest;
 import com.sonatype.insight.brain.api.experimental.dto.SCMRepositories;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.security.PasswordHandler;
@@ -131,7 +132,7 @@ public class ApiScmOnboardingResourceTest
         repoUrl, true, "org", "repo", null));
     HttpResponse response = restRequest()
         .path(UriBuilder.fromPath(IMPORT_REPO_PATH).build(org.getId()).toString())
-        .body(toAdd)
+        .body(new ImportRepositoriesRequest(toAdd, 5, 2))
         .post();
 
     // then the response is OK
@@ -152,7 +153,7 @@ public class ApiScmOnboardingResourceTest
         repoUrl, true, "org", "repo", null));
     HttpResponse response = restRequest()
         .path(UriBuilder.fromPath(IMPORT_REPO_PATH).build("missing-org-id").toString())
-        .body(toAdd)
+        .body(new ImportRepositoriesRequest(toAdd, 5, 2))
         .post();
 
     // then the response is NOT_FOUND

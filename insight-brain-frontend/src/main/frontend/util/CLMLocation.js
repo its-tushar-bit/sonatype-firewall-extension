@@ -131,9 +131,8 @@ export function getScmDefaultHostUrl(organizationId, provider) {
   return uriTemplate`/api/experimental/onboarding/defaultHostUrl?orgId=${organizationId}&provider=${provider}`;
 }
 
-export function getImportRepositoriesUrl(organizationId, totalRepoCount, prevImportedCount) {
-  return uriTemplate`/api/experimental/onboarding/importRepositories/${organizationId}?` +
-    `totalRepoCount=${totalRepoCount}&prevImportedCount=${prevImportedCount}`;
+export function getImportRepositoriesUrl(organizationId) {
+  return uriTemplate`/api/experimental/onboarding/importRepositories/${organizationId}`;
 }
 
 export function getValidateScmConfigUrl(scmProvider, scmHostUrl) {

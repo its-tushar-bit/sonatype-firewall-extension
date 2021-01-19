@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.experimental;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -20,9 +19,9 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.experimental.dto.ImportRepositoriesRequest;
 import com.sonatype.insight.brain.api.experimental.dto.SCMRepositories;
 import com.sonatype.insight.brain.api.experimental.dto.ValidationResponse;
-import com.sonatype.nexus.scm.api.model.SCMRepository;
 
 import com.codahale.metrics.annotation.Timed;
 import com.google.common.collect.ImmutableMap;
@@ -80,9 +79,9 @@ public class ApiScmOnboardingResource
   @Produces(MediaType.APPLICATION_JSON)
   public ImportResults importRepositories(
       @PathParam("orgId") String orgId,
-      final List<SCMRepository> scmRepositories)
+      final ImportRepositoriesRequest importReposRequest)
   {
-    return apiScmOnboardingService.importRepositories(orgId, scmRepositories);
+    return apiScmOnboardingService.importRepositories(orgId, importReposRequest);
   }
 
   @GET

@@ -9,6 +9,7 @@ import java.util.Collections;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.experimental.dto.ImportRepositoriesRequest;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -92,18 +93,19 @@ public class ApiScmOnboardingServiceAuthzTest
   @Test(expected = None.class /* no exception expected */)
   public void test_importRepositories_Authorized() throws Exception {
     grantManageAutomaticSourceControlPermission();
-    apiScmOnboardingService.importRepositories(org.getId(), Collections.emptyList());
+    apiScmOnboardingService
+        .importRepositories(org.getId(), new ImportRepositoriesRequest(Collections.emptyList(), 0, 0));
   }
 
   @Test(expected = UnauthorizedException.class)
   public void test_importRepositories_Unauthorized() throws Exception {
     login();
-    apiScmOnboardingService.importRepositories(org.getId(), Collections.emptyList());
+    apiScmOnboardingService.importRepositories(org.getId(), new ImportRepositoriesRequest());
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void test_importRepositories_Unauthenticated() throws Exception {
-    apiScmOnboardingService.importRepositories(org.getId(), Collections.emptyList());
+    apiScmOnboardingService.importRepositories(org.getId(), new ImportRepositoriesRequest());
   }
 
   @Test

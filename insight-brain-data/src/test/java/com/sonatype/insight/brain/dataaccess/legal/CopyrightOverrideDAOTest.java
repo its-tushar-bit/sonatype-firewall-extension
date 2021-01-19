@@ -1,0 +1,75 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.dataaccess.legal;
+
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.JPA;
+import com.sonatype.insight.brain.model.legal.ComponentCopyright;
+import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
+import com.sonatype.insight.brain.model.legal.CopyrightOverride;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class CopyrightOverrideDAOTest
+    extends AbstractDbDAOTest
+{
+  private CopyrightOverrideDAO dao;
+
+  @Before
+  public void before() {
+    dao = new CopyrightOverrideDAO();
+  }
+
+  @Test
+  public void testCRUD() {
+    // Create
+    ComponentCopyright componentCopyright = tempEntity.newComponentCopyright(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(), "legalContentHash");
+    CopyrightOverride copyrightOverride = new CopyrightOverride("originalHash", "hash", "content",
+        ComponentLegalPartStatus.ENABLED, componentCopyright.getId());
+    dao.insert(copyrightOverride);
+    assertThat(copyrightOverride.getId()).isNotNull();
+
+    // Read
+    assertThat(dao.getById(copyrightOverride.getId())).usingRecursiveComparison().isEqualTo(copyrightOverride);
+
+    // Update
+    copyrightOverride.setContentHash(copyrightOverride.getContentHash() + "2");
+    copyrightOverride.setContent(copyrightOverride.getContent() + "2");
+    copyrightOverride.setStatus(ComponentLegalPartStatus.DISABLED);
+    ComponentCopyright componentCopyright2 = tempEntity.newComponentCopyright(
+        ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"), application.getId(), "legalContentHash2");
+    copyrightOverride.setComponentCopyrightId(componentCopyright2.getId());
+    dao.update(copyrightOverride);
+    assertThat(dao.getById(copyrightOverride.getId())).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(copyrightOverride);
+
+    // Delete
+    dao.delete(copyrightOverride);
+    assertThat(dao.getById(copyrightOverride.getId())).isNull();
+  }
+
+  @Test
+  public void testGetByComponentCopyrightId() {
+    ComponentCopyright componentCopyright = tempEntity.newComponentCopyright(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(), "legalContentHash");
+    ComponentCopyright otherComponentCopyright = tempEntity.newComponentCopyright(
+        ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"), organization.getId(), "legalContentHash2");
+    CopyrightOverride copyrightOverride1 = tempEntity.newCopyrightOverride("originalHash1", "hash1", "content1",
+        ComponentLegalPartStatus.ENABLED, componentCopyright.getId());
+    CopyrightOverride copyrightOverride2 = tempEntity.newCopyrightOverride("originalHash2", "hash2", "content2",
+        ComponentLegalPartStatus.ENABLED, componentCopyright.getId());
+    tempEntity.newCopyrightOverride("originalHash3", "hash3", "content3", ComponentLegalPartStatus.ENABLED,
+        otherComponentCopyright.getId());
+
+    assertThat(dao.getByComponentCopyrightId(componentCopyright.getId())).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(copyrightOverride1, copyrightOverride2);
+  }
+}

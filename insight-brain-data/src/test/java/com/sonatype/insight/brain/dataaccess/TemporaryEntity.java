@@ -54,6 +54,12 @@ import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.dataaccess.legal.ComponentCopyrightDAO;
+import com.sonatype.insight.brain.dataaccess.legal.ComponentLegalFileDAO;
+import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationAttributionDAO;
+import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
+import com.sonatype.insight.brain.dataaccess.legal.CopyrightOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.legal.LegalFileOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
@@ -125,6 +131,15 @@ import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.legal.ComponentCopyright;
+import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
+import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
+import com.sonatype.insight.brain.model.legal.ComponentObligation;
+import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
+import com.sonatype.insight.brain.model.legal.CopyrightOverride;
+import com.sonatype.insight.brain.model.legal.LegalFileOverride;
+import com.sonatype.insight.brain.model.legal.LegalFileType;
+import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -347,6 +362,19 @@ public class TemporaryEntity
   private final AggregateFileDAO aggregateFileDAO = new AggregateFileDAO();
 
   private final ApplicationComponentLicenseDAO applicationComponentLicenseDAO = new ApplicationComponentLicenseDAO();
+
+  private final ComponentCopyrightDAO componentCopyrightDAO = new ComponentCopyrightDAO();
+
+  private final CopyrightOverrideDAO copyrightOverrideDAO = new CopyrightOverrideDAO();
+
+  private final ComponentLegalFileDAO componentLegalFileDAO = new ComponentLegalFileDAO();
+
+  private final LegalFileOverrideDAO legalFileOverrideDAO = new LegalFileOverrideDAO();
+
+  private final ComponentObligationDAO componentObligationDAO = new ComponentObligationDAO();
+
+  private final ComponentObligationAttributionDAO componentObligationAttributionDAO =
+      new ComponentObligationAttributionDAO();
 
   private MailConfiguration savedMailConfiguration;
 
@@ -2714,5 +2742,79 @@ public class TemporaryEntity
         new ApplicationComponentLicense(applicationComponentId, effectiveLicenseId);
     applicationComponentLicenseDAO.insert(applicationComponentLicense);
     return applicationComponentLicense;
+  }
+
+  public ComponentCopyright newComponentCopyright(
+      ComponentIdentifier componentIdentifier,
+      String ownerId,
+      String legalContentHash)
+  {
+    ComponentCopyright componentCopyright = new ComponentCopyright(componentIdentifier, ownerId, legalContentHash);
+    componentCopyrightDAO.insert(componentCopyright);
+    return componentCopyright;
+  }
+
+  public CopyrightOverride newCopyrightOverride(
+      String originalHash,
+      String hash,
+      String content,
+      ComponentLegalPartStatus status,
+      String componentCopyrightId)
+  {
+    CopyrightOverride copyrightOverride =
+        new CopyrightOverride(originalHash, hash, content, status, componentCopyrightId);
+    copyrightOverrideDAO.insert(copyrightOverride);
+    return copyrightOverride;
+  }
+
+  public ComponentLegalFile newComponentLegalFile(
+      ComponentIdentifier componentIdentifier,
+      String ownerId,
+      String legalContentHash)
+  {
+    ComponentLegalFile componentLegalFile = new ComponentLegalFile(componentIdentifier, ownerId, legalContentHash);
+    componentLegalFileDAO.insert(componentLegalFile);
+    return componentLegalFile;
+  }
+
+  public LegalFileOverride newLegalFileOverride(
+      LegalFileType legalFileType,
+      String originalHash,
+      String hash,
+      String content,
+      ComponentLegalPartStatus status,
+      String componentLegalFileId)
+  {
+    LegalFileOverride legalFileOverride =
+        new LegalFileOverride(legalFileType, originalHash, hash, content, status, componentLegalFileId);
+    legalFileOverrideDAO.insert(legalFileOverride);
+    return legalFileOverride;
+  }
+
+  public ComponentObligation newComponentObligation(
+      ComponentIdentifier componentIdentifier,
+      String ownerId,
+      String name,
+      String comment,
+      ObligationStatus status,
+      String legalContentHash)
+  {
+    ComponentObligation componentObligation =
+        new ComponentObligation(componentIdentifier, ownerId, name, comment, status, legalContentHash);
+    componentObligationDAO.insert(componentObligation);
+    return componentObligation;
+  }
+
+  public ComponentObligationAttribution newComponentObligationAttribution(
+      ComponentIdentifier componentIdentifier,
+      String ownerId,
+      String name,
+      String content,
+      String legalContentHash)
+  {
+    ComponentObligationAttribution componentObligationAttribution =
+        new ComponentObligationAttribution(componentIdentifier, ownerId, name, content, legalContentHash);
+    componentObligationAttributionDAO.insert(componentObligationAttribution);
+    return componentObligationAttribution;
   }
 }

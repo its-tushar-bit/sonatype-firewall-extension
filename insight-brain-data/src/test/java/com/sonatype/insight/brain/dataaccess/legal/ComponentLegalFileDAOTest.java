@@ -1,0 +1,89 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.dataaccess.legal;
+
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.JPA;
+import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
+import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
+import com.sonatype.insight.brain.model.legal.LegalFileOverride;
+import com.sonatype.insight.brain.model.legal.LegalFileType;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class ComponentLegalFileDAOTest
+    extends AbstractDbDAOTest
+{
+  private ComponentLegalFileDAO dao;
+
+  @Before
+  public void before() {
+    dao = new ComponentLegalFileDAO();
+  }
+
+  @Test
+  public void testCRUD() {
+    // Create
+    ComponentLegalFile componentLegalFile = new ComponentLegalFile(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(), "legalContentHash");
+    dao.insert(componentLegalFile);
+    assertThat(componentLegalFile.getId()).isNotNull();
+
+    // Read
+    assertThat(dao.getById(componentLegalFile.getId())).usingRecursiveComparison().isEqualTo(componentLegalFile);
+
+    // Update
+    componentLegalFile.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"));
+    componentLegalFile.setOwnerId(application.getId());
+    dao.update(componentLegalFile);
+    assertThat(dao.getById(componentLegalFile.getId())).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(componentLegalFile);
+
+    // Delete
+    dao.delete(componentLegalFile);
+    assertThat(dao.getById(componentLegalFile.getId())).isNull();
+  }
+
+  @Test
+  public void testGetByOwnerId() {
+    ComponentLegalFile componentLegalFile1 = tempEntity.newComponentLegalFile(
+        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), organization.getId(), "legalContentHash1");
+    ComponentLegalFile componentLegalFile2 = tempEntity.newComponentLegalFile(
+        ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"), organization.getId(), "legalContentHash2");
+    tempEntity.newComponentLegalFile(ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3"), application.getId(),
+        "legalContentHash3");
+
+    assertThat(dao.getByOwnerId(organization.getId())).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(componentLegalFile1, componentLegalFile2);
+  }
+
+  @Test
+  public void testDelete_CascadesToLegalFileOverrides() {
+    ComponentLegalFile componentLegalFile = tempEntity.newComponentLegalFile(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(), "legalContentHash");
+    ComponentLegalFile otherComponentLegalFile = tempEntity.newComponentLegalFile(
+        ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"), organization.getId(), "legalContentHash2");
+    LegalFileOverride legalFileOverride1 = tempEntity.newLegalFileOverride(LegalFileType.NOTICE, "originalHash1",
+        "hash1", "content1", ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
+    LegalFileOverride legalFileOverride2 = tempEntity.newLegalFileOverride(LegalFileType.NOTICE, "originalHash2",
+        "hash2", "content2", ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
+    LegalFileOverride otherLegalFileOverride = tempEntity.newLegalFileOverride(LegalFileType.NOTICE, "originalHash3",
+        "hash3", "content3", ComponentLegalPartStatus.ENABLED, otherComponentLegalFile.getId());
+
+    dao.delete(componentLegalFile);
+
+    LegalFileOverrideDAO legalFileOverrideDAO = new LegalFileOverrideDAO();
+    assertThat(dao.getById(componentLegalFile.getId())).isNull();
+    assertThat(legalFileOverrideDAO.getById(legalFileOverride1.getId())).isNull();
+    assertThat(legalFileOverrideDAO.getById(legalFileOverride2.getId())).isNull();
+    assertThat(dao.getById(otherComponentLegalFile.getId())).isNotNull();
+    assertThat(legalFileOverrideDAO.getById(otherLegalFileOverride.getId())).isNotNull();
+  }
+}

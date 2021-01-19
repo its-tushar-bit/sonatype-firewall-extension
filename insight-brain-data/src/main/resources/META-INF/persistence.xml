@@ -70,6 +70,12 @@
     <class>com.sonatype.insight.brain.model.repository.RepositoryMigration</class>
     <class>com.sonatype.insight.brain.model.AggregateFile</class>
     <class>com.sonatype.insight.brain.model.ApplicationComponentLicense</class>
+    <class>com.sonatype.insight.brain.model.legal.ComponentCopyright</class>
+    <class>com.sonatype.insight.brain.model.legal.CopyrightOverride</class>
+    <class>com.sonatype.insight.brain.model.legal.ComponentLegalFile</class>
+    <class>com.sonatype.insight.brain.model.legal.LegalFileOverride</class>
+    <class>com.sonatype.insight.brain.model.legal.ComponentObligation</class>
+    <class>com.sonatype.insight.brain.model.legal.ComponentObligationAttribution</class>
     <properties>
       <!--
       <property name="openjpa.ConnectionURL" value="jdbc:hsqldb:tutorial_database"/>

@@ -11,6 +11,10 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
+import com.sonatype.insight.brain.dataaccess.legal.ComponentCopyrightDAO;
+import com.sonatype.insight.brain.dataaccess.legal.ComponentLegalFileDAO;
+import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationAttributionDAO;
+import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
@@ -21,6 +25,10 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
+import com.sonatype.insight.brain.model.legal.ComponentCopyright;
+import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
+import com.sonatype.insight.brain.model.legal.ComponentObligation;
+import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
@@ -185,6 +193,31 @@ public class OwnerDAO
     PolicyMonitoring policyMonitoring = policyMonitoringDAO.getByOwnerId(tx, owner.getId());
     if (policyMonitoring != null) {
       policyMonitoringDAO.delete(tx, policyMonitoring);
+    }
+
+    // Cascade to component copyrights
+    ComponentCopyrightDAO componentCopyrightDAO = new ComponentCopyrightDAO();
+    for (ComponentCopyright componentCopyright : componentCopyrightDAO.getByOwnerId(tx, owner.getId())) {
+      componentCopyrightDAO.delete(tx, componentCopyright);
+    }
+
+    // Cascade to component legal files
+    ComponentLegalFileDAO componentLegalFileDAO = new ComponentLegalFileDAO();
+    for (ComponentLegalFile componentLegalFile : componentLegalFileDAO.getByOwnerId(tx, owner.getId())) {
+      componentLegalFileDAO.delete(tx, componentLegalFile);
+    }
+
+    // Cascade to component obligations
+    ComponentObligationDAO componentObligationDAO = new ComponentObligationDAO();
+    for (ComponentObligation componentObligation : componentObligationDAO.getByOwnerId(tx, owner.getId())) {
+      componentObligationDAO.delete(tx, componentObligation);
+    }
+
+    // Cascade to component obligation attributions
+    ComponentObligationAttributionDAO componentObligationAttributionDAO = new ComponentObligationAttributionDAO();
+    for (ComponentObligationAttribution componentObligationAttribution : componentObligationAttributionDAO
+        .getByOwnerId(tx, owner.getId())) {
+      componentObligationAttributionDAO.delete(tx, componentObligationAttribution);
     }
   }
 

@@ -48,14 +48,15 @@ make(
 )
 
 def pushDockerImageIfDeployBranch() {
-    if (!isDeployBranch(env, 'master')) {
-        echo 'Skipping push of docker image for non-deploy branch'
+    //If the branch isn't master or the project name isn't snapshot, skip the image build and deploy.
+    if (!isDeployBranch(env, 'master') || !currentBuild.fullProjectName.contains("snapshot")) {
+        echo 'Skipping push of docker image for non-deploy branch or release'
         return
     }
     def version = getMavenProjectVersion('.')
     dir("nexus-iq-server") {
         withSonatypeDockerRegistry() {
-            def shortImage = "iq/snapshot:${version.split("-")[0]}"
+            def shortImage = "iq/snapshot:${version.split("-")[0]}-${env.BUILD_NUMBER}"
             sh "docker build --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} --build-arg IQ_SERVER_VERSION=${version} --tag ${shortImage} ."
             def fullImage = "${sonatypeDockerRegistryId()}/${shortImage}"
             def latest = "${sonatypeDockerRegistryId()}/iq/snapshot:latest"

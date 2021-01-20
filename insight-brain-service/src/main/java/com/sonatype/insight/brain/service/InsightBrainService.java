@@ -74,6 +74,7 @@ import io.dropwizard.jackson.GuavaExtrasModule;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.util.JarLocation;
+import io.dropwizard.util.JavaVersion;
 import net.sourceforge.argparse4j.inf.Namespace;
 import org.apache.shiro.guice.web.GuiceShiroFilter;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -350,7 +351,9 @@ public class InsightBrainService
     objectMapper.registerModule(new GuavaModule());
     objectMapper.registerModule(new GuavaExtrasModule());
     objectMapper.registerModule(new JodaModule());
-    objectMapper.registerModule(new AfterburnerModule());
+    if (JavaVersion.isJava8()) {
+      objectMapper.registerModule(new AfterburnerModule());
+    }
     objectMapper.registerModule(new ParameterNamesModule());
     objectMapper.registerModule(new Jdk8Module());
     objectMapper.registerModule(new JavaTimeModule());

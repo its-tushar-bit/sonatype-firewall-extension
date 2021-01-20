@@ -136,6 +136,24 @@ export default function ScmOnboarding(props) {
         <LoadWrapper
             loading={loadingPage}
             error={error} retryHandler={load}>
+          {isSuccessMessageOpen &&
+          <NxSuccessAlert onClose={dismissSuccessMessage}>
+            {newlyImportedRepos.length} repositories were successfully imported to IQ Server as applications under
+            the {selectedOrganization.name} Organization.
+          </NxSuccessAlert>
+          }
+          {isFormInfoOpen &&
+          <NxInfoAlert onClose={dismissFormInfo}>
+            {newlyImportedRepos.length} repositories were successfully imported to IQ Server as applications under
+            the {selectedOrganization.name} Organization.<br/>
+            {failedImportCount} repositories failed to import.
+          </NxInfoAlert>
+          }
+          {isFormErrorOpen &&
+          <NxErrorAlert onClose={dismissFormError}>
+            {failedImportCount} repositories failed to import.
+          </NxErrorAlert>
+          }
           <div className="nx-page-title iq-scmonboarding-title">
             { selectedOrganization &&
             <h1 className="nx-h1">
@@ -147,24 +165,6 @@ export default function ScmOnboarding(props) {
             <div className="nx-page-title__description">
               <p className="nx-p">Use the filters and checkboxes to select repositories to import</p>
             </div>
-            {isSuccessMessageOpen &&
-            <NxSuccessAlert onClose={dismissSuccessMessage}>
-              {newlyImportedRepos.length} repositories were successfully imported to IQ Server as applications under
-              the {selectedOrganization.name} Organization.
-            </NxSuccessAlert>
-            }
-            {isFormInfoOpen &&
-            <NxInfoAlert onClose={dismissFormInfo}>
-              {newlyImportedRepos.length} repositories were successfully imported to IQ Server as applications under
-              the {selectedOrganization.name} Organization.<br/>
-              {failedImportCount} repositories failed to import.
-            </NxInfoAlert>
-            }
-            {isFormErrorOpen &&
-            <NxErrorAlert onClose={dismissFormError}>
-              {failedImportCount} repositories failed to import.
-            </NxErrorAlert>
-            }
           </div>
           <section className="nx-tile host-url-tile">
             <form className="nx-form">

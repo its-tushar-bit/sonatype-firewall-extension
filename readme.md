@@ -58,7 +58,7 @@ This project requires the following local installs:
 Be sure to configure both Maven and npm to use RSO (https://repository.sonatype.org) as the source for packages. You will need to use your own personal user credentials for RSO (instructions for how to do this are included in the following Maven RSO instructions):
 
 * [**Maven** instructions](https://docs.sonatype.com/display/INSIGHT/Development+environment#Developmentenvironment-Maven)
-* [**npm** instructions](https://docs.sonatype.com/display/CDI/Setting+up+npm+to+use+repository.sonatype.org)
+* [**npm** instructions](https://docs.sonatype.com/display/CDI/Setting+up+npm+to+use+repo.sonatype.com)
 
 ## Building ##
 

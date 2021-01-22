@@ -891,7 +891,7 @@ public class DashboardFilterTest
         eyesWatcher.eyesCheck("Save filter confirmation");
       }
       saveDialog.confirmation().shouldBe(visible).shouldHave(text("\"" + filterName + "\" is already in use."
-          + " Continuing will permanently overwrite " + filterName + ". This action cannot be undone."));
+          + " Continuing will permanently overwrite \"" + filterName + "\". This action cannot be undone."));
 
       // test cancel
       saveDialog.cancelButton().shouldHave(text("Cancel")).click();

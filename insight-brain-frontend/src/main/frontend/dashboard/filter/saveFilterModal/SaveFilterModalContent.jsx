@@ -30,6 +30,7 @@ export default function SaveFilterModalContent(props) {
 
   const {
     appliedFilterName,
+    existingDuplicateFilterName,
     saveError,
     saveFilter,
     saveFilterSaving,
@@ -69,10 +70,17 @@ export default function SaveFilterModalContent(props) {
       saveFilterWarning === WARNING_NAME_IN_USE ? 'Name in Use' :
         '';
 
+  const overwritingAs = existingDuplicateFilterName !== filterName.trimmedValue
+    ? ` as "${filterName.trimmedValue}"`
+    : '';
+
+  const nameInUseWarning = `"${existingDuplicateFilterName}" is already in use. ` +
+      `Continuing will permanently overwrite "${existingDuplicateFilterName}"${overwritingAs}. ` +
+      'This action cannot be undone.';
+
   const warningContentMap = {
     [WARNING_OVERWRITE]: `You are about to permanently overwrite ${appliedFilterName}. This action cannot be undone.`,
-    [WARNING_NAME_IN_USE]: '"' + filterName.trimmedValue + '" is already in use. Continuing will permanently ' +
-      'overwrite ' + filterName.trimmedValue + '. This action cannot be undone.'
+    [WARNING_NAME_IN_USE]: nameInUseWarning
   };
 
   const warningContent =
@@ -148,6 +156,7 @@ export default function SaveFilterModalContent(props) {
 
 SaveFilterModalContent.propTypes = {
   appliedFilterName: PropTypes.string,
+  existingDuplicateFilterName: PropTypes.string,
   saveError: PropTypes.string,
   saveFilter: PropTypes.func,
   saveFilterSaving: PropTypes.bool,

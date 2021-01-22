@@ -178,17 +178,54 @@ describe('manageFiltersReducer', function() {
       const newState = reduce(state, action);
       expect(newState.saveFilterError).toBeNull();
       expect(newState.saveFilterWarning).toBe(WARNING_OVERWRITE);
+      expect(newState.existingDuplicateFilterName).toBeNull();
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });
 
   describe('SAVE_DUPLICATE_FILTER_REQUESTED action', function() {
     it('sets saveFilterError to null, saveFilterWarning to WARNING_NAME_IN_USE', function() {
-      const state = Object.freeze({ saveFilterError: 'xyz', saveFilterWarning: null, other: otherObject });
-      const action = { type: 'SAVE_DUPLICATE_FILTER_REQUESTED' };
+      const state = Object.freeze({
+        existingDuplicateFilterName: null,
+        saveFilterError: 'xyz',
+        saveFilterWarning: null,
+        other: otherObject
+      });
+      const action = { type: 'SAVE_DUPLICATE_FILTER_REQUESTED', payload: null };
       const newState = reduce(state, action);
       expect(newState.saveFilterError).toBeNull();
       expect(newState.saveFilterWarning).toBe(WARNING_NAME_IN_USE);
+      expect(newState.existingDuplicateFilterName).toBeNull();
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+
+    it('sets saveFilterError to null, saveFilterWarning to WARNING_NAME_IN_USE when space in name', function() {
+      const state = Object.freeze({
+        existingDuplicateFilterName: null,
+        saveFilterError: 'xyz',
+        saveFilterWarning: null,
+        other: otherObject
+      });
+      const action = { type: 'SAVE_DUPLICATE_FILTER_REQUESTED', payload: 'Test 1' };
+      const newState = reduce(state, action);
+      expect(newState.saveFilterError).toBeNull();
+      expect(newState.saveFilterWarning).toBe(WARNING_NAME_IN_USE);
+      expect(newState.existingDuplicateFilterName).toEqual('Test 1');
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+
+    it('sets saveFilterError to null, saveFilterWarning to WARNING_NAME_IN_USE when case is different', function() {
+      const state = Object.freeze({
+        existingDuplicateFilterName: null,
+        saveFilterError: 'xyz',
+        saveFilterWarning: null,
+        other: otherObject
+      });
+      const action = { type: 'SAVE_DUPLICATE_FILTER_REQUESTED', payload: 'TeSt1' };
+      const newState = reduce(state, action);
+      expect(newState.saveFilterError).toBeNull();
+      expect(newState.saveFilterWarning).toBe(WARNING_NAME_IN_USE);
+      expect(newState.existingDuplicateFilterName).toEqual('TeSt1');
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });
@@ -200,6 +237,7 @@ describe('manageFiltersReducer', function() {
       const newState = reduce(state, action);
       expect(newState.saveFilterError).toBeNull();
       expect(newState.saveFilterWarning).toBeNull();
+      expect(newState.existingDuplicateFilterName).toBeNull();
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });
@@ -225,6 +263,7 @@ describe('manageFiltersReducer', function() {
       expect(newState.saveFilterSuccess).toBe(true);
       expect(newState.showDirtyAsterisk).toBe(false);
       expect(newState.saveFilterWarning).toBeNull();
+      expect(newState.existingDuplicateFilterName).toBeNull();
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });

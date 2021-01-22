@@ -150,7 +150,29 @@ describe('manageFilterActions', function() {
 
           expect(actions.length).toBe(1);
           expect(actions[0].type).toBe('SAVE_DUPLICATE_FILTER_REQUESTED');
-          expect(actions[0].payload).toBeUndefined();
+          expect(actions[0].payload).toEqual('bar');
+        });
+
+    it('dispatches SAVE_DUPLICATE_FILTER_REQUESTED if name is duplicate ignoring space',
+        function() {
+          store.dispatch(saveFilter({name: 'b ar', isOverwriting: false}));
+
+          const actions = store.getActions();
+
+          expect(actions.length).toBe(1);
+          expect(actions[0].type).toBe('SAVE_DUPLICATE_FILTER_REQUESTED');
+          expect(actions[0].payload).toEqual('bar');
+        });
+
+    it('dispatches SAVE_DUPLICATE_FILTER_REQUESTED if name is duplicate ignoring case',
+        function() {
+          store.dispatch(saveFilter({name: 'bAr', isOverwriting: false}));
+
+          const actions = store.getActions();
+
+          expect(actions.length).toBe(1);
+          expect(actions[0].type).toBe('SAVE_DUPLICATE_FILTER_REQUESTED');
+          expect(actions[0].payload).toEqual('bar');
         });
 
     it('PUTs the filter to the server and then dispatches SAVE_FILTERS_FULFILLED and fetches the saved filters',

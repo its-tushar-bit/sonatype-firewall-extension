@@ -42,6 +42,7 @@ const initState = {
   saveFilterSuccess: false,
   appliedFilter: null,
   appliedFilterName: null,
+  existingDuplicateFilterName: null,
   showDirtyAsterisk: false,
   filtersDropdownOpen: false,
   filterToDelete: null,
@@ -112,6 +113,7 @@ function saveFilterFulfilled(payload, state) {
     ...state,
     savedFilters: append(payload, state.savedFilters),
     appliedFilterName: payload.name,
+    existingDuplicateFilterName: null,
     saveFilterSuccess: true,
     showDirtyAsterisk: false,
     saveFilterWarning: null
@@ -130,6 +132,7 @@ function saveFilterFailed(payload, state) {
 function saveFilterOverwriteRequested(payload, state) {
   return {
     ...state,
+    existingDuplicateFilterName: null,
     saveFilterError: null,
     saveFilterWarning: WARNING_OVERWRITE
   };
@@ -138,6 +141,7 @@ function saveFilterOverwriteRequested(payload, state) {
 function saveDuplicateFilterRequested(payload, state) {
   return {
     ...state,
+    existingDuplicateFilterName: payload,
     saveFilterError: null,
     saveFilterWarning: WARNING_NAME_IN_USE
   };
@@ -146,6 +150,7 @@ function saveDuplicateFilterRequested(payload, state) {
 function saveConfirmCancelled(payload, state) {
   return {
     ...state,
+    existingDuplicateFilterName: null,
     saveFilterError: null,
     saveFilterWarning: null
   };

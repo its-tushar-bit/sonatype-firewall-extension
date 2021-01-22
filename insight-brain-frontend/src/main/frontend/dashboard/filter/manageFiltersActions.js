@@ -56,10 +56,11 @@ export function saveFilter({name, isOverwriting}) {
         return dispatch({ type: SAVE_FILTER_OVERWRITE_REQUESTED });
       }
 
-      const duplicate = savedFilters.some(filterName => name === filterName.name);
+      const normalizedName = normalize(name);
+      const existingDuplicateFilter = savedFilters.find(filterName => normalizedName === normalize(filterName.name));
 
-      if (duplicate) {
-        return dispatch({ type: SAVE_DUPLICATE_FILTER_REQUESTED });
+      if (existingDuplicateFilter) {
+        return dispatch({ type: SAVE_DUPLICATE_FILTER_REQUESTED, payload: existingDuplicateFilter.name });
       }
     }
 
@@ -79,6 +80,10 @@ export function saveFilter({name, isOverwriting}) {
           return dispatch(fetchSavedFilters());
         });
   };
+}
+
+function normalize(name) {
+  return name.toLowerCase().replace(/\s/g, '');
 }
 
 export function cancelSaveFilter() {

@@ -142,8 +142,7 @@ public class SourceControlEventDAO
   }
 
   public void deleteByPolicyEvaluationId(final TransactionContext tx, final String policyEvaluationId) {
-    List<SourceControlEvent> sourceControlEventList = getList(
-        tx, SELECT_ENTITY + "WHERE entity.policyEvaluationId=?1 OR entity.targetPolicyEvaluationId=?1",
+    List<SourceControlEvent> sourceControlEventList = getList(tx, SELECT_ENTITY + "WHERE entity.policyEvaluationId=?1",
         policyEvaluationId);
     for (SourceControlEvent sourceControlEvent : sourceControlEventList) {
       delete(tx, sourceControlEvent);

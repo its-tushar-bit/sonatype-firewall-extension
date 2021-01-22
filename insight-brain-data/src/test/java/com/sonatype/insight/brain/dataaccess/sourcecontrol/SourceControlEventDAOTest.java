@@ -356,11 +356,6 @@ public class SourceControlEventDAOTest
   }
 
   private SourceControlEvent getNewSourceControlEvent(final String applicationId) {
-    PolicyEvaluation targetPolicyEvaluation =
-        tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId1", false, false, false,
-            testStartTime,
-            "commitHash1234");
-
     PolicyEvaluation policyEvaluation =
         tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId2", false, false, false,
             testStartTime,
@@ -371,7 +366,6 @@ public class SourceControlEventDAOTest
         .setCommitHash("abcdefg")
         .setEventType(SourceControlEvent.DISCOVERED_PULL_REQUEST_EVENT)
         .setPolicyEvaluationId(policyEvaluation.getId())
-        .setTargetPolicyEvaluationId(targetPolicyEvaluation.getId())
         .setBranchName("branch")
         .setPullRequestNumber(2)
         .setScmUsername("user")

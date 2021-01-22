@@ -322,8 +322,7 @@ public class PullRequestCommentingServiceTest
     SourceControlEvent event = new SourceControlEvent()
         .setApplicationId("app1")
         .setPolicyEvaluationId("sourcePe")
-        .setCommitHash("sourceCommit")
-        .setTargetPolicyEvaluationId("basePe");
+        .setCommitHash("sourceCommit");
 
     // when : process event
     commentingService.onApplicationEvaluation(event);
@@ -570,8 +569,7 @@ public class PullRequestCommentingServiceTest
         .expectSourceCommit("sourceCommit")
         .build();
 
-    SourceControlEvent event =
-        createDiscoveredPullRequestEvent("app1", "sourcePe", "sourceCommit", 20, null);
+    SourceControlEvent event = createDiscoveredPullRequestEvent("app1", "sourceCommit", 20);
 
     // when : process event
     commentingService.onDiscoveredPullRequest(event);
@@ -606,8 +604,7 @@ public class PullRequestCommentingServiceTest
         .expectSourceCommit("sourceCommit")
         .build();
 
-    SourceControlEvent event =
-        createDiscoveredPullRequestEvent(applicationId, "sourcePe", "sourceCommit", 20, "basePe");
+    SourceControlEvent event = createDiscoveredPullRequestEvent(applicationId, "sourceCommit", 20);
 
     // when : process event
     commentingService.onDiscoveredPullRequest(event);
@@ -638,8 +635,7 @@ public class PullRequestCommentingServiceTest
         .expectSourceCommit("sourceCommit")
         .build();
 
-    SourceControlEvent event =
-        createDiscoveredPullRequestEvent(applicationId, "sourcePe", "sourceCommit", 20, "basePe");
+    SourceControlEvent event = createDiscoveredPullRequestEvent(applicationId, "sourceCommit", 20);
 
     // when : process event
     commentingService.onDiscoveredPullRequest(event);
@@ -663,8 +659,7 @@ public class PullRequestCommentingServiceTest
         .expectSourceCommit("sourceCommit")
         .build();
 
-    SourceControlEvent event =
-        createDiscoveredPullRequestEvent("app1", "sourcePe", "sourceCommit", 20, "basePe");
+    SourceControlEvent event = createDiscoveredPullRequestEvent("app1", "sourceCommit", 20);
 
     // when : process event
     commentingService.onDiscoveredPullRequest(event);
@@ -737,17 +732,13 @@ public class PullRequestCommentingServiceTest
 
   private SourceControlEvent createDiscoveredPullRequestEvent(
       String applicationId,
-      String sourcePolicyEvaluationId,
       String commitHash,
-      int pullRequestNumber,
-      String targetPolicyEvaluationId)
+      int pullRequestNumber)
   {
     return new SourceControlEvent()
         .setEventType(SourceControlEvent.DISCOVERED_PULL_REQUEST_EVENT)
         .setApplicationId(applicationId)
-        .setPolicyEvaluationId(sourcePolicyEvaluationId)
         .setCommitHash(commitHash)
-        .setTargetPolicyEvaluationId(targetPolicyEvaluationId)
         .setPullRequestNumber(pullRequestNumber);
   }
 
@@ -903,6 +894,9 @@ public class PullRequestCommentingServiceTest
       }
 
       doReturn(sourcePolicyEvaluation).when(mockPolicyEvaluationDAO).getById(eq(sourcePolicyEvaluation.getId()));
+
+      doReturn(sourcePolicyEvaluation).when(mockPolicyEvaluationDAO)
+          .getLastByApplicationAndCommitHash(applicationId, sourcePolicyEvaluation.getCommitHash());
 
       doReturn(policyViolationDiff).when(mockPolicyEvaluationDiffService)
           .createPolicyViolationDiff(basePolicyEvaluation, sourcePolicyEvaluation, MINIMUM_THREAT_LEVEL);

@@ -91,9 +91,6 @@ public class  SourceControlEvent
   @Column(name = "moderate_component_count")
   private int moderateComponentCount;
 
-  @Column(name = "target_policy_evaluation_id")
-  private String targetPolicyEvaluationId;
-
   @Column(name = "scan_id")
   private String scanId;
 
@@ -265,15 +262,6 @@ public class  SourceControlEvent
     this.criticalComponentCount = critical;
     this.severeComponentCount = severe;
     this.moderateComponentCount = moderate;
-    return this;
-  }
-
-  public String getTargetPolicyEvaluationId() {
-    return targetPolicyEvaluationId;
-  }
-
-  public SourceControlEvent setTargetPolicyEvaluationId(final String targetPolicyEvaluationId) {
-    this.targetPolicyEvaluationId = targetPolicyEvaluationId;
     return this;
   }
 

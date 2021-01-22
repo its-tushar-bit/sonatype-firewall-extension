@@ -841,7 +841,7 @@ public class ApplicationDAOTest
         tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "sourceScan", "sourceCommit");
 
     SourceControlEvent sourceControlEvent =
-        tempEntity.newSourceControlEvent(application, sourcePolicyEvaluation, null);
+        tempEntity.newSourceControlEvent(application, sourcePolicyEvaluation);
 
     SourceControlEventDAO sourceControlEventDAO = new SourceControlEventDAO();
     SourceControlEvent sourceControlEventByIdBeforeDelete = sourceControlEventDAO.getById(sourceControlEvent.getId());

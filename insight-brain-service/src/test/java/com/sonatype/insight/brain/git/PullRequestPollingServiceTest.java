@@ -12,7 +12,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -87,7 +86,7 @@ public class PullRequestPollingServiceTest
     final Date pullRequestCreateDate = new Date();
     final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 1000);
     PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
-        .forRepository("app1", "orgNspe/repoNspe", SourceControlProvider.GITHUB)
+        .forRepository("app1", "orgNspe/repoNspe", SourceControlProvider.GITHUB, "head-commit-xyz-1")
         .withPollingTime(pullRequestPollingTime)
         .withPullRequest(10, pullRequestCreateDate, "feature-branch")
         .build();
@@ -110,7 +109,7 @@ public class PullRequestPollingServiceTest
     final Date pullRequestCreateDate = new Date();
     final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 1000);
     PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
-        .forRepository("app1", "orgBb/repoBb", SourceControlProvider.GITHUB)
+        .forRepository("app1", "orgBb/repoBb", SourceControlProvider.GITHUB, "head-commit-xyz-1")
         .withPollingTime(pullRequestPollingTime)
         .withPullRequest(10, pullRequestCreateDate, "master")
         .withSourcePolicyEvaluation("app1", "spe1")
@@ -134,7 +133,7 @@ public class PullRequestPollingServiceTest
     final Date pullRequestCreateDate = new Date();
     final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 1000);
     PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
-        .forRepository("app1", "orgOk/repoOk", SourceControlProvider.GITHUB)
+        .forRepository("app1", "orgOk/repoOk", SourceControlProvider.GITHUB, "head-commit-xyz-1")
         .withPollingTime(pullRequestPollingTime)
         .withPullRequest(10, pullRequestCreateDate, "feature-branch")
         .withSourcePolicyEvaluation("app1", "spe1")
@@ -147,7 +146,7 @@ public class PullRequestPollingServiceTest
     verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
         debug("Fetched 1 pull request(s) for org 'orgOk' since " + pullRequestPollingTime),
-        info("Sent pull request discovered event for application 'app1' with PR# '10' and policy evaluation 'spe1'"),
+        info("Sent pull request discovered event for application 'app1' with PR# '10' and commit 'head-commit-xyz-1'"),
         debug("Pull request polling time updated for 'orgOk/repoOk'")
     );
   }
@@ -158,7 +157,7 @@ public class PullRequestPollingServiceTest
     final Date pullRequestCreateDate = new Date();
     final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 1000);
     PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
-        .forRepository("app1", "orgInt/repoInt", SourceControlProvider.GITHUB)
+        .forRepository("app1", "orgInt/repoInt", SourceControlProvider.GITHUB, "head-commit-xyz-1")
         .withPollingTime(pullRequestPollingTime)
         .withPullRequest(10, pullRequestCreateDate, "feature-branch")
         .withSourcePolicyEvaluation("app1", "spe1")
@@ -173,7 +172,7 @@ public class PullRequestPollingServiceTest
     verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
         debug("Fetched 1 pull request(s) for org 'orgInt' since " + pullRequestPollingTime),
-        info("Sent pull request discovered event for application 'app1' with PR# '10' and policy evaluation 'spe1'"),
+        info("Sent pull request discovered event for application 'app1' with PR# '10' and commit 'head-commit-xyz-1'"),
         debug("Pull request polling time updated for 'orgInt/repoInt'")
     );
   }
@@ -183,7 +182,7 @@ public class PullRequestPollingServiceTest
     // given:
     String repositoryUrl = "https://bitbucket.org/orgBbcns/repoBbcns";
     PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
-        .forRepository(repositoryUrl, "app1", "orgBbcns/repoBbcns", SourceControlProvider.BITBUCKET)
+        .forRepository(repositoryUrl, "app1", "orgBbcns/repoBbcns", SourceControlProvider.BITBUCKET, "commit-123")
         .build();
 
     // when: fetch and send
@@ -202,7 +201,7 @@ public class PullRequestPollingServiceTest
     final Date pullRequestCreateDate = new Date();
     final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 1000);
     PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
-        .forRepository("app1", "orgNp/repoNp", SourceControlProvider.GITHUB)
+        .forRepository("app1", "orgNp/repoNp", SourceControlProvider.GITHUB, "head-commit-xyz-1")
         .withPollingTime(pullRequestPollingTime)
         .withPullRequest(10, pullRequestCreateDate, "feature-branch")
         .withSourcePolicyEvaluation("app1", "spe1")
@@ -226,7 +225,7 @@ public class PullRequestPollingServiceTest
     // given:
     Date pullRequestCreateDate = new Date(System.currentTimeMillis() - 1000);
     PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
-        .forRepository("app1", "orgErr/repoErr", SourceControlProvider.GITHUB)
+        .forRepository("app1", "orgErr/repoErr", SourceControlProvider.GITHUB, "head-commit-xyz-1")
         .withPollingTime(new Date())
         .withId("sourceControl1")
         .withPullRequest(10, pullRequestCreateDate, "feature-branch")
@@ -255,7 +254,7 @@ public class PullRequestPollingServiceTest
     // given:
     Date pullRequestCreateDate = new Date(System.currentTimeMillis() - 1000);
     PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
-        .forRepository("app1", "orgErr/repoErr", SourceControlProvider.GITLAB)
+        .forRepository("app1", "orgErr/repoErr", SourceControlProvider.GITLAB, "head-commit-xyz-1")
         .withPollingTime(new Date())
         .withId("sourceControl1")
         .withPullRequest(10, pullRequestCreateDate, "feature-branch")
@@ -288,12 +287,12 @@ public class PullRequestPollingServiceTest
     final Date repo2pullRequestPollingTime = new Date(System.currentTimeMillis() - 8000);
     PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
 
-        .forRepository("app1", "org/multi-1", SourceControlProvider.GITLAB)
+        .forRepository("app1", "org/multi-1", SourceControlProvider.GITLAB, "head-commit-xyz-1")
         .withPollingTime(repo1pullRequestPollingTime)
         .withPullRequest(10, repo1pullRequestCreateDate, "feature-branch")
         .withSourcePolicyEvaluation("app1", "spe1")
 
-        .forRepository("app2", "org/multi-2", SourceControlProvider.GITLAB)
+        .forRepository("app2", "org/multi-2", SourceControlProvider.GITLAB, "head-commit-abc-2")
         .withPollingTime(repo2pullRequestPollingTime)
         .withPullRequest(20, repo2pullRequestCreateDate, "R2-feature-branch")
         .withSourcePolicyEvaluation("app2", "spe2")
@@ -308,9 +307,9 @@ public class PullRequestPollingServiceTest
     assertThatLogMessagesEqual(
         debug("Fetched 1 pull request(s) for org 'org' repo 'multi-1' since " + repo1pullRequestPollingTime),
         debug("Fetched 1 pull request(s) for org 'org' repo 'multi-2' since " + repo2pullRequestPollingTime),
-        info("Sent pull request discovered event for application 'app1' with PR# '10' and policy evaluation 'spe1'"),
+        info("Sent pull request discovered event for application 'app1' with PR# '10' and commit 'head-commit-xyz-1'"),
         debug("Pull request polling time updated for 'org/multi-1'"),
-        info("Sent pull request discovered event for application 'app2' with PR# '20' and policy evaluation 'spe2'"),
+        info("Sent pull request discovered event for application 'app2' with PR# '20' and commit 'head-commit-abc-2'"),
         debug("Pull request polling time updated for 'org/multi-2'")
     );
   }
@@ -324,12 +323,12 @@ public class PullRequestPollingServiceTest
     final Date repo2pullRequestPollingTime = new Date(System.currentTimeMillis() - 8000);
     PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
 
-        .forRepository("app1", "githubOrg/multi-1", SourceControlProvider.GITHUB)
+        .forRepository("app1", "githubOrg/multi-1", SourceControlProvider.GITHUB, "head-commit-xyz-1")
         .withPollingTime(repo1pullRequestPollingTime)
         .withPullRequest(10, repo1pullRequestCreateDate, "feature-branch")
         .withSourcePolicyEvaluation("app1", "spe1")
 
-        .forRepository("app2", "githubOrg/multi-2", SourceControlProvider.GITHUB)
+        .forRepository("app2", "githubOrg/multi-2", SourceControlProvider.GITHUB, "head-commit-abc-2")
         .withPollingTime(repo2pullRequestPollingTime)
         .withPullRequest(20, repo2pullRequestCreateDate, "R2-feature-branch")
         .withSourcePolicyEvaluation("app2", "spe2")
@@ -343,9 +342,9 @@ public class PullRequestPollingServiceTest
     verify(sourceControlEventPublisher, times(2)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
         debug("Fetched 2 pull request(s) for org 'githubOrg' since " + repo1pullRequestPollingTime),
-        info("Sent pull request discovered event for application 'app1' with PR# '10' and policy evaluation 'spe1'"),
+        info("Sent pull request discovered event for application 'app1' with PR# '10' and commit 'head-commit-xyz-1'"),
         debug("Pull request polling time updated for 'githubOrg/multi-1'"),
-        info("Sent pull request discovered event for application 'app2' with PR# '20' and policy evaluation 'spe2'"),
+        info("Sent pull request discovered event for application 'app2' with PR# '20' and commit 'head-commit-abc-2'"),
         debug("Pull request polling time updated for 'githubOrg/multi-2'")
     );
   }
@@ -364,9 +363,6 @@ public class PullRequestPollingServiceTest
 
     @Mock
     private PolicyEvaluationDAO mockPolicyEvaluationDAO;
-
-    @Mock
-    private GitCommitHistoryService mockGitCommitHistoryService;
 
     @Mock
     private SourceControlUtils mockSourceControlUtils;
@@ -404,8 +400,6 @@ public class PullRequestPollingServiceTest
 
         doReturn(buildSourcePolicyEvaluationList(mockRepo)).when(mockPolicyEvaluationDAO)
             .getLastByCommitHashPerApplication(mockRepo.commitHash);
-        doReturn(Optional.ofNullable(mockRepo.targetPolicyEvaluation)).when(mockGitCommitHistoryService)
-            .getLatestPolicyEvaluationForApplicationBaseBranch(mockRepo.applicationId);
 
         if (null != mockRepo.gitRepositoryInfo) {
           ProjectUri projectUri = new SimpleProjectUri(mockRepo.gitRepositoryInfo.repositoryUrl);
@@ -449,8 +443,8 @@ public class PullRequestPollingServiceTest
       }
 
       return new PullRequestPollingService(mockSourceControlDAO, sourceControlEventPublisher, mockPolicyEvaluationDAO,
-          mockGitCommitHistoryService, mockSourceControlUtils, mockGitClientFactory,
-          mockPullRequestRepositoryValidator, mockSourceControlInstanceManager);
+          mockSourceControlUtils, mockGitClientFactory, mockPullRequestRepositoryValidator,
+          mockSourceControlInstanceManager);
     }
 
     private List<SourceControl> buildSourceControlList(MockRepo mockRepo) {
@@ -465,18 +459,21 @@ public class PullRequestPollingServiceTest
     TestablePullRequestPollingServiceBuilder forRepository(
         String applicationId,
         String orgAndRepoName,
-        SourceControlProvider provider)
+        SourceControlProvider provider,
+        String headCommit)
     {
-      return forRepository("https://domain.com/" + orgAndRepoName, applicationId, orgAndRepoName, provider);
+      return forRepository("https://domain.com/" + orgAndRepoName, applicationId, orgAndRepoName, provider, headCommit);
     }
 
     TestablePullRequestPollingServiceBuilder forRepository(
         String url,
         String applicationId,
         String orgAndRepoName,
-        SourceControlProvider provider)
+        SourceControlProvider provider,
+        String headCommit)
     {
       currentMockRepo = new MockRepo(orgAndRepoName);
+      currentMockRepo.commitHash = headCommit;
       mockRepoList.add(currentMockRepo);
       mockClientMap.put(orgAndRepoName, mock(PullRequestInfoProvider.class));
 
@@ -550,7 +547,7 @@ public class PullRequestPollingServiceTest
 
     String applicationId;
 
-    String commitHash = UUID.randomUUID().toString();
+    String commitHash;
 
     boolean isGitRepositoryInternal = false;
 
@@ -561,8 +558,6 @@ public class PullRequestPollingServiceTest
     GitRepositoryInfo gitRepositoryInfo;
 
     PolicyEvaluation sourcePolicyEvaluation;
-
-    PolicyEvaluation targetPolicyEvaluation;
 
     List<PullRequest> pullRequests = new ArrayList<>();
 

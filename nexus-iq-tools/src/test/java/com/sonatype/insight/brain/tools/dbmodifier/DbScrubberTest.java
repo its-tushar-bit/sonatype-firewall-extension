@@ -330,10 +330,8 @@ public class DbScrubberTest
     Application app = tempEntity.newApplicationWithParent();
     PolicyEvaluation sourcePolicyEvaluation =
         tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "sourceScan", "sourceCommit");
-    PolicyEvaluation targetPolicyEvaluation =
-        tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "targetScan", "targetCommit");
     SourceControlEvent sourceControlEvent =
-        tempEntity.newSourceControlEvent(app, sourcePolicyEvaluation, targetPolicyEvaluation);
+        tempEntity.newSourceControlEvent(app, sourcePolicyEvaluation);
 
     scrubDb();
 

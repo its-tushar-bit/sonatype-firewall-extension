@@ -746,7 +746,7 @@ public class ApiSourceControlServiceTest
         createSourceControlDtoForTesting()
     );
     assertThat(persistedSourceControlDTO).isNotNull();
-    tempEntity.newSourceControlEvent(app, new PolicyEvaluation(), null);
+    tempEntity.newSourceControlEvent(app, new PolicyEvaluation());
 
     //when : repo url is updated
     persistedSourceControlDTO.repositoryUrl = "http://www.github.com/myOrg/myApp2";
@@ -772,7 +772,7 @@ public class ApiSourceControlServiceTest
         createSourceControlDtoForTesting()
     );
     assertThat(persistedSourceControlDTO).isNotNull();
-    tempEntity.newSourceControlEvent(app, new PolicyEvaluation(), null);
+    tempEntity.newSourceControlEvent(app, new PolicyEvaluation());
 
     //when : update with constant repo url
     persistedSourceControlDTO.enablePullRequests = true;

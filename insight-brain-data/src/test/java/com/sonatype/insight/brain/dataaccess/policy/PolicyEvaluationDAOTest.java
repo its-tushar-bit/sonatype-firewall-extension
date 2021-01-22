@@ -588,7 +588,7 @@ public class PolicyEvaluationDAOTest
         tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "sourceScan", "sourceCommit");
 
     SourceControlEvent sourceControlEvent =
-        tempEntity.newSourceControlEvent(application, sourcePolicyEvaluation, null);
+        tempEntity.newSourceControlEvent(application, sourcePolicyEvaluation);
 
     SourceControlEventDAO sourceControlEventDAO = new SourceControlEventDAO();
     SourceControlEvent sourceControlEventByIdBeforeDelete = sourceControlEventDAO.getById(sourceControlEvent.getId());
@@ -597,31 +597,6 @@ public class PolicyEvaluationDAOTest
     // when the policy evaluation is deleted
     PolicyEvaluationDAO policyEvaluationDao = new PolicyEvaluationDAO();
     policyEvaluationDao.delete(sourcePolicyEvaluation);
-
-    // then the source control event is deleted
-    SourceControlEvent sourceControlEventByIAfterDelete = sourceControlEventDAO.getById(sourceControlEvent.getId());
-    assertThat(sourceControlEventByIAfterDelete).isNull();
-  }
-
-  @Test
-  public void testDelete_cascadeToSourceControlEventForTargetPolicyEvaluation() {
-    // given a source control event with policy evaluations
-    PolicyEvaluation sourcePolicyEvaluation =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "sourceScan", "sourceCommit");
-
-    PolicyEvaluation targetPolicyEvaluation =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "targetScan", "targetCommit");
-
-    SourceControlEvent sourceControlEvent =
-        tempEntity.newSourceControlEvent(application, sourcePolicyEvaluation, targetPolicyEvaluation);
-
-    SourceControlEventDAO sourceControlEventDAO = new SourceControlEventDAO();
-    SourceControlEvent sourceControlEventByIdBeforeDelete = sourceControlEventDAO.getById(sourceControlEvent.getId());
-    assertThat(sourceControlEventByIdBeforeDelete).isNotNull();
-
-    // when the policy evaluation is deleted
-    PolicyEvaluationDAO policyEvaluationDao = new PolicyEvaluationDAO();
-    policyEvaluationDao.delete(targetPolicyEvaluation);
 
     // then the source control event is deleted
     SourceControlEvent sourceControlEventByIAfterDelete = sourceControlEventDAO.getById(sourceControlEvent.getId());

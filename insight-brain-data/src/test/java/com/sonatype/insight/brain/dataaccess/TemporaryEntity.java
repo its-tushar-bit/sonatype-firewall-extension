@@ -1715,8 +1715,7 @@ public class TemporaryEntity
 
   public SourceControlEvent newSourceControlEvent(
       final Application application,
-      final PolicyEvaluation sourcePolicyEvaluation,
-      final PolicyEvaluation targetPolicyEvaluation)
+      final PolicyEvaluation sourcePolicyEvaluation)
   {
     SourceControlEvent sourceControlEvent = new SourceControlEvent();
     sourceControlEvent
@@ -1728,10 +1727,6 @@ public class TemporaryEntity
         .setPullRequestNumber(2)
         .setScmUsername("user")
         .setInitiator("webhook");
-
-    if (targetPolicyEvaluation != null) {
-      sourceControlEvent.setTargetPolicyEvaluationId(targetPolicyEvaluation.getId());
-    }
 
     SourceControlEventDAO sourceControlEventDAO = new SourceControlEventDAO();
     sourceControlEventDAO.insert(sourceControlEvent);

@@ -251,21 +251,18 @@ public class PullRequestCommentingService
   public void onDiscoveredPullRequest(SourceControlEvent event) {
     String applicationId = event.getApplicationId();
     GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
-    PolicyEvaluation sourceCommitPolicyEvaluation = policyEvaluationDAO.getById(event.getPolicyEvaluationId());
+    PolicyEvaluation sourceCommitPolicyEvaluation =
+        policyEvaluationDAO.getLastByApplicationAndCommitHash(applicationId, event.getCommitHash());
 
-    Optional<PolicyEvaluation> baseBranchPolicyEvaluation = Optional.empty();
+    Optional<PolicyEvaluation> baseBranchPolicyEvaluation = getLatestPolicyEvaluationReportForBaseBranch(applicationId);
 
-    if (null == event.getTargetPolicyEvaluationId()) {
+    if (!baseBranchPolicyEvaluation.isPresent()) {
       // we need to get and process the base branch commit history
       CommitInformation commitInfo = getCommitInfoFromScm(gitRepositoryInfo, event.getCommitHash());
       // the commit info contains not only the pull requests associated with the commit but also some recent commit
       // history for the base branch
       processBaseBranchCommitHistory(sourceCommitPolicyEvaluation, commitInfo.getCommits());
       baseBranchPolicyEvaluation = getLatestPolicyEvaluationReportForBaseBranch(applicationId);
-    }
-    else {
-      baseBranchPolicyEvaluation =
-          Optional.ofNullable(policyEvaluationDAO.getById(event.getTargetPolicyEvaluationId()));
     }
 
     if (baseBranchPolicyEvaluation.isPresent()) {
@@ -430,8 +427,9 @@ public class PullRequestCommentingService
   /**
    * Check if we will need to do location discovery
    */
-  private boolean isLocationDiscoveryRequired(final GitRepositoryInfo gitRepositoryInfo,
-                                              final PolicyViolationDiff<PolicyViolation> policyViolationDiff)
+  private boolean isLocationDiscoveryRequired(
+      final GitRepositoryInfo gitRepositoryInfo,
+      final PolicyViolationDiff<PolicyViolation> policyViolationDiff)
   {
     if ((insightConfig.isFeatureEnabled(Feature.PR_LINE_COMMENTING) &&
         gitRepositoryInfo.getProvider().supportsPullRequestLineCommenting()) ||

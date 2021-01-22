@@ -760,7 +760,6 @@ CREATE TABLE source_control_event (
   critical_component_count int NOT NULL DEFAULT 0,
   severe_component_count int NOT NULL DEFAULT 0,
   moderate_component_count int NOT NULL DEFAULT 0,
-  target_policy_evaluation_id varchar(50),
   scan_id varchar(50),
   stage_type_id varchar(30),
   component_id_format varchar(50),
@@ -778,8 +777,7 @@ CREATE TABLE source_control_event (
   user_agent varchar(255),
   CONSTRAINT source_control_event_pk PRIMARY KEY (source_control_event_id),
   CONSTRAINT source_control_event_application_fk FOREIGN KEY (application_id) REFERENCES application (application_id),
-  CONSTRAINT source_control_event_policy_evaluation_fk FOREIGN KEY (policy_evaluation_id) REFERENCES policy_evaluation (policy_evaluation_id),
-  CONSTRAINT source_control_event_target_policy_evaluation_fk FOREIGN KEY (target_policy_evaluation_id) REFERENCES policy_evaluation (policy_evaluation_id)
+  CONSTRAINT source_control_event_policy_evaluation_fk FOREIGN KEY (policy_evaluation_id) REFERENCES policy_evaluation (policy_evaluation_id)
 );
 CREATE INDEX source_control_event_instance_id_idx ON source_control_event(instance_id);
 CREATE INDEX source_control_event_create_time_idx ON source_control_event(create_time);

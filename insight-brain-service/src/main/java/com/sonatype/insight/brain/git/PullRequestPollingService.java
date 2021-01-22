@@ -9,7 +9,6 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -56,8 +55,6 @@ public class PullRequestPollingService
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
-  private final GitCommitHistoryService gitCommitHistoryService;
-
   private final SourceControlUtils sourceControlUtils;
 
   private final GitClientFactory gitClientFactory;
@@ -71,7 +68,6 @@ public class PullRequestPollingService
       SourceControlDAO sourceControlDAO,
       SourceControlEventPublisher sourceControlEventPublisher,
       PolicyEvaluationDAO policyEvaluationDAO,
-      GitCommitHistoryService gitCommitHistoryService,
       SourceControlUtils sourceControlUtils,
       GitClientFactory gitClientFactory,
       PullRequestRepositoryValidator pullRequestRepositoryValidator,
@@ -80,7 +76,6 @@ public class PullRequestPollingService
     this.sourceControlDAO = sourceControlDAO;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
     this.policyEvaluationDAO = policyEvaluationDAO;
-    this.gitCommitHistoryService = gitCommitHistoryService;
     this.sourceControlUtils = sourceControlUtils;
     this.gitClientFactory = gitClientFactory;
     this.pullRequestRepositoryValidator = pullRequestRepositoryValidator;
@@ -123,10 +118,9 @@ public class PullRequestPollingService
                 gitRepositoryInfo.repositoryUrl);
           }
           else {
-            if (!isPullRequestForBaseBranch(pullRequest, gitRepositoryInfo)) {
-              PolicyEvaluation targetPolicyEvaluation = getLatestPolicyEvaluationForBaseBranch(applicationId);
+            if (!isPullRequestFromBaseBranch(pullRequest, gitRepositoryInfo)) {
               createAndSendDiscoveredPullRequestEvent(applicationId, pullRequest.getNumber(), pullRequest.getHead(),
-                  sourcePolicyEvaluation, targetPolicyEvaluation);
+                  pullRequest.getHeadCommitHash());
             }
             else {
               log.debug(
@@ -141,37 +135,30 @@ public class PullRequestPollingService
     }
   }
 
-  private boolean isPullRequestForBaseBranch(PullRequest pullRequest, GitRepositoryInfo gitRepositoryInfo) {
+  /**
+   * Does the given pull request represent a merge from the configured default/base branch into some other branch?
+   * We don't support those types of PRs with respect to PR commenting
+   */
+  private boolean isPullRequestFromBaseBranch(PullRequest pullRequest, GitRepositoryInfo gitRepositoryInfo) {
     return pullRequest.getHead().equalsIgnoreCase(gitRepositoryInfo.baseBranch);
-  }
-
-  private PolicyEvaluation getLatestPolicyEvaluationForBaseBranch(String applicationId) {
-    Optional<PolicyEvaluation> policyEvaluation =
-        gitCommitHistoryService.getLatestPolicyEvaluationForApplicationBaseBranch(applicationId);
-    return policyEvaluation.orElse(null);
   }
 
   private void createAndSendDiscoveredPullRequestEvent(
       String applicationId,
       int pullRequestNumber,
       String branchName,
-      PolicyEvaluation sourcePolicyEvaluation,
-      PolicyEvaluation targetPolicyEvaluation)
+      String pullRequestHeadCommitHash)
   {
     SourceControlEvent event = new SourceControlEvent()
         .setApplicationId(applicationId)
         .setBranchName(branchName)
-        .setCommitHash(sourcePolicyEvaluation.getCommitHash())
+        .setCommitHash(pullRequestHeadCommitHash)
         .setEventType(SourceControlEvent.DISCOVERED_PULL_REQUEST_EVENT)
-        .setPolicyEvaluationId(sourcePolicyEvaluation.getId())
         .setPullRequestNumber(pullRequestNumber)
         .setInitiator(POLLING);
-    if (null != targetPolicyEvaluation) {
-      event.setTargetPolicyEvaluationId(targetPolicyEvaluation.getId());
-    }
     sourceControlEventPublisher.publishEvent(event);
-    log.info("Sent pull request discovered event for application '{}' with PR# '{}' and policy evaluation '{}'",
-        applicationId, pullRequestNumber, event.getPolicyEvaluationId());
+    log.info("Sent pull request discovered event for application '{}' with PR# '{}' and commit '{}'",
+        applicationId, pullRequestNumber, pullRequestHeadCommitHash);
   }
 
   /**

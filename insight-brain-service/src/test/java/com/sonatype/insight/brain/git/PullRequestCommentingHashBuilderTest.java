@@ -18,6 +18,7 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.clm.dto.model.policy.TriggerReference.Type;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluationTriggerType;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
@@ -52,7 +53,7 @@ public class PullRequestCommentingHashBuilderTest
 
   @Before
   public void setUp() {
-    evaluation = new PolicyEvaluation("app-id", "stage-type-id", "scan-id", "system");
+    evaluation = new PolicyEvaluation("app-id", "stage-type-id", "scan-id", "system", PolicyEvaluationTriggerType.CLI);
     evaluation.setTime(new Date(System.currentTimeMillis() - 12345));
   }
 

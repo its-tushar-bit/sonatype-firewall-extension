@@ -16,6 +16,7 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluationTriggerType;
 import com.sonatype.insight.scan.model.ClientScanType;
 
 /**
@@ -27,14 +28,15 @@ public interface PolicyEvaluateService
    * Evaluate an Application by it's public Application id, Scan id and {@link Stage}
    *
    * @param applicationPublicId public shared id
-   * @param scanId              the id of the scan
-   * @param stage               {@link Stage}
-   * @return PolicyEvaluationReceipt
+   * @param scanId the id of the scan
+   * @param stage {@link Stage}
+   * @param policyEvaluationTriggerType The trigger type for this evaluation {@link PolicyEvaluationTriggerType}
    */
   PolicyEvaluationResult evaluate(
       final String applicationPublicId,
       final String scanId,
-      final Stage stage) throws IOException;
+      final Stage stage,
+      final PolicyEvaluationTriggerType policyEvaluationTriggerType) throws IOException;
 
   /**
    * Starts the evaluation of an application, integration, type and stage. After starting will
@@ -60,20 +62,22 @@ public interface PolicyEvaluateService
    * Starts the evaluation of an {@link Application}, type and stage. The passed <code>statusId</code> is passed as
    * reference for the requester to use to check on resultsvia {@link #pollEvaluationResult(String, String)}
    *
-   * @param statusId           custom unique id, used as a reference for the evaluation done for this request
-   * @param application        {@link Application}
-   * @param clientScanType     {@link ClientScanType}
-   * @param stage              {@link Stage}
-   * @param tempScanFile       {@link File} to temporary store scanned result to
+   * @param statusId custom unique id, used as a reference for the evaluation done for this request
+   * @param application {@link Application}
+   * @param clientScanType {@link ClientScanType}
+   * @param stage {@link Stage}
+   * @param policyEvaluationTriggerType the type of trigger for this evaluation {@link PolicyEvaluationTriggerType}
+   * @param tempScanFile {@link File} to temporary store scanned result to
    * @param thirdPartyScanType string value of an {@link IntegrationType} if <code>clientScanType</code>
-   *                           is {@link ClientScanType#SONATYPE_THIRD_PARTY} or null otherwise
-   * @param userAgent          User agent from {@link HttpServletRequest}
+   *          is {@link ClientScanType#SONATYPE_THIRD_PARTY} or null otherwise
+   * @param userAgent User agent from {@link HttpServletRequest}
    */
   void evaluateWithPolling(
       final String statusId,
       final Application application,
       final ClientScanType clientScanType,
       final Stage stage,
+      final PolicyEvaluationTriggerType policyEvaluationTriggerType,
       final File tempScanFile,
       final String thirdPartyScanType,
       final String userAgent);

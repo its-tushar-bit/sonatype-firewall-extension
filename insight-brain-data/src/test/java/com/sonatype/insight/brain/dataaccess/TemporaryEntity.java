@@ -150,6 +150,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluationTriggerType;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -1280,7 +1281,8 @@ public class TemporaryEntity
   }
 
   public PolicyEvaluation newPolicyEvaluation(String applicationId, String stageTypeId, String scanId, Date time) {
-    PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId, "system");
+    PolicyEvaluation policyEvaluation =
+        new PolicyEvaluation(applicationId, stageTypeId, scanId, "system", PolicyEvaluationTriggerType.CLI);
     policyEvaluation.setTime(time);
     policyEvaluationDAO.insert(policyEvaluation);
     return policyEvaluation;
@@ -1349,14 +1351,16 @@ public class TemporaryEntity
       String scanId,
       String commitHash)
   {
-    PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId, "system");
+    PolicyEvaluation policyEvaluation =
+        new PolicyEvaluation(applicationId, stageTypeId, scanId, "system", PolicyEvaluationTriggerType.CLI);
     policyEvaluation.setCommitHash(commitHash);
     policyEvaluationDAO.insert(policyEvaluation);
     return policyEvaluation;
   }
 
   public PolicyEvaluation newPolicyEvaluation(String applicationId, String stageTypeId, String scanId) {
-    PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId, "system");
+    PolicyEvaluation policyEvaluation =
+        new PolicyEvaluation(applicationId, stageTypeId, scanId, "system", PolicyEvaluationTriggerType.CLI);
     policyEvaluationDAO.insert(policyEvaluation);
     return policyEvaluation;
   }
@@ -1368,7 +1372,8 @@ public class TemporaryEntity
       Date time,
       String commitHash)
   {
-    PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId, "system");
+    PolicyEvaluation policyEvaluation =
+        new PolicyEvaluation(applicationId, stageTypeId, scanId, "system", PolicyEvaluationTriggerType.CLI);
     policyEvaluation.setTime(time);
     policyEvaluation.setCommitHash(commitHash);
     policyEvaluationDAO.insert(policyEvaluation);
@@ -1383,7 +1388,7 @@ public class TemporaryEntity
                                               Date time)
   {
     PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId, isReevaluation,
-        isForMonitoring, "system");
+        isForMonitoring, "system", PolicyEvaluationTriggerType.CLI);
     policyEvaluation.setTime(time);
     policyEvaluationDAO.insert(policyEvaluation);
     return policyEvaluation;
@@ -1411,7 +1416,7 @@ public class TemporaryEntity
                                               String commitHash)
   {
     PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId, isReevaluation,
-        isForMonitoring, "system");
+        isForMonitoring, "system", PolicyEvaluationTriggerType.CLI);
     policyEvaluation.setCommitHash(commitHash);
     policyEvaluation.setTime(time);
     policyEvaluation.setForObsoleteScan(isForObsoleteScan);

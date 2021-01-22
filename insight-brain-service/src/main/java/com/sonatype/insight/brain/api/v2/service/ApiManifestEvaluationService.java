@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiManifestEvaluationRequestDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluationTriggerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.evaluator.DefaultPolicyEvaluateService;
@@ -85,13 +86,14 @@ public class ApiManifestEvaluationService
       log.debug("The branch name was not specified. Will use the base branch {}.", branchName);
     }
 
-    SourceControlEvent sourceControlEvent = new SourceControlEvent()
-        .setApplicationId(applicationId)
-        .setEventType(SourceControlEvent.MANIFEST_EVALUATION_EVENT)
-        .setStageTypeId(manifestEvaluationRequest.stageId)
-        .setStatusId(statusId)
-        .setBranchName(branchName)
-        .setUserAgent(userAgent);
+    SourceControlEvent sourceControlEvent = new SourceControlEvent() //
+        .setApplicationId(applicationId) //
+        .setEventType(SourceControlEvent.MANIFEST_EVALUATION_EVENT) //
+        .setStageTypeId(manifestEvaluationRequest.stageId) //
+        .setStatusId(statusId) //
+        .setBranchName(branchName) //
+        .setUserAgent(userAgent) //
+        .setPolicyEvaluationTriggerType(PolicyEvaluationTriggerType.SOURCE_CONTROL_API);
 
     sourceControlEventPublisher.publishEvent(sourceControlEvent);
 

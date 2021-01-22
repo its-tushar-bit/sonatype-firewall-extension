@@ -9,11 +9,14 @@ import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.HasComponentId;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluationTriggerType;
 import com.sonatype.insight.model.HasStringId;
 
 /**
@@ -129,6 +132,15 @@ public class  SourceControlEvent
 
   @Column(name = "user_agent")
   private String userAgent;
+
+  /**
+   * The trigger type for the policy evaluation if the event triggers a policy evaluation, null otherwise.
+   * 
+   * @since 1.105
+   */
+  @Column(name = "policy_evaluation_trigger_type")
+  @Enumerated(EnumType.STRING)
+  private PolicyEvaluationTriggerType policyEvaluationTriggerType;
 
   public SourceControlEvent() {
     eventStatus = EVENT_STATUS_NEW;
@@ -384,6 +396,15 @@ public class  SourceControlEvent
 
   public SourceControlEvent setUserAgent(final String userAgent) {
     this.userAgent = userAgent;
+    return this;
+  }
+
+  public PolicyEvaluationTriggerType getPolicyEvaluationTriggerType() {
+    return policyEvaluationTriggerType;
+  }
+
+  public SourceControlEvent setPolicyEvaluationTriggerType(PolicyEvaluationTriggerType policyEvaluationTriggerType) {
+    this.policyEvaluationTriggerType = policyEvaluationTriggerType;
     return this;
   }
 }

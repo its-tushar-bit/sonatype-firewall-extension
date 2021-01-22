@@ -9,6 +9,8 @@ import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -57,22 +59,38 @@ public class PolicyEvaluation
   @Column(name = "initiator")
   private String initiator;
 
+  /**
+   * @since 1.105
+   */
+  @Column(name = "trigger_type")
+  @Enumerated(EnumType.STRING)
+  private PolicyEvaluationTriggerType triggerType;
+
   public PolicyEvaluation() {
   }
 
-  public PolicyEvaluation(String applicationId, String stageTypeId, String scanId, String initiator) {
+  public PolicyEvaluation(
+      String applicationId,
+      String stageTypeId,
+      String scanId,
+      String initiator,
+      PolicyEvaluationTriggerType triggerType)
+  {
     this.applicationId = applicationId;
     this.stageTypeId = stageTypeId;
     this.scanId = scanId;
     this.initiator = initiator;
+    this.triggerType = triggerType;
   }
 
-  public PolicyEvaluation(String applicationId,
-                          String stageTypeId,
-                          String scanId,
-                          boolean isReevaluation,
-                          boolean isForMonitoring,
-                          String initiator)
+  public PolicyEvaluation(
+      String applicationId,
+      String stageTypeId,
+      String scanId,
+      boolean isReevaluation,
+      boolean isForMonitoring,
+      String initiator,
+      PolicyEvaluationTriggerType triggerType)
   {
     this.applicationId = applicationId;
     this.stageTypeId = stageTypeId;
@@ -80,6 +98,7 @@ public class PolicyEvaluation
     this.isReevaluation = isReevaluation;
     this.isForMonitoring = isForMonitoring;
     this.initiator = initiator;
+    this.triggerType = triggerType;
   }
 
   @Override
@@ -162,6 +181,14 @@ public class PolicyEvaluation
 
   public void setInitiator(final String initiator) {
     this.initiator = initiator;
+  }
+
+  public PolicyEvaluationTriggerType getTriggerType() {
+    return triggerType;
+  }
+
+  public void setTriggerType(PolicyEvaluationTriggerType triggerType) {
+    this.triggerType = triggerType;
   }
 
   @Override

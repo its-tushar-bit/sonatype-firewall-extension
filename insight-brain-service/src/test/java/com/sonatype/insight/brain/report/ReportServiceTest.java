@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluationTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -381,7 +382,8 @@ public class ReportServiceTest
 
   @Test
   public void testGetBomForPolicyEvaluation_NoPolicyEvaluation() {
-    PolicyEvaluation policyEvaluation = new PolicyEvaluation(app.getId(), BuildStageType.ID, "SCAN_ID", "system");
+    PolicyEvaluation policyEvaluation =
+        new PolicyEvaluation(app.getId(), BuildStageType.ID, "SCAN_ID", "system", PolicyEvaluationTriggerType.CLI);
 
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> createReportService().getBomForPolicyEvaluation(policyEvaluation));

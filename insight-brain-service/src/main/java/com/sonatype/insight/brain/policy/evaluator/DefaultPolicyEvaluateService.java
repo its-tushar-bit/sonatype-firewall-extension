@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluationTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.StageTypeService;
@@ -112,10 +113,15 @@ public class DefaultPolicyEvaluateService
   }
 
   // default access for testing
-  PolicyEvaluationResult evaluate(Application application, String scanId, Stage stage)
+  PolicyEvaluationResult evaluate(
+      Application application,
+      String scanId,
+      Stage stage,
+      PolicyEvaluationTriggerType policyEvaluationTriggerType)
       throws IOException
   {
-    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage);
+    ScanPolicyEvaluatorResults results =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, policyEvaluationTriggerType);
     PolicyEvaluationResult policyEvaluationResult = scanPolicyEvaluator.createPolicyEvaluationResult(results.evaluation,
         results.allViolations, true);
 
@@ -131,7 +137,8 @@ public class DefaultPolicyEvaluateService
   public PolicyEvaluationResult evaluate(
       @AuthzContext(Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
       String scanId,
-      Stage stage) throws IOException
+      Stage stage,
+      PolicyEvaluationTriggerType policyEvaluationTriggerType) throws IOException
   {
     log.debug("Received request to evaluate policy for app public id {}, scan id {}, stageTypeId {}",
         applicationPublicId, scanId, stage.getStageTypeId());
@@ -142,7 +149,7 @@ public class DefaultPolicyEvaluateService
       throw new NotFoundException("Cannot find scan with ID " + scanId);
     }
 
-    return evaluate(app, scanId, stage);
+    return evaluate(app, scanId, stage, policyEvaluationTriggerType);
   }
 
   /**
@@ -187,13 +194,26 @@ public class DefaultPolicyEvaluateService
     String thirdPartyScanType =
         clientScanType == ClientScanType.SONATYPE_THIRD_PARTY ? integrationType.toString() : null;
 
-    evaluateWithPolling(statusId, app, clientScanType, stage, tempScanFile, thirdPartyScanType,
-        DefaultHdsClient.getClientUserAgent(req));
+    evaluateWithPolling(statusId, app, clientScanType, stage, getPolicyEvaluationTriggerType(integrationType),
+        tempScanFile, thirdPartyScanType, DefaultHdsClient.getClientUserAgent(req));
 
     PolicyEvaluationReceipt policyEvaluationReceipt = new PolicyEvaluationReceipt();
     policyEvaluationReceipt.setStatusId(statusId);
 
     return policyEvaluationReceipt;
+  }
+
+  private PolicyEvaluationTriggerType getPolicyEvaluationTriggerType(IntegrationType integrationType) {
+    switch (integrationType) {
+      case CI:
+        return PolicyEvaluationTriggerType.CONTINUOUS_INTEGRATION;
+      case CLI:
+        return PolicyEvaluationTriggerType.CLI;
+      case RM:
+        return PolicyEvaluationTriggerType.REPOSITORY_MANAGER;
+      default:
+        throw new IllegalArgumentException("Unknown integration type " + integrationType);
+    }
   }
 
   @Override
@@ -202,6 +222,7 @@ public class DefaultPolicyEvaluateService
       Application app,
       ClientScanType clientScanType,
       Stage stage,
+      PolicyEvaluationTriggerType policyEvaluationTriggerType,
       File tempScanFile,
       String thirdPartyScanType,
       String userAgent)
@@ -215,7 +236,7 @@ public class DefaultPolicyEvaluateService
             + "The status ID of the operation is {}.",
         app.getPublicId(), clientScanType, stage.getStageTypeId(), statusId);
     AuditData.get().continueAsync(
-        new Task(app, clientScanType, statusId, stage, tempScanFile,
+        new Task(app, clientScanType, statusId, stage, policyEvaluationTriggerType, tempScanFile,
             buildThirdPartyScanTelemetryData(app.getPublicId(), stage, thirdPartyScanType, userAgent),
             persistedPolicyEvaluationPollingResult),
         executor::submit);
@@ -275,6 +296,8 @@ public class DefaultPolicyEvaluateService
 
     private final Stage stage;
 
+    private final PolicyEvaluationTriggerType policyEvaluationTriggerType;
+
     private final File tempScanFile;
 
     private final TelemetryData telemetryData;
@@ -288,6 +311,7 @@ public class DefaultPolicyEvaluateService
         final ClientScanType clientScanType,
         final String statusId,
         final Stage stage,
+        final PolicyEvaluationTriggerType policyEvaluationTriggerType,
         final File tempScanFile,
         final TelemetryData telemetryData,
         final PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult)
@@ -296,6 +320,7 @@ public class DefaultPolicyEvaluateService
       this.clientScanType = clientScanType;
       this.statusId = statusId;
       this.stage = stage;
+      this.policyEvaluationTriggerType = policyEvaluationTriggerType;
       this.tempScanFile = tempScanFile;
       this.telemetryData = telemetryData;
       this.persistedPolicyEvaluationPollingResult = persistedPolicyEvaluationPollingResult;
@@ -327,7 +352,7 @@ public class DefaultPolicyEvaluateService
             "Evaluating policy for app public id {}, scan id {}, stageTypeId {}. The status ID of the operation is {}.",
             app.getPublicId(), scanId, stage.getStageTypeId(), statusId);
 
-        PolicyEvaluationResult policyEvaluationResult = evaluate(app, scanId, stage);
+        PolicyEvaluationResult policyEvaluationResult = evaluate(app, scanId, stage, policyEvaluationTriggerType);
 
         log.debug(
             "Evaluated policy for app public id {}, scan id {}, stageTypeId {} in {} ms."

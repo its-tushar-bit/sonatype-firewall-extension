@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportHistoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportResultsDTO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluationTriggerType;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
@@ -134,7 +135,7 @@ public class ApiReportServiceV2Test
   }
 
   private void evalRequest(String appId, String scanId, Stage stage) throws IOException {
-    policyEvaluateService.evaluate(appId, scanId, stage);
+    policyEvaluateService.evaluate(appId, scanId, stage, PolicyEvaluationTriggerType.CLI);
   }
 
   private void assertPolicyEvaluationResults(ApiReportResultsDTO apiReportResultsDTO) {

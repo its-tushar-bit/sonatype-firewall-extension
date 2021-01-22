@@ -128,7 +128,7 @@ public class ManifestScanService
 
   private void evaluate(SourceControlEvent event, Application application, ScanResult scanResult) {
     policyEvaluateService.evaluateWithPolling(event.getStatusId(), application, ClientScanType.SONATYPE,
-        new Stage(event.getStageTypeId()), scanResult.getScanFile(), "api",
+        new Stage(event.getStageTypeId()), event.getPolicyEvaluationTriggerType(), scanResult.getScanFile(), "api",
         event.getUserAgent());
   }
 }

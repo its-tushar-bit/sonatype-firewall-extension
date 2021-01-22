@@ -10,6 +10,7 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluationTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.report.MockReportDownloader;
@@ -49,7 +50,8 @@ public class PolicyEvaluateServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testEvaluate_Unauthenticated() throws Exception {
-    policyEvaluateService.evaluate(app.getPublicId(), "scanId", new Stage(BuildStageType.ID));
+    policyEvaluateService.evaluate(app.getPublicId(), "scanId", new Stage(BuildStageType.ID),
+        PolicyEvaluationTriggerType.CLI);
   }
 
   @Test
@@ -59,13 +61,15 @@ public class PolicyEvaluateServiceAuthzTest
     String scanId = mockReportDownloader.mockDownloadReport("/PolicyEvaluateServiceTest/report");
     ScanHelper.createDummyScanFile(lookup(InsightWork.class), app.getId(), scanId);
 
-    policyEvaluateService.evaluate(app.getPublicId(), scanId, new Stage(BuildStageType.ID));
+    policyEvaluateService.evaluate(app.getPublicId(), scanId, new Stage(BuildStageType.ID),
+        PolicyEvaluationTriggerType.CLI);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testEvaluate_Unauthorized() throws Exception {
     login();
-    policyEvaluateService.evaluate(app.getPublicId(), "scanId", new Stage(BuildStageType.ID));
+    policyEvaluateService.evaluate(app.getPublicId(), "scanId", new Stage(BuildStageType.ID),
+        PolicyEvaluationTriggerType.CLI);
   }
 
   @Test(expected = UnauthenticatedException.class)

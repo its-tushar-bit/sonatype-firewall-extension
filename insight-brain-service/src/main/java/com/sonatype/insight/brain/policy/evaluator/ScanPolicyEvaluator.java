@@ -55,6 +55,7 @@ import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluationTriggerType;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
@@ -177,23 +178,29 @@ public class ScanPolicyEvaluator
     this.currentUser = currentUser;
   }
 
-  public ScanPolicyEvaluatorResults evaluate(final Application application, final String scanId, final Stage stage)
+  public ScanPolicyEvaluatorResults evaluate(
+      final Application application,
+      final String scanId,
+      final Stage stage,
+      PolicyEvaluationTriggerType policyEvaluationTriggerType)
       throws IOException
   {
-    return evaluate(application, scanId, stage, false /* forMonitoring */);
+    return evaluate(application, scanId, stage, policyEvaluationTriggerType, false /* forMonitoring */);
   }
 
   public ScanPolicyEvaluatorResults evaluateForMonitoring(Application application, String scanId, Stage stage)
       throws IOException
   {
-    return evaluate(application, scanId, stage, true /* forMonitoring */);
+    return evaluate(application, scanId, stage, PolicyEvaluationTriggerType.POLICY_MONITORING,
+        true /* forMonitoring */);
   }
 
-  private ScanPolicyEvaluatorResults evaluate(final Application application,
-                                              final String scanId,
-                                              final Stage stage,
-                                              boolean forMonitoring)
-      throws IOException
+  private ScanPolicyEvaluatorResults evaluate(
+      final Application application,
+      final String scanId,
+      final Stage stage,
+      PolicyEvaluationTriggerType policyEvaluationTriggerType,
+      boolean forMonitoring) throws IOException
   {
     if (!Stage.isValidStageTypeId(stage.getStageTypeId())) {
       throw new InvalidStageException(stage.getStageTypeId());
@@ -233,7 +240,8 @@ public class ScanPolicyEvaluator
       String commitHash = extractCommitHash(Report.getEntry(reportFile, Report.DATA_JSON_FILENAME));
 
       // Save the policy evaluation and violations
-      ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = processPolicyResults(application, scanId, stage, policies,
+      ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
+          processPolicyResults(application, scanId, stage, policyEvaluationTriggerType, policies,
           forMonitoring, policyResults, components, telemetryCollector, commitHash);
 
       telemetrySender.send(telemetryCollector.getTelemetryData());
@@ -313,15 +321,17 @@ public class ScanPolicyEvaluator
    * - sets or updates the grandfathered status on policy violations
    * - determines the policy violations for which notifications should be sent
    */
-  private ScanPolicyEvaluatorResults processPolicyResults(Application app,
-                                                          String scanId,
-                                                          Stage stage,
-                                                          List<Policy> policies,
-                                                          boolean forMonitoring,
-                                                          PolicyResults policyResults,
-                                                          List<Component> components,
-                                                          PolicyViolationTelemetryCollector telemetryCollector,
-                                                          String commitHash)
+  private ScanPolicyEvaluatorResults processPolicyResults(
+      Application app,
+      String scanId,
+      Stage stage,
+      PolicyEvaluationTriggerType policyEvaluationTriggerType,
+      List<Policy> policies,
+      boolean forMonitoring,
+      PolicyResults policyResults,
+      List<Component> components,
+      PolicyViolationTelemetryCollector telemetryCollector,
+      String commitHash)
   {
     String appId = app.getId();
     long start = System.currentTimeMillis();
@@ -334,7 +344,7 @@ public class ScanPolicyEvaluator
       boolean isReevaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, appId, scanId) != null;
       AuditData.get().setIsReevaluation(isReevaluation);
       PolicyEvaluation policyEvaluation = new PolicyEvaluation(appId, stage.getStageTypeId(), scanId, isReevaluation,
-          forMonitoring, currentUser.getUsernameOrSystem());
+          forMonitoring, currentUser.getUsernameOrSystem(), policyEvaluationTriggerType);
       policyEvaluation.setCommitHash(commitHash);
       PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(tx,
           appId, stage.getStageTypeId());

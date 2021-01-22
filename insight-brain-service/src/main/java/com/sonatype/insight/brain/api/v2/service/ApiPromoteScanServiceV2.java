@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluationTriggerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.DefaultPolicyEvaluateService;
 import com.sonatype.insight.brain.security.Authorize;
@@ -202,8 +203,9 @@ public class ApiPromoteScanServiceV2
           }
         }
 
+        PolicyEvaluationTriggerType policyEvaluationTriggerType = getPolicyEvaluationTriggerType(sourceScanId);
         policyEvaluateService.evaluateWithPolling(statusId, application, ClientScanType.SONATYPE,
-            new Stage(targetStageId), tempScanFile, "api", userAgent);
+            new Stage(targetStageId), policyEvaluationTriggerType, tempScanFile, "api", userAgent);
       }
       catch (Exception e) {
         log.error("Failed to promote scan of app {} to stage {}. The status ID of the operation is {}.", applicationId,
@@ -221,6 +223,14 @@ public class ApiPromoteScanServiceV2
 
         throw new RuntimeException(errorMessage, e);
       }
+    }
+
+    private PolicyEvaluationTriggerType getPolicyEvaluationTriggerType(String scanId) {
+      PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(applicationId, scanId);
+      if (policyEvaluation != null) {
+        return policyEvaluation.getTriggerType();
+      }
+      return PolicyEvaluationTriggerType.UNKNOWN;
     }
 
     private String getSourceScanId() {

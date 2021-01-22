@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.scan.PersistedScanTicketDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluationTriggerType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
@@ -30,6 +31,7 @@ import org.mockito.stubbing.Answer;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -115,7 +117,8 @@ public class ScanTaskStateTest
     ScanReceipt scanReciept = mock(ScanReceipt.class);
     when(uploader.upload((File) any(), any(Application.class), anyString())).thenReturn(scanReciept);
 
-    when(scanPolicyEvaluator.evaluate(any(), (String) any(), (Stage) any())).then(captureState);
+    when(scanPolicyEvaluator.evaluate(any(), (String) any(), (Stage) any(), eq(PolicyEvaluationTriggerType.WEB_UI)))
+        .then(captureState);
 
     task.run();
 

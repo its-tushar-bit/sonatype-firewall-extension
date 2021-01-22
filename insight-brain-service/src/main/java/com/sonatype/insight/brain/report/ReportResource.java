@@ -64,6 +64,7 @@ import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.DefaultComponentDetailsLoader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluationTriggerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
@@ -288,7 +289,8 @@ public class ReportResource
       throw new BadRequestException("Policy evaluation for scan " + scanId + " does not exist on the server.");
     }
 
-    scanPolicyEvaluator.evaluate(application, scanId, new Stage(policyEvaluation.getStageTypeId()));
+    scanPolicyEvaluator.evaluate(application, scanId, new Stage(policyEvaluation.getStageTypeId()),
+        PolicyEvaluationTriggerType.REEVALUATION);
 
     return Response.ok().build();
   }

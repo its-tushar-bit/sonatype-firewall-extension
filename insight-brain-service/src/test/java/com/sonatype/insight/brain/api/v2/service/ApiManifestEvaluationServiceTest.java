@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationStatusDTOV2
 import com.sonatype.insight.brain.api.v2.dto.ApiManifestEvaluationRequestDTO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluationTriggerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -60,6 +61,8 @@ public class ApiManifestEvaluationServiceTest
     assertThat(sourceControlEvent.getStageTypeId()).isEqualTo(stageId);
     assertThat(sourceControlEvent.getBranchName()).isEqualTo(branchName);
     assertThat(sourceControlEvent.getEventType()).isEqualTo(SourceControlEvent.MANIFEST_EVALUATION_EVENT);
+    assertThat(sourceControlEvent.getPolicyEvaluationTriggerType())
+        .isEqualTo(PolicyEvaluationTriggerType.SOURCE_CONTROL_API);
   }
 
   @Test

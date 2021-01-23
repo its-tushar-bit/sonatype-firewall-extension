@@ -112,8 +112,18 @@ public class PostgresServer
       try {
         dockerClient.inspectImage(image);
       }
-      catch (ImageNotFoundException e) {
-        dockerClient.pull(image);
+      catch (ImageNotFoundException ignored) {
+        for (int i = 2;; i--) {
+          try {
+            dockerClient.pull(image);
+            break;
+          }
+          catch (DockerException e) {
+            if (i <= 0) {
+              throw e;
+            }
+          }
+        }
       }
       containerId = dockerClient.createContainer(ContainerConfig.builder() //
           .image(image) //

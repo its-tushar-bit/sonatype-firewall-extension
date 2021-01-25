@@ -7,7 +7,10 @@ package com.sonatype.insight.brain.api.experimental.dto;
 
 import java.util.List;
 
+import com.sonatype.insight.brain.api.experimental.ScmResultStatus;
 import com.sonatype.nexus.scm.api.model.SCMRepository;
+
+import static com.sonatype.insight.brain.api.experimental.ScmResultStatus.SUCCESS;
 
 /**
  * DTO object encapsulating a collection of SCM repositories that are not yet configured for this IQ server,
@@ -26,6 +29,11 @@ public class SCMRepositories
    */
   public List<SCMRepository> availableRepositories;
 
+  /**
+   * This enum contains the success or error code, respectively.
+   */
+  public ScmResultStatus status;
+
   public SCMRepositories() {
   }
 
@@ -35,6 +43,11 @@ public class SCMRepositories
   {
     this.totalRepositories = totalRepositories;
     this.availableRepositories = availableRepositories;
+    this.status = SUCCESS;
+  }
+
+  public SCMRepositories(final ScmResultStatus status) {
+    this.status = status;
   }
 
   public int getTotalRepositories() {
@@ -51,5 +64,9 @@ public class SCMRepositories
 
   public void setAvailableRepositories(final List<SCMRepository> availableRepositories) {
     this.availableRepositories = availableRepositories;
+  }
+
+  public ScmResultStatus getStatus() {
+    return status;
   }
 }

@@ -15,9 +15,9 @@ import {NxSuccessAlert, NxErrorAlert, NxInfoAlert} from '@sonatype/react-shared-
 import {validateHostUrl} from './utils/validators';
 import {hasValidationErrors} from '../../util/validationUtil';
 
-const permissionsError = `It appears you do not have permission to access this page.
+const iqAuthorizationErrorMessage = `It appears you do not have permission to access this page.
         If you believe this to be incorrect please contact your administrator.`,
-    disabledError = `This feature has not been enabled.
+    scmFeatureDisabledErrorMessage = `This feature has not been enabled.
         If you believe this to be incorrect please contact your administrator.`;
 
 export default function ScmOnboarding(props) {
@@ -39,6 +39,7 @@ export default function ScmOnboarding(props) {
     loadingPage,
     isScmOnboardingFeatureEnabled,
     isScmTokenConfigured,
+    isScmTokenOverridden,
     scmProvider,
 
     // orgs
@@ -62,22 +63,29 @@ export default function ScmOnboarding(props) {
     $state,
 
     // errors
-    lastErrorMessage
+    generalError,
+    loadRepositoriesAuthError
   } = props;
 
   const scmConfigurationHref = $state.href($state.get('management.edit.organization.edit-source-control'), {
-        organizationId: preselectedOrganizationId
+        organizationId: isScmTokenOverridden ? preselectedOrganizationId : 'ROOT_ORGANIZATION_ID'
       }),
-      tokenNotConfiguredError = (
+      tokenNotConfiguredFragment = (
         <Fragment>
           The selected Organization does not have SCM configured. You can configure it{' '}
           <a href={scmConfigurationHref}>here</a>.
         </Fragment>
       ),
-      error = !isAuthorized ? permissionsError :
-        isScmOnboardingFeatureEnabled === false ? disabledError :
-          isScmTokenConfigured === false ? tokenNotConfiguredError :
-            lastErrorMessage;
+      scmAuthenticationErrorFragment = error => (
+        <Fragment>
+          {error.message}. You can update your login credentials{' '}<a href={scmConfigurationHref}>here</a>.
+        </Fragment>
+      ),
+      pageError = !isAuthorized ? iqAuthorizationErrorMessage :
+        isScmOnboardingFeatureEnabled === false ? scmFeatureDisabledErrorMessage :
+          isScmTokenConfigured === false ? tokenNotConfiguredFragment :
+            generalError,
+      resultsTableError = loadRepositoriesAuthError ? scmAuthenticationErrorFragment(loadRepositoriesAuthError) : null;
 
   function load() {
     loadPage(preselectedOrganizationId);
@@ -135,7 +143,7 @@ export default function ScmOnboarding(props) {
       {
         <LoadWrapper
             loading={loadingPage}
-            error={error} retryHandler={load}>
+            error={pageError} retryHandler={load}>
           {isSuccessMessageOpen &&
           <NxSuccessAlert onClose={dismissSuccessMessage}>
             {newlyImportedRepos.length} repositories were successfully imported to IQ Server as applications under
@@ -194,7 +202,7 @@ export default function ScmOnboarding(props) {
             </form>
           </section>
           <section className="nx-tile">
-            <LoadWrapper loading={loadingRepositories} error={error} retryHandler={loadRepositories}>
+            <LoadWrapper loading={loadingRepositories} error={resultsTableError} retryHandler={loadRepositories}>
               <ResultsTable { ...{
                 repositories,
                 loadingRepositories,
@@ -207,7 +215,7 @@ export default function ScmOnboarding(props) {
                 sortConfiguration,
                 setSorting,
                 setSortingParameters
-              }} />
+              }} />);
             </LoadWrapper>
           </section>
         </LoadWrapper>
@@ -243,6 +251,7 @@ ScmOnboarding.propTypes = {
   isScmOnboardingFeatureEnabled: PropTypes.bool,
   $state: PropTypes.object.isRequired,
   isScmTokenConfigured: PropTypes.bool.isRequired,
+  isScmTokenOverridden: PropTypes.bool,
   scmProvider: PropTypes.string,
 
   // organizations
@@ -285,5 +294,6 @@ ScmOnboarding.propTypes = {
   currentHostUrlState: PropTypes.shape(textInputPropType),
 
   // errors
-  lastErrorMessage: PropTypes.string
+  generalError: LoadWrapper.propTypes.error,
+  loadRepositoriesAuthError: LoadWrapper.propTypes.error
 };

@@ -46,9 +46,13 @@ import com.sonatype.nexus.scm.api.model.SCMRepository;
 
 import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpResponseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.api.experimental.ScmResultStatus.SCM_AUTHN_FAILURE;
+import static com.sonatype.insight.brain.api.experimental.ScmResultStatus.SCM_AUTHZ_FAILURE;
 import static com.sonatype.nexus.git.utils.repository.RepositoryUrlFinderUtils.sanitizeUrl;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -100,7 +104,7 @@ public class ApiScmOnboardingService
   }
 
   @Authorize(permission = Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION)
-  public SCMRepositories loadRepositories(final String orgId, String hostUrl) throws IOException {
+  public SCMRepositories loadRepositories(final String orgId, final String hostUrl) throws IOException {
     log.debug("loadRepositories returning data for org {} and hostUrl {}", orgId, hostUrl);
 
     if (orgId == null) {
@@ -134,9 +138,21 @@ public class ApiScmOnboardingService
     configuration.setServerUrl(serverUrl);
     GeneralSCMApiClient generalClient = gitApiClientFactory
         .getGeneralSCMApiClient(provider, configuration, username, token);
-    List<SCMRepository> allRepositories = postProcess(generalClient.listAllRepositories());
-    List<SCMRepository> availableRepositories = trimAlreadyConfigured(allRepositories);
-    return new SCMRepositories(allRepositories.size(), availableRepositories);  
+    try {
+      List<SCMRepository> allRepositories = postProcess(generalClient.listAllRepositories());
+      List<SCMRepository> availableRepositories = trimAlreadyConfigured(allRepositories);
+      return new SCMRepositories(allRepositories.size(), availableRepositories);
+    }
+    catch (HttpResponseException e) {
+      switch (e.getStatusCode()) {
+        case HttpStatus.SC_UNAUTHORIZED:
+          return new SCMRepositories(SCM_AUTHN_FAILURE);
+        case HttpStatus.SC_FORBIDDEN:
+          return new SCMRepositories(SCM_AUTHZ_FAILURE);
+        default:
+          throw e;
+      }
+    }
   }
 
   /**

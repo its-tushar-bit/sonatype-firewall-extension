@@ -25,6 +25,7 @@ import com.codeborne.selenide.Selenide;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.apache.http.HttpHeaders;
+import org.apache.http.HttpStatus;
 import org.codehaus.plexus.util.IOUtil;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -241,6 +242,48 @@ public class ScmOnboardingTest
     // and form elements are hidden
     scmOnboardingPage.hostUrl().shouldBe(hidden);
     scmOnboardingPage.resultsTable().shouldBe(hidden);
+  }
+
+  @Test
+  public void testPopulatesRepositories_scmAuthenticationFailure() throws Exception {
+    // given an SCM with authentication failure
+    setupSourceControl();
+    gitService.stubFor(get(urlPathEqualTo("/api/v3/user/repos"))
+        .willReturn(aResponse().withStatus(HttpStatus.SC_UNAUTHORIZED)));
+
+    // when the scm onboarding page is opened
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url() + "/" + org.getId());
+    loginAsAdmin();
+
+    // then an authentication error is displayed
+    scmOnboardingPage.loadError().shouldHave(text("An error occurred loading data. Authentication with github failed." +
+        " You can update your login credentials here."));
+
+    // when authentication is fixed and retry button is pressed
+    setupMockRepos();
+    scmOnboardingPage.retry().click();
+    scmOnboardingPage.retry().click(); // for some reason selenium needs extra click ?!
+
+    // page is rendered without error
+    scmOnboardingPage.resultsTable().shouldBe(visible);
+    scmOnboardingPage.loadError().shouldBe(hidden);
+  }
+
+  @Test
+  public void testPopulatesRepositories_scmAuthorizationFailure() throws Exception {
+    // given an SCM with authentication failure
+    setupSourceControl();
+    gitService.stubFor(get(urlPathEqualTo("/api/v3/user/repos"))
+        .willReturn(aResponse().withStatus(HttpStatus.SC_FORBIDDEN)));
+
+    // when the scm onboarding page is opened
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url() + "/" + org.getId());
+    loginAsAdmin();
+
+    // then an authorization error is displayed
+    scmOnboardingPage.loadError().shouldHave(text("An error occurred loading data. Permission denied by github."));
   }
 
   @Test

@@ -24,7 +24,6 @@ import {
   SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FULFILLED,
   SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_REQUESTED
 } from './scmOnboardingActions';
-import {Messages} from '../../util/CommonServices';
 import {sortItemsByFields} from '../../util/sortUtils';
 import * as textInputStateHelpers from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
 import {validateHostUrl} from './utils/validators';
@@ -34,6 +33,7 @@ const initialState = {
   configState: {
     isScmOnboardingFeatureEnabled: null,
     isScmTokenConfigured: null,
+    isScmTokenOverridden: null,
     scmProvider: ''
   },
   viewState: {
@@ -41,7 +41,8 @@ const initialState = {
     loadingRepositories: false,
     validatingCompositeSourceControl: false,
 
-    lastErrorMessage: null
+    generalError: null,
+    loadRepositoriesAuthError: null
   },
   formState: {
     organizations: [],
@@ -78,7 +79,7 @@ function loadConfigFailed(payload, state) {
     ...state,
     viewState: {
       ...state.viewState,
-      lastErrorMessage: Messages.getHttpErrorMessage(payload)
+      generalError: payload
     },
     configState: {
       ...state.configState,
@@ -87,15 +88,15 @@ function loadConfigFailed(payload, state) {
   };
 }
 
-function loadPageRequested(payload, state) {
+function loadPageRequested(payload) {
   return {
-    ...state,
+    ...initialState,
     viewState: {
-      ...state.viewState,
+      ...initialState.viewState,
       loadingPage: true
     },
     formState: {
-      ...state.formState,
+      ...initialState.formState,
       preselectedOrganizationId: payload
     }
   };
@@ -114,6 +115,8 @@ function loadPageFulfilled(payload, state) {
       isScmTokenConfigured: payload.compositeSourceControlResults === null ? false :
         !!payload.compositeSourceControlResults.token.value ||
         !!payload.compositeSourceControlResults.token.parentValue,
+      isScmTokenOverridden: payload.compositeSourceControlResults !== null &&
+        !!payload.compositeSourceControlResults.token.value,
       scmProvider: payload.compositeSourceControlResults !== null
         ? payload.compositeSourceControlResults.provider : null
     },
@@ -137,7 +140,7 @@ function loadPageFailed(payload) {
     viewState: {
       ...initialState.viewState,
       loadingPage: false,
-      lastErrorMessage: Messages.getHttpErrorMessage(payload)
+      generalError: payload
     }
   };
 }
@@ -167,7 +170,7 @@ function loadRepositoriesRequested(payload, state) {
 }
 
 function loadRepositoriesFulfilled(payload, state) {
-  return {
+  return payload.status === 'SUCCESS' ? {
     ...state,
     viewState: {
       ...state.viewState,
@@ -180,16 +183,32 @@ function loadRepositoriesFulfilled(payload, state) {
       importedRepositoryCount: 0,
       selectedRepositoryCount: 0
     }
-  };
+  } : handleLoadRepositoriesFailed({
+    loadRepositoriesAuthError: (() => {
+      switch (payload.status) {
+        case 'SCM_AUTHN_FAILURE':
+          return new Error(`Authentication with ${state.configState.scmProvider} failed`);
+        case 'SCM_AUTHZ_FAILURE':
+          return new Error(`Permission denied by ${state.configState.scmProvider}`);
+        default:
+          return new Error('Unknown Error');
+      }
+    })()
+  }, state);
 }
 
 function loadRepositoriesFailed(payload, state) {
+  return handleLoadRepositoriesFailed({generalError: payload}, state);
+}
+
+function handleLoadRepositoriesFailed({generalError, loadRepositoriesAuthError}, state) {
   return {
     ...state,
     viewState: {
       ...state.viewState,
       loadingRepositories: false,
-      lastErrorMessage: Messages.getHttpErrorMessage(payload)
+      generalError: generalError ? generalError : null,
+      loadRepositoriesAuthError: loadRepositoriesAuthError ? loadRepositoriesAuthError : null
     },
     formState: {
       ...state.formState,
@@ -235,7 +254,7 @@ function importRepositoriesFailed(payload, state) {
     ...state,
     viewState: {
       ...state.viewState,
-      lastErrorMessage: Messages.getHttpErrorMessage(payload)
+      generalError: payload
     }
   };
 }
@@ -291,7 +310,7 @@ function validateScmHostUrlFailed(payload, state) {
     viewState: {
       ...state.viewState,
       validatingCompositeSourceControl: false,
-      lastErrorMessage: Messages.getHttpErrorMessage(payload)
+      generalError: payload
     }
   };
 }

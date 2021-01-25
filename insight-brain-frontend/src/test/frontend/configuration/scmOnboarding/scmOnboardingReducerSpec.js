@@ -81,6 +81,7 @@ describe('scmOnboardingReducer', function() {
           configState: {
             isScmOnboardingFeatureEnabled: true,
             isScmTokenConfigured: true,
+            isScmTokenOverridden: true,
             scmProvider: 'github'
           },
           formState: {
@@ -117,6 +118,7 @@ describe('scmOnboardingReducer', function() {
           configState: {
             isScmOnboardingFeatureEnabled: true,
             isScmTokenConfigured: true,
+            isScmTokenOverridden: false,
             scmProvider: 'github'
           },
           formState: {
@@ -131,11 +133,11 @@ describe('scmOnboardingReducer', function() {
     });
 
     describe('FAILED', function() {
-      it('sets lastErrorMessage field to value of Error.message', function() {
+      it('sets generalError field to value of error', function() {
         const state = Object.freeze({
           viewState: {
             loadingPage: true,
-            lastErrorMessage: null
+            generalError: null
           },
           configState: {
             isScmOnboardingFeatureEnabled: null
@@ -148,7 +150,10 @@ describe('scmOnboardingReducer', function() {
           loadingPage: false,
           loadingRepositories: false,
           validatingCompositeSourceControl: false,
-          lastErrorMessage: 'Bad Gateway'
+          loadRepositoriesAuthError: null,
+          generalError: {
+            status: 502
+          }
         });
       });
     });
@@ -174,6 +179,7 @@ describe('scmOnboardingReducer', function() {
 
       const repositoriesPayload = {
         'totalRepositories': 1,
+        'status': 'SUCCESS',
         'availableRepositories': [
           {
             'project': 'project',
@@ -216,6 +222,7 @@ describe('scmOnboardingReducer', function() {
 
       const repositoriesPayload = {
         'totalRepositories': 2,
+        'status': 'SUCCESS',
         'availableRepositories': [
           {
             'namespace': 'b'
@@ -250,12 +257,12 @@ describe('scmOnboardingReducer', function() {
   });
 
   describe('SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED action', function() {
-    it('sets lastErrorMessage field to value of Error.message', function() {
+    it('sets generalError field to value of error', function() {
       // given an initial state
       const state = Object.freeze({
         viewState: {
           loadingRepositories: true,
-          lastErrorMessage: null
+          generalError: null
         },
         formState: {
           repositories: [{project: 'project', namespace: 'namespace', description: 'description'}],
@@ -265,15 +272,17 @@ describe('scmOnboardingReducer', function() {
         },
         other: otherObject
       });
+      const errorResponse = {response: {status: 502}};
 
       // when the reducer is invoked
-      const newState = reduce(state, {type: 'SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED', payload: {status: 502}});
+      const newState = reduce(state, {type: 'SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED', payload: errorResponse});
 
       // the state is updated as expected
       expect(newState).toEqual({
         viewState: {
           loadingRepositories: false,
-          lastErrorMessage: 'Bad Gateway'
+          generalError: errorResponse,
+          loadRepositoriesAuthError: null
         },
         formState: {
           repositories: null,
@@ -284,6 +293,50 @@ describe('scmOnboardingReducer', function() {
         other: otherObject
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+
+    it('sets loadRepositoriesAuthError field to value of error', function() {
+      const state = Object.freeze({
+        viewState: {
+          loadingRepositories: true
+        },
+        configState: {
+          scmProvider: 'provider'
+        }
+      });
+      const response = {
+        status: 'SCM_AUTHN_FAILURE'
+      };
+
+      const newState = reduce(state, {type: 'SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED', payload: response});
+
+      expect(newState.viewState).toEqual({
+        loadingRepositories: false,
+        loadRepositoriesAuthError: new Error('Authentication with provider failed'),
+        generalError: null
+      });
+    });
+
+    it('sets loadRepositoriesAuthError field to value of error', function() {
+      const state = Object.freeze({
+        viewState: {
+          loadingRepositories: true
+        },
+        configState: {
+          scmProvider: 'provider'
+        }
+      });
+      const response = {
+        status: 'SCM_AUTHZ_FAILURE'
+      };
+
+      const newState = reduce(state, {type: 'SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED', payload: response});
+
+      expect(newState.viewState).toEqual({
+        loadingRepositories: false,
+        loadRepositoriesAuthError: new Error('Permission denied by provider'),
+        generalError: null
+      });
     });
   });
 
@@ -455,19 +508,20 @@ describe('scmOnboardingReducer', function() {
     });
 
     describe('HTTP request fails', () => {
-      it('sets lastErrorMessage field to value of Error.message', function() {
+      it('sets generalError field to value of error', function() {
         const state = Object.freeze({
           viewState: {
-            lastErrorMessage: null
+            generalError: null
           },
           other: otherObject
         });
+        const errorResponse = {response: {status: 502}};
 
-        const newState = reduce(state, {type: 'SCM_ONBOARDING_IMPORT_REPOS_FAILED', payload: {status: 502}});
+        const newState = reduce(state, {type: 'SCM_ONBOARDING_IMPORT_REPOS_FAILED', payload: errorResponse});
 
         expect(newState).toEqual({
           viewState: {
-            lastErrorMessage: 'Bad Gateway'
+            generalError: errorResponse
           },
           other: otherObject
         });
@@ -534,24 +588,25 @@ describe('scmOnboardingReducer', function() {
     });
 
     describe('fails REST call', () => {
-      it('sets lastErrorMessage field to value of Error.message', function() {
+      it('sets generalError field to value of error', function() {
         const state = Object.freeze({
           viewState: {
             validatingCompositeSourceControl: true,
-            lastErrorMessage: null
+            generalError: null
           },
           other: otherObject
         });
+        const errorResponse = {response: {status: 404}};
 
         const newState = reduce(state, {
           type: 'SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FAILED',
-          payload: {status: 404}
+          payload: errorResponse
         });
 
         expect(newState).toEqual({
           viewState: {
             validatingCompositeSourceControl: false,
-            lastErrorMessage: 'Error 404'
+            generalError: errorResponse
           },
           other: otherObject
         });

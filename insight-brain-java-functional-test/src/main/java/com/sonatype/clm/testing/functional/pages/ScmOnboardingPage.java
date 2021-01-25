@@ -39,6 +39,10 @@ public class ScmOnboardingPage
     return child(".nx-alert--load-error");
   }
 
+  public SelenideElement retry() {
+    return child(".nx-load-error__retry");
+  }
+
   public SelenideElement resultsTable() {
     return child("#iq-scm-onboarding-repositories");
   }

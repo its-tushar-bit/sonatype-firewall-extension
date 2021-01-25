@@ -18,6 +18,7 @@ function mapStateToProps({ scmOnboarding, router }) {
 
     // compositeSourceControl data
     isScmTokenConfigured: scmOnboarding.configState.isScmTokenConfigured,
+    isScmTokenOverridden: scmOnboarding.configState.isScmTokenOverridden,
     validateScmHostUrl: scmOnboarding.viewState.validateScmHostUrl,
 
     // organizations
@@ -52,7 +53,8 @@ function mapStateToProps({ scmOnboarding, router }) {
     preselectedOrganizationId: router.currentParams.organizationId,
 
     // error state
-    lastErrorMessage: scmOnboarding.viewState.lastErrorMessage
+    generalError: scmOnboarding.viewState.generalError,
+    loadRepositoriesAuthError: scmOnboarding.viewState.loadRepositoriesAuthError
   };
 }
 

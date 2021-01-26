@@ -37,6 +37,8 @@ function OwnerSummaryController($state, $scope, $rootScope, $q, $http, $window, 
   vm.isGrandfatheringEnabled = undefined;
   vm.isGrandfatheringSupported = undefined;
   vm.getDisabledGrandfatherTooltipMessage = getDisabledGrandfatherTooltipMessage;
+  vm.getDisabledEvaluateTooltipMessage = getDisabledEvaluateTooltipMessage;
+  vm.isEvaluateApplicationAvailable = undefined;
 
   var siblings,
       stateIdField = vm.isApp ? 'applicationPublicId' : 'organizationId',
@@ -71,6 +73,7 @@ function OwnerSummaryController($state, $scope, $rootScope, $q, $http, $window, 
       siblings = results[0];
       vm.owner = results[1];
       vm.isGrandfatheringSupported = ProductFeatures.isAvailable('policy-grandfathering');
+      vm.isEvaluateApplicationAvailable = ProductFeatures.isEvaluateApplicationAvailable();
 
       if (vm.isApp) {
         vm.stages = results[3];
@@ -108,7 +111,7 @@ function OwnerSummaryController($state, $scope, $rootScope, $q, $http, $window, 
   }
 
   function evaluateApp() {
-    if (vm.hasPermissionToEvaluateApp) {
+    if (vm.hasPermissionToEvaluateApp && vm.isEvaluateApplicationAvailable) {
       EvaluateApplicationModalService.open(vm.owner);
     }
   }
@@ -178,6 +181,17 @@ function OwnerSummaryController($state, $scope, $rootScope, $q, $http, $window, 
     }
     else if (!vm.isGrandfatheringEnabled) {
       return 'Grandfathering is not enabled for this application.';
+    }
+
+    return undefined;
+  }
+
+  function getDisabledEvaluateTooltipMessage() {
+    if (!vm.hasPermissionToEvaluateApp && vm.isEvaluateApplicationAvailable) {
+      return 'Insufficient permissions to evaluate application';
+    }
+    else if (!vm.isEvaluateApplicationAvailable) {
+      return 'Evaluate application is not supported by your license.';
     }
 
     return undefined;

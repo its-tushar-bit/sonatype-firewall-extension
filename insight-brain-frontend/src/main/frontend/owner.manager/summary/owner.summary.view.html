@@ -73,8 +73,8 @@
                  id="eval-binary-link"
                  ng-click="vm.evaluateApp()"
                  class="iq-btn iq-btn--dropdown"
-                 tooltip="{{vm.hasPermissionToEvaluateApp ? undefined : 'Insufficient permissions to evaluate application'}}"
-                 ng-class="{'disabled': !vm.hasPermissionToEvaluateApp}">
+                 tooltip="{{vm.getDisabledEvaluateTooltipMessage()}}"
+                 ng-class="{'disabled': !vm.hasPermissionToEvaluateApp || !vm.isEvaluateApplicationAvailable}">
                 <i class="fa fa-upload fa-fw"></i>Evaluate Binary
               </a>
               <div ng-repeat="stage in ::vm.stages">

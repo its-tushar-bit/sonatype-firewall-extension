@@ -13,11 +13,13 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.scan.PersistedScanTicketDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.scan.PersistedScanTicket;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -49,6 +51,9 @@ public class ScanServiceTest
 
   @Inject
   private PersistedScanTicketDAO persistedScanTicketDAO;
+
+  @Inject
+  private TestProductLicenseManager productLicenseManager;
 
   @Mock
   private ScanUploader scanUploader;
@@ -170,5 +175,15 @@ public class ScanServiceTest
     scanService.getTicket(app.getPublicId(), persistedScanTicket.getId());
 
     assertThat(persistedScanTicketDAO.getById(persistedScanTicket.getId())).isNull();
+  }
+
+  @Test
+  public void testScanBinary_FailsWithoutFeature() {
+    productLicenseManager.setFeatures();
+    InputStream appBundle = getBundle("app01.zip");
+
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(Stage.ID_BUILD), false, null, null);
+    }).withMessage("Your IQ Server license does not enable this feature.");
   }
 }

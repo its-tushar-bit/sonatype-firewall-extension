@@ -50,6 +50,10 @@ productFeatureModule.service('ProductFeatures', ['$http', 'CLMLocations', functi
     return available('notifications') || available('firewall');
   }
 
+  function isEvaluateApplicationAvailable() {
+    return available('cli-integration');
+  }
+
   return {
     load: load,
     isAvailable: available,
@@ -57,6 +61,7 @@ productFeatureModule.service('ProductFeatures', ['$http', 'CLMLocations', functi
     isReportsListAvailable: reportsListAvailable,
     isEnforcementSupportedForStage: isEnforcementSupportedForStage,
     isNotificationsSupportedForStage: isNotificationsSupportedForStage,
-    isNotificationsSupportedForAnyStage: isNotificationsSupportedForAnyStage
+    isNotificationsSupportedForAnyStage: isNotificationsSupportedForAnyStage,
+    isEvaluateApplicationAvailable: isEvaluateApplicationAvailable
   };
 }]);

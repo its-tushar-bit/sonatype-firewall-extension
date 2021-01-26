@@ -28,11 +28,14 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.scan.PersistedScanTicket;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.SystemRunnable;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
@@ -58,17 +61,21 @@ class ScanService
 
   private final ThreadPoolExecutor executor;
 
+  private final ProductLicense productLicense;
+
   @Inject
   public ScanService(
       FileCleaner fileCleaner,
       Provider<ScanTask> scanTaskProvider,
       PersistedScanTicketDAO persistedScanTicketDAO,
-      ApplicationDAO applicationDAO)
+      ApplicationDAO applicationDAO,
+      ProductLicense productLicense)
   {
     this.fileCleaner = fileCleaner;
     this.scanTaskProvider = scanTaskProvider;
     this.persistedScanTicketDAO = persistedScanTicketDAO;
     this.applicationDAO = applicationDAO;
+    this.productLicense = productLicense;
     executor = new ThreadPoolExecutor(2, 2, 5L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(),
         new ThreadFactoryBuilder().setDaemon(true).setNameFormat("ScanTask-%s").build());
     executor.allowCoreThreadTimeOut(true);
@@ -89,6 +96,11 @@ class ScanService
       String scanType) throws IOException
   {
     log.debug("Request to scan binary '{}' for application public id '{}'", filename, appPublicId);
+
+    if (!productLicense.hasFeature(LicensedFeature.CLI_INTEGRATION)) {
+      log.debug("License does not support application evaluation");
+      throw new InvalidLicenseException();
+    }
 
     if (!Stage.isValidStageTypeId(stage.getStageTypeId())) {
       throw new InvalidStageException(stage.getStageTypeId());

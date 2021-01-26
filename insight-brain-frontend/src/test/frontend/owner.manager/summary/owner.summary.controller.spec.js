@@ -35,7 +35,8 @@ describe('owner.summary.controller.js', function() {
         getGrandfatheringDefer,
         mockPolicyViolationGrandfatheringService,
         mockGrandfatherModalService,
-        mockRevokeGrandfatheringModalService;
+        mockRevokeGrandfatheringModalService,
+        mockEvaluateAppModalService;
 
     beforeEach(inject(function($q, $controller, _$timeout_, _$httpBackend_, _CLMLocations_, _CLMContextLocations_,
                                StageTypeStore) {
@@ -54,6 +55,7 @@ describe('owner.summary.controller.js', function() {
       };
       mockGrandfatherModalService = jasmine.createSpyObj('mockGrandfatherModalService', ['open']);
       mockRevokeGrandfatheringModalService = jasmine.createSpyObj('mockRevokeGrandfatheringModalService', ['open']);
+      mockEvaluateAppModalService = jasmine.createSpyObj('mockEvaluateAppModalService', ['open']);
       mockPermissionService = {
         isContextAuthorized: jasmine.createSpy().and.returnValue(isContextAuthorizedDefer.promise)
       };
@@ -90,7 +92,8 @@ describe('owner.summary.controller.js', function() {
         'change.application.id.service': mockChangeApplicationIdService,
         policyViolationGrandfatheringService: mockPolicyViolationGrandfatheringService,
         RevokeGrandfatheringModalService: mockRevokeGrandfatheringModalService,
-        GrandfatherModalService: mockGrandfatherModalService
+        GrandfatherModalService: mockGrandfatherModalService,
+        'evaluate.application.modal.service': mockEvaluateAppModalService
       });
     }
     ));
@@ -323,7 +326,7 @@ describe('owner.summary.controller.js', function() {
 
       describe('grandfather()', function () {
         it('Does not open modal when grandfathering is not enabled and is not supported', function() {
-          createMocks(false, false);
+          createGrandfatheringMocks(false, false);
 
           $timeout.flush();
 
@@ -332,7 +335,7 @@ describe('owner.summary.controller.js', function() {
         });
 
         it('Does not open modal when grandfathering is not enabled and is supported', function() {
-          createMocks(false, true);
+          createGrandfatheringMocks(false, true);
 
           $timeout.flush();
 
@@ -341,7 +344,7 @@ describe('owner.summary.controller.js', function() {
         });
 
         it('Does not open modal when grandfathering is enabled and is not supported', function() {
-          createMocks(true, false);
+          createGrandfatheringMocks(true, false);
 
           $timeout.flush();
 
@@ -350,7 +353,7 @@ describe('owner.summary.controller.js', function() {
         });
 
         it('opens modal when grandfathering is enabled and supported', function() {
-          createMocks(true, true);
+          createGrandfatheringMocks(true, true);
 
           $timeout.flush();
 
@@ -361,7 +364,7 @@ describe('owner.summary.controller.js', function() {
 
       describe('getDisabledGrandfatherTooltipMessage()', function() {
         it('returns not enabled tooltip message', function() {
-          createMocks(false, true);
+          createGrandfatheringMocks(false, true);
 
           $timeout.flush();
 
@@ -369,7 +372,7 @@ describe('owner.summary.controller.js', function() {
         });
 
         it('returns not supported tooltip message', function() {
-          createMocks(true, false);
+          createGrandfatheringMocks(true, false);
 
           $timeout.flush();
 
@@ -378,7 +381,7 @@ describe('owner.summary.controller.js', function() {
         });
 
         it('returns undefined when grandfathering is enabled and supported', function() {
-          createMocks(true, true);
+          createGrandfatheringMocks(true, true);
 
           $timeout.flush();
 
@@ -386,7 +389,7 @@ describe('owner.summary.controller.js', function() {
         });
 
         it('returns not supported tooltip message when grandfathering is not enabled and not supported', function() {
-          createMocks(false, false);
+          createGrandfatheringMocks(false, false);
 
           $timeout.flush();
 
@@ -394,11 +397,59 @@ describe('owner.summary.controller.js', function() {
               'Policy Violation Grandfathering is not supported by your license');
         });
       });
+
+      describe('getDisabledEvaluateTooltipMessage()', function() {
+        it('returns not supported tooltip message', function() {
+          createEvaluateAppMocks(false, true);
+
+          $timeout.flush();
+
+          expect(vm.getDisabledEvaluateTooltipMessage()).toBe(
+              'Insufficient permissions to evaluate application');
+        });
+
+        it('returns undefined when evaluate app is licensed and supported', function() {
+          createEvaluateAppMocks(true, true);
+
+          $timeout.flush();
+
+          expect(vm.getDisabledEvaluateTooltipMessage()).toBeUndefined();
+        });
+
+        it('returns not supported tooltip message when evaluate app is not licensed and not supported', function() {
+          createEvaluateAppMocks(false, false);
+
+          $timeout.flush();
+
+          expect(vm.getDisabledEvaluateTooltipMessage()).toBe(
+              'Evaluate application is not supported by your license.');
+        });
+      });
+
+      describe('evaluateApp()', function() {
+        it('Does not open modal when evaluate app is not supported', function() {
+          createEvaluateAppMocks(false, true);
+
+          $timeout.flush();
+
+          vm.evaluateApp();
+          expect(mockEvaluateAppModalService.open).not.toHaveBeenCalled();
+        });
+
+        it('opens modal when evaluate app is supported', function() {
+          createEvaluateAppMocks(true, true);
+
+          $timeout.flush();
+
+          vm.evaluateApp();
+          expect(mockEvaluateAppModalService.open).toHaveBeenCalled();
+        });
+      });
     }
 
     describe('revokeGrandfathering()', function () {
       it('Does not open modal when grandfathering is not supported', function() {
-        createMocks(false, false);
+        createGrandfatheringMocks(false, false);
 
         if (isApp) {
           $timeout.flush();
@@ -412,7 +463,7 @@ describe('owner.summary.controller.js', function() {
       });
 
       it('opens modal when grandfathering is supported', function() {
-        createMocks(false, true);
+        createGrandfatheringMocks(false, true);
 
         if (isApp) {
           $timeout.flush();
@@ -464,7 +515,7 @@ describe('owner.summary.controller.js', function() {
       }
     }
 
-    function createMocks(isGrandfatheringEnabled, isGrandfatheringSuppored) {
+    function createGrandfatheringMocks(isGrandfatheringEnabled, isGrandfatheringSuppored) {
       mockOwnerStore.resolveGet([owner]);
       mockOwnerStore.resolveGetById(owner);
       resolveGetGrandfathering(isGrandfatheringEnabled);
@@ -473,7 +524,18 @@ describe('owner.summary.controller.js', function() {
           isGrandfatheringSuppored ? ['policy-grandfathering'] : []
       );
       resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
-      resolveApplicationWritePermission(true);
+    }
+
+    function createEvaluateAppMocks(hasEvaluateAppPermission, isEvaluateAppSupported) {
+      mockOwnerStore.resolveGet([owner]);
+      mockOwnerStore.resolveGetById(owner);
+      resolveGetGrandfathering(false);
+      resolveStageTypeStore(MockData.getDashboardStageData());
+      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(
+          isEvaluateAppSupported ? ['cli-integration'] : []
+      );
+      resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
+      resolveApplicationEvaluatePermission(hasEvaluateAppPermission);
     }
   }
 

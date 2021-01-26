@@ -927,7 +927,8 @@ public class InsightConfig
     PR_COMMENTING("prCommenting"),
     PR_LINE_COMMENTING("prLineCommenting"),
     CODE_INSIGHTS("codeInsights"),
-    SCM_ONBOARDING("scmOnboarding");
+    SCM_ONBOARDING("scmOnboarding"),
+    FIREWALL_AUTO_UNQUARANTINE("firewallAutoUnquarantine");
 
     private String flag;
 

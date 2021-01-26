@@ -43,6 +43,10 @@ public class MainHeader
     return new MainHeaderNavigationButton("#search-navigation-button");
   }
 
+  public static MainHeaderNavigationButton firewallNavigationButton() {
+    return new MainHeaderNavigationButton("#firewall-navigation-button");
+  }
+
   public static UserMenu userMenu() {
     return new UserMenu();
   }

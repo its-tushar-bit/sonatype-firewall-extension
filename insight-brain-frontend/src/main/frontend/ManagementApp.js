@@ -25,6 +25,7 @@ import AdvancedSearchContainer from './advancedSearch/AdvancedSearchContainer';
 import waiversModule from './waivers/module';
 import reportModule from './applicationReport/react/module';
 import advancedLegalModule from './advancedLegal/module';
+import FirewallContainer from './firewall/FirewallContainer';
 
 export default angular.module('managementApp',
     [
@@ -35,6 +36,7 @@ export default angular.module('managementApp',
       violationPageModule.name, waiversModule.name, reportModule.name, advancedLegalModule.name
     ])
     .component('advancedSearch', react2angular(withStoreProvider(AdvancedSearchContainer), [], ['$ngRedux', '$state']))
+    .component('firewall', react2angular(withStoreProvider(FirewallContainer), [], ['$ngRedux', '$state']))
     .config(routes);
 
 function routes($stateProvider) {
@@ -44,6 +46,13 @@ function routes($stateProvider) {
         url: '/advancedSearch',
         data: {
           title: 'Advanced Search'
+        }
+      })
+      .state('firewall', {
+        component: 'firewall',
+        url: '/firewall',
+        data: {
+          title: 'Firewall'
         }
       });
 }

@@ -3,17 +3,27 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { faTachometerAltFast, faFileAlt, faSitemap, faAnalytics, faBug, faSearch, faUserAlt }
-  from '@fortawesome/pro-regular-svg-icons';
-import { save } from '../configuration/advancedSearch/advancedSearchConfigActions';
+import {
+  faAnalytics,
+  faBug,
+  faFileAlt,
+  faFireSmoke,
+  faSearch,
+  faSitemap,
+  faTachometerAltFast,
+  faUserAlt
+} from '@fortawesome/pro-regular-svg-icons';
+import {load as loadAdvancedSearchConfig} from '../configuration/advancedSearch/advancedSearchConfigActions';
+import {loadStatus as loadFirewallStatus} from '../firewall/firewallActions';
 import template from './mainHeader.html';
+import {path} from 'ramda';
 
 /* global angular, clmServerVersion, clmBuildTimestamp */
 function MainHeaderController($rootScope, $state, $scope, ProductFeatures, PermissionService, CurrentUser,
                               systemConfigurationPropertyService, routeStateUtilService, $ngRedux) {
   var vm = this;
 
-  Object.assign(vm, { faTachometerAltFast, faFileAlt, faSitemap, faAnalytics, faBug, faSearch, faUserAlt });
+  Object.assign(vm, {faTachometerAltFast, faFileAlt, faSitemap, faAnalytics, faBug, faSearch, faUserAlt, faFireSmoke});
   vm.$state = $state;
   vm.isDashboardAvailable = ProductFeatures.isDashboardAvailable;
   vm.isReportsListAvailable = ProductFeatures.isReportsListAvailable;
@@ -28,6 +38,8 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
   vm.isWebhooksSupported = undefined;
   vm.login = login;
   vm.shouldShowLoginButton = shouldShowLoginButton;
+  vm.isFirewallSupported = false;
+  vm.isFirewallEnabled = false;
 
   function getReleaseVersion() {
     const serverVersionWithoutBuildNumber = clmServerVersion.substring(0, clmServerVersion.indexOf('-'));
@@ -64,17 +76,19 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
         vm.isSuccessMetricsEnabled = data;
       });
 
-      const unsubscribe = $ngRedux.connect(mapStateToThis, save)(vm);
+      const unsubscribe = $ngRedux.connect(mapStateToThis)(vm);
       $scope.$on('$destroy', unsubscribe);
-
-      systemConfigurationPropertyService.isAdvancedSearchEnabled().then(function(data) {
-        vm.isAdvancedSearchEnabled = data;
-      });
+      $ngRedux.dispatch(loadAdvancedSearchConfig());
+      $ngRedux.dispatch(loadFirewallStatus());
 
       ProductFeatures.load().then(function() {
         vm.isWebhooksSupported = ProductFeatures.isAvailable('webhooks-for-applications') ||
             ProductFeatures.isAvailable('webhooks-for-repositories');
+
+        vm.isFirewallSupported = ProductFeatures.isAvailable('firewall') &&
+            ProductFeatures.isAvailable('release-integrity');
       });
+
     });
   }
 
@@ -101,8 +115,8 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
 
 function mapStateToThis(state) {
   return {
-    isAdvancedSearchEnabled: state.advancedSearchConfig.serverData !== null &&
-        state.advancedSearchConfig.serverData.isEnabled
+    isAdvancedSearchEnabled: path(['advancedSearchConfig', 'serverData', 'isEnabled'], state),
+    isFirewallEnabled: path(['firewall', 'configurationState', 'isEnabled'], state)
   };
 }
 

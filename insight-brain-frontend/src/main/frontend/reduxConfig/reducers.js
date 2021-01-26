@@ -27,6 +27,7 @@ import userTokenReducer from '../mainHeader/userMenu/userToken/userTokenReducer'
 import advancedLegalReducer from '../advancedLegal/advancedLegalReducer';
 import legalDashboardReducer from '../legal/dashboard/legalDashboardReducer';
 import licenseObligationAttributionTileReducer from '../legal/licenseObligationAttributionTileReducer';
+import firewallReducer from '../firewall/firewallReducer';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -51,5 +52,6 @@ export default combineReducers({
   userToken: userTokenReducer,
   advancedLegal: advancedLegalReducer,
   legalDashboard: legalDashboardReducer,
-  licenseObligationAttributionTile: licenseObligationAttributionTileReducer
+  licenseObligationAttributionTile: licenseObligationAttributionTileReducer,
+  firewall: firewallReducer
 });

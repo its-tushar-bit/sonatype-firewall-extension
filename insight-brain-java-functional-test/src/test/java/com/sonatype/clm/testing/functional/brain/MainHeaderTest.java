@@ -10,6 +10,7 @@ import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.pages.AdvancedSearchPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
@@ -18,7 +19,9 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.product.license.ProductLicenseService;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.version.VersionService;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.junit.After;
@@ -28,6 +31,7 @@ import org.junit.Test;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.google.common.collect.ImmutableMap.of;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
 
 public class MainHeaderTest
@@ -41,6 +45,9 @@ public class MainHeaderTest
 
   @After
   public void after() {
+    //Clear the experimental feature flag after running the test
+    testCLMServer.getCLMServer().getConfiguration()
+        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), false));
     // logout if not already logged out
     hardreset();
   }
@@ -169,5 +176,35 @@ public class MainHeaderTest
       refreshOrOpen(DashboardPage.url());
       loginAsAdmin();
     }
+  }
+
+  @Test
+  public void testFirewallNavigationButton_HiddenByDefault() {
+    MainHeader.firewallNavigationButton().shouldBe(hidden);
+  }
+
+  @Test
+  public void testFirewallNavigationButton_FeatureFlagDisabledHidden() {
+    setFeatures(LicensedFeature.FIREWALL, LicensedFeature.RELEASE_INTEGRITY);
+    testCLMServer.getCLMServer().getConfiguration()
+        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), false));
+    MainHeader.firewallNavigationButton().shouldBe(hidden);
+  }
+
+  @Test
+  public void testFirewallNavigationButton_FeaturesUnavailableHidden() {
+    testCLMServer.getCLMServer().getConfiguration()
+        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
+    MainHeader.firewallNavigationButton().shouldBe(hidden);
+  }
+
+  @Test
+  public void testNavigation_ToFirewall() {
+    setFeatures(LicensedFeature.FIREWALL, LicensedFeature.RELEASE_INTEGRITY);
+    testCLMServer.getCLMServer().getConfiguration()
+        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
+    refresh();
+    MainHeader.firewallNavigationButton().shouldBe(visible).click();
+    waitUntilUrl(FirewallPage.url());
   }
 }

@@ -45,3 +45,4 @@ server:
 
 experimentalFeatures:
   scmOnboarding: false
+  firewallAutoUnquarantine: false

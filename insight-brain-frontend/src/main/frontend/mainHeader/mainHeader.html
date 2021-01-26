@@ -79,6 +79,15 @@
           <nx-font-awesome-icon icon="vm.faSearch" class="iq-main-nav__button-icon" size="'2x'"></nx-font-awesome-icon>
           <div class="iq-main-nav__button-label">Search</div>
         </a>
+        <a ui-sref="firewall"
+           class="iq-navigation__button"
+           id="firewall-navigation-button"
+           ng-class="{ 'active' : vm.$state.includes('firewallStatus') }"
+           ng-if="vm.isLicensed() && vm.isFirewallEnabled && vm.isFirewallSupported">
+          <nx-font-awesome-icon icon="vm.faFireSmoke" class="iq-main-nav__button-icon"
+                                size="'2x'"></nx-font-awesome-icon>
+          <div class="iq-main-nav__button-label">Firewall</div>
+        </a>
       </div>
       <div class="iq-nav-bar--system">
         <user-menu></user-menu>

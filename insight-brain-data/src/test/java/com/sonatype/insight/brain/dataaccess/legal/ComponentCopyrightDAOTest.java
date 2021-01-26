@@ -64,6 +64,19 @@ public class ComponentCopyrightDAOTest
   }
 
   @Test
+  public void testGetByOwnerIdAndComponentIdentifier() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
+    ComponentCopyright componentCopyright = tempEntity.newComponentCopyright(componentIdentifier, organization.getId(),
+        "legalContentHash1");
+    tempEntity.newComponentCopyright(componentIdentifier.createAlternativeVersion("v2"), organization.getId(),
+        "legalContentHash2");
+    tempEntity.newComponentCopyright(componentIdentifier, application.getId(), "legalContentHash3");
+
+    assertThat(dao.getByOwnerIdAndComponentIdentifier(organization.getId(), componentIdentifier))
+        .usingRecursiveComparison().isEqualTo(componentCopyright);
+  }
+
+  @Test
   public void testDelete_CascadesToCopyrightOverrides() {
     ComponentCopyright componentCopyright = tempEntity.newComponentCopyright(
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(), "legalContentHash");

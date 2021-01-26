@@ -38,9 +38,9 @@ export default function ComponentLegalOverviewPage(props) {
   useEffect(load, [hash]);
 
   const mapObligationsToLicenseAndTexts = chain(({ licenseName, obligations }) => map(obligation => ({
-    obligationName: obligation.licenseObligation.name,
+    obligationName: obligation.name,
     licenseName,
-    texts: obligation.licenseObligation.obligationTexts
+    texts: obligation.obligationTexts
   }), obligations));
 
   const groupObligationsByLicense = map(([obligationName, licenses]) => ({

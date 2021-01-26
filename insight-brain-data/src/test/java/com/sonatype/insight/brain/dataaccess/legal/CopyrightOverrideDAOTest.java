@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dataaccess.legal;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.legal.CopyrightOverride;
@@ -71,5 +72,79 @@ public class CopyrightOverrideDAOTest
 
     assertThat(dao.getByComponentCopyrightId(componentCopyright.getId())).usingRecursiveFieldByFieldElementComparator()
         .containsExactlyInAnyOrder(copyrightOverride1, copyrightOverride2);
+  }
+
+  @Test
+  public void testGetByOwnerIdAndComponentIdentifier() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
+    ComponentCopyright componentCopyright1 = tempEntity.newComponentCopyright(componentIdentifier, organization.getId(),
+        "legalContentHash");
+    ComponentCopyright componentCopyright2 = tempEntity.newComponentCopyright(componentIdentifier, application.getId(),
+        "legalContentHash");
+    ComponentCopyright componentCopyright3 = tempEntity.newComponentCopyright(
+        componentIdentifier.createAlternativeVersion("v2"), organization.getId(), "legalContentHash");
+
+    CopyrightOverride copyrightOverride1 = tempEntity.newCopyrightOverride("originalHash1", "hash1", "content1",
+        ComponentLegalPartStatus.ENABLED, componentCopyright1.getId());
+    CopyrightOverride copyrightOverride2 = tempEntity.newCopyrightOverride("originalHash2", "hash2", "content2",
+        ComponentLegalPartStatus.ENABLED, componentCopyright1.getId());
+    tempEntity.newCopyrightOverride("originalHash3", "hash3", "content3", ComponentLegalPartStatus.ENABLED,
+        componentCopyright2.getId());
+    tempEntity.newCopyrightOverride("originalHash4", "hash4", "content4", ComponentLegalPartStatus.ENABLED,
+        componentCopyright3.getId());
+
+    assertThat(dao.getByOwnerIdAndComponentIdentifier(organization.getId(), componentIdentifier))
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(copyrightOverride1, copyrightOverride2);
+  }
+
+  @Test
+  public void testGetByOwnerIdAndComponentIdentifierWithHierarchy() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
+
+    // Start with a copyright override at just the root org level
+    ComponentCopyright componentCopyrightForRootOrganization =
+        tempEntity.newComponentCopyright(componentIdentifier, Organization.ROOT_ORGANIZATION_ID, "legalContentHash1");
+    CopyrightOverride copyrightOverrideForRootOrganization =
+        tempEntity.newCopyrightOverride("originalHash1", "hash1", "content1",
+            ComponentLegalPartStatus.ENABLED, componentCopyrightForRootOrganization.getId());
+
+    assertThat(
+        dao.getByOwnerIdAndComponentIdentifierWithHierarchy(Organization.ROOT_ORGANIZATION_ID, componentIdentifier))
+        .usingRecursiveFieldByFieldElementComparator().containsExactly(copyrightOverrideForRootOrganization);
+    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(organization.getId(), componentIdentifier))
+        .usingRecursiveFieldByFieldElementComparator().containsExactly(copyrightOverrideForRootOrganization);
+    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(), componentIdentifier))
+        .usingRecursiveFieldByFieldElementComparator().containsExactly(copyrightOverrideForRootOrganization);
+
+    // Add another copyright override at the org level
+    ComponentCopyright componentCopyrightForOrganization =
+        tempEntity.newComponentCopyright(componentIdentifier, organization.getId(), "legalContentHash2");
+    CopyrightOverride copyrightOverrideForOrganization =
+        tempEntity.newCopyrightOverride("originalHash2", "hash2", "content2",
+            ComponentLegalPartStatus.ENABLED, componentCopyrightForOrganization.getId());
+
+    assertThat(
+        dao.getByOwnerIdAndComponentIdentifierWithHierarchy(Organization.ROOT_ORGANIZATION_ID, componentIdentifier))
+        .usingRecursiveFieldByFieldElementComparator().containsExactly(copyrightOverrideForRootOrganization);
+    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(organization.getId(), componentIdentifier))
+        .usingRecursiveFieldByFieldElementComparator().containsExactly(copyrightOverrideForOrganization);
+    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(), componentIdentifier))
+        .usingRecursiveFieldByFieldElementComparator().containsExactly(copyrightOverrideForOrganization);
+
+    // Add another copyright override at the app level
+    ComponentCopyright componentCopyrightForApplication =
+        tempEntity.newComponentCopyright(componentIdentifier, application.getId(), "legalContentHash3");
+    CopyrightOverride copyrightOverrideForApplication =
+        tempEntity.newCopyrightOverride("originalHash3", "hash3", "content3",
+            ComponentLegalPartStatus.ENABLED, componentCopyrightForApplication.getId());
+
+    assertThat(
+        dao.getByOwnerIdAndComponentIdentifierWithHierarchy(Organization.ROOT_ORGANIZATION_ID, componentIdentifier))
+        .usingRecursiveFieldByFieldElementComparator().containsExactly(copyrightOverrideForRootOrganization);
+    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(organization.getId(), componentIdentifier))
+        .usingRecursiveFieldByFieldElementComparator().containsExactly(copyrightOverrideForOrganization);
+    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(), componentIdentifier))
+        .usingRecursiveFieldByFieldElementComparator().containsExactly(copyrightOverrideForApplication);
   }
 }

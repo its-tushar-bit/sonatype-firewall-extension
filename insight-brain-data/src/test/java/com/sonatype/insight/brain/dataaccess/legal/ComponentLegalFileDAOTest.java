@@ -65,6 +65,19 @@ public class ComponentLegalFileDAOTest
   }
 
   @Test
+  public void testGetByOwnerIdAndComponentIdentifier() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
+    ComponentLegalFile componentLegalFile = tempEntity.newComponentLegalFile(componentIdentifier, organization.getId(),
+        "legalContentHash1");
+    tempEntity.newComponentLegalFile(componentIdentifier.createAlternativeVersion("v2"), organization.getId(),
+        "legalContentHash2");
+    tempEntity.newComponentLegalFile(componentIdentifier, application.getId(), "legalContentHash3");
+
+    assertThat(dao.getByOwnerIdAndComponentIdentifier(organization.getId(), componentIdentifier))
+        .usingRecursiveComparison().isEqualTo(componentLegalFile);
+  }
+
+  @Test
   public void testDelete_CascadesToLegalFileOverrides() {
     ComponentLegalFile componentLegalFile = tempEntity.newComponentLegalFile(
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(), "legalContentHash");

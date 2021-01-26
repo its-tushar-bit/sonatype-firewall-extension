@@ -25,42 +25,33 @@ describe('ComponentLegalOverviewPage', function() {
       0: {
         licenseName: 'license1',
         obligations: [{
-          licenseObligation: {
-            name: 'obligation 1',
-            obligationTexts: [
-              'text1',
-              'text2'
-            ]
-          }
+          name: 'obligation 1',
+          obligationTexts: [
+            'text1',
+            'text2'
+          ]
         }, {
-          licenseObligation: {
-            name: 'obligation 2',
-            obligationTexts: [
-              'text3',
-              'text4'
-            ]
-          }
+          name: 'obligation 2',
+          obligationTexts: [
+            'text3',
+            'text4'
+          ]
         }]
       },
       1: {
         licenseName: 'license2',
         obligations: [{
-          licenseObligation: {
-            name: 'obligation 2',
-            obligationTexts: [
-              'text5',
-              'text6'
-            ]
-          },
-          licenseObligationStatus: 0
+          name: 'obligation 2',
+          obligationTexts: [
+            'text5',
+            'text6'
+          ]
         }, {
-          licenseObligation: {
-            name: 'obligation 3',
-            obligationTexts: [
-              'text7',
-              'text8'
-            ]
-          }
+          name: 'obligation 3',
+          obligationTexts: [
+            'text7',
+            'text8'
+          ]
         }]
       },
       2: {

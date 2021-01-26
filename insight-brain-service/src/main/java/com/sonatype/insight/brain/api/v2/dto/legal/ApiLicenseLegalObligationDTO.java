@@ -5,16 +5,28 @@
  */
 package com.sonatype.insight.brain.api.v2.dto.legal;
 
-import com.sonatype.insight.license.dto.model.LicenseObligationDTO;
+import java.util.List;
+
+import com.sonatype.insight.brain.model.legal.ObligationStatus;
 
 public class ApiLicenseLegalObligationDTO
 {
-  public LicenseObligationDTO licenseObligation;
+  public String name;
 
-  public int licenseObligationStatus;
+  public ObligationStatus status;
 
-  public ApiLicenseLegalObligationDTO(LicenseObligationDTO licenseObligation, int licenseObligationStatus) {
-    this.licenseObligation = licenseObligation;
-    this.licenseObligationStatus = licenseObligationStatus;
+  public String comment;
+
+  public List<String> attributions;
+
+  public ApiLicenseLegalObligationDTO() {
+    // for jackson
+  }
+
+  public ApiLicenseLegalObligationDTO(String name, ObligationStatus status, String comment, List<String> attributions) {
+    this.name = name;
+    this.status = status;
+    this.comment = comment;
+    this.attributions = attributions;
   }
 }

@@ -7,7 +7,9 @@ package com.sonatype.insight.brain.dataaccess.legal;
 
 import java.util.List;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.legal.CopyrightOverride;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -34,6 +36,28 @@ public class ComponentCopyrightDAO
   public List<ComponentCopyright> getByOwnerId(String ownerId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByOwnerId(tx, ownerId);
+    }
+  }
+
+  public ComponentCopyright getByOwnerIdAndComponentIdentifier(
+      TransactionContext tx,
+      String ownerId,
+      ComponentIdentifier componentIdentifier)
+  {
+    String sQuery = "SELECT entity FROM ComponentCopyright entity" + //
+        " WHERE entity.ownerId=?1" + //
+        " AND entity.componentIdFormat=?2" + //
+        " AND entity.componentIdCoordinatesJson=?3";
+    return get(tx, sQuery, ownerId, componentIdentifier.getFormat(),
+        ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()));
+  }
+
+  public ComponentCopyright getByOwnerIdAndComponentIdentifier(
+      String ownerId,
+      ComponentIdentifier componentIdentifier)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByOwnerIdAndComponentIdentifier(tx, ownerId, componentIdentifier);
     }
   }
 

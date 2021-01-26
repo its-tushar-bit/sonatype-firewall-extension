@@ -76,10 +76,7 @@ class NewInstancePopulator
   }
 
   private void populate(Organization rootOrganization) {
-    if (insightConfig.isCreateSampleData()) {
-      log.info("Creating Sample Data");
-      sampleDataCreator.createSampleData();
-    }
+    boolean createSampleData = insightConfig.isCreateSampleData();
 
     if (insightConfig.isImportReferencePoliciesFromHDS()) {
       log.info("Importing Reference Policies");
@@ -93,12 +90,19 @@ class NewInstancePopulator
         catch (Exception e) {
           log.error("Unable to import Reference Policies from HDS", e);
           AuditData.get().setException(e);
+          // skip the sample data creation or we will not re-attempt to import the policies/ltgs on a later restart
+          createSampleData = false;
         }
         catch (Throwable t) {
           AuditData.get().setException(t);
           throw t;
         }
       }
+    }
+
+    if (createSampleData) {
+      log.info("Creating Sample Data");
+      sampleDataCreator.createSampleData();
     }
   }
 }

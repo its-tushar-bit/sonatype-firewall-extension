@@ -169,6 +169,30 @@ public class NewInstancePopulatorTest
     assertReferencePoliciesImported(false);
   }
 
+  @Test
+  @ManualServerInit
+  public void testPopulateIfNewInstance_PolicyImportRetriedAfterInitialHdsFailure() throws Exception {
+    Configurator configurator = new Configurator()
+    {
+      @Override
+      public void configure(InsightConfig config) {
+        config.setCreateSampleData(true);
+        config.setImportRefrencePoliciesFromHDS(true);
+      }
+    };
+
+    hdsRespondWith("Maintenance, come back later").andStatus(503).atUri(ReferencePolicyFetcher.REFERENCE_POLICY_PATH);
+
+    initServer(configurator);
+
+    assertReferencePoliciesImported(false);
+
+    initServer(true, true);
+
+    assertReferencePoliciesImported(true);
+    assertSampleDataCreated(true);
+  }
+
   private void initServer(boolean createSampleData, boolean importReferencePoliciesFromHDS) throws Exception {
     Configurator configurator = new Configurator()
     {

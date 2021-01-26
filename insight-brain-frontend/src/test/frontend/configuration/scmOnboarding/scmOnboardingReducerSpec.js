@@ -66,7 +66,7 @@ describe('scmOnboardingReducer', function() {
           configResults: { scmOnboardingFeatureEnabled: true },
           organizationsResults: defaultOrganizationsPayload,
           compositeSourceControlResults: {provider: 'github', token: {value: 'token'}},
-          hostUrlResult: {defaultHostUrl: 'http://github.com/'}
+          hostUrlResult: {defaultHostUrl: 'http://localhost/'}
         };
 
         // when reduce is invoked
@@ -87,8 +87,8 @@ describe('scmOnboardingReducer', function() {
           formState: {
             selectedOrganization: defaultOrganizationsPayload[1],
             organizations: defaultOrganizationsPayload,
-            defaultHostUrl: 'http://github.com/',
-            currentHostUrlState: initialState('http://github.com/'),
+            defaultHostUrl: 'http://localhost/',
+            currentHostUrlState: initialState('http://localhost/'),
             preselectedOrganizationId: 'id1'
           }
         });
@@ -103,7 +103,7 @@ describe('scmOnboardingReducer', function() {
           configResults: { scmOnboardingFeatureEnabled: true },
           organizationsResults: defaultOrganizationsPayload,
           compositeSourceControlResults: {provider: 'github', token: {parentValue: 'token'}},
-          hostUrlResult: {defaultHostUrl: 'http://github.com/'}
+          hostUrlResult: {defaultHostUrl: 'http://localhost/'}
         };
 
         // when reduce is invoked
@@ -124,8 +124,8 @@ describe('scmOnboardingReducer', function() {
           formState: {
             selectedOrganization: defaultOrganizationsPayload[1],
             organizations: defaultOrganizationsPayload,
-            defaultHostUrl: 'http://github.com/',
-            currentHostUrlState: initialState('http://github.com/'),
+            defaultHostUrl: 'http://localhost/',
+            currentHostUrlState: initialState('http://localhost/'),
             preselectedOrganizationId: 'id1'
           }
         });

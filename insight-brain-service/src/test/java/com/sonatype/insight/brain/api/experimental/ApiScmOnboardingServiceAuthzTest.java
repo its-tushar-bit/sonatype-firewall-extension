@@ -111,17 +111,17 @@ public class ApiScmOnboardingServiceAuthzTest
   @Test
   public void testCheckScmUrl_Authorized() {
     grantGlobalPermission(Permission.READ);
-    apiScmOnboardingService.validateScmHostUrl("GITHUB", "https://github.com/org/proj");
+    apiScmOnboardingService.validateScmHostUrl("GITHUB", "https://localhost/org/proj");
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testCheckScmUrl_Unauthenticated() {
-    apiScmOnboardingService.validateScmHostUrl("GITHUB", "https://github.com/org/proj");
+    apiScmOnboardingService.validateScmHostUrl("GITHUB", "https://localhost/org/proj");
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testCheckScmUrl_Unauthorized() {
     login();
-    apiScmOnboardingService.validateScmHostUrl("GITHUB", "https://github.com/org/proj");
+    apiScmOnboardingService.validateScmHostUrl("GITHUB", "https://localhost/org/proj");
   }
 }

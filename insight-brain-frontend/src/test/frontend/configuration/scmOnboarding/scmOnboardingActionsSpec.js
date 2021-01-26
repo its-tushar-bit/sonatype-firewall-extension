@@ -42,7 +42,7 @@ describe('scmOnboardingActions', function() {
     const compositeSourceControlUrl = getCompositeSourceControlUrl('organization', 'ownerId'),
         compositeSourceControlPayload = {provider: 'github', token: {value: 'token'}},
         unconfiguredCompositeSourceControlPayload = {provider: undefined, token: undefined},
-        scmDefaultHostPayload = {defaultHostUrl: 'http://github.com/'},
+        scmDefaultHostPayload = {defaultHostUrl: 'http://localhost/'},
         orgResults = [
           {id: 'id1', name: 'org 1'},
           {id: 'id2', name: 'org 2'},
@@ -204,7 +204,7 @@ describe('scmOnboardingActions', function() {
     it('requests a load of repositories', function(done) {
       mockAxiosCalls({
         get: {
-          [getScmRepositoriesUrl()]: Promise.resolve([{httpCloneUrl: 'http://github.com/my/repo.git', isPrivate: true}])
+          [getScmRepositoriesUrl()]: Promise.resolve([{httpCloneUrl: 'http://localhost/my/repo.git', isPrivate: true}])
         }
       });
 
@@ -247,7 +247,7 @@ describe('scmOnboardingActions', function() {
     it('dispatches an event', function() {
       store = SpecUtil.mockReduxStore(state);
 
-      let hostUrlValue = 'https://github.com';
+      let hostUrlValue = 'https://localhost';
       store.dispatch(scmOnboardingActions.setCurrentHostUrl(hostUrlValue));
       const actions = store.getActions();
       expect(actions.length).toBe(1);

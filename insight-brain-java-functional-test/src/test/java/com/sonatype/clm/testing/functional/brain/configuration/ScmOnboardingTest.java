@@ -339,7 +339,7 @@ public class ScmOnboardingTest
 
     // when the application already exists in IQ
     Application application = tempEntity.newApplication(org.getId());
-    tempEntity.newSourceControl(application.getId(), "https://github.com/depshield-ci/ci-project-1.git", new Date());
+    tempEntity.newSourceControl(application.getId(), "https://localhost/depshield-ci/ci-project-1.git", new Date());
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
 
     // it is no longer displayed in the table and the UI is updated

@@ -163,14 +163,14 @@ public class ApiScmOnboardingServiceTest
   @Test
   public void testLoadRepositories_trimExistingConfiguredRepositories() throws Exception {
     // configure urls to point to our mock git server, as these are used to guess at a base api url
-    String repo1Url = "https://github.com/depshield-ci/ci-project-1.git";
-    String repo2Url = "https://github.com/depshield-ci/ci-project-16.git";
+    String repo1Url = "https://localhost/depshield-ci/ci-project-1.git";
+    String repo2Url = "https://localhost/depshield-ci/ci-project-16.git";
     String repo1 = "/org/repo1.git";
     String repo2 = "/org/repo2.git";
     String repo1ReplacementUrl = gitService.baseUrl().replace("localhost", "admin:admin123@localhost")
         + repo1;
     String repo2ReplacementUrl = gitService.baseUrl().replace("localhost", "admin@localhost") + repo2;
-    
+
     mockRepoForPage(gitService, 0, 
         getResourceAsString(PAGE_0)
         .replaceFirst(repo1Url, repo1ReplacementUrl)
@@ -199,18 +199,18 @@ public class ApiScmOnboardingServiceTest
     mockRepoForPage(gitService, 1, getResourceAsString(PAGE_1));
 
     // given the raw data contains urls with embedded information
-    assertThat(page0).contains("https://admin:admin123@github.com/depshield-ci/create-react-app.git");
-    assertThat(page0).contains("https://admin@github.com/sonatype-nexus-community/nexus-repository-p2.git");
+    assertThat(page0).contains("https://admin:admin123@localhost/depshield-ci/create-react-app.git");
+    assertThat(page0).contains("https://admin@localhost/sonatype-nexus-community/nexus-repository-p2.git");
 
     // then the repository listing will strip out this embedded information to ensure it doesn't leak
     SCMRepositories repositories = apiScmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
     Optional<SCMRepository> createReactApp = repositories.availableRepositories.stream()
         .filter(repository -> repository.getProject().equals("create-react-app")).findFirst();
-    assertThat(createReactApp.get().getHttpCloneUrl()).isEqualTo("https://github.com/depshield-ci/create-react-app");
+    assertThat(createReactApp.get().getHttpCloneUrl()).isEqualTo("https://localhost/depshield-ci/create-react-app");
     Optional<SCMRepository> nxrmP2 = repositories.availableRepositories.stream()
         .filter(repository -> repository.getProject().equals("nexus-repository-p2")).findFirst();
     assertThat(nxrmP2.get().getHttpCloneUrl())
-        .isEqualTo("https://github.com/sonatype-nexus-community/nexus-repository-p2");
+        .isEqualTo("https://localhost/sonatype-nexus-community/nexus-repository-p2");
   }
 
   @Test
@@ -368,11 +368,11 @@ public class ApiScmOnboardingServiceTest
 
     // given a list of repos to import
     SCMRepository[] reposToImport = new SCMRepository[]{
-        new SCMRepository(SourceControlProvider.GITHUB, "http://github.com/org/repo1", false, "org", "repo1", ""),
-        new SCMRepository(SourceControlProvider.GITHUB, "http://github.com/org/repo2", false, "org", "repo2", ""),
-        new SCMRepository(SourceControlProvider.GITHUB, "http://github.com/org/repo3", false, "org", "repo3", ""),
+        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo1", false, "org", "repo1", ""),
+        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo2", false, "org", "repo2", ""),
+        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo3", false, "org", "repo3", ""),
         // use org & app names with IQ app name restrictions
-        new SCMRepository(SourceControlProvider.GITHUB, "http://github.com/org/repo4", false,
+        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo4", false,
             "--bad-__-org", "--bad_name_99--", ""),
     };
     int totalRepoCount = 50;
@@ -399,8 +399,8 @@ public class ApiScmOnboardingServiceTest
     // and that all of the clone URLs were added
     assertThat(sourceControlDAO.getAll().stream()
         .filter(sc -> sc.getOwnerId() != ROOT_ORGANIZATION_ID)
-        .map(SourceControl::getRepositoryUrl)).containsExactly("http://github.com/org/repo1",
-        "http://github.com/org/repo2", "http://github.com/org/repo3", "http://github.com/org/repo4");
+        .map(SourceControl::getRepositoryUrl)).containsExactly("http://localhost/org/repo1",
+        "http://localhost/org/repo2", "http://localhost/org/repo3", "http://localhost/org/repo4");
 
     // and the telemetry was sent properly
     int batchPercent = 8;
@@ -419,7 +419,7 @@ public class ApiScmOnboardingServiceTest
 
     // and a list of repos to import
     SCMRepository[] reposToImport = new SCMRepository[]{
-        new SCMRepository(SourceControlProvider.GITHUB, "http://github.com/org/repo1", false, "org", "repo1", "")
+        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo1", false, "org", "repo1", "")
     };
     int totalRepoCount = 50;
     int prevImportedCount = 8;
@@ -461,11 +461,11 @@ public class ApiScmOnboardingServiceTest
 
     // given an existing application with a Source Control entry that matches one we'll import
     Application targetApp = tempEntity.newApplication("repo1__org", org.getId());
-    tempEntity.newSourceControl(targetApp.getId(), "http://github.com/org/repo1", new Date());
+    tempEntity.newSourceControl(targetApp.getId(), "http://localhost/org/repo1", new Date());
 
     // and a list of repos to import
     SCMRepository[] reposToImport = new SCMRepository[]{
-        new SCMRepository(SourceControlProvider.GITHUB, "http://github.com/org/repo1", false, "org", "repo1", "")
+        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo1", false, "org", "repo1", "")
     };
     int totalRepoCount = 50;
     int prevImportedCount = 8;
@@ -523,7 +523,7 @@ public class ApiScmOnboardingServiceTest
 
     // given a list of repos to import
     SCMRepository[] reposToImport = new SCMRepository[]{
-        new SCMRepository(SourceControlProvider.GITHUB, "http://github.com/org/repo1", false, "org", "repo1", "")
+        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo1", false, "org", "repo1", "")
         };
 
     // and we call import

@@ -57,20 +57,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ScmOnboardingTest
     extends AbstractFunctionalTest
 {
-  private static final String GITHUB_ROOT = "https\\:\\/\\/github\\.com\\/";
+  private static final String SCM_ROOT = "https\\:\\/\\/localhost\\/";
 
-  private static final String CI_PROJECT_1_GIT = GITHUB_ROOT + "depshield-ci\\/ci-project-1";
+  private static final String CI_PROJECT_1_GIT = SCM_ROOT + "depshield-ci\\/ci-project-1";
 
-  private static final String REPOSITORY_P_2_GIT = GITHUB_ROOT + "sonatype-nexus-community\\/nexus-repository-p2";
+  private static final String REPOSITORY_P_2_GIT = SCM_ROOT + "sonatype-nexus-community\\/nexus-repository-p2";
 
   private static final String REPOSITORY_PUPPET_GIT =
-      GITHUB_ROOT + "sonatype-nexus-community\\/nexus-repository-puppet";
+      SCM_ROOT + "sonatype-nexus-community\\/nexus-repository-puppet";
 
   private static final String REPOSITORY_TERRAFORM_GIT =
-      GITHUB_ROOT + "sonatype-nexus-community\\/nexus-repository-terraform";
+      SCM_ROOT + "sonatype-nexus-community\\/nexus-repository-terraform";
 
   private static final String REPOSITORY_VGO_GIT =
-      GITHUB_ROOT + "sonatype-nexus-community\\/nexus-repository-vgo";
+      SCM_ROOT + "sonatype-nexus-community\\/nexus-repository-vgo";
 
   private Organization org;
 

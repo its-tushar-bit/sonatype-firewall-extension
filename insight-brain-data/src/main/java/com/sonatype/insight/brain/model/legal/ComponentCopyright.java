@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.model.legal;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -33,13 +35,26 @@ public class ComponentCopyright
   @Column(name = "legal_content_hash")
   private String legalContentHash;
 
+  // Note: this is not the ideal/model solution for auditing (i.e. retrieving audit data), rather an interim solution
+  @Column(name = "last_updated_by_username")
+  private String lastUpdatedByUsername;
+
+  @Column(name = "last_updated_at")
+  private Date lastUpdatedAt;
+
   public ComponentCopyright() {
   }
 
-  public ComponentCopyright(ComponentIdentifier componentIdentifier, String ownerId, String legalContentHash) {
+  public ComponentCopyright(
+      ComponentIdentifier componentIdentifier,
+      String ownerId,
+      String legalContentHash,
+      String lastUpdatedByUsername)
+  {
     setComponentIdentifier(componentIdentifier);
     this.ownerId = ownerId;
     this.legalContentHash = legalContentHash;
+    this.lastUpdatedByUsername = lastUpdatedByUsername;
   }
 
   @Override
@@ -62,5 +77,21 @@ public class ComponentCopyright
 
   public String getLegalContentHash() {
     return legalContentHash;
+  }
+
+  public String getLastUpdatedByUsername() {
+    return lastUpdatedByUsername;
+  }
+
+  public void setLastUpdatedByUsername(String lastUpdatedByUsername) {
+    this.lastUpdatedByUsername = lastUpdatedByUsername;
+  }
+
+  public Date getLastUpdatedAt() {
+    return lastUpdatedAt;
+  }
+
+  public void setLastUpdatedAt(Date lastUpdatedAt) {
+    this.lastUpdatedAt = lastUpdatedAt;
   }
 }

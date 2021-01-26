@@ -897,6 +897,8 @@ CREATE TABLE component_copyright (
   component_id_coordinates_json varchar(1000) NOT NULL,
   owner_id varchar(50) NOT NULL,
   legal_content_hash varchar(64) NOT NULL,
+  last_updated_by_username varchar(256) NOT NULL,
+  last_updated_at timestamp NOT NULL,
   CONSTRAINT component_copyright_pk PRIMARY KEY (component_copyright_id),
   CONSTRAINT component_copyright_uk UNIQUE (owner_id, component_id_format, component_id_coordinates_json)
 );
@@ -922,6 +924,8 @@ CREATE TABLE component_legal_file (
   component_id_coordinates_json varchar(1000) NOT NULL,
   owner_id varchar(50) NOT NULL,
   legal_content_hash varchar(64) NOT NULL,
+  last_updated_by_username varchar(256) NOT NULL,
+  last_updated_at timestamp NOT NULL,
   CONSTRAINT component_legal_file_pk PRIMARY KEY (component_legal_file_id),
   CONSTRAINT component_legal_file_uk UNIQUE (owner_id, component_id_format, component_id_coordinates_json)
 );
@@ -951,6 +955,8 @@ CREATE TABLE component_obligation (
   comment varchar(1000),
   status varchar(20) NOT NULL,
   legal_content_hash varchar(64) NOT NULL,
+  last_updated_by_username varchar(256) NOT NULL,
+  last_updated_at timestamp NOT NULL,
   CONSTRAINT component_obligation_pk PRIMARY KEY (component_obligation_id),
   CONSTRAINT component_obligation_uk UNIQUE (owner_id, component_id_format, component_id_coordinates_json, obligation_name)
 );
@@ -965,6 +971,8 @@ CREATE TABLE component_obligation_attribution (
   obligation_name varchar(256),
   content varchar(1000) NOT NULL,
   legal_content_hash varchar(64) NOT NULL,
+  last_updated_by_username varchar(256) NOT NULL,
+  last_updated_at timestamp NOT NULL,
   CONSTRAINT component_obligation_attribution_pk PRIMARY KEY (component_obligation_attribution_id)
 );
 CREATE INDEX component_obligation_attribution_owner_component_obligation_idx ON component_obligation_attribution(owner_id, component_id_format, component_id_coordinates_json, obligation_name);

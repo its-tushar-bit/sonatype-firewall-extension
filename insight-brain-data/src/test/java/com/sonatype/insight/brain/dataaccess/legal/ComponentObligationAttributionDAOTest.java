@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess.legal;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -16,6 +17,7 @@ import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
 
+import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -34,9 +36,11 @@ public class ComponentObligationAttributionDAOTest
   @Test
   public void testCRUD() {
     // Create
+    Date now = new Date();
     ComponentObligationAttribution componentObligationAttribution =
         new ComponentObligationAttribution(ComponentIdentifier.createMavenCoordinates("g", "a", "v"),
-            organization.getId(), "name", "content", "legalContentHash");
+            organization.getId(), "name", "content", "legalContentHash", "username");
+    componentObligationAttribution.setLastUpdatedAt(new Date(now.getTime() - 1));
     dao.insert(componentObligationAttribution);
     assertThat(componentObligationAttribution.getId()).isNotNull();
 
@@ -49,13 +53,44 @@ public class ComponentObligationAttributionDAOTest
     componentObligationAttribution.setOwnerId(application.getId());
     componentObligationAttribution.setObligationName(componentObligationAttribution.getObligationName() + "2");
     componentObligationAttribution.setContent(componentObligationAttribution.getContent() + "2");
+    componentObligationAttribution.setLastUpdatedByUsername("other");
+    componentObligationAttribution.setLastUpdatedAt(now);
     dao.update(componentObligationAttribution);
-    assertThat(dao.getById(componentObligationAttribution.getId())).usingRecursiveComparison()
-        .ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(componentObligationAttribution);
+    assertThat(dao.getById(componentObligationAttribution.getId())).usingRecursiveComparison(
+        RecursiveComparisonConfiguration.builder().withIgnoredFields(JPA.IGNORE_FIELDS).build())
+        .isEqualTo(componentObligationAttribution);
 
     // Delete
     dao.delete(componentObligationAttribution);
     assertThat(dao.getById(componentObligationAttribution.getId())).isNull();
+  }
+
+  @Test
+  public void testInsert_SetsDateIfNull() {
+    ComponentObligationAttribution componentObligationAttribution =
+        new ComponentObligationAttribution(ComponentIdentifier.createMavenCoordinates("g", "a", "v"),
+            organization.getId(), "name", "content", "legalContentHash", "username");
+    componentObligationAttribution.setLastUpdatedAt(null);
+    Date now = new Date();
+
+    dao.insert(componentObligationAttribution);
+
+    assertThat(dao.getById(componentObligationAttribution.getId()).getLastUpdatedAt()).isAfterOrEqualTo(now);
+  }
+
+  @Test
+  public void testUpdate_SetsDate() {
+    Date now = new Date();
+    ComponentObligationAttribution componentObligationAttribution =
+        new ComponentObligationAttribution(ComponentIdentifier.createMavenCoordinates("g", "a", "v"),
+            organization.getId(), "name", "content", "legalContentHash", "username");
+    componentObligationAttribution.setLastUpdatedAt(new Date(now.getTime() - 1));
+    dao.insert(componentObligationAttribution);
+    assertThat(dao.getById(componentObligationAttribution.getId()).getLastUpdatedAt()).isBefore(now);
+
+    dao.update(componentObligationAttribution);
+
+    assertThat(dao.getById(componentObligationAttribution.getId()).getLastUpdatedAt()).isAfterOrEqualTo(now);
   }
 
   @Test

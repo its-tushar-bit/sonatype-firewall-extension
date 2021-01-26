@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.legal;
 
+import java.util.Date;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -59,6 +60,20 @@ public class ComponentCopyrightDAO
     try (TransactionContext tx = createTransactionContext()) {
       return getByOwnerIdAndComponentIdentifier(tx, ownerId, componentIdentifier);
     }
+  }
+
+  @Override
+  public void insert(TransactionContext tx, ComponentCopyright componentCopyright) {
+    if (componentCopyright.getLastUpdatedAt() == null) {
+      componentCopyright.setLastUpdatedAt(new Date());
+    }
+    super.insert(tx, componentCopyright);
+  }
+
+  @Override
+  public void update(TransactionContext tx, ComponentCopyright componentCopyright) {
+    componentCopyright.setLastUpdatedAt(new Date());
+    super.update(tx, componentCopyright);
   }
 
   @Override

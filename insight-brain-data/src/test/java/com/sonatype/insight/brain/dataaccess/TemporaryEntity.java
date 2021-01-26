@@ -2749,7 +2749,8 @@ public class TemporaryEntity
       String ownerId,
       String legalContentHash)
   {
-    ComponentCopyright componentCopyright = new ComponentCopyright(componentIdentifier, ownerId, legalContentHash);
+    ComponentCopyright componentCopyright =
+        new ComponentCopyright(componentIdentifier, ownerId, legalContentHash, "username");
     componentCopyrightDAO.insert(componentCopyright);
     return componentCopyright;
   }
@@ -2772,7 +2773,8 @@ public class TemporaryEntity
       String ownerId,
       String legalContentHash)
   {
-    ComponentLegalFile componentLegalFile = new ComponentLegalFile(componentIdentifier, ownerId, legalContentHash);
+    ComponentLegalFile componentLegalFile =
+        new ComponentLegalFile(componentIdentifier, ownerId, legalContentHash, "username");
     componentLegalFileDAO.insert(componentLegalFile);
     return componentLegalFile;
   }
@@ -2800,7 +2802,7 @@ public class TemporaryEntity
       String legalContentHash)
   {
     ComponentObligation componentObligation =
-        new ComponentObligation(componentIdentifier, ownerId, name, comment, status, legalContentHash);
+        new ComponentObligation(componentIdentifier, ownerId, name, comment, status, legalContentHash, "username");
     componentObligationDAO.insert(componentObligation);
     return componentObligation;
   }
@@ -2813,7 +2815,7 @@ public class TemporaryEntity
       String legalContentHash)
   {
     ComponentObligationAttribution componentObligationAttribution =
-        new ComponentObligationAttribution(componentIdentifier, ownerId, name, content, legalContentHash);
+        new ComponentObligationAttribution(componentIdentifier, ownerId, name, content, legalContentHash, "username");
     componentObligationAttributionDAO.insert(componentObligationAttribution);
     return componentObligationAttribution;
   }

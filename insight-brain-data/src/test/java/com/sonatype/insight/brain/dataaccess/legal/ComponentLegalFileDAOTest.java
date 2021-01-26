@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.legal;
 
+import java.util.Date;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
@@ -13,6 +15,7 @@ import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.legal.LegalFileOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
 
+import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -31,8 +34,11 @@ public class ComponentLegalFileDAOTest
   @Test
   public void testCRUD() {
     // Create
-    ComponentLegalFile componentLegalFile = new ComponentLegalFile(
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(), "legalContentHash");
+    Date now = new Date();
+    ComponentLegalFile componentLegalFile =
+        new ComponentLegalFile(ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(),
+            "legalContentHash", "username");
+    componentLegalFile.setLastUpdatedAt(new Date(now.getTime() - 1));
     dao.insert(componentLegalFile);
     assertThat(componentLegalFile.getId()).isNotNull();
 
@@ -42,13 +48,44 @@ public class ComponentLegalFileDAOTest
     // Update
     componentLegalFile.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"));
     componentLegalFile.setOwnerId(application.getId());
+    componentLegalFile.setLastUpdatedByUsername("other");
+    componentLegalFile.setLastUpdatedAt(now);
     dao.update(componentLegalFile);
-    assertThat(dao.getById(componentLegalFile.getId())).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(dao.getById(componentLegalFile.getId())).usingRecursiveComparison(
+        RecursiveComparisonConfiguration.builder().withIgnoredFields(JPA.IGNORE_FIELDS).build())
         .isEqualTo(componentLegalFile);
 
     // Delete
     dao.delete(componentLegalFile);
     assertThat(dao.getById(componentLegalFile.getId())).isNull();
+  }
+
+  @Test
+  public void testInsert_SetsDateIfNull() {
+    ComponentLegalFile componentLegalFile =
+        new ComponentLegalFile(ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(),
+            "legalContentHash", "username");
+    componentLegalFile.setLastUpdatedAt(null);
+    Date now = new Date();
+
+    dao.insert(componentLegalFile);
+
+    assertThat(dao.getById(componentLegalFile.getId()).getLastUpdatedAt()).isAfterOrEqualTo(now);
+  }
+
+  @Test
+  public void testUpdate_SetsDate() {
+    Date now = new Date();
+    ComponentLegalFile componentLegalFile =
+        new ComponentLegalFile(ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(),
+            "legalContentHash", "username");
+    componentLegalFile.setLastUpdatedAt(new Date(now.getTime() - 1));
+    dao.insert(componentLegalFile);
+    assertThat(dao.getById(componentLegalFile.getId()).getLastUpdatedAt()).isBefore(now);
+
+    dao.update(componentLegalFile);
+
+    assertThat(dao.getById(componentLegalFile.getId()).getLastUpdatedAt()).isAfterOrEqualTo(now);
   }
 
   @Test

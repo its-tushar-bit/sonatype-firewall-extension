@@ -7,5 +7,5 @@ package com.sonatype.insight.brain.dataaccess;
 
 public class JPA
 {
-  public static final String[] IGNORE_FIELDS = {"pcStateManager", "pcDetachedState"};
+  public static final String[] IGNORE_FIELDS = {"pcStateManager", "pcDetachedState", "field", "sm"};
 }

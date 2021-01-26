@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.model.legal;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -45,6 +47,13 @@ public class ComponentObligation
   @Column(name = "legal_content_hash")
   private String legalContentHash;
 
+  // Note: this is not the ideal/model solution for auditing (i.e. retrieving audit data), rather an interim solution
+  @Column(name = "last_updated_by_username")
+  private String lastUpdatedByUsername;
+
+  @Column(name = "last_updated_at")
+  private Date lastUpdatedAt;
+
   public ComponentObligation() {
   }
 
@@ -54,7 +63,8 @@ public class ComponentObligation
       String obligationName,
       String comment,
       ObligationStatus status,
-      String legalContentHash)
+      String legalContentHash,
+      String lastUpdatedByUsername)
   {
     setComponentIdentifier(componentIdentifier);
     this.ownerId = ownerId;
@@ -62,6 +72,7 @@ public class ComponentObligation
     this.comment = comment;
     this.status = status;
     this.legalContentHash = legalContentHash;
+    this.lastUpdatedByUsername = lastUpdatedByUsername;
   }
 
   @Override
@@ -108,5 +119,21 @@ public class ComponentObligation
 
   public String getLegalContentHash() {
     return legalContentHash;
+  }
+
+  public String getLastUpdatedByUsername() {
+    return lastUpdatedByUsername;
+  }
+
+  public void setLastUpdatedByUsername(String lastUpdatedByUsername) {
+    this.lastUpdatedByUsername = lastUpdatedByUsername;
+  }
+
+  public Date getLastUpdatedAt() {
+    return lastUpdatedAt;
+  }
+
+  public void setLastUpdatedAt(Date lastUpdatedAt) {
+    this.lastUpdatedAt = lastUpdatedAt;
   }
 }

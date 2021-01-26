@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.legal;
 
+import java.util.Date;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
@@ -12,6 +14,7 @@ import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.legal.CopyrightOverride;
 
+import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -30,8 +33,11 @@ public class ComponentCopyrightDAOTest
   @Test
   public void testCRUD() {
     // Create
-    ComponentCopyright componentCopyright = new ComponentCopyright(
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(), "legalContentHash");
+    Date now = new Date();
+    ComponentCopyright componentCopyright =
+        new ComponentCopyright(ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(),
+            "legalContentHash", "username");
+    componentCopyright.setLastUpdatedAt(new Date(now.getTime() - 1));
     dao.insert(componentCopyright);
     assertThat(componentCopyright.getId()).isNotNull();
 
@@ -41,13 +47,44 @@ public class ComponentCopyrightDAOTest
     // Update
     componentCopyright.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"));
     componentCopyright.setOwnerId(application.getId());
+    componentCopyright.setLastUpdatedByUsername("other");
+    componentCopyright.setLastUpdatedAt(now);
     dao.update(componentCopyright);
-    assertThat(dao.getById(componentCopyright.getId())).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(dao.getById(componentCopyright.getId())).usingRecursiveComparison(
+        RecursiveComparisonConfiguration.builder().withIgnoredFields(JPA.IGNORE_FIELDS).build())
         .isEqualTo(componentCopyright);
 
     // Delete
     dao.delete(componentCopyright);
     assertThat(dao.getById(componentCopyright.getId())).isNull();
+  }
+
+  @Test
+  public void testInsert_SetsDateIfNull() {
+    ComponentCopyright componentCopyright =
+        new ComponentCopyright(ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(),
+            "legalContentHash", "username");
+    componentCopyright.setLastUpdatedAt(null);
+    Date now = new Date();
+
+    dao.insert(componentCopyright);
+
+    assertThat(dao.getById(componentCopyright.getId()).getLastUpdatedAt()).isAfterOrEqualTo(now);
+  }
+
+  @Test
+  public void testUpdate_SetsDate() {
+    Date now = new Date();
+    ComponentCopyright componentCopyright =
+        new ComponentCopyright(ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(),
+            "legalContentHash", "username");
+    componentCopyright.setLastUpdatedAt(new Date(now.getTime() - 1));
+    dao.insert(componentCopyright);
+    assertThat(dao.getById(componentCopyright.getId()).getLastUpdatedAt()).isBefore(now);
+
+    dao.update(componentCopyright);
+
+    assertThat(dao.getById(componentCopyright.getId()).getLastUpdatedAt()).isAfterOrEqualTo(now);
   }
 
   @Test

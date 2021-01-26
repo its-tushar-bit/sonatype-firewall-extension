@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.legal;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -102,5 +103,19 @@ public class ComponentObligationAttributionDAO
       return getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(tx, ownerId, componentIdentifier,
           obligationNames);
     }
+  }
+
+  @Override
+  public void insert(TransactionContext tx, ComponentObligationAttribution componentObligationAttribution) {
+    if (componentObligationAttribution.getLastUpdatedAt() == null) {
+      componentObligationAttribution.setLastUpdatedAt(new Date());
+    }
+    super.insert(tx, componentObligationAttribution);
+  }
+
+  @Override
+  public void update(TransactionContext tx, ComponentObligationAttribution componentObligationAttribution) {
+    componentObligationAttribution.setLastUpdatedAt(new Date());
+    super.update(tx, componentObligationAttribution);
   }
 }

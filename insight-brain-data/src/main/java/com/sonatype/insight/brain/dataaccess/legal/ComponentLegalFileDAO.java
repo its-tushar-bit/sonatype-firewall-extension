@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.legal;
 
+import java.util.Date;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -59,6 +60,20 @@ public class ComponentLegalFileDAO
     try (TransactionContext tx = createTransactionContext()) {
       return getByOwnerIdAndComponentIdentifier(tx, ownerId, componentIdentifier);
     }
+  }
+
+  @Override
+  public void insert(TransactionContext tx, ComponentLegalFile componentLegalFile) {
+    if (componentLegalFile.getLastUpdatedAt() == null) {
+      componentLegalFile.setLastUpdatedAt(new Date());
+    }
+    super.insert(tx, componentLegalFile);
+  }
+
+  @Override
+  public void update(TransactionContext tx, ComponentLegalFile componentLegalFile) {
+    componentLegalFile.setLastUpdatedAt(new Date());
+    super.update(tx, componentLegalFile);
   }
 
   @Override

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess.legal;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -17,6 +18,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
 
+import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -35,9 +37,11 @@ public class ComponentObligationDAOTest
   @Test
   public void testCRUD() {
     // Create
+    Date now = new Date();
     ComponentObligation componentObligation = new ComponentObligation(
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(), "name", "comment",
-        ObligationStatus.OPEN, "legalContentHash");
+        ObligationStatus.OPEN, "legalContentHash", "username");
+    componentObligation.setLastUpdatedAt(new Date(now.getTime() - 1));
     dao.insert(componentObligation);
     assertThat(componentObligation.getId()).isNotNull();
 
@@ -50,13 +54,44 @@ public class ComponentObligationDAOTest
     componentObligation.setObligationName(componentObligation.getObligationName() + "2");
     componentObligation.setComment(componentObligation.getComment() + "2");
     componentObligation.setStatus(ObligationStatus.FULFILLED);
+    componentObligation.setLastUpdatedByUsername("other");
+    componentObligation.setLastUpdatedAt(now);
     dao.update(componentObligation);
-    assertThat(dao.getById(componentObligation.getId())).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(dao.getById(componentObligation.getId())).usingRecursiveComparison(
+        RecursiveComparisonConfiguration.builder().withIgnoredFields(JPA.IGNORE_FIELDS).build())
         .isEqualTo(componentObligation);
 
     // Delete
     dao.delete(componentObligation);
     assertThat(dao.getById(componentObligation.getId())).isNull();
+  }
+
+  @Test
+  public void testInsert_SetsDateIfNull() {
+    ComponentObligation componentObligation = new ComponentObligation(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(), "name", "comment",
+        ObligationStatus.OPEN, "legalContentHash", "username");
+    componentObligation.setLastUpdatedAt(null);
+    Date now = new Date();
+
+    dao.insert(componentObligation);
+
+    assertThat(dao.getById(componentObligation.getId()).getLastUpdatedAt()).isAfterOrEqualTo(now);
+  }
+
+  @Test
+  public void testUpdate_SetsDate() {
+    Date now = new Date();
+    ComponentObligation componentObligation = new ComponentObligation(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(), "name", "comment",
+        ObligationStatus.OPEN, "legalContentHash", "username");
+    componentObligation.setLastUpdatedAt(new Date(now.getTime() - 1));
+    dao.insert(componentObligation);
+    assertThat(dao.getById(componentObligation.getId()).getLastUpdatedAt()).isBefore(now);
+
+    dao.update(componentObligation);
+
+    assertThat(dao.getById(componentObligation.getId()).getLastUpdatedAt()).isAfterOrEqualTo(now);
   }
 
   @Test

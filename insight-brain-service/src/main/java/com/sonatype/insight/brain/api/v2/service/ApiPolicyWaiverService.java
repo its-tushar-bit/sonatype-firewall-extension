@@ -250,7 +250,8 @@ public class ApiPolicyWaiverService
 
     Map<Boolean, List<ApiPolicyWaiverDTO>> applicableWaivers = getAllApplicableWaiversWithAuthzCheck(owner).stream()
         .filter(policyWaiver -> filterWaiverByCriteria(policyId, constraintFactsJson, hash, policyWaiver))
-        .map(policyWaiver -> ApiPolicyWaiverDTO.toDto(policyWaiver, ownerDAO.getById(policyWaiver.getOwnerId())))
+        .map(policyWaiver ->
+            ApiPolicyWaiverDTO.toDto(policyWaiver, ownerDAO.getById(policyWaiver.getOwnerId()), violationId))
         .collect(partitioningBy(dto -> hasWaiverExpired(dto.expiryTime), toList()));
 
     apiPolicyWaivers.activeWaivers = applicableWaivers.get(Boolean.FALSE);

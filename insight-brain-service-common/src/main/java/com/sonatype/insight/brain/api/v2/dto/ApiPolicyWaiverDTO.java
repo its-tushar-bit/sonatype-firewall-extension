@@ -23,6 +23,9 @@ public class ApiPolicyWaiverDTO
   @JsonInclude(Include.NON_EMPTY)
   public String policyWaiverId;
 
+  @JsonInclude(Include.NON_EMPTY)
+  public String policyViolationId;
+
   public String comment;
 
   @JsonInclude(Include.NON_EMPTY)
@@ -79,6 +82,13 @@ public class ApiPolicyWaiverDTO
       dto.scopeOwnerType = ScopeOwnerUtils.getScopeOwnerType(owner.getType(), owner.getId());
       dto.scopeOwnerName = owner.getName();
     }
+
+    return dto;
+  }
+
+  public static ApiPolicyWaiverDTO toDto(PolicyWaiver policyWaiver, Owner owner, String policyViolationId) {
+    ApiPolicyWaiverDTO dto = toDto(policyWaiver, owner);
+    dto.policyViolationId = policyViolationId;
 
     return dto;
   }

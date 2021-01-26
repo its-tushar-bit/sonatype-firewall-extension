@@ -680,7 +680,9 @@ public class ApiPolicyWaiverServiceTest
     tempEntity.newWaiver(null, policy2Id, appId, null, "", now.minusDays(1).toDate(), now.plusMinutes(1).toDate());
     tempEntity.newWaiver("hash", policy2Id, appId, constraintFacts, "", now.toDate(), now.minusMillis(1).toDate());
 
-    ApiPolicyWaiversApplicableToViolationDTO dto = apiPolicyWaiverService.getApplicableWaivers(violation.getId());
+    String policyViolationId = violation.getId();
+
+    ApiPolicyWaiversApplicableToViolationDTO dto = apiPolicyWaiverService.getApplicableWaivers(policyViolationId);
 
     // activeWaivers - results sorted to have deterministic ordering in the test
     List<ApiPolicyWaiverDTO> activeApplicableWaivers = dto.activeWaivers.stream()
@@ -688,16 +690,19 @@ public class ApiPolicyWaiverServiceTest
         .collect(Collectors.toList());
 
     assertThat(activeApplicableWaivers.size()).isEqualTo(3);
-    assertApiPolicyWaiverDTO("hash", policyId, orgId, "NewOrg", "", null, activeApplicableWaivers.get(0));
-    assertApiPolicyWaiverDTO(null, policyId, orgId, "NewOrg", "", null, activeApplicableWaivers.get(1));
-    assertApiPolicyWaiverDTO(null, policyId, appId, "NewApp", "A comment", expiringInFutureExpiryTime,
-        activeApplicableWaivers.get(2));
+    assertApiPolicyWaiverDTO("hash", policyId, orgId, "NewOrg", "", policyViolationId,
+        null, activeApplicableWaivers.get(0));
+    assertApiPolicyWaiverDTO(null, policyId, orgId, "NewOrg", "", policyViolationId,
+        null, activeApplicableWaivers.get(1));
+    assertApiPolicyWaiverDTO(null, policyId, appId, "NewApp", "A comment", policyViolationId,
+        expiringInFutureExpiryTime, activeApplicableWaivers.get(2));
 
     // expiredWaivers
     List<ApiPolicyWaiverDTO> expiredApplicableWaivers = dto.expiredWaivers;
 
     assertThat(expiredApplicableWaivers.size()).isEqualTo(1);
-    assertApiPolicyWaiverDTO("hash", policyId, appId, "NewApp", "", expiredExpiryTime, expiredApplicableWaivers.get(0));
+    assertApiPolicyWaiverDTO(
+        "hash", policyId, appId, "NewApp", "", policyViolationId, expiredExpiryTime, expiredApplicableWaivers.get(0));
   }
 
   private void assertNotExpiringPolicyWaiver(String ownerId, String comment, String hash) {

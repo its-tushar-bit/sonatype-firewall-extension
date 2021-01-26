@@ -19,6 +19,7 @@ public class ApiPolicyWaiverDTOTestUtils
       String ownerId,
       String ownerName,
       String comment,
+      String policyViolationId,
       final Date expiryTime,
       ApiPolicyWaiverDTO actual)
   {
@@ -28,5 +29,6 @@ public class ApiPolicyWaiverDTOTestUtils
     assertThat(actual.scopeOwnerName).isEqualTo(ownerName);
     assertThat(actual.comment).isEqualTo(comment);
     assertThat(actual.expiryTime).isEqualTo(expiryTime);
+    assertThat(actual.policyViolationId).isEqualTo(policyViolationId);
   }
 }

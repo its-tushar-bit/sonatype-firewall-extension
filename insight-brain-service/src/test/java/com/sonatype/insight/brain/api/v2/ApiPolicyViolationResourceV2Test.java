@@ -188,6 +188,7 @@ public class ApiPolicyViolationResourceV2Test
     String policy2Id = policy2.getId();
     String orgId = newOrg.getId();
     String appId = newApp.getId();
+    String violationId = violation.getId();
 
     Date expiredExpiryTime = now.minusMillis(1).toDate();
     Date expiringInFutureExpiryTime = now.plusMinutes(1).toDate();
@@ -218,9 +219,9 @@ public class ApiPolicyViolationResourceV2Test
         .collect(Collectors.toList());
 
     assertThat(activeApplicableWaivers.size()).isEqualTo(3);
-    assertApiPolicyWaiverDTO("hash", policyId, orgId, "NewOrg", "", null, activeApplicableWaivers.get(0));
-    assertApiPolicyWaiverDTO(null, policyId, orgId, "NewOrg", "", null, activeApplicableWaivers.get(1));
-    assertApiPolicyWaiverDTO(null, policyId, appId, "NewApp", "A comment", expiringInFutureExpiryTime,
+    assertApiPolicyWaiverDTO("hash", policyId, orgId, "NewOrg", "", violationId, null, activeApplicableWaivers.get(0));
+    assertApiPolicyWaiverDTO(null, policyId, orgId, "NewOrg", "", violationId, null, activeApplicableWaivers.get(1));
+    assertApiPolicyWaiverDTO(null, policyId, appId, "NewApp", "A comment", violationId, expiringInFutureExpiryTime,
         activeApplicableWaivers.get(2));
 
     List<ApiPolicyWaiverDTO> expiredApplicableWaivers = apiPolicyWaivers.expiredWaivers.stream()
@@ -228,6 +229,7 @@ public class ApiPolicyViolationResourceV2Test
         .collect(Collectors.toList());
 
     assertThat(expiredApplicableWaivers.size()).isEqualTo(1);
-    assertApiPolicyWaiverDTO("hash", policyId, appId, "NewApp", "", expiredExpiryTime, expiredApplicableWaivers.get(0));
+    assertApiPolicyWaiverDTO("hash", policyId, appId, "NewApp", "", violationId,
+        expiredExpiryTime, expiredApplicableWaivers.get(0));
   }
 }

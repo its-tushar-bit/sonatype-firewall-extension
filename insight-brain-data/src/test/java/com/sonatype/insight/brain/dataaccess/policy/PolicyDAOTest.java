@@ -456,6 +456,18 @@ public class PolicyDAOTest
   }
 
   @Test
+  public void testGetByIds() {
+    Policy policy1 = tempEntity.newPolicy(application);
+    Policy policy2 = tempEntity.newPolicy(organization);
+    tempEntity.newPolicy(application);
+
+    assertThat(policyDAO.getByIds(Collections.emptySet())).isEmpty();
+
+    assertThat(policyDAO.getByIds(Arrays.asList(policy1.getId(), policy2.getId(), "non-existent")))
+        .extracting(Policy::getId).containsExactlyInAnyOrder(policy1.getId(), policy2.getId());
+  }
+
+  @Test
   public void testGetByOwnerIds() {
     Policy appPolicy = tempEntity.newPolicy(application);
     tempEntity.newPolicy(organization);

@@ -45,6 +45,12 @@ public class PolicyInternalDAO
     }
   }
 
+  List<PolicyInternal> getByIds(Collection<String> ids) {
+    String sQuery = "SELECT entity FROM PolicyInternal entity" + //
+        " WHERE entity.id IN (?1)";
+    return getList(sQuery, ids);
+  }
+
   List<PolicyInternal> getByOwnerIds(Collection<String> ownerIds) {
     String sQuery = "SELECT entity FROM PolicyInternal entity" + //
         " WHERE entity.ownerId IN (?1)" + //

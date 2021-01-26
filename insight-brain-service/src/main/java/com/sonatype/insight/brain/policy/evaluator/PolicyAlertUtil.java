@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
@@ -22,6 +24,9 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.utils.ComponentFactUtil;
 
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
+
 public class PolicyAlertUtil
 {
   public static List<PolicyAlert> createPolicyAlerts(List<PolicyViolation> policyViolations,
@@ -29,13 +34,15 @@ public class PolicyAlertUtil
                                                      boolean forMonitoring,
                                                      boolean enableActions)
   {
+    Map<String, Policy> policiesById =
+        new PolicyDAO().getByIds(policyViolations.stream().map(PolicyViolation::getPolicyId).collect(toSet())).stream()
+            .collect(toMap(Policy::getId, Function.identity()));
     List<PolicyAlert> result = new ArrayList<>();
-    PolicyDAO policyDAO = new PolicyDAO();
     for (PolicyViolation policyViolation : policyViolations) {
       String policyId = policyViolation.getPolicyId();
       PolicyFact policyFact = new PolicyFact(policyId, policyViolation.getPolicyName(),
           policyViolation.getThreatLevel(), policyViolation.getId());
-      Policy policy = policyDAO.getById(policyId);
+      Policy policy = policiesById.get(policyId);
       List<Action> actions;
       if (policy == null || !enableActions) {
         actions = Collections.emptyList();

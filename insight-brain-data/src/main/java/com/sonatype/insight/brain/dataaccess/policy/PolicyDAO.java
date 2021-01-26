@@ -53,6 +53,10 @@ public class PolicyDAO
     return PolicyInternal.toPolicy(policyInternalDAO.getByIdNotNull(id));
   }
 
+  public List<Policy> getByIds(Collection<String> ids) {
+    return PolicyInternal.toPolicies(policyInternalDAO.getByIds(ids));
+  }
+
   public List<Policy> getByOwnerId(final String ownerId) {
     return PolicyInternal.toPolicies(policyInternalDAO.getByOwnerId(ownerId));
   }

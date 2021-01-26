@@ -34,7 +34,6 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediation
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
-import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentLicenses;
@@ -137,15 +136,11 @@ public class ComponentInfoServiceTest
   @Mock
   private ThirdPartyComponentDAO thirdPartyComponentDAO;
 
-  @Mock
-  private LicenseDAO licenseDAO;
-
   @Override
   public void configure(Binder binder) {
     binder.bind(ProductLicense.class).toInstance(productLicenseMock);
     binder.bind(HdsClient.class).toInstance(hdsClientMock);
     binder.bind(ThirdPartyComponentDAO.class).toInstance(thirdPartyComponentDAO);
-    binder.bind(LicenseDAO.class).toInstance(licenseDAO);
     super.configure(binder);
   }
 

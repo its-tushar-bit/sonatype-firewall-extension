@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -713,11 +714,15 @@ public class ComponentInfoService
     List<LicenseWithThreatLevel> result = new ArrayList<>();
 
     if (multiLicenses != null) {
+      Set<String> alreadyProcessedLicenseIds = new HashSet<>();
       MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
       for (License multiLicense : multiLicenses) {
         Set<com.sonatype.insight.brain.model.license.License> licenses = multiLicenseDAO
             .getLicensesByMultiLicenseIdNotNull(multiLicense.getLicenseId());
         for (com.sonatype.insight.brain.model.license.License license : licenses) {
+          if (!alreadyProcessedLicenseIds.add(license.getId())) {
+            continue;
+          }
           LicenseWithThreatLevel licenseWithThreatLevel = getLicenseWithThreatLevel(owner, license);
           result.add(licenseWithThreatLevel);
         }

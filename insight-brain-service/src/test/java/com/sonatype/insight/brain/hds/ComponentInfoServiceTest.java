@@ -502,6 +502,24 @@ public class ComponentInfoServiceTest
     assertLicenses(licenses.effectiveLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
   }
 
+  @Test
+  public void testGetLicenses_DeduplicationOfLicenses() throws Exception {
+    NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
+    hdsComponentDetails.setDeclaredLicenses(toLicenseSet("LGPL-2.1", "LGPL-2.1+", "Apache-2.0-LGPL-2.1"));
+    hdsComponentDetails.setObservedLicenses(toLicenseSet("LGPL-2.1", "LGPL-2.1+", "Apache-2.0-LGPL-2.1"));
+    mockHdsGetComponentDetails(hdsComponentDetails);
+
+    ComponentLicenses licenses = componentInfoService.getLicenses(OwnerType.APPLICATION, applicationPublicId,
+        MAVEN_A1_COORDINATES, httpRequestMock, null, null);
+
+    assertLicenses(licenses.declaredlicenses, tuple("LGPL-2.1", "LGPL-2.1", 2), tuple("LGPL-3.0", "LGPL-3.0", 2),
+        tuple("Apache-2.0", "Apache-2.0", 0));
+    assertLicenses(licenses.observedlicenses, tuple("LGPL-2.1", "LGPL-2.1", 2), tuple("LGPL-3.0", "LGPL-3.0", 2),
+        tuple("Apache-2.0", "Apache-2.0", 0));
+    assertLicenses(licenses.effectiveLicenses, tuple("LGPL-2.1", "LGPL-2.1", 2), tuple("LGPL-3.0", "LGPL-3.0", 2),
+        tuple("Apache-2.0", "Apache-2.0", 0));
+  }
+
   private void assertLicenses(Iterable<LicenseWithThreatLevel> actual, Tuple... tuples) {
     assertThat(actual).extracting(lwtl -> lwtl.license.getLicenseId(), lwtl -> lwtl.license.getLicenseName(),
         lwtl -> lwtl.threatLevel).containsExactlyInAnyOrder(tuples);

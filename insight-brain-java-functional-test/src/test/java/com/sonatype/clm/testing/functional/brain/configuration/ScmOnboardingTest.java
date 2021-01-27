@@ -472,6 +472,39 @@ public class ScmOnboardingTest
   }
 
   @Test
+  public void testSelection_resetAfterPageFlip() throws Exception {
+    // given an SCM with enough git repos to require pagination
+    mockRepoForPage(0, getResourceAsString("/ScmOnboardingTest/mixedOrderRepos.json"));
+    mockRepoForPage(1, "[]");
+    setupSourceControl();
+
+    // given SCM onboarding page with a selected organization
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
+    loginAsAdmin();
+
+    // update the default host URL
+    updateHostUrl(scmOnboardingPage);
+    scmOnboardingPage.reloadRepoButton().shouldBe(enabled).click();
+
+    // when select all is clicked
+    scmOnboardingPage.repositoryCount().shouldBe(text("20"));
+    scmOnboardingPage.resultsTableSelectAll().parent().click();
+
+    // then selected count is updated to be the max # of repos/page, not all repos
+    scmOnboardingPage.selectedRepositoryCount().shouldBe(text("15"));
+
+    // when we flip pages
+    scmOnboardingPage.paginationButtons().get(1).click();
+
+    // then selections are reset
+    scmOnboardingPage.selectedRepositoryCount().shouldBe(text("0"));
+
+    // and the Select All state is reset
+    scmOnboardingPage.resultsTableSelectAll().shouldNotBe(checked);
+  }
+
+  @Test
   public void testSelection_subset() throws Exception {
     // given an SCM with git repos
     setupMockRepos();

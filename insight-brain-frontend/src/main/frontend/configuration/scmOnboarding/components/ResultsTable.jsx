@@ -66,10 +66,10 @@ export default function ResultsTable(props) {
     return page === undefined ? 0 : page;
   }
 
-  function getPagedRepos() {
+  const currentPagedRepos = useMemo(() => {
     let currentPage = getDefinedPage();
     return filteredRepos.slice(currentPage * maxRowsPerPage, (currentPage + 1) * maxRowsPerPage);
-  }
+  }, [page, filteredRepos]);
 
   function getCurrentPage() {
     if (getPageCount() <= 0) {
@@ -77,6 +77,13 @@ export default function ResultsTable(props) {
     }
     let currentPage = getDefinedPage();
     return Math.max(Math.min(currentPage, getPageCount() - 1), 0);
+  }
+
+  function setCurrentPage(newPage) {
+    // when page is changed, reset selections
+    setSelectedRepositories([]);
+    setIsAllChecked(false);
+    setPage(newPage);
   }
 
   function canRenderPagination() {
@@ -132,7 +139,7 @@ export default function ResultsTable(props) {
 
   function toggleSelectAll() {
     setIsAllChecked(!isAllChecked);
-    setSelectedRepositories(repositories.filter(repo => isRepositorySelectedByFilter(repo) && !isAllChecked));
+    setSelectedRepositories(currentPagedRepos.filter(() => !isAllChecked));
   }
 
   function changeFilter(filterName, filterValue) {
@@ -217,7 +224,7 @@ export default function ResultsTable(props) {
                 </NxTableRow>
               </NxTableHead>
               <NxTableBody emptyMessage="No matching repositories.">
-                { getPagedRepos().map(repo =>
+                { currentPagedRepos.map(repo =>
                   <RepositoryRow repo={repo}
                                  key={repo.httpCloneUrl}
                                  rowKey={repo.httpCloneUrl}
@@ -228,7 +235,7 @@ export default function ResultsTable(props) {
             </NxTable>
             {canRenderPagination() &&
             <div className='nx-table-container__footer'>
-              <NxPagination onChange={setPage} pageCount={getPageCount()} currentPage={getCurrentPage()}/>
+              <NxPagination onChange={setCurrentPage} pageCount={getPageCount()} currentPage={getCurrentPage()}/>
             </div>
             }
           </div>

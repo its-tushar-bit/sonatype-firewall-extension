@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.scheduler;
 
+import java.sql.Connection;
 import java.util.Date;
 import java.util.List;
 
@@ -43,15 +44,18 @@ public class QuartzPostgreSQLDelegateTest
       String instanceId = "me";
       QuartzPostgreSQLDelegate quartzPostgreSQLDelegate = createQuartzPostgreSQLDelegate(instanceId);
       JobDetail job = JobBuilder.newJob(TestJob.class).build();
-      quartzPostgreSQLDelegate.insertJobDetail(OperationalDataStoreProvider.getDataSource().getConnection(), job);
+      try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection()) {
+        quartzPostgreSQLDelegate.insertJobDetail(connection, job);
+      }
       Trigger triggerForMe = createAndPersistTrigger(quartzPostgreSQLDelegate, job, instanceId, new Date());
       createAndPersistTrigger(quartzPostgreSQLDelegate, job, "other1", new Date());
       Trigger staleTriggerForOther = createAndPersistTrigger(quartzPostgreSQLDelegate, job, "other2",
           new Date(System.currentTimeMillis() - (StdJDBCDelegateUtils.ORPHANED_MILLIS + 1)));
 
-      List<TriggerKey> triggerKeys =
-          quartzPostgreSQLDelegate.selectTriggerToAcquire(OperationalDataStoreProvider.getDataSource().getConnection(),
-              Long.MAX_VALUE, 0, Integer.MAX_VALUE);
+      List<TriggerKey> triggerKeys;
+      try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection()) {
+        triggerKeys = quartzPostgreSQLDelegate.selectTriggerToAcquire(connection, Long.MAX_VALUE, 0, Integer.MAX_VALUE);
+      }
 
       assertThat(triggerKeys).extracting(Key::getName)
           .containsExactlyInAnyOrder(triggerForMe.getKey().getName(), staleTriggerForOther.getKey().getName());
@@ -82,8 +86,9 @@ public class QuartzPostgreSQLDelegateTest
     assertThat(trigger).isInstanceOf(OperableTrigger.class);
     OperableTrigger operableTrigger = (OperableTrigger) trigger;
     operableTrigger.setNextFireTime(nextFireTime);
-    stdJDBCDelegate.insertTrigger(OperationalDataStoreProvider.getDataSource().getConnection(), operableTrigger,
-        Constants.STATE_WAITING, job);
+    try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection()) {
+      stdJDBCDelegate.insertTrigger(connection, operableTrigger, Constants.STATE_WAITING, job);
+    }
     return trigger;
   }
 }

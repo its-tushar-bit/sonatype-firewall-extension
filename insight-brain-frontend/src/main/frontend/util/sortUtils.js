@@ -46,3 +46,12 @@ export const sortItemsByFields = curry(function sortItemsByFields(sortFields, en
     return entries;
   }
 });
+
+export const extractSortFieldName = (orderedField) => {
+  if (orderedField && orderedField.indexOf('-') === 0) {
+    return orderedField.substring(1);
+  }
+  else {
+    return orderedField;
+  }
+};

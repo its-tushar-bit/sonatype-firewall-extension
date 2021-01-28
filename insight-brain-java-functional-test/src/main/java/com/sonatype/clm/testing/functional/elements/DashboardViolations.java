@@ -11,6 +11,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
@@ -18,13 +19,13 @@ public class DashboardViolations
 {
   private static final String ROOT = "#dashboard-violations";
 
-  public static final Condition CRITICAL = Condition.cssClass("critical");
+  public static final Condition CRITICAL = Condition.cssClass("nx-threat-indicator--critical");
 
-  public static final Condition SEVERE = Condition.cssClass("severe");
+  public static final Condition SEVERE = Condition.cssClass("nx-threat-indicator--severe");
 
-  public static final Condition MODERATE = Condition.cssClass("moderate");
+  public static final Condition MODERATE = Condition.cssClass("nx-threat-indicator--moderate");
 
-  public static final Condition LOW = Condition.cssClass("low");
+  public static final Condition LOW = Condition.cssClass("nx-threat-indicator--low");
 
   public ViolationsHeaders headers() {
     return new ViolationsHeaders();
@@ -38,23 +39,23 @@ public class DashboardViolations
       extends BasicElement<ViolationsResults>
   {
     ViolationsResults() {
-      super(ROOT, ".iq-tile--dashboard-table-container");
+      super(ROOT, ".iq-dashboard-violation-entries");
     }
 
     public ElementsCollection violations() {
-      return children("tr[violations-table-row]");
+      return children(".iq-dashboard-violation");
     }
 
     public ViolationTile violation(int index) {
-      return new ViolationTile(childSelector(createSelector("tr[violations-table-row]", nthChild(index + 1))));
+      return new ViolationTile(childSelector(createSelector(".iq-dashboard-violation", nthChild(index + 1))));
     }
 
     public ViolationTile firstViolation() {
-      return new ViolationTile(childSelector("tr[violations-table-row]:first-child"));
+      return new ViolationTile(childSelector(".iq-dashboard-violation:first-child"));
     }
 
     public ViolationTile lastViolation() {
-      return new ViolationTile(childSelector("tr[violations-table-row]:last-of-type"));
+      return new ViolationTile(createSelector(".iq-dashboard-violation", nthChild(violations().size())));
     }
 
     public SelenideElement maxResultsMessage() {
@@ -62,11 +63,11 @@ public class DashboardViolations
     }
 
     public SelenideElement noDataMessage() {
-      return child("#dashboard-common-results-no-data");
+      return child(".nx-table-row:last-child");
     }
 
     public SelenideElement mask() {
-      return child(".form-mask");
+      return $(".form-mask");
     }
   }
 
@@ -74,27 +75,27 @@ public class DashboardViolations
       extends BasicElement<ViolationsHeaders>
   {
     public ViolationsHeaders() {
-      super(ROOT, ".iq-dashboard-headers");
+      super(ROOT, ".nx-table-row--header");
     }
 
-    public IqSortingHeader threatHeader() {
-      return new IqSortingHeader(childSelector(".iq-cell--threat a"));
+    public NxSortingHeader threatHeader() {
+      return new NxSortingHeader(childSelector(createSelector(".nx-cell--header", nthChild(1))));
     }
 
-    public IqSortingHeader policyHeader() {
-      return new IqSortingHeader(childSelector(".iq-cell--policy a"));
+    public NxSortingHeader policyHeader() {
+      return new NxSortingHeader(childSelector(createSelector(".nx-cell--header", nthChild(2))));
     }
 
-    public IqSortingHeader applicationHeader() {
-      return new IqSortingHeader(childSelector(".iq-cell--application a"));
+    public NxSortingHeader applicationHeader() {
+      return new NxSortingHeader(childSelector(createSelector(".nx-cell--header", nthChild(3))));
     }
 
-    public IqSortingHeader componentHeader() {
-      return new IqSortingHeader(childSelector(".iq-cell--component a"));
+    public NxSortingHeader componentHeader() {
+      return new NxSortingHeader(childSelector(createSelector(".nx-cell--header", nthChild(4))));
     }
 
-    public IqSortingHeader ageHeader() {
-      return new IqSortingHeader(childSelector(".iq-cell--age a"));
+    public NxSortingHeader ageHeader() {
+      return new NxSortingHeader(childSelector(createSelector(".nx-cell--header", nthChild(5))));
     }
   }
 
@@ -106,35 +107,35 @@ public class DashboardViolations
     }
 
     public SelenideElement threatCell() {
-      return child(".iq-cell--threat");
+      return child(".iq-threat-cell");
     }
 
-    public SelenideElement threatBar() {
-      return child(".iq-cell--threat .iq-threat-indication");
+    public SelenideElement threatIndicator() {
+      return child(".iq-threat-cell .nx-threat-indicator");
     }
 
     public SelenideElement threatNumber() {
-      return child(".iq-cell--threat .iq-threat-number");
+      return child(".iq-threat-cell .nx-threat-number");
     }
 
     public SelenideElement policy() {
-      return child(".iq-cell--policy");
+      return child(".iq-policy-cell");
     }
 
     public SelenideElement application() {
-      return child(".iq-cell--application");
+      return child(createSelector(".nx-cell", nthChild(3)));
     }
 
     public SelenideElement component() {
-      return child(".iq-cell--component");
+      return child(createSelector(".nx-cell", nthChild(4)));
     }
 
     public SelenideElement age() {
-      return child(".iq-cell--age");
+      return child(createSelector(".nx-cell", nthChild(5)));
     }
 
     public SelenideElement chevron() {
-      return child(".iq-cell--chevron");
+      return child(createSelector(".nx-cell", nthChild(6)));
     }
 
     public SelenideElement componentEllipsis() {

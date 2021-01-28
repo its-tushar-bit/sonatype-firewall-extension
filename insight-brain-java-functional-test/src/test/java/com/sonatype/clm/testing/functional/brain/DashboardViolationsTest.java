@@ -213,7 +213,7 @@ public class DashboardViolationsTest
 
     // check the tile details - tooltips should not show for short names
     ViolationTile firstViolation = table.firstViolation();
-    firstViolation.threatBar().shouldHave(SEVERE);
+    firstViolation.threatIndicator().shouldHave(SEVERE);
     firstViolation.threatNumber().shouldHave(text("7"));
     firstViolation.policy().shouldHave(text(licensePolicy.getName())).hover();
     Tooltip.get().shouldBe(hidden);
@@ -511,7 +511,7 @@ public class DashboardViolationsTest
     table.maxResultsMessage().shouldBe(visible);
 
     // by default should be sorted by time desc, threat desc
-    headers.ageHeader().sortArrowUp().shouldBeSelected();
+    headers.ageHeader().sortArrows().shouldBeUp();
     table.firstViolation().age().shouldHave(text("1min"));
     table.firstViolation().threatNumber().shouldHave(text("3"));
 
@@ -526,7 +526,8 @@ public class DashboardViolationsTest
 
     // sort by time asc, threat desc
     headers.ageHeader().click();
-    headers.ageHeader().sortArrowDown().shouldBeSelected();
+    headers.ageHeader().sortArrows().shouldBeDown();
+
     table.firstViolation().age().shouldHave(text("2d"));
     table.firstViolation().threatNumber().shouldHave(text("5"));
 
@@ -577,7 +578,7 @@ public class DashboardViolationsTest
 
     // sort by threat desc, time desc
     headers.threatHeader().click();
-    headers.threatHeader().sortArrowDown().shouldBeSelected();
+    headers.threatHeader().sortArrows().shouldBeDown();;
     table.firstViolation().threatNumber().shouldHave(text("4"));
     table.firstViolation().age().shouldHave(text("1min"));
 
@@ -592,7 +593,7 @@ public class DashboardViolationsTest
 
     // sort by threat asc, time desc
     headers.threatHeader().click();
-    headers.threatHeader().sortArrowUp().shouldBeSelected();
+    headers.threatHeader().sortArrows().shouldBeUp();
     table.firstViolation().threatNumber().shouldHave(text("2"));
     table.firstViolation().age().shouldHave(text("1min"));
 
@@ -635,7 +636,7 @@ public class DashboardViolationsTest
 
     // sort by policy asc, time desc
     headers.policyHeader().click();
-    headers.policyHeader().sortArrowUp().shouldBeSelected();
+    headers.policyHeader().sortArrows().shouldBeUp();
     table.firstViolation().policy().shouldHave(text(licensePolicy.getName()));
     table.firstViolation().age().shouldHave(text("1min"));
 
@@ -650,7 +651,7 @@ public class DashboardViolationsTest
 
     // sort by policy desc, time desc
     headers.policyHeader().click();
-    headers.policyHeader().sortArrowDown().shouldBeSelected();
+    headers.policyHeader().sortArrows().shouldBeDown();
     table.firstViolation().policy().shouldHave(text(securityPolicy.getName()));
     table.firstViolation().age().shouldHave(text("1min"));
 
@@ -691,7 +692,7 @@ public class DashboardViolationsTest
 
     // sort by application asc, threat desc
     headers.applicationHeader().click();
-    headers.applicationHeader().sortArrowUp().shouldBeSelected();
+    headers.applicationHeader().sortArrows().shouldBeUp();
     table.firstViolation().application().shouldHave(text(app1.getName()));
     table.firstViolation().threatNumber().shouldHave(text("5"));
 
@@ -706,7 +707,7 @@ public class DashboardViolationsTest
 
     // sort by application desc, threat desc
     headers.applicationHeader().click();
-    headers.applicationHeader().sortArrowDown().shouldBeSelected();
+    headers.applicationHeader().sortArrows().shouldBeDown();
     table.firstViolation().application().shouldHave(text(app2.getName()));
     table.firstViolation().threatNumber().shouldHave(text("5"));
 
@@ -750,7 +751,7 @@ public class DashboardViolationsTest
 
     // sort by component name asc, threat desc
     headers.componentHeader().click();
-    headers.componentHeader().sortArrowUp().shouldBeSelected();
+    headers.componentHeader().sortArrows().shouldBeUp();
     table.firstViolation().component().shouldHave(text("group1"));
     table.firstViolation().threatNumber().shouldHave(text("5"));
 
@@ -768,7 +769,7 @@ public class DashboardViolationsTest
 
     // sort by component name desc, threat desc
     headers.componentHeader().click();
-    headers.componentHeader().sortArrowDown().shouldBeSelected();
+    headers.componentHeader().sortArrows().shouldBeDown();
     table.firstViolation().component().shouldHave(text("group2"));
     table.firstViolation().threatNumber().shouldHave(text("5"));
 

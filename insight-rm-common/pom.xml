@@ -199,6 +199,7 @@
                     <exclude>org.slf4j.**</exclude>
                     <exclude>org.w3c.**</exclude>
                     <exclude>org.xml.**</exclude>
+                    <exclude>org.codehaus.groovy.**</exclude>
                   </excludes>
                 </relocation>
               </relocations>

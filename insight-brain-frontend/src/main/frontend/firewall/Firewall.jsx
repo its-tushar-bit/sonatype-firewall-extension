@@ -16,8 +16,8 @@ export default function Firewall(props) {
 
   // viewState
   const {
-    loadingStatus,
-    loadStatusError: loadErrorProp
+    loadedStatus,
+    loadStatusError
   } = props;
 
   // configurationState
@@ -25,7 +25,7 @@ export default function Firewall(props) {
     isEnabled
   } = props;
 
-  const loadStatusError = isEnabled ? loadErrorProp : 'The Firewall feature is disabled';
+  const error = loadedStatus && !isEnabled ? 'The Firewall feature is disabled' : loadStatusError;
 
   useEffect(() => {
     loadStatus();
@@ -33,7 +33,7 @@ export default function Firewall(props) {
 
   return (
     <main id="firewall-page" className="nx-page-main">
-      <LoadWrapper loading={loadingStatus} error={loadStatusError} retryHandler={loadStatus}>
+      <LoadWrapper loading={!loadedStatus} error={error} retryHandler={loadStatus}>
         <div className="nx-page-title">
           <h1 className="nx-h1" id="firewall-page-title">Firewall</h1>
         </div>
@@ -44,7 +44,7 @@ export default function Firewall(props) {
 
 Firewall.propTypes = {
   loadStatus: PropTypes.func.isRequired,
-  loadingStatus: PropTypes.bool.isRequired,
+  loadedStatus: PropTypes.bool.isRequired,
   loadStatusError: PropTypes.object,
   isEnabled: PropTypes.bool.isRequired
 };

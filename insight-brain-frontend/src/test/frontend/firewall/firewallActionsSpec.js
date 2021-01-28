@@ -19,7 +19,7 @@ describe('firewallActions', function() {
       state = {
         firewall: {
           viewState: {
-            loadingStatus: true,
+            loadedStatus: false,
             loadStatusError: null
           },
           configurationState: {

@@ -25,7 +25,7 @@ describe('firewallReducer', function() {
       const newState = reduce(undefined, action);
 
       // viewState
-      expect(newState.viewState.loadingStatus).toBe(false);
+      expect(newState.viewState.loadedStatus).toBe(false);
       expect(newState.viewState.loadStatusError).toBeNull();
 
       //configurationState
@@ -53,7 +53,7 @@ describe('firewallReducer', function() {
         type: 'FIREWALL_LOAD_STATUS_REQUESTED'
       });
       // viewState
-      expect(newState.viewState.loadingStatus).toBe(true);
+      expect(newState.viewState.loadedStatus).toBe(false);
       expect(newState.viewState.loadStatusError).toBeNull();
       //configurationState
       expect(newState.configurationState.isEnabled).toBeFalsy();
@@ -66,7 +66,7 @@ describe('firewallReducer', function() {
         other: otherObject,
         viewState: {
           other: otherObject,
-          loadingStatus: true,
+          loadedStatus: false,
           loadStatusError: 'error!'
         },
         configurationState: {
@@ -81,7 +81,7 @@ describe('firewallReducer', function() {
         type: 'FIREWALL_LOAD_STATUS_FULFILLED',
         payload: payload
       });
-      expect(newState.viewState.loadingStatus).toBe(false);
+      expect(newState.viewState.loadedStatus).toBe(true);
       expect(newState.viewState.loadStatusError).toBeNull();
       //configurationState
       expect(newState.configurationState.isEnabled).toBe(true);
@@ -98,7 +98,7 @@ describe('firewallReducer', function() {
         other: otherObject,
         viewState: {
           other: otherObject,
-          loadingStatus: true,
+          loadedStatus: false,
           loadStatusError: null
         },
         configurationState: {
@@ -110,7 +110,7 @@ describe('firewallReducer', function() {
         type: 'FIREWALL_LOAD_STATUS_FAILED',
         payload: 'error!'
       });
-      expect(newState.viewState.loadingStatus).toBe(false);
+      expect(newState.viewState.loadedStatus).toBe(true);
       expect(newState.viewState.loadStatusError).toBe('error!');
       //configurationState
       expect(newState.configurationState.isEnabled).toBe(false);

@@ -13,7 +13,7 @@ import {
 
 const initialState = Object.freeze({
   viewState: Object.freeze({
-    loadingStatus: false,
+    loadedStatus: false,
     loadStatusError: null
   }),
   configurationState: Object.freeze({
@@ -21,16 +21,9 @@ const initialState = Object.freeze({
   })
 });
 
-function loadStatusRequested(payload, state) {
+function loadStatusRequested() {
   return {
-    ...initialState,
-    viewState: {
-      ...initialState.viewState,
-      loadingStatus: true
-    },
-    configurationState: {
-      ...state.configurationState
-    }
+    ...initialState
   };
 }
 
@@ -39,7 +32,7 @@ function loadStatusFulfilled(payload, state) {
     ...state,
     viewState: {
       ...state.viewState,
-      loadingStatus: false,
+      loadedStatus: true,
       loadStatusError: null
     },
     configurationState: {
@@ -54,7 +47,7 @@ function loadStatusFailed(payload, state) {
     ...state,
     viewState: {
       ...state.viewState,
-      loadingStatus: false,
+      loadedStatus: true,
       loadStatusError: payload
     }
   };

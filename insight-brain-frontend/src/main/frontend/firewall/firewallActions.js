@@ -5,14 +5,14 @@
  */
 import axios from 'axios';
 
-import {payloadParamActionCreator} from '../util/reduxUtil';
+import {noPayloadActionCreator, payloadParamActionCreator} from '../util/reduxUtil';
 import {getFirewallConfigUrl} from '../util/CLMLocation';
 
 export const FIREWALL_LOAD_STATUS_REQUESTED = 'FIREWALL_LOAD_STATUS_REQUESTED';
 export const FIREWALL_LOAD_STATUS_FULFILLED = 'FIREWALL_LOAD_STATUS_FULFILLED';
 export const FIREWALL_LOAD_STATUS_FAILED = 'FIREWALL_LOAD_STATUS_FAILED';
 
-const loadStatusRequested = payloadParamActionCreator(FIREWALL_LOAD_STATUS_REQUESTED);
+const loadStatusRequested = noPayloadActionCreator(FIREWALL_LOAD_STATUS_REQUESTED);
 const loadStatusFulfilled = payloadParamActionCreator(FIREWALL_LOAD_STATUS_FULFILLED);
 const loadStatusFailed = payloadParamActionCreator(FIREWALL_LOAD_STATUS_FAILED);
 

@@ -39,7 +39,6 @@ export const SCM_ONBOARDING_IMPORT_REPOS_FAILED = 'SCM_ONBOARDING_IMPORT_REPOS_F
 export const SCM_ONBOARDING_SET_TARGET_ORGANIZATION = 'SCM_ONBOARDING_SET_TARGET_ORGANIZATION';
 
 export const SCM_ONBOARDING_SET_SORTING_PARAMETERS = 'SCM_ONBOARDING_SET_SORTING_PARAMETERS';
-export const SCM_ONBOARDING_SET_SORTING = 'SCM_ONBOARDING_SET_SORTING';
 
 export const SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_REQUESTED = 'SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_REQUESTED';
 export const SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FULFILLED = 'SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FULFILLED';
@@ -132,8 +131,9 @@ export function importSelectedRepositories(orgId, totalRepoCount, prevImportedCo
 }
 
 export function setSortingParameters(key, sortFields, dir) {
-  return function(dispatch) {
-    return dispatch(setSortingParamDispatch({key, sortFields, dir}));
+  return {
+    type: SCM_ONBOARDING_SET_SORTING_PARAMETERS,
+    payload: { key: key, sortFields: sortFields, dir: dir }
   };
 }
 
@@ -157,9 +157,6 @@ const importSelectedRepositoriesRequested = noPayloadActionCreator(SCM_ONBOARDIN
 const importSelectedRepositoriesFulfilled = payloadParamActionCreator(SCM_ONBOARDING_IMPORT_REPOS_FULFILLED);
 const importSelectedRepositoriesFailed = payloadParamActionCreator(SCM_ONBOARDING_IMPORT_REPOS_FAILED);
 
-export const setSorting = payloadParamActionCreator(SCM_ONBOARDING_SET_SORTING);
-const setSortingParamDispatch = payloadParamActionCreator(SCM_ONBOARDING_SET_SORTING_PARAMETERS);
-
 const validateScmHostUrlRequested = noPayloadActionCreator(SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_REQUESTED);
 const validateScmHostUrlFulfilled = payloadParamActionCreator(
     SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FULFILLED);
@@ -175,7 +172,6 @@ export default function scmOnboarding() {
     loadRepositories,
     onRepositorySelectionChanged,
     importSelectedRepositories,
-    setSortingParameters,
-    setSorting
+    setSortingParameters
   };
 }

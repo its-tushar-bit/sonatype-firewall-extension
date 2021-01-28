@@ -148,6 +148,10 @@ public class ScmOnboardingPage
     return child("#namespace-header");
   }
 
+  public SelenideElement namespaceHeaderSort() {
+    return child("#namespace-header span");
+  }
+
   public SelenideElement descriptionHeader() {
     return child("#description-header");
   }

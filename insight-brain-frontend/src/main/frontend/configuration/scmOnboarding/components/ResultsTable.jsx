@@ -34,7 +34,6 @@ export default function ResultsTable(props) {
     sortConfiguration,
 
     // actions
-    setSorting,
     setSortingParameters,
     importSelectedRepositories,
     loadRepositories
@@ -128,7 +127,6 @@ export default function ResultsTable(props) {
       sortingOrder[0] = sortingOrder[0].substring(1);
     }
     setSortingParameters(settings.key, sortingOrder, direction);
-    setSorting(sortingOrder, repositories);
   }
 
   function isRepositorySelectedByFilter(repository) {
@@ -281,7 +279,6 @@ ResultsTable.propTypes = {
   }),
 
   // actions
-  setSorting: PropTypes.func,
   setSortingParameters: PropTypes.func,
   onRepositorySelectionChanged: PropTypes.func.isRequired,
   importSelectedRepositories: PropTypes.func.isRequired,

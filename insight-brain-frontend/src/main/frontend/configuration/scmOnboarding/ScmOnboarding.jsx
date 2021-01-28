@@ -26,7 +26,6 @@ export default function ScmOnboarding(props) {
     sortConfiguration,
 
     // actions
-    setSorting,
     setSortingParameters,
     loadPage,
     loadRepositories,
@@ -213,7 +212,6 @@ export default function ScmOnboarding(props) {
                 loadRepositories,
                 preselectedOrganizationId,
                 sortConfiguration,
-                setSorting,
                 setSortingParameters
               }} />);
             </LoadWrapper>
@@ -281,7 +279,6 @@ ScmOnboarding.propTypes = {
   }),
 
   // actions
-  setSorting: PropTypes.func,
   setSortingParameters: PropTypes.func,
   loadPage: PropTypes.func.isRequired,
   importSelectedRepositories: PropTypes.func.isRequired,

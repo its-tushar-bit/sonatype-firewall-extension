@@ -17,7 +17,6 @@ import {
   SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED,
   SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED,
   SCM_ONBOARDING_SET_CURRENT_HOST_URL,
-  SCM_ONBOARDING_SET_SORTING,
   SCM_ONBOARDING_SET_SORTING_PARAMETERS,
   SCM_ONBOARDING_SET_TARGET_ORGANIZATION,
   SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FAILED,
@@ -28,6 +27,8 @@ import {sortItemsByFields} from '../../util/sortUtils';
 import * as textInputStateHelpers from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
 import {validateHostUrl} from './utils/validators';
 import {hasValidationErrors} from '../../util/validationUtil';
+import { over, lensPath } from 'ramda';
+import { propSet } from '../../util/jsUtil';
 
 const initialState = {
   configState: {
@@ -260,21 +261,11 @@ function importRepositoriesFailed(payload, state) {
 }
 
 function setSortingParameters(payload, state) {
-  return {
-    ...state,
-    sortConfiguration: payload
-  };
-}
+  const { sortFields } = payload;
 
-function setSorting(payload, state) {
-  let newEntries = sortItemsByFields(state.sortConfiguration.sortFields, state.formState.repositories);
-  return {
-    ...state,
-    formState: {
-      ...state.formState,
-      repositories: newEntries
-    }
-  };
+  // set sortConfiguration and sort repositories
+  return over(lensPath(['formState', 'repositories']), sortItemsByFields(sortFields),
+      propSet('sortConfiguration', payload, state));
 }
 
 function validateScmHostUrlRequested(payload, state) {
@@ -355,7 +346,6 @@ const reducerActionMap = {
   [SCM_ONBOARDING_SET_CURRENT_HOST_URL]: setCurrentHostUrl,
 
   [SCM_ONBOARDING_SET_SORTING_PARAMETERS]: setSortingParameters,
-  [SCM_ONBOARDING_SET_SORTING]: setSorting,
 
   [SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_REQUESTED]: validateScmHostUrlRequested,
   [SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FULFILLED]: validateScmHostUrlFulfilled,

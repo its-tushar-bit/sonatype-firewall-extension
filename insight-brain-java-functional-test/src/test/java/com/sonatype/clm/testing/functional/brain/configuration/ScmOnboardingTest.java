@@ -35,6 +35,7 @@ import org.junit.Test;
 import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.CollectionCondition.exactTexts;
+import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.checked;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.enabled;
@@ -822,6 +823,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
 
     // then the repos are initially sorted by namespace first and project second
+    scmOnboardingPage.namespaceHeader().shouldHave(attribute("aria-sort", "ascending"));
     List<String> namespaceTexts = scmOnboardingPage.resultsTableNamespace().texts();
     assertThat(namespaceTexts).isSorted();
 
@@ -835,7 +837,12 @@ public class ScmOnboardingTest
         "a", "b", "c", "d", "dupe-prj", "e", "f"));
 
     // when namespace is clicked
-    scmOnboardingPage.namespaceHeader().click();
+    scmOnboardingPage.namespaceHeaderSort().click();
+
+    // then UI shows the sort order changed
+    scmOnboardingPage.namespaceHeader().shouldHave(attribute("aria-sort", "descending"));
+
+    // and the sort is reversed
     namespaceTexts = scmOnboardingPage.resultsTableNamespace().texts();
     assertThat(namespaceTexts).isSortedAccordingTo(Comparator.reverseOrder());
 

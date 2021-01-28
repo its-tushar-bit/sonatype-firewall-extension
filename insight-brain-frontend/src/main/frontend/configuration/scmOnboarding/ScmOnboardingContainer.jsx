@@ -41,14 +41,6 @@ function mapStateToProps({ scmOnboarding, router }) {
     // sorting
     sortConfiguration: scmOnboarding.sortConfiguration,
 
-    // actions
-    loadPage: scmOnboarding.loadPage,
-    onRepositorySelectionChanged: scmOnboarding.onRepositorySelectionChanged,
-    importSelectedRepositories: scmOnboarding.importSelectedRepositories,
-    setSelectedOrganization: scmOnboarding.setSelectedOrganization,
-    setSorting: scmOnboarding.setSorting,
-    setSortingParameters: scmOnboarding.setSortingParameters,
-
     // router state
     preselectedOrganizationId: router.currentParams.organizationId,
 
@@ -62,10 +54,5 @@ const ScmOnboardingContainer = connect(mapStateToProps, scmOnboardingActions)(Sc
 export default ScmOnboardingContainer;
 
 ScmOnboardingContainer.propTypes = {
-  preselectedOrganizationId: PropTypes.string,
-  scmOnboardingActions: PropTypes.shape({
-    loadPage: PropTypes.func.isRequired,
-    loadRepositories: PropTypes.func.isRequired,
-    validateScmHostUrl: PropTypes.func.isRequired
-  })
+  preselectedOrganizationId: PropTypes.string
 };

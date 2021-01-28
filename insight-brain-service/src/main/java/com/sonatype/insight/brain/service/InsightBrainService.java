@@ -377,6 +377,7 @@ public class InsightBrainService
     env.servlets().addServlet(PingServlet.class.getSimpleName(), PingServlet.class)
         .addMapping(PublicApiPaths.PING_RESOURCE_PATH);
 
+    addServletFilter(env, true, ServerHeaderFilter.class, ServerHeaderFilter.URL_PATTERNS);
     addServletFilter(env, BaseUrlFilter.class, "/*");
     addServletFilter(env, AuditFilter.class, AuditFilter.URL_PATTERNS);
     addServletFilter(env, HttpHeaderValidatorFilter.class, HttpHeaderValidatorFilter.URL_PATTERN);
@@ -400,8 +401,22 @@ public class InsightBrainService
   }
 
   private void addServletFilter(Environment env, Class<? extends Filter> filterType, String... urlPatterns) {
-    env.servlets().addFilter(filterType.getSimpleName(), getInstance(filterType))
+    addServletFilter(env, false, filterType, urlPatterns);
+  }
+
+  private void addServletFilter(
+      Environment env,
+      boolean includeAdmin,
+      Class<? extends Filter> filterType,
+      String... urlPatterns)
+  {
+    Filter filter = getInstance(filterType);
+    env.servlets().addFilter(filterType.getSimpleName(), filter)
         .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, urlPatterns);
+    if (includeAdmin) {
+      env.admin().addFilter(filterType.getSimpleName(), filter)
+          .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, urlPatterns);
+    }
   }
 
   private void replaceGenericExceptionMapper(final Environment environment, InsightConfig config) {

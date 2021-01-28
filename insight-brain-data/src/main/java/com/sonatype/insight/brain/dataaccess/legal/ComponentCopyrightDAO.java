@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapte
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.legal.CopyrightOverride;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 /**
  * @since 1.105
@@ -64,6 +65,12 @@ public class ComponentCopyrightDAO
 
   @Override
   public void insert(TransactionContext tx, ComponentCopyright componentCopyright) {
+    if (getByOwnerIdAndComponentIdentifier(tx, componentCopyright.getOwnerId(),
+        componentCopyright.getComponentIdentifier()) != null) {
+      throw new BadRequestException(
+          "Component copyright already exists for owner with id " + componentCopyright.getOwnerId() +
+              " and component " + componentCopyright.getComponentIdentifier() + ".");
+    }
     if (componentCopyright.getLastUpdatedAt() == null) {
       componentCopyright.setLastUpdatedAt(new Date());
     }
@@ -72,6 +79,10 @@ public class ComponentCopyrightDAO
 
   @Override
   public void update(TransactionContext tx, ComponentCopyright componentCopyright) {
+    if (getById(tx, componentCopyright.getId()) == null) {
+      throw new BadRequestException(
+          "Cannot update component copyright with id " + componentCopyright.getId() + " because it does not exist.");
+    }
     componentCopyright.setLastUpdatedAt(new Date());
     super.update(tx, componentCopyright);
   }

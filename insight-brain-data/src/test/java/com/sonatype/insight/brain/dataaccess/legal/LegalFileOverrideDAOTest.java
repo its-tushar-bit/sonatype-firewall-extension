@@ -13,11 +13,13 @@ import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.legal.LegalFileOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class LegalFileOverrideDAOTest
     extends AbstractDbDAOTest
@@ -164,5 +166,19 @@ public class LegalFileOverrideDAOTest
         dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(application.getId(), componentIdentifier,
             LegalFileType.NOTICE)).usingRecursiveFieldByFieldElementComparator()
         .containsExactly(legalFileOverrideForApplication);
+  }
+
+  @Test
+  public void testUpdate_DoesNotExist() {
+    ComponentLegalFile componentLegalFile = tempEntity.newComponentLegalFile(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(), "legalContentHash");
+    LegalFileOverride legalFileOverride = new LegalFileOverride(LegalFileType.NOTICE, "originalHash", "hash", "content",
+        ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
+    legalFileOverride.setId("doesNotExist");
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> dao.update(legalFileOverride))
+        .withMessageContaining(
+            "Cannot update legal file override with id " + legalFileOverride.getId() + " because it does not exist.");
   }
 }

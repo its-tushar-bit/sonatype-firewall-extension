@@ -17,12 +17,14 @@ import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ComponentObligationDAOTest
     extends AbstractDbDAOTest
@@ -80,6 +82,24 @@ public class ComponentObligationDAOTest
   }
 
   @Test
+  public void testInsert_SameOwnerAndComponentAndObligationName() {
+    ComponentObligation componentObligation1 = new ComponentObligation(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(), "name", "comment1",
+        ObligationStatus.OPEN, "legalContentHash1", "username1");
+    dao.insert(componentObligation1);
+    ComponentObligation componentObligation2 = new ComponentObligation(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(), "name", "comment2",
+        ObligationStatus.IGNORED, "legalContentHash2", "username2");
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> dao.insert(componentObligation2))
+        .withMessageContaining(
+            "Component obligation already exists for owner with id " + componentObligation2.getOwnerId() +
+                " and component " + componentObligation2.getComponentIdentifier() + " and obligation name " +
+                componentObligation2.getObligationName() + ".");
+  }
+
+  @Test
   public void testUpdate_SetsDate() {
     Date now = new Date();
     ComponentObligation componentObligation = new ComponentObligation(
@@ -92,6 +112,19 @@ public class ComponentObligationDAOTest
     dao.update(componentObligation);
 
     assertThat(dao.getById(componentObligation.getId()).getLastUpdatedAt()).isAfterOrEqualTo(now);
+  }
+
+  @Test
+  public void testUpdate_DoesNotExist() {
+    ComponentObligation componentObligation = new ComponentObligation(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(), "name", "comment",
+        ObligationStatus.OPEN, "legalContentHash", "username");
+    componentObligation.setId("doesNotExist");
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> dao.update(componentObligation))
+        .withMessageContaining("Cannot update component obligation with id " + componentObligation.getId() +
+            " because it does not exist.");
   }
 
   @Test
@@ -125,6 +158,8 @@ public class ComponentObligationDAOTest
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNames(organization.getId(), componentIdentifier,
         Collections.singleton(obligationName))).usingRecursiveFieldByFieldElementComparator()
         .containsExactly(componentObligation);
+    assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationName(organization.getId(), componentIdentifier,
+        obligationName)).usingRecursiveComparison().isEqualTo(componentObligation);
   }
 
   @Test

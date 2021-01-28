@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapte
 import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.LegalFileOverride;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 /**
  * @since 1.105
@@ -64,6 +65,12 @@ public class ComponentLegalFileDAO
 
   @Override
   public void insert(TransactionContext tx, ComponentLegalFile componentLegalFile) {
+    if (getByOwnerIdAndComponentIdentifier(tx, componentLegalFile.getOwnerId(),
+        componentLegalFile.getComponentIdentifier()) != null) {
+      throw new BadRequestException(
+          "Component legal file already exists for owner with id " + componentLegalFile.getOwnerId() +
+              " and component " + componentLegalFile.getComponentIdentifier() + ".");
+    }
     if (componentLegalFile.getLastUpdatedAt() == null) {
       componentLegalFile.setLastUpdatedAt(new Date());
     }
@@ -72,6 +79,10 @@ public class ComponentLegalFileDAO
 
   @Override
   public void update(TransactionContext tx, ComponentLegalFile componentLegalFile) {
+    if (getById(tx, componentLegalFile.getId()) == null) {
+      throw new BadRequestException(
+          "Cannot update component legal file with id " + componentLegalFile.getId() + " because it does not exist.");
+    }
     componentLegalFile.setLastUpdatedAt(new Date());
     super.update(tx, componentLegalFile);
   }

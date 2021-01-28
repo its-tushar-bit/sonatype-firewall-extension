@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapte
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 /**
  * @since 1.105
@@ -115,6 +116,11 @@ public class ComponentObligationAttributionDAO
 
   @Override
   public void update(TransactionContext tx, ComponentObligationAttribution componentObligationAttribution) {
+    if (getById(tx, componentObligationAttribution.getId()) == null) {
+      throw new BadRequestException(
+          "Cannot update component obligation attribution with id " + componentObligationAttribution.getId() +
+              " because it does not exist.");
+    }
     componentObligationAttribution.setLastUpdatedAt(new Date());
     super.update(tx, componentObligationAttribution);
   }

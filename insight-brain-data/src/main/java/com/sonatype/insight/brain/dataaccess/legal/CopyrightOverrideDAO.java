@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.legal.CopyrightOverride;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 /**
  * @since 1.105
@@ -87,5 +88,14 @@ public class CopyrightOverrideDAO
     try (TransactionContext tx = createTransactionContext()) {
       return getByOwnerIdAndComponentIdentifierWithHierarchy(tx, ownerId, componentIdentifier);
     }
+  }
+
+  @Override
+  public void update(TransactionContext tx, CopyrightOverride copyrightOverride) {
+    if (getById(tx, copyrightOverride.getId()) == null) {
+      throw new BadRequestException(
+          "Cannot update copyright override with id " + copyrightOverride.getId() + " because it does not exist.");
+    }
+    super.update(tx, copyrightOverride);
   }
 }

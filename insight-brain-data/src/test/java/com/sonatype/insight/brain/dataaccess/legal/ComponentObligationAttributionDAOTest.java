@@ -16,12 +16,14 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ComponentObligationAttributionDAOTest
     extends AbstractDbDAOTest
@@ -91,6 +93,20 @@ public class ComponentObligationAttributionDAOTest
     dao.update(componentObligationAttribution);
 
     assertThat(dao.getById(componentObligationAttribution.getId()).getLastUpdatedAt()).isAfterOrEqualTo(now);
+  }
+
+  @Test
+  public void testUpdate_DoesNotExist() {
+    ComponentObligationAttribution componentObligationAttribution =
+        new ComponentObligationAttribution(ComponentIdentifier.createMavenCoordinates("g", "a", "v"),
+            organization.getId(), "name", "content", "legalContentHash", "username");
+    componentObligationAttribution.setId("doesNotExist");
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> dao.update(componentObligationAttribution))
+        .withMessageContaining(
+            "Cannot update component obligation attribution with id " + componentObligationAttribution.getId() +
+                " because it does not exist.");
   }
 
   @Test

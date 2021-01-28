@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.LegalFileOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 /**
  * @since 1.105
@@ -103,5 +104,14 @@ public class LegalFileOverrideDAO
     try (TransactionContext tx = createTransactionContext()) {
       return getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(tx, ownerId, componentIdentifier, type);
     }
+  }
+
+  @Override
+  public void update(TransactionContext tx, LegalFileOverride legalFileOverride) {
+    if (getById(tx, legalFileOverride.getId()) == null) {
+      throw new BadRequestException(
+          "Cannot update legal file override with id " + legalFileOverride.getId() + " because it does not exist.");
+    }
+    super.update(tx, legalFileOverride);
   }
 }

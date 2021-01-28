@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapte
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 /**
  * @since 1.105
@@ -42,6 +43,31 @@ public class ComponentObligationDAO
   public List<ComponentObligation> getByOwnerId(String ownerId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByOwnerId(tx, ownerId);
+    }
+  }
+
+  public ComponentObligation getByOwnerIdAndComponentIdentifierAndObligationName(
+      TransactionContext tx,
+      String ownerId,
+      ComponentIdentifier componentIdentifier,
+      String obligationName)
+  {
+    String sQuery = "SELECT entity FROM ComponentObligation entity" + //
+        " WHERE entity.ownerId=?1" + //
+        " AND entity.componentIdFormat=?2" + //
+        " AND entity.componentIdCoordinatesJson=?3" + //
+        " AND entity.obligationName=?4";
+    return get(tx, sQuery, ownerId, componentIdentifier.getFormat(),
+        ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()), obligationName);
+  }
+
+  public ComponentObligation getByOwnerIdAndComponentIdentifierAndObligationName(
+      String ownerId,
+      ComponentIdentifier componentIdentifier,
+      String obligationName)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByOwnerIdAndComponentIdentifierAndObligationName(tx, ownerId, componentIdentifier, obligationName);
     }
   }
 
@@ -107,6 +133,13 @@ public class ComponentObligationDAO
 
   @Override
   public void insert(TransactionContext tx, ComponentObligation componentObligation) {
+    if (getByOwnerIdAndComponentIdentifierAndObligationName(tx, componentObligation.getOwnerId(),
+        componentObligation.getComponentIdentifier(), componentObligation.getObligationName()) != null) {
+      throw new BadRequestException(
+          "Component obligation already exists for owner with id " + componentObligation.getOwnerId() +
+              " and component " + componentObligation.getComponentIdentifier() + " and obligation name " +
+              componentObligation.getObligationName() + ".");
+    }
     if (componentObligation.getLastUpdatedAt() == null) {
       componentObligation.setLastUpdatedAt(new Date());
     }
@@ -115,6 +148,10 @@ public class ComponentObligationDAO
 
   @Override
   public void update(TransactionContext tx, ComponentObligation componentObligation) {
+    if (getById(tx, componentObligation.getId()) == null) {
+      throw new BadRequestException(
+          "Cannot update component obligation with id " + componentObligation.getId() + " because it does not exist.");
+    }
     componentObligation.setLastUpdatedAt(new Date());
     super.update(tx, componentObligation);
   }

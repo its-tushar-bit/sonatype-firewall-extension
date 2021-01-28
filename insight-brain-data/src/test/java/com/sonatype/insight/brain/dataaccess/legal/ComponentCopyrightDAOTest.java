@@ -13,12 +13,14 @@ import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.legal.CopyrightOverride;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ComponentCopyrightDAOTest
     extends AbstractDbDAOTest
@@ -73,6 +75,23 @@ public class ComponentCopyrightDAOTest
   }
 
   @Test
+  public void testInsert_SameOwnerAndComponent() {
+    ComponentCopyright componentCopyright1 =
+        new ComponentCopyright(ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(),
+            "legalContentHash1", "username1");
+    dao.insert(componentCopyright1);
+    ComponentCopyright componentCopyright2 =
+        new ComponentCopyright(ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(),
+            "legalContentHash2", "username2");
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> dao.insert(componentCopyright2))
+        .withMessageContaining(
+            "Component copyright already exists for owner with id " + componentCopyright2.getOwnerId() +
+                " and component " + componentCopyright2.getComponentIdentifier() + ".");
+  }
+
+  @Test
   public void testUpdate_SetsDate() {
     Date now = new Date();
     ComponentCopyright componentCopyright =
@@ -85,6 +104,19 @@ public class ComponentCopyrightDAOTest
     dao.update(componentCopyright);
 
     assertThat(dao.getById(componentCopyright.getId()).getLastUpdatedAt()).isAfterOrEqualTo(now);
+  }
+
+  @Test
+  public void testUpdate_DoesNotExist() {
+    ComponentCopyright componentCopyright =
+        new ComponentCopyright(ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(),
+            "legalContentHash", "username");
+    componentCopyright.setId("doesNotExist");
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> dao.update(componentCopyright))
+        .withMessageContaining(
+            "Cannot update component copyright with id " + componentCopyright.getId() + " because it does not exist.");
   }
 
   @Test

@@ -12,11 +12,13 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.legal.CopyrightOverride;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class CopyrightOverrideDAOTest
     extends AbstractDbDAOTest
@@ -146,5 +148,19 @@ public class CopyrightOverrideDAOTest
         .usingRecursiveFieldByFieldElementComparator().containsExactly(copyrightOverrideForOrganization);
     assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(), componentIdentifier))
         .usingRecursiveFieldByFieldElementComparator().containsExactly(copyrightOverrideForApplication);
+  }
+
+  @Test
+  public void testUpdate_DoesNotExist() {
+    ComponentCopyright componentCopyright = tempEntity.newComponentCopyright(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(), "legalContentHash");
+    CopyrightOverride copyrightOverride = new CopyrightOverride("originalHash", "hash", "content",
+        ComponentLegalPartStatus.ENABLED, componentCopyright.getId());
+    copyrightOverride.setId("doesNotExist");
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> dao.update(copyrightOverride))
+        .withMessageContaining(
+            "Cannot update copyright override with id " + copyrightOverride.getId() + " because it does not exist.");
   }
 }

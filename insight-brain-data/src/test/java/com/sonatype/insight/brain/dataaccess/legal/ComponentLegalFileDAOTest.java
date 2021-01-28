@@ -14,12 +14,14 @@ import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.legal.LegalFileOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ComponentLegalFileDAOTest
     extends AbstractDbDAOTest
@@ -74,6 +76,23 @@ public class ComponentLegalFileDAOTest
   }
 
   @Test
+  public void testInsert_SameOwnerAndComponent() {
+    ComponentLegalFile componentLegalFile1 =
+        new ComponentLegalFile(ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(),
+            "legalContentHash1", "username1");
+    dao.insert(componentLegalFile1);
+    ComponentLegalFile componentLegalFile2 =
+        new ComponentLegalFile(ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(),
+            "legalContentHash2", "username2");
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> dao.insert(componentLegalFile2))
+        .withMessageContaining(
+            "Component legal file already exists for owner with id " + componentLegalFile2.getOwnerId() +
+                " and component " + componentLegalFile2.getComponentIdentifier() + ".");
+  }
+
+  @Test
   public void testUpdate_SetsDate() {
     Date now = new Date();
     ComponentLegalFile componentLegalFile =
@@ -86,6 +105,19 @@ public class ComponentLegalFileDAOTest
     dao.update(componentLegalFile);
 
     assertThat(dao.getById(componentLegalFile.getId()).getLastUpdatedAt()).isAfterOrEqualTo(now);
+  }
+
+  @Test
+  public void testUpdate_DoesNotExist() {
+    ComponentLegalFile componentLegalFile =
+        new ComponentLegalFile(ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(),
+            "legalContentHash", "username");
+    componentLegalFile.setId("doesNotExist");
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> dao.update(componentLegalFile))
+        .withMessageContaining("Cannot update component legal file with id " + componentLegalFile.getId() +
+            " because it does not exist.");
   }
 
   @Test

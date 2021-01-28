@@ -578,7 +578,7 @@ public class DashboardViolationsTest
 
     // sort by threat desc, time desc
     headers.threatHeader().click();
-    headers.threatHeader().sortArrows().shouldBeDown();;
+    headers.threatHeader().sortArrows().shouldBeDown();
     table.firstViolation().threatNumber().shouldHave(text("4"));
     table.firstViolation().age().shouldHave(text("1min"));
 

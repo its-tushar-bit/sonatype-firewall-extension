@@ -127,6 +127,9 @@ public class PostgresServer
       }
       containerId = dockerClient.createContainer(ContainerConfig.builder() //
           .image(image) //
+          .cmd("-c", "log_statement=all", //
+              "-c", "log_connections=on", //
+              "-c", "log_disconnections=on") //
           .env("POSTGRES_DB=" + databaseName, //
               "POSTGRES_USER=" + username, //
               "POSTGRES_PASSWORD=" + password) //

@@ -13,18 +13,19 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.scan.PersistedScanTicketDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.scan.PersistedScanTicket;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.inject.Binder;
 import org.codehaus.plexus.util.FileUtils;
@@ -53,7 +54,7 @@ public class ScanServiceTest
   private PersistedScanTicketDAO persistedScanTicketDAO;
 
   @Inject
-  private TestProductLicenseManager productLicenseManager;
+  private TestProductLicense testProductLicense;
 
   @Mock
   private ScanUploader scanUploader;
@@ -179,7 +180,7 @@ public class ScanServiceTest
 
   @Test
   public void testScanBinary_FailsWithoutFeature() {
-    productLicenseManager.setFeatures();
+    testProductLicense.setMissingFeatures(LicensedFeature.CLI_INTEGRATION);
     InputStream appBundle = getBundle("app01.zip");
 
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {

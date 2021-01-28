@@ -14,15 +14,23 @@ public class IntegrityRating
 {
   private static final Map<String, IntegrityRating> byId = new LinkedHashMap<>();
 
+  public static final IntegrityRating NORMAL = new IntegrityRating("0", "Normal");
+
+  public static final IntegrityRating SUSPICIOUS = new IntegrityRating("1", "Suspicious");
+
+  public static final IntegrityRating PENDING = new IntegrityRating("2", "Pending");
+
+  public static final IntegrityRating NOT_APPLICABLE = new IntegrityRating("3", "Not Applicable");
+
   private final String id;
 
   private final String name;
 
   static {
-    byId.put("0", new IntegrityRating("0", "Normal"));
-    byId.put("1", new IntegrityRating("1", "Suspicious"));
-    byId.put("2", new IntegrityRating("2", "Pending"));
-    byId.put("3", new IntegrityRating("3", "Not Applicable"));
+    byId.put(NORMAL.getId(), NORMAL);
+    byId.put(SUSPICIOUS.getId(), SUSPICIOUS);
+    byId.put(PENDING.getId(), PENDING);
+    byId.put(NOT_APPLICABLE.getId(), NOT_APPLICABLE);
   }
 
   public IntegrityRating(String id, String name) {

@@ -34,6 +34,8 @@ public class SystemConfigurationProperty
 
   public static final String REPORTS_LIST_DISABLED = "REPORTS_LIST_DISABLED";
 
+  public static final String FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED = "FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

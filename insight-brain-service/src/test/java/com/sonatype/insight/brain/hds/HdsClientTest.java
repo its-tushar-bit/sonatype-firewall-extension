@@ -54,6 +54,8 @@ import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -62,6 +64,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class HdsClientTest
     extends AbstractHdsClientTest
 {
@@ -117,7 +120,6 @@ public class HdsClientTest
         new String[] {});
     assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isNull();
 
-    when(request.getHeader(eq(HttpHeaders.USER_AGENT))).thenReturn("ua-we-cannot-control");
     when(request.getHeader(eq(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER))).thenReturn(testClmClientUserAgent);
     client.relay(request, InputStream.class, testPath, new String[] {});
     assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClmClientUserAgent);
@@ -673,9 +675,6 @@ public class HdsClientTest
       }
     };
 
-    HttpServletRequest request = mock(HttpServletRequest.class);
-    when(request.getHeaderNames()).thenReturn(Collections.enumeration(Collections.emptyList()));
-    when(request.getMethod()).thenReturn("POST");
     File fileSent = tempDir.newFile();
     FileUtils.write(fileSent, "Test", "UTF-8");
     FileBody fileBodySent = new FileBody(fileSent);
@@ -701,10 +700,6 @@ public class HdsClientTest
         baseRequest.setHandled(true);
       }
     };
-
-    HttpServletRequest request = mock(HttpServletRequest.class);
-    when(request.getHeaderNames()).thenReturn(Collections.enumeration(Collections.emptyList()));
-    when(request.getMethod()).thenReturn("GET");
 
     Map<String, String> testQueryParams = new HashMap<>();
     testQueryParams.put(queryParam, queryParamValue);

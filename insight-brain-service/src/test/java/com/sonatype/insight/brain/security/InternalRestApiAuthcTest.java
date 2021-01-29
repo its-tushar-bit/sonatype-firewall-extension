@@ -9,8 +9,8 @@ import java.net.HttpCookie;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.hds.CLIResource;
 import com.sonatype.insight.brain.hds.DeprecatedCIResource;
+import com.sonatype.insight.brain.hds.DeprecatedCLIResource;
 import com.sonatype.insight.brain.hds.RepoManResource;
 import com.sonatype.insight.brain.ide.IdeResource;
 import com.sonatype.insight.brain.integration.ApplicationSummaryResourceConstants;
@@ -208,10 +208,6 @@ public class InternalRestApiAuthcTest
     assertResponseStatus(404, response);
     assertThat(response.getSessionCookie()).isNull();
 
-    response = request.subpath(CLIResource.RESOURCE_PATH, CLIResource.SCAN_PATH).parameter("appId").put();
-    assertResponseStatus(404, response);
-    assertThat(response.getSessionCookie()).isNull();
-
     response = request.subpath(RepoManResource.RESOURCE_PATH, RepoManResource.SCAN_PATH).parameter("appId").put();
     assertResponseStatus(404, response);
     assertThat(response.getSessionCookie()).isNull();
@@ -232,6 +228,11 @@ public class InternalRestApiAuthcTest
 
     HttpResponse response =
         request.subpath(DeprecatedCIResource.RESOURCE_PATH, DeprecatedCIResource.SCAN_PATH).parameter("appId").put();
+    assertResponseStatus(404, response);
+    assertThat(response.getSessionCookie()).isNull();
+
+    response =
+        request.subpath(DeprecatedCLIResource.RESOURCE_PATH, DeprecatedCLIResource.SCAN_PATH).parameter("appId").put();
     assertResponseStatus(404, response);
     assertThat(response.getSessionCookie()).isNull();
   }

@@ -26,12 +26,15 @@ import com.sonatype.insight.scan.model.ClientScanType;
 import com.codahale.metrics.annotation.Timed;
 
 /**
+ * @deprecated Last used by IQ CLI 68 (July 2019)
+ * 
  * @since 1.19.0
  */
-@Path(CLIResource.RESOURCE_PATH)
+@Deprecated
+@Path(DeprecatedCLIResource.RESOURCE_PATH)
 @Named
 @Timed
-public class CLIResource
+public class DeprecatedCLIResource
 {
   public static final String RESOURCE_PATH = "rest/cli";
 
@@ -42,7 +45,7 @@ public class CLIResource
   private final ProductLicense productLicense;
 
   @Inject
-  public CLIResource(ScanHandler scanHandler, ProductLicense productLicense) {
+  public DeprecatedCLIResource(ScanHandler scanHandler, ProductLicense productLicense) {
     this.scanHandler = scanHandler;
     this.productLicense = productLicense;
   }

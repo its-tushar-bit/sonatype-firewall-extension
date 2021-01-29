@@ -40,7 +40,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class HdsClientProxyTest
+public class DefaultHdsClientProxyTest
     extends AbstractHttpClientTest
 {
   @Inject

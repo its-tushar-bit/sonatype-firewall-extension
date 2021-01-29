@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.hds;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.CountDownLatch;
@@ -16,34 +17,26 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.version.VersionService;
-import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.test.InjectedTest;
 import com.sonatype.insight.test.networking.PortAllocator;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class HdsClientProxyTimeOutTest
+public class DefaultHdsClientKeepConnectionAliveTest
     extends InjectedTest
 {
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
-
   @Inject
   private PasswordHandler passwordHandler;
 
@@ -61,26 +54,26 @@ public class HdsClientProxyTimeOutTest
 
   private final AtomicReference<Exception> serverException = new AtomicReference<>();
 
-  private volatile String requestMethod = "";
-
-  private Runnable nonResponsiveServer = () -> {
+  private Runnable stallingServer = () -> {
     try (ServerSocket serverSocket = new ServerSocket(port)) {
       countDownLatch.countDown();
       try (Socket socket = serverSocket.accept();
-           BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+           BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+           PrintWriter pw = new PrintWriter(socket.getOutputStream())) {
 
-        requestMethod = br.readLine();
-        while ((br.readLine()) != null) {
-          // consume all incoming data
+        while (!(br.readLine()).equals("")) {
+          // consume all data
         }
 
-        // This is a server that just sleeps and never responds
+        // This is a server that does some work for around 2 seconds before responding
         try {
-          Thread.sleep(10000);
+          Thread.sleep(2000);
         }
         catch (InterruptedException ignored) {
           // This is expected
         }
+
+        pw.write("HTTP/1.1 200 OK");
       }
     }
     catch (IOException e) {
@@ -89,45 +82,48 @@ public class HdsClientProxyTimeOutTest
     }
   };
 
-  private Thread nonResponsiveServerThread;
+  private Thread stallingServerThread;
 
   @Before
   public void init() {
     port = PortAllocator.nextFreePort();
 
-    tempEntity.setProxyServerConfiguration("localhost", port);
-
     config = new InsightConfig();
-    config.setHdsUrl("https://www.example.com/");
+    config.setHdsUrl("http://localhost:" + port);
     config.setConnectTimeoutInSeconds(1);
     telemetryId = new TelemetryId(config);
 
     productLicense = mock(ProductLicense.class);
     when(productLicense.getFingerprint()).thenReturn("license-fingerprint");
 
-    nonResponsiveServerThread = new Thread(nonResponsiveServer);
+    stallingServerThread = new Thread(stallingServer);
     insightProxy = new InsightProxy(config, new ProxyServerConfigurationDAO(), passwordHandler);
   }
 
   @After
   public void exit() {
-    nonResponsiveServerThread.interrupt();
+    stallingServerThread.interrupt();
   }
 
-  @Test(timeout = 5000)
-  public void testMustTimeOutAndNotWaitForever() throws InterruptedException {
+  @Test
+  public void testConnectTimeoutMustNotAffectRequestConfigSocketTimeout() throws InterruptedException {
     HdsClient client = new DefaultHdsClient(insightProxy, productLicense, config,
         new VersionService(), telemetryId, 20);
 
-    nonResponsiveServerThread.start();
+    stallingServerThread.start();
 
     // Give time to server thread to start and the ServerSocket to start listening
-    countDownLatch.await(2500, TimeUnit.MILLISECONDS);
+    countDownLatch.await(2000, TimeUnit.MILLISECONDS);
     if (serverException.get() != null) {
       fail("Exception while starting server.", serverException.get());
     }
 
-    assertThatExceptionOfType(BadGatewayException.class).isThrownBy(() -> client.get(String.class, ""));
-    assertThat(requestMethod).startsWith("CONNECT");
+    // We have an HDS client configured with 1 second connect timeout
+    // The server we are making our request to accepts the connection immediately but takes 2 seconds to respond
+    // HDS Client must not timeout in 1 second and should wait for the response
+    // If you want to make this test fail, set RequestConfig#socketTimeout to 1 sec in implementation
+    // Another way would be to make the stalling thread wait for 16 minutes and this test should again fail
+    // since the default RequestConfig#socketTimeout is 15 minutes
+    client.get(String.class, "");
   }
 }

@@ -65,7 +65,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class HdsClientTest
+public class DefaultHdsClientTest
     extends AbstractHdsClientTest
 {
   private static final String USER_AGENT_SUFFIX = "test suffix";
@@ -116,7 +116,7 @@ public class HdsClientTest
     assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClmClientUserAgent);
     // Method does not pass an original request, hence the null header.
     client.put(null, InputStream.class, testPath,
-        new File(HdsClientTest.class.getResource("/config-test.yml").toURI()), Collections.emptyMap(),
+        new File(getClass().getResource("/config-test.yml").toURI()), Collections.emptyMap(),
         new String[] {});
     assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isNull();
 
@@ -186,7 +186,7 @@ public class HdsClientTest
     client.relay(request, null, InputStream.class, testPath, null, new String[] {});
     assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(userAgent);
     client.put(null, InputStream.class, testPath,
-        new File(HdsClientTest.class.getResource("/config-test.yml").toURI()), Collections.emptyMap(),
+        new File(getClass().getResource("/config-test.yml").toURI()), Collections.emptyMap(),
         new String[] {});
     assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(userAgent);
   }

@@ -18,7 +18,6 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.hds.CIResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
@@ -295,9 +294,6 @@ public class ApplicationResourceTest
 
     // Scans count
     makeScanReceipt();
-
-    super.restRequest().path(CIResource.RESOURCE_PATH, CIResource.SCAN_PATH).parameter(applicationPublicId).body("")
-        .put();
 
     response = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES).query("page", "1")
         .query("pageSize", "50").get();

@@ -9,16 +9,19 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public abstract class AbstractScanResourceTest
+/**
+ * @deprecated The tested class is deprecated
+ */
+@Deprecated
+public class DeprecatedCIResourceTest
     extends AbstractResourceTest
 {
-  protected abstract HttpRequest scanRequest(String appId);
-
   private final String className = getClass().getSimpleName();
 
   @Test
@@ -50,5 +53,17 @@ public abstract class AbstractScanResourceTest
     uninstallLicense();
     HttpResponse response = scanRequest("unlicensedapp").put();
     assertResponseStatus(402, response);
+  }
+
+  @Test
+  public void testScan_FeatureUnlicensed() throws Exception {
+    setMissingFeature(LicensedFeature.CI_INTEGRATION);
+
+    HttpResponse response = scanRequest("unlicensedapp").put();
+    assertResponseStatus(402, response);
+  }
+
+  private HttpRequest scanRequest(String appId) {
+    return restRequest().path(DeprecatedCIResource.RESOURCE_PATH, DeprecatedCIResource.SCAN_PATH).parameter(appId);
   }
 }

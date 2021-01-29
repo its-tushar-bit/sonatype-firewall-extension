@@ -24,11 +24,17 @@ import com.sonatype.insight.scan.model.ClientScanType;
 
 import com.codahale.metrics.annotation.Timed;
 
-@Path(CIResource.RESOURCE_PATH)
+/**
+ * @deprecated Last plugin versions that use this REST resource:
+ *             - Bamboo plugin: 1.12.1 (June 17, 2019)
+ *             - Jenkins (aka Platform) plugin: 3.5.20190425-152158.c63841b (April 25, 2019)
+ */
+@Deprecated
+@Path(DeprecatedCIResource.RESOURCE_PATH)
 @ProductLicenseEnforcementPoint(LicensedFeature.CI_INTEGRATION)
 @Named
 @Timed
-public class CIResource
+public class DeprecatedCIResource
 {
   public static final String RESOURCE_PATH = "rest/ci";
 
@@ -37,7 +43,7 @@ public class CIResource
   private final ScanHandler scanHandler;
 
   @Inject
-  public CIResource(final ScanHandler scanHandler) {
+  public DeprecatedCIResource(final ScanHandler scanHandler) {
     this.scanHandler = scanHandler;
   }
 

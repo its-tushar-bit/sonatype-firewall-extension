@@ -9,8 +9,8 @@ import java.net.HttpCookie;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.hds.CIResource;
 import com.sonatype.insight.brain.hds.CLIResource;
+import com.sonatype.insight.brain.hds.DeprecatedCIResource;
 import com.sonatype.insight.brain.hds.RepoManResource;
 import com.sonatype.insight.brain.ide.IdeResource;
 import com.sonatype.insight.brain.integration.ApplicationSummaryResourceConstants;
@@ -208,10 +208,6 @@ public class InternalRestApiAuthcTest
     assertResponseStatus(404, response);
     assertThat(response.getSessionCookie()).isNull();
 
-    response = request.subpath(CIResource.RESOURCE_PATH, CIResource.SCAN_PATH).parameter("appId").put();
-    assertResponseStatus(404, response);
-    assertThat(response.getSessionCookie()).isNull();
-
     response = request.subpath(CLIResource.RESOURCE_PATH, CLIResource.SCAN_PATH).parameter("appId").put();
     assertResponseStatus(404, response);
     assertThat(response.getSessionCookie()).isNull();
@@ -226,6 +222,17 @@ public class InternalRestApiAuthcTest
 
     response = request.subpath(LicensedStagesResource.RESOURCE_PATH).get();
     assertResponseStatus(200, response);
+    assertThat(response.getSessionCookie()).isNull();
+  }
+
+  @SuppressWarnings("deprecation")
+  @Test
+  public void testExplicitAuthSufficientWithoutCsrfTokenForDeprecatedClientIntegrationRequests() throws Exception {
+    HttpRequest request = restRequest().auth().noCsrfToken();
+
+    HttpResponse response =
+        request.subpath(DeprecatedCIResource.RESOURCE_PATH, DeprecatedCIResource.SCAN_PATH).parameter("appId").put();
+    assertResponseStatus(404, response);
     assertThat(response.getSessionCookie()).isNull();
   }
 

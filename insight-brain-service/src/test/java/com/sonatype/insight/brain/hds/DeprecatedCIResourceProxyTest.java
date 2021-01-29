@@ -5,7 +5,11 @@
  */
 package com.sonatype.insight.brain.hds;
 
-public class CIResourceProxyTest
-    extends CIResourceTest
+/**
+ * @deprecated The tested class is deprecated
+ */
+@Deprecated
+public class DeprecatedCIResourceProxyTest
+    extends DeprecatedCIResourceTest
 {
 }

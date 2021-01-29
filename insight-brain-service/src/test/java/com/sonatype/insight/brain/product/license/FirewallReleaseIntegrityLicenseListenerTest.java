@@ -11,13 +11,16 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.component.IntegrityRating;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.conditions.IntegrityRatingConditionType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
@@ -27,6 +30,7 @@ import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.repository.RepositoryContainer.REPOSITORY_CONTAINER_ID;
 import static com.sonatype.insight.brain.product.license.FirewallReleaseIntegrityLicenseListener.POLICY_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -46,6 +50,8 @@ public class FirewallReleaseIntegrityLicenseListenerTest
 
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
 
+  private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
+
   @After
   public void cleanup() {
     systemConfigurationPropertyDAO.delete(systemConfigurationPropertyDAO
@@ -54,10 +60,11 @@ public class FirewallReleaseIntegrityLicenseListenerTest
     if (!policies.isEmpty()) {
       policyDAO.delete(policies.get(0));
     }
+    policyMonitoringDAO.getAll().forEach(policyMonitoringDAO::delete);
   }
 
   @Test
-  public void testProductLicenseChanged_InstallsReleaseIntegrityPolicy() {
+  public void testProductLicenseChanged_InstallsReleaseIntegrityPolicyAndEnablesPolicyMonitoring() {
     insightConfig.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
 
     listener.productLicenseChanged();
@@ -66,6 +73,9 @@ public class FirewallReleaseIntegrityLicenseListenerTest
     assertThat(systemConfigurationPropertyDAO
         .getByName(SystemConfigurationProperty.FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED).getValue())
         .isEqualTo(String.valueOf(true));
+    PolicyMonitoring policyMonitoring = policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID);
+    assertThat(policyMonitoring).isNotNull();
+    assertThat(policyMonitoring.getStageTypeId()).isEqualTo(StageTypes.PROXY.getId());
   }
 
   @Test
@@ -80,6 +90,7 @@ public class FirewallReleaseIntegrityLicenseListenerTest
     assertThat(systemConfigurationPropertyDAO
         .getByName(SystemConfigurationProperty.FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED).getValue())
         .isEqualTo(String.valueOf(true));
+    assertThat(policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID)).isNull();
   }
 
   @Test
@@ -94,6 +105,9 @@ public class FirewallReleaseIntegrityLicenseListenerTest
     assertThat(systemConfigurationPropertyDAO
         .getByName(SystemConfigurationProperty.FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED).getValue())
         .isEqualTo(String.valueOf(true));
+    PolicyMonitoring policyMonitoring = policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID);
+    assertThat(policyMonitoring).isNotNull();
+    assertThat(policyMonitoring.getStageTypeId()).isEqualTo(StageTypes.PROXY.getId());
   }
 
   @Test
@@ -123,6 +137,7 @@ public class FirewallReleaseIntegrityLicenseListenerTest
     assertThat(policyDAO.getByName(POLICY_NAME)).isEmpty();
     assertThat(systemConfigurationPropertyDAO
         .getByName(SystemConfigurationProperty.FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED)).isNull();
+    assertThat(policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID)).isNull();
   }
 
   @Test
@@ -135,6 +150,7 @@ public class FirewallReleaseIntegrityLicenseListenerTest
     assertThat(policyDAO.getByName(POLICY_NAME)).isEmpty();
     assertThat(systemConfigurationPropertyDAO
         .getByName(SystemConfigurationProperty.FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED)).isNull();
+    assertThat(policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID)).isNull();
   }
 
   @Test
@@ -147,5 +163,20 @@ public class FirewallReleaseIntegrityLicenseListenerTest
     assertThat(policyDAO.getByName(POLICY_NAME)).isEmpty();
     assertThat(systemConfigurationPropertyDAO
         .getByName(SystemConfigurationProperty.FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED)).isNull();
+    assertThat(policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID)).isNull();
+  }
+
+  @Test
+  public void testProductLicenseChanged_PolicyMonitoringAlreadyEnabled() {
+    insightConfig.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
+    String policyMonitoringId =
+        tempEntity.newPolicyMonitoring(REPOSITORY_CONTAINER_ID, StageTypes.PROXY.getId()).getId();
+
+    listener.productLicenseChanged();
+
+    PolicyMonitoring policyMonitoring = policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID);
+    assertThat(policyMonitoring).isNotNull();
+    assertThat(policyMonitoring.getId()).isEqualTo(policyMonitoringId);
+    assertThat(policyMonitoring.getStageTypeId()).isEqualTo(StageTypes.PROXY.getId());
   }
 }

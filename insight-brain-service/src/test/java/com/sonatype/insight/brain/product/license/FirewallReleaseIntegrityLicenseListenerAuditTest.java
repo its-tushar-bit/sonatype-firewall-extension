@@ -13,9 +13,11 @@ import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.ActionDTO;
 import com.sonatype.insight.brain.policy.ConstraintDTO;
 import com.sonatype.insight.brain.policy.NotificationDTO;
@@ -43,6 +45,8 @@ public class FirewallReleaseIntegrityLicenseListenerAuditTest
 
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
 
+  private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
+
   @After
   public void cleanup() {
     systemConfigurationPropertyDAO.delete(systemConfigurationPropertyDAO
@@ -51,6 +55,7 @@ public class FirewallReleaseIntegrityLicenseListenerAuditTest
     if (!policies.isEmpty()) {
       policyDAO.delete(policies.get(0));
     }
+    policyMonitoringDAO.getAll().forEach(policyMonitoringDAO::delete);
   }
 
   @Test
@@ -63,6 +68,10 @@ public class FirewallReleaseIntegrityLicenseListenerAuditTest
     AuditDTO auditLog = awaitLogEntries(AuditEvent.CREATE_POLICY, 1).get(0);
     assertOrganizationData(auditLog, Organization.ROOT_ORGANIZATION_ID, "Root Organization");
     assertPolicyData(auditLog, importedPolicy, ConstraintDTO.transcribe(importedPolicy.getConstraints()));
+
+    auditLog = awaitLogEntries(AuditEvent.CONFIGURE_CONTINUOUS_MONITORING, 1).get(0);
+    assertRepositoryContainerData(auditLog);
+    assertCustomData(auditLog, "stageId", StageTypes.PROXY.getId());
   }
 
   private void assertPolicyData(

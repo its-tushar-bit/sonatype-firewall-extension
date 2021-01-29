@@ -194,7 +194,18 @@ describe('cip.label.editor tests', function() {
       scope.accept();
       expect(scope.$close).not.toHaveBeenCalled();
       $httpBackend.flush();
+      expect(scope.labelAddError).toBeNull();
       expect(scope.$close).toHaveBeenCalled();
+    }));
+
+    it('Tests Add failure sets correct flags', inject(function($httpBackend) {
+      expect(scope.labelLoading).toBeTruthy();
+      expect(scope.labelAddError).toBeNull();
+      $httpBackend.expectGET(SpecUtil.toRegExp('api/v2/labels/application/bom1-12345678/applicable/context/one'))
+          .respond(403, 'Insufficient permissions');
+      $httpBackend.flush();
+      expect(scope.labelLoading).toBeFalsy();
+      expect(scope.labelAddError).toEqual('Insufficient permissions');
     }));
   });
 
@@ -220,12 +231,34 @@ describe('cip.label.editor tests', function() {
     }));
 
     it('Test Remove', inject(function($httpBackend) {
+      expect(scope.labelLoading).toBeTruthy();
+      $httpBackend.expectGET(
+          SpecUtil.toRegExp('../brain/api/v2/labels/organization/orgOwnerId/applicable/context/one')
+      ).respond({'labelsByOwner': []});
       $httpBackend.expectDELETE(
           SpecUtil.toRegExp('../brain/rest/label/component/organization/orgOwnerId/3102cdd0edd5a05afe00/one')
       ).respond([]);
       scope.accept();
       expect(scope.$close).not.toHaveBeenCalled();
       $httpBackend.flush();
+      expect(scope.labelRemoveError).toBeNull();
+      expect(scope.labelLoading).toBeFalsy();
+      expect(scope.$close).toHaveBeenCalled();
+    }));
+
+    it('Tests Remove failure sets correct flags', inject(function($httpBackend) {
+      expect(scope.labelLoading).toBeTruthy();
+      expect(scope.labelRemoveError).toBeNull();
+      $httpBackend.expectGET(
+          SpecUtil.toRegExp('../brain/api/v2/labels/organization/orgOwnerId/applicable/context/one')
+      ).respond(403, 'Insufficient permissions');
+      $httpBackend.expectDELETE(
+          SpecUtil.toRegExp('../brain/rest/label/component/organization/orgOwnerId/3102cdd0edd5a05afe00/one')
+      ).respond([]);
+      scope.accept();
+      $httpBackend.flush();
+      expect(scope.labelRemoveError).toEqual('Insufficient permissions');
+      expect(scope.labelLoading).toBeFalsy();
       expect(scope.$close).toHaveBeenCalled();
     }));
   });

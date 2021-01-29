@@ -62,6 +62,7 @@ import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupLevelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
@@ -80,6 +81,8 @@ import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.*;
 import static com.sonatype.clm.testing.functional.elements.reports.ClaimComponentCIP.ERROR_CLASS;
 import static com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal.ACTIVE_CLASS;
+import static com.sonatype.insight.brain.model.security.MemberType.USER;
+import static com.sonatype.insight.brain.model.security.Role.DEVELOPER_ROLE_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApplicationReportCipTest
@@ -632,8 +635,65 @@ public class ApplicationReportCipTest
         new String[] { "Bad Label constraint" },
         new String[] { "Found label 'El Junko'" });
 
-    // Remove the label we added
     cipModal.tabLink(7).click();
+    LabelsCIP.appliedLabel(1).shouldHave(text("El Junko")).action().click();
+    RemoveLabelModal.confirmButton().click();
+    cipModal.closeButton().click();
+
+    // Removing without proper permissions should display an error
+    logout();
+    User user = tempEntity.newUser("username", "john", "doe", "john@doe");
+    tempEntity.newMembershipMapping(app.getId(), DEVELOPER_ROLE_ID, user.getUsername(), USER);
+
+    // login with developer role
+    login(user.getUsername(), user.getPassword());
+
+    // create report for this user
+    URL zippedReport = ReportHelper.zipReport("/canned-reports/small-report", tempDir);
+    evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, insightWork);
+
+    evaluator.evaluatePolicy();
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
+
+    reportPage.resultRow(1).click();
+    cipModal.tabLink(7).click();
+
+    // verify existing labels
+    LabelsCIP.availableLabels().shouldHaveSize(1);
+    LabelsCIP.availableLabel(1).shouldHave(text("El Junko"));
+    LabelsCIP.appliedLabels().shouldHaveSize(1);
+    LabelsCIP.appliedLabel(1).shouldHave(text("El Magnifico"));
+
+    LabelsCIP.availableLabel(1).shouldHave(text("El Junko")).action().click();
+    AddLabelModal.root().should(appear);
+    AddLabelModal.error().shouldBe(visible).shouldHave(text("Insufficient Permissions"));
+
+    eyesWatcher.eyesCheck("Labels Tab Error");
+
+    AddLabelModal.closeButton().shouldBe(visible).click();
+    AddLabelModal.root().should(disappear);
+
+    LabelsCIP.appliedLabel(1).shouldHave(text("El Magnifico")).action().click();
+    RemoveLabelModal.root().should(appear);
+    RemoveLabelModal.error().shouldBe(visible).shouldHave(text("Insufficient Permissions"));
+    RemoveLabelModal.closeButton().shouldBe(visible).click();
+    RemoveLabelModal.root().should(disappear);
+
+    // verify labels remain unchanged
+    LabelsCIP.availableLabels().shouldHaveSize(1);
+    LabelsCIP.availableLabel(1).shouldHave(text("El Junko"));
+    LabelsCIP.appliedLabels().shouldHaveSize(1);
+    LabelsCIP.appliedLabel(1).shouldHave(text("El Magnifico"));
+    cipModal.closeButton().click();
+
+    // Remove the label we added with proper permissions
+    logout();
+    loginAsAdmin();
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
+    reportPage.resultRow(1).click();
+    cipModal.tabLink(7).click();
+    LabelsCIP.availableLabel(1).shouldHave(text("El Junko")).action().click();
+    AddLabelModal.saveButton().click();
     LabelsCIP.appliedLabels().shouldHaveSize(2);
     LabelsCIP.appliedLabel(1).shouldHave(text("El Junko")).action().click();
 

@@ -31,4 +31,8 @@ public class ReportCip
   public static SelenideElement policyTab() {
     return tabs().findBy(text("Policy"));
   }
+
+  public static SelenideElement labelsTab() {
+    return tabs().findBy(text("Labels"));
+  }
 }

@@ -18,13 +18,15 @@ export default function LabelAddController($scope, label, SelectedComponent, Own
 
     $scope.labelSaving = true;
     $scope.labelAddError = null;
-    $http.post(CLM.path + 'rest/label/component/' + parts[1] + '/' + parts[0] + '/' +
-        component.hash, payload).then(function() {
+
+    const url = `${CLM.path}rest/label/component/${parts[1]}/${parts[0]}/${component.hash}`;
+
+    $http.post(url, payload).then(function() {
       $scope.$emit('reevaluate.component', {hash: component.hash});
       $scope.$close(label);
     }, function(error) {
       $scope.labelSaving = false;
-      $scope.error = messages.getHttpErrorMessage(error);
+      $scope.labelAddError = messages.getHttpErrorMessage(error);
     });
   };
 
@@ -36,8 +38,10 @@ export default function LabelAddController($scope, label, SelectedComponent, Own
     };
     $scope.labelOwners = [];
 
-    $http.get(CLM.path + 'api/v2/labels/' + OwnerContext.ownerType + '/' + OwnerContext.ownerId + '/applicable/context/' +
-        label.id).then(function(response) {
+    const url = `${CLM.path}api/v2/labels/${OwnerContext.ownerType}/` +
+        `${OwnerContext.ownerId}/applicable/context/${label.id}`;
+
+    $http.get(url).then(function(response) {
       $scope.labelLoading = false;
       function processItem(item) {
         $scope.labelOwners.push(item);
@@ -50,7 +54,7 @@ export default function LabelAddController($scope, label, SelectedComponent, Own
       $scope.labelOwners.reverse();
     }, function(error) {
       $scope.labelLoading = false;
-      $scope.error = messages.getHttpErrorMessage(error);
+      $scope.labelAddError = messages.getHttpErrorMessage(error);
     });
   };
 

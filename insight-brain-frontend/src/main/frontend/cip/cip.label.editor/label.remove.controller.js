@@ -9,8 +9,11 @@ export default function LabelRemoveController($scope, $http, label, SelectedComp
   $scope.accept = function() {
     $scope.labelDeleting = true;
     $scope.labelRemoveError = null;
-    $http['delete'](CLM.path + 'rest/label/component/' + label.ownerType + '/' + label.ownerId + '/' +
-        SelectedComponent.get().hash + '/' + label.id).then(function() {
+
+    const url = `${CLM.path}rest/label/component/${label.ownerType}/${label.ownerId}/` +
+        `${SelectedComponent.get().hash}/${label.id}`;
+
+    $http['delete'](url).then(function() {
       $scope.$emit('reevaluate.component', {hash: SelectedComponent.get().hash});
       $scope.$close();
     }, function(error) {
@@ -18,7 +21,22 @@ export default function LabelRemoveController($scope, $http, label, SelectedComp
       $scope.labelRemoveError = messages.getHttpErrorMessage(error);
     });
   };
-  $scope.labelRemoveError = null;
+
+  $scope.doLoad = function() {
+    $scope.labelLoading = true;
+    $scope.labelRemoveError = null;
+
+    const url = `${CLM.path}api/v2/labels/${label.ownerType}/${label.ownerId}/applicable/context/${label.id}`;
+
+    $http.get(url).then(function() {
+      $scope.labelLoading = false;
+    }, function(error) {
+      $scope.labelLoading = false;
+      $scope.labelRemoveError = messages.getHttpErrorMessage(error);
+    });
+  };
+
+  $scope.doLoad();
 }
 
 LabelRemoveController.$inject = ['$scope', '$http', 'label', 'SelectedComponent', 'Messages'];

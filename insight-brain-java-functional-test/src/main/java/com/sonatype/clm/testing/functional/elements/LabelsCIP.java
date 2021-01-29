@@ -81,6 +81,14 @@ public class LabelsCIP
       return $(ROOT);
     }
 
+    public static SelenideElement error() {
+      return $(createSelector(ROOT, ".iq-alert--error"));
+    }
+
+    public static SelenideElement closeButton() {
+      return $(createSelector(ROOT, ".btn-dismiss"));
+    }
+
     public static SelenideElement cancelButton() {
       return $(createSelector(ROOT, ".btn:not(.btn-primary)"));
     }
@@ -104,6 +112,14 @@ public class LabelsCIP
 
     public static SelenideElement root() {
       return $(ROOT);
+    }
+
+    public static SelenideElement error() {
+      return $(createSelector(ROOT, ".iq-alert--error"));
+    }
+
+    public static SelenideElement closeButton() {
+      return $(createSelector(ROOT, ".btn-dismiss"));
     }
 
     public static SelenideElement confirmButton() {

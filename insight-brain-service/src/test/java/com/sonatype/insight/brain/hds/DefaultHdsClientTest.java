@@ -68,8 +68,6 @@ import static org.mockito.Mockito.when;
 public class DefaultHdsClientTest
     extends AbstractHdsClientTest
 {
-  private static final String USER_AGENT_SUFFIX = "test suffix";
-
   @Override
   protected void initClient() {
     ProductLicense productLicense = mock(ProductLicense.class);
@@ -78,15 +76,15 @@ public class DefaultHdsClientTest
         productLicense, config, new VersionService(), telemetryId);
   }
 
-  @Test
-  public void testClientUserAgentOnRequests() throws Exception {
-    String testPath = "/rest/test";
-    String testClmClientUserAgent = "client_user_agent";
-
+  /**
+   * Configures an HTTP request handler that captures the HTTP request headers.
+   * 
+   * @return a map of HTTP headers that can be used to assert HTTP headers for the latest HTTP request
+   */
+  private Map<String, String> setHttpHeaderCaptorRequestHandler() {
     final Map<String, String> headers = new HashMap<>();
     handler = new AbstractHandler()
     {
-
       @Override
       public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
           throws IOException, ServletException
@@ -99,36 +97,81 @@ public class DefaultHdsClientTest
         baseRequest.setHandled(true);
       }
     };
+    return headers;
+  }
+
+  @Test
+  public void testGet_ClientUserAgentOnRequests() throws Exception {
+    String testPath = "/rest/test";
+
+    Map<String, String> headers = setHttpHeaderCaptorRequestHandler();
+
+    // Method does not pass an original request, hence the null header.
+    client.get(InputStream.class, testPath, null, new String[]{});
+    assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isNull();
+  }
+
+  @Test
+  public void testRelay_ClientUserAgentOnRequests() throws Exception {
+    String testPath = "/rest/test";
+    String testClientUserAgent = "client_user_agent";
+
+    Map<String, String> headers = setHttpHeaderCaptorRequestHandler();
 
     HttpServletRequest request = mock(HttpServletRequest.class);
     when(request.getHeaderNames()).thenReturn(Collections.enumeration(Arrays.asList(HttpHeaders.USER_AGENT)));
-    when(request.getHeader(eq(HttpHeaders.USER_AGENT))).thenReturn(testClmClientUserAgent);
+    when(request.getHeader(eq(HttpHeaders.USER_AGENT))).thenReturn(testClientUserAgent);
     when(request.getMethod()).thenReturn("GET");
 
-    // Method does not pass an original request, hence the null header.
-    client.get(InputStream.class, testPath, null, new String[] {});
-    assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isNull();
-    client.relay(request, InputStream.class, testPath, new String[] {});
-    assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClmClientUserAgent);
-    client.relay(request, InputStream.class, testPath, null, new String[] {});
-    assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClmClientUserAgent);
-    client.relay(request, null, InputStream.class, testPath, null, new String[] {});
-    assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClmClientUserAgent);
+    client.relay(request, InputStream.class, testPath, new String[]{});
+    assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
+    client.relay(request, InputStream.class, testPath, null, new String[]{});
+    assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
+    client.relay(request, null, InputStream.class, testPath, null, new String[]{});
+    assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
+
+    String testExplicitClientUserAgent = "explicit_client_user_agent";
+    when(request.getHeader(eq(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER))).thenReturn(testExplicitClientUserAgent);
+    client.relay(request, InputStream.class, testPath, new String[]{});
+    assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testExplicitClientUserAgent);
+  }
+
+  @Test
+  public void testPut_ClientUserAgentOnRequests() throws Exception {
+    String testPath = "/rest/test";
+
+    Map<String, String> headers = setHttpHeaderCaptorRequestHandler();
+
     // Method does not pass an original request, hence the null header.
     client.put(null, InputStream.class, testPath,
         new File(getClass().getResource("/config-test.yml").toURI()), Collections.emptyMap(),
         new String[] {});
     assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isNull();
+  }
 
-    when(request.getHeader(eq(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER))).thenReturn(testClmClientUserAgent);
-    client.relay(request, InputStream.class, testPath, new String[] {});
-    assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClmClientUserAgent);
+  @Test
+  public void testPost_ClientUserAgentOnRequests() throws Exception {
+    String testPath = "/rest/test";
+    String testClientUserAgent = "client_user_agent";
+
+    Map<String, String> headers = setHttpHeaderCaptorRequestHandler();
 
     HttpEntity httpEntity = MultipartEntityBuilder.create().build();
-    client.post(testPath, httpEntity, null /* testClmClientUserAgent */);
+    client.post(testPath, httpEntity, null /* clientUserAgent */);
     assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isNull();
-    client.post(testPath, httpEntity, testClmClientUserAgent);
-    assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClmClientUserAgent);
+    client.post(testPath, httpEntity, testClientUserAgent);
+    assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
+
+    String[] emptyUriParams = new String[]{};
+
+    // Method does not pass an original request or client user agent, hence the null header.
+    client.post(InputStream.class, testPath, "httpEntity", emptyUriParams);
+    assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isNull();
+
+    client.post(null /* analytics */, String.class, testPath, null /* clientUserAgent */, "httpEntity", emptyUriParams);
+    assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isNull();
+    client.post(null /* analytics */, String.class, testPath, testClientUserAgent, "httpEntity", emptyUriParams);
+    assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
   }
 
   private String getBrainVersion() throws IOException {
@@ -141,54 +184,64 @@ public class DefaultHdsClientTest
   }
 
   @Test
-  public void testBrainUserAgentOnRequests() throws Exception {
-    String userAgent = UserAgentUtils.getDefaultUserAgent() + " " + USER_AGENT_SUFFIX;
-    assertThat(userAgent).startsWith("Sonatype_CLM_Server/" + getBrainVersion());
-    final Map<String, String> headers = new HashMap<>();
+  public void testGet_BrainUserAgentOnRequests() throws Exception {
+    String expectedUserAgent = UserAgentUtils.getDefaultUserAgent() + " " + USER_AGENT_SUFFIX;
+    assertThat(expectedUserAgent).startsWith("Sonatype_CLM_Server/" + getBrainVersion());
+    Map<String, String> headers = setHttpHeaderCaptorRequestHandler();
     String testPath = "/rest/test";
-    handler = new AbstractHandler()
-    {
 
-      @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-          throws IOException, ServletException
-      {
-        headers.clear();
-        for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements();) {
-          String headerName = en.nextElement();
-          headers.put(headerName, request.getHeader(headerName));
-        }
-        baseRequest.setHandled(true);
-      }
-    };
+    client.get(InputStream.class, testPath, null, new String[] {});
+    assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(expectedUserAgent);
+    client.get(InputStream.class, testPath);
+    assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(expectedUserAgent);
+  }
+
+  @Test
+  public void testPost_BrainUserAgentOnRequests() throws Exception {
+    String expectedUserAgent = UserAgentUtils.getDefaultUserAgent() + " " + USER_AGENT_SUFFIX;
+    assertThat(expectedUserAgent).startsWith("Sonatype_CLM_Server/" + getBrainVersion());
+    Map<String, String> headers = setHttpHeaderCaptorRequestHandler();
+    String testPath = "/rest/test";
+
+    client.post(testPath, new StringEntity(""), "test-client-user-agent");
+    assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(expectedUserAgent);
+    client.post(InputStream.class, testPath, Collections.emptyMap());
+    assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(expectedUserAgent);
+    client.post(null, InputStream.class, testPath, "test-client-user-agent", Collections.emptyMap());
+    assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(expectedUserAgent);
+  }
+
+  @Test
+  public void testRelay_BrainUserAgentOnRequests() throws Exception {
+    String expectedUserAgent = UserAgentUtils.getDefaultUserAgent() + " " + USER_AGENT_SUFFIX;
+    assertThat(expectedUserAgent).startsWith("Sonatype_CLM_Server/" + getBrainVersion());
+    Map<String, String> headers = setHttpHeaderCaptorRequestHandler();
+    String testPath = "/rest/test";
 
     HttpServletRequest request = mock(HttpServletRequest.class);
     when(request.getHeaderNames()).thenReturn(Collections.enumeration(Arrays.asList(HttpHeaders.USER_AGENT)));
     when(request.getHeader(any(String.class))).thenReturn("header-value");
     when(request.getMethod()).thenReturn("GET");
 
-    client.get(InputStream.class, testPath, null, new String[] {});
-    assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(userAgent);
-    client.get(InputStream.class, testPath);
-    assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(userAgent);
-
-    client.post(testPath, new StringEntity(""), "test-client-user-agent");
-    assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(userAgent);
-    client.post(InputStream.class, testPath, Collections.emptyMap());
-    assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(userAgent);
-    client.post(null, InputStream.class, testPath, "test-client-user-agent", Collections.emptyMap());
-    assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(userAgent);
-
     client.relay(request, InputStream.class, testPath, new String[] {});
-    assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(userAgent);
+    assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(expectedUserAgent);
     client.relay(request, InputStream.class, testPath, null, new String[] {});
-    assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(userAgent);
+    assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(expectedUserAgent);
     client.relay(request, null, InputStream.class, testPath, null, new String[] {});
-    assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(userAgent);
+    assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(expectedUserAgent);
+  }
+
+  @Test
+  public void testPut_BrainUserAgentOnRequests() throws Exception {
+    String expectedUserAgent = UserAgentUtils.getDefaultUserAgent() + " " + USER_AGENT_SUFFIX;
+    assertThat(expectedUserAgent).startsWith("Sonatype_CLM_Server/" + getBrainVersion());
+    Map<String, String> headers = setHttpHeaderCaptorRequestHandler();
+    String testPath = "/rest/test";
+
     client.put(null, InputStream.class, testPath,
         new File(getClass().getResource("/config-test.yml").toURI()), Collections.emptyMap(),
         new String[] {});
-    assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(userAgent);
+    assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(expectedUserAgent);
   }
 
   @Test
@@ -257,23 +310,8 @@ public class DefaultHdsClientTest
 
   @Test
   public void testRequestUsesProperContentLength() throws Exception {
-    final Map<String, String> headers = new HashMap<>();
+    Map<String, String> headers = setHttpHeaderCaptorRequestHandler();
     byte[] test = "test".getBytes();
-    handler = new AbstractHandler()
-    {
-
-      @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-          throws IOException, ServletException
-      {
-        headers.clear();
-        for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements(); ) {
-          String headerName = en.nextElement();
-          headers.put(headerName, request.getHeader(headerName));
-        }
-        baseRequest.setHandled(true);
-      }
-    };
 
     HttpServletRequest request = mock(HttpServletRequest.class);
 

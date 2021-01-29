@@ -33,7 +33,7 @@ public abstract class AbstractHdsClientTest
   @Inject
   protected PasswordHandler passwordHandler;
 
-  private static final String USER_AGENT_SUFFIX = "test suffix";
+  protected static final String USER_AGENT_SUFFIX = "test suffix";
 
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();

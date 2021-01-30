@@ -74,7 +74,7 @@ public class LdapServiceTest
       .around(testLdapServer1).around(testLdapServer2).around(testLdapServer3).around(testLdapServer4);
 
   private static final String CONNECTION_ERROR_PATTERN =
-      "(?i)(connection (closed|refused|reset)|socket closed|read timed out)";
+      "(?i)(connection (closed|refused|reset)|socket closed|read timed out|cancelled)";
 
   @Before
   public void before() {

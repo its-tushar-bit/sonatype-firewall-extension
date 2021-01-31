@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.postgres.PostgresServer;
 
 import org.junit.After;
@@ -486,6 +487,34 @@ public class ClusterLockTest
     try (ClusterLock clusterLock = new ClusterLock(lockId)) {
       assertThat(clusterLock.tryLock()).isTrue();
       assertThat(clusterLock.tryLock()).isTrue();
+    }
+  }
+
+  @Test(timeout = 60_000)
+  @org.junit.Ignore("CLM-17692")
+  public void testLock_Postgres_LocksDoNotCompeteWithRegularQueriesForConnections() throws Exception {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      DatabaseConfig dbConfig = postgres.getDatabaseConfig();
+      dbConfig.setMaxConnections(2);
+      OperationalDataStoreProvider.init(dbConfig, false);
+
+      String lockId = "test";
+      try (ClusterLock clusterLock = new ClusterLock(lockId)) {
+        clusterLock.lock();
+        CountDownLatch latch = startConcurrentLockThread(lockId);
+        assertThat(latch.await(3, TimeUnit.SECONDS)).isFalse();
+
+        // both this and the concurrent thread have one active tx/connection for the lock
+        // if these two connections are from the same pool as for regular ODS queries, we'll deadlock next
+        new ApplicationDAO().getAll();
+
+        clusterLock.unlock();
+        assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
+      }
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
     }
   }
 

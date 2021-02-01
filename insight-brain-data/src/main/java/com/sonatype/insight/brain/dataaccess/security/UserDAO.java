@@ -12,6 +12,7 @@ import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
+import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
@@ -180,6 +181,10 @@ public class UserDAO
     DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
     dashboardFilterDAO.deleteByUsernameAndRealmId(tx, entity.getUsername(), User.INTERNAL_REALM_ID);
     dashboardFilterDAO.deleteLegacyByUsername(tx, entity.getUsername());
+
+    // Cascade to user filters
+    UserFilterDAO userFilterDAO = new UserFilterDAO();
+    userFilterDAO.deleteByUsernameAndRealmId(tx, entity.getUsername(), User.INTERNAL_REALM_ID);
 
     // Cascade to user viewed product notifications
     UserViewedProductNotificationDAO userViewedProductNotificationDAO = new UserViewedProductNotificationDAO();

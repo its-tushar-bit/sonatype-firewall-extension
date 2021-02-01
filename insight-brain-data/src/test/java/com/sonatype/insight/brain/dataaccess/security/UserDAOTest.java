@@ -10,11 +10,14 @@ import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
+import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
+import com.sonatype.insight.brain.model.filter.UserFilter;
+import com.sonatype.insight.brain.model.filter.UserFilterType;
 import com.sonatype.insight.brain.model.notification.UserViewedProductNotification;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
@@ -632,6 +635,17 @@ public class UserDAOTest
     new UserDAO().delete(user);
     assertThat(dashboardFilterDAO.getById(dashboardFilter.getId())).isNull();
     assertThat(dashboardFilterDAO.getById(dashboardFilterLegacy.getId())).isNull();
+  }
+
+  @Test
+  public void testDeleteCascadesToUserFilter() {
+    User user = createUser("testDeleteCascadesToUserFilter");
+    // Add filter
+    UserFilter userFilter = tempEntity.newUserFilter(user.getUsername(), User.INTERNAL_REALM_ID, "TestFilter1",
+        UserFilterType.ADVANCED_LEGAL_PACK_DASHBOARD, "filter1");
+
+    new UserDAO().delete(user);
+    assertThat(new UserFilterDAO().getById(userFilter.getId())).isNull();
   }
 
   @Test

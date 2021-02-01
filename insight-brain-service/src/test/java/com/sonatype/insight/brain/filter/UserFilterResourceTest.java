@@ -1,0 +1,138 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.filter;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
+import com.sonatype.insight.brain.model.filter.UserFilter;
+import com.sonatype.insight.brain.security.InternalRealm;
+import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.json.store.JsonUtils;
+
+import com.google.common.collect.ImmutableMap;
+import org.junit.Test;
+
+import static com.sonatype.insight.brain.model.filter.UserFilter.ACTIVE_FILTER_NAME;
+import static com.sonatype.insight.brain.model.filter.UserFilterType.ADVANCED_LEGAL_PACK_DASHBOARD;
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class UserFilterResourceTest
+    extends AbstractResourceTest
+{
+  private final UserFilterDAO userFilterDAO = new UserFilterDAO();
+
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(UserFilterResource.RESOURCE_PATH);
+  }
+
+  @Test
+  public void testCreateOrUpdateUserFilterForCurrentUser_Insert() throws Exception {
+    UserFilterDTO userFilterDTO = newUserFilterDTO("test filter name");
+
+    HttpResponse response = restRequest().body(userFilterDTO).put();
+    assertResponseStatus(200, response);
+
+    UserFilterDTO result = response.getBody(UserFilterDTO.class);
+    assertThat(result).isNotNull();
+    assertThat(result).usingRecursiveComparison().isEqualTo(userFilterDTO);
+
+    UserFilter userFilter = userFilterDAO.getByUsernameAndRealmIdAndNameAndType(getUsername(), InternalRealm.ID,
+        userFilterDTO.name, userFilterDTO.type);
+    assertFilter(userFilter, userFilterDTO);
+  }
+
+  @Test
+  public void testCreateOrUpdateUserFilterForCurrentUser_Update() throws Exception {
+    String filterName = "test filter";
+    tempEntity.newUserFilter(getUsername(), InternalRealm.ID, filterName, ADVANCED_LEGAL_PACK_DASHBOARD);
+    UserFilterDTO userFilterDTO = newUserFilterDTO(filterName);
+
+    HttpResponse response = restRequest().body(userFilterDTO).put();
+    assertResponseStatus(200, response);
+
+    UserFilterDTO result = response.getBody(UserFilterDTO.class);
+    assertThat(result).isNotNull();
+    assertThat(result).usingRecursiveComparison().isEqualTo(userFilterDTO);
+
+    UserFilter userFilter = userFilterDAO.getByUsernameAndRealmIdAndNameAndType(getUsername(), InternalRealm.ID,
+        userFilterDTO.name, userFilterDTO.type);
+    assertFilter(userFilter, result);
+  }
+
+  @Test
+  public void testGetActiveUserFilterForCurrentUser() throws Exception {
+    UserFilter userFilter =
+        tempEntity.newUserFilter(getUsername(), InternalRealm.ID, ACTIVE_FILTER_NAME, ADVANCED_LEGAL_PACK_DASHBOARD);
+
+    HttpResponse response =
+        restRequest().path(UserFilterResource.ACTIVE_FILTERS_PATH).query("type", ADVANCED_LEGAL_PACK_DASHBOARD).get();
+    assertResponseStatus(200, response);
+
+    UserFilterDTO result = response.getBody(UserFilterDTO.class);
+    assertFilter(result, userFilter);
+  }
+
+  @Test
+  public void testGetNamedFiltersForCurrentUser() throws Exception {
+    UserFilter filter1 =
+        tempEntity.newUserFilter(getUsername(), InternalRealm.ID, "filter1", ADVANCED_LEGAL_PACK_DASHBOARD);
+    UserFilter filter2 =
+        tempEntity.newUserFilter(getUsername(), InternalRealm.ID, "filter2", ADVANCED_LEGAL_PACK_DASHBOARD);
+
+    HttpResponse response =
+        restRequest().path(UserFilterResource.NAMED_FILTERS_PATH).query("type", ADVANCED_LEGAL_PACK_DASHBOARD).get();
+    assertResponseStatus(200, response);
+
+    List<UserFilterDTO> result = Arrays.asList(response.getBody(UserFilterDTO[].class));
+    assertThat(result).isNotEmpty();
+    assertFilter(result.get(0), filter1);
+    assertFilter(result.get(1), filter2);
+  }
+
+  @Test
+  public void deleteFilterForCurrentUserByNameAndType() throws Exception {
+    UserFilter filter =
+        tempEntity.newUserFilter(getUsername(), InternalRealm.ID, "filterName", ADVANCED_LEGAL_PACK_DASHBOARD);
+
+    HttpResponse response = restRequest().query("name", filter.getName()).query("type", filter.getType()).delete();
+    assertResponseStatus(204, response);
+
+    assertThat(userFilterDAO.getById(filter.getId())).isNull();
+  }
+
+  private UserFilterDTO newUserFilterDTO(String filterName) {
+    UserFilterDTO userFilterDTO = new UserFilterDTO();
+    userFilterDTO.name = filterName;
+    userFilterDTO.type = ADVANCED_LEGAL_PACK_DASHBOARD;
+    userFilterDTO.filter = ImmutableMap.of("key1", "value 1", "key2", true, "key3", ImmutableMap.of("subKey1", 1));
+    return userFilterDTO;
+  }
+
+  private void assertFilter(UserFilter actualFilter, UserFilterDTO expectedFilter) {
+    assertThat(actualFilter).isNotNull();
+    assertThat(actualFilter.getRealmId()).isEqualTo(InternalRealm.ID);
+    assertThat(actualFilter.getType()).isEqualTo(expectedFilter.type);
+    assertThat(actualFilter.getUsername()).isEqualTo(getUsername());
+    assertThat(actualFilter.getFilter()).isEqualTo(JsonUtils.format(expectedFilter.filter));
+    assertThat(actualFilter.getName()).isEqualTo(expectedFilter.name);
+    assertThat(actualFilter.getBasedOnFilterName()).isNull();
+  }
+
+  private void assertFilter(UserFilterDTO actualFilter, UserFilter expectedFilter) throws IOException {
+    assertThat(actualFilter).isNotNull();
+    assertThat(actualFilter.type).isEqualTo(expectedFilter.getType());
+    assertThat(actualFilter.filter).isEqualTo(JsonUtils.parse(expectedFilter.getFilter(), Map.class));
+    assertThat(actualFilter.name).isEqualTo(expectedFilter.getName());
+    assertThat(actualFilter.basedOnFilterName).isEqualTo(expectedFilter.getBasedOnFilterName());
+  }
+}

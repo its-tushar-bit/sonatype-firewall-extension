@@ -76,6 +76,7 @@
     <class>com.sonatype.insight.brain.model.legal.LegalFileOverride</class>
     <class>com.sonatype.insight.brain.model.legal.ComponentObligation</class>
     <class>com.sonatype.insight.brain.model.legal.ComponentObligationAttribution</class>
+    <class>com.sonatype.insight.brain.model.filter.UserFilter</class>
     <properties>
       <!--
       <property name="openjpa.ConnectionURL" value="jdbc:hsqldb:tutorial_database"/>

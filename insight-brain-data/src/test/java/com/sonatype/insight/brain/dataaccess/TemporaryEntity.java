@@ -51,6 +51,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingD
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
+import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
@@ -128,6 +129,8 @@ import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
+import com.sonatype.insight.brain.model.filter.UserFilter;
+import com.sonatype.insight.brain.model.filter.UserFilterType;
 import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
@@ -193,9 +196,11 @@ import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverr
 import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.sonatype.insight.dataaccess.AbstractDAO;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Table;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.openjpa.enhance.PersistenceCapable;
@@ -287,6 +292,8 @@ public class TemporaryEntity
   private final HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
 
   private final DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
+
+  private final UserFilterDAO userFilterDAO = new UserFilterDAO();
 
   private final UserViewedProductNotificationDAO userViewedProductNotificationDAO =
       new UserViewedProductNotificationDAO();
@@ -399,6 +406,8 @@ public class TemporaryEntity
 
   private Collection<DashboardFilter> dashboardFilters;
 
+  private Collection<UserFilter> userFilters;
+
   private Collection<UserViewedProductNotification> userViewedProductNotifications;
 
   private Collection<Policy> policies;
@@ -461,6 +470,7 @@ public class TemporaryEntity
     ldapServers = new ArrayList<>();
     claimedComponents = new ArrayList<>();
     dashboardFilters = new ArrayList<>();
+    userFilters = new ArrayList<>();
     userViewedProductNotifications = new ArrayList<>();
     policies = new ArrayList<>();
     policyTags = new ArrayList<>();
@@ -505,6 +515,7 @@ public class TemporaryEntity
     delete(innerSourceComponents, innerSourceComponentDAO);
     delete(membershipMappings, membershipMappingDAO);
     delete(dashboardFilters, dashboardFilterDAO);
+    delete(userFilters, userFilterDAO);
     delete(policyTags, policyTagDAO);
     delete(pullRequestCommentDAO.getAll(), pullRequestCommentDAO);
     delete(defaultBranchCommitHistoryDAO.getAll(), defaultBranchCommitHistoryDAO);
@@ -666,6 +677,36 @@ public class TemporaryEntity
     DashboardFilter dashboardFilter = dashboardFilterDAO.getById(id);
     dashboardFilters.add(dashboardFilter);
     return dashboardFilter;
+  }
+
+  public UserFilter newUserFilter(String username, String realmId, String filterName, UserFilterType type) {
+    return newUserFilter(username, realmId, filterName, type, JsonUtils.format(ImmutableMap.of("key", "value")), null);
+  }
+
+  public UserFilter newUserFilter(
+      String username,
+      String realmId,
+      String filterName,
+      UserFilterType type,
+      String filter)
+  {
+    return newUserFilter(username, realmId, filterName, type, filter, null);
+  }
+
+  public UserFilter newUserFilter(
+      String username,
+      String realmId,
+      String filterName,
+      UserFilterType type,
+      String filter,
+      String basedOn)
+  {
+    UserFilter userFilter = new UserFilter(username, realmId, filterName, type);
+    userFilter.setFilter(filter);
+    userFilter.setBasedOnFilterName(basedOn);
+    userFilterDAO.insert(userFilter);
+    userFilters.add(userFilter);
+    return userFilter;
   }
 
   public Organization newOrganization() {

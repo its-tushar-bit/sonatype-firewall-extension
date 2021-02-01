@@ -12,6 +12,7 @@ import java.util.List;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.DataAccessException;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
+import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
@@ -21,6 +22,8 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
+import com.sonatype.insight.brain.model.filter.UserFilter;
+import com.sonatype.insight.brain.model.filter.UserFilterType;
 import com.sonatype.insight.brain.model.notification.UserViewedProductNotification;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -341,6 +344,21 @@ public class LdapServerDAOTest
 
     assertThat(new DashboardFilterDAO().getById(dashboardFilter1.getId())).isNull();
     assertThat(new DashboardFilterDAO().getById(dashboardFilter2.getId())).isNotNull();
+  }
+
+  @Test
+  public void testDeleteCascadesToUserFilter() {
+    LdapServer ldapServer = tempEntity.newLdapServer("test");
+    UserFilter userFilter1 = tempEntity.newUserFilter("testUsername", ldapServer.getId(), "testFilterName",
+        UserFilterType.ADVANCED_LEGAL_PACK_DASHBOARD, "testFilter");
+    UserFilter userFilter2 = tempEntity.newUserFilter("testUsername", "OtherRealmId", "testFilterName",
+        UserFilterType.ADVANCED_LEGAL_PACK_DASHBOARD, "testFilter");
+
+    dao.delete(ldapServer);
+
+    UserFilterDAO userFilterDAO = new UserFilterDAO();
+    assertThat(userFilterDAO.getById(userFilter1.getId())).isNull();
+    assertThat(userFilterDAO.getById(userFilter2.getId())).isNotNull();
   }
 
   @Test

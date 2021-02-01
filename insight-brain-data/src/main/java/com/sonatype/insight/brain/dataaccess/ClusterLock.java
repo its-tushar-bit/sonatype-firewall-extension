@@ -215,7 +215,8 @@ public class ClusterLock
   }
 
   private boolean acquire(boolean waitForLock) {
-    TransactionContext tempTx = new LockDAO().createTransactionContext();
+    TransactionContext tempTx =
+        new TransactionContext(OperationalDataStoreProvider.getEntityManagerFactoryForLocks().createEntityManager());
     tempTx.begin();
     try {
       if (waitForLock) {

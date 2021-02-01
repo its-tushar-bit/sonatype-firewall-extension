@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.db;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
@@ -15,6 +16,7 @@ import javax.sql.DataSource;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.db.H2DatabaseEngine;
 
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.openjpa.lib.jdbc.JDBCListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +38,8 @@ public class OperationalDataStoreProvider
   private static Boolean isDatabaseEmbedded;
 
   private static EntityManagerFactory entityManagerFactory;
+
+  private static EntityManagerFactory entityManagerFactoryForLocks;
 
   private static volatile boolean isInitialized = false;
 
@@ -95,6 +99,21 @@ public class OperationalDataStoreProvider
     }
 
     entityManagerFactory = Persistence.createEntityManagerFactory("InsightBrainODS", props);
+    if (isDatabaseEmbedded) {
+      entityManagerFactoryForLocks = entityManagerFactory;
+    }
+    else {
+      // smallest pool size should still support max nesting level of locks
+      int maxConnections = Math.max(5, Optional.ofNullable(databaseConfig.getMaxConnections()).orElse(50));
+      BasicDataSource dataSource = new BasicDataSource();
+      dataSource.setDriverClassName(databaseConfig.getDriverClassName());
+      dataSource.setUrl(databaseConfig.getUrl());
+      dataSource.setUsername(databaseConfig.getUsername());
+      dataSource.setPassword(databaseConfig.getPassword());
+      dataSource.setMaxTotal(maxConnections);
+      props.put("openjpa.ConnectionFactory", dataSource);
+      entityManagerFactoryForLocks = Persistence.createEntityManagerFactory("InsightBrainODS", props);
+    }
     isInitialized = true;
 
     log.info("Initialized the {} data store in {} ms.", ID, System.currentTimeMillis() - start);
@@ -122,9 +141,17 @@ public class OperationalDataStoreProvider
     return entityManagerFactory;
   }
 
+  public static EntityManagerFactory getEntityManagerFactoryForLocks() {
+    if (!isInitialized) {
+      init(null /* databaseConfig */, false);
+    }
+    return entityManagerFactoryForLocks;
+  }
+
   static synchronized void clear_ForTestsOnly() {
     dataSource = null;
     entityManagerFactory = null;
+    entityManagerFactoryForLocks = null;
     databaseConfig = null;
     isDatabaseEmbedded = null;
     isInitialized = false;

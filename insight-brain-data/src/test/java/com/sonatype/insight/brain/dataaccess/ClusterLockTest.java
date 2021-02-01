@@ -491,7 +491,6 @@ public class ClusterLockTest
   }
 
   @Test(timeout = 60_000)
-  @org.junit.Ignore("CLM-17692")
   public void testLock_Postgres_LocksDoNotCompeteWithRegularQueriesForConnections() throws Exception {
     DataSourceFactory.clear_ForTestsOnly();
     try (PostgresServer postgres = new PostgresServer()) {

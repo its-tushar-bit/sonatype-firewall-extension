@@ -208,9 +208,11 @@ public class ScanPolicyEvaluator
 
     AuditData.get().setStageId(stage.getStageTypeId());
 
+    final File reportFile;
+    final List<Component> components;
     try (ClusterLock clusterLock = ClusterLock.createForPolicyEvaluation(application, scanId)) {
       clusterLock.lock();
-      final File reportFile = reportService.fetchReport(application, scanId);
+      reportFile = reportService.fetchReport(application, scanId);
 
       final ReportEntry licenseReportEntry = Report.getEntry(reportFile, Report.LICENSES_JSON_FILENAME);
       final ReportEntry securityReportEntry = Report.getEntry(reportFile, Report.SECURITY_JSON_FILENAME);
@@ -223,37 +225,32 @@ public class ScanPolicyEvaluator
       }
 
       // Load data about components
-      final List<Component> components = new ComponentDAO(application).getAll(licenseReportEntry.buf,
+      components = new ComponentDAO(application).getAll(licenseReportEntry.buf,
           securityReportEntry.buf, bomReportEntry.buf, dependenciesReportEntry.buf);
-
-      sendApplicationStageComponentCounts(application.getId(), stage.getStageTypeId(), components);
-
-      // Evaluate the policies
-      String appId = application.getId();
-      List<Policy> policies = new PolicyDAO().getApplicableByOwnerIdWithHierarchy(appId);
-      PolicyResults policyResults =
-          componentPolicyEvaluator.evaluate(appId, stage, policies, components, forMonitoring);
-
-      PolicyViolationTelemetryCollector telemetryCollector =
-          new PolicyViolationTelemetryCollector(sourceControlUtils.isScmEnabled(appId));
-
-      String commitHash = extractCommitHash(Report.getEntry(reportFile, Report.DATA_JSON_FILENAME));
-
-      // Save the policy evaluation and violations
-      ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
-          processPolicyResults(application, scanId, stage, policyEvaluationTriggerType, policies,
-          forMonitoring, policyResults, components, telemetryCollector, commitHash);
-
-      telemetrySender.send(telemetryCollector.getTelemetryData());
-
-      sendGrandfatheredViolationTelemetryData(application.getId(), scanPolicyEvaluatorResults.allViolations);
-
-      updateReportFiles(reportFile, scanPolicyEvaluatorResults, stage, forMonitoring);
-
-      postEvents(scanPolicyEvaluatorResults, application);
-
-      return scanPolicyEvaluatorResults;
     }
+
+    sendApplicationStageComponentCounts(application.getId(), stage.getStageTypeId(), components);
+
+    // Evaluate the policies
+    String appId = application.getId();
+    List<Policy> policies = new PolicyDAO().getApplicableByOwnerIdWithHierarchy(appId);
+    PolicyResults policyResults = componentPolicyEvaluator.evaluate(appId, stage, policies, components, forMonitoring);
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        new PolicyViolationTelemetryCollector(sourceControlUtils.isScmEnabled(appId));
+
+    // Save the policy evaluation and violations
+    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
+        processPolicyResults(application, scanId, stage, policyEvaluationTriggerType, policies, forMonitoring,
+            policyResults, components, telemetryCollector, reportFile);
+
+    telemetrySender.send(telemetryCollector.getTelemetryData());
+
+    sendGrandfatheredViolationTelemetryData(application.getId(), scanPolicyEvaluatorResults.allViolations);
+
+    postEvents(scanPolicyEvaluatorResults, application);
+
+    return scanPolicyEvaluatorResults;
   }
 
   private List<PolicyAlert> createPolicyAlerts(
@@ -331,7 +328,7 @@ public class ScanPolicyEvaluator
       PolicyResults policyResults,
       List<Component> components,
       PolicyViolationTelemetryCollector telemetryCollector,
-      String commitHash)
+      File reportFile) throws IOException
   {
     String appId = app.getId();
     long start = System.currentTimeMillis();
@@ -345,7 +342,7 @@ public class ScanPolicyEvaluator
       AuditData.get().setIsReevaluation(isReevaluation);
       PolicyEvaluation policyEvaluation = new PolicyEvaluation(appId, stage.getStageTypeId(), scanId, isReevaluation,
           forMonitoring, currentUser.getUsernameOrSystem(), policyEvaluationTriggerType);
-      policyEvaluation.setCommitHash(commitHash);
+      policyEvaluation.setCommitHash(extractCommitHash(Report.getEntry(reportFile, Report.DATA_JSON_FILENAME)));
       PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(tx,
           appId, stage.getStageTypeId());
       boolean isForLatestScan = true;
@@ -509,6 +506,9 @@ public class ScanPolicyEvaluator
           "Persisted policy evaluation results (active={}, waived={}) for application {} from stage {} in {} ms",
           policyResults.getActiveAlerts().size(), policyResults.getWaivedAlerts().size(), appId,
           stage.getStageTypeId(), System.currentTimeMillis() - start);
+
+      updateReportFiles(reportFile, results, stage, forMonitoring);
+
       return results;
     }
   }

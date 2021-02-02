@@ -41,7 +41,7 @@ public class DatabaseConfigProvider
     com.sonatype.insight.brain.service.DatabaseConfig dbConfig = config.getDatabase();
     if (dbConfig != null) {
       log.info("Using external database at {}", dbConfig.getHostname());
-      return getExternalDatabaseConfig(dbConfig);
+      return getExternalDatabaseConfig(databaseName, dbConfig);
     }
 
     File databaseDir = new File(config.getSonatypeWork(), "data");
@@ -82,7 +82,10 @@ public class DatabaseConfigProvider
     return runtime.maxMemory();
   }
 
-  private DatabaseConfig getExternalDatabaseConfig(com.sonatype.insight.brain.service.DatabaseConfig dbConfig) {
+  private DatabaseConfig getExternalDatabaseConfig(
+      DatabaseName databaseName,
+      com.sonatype.insight.brain.service.DatabaseConfig dbConfig)
+  {
     String url = "jdbc:postgresql://" + dbConfig.getHostname();
     if (dbConfig.getPort() != null) {
       url += ":" + dbConfig.getPort();
@@ -99,7 +102,11 @@ public class DatabaseConfigProvider
     databaseConfig.setUrl(url);
     databaseConfig.setUsername(dbConfig.getUsername());
     databaseConfig.setPassword(dbConfig.getPassword());
-    databaseConfig.setMaxConnections(50);
+    // postgres defaults to max_connections=100, this is a best effort to not hit that limit by default
+    databaseConfig.setMaxConnections(45);
+    if (!DatabaseName.ods.equals(databaseName)) {
+      databaseConfig.setMaxIdleConnections(3);
+    }
     return databaseConfig;
   }
 }

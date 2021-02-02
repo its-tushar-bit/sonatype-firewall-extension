@@ -19,6 +19,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.filter.UserFilterType;
 
 import com.codahale.metrics.annotation.ExceptionMetered;
@@ -45,6 +47,7 @@ public class UserFilterResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.SAVE_USER_FILTER)
   public UserFilterDTO createOrUpdateUserFilterForCurrentUser(UserFilterDTO userFilterDTO) {
     return userFilterService.createOrUpdateUserFilterForCurrentUser(userFilterDTO);
   }
@@ -66,6 +69,7 @@ public class UserFilterResource
   }
 
   @DELETE
+  @Audited(AuditEvent.DELETE_USER_FILTER)
   public void deleteFilterForCurrentUserByNameAndType(
       @QueryParam("name") String name,
       @QueryParam("type") UserFilterType type)

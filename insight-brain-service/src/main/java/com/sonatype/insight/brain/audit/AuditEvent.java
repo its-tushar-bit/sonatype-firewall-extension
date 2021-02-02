@@ -195,7 +195,10 @@ public enum AuditEvent
 
   CREATE_USER_TOKEN(Domain.SECURITY_USER_TOKEN, Type.CREATE),
   DELETE_USER_TOKEN(Domain.SECURITY_USER_TOKEN, Type.DELETE),
-  PURGE_USER_TOKENS(Domain.SECURITY_USER_TOKEN, Type.PURGE);
+  PURGE_USER_TOKENS(Domain.SECURITY_USER_TOKEN, Type.PURGE),
+
+  SAVE_USER_FILTER(Domain.REPORTING_USER_FILTER, Type.SAVE),
+  DELETE_USER_FILTER(Domain.REPORTING_USER_FILTER, Type.DELETE);
 
   private final String domain;
 
@@ -364,6 +367,8 @@ public enum AuditEvent
     String REPORTING_QUARANTINED_COMPONENTS = join(REPORTING, "quarantined-components");
 
     String REPORTING_VULNERABILITY_SIGNATURES = join(REPORTING, "vulnerability-signatures");
+
+    String REPORTING_USER_FILTER = join(REPORTING, "user-filter");
 
     String NOTIFICATION = "notification";
 

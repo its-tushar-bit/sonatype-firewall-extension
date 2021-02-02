@@ -14,6 +14,7 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
 import com.sonatype.insight.brain.model.filter.UserFilter;
 import com.sonatype.insight.brain.model.filter.UserFilterType;
@@ -58,6 +59,8 @@ public class UserFilterService
         userFilter.setId(existingUserFilter.getId());
         userFilterDAO.update(userFilter);
       }
+
+      auditUserFilter(userFilter);
     }
 
     createOrUpdateActiveFilter(userFilterDTO, username, realmId);
@@ -115,6 +118,7 @@ public class UserFilterService
 
       userFilterDAO.delete(tx, filter);
       tx.commit();
+      auditUserFilter(filter);
     }
   }
 
@@ -142,6 +146,9 @@ public class UserFilterService
     else {
       userFilterDAO.insert(newActiveFilter);
     }
+    if (ACTIVE_FILTER_NAME.equals(userFilterDTO.name)) {
+      auditUserFilter(newActiveFilter);
+    }
   }
 
   @SuppressWarnings("unchecked")
@@ -152,5 +159,11 @@ public class UserFilterService
     userFilterDTO.name = userFilter.getName();
     userFilterDTO.type = userFilter.getType();
     return userFilterDTO;
+  }
+
+  private void auditUserFilter(UserFilter userFilter) {
+    AuditData.get()
+        .setData("filterId", userFilter.getId())
+        .setData("filterName", userFilter.getName().equals(ACTIVE_FILTER_NAME) ? "(active)" : userFilter.getName());
   }
 }

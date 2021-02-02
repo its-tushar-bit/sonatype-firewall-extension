@@ -41,6 +41,15 @@ export const licenseLegalMetadataPropType = PropTypes.arrayOf(PropTypes.shape({
   }))
 }).isRequired);
 
+export const licenseObligationsPropType = PropTypes.arrayOf(
+    PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      status: PropTypes.string.isRequired,
+      comment: PropTypes.string,
+      attributions: PropTypes.arrayOf(PropTypes.string.isRequired).isRequired
+    })
+);
+
 export const licenseObligationLicensesPropTypes = PropTypes.arrayOf(PropTypes.shape({
   name: PropTypes.string.isRequired,
   texts: PropTypes.arrayOf(PropTypes.string).isRequired
@@ -48,5 +57,21 @@ export const licenseObligationLicensesPropTypes = PropTypes.arrayOf(PropTypes.sh
 
 export const licenseObligationPropTypes = PropTypes.arrayOf(PropTypes.shape({
   name: PropTypes.string.isRequired,
-  licenses: licenseObligationLicensesPropTypes
+  licenses: licenseObligationLicensesPropTypes,
+  status: PropTypes.string.isRequired,
+  comment: PropTypes.string,
+  attributions: PropTypes.arrayOf(PropTypes.string.isRequired).isRequired
 }).isRequired);
+
+export const scopePropType = PropTypes.shape({
+  id: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired,
+  label: PropTypes.string.isRequired,
+  type: PropTypes.string.isRequired
+}).isRequired;
+
+export const availableScopesPropType = PropTypes.shape({
+  loading: PropTypes.bool.isRequired,
+  error: PropTypes.string,
+  values: PropTypes.arrayOf(scopePropType)
+}).isRequired;

@@ -13,7 +13,8 @@ describe('ComponentLegalOverviewContainer', function() {
       state,
       vdom,
       ComponentLegalOverviewContainer,
-      loadComponentActionMock;
+      loadComponentActionMock,
+      loadAvailableScopesActionMock;
 
   beforeEach(function() {
     state = {
@@ -21,20 +22,28 @@ describe('ComponentLegalOverviewContainer', function() {
         component: {
           component: 'component',
           licenseLegalMetadata: 'licenseLegalMetadata',
+          obligations: 'obligations',
           loading: 'loading',
           error: 'error'
+        },
+        availableScopes: {
+          loading: false,
+          error: null,
+          values: []
         }
       },
       router: {
-        currentParams: { hash: 'fooHash' }
+        currentParams: { hash: 'fooHash', organizationId: 'organizationId', applicationPublicId: 'applicationPublicId' }
       }
     };
 
     loadComponentActionMock = jasmine.createSpy('loadComponent').and.returnValue({ type: 'FOO' });
+    loadAvailableScopesActionMock = jasmine.createSpy('loadAvailableScopes').and.returnValue({ type: 'BAR' });
     ComponentLegalOverviewContainer =
         require('inject-loader!../../../main/frontend/legal/ComponentLegalOverviewContainer')({
           '../advancedLegal/advancedLegalActions': {
-            loadComponent: loadComponentActionMock
+            loadComponent: loadComponentActionMock,
+            loadAvailableScopes: loadAvailableScopesActionMock
           }
         }).default;
 
@@ -46,19 +55,27 @@ describe('ComponentLegalOverviewContainer', function() {
     let wrapper = shallow(vdom).dive();
     expect(wrapper).toHaveProp('component', 'component');
     expect(wrapper).toHaveProp('licenseLegalMetadata', 'licenseLegalMetadata');
+    expect(wrapper).toHaveProp('obligations', 'obligations');
     expect(wrapper).toHaveProp('loading', 'loading');
     expect(wrapper).toHaveProp('error', 'error');
     expect(wrapper).toHaveProp('hash', 'fooHash');
+    expect(wrapper).toHaveProp('organizationId', 'organizationId');
+    expect(wrapper).toHaveProp('applicationPublicId', 'applicationPublicId');
+    expect(wrapper).toHaveProp('availableScopes', { loading: false, error: null, values: [] });
   });
 
   it('correctly maps the action creators to the ComponentLegalOverviewContainer props', function() {
     const wrapper = shallow(vdom).dive();
     const loadComponentActionCreator = wrapper.prop('loadComponent');
+    const loadAvailableScopesActionCreator = wrapper.prop('loadAvailableScopes');
     expect(loadComponentActionCreator).toEqual(jasmine.any(Function));
+    expect(loadAvailableScopesActionCreator).toEqual(jasmine.any(Function));
 
     expect(store.getActions()).toEqual([]);
     loadComponentActionCreator('test');
     expect(store.getActions()).toEqual([{ type: 'FOO' }]);
+    loadAvailableScopesActionCreator('test');
+    expect(store.getActions()).toEqual([{ type: 'FOO' }, { type: 'BAR' }]);
   });
 
   it('renders ComponentLegalOverviewPage component', function() {

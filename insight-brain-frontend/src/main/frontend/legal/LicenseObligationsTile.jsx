@@ -4,11 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useState } from 'react';
-import { NxAccordion } from '@sonatype/react-shared-components';
+import { NxAccordion, NxDropdown, NxFontAwesomeIcon, NxOverflowTooltip } from '@sonatype/react-shared-components';
 import { licenseObligationPropTypes } from './advancedLegalPropTypes';
+import { OBLIGATION_STATUSES, OBLIGATION_STATUS_TO_DISPLAY } from './advancedLegalConstants';
+import { faCheckCircle, faExclamationTriangle, faMinusCircle } from '@fortawesome/pro-solid-svg-icons';
 
 export default function LicenseObligationsTile({ licenseObligations }) {
-
   const createItemContentTexts = (licenseObligationLicenseText, index) => {
     return <p className="obligation-text" key={ index }>{ licenseObligationLicenseText }</p>;
   };
@@ -29,15 +30,42 @@ export default function LicenseObligationsTile({ licenseObligations }) {
   };
 
   const createItem = (licenseObligation, index) => {
-    const [open, setOpen] = useState(false);
-    return <NxAccordion key={ index } open={ open } onToggle={ setOpen }>
+    const [isAccordionOpen, setAccordionOpen] = useState(false);
+    const [isStatusDropdownOpen, setStatusDropdownOpen] = useState(false);
+    const onToggleCollapse = () => { setStatusDropdownOpen(!isStatusDropdownOpen); };
+    const statusDropdownLabel = <span>{ createObligationStatusIcon(licenseObligation.status) }
+      { OBLIGATION_STATUS_TO_DISPLAY[licenseObligation.status] }</span>;
+    return <NxAccordion key={ index } open={ isAccordionOpen } onToggle={ setAccordionOpen }>
       <NxAccordion.Header>
-        <h3 className="nx-accordion__header-title">
-          { createItemAccordionHeader(licenseObligation) }
-        </h3>
+        <NxOverflowTooltip>
+          <h3 className="nx-accordion__header-title nx-truncate-ellipsis">
+            { createItemAccordionHeader(licenseObligation) }
+          </h3>
+        </NxOverflowTooltip>
+        <NxDropdown label={ statusDropdownLabel } isOpen={ isStatusDropdownOpen } onToggleCollapse={ onToggleCollapse }>
+          {
+            OBLIGATION_STATUSES.filter(obligationStatus => obligationStatus !== licenseObligation.status)
+                .map((obligationStatus, index) => {
+                  return <button key={ index } className="nx-dropdown-button">
+                    Mark as { OBLIGATION_STATUS_TO_DISPLAY[obligationStatus] }
+                  </button>;
+                })
+          }
+        </NxDropdown>
       </NxAccordion.Header>
       { licenseObligation.licenses.map(createItemContent) }
     </NxAccordion>;
+  };
+
+  const createObligationStatusIcon = obligationStatus => {
+    switch (obligationStatus) {
+      case 'FULFILLED':
+        return <NxFontAwesomeIcon icon={ faCheckCircle } className="license-obligation-fulfilled-icon" />;
+      case 'FLAGGED':
+        return <NxFontAwesomeIcon icon={ faExclamationTriangle } className="license-obligation-flagged-icon"/>;
+      case 'IGNORED':
+        return <NxFontAwesomeIcon icon={ faMinusCircle } className="license-obligation-ignored-icon"/>;
+    }
   };
 
   return (

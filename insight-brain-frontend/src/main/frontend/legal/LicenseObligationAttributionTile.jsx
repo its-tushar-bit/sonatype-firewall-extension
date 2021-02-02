@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   NxButton,
   NxCheckbox,
@@ -17,6 +17,7 @@ import {
 import { faPlus, faPen } from '@fortawesome/pro-solid-svg-icons';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
+import { availableScopesPropType } from './advancedLegalPropTypes';
 
 export default function LicenseObligationAttributionTile(props) {
   const {
@@ -28,11 +29,20 @@ export default function LicenseObligationAttributionTile(props) {
     name,
     attributionText,
     obligationFulfilled,
+    availableScopes,
     scope
   } = props;
   const [showAttributionModal, setShowAttributionModal] = useState(false);
   const attributionModalCloseHandler = () => setShowAttributionModal(false);
   const isAttributionPresent = () => attributionText !== '';
+
+  function load() {
+    setAttributionText({ name: name, value: attributionText });
+    setObligationFulfilled({ name: name, value: obligationFulfilled });
+    setScope({ name: name, value: availableScopes.values[availableScopes.values.length - 1].id });
+  }
+
+  useEffect(load, [availableScopes]);
 
   const createAttributionModal = () => {
     return <NxModal id="license-obligation-attribution-modal" onClose={ attributionModalCloseHandler }>
@@ -64,13 +74,17 @@ export default function LicenseObligationAttributionTile(props) {
           <NxFormGroup label="Scope" sublabel="Apply changes to" isRequired>
             <select className="nx-form-select"
                     value={ scope }
-                    onChange={payload => setScope({ name: name, value: payload })}>
-              <option value="ROOT_ORGANIZATION_ID">Global - Root Org</option>
+                    onChange={ payload => setScope({ name: name, value: payload.currentTarget.value }) }>
+              { availableScopes.values.map(createScopeOption) }
             </select>
           </NxFormGroup>
         </div>
       </NxForm>
     </NxModal>;
+  };
+
+  const createScopeOption = value => {
+    return <option key={ value.id } value={ value.id }>{ value.label } - { value.name }</option>;
   };
 
   const classes = classnames('nx-tile-content', { 'license-obligation-no-attribution-text': !isAttributionPresent() });
@@ -103,5 +117,6 @@ LicenseObligationAttributionTile.propTypes = {
   name: PropTypes.string.isRequired,
   attributionText: PropTypes.string,
   obligationFulfilled: PropTypes.bool.isRequired,
-  scope: PropTypes.string.isRequired
+  availableScopes: availableScopesPropType,
+  scope: PropTypes.string
 };

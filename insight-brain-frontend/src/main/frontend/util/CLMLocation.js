@@ -248,6 +248,10 @@ export function getLegalDashboardApplicationsUrl() {
   return uriTemplate`/api/experimental/licenseLegalMetadata/dashboard/applications`;
 }
 
+export function getOwnerHierarchyUrl(ownerId) {
+  return uriTemplate`/rest/owner/${ownerId}/hierarchy`;
+}
+
 export default
 angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl', '$window', function(baseUrl, $window) {

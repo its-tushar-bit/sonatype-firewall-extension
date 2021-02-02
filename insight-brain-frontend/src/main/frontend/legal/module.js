@@ -20,6 +20,20 @@ function routes($stateProvider) {
         data: {
           title: 'Component - Legal Overview'
         }
+      })
+      .state('organizationComponentLegalOverview', {
+        url: '/legal/organization/{organizationId}/component/{hash}',
+        component: 'componentLegalOverview',
+        data: {
+          title: 'Component - Legal Overview'
+        }
+      })
+      .state('applicationComponentLegalOverview', {
+        url: '/legal/application/{applicationPublicId}/component/{hash}',
+        component: 'componentLegalOverview',
+        data: {
+          title: 'Component - Legal Overview'
+        }
       });
 }
 

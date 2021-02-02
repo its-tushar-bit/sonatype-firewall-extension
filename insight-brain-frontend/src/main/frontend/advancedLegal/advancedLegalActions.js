@@ -7,9 +7,11 @@ import axios from 'axios';
 import {
   getApplicationsUrl,
   getLicenseLegalApplicationReportUrl,
-  getLicenseLegalComponentUrl
+  getLicenseLegalComponentUrl,
+  getOwnerHierarchyUrl
 } from '../util/CLMLocation';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
+import { capitalize } from '../util/jsUtil';
 
 export const ADVANCED_LEGAL_LOAD_APPLICATIONS_REQUESTED = 'ADVANCED_LEGAL_LOAD_APPLICATIONS_REQUESTED';
 export const ADVANCED_LEGAL_LOAD_APPLICATIONS_FULFILLED = 'ADVANCED_LEGAL_LOAD_APPLICATIONS_FULFILLED';
@@ -23,6 +25,10 @@ export const ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED = 'ADVANCED_LEGAL_LOAD_COMP
 export const ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED = 'ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED';
 export const ADVANCED_LEGAL_LOAD_COMPONENT_FAILED = 'ADVANCED_LEGAL_LOAD_COMPONENT_FAILED';
 
+export const ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED = 'ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED';
+export const ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED = 'ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED';
+export const ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED = 'ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED';
+
 const loadApplicationsRequested = noPayloadActionCreator(ADVANCED_LEGAL_LOAD_APPLICATIONS_REQUESTED);
 const loadApplicationsFulfilled = payloadParamActionCreator(ADVANCED_LEGAL_LOAD_APPLICATIONS_FULFILLED);
 const loadApplicationsFailed = payloadParamActionCreator(ADVANCED_LEGAL_LOAD_APPLICATIONS_FAILED);
@@ -34,6 +40,10 @@ const loadApplicationReportFailed = payloadParamActionCreator(ADVANCED_LEGAL_LOA
 const loadComponentRequested = noPayloadActionCreator(ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED);
 const loadComponentFulfilled = payloadParamActionCreator(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
 const loadComponentFailed = payloadParamActionCreator(ADVANCED_LEGAL_LOAD_COMPONENT_FAILED);
+
+const loadAvailableScopesRequested = noPayloadActionCreator(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED);
+const loadAvailableScopesFulfilled = payloadParamActionCreator(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED);
+const loadAvailableScopesFailed = payloadParamActionCreator(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED);
 
 export function loadApplications() {
   return (dispatch) => {
@@ -75,4 +85,34 @@ export function loadComponent(orgOrApp, ownerId, hash) {
           dispatch(loadComponentFailed(error));
         });
   };
+}
+
+export function loadAvailableScopes(ownerId) {
+  return (dispatch) => {
+    dispatch(loadAvailableScopesRequested());
+
+    return axios.get(getOwnerHierarchyUrl(ownerId))
+        .then(({ data }) => {
+          let payload = {
+            values: processOwnerHierarchy(data)
+          };
+          dispatch(loadAvailableScopesFulfilled(payload));
+        })
+        .catch(error => {
+          dispatch(loadAvailableScopesFailed(error));
+        });
+  };
+}
+
+/**
+ * Flattens the Org/Apps hierarchy
+ */
+function processOwnerHierarchy(context) {
+  // note that since the context data only includes the ancestors of the waiver, `children` should
+  // never have more than one element
+  const processedChildren = context.children ? processOwnerHierarchy(context.children[0]) : [],
+      { type, id, name } = context,
+      label = capitalize(type);
+
+  return processedChildren.concat({ type, id, name, label });
 }

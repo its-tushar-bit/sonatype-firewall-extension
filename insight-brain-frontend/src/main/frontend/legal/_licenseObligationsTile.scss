@@ -13,6 +13,14 @@
     summary::-webkit-details-marker {
       display: none;
     }
+
+    .nx-dropdown-menu {
+      z-index: 9999;
+    }
+
+    .nx-truncate-ellipsis {
+      max-width: 290px;
+    }
   }
 
   .nx-accordion__content {
@@ -29,5 +37,17 @@
 
   .obligation-text {
     margin-bottom: 20px;
+  }
+
+  .license-obligation-fulfilled-icon {
+    color: $iq-dark-green;
+  }
+
+  .license-obligation-flagged-icon {
+    color: $iq-dark-red;
+  }
+
+  .license-obligation-ignored-icon {
+    color: $iq-slate;
   }
 }

@@ -7,17 +7,23 @@
 import { connect } from 'react-redux';
 import { pick } from 'ramda';
 import ComponentLegalOverviewPage from './ComponentLegalOverviewPage';
-import { loadComponent } from '../advancedLegal/advancedLegalActions';
+import { loadComponent, loadAvailableScopes } from '../advancedLegal/advancedLegalActions';
 
 function mapStateToProps({ advancedLegal, router }) {
+  let component = advancedLegal.component || {};
+  let availableScopes = advancedLegal.availableScopes || {};
   return {
-    ...pick(['component', 'licenseLegalMetadata', 'loading', 'error'], advancedLegal.component || {}),
-    ...pick(['hash'], router.currentParams)
+    loading: component.loading || availableScopes.loading,
+    error: component.error || availableScopes.error,
+    availableScopes: availableScopes,
+    ...pick(['component', 'licenseLegalMetadata', 'obligations'], component),
+    ...pick(['hash', 'organizationId', 'applicationPublicId'], router.currentParams)
   };
 }
 
 const mapDispatchToProps = {
-  loadComponent
+  loadComponent,
+  loadAvailableScopes
 };
 
 const ComponentLegalOverviewContainer = connect(mapStateToProps, mapDispatchToProps)(ComponentLegalOverviewPage);

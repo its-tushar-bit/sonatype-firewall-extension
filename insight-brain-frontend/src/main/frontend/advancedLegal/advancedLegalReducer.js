@@ -14,7 +14,10 @@ import {
   ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FAILED,
   ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED,
   ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
-  ADVANCED_LEGAL_LOAD_COMPONENT_FAILED
+  ADVANCED_LEGAL_LOAD_COMPONENT_FAILED,
+  ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED,
+  ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED,
+  ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED
 } from './advancedLegalActions';
 
 const initialState = {
@@ -30,6 +33,10 @@ const initialState = {
   applicationReport: null,
   component: {
     loading: true
+  },
+  availableScopes: {
+    loading: false,
+    error: null
   }
 };
 
@@ -128,6 +135,37 @@ function loadComponentFailed(payload, state) {
   };
 }
 
+function loadAvailableScopesRequested(_, state) {
+  return {
+    ...state,
+    availableScopes: {
+      loading: true,
+      error: null
+    }
+  };
+}
+
+function loadAvailableScopesFulfilled(payload, state) {
+  return {
+    ...state,
+    availableScopes: {
+      loading: false,
+      error: null,
+      ...payload
+    }
+  };
+}
+
+function loadAvailableScopesFailed(payload, state) {
+  return {
+    ...state,
+    availableScopes: {
+      loading: false,
+      error: payload
+    }
+  };
+}
+
 const reducerActionMap = {
   [ADVANCED_LEGAL_LOAD_APPLICATIONS_REQUESTED]: loadApplicationsRequested,
   [ADVANCED_LEGAL_LOAD_APPLICATIONS_FULFILLED]: loadApplicationsFulfilled,
@@ -137,7 +175,10 @@ const reducerActionMap = {
   [ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FAILED]: loadApplicationReportFailed,
   [ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED]: loadComponentRequested,
   [ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED]: loadComponentFulfilled,
-  [ADVANCED_LEGAL_LOAD_COMPONENT_FAILED]: loadComponentFailed
+  [ADVANCED_LEGAL_LOAD_COMPONENT_FAILED]: loadComponentFailed,
+  [ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED]: loadAvailableScopesRequested,
+  [ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED]: loadAvailableScopesFulfilled,
+  [ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED]: loadAvailableScopesFailed
 };
 
 const advancedLegalReducer = createReducerFromActionMap(reducerActionMap, initialState);

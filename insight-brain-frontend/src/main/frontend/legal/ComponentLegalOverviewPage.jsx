@@ -6,7 +6,7 @@
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { NxBackButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
-import { faSitemap } from '@fortawesome/free-solid-svg-icons';
+import { faGlobe, faSitemap, faTerminal } from '@fortawesome/free-solid-svg-icons';
 import ComponentOverviewTile from './ComponentOverviewTile';
 import LicenseObligationsTile from './LicenseObligationsTile';
 import LicenseDetailsTile from './LicenseDetailsTile';
@@ -15,7 +15,12 @@ import NoticeTextsTile from './NoticeTextsTile';
 import LicenseTextsTile from './LicenseTextsTile';
 import LicenseObligationAttributionTileContainer from './LicenseObligationAttributionTileContainer';
 import LoadWrapper from '../react/LoadWrapper';
-import { componentPropType, licenseLegalMetadataPropType } from './advancedLegalPropTypes';
+import {
+  componentPropType,
+  licenseLegalMetadataPropType,
+  licenseObligationsPropType,
+  availableScopesPropType
+} from './advancedLegalPropTypes';
 import { chain, find, flip, groupBy, map, pipe, prop, propEq, toPairs, values, reject } from 'ramda';
 import { TEXT_BASED_OBLIGATIONS } from './advancedLegalConstants';
 
@@ -23,15 +28,31 @@ export default function ComponentLegalOverviewPage(props) {
   const {
     component,
     licenseLegalMetadata,
+    obligations,
     loading,
     error,
+    organizationId,
+    applicationPublicId,
     hash,
-    loadComponent
+    loadComponent,
+    loadAvailableScopes,
+    availableScopes
   } = props;
 
   function load() {
     if (hash) {
-      loadComponent('organization', 'ROOT_ORGANIZATION_ID', hash);
+      if (organizationId) {
+        loadComponent('organization', organizationId, hash);
+        loadAvailableScopes(organizationId);
+      }
+      else if (applicationPublicId) {
+        loadComponent('application', applicationPublicId, hash);
+        loadAvailableScopes(applicationPublicId);
+      }
+      else {
+        loadComponent('organization', 'ROOT_ORGANIZATION_ID', hash);
+        loadAvailableScopes('ROOT_ORGANIZATION_ID');
+      }
     }
   }
 
@@ -55,8 +76,14 @@ export default function ComponentLegalOverviewPage(props) {
       groupObligationsByLicense
   );
 
-  const licenseObligations = licenseLegalMetadata && getLicenseObligationsByName(
-      reject(licenseLegalMetadata => !licenseLegalMetadata.obligations, values(licenseLegalMetadata)));
+  const mergeByName = (array1, array2) =>
+    array1.map(itm => ({
+      ...array2.find((item) => (item.name === itm.name) && item),
+      ...itm
+    }));
+
+  const licenseObligations = licenseLegalMetadata && obligations && mergeByName(getLicenseObligationsByName(
+      reject(licenseLegalMetadata => !licenseLegalMetadata.obligations, values(licenseLegalMetadata))), obligations);
 
   const getLicenseNames = effectiveLicenses => map(
       pipe(propEq('licenseId'), flip(find)(licenseLegalMetadata), prop('licenseName')), effectiveLicenses);
@@ -68,7 +95,30 @@ export default function ComponentLegalOverviewPage(props) {
   };
 
   const createLicenseObligationAttributionTileContainer = (licenseObligation, index) => {
-    return <LicenseObligationAttributionTileContainer key={ index } name={ licenseObligation.name } />;
+    return <LicenseObligationAttributionTileContainer key={ index }
+                                                      name={ licenseObligation.name }
+                                                      attributionText={ licenseObligation.attributions.length > 0 ?
+                                                        licenseObligation.attributions[0] : '' }
+                                                      obligationFulfilled={ licenseObligation.status === 'FULFILLED' }
+                                                      availableScopes={ availableScopes }
+    />;
+  };
+
+  const createSubtitle = () => {
+    let availableScopeValuesReversed = availableScopes && availableScopes.values && [...availableScopes.values] || [];
+    availableScopeValuesReversed.reverse();
+    return (
+      <div className="nx-page-title__description">
+        { availableScopeValuesReversed.map((availableScope, index) => {
+          return <span key={ index } className="iq-violation-details__subtitle-part">
+            <NxFontAwesomeIcon
+                icon={ availableScope.id === 'ROOT_ORGANIZATION_ID' ? faGlobe : availableScope.type ===
+                'organization' ? faSitemap : faTerminal }/>
+            <span>{ availableScope.name }</span>
+          </span>;
+        }) }
+      </div>
+    );
   };
 
   return (
@@ -81,10 +131,7 @@ export default function ComponentLegalOverviewPage(props) {
           <h1 className="nx-h1">
             { component && component.displayName }
           </h1>
-          <div className="nx-page-title__description">
-            <NxFontAwesomeIcon icon = { faSitemap } />
-            <span>Root Organization</span>
-          </div>
+          { createSubtitle() }
         </div>
         <div id="component-legal-overview-details">
           <ComponentOverviewTile obligationCount={ licenseObligations && licenseObligations.length }
@@ -109,7 +156,12 @@ ComponentLegalOverviewPage.propTypes = {
   component: componentPropType,
   loading: PropTypes.bool,
   error: PropTypes.string,
-  hash: PropTypes.string.isRequired,
+  organizationId: PropTypes.string,
+  applicationPublicId: PropTypes.string,
+  hash: PropTypes.string,
   licenseLegalMetadata: licenseLegalMetadataPropType,
-  loadComponent: PropTypes.func
+  obligations: licenseObligationsPropType,
+  loadComponent: PropTypes.func,
+  loadAvailableScopes: PropTypes.func,
+  availableScopes: availableScopesPropType
 };

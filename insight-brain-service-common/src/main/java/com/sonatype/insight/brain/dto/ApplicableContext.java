@@ -33,9 +33,14 @@ public class ApplicableContext
   }
 
   public ApplicableContext(String id, String name, OwnerType type) {
+    this(id, name, type, null);
+  }
+
+  public ApplicableContext(String id, String name, OwnerType type, List<ApplicableContext> children) {
     this.id = id;
     this.name = name;
     setType(type);
+    setChildren(children);
   }
 
   public String getId() {

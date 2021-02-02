@@ -14,8 +14,12 @@ import {
   ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FAILED,
   ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED,
   ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
-  ADVANCED_LEGAL_LOAD_COMPONENT_FAILED
+  ADVANCED_LEGAL_LOAD_COMPONENT_FAILED,
+  ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED,
+  ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED,
+  ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED
 } from '../../../main/frontend/advancedLegal/advancedLegalActions.js';
+import { pick } from 'ramda';
 
 describe('advancedLegalReducer', function () {
   describe('initial state', function () {
@@ -37,6 +41,9 @@ describe('advancedLegalReducer', function () {
       expect(newState.viewStateApplicationReport.error).toBeNull();
       expect(newState.applicationReport).toBeNull();
       expect(newState.component.loading).toBeTruthy();
+
+      expect(newState.availableScopes.loading).toBeFalsy();
+      expect(newState.availableScopes.error).toBeNull();
     });
   });
 
@@ -219,6 +226,65 @@ describe('advancedLegalReducer', function () {
       const { viewStateApplicationReport } = newState;
       expect(viewStateApplicationReport.loading).toBeFalsy();
       expect(viewStateApplicationReport.error).toBe(errorTest);
+    });
+  });
+
+  describe('ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED action', function () {
+    it('sets in availableScopes loading to true and error to null', function () {
+      const newState = reduce(undefined, {
+        type: ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED
+      });
+
+      const { availableScopes } = newState;
+      expect(availableScopes.loading).toBeTruthy();
+      expect(availableScopes.error).toBeNull();
+    });
+  });
+
+  describe('ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED action', function () {
+    it('sets availableScopes loading to false, error to null, and merges the payload with availableScopes', function() {
+      const state = {
+        availableScopes: {
+          loading: true,
+          error: null
+        }
+      };
+      const applicableContext = {
+        id: 'ROOT_ORGANIZATION_ID',
+        name: 'Root Organization',
+        type: 'organization',
+        children: []
+      };
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED,
+        payload: applicableContext
+      });
+
+      const { availableScopes } = newState;
+      expect(availableScopes.loading).toBeFalsy();
+      expect(availableScopes.error).toBeNull();
+      expect(newState.availableScopes).toEqual(
+          { ...pick(['loading', 'error'], newState.availableScopes), ...applicableContext });
+    });
+  });
+
+  describe('ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED action', function () {
+    it('sets in availableScopes loading to false and error to payload', function () {
+      const state = {
+        availableScopes: {
+          loading: true,
+          error: null
+        }
+      };
+      const errorTest = 'Error test';
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED,
+        payload: errorTest
+      });
+
+      const { availableScopes } = newState;
+      expect(availableScopes.loading).toBeFalsy();
+      expect(availableScopes.error).toBe(errorTest);
     });
   });
 });

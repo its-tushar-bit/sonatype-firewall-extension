@@ -17,10 +17,12 @@ import { mount } from 'enzyme/build';
 describe('ComponentLegalOverviewPage', function() {
   let minimalProps,
       loadComponentSpy,
+      loadAvailableScopesSpy,
       getShallowComponent;
 
   beforeEach(function() {
     loadComponentSpy = jasmine.createSpy('loadComponent');
+    loadAvailableScopesSpy = jasmine.createSpy('loadAvailableScopes');
     const licenseLegalMetadata = {
       0: {
         licenseName: 'license1',
@@ -60,24 +62,63 @@ describe('ComponentLegalOverviewPage', function() {
       }
     };
 
+    const obligations = [{
+      name: 'obligation 1',
+      status: 'OPEN',
+      comment: null,
+      attributions: []
+    },
+    {
+      name: 'obligation 2',
+      status: 'IGNORED',
+      comment: 'comment',
+      attributions: ['attributionText']
+    },
+    {
+      name: 'obligation 3',
+      status: 'FULFILLED',
+      comment: null,
+      attributions: ['attributionText1', 'attributionText2']
+    }];
+
     minimalProps = {
       loadComponent: loadComponentSpy,
+      loadAvailableScopes: loadAvailableScopesSpy,
       licenseLegalMetadata,
+      obligations,
       hash: '1e48256a2341047e7d72'
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ComponentLegalOverviewPage, minimalProps);
   });
 
-  it('fires the loadFilter action', function() {
+  it('loads the expected data using the root organization id', function() {
     const component = mount(<ComponentLegalOverviewPage {...minimalProps} loading={true} />);
     expect(loadComponentSpy).toHaveBeenCalledWith('organization', 'ROOT_ORGANIZATION_ID', '1e48256a2341047e7d72');
+    expect(loadAvailableScopesSpy).toHaveBeenCalledWith('ROOT_ORGANIZATION_ID');
     component.unmount();
   });
 
-  it('does not fire the loadFilter action if there is no hash', function() {
+  it('loads the expected data using the organization id', function() {
+    const component = mount(<ComponentLegalOverviewPage {...{ ...minimalProps, organizationId: 'orgId' }}
+                                                        loading={true}/>);
+    expect(loadComponentSpy).toHaveBeenCalledWith('organization', 'orgId', '1e48256a2341047e7d72');
+    expect(loadAvailableScopesSpy).toHaveBeenCalledWith('orgId');
+    component.unmount();
+  });
+
+  it('loads the expected data using the application public id', function() {
+    const component = mount(<ComponentLegalOverviewPage {...{ ...minimalProps, applicationPublicId: 'appId' }}
+                                                        loading={true}/>);
+    expect(loadComponentSpy).toHaveBeenCalledWith('application', 'appId', '1e48256a2341047e7d72');
+    expect(loadAvailableScopesSpy).toHaveBeenCalledWith('appId');
+    component.unmount();
+  });
+
+  it('does not load the data if there is no hash', function() {
     const component = mount(<ComponentLegalOverviewPage loadComponent={ loadComponentSpy } loading={true} />);
     expect(loadComponentSpy).not.toHaveBeenCalled();
+    expect(loadAvailableScopesSpy).not.toHaveBeenCalled();
     component.unmount();
   });
 
@@ -108,7 +149,10 @@ describe('ComponentLegalOverviewPage', function() {
       licenses: [{
         name: 'license1',
         texts: ['text1', 'text2']
-      }]
+      }],
+      status: 'OPEN',
+      comment: null,
+      attributions: []
     }, {
       name: 'obligation 2',
       licenses: [{
@@ -117,13 +161,19 @@ describe('ComponentLegalOverviewPage', function() {
       }, {
         name: 'license2',
         texts: ['text5', 'text6']
-      }]
+      }],
+      status: 'IGNORED',
+      comment: 'comment',
+      attributions: ['attributionText']
     }, {
       name: 'obligation 3',
       licenses: [{
         name: 'license2',
         texts: ['text7', 'text8']
-      }]
+      }],
+      status: 'FULFILLED',
+      comment: null,
+      attributions: ['attributionText1', 'attributionText2']
     }];
     expect(obligationsTile).toExist();
     expect(obligationsTile).toHaveProp('licenseObligations', expectedObligations);

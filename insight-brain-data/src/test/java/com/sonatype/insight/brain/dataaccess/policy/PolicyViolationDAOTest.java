@@ -138,6 +138,91 @@ public class PolicyViolationDAOTest
   }
 
   @Test
+  public void testGetByApplicationIdAndPolicyAndHash() {
+    PolicyViolationDAO dao = new PolicyViolationDAO();
+    Policy policy = tempEntity.newPolicy(application);
+
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-1",
+        new Date(System.currentTimeMillis() - 2000));
+    PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID,
+        "scan-2", new Date(System.currentTimeMillis() - 1000));
+
+    PolicyViolation openViolation1 = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    PolicyViolation fixedViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-3");
+    fixedViolation.setFixTime(policyEvaluation.getTime());
+    dao.update(fixedViolation);
+    PolicyViolation openViolation2 = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    PolicyViolation waivedViolation = tempEntity.newWaivedPolicyViolation(policyEvaluation, policy,
+        tempEntity.newWaiver(policy.getId(), application.getId()));
+    PolicyViolation grandfatheredViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    grandfatheredViolation.setGrandfatherTime(policyEvaluation.getTime());
+    dao.update(grandfatheredViolation);
+
+    policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, "scan-4");
+    PolicyViolation openViolation3 = tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    policyEvaluation = tempEntity.newPolicyEvaluation(tempEntity.newApplicationWithParent().getId(), BuildStageType.ID,
+        "scan-4");
+    tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    tempEntity.newPolicyViolation(policyEvaluation2, tempEntity.newPolicy(application));
+    tempEntity.newPolicyViolation(policyEvaluation2, tempEntity.newPolicy(application));
+
+    List<PolicyViolation> violations = dao.getByApplicationIdAndPolicyIdAndHash(application.getId(),
+        policy.getId(), openViolation1.getHash());
+
+    assertThat(violations).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(openViolation1.getId(),
+        openViolation2.getId(), openViolation3.getId(), fixedViolation.getId(), waivedViolation.getId(),
+        grandfatheredViolation.getId());
+  }
+
+  @Test
+  public void testGetByApplicationIdAndPolicyAndHash_NullHash() {
+    PolicyViolationDAO dao = new PolicyViolationDAO();
+    Policy policy = tempEntity.newPolicy(application);
+
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
+        "scan-1", new Date(System.currentTimeMillis() - 2000));
+    PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID,
+        "scan-2", new Date(System.currentTimeMillis() - 1000));
+
+    PolicyViolation openViolation1 = tempEntity.newPolicyViolation(policyEvaluation, policy, null, null);
+    PolicyViolation fixedViolation = tempEntity.newPolicyViolation(policyEvaluation, policy, null, null);
+    // Another violation with different hash, for same policy and evaluation
+    tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-3");
+    fixedViolation.setFixTime(policyEvaluation.getTime());
+    dao.update(fixedViolation);
+    PolicyViolation openViolation2 = tempEntity.newPolicyViolation(policyEvaluation, policy, null, null);
+
+    PolicyViolation waivedViolation = tempEntity.newWaivedPolicyViolation(policyEvaluation, policy, null,
+        null, tempEntity.newWaiver(policy.getId(), application.getId()));
+    PolicyViolation grandfatheredViolation = tempEntity.newPolicyViolation(policyEvaluation, policy, null, null);
+    grandfatheredViolation.setGrandfatherTime(policyEvaluation.getTime());
+    dao.update(grandfatheredViolation);
+
+    policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, "scan-4");
+    PolicyViolation openViolation3 = tempEntity.newPolicyViolation(policyEvaluation, policy, null, null);
+
+    policyEvaluation = tempEntity.newPolicyEvaluation(tempEntity.newApplicationWithParent().getId(), BuildStageType.ID,
+        "scan-4");
+    tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    tempEntity.newPolicyViolation(policyEvaluation2, tempEntity.newPolicy(application));
+    tempEntity.newPolicyViolation(policyEvaluation2, tempEntity.newPolicy(application));
+
+    List<PolicyViolation> violations = dao.getByApplicationIdAndPolicyIdAndHash(application.getId(),
+        policy.getId(), null);
+
+    assertThat(violations).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(openViolation1.getId(),
+        openViolation2.getId(), openViolation3.getId(), fixedViolation.getId(), waivedViolation.getId(),
+        grandfatheredViolation.getId());
+  }
+
+  @Test
   public void testGetUnfixedByApplicationIdAndStageId() {
     PolicyViolationDAO dao = new PolicyViolationDAO();
     Policy policy = tempEntity.newPolicy(application);

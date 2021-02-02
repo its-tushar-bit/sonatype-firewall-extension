@@ -114,13 +114,17 @@ public class ApiCrossStageViolationService
     Policy policy = policyDAO.getById(constituentViolation.getPolicyId());
     Owner policyOwner = policy == null ? null : ownerDAO.getById(policy.getOwnerId());
 
-    List<PolicyViolation> allViolationsForApp = policyViolationDAO
-        .getByApplicationId(constituentViolation.getApplicationId())
+    String applicationId = constituentViolation.getApplicationId();
+    String policyId = constituentViolation.getPolicyId();
+    String hash = constituentViolation.getHash();
+
+    List<PolicyViolation> allApplicableViolations = policyViolationDAO
+        .getByApplicationIdAndPolicyIdAndHash(applicationId, policyId, hash)
         .stream()
         .sorted(Comparator.comparing(PolicyViolation::getOpenTime))
         .collect(Collectors.toList());
 
-    Collection<PolicyViolation> violationsToMerge = getViolationsToMerge(constituentViolation, allViolationsForApp,
+    Collection<PolicyViolation> violationsToMerge = getViolationsToMerge(constituentViolation, allApplicableViolations,
         allowEarlierViolations);
     Collection<PolicyEvaluation> evaluationsForViolationsToMerge = getEvaluationsForViolations(violationsToMerge);
 

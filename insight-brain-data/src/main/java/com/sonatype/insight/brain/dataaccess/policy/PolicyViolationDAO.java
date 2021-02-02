@@ -39,6 +39,24 @@ public class PolicyViolationDAO
     return getList(sQuery, applicationId);
   }
 
+  public List<PolicyViolation> getByApplicationIdAndPolicyIdAndHash(String applicationId,
+                                                                    String policyId,
+                                                                    String hash)
+  {
+    StringBuilder sQueryBuilder = new StringBuilder();
+    sQueryBuilder.append("SELECT entity FROM PolicyViolation entity");
+    sQueryBuilder.append(" WHERE entity.applicationId=?1 AND entity.policyId=?2");
+
+    if (hash == null) {
+      sQueryBuilder.append(" AND entity.hash IS NULL");
+      return getList(sQueryBuilder.toString(), applicationId, policyId);
+    }
+    else {
+      sQueryBuilder.append(" AND entity.hash=?3");
+      return getList(sQueryBuilder.toString(), applicationId, policyId, hash);
+    }
+  }
+
   public List<PolicyViolation> getUnfixedByApplicationIdAndStageId(String applicationId, String stageTypeId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getUnfixedByApplicationIdAndStageId(tx, applicationId, stageTypeId);

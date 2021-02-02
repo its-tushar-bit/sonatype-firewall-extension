@@ -250,7 +250,7 @@ public class ScanPolicyEvaluator
 
       updateReportFiles(reportFile, scanPolicyEvaluatorResults, stage, forMonitoring);
 
-      postEvents(scanPolicyEvaluatorResults, commitHash, application);
+      postEvents(scanPolicyEvaluatorResults, application);
 
       return scanPolicyEvaluatorResults;
     }
@@ -768,13 +768,13 @@ public class ScanPolicyEvaluator
    */
   private void postEvents(
       ScanPolicyEvaluatorResults scanPolicyEvaluatorResults,
-      String commitHash,
       Application application)
   {
     final PolicyEvaluation policyEvaluation = scanPolicyEvaluatorResults.evaluation;
     final List<PolicyViolation> activeViolations = scanPolicyEvaluatorResults.activeViolations;
     final List<PolicyViolation> waivedViolations = scanPolicyEvaluatorResults.waivedViolations;
     final List<PolicyViolation> fixedViolations = scanPolicyEvaluatorResults.fixedViolations;
+    String commitHash = policyEvaluation.getCommitHash();
 
     PolicyEvaluationResult policyEvaluationResult =
         createPolicyEvaluationResult(policyEvaluation, activeViolations, true);

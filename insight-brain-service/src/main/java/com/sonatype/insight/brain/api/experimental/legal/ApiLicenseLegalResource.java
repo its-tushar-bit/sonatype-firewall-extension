@@ -26,7 +26,10 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDas
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDashboardDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentReportDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalFilterDTO;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
 
 import com.codahale.metrics.annotation.Timed;
@@ -44,14 +47,23 @@ public class ApiLicenseLegalResource
 
   public static final String COMPONENT_PATH = "{ownerType: application|organization}/{ownerId}/component";
 
+  public static final String COMPONENT_COPYRIGHT_PATH =
+      "{ownerType: application|organization}/{ownerId}/component/copyright";
+
   private final ApiLicenseLegalService apiLicenseLegalService;
+
+  private final ComponentLegalService componentLegalService;
 
   @Context
   private HttpServletRequest httpRequest;
 
   @Inject
-  public ApiLicenseLegalResource(ApiLicenseLegalService apiLicenseLegalService) {
+  public ApiLicenseLegalResource(
+      final ApiLicenseLegalService apiLicenseLegalService,
+      final ComponentLegalService componentLegalService)
+  {
     this.apiLicenseLegalService = apiLicenseLegalService;
+    this.componentLegalService = componentLegalService;
   }
 
   @POST
@@ -95,5 +107,17 @@ public class ApiLicenseLegalResource
   {
     return apiLicenseLegalService.getLicenseLegalComponentReport(ownerType, ownerId, componentIdentifier, packageUrl,
         hash, httpRequest, identificationSource, scanId);
+  }
+
+  @POST
+  @Path(COMPONENT_COPYRIGHT_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.UPDATE_COMPONENT_COPYRIGHT)
+  public ComponentCopyrightDTO saveComponentCopyright(
+      ComponentCopyrightDTO componentCopyrightDTO,
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId)
+  {
+    return componentLegalService.saveComponentCopyright(ownerType, ownerId, componentCopyrightDTO);
   }
 }

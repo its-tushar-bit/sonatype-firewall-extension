@@ -14,6 +14,8 @@ import javax.persistence.Table;
 
 import com.sonatype.insight.model.HasStringId;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * @since 1.105
  */
@@ -105,7 +107,13 @@ public class CopyrightOverride
     this.componentCopyrightId = componentCopyrightId;
   }
 
+  /**
+   * Returns true if this CopyrightOverride is a custom entry created by the user, that is a copyright statement not
+   * found in HDS.
+   *
+   * @return true if user created, false otherwise.
+   */
   public boolean isUserCreated() {
-    return originalContentHash == null;
+    return StringUtils.isBlank(originalContentHash);
   }
 }

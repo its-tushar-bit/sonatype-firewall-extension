@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -27,9 +28,11 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentReportDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalFilterDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -223,6 +226,25 @@ public class ApiLicenseLegalResourceTest
         response.getBody(ApiLicenseLegalComponentReportDTO.class);
     assertThat(apiLicenseLegalComponentDTO).isNotNull();
     assertThat(apiLicenseLegalComponentDTO.component.componentIdentifier.toComponentIdentifier())
+        .isEqualTo(componentIdentifier);
+  }
+
+  @Test
+  public void testSaveComponentCopyright() throws Exception {
+    Owner owner = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
+    ComponentCopyright componentCopyright1 =
+        tempEntity.newComponentCopyright(componentIdentifier, owner.getPublicId(), "legalContentHash1");
+    HttpResponse response =
+        restRequest().path(ApiLicenseLegalResource.COMPONENT_COPYRIGHT_PATH)
+            .parameter(owner.getType().toString(), owner.getPublicId())
+            .body(ComponentCopyrightDTO.fromComponentCopyright(componentCopyright1, new ArrayList<>()))
+            .post();
+    assertResponseStatus(200, response);
+    ComponentCopyrightDTO responseDto =
+        response.getBody(ComponentCopyrightDTO.class);
+    assertThat(responseDto).isNotNull();
+    assertThat(responseDto.getComponentIdentifier().toComponentIdentifier())
         .isEqualTo(componentIdentifier);
   }
 

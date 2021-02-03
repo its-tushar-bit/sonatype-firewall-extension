@@ -5,4 +5,92 @@
  */
 firewall {
   display: contents;
+
+  .iq-firewall__horizontal {
+    @include container-horizontal;
+    justify-content: space-between;
+
+    // combined with nx-card bottom margin for a total of 24px;
+    margin-bottom: $nx-spacing-xs;
+
+    .nx-card__content-container {
+      align-items: start;
+      flex-grow: 1;
+    }
+
+    .nx-card__content {
+      @include container-vertical;
+
+      display: flex;
+      flex-grow: 1;
+      flex-direction: column;
+      justify-content: start;
+
+      .nx-p {
+        margin-top: 0;
+      }
+    }
+  }
+}
+
+.iq-status-indicator {
+  margin-bottom: $nx-spacing-md;
+}
+
+// Firewall Table
+.iq-firewall-table-header {
+  align-items: center;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+}
+
+h2.iq-firewall-table-label {
+  margin-bottom: 0px;
+}
+
+.iq-firewall-table__time {
+  font-size: $nx-font-size-xs;
+  justify-self: right;
+}
+
+.iq-firewall-table__footer {
+  display: grid;
+
+  .nx-btn-bar {
+    margin-bottom: 0;
+  }
+}
+
+.iq-firewall-table__release_btn {
+  justify-self: right;
+}
+
+.iq-firewall-table__nav-bar, .iq-firewall-table__release_btn {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+// Firewall Status
+.iq-firewall-protected-icon {
+  color: green;
+}
+
+.iq-firewall-status-label {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.iq-firewall-status-description {
+  font-size: 16px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+}
+
+.iq-firewall-status-description-line {
+  width: 0px;
+  height: 49px;
+  margin: 0 $nx-spacing-l 0 $nx-spacing-l;
+  border: solid 1px #d1d6f0;
+  display: inline-block;
 }

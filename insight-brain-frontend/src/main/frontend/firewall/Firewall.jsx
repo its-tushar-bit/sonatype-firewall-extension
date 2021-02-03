@@ -6,6 +6,12 @@
 
 import React, {useEffect} from 'react';
 import LoadWrapper from '../react/LoadWrapper';
+import FirewallStatus from './FirewallStatus';
+import FirewallQuarantineStatus from './FirewallQuarantineStatus';
+import FirewallAutoUnquarantineStatus from './FirewallAutoUnquarantineStatus';
+import FirewallQuarantine from './FirewallQuarantine';
+import FirewallAutoUnquarantine from './FirewallAutoUnquarantine';
+import FirewallQuarantineTable from './FirewallQuarantineTable';
 import * as PropTypes from 'prop-types';
 
 export default function Firewall(props) {
@@ -34,9 +40,15 @@ export default function Firewall(props) {
   return (
     <main id="firewall-page" className="nx-page-main">
       <LoadWrapper loading={!loadedStatus} error={error} retryHandler={loadStatus}>
-        <div className="nx-page-title">
-          <h1 className="nx-h1" id="firewall-page-title">Firewall</h1>
+        <FirewallStatus/>
+        <div className="nx-card-container nx-card-container--row iq-firewall__horizontal">
+          <FirewallQuarantineStatus/>
+          <FirewallAutoUnquarantineStatus/>
+          <FirewallQuarantine/>
+          <FirewallAutoUnquarantine/>
         </div>
+
+        <FirewallQuarantineTable/>
       </LoadWrapper>
     </main>
   );

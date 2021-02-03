@@ -1,4 +1,4 @@
-hdsUrl: https://clm-staging.sonatype.com/
+#hdsUrl: https://clm-staging.sonatype.com/
 #hdsUrl: "http://localhost:8080/"
 
 baseUrl: http://localhost:8070

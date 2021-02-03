@@ -5,7 +5,6 @@
  */
 import * as enzymeUtils from '../../enzymeUtils';
 import React from 'react';
-import { mount } from 'enzyme/build';
 import LegalDashboardApplicationsTab from '../../../../main/frontend/legal/dashboard/LegalDashboardApplicationsTab';
 import LegalDashboardComponentsTab from '../../../../main/frontend/legal/dashboard/LegalDashboardComponentsTab';
 
@@ -13,8 +12,11 @@ describe('LegalDashboardPage', function() {
   let minimalProps,
       LegalDashboardPage,
       LegalDashboardFilterContainerMock,
-      loadApplicationsSpy,
+      loadResultsSpy,
       getShallowComponent;
+  const mockApplications = {
+    results: []
+  };
 
   beforeEach(function() {
     LegalDashboardFilterContainerMock = jasmine.createSpy('MaximizedContainerMock')
@@ -22,34 +24,18 @@ describe('LegalDashboardPage', function() {
 
     LegalDashboardPage =
         require('inject-loader!../../../../main/frontend/legal/dashboard/LegalDashboardPage')({
-          './LegalDashboardFilterContainer': LegalDashboardFilterContainerMock
+          './filter/LegalDashboardFilterContainer': LegalDashboardFilterContainerMock
         }).default;
 
-    loadApplicationsSpy = jasmine.createSpy('loadApplications');
+    loadResultsSpy = jasmine.createSpy('loadResults');
     minimalProps = {
-      applications: [],
+      applications: mockApplications,
       components: [],
-      loadApplications: loadApplicationsSpy,
+      loadResults: loadResultsSpy,
       isAuthorized: true
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(LegalDashboardPage, minimalProps);
-  });
-
-  it('fires the loadApplications action if authorized', function() {
-    const component = mount(<LegalDashboardPage { ...minimalProps } />);
-    expect(loadApplicationsSpy).toHaveBeenCalledWith();
-    component.unmount();
-  });
-
-  it('does not fire the loadApplications action if not authorized', function() {
-    const props = {
-      isAuthorized: true,
-      ...minimalProps
-    };
-    const component = mount(<LegalDashboardPage { ...props } />);
-    expect(loadApplicationsSpy).toHaveBeenCalledWith();
-    component.unmount();
   });
 
   it('renders an aside and a main', function() {
@@ -61,7 +47,7 @@ describe('LegalDashboardPage', function() {
     const wrapper = getShallowComponent();
     let applicationsTab = wrapper.find(LegalDashboardApplicationsTab);
     expect(applicationsTab).toExist();
-    expect(applicationsTab).toHaveProp('applications');
+    expect(applicationsTab).toHaveProp('applications', mockApplications.results);
   });
 
   it('renders an LegalDashboardComponentsTab', function() {

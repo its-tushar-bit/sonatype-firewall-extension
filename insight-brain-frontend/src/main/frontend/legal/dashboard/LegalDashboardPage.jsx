@@ -3,12 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect } from 'react';
+import React from 'react';
 import { NxButton, NxStatefulTabs, NxTab, NxTabList, NxTabPanel } from '@sonatype/react-shared-components';
 import LegalDashboardApplicationsTab from './LegalDashboardApplicationsTab';
 import LegalDashboardComponentsTab from './LegalDashboardComponentsTab';
 import * as PropTypes from 'prop-types';
-import LegalDashboardFilterContainer from './LegalDashboardFilterContainer';
+import LegalDashboardFilterContainer from './filter/LegalDashboardFilterContainer';
 import LoadWrapper from '../../react/LoadWrapper';
 import { applicationPropType } from '../advancedLegalPropTypes';
 
@@ -16,17 +16,11 @@ export default function LegalDashboardPage(props) {
   const {
     applications,
     components,
-    loadApplications,
+    loadResults,
     loading,
     loadError,
     isAuthorized
   } = props;
-
-  useEffect(() => {
-    if (isAuthorized) {
-      loadApplications();
-    }
-  }, []);
 
   const authErrorMessage = `It appears you do not have permission to access this page.
     If you believe this to be incorrect, please contact your administrator.`;
@@ -34,8 +28,8 @@ export default function LegalDashboardPage(props) {
   const hasError = isAuthorized ? loadError : authErrorMessage;
 
   return (
-    <LoadWrapper loading={ loading } error={ hasError } retryHandler={ loadApplications }>
-      <aside id="legal-dashboard-filter-container" className="nx-page-sidebar">
+    <LoadWrapper loading={ loading } error={ hasError } retryHandler={ loadResults }>
+      <aside id="legal-dashboard-filter-container" className="nx-page-sidebar nx-viewport-sized">
         <LegalDashboardFilterContainer />
       </aside>
       <main id="legal-dashboard-container" className="nx-page-main nx-viewport-sized">
@@ -53,7 +47,7 @@ export default function LegalDashboardPage(props) {
                 <NxTab>Components</NxTab>
               </NxTabList>
               <NxTabPanel className="nx-viewport-sized__container">
-                <LegalDashboardApplicationsTab applications = { applications } />
+                <LegalDashboardApplicationsTab applications = { applications.results } />
               </NxTabPanel>
               <NxTabPanel className="nx-viewport-sized__container">
                 <LegalDashboardComponentsTab components = { components } />
@@ -67,9 +61,13 @@ export default function LegalDashboardPage(props) {
 }
 
 LegalDashboardPage.propTypes = {
-  applications: PropTypes.arrayOf(applicationPropType),
+  applications: PropTypes.shape({
+    results: PropTypes.arrayOf(applicationPropType).isRequired,
+    error: PropTypes.string,
+    sortFields: PropTypes.arrayOf(applicationPropType)
+  }),
   components: PropTypes.any,
-  loadApplications: PropTypes.func,
+  loadResults: PropTypes.func,
   isAuthorized: PropTypes.bool,
   loading: PropTypes.bool.isRequired,
   loadError: LoadWrapper.propTypes.error

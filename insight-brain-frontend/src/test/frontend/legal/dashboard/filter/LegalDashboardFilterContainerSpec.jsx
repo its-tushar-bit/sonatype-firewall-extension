@@ -1,0 +1,57 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import { shallow } from 'enzyme';
+import React from 'react';
+import configureStore from 'redux-mock-store';
+import LegalDashboardFilter from '../../../../../main/frontend/legal/dashboard/filter/LegalDashboardFilter';
+
+describe('LegalDashboardFilterContainerSpec', function() {
+  let store,
+      state,
+      vdom,
+      LegalDashboardFilterContainer,
+      loadFilterMock;
+  const legalDashboardFilter = {
+    foo: 'bar'
+  };
+
+  beforeEach(function() {
+    state = {
+      legalDashboardFilter
+    };
+
+    loadFilterMock = jasmine.createSpy('loadFilter').and.returnValue({ type: 'FOO' });
+    LegalDashboardFilterContainer =
+        require('inject-loader!../../../../../main/frontend/legal/dashboard/filter/LegalDashboardFilterContainer')({
+          './legalDashboardFilterActions': {
+            loadFilter: loadFilterMock
+          }
+        }).default;
+
+    store = configureStore()(() => state);
+    vdom = <LegalDashboardFilterContainer store={store}/>;
+  });
+
+  it('maps the state slice to props', () => {
+    let wrapper = shallow(vdom).dive();
+    expect(wrapper).toHaveProp('foo', 'bar');
+  });
+
+  it('correctly maps the action creators to the LegalDashboardContainer props', function() {
+    const wrapper = shallow(vdom).dive();
+    const loadFilterActionCreator = wrapper.prop('loadFilter');
+    expect(loadFilterActionCreator).toEqual(jasmine.any(Function));
+
+    expect(store.getActions()).toEqual([]);
+    loadFilterActionCreator('test');
+    expect(store.getActions()).toEqual([{ type: 'FOO' }]);
+  });
+
+  it('renders LegalDashboardFilter component', function() {
+    const legalDashboardFilter = shallow(vdom).find(LegalDashboardFilter);
+    expect(legalDashboardFilter).toExist();
+  });
+});

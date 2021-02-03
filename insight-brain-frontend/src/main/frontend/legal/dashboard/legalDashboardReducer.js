@@ -4,50 +4,69 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { createReducerFromActionMap } from '../../util/reduxUtil';
 import {
-  LEGAL_DASHBOARD_LOAD_APPLICATIONS_FAILED,
-  LEGAL_DASHBOARD_LOAD_APPLICATIONS_FULFILLED,
-  LEGAL_DASHBOARD_LOAD_APPLICATIONS_REQUESTED
+  LOAD_LEGAL_RESULTS_FAILED,
+  LOAD_LEGAL_RESULTS_FULFILLED,
+  LOAD_LEGAL_RESULTS_REQUESTED
 } from './legalDashboardActions';
+import { APPLY_LEGAL_FILTER_REQUESTED, LOAD_LEGAL_FILTER_REQUESTED } from './filter/legalDashboardFilterActions';
 
-const initialState = {
-  applications: [],
-  components: [],
+const initState = {
+  applications: {
+    results: [],
+    error: null,
+    sortFields: []
+  },
+  components: {
+    results: [],
+    error: null,
+    sortFields: []
+  },
   loading: false,
   loadError: null
 };
 
-function loadApplicationsRequested() {
-  return {
-    ...initialState,
-    loading: true,
-    loadError: null
-  };
+export default function(state = initState, {type, payload}) {
+  switch (type) {
+    case LOAD_LEGAL_FILTER_REQUESTED:
+    case APPLY_LEGAL_FILTER_REQUESTED:
+      return resetAllTabs(state);
+
+    case LOAD_LEGAL_RESULTS_REQUESTED:
+      return resetResults(state, payload);
+
+    case LOAD_LEGAL_RESULTS_FULFILLED: {
+      const {resultsType, results} = payload;
+      return updateResults(state, resultsType, {results});
+    }
+
+    case LOAD_LEGAL_RESULTS_FAILED: {
+      const {resultsType, error} = payload;
+      return updateResults(state, resultsType, {error});
+    }
+
+    default:
+      return state;
+  }
 }
 
-function loadApplicationsFulfilled(payload, state) {
-  return {
-    ...state,
-    applications: payload,
-    loading: false,
-    loadError: null
-  };
+function resetResults(state, resultsType) {
+  const results = resetTabState(state[resultsType]);
+  return {...state, [resultsType]: results};
 }
 
-function loadApplicationsFailed(payload, state) {
-  return {
-    ...state,
-    loading: false,
-    loadError: payload
-  };
+function resetTabState(tabState) {
+  return {...tabState, results: [], error: null};
 }
 
-const reducerActionMap = {
-  [LEGAL_DASHBOARD_LOAD_APPLICATIONS_REQUESTED]: loadApplicationsRequested,
-  [LEGAL_DASHBOARD_LOAD_APPLICATIONS_FULFILLED]: loadApplicationsFulfilled,
-  [LEGAL_DASHBOARD_LOAD_APPLICATIONS_FAILED]: loadApplicationsFailed
-};
+function updateResults(state, resultsType, props) {
+  const tabState = state[resultsType];
+  const newTabState = {...tabState, ...props};
+  return {...state, [resultsType]: newTabState};
+}
 
-const legalDashboardReducer = createReducerFromActionMap(reducerActionMap, initialState);
-export default legalDashboardReducer;
+function resetAllTabs(state) {
+  const components = resetTabState(state.components);
+  const applications = resetTabState(state.applications);
+  return {...state, components, applications};
+}

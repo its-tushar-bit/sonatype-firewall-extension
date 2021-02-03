@@ -5,12 +5,11 @@
  */
 import { connect } from 'react-redux';
 import LegalDashboardFilter from './LegalDashboardFilter';
+import * as legalDashboardFilterActions from './legalDashboardFilterActions';
 
-function mapStateToProps() {
-  return {};
+function mapStateToProps({ legalDashboardFilter }) {
+  return legalDashboardFilter;
 }
 
-const mapDispatchToProps = {};
-
-const LegalDashboardFilterContainer = connect(mapStateToProps, mapDispatchToProps)(LegalDashboardFilter);
+const LegalDashboardFilterContainer = connect(mapStateToProps, legalDashboardFilterActions)(LegalDashboardFilter);
 export default LegalDashboardFilterContainer;

@@ -13,7 +13,7 @@ describe('LegalDashboardContainerSpec', function() {
       state,
       vdom,
       LegalDashboardContainer,
-      loadApplicationsMock;
+      loadResultsMock;
 
   beforeEach(function() {
     state = {
@@ -26,11 +26,11 @@ describe('LegalDashboardContainerSpec', function() {
       }
     };
 
-    loadApplicationsMock = jasmine.createSpy('loadApplications').and.returnValue({ type: 'FOO' });
+    loadResultsMock = jasmine.createSpy('loadResults').and.returnValue({ type: 'FOO' });
     LegalDashboardContainer =
         require('inject-loader!../../../../main/frontend/legal/dashboard/LegalDashboardContainer')({
           './legalDashboardActions': {
-            loadApplications: loadApplicationsMock
+            loadResults: loadResultsMock
           }
         }).default;
 
@@ -49,11 +49,11 @@ describe('LegalDashboardContainerSpec', function() {
 
   it('correctly maps the action creators to the LegalDashboardContainer props', function() {
     const wrapper = shallow(vdom).dive();
-    const loadApplicationsActionCreator = wrapper.prop('loadApplications');
-    expect(loadApplicationsActionCreator).toEqual(jasmine.any(Function));
+    const loadResultsActionCreator = wrapper.prop('loadResults');
+    expect(loadResultsActionCreator).toEqual(jasmine.any(Function));
 
     expect(store.getActions()).toEqual([]);
-    loadApplicationsActionCreator('test');
+    loadResultsActionCreator('test');
     expect(store.getActions()).toEqual([{ type: 'FOO' }]);
   });
 

@@ -6,33 +6,62 @@
 import axios from 'axios';
 
 import { getLegalDashboardApplicationsUrl } from '../../util/CLMLocation';
-import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
 
-export const LEGAL_DASHBOARD_LOAD_APPLICATIONS_REQUESTED = 'LEGAL_DASHBOARD_LOAD_APPLICATIONS_REQUESTED';
-export const LEGAL_DASHBOARD_LOAD_APPLICATIONS_FULFILLED = 'LEGAL_DASHBOARD_LOAD_APPLICATIONS_FULFILLED';
-export const LEGAL_DASHBOARD_LOAD_APPLICATIONS_FAILED = 'LEGAL_DASHBOARD_LOAD_APPLICATIONS_FAILED';
+export const LOAD_LEGAL_RESULTS_REQUESTED = 'LOAD_LEGAL_RESULTS_REQUESTED';
+export const LOAD_LEGAL_RESULTS_FULFILLED = 'LOAD_LEGAL_RESULTS_FULFILLED';
+export const LOAD_LEGAL_RESULTS_FAILED = 'LOAD_LEGAL_RESULTS_FAILED';
 
-const loadApplicationsRequested = noPayloadActionCreator(LEGAL_DASHBOARD_LOAD_APPLICATIONS_REQUESTED);
-const loadApplicationsFulfilled = payloadParamActionCreator(LEGAL_DASHBOARD_LOAD_APPLICATIONS_FULFILLED);
-const loadApplicationsFailed = payloadParamActionCreator(LEGAL_DASHBOARD_LOAD_APPLICATIONS_FAILED);
+function loadResultsFulfilled(resultsType, results) {
+  return {
+    type: LOAD_LEGAL_RESULTS_FULFILLED,
+    payload: { resultsType, results }
+  };
+}
 
-export function loadApplications() {
-  return (dispatch) => {
-    dispatch(loadApplicationsRequested());
+function loadResultsFailed(resultsType, error) {
+  return {
+    type: LOAD_LEGAL_RESULTS_FAILED,
+    payload: { resultsType, error }
+  };
+}
 
-    const applicationFilter = {
-      applicationIds: [],
-      organizationIds: [],
-      stageTypeIds: [],
-      tagIds: []
-    };
+export function loadResults(resultsType) {
+  return (dispatch, getState) => {
+    dispatch({
+      type: LOAD_LEGAL_RESULTS_REQUESTED,
+      payload: resultsType
+    });
 
-    return axios.post(getLegalDashboardApplicationsUrl(), applicationFilter)
-        .then(({ data }) => {
-          dispatch(loadApplicationsFulfilled(data));
+    return fetchResults(resultsType, getState())
+        .then(payload => {
+          dispatch(loadResultsFulfilled(resultsType, payload.data));
         })
         .catch(error => {
-          dispatch(loadApplicationsFailed(error));
+          dispatch(loadResultsFailed(resultsType, error));
+          return Promise.reject(error);
         });
   };
+}
+
+function fetchResults(resultsType, state) {
+  const { applications, organizations, stages, categories } = state.legalDashboardFilter.appliedFilter;
+  const applicationFilter = {
+    applicationIds: Array.from(applications),
+    organizationIds: Array.from(organizations),
+    stageTypeIds: Array.from(stages),
+    tagIds: Array.from(categories)
+  };
+
+  const serviceMethod = getServiceMethod(resultsType);
+  return axios.post(serviceMethod(), applicationFilter);
+}
+
+function getServiceMethod(resultsType) {
+  switch (resultsType) {
+    case 'applications':
+      return getLegalDashboardApplicationsUrl;
+
+    default:
+      throw new Error('retrieving legal dashboard results is not supported for ' + resultsType);
+  }
 }

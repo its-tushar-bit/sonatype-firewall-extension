@@ -58,4 +58,4 @@ The **first time** you launch the application, you will need to add a license fi
 
 ## Mail Assets
 
-The mail assets employed by the policy alert mails (cf. `policythreats.ftl`) are maintained in https://github.com/sonatype/cdn.sonatype.com/tree/master/clm/policy/1.3
+The mail assets employed by the policy alert mails (cf. `policythreats.ftl`) are maintained in https://github.com/sonatype/cdn.sonatype.com/tree/master/dist/clm/policy/1.3

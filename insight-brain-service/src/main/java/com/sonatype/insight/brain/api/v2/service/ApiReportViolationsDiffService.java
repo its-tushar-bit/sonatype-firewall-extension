@@ -18,7 +18,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.ApiApplicationAdapter;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationCommitDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentForDiffDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDiffDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationForDiffDTO;
@@ -270,7 +270,7 @@ public class ApiReportViolationsDiffService
     apiPolicyViolationForDiffDTO.threatLevel = policyViolation.getThreatLevel();
     final ApplicationComponent applicationComponent = applicationComponentDAO.getByApplicationIdAndStageTypeIdAndHash(
         applicationId, stageTypeId, policyViolation.getHash());
-    apiPolicyViolationForDiffDTO.component = new ApiComponentForDiffDTOV2();
+    apiPolicyViolationForDiffDTO.component = new ApiComponentDTOV2();
     apiPolicyViolationForDiffDTO.component.hash = policyViolation.getHash();
     apiPolicyViolationForDiffDTO.component.proprietary = applicationComponent != null
         && applicationComponent.isProprietary();

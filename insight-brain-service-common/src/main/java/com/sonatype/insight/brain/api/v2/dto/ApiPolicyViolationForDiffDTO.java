@@ -11,5 +11,5 @@ package com.sonatype.insight.brain.api.v2.dto;
 public class ApiPolicyViolationForDiffDTO
     extends ApiPolicyViolationDTOV2
 {
-  public ApiComponentForDiffDTOV2 component;
+  public ApiComponentDTOV2 component;
 }

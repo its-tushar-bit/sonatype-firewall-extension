@@ -18,9 +18,6 @@ public class ApiReportComponentPolicyViolationsDTOV2
 
   public List<String> pathnames = new ArrayList<>();
 
-  // @since 1.89
-  public String displayName;
-
   // occurrences of violations, in no particular order
   public List<ApiReportPolicyViolationDTOV2> violations = new ArrayList<>();
 }

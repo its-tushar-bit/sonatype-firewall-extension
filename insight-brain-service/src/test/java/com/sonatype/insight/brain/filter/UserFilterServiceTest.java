@@ -112,7 +112,6 @@ public class UserFilterServiceTest
   public void testGetActiveUserFilterForCurrentUser_NonExisting() throws IOException {
     UserFilter userFilter =
         new UserFilter(USERNAME, InternalRealm.ID, ACTIVE_FILTER_NAME, ADVANCED_LEGAL_PACK_DASHBOARD);
-    userFilter.setFilter(JsonUtils.format(new HashMap<>()));
 
     UserFilterDTO result = userFilterService.getActiveUserFilterForCurrentUser(ADVANCED_LEGAL_PACK_DASHBOARD);
     assertFilter(result, userFilter);
@@ -178,7 +177,12 @@ public class UserFilterServiceTest
   private void assertFilter(UserFilterDTO actualFilter, UserFilter expectedFilter) throws IOException {
     assertThat(actualFilter).isNotNull();
     assertThat(actualFilter.type).isEqualTo(expectedFilter.getType());
-    assertThat(actualFilter.filter).isEqualTo(JsonUtils.parse(expectedFilter.getFilter(), Map.class));
+    if (expectedFilter.getFilter() == null) {
+      assertThat(actualFilter.filter).isNull();
+    }
+    else {
+      assertThat(actualFilter.filter).isEqualTo(JsonUtils.parse(expectedFilter.getFilter(), Map.class));
+    }
     assertThat(actualFilter.name).isEqualTo(expectedFilter.getName());
     assertThat(actualFilter.basedOnFilterName).isEqualTo(expectedFilter.getBasedOnFilterName());
   }

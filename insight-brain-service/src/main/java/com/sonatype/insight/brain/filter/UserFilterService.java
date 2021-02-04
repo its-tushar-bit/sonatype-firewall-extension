@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.filter;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -22,6 +21,8 @@ import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
+
+import org.apache.commons.lang3.StringUtils;
 
 import static com.sonatype.insight.brain.model.filter.UserFilter.ACTIVE_FILTER_NAME;
 
@@ -76,7 +77,6 @@ public class UserFilterService
 
     if (activeFilter == null) {
       activeFilter = new UserFilter(username, realmId, ACTIVE_FILTER_NAME, type);
-      activeFilter.setFilter(JsonUtils.format(new HashMap<>()));
     }
 
     return newUserFilterDTO(activeFilter);
@@ -155,7 +155,9 @@ public class UserFilterService
   private UserFilterDTO newUserFilterDTO(UserFilter userFilter) throws IOException {
     UserFilterDTO userFilterDTO = new UserFilterDTO();
     userFilterDTO.basedOnFilterName = userFilter.getBasedOnFilterName();
-    userFilterDTO.filter = JsonUtils.parse(userFilter.getFilter(), Map.class);
+    if (StringUtils.isNotBlank(userFilter.getFilter())) {
+      userFilterDTO.filter = JsonUtils.parse(userFilter.getFilter(), Map.class);
+    }
     userFilterDTO.name = userFilter.getName();
     userFilterDTO.type = userFilter.getType();
     return userFilterDTO;

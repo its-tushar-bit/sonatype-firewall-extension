@@ -499,13 +499,11 @@ public class ApiLicenseLegalService
     Set<ComponentLegalFileDTO> componentLegalFiles =
         apiLicenseLegalHdsService.getComponentLegalFiles(Collections.singleton(compIdentifier));
     List<CopyrightOverride> copyrightOverrides =
-        copyrightOverrideDAO.getByOwnerIdAndComponentIdentifierWithHierarchy(ownerId, compIdentifier);
-    List<LegalFileOverride> licenseOverrides =
-        legalFileOverrideDAO
-            .getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(ownerId, compIdentifier, LegalFileType.LICENSE);
-    List<LegalFileOverride> noticeOverrides =
-        legalFileOverrideDAO
-            .getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(ownerId, compIdentifier, LegalFileType.NOTICE);
+        copyrightOverrideDAO.getByOwnerIdAndComponentIdentifierWithHierarchy(owner.getId(), compIdentifier);
+    List<LegalFileOverride> licenseOverrides = legalFileOverrideDAO
+        .getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(owner.getId(), compIdentifier, LegalFileType.LICENSE);
+    List<LegalFileOverride> noticeOverrides = legalFileOverrideDAO
+        .getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(owner.getId(), compIdentifier, LegalFileType.NOTICE);
     ApiLicenseLegalDataDTO licenseLegalData =
         legalReportBuilder.getLicenseLegalData(licenseData, componentLegalComments, copyrightOverrides,
             componentLegalFiles, licenseOverrides, noticeOverrides);
@@ -514,7 +512,7 @@ public class ApiLicenseLegalService
     Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata = legalReportBuilder.getLicenseLegalMetadata(
         licenseData.effectiveLicenses, licenses, licenseMetadataById);
     Set<ApiLicenseLegalObligationDTO> obligations =
-        createApiLicenseLegalObligationDTOs(ownerId, compIdentifier, getObligationNames(licenseLegalMetadata));
+        createApiLicenseLegalObligationDTOs(owner.getId(), compIdentifier, getObligationNames(licenseLegalMetadata));
     return new ApiLicenseLegalComponentReportDTO(componentDTO, licenseLegalMetadata, obligations);
   }
 

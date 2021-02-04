@@ -765,7 +765,7 @@ public class ApiLicenseLegalServiceTest
         .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport = apiLicenseLegalService
-        .getLicenseLegalComponentReport(owner.getType(), owner.getId(), c, null, null, null, null, null);
+        .getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), c, null, null, null, null, null);
 
     // Without overrides, we get the HDS data
     assertThat(licenseLegalComponentReport.component.licenseLegalData.copyrights)
@@ -794,7 +794,7 @@ public class ApiLicenseLegalServiceTest
         "overrideContent", ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
 
     licenseLegalComponentReport = apiLicenseLegalService
-        .getLicenseLegalComponentReport(owner.getType(), owner.getId(), c, null, null, null, null, null);
+        .getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), c, null, null, null, null, null);
 
     // With overrides, we get the overridden data
     assertThat(licenseLegalComponentReport.component.licenseLegalData.copyrights)
@@ -828,7 +828,7 @@ public class ApiLicenseLegalServiceTest
         .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport = apiLicenseLegalService
-        .getLicenseLegalComponentReport(owner.getType(), owner.getId(), c, null, null, null, null, null);
+        .getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), c, null, null, null, null, null);
 
     // Without saved obligation data (no obligations or obligation attributions), we get defaults
     assertThat(licenseLegalComponentReport.obligations).extracting(o -> o.name)
@@ -858,7 +858,7 @@ public class ApiLicenseLegalServiceTest
         tempEntity.newComponentObligationAttribution(c, owner.getId(), "name4", "content4", "legalContentHash");
 
     licenseLegalComponentReport = apiLicenseLegalService
-        .getLicenseLegalComponentReport(owner.getType(), owner.getId(), c, null, null, null, null, null);
+        .getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), c, null, null, null, null, null);
 
     // With saved obligation data, the corresponding set is as expected
     assertThat(licenseLegalComponentReport.obligations).isNotEmpty();
@@ -936,7 +936,7 @@ public class ApiLicenseLegalServiceTest
     }).when(mockApiLicenseLegalHdsService).getComponentLegalFiles(any());
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
-        apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getId(), componentIdentifier,
+        apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
             packageUrl, hash, null, identificationSource, scanId);
 
     verify(apiLicenseDataAdapterSpy).convertToDTOV2(componentArgumentCaptor.capture());
@@ -1023,7 +1023,7 @@ public class ApiLicenseLegalServiceTest
     Application application = tempEntity.newApplicationWithParent();
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> apiLicenseLegalService.getLicenseLegalComponentReport(OwnerType.APPLICATION,
-            application.getId(), null, null, "hash", null, null, null))
+            application.getPublicId(), null, null, "hash", null, null, null))
         .withMessageContaining("Unable to determine componentIdentifier.");
   }
 
@@ -1039,7 +1039,7 @@ public class ApiLicenseLegalServiceTest
     String packageUrl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl();
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> apiLicenseLegalService.getLicenseLegalComponentReport(OwnerType.APPLICATION,
-            application.getId(), componentIdentifier, packageUrl, null, null, null, null))
+            application.getPublicId(), componentIdentifier, packageUrl, null, null, null, null))
         .withMessageContaining("Only one of componentIdentifier, packageUrl, or hash must be specified.");
   }
 
@@ -1049,7 +1049,7 @@ public class ApiLicenseLegalServiceTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> apiLicenseLegalService.getLicenseLegalComponentReport(OwnerType.APPLICATION,
-            application.getId(), componentIdentifier, "hash", null, null, null, null))
+            application.getPublicId(), componentIdentifier, "hash", null, null, null, null))
         .withMessageContaining("Only one of componentIdentifier, packageUrl, or hash must be specified.");
   }
 
@@ -1060,7 +1060,7 @@ public class ApiLicenseLegalServiceTest
     String packageUrl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl();
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> apiLicenseLegalService.getLicenseLegalComponentReport(OwnerType.APPLICATION,
-            application.getId(), null, packageUrl, "hash", null, null, null))
+            application.getPublicId(), null, packageUrl, "hash", null, null, null))
         .withMessageContaining("Only one of componentIdentifier, packageUrl, or hash must be specified.");
   }
 
@@ -1071,7 +1071,7 @@ public class ApiLicenseLegalServiceTest
     String packageUrl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl();
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> apiLicenseLegalService.getLicenseLegalComponentReport(OwnerType.APPLICATION,
-            application.getId(), componentIdentifier, packageUrl, "hash", null, null, null))
+            application.getPublicId(), componentIdentifier, packageUrl, "hash", null, null, null))
         .withMessageContaining("Only one of componentIdentifier, packageUrl, or hash must be specified.");
   }
 
@@ -1079,7 +1079,7 @@ public class ApiLicenseLegalServiceTest
   public void testGetLicenseLegalComponentReport_Unlicensed() {
     setUnlicensedForAdvancedLegalPack();
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> apiLicenseLegalService
-        .getLicenseLegalComponentReport(OwnerType.APPLICATION, "someAppId", null, null, "hash", null, null, null));
+        .getLicenseLegalComponentReport(OwnerType.APPLICATION, "anAppPublicId", null, null, "hash", null, null, null));
   }
 
   private NamedComponentDetails createNamedComponentDetails() {

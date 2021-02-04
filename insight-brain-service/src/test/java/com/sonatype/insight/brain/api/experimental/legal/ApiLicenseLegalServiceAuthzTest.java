@@ -142,21 +142,21 @@ public class ApiLicenseLegalServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetLicenseLegalComponentReport_OrganizationUnauthenticated() throws Exception {
-    apiLicenseLegalService.getLicenseLegalComponentReport(org.getType(), org.getId(), ComponentIdentifier
+    apiLicenseLegalService.getLicenseLegalComponentReport(org.getType(), org.getPublicId(), ComponentIdentifier
         .createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null, null);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetLicenseLegalComponentReport_OrganizationUnauthorized() throws Exception {
     login();
-    apiLicenseLegalService.getLicenseLegalComponentReport(org.getType(), org.getId(), ComponentIdentifier
+    apiLicenseLegalService.getLicenseLegalComponentReport(org.getType(), org.getPublicId(), ComponentIdentifier
         .createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null, null);
   }
 
   @Test
   public void testGetLicenseLegalComponentReport_OrganizationAuthorized() throws Exception {
     grantLegalReviewerPermission(org.getId());
-    apiLicenseLegalService.getLicenseLegalComponentReport(org.getType(), org.getId(), ComponentIdentifier
+    apiLicenseLegalService.getLicenseLegalComponentReport(org.getType(), org.getPublicId(), ComponentIdentifier
         .createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null, null);
   }
 

@@ -6,12 +6,16 @@
 import cipModalModule from '../../../../main/frontend/applicationReport/results/cipModal/module';
 
 describe('cipTabPanel', function() {
-  let $componentController;
+  let $componentController,
+      $httpBackend,
+      CLMLocations;
 
   beforeEach(angular.mock.module(cipModalModule.name));
 
-  beforeEach(inject(function(_$componentController_) {
+  beforeEach(inject(function(_$componentController_, _$httpBackend_, _CLMLocations_) {
     $componentController = _$componentController_;
+    $httpBackend = _$httpBackend_;
+    CLMLocations = _CLMLocations_;
   }));
 
   it('sets the initial value of vm.selectedTab to componentInfo', function() {
@@ -38,20 +42,64 @@ describe('cipTabPanel', function() {
           format: 'format'
         },
         dependencyInfo: {isDirectDependency: false},
-        innerSource: true,
-        ownerApplicationName: 'AppName',
-        latestReport: {
-          stage: 'stage',
-          url: 'http://localhost:8070/assets/index.html#/applicationReport/AppName/scanId/policy'
+        innerSourceData: {
+          innerSource: true,
+          ownerApplicationId: 'id',
+          ownerApplicationName: 'appName',
+          ownerComponentName: 'componentName'
         }
       };
     }));
 
-    it('sets vm.latestReportUrl', function() {
+    afterEach(function() {
+      $httpBackend.verifyNoOutstandingExpectation();
+      $httpBackend.verifyNoOutstandingRequest();
+    });
+
+    it('sets vm.latestReportUrl if already loaded', function() {
+      controller.selectedComponent = {
+        ...innerSourceComponent,
+        latestReport: {
+          stage: 'stage',
+          url: 'latestReportUrl'
+        }
+      };
+      $scope.$digest();
+      expect(controller.selectedComponent.latestReport.url).toContain('latestReportUrl');
+    });
+
+    it('sets vm.latestReportUrl with InnerSource report for latest stage', function() {
+      const mockResponse = [
+        {
+          stage: 'build',
+          latestReportHtmlUrl: 'buildUrl'
+        },
+        {
+          stage: 'release',
+          latestReportHtmlUrl: 'releaseUrl'
+        },
+        {
+          stage: 'develop',
+          latestReportHtmlUrl: 'developUrl'
+        }
+      ];
+
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationReportsUrl('id'))).respond(200, mockResponse);
       controller.selectedComponent = innerSourceComponent;
       $scope.$digest();
-      expect(controller.latestReportUrl).toContain(
-          'http://localhost:8070/assets/index.html#/applicationReport/AppName/scanId/policy');
+      $httpBackend.flush();
+
+      expect(controller.selectedComponent.latestReport.url).toContain('releaseUrl');
+    });
+
+    it('handle the error action if request fails', function() {
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationReportsUrl('id'))).respond(500, 'error');
+      controller.selectedComponent = innerSourceComponent;
+      $scope.$digest();
+      $httpBackend.flush();
+
+      expect(controller.error).toContain('error');
+      expect(controller.selectedComponent.latestReport).toBeUndefined();
     });
 
     ['exact', 'similar'].forEach(function(matchState) {

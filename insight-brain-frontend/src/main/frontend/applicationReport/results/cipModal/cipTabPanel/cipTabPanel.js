@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { find, isNil, propEq, reject } from 'ramda';
+import { comparator, find, isNil, propEq, reject, sort } from 'ramda';
 
 import template from './cipTabPanel.html';
 
@@ -26,7 +26,7 @@ export default {
   }
 };
 
-function CipTabPanelController($scope, CLMLocations) {
+function CipTabPanelController($scope, CLMLocations, $http, Messages) {
   const vm = this;
 
   Object.assign(vm, {
@@ -70,22 +70,54 @@ function CipTabPanelController($scope, CLMLocations) {
     }]);
   }
 
-  function latestReportUrl() {
-    if (vm.selectedComponent != null && vm.selectedComponent.latestReport) {
-      return CLMLocations.getAbsoluteUrl(vm.selectedComponent.latestReport.url);
+  const stagesOrder = {
+    'operate': 1,
+    'release': 2,
+    'stage': 3,
+    'build': 4,
+    'develop': 5,
+    'proxy': 6
+  };
+
+  const getStageOrder = (report) => {
+    return stagesOrder[report['stage']] !== undefined ? stagesOrder[report['stage']] : 7;
+  };
+
+  const byStage = comparator((reportA, reportB) => getStageOrder(reportA) < getStageOrder(reportB));
+
+  function loadInnerSourceReportUrl() {
+    if (vm.selectedComponent && vm.selectedComponent.latestReport) {
+      return;
+    }
+
+    const innerSourceData = vm.selectedComponent.innerSourceData;
+    if (innerSourceData && innerSourceData.innerSource && innerSourceData.ownerApplicationId) {
+      $http.get(CLMLocations.getApplicationReportsUrl(innerSourceData.ownerApplicationId))
+          .then(function(response) {
+            const { data } = response;
+            if (data && data.length > 0) {
+              const lastInnerSourceReportData = sort(byStage, data)[0];
+              vm.selectedComponent.latestReport = {
+                stage: lastInnerSourceReportData.stage,
+                url: CLMLocations.getAbsoluteUrl(lastInnerSourceReportData.latestReportHtmlUrl)
+              };
+            }
+          }, function(response) {
+            vm.error = Messages.getHttpErrorMessage(response);
+          });
     }
   }
 
   $scope.$watch('vm.selectedComponent', function() {
     if (vm.selectedComponent) {
       updateTabs();
+      loadInnerSourceReportUrl();
 
       if (!find(propEq('name', vm.selectedTab), vm.tabs)) {
         vm.selectedTab = vm.tabs[0].name;
       }
     }
-    vm.latestReportUrl = latestReportUrl();
   });
 }
 
-CipTabPanelController.$inject = ['$scope', 'CLMLocations'];
+CipTabPanelController.$inject = ['$scope', 'CLMLocations', '$http', 'Messages'];

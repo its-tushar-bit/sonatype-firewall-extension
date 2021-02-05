@@ -290,6 +290,8 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
 
       getOrganizationsUrl,
 
+      getApplicationReportsUrl,
+
       getValidateLicenseUrl: function() {
         return baseUrl.get() + '/rest/product/license/validate';
       },

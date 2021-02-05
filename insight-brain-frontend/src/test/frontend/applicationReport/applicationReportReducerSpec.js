@@ -602,25 +602,8 @@ describe('applicationReportReducer', function() {
     });
   });
 
-  describe('SELECT_COMPONENT_REQUESTED action', function() {
-    it('unset selectedComponent value', function() {
-      const state = Object.freeze({
-        selectedComponent: {},
-        selectedComponentIndex: 3,
-        other: otherObject
-      });
-      const newState = reduce(state, {type: 'SELECT_COMPONENT_REQUESTED'});
-      expect(newState).toEqual({
-        selectedComponent: null,
-        selectedComponentIndex: null,
-        other: otherObject
-      });
-      expect(newState.other).toBe(otherObject); // other properties are not modified
-    });
-  });
-
-  describe('SELECT_COMPONENT_FULFILLED action', function() {
-    it('set selectedComponent, selectedComponentIndex values and unset selectedRootAncestor  value', function() {
+  describe('SELECT_COMPONENT action', function() {
+    it('set selectedComponent, selectedComponentIndex values and unset selectedRootAncestor value', function() {
       const state = Object.freeze({
         selectedComponent: {},
         selectedComponentIndex: 0,
@@ -631,32 +614,13 @@ describe('applicationReportReducer', function() {
         componentIndex: 2
       };
       const newState = reduce(state, {
-        type: 'SELECT_COMPONENT_FULFILLED',
+        type: 'SELECT_COMPONENT',
         payload: selectedComponent
       });
       expect(newState).toEqual({
         selectedComponent: selectedComponent.component,
         selectedComponentIndex: selectedComponent.componentIndex,
         selectedRootAncestor: null,
-        other: otherObject
-      });
-      expect(newState.other).toBe(otherObject); // other properties are not modified
-    });
-  });
-
-  describe('SELECT_COMPONENT_FAILED action', function() {
-    it('unsets selectedComponent, selectedComponentIndex values and sets the loadError to the payload', function() {
-      const state = Object.freeze({
-        selectedComponent: {},
-        selectedComponentIndex: 0,
-        other: otherObject
-      });
-      const payload = 'Error!';
-      const newState = reduce(state, { type: 'SELECT_COMPONENT_FAILED', payload });
-      expect(newState).toEqual({
-        selectedComponent: null,
-        selectedComponentIndex: null,
-        loadError: payload,
         other: otherObject
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified

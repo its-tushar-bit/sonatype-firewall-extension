@@ -49,9 +49,7 @@ import {
   UNSELECT_ROOT_ANCESTOR,
   GENERATE_VULNERABILITY_ENTRIES,
   SET_SORTING_PARAMETERS,
-  SELECT_COMPONENT_REQUESTED,
-  SELECT_COMPONENT_FULFILLED,
-  SELECT_COMPONENT_FAILED
+  SELECT_COMPONENT
 } from './applicationReportActions';
 
 import { sortItemsByFields } from '../util/sortUtils';
@@ -203,14 +201,8 @@ export default function applicationReportReducer(state = initState, {type, paylo
     case GENERATE_VULNERABILITY_ENTRIES:
       return generateVulnerabilityEntries(state);
 
-    case SELECT_COMPONENT_REQUESTED:
-      return {...state, selectedComponent: null, selectedComponentIndex: null};
-
-    case SELECT_COMPONENT_FULFILLED:
+    case SELECT_COMPONENT:
       return setSelectedComponent(state, payload);
-
-    case SELECT_COMPONENT_FAILED:
-      return {...state, selectedComponent: null, selectedComponentIndex: null, loadError: payload};
 
     default:
       return state;

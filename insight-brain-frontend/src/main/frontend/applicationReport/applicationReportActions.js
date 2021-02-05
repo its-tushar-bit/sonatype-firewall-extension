@@ -3,13 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { map, pick, comparator, sort } from 'ramda';
+import { map, pick } from 'ramda';
 import axios from 'axios';
 
 import { createReportEntries, createRawDataEntries } from './applicationReportService';
 import { mappedPayloadParamActionCreator, noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
 import {
-  getApplicationReportsUrl,
   getDependenciesUrl,
   getReportBomUrl,
   getReportDataUrl,
@@ -45,9 +44,7 @@ export const REEVALUATE_REPORT_FAILED = 'REEVALUATE_REPORT_FAILED';
 export const REEVALUATE_REPORT_CANCELLED = 'REEVALUATE_REPORT_CANCELLED';
 export const GENERATE_VULNERABILITY_ENTRIES = 'GENERATE_VULNERABILITY_ENTRIES';
 export const SET_SORTING_PARAMETERS = 'SET_SORTING_PARAMETERS';
-export const SELECT_COMPONENT_REQUESTED = 'SELECT_COMPONENT_REQUESTED';
-export const SELECT_COMPONENT_FULFILLED = 'SELECT_COMPONENT_FULFILLED';
-export const SELECT_COMPONENT_FAILED = 'SELECT_COMPONENT_FAILED';
+export const SELECT_COMPONENT = 'SELECT_COMPONENT';
 
 // To be used for filters that are done by substring matching, as opposed to matching a discrete set of values
 export const SET_SUBSTRING_FIELD_FILTER = 'SET_SUBSTRING_FIELD_FILTER';
@@ -218,49 +215,11 @@ function loadReportAllData() {
   };
 }
 
-const stagesOrder = {
-  'operate': 1,
-  'release': 2,
-  'stage': 3,
-  'build': 4,
-  'develop': 5,
-  'proxy': 6
-};
-
-const getStageOrder = (report) => {
-  return stagesOrder[report['stage']] !== undefined ? stagesOrder[report['stage']] : 7;
-};
-
-const byStage = comparator((reportA, reportB) => getStageOrder(reportA) < getStageOrder(reportB));
-
 function selectComponent(componentIndex) {
   return (dispatch, getState) => {
-
     const { selectedReport } = getState().applicationReport;
-    dispatch({
-      type: SELECT_COMPONENT_REQUESTED
-    });
-
     const component = selectedReport.displayedEntries[componentIndex];
-    const innerSourceData = component.innerSourceData;
-    if (innerSourceData && innerSourceData.innerSource && innerSourceData.ownerApplicationId) {
-      return axios.get(getApplicationReportsUrl(innerSourceData.ownerApplicationId))
-          .then(result => {
-            if (result.data && result.data.length > 0) {
-              const lastInnerSourceReportData = sort(byStage, result.data)[0];
-              component.latestReport = {
-                stage: lastInnerSourceReportData.stage,
-                url: lastInnerSourceReportData.latestReportHtmlUrl
-              };
-            }
-            return dispatch(selectComponentFulfilled({component, componentIndex}));
-          })
-          .catch(error => {
-            dispatch(selectComponentFailed(error));
-          });
-    }
-
-    return Promise.resolve(dispatch(selectComponentFulfilled({component, componentIndex})));
+    return Promise.resolve(dispatch(setSelectedComponent({component, componentIndex})));
   };
 }
 
@@ -279,8 +238,7 @@ const loadReportRawDataFailed = httpErrorMessageActionCreator(LOAD_REPORT_RAW_DA
 const loadReportRawDataUnnecessary = httpErrorMessageActionCreator(LOAD_REPORT_RAW_DATA_UNNECESSARY);
 const setSortingRawData = payloadParamActionCreator(SET_SORTING_RAW_DATA);
 const generateVulnerabilityEntries = noPayloadActionCreator(GENERATE_VULNERABILITY_ENTRIES);
-const selectComponentFulfilled = payloadParamActionCreator(SELECT_COMPONENT_FULFILLED);
-const selectComponentFailed = httpErrorMessageActionCreator(SELECT_COMPONENT_FAILED);
+const setSelectedComponent = payloadParamActionCreator(SELECT_COMPONENT);
 export const setSorting = payloadParamActionCreator(SET_SORTING);
 
 export const setAggregateReportEntries = payloadParamActionCreator(SET_AGGREGATE_REPORT_ENTRIES);

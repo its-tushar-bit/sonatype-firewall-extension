@@ -26,6 +26,8 @@ import com.sonatype.insight.brain.model.filter.UserFilterType;
 import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Timed;
 
+import static com.sonatype.insight.brain.model.filter.UserFilter.ACTIVE_FILTER_NAME;
+
 @Named
 @Timed
 @Path(UserFilterResource.RESOURCE_PATH)
@@ -45,10 +47,21 @@ public class UserFilterResource
   }
 
   @PUT
+  @Path(ACTIVE_FILTERS_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.SAVE_USER_FILTER)
-  public UserFilterDTO createOrUpdateUserFilterForCurrentUser(UserFilterDTO userFilterDTO) {
+  public UserFilterDTO createOrUpdateActiveUserFilterForCurrentUser(UserFilterDTO userFilterDTO) {
+    userFilterDTO.name = ACTIVE_FILTER_NAME;
+    return userFilterService.createOrUpdateUserFilterForCurrentUser(userFilterDTO);
+  }
+
+  @PUT
+  @Path(NAMED_FILTERS_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.SAVE_USER_FILTER)
+  public UserFilterDTO createOrUpdateNamedUserFilterForCurrentUser(UserFilterDTO userFilterDTO) {
     return userFilterService.createOrUpdateUserFilterForCurrentUser(userFilterDTO);
   }
 

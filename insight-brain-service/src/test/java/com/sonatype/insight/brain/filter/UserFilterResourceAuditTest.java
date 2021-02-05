@@ -44,40 +44,40 @@ public class UserFilterResourceAuditTest
   }
 
   @Test
-  public void testCreateOrUpdateUserFilterForCurrentUser_Insert() throws Exception {
-    String filterName = "test filter name";
-    UserFilterDTO userFilterDTO = newUserFilterDTO(filterName);
-
-    restRequest().body(userFilterDTO).put();
-    assertUserFilterAudit(filterName, userFilterDTO.type);
-  }
-
-  @Test
-  public void testCreateOrUpdateUserFilterForCurrentUser_InsertActiveFilter() throws Exception {
+  public void testCreateOrUpdateActiveUserFilterForCurrentUser_InsertActiveFilter() throws Exception {
     String filterName = ACTIVE_FILTER_NAME;
     UserFilterDTO userFilterDTO = newUserFilterDTO(filterName);
 
-    restRequest().body(userFilterDTO).put();
+    restRequest().path(UserFilterResource.ACTIVE_FILTERS_PATH).body(userFilterDTO).put();
     assertUserFilterAudit(filterName, userFilterDTO.type);
   }
 
   @Test
-  public void testCreateOrUpdateUserFilterForCurrentUser_Update() throws Exception {
+  public void testCreateOrUpdateActiveUserFilterForCurrentUser_UpdateActiveFilter() throws Exception {
+    String filterName = ACTIVE_FILTER_NAME;
+    tempEntity.newUserFilter(getUsername(), InternalRealm.ID, filterName, ADVANCED_LEGAL_PACK_DASHBOARD);
+    UserFilterDTO userFilterDTO = newUserFilterDTO(filterName);
+
+    restRequest().path(UserFilterResource.ACTIVE_FILTERS_PATH).body(userFilterDTO).put();
+    assertUserFilterAudit(filterName, userFilterDTO.type);
+  }
+
+  @Test
+  public void testCreateOrUpdateNamedUserFilterForCurrentUser_Insert() throws Exception {
+    String filterName = "test filter name";
+    UserFilterDTO userFilterDTO = newUserFilterDTO(filterName);
+
+    restRequest().path(UserFilterResource.NAMED_FILTERS_PATH).body(userFilterDTO).put();
+    assertUserFilterAudit(filterName, userFilterDTO.type);
+  }
+
+  @Test
+  public void testCreateOrUpdateNamedUserFilterForCurrentUser_Update() throws Exception {
     String filterName = "test filter";
     tempEntity.newUserFilter(getUsername(), InternalRealm.ID, filterName, ADVANCED_LEGAL_PACK_DASHBOARD);
     UserFilterDTO userFilterDTO = newUserFilterDTO(filterName);
 
-    restRequest().body(userFilterDTO).put();
-    assertUserFilterAudit(filterName, userFilterDTO.type);
-  }
-
-  @Test
-  public void testCreateOrUpdateUserFilterForCurrentUser_UpdateActiveFilter() throws Exception {
-    String filterName = ACTIVE_FILTER_NAME;
-    tempEntity.newUserFilter(getUsername(), InternalRealm.ID, filterName, ADVANCED_LEGAL_PACK_DASHBOARD);
-    UserFilterDTO userFilterDTO = newUserFilterDTO(filterName);
-
-    restRequest().body(userFilterDTO).put();
+    restRequest().path(UserFilterResource.NAMED_FILTERS_PATH).body(userFilterDTO).put();
     assertUserFilterAudit(filterName, userFilterDTO.type);
   }
 

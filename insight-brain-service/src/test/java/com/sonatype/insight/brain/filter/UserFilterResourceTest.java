@@ -16,9 +16,11 @@ import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
 import com.sonatype.insight.brain.model.filter.UserFilter;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.collect.ImmutableMap;
+import org.junit.After;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.filter.UserFilter.ACTIVE_FILTER_NAME;
@@ -35,11 +37,21 @@ public class UserFilterResourceTest
     return super.restRequest().path(UserFilterResource.RESOURCE_PATH);
   }
 
-  @Test
-  public void testCreateOrUpdateUserFilterForCurrentUser_Insert() throws Exception {
-    UserFilterDTO userFilterDTO = newUserFilterDTO("test filter name");
+  @After
+  public void after() {
+    // required in order to avoid clashes between create/delete tests
+    try (TransactionContext tx = userFilterDAO.createTransactionContext()) {
+      tx.begin();
+      userFilterDAO.deleteByUsernameAndRealmId(tx, getUsername(), InternalRealm.ID);
+      tx.commit();
+    }
+  }
 
-    HttpResponse response = restRequest().body(userFilterDTO).put();
+  @Test
+  public void testCreateOrUpdateActiveUserFilterForCurrentUser_Insert() throws Exception {
+    UserFilterDTO userFilterDTO = newUserFilterDTO(ACTIVE_FILTER_NAME);
+
+    HttpResponse response = restRequest().path(UserFilterResource.ACTIVE_FILTERS_PATH).body(userFilterDTO).put();
     assertResponseStatus(200, response);
 
     UserFilterDTO result = response.getBody(UserFilterDTO.class);
@@ -52,12 +64,46 @@ public class UserFilterResourceTest
   }
 
   @Test
-  public void testCreateOrUpdateUserFilterForCurrentUser_Update() throws Exception {
+  public void testCreateOrUpdateActiveUserFilterForCurrentUser_Update() throws Exception {
+    String filterName = ACTIVE_FILTER_NAME;
+    tempEntity.newUserFilter(getUsername(), InternalRealm.ID, filterName, ADVANCED_LEGAL_PACK_DASHBOARD);
+    UserFilterDTO userFilterDTO = newUserFilterDTO(filterName);
+
+    HttpResponse response = restRequest().path(UserFilterResource.ACTIVE_FILTERS_PATH).body(userFilterDTO).put();
+    assertResponseStatus(200, response);
+
+    UserFilterDTO result = response.getBody(UserFilterDTO.class);
+    assertThat(result).isNotNull();
+    assertThat(result).usingRecursiveComparison().isEqualTo(userFilterDTO);
+
+    UserFilter userFilter = userFilterDAO.getByUsernameAndRealmIdAndNameAndType(getUsername(), InternalRealm.ID,
+        userFilterDTO.name, userFilterDTO.type);
+    assertFilter(userFilter, result);
+  }
+
+  @Test
+  public void testCreateOrUpdateNamedUserFilterForCurrentUser_Insert() throws Exception {
+    UserFilterDTO userFilterDTO = newUserFilterDTO("test filter name");
+
+    HttpResponse response = restRequest().path(UserFilterResource.NAMED_FILTERS_PATH).body(userFilterDTO).put();
+    assertResponseStatus(200, response);
+
+    UserFilterDTO result = response.getBody(UserFilterDTO.class);
+    assertThat(result).isNotNull();
+    assertThat(result).usingRecursiveComparison().isEqualTo(userFilterDTO);
+
+    UserFilter userFilter = userFilterDAO.getByUsernameAndRealmIdAndNameAndType(getUsername(), InternalRealm.ID,
+        userFilterDTO.name, userFilterDTO.type);
+    assertFilter(userFilter, userFilterDTO);
+  }
+
+  @Test
+  public void testCreateOrUpdateNamedUserFilterForCurrentUser_Update() throws Exception {
     String filterName = "test filter";
     tempEntity.newUserFilter(getUsername(), InternalRealm.ID, filterName, ADVANCED_LEGAL_PACK_DASHBOARD);
     UserFilterDTO userFilterDTO = newUserFilterDTO(filterName);
 
-    HttpResponse response = restRequest().body(userFilterDTO).put();
+    HttpResponse response = restRequest().path(UserFilterResource.NAMED_FILTERS_PATH).body(userFilterDTO).put();
     assertResponseStatus(200, response);
 
     UserFilterDTO result = response.getBody(UserFilterDTO.class);

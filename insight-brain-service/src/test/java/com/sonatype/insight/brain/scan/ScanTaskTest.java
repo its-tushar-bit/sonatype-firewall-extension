@@ -101,10 +101,11 @@ public class ScanTaskTest
     when(work.getScanDir(eq(app.getId()))).thenReturn(scanDir);
     when(work.getScanFile(eq(app.getId()), eq(scanReceipt.getScanId()))).thenReturn(scanFile);
 
-    when(uploader.upload(eq(tmpScanFile), eq(app), anyString())).thenReturn(scanReceipt);
+    when(uploader.upload(eq(tmpScanFile), eq(app), anyString(), eq(null))).thenReturn(scanReceipt);
     ScanResult scanResult = new ScanResult(tmpScanFile, false);
     when(scanner.scan(eq(bundleFile), eq(bundleFilename), eq(scanDir), eq(null))).thenReturn(scanResult);
-    when(thirdPartyScanService.filterAndUpload(any(File.class), eq(app), any(String.class), any(TelemetryData.class)))
+    when(thirdPartyScanService.filterAndUpload(any(File.class), eq(app), any(String.class), eq(null),
+        any(TelemetryData.class))) //
         .thenReturn(scanReceipt);
   }
 
@@ -221,15 +222,17 @@ public class ScanTaskTest
   @Test
   public void testRun_processThirdPartyScanResults() throws Exception {
     File scanBinary = new File("any");
-    when(thirdPartyScanService.filterAndUpload(scanBinary, app, stage.getStageTypeId(), null)).thenReturn(scanReceipt);
+    when(thirdPartyScanService.filterAndUpload(scanBinary, app, stage.getStageTypeId(), null, null))
+        .thenReturn(scanReceipt);
     task.init(app, scanBinary, bundleFilename, stage, false, "agent", "ui");
     when(scanner.scan(any(File.class), any(String.class), any(File.class), eq(null)))
         .thenReturn(new ScanResult(scanBinary, true));
 
-    when(uploader.upload(any(File.class), eq(app), anyString())).thenReturn(scanReceipt);
+    when(uploader.upload(any(File.class), eq(app), anyString(), eq(null))).thenReturn(scanReceipt);
     task.run();
     ArgumentCaptor<TelemetryData> arg = ArgumentCaptor.forClass(TelemetryData.class);
-    verify(thirdPartyScanService).filterAndUpload(eq(scanBinary), eq(app), eq(stage.getStageTypeId()), arg.capture());
+    verify(thirdPartyScanService).filterAndUpload(eq(scanBinary), eq(app), eq(stage.getStageTypeId()), eq(null),
+        arg.capture());
 
     TelemetryData telemetryData = arg.getValue();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.THIRD_PARTY_SCAN_USAGE);

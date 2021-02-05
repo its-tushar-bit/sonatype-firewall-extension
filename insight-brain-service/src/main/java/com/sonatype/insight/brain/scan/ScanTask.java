@@ -223,10 +223,11 @@ class ScanTask
       ScanReceipt scanReceipt;
       if (scanResult != null && scanResult.hasThirdPartyScanContent()) {
         scanReceipt = thirdPartyScanService.filterAndUpload(scanResult.getScanFile(), app, stage.getStageTypeId(),
-            buildThirdPartyScanTelemetryData(appPublicId, stage, scanType, userAgent));
+            null /* clientUserAgent */, buildThirdPartyScanTelemetryData(appPublicId, stage, scanType, userAgent));
       }
       else {
-        scanReceipt = uploader.upload(scanResult.getScanFile(), app, stage.getStageTypeId());
+        scanReceipt =
+            uploader.upload(scanResult.getScanFile(), app, stage.getStageTypeId(), null /* clientUserAgent */);
       }
 
       if (StringUtils.isNotBlank(scanReceipt.getScanId())) {

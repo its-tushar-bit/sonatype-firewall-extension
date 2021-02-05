@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.hds;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -19,15 +20,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @deprecated The tested class is deprecated
  */
 @Deprecated
-public class DeprecatedCIResourceTest
+public class DeprecatedCLIResourceTest
     extends AbstractResourceTest
 {
-  private final String className = getClass().getSimpleName();
-
   @Test
-  public void testScan() throws Exception {
-    final String applicationPublicId = className + "_AppId";
-    tempEntity.newApplicationWithParent(applicationPublicId);
+  public void testPutScan() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
 
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId("f75365d9d93b4f1ea2dd8457a25dc44d");
@@ -35,7 +33,7 @@ public class DeprecatedCIResourceTest
     mockScanReceipt(scanReceipt);
 
     String testClientUserAgent = "testClientUserAgent";
-    HttpRequest request = scanRequest(applicationPublicId);
+    HttpRequest request = scanRequest(app.getPublicId());
     request.header(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent);
     final HttpResponse response = request.put();
 
@@ -46,30 +44,30 @@ public class DeprecatedCIResourceTest
     assertThat(receipt.getScanId()).isEqualTo(scanReceipt.getScanId());
     assertThat(receipt.getTimeToReport()).isEqualTo(scanReceipt.getTimeToReport());
     assertThat(receipt.getReportUrl())
-        .isEqualTo("ui/links/application/" + applicationPublicId + "/report/" + receipt.getScanId());
+        .isEqualTo("ui/links/application/" + app.getPublicId() + "/report/" + receipt.getScanId());
     assertThat(receipt.getPdfUrl())
-        .isEqualTo("ui/links/application/" + applicationPublicId + "/report/" + receipt.getScanId() + "/pdf");
+        .isEqualTo("ui/links/application/" + app.getPublicId() + "/report/" + receipt.getScanId() + "/pdf");
 
     assertThat(getHdsServer().getCapturedRequestHttpHeaders(ScanUploader.HDS_PATH)
         .get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
   }
 
   @Test
-  public void testScan_Unlicensed() throws Exception {
+  public void testPutScan_Unlicensed() throws Exception {
     uninstallLicense();
     HttpResponse response = scanRequest("unlicensedapp").put();
     assertResponseStatus(402, response);
   }
 
   @Test
-  public void testScan_FeatureUnlicensed() throws Exception {
-    setMissingFeature(LicensedFeature.CI_INTEGRATION);
+  public void testPutScan_FeatureUnlicensed() throws Exception {
+    setMissingFeature(LicensedFeature.CLI_INTEGRATION);
 
     HttpResponse response = scanRequest("unlicensedapp").put();
     assertResponseStatus(402, response);
   }
 
   private HttpRequest scanRequest(String appId) {
-    return restRequest().path(DeprecatedCIResource.RESOURCE_PATH, DeprecatedCIResource.SCAN_PATH).parameter(appId);
+    return restRequest().path(DeprecatedCLIResource.RESOURCE_PATH, DeprecatedCLIResource.SCAN_PATH).parameter(appId);
   }
 }

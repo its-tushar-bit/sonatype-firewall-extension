@@ -14,8 +14,8 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.telemetry.PendoCache;
 import com.sonatype.insight.brain.telemetry.PendoService;
 import com.sonatype.insight.brain.telemetry.PendoService.PendoConfig;
-import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.brain.telemetry.UserTelemetryResource;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.junit.Test;
 
@@ -38,7 +38,10 @@ public class RepoManResourceTest
     scanReceipt.setTimeToReport(30L);
     mockScanReceipt(scanReceipt);
 
-    final HttpResponse response = scanRequest(applicationPublicId).put();
+    String testClientUserAgent = "testClientUserAgent";
+    HttpRequest request = scanRequest(applicationPublicId);
+    request.header(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent);
+    final HttpResponse response = request.put();
 
     assertResponseStatus(200, response);
 
@@ -50,6 +53,9 @@ public class RepoManResourceTest
         .isEqualTo("ui/links/application/RepoManResourceTest_AppId/report/f75365d9d93b4f1ea2dd8457a25dc44d");
     assertThat(receipt.getPdfUrl())
         .isEqualTo("ui/links/application/RepoManResourceTest_AppId/report/f75365d9d93b4f1ea2dd8457a25dc44d/pdf");
+
+    assertThat(getHdsServer().getCapturedRequestHttpHeaders(ScanUploader.HDS_PATH)
+        .get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
   }
 
   @Test

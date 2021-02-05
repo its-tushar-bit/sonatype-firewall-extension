@@ -97,7 +97,7 @@ public class ApiThirdPartyScanService
       final String source,
       final String stageTypeId,
       final String sbom,
-      final String userAgent)
+      final String clientUserAgent)
   {
     if (!Stage.isValidStageTypeId(stageTypeId)) {
       throw new InvalidStageException(stageTypeId);
@@ -116,7 +116,8 @@ public class ApiThirdPartyScanService
     ScanResult scanResult = createScanFile(app, sbom, source);
 
     policyEvaluateService.evaluateWithPolling(scanRequestId, app, ClientScanType.SONATYPE_THIRD_PARTY,
-        new Stage(stageTypeId), PolicyEvaluationTriggerType.THIRD_PARTY, scanResult.getScanFile(), "api", userAgent);
+        new Stage(stageTypeId), PolicyEvaluationTriggerType.THIRD_PARTY, scanResult.getScanFile(), "api",
+        clientUserAgent);
 
     return scanTicketDTO;
   }

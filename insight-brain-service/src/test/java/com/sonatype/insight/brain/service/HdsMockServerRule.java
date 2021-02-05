@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.service;
 
+import java.util.Map;
+
 import com.sonatype.insight.mock.hds.HdsMockResponse;
 import com.sonatype.insight.mock.hds.HdsMockServer;
 
@@ -71,6 +73,10 @@ public class HdsMockServerRule
 
   public HdsMockResponse respondWith(Object body) {
     return hdsMockServer.respondWith(body);
+  }
+
+  public Map<String, String> getCapturedRequestHttpHeaders(String uri) {
+    return hdsMockServer.getCapturedRequestHttpHeaders(uri);
   }
 
   public void reset() {

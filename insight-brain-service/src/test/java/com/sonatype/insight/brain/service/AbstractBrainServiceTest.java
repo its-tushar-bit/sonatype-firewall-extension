@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
+import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.jira.JiraClient;
 import com.sonatype.insight.brain.jira.JiraClientFactory;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -270,8 +271,8 @@ public abstract class AbstractBrainServiceTest
     return hdsRespondWith(getClass().getResource(bodyResource));
   }
 
-  protected void mockScanReceipt(ScanReceipt scanReceipt) {
-    hdsRespondWith(scanReceipt).atUri("rest/application/analysis");
+  protected HdsMockResponse mockScanReceipt(ScanReceipt scanReceipt) {
+    return hdsRespondWith(scanReceipt).atUri(ScanUploader.HDS_PATH);
   }
 
   protected String mockReport(String resourceName) {

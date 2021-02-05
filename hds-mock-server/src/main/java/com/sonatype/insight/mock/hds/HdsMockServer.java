@@ -11,6 +11,9 @@ import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Deque;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 import javax.servlet.ServletException;
@@ -63,8 +66,18 @@ public class HdsMockServer
 
   private Deque<HdsMockResponse> responses = new ConcurrentLinkedDeque<>();
 
+  private Map<String, Map<String, String>> capturedRequestHttpHeadersByUri = new HashMap<>();
+
   public void reset() {
     responses.clear();
+    capturedRequestHttpHeadersByUri.clear();
+  }
+
+  public Map<String, String> getCapturedRequestHttpHeaders(String uri) {
+    if (!uri.startsWith("/")) {
+      uri = "/" + uri;
+    }
+    return capturedRequestHttpHeadersByUri.get(uri);
   }
 
   public HdsMockResponse respondWith(Object body) {
@@ -253,10 +266,22 @@ public class HdsMockServer
       }
     }
 
+    private void captureRequestHttpHeaders(HttpServletRequest request) {
+      Map<String, String> httpHeaders = new HashMap<>();
+      Enumeration<String> httpHeaderNames = request.getHeaderNames();
+      while (httpHeaderNames.hasMoreElements()) {
+        String httpHeaderName = httpHeaderNames.nextElement();
+        httpHeaders.put(httpHeaderName, request.getHeader(httpHeaderName));
+      }
+      capturedRequestHttpHeadersByUri.put(request.getRequestURI(), httpHeaders);
+    }
+
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
         throws IOException, ServletException
     {
+      captureRequestHttpHeaders(request);
+
       String uri = request.getRequestURI();
       String uriWithParams = uri;
       if (request.getQueryString() != null) {
@@ -304,7 +329,7 @@ public class HdsMockServer
           validateLicense(request);
           String scanId = request.getRequestURI().substring(REPORT_PATH_PREFIX.length());
           throw new RequestException(HttpServletResponse.SC_BAD_REQUEST,
-              scanId.isEmpty() ? "scan id missing" : "bad scan id");
+              scanId.isEmpty() ? "scan id missing" : "bad scan id: " + scanId);
         }
         else if (uri.equals("/rest/component/details/firewall/ignorePatterns") && "GET".equals(request.getMethod())) {
           consume(baseRequest);

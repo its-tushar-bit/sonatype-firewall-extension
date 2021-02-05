@@ -72,13 +72,28 @@ public class ScanUploaderTest
     HdsClientAnalytics expectedAnalyticsData = HdsClientAnalytics.forOwner(app);
 
     ArgumentCaptor<HdsClientAnalytics> analyticsArg = ArgumentCaptor.forClass(HdsClientAnalytics.class);
-    when(
-        hdsClient.put(analyticsArg.capture(), eq(ScanReceipt.class), any(String.class), any(File.class),
-            anyMap(), any(String[].class))).thenReturn(receipt);
+    when(hdsClient.put(analyticsArg.capture(), eq(ScanReceipt.class), eq(null), any(String.class),
+        any(File.class), anyMap(), any(String[].class))).thenReturn(receipt);
 
-    scanUploader.upload(tempDir.newFile(), app, null);
+    scanUploader.upload(tempDir.newFile(), app, null, null);
     HdsClientAnalytics analytics = analyticsArg.getValue();
     assertThat(analytics).isEqualTo(expectedAnalyticsData);
+  }
+
+  @Test
+  public void testUpload_SendClientUserAgentToHds() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId("scanId");
+    String testClientUserAgent = "client_user_agent";
+
+    ArgumentCaptor<String> clientUserAgentArgCaptor = ArgumentCaptor.forClass(String.class);
+    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), clientUserAgentArgCaptor.capture(),
+        any(String.class), any(File.class), anyMap(), any(String[].class))) //
+            .thenReturn(receipt);
+
+    scanUploader.upload(tempDir.newFile(), app, null, testClientUserAgent);
+    assertThat(clientUserAgentArgCaptor.getValue()).isEqualTo(testClientUserAgent);
   }
 
   @Test
@@ -87,15 +102,14 @@ public class ScanUploaderTest
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("scan id");
 
-    when(
-        hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class),
-            anyMap(), any(String[].class)))
-        .thenThrow(new BadGatewayException("oops"))
-        .thenReturn(receipt);
+    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class),
+        any(File.class), anyMap(), any(String[].class))) //
+            .thenThrow(new BadGatewayException("oops")) //
+            .thenReturn(receipt);
 
-    scanUploader.upload(tempDir.newFile(), app, Duration.ZERO, null);
+    scanUploader.upload(tempDir.newFile(), app, Duration.ZERO, null, null);
     verify(hdsClient, times(2))
-        .put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class),
+        .put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class), any(File.class),
             anyMap(), any(String[].class));
   }
 
@@ -105,15 +119,14 @@ public class ScanUploaderTest
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("scan id");
 
-    when(
-        hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class),
-            anyMap(), any(String[].class)))
-        .thenThrow(new BadGatewayException("oops"));
+    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class),
+        any(File.class), anyMap(), any(String[].class)))//
+            .thenThrow(new BadGatewayException("oops"));
 
-    assertThatThrownBy(() -> scanUploader.upload(tempDir.newFile(), app, Duration.ZERO, null))
+    assertThatThrownBy(() -> scanUploader.upload(tempDir.newFile(), app, Duration.ZERO, null, null))
         .isInstanceOf(BadGatewayException.class);
     verify(hdsClient, times(ScanUploader.BAD_GATEWAY_ATTEMPT_LIMIT))
-        .put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class),
+        .put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class), any(File.class),
             anyMap(), any(String[].class));
   }
 
@@ -126,14 +139,14 @@ public class ScanUploaderTest
     when(insightConfig.getMatcherConfiguration()).thenReturn(matcherConfigs);
     ArgumentCaptor<Map<String, String>> metadataArgs = ArgumentCaptor.forClass(Map.class);
 
-    when(
-        hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class),
-            metadataArgs.capture(), any(String[].class))).thenReturn(receipt);
+    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class),
+        any(File.class), metadataArgs.capture(), any(String[].class))) //
+            .thenReturn(receipt);
 
-    scanUploader.upload(tempDir.newFile(), app, null);
+    scanUploader.upload(tempDir.newFile(), app, null, null);
 
     verify(hdsClient, times(1))
-        .put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class),
+        .put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class), any(File.class),
             eq(matcherConfigs), any(String[].class));
   }
 }

@@ -18,6 +18,8 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.hds.DefaultHdsClient;
+import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -51,22 +53,9 @@ public class ApplicationEvaluationResourceTest
   }
 
   @Test
-  public void testEvaluateWithPolling() throws Exception {
+  public void testEvaluateWithPollingAndPollEvaluationResult() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
-
-    // evaluate policy
-    HttpResponse response =
-        evaluateWithPollingRequest(IntegrationType.CLI, app.getPublicId(), BuildStageType.ID).post();
-    assertResponseStatus(200, response);
-
-    PolicyEvaluationReceipt receipt = response.getBody(PolicyEvaluationReceipt.class);
-    assertThat(receipt).isNotNull();
-    assertThat(receipt.getStatusId()).isNotNull();
-  }
-
-  @Test
-  public void testPollEvaluationResult() throws Exception {
-    Application app = tempEntity.newApplicationWithParent();
+    String testClientUserAgent = "testClientUserAgent";
 
     Policy policy = tempEntity.newPolicy(app);
     policy.setAction(BuildStageType.ID, Action.ID_FAIL);
@@ -81,7 +70,9 @@ public class ApplicationEvaluationResourceTest
 
     // evaluate policy
     HttpResponse response =
-        evaluateWithPollingRequest(IntegrationType.CLI, app.getPublicId(), BuildStageType.ID).post();
+        evaluateWithPollingRequest(IntegrationType.CLI, app.getPublicId(), BuildStageType.ID) //
+            .header(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
+            .post();
     assertResponseStatus(200, response);
 
     PolicyEvaluationReceipt receipt = response.getBody(PolicyEvaluationReceipt.class);
@@ -112,6 +103,9 @@ public class ApplicationEvaluationResourceTest
     PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(app.getId(), scanId);
     assertThat(policyEvaluation.isReevaluation()).isFalse();
     assertThat(policyEvaluation.isForObsoleteScan()).isFalse();
+
+    assertThat(getHdsServer().getCapturedRequestHttpHeaders(ScanUploader.HDS_PATH)
+        .get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
   }
 
   private PolicyEvaluationPollingResult getPolicyEvaluationPollingResult(String applicationPublicId, String statusId)

@@ -139,14 +139,14 @@ public class DefaultHdsClientTest
   @Test
   public void testPut_ClientUserAgentOnRequests() throws Exception {
     String testPath = "/rest/test";
+    String testClientUserAgent = "client_user_agent";
 
     Map<String, String> headers = setHttpHeaderCaptorRequestHandler();
 
-    // Method does not pass an original request, hence the null header.
-    client.put(null, InputStream.class, testPath,
+    client.put(null, InputStream.class, testClientUserAgent, testPath,
         new File(getClass().getResource("/config-test.yml").toURI()), Collections.emptyMap(),
         new String[] {});
-    assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isNull();
+    assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
   }
 
   @Test
@@ -238,7 +238,7 @@ public class DefaultHdsClientTest
     Map<String, String> headers = setHttpHeaderCaptorRequestHandler();
     String testPath = "/rest/test";
 
-    client.put(null, InputStream.class, testPath,
+    client.put(null, InputStream.class, "client_user_agent", testPath,
         new File(getClass().getResource("/config-test.yml").toURI()), Collections.emptyMap(),
         new String[] {});
     assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(expectedUserAgent);
@@ -472,7 +472,7 @@ public class DefaultHdsClientTest
     assertThat(headers).containsEntry(DefaultHdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString())
         .containsEntry(DefaultHdsClient.OWNER_ID_HEADER, analytics.getOwnerId());
 
-    client.put(analytics, String.class, testPath, tempDir.newFile(), Collections.emptyMap(), new String[]{});
+    client.put(analytics, String.class, null, testPath, tempDir.newFile(), Collections.emptyMap(), new String[]{});
     assertThat(headers).containsEntry(DefaultHdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString())
         .containsEntry(DefaultHdsClient.OWNER_ID_HEADER, analytics.getOwnerId());
 
@@ -681,7 +681,7 @@ public class DefaultHdsClientTest
     client.post(testPath, MultipartEntityBuilder.create().build(), "test_client_user_agent");
     assertThat(headers).containsEntry(DefaultHdsClient.TELEMETRY_ID_HEADER, telemetryId.getId());
 
-    client.put(null, String.class, testPath, tempDir.newFile(), Collections.emptyMap(), new String[] {});
+    client.put(null, String.class, null, testPath, tempDir.newFile(), Collections.emptyMap(), new String[]{});
     assertThat(headers).containsEntry(DefaultHdsClient.TELEMETRY_ID_HEADER, telemetryId.getId());
   }
 
@@ -742,13 +742,13 @@ public class DefaultHdsClientTest
     Map<String, String> testQueryParams = new HashMap<>();
     testQueryParams.put(queryParam, queryParamValue);
 
-    client.put(null, String.class, testPath, tempDir.newFile(), null);
+    client.put(null, String.class, "client_user_agent", testPath, tempDir.newFile(), null);
     assertThat(queryString[0]).isNull();
 
-    client.put(null, String.class, testPath, tempDir.newFile(), testQueryParams);
+    client.put(null, String.class, "client_user_agent", testPath, tempDir.newFile(), testQueryParams);
     assertThat(queryString[0]).contains(queryParam + "=" + queryParamValue);
 
-    client.put(null, String.class, testPath, tempDir.newFile(), Collections.emptyMap());
+    client.put(null, String.class, "client_user_agent", testPath, tempDir.newFile(), Collections.emptyMap());
     assertThat(queryString[0]).isNull();
   }
 }

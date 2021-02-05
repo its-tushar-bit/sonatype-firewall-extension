@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.hds;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.http.HttpEntity;
@@ -64,6 +65,12 @@ public interface HdsClient
   /**
    * @since 1.8
    */
-  <T> T put(HdsClientAnalytics analytics, Class<T> clazz, String path, File uploadFile,
-            Map<String, String> queryParams, String... uriParams) throws IOException;
+  <T> T put(
+      HdsClientAnalytics analytics,
+      Class<T> clazz,
+      String clientUserAgent,
+      String path,
+      File uploadFile,
+      Map<String, String> queryParams,
+      String... uriParams) throws IOException;
 }

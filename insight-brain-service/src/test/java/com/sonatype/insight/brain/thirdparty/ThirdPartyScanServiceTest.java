@@ -21,7 +21,9 @@ import com.sonatype.insight.brain.service.InsightWork;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -61,14 +63,18 @@ public class ThirdPartyScanServiceTest
     scanReceipt.setScanId(scanId);
     when(thirdPartyScanResultsProcessorMock.filterAndSaveData(eq(scanFile), any(File.class), any(File.class), eq(null)))
         .thenReturn(scanRequestId);
-    when(scanUploader.upload(any(File.class), eq(app), eq(stage.getStageTypeId()))).thenReturn(scanReceipt);
+    ArgumentCaptor<String> clientUserAgentArgCaptor = ArgumentCaptor.forClass(String.class);
+    String testClientUserAgent = "client_user_agent";
+    when(scanUploader.upload(any(File.class), eq(app), eq(stage.getStageTypeId()), clientUserAgentArgCaptor.capture()))
+        .thenReturn(scanReceipt);
 
-    service.filterAndUpload(scanFile, app, stage.getStageTypeId(), null);
+    service.filterAndUpload(scanFile, app, stage.getStageTypeId(), testClientUserAgent, null);
 
     verify(thirdPartyScanResultsProcessorMock, times(1))
         .filterAndSaveData(eq(scanFile), any(File.class), any(File.class), eq(null));
     verify(thirdPartyScanResultsProcessorMock, times(1))
         .postHandle(scanId, scanRequestId);
+    assertThat(clientUserAgentArgCaptor.getValue()).isEqualTo(testClientUserAgent);
   }
 
   @Test
@@ -82,7 +88,7 @@ public class ThirdPartyScanServiceTest
         .thenThrow(new IllegalArgumentException("error"));
 
     assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
-      service.filterAndUpload(scanFile, app, stage.getStageTypeId(), null);
+      service.filterAndUpload(scanFile, app, stage.getStageTypeId(), null, null);
     });
   }
 

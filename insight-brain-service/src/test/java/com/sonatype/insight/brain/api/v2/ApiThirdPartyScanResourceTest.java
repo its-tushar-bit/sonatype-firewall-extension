@@ -21,6 +21,8 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiEvaluationResultCounterDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
+import com.sonatype.insight.brain.hds.DefaultHdsClient;
+import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
@@ -51,7 +53,10 @@ public class ApiThirdPartyScanResourceTest
     mockScanReceipt(scanReceipt);
 
     String bom = getBomFile("valid_bom.xml");
-    HttpResponse response = scanBomRequest(app.getId(), "clair", Stage.ID_BUILD, bom).post();
+    String testClientUserAgent = "testClientUserAgent";
+    HttpResponse response = scanBomRequest(app.getId(), "clair", Stage.ID_BUILD, bom) //
+        .header(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
+        .post();
     assertResponseStatus(202, response);
 
     ApiThirdPartyScanTicketDTO ticketDTO = response.getBody(ApiThirdPartyScanTicketDTO.class);
@@ -74,6 +79,9 @@ public class ApiThirdPartyScanResourceTest
     assertEvaluationResultCounter(resultDTO.componentsAffected);
     assertEvaluationResultCounter(resultDTO.openPolicyViolations);
     assertThat(resultDTO.grandfatheredPolicyViolations).isEqualTo(0);
+
+    assertThat(getHdsServer().getCapturedRequestHttpHeaders(ScanUploader.HDS_PATH)
+        .get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
   }
 
   private ApiThirdPartyScanResultDTO getApiThirdPartyTicketResultDTO(String statusUrl) throws Exception {

@@ -82,7 +82,8 @@ public class ScanServiceTest
     app = tempEntity.newApplication(tempEntity.newOrganization().getId());
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("scan-id");
-    lenient().when(scanUploader.upload((File) any(), any(Application.class), anyString())).thenReturn(receipt);
+    lenient().when(scanUploader.upload((File) any(), any(Application.class), anyString(), eq(null)))
+        .thenReturn(receipt);
     lenient().when(reportDownloader.downloadReport(eq(receipt.getScanId()), (File) any(), anyInt(), anyInt())).then(
         new Answer<Boolean>()
         {

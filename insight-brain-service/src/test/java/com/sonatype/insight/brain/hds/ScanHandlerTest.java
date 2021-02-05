@@ -67,8 +67,8 @@ public class ScanHandlerTest
     String scanFileContent = "test scan file content";
     HttpServletRequest servletRequest = mock(HttpServletRequest.class);
     when(servletRequest.getInputStream()).thenReturn(new ServletInputStreamImpl(scanFileContent));
-    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class),
-        anyMap()))
+    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class),
+        any(File.class), anyMap())) //
         .thenReturn(scanReceipt);
 
     scanReceipt = scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.SONATYPE);
@@ -87,12 +87,34 @@ public class ScanHandlerTest
     String scanFileContent = "test scan file content";
     HttpServletRequest servletRequest = mock(HttpServletRequest.class);
     when(servletRequest.getInputStream()).thenReturn(new ServletInputStreamImpl(scanFileContent));
-    when(thirdPartyScanService.filterAndUpload(any(File.class), any(Application.class), eq(null), eq(null)))
+    when(thirdPartyScanService.filterAndUpload(any(File.class), any(Application.class), eq(null), eq(null), eq(null)))
         .thenReturn(scanReceipt);
     scanReceipt = scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.SONATYPE_THIRD_PARTY);
     assertThat(scanReceipt.getScanId()).isEqualTo(scanId);
     verify(thirdPartyScanService, times(1))
-        .filterAndUpload(any(File.class), any(Application.class), eq(null), eq(null));
+        .filterAndUpload(any(File.class), any(Application.class), eq(null), eq(null), eq(null));
+  }
+
+  @Test
+  public void testHandle_SendClientUserAgentToHds_SonatypeThirdPartyScanType() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId("test-scan-Id");
+    String testClientUserAgent = "client_user_agent";
+
+    String scanFileContent = "test scan file content";
+    HttpServletRequest servletRequest = mock(HttpServletRequest.class);
+    when(servletRequest.getInputStream()).thenReturn(new ServletInputStreamImpl(scanFileContent));
+    when(servletRequest.getHeader(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).thenReturn(testClientUserAgent);
+
+    ArgumentCaptor<String> clientUserAgentArgCaptor = ArgumentCaptor.forClass(String.class);
+    when(thirdPartyScanService.filterAndUpload(any(File.class), any(Application.class), eq(null),
+        clientUserAgentArgCaptor.capture(), eq(null))) //
+            .thenReturn(scanReceipt);
+
+    scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.SONATYPE_THIRD_PARTY);
+
+    assertThat(clientUserAgentArgCaptor.getValue()).isEqualTo(testClientUserAgent);
   }
 
   @Test
@@ -109,13 +131,37 @@ public class ScanHandlerTest
     when(servletRequest.getInputStream()).thenReturn(stream);
 
     ArgumentCaptor<HdsClientAnalytics> analyticsArg = ArgumentCaptor.forClass(HdsClientAnalytics.class);
-    when(hdsClient.put(analyticsArg.capture(), eq(ScanReceipt.class), any(String.class), any(File.class), anyMap()))
+    when(hdsClient.put(analyticsArg.capture(), eq(ScanReceipt.class), eq(null), any(String.class), any(File.class),
+        anyMap())) //
         .thenReturn(scanReceipt);
 
     scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.SONATYPE);
 
     HdsClientAnalytics analytics = analyticsArg.getValue();
     assertThat(analytics).isEqualTo(expectedAnalyticsData);
+  }
+
+  @Test
+  public void testHandle_SendClientUserAgentToHds_SonatypeScanType() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId("test-scan-Id");
+    String testClientUserAgent = "client_user_agent";
+
+    ServletInputStream stream = mock(ServletInputStream.class);
+    when(stream.read(any(byte[].class))).thenReturn(-1);
+    HttpServletRequest servletRequest = mock(HttpServletRequest.class);
+    when(servletRequest.getInputStream()).thenReturn(stream);
+    when(servletRequest.getHeader(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).thenReturn(testClientUserAgent);
+
+    ArgumentCaptor<String> clientUserAgentArgCaptor = ArgumentCaptor.forClass(String.class);
+    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), clientUserAgentArgCaptor.capture(),
+        any(String.class), any(File.class), anyMap(), any(String[].class))) //
+            .thenReturn(scanReceipt);
+
+    scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.SONATYPE);
+
+    assertThat(clientUserAgentArgCaptor.getValue()).isEqualTo(testClientUserAgent);
   }
 
   @Test
@@ -134,8 +180,8 @@ public class ScanHandlerTest
     String scanFileContent = "test scan file content";
     HttpServletRequest servletRequest = mock(HttpServletRequest.class);
     when(servletRequest.getInputStream()).thenReturn(new ServletInputStreamImpl(scanFileContent));
-    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class), any(File.class),
-        anyMap()))
+    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class),
+        any(File.class), anyMap())) //
         .thenThrow(new RuntimeException("test"));
 
     assertThatExceptionOfType(RuntimeException.class)

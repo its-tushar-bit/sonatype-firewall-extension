@@ -393,10 +393,11 @@ public class PolicyMonitor
   {
     ScanReceipt scanReceipt;
     if (hasThirdPartyContent) {
-      scanReceipt = thirdPartyScanService.filterAndUpload(tempScanFile, app, stageTypeId, null);
+      scanReceipt =
+          thirdPartyScanService.filterAndUpload(tempScanFile, app, stageTypeId, null /* clientUserAgent */, null);
     }
     else {
-      scanReceipt = uploader.upload(tempScanFile, app, stageTypeId);
+      scanReceipt = uploader.upload(tempScanFile, app, stageTypeId, null /* clientUserAgent */);
     }
     scanReceipt.waitForReport();
     String scanId = scanReceipt.getScanId();

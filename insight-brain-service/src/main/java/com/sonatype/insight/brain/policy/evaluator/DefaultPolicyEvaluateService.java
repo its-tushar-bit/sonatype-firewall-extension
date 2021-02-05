@@ -225,7 +225,7 @@ public class DefaultPolicyEvaluateService
       PolicyEvaluationTriggerType policyEvaluationTriggerType,
       File tempScanFile,
       String thirdPartyScanType,
-      String userAgent)
+      String clientUserAgent)
   {
     // to avoid any race condition when the following task attempts to update
     PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
@@ -235,10 +235,11 @@ public class DefaultPolicyEvaluateService
         "Submitting policy evaluation task for app public id {}, clientScanType {}, stageTypeId {}. "
             + "The status ID of the operation is {}.",
         app.getPublicId(), clientScanType, stage.getStageTypeId(), statusId);
+    TelemetryData thirdPartyTelemetryData =
+        buildThirdPartyScanTelemetryData(app.getPublicId(), stage, thirdPartyScanType, clientUserAgent);
     AuditData.get().continueAsync(
         new Task(app, clientScanType, statusId, stage, policyEvaluationTriggerType, tempScanFile,
-            buildThirdPartyScanTelemetryData(app.getPublicId(), stage, thirdPartyScanType, userAgent),
-            persistedPolicyEvaluationPollingResult),
+            thirdPartyTelemetryData, persistedPolicyEvaluationPollingResult, clientUserAgent),
         executor::submit);
   }
 
@@ -306,6 +307,8 @@ public class DefaultPolicyEvaluateService
 
     private final PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult;
 
+    private final String clientUserAgent;
+
     Task(
         final Application app,
         final ClientScanType clientScanType,
@@ -314,7 +317,8 @@ public class DefaultPolicyEvaluateService
         final PolicyEvaluationTriggerType policyEvaluationTriggerType,
         final File tempScanFile,
         final TelemetryData telemetryData,
-        final PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult)
+        final PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult,
+        final String clientUserAgent)
     {
       this.app = app;
       this.clientScanType = clientScanType;
@@ -324,6 +328,7 @@ public class DefaultPolicyEvaluateService
       this.tempScanFile = tempScanFile;
       this.telemetryData = telemetryData;
       this.persistedPolicyEvaluationPollingResult = persistedPolicyEvaluationPollingResult;
+      this.clientUserAgent = clientUserAgent;
     }
 
     @Override
@@ -339,7 +344,7 @@ public class DefaultPolicyEvaluateService
 
       try {
         ScanReceipt scanReceipt = scanHandler.handle(tempScanFile, app, clientScanType, telemetryData,
-            stage.getStageTypeId());
+            stage.getStageTypeId(), clientUserAgent);
         scanId = scanReceipt.getScanId();
 
         policyEvaluationPollingResult.setScanReceipt(scanReceipt);

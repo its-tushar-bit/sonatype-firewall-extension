@@ -44,13 +44,18 @@ public class ThirdPartyScanService
     this.work = work;
   }
 
-  public ScanReceipt filterAndUpload(File scanFile, Application app, String stageTypeId, TelemetryData telemetryData)
+  public ScanReceipt filterAndUpload(
+      File scanFile,
+      Application app,
+      String stageTypeId,
+      String clientUserAgent,
+      TelemetryData telemetryData)
       throws IOException
   {
     File scanDir = work.getScanDir(app.getId());
     File tempScanFile = FileUtils.createTempFile("tmp-", ".xml.gz", scanDir);
     String scanRequestId = scanResultsProcessor.filterAndSaveData(scanFile, tempScanFile, scanDir, telemetryData);
-    ScanReceipt scanReceipt = uploader.upload(tempScanFile, app, stageTypeId);
+    ScanReceipt scanReceipt = uploader.upload(tempScanFile, app, stageTypeId, clientUserAgent);
     scanResultsProcessor.postHandle(scanReceipt.getScanId(), scanRequestId);
     try {
       Files.delete(tempScanFile.toPath());

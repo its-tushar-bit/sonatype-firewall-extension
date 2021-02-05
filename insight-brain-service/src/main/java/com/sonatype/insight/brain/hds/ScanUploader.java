@@ -33,7 +33,7 @@ public class ScanUploader
 {
   private static final Logger log = LoggerFactory.getLogger(ScanUploader.class);
 
-  private static final String HDS_PATH = "rest/application/analysis";
+  public static final String HDS_PATH = "rest/application/analysis";
 
   public static final int BAD_GATEWAY_ATTEMPT_LIMIT = 5;
 
@@ -54,13 +54,18 @@ public class ScanUploader
    *
    * @since 1.8
    */
-  public ScanReceipt upload(File scanFile, Application application, String stageTypeId)
+  public ScanReceipt upload(File scanFile, Application application, String stageTypeId, String clientUserAgent)
       throws IOException
   {
-    return upload(scanFile, application, BAD_GATEWAY_RETRY_WAIT, stageTypeId);
+    return upload(scanFile, application, BAD_GATEWAY_RETRY_WAIT, stageTypeId, clientUserAgent);
   }
 
-  ScanReceipt upload(File scanFile, Application application, Duration retryWait, String stageTypeId)
+  ScanReceipt upload(
+      File scanFile,
+      Application application,
+      Duration retryWait,
+      String stageTypeId,
+      String clientUserAgent)
       throws IOException
   {
     HdsClientAnalytics analytics = HdsClientAnalytics.forOwner(application);
@@ -83,7 +88,7 @@ public class ScanUploader
           uploadMetadata.putAll(matcherConfiguration);
         }
 
-        receipt = client.put(analytics, ScanReceipt.class, HDS_PATH, scanFile, uploadMetadata);
+        receipt = client.put(analytics, ScanReceipt.class, clientUserAgent, HDS_PATH, scanFile, uploadMetadata);
       }
       catch (BadGatewayException e) {
         if (++retryCount >= BAD_GATEWAY_ATTEMPT_LIMIT) {

@@ -112,7 +112,7 @@ public class ApiPromoteScanServiceV2Test
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(NEW_SCAN_ID);
     String toStageId = Stage.ID_OPERATE;
-    when(scanUploader.upload(any(File.class), any(Application.class), anyString())).thenReturn(scanReceipt);
+    when(scanUploader.upload(any(File.class), any(Application.class), anyString(), eq(null))).thenReturn(scanReceipt);
     ScanPolicyEvaluatorResults evaluatorResults = new ScanPolicyEvaluatorResults();
     evaluatorResults.evaluation = tempEntity.newPolicyEvaluation(app.getId(), toStageId, NEW_SCAN_ID);
     when(scanPolicyEvaluator.evaluate(any(Application.class), eq(NEW_SCAN_ID), any(Stage.class),
@@ -191,7 +191,7 @@ public class ApiPromoteScanServiceV2Test
     lenient().doAnswer((Answer<ScanReceipt>) invocationOnMock -> {
       countDownLatch.await(1, TimeUnit.MINUTES);
       return null;
-    }).when(scanUploader).upload(any(File.class), any(Application.class), anyString());
+    }).when(scanUploader).upload(any(File.class), any(Application.class), anyString(), eq(null));
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
     ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 = service
         .promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE), null /* userAgent */);
@@ -213,7 +213,7 @@ public class ApiPromoteScanServiceV2Test
   @Test
   public void testGetApplicationEvaluationStatus_Failure() throws Exception {
     createScanFile();
-    when(scanUploader.upload(any(File.class), any(Application.class), anyString()))
+    when(scanUploader.upload(any(File.class), any(Application.class), anyString(), eq(null)))
         .thenThrow(new RuntimeException("ruh-roh"));
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
     ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 = service
@@ -244,7 +244,7 @@ public class ApiPromoteScanServiceV2Test
     createScanFile();
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(NEW_SCAN_ID);
-    when(scanUploader.upload(any(File.class), any(Application.class), anyString())).thenReturn(scanReceipt);
+    when(scanUploader.upload(any(File.class), any(Application.class), anyString(), eq(null))).thenReturn(scanReceipt);
     String toStageId = Stage.ID_OPERATE;
     ScanPolicyEvaluatorResults evaluatorResults = new ScanPolicyEvaluatorResults();
     evaluatorResults.evaluation = tempEntity.newPolicyEvaluation(app.getId(), toStageId, NEW_SCAN_ID);

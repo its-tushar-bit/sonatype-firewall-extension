@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2.dto.legal;
 
 import java.util.List;
+import java.util.Objects;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
 
@@ -22,24 +23,30 @@ public class ApiLicenseLegalDataDTO
 
   public List<ApiLicenseThreatDTOV2> effectiveLicenseThreats;
 
-  public List<String> copyrights;
+  public List<ApiLicenseLegalCopyrightDTO> copyrights;
 
   public List<ApiLicenseLegalFileDTO> licenseFiles;
 
   public List<ApiLicenseLegalFileDTO> noticeFiles;
+
+  /**
+   * Persisted {@link ComponentCopyrightDTO} identifier associated with this component, if any.
+   */
+  public String componentCopyrightId;
 
   public ApiLicenseLegalDataDTO() {
     // for jackson
   }
 
   public ApiLicenseLegalDataDTO(
-      List<String> declaredLicenses,
-      List<String> observedLicenses,
-      List<String> effectiveLicenses,
-      List<ApiLicenseThreatDTOV2> effectiveLicenseThreats,
-      List<String> copyrights,
-      List<ApiLicenseLegalFileDTO> licenseFiles,
-      List<ApiLicenseLegalFileDTO> noticeFiles)
+      final List<String> declaredLicenses,
+      final List<String> observedLicenses,
+      final List<String> effectiveLicenses,
+      final List<ApiLicenseThreatDTOV2> effectiveLicenseThreats,
+      final List<ApiLicenseLegalCopyrightDTO> copyrights,
+      final List<ApiLicenseLegalFileDTO> licenseFiles,
+      final List<ApiLicenseLegalFileDTO> noticeFiles,
+      final String componentCopyrightId)
   {
     this.declaredLicenses = declaredLicenses;
     this.observedLicenses = observedLicenses;
@@ -48,5 +55,32 @@ public class ApiLicenseLegalDataDTO
     this.copyrights = copyrights;
     this.licenseFiles = licenseFiles;
     this.noticeFiles = noticeFiles;
+    this.componentCopyrightId = componentCopyrightId;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ApiLicenseLegalDataDTO that = (ApiLicenseLegalDataDTO) o;
+    return Objects.equals(declaredLicenses, that.declaredLicenses) &&
+        Objects.equals(observedLicenses, that.observedLicenses) &&
+        Objects.equals(effectiveLicenses, that.effectiveLicenses) &&
+        Objects.equals(effectiveLicenseThreats, that.effectiveLicenseThreats) &&
+        Objects.equals(copyrights, that.copyrights) &&
+        Objects.equals(licenseFiles, that.licenseFiles) &&
+        Objects.equals(noticeFiles, that.noticeFiles) &&
+        Objects.equals(componentCopyrightId, that.componentCopyrightId);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects
+        .hash(declaredLicenses, observedLicenses, effectiveLicenses, effectiveLicenseThreats, copyrights, licenseFiles,
+            noticeFiles, componentCopyrightId);
   }
 }

@@ -90,11 +90,12 @@ public class ApiLicenseLegalHdsServiceTest
     componentLegalComment1.setHash("hash1");
     LegalCommentDTO legalComment1 = new LegalCommentDTO();
     legalComment1.setContent("Content 1");
-    legalComment1.setCopyrights(Sets.newHashSet(new LegalCopyrightDTO("Content 1", "Author 1", "Year1"),
-        new LegalCopyrightDTO("Content 1.1", "Author 1.1", "Year1.1")));
+    legalComment1.setCopyrights(Sets.newHashSet(new LegalCopyrightDTO("Content 1", "content1Hash", "Author 1", "Year1"),
+        new LegalCopyrightDTO("Content 1.1", "content11Hash", "Author 1.1", "Year1.1")));
     LegalCommentDTO legalComment2 = new LegalCommentDTO();
     legalComment2.setContent("Content 2");
-    legalComment2.setCopyrights(Sets.newHashSet(new LegalCopyrightDTO("Content 2", "Author 2", "Year2")));
+    legalComment2
+        .setCopyrights(Sets.newHashSet(new LegalCopyrightDTO("Content 2", "content2Hash", "Author 2", "Year2")));
     componentLegalComment1.setComments(Sets.newHashSet(legalComment1, legalComment2));
 
     ComponentLegalCommentDTO componentLegalComment2 = new ComponentLegalCommentDTO();
@@ -102,7 +103,8 @@ public class ApiLicenseLegalHdsServiceTest
     componentLegalComment2.setHash("hash2");
     LegalCommentDTO legalComment3 = new LegalCommentDTO();
     legalComment3.setContent("Content 3");
-    legalComment3.setCopyrights(Sets.newHashSet(new LegalCopyrightDTO("Content 3", "Author 3", "Year3")));
+    legalComment3
+        .setCopyrights(Sets.newHashSet(new LegalCopyrightDTO("Content 3", "content3Hash", "Author 3", "Year3")));
     componentLegalComment2.setComments(Sets.newHashSet(legalComment3));
 
     Set<ComponentLegalCommentDTO> expectedLegalComments =
@@ -141,6 +143,7 @@ public class ApiLicenseLegalHdsServiceTest
     componentLegalFile1.setHash("hash1");
     LegalFileDTO legalFile1 = new LegalFileDTO();
     legalFile1.setContent("Content 1");
+    legalFile1.setContentHash("contentHash1");
     legalFile1.setRelPath("path/1");
     legalFile1.setType("Type 1");
     componentLegalFile1.setLegalFiles(Sets.newHashSet(legalFile1));
@@ -150,6 +153,7 @@ public class ApiLicenseLegalHdsServiceTest
     componentLegalFile2.setHash("hash2");
     LegalFileDTO legalFile2 = new LegalFileDTO();
     legalFile2.setContent("Content 2");
+    legalFile2.setContentHash("contentHash2");
     legalFile2.setRelPath("path/2");
     legalFile2.setType("Type 2");
     componentLegalFile2.setLegalFiles(Sets.newHashSet(legalFile2));

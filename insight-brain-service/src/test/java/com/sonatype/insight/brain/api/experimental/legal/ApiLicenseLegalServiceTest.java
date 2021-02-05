@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -46,6 +47,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationRep
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDashboardDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentReportDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalCopyrightDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalMetadataDTO;
@@ -747,31 +749,33 @@ public class ApiLicenseLegalServiceTest
 
   @Test
   public void testGetLicenseLegalComponentReport_WithOverrides() throws Exception {
-    Owner owner = tempEntity.newApplicationWithParent();
-    ComponentIdentifier c = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    Application application = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier =
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "componentIdentifier", "e");
     // Set the HDS data
     doReturn(createLicenseMetadataDTOs(Sets.newHashSet("MIT")))
         .when(mockApiLicenseLegalHdsService).getLicenseMetadata(any());
-    ComponentLegalCommentDTO componentLegalCommentDTO = createComponentLegalCommentDTO(c);
+    ComponentLegalCommentDTO componentLegalCommentDTO = createComponentLegalCommentDTO(componentIdentifier);
     Set<LegalCopyrightDTO> uniqueCopyrights = componentLegalCommentDTO.getUniqueCopyrights();
-    ComponentLegalFileDTO componentLegalFileDTO = createComponentLegalFileDTO(c);
+    ComponentLegalFileDTO componentLegalFileDTO = createComponentLegalFileDTO(componentIdentifier);
     doReturn(new LinkedHashSet<>(Collections.singletonList(componentLegalCommentDTO)))
         .when(mockApiLicenseLegalHdsService).getComponentLegalComments(any());
     doReturn(new LinkedHashSet<>(Collections.singletonList(componentLegalFileDTO)))
         .when(mockApiLicenseLegalHdsService).getComponentLegalFiles(any());
     NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
-    namedComponentDetails.setComponentIdentifier(c);
+    namedComponentDetails.setComponentIdentifier(componentIdentifier);
     doReturn(namedComponentDetails)
         .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport = apiLicenseLegalService
-        .getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), c, null, null, null, null, null);
+        .getLicenseLegalComponentReport(application.getType(), application.getPublicId(), componentIdentifier, null,
+            null, null, null, null);
 
     // Without overrides, we get the HDS data
     assertThat(licenseLegalComponentReport.component.licenseLegalData.copyrights)
         .containsExactlyInAnyOrder(uniqueCopyrights.stream()
-            .map(LegalCopyrightDTO::getContent)
-            .toArray(String[]::new));
+            .map(legalCopyrightDTO -> new ApiLicenseLegalCopyrightDTO(null, legalCopyrightDTO.getContent(), null))
+            .toArray(ApiLicenseLegalCopyrightDTO[]::new));
     assertThat(licenseLegalComponentReport.component.licenseLegalData.noticeFiles).extracting(f -> f.content)
         .containsExactlyInAnyOrder(componentLegalFileDTO.getLegalFiles().stream()
             .filter(l -> l.getType().equals(LegalFileType.NOTICE.name()))
@@ -784,25 +788,84 @@ public class ApiLicenseLegalServiceTest
             .toArray(String[]::new));
 
     // Set the overrides
-    ComponentCopyright componentCopyright = tempEntity.newComponentCopyright(c, owner.getId(), "legalContentHash");
+    ComponentCopyright componentCopyright =
+        tempEntity.newComponentCopyright(componentIdentifier, application.getId(), "legalContentHash");
     CopyrightOverride copyrightOverride = tempEntity.newCopyrightOverride("originalHash1", "hash1", "overrideContent",
         ComponentLegalPartStatus.ENABLED, componentCopyright.getId());
-    ComponentLegalFile componentLegalFile = tempEntity.newComponentLegalFile(c, owner.getId(), "legalContentHash");
+    ComponentLegalFile componentLegalFile =
+        tempEntity.newComponentLegalFile(componentIdentifier, application.getId(), "legalContentHash");
     LegalFileOverride noticeOverride = tempEntity.newLegalFileOverride(LegalFileType.NOTICE, "originalHash2", "hash2",
         "overrideContent", ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
     LegalFileOverride licenseOverride = tempEntity.newLegalFileOverride(LegalFileType.LICENSE, "originalHash3", "hash3",
         "overrideContent", ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
 
     licenseLegalComponentReport = apiLicenseLegalService
-        .getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), c, null, null, null, null, null);
+        .getLicenseLegalComponentReport(application.getType(), application.getPublicId(), componentIdentifier, null,
+            null, null, null, null);
 
     // With overrides, we get the overridden data
     assertThat(licenseLegalComponentReport.component.licenseLegalData.copyrights)
-        .containsExactly(copyrightOverride.getContent());
+        .containsExactly(new ApiLicenseLegalCopyrightDTO(
+            copyrightOverride.getId(),
+            copyrightOverride.getContent(),
+            copyrightOverride.getOriginalContentHash()));
+    assertThat(licenseLegalComponentReport.component.licenseLegalData.componentCopyrightId)
+        .isEqualTo(componentCopyright.getId());
     assertThat(licenseLegalComponentReport.component.licenseLegalData.noticeFiles).extracting(f -> f.content)
         .containsExactly(noticeOverride.getContent());
     assertThat(licenseLegalComponentReport.component.licenseLegalData.licenseFiles).extracting(f -> f.content)
         .containsExactly(licenseOverride.getContent());
+  }
+
+  @Test
+  public void testGetLicenseLegalApplicationReport_WithOverrides() {
+    Application application = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier
+        .createMavenCoordinates("org.springframework.boot", "spring-boot-actuator", "2.2.6.RELEASE", "", "jar");
+    // Set the HDS data
+    doReturn(createLicenseMetadataDTOs(Sets.newHashSet("MIT")))
+        .when(mockApiLicenseLegalHdsService).getLicenseMetadata(any());
+    ComponentLegalCommentDTO componentLegalCommentDTO = createComponentLegalCommentDTO(componentIdentifier);
+    ComponentLegalFileDTO componentLegalFileDTO = createComponentLegalFileDTO(componentIdentifier);
+    doReturn(new LinkedHashSet<>(Collections.singletonList(componentLegalCommentDTO)))
+        .when(mockApiLicenseLegalHdsService).getComponentLegalComments(any());
+    doReturn(new LinkedHashSet<>(Collections.singletonList(componentLegalFileDTO)))
+        .when(mockApiLicenseLegalHdsService).getComponentLegalFiles(any());
+
+    // Set the overrides
+    ComponentCopyright componentCopyright =
+        tempEntity.newComponentCopyright(componentIdentifier, application.getId(), "legalContentHash");
+    CopyrightOverride copyrightOverride = tempEntity.newCopyrightOverride("originalHash1", "hash1", "overrideContent",
+        ComponentLegalPartStatus.ENABLED, componentCopyright.getId());
+    ComponentLegalFile componentLegalFile =
+        tempEntity.newComponentLegalFile(componentIdentifier, application.getId(), "legalContentHash");
+    LegalFileOverride noticeOverride = tempEntity.newLegalFileOverride(LegalFileType.NOTICE, "originalHash2", "hash2",
+        "overrideContent", ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
+    LegalFileOverride licenseOverride = tempEntity.newLegalFileOverride(LegalFileType.LICENSE, "originalHash3", "hash3",
+        "overrideContent", ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
+
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+    mockReport(policyEvaluation);
+
+    //Verify that the application report contains the overridden data
+    ApiLicenseLegalApplicationReportDTO apiLicenseLegalApplicationReportDTO =
+        apiLicenseLegalService.getLicenseLegalApplicationReport(application.getPublicId());
+    ApiLicenseLegalComponentDTO apiLicenseLegalComponentDTO =
+        apiLicenseLegalApplicationReportDTO.components.stream()
+            .filter(c -> c.componentIdentifier.toComponentIdentifier().equals(
+                componentIdentifier)).findFirst().get();
+    assertThat(apiLicenseLegalComponentDTO).isNotNull();
+    assertThat(apiLicenseLegalComponentDTO.licenseLegalData.componentCopyrightId).isEqualTo(componentCopyright.getId());
+    assertThat(apiLicenseLegalComponentDTO.licenseLegalData.copyrights).containsExactly(
+        new ApiLicenseLegalCopyrightDTO(copyrightOverride.getId(), copyrightOverride.getContent(),
+            copyrightOverride.getOriginalContentHash()));
+    assertThat(apiLicenseLegalComponentDTO.licenseLegalData.licenseFiles).containsExactly(
+        new ApiLicenseLegalFileDTO(licenseOverride.getId(), null, licenseOverride.getContent(),
+            licenseOverride.getOriginalContentHash()));
+    assertThat(apiLicenseLegalComponentDTO.licenseLegalData.noticeFiles).containsExactly(
+        new ApiLicenseLegalFileDTO(noticeOverride.getId(), null, noticeOverride.getContent(),
+            noticeOverride.getOriginalContentHash()));
   }
 
   @Test
@@ -965,7 +1028,7 @@ public class ApiLicenseLegalServiceTest
         .containsExactly(apiLicenseDataAdapterSpy.convertToDTOV2(component).effectiveLicenseThreats
             .toArray(new ApiLicenseThreatDTOV2[0]));
     assertThat(licenseLegalComponent.licenseLegalData.copyrights).hasSize(8)
-        .allMatch(copyright -> copyright.endsWith("content"));
+        .allMatch(copyright -> copyright.content.endsWith("content"));
     assertThat(licenseLegalComponent.licenseLegalData.licenseFiles).hasSize(4)
         .allMatch(licenseFile -> licenseFile.content.endsWith("contentLicense"));
     assertThat(licenseLegalComponent.licenseLegalData.noticeFiles).hasSize(4)
@@ -1140,18 +1203,25 @@ public class ApiLicenseLegalServiceTest
 
   private LegalFileDTO createLicenseLegalFileDTO() {
     LegalFileDTO licenseLegalFileDTO = createLegalFileDTO("LICENSE");
-    licenseLegalFileDTO.setContent(tempEntity.uuid() + " contentLicense");
+    final String uuid = tempEntity.uuid();
+    licenseLegalFileDTO.setRelPath(uuid + " relPath");
+    licenseLegalFileDTO.setContent(uuid + " contentLicense");
+    licenseLegalFileDTO.setContentHash(uuid);
     return licenseLegalFileDTO;
   }
 
   private LegalFileDTO createNoticeLegalFileDTO() {
     LegalFileDTO noticeLegalFileDTO = createLegalFileDTO("NOTICE");
-    noticeLegalFileDTO.setContent(tempEntity.uuid() + " contentNotice");
+    final String uuid = tempEntity.uuid();
+    noticeLegalFileDTO.setRelPath(uuid + " relPath");
+    noticeLegalFileDTO.setContent(uuid + " contentNotice");
+    noticeLegalFileDTO.setContentHash(uuid);
     return noticeLegalFileDTO;
   }
 
   private LegalFileDTO createLegalFileDTO(String type) {
     LegalFileDTO legalFileDTO = new LegalFileDTO();
+    legalFileDTO.setContentHash(tempEntity.uuid());
     legalFileDTO.setRelPath("relPath");
     legalFileDTO.setType(type);
     return legalFileDTO;
@@ -1245,13 +1315,17 @@ public class ApiLicenseLegalServiceTest
   {
     licenseLegalComponents.forEach(lrc -> assertThat(lrc.licenseLegalData.copyrights).containsExactly(
         componentLegalComments.stream()
-            .filter(clc -> LegalReportBuilder.removeClassifierAndExtension(clc.getComponentIdentifier())
+            .filter(clc -> LegalComponentIdentifierUtil.removeClassifierAndExtension(clc.getComponentIdentifier())
                 .equals(
-                    LegalReportBuilder.removeClassifierAndExtension(lrc.componentIdentifier.toComponentIdentifier())))
+                    LegalComponentIdentifierUtil
+                        .removeClassifierAndExtension(lrc.componentIdentifier.toComponentIdentifier())))
             .flatMap(clc -> clc.getUniqueCopyrights().stream())
-            .map(LegalCopyrightDTO::getContent)
-            .sorted()
-            .toArray(String[]::new)));
+            .map(legalCopyrightDTO ->
+                new ApiLicenseLegalCopyrightDTO(null,
+                    legalCopyrightDTO.getContent(),
+                    legalCopyrightDTO.getContentHash()))
+            .sorted(Comparator.comparing(lc -> lc.content))
+            .toArray(ApiLicenseLegalCopyrightDTO[]::new)));
   }
 
   private void assertComponentLegalFiles(
@@ -1261,21 +1335,27 @@ public class ApiLicenseLegalServiceTest
     licenseLegalComponents.forEach(lrc -> {
       assertThat(lrc.licenseLegalData.noticeFiles).usingRecursiveFieldByFieldElementComparator().containsExactly(
           componentLegalFiles.stream()
-              .filter(clf -> LegalReportBuilder.removeClassifierAndExtension(clf.getComponentIdentifier())
+              .filter(clf -> LegalComponentIdentifierUtil.removeClassifierAndExtension(clf.getComponentIdentifier())
                   .equals(
-                      LegalReportBuilder.removeClassifierAndExtension(lrc.componentIdentifier.toComponentIdentifier())))
+                      LegalComponentIdentifierUtil
+                          .removeClassifierAndExtension(lrc.componentIdentifier.toComponentIdentifier())))
               .flatMap(clf -> clf.getLegalFiles().stream())
               .filter(c -> c.getType().equals("NOTICE"))
-              .map(legalFileDTO -> new ApiLicenseLegalFileDTO(legalFileDTO.getRelPath(), legalFileDTO.getContent()))
+              .map(
+                  legalFileDTO -> new ApiLicenseLegalFileDTO(null, legalFileDTO.getRelPath(), legalFileDTO.getContent(),
+                      legalFileDTO.getContentHash()))
               .toArray(ApiLicenseLegalFileDTO[]::new));
       assertThat(lrc.licenseLegalData.licenseFiles).usingRecursiveFieldByFieldElementComparator().containsExactly(
           componentLegalFiles.stream()
-              .filter(clf -> LegalReportBuilder.removeClassifierAndExtension(clf.getComponentIdentifier())
+              .filter(clf -> LegalComponentIdentifierUtil.removeClassifierAndExtension(clf.getComponentIdentifier())
                   .equals(
-                      LegalReportBuilder.removeClassifierAndExtension(lrc.componentIdentifier.toComponentIdentifier())))
+                      LegalComponentIdentifierUtil
+                          .removeClassifierAndExtension(lrc.componentIdentifier.toComponentIdentifier())))
               .flatMap(clf -> clf.getLegalFiles().stream())
               .filter(c -> c.getType().equals("LICENSE"))
-              .map(legalFileDTO -> new ApiLicenseLegalFileDTO(legalFileDTO.getRelPath(), legalFileDTO.getContent()))
+              .map(
+                  legalFileDTO -> new ApiLicenseLegalFileDTO(null, legalFileDTO.getRelPath(), legalFileDTO.getContent(),
+                      legalFileDTO.getContentHash()))
               .toArray(ApiLicenseLegalFileDTO[]::new));
     });
   }

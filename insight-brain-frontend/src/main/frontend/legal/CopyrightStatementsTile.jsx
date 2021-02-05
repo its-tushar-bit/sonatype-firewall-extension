@@ -34,7 +34,7 @@ const createItem = (copyright, index) => {
   return (
     <li className="nx-list__item" key={ index }>
       <span className="nx-list__text">
-        { copyright }
+        { copyright.content }
       </span>
     </li>
   );

@@ -13,7 +13,19 @@ describe('CopyrightStatementsTile component', function() {
   const minimalProps = {
     component: {
       licenseLegalData: {
-        copyrights: ['Copyright 2043', 'Copyright 0']
+        copyrights:
+          [
+            {
+              id: '',
+              content: 'Copyright 2043',
+              originalContentHash: ''
+            },
+            {
+              id: '',
+              content: 'Copyright 0',
+              originalContentHash: ''
+            }
+          ]
       }
     }
   };

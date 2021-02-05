@@ -7,28 +7,23 @@ package com.sonatype.insight.brain.api.v2.dto.legal;
 
 import java.util.Objects;
 
-public class ApiLicenseLegalFileDTO
+/**
+ * @since 1.106
+ */
+public class ApiLicenseLegalCopyrightDTO
 {
   public String id;
-
-  public String relPath;
 
   public String content;
 
   public String originalContentHash;
 
-  public ApiLicenseLegalFileDTO() {
+  public ApiLicenseLegalCopyrightDTO() {
     //for jackson
   }
 
-  public ApiLicenseLegalFileDTO(
-      final String id,
-      final String relPath,
-      final String content,
-      final String originalContentHash)
-  {
+  public ApiLicenseLegalCopyrightDTO(final String id, final String content, final String originalContentHash) {
     this.id = id;
-    this.relPath = relPath;
     this.content = content;
     this.originalContentHash = originalContentHash;
   }
@@ -41,22 +36,20 @@ public class ApiLicenseLegalFileDTO
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    ApiLicenseLegalFileDTO that = (ApiLicenseLegalFileDTO) o;
-    return Objects.equals(id, that.id) && Objects.equals(relPath, that.relPath) &&
-        Objects.equals(content, that.content) &&
+    ApiLicenseLegalCopyrightDTO that = (ApiLicenseLegalCopyrightDTO) o;
+    return Objects.equals(id, that.id) && Objects.equals(content, that.content) &&
         Objects.equals(originalContentHash, that.originalContentHash);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, relPath, content, originalContentHash);
+    return Objects.hash(id, content, originalContentHash);
   }
 
   @Override
   public String toString() {
-    return "ApiLicenseLegalFileDTO{" +
+    return "ApiLicenseLegalCopyrightDTO{" +
         "id='" + id + '\'' +
-        ", relPath='" + relPath + '\'' +
         ", content='" + content + '\'' +
         ", originalContentHash='" + originalContentHash + '\'' +
         '}';

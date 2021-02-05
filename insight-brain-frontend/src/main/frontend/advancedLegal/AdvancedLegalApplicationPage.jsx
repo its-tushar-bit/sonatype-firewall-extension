@@ -64,7 +64,7 @@ export default function AdvancedLegalApplicationPage(props) {
                       </header>
                       <div className="nx-tile-content">
                         {licenseLegalData.copyrights.map((copyright, index) =>
-                          <p key={index}>{copyright}</p>
+                          <p key={index}>{copyright.content}</p>
                         )}
                       </div>
                     </section>

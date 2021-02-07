@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.file.Files;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -61,7 +62,7 @@ public class ScanFactory
       throw new IllegalArgumentException("scan configuration missing");
     }
 
-    File scanFile = File.createTempFile("sonatype-clm-scan-", ".xml.gz", config.getWorkDir());
+    File scanFile = Files.createTempFile(config.getWorkDir().toPath(), "sonatype-clm-scan-", ".xml.gz").toFile();
     try (Writer writer = new OutputStreamWriter(
         new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(scanFile), 32 * 1024)), "UTF-8")) {
       scan(config, writer);
@@ -212,7 +213,7 @@ public class ScanFactory
           // NOTE: We need to retain the proper file extension for TrueZIP to recognize the archive type
           String ext = new File(item.getPath()).getName();
           ext = ext.substring(ext.indexOf('.') + 1);
-          file = tmp = File.createTempFile("sonatype-clm-file-", "." + ext, config.getWorkDir());
+          file = tmp = Files.createTempFile(config.getWorkDir().toPath(), "sonatype-clm-file-", "." + ext).toFile();
           try (InputStream is = item.newInputStream(); FileOutputStream fos = new FileOutputStream(file)) {
             IOUtil.copy(is, fos);
           }

@@ -134,7 +134,7 @@ class ScanService
   File saveBinary(InputStream is, String filename) throws IOException {
     try (InputStream in = is) {
       String ext = getFileExtension(filename);
-      File file = File.createTempFile("clm-", ext);
+      File file = Files.createTempFile("clm-", ext).toFile();
       log.debug("Saving binary to {}", file);
       try {
         Files.copy(is, file.toPath(), StandardCopyOption.REPLACE_EXISTING);

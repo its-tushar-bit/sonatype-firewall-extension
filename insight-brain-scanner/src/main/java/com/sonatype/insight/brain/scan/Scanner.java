@@ -86,7 +86,7 @@ public class Scanner
       throws IOException
   {
     Files.createDirectories(scanDir.toPath());
-    File scanFile = File.createTempFile(TEMP_SCAN_PREFIX, SCAN_SUFFIX, scanDir);
+    File scanFile = Files.createTempFile(scanDir.toPath(), TEMP_SCAN_PREFIX, SCAN_SUFFIX).toFile();
     log.debug("Saving scan of {} to {}", target, scanFile);
     ScanResult scanResult = new ScanResult();
     scanResult.setScanFile(scanFile);

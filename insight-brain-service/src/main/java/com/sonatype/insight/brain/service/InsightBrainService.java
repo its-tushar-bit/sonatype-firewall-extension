@@ -274,7 +274,7 @@ public class InsightBrainService
       }
 
       // Ensure we can actually create and delete a new temp file
-      File file = File.createTempFile("clm-server-launcher", ".tmp");
+      File file = Files.createTempFile("clm-server-launcher", ".tmp").toFile();
       try {
         new FileCleaner().delete(file);
       }

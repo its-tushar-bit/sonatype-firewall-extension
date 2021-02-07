@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.releasegraph;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -208,9 +209,7 @@ public class ReleaseGraphPerformance
 
   private static InsightWork createInsightWork() throws IOException {
     InsightConfig insightConfig = new InsightConfig();
-    File workDir = File.createTempFile("releasegraph", "tmp");
-    workDir.delete();
-    workDir.mkdirs();
+    File workDir = Files.createTempDirectory("releasegraph").toFile();
     insightConfig.setSonatypeWork(workDir.getAbsolutePath());
     InsightWork work = new InsightWork(insightConfig);
     return work;

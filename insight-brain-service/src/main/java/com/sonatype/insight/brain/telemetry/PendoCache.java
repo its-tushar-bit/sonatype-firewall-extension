@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.telemetry;
 
 import java.io.File;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
@@ -91,7 +92,7 @@ public class PendoCache
     public File load(String key) throws Exception {
       log.debug("Retrieving {} from HDS", key);
       try (InputStream in = hdsClient.get(InputStream.class, key)) {
-        File javascript = File.createTempFile("iq-cache", "js");
+        File javascript = Files.createTempFile("iq-cache", "js").toFile();
         javascript.deleteOnExit();
 
         FileUtils.copyToFile(in, javascript);

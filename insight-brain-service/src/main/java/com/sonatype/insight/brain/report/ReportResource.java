@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -338,7 +339,7 @@ public class ReportResource
     List<PolicyAlert> alerts = Arrays.asList(JsonUtils
         .parse(Report.getEntry(reportFile, ScanPolicyEvaluator.POLICY_ALERTS_FILENAME).buf, PolicyAlert[].class));
 
-    File updatedFile = File.createTempFile("report", ".zip");
+    File updatedFile = Files.createTempFile("report", ".zip").toFile();
     try (ReportBundleUpdater updater = new ReportBundleUpdater(reportFile, updatedFile,
         new ReportBundleUpdater.FilenameMapping("^.*\\.json$", dataPath + "$0"))) {
       updater.remove("detail.rptdesign");

@@ -157,7 +157,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     ScanMetadata scanMetadata = verifyAndPopulateMetadata(params);
     try {
       Files.createDirectories(params.getOutputDirectory().toPath());
-      File scanFile = File.createTempFile("scan-", ".xml.gz", params.getOutputDirectory());
+      File scanFile = Files.createTempFile(params.getOutputDirectory().toPath(), "scan-", ".xml.gz").toFile();
       List<File> files = new ArrayList<>();
       for (String scanTarget : params.getScanTargets()) {
         files.add(new File(scanTarget));

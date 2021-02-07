@@ -44,9 +44,6 @@ public class PendoServiceTest
   private TelemetryId telemetryId;
 
   @Inject
-  private PendoCache pendoCache;
-
-  @Inject
   private VersionService versionService;
 
   @Mock
@@ -62,7 +59,6 @@ public class PendoServiceTest
 
   @Before
   public void setup() {
-    pendoCache.invalidate();
     hashedVisitorId = Hashing.sha256().hashUnencodedChars(telemetryId.getId() + USERNAME).toString();
   }
 

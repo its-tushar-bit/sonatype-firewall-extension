@@ -9,33 +9,36 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.CustomerTelemetryProperties;
 
-import org.junit.Before;
+import com.google.inject.Binder;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
 public class PendoCacheTest
+    extends AbstractComponentTest
 {
   @Mock
   private HdsClient hdsClient;
 
+  @Inject
   private PendoCache pendoCache;
 
-  @Before
-  public void setup() {
-    pendoCache = new PendoCache(hdsClient);
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(HdsClient.class).toInstance(hdsClient);
+    super.configure(binder);
   }
 
   @Test

@@ -19,7 +19,8 @@ function routes($stateProvider) {
       .state('addWaiver', {
         component: 'addWaiverPage',
         data: {
-          title: 'Add Waiver'
+          title: 'Add Waiver',
+          isDirty: ['addWaiver', 'isDirty']
         },
         url: '/addWaiver/{violationId}'
       })

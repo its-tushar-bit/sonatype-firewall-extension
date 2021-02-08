@@ -73,7 +73,7 @@ export default function AddWaiverForm(props) {
   };
 
   const onExpiryTimeChange = (event) => {
-    const value = event.currentTarget.value;
+    const value = event.currentTarget.value === 'never' ? null : event.currentTarget.value;
     setExpiryTime(value);
   };
 

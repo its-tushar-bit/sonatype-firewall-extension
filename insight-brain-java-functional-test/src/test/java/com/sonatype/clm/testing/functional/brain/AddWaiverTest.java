@@ -15,6 +15,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NxRadio;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.NxVulnerabilityModal;
+import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
@@ -405,6 +406,56 @@ public class AddWaiverTest
     finally {
       cleanupCreatedWaivers(policyWaiverDAO.getActiveByOwnerId(application.getId()));
     }
+  }
+
+  @Test
+  public void testUnsavedChangesModal_ContinueNavigation() {
+    refreshOrOpen(AddWaiverPage.url(otherViolation.getId()));
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.comments().setValue("Changed comment");
+
+    refreshOrOpen(DashboardPage.urlToViolations());
+    DashboardPage.dashboardContainer().shouldNotBe(visible);
+    UnsavedModal unsavedChangesModal = new UnsavedModal();
+    unsavedChangesModal.shouldBe(visible);
+    unsavedChangesModal.continueButton().click();
+    DashboardPage.dashboardContainer().shouldBe(visible);
+  }
+
+  @Test
+  public void testUnsavedChangesModal_CancelNavigation() {
+    refreshOrOpen(AddWaiverPage.url(otherViolation.getId()));
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.artifactName().shouldBe(visible);
+    addWaiverPage.expiryTimesSelect().selectOptionContainingText("14 Days");
+
+    refreshOrOpen(DashboardPage.urlToViolations());
+    DashboardPage.dashboardContainer().shouldNotBe(visible);
+    UnsavedModal unsavedChangesModal = new UnsavedModal();
+    unsavedChangesModal.shouldBe(visible);
+    eyesWatcher.eyesCheck("Unsaved Changes Modal in Add Waiver Form");
+    unsavedChangesModal.cancelButton().click();
+    DashboardPage.dashboardContainer().shouldNotBe(visible);
+    addWaiverPage.artifactName().shouldBe(visible);
+  }
+
+  @Test
+  public void testUnsavedChangesModal_RevertToPristineValues() {
+    refreshOrOpen(AddWaiverPage.url(otherViolation.getId()));
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.artifactName().shouldBe(visible);
+    addWaiverPage.expiryTimesSelect().selectOptionContainingText("14 Days");
+
+    refreshOrOpen(DashboardPage.urlToViolations());
+    DashboardPage.dashboardContainer().shouldNotBe(visible);
+    UnsavedModal unsavedChangesModal = new UnsavedModal();
+    unsavedChangesModal.shouldBe(visible);
+    unsavedChangesModal.cancelButton().click();
+
+    addWaiverPage.expiryTimesSelect().selectOptionContainingText("Never");
+    refreshOrOpen(DashboardPage.urlToViolations());
+    unsavedChangesModal.shouldNotBe(visible);
+    DashboardPage.dashboardContainer().shouldBe(visible);
   }
 
   @Test

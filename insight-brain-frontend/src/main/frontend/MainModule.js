@@ -24,7 +24,7 @@ import utilityServicesModule from './utility/services/utility.services.module';
 import unsavedChangesModalModule from './unsavedChangesModal/module';
 import legalModule from './legal/module';
 import legalDashboardModule from './legal/dashboard/legal.dashboard.module';
-import { not, contains } from 'ramda';
+import { not, contains, path } from 'ramda';
 
 // this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
 $.fn.modal.Constructor.prototype.enforceFocus = function() {
@@ -103,11 +103,11 @@ export const InitModule = angular.module('InitModule', [
   '$rootScope', 'ProductFeatures', '$state', '$window', '$location', 'Messages', 'CurrentUser',
   '$q', '$http', '$urlRouter', '$timeout', 'state.history.service', 'SessionSecurityService',
   'gettingStartedUsageTelemetryService', 'pendoService', 'externalLinkModalService', 'LoginModalService',
-  'routeStateUtilService', 'CLMLocations', 'Messages', 'ProductLicense', 'unsavedChangesModalService',
+  'routeStateUtilService', 'CLMLocations', 'Messages', 'ProductLicense', 'unsavedChangesModalService', '$ngRedux',
   function($rootScope, ProductFeatures, $state, $window, $location, messages, currentUser, $q, $http, $urlRouter,
            $timeout, StateHistoryService, SessionSecurityService, gettingStartedUsageTelemetryService,
            pendoService, externalLinkModalService, LoginModalService, routeStateUtilService, CLMLocations, Messages,
-           ProductLicense, unsavedChangesModalService) {
+           ProductLicense, unsavedChangesModalService, $ngRedux) {
     var savedState = null,
         cancelPreLoginStateHandler,
         cancelUnlicensedStateChangeHandler;
@@ -262,7 +262,6 @@ export const InitModule = angular.module('InitModule', [
     }
 
     function doStart() {
-
       $q.all([currentUser.waitForLogin(), checkLicenseInfo()]).then(function([authenticationStatus]) {
         $rootScope.username = authenticationStatus.username;
         cancelLoginDismissListener();
@@ -312,10 +311,17 @@ export const InitModule = angular.module('InitModule', [
 
       let isProcessingStateChange = false;
 
+      function isPageDirty() {
+        const state = $ngRedux.getState();
+        const currentState = state.router.currentState;
+        const isDirtyPath = currentState.data && currentState.data.isDirty;
+        return isDirtyPath ? path(isDirtyPath, state) : false;
+      }
+
       $rootScope.$on('$stateChangeStart', function(event, toState, toParams) {
         if (!isProcessingStateChange) {
           var e = $rootScope.$broadcast('pageChangeStarted');
-          if (e.defaultPrevented) {
+          if (e.defaultPrevented || isPageDirty()) {
             isProcessingStateChange = true;
             event.preventDefault();
             unsavedChangesModalService.open().then(function() {
@@ -345,7 +351,7 @@ export const InitModule = angular.module('InitModule', [
             $rootScope.$broadcast('pageChangeCanceled');
           });
 
-          return e.defaultPrevented ? e.message ||
+          return (e.defaultPrevented || isPageDirty()) ? e.message ||
               'The page may contain unsaved changes, continuing will discard them.' : undefined;
         }
       }

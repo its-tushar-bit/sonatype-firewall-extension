@@ -21,7 +21,8 @@ export const componentPropType = PropTypes.shape({
     copyrights: PropTypes.arrayOf(PropTypes.shape({
       id: PropTypes.string,
       content: PropTypes.string.isRequired,
-      originalContentHash: PropTypes.string
+      originalContentHash: PropTypes.string,
+      status: PropTypes.string.isRequired
     }).isRequired).isRequired,
     noticeFiles: PropTypes.arrayOf(PropTypes.shape({
       id: PropTypes.string,

@@ -774,7 +774,8 @@ public class ApiLicenseLegalServiceTest
     // Without overrides, we get the HDS data
     assertThat(licenseLegalComponentReport.component.licenseLegalData.copyrights)
         .containsExactlyInAnyOrder(uniqueCopyrights.stream()
-            .map(legalCopyrightDTO -> new ApiLicenseLegalCopyrightDTO(null, legalCopyrightDTO.getContent(), null))
+            .map(legalCopyrightDTO -> new ApiLicenseLegalCopyrightDTO(null, legalCopyrightDTO.getContent(), null,
+                ComponentLegalPartStatus.ENABLED))
             .toArray(ApiLicenseLegalCopyrightDTO[]::new));
     assertThat(licenseLegalComponentReport.component.licenseLegalData.noticeFiles).extracting(f -> f.content)
         .containsExactlyInAnyOrder(componentLegalFileDTO.getLegalFiles().stream()
@@ -790,8 +791,12 @@ public class ApiLicenseLegalServiceTest
     // Set the overrides
     ComponentCopyright componentCopyright =
         tempEntity.newComponentCopyright(componentIdentifier, application.getId(), "legalContentHash");
-    CopyrightOverride copyrightOverride = tempEntity.newCopyrightOverride("originalHash1", "hash1", "overrideContent",
-        ComponentLegalPartStatus.ENABLED, componentCopyright.getId());
+    CopyrightOverride copyrightOverrideEnabled =
+        tempEntity.newCopyrightOverride("originalHash1", "hash1", "overrideContent",
+            ComponentLegalPartStatus.ENABLED, componentCopyright.getId());
+    CopyrightOverride copyrightOverrideDisabled =
+        tempEntity.newCopyrightOverride("originalHash2", "hash2", "overrideContent2",
+            ComponentLegalPartStatus.DISABLED, componentCopyright.getId());
     ComponentLegalFile componentLegalFile =
         tempEntity.newComponentLegalFile(componentIdentifier, application.getId(), "legalContentHash");
     LegalFileOverride noticeOverride = tempEntity.newLegalFileOverride(LegalFileType.NOTICE, "originalHash2", "hash2",
@@ -806,9 +811,15 @@ public class ApiLicenseLegalServiceTest
     // With overrides, we get the overridden data
     assertThat(licenseLegalComponentReport.component.licenseLegalData.copyrights)
         .containsExactly(new ApiLicenseLegalCopyrightDTO(
-            copyrightOverride.getId(),
-            copyrightOverride.getContent(),
-            copyrightOverride.getOriginalContentHash()));
+                copyrightOverrideEnabled.getId(),
+                copyrightOverrideEnabled.getContent(),
+                copyrightOverrideEnabled.getOriginalContentHash(),
+                copyrightOverrideEnabled.getStatus()),
+            new ApiLicenseLegalCopyrightDTO(
+                copyrightOverrideDisabled.getId(),
+                copyrightOverrideDisabled.getContent(),
+                copyrightOverrideDisabled.getOriginalContentHash(),
+                copyrightOverrideDisabled.getStatus()));
     assertThat(licenseLegalComponentReport.component.licenseLegalData.componentCopyrightId)
         .isEqualTo(componentCopyright.getId());
     assertThat(licenseLegalComponentReport.component.licenseLegalData.noticeFiles).extracting(f -> f.content)
@@ -858,8 +869,11 @@ public class ApiLicenseLegalServiceTest
     assertThat(apiLicenseLegalComponentDTO).isNotNull();
     assertThat(apiLicenseLegalComponentDTO.licenseLegalData.componentCopyrightId).isEqualTo(componentCopyright.getId());
     assertThat(apiLicenseLegalComponentDTO.licenseLegalData.copyrights).containsExactly(
-        new ApiLicenseLegalCopyrightDTO(copyrightOverride.getId(), copyrightOverride.getContent(),
-            copyrightOverride.getOriginalContentHash()));
+        new ApiLicenseLegalCopyrightDTO(
+            copyrightOverride.getId(),
+            copyrightOverride.getContent(),
+            copyrightOverride.getOriginalContentHash(),
+            copyrightOverride.getStatus()));
     assertThat(apiLicenseLegalComponentDTO.licenseLegalData.licenseFiles).containsExactly(
         new ApiLicenseLegalFileDTO(licenseOverride.getId(), null, licenseOverride.getContent(),
             licenseOverride.getOriginalContentHash()));
@@ -1323,7 +1337,8 @@ public class ApiLicenseLegalServiceTest
             .map(legalCopyrightDTO ->
                 new ApiLicenseLegalCopyrightDTO(null,
                     legalCopyrightDTO.getContent(),
-                    legalCopyrightDTO.getContentHash()))
+                    legalCopyrightDTO.getContentHash(),
+                    ComponentLegalPartStatus.ENABLED))
             .sorted(Comparator.comparing(lc -> lc.content))
             .toArray(ApiLicenseLegalCopyrightDTO[]::new)));
   }

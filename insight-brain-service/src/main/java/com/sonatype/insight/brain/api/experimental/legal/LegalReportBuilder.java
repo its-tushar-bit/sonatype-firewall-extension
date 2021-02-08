@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalMetadataDTO;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
+import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.legal.CopyrightOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
@@ -125,7 +126,8 @@ public class LegalReportBuilder
           .map(legalCopyrightDTO -> new ApiLicenseLegalCopyrightDTO(
               null,
               legalCopyrightDTO.getContent(),
-              legalCopyrightDTO.getContentHash()))
+              legalCopyrightDTO.getContentHash(),
+              ComponentLegalPartStatus.ENABLED))
           .sorted(Comparator.comparing(lc -> lc.content))
           .collect(Collectors.toList());
     }
@@ -133,7 +135,8 @@ public class LegalReportBuilder
         .map(copyrightOverride -> new ApiLicenseLegalCopyrightDTO(
             copyrightOverride.getId(),
             copyrightOverride.getContent(),
-            copyrightOverride.getOriginalContentHash()))
+            copyrightOverride.getOriginalContentHash(),
+            copyrightOverride.getStatus()))
         .collect(Collectors.toList());
   }
 

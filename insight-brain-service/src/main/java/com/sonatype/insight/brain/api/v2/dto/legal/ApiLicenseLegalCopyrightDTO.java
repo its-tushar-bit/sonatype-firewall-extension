@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.api.v2.dto.legal;
 
 import java.util.Objects;
 
+import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
+
 /**
  * @since 1.106
  */
@@ -18,14 +20,19 @@ public class ApiLicenseLegalCopyrightDTO
 
   public String originalContentHash;
 
+  public ComponentLegalPartStatus status;
+
   public ApiLicenseLegalCopyrightDTO() {
     //for jackson
   }
 
-  public ApiLicenseLegalCopyrightDTO(final String id, final String content, final String originalContentHash) {
+  public ApiLicenseLegalCopyrightDTO(
+      final String id, final String content, final String originalContentHash, final ComponentLegalPartStatus status)
+  {
     this.id = id;
     this.content = content;
     this.originalContentHash = originalContentHash;
+    this.status = status;
   }
 
   @Override
@@ -38,12 +45,12 @@ public class ApiLicenseLegalCopyrightDTO
     }
     ApiLicenseLegalCopyrightDTO that = (ApiLicenseLegalCopyrightDTO) o;
     return Objects.equals(id, that.id) && Objects.equals(content, that.content) &&
-        Objects.equals(originalContentHash, that.originalContentHash);
+        Objects.equals(originalContentHash, that.originalContentHash) && status == that.status;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, content, originalContentHash);
+    return Objects.hash(id, content, originalContentHash, status);
   }
 
   @Override
@@ -52,6 +59,7 @@ public class ApiLicenseLegalCopyrightDTO
         "id='" + id + '\'' +
         ", content='" + content + '\'' +
         ", originalContentHash='" + originalContentHash + '\'' +
+        ", status=" + status +
         '}';
   }
 }

@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import javax.inject.Inject;
 
@@ -52,6 +53,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.sonatype.insight.brain.api.experimental.ApiScmOnboardingService.MAX_PUBLICID_RENAME_ATTEMPTS;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -159,7 +161,7 @@ public class ApiScmOnboardingServiceTest
     assertThat(repositories.availableRepositories.size()).isEqualTo(13);
     assertThat(repositories.totalRepositories).isEqualTo(13);
   }
-  
+
   @Test
   public void testLoadRepositories_trimExistingConfiguredRepositories() throws Exception {
     // configure urls to point to our mock git server, as these are used to guess at a base api url
@@ -171,7 +173,7 @@ public class ApiScmOnboardingServiceTest
         + repo1;
     String repo2ReplacementUrl = gitService.baseUrl().replace("localhost", "admin@localhost") + repo2;
 
-    mockRepoForPage(gitService, 0, 
+    mockRepoForPage(gitService, 0,
         getResourceAsString(PAGE_0)
         .replaceFirst(repo1Url, repo1ReplacementUrl)
         .replaceFirst(repo2Url, repo2ReplacementUrl)
@@ -185,7 +187,7 @@ public class ApiScmOnboardingServiceTest
     // duplicate repo url entries as they can be configured as such to scan different modules(a la insight-brain)
     Application tmpapp3 = tempEntity.newApplication("tmpapp3", org.getId());
     tempEntity.newSourceControl(tmpapp3.getId(), gitService.baseUrl() + repo2, new Date());
-    
+
     // then loading repositories returns the trimmed results
     SCMRepositories repositories = apiScmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
     assertThat(repositories.availableRepositories.size()).isEqualTo(11);
@@ -378,17 +380,25 @@ public class ApiScmOnboardingServiceTest
     int totalRepoCount = 50;
     int prevImportedCount = 10;
 
-    // then the repos can be imported
-    List<SCMRepository> imported =
-        apiScmOnboardingService
-            .importRepositories(org.getId(),
-                new ImportRepositoriesRequest(Arrays.asList(reposToImport), totalRepoCount, prevImportedCount))
-            .getImportedRepositories();
-    assertThat(imported).containsExactlyInAnyOrder(reposToImport);
+    // when the repos are be imported
+    ImportResults response = apiScmOnboardingService.importRepositories(org.getId(),
+        new ImportRepositoriesRequest(Arrays.asList(reposToImport), totalRepoCount, prevImportedCount));
+
+    // then the imported repo is returned
+    List<SCMRepository> imported = response.getImportedRepositories();
+    assertThat(imported.size()).isEqualTo(4);
+    for (int i = 0; i < imported.size(); i++) {
+      assertThat(imported.get(i).getNamespace()).isEqualTo(reposToImport[i].getNamespace());
+      assertThat(imported.get(i).getProject()).isEqualTo(reposToImport[i].getProject());
+      assertThat(imported.get(i).getHttpCloneUrl()).isEqualTo(reposToImport[i].getHttpCloneUrl());
+      assertThat(imported.get(i).getSourceControlProvider()).isEqualTo(reposToImport[i].getSourceControlProvider());
+      assertThat(imported.get(i).getDescription()).isEqualTo(reposToImport[i].getDescription());
+    }
+    assertThat(response.getFailedRepositories()).isEmpty();
 
     // and they exist in the DB
     List<Application> allApps = sourceControlDAO.getAll().stream()
-        .filter(sc -> sc.getOwnerId() != ROOT_ORGANIZATION_ID)
+        .filter(sc -> !sc.getOwnerId().equals(ROOT_ORGANIZATION_ID))
         .map(sc -> applicationDAO.getById(sc.getOwnerId()))
         .collect(Collectors.toList());
     assertThat(allApps.stream().map(Application::getPublicId))
@@ -419,18 +429,25 @@ public class ApiScmOnboardingServiceTest
 
     // and a list of repos to import
     SCMRepository[] reposToImport = new SCMRepository[]{
-        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo1", false, "org", "repo1", "")
+        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo1", false, "org", "repo1",
+            "a description")
     };
     int totalRepoCount = 50;
     int prevImportedCount = 8;
 
-    // then the repos can be imported
-    List<SCMRepository> imported =
-        apiScmOnboardingService
-            .importRepositories(org.getId(),
-                new ImportRepositoriesRequest(Arrays.asList(reposToImport), totalRepoCount, prevImportedCount))
-            .getImportedRepositories();
-    assertThat(imported).containsExactlyInAnyOrder(reposToImport);
+    // when the repos are be imported
+    ImportResults response = apiScmOnboardingService.importRepositories(org.getId(),
+        new ImportRepositoriesRequest(Arrays.asList(reposToImport), totalRepoCount, prevImportedCount));
+
+    // then the imported repo is returned
+    List<SCMRepository> imported = response.getImportedRepositories();
+    assertThat(imported.size()).isEqualTo(1);
+    assertThat(imported.get(0).getNamespace()).isEqualTo("org");
+    assertThat(imported.get(0).getProject()).isEqualTo("repo1");
+    assertThat(imported.get(0).getHttpCloneUrl()).isEqualTo("http://localhost/org/repo1");
+    assertThat(imported.get(0).getSourceControlProvider()).isEqualTo(SourceControlProvider.GITHUB);
+    assertThat(imported.get(0).getDescription()).isEqualTo("a description");
+    assertThat(response.getFailedRepositories()).isEmpty();
 
     // and the only apps that are present are the ones for our selected repos
     List<Application> allApps = applicationDAO.getAll();
@@ -441,7 +458,7 @@ public class ApiScmOnboardingServiceTest
 
     // and the source control entries was created
     List<Application> allSourceControlApps = sourceControlDAO.getAll().stream()
-        .filter(sc -> sc.getOwnerId() != ROOT_ORGANIZATION_ID)
+        .filter(sc -> !sc.getOwnerId().equals(ROOT_ORGANIZATION_ID))
         .map(sc -> applicationDAO.getById(sc.getOwnerId()))
         .collect(Collectors.toList());
     assertThat(allSourceControlApps.stream().map(Application::getPublicId))
@@ -465,18 +482,24 @@ public class ApiScmOnboardingServiceTest
 
     // and a list of repos to import
     SCMRepository[] reposToImport = new SCMRepository[]{
-        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo1", false, "org", "repo1", "")
+        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo1", false, "org", "repo1", "foo")
     };
     int totalRepoCount = 50;
     int prevImportedCount = 8;
 
-    // then the repos can be imported
-    List<SCMRepository> imported =
-        apiScmOnboardingService
-            .importRepositories(org.getId(),
-                new ImportRepositoriesRequest(Arrays.asList(reposToImport), totalRepoCount, prevImportedCount))
-            .getImportedRepositories();
-    assertThat(imported).containsExactlyInAnyOrder(reposToImport);
+    // when the repos are be imported
+    ImportResults response = apiScmOnboardingService.importRepositories(org.getId(),
+        new ImportRepositoriesRequest(Arrays.asList(reposToImport), totalRepoCount, prevImportedCount));
+
+    // then the imported repo is returned
+    List<SCMRepository> imported = response.getImportedRepositories();
+    assertThat(imported.size()).isEqualTo(1);
+    assertThat(imported.get(0).getNamespace()).isEqualTo("org");
+    assertThat(imported.get(0).getProject()).isEqualTo("repo1");
+    assertThat(imported.get(0).getHttpCloneUrl()).isEqualTo("http://localhost/org/repo1");
+    assertThat(imported.get(0).getSourceControlProvider()).isEqualTo(SourceControlProvider.GITHUB);
+    assertThat(imported.get(0).getDescription()).isEqualTo("foo");
+    assertThat(response.getFailedRepositories()).isEmpty();
 
     // and the only apps that are present are the ones for our selected repos
     List<Application> allApps = applicationDAO.getAll();
@@ -554,6 +577,81 @@ public class ApiScmOnboardingServiceTest
     assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
 
     reset(telemetrySenderMock);
+  }
+
+  @Test
+  public void testImportRepositories_invalidCharacters() throws Exception {
+    // given SCM imports are enabled
+    automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
+
+    // when we make a call to import a repository
+    String repoUrl = "https://localhost:5333/org/repo.git";
+    List<SCMRepository> toAdd = Arrays.asList(new SCMRepository(SourceControlProvider.GITHUB,
+        repoUrl, true, "??invalidorg??", "!!invalidproject!!", null));
+    ImportResults importResults = apiScmOnboardingService.importRepositories(org.getId(),
+        new ImportRepositoriesRequest(toAdd, 5, 2));
+
+    // then the response is OK
+    List<SCMRepository> importedRepoList = importResults.getImportedRepositories();
+    assertThat(importedRepoList).hasSize(1);
+    SCMRepository importedRepo = importedRepoList.get(0);
+    assertThat(importedRepo.getProject()).isEqualTo("!!invalidproject!!");
+    assertThat(importedRepo.getNamespace()).isEqualTo("??invalidorg??");
+  }
+
+  @Test
+  public void testImportRepositories_conflictingProjectName() throws Exception {
+    // given SCM imports are enabled
+    automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
+
+    // and we have an existing repository
+    String repoUrl1 = "https://localhost:5333/org/repo1.git";
+    List<SCMRepository> toAdd = Arrays.asList(new SCMRepository(SourceControlProvider.GITHUB,
+        repoUrl1, true, "org", "project", null));
+    apiScmOnboardingService.importRepositories(org.getId(),
+        new ImportRepositoriesRequest(toAdd, 5, 2));
+
+    // when we import another repository where the name only differs in invalid characters that have been stripped out
+    String repoUrl2 = "https://localhost:5333/org/repo2.git";
+    List<SCMRepository> toAddConflicting = Arrays.asList(new SCMRepository(SourceControlProvider.GITHUB,
+        repoUrl2, true, "org", "project!!", null));
+    ImportResults importResults = apiScmOnboardingService.importRepositories(org.getId(),
+        new ImportRepositoriesRequest(toAddConflicting, 5, 2));
+
+    // then the response is OK
+    List<SCMRepository> importedRepoList = importResults.getImportedRepositories();
+    assertThat(importedRepoList).hasSize(1);
+
+    // and the projectname has been extended with a postfix
+    SCMRepository importedRepo = importedRepoList.get(0);
+    assertThat(importedRepo.getProject()).isEqualTo("project!!");
+    assertThat(importedRepo.getNamespace()).isEqualTo("org");
+  }
+
+  @Test
+  public void testImportRepositories_multipleConflictingProjectName() throws Exception {
+    // given SCM imports are enabled
+    automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
+
+    // when we import another repository where the name only differs in invalid characters that have been stripped out
+    // with more conflicts than we are willing to fix by renaming
+    List<SCMRepository> toAdd = IntStream.range(0, MAX_PUBLICID_RENAME_ATTEMPTS + 2)
+        .mapToObj(i -> new SCMRepository(SourceControlProvider.GITHUB, "https://localhost:5333/org/repo" + i + ".git",
+            true, "org", "project!!", null))
+        .collect(Collectors.toList());
+    ImportResults importResults = apiScmOnboardingService.importRepositories(org.getId(),
+        new ImportRepositoriesRequest(toAdd, 5, 2));
+
+    // then the response is OK
+    assertThat(importResults.getImportedRepositories()).hasSize(6);
+    assertThat(importResults.getFailedRepositories()).hasSize(1);
+    assertThat(importResults.getFailedImportCount()).isEqualTo(1);
+
+    // and a failure is created
+    ImportFailure failedRepo = importResults.getFailedRepositories().get(0);
+    assertThat(failedRepo.getRepository().getProject()).isEqualTo("project!!");
+    assertThat(failedRepo.getRepository().getNamespace()).isEqualTo("org");
+    assertThat(failedRepo.getErrorMessage()).isEqualTo("Could not find unique name for publicId: [project__org]");
   }
 
   @Test

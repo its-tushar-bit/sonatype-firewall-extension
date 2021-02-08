@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import javax.inject.Inject;
 
@@ -44,7 +45,6 @@ import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
 import com.sonatype.nexus.scm.api.GitApiClientUtils;
 import com.sonatype.nexus.scm.api.model.SCMRepository;
 
-import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
@@ -67,6 +67,10 @@ public class ApiScmOnboardingService
 {
   private static final Logger log = LoggerFactory.getLogger(ApiScmOnboardingService.class);
 
+  public static final int MAX_PUBLICID_RENAME_ATTEMPTS = 5;
+
+  public static final int INITIAL_RENAME_POSTFIX = 2;
+
   private final SourceControlDAO sourceControlDAO;
 
   private final ApplicationDAO appDAO;
@@ -83,6 +87,8 @@ public class ApiScmOnboardingService
 
   private final TelemetrySender telemetrySender;
 
+  private final ScmApplicationNameConverter applicationNameConverter;
+
   @Inject
   public ApiScmOnboardingService(final SourceControlDAO sourceControlDAO,
                                  final ApplicationDAO appDAO,
@@ -91,7 +97,8 @@ public class ApiScmOnboardingService
                                  final ApiSourceControlService apiSourceControlService,
                                  final ApiCompositeSourceControlService apiCompositeSourceControlService,
                                  final GitApiClientFactory gitApiClientFactory,
-                                 final TelemetrySender telemetrySender)
+                                 final TelemetrySender telemetrySender,
+                                 final ScmApplicationNameConverter applicationNameConverter)
   {
     this.sourceControlDAO = sourceControlDAO;
     this.appDAO = appDAO;
@@ -101,6 +108,7 @@ public class ApiScmOnboardingService
     this.apiCompositeSourceControlService = apiCompositeSourceControlService;
     this.gitApiClientFactory = gitApiClientFactory;
     this.telemetrySender = telemetrySender;
+    this.applicationNameConverter = applicationNameConverter;
   }
 
   @Authorize(permission = Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION)
@@ -246,7 +254,7 @@ public class ApiScmOnboardingService
     }
     return repositories;
   }
-    
+
   /**
    * Import the selected repositories into the given organization
    * @param orgId the org in which to import the repos
@@ -267,19 +275,19 @@ public class ApiScmOnboardingService
     }
 
     ArrayList<SCMRepository> importedRepos = new ArrayList<>();
-    int failedImportCount = 0;
+    ArrayList<ImportFailure> failedRepos = new ArrayList<>();
     for (SCMRepository scmRepository : importReposRequest.scmRepositories) {
       try {
-        importRepository(orgId, scmRepository);
-        importedRepos.add(scmRepository);
+        SCMRepository importResult = importRepository(orgId, scmRepository);
+        importedRepos.add(importResult);
       }
       catch (Exception e) {
         log.error("Unable to import repository {}", scmRepository, e);
-        ++failedImportCount;
+        failedRepos.add(new ImportFailure(scmRepository, e.getMessage()));
       }
     }
     sendImportTelemetry(importReposRequest);
-    return new ImportResults(importedRepos, failedImportCount);
+    return new ImportResults(importedRepos, failedRepos);
   }
 
   private void sendImportTelemetry(final ImportRepositoriesRequest importReposRequest) {
@@ -324,9 +332,9 @@ public class ApiScmOnboardingService
     }
   }
 
-  private void importRepository(final String orgId, final SCMRepository scmRepository) {
-    String publicId = buildPublicId(scmRepository);
-    String name = buildName(scmRepository);
+  private SCMRepository importRepository(final String orgId, final SCMRepository scmRepository) {
+    String publicId = applicationNameConverter.buildPublicId(scmRepository);
+    String name = applicationNameConverter.buildName(scmRepository);
     String cloneUrl = sanitizeUrl(scmRepository.getHttpCloneUrl());
     Application app = appDAO.getByPublicId(publicId);
     if (app == null) {
@@ -334,19 +342,35 @@ public class ApiScmOnboardingService
       app = new Application(publicId, name, orgId);
       applicationHelper.addApplication(app);
     }
+    else {
+      if (applicationNameConverter.doesPublicIdRequireModification(scmRepository)) {
+        // this branch handles newly imported applications (already de-duped during load) but a name with disallowed
+        // characters which have been removed and as a consequence of that introduced a name conflict
+        app = createApplicationWithPostfix(orgId, scmRepository);
+      }
+    }
     apiSourceControlService.addOrUpdateSourceControl(app.getPublicId(), cloneUrl);
+    return scmRepository;
   }
 
-  private String buildPublicId(SCMRepository scmRepository) {
-    return scmRepository.getProject() + "__" + scmRepository.getNamespace();
+  private Application createApplicationWithPostfix(
+      final String orgId,
+      final SCMRepository scmRepository)
+  {
+    int postfix = findNextPublicIdPostfix(scmRepository);
+    String publicIdWithPostfix = applicationNameConverter.buildPublicIdWithPostfix(scmRepository, postfix);
+    String nameWithPostfix = applicationNameConverter.buildNameWithPostfix(scmRepository, postfix);
+    log.debug("Creating Application entry, name: [{}], publicId: [{}]", nameWithPostfix, publicIdWithPostfix);
+    Application applicationWithPostfix = new Application(publicIdWithPostfix, nameWithPostfix, orgId);
+    applicationHelper.addApplication(applicationWithPostfix);
+    return applicationWithPostfix;
   }
 
-  private String buildName(SCMRepository scmRepository) {
-    return toReadableName(scmRepository.getProject()) +
-        " - " + toReadableName(scmRepository.getNamespace());
-  }
-
-  private String toReadableName(String name) {
-    return WordUtils.capitalizeFully(name.replaceAll("[^\\w\\d]+", " ").trim());
+  private int findNextPublicIdPostfix(final SCMRepository scmRepository) {
+    return IntStream.range(INITIAL_RENAME_POSTFIX, MAX_PUBLICID_RENAME_ATTEMPTS + INITIAL_RENAME_POSTFIX)
+        .filter(i -> appDAO.getByPublicId(applicationNameConverter.buildPublicIdWithPostfix(scmRepository, i)) == null)
+        .findFirst()
+        .orElseThrow(() -> new BadRequestException("Could not find unique name for publicId: [" +
+            applicationNameConverter.buildPublicId(scmRepository) + "]"));
   }
 }

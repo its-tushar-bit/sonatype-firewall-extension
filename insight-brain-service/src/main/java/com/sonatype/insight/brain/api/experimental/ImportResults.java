@@ -17,19 +17,26 @@ public class ImportResults
 {
   private List<SCMRepository> importedRepositories;
 
+  private List<ImportFailure> failedRepositories;
+
   private int failedImportCount;
 
   // for Jackson
   public ImportResults() {
   }
 
-  public ImportResults(final List<SCMRepository> importedRepositories, final int failedImportCount) {
+  public ImportResults(final List<SCMRepository> importedRepositories, final List<ImportFailure> failedRepositories) {
     this.importedRepositories = importedRepositories;
-    this.failedImportCount = failedImportCount;
+    this.failedRepositories = failedRepositories;
+    this.failedImportCount = failedRepositories.size();
   }
 
   public List<SCMRepository> getImportedRepositories() {
     return importedRepositories;
+  }
+
+  public List<ImportFailure> getFailedRepositories() {
+    return failedRepositories;
   }
 
   public int getFailedImportCount() {

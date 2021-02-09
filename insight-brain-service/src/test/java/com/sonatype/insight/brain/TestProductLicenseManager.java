@@ -36,8 +36,6 @@ import org.sonatype.licensing.product.ProductLicenseKey;
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.internal.DefaultLicenseKey;
 
-import org.apache.commons.lang3.StringUtils;
-
 /**
  * Test/mock implementation for ProductLicenseManager.
  * <p>
@@ -107,7 +105,7 @@ public class TestProductLicenseManager
 
   public void setMaxFirewallUsers(Integer maxFirewallUsers) {
     wasChanged = true;
-    mockProductLicenseManager.setMaxFirewallUsers(maxFirewallUsers);
+    mockProductLicenseManager.setProperty(ProductLicenseDetails.PROPERTY_MAX_FIREWALL_USERS, maxFirewallUsers);
   }
 
   public void setFeatures(LicensedFeature... features) {
@@ -171,7 +169,7 @@ public class TestProductLicenseManager
 
   public void setVersion(int version) {
     wasChanged = true;
-    mockProductLicenseManager.setVersion(version);
+    mockProductLicenseManager.setProperty(ProductLicenseDetails.PROPERTY_VERSION, Integer.toString(version));
   }
 
   private static class MockProductLicenseManager
@@ -181,11 +179,7 @@ public class TestProductLicenseManager
 
     private volatile ProductLicenseKey key;
 
-    private int version = 1;
-
     private Integer applicationLimit = 100;
-
-    private Integer maxFirewallUsers = 45;
 
     private Date expirationDate = new Date(System.currentTimeMillis() + 6000 * 1000);
 
@@ -205,6 +199,8 @@ public class TestProductLicenseManager
     private boolean forceVerificationFailure;
 
     public MockProductLicenseManager() {
+      properties.put(ProductLicenseDetails.PROPERTY_VERSION, "1");
+      properties.put(ProductLicenseDetails.PROPERTY_MAX_FIREWALL_USERS, "45");
       setKey();
     }
 
@@ -237,18 +233,13 @@ public class TestProductLicenseManager
       Map<String, org.sonatype.licensing.feature.Feature> featureMap = new HashMap<>();
       featureMap.put(CLMFeature.ID, new CLMFeature());
       Properties properties = new Properties();
-      properties.put(ProductLicenseDetails.PROPERTY_VERSION, Integer.toString(version));
       if (products != null) {
-        properties.put(ProductLicenseDetails.PROPERTY_PRODUCTS, StringUtils.join(products, ","));
+        properties.put(ProductLicenseDetails.PROPERTY_PRODUCTS, String.join(",", products));
       }
       properties.put(ProductLicenseDetails.PROPERTY_MAX_USERS, Integer.toString(50));
 
       if (applicationLimit != null) {
         properties.put(ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT, applicationLimit.toString());
-      }
-
-      if (maxFirewallUsers != null) {
-        properties.put(ProductLicenseDetails.PROPERTY_MAX_FIREWALL_USERS, Integer.toString(maxFirewallUsers));
       }
 
       properties.putAll(this.properties);
@@ -342,23 +333,9 @@ public class TestProductLicenseManager
       }
     }
 
-    public void setVersion(int version) {
-      if (valid) {
-        this.version = version;
-        setKey();
-      }
-    }
-
     public void setApplicationLimit(Integer applicationLimit) {
       if (valid) {
         this.applicationLimit = applicationLimit;
-        setKey();
-      }
-    }
-
-    public void setMaxFirewallUsers(Integer maxFirewallUsers) {
-      if (valid) {
-        this.maxFirewallUsers = maxFirewallUsers;
         setKey();
       }
     }
@@ -389,8 +366,16 @@ public class TestProductLicenseManager
       this.forceUninstallFailure = forceUninstallFailure;
     }
 
-    public void setProperty(String key, String value) {
-      properties.put(key, value);
+    public void setProperty(String key, Object value) {
+      if (valid) {
+        if (value == null) {
+          properties.remove(key);
+        }
+        else {
+          properties.put(key, value.toString());
+        }
+        setKey();
+      }
     }
   }
 }

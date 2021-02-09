@@ -215,22 +215,23 @@ describe('advancedLegalActions', function () {
     it('dispatches a ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED action with the hierarchy', function (done) {
       const payload = {
         id: 'ROOT_ORGANIZATION_ID',
+        publicId: 'ROOT_ORGANIZATION_ID',
         name: 'Root Organization',
         type: 'organization',
         children: null
       };
       mockAxiosCalls({
         get: {
-          [getOwnerHierarchyUrl('ownerId')]: Promise.resolve({ data: payload })
+          [getOwnerHierarchyUrl('ownerType', 'ownerId')]: Promise.resolve({ data: payload })
         }
       });
 
-      store.dispatch(loadAvailableScopes('ownerId')).then(() => {
+      store.dispatch(loadAvailableScopes('ownerType', 'ownerId')).then(() => {
         const actions = store.getActions();
         expect(actions.length).toBe(2);
         expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED);
         expect(actions[1].payload).toEqual(
-            { values: [{ ...pick(['type', 'id', 'name'], payload), label: 'Organization' }] });
+            { values: [{ ...pick(['type', 'id', 'publicId', 'name'], payload), label: 'Organization' }] });
         done();
       });
     });
@@ -239,11 +240,11 @@ describe('advancedLegalActions', function () {
       const errorTest = 'Error test';
       mockAxiosCalls({
         get: {
-          [getOwnerHierarchyUrl('ownerId')]: Promise.reject(errorTest)
+          [getOwnerHierarchyUrl('ownerType', 'ownerId')]: Promise.reject(errorTest)
         }
       });
 
-      store.dispatch(loadAvailableScopes('ownerId')).then(() => {
+      store.dispatch(loadAvailableScopes('ownerType', 'ownerId')).then(() => {
         const actions = store.getActions();
         expect(actions.length).toBe(2);
         expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED);

@@ -34,6 +34,20 @@ public class ComponentObligationAttributionDAO
     return get(tx, sQuery, id);
   }
 
+  public ComponentObligationAttribution getByIdNotNull(TransactionContext tx, String id) {
+    ComponentObligationAttribution componentObligationAttribution = getById(tx, id);
+    if (componentObligationAttribution == null) {
+      throw new BadRequestException("ComponentObligationAttribution with ID " + id + " does not exist.");
+    }
+    return componentObligationAttribution;
+  }
+
+  public ComponentObligationAttribution getByIdNotNull(String id) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByIdNotNull(tx, id);
+    }
+  }
+
   public List<ComponentObligationAttribution> getByOwnerId(TransactionContext tx, String ownerId) {
     String sQuery = "SELECT entity FROM ComponentObligationAttribution entity" + //
         " WHERE entity.ownerId=?1";

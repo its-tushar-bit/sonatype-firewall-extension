@@ -53,6 +53,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalMetadataDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApplicationLicenseUsageTelemetry;
+import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiLicenseDataAdapter;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.api.v2.service.DefaultApiLicenseDataAdapter;
@@ -944,14 +945,19 @@ public class ApiLicenseLegalServiceTest
     assertThat(obligation1).isNotNull();
     assertThat(obligation1.status).isEqualTo(componentObligation1.getStatus());
     assertThat(obligation1.comment).isEqualTo(componentObligation1.getComment());
-    assertThat(obligation1.attributions).containsExactlyInAnyOrder(componentObligationAttribution1.getContent(),
-        componentObligationAttribution2.getContent());
+    assertThat(obligation1.attributions).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+        new ComponentObligationAttributionDTO(componentObligationAttribution1.getId(),
+            owner.getId(), componentObligationAttribution1.getContent()),
+        new ComponentObligationAttributionDTO(componentObligationAttribution2.getId(),
+            owner.getId(), componentObligationAttribution2.getContent()));
     ApiLicenseLegalObligationDTO obligation2 = licenseLegalComponentReport.obligations.stream()
         .filter(o -> o.name.equals(componentObligation2.getObligationName())).findFirst().orElse(null);
     assertThat(obligation2).isNotNull();
     assertThat(obligation2.status).isEqualTo(componentObligation2.getStatus());
     assertThat(obligation2.comment).isEqualTo(componentObligation2.getComment());
-    assertThat(obligation2.attributions).containsExactly(componentObligationAttribution3.getContent());
+    assertThat(obligation2.attributions).usingRecursiveFieldByFieldElementComparator().containsExactly(
+        new ComponentObligationAttributionDTO(componentObligationAttribution3.getId(),
+            owner.getId(), componentObligationAttribution3.getContent()));
     ApiLicenseLegalObligationDTO obligation3 = licenseLegalComponentReport.obligations.stream()
         .filter(o -> o.name.equals(componentObligation3.getObligationName())).findFirst().orElse(null);
     assertThat(obligation3).isNotNull();
@@ -963,7 +969,9 @@ public class ApiLicenseLegalServiceTest
     assertThat(obligation4).isNotNull();
     assertThat(obligation4.status).isEqualTo(ObligationStatus.OPEN);
     assertThat(obligation4.comment).isNull();
-    assertThat(obligation4.attributions).containsExactly(componentObligationAttribution4.getContent());
+    assertThat(obligation4.attributions).usingRecursiveFieldByFieldElementComparator().containsExactly(
+        new ComponentObligationAttributionDTO(componentObligationAttribution4.getId(),
+            owner.getId(), componentObligationAttribution4.getContent()));
   }
 
   private void testGetLicenseLegalComponentReport(

@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.owner;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
-import com.sonatype.insight.brain.dto.ApplicableContext;
+import com.sonatype.insight.brain.dto.OwnerHierarchyDTO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -23,7 +23,7 @@ public class OwnerResourceTest
   private final OwnerDAO ownerDAO = new OwnerDAO();
 
   protected HttpRequest restRequest(Owner owner) {
-    return restRequest().path(OwnerResource.RESOURCE_PATH).parameter(owner.getId());
+    return restRequest().path(OwnerResource.RESOURCE_PATH).parameter(owner.getType(), owner.getPublicId());
   }
 
   @Test
@@ -33,12 +33,13 @@ public class OwnerResourceTest
     HttpResponse response = restRequest(rootOrganization).get();
 
     assertResponseStatus(200, response);
-    ApplicableContext rootApplicableContext = response.getBody(ApplicableContext.class);
-    assertThat(rootApplicableContext).isNotNull();
-    assertThat(rootApplicableContext.getId()).isEqualTo(rootOrganization.getPublicId());
-    assertThat(rootApplicableContext.getName()).isEqualTo(rootOrganization.getName());
-    assertThat(rootApplicableContext.getType()).isEqualTo(rootOrganization.getType());
-    assertThat(rootApplicableContext.getChildren()).isNull();
+    OwnerHierarchyDTO rootHierarchy = response.getBody(OwnerHierarchyDTO.class);
+    assertThat(rootHierarchy).isNotNull();
+    assertThat(rootHierarchy.getId()).isEqualTo(rootOrganization.getId());
+    assertThat(rootHierarchy.getPublicId()).isEqualTo(rootOrganization.getPublicId());
+    assertThat(rootHierarchy.getName()).isEqualTo(rootOrganization.getName());
+    assertThat(rootHierarchy.getType()).isEqualTo(rootOrganization.getType());
+    assertThat(rootHierarchy.getChildren()).isNull();
   }
 
   @Test
@@ -49,17 +50,19 @@ public class OwnerResourceTest
     HttpResponse response = restRequest(organization).get();
 
     assertResponseStatus(200, response);
-    ApplicableContext rootApplicableContext = response.getBody(ApplicableContext.class);
-    assertThat(rootApplicableContext).isNotNull();
-    assertThat(rootApplicableContext.getId()).isEqualTo(rootOrganization.getPublicId());
-    assertThat(rootApplicableContext.getName()).isEqualTo(rootOrganization.getName());
-    assertThat(rootApplicableContext.getType()).isEqualTo(rootOrganization.getType());
-    assertThat(rootApplicableContext.getChildren()).hasSize(1);
-    ApplicableContext orgApplicableContext = rootApplicableContext.getChildren().get(0);
-    assertThat(orgApplicableContext.getId()).isEqualTo(organization.getPublicId());
-    assertThat(orgApplicableContext.getName()).isEqualTo(organization.getName());
-    assertThat(orgApplicableContext.getType()).isEqualTo(organization.getType());
-    assertThat(orgApplicableContext.getChildren()).isNull();
+    OwnerHierarchyDTO rootHierarchy = response.getBody(OwnerHierarchyDTO.class);
+    assertThat(rootHierarchy).isNotNull();
+    assertThat(rootHierarchy.getId()).isEqualTo(rootOrganization.getPublicId());
+    assertThat(rootHierarchy.getPublicId()).isEqualTo(rootOrganization.getPublicId());
+    assertThat(rootHierarchy.getName()).isEqualTo(rootOrganization.getName());
+    assertThat(rootHierarchy.getType()).isEqualTo(rootOrganization.getType());
+    assertThat(rootHierarchy.getChildren()).hasSize(1);
+    OwnerHierarchyDTO orgHierarchy = rootHierarchy.getChildren().get(0);
+    assertThat(orgHierarchy.getId()).isEqualTo(organization.getId());
+    assertThat(orgHierarchy.getPublicId()).isEqualTo(organization.getPublicId());
+    assertThat(orgHierarchy.getName()).isEqualTo(organization.getName());
+    assertThat(orgHierarchy.getType()).isEqualTo(organization.getType());
+    assertThat(orgHierarchy.getChildren()).isNull();
   }
 
   @Test
@@ -71,21 +74,24 @@ public class OwnerResourceTest
     HttpResponse response = restRequest(application).get();
 
     assertResponseStatus(200, response);
-    ApplicableContext rootApplicableContext = response.getBody(ApplicableContext.class);
-    assertThat(rootApplicableContext).isNotNull();
-    assertThat(rootApplicableContext.getId()).isEqualTo(rootOrganization.getPublicId());
-    assertThat(rootApplicableContext.getName()).isEqualTo(rootOrganization.getName());
-    assertThat(rootApplicableContext.getType()).isEqualTo(rootOrganization.getType());
-    assertThat(rootApplicableContext.getChildren()).hasSize(1);
-    ApplicableContext orgApplicableContext = rootApplicableContext.getChildren().get(0);
-    assertThat(orgApplicableContext.getId()).isEqualTo(organization.getPublicId());
-    assertThat(orgApplicableContext.getName()).isEqualTo(organization.getName());
-    assertThat(orgApplicableContext.getType()).isEqualTo(organization.getType());
-    assertThat(orgApplicableContext.getChildren()).hasSize(1);
-    ApplicableContext appApplicableContext = orgApplicableContext.getChildren().get(0);
-    assertThat(appApplicableContext.getId()).isEqualTo(application.getPublicId());
-    assertThat(appApplicableContext.getName()).isEqualTo(application.getName());
-    assertThat(appApplicableContext.getType()).isEqualTo(application.getType());
-    assertThat(appApplicableContext.getChildren()).isNull();
+    OwnerHierarchyDTO rootHierarchy = response.getBody(OwnerHierarchyDTO.class);
+    assertThat(rootHierarchy).isNotNull();
+    assertThat(rootHierarchy.getId()).isEqualTo(rootOrganization.getId());
+    assertThat(rootHierarchy.getPublicId()).isEqualTo(rootOrganization.getPublicId());
+    assertThat(rootHierarchy.getName()).isEqualTo(rootOrganization.getName());
+    assertThat(rootHierarchy.getType()).isEqualTo(rootOrganization.getType());
+    assertThat(rootHierarchy.getChildren()).hasSize(1);
+    OwnerHierarchyDTO orgHierarchy = rootHierarchy.getChildren().get(0);
+    assertThat(orgHierarchy.getId()).isEqualTo(organization.getId());
+    assertThat(orgHierarchy.getPublicId()).isEqualTo(organization.getPublicId());
+    assertThat(orgHierarchy.getName()).isEqualTo(organization.getName());
+    assertThat(orgHierarchy.getType()).isEqualTo(organization.getType());
+    assertThat(orgHierarchy.getChildren()).hasSize(1);
+    OwnerHierarchyDTO appHierarchy = orgHierarchy.getChildren().get(0);
+    assertThat(appHierarchy.getId()).isEqualTo(application.getId());
+    assertThat(appHierarchy.getPublicId()).isEqualTo(appHierarchy.getPublicId());
+    assertThat(appHierarchy.getName()).isEqualTo(application.getName());
+    assertThat(appHierarchy.getType()).isEqualTo(application.getType());
+    assertThat(appHierarchy.getChildren()).isNull();
   }
 }

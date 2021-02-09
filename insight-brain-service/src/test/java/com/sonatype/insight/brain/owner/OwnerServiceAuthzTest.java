@@ -29,54 +29,54 @@ public class OwnerServiceAuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void testGetHierarchy_RootOrganization_Unauthenticated() {
     Owner rootOrg = ownerDAO.getById(Organization.ROOT_ORGANIZATION_ID);
-    ownerService.getHierarchy(rootOrg.getPublicId());
+    ownerService.getHierarchy(rootOrg.getType(), rootOrg.getPublicId());
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetHierarchy_RootOrganization_Unauthorized() {
     login();
     Owner rootOrg = ownerDAO.getById(Organization.ROOT_ORGANIZATION_ID);
-    ownerService.getHierarchy(rootOrg.getPublicId());
+    ownerService.getHierarchy(rootOrg.getType(), rootOrg.getPublicId());
   }
 
   @Test
   public void testGetHierarchy_RootOrganization_Authorized() {
     Owner rootOrg = ownerDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     grantPermission(rootOrg.getId(), Permission.READ);
-    ownerService.getHierarchy(rootOrg.getPublicId());
+    ownerService.getHierarchy(rootOrg.getType(), rootOrg.getPublicId());
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetHierarchy_Organization_Unauthenticated() {
-    ownerService.getHierarchy(org.getPublicId());
+    ownerService.getHierarchy(org.getType(), org.getPublicId());
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetHierarchy_Organization_Unauthorized() {
     login();
-    ownerService.getHierarchy(org.getPublicId());
+    ownerService.getHierarchy(org.getType(), org.getPublicId());
   }
 
   @Test
   public void testGetHierarchy_Organization_Authorized() {
     grantPermission(org.getId(), Permission.READ);
-    ownerService.getHierarchy(org.getPublicId());
+    ownerService.getHierarchy(org.getType(), org.getPublicId());
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetHierarchy_Application_Unauthenticated() {
-    ownerService.getHierarchy(app.getPublicId());
+    ownerService.getHierarchy(app.getType(), app.getPublicId());
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetHierarchy_Application_Unauthorized() {
     login();
-    ownerService.getHierarchy(app.getPublicId());
+    ownerService.getHierarchy(app.getType(), app.getPublicId());
   }
 
   @Test
   public void testGetHierarchy_Application_Authorized() {
     grantPermission(app.getId(), Permission.READ);
-    ownerService.getHierarchy(app.getPublicId());
+    ownerService.getHierarchy(app.getType(), app.getPublicId());
   }
 }

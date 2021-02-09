@@ -87,11 +87,11 @@ export function loadComponent(orgOrApp, ownerId, hash) {
   };
 }
 
-export function loadAvailableScopes(ownerId) {
+export function loadAvailableScopes(ownerType, ownerId) {
   return (dispatch) => {
     dispatch(loadAvailableScopesRequested());
 
-    return axios.get(getOwnerHierarchyUrl(ownerId))
+    return axios.get(getOwnerHierarchyUrl(ownerType, ownerId))
         .then(({ data }) => {
           let payload = {
             values: processOwnerHierarchy(data)
@@ -108,11 +108,11 @@ export function loadAvailableScopes(ownerId) {
  * Flattens the Org/Apps hierarchy
  */
 function processOwnerHierarchy(context) {
-  // note that since the context data only includes the ancestors of the waiver, `children` should
+  // note that since the context data only includes the ancestors of the owner, `children` should
   // never have more than one element
   const processedChildren = context.children ? processOwnerHierarchy(context.children[0]) : [],
-      { type, id, name } = context,
+      { type, id, publicId, name } = context,
       label = capitalize(type);
 
-  return processedChildren.concat({ type, id, name, label });
+  return processedChildren.concat({ type, id, publicId, name, label });
 }

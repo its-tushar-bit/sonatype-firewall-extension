@@ -25,14 +25,18 @@ import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalFilterDTO;
+import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationAttributionDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
+import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -234,10 +238,10 @@ public class ApiLicenseLegalResourceTest
     Owner owner = tempEntity.newApplicationWithParent();
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
     ComponentCopyright componentCopyright1 =
-        tempEntity.newComponentCopyright(componentIdentifier, owner.getPublicId(), "legalContentHash1");
+        tempEntity.newComponentCopyright(componentIdentifier, owner.getId(), "legalContentHash1");
     HttpResponse response =
         restRequest().path(ApiLicenseLegalResource.COMPONENT_COPYRIGHT_PATH)
-            .parameter(owner.getType().toString(), owner.getPublicId())
+            .parameter(owner.getType(), owner.getPublicId())
             .body(ComponentCopyrightDTO.fromComponentCopyright(componentCopyright1, new ArrayList<>()))
             .post();
     assertResponseStatus(200, response);
@@ -246,6 +250,64 @@ public class ApiLicenseLegalResourceTest
     assertThat(responseDto).isNotNull();
     assertThat(responseDto.getComponentIdentifier().toComponentIdentifier())
         .isEqualTo(componentIdentifier);
+  }
+
+  @Test
+  public void testSaveComponentObligationAttribution() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    ComponentObligationAttributionDTO bodyDto = new ComponentObligationAttributionDTO();
+    bodyDto.setComponentIdentifier(
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g", "a", "v")));
+    bodyDto.setContent("content");
+
+    HttpResponse response = restRequest()
+        .path(ApiLicenseLegalResource.COMPONENT_OBLIGATION_ATTRIBUTION_PATH)
+        .parameter(application.getType(), application.getPublicId())
+        .body(bodyDto)
+        .post();
+
+    assertResponseStatus(200, response);
+    ComponentObligationAttributionDTO responseDto = response.getBody(ComponentObligationAttributionDTO.class);
+    assertThat(responseDto).usingRecursiveComparison().ignoringExpectedNullFields().isEqualTo(bodyDto);
+    assertThat(responseDto.getId()).isNotNull();
+    assertThat(new ComponentObligationAttributionDAO().getById(responseDto.getId())).isNotNull();
+  }
+
+  @Test
+  public void testDeleteComponentObligationAttribution() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    ComponentObligationAttribution componentObligationAttribution = tempEntity.newComponentObligationAttribution(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), application.getId(), null, "content",
+        ComponentLegalService.NOT_IMPLEMENTED);
+
+    HttpResponse response = restRequest()
+        .path(ApiLicenseLegalResource.COMPONENT_OBLIGATION_ATTRIBUTION_DELETE_PATH)
+        .parameter(componentObligationAttribution.getId())
+        .delete();
+
+    assertResponseStatus(204, response);
+    assertThat(new ComponentObligationAttributionDAO().getById(componentObligationAttribution.getId())).isNull();
+  }
+
+  @Test
+  public void testGetComponentObligationAttribution() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    ComponentObligationAttribution componentObligationAttribution = tempEntity.newComponentObligationAttribution(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), application.getId(), "obligationName", "content",
+        ComponentLegalService.NOT_IMPLEMENTED);
+
+    HttpResponse response = restRequest()
+        .path(ApiLicenseLegalResource.COMPONENT_OBLIGATION_ATTRIBUTION_PATH)
+        .parameter(application.getType(), application.getPublicId())
+        .query("componentIdentifier", componentObligationAttribution.getComponentIdentifier())
+        .query("obligationName", componentObligationAttribution.getObligationName())
+        .get();
+
+    assertResponseStatus(200, response);
+    List<ComponentObligationAttributionDTO> responseBody =
+        Arrays.asList(response.getBody(ComponentObligationAttributionDTO[].class));
+    assertThat(responseBody).extracting(ComponentObligationAttributionDTO::getId)
+        .containsExactly(componentObligationAttribution.getId());
   }
 
   private void mockReport(PolicyEvaluation evaluation) {

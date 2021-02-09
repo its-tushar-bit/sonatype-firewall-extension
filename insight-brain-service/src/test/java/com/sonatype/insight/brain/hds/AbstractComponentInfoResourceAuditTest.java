@@ -16,8 +16,6 @@ import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
-import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 
@@ -29,7 +27,7 @@ import static com.sonatype.insight.brain.hds.ComponentInfoResourceTestUtils.newC
 public abstract class AbstractComponentInfoResourceAuditTest
     extends AbstractAuditTest
 {
-  protected static final ComponentIdentifier COMPONENT_IDENTIFIER = ComponentIdentifier.createMavenCoordinates("g1", 
+  protected static final ComponentIdentifier COMPONENT_IDENTIFIER = ComponentIdentifier.createMavenCoordinates("g1",
       "a1", "v1", "", "jar");
 
   protected static final String COMPONENT_HASH = "hash";
@@ -60,17 +58,5 @@ public abstract class AbstractComponentInfoResourceAuditTest
     hdsComponentDetailsList.setList(Collections.singletonList(hdsComponentDetails));
     hdsRespondWith(hdsComponentDetailsList).atUri(convertToHdsUrl(httpRequest.getUrl()));
     hdsRespondWith(new ComponentDependenciesDTO(new HashMap<>(), new HashMap<>())).atUri("rest/component/dependencies");
-  }
-
-  private void assertOwnerData(final AuditDTO auditDTO, final Owner owner) {
-    if (OwnerType.APPLICATION.equals(owner.getType())) {
-      assertApplicationData(auditDTO, (Application) owner);
-    }
-    else if (OwnerType.REPOSITORY.equals(owner.getType())) {
-      assertRepositoryData(auditDTO, (Repository) owner);
-    }
-    else {
-      throw new RuntimeException("unsupported owner type");
-    }
   }
 }

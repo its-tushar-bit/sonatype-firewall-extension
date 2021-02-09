@@ -10,10 +10,11 @@ import java.util.Collections;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
-import com.sonatype.insight.brain.dto.ApplicableContext;
+import com.sonatype.insight.brain.dto.OwnerHierarchyDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -33,16 +34,19 @@ public class OwnerServiceTest
 
   @Test
   public void testGetHierarchy_OwnerDoesNotExist() {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> ownerService.getHierarchy("doesNotExist"));
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> ownerService.getHierarchy(
+        OwnerType.APPLICATION, "doesNotExist"));
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> ownerService.getHierarchy(
+        OwnerType.ORGANIZATION, "doesNotExist"));
   }
 
   @Test
   public void testGetHierarchy_RootOrganization() {
     Owner rootOrg = ownerDAO.getById(Organization.ROOT_ORGANIZATION_ID);
-    ApplicableContext expectedHierarchy = new ApplicableContext(rootOrg.getPublicId(), rootOrg.getName(),
-        rootOrg.getType(), null);
+    OwnerHierarchyDTO expectedHierarchy = new OwnerHierarchyDTO(rootOrg.getId(), rootOrg.getPublicId(),
+        rootOrg.getName(), rootOrg.getType(), null);
 
-    ApplicableContext hierarchy = ownerService.getHierarchy(rootOrg.getPublicId());
+    OwnerHierarchyDTO hierarchy = ownerService.getHierarchy(rootOrg.getType(), rootOrg.getPublicId());
 
     assertThat(hierarchy).usingRecursiveComparison().isEqualTo(expectedHierarchy);
   }
@@ -50,14 +54,14 @@ public class OwnerServiceTest
   @Test
   public void testGetHierarchy_Organization() {
     Organization organization = tempEntity.newOrganization();
-    ApplicableContext organizationHierarchy = new ApplicableContext(organization.getPublicId(), organization.getName(),
-        organization.getType(), null);
+    OwnerHierarchyDTO organizationHierarchy = new OwnerHierarchyDTO(organization.getId(), organization.getPublicId(),
+        organization.getName(), organization.getType(), null);
     Owner rootOrganization = ownerDAO.getById(Organization.ROOT_ORGANIZATION_ID);
-    ApplicableContext expectedHierarchy =
-        new ApplicableContext(rootOrganization.getPublicId(), rootOrganization.getName(), rootOrganization.getType(),
-            Collections.singletonList(organizationHierarchy));
+    OwnerHierarchyDTO expectedHierarchy = new OwnerHierarchyDTO(rootOrganization.getId(),
+        rootOrganization.getPublicId(), rootOrganization.getName(), rootOrganization.getType(),
+        Collections.singletonList(organizationHierarchy));
 
-    ApplicableContext hierarchy = ownerService.getHierarchy(organization.getPublicId());
+    OwnerHierarchyDTO hierarchy = ownerService.getHierarchy(organization.getType(), organization.getPublicId());
 
     assertThat(hierarchy).usingRecursiveComparison().isEqualTo(expectedHierarchy);
   }
@@ -66,15 +70,16 @@ public class OwnerServiceTest
   public void testGetHierarchy_Application() {
     Organization organization = tempEntity.newOrganization();
     Application application = tempEntity.newApplication(organization.getId());
-    ApplicableContext applicationHierarchy = new ApplicableContext(application.getPublicId(), application.getName(),
-        application.getType(), null);
-    ApplicableContext organizationHierarchy = new ApplicableContext(organization.getPublicId(), organization.getName(),
-        organization.getType(), Collections.singletonList(applicationHierarchy));
+    OwnerHierarchyDTO applicationHierarchy = new OwnerHierarchyDTO(application.getId(), application.getPublicId(),
+        application.getName(), application.getType(), null);
+    OwnerHierarchyDTO organizationHierarchy = new OwnerHierarchyDTO(organization.getId(), organization.getPublicId(),
+        organization.getName(), organization.getType(), Collections.singletonList(applicationHierarchy));
     Owner rootOrganization = ownerDAO.getById(Organization.ROOT_ORGANIZATION_ID);
-    ApplicableContext expectedHierarchy = new ApplicableContext(rootOrganization.getPublicId(),
-        rootOrganization.getName(), rootOrganization.getType(), Collections.singletonList(organizationHierarchy));
+    OwnerHierarchyDTO expectedHierarchy = new OwnerHierarchyDTO(rootOrganization.getId(),
+        rootOrganization.getPublicId(), rootOrganization.getName(), rootOrganization.getType(),
+        Collections.singletonList(organizationHierarchy));
 
-    ApplicableContext hierarchy = ownerService.getHierarchy(application.getPublicId());
+    OwnerHierarchyDTO hierarchy = ownerService.getHierarchy(application.getType(), application.getPublicId());
 
     assertThat(hierarchy).usingRecursiveComparison().isEqualTo(expectedHierarchy);
   }

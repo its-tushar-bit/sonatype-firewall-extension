@@ -56,7 +56,10 @@ export const licenseObligationsPropType = PropTypes.arrayOf(
       name: PropTypes.string.isRequired,
       status: PropTypes.string.isRequired,
       comment: PropTypes.string,
-      attributions: PropTypes.arrayOf(PropTypes.string.isRequired).isRequired
+      attributions: PropTypes.arrayOf(PropTypes.shape({
+        id: PropTypes.string.isRequired,
+        content: PropTypes.string.isRequired
+      }).isRequired).isRequired
     })
 );
 
@@ -70,7 +73,10 @@ export const licenseObligationPropTypes = PropTypes.arrayOf(PropTypes.shape({
   licenses: licenseObligationLicensesPropTypes,
   status: PropTypes.string.isRequired,
   comment: PropTypes.string,
-  attributions: PropTypes.arrayOf(PropTypes.string.isRequired).isRequired
+  attributions: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    content: PropTypes.string.isRequired
+  }).isRequired).isRequired
 }).isRequired);
 
 export const scopePropType = PropTypes.shape({

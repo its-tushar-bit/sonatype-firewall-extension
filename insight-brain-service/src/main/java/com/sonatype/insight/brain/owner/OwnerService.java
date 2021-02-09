@@ -10,15 +10,14 @@ import java.util.ArrayList;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
-import com.sonatype.insight.brain.dto.ApplicableContext;
+import com.sonatype.insight.brain.dto.OwnerHierarchyDTO;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.security.AuthzContext.Key;
-import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.brain.utils.IdUtils;
 
 /**
  * @since 1.105
@@ -28,41 +27,27 @@ public class OwnerService
 {
   private final OwnerDAO ownerDAO;
 
-  private final ApplicationDAO applicationDAO;
-
   @Inject
-  public OwnerService(OwnerDAO ownerDAO, ApplicationDAO applicationDAO) {
+  public OwnerService(OwnerDAO ownerDAO) {
     this.ownerDAO = ownerDAO;
-    this.applicationDAO = applicationDAO;
-  }
-
-  public ApplicableContext getHierarchy(String ownerId) {
-    return getHierarchy(getOwnerByIdOrPublicIdNotNull(ownerId));
-  }
-
-  private Owner getOwnerByIdOrPublicIdNotNull(String ownerId) {
-    Owner owner = ownerDAO.getById(ownerId);
-    if (owner == null) {
-      owner = applicationDAO.getByPublicId(ownerId);
-    }
-    if (owner == null) {
-      throw new NotFoundException("Could not find an owner with ID " + ownerId + ".");
-    }
-    return owner;
   }
 
   @Authorize(permission = Permission.READ)
-  ApplicableContext getHierarchy(@AuthzContext(Key.OWNER) Owner currentOwner) {
-    ApplicableContext currentApplicableContext = null;
+  public OwnerHierarchyDTO getHierarchy(
+      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) String ownerId)
+  {
+    Owner currentOwner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    OwnerHierarchyDTO currentHierarchy = null;
     for (Owner owner : ownerDAO.walkHierarchy(currentOwner)) {
-      ApplicableContext applicableContext =
-          new ApplicableContext(owner.getPublicId(), owner.getName(), owner.getType());
-      if (currentApplicableContext != null) {
-        applicableContext.setChildren(new ArrayList<>());
-        applicableContext.getChildren().add(currentApplicableContext);
+      OwnerHierarchyDTO hierarchy =
+          new OwnerHierarchyDTO(owner.getId(), owner.getPublicId(), owner.getName(), owner.getType(), null);
+      if (currentHierarchy != null) {
+        hierarchy.setChildren(new ArrayList<>());
+        hierarchy.getChildren().add(currentHierarchy);
       }
-      currentApplicableContext = applicableContext;
+      currentHierarchy = hierarchy;
     }
-    return currentApplicableContext;
+    return currentHierarchy;
   }
 }

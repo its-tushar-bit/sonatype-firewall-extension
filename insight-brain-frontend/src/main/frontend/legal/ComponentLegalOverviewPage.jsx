@@ -43,15 +43,15 @@ export default function ComponentLegalOverviewPage(props) {
     if (hash) {
       if (organizationId) {
         loadComponent('organization', organizationId, hash);
-        loadAvailableScopes(organizationId);
+        loadAvailableScopes('organization', organizationId);
       }
       else if (applicationPublicId) {
         loadComponent('application', applicationPublicId, hash);
-        loadAvailableScopes(applicationPublicId);
+        loadAvailableScopes('application', applicationPublicId);
       }
       else {
         loadComponent('organization', 'ROOT_ORGANIZATION_ID', hash);
-        loadAvailableScopes('ROOT_ORGANIZATION_ID');
+        loadAvailableScopes('organization', 'ROOT_ORGANIZATION_ID');
       }
     }
   }
@@ -98,7 +98,7 @@ export default function ComponentLegalOverviewPage(props) {
     return <LicenseObligationAttributionTileContainer key={ index }
                                                       name={ licenseObligation.name }
                                                       attributionText={ licenseObligation.attributions.length > 0 ?
-                                                        licenseObligation.attributions[0] : '' }
+                                                        licenseObligation.attributions[0].content : '' }
                                                       obligationFulfilled={ licenseObligation.status === 'FULFILLED' }
                                                       availableScopes={ availableScopes }
     />;

@@ -45,11 +45,13 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalMetadataDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApplicationLicenseUsageTelemetry;
+import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiLicenseDataAdapter;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentCopyrightDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationAttributionDAO;
@@ -164,6 +166,8 @@ public class ApiLicenseLegalService
 
   private final LicenseOverrideDAO licenseOverrideDAO;
 
+  private final OwnerDAO ownerDAO;
+
   @Inject
   public ApiLicenseLegalService(
       MultiLicenseDAO multiLicenseDAO,
@@ -186,7 +190,8 @@ public class ApiLicenseLegalService
       CopyrightOverrideDAO copyrightOverrideDAO,
       LegalFileOverrideDAO legalFileOverrideDAO,
       ComponentObligationDAO componentObligationDAO,
-      ComponentObligationAttributionDAO componentObligationAttributionDAO)
+      ComponentObligationAttributionDAO componentObligationAttributionDAO,
+      OwnerDAO ownerDAO)
   {
     this.multiLicenseDAO = multiLicenseDAO;
     this.apiLicenseLegalHdsService = apiLicenseLegalHdsService;
@@ -210,6 +215,7 @@ public class ApiLicenseLegalService
     this.legalFileOverrideDAO = legalFileOverrideDAO;
     this.componentObligationDAO = componentObligationDAO;
     this.componentObligationAttributionDAO = componentObligationAttributionDAO;
+    this.ownerDAO = ownerDAO;
   }
 
   public List<ApiLicenseLegalApplicationDashboardDTO> getLicenseLegalApplicationsDashboard(
@@ -602,22 +608,36 @@ public class ApiLicenseLegalService
             obligationNames);
     Map<String, ComponentObligation> componentObligationByName = componentObligations.stream()
         .collect(toMap(ComponentObligation::getObligationName, Function.identity()));
-    List<ComponentObligationAttribution> componentObligationAttributions = componentObligationAttributionDAO
+    List<ComponentObligationAttribution> allComponentObligationAttributions = componentObligationAttributionDAO
         .getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(ownerId, componentIdentifier,
             obligationNames);
-    Map<String, List<ComponentObligationAttribution>> componentObligationAttributionsByName =
-        componentObligationAttributions.stream().collect(groupingBy(ComponentObligationAttribution::getObligationName));
+    Map<String, List<ComponentObligationAttribution>> allComponentObligationAttributionsByName =
+        allComponentObligationAttributions.stream()
+            .collect(groupingBy(ComponentObligationAttribution::getObligationName));
     for (String obligationName : obligationNames) {
-      ComponentObligation componentObligation = componentObligationByName.get(obligationName);
       ApiLicenseLegalObligationDTO apiLicenseLegalObligationDTO = new ApiLicenseLegalObligationDTO();
       apiLicenseLegalObligationDTO.name = obligationName;
-      apiLicenseLegalObligationDTO.status =
-          componentObligation == null ? ObligationStatus.OPEN : componentObligation.getStatus();
-      apiLicenseLegalObligationDTO.comment = componentObligation == null ? null : componentObligation.getComment();
-      apiLicenseLegalObligationDTO.attributions = componentObligationAttributionsByName
-          .getOrDefault(obligationName, Collections.emptyList()).stream()
-          .map(ComponentObligationAttribution::getContent)
-          .collect(Collectors.toList());
+      apiLicenseLegalObligationDTO.status = ObligationStatus.OPEN;
+      apiLicenseLegalObligationDTO.attributions = new ArrayList<>();
+
+      ComponentObligation componentObligation = componentObligationByName.get(obligationName);
+      if (componentObligation != null) {
+        apiLicenseLegalObligationDTO.status = componentObligation.getStatus();
+        apiLicenseLegalObligationDTO.comment = componentObligation.getComment();
+      }
+
+      List<ComponentObligationAttribution> componentObligationAttributions =
+          allComponentObligationAttributionsByName.getOrDefault(obligationName, Collections.emptyList());
+      for (ComponentObligationAttribution componentObligationAttribution : componentObligationAttributions) {
+        Owner owner = ownerDAO.getById(componentObligationAttribution.getOwnerId());
+        if (owner == null) {
+          continue;
+        }
+        ComponentObligationAttributionDTO componentObligationAttributionDTO =
+            new ComponentObligationAttributionDTO(componentObligationAttribution.getId(), owner.getId(),
+                componentObligationAttribution.getContent());
+        apiLicenseLegalObligationDTO.attributions.add(componentObligationAttributionDTO);
+      }
       apiLicenseLegalObligationDTOs.add(apiLicenseLegalObligationDTO);
     }
     return apiLicenseLegalObligationDTOs;

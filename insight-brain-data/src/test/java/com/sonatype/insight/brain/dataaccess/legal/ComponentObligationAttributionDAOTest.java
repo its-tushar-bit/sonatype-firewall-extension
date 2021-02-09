@@ -68,6 +68,14 @@ public class ComponentObligationAttributionDAOTest
   }
 
   @Test
+  public void testGetByIdNotNull() {
+    String id = "doesNotExist";
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> dao.getByIdNotNull(id))
+        .withMessageContaining("ComponentObligationAttribution with ID " + id + " does not exist.");
+  }
+
+  @Test
   public void testInsert_SetsDateIfNull() {
     ComponentObligationAttribution componentObligationAttribution =
         new ComponentObligationAttribution(ComponentIdentifier.createMavenCoordinates("g", "a", "v"),

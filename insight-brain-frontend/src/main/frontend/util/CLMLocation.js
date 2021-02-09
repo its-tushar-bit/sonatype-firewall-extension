@@ -4,10 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular */
-import {pick} from 'ramda';
+import { pick } from 'ramda';
 
 import commonServicesModule from '../util/CommonServices';
-import {toURIParams, uriTemplate} from './urlUtil';
+import { toURIParams, uriTemplate } from './urlUtil';
 
 /**
  * Generates the url to fetch the vulnerability details of a given refId.
@@ -248,8 +248,8 @@ export function getLegalDashboardApplicationsUrl() {
   return uriTemplate`/api/experimental/licenseLegalMetadata/dashboard/applications`;
 }
 
-export function getOwnerHierarchyUrl(ownerId) {
-  return uriTemplate`/rest/owner/${ownerId}/hierarchy`;
+export function getOwnerHierarchyUrl(ownerType, ownerId) {
+  return uriTemplate`/rest/owner/${ownerType}/${ownerId}/hierarchy`;
 }
 
 export default

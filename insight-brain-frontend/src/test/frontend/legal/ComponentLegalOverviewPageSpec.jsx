@@ -72,13 +72,15 @@ describe('ComponentLegalOverviewPage', function() {
       name: 'obligation 2',
       status: 'IGNORED',
       comment: 'comment',
-      attributions: ['attributionText']
+      attributions: [{ id: 'attribution1', content: 'attributionText' }]
     },
     {
       name: 'obligation 3',
       status: 'FULFILLED',
       comment: null,
-      attributions: ['attributionText1', 'attributionText2']
+      attributions: [
+        { id: 'attribution2', content: 'attributionText1' }, { id: 'attribution3', content: 'attributionText2' }
+      ]
     }];
 
     minimalProps = {
@@ -95,7 +97,7 @@ describe('ComponentLegalOverviewPage', function() {
   it('loads the expected data using the root organization id', function() {
     const component = mount(<ComponentLegalOverviewPage {...minimalProps} loading={true} />);
     expect(loadComponentSpy).toHaveBeenCalledWith('organization', 'ROOT_ORGANIZATION_ID', '1e48256a2341047e7d72');
-    expect(loadAvailableScopesSpy).toHaveBeenCalledWith('ROOT_ORGANIZATION_ID');
+    expect(loadAvailableScopesSpy).toHaveBeenCalledWith('organization', 'ROOT_ORGANIZATION_ID');
     component.unmount();
   });
 
@@ -103,7 +105,7 @@ describe('ComponentLegalOverviewPage', function() {
     const component = mount(<ComponentLegalOverviewPage {...{ ...minimalProps, organizationId: 'orgId' }}
                                                         loading={true}/>);
     expect(loadComponentSpy).toHaveBeenCalledWith('organization', 'orgId', '1e48256a2341047e7d72');
-    expect(loadAvailableScopesSpy).toHaveBeenCalledWith('orgId');
+    expect(loadAvailableScopesSpy).toHaveBeenCalledWith('organization', 'orgId');
     component.unmount();
   });
 
@@ -111,7 +113,7 @@ describe('ComponentLegalOverviewPage', function() {
     const component = mount(<ComponentLegalOverviewPage {...{ ...minimalProps, applicationPublicId: 'appId' }}
                                                         loading={true}/>);
     expect(loadComponentSpy).toHaveBeenCalledWith('application', 'appId', '1e48256a2341047e7d72');
-    expect(loadAvailableScopesSpy).toHaveBeenCalledWith('appId');
+    expect(loadAvailableScopesSpy).toHaveBeenCalledWith('application', 'appId');
     component.unmount();
   });
 
@@ -164,7 +166,7 @@ describe('ComponentLegalOverviewPage', function() {
       }],
       status: 'IGNORED',
       comment: 'comment',
-      attributions: ['attributionText']
+      attributions: [{ id: 'attribution1', content: 'attributionText' }]
     }, {
       name: 'obligation 3',
       licenses: [{
@@ -173,7 +175,9 @@ describe('ComponentLegalOverviewPage', function() {
       }],
       status: 'FULFILLED',
       comment: null,
-      attributions: ['attributionText1', 'attributionText2']
+      attributions: [
+        { id: 'attribution2', content: 'attributionText1' }, { id: 'attribution3', content: 'attributionText2' }
+      ]
     }];
     expect(obligationsTile).toExist();
     expect(obligationsTile).toHaveProp('licenseObligations', expectedObligations);

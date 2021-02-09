@@ -4,18 +4,16 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { connect } from 'react-redux';
-import { pick } from 'ramda';
 
 import * as licenseObligationAttributionTileActions from './licenseObligationAttributionTileActions';
 import LicenseObligationAttributionTile from './LicenseObligationAttributionTile';
 
 function mapStateToProps({ licenseObligationAttributionTile }, ownProps) {
+  let state = licenseObligationAttributionTile[ownProps.name];
   return {
-    ...pick([
-      'attributionText',
-      'obligationFulfilled',
-      'scope'
-    ], licenseObligationAttributionTile[ownProps.name])
+    attributionText: state.attributionText || ownProps.attributionText,
+    obligationFulfilled: state.obligationFulfilled || ownProps.obligationFulfilled,
+    scope: state.scope || ownProps.scope
   };
 }
 

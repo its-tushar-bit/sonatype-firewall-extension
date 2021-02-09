@@ -17,13 +17,18 @@ public class ApiLicenseLegalObligationDTO
 
   public String comment;
 
-  public List<String> attributions;
+  public List<ComponentObligationAttributionDTO> attributions;
 
   public ApiLicenseLegalObligationDTO() {
     // for jackson
   }
 
-  public ApiLicenseLegalObligationDTO(String name, ObligationStatus status, String comment, List<String> attributions) {
+  public ApiLicenseLegalObligationDTO(
+      String name,
+      ObligationStatus status,
+      String comment,
+      List<ComponentObligationAttributionDTO> attributions)
+  {
     this.name = name;
     this.status = status;
     this.comment = comment;

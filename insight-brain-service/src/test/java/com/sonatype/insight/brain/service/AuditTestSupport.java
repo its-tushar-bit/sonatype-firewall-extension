@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.OrganizationAuditDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
@@ -140,6 +141,25 @@ public interface AuditTestSupport
 
   default void assertApplicationData(AuditDTO auditDTO, Application application) {
     assertApplicationData(auditDTO, application.getId(), application.getPublicId(), application.getName());
+  }
+
+  default void assertOwnerData(AuditDTO auditDTO, Owner owner) {
+    switch (owner.getType()) {
+      case APPLICATION:
+        assertApplicationData(auditDTO, (Application) owner);
+        return;
+      case ORGANIZATION:
+        assertOrganizationData(auditDTO, (Organization) owner);
+        return;
+      case REPOSITORY:
+        assertRepositoryData(auditDTO, (Repository) owner);
+        return;
+      case REPOSITORY_CONTAINER:
+        assertRepositoryContainerData(auditDTO);
+        return;
+      default:
+        throw new IllegalArgumentException("unsupported owner type " + owner.getType());
+    }
   }
 
   default void assertApplicationData(AuditDTO auditDTO,

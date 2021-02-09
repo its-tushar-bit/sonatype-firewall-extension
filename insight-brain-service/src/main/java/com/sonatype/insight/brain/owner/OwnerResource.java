@@ -13,7 +13,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import com.sonatype.insight.brain.dto.ApplicableContext;
+import com.sonatype.insight.brain.dto.OwnerHierarchyDTO;
+import com.sonatype.insight.brain.model.OwnerType;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -25,7 +26,7 @@ import com.codahale.metrics.annotation.Timed;
 @Path(OwnerResource.RESOURCE_PATH)
 public class OwnerResource
 {
-  public static final String RESOURCE_PATH = "rest/owner/{ownerId}/hierarchy";
+  public static final String RESOURCE_PATH = "rest/owner/{ownerType}/{ownerId}/hierarchy";
 
   private final OwnerService ownerService;
 
@@ -36,7 +37,10 @@ public class OwnerResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public ApplicableContext getHierarchy(@PathParam("ownerId") String ownerId) {
-    return ownerService.getHierarchy(ownerId);
+  public OwnerHierarchyDTO getHierarchy(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId)
+  {
+    return ownerService.getHierarchy(ownerType, ownerId);
   }
 }

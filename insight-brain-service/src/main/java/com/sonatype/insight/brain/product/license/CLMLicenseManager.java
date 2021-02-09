@@ -487,7 +487,8 @@ public class CLMLicenseManager
         LicensedFeature.HYGIENE, //
         LicensedFeature.RELEASE_INTEGRITY, //
         LicensedFeature.NODE_CLUSTERING, //
-        LicensedFeature.ADVANCED_LEGAL_PACK //
+        LicensedFeature.ADVANCED_LEGAL_PACK, //
+        LicensedFeature.DATA_INSIGHTS //
     );
     for (LicensedFeature feature : hdsControlledFeatures) {
       if (licenseDetails.features.contains(feature.name())) {

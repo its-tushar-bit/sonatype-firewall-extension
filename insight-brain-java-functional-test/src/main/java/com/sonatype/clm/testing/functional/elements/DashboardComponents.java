@@ -10,6 +10,7 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class DashboardComponents
@@ -24,32 +25,39 @@ public class DashboardComponents
     return new ComponentsResults();
   }
 
+  public ComponentsResultsMask resultsMask() {
+    return new ComponentsResultsMask();
+  }
+
   public static class ComponentsResults
       extends BasicElement<ComponentsResults>
   {
+    private static final String ROW_CLASS_NAME = ".iq-dashboard-component-row";
+
     ComponentsResults() {
-      super(ROOT, ".iq-tile--dashboard-table-container");
+      super(ROOT, "tbody");
     }
 
     public ElementsCollection components() {
-      return children(".iq-components-results .iq-table-row");
+      return children(ROW_CLASS_NAME);
     }
 
     public ComponentElement component(int index) {
-      return new ComponentElement(childSelector(".iq-components-results .iq-table-row", nthChild(index + 1)));
+      return new ComponentElement(childSelector(ROW_CLASS_NAME, nthChild(index + 1)));
     }
 
     public ElementsCollection componentRisks(int index) {
-      return children(".iq-components-results .iq-table-row", nthChild(index + 1),
-          ".iq-cell:nth-child(n+3):nth-child(-n+7)");
+      return children(ROW_CLASS_NAME, nthChild(index + 1),
+          ".nx-cell:nth-child(n+3):nth-child(-n+7)");
     }
 
     public ComponentElement firstComponent() {
-      return new ComponentElement(childSelector(".iq-components-results .iq-table-row:first-child"));
+      return new ComponentElement(childSelector(ROW_CLASS_NAME + ":first-child"));
     }
 
     public ComponentElement lastComponent() {
-      return new ComponentElement(childSelector(".iq-components-results .iq-table-row:last-of-type"));
+      String lastRowSelector = createSelector(ROW_CLASS_NAME, nthChild(components().size()));
+      return new ComponentElement(childSelector(lastRowSelector));
     }
 
     public SelenideElement maxResultsMessage() {
@@ -57,83 +65,91 @@ public class DashboardComponents
     }
 
     public SelenideElement noDataMessage() {
-      return child("#dashboard-common-results-no-data");
+      return child("tr:last-child");
     }
+  }
 
-    public SelenideElement mask() {
-      return child(".form-mask");
+  public static class ComponentsResultsMask
+      extends BasicElement<ComponentsResultsMask>
+  {
+    ComponentsResultsMask() {
+      super(ROOT, ".form-mask");
     }
   }
 
   public static class ComponentsHeaders
       extends BasicElement<ComponentsHeaders>
   {
+    private static final String HEADER_CLASS_NAME = ".nx-cell--header";
+
     ComponentsHeaders() {
-      super(ROOT, ".iq-dashboard-headers");
+      super(ROOT, ".nx-table-row--header");
     }
 
-    public IqSortingHeader componentNameHeader() {
-      return new IqSortingHeader(childSelector(".iq-cell--component-name", "a"));
+    public NxSortingHeader componentNameHeader() {
+      return new NxSortingHeader(childSelector(createSelector(HEADER_CLASS_NAME, nthChild(1))));
     }
 
-    public IqSortingHeader totalRiskHeader() {
-      return new IqSortingHeader(childSelector(".iq-cell--total-risk", "a"));
+    public NxSortingHeader affectedAppsHeader() {
+      return new NxSortingHeader(childSelector(createSelector(HEADER_CLASS_NAME, nthChild(2))));
     }
 
-    public IqSortingHeader lowRiskHeader() {
-      return new IqSortingHeader(childSelector(".iq-cell--low-risk", "a"));
+    public NxSortingHeader totalRiskHeader() {
+      return new NxSortingHeader(childSelector(createSelector(HEADER_CLASS_NAME, nthChild(3))));
     }
 
-    public IqSortingHeader moderateRiskHeader() {
-      return new IqSortingHeader(childSelector(".iq-cell--moderate-risk", "a"));
+    public NxSortingHeader criticalRiskHeader() {
+      return new NxSortingHeader(childSelector(createSelector(HEADER_CLASS_NAME, nthChild(4))));
     }
 
-    public IqSortingHeader severeRiskHeader() {
-      return new IqSortingHeader(childSelector(".iq-cell--severe-risk", "a"));
+    public NxSortingHeader severeRiskHeader() {
+      return new NxSortingHeader(childSelector(createSelector(HEADER_CLASS_NAME, nthChild(5))));
     }
 
-    public IqSortingHeader criticalRiskHeader() {
-      return new IqSortingHeader(childSelector(".iq-cell--critical-risk", "a"));
+    public NxSortingHeader moderateRiskHeader() {
+      return new NxSortingHeader(childSelector(createSelector(HEADER_CLASS_NAME, nthChild(6))));
     }
 
-    public IqSortingHeader affectedAppsHeader() {
-      return new IqSortingHeader(childSelector(".iq-cell--affected-apps", "a"));
+    public NxSortingHeader lowRiskHeader() {
+      return new NxSortingHeader(childSelector(createSelector(HEADER_CLASS_NAME, nthChild(7))));
     }
   }
 
   public static class ComponentElement
       extends BasicElement<ComponentElement>
   {
+    private static final String CELL_CLASS_NAME = ".nx-cell";
+
     ComponentElement(String selector) {
       super(selector);
     }
 
     public SelenideElement name() {
-      return child(".iq-cell--component-name");
-    }
-
-    public SelenideElement totalRisk() {
-      return child(".iq-cell--total-risk");
-    }
-
-    public SelenideElement criticalRisk() {
-      return child(".iq-cell--critical-risk");
-    }
-
-    public SelenideElement severeRisk() {
-      return child(".iq-cell--severe-risk");
-    }
-
-    public SelenideElement moderateRisk() {
-      return child(".iq-cell--moderate-risk");
-    }
-
-    public SelenideElement lowRisk() {
-      return child(".iq-cell--low-risk");
+      return child(createSelector(CELL_CLASS_NAME, nthChild(1)));
     }
 
     public SelenideElement affectedApps() {
-      return child(".iq-cell--affected-apps");
+      return child(createSelector(CELL_CLASS_NAME, nthChild(2)));
+    }
+
+    public SelenideElement totalRisk() {
+      return child(createSelector(CELL_CLASS_NAME, nthChild(3)));
+    }
+
+    public SelenideElement criticalRisk() {
+      return child(createSelector(CELL_CLASS_NAME, nthChild(4)));
+    }
+
+    public SelenideElement severeRisk() {
+      return child(createSelector(CELL_CLASS_NAME, nthChild(5)));
+    }
+
+    public SelenideElement moderateRisk() {
+      return child(createSelector(CELL_CLASS_NAME, nthChild(6)));
+    }
+
+    public SelenideElement lowRisk() {
+      return child(createSelector(CELL_CLASS_NAME, nthChild(7)));
     }
   }
 }

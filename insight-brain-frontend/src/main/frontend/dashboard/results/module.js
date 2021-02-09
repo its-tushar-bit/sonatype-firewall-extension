@@ -11,17 +11,17 @@ import utilityModule from '../../utility/utility.module';
 import dashboardUtilsModule from '../utils/dashboard.utils.module';
 import dashboardResultsActionsModule from './dashboardResultsActions';
 
-import components from './components/components';
 import applications from './applications/applications';
 import dashboardResultsContainer from './dashboardResultsContainer';
 import dashboardCommonResults from './dashboardCommonResults/dashboardCommonResults';
 import dashboardTabs from './dashboardTabs/dashboardTabs';
 import DashboardViolationsContainer from './violations/DashboardViolationsContainer';
+import DashboardComponentsContainer from './components/DashboardComponentsContainer';
 
 export default angular.module('dashboardResultsModule',
     [CLMLocationModule.name, utilityModule.name, dashboardUtilsModule.name, dashboardResultsActionsModule.name])
     .component('violations', react2angular(withStoreProvider(DashboardViolationsContainer), [], ['$ngRedux']))
-    .component('components', components)
+    .component('components', react2angular(withStoreProvider(DashboardComponentsContainer), [], ['$ngRedux']))
     .component('applications', applications)
     .component('dashboardResultsContainer', dashboardResultsContainer)
     .component('dashboardCommonResults', dashboardCommonResults)

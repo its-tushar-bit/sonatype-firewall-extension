@@ -168,7 +168,7 @@ dashboard-results-container, violations, components, applications {
 
 // apply white border to non-zero heatmap styles
 // override default :hover states for table rows because we have gaps between our rows here
-.iq-components-results, .iq-applications-results {
+.iq-applications-results {
   .iq-table-row.iq-clickable {
     .iq-cell {
       border-top: none;
@@ -241,7 +241,7 @@ dashboard-results-container, violations, components, applications {
   }
 }
 
-.iq-violations-results, .iq-components-results, .iq-applications-results {
+.iq-violations-results, .iq-applications-results {
   box-sizing: border-box;
   position: relative;
 
@@ -261,7 +261,7 @@ dashboard-results-container, violations, components, applications {
   }
 }
 
-.iq-violations-results, .iq-components-results {
+.iq-violations-results {
   .iq-table-row {
     background-color: $iq-off-white;
     border-top: 1px solid $iq-grey-2;
@@ -347,74 +347,6 @@ dashboard-results-container, violations, components, applications {
 }
 
 /*
-  COMPONENTS TAB
-*/
-.iq-cell--affected-apps,
-.iq-cell--total-risk,
-.iq-cell--critical-risk,
-.iq-cell--severe-risk,
-.iq-cell--moderate-risk,
-.iq-cell--low-risk {
-  width: $iq-cell-default-width;
-  max-width: $iq-cell-default-width;
-
-  &.white-text {
-    color: $iq-off-white;
-  }
-}
-
-.iq-table--dashboard-components {
-  .iq-dashboard-headers {
-    .iq-cell--component-name {
-      width: calc(100% - (#{$iq-cell-default-width} * 6));
-    }
-  }
-  .iq-components-results {
-    .iq-cell--affected-apps {
-      width: $iq-cell-default-width;
-      max-width: $iq-cell-default-width;
-    }
-    .iq-cell--low-risk {
-      padding-right: 0;
-      width: $iq-cell-default-width - $iq-cell-chevron-width;
-      max-width: $iq-cell-default-width - $iq-cell-chevron-width;
-    }
-    .iq-cell--chevron {
-      padding-left: 0;
-    }
-    .iq-cell--component-name {
-      width: calc(100% - (#{$iq-cell-default-width} * 6));
-    }
-  }
-}
-
-.iq-components-results {
-  padding-top: 36px;
-
-  .iq-table-row:first-child {
-    border-top: none;
-  }
-
-  .iq-cell--affected-apps {
-    text-align: center;
-  }
-}
-
-// If the scrollbar is present the cells must adjust to fill the lost space
-.scrollbar-present {
-  .iq-components-results {
-    .iq-cell--low-risk {
-      text-overflow: clip;
-      width: $iq-cell-default-width - $iq-cell-chevron-width - $iq-cell-scroll-bar-width;
-      max-width: $iq-cell-default-width - $iq-cell-chevron-width - $iq-cell-scroll-bar-width;
-    }
-    .iq-cell--component-name {
-      width: calc((100% - (#{$iq-cell-default-width} * 6)) + #{$iq-cell-scroll-bar-width});
-    }
-  }
-}
-
-/*
   APPLICATIONS TAB
 */
 .iq-cell--affected-apps,
@@ -424,7 +356,6 @@ dashboard-results-container, violations, components, applications {
 .iq-cell--moderate-risk,
 .iq-cell--low-risk {
   width: $iq-cell-default-width;
-  max-width: $iq-cell-default-width;
 
   &.white-text {
     color: $iq-off-white;
@@ -449,18 +380,6 @@ dashboard-results-container, violations, components, applications {
     + .stage-application-risks {
       border-top: none;
     }
-  }
-}
-
-tbody {
-  .iq-cell--affected-apps,
-  .iq-cell--total-risk,
-  .iq-cell--critical-risk,
-  .iq-cell--severe-risk,
-  .iq-cell--moderate-risk,
-  .iq-cell--low-risk {
-    width: $iq-cell-default-width;
-    max-width: $iq-cell-default-width;
   }
 }
 

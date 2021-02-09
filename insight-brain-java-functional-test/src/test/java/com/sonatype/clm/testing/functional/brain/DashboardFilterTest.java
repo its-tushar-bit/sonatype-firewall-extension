@@ -278,7 +278,7 @@ public class DashboardFilterTest
     // that however, at least not one that works in PhantomJS
 
     DashboardPage.componentsTab().click();
-    DashboardPage.componentsView().results().mask().shouldBe(visible);
+    DashboardPage.componentsView().resultsMask().shouldBe(visible);
 
     DashboardPage.applicationsTab().click();
     DashboardPage.applicationsView().results().mask().shouldBe(visible);
@@ -415,10 +415,10 @@ public class DashboardFilterTest
     DashboardFilters.policyViolationStateFilter().twisty().click();
     DashboardFilters.policyViolationStateFilter().waived().click();
     DashboardFilters.policyViolationStateFilter().twisty().click();
-    DashboardPage.componentsView().results().mask().shouldBe(visible);
+    DashboardPage.componentsView().resultsMask().shouldBe(visible);
 
     DashboardFilters.apply();
-    DashboardPage.componentsView().results().mask().shouldBe(hidden);
+    DashboardPage.componentsView().resultsMask().shouldBe(hidden);
 
     // components tab should have only waived component
     DashboardPage.componentsView().results().components().shouldHaveSize(1);
@@ -446,10 +446,10 @@ public class DashboardFilterTest
     DashboardFilters.policyViolationStateFilter().open().click();
     DashboardFilters.policyViolationStateFilter().grandfathered().click();
     DashboardFilters.policyViolationStateFilter().twisty().click();
-    DashboardPage.componentsView().results().mask().shouldBe(visible);
+    DashboardPage.componentsView().resultsMask().shouldBe(visible);
 
     DashboardFilters.apply();
-    DashboardPage.componentsView().results().mask().shouldBe(hidden);
+    DashboardPage.componentsView().resultsMask().shouldBe(hidden);
 
     // components tab should have only grandfathered component
     DashboardPage.componentsView().results().components().shouldHaveSize(1);

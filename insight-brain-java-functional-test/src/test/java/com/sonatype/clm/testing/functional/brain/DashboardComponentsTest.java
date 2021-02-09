@@ -339,7 +339,7 @@ public class DashboardComponentsTest
     table.maxResultsMessage().shouldBe(visible);
 
     // default - sorted by total risk desc
-    headers.totalRiskHeader().sortArrowDown().shouldBeSelected();
+    headers.totalRiskHeader().sortArrows().shouldBeDown();
     table.firstComponent().totalRisk().shouldHave(text("8"));
     table.component(40).totalRisk().shouldHave(text("4"));
     table.component(80).totalRisk().shouldHave(text("2"));
@@ -347,7 +347,7 @@ public class DashboardComponentsTest
 
     // sort by total risk asc
     headers.totalRiskHeader().click();
-    headers.totalRiskHeader().sortArrowUp().shouldBeSelected();
+    headers.totalRiskHeader().sortArrows().shouldBeUp();
     table.firstComponent().totalRisk().shouldHave(text("1"));
     table.component(40).totalRisk().shouldHave(text("2"));
     table.component(80).totalRisk().shouldHave(text("4"));
@@ -355,21 +355,21 @@ public class DashboardComponentsTest
 
     // sort by number of affected apps desc
     headers.affectedAppsHeader().click();
-    headers.affectedAppsHeader().sortArrowDown().shouldBeSelected();
+    headers.affectedAppsHeader().sortArrows().shouldBeDown();
     table.firstComponent().affectedApps().shouldHave(text("2"));
     table.component(40).affectedApps().shouldHave(text("1"));
     table.lastComponent().affectedApps().shouldHave(text("1"));
 
     // sort by number of affected apps asc
     headers.affectedAppsHeader().click();
-    headers.affectedAppsHeader().sortArrowUp().shouldBeSelected();
+    headers.affectedAppsHeader().sortArrows().shouldBeUp();
     table.firstComponent().affectedApps().shouldHave(text("1"));
     table.component(40).affectedApps().shouldHave(text("1"));
     table.lastComponent().affectedApps().shouldHave(text("1"));
 
     // sort by name asc
     headers.componentNameHeader().click();
-    headers.componentNameHeader().sortArrowUp().shouldBeSelected();
+    headers.componentNameHeader().sortArrows().shouldBeUp();
     table.firstComponent().name().shouldHave(text("critical"));
     table.component(40).name().shouldHave(text("low"));
     table.component(80).name().shouldHave(text("moderate"));
@@ -377,7 +377,7 @@ public class DashboardComponentsTest
 
     // sort by name desc
     headers.componentNameHeader().click();
-    headers.componentNameHeader().sortArrowDown().shouldBeSelected();
+    headers.componentNameHeader().sortArrows().shouldBeDown();
     table.firstComponent().name().shouldHave(text("severe"));
     table.component(40).name().shouldHave(text("moderate"));
     table.component(80).name().shouldHave(text("low"));
@@ -385,56 +385,56 @@ public class DashboardComponentsTest
 
     // sort by criticalRisk desc
     headers.criticalRiskHeader().click();
-    headers.criticalRiskHeader().sortArrowDown().shouldBeSelected();
+    headers.criticalRiskHeader().sortArrows().shouldBeDown();
     table.firstComponent().criticalRisk().shouldHave(text("8"));
     table.component(40).criticalRisk().shouldHave(text("0"));
     table.lastComponent().criticalRisk().shouldHave(text("0"));
 
     // sort by criticalRisk asc
     headers.criticalRiskHeader().click();
-    headers.criticalRiskHeader().sortArrowUp().shouldBeSelected();
+    headers.criticalRiskHeader().sortArrows().shouldBeUp();
     table.firstComponent().criticalRisk().shouldHave(text("0"));
     table.component(40).criticalRisk().shouldHave(text("0"));
     table.lastComponent().criticalRisk().shouldHave(text("0"));
 
     // sort by severeRisk desc
     headers.severeRiskHeader().click();
-    headers.severeRiskHeader().sortArrowDown().shouldBeSelected();
+    headers.severeRiskHeader().sortArrows().shouldBeDown();
     table.firstComponent().severeRisk().shouldHave(text("4"));
     table.component(40).severeRisk().shouldHave(text("0"));
     table.lastComponent().severeRisk().shouldHave(text("0"));
 
     // sort by severeRisk asc
     headers.severeRiskHeader().click();
-    headers.severeRiskHeader().sortArrowUp().shouldBeSelected();
+    headers.severeRiskHeader().sortArrows().shouldBeUp();
     table.firstComponent().severeRisk().shouldHave(text("0"));
     table.component(40).severeRisk().shouldHave(text("0"));
     table.lastComponent().severeRisk().shouldHave(text("0"));
 
     // sort by moderateRisk desc
     headers.moderateRiskHeader().click();
-    headers.moderateRiskHeader().sortArrowDown().shouldBeSelected();
+    headers.moderateRiskHeader().sortArrows().shouldBeDown();
     table.firstComponent().moderateRisk().shouldHave(text("2"));
     table.component(40).moderateRisk().shouldHave(text("0"));
     table.lastComponent().moderateRisk().shouldHave(text("0"));
 
     // sort by moderateRisk asc
     headers.moderateRiskHeader().click();
-    headers.moderateRiskHeader().sortArrowUp().shouldBeSelected();
+    headers.moderateRiskHeader().sortArrows().shouldBeUp();
     table.firstComponent().moderateRisk().shouldHave(text("0"));
     table.component(40).moderateRisk().shouldHave(text("0"));
     table.lastComponent().moderateRisk().shouldHave(text("0"));
 
     // sort by lowRisk desc
     headers.lowRiskHeader().click();
-    headers.lowRiskHeader().sortArrowDown().shouldBeSelected();
+    headers.lowRiskHeader().sortArrows().shouldBeDown();
     table.firstComponent().lowRisk().shouldHave(text("1"));
     table.component(40).lowRisk().shouldHave(text("0"));
     table.lastComponent().lowRisk().shouldHave(text("0"));
 
     // sort by lowRisk asc
     headers.lowRiskHeader().click();
-    headers.lowRiskHeader().sortArrowUp().shouldBeSelected();
+    headers.lowRiskHeader().sortArrows().shouldBeUp();
     table.firstComponent().lowRisk().shouldHave(text("0"));
     table.component(40).lowRisk().shouldHave(text("0"));
     table.lastComponent().lowRisk().shouldHave(text("0"));

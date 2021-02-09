@@ -12,13 +12,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.persistence.Query;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.model.AggregateFile;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.ApplicationComponentLicense;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 
 import com.google.common.collect.Sets;
@@ -27,6 +32,9 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class ApplicationComponentDAOTest
     extends AbstractDbDAOTest
@@ -300,6 +308,125 @@ public class ApplicationComponentDAOTest
     assertThat(applicationComponentLicenseDAO.getByApplicationComponentId(applicationComponent2.getId()))
         .usingRecursiveFieldByFieldElementComparator()
         .containsExactlyInAnyOrder(applicationComponentLicense3, applicationComponentLicense4);
+  }
+
+  @Test
+  public void testGetApplicationIdsAndStageTypeIdsByLicenses() {
+    ApplicationComponent applicationComponent1 = tempEntity.newApplicationComponent(application.getId(),
+        BuildStageType.ID, "hash1", ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
+    tempEntity.newApplicationComponentLicense(applicationComponent1.getId(), "Apache-1.0");
+
+    Application otherApplication = tempEntity.newApplication(organization.getId());
+
+    ApplicationComponent applicationComponent2 = tempEntity.newApplicationComponent(otherApplication.getId(),
+        BuildStageType.ID, "hash2", ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"));
+    tempEntity.newApplicationComponentLicense(applicationComponent2.getId(), "Apache-1.0");
+
+    ApplicationComponent applicationComponent3 = tempEntity.newApplicationComponent(application.getId(),
+        DevelopStageType.ID, "hash3", ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3"));
+    tempEntity.newApplicationComponentLicense(applicationComponent3.getId(), "Apache-2.0");
+
+    ApplicationComponent applicationComponent4 = tempEntity.newApplicationComponent(otherApplication.getId(),
+        DevelopStageType.ID, "hash4", ComponentIdentifier.createMavenCoordinates("g4", "a4", "v4"));
+    tempEntity.newApplicationComponentLicense(applicationComponent4.getId(), "Apache-2.0");
+
+    ApplicationComponent applicationComponent5 = tempEntity.newApplicationComponent(application.getId(),
+        BuildStageType.ID, "hash5", ComponentIdentifier.createMavenCoordinates("g5", "a5", "v5"));
+    tempEntity.newApplicationComponentLicense(applicationComponent5.getId(), "MIT");
+    tempEntity.newLicenseOverride(application.getId(), applicationComponent5.getComponentIdentifier(),
+        LicenseOverrideStatus.OVERRIDDEN, Sets.newHashSet("Apache-1.0"));
+
+    Application oneMoreApplication = tempEntity.newApplication(organization.getId());
+    ApplicationComponent applicationComponent6 = tempEntity.newApplicationComponent(oneMoreApplication.getId(),
+        BuildStageType.ID, "hash6", ComponentIdentifier.createMavenCoordinates("g6", "a6", "v6"));
+    tempEntity.newApplicationComponentLicense(applicationComponent6.getId(), "Apache-1.0");
+
+    ApplicationComponent applicationComponent7 = tempEntity.newApplicationComponent(application.getId(),
+        ReleaseStageType.ID, "hash7", ComponentIdentifier.createMavenCoordinates("g7", "a7", "v7"));
+    tempEntity.newApplicationComponentLicense(applicationComponent7.getId(), "Apache-2.0");
+
+    ApplicationComponent applicationComponent8 = tempEntity.newApplicationComponent(otherApplication.getId(),
+        BuildStageType.ID, "hash8", ComponentIdentifier.createMavenCoordinates("g8", "a8", "v8"));
+    tempEntity.newApplicationComponentLicense(applicationComponent8.getId(), "MIT");
+
+    List<Object[]> result =
+        dao.getApplicationIdsAndStageTypeIdsByLicenses(Sets.newHashSet(application.getId(), otherApplication.getId()),
+            Sets.newHashSet(BuildStageType.ID, DevelopStageType.ID), Sets.newHashSet("Apache-1.0", "Apache-2.0"));
+
+    assertThat(result)
+        .isNotEmpty()
+        .containsExactlyInAnyOrder(
+            new Object[]{application.getId(), BuildStageType.ID},
+            new Object[]{otherApplication.getId(), BuildStageType.ID},
+            new Object[]{application.getId(), DevelopStageType.ID},
+            new Object[]{otherApplication.getId(), DevelopStageType.ID});
+  }
+
+  @Test
+  public void testBuildPositionalParameters() {
+    List<String> list = Arrays.asList("a");
+    assertThat(dao.buildPositionalParameters(list, 1)).isEqualTo("(?1)");
+
+    list = Arrays.asList("a", "b");
+    assertThat(dao.buildPositionalParameters(list, 1)).isEqualTo("(?1,?2)");
+
+    list = Arrays.asList("a", "b", "c");
+    assertThat(dao.buildPositionalParameters(list, 1)).isEqualTo("(?1,?2,?3)");
+
+    list = Arrays.asList("d");
+    assertThat(dao.buildPositionalParameters(list, 4)).isEqualTo("(?4)");
+
+    list = Arrays.asList("d", "e", "f");
+    assertThat(dao.buildPositionalParameters(list, 4)).isEqualTo("(?4,?5,?6)");
+
+    list = Arrays.asList("x", "y", "z");
+    assertThat(dao.buildPositionalParameters(list, 24)).isEqualTo("(?24,?25,?26)");
+  }
+
+  @Test
+  public void testAddPositionalParameters() {
+    List<String> list = Arrays.asList("a");
+    Query query = mock(Query.class);
+    dao.addPositionalParameters(query, list, 1);
+    verify(query).setParameter(1, "a");
+    verifyNoMoreInteractions(query);
+
+    list = Arrays.asList("a", "b");
+    query = mock(Query.class);
+    dao.addPositionalParameters(query, list, 1);
+    verify(query).setParameter(1, "a");
+    verify(query).setParameter(2, "b");
+    verifyNoMoreInteractions(query);
+
+    list = Arrays.asList("a", "b", "c");
+    query = mock(Query.class);
+    dao.addPositionalParameters(query, list, 1);
+    verify(query).setParameter(1, "a");
+    verify(query).setParameter(2, "b");
+    verify(query).setParameter(3, "c");
+    verifyNoMoreInteractions(query);
+
+    list = Arrays.asList("d");
+    query = mock(Query.class);
+    dao.addPositionalParameters(query, list, 4);
+    verify(query).setParameter(4, "d");
+    verifyNoMoreInteractions(query);
+
+    list = Arrays.asList("d", "e", "f");
+    query = mock(Query.class);
+    dao.addPositionalParameters(query, list, 4);
+    verify(query).setParameter(4, "d");
+    verify(query).setParameter(5, "e");
+    verify(query).setParameter(6, "f");
+    verifyNoMoreInteractions(query);
+
+    list = Arrays.asList("x", "y", "z");
+    query = mock(Query.class);
+    dao.addPositionalParameters(query, list, 24);
+    verify(query).setParameter(24, "x");
+    verify(query).setParameter(25, "y");
+    verify(query).setParameter(26, "z");
+    verifyNoMoreInteractions(query);
   }
 
   public void assertApplicationComponent(ApplicationComponent expected, ApplicationComponent actual) {

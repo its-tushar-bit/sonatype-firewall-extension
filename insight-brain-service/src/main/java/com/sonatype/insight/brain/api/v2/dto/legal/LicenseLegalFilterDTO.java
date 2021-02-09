@@ -18,4 +18,10 @@ public class LicenseLegalFilterDTO
   public Set<String> tagIds;
 
   public Set<String> licenseIds;
+
+  public LicenseLegalResultsOrder order;
+
+  public int page;
+
+  public int pageSize;
 }

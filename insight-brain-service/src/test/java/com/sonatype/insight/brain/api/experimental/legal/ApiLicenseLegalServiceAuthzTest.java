@@ -59,21 +59,24 @@ public class ApiLicenseLegalServiceAuthzTest
   @Test
   public void testGetLicenseLegalApplicationsDashboard_Unauthenticated() {
     setupResultForDashboard();
-    assertThat(apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null)).isEmpty();
+    assertThat(apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, 1, 10))
+        .isEmpty();
   }
 
   @Test
   public void testGetLicenseLegalApplicationsDashboard_Unauthorized() {
     setupResultForDashboard();
     login();
-    assertThat(apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null)).isEmpty();
+    assertThat(apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, 1, 10))
+        .isEmpty();
   }
 
   @Test
   public void testGetLicenseLegalApplicationsDashboard_Authorized() {
     setupResultForDashboard();
     grantLegalReviewerPermission(app.getId());
-    assertThat(apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null)).isNotEmpty();
+    assertThat(apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, 1, 10))
+        .isNotEmpty();
   }
 
   @Test

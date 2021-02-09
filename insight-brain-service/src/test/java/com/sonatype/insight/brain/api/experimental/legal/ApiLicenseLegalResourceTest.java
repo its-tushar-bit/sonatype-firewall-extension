@@ -68,9 +68,12 @@ public class ApiLicenseLegalResourceTest
 
   @Test
   public void testGetLicenseLegalApplicationsDashboard_NoResults() throws Exception {
+    LicenseLegalFilterDTO filter = new LicenseLegalFilterDTO();
+    filter.page = 1;
+    filter.pageSize = 10;
+
     HttpResponse response =
-        restRequest().path(ApiLicenseLegalResource.DASHBOARD_APPLICATIONS_PATH).body(new LicenseLegalFilterDTO()).auth()
-            .post();
+        restRequest().path(ApiLicenseLegalResource.DASHBOARD_APPLICATIONS_PATH).body(filter).auth().post();
 
     assertResponseStatus(200, response);
     List<ApiLicenseLegalApplicationDashboardDTO> result =
@@ -81,6 +84,8 @@ public class ApiLicenseLegalResourceTest
   @Test
   public void testGetLicenseLegalApplicationsDashboard() throws Exception {
     LicenseLegalFilterDTO filter = new LicenseLegalFilterDTO();
+    filter.page = 1;
+    filter.pageSize = 10;
 
     Application application = tempEntity.newApplicationWithParent();
     Tag tag = tempEntity.newTag(application.getOrganizationId(), "Test-Tag");

@@ -823,6 +823,8 @@ public class ApiLicenseLegalServiceTest
                 copyrightOverrideDisabled.getStatus()));
     assertThat(licenseLegalComponentReport.component.licenseLegalData.componentCopyrightId)
         .isEqualTo(componentCopyright.getId());
+    assertThat(licenseLegalComponentReport.component.licenseLegalData.componentCopyrightScopeOwnerId).isEqualTo(
+        application.getId());
     assertThat(licenseLegalComponentReport.component.licenseLegalData.noticeFiles).extracting(f -> f.content)
         .containsExactly(noticeOverride.getContent());
     assertThat(licenseLegalComponentReport.component.licenseLegalData.licenseFiles).extracting(f -> f.content)
@@ -869,6 +871,8 @@ public class ApiLicenseLegalServiceTest
                 componentIdentifier)).findFirst().get();
     assertThat(apiLicenseLegalComponentDTO).isNotNull();
     assertThat(apiLicenseLegalComponentDTO.licenseLegalData.componentCopyrightId).isEqualTo(componentCopyright.getId());
+    assertThat(apiLicenseLegalComponentDTO.licenseLegalData.componentCopyrightScopeOwnerId)
+        .isEqualTo(application.getId());
     assertThat(apiLicenseLegalComponentDTO.licenseLegalData.copyrights).containsExactly(
         new ApiLicenseLegalCopyrightDTO(
             copyrightOverride.getId(),

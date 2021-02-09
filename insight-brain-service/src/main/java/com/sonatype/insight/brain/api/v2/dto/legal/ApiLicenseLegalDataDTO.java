@@ -34,6 +34,11 @@ public class ApiLicenseLegalDataDTO
    */
   public String componentCopyrightId;
 
+  /**
+   * Internal owner ID of the {@link ComponentCopyrightDTO} scope.
+   */
+  public String componentCopyrightScopeOwnerId;
+
   public ApiLicenseLegalDataDTO() {
     // for jackson
   }
@@ -46,7 +51,8 @@ public class ApiLicenseLegalDataDTO
       final List<ApiLicenseLegalCopyrightDTO> copyrights,
       final List<ApiLicenseLegalFileDTO> licenseFiles,
       final List<ApiLicenseLegalFileDTO> noticeFiles,
-      final String componentCopyrightId)
+      final String componentCopyrightId,
+      final String componentCopyrightScopeOwnerId)
   {
     this.declaredLicenses = declaredLicenses;
     this.observedLicenses = observedLicenses;
@@ -56,6 +62,7 @@ public class ApiLicenseLegalDataDTO
     this.licenseFiles = licenseFiles;
     this.noticeFiles = noticeFiles;
     this.componentCopyrightId = componentCopyrightId;
+    this.componentCopyrightScopeOwnerId = componentCopyrightScopeOwnerId;
   }
 
   @Override
@@ -74,13 +81,14 @@ public class ApiLicenseLegalDataDTO
         Objects.equals(copyrights, that.copyrights) &&
         Objects.equals(licenseFiles, that.licenseFiles) &&
         Objects.equals(noticeFiles, that.noticeFiles) &&
-        Objects.equals(componentCopyrightId, that.componentCopyrightId);
+        Objects.equals(componentCopyrightId, that.componentCopyrightId) &&
+        Objects.equals(componentCopyrightScopeOwnerId, that.componentCopyrightScopeOwnerId);
   }
 
   @Override
   public int hashCode() {
     return Objects
         .hash(declaredLicenses, observedLicenses, effectiveLicenses, effectiveLicenseThreats, copyrights, licenseFiles,
-            noticeFiles, componentCopyrightId);
+            noticeFiles, componentCopyrightId, componentCopyrightScopeOwnerId);
   }
 }

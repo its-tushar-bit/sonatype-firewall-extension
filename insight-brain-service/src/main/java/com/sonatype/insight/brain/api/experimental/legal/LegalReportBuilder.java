@@ -101,6 +101,7 @@ public class LegalReportBuilder
     if (sourceData == null) {
       return null;
     }
+
     return new ApiLicenseLegalDataDTO(
         toLicenseIds(sourceData.declaredLicenses),
         toLicenseIds(sourceData.observedLicenses),
@@ -109,7 +110,8 @@ public class LegalReportBuilder
         getCopyrights(componentLegalComments, copyrightOverrides),
         getLegalFiles(LegalFileType.LICENSE, componentLegalFiles, licenseOverrides),
         getLegalFiles(LegalFileType.NOTICE, componentLegalFiles, noticeOverrides),
-        componentCopyright == null ? null : componentCopyright.getId());
+        componentCopyright == null ? null : componentCopyright.getId(),
+        componentCopyright == null ? null : componentCopyright.getOwnerId());
   }
 
   private List<String> toLicenseIds(List<ApiLicenseDTO> licenses) {

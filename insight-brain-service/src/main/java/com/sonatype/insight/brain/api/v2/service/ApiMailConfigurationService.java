@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.Arrays;
+import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -21,12 +22,17 @@ import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @since 1.83
  */
 @Named
 public class ApiMailConfigurationService
 {
+  private final Logger log = LoggerFactory.getLogger(ApiMailConfigurationService.class);
+
   private final MailConfigurationDAO mailConfigurationDAO;
 
   private final InsightMail insightMail;
@@ -151,7 +157,10 @@ public class ApiMailConfigurationService
       insightMail.sendHtml(mailConfiguration, recipientEmail, subject, messageBody);
     }
     catch (Exception e) {
-      throw new BadRequestException(e.getMessage(), e);
+      String id = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+      String errorMessage = String.format("Test mail configuration failed. Error ID %s. %s", id, e.getMessage());
+      log.debug(errorMessage, e);
+      throw new BadRequestException(errorMessage, e);
     }
   }
 

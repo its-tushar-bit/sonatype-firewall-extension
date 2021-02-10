@@ -27,6 +27,7 @@ describe('firewallReducer', function() {
       // viewState
       expect(newState.viewState.loadedStatus).toBe(false);
       expect(newState.viewState.loadStatusError).toBeNull();
+      expect(newState.viewState.isShowConfigurationModal).toBe(false);
 
       //configurationState
       expect(newState.configurationState.isEnabled).toBe(false);
@@ -55,13 +56,14 @@ describe('firewallReducer', function() {
       // viewState
       expect(newState.viewState.loadedStatus).toBe(false);
       expect(newState.viewState.loadStatusError).toBeNull();
+      expect(newState.viewState.isShowConfigurationModal).toBe(false);
       //configurationState
-      expect(newState.configurationState.isEnabled).toBeFalsy();
+      expect(newState.configurationState.isEnabled).toBe(false);
     });
   });
 
   describe('FIREWALL_LOAD_STATUS_FULFILLED action', function() {
-    it('updates the state and sets the load error to null', function() {
+    it('updates the state, sets the load error to null and sets enabled flag from payload', function() {
       const state = Object.freeze({
         other: otherObject,
         viewState: {
@@ -114,6 +116,31 @@ describe('firewallReducer', function() {
       expect(newState.viewState.loadStatusError).toBe('error!');
       //configurationState
       expect(newState.configurationState.isEnabled).toBe(false);
+      // other properties are not modified
+      expect(newState.other).toBe(otherObject);
+      expect(newState.configurationState.other).toEqual(otherObject);
+      expect(newState.viewState.other).toEqual(otherObject);
+    });
+  });
+
+  describe('FIREWALL_SET_SHOW_CONFIGURATION_MODAL action', function() {
+    it('updates the state and sets the isShowConfigurationModal to the payload', function() {
+      const state = Object.freeze({
+        other: otherObject,
+        viewState: {
+          other: otherObject,
+          isShowConfigurationModal: false
+        },
+        configurationState: {
+          other: otherObject
+        }
+      });
+      const newState = reduce(state, {
+        type: 'FIREWALL_SET_SHOW_CONFIGURATION_MODAL',
+        payload: true
+      });
+      //viewState
+      expect(newState.viewState.isShowConfigurationModal).toBe(true);
       // other properties are not modified
       expect(newState.other).toBe(otherObject);
       expect(newState.configurationState.other).toEqual(otherObject);

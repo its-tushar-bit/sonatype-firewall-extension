@@ -6,8 +6,9 @@
 
 import React from 'react';
 import StatusIndicatorIcon from '../react/statusIndicatorIcon/StatusIndicatorIcon';
+import * as PropTypes from 'prop-types';
 
-export default function FirewallAutoUnquarantineStatus() {
+export default function FirewallAutoUnquarantineStatus({onConfigureClicked}) {
   return (
     <section id="firewall-auto-unquarantine-status" className="nx-card">
       <header className="nx-card__header">
@@ -21,10 +22,13 @@ export default function FirewallAutoUnquarantineStatus() {
         <p className="nx-p">unquarantining 10 of 25 policy types</p>
       </div>
       <footer className="nx-card__footer">
-        <a href="#" className="nx-text-link">Configure</a>
+        <a className="nx-text-link" onClick={onConfigureClicked}>Configure</a>
       </footer>
     </section>
-
   );
 }
+
+FirewallAutoUnquarantineStatus.propTypes = {
+  onConfigureClicked: PropTypes.func.isRequired
+};
 

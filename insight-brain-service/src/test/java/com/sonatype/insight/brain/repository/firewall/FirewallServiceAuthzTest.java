@@ -23,7 +23,7 @@ public class FirewallServiceAuthzTest
   public FirewallService firewallService;
 
   @Test
-  public void getFirewallStatus_Authorized() {
+  public void testGetFirewallStatus_Authorized() {
     grantGlobalPermission(Permission.READ);
 
     FirewallStatusDTO firewallStatusDTO = firewallService.getFirewallStatus();
@@ -32,12 +32,12 @@ public class FirewallServiceAuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void getFirewallStatus_Unauthenticated() {
+  public void testGetFirewallStatus_Unauthenticated() {
     firewallService.getFirewallStatus();
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testPerformManifestScan_Unauthorized() {
+  public void testGetFirewallStatus_Unauthorized() {
     login();
     firewallService.getFirewallStatus();
   }

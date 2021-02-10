@@ -6,6 +6,8 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.Button;
+import com.sonatype.clm.testing.functional.elements.NxCheckbox;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.SelenideElement;
@@ -53,6 +55,10 @@ public class FirewallPage
     return new FirewallQuarantineTable();
   }
 
+  public FirewallConfigurationModal firewallConfigurationModal() {
+    return new FirewallConfigurationModal();
+  }
+
   public static class FirewallStatus
       extends BasicElement<FirewallStatus>
   {
@@ -86,6 +92,10 @@ public class FirewallPage
 
     public SelenideElement header() {
       return child(CHILD_HEADER_CSS_CLASS);
+    }
+
+    public SelenideElement configureLink() {
+      return child(".nx-text-link");
     }
   }
 
@@ -122,6 +132,42 @@ public class FirewallPage
 
     public SelenideElement header() {
       return child(CHILD_HEADER_CSS_CLASS);
+    }
+  }
+
+  public static class FirewallConfigurationModal
+      extends BasicElement<FirewallConfigurationModal>
+  {
+    public FirewallConfigurationModal() {
+      super(ROOT, "#firewall-configuration-modal");
+    }
+
+    public SelenideElement autoUnquarantineToggle() {
+      return child("#auto-unquarantine-toggle");
+    }
+
+    public NxCheckbox autoUnquarantineCheckBox() {
+      return new NxCheckbox(autoUnquarantineToggle());
+    }
+
+    public Button saveButton() {
+      return new Button(childSelector(".nx-btn--primary"));
+    }
+    
+    public Button cancelButton() {
+      return new Button(childSelector(".nx-btn:not(.nx-btn--primary)[type='button']"));
+    }
+
+    public SelenideElement loadError() {
+      return child(".nx-alert--load-error");
+    }
+
+    public Button retryButton() {
+      return new Button(childSelector(".nx-load-error__retry"));
+    }
+
+    public SelenideElement modalContent() {
+      return child(".nx-modal-content");
     }
   }
 }

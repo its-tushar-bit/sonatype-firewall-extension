@@ -13,17 +13,20 @@ import FirewallQuarantine from './FirewallQuarantine';
 import FirewallAutoUnquarantine from './FirewallAutoUnquarantine';
 import FirewallQuarantineTable from './FirewallQuarantineTable';
 import * as PropTypes from 'prop-types';
+import FirewallConfigurationModalContainer from './config/FirewallConfigurationModalContainer';
 
 export default function Firewall(props) {
   // Actions
   const {
-    loadStatus
+    loadStatus,
+    openConfigurationModal
   } = props;
 
   // viewState
   const {
     loadedStatus,
-    loadStatusError
+    loadStatusError,
+    isShowConfigurationModal
   } = props;
 
   // configurationState
@@ -39,15 +42,15 @@ export default function Firewall(props) {
 
   return (
     <main id="firewall-page" className="nx-page-main">
+      {isShowConfigurationModal && <FirewallConfigurationModalContainer/>}
       <LoadWrapper loading={!loadedStatus} error={error} retryHandler={loadStatus}>
         <FirewallStatus/>
         <div className="nx-card-container nx-card-container--row iq-firewall__horizontal">
           <FirewallQuarantineStatus/>
-          <FirewallAutoUnquarantineStatus/>
+          <FirewallAutoUnquarantineStatus onConfigureClicked={openConfigurationModal}/>
           <FirewallQuarantine/>
           <FirewallAutoUnquarantine/>
         </div>
-
         <FirewallQuarantineTable/>
       </LoadWrapper>
     </main>
@@ -58,5 +61,8 @@ Firewall.propTypes = {
   loadStatus: PropTypes.func.isRequired,
   loadedStatus: PropTypes.bool.isRequired,
   loadStatusError: PropTypes.object,
-  isEnabled: PropTypes.bool.isRequired
+  isEnabled: PropTypes.bool.isRequired,
+  isShowConfigurationModal: PropTypes.bool.isRequired,
+  loadConfiguration: PropTypes.func.isRequired,
+  openConfigurationModal: PropTypes.func.isRequired
 };

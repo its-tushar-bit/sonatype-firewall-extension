@@ -166,8 +166,13 @@ export function getReportMetadataUrl(applicationPublicId, scanId) {
   return `${getBaseReportUrl(applicationPublicId, scanId)}/metadata`;
 }
 
-export function getFirewallConfigUrl() {
+export function getFirewallStatusUrl() {
   return uriTemplate`/rest/repositories/firewall/status`;
+}
+
+export function getFirewallConfigurationUrl() {
+  return uriTemplate`/api/experimental/firewall/configuration`;
+
 }
 
 export const getReportBomUrl = getBrowseReportUrl('bom.json');

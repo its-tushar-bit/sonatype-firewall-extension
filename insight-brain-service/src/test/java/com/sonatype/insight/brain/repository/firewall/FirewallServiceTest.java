@@ -7,11 +7,16 @@ package com.sonatype.insight.brain.repository.firewall;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.common.collect.ImmutableMap;
+import org.junit.After;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,8 +30,18 @@ public class FirewallServiceTest
   @Inject
   private InsightConfig config;
 
+  @Inject
+  private TestProductLicense testProductLicense;
+
+  private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
+
+  @After
+  public void cleanUp() {
+    policyMonitoringDAO.getAll().forEach(policyMonitoringDAO::delete);
+  }
+
   @Test
-  public void testFeatureFlag() {
+  public void testGetFirewallStatus_FeatureFlag_True() {
     //set experimental feature
     config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
 
@@ -36,9 +51,32 @@ public class FirewallServiceTest
   }
 
   @Test
-  public void testFeatureFlag_False() {
-    // expect feature flag to be false
+  public void testGetFirewallStatus_FeatureFlag_False() {
+    //set experimental feature
+    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), false));
+
+    //then: expect feature flag to be false
     assertThat(firewallService.getFirewallStatus().experimentalFeatures)
         .containsEntry(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), false);
+  }
+
+  @Test(expected = InvalidLicenseException.class)
+  public void testGetFirewallStatus_NoFirewallFeature() {
+    //setup: remove firewall feature
+    testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL);
+
+    //when: setting firewall auto unquarantine
+    //then: expect invalid license exception
+    firewallService.getFirewallStatus();
+  }
+
+  @Test(expected = InvalidLicenseException.class)
+  public void testtestGetFirewallStatus_NoReleaseIntegrityFeature() {
+    //setup: remove release integrity feature
+    testProductLicense.setMissingFeatures(LicensedFeature.RELEASE_INTEGRITY);
+
+    //when: setting firewall auto unquarantine
+    //then: expect invalid license exception
+    firewallService.getFirewallStatus();
   }
 }

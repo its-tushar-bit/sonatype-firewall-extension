@@ -28,6 +28,7 @@ import advancedLegalReducer from '../advancedLegal/advancedLegalReducer';
 import legalDashboardReducer from '../legal/dashboard/legalDashboardReducer';
 import legalDashboardFilterReducer from '../legal/dashboard/filter/legalDashboardFilterReducer';
 import firewallReducer from '../firewall/firewallReducer';
+import firewallConfigurationModalReducer from '../firewall/config/firewallConfigurationModalReducer';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -53,5 +54,6 @@ export default combineReducers({
   advancedLegal: advancedLegalReducer,
   legalDashboard: legalDashboardReducer,
   legalDashboardFilter: legalDashboardFilterReducer,
-  firewall: firewallReducer
+  firewall: firewallReducer,
+  firewallConfigurationModal: firewallConfigurationModalReducer
 });

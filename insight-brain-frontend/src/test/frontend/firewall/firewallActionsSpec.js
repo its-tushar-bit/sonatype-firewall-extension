@@ -5,40 +5,76 @@
  */
 import axios from 'axios';
 
-import {loadStatus} from '../../../main/frontend/firewall/firewallActions';
-import {getFirewallConfigUrl} from '../../../main/frontend/util/CLMLocation';
+import {
+  closeConfigurationModal,
+  FIREWALL_CONFIGURATION_SAVE_MASK_TIMER_DONE,
+  FIREWALL_LOAD_CONFIGURATION_FAILED,
+  FIREWALL_LOAD_CONFIGURATION_FULFILLED,
+  FIREWALL_LOAD_CONFIGURATION_REQUESTED,
+  FIREWALL_LOAD_STATUS_FAILED,
+  FIREWALL_LOAD_STATUS_FULFILLED,
+  FIREWALL_LOAD_STATUS_REQUESTED,
+  FIREWALL_SAVE_CONFIGURATION_FAILED,
+  FIREWALL_SAVE_CONFIGURATION_FULFILLED,
+  FIREWALL_SAVE_CONFIGURATION_REQUESTED,
+  FIREWALL_SET_SHOW_CONFIGURATION_MODAL,
+  loadConfiguration,
+  loadStatus,
+  openConfigurationModal,
+  saveConfiguration
+} from '../../../main/frontend/firewall/firewallActions';
+import {getFirewallConfigurationUrl, getFirewallStatusUrl} from '../../../main/frontend/util/CLMLocation';
+import {SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS} from '@sonatype/react-shared-components';
 
 describe('firewallActions', function() {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios),
-      firewallConfigUrl = getFirewallConfigUrl();
+      firewallConfigUrl = getFirewallConfigurationUrl(),
+      firewallStatusUrl = getFirewallStatusUrl();
+
+  let store, state;
+
+  beforeEach(function() {
+    state = {
+      firewall: Object.freeze({
+        viewState: Object.freeze({
+          loadedStatus: false,
+          loadStatusError: null,
+          isShowConfigurationModal: false
+        }),
+        configurationState: Object.freeze({
+          isEnabled: false
+        })
+      }),
+      firewallConfigurationModal: Object.freeze({
+        viewState: Object.freeze({
+          sumbitMaskSuccessState: false,
+          saveConfigurationSuccess: null,
+          saveConfigurationError: null,
+          loadedConfiguration: false,
+          loadConfigurationError: null
+        }),
+        serverState: Object.freeze({
+          autoUnquarantineEnabled: false
+        }),
+        formState: Object.freeze({
+          autoUnquarantineEnabled: false
+        })
+      })
+    };
+
+    store = SpecUtil.mockReduxStore(state);
+  });
 
   describe('loadStatus', function() {
-    let store, state;
-
-    beforeEach(function() {
-      state = {
-        firewall: {
-          viewState: {
-            loadedStatus: false,
-            loadStatusError: null
-          },
-          configurationState: {
-            isEnabled: false
-          }
-        }
-      };
-
-      store = SpecUtil.mockReduxStore(state);
-    });
 
     afterEach(function() {
-      expect(axios.get).toHaveBeenCalledWith(firewallConfigUrl);
+      expect(axios.get).toHaveBeenCalledWith(firewallStatusUrl);
     });
 
     it('immediately dispatches a FIREWALL_LOAD_STATUS_REQUESTED action', function() {
       mockAxiosCalls({
         get: {
-          [firewallConfigUrl]: Promise.resolve({data: {experimentalFeatures: {firewallAutoUnquarantine: true}}})
+          [firewallStatusUrl]: Promise.resolve({data: {experimentalFeatures: {firewallAutoUnquarantine: true}}})
         }
       });
 
@@ -46,7 +82,7 @@ describe('firewallActions', function() {
 
       const actions = store.getActions();
       expect(actions.length).toBe(1);
-      expect(actions[0].type).toBe('FIREWALL_LOAD_STATUS_REQUESTED');
+      expect(actions[0].type).toBe(FIREWALL_LOAD_STATUS_REQUESTED);
       expect(actions[0].payload).toBeUndefined();
     });
 
@@ -55,7 +91,7 @@ describe('firewallActions', function() {
           function(done) {
             mockAxiosCalls({
               get: {
-                [firewallConfigUrl]: Promise.resolve({data: {experimentalFeatures: {firewallAutoUnquarantine: true}}})
+                [firewallStatusUrl]: Promise.resolve({data: {experimentalFeatures: {firewallAutoUnquarantine: true}}})
               }
             });
 
@@ -63,9 +99,9 @@ describe('firewallActions', function() {
                 .then(() => {
                   actions = store.getActions();
                   expect(actions.length).toBe(2);
-                  expect(actions[0].type).toBe('FIREWALL_LOAD_STATUS_REQUESTED');
+                  expect(actions[0].type).toBe(FIREWALL_LOAD_STATUS_REQUESTED);
                   expect(actions[0].payload).toBeUndefined();
-                  expect(actions[1].type).toBe('FIREWALL_LOAD_STATUS_FULFILLED');
+                  expect(actions[1].type).toBe(FIREWALL_LOAD_STATUS_FULFILLED);
                   expect(actions[1].payload).toEqual({experimentalFeatures: {firewallAutoUnquarantine: true}});
                   done();
                 });
@@ -79,7 +115,7 @@ describe('firewallActions', function() {
       it('dispatches an FIREWALL_LOAD_STATUS_FAILED action', function(done) {
         mockAxiosCalls({
           get: {
-            [firewallConfigUrl]: Promise.reject('error!')
+            [firewallStatusUrl]: () => Promise.reject('error!')
           }
         });
 
@@ -87,7 +123,7 @@ describe('firewallActions', function() {
             .then(() => {
               actions = store.getActions();
               expect(actions.length).toBe(2);
-              expect(actions[1].type).toBe('FIREWALL_LOAD_STATUS_FAILED');
+              expect(actions[1].type).toBe(FIREWALL_LOAD_STATUS_FAILED);
               expect(actions[1].payload).toBe('error!');
               done();
             });
@@ -96,5 +132,205 @@ describe('firewallActions', function() {
         expect(actions.length).toBe(1);
       });
     });
+  });
+
+  describe('loadConfiguration', function() {
+
+    afterEach(function() {
+      expect(axios.get).toHaveBeenCalledWith(firewallConfigUrl);
+    });
+
+    it('immediately dispatches a FIREWALL_LOAD_CONFIGURATION_REQUESTED action', function() {
+      mockAxiosCalls({
+        get: {
+          [firewallConfigUrl]: Promise.resolve({data: {autoUnquarantineEnabled: true}})
+        }
+      });
+
+      store.dispatch(loadConfiguration());
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(FIREWALL_LOAD_CONFIGURATION_REQUESTED);
+      expect(actions[0].payload).toBeUndefined();
+    });
+
+    describe('after a successful GET call', function() {
+      it('dispatches FIREWALL_LOAD_CONFIGURATION_FULFILLED action',
+          function(done) {
+            mockAxiosCalls({
+              get: {
+                [firewallConfigUrl]: Promise.resolve({data: {autoUnquarantineEnabled: true}})
+              }
+            });
+
+            store.dispatch(loadConfiguration())
+                .then(() => {
+                  actions = store.getActions();
+                  expect(actions.length).toBe(2);
+                  expect(actions[0].type).toBe(FIREWALL_LOAD_CONFIGURATION_REQUESTED);
+                  expect(actions[0].payload).toBeUndefined();
+                  expect(actions[1].type).toBe(FIREWALL_LOAD_CONFIGURATION_FULFILLED);
+                  expect(actions[1].payload).toEqual({autoUnquarantineEnabled: true});
+                  done();
+                });
+
+            let actions = store.getActions();
+            expect(actions.length).toBe(1);
+          });
+    });
+
+    describe('after a failed GET call', function() {
+      it('dispatches an FIREWALL_LOAD_CONFIGURATION_FAILED action', function(done) {
+        mockAxiosCalls({
+          get: {
+            [firewallConfigUrl]: () => Promise.reject('error!')
+          }
+        });
+
+        store.dispatch(loadConfiguration())
+            .then(() => {
+              actions = store.getActions();
+              expect(actions.length).toBe(2);
+              expect(actions[1].type).toBe(FIREWALL_LOAD_CONFIGURATION_FAILED);
+              expect(actions[1].payload).toBe('error!');
+              done();
+            });
+
+        let actions = store.getActions();
+        expect(actions.length).toBe(1);
+      });
+    });
+  });
+
+  describe('saveConfiguration', function() {
+
+    afterEach(function() {
+      expect(axios.put).toHaveBeenCalledWith(firewallConfigUrl, state.firewallConfigurationModal.formState);
+    });
+
+    it('immediately dispatches a FIREWALL_SAVE_CONFIGURATION_REQUESTED action', function() {
+      mockAxiosCalls({
+        put: {
+          [firewallConfigUrl]: Promise.resolve({})
+        }
+      });
+
+      store.dispatch(saveConfiguration());
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(FIREWALL_SAVE_CONFIGURATION_REQUESTED);
+      expect(actions[0].payload).toBeUndefined();
+    });
+
+    describe('after a successful PUT call', function() {
+      it('dispatches FIREWALL_SAVE_CONFIGURATION_FULFILLED action',
+          function(done) {
+            mockAxiosCalls({
+              put: {
+                [firewallConfigUrl]: Promise.resolve({})
+              }
+            });
+
+            store.dispatch(saveConfiguration())
+                .then(() => {
+                  actions = store.getActions();
+                  expect(actions.length).toBe(2);
+                  expect(actions[0].type).toBe(FIREWALL_SAVE_CONFIGURATION_REQUESTED);
+                  expect(actions[0].payload).toBeUndefined();
+                  expect(actions[1].type).toBe(FIREWALL_SAVE_CONFIGURATION_FULFILLED);
+                  expect(actions[1].payload).toBeUndefined();
+                  done();
+                });
+
+            let actions = store.getActions();
+            expect(actions.length).toBe(1);
+          });
+
+      it('dispatches FIREWALL_CONFIGURATION_SAVE_MASK_TIMER_DONE after timeout',
+          function(done) {
+            mockAxiosCalls({
+              put: {
+                [firewallConfigUrl]: Promise.resolve({})
+              }
+            });
+
+            store.dispatch(saveConfiguration())
+                .then(() => {
+                  setTimeout(function() {
+                    actions = store.getActions();
+                    expect(actions.length).toBe(4);
+                    expect(actions[2].type).toBe(FIREWALL_CONFIGURATION_SAVE_MASK_TIMER_DONE);
+                    expect(actions[3].type).toBe(FIREWALL_SET_SHOW_CONFIGURATION_MODAL);
+                    expect(actions[3].payload).toBe(false);
+                    done();
+                  }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+                });
+
+            let actions = store.getActions();
+            expect(actions.length).toBe(1);
+          });
+    });
+
+    describe('after a failed PUT call', function() {
+      it('dispatches an FIREWALL_SAVE_CONFIGURATION_FAILED action', function(done) {
+        mockAxiosCalls({
+          put: {
+            [firewallConfigUrl]: () => Promise.reject('error!')
+          }
+        });
+
+        store.dispatch(saveConfiguration())
+            .then(() => {
+              actions = store.getActions();
+              expect(actions.length).toBe(2);
+              expect(actions[1].type).toBe(FIREWALL_SAVE_CONFIGURATION_FAILED);
+              expect(actions[1].payload).toBe('error!');
+              done();
+            });
+
+        let actions = store.getActions();
+        expect(actions.length).toBe(1);
+      });
+    });
+  });
+
+  describe('openConfigurationModal', function() {
+    it('immediately dispatches loadConfiguration and setShowConfigurationModal actions', function() {
+      store.dispatch(openConfigurationModal());
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(2);
+      expect(actions[0].type).toBe(FIREWALL_LOAD_CONFIGURATION_REQUESTED);
+      expect(actions[0].payload).toBeUndefined();
+      expect(actions[1].type).toBe(FIREWALL_SET_SHOW_CONFIGURATION_MODAL);
+      expect(actions[1].payload).toEqual(true);
+    });
+  });
+
+  describe('closeConfigurationModal', function() {
+    it('dispatches an setShowConfigurationModal action if serverState and formState is the same',
+        function(done) {
+          state = {
+            firewallConfigurationModal: Object.freeze({
+              serverState: Object.freeze({
+                autoUnquarantineEnabled: false
+              }),
+              formState: Object.freeze({
+                autoUnquarantineEnabled: false
+              })
+            })
+          };
+
+          store = SpecUtil.mockReduxStore(state);
+          store.dispatch(closeConfigurationModal());
+
+          const actions = store.getActions();
+          expect(actions.length).toBe(1);
+          expect(actions[0].type).toBe(FIREWALL_SET_SHOW_CONFIGURATION_MODAL);
+          expect(actions[0].payload).toBe(false);
+          done();
+        });
   });
 });

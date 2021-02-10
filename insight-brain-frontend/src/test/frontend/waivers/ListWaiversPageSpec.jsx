@@ -80,7 +80,7 @@ describe('ListWaiversPage', function() {
   });
 
   it('renders a component with the "nx-page-main" class', function() {
-    expect(getShallowComponent()).toMatchSelector('.nx-page-main');
+    expect(getShallowComponent().find('.nx-page-main')).toExist();
   });
 
   it('renders a NxBackButton with correct href and targetPageTitle properties', function() {

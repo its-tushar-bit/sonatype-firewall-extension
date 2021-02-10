@@ -25,6 +25,7 @@
     * [Redux and React conventions in the IQ frontend project](#redux-and-react-conventions-in-the-iq-frontend-project)
 * [ React Sample component ](#react-sample-component)
     * [Writing tests for React components](#writing-tests-for-react-components)
+    * [How to add an Unsaved Changes modal warning to your page](#)
 
 
 ## Front-end development
@@ -135,11 +136,11 @@ If you want to become more familiar with React and/or Redux, consider any of the
 
 One example or template that you can use when creating new React components is the Add Waiver Page. There are other React examples in the IQ codebase that you can also inspect.
 * First, a container component such as `AddWaiverPageContainer` is created. This container component is responsible for wiring any external state (most typically state stored in redux) and callbacks into the UI. Two important functions that should be created are [mapStateToProps](https://react-redux.js.org/using-react-redux/connect-mapstate) and [mapDispatchToProps](https://react-redux.js.org/using-react-redux/connect-mapdispatch). Here we use the [react-redux](https://react-redux.js.org/) library to follow a standard pattern for passing state to and from React components. These methods, along with the [connect](https://react-redux.js.org/api/connect) method from the same library, allow us to pass state between the Redux store and our React components in a conventional way. The container component then passes the needed properties to the presentational component, with code similar to `const AddWaiverPageContainer = connect(mapStateToProps, mapDispatchToProps)(AddWaiverPage);`
-* The presentational component (`AddWaiverPage`) may have internal logic that helps it decide what to render. But it should not directly interact with the global state or actions. Instead, it should receive all data it needs, and all callbacks for user interaction that it supports, as React props. It is up to the container component to set these props to the correct data from the redux store and the correct action creators. 
+* The presentational component (`AddWaiverPage`) may have internal logic that helps it decide what to render. But it should not directly interact with the global state or actions. Instead, it should receive all data it needs, and all callbacks for user interaction that it supports, as React props. It is up to the container component to set these props to the correct data from the redux store and the correct action creators.
 * Relevant actions (`waiverActions.js`) and reducers (`addWaiverReducer.js`) for the component are also created in separate files. Any new reducers should be added to `insight-brain-frontend/src/main/frontend/reduxConfig/reducers.js`
 * Finally, in `waivers/module.js`, an Angular module is created pointing to the `AddWaiverPageContainer` component using [react2angular](https://www.npmjs.com/package/react2angular). This is what converts the React component into something that the rest of IQ (AngularJS) can interact with. There is a helper function called `withStoreProvider` that provides the redux store to the React components. It is wired into angular with code similar to
 `.component('addWaiverPage', react2angular(withStoreProvider(AddWaiverPageContainer), [], ['$ngRedux', '$state']))`
-         
+
 We implement runtime type-safety in React components using the [prop-types](https://www.npmjs.com/package/prop-types) library and all properties should be appropriately typed. This is usually done at the bottom of each component, by specifying various `PropTypes` from the `prop-types` project.
 
 ### Writing tests for React components
@@ -152,5 +153,22 @@ There are several helper functions in `insight-brain-frontend/src/test/frontend/
 * `mockNgRedux` and `mockReduxStore` provide helpful interfaces for interacting with a mock Redux store / state
 * `axiosMockerGenerator` can help to interact with the various Axios HTTP verbs (get / post / put / delete)
 * You should typically use [enzyme's](https://enzymejs.github.io/enzyme/docs/api/shallow.html) `shallow` and `mount` functions to test the DOM that your React component renders
+
+### How to add an Unsaved Changes modal warning to your page
+It is an established pattern to have a warning show up when the user is navigating away from a page in which they have unsaved changes. We call this warning the "Unsaved Changes Modal". The following are the conditions required to enable this modal for any given react page.
+
+* Track the _"isDirty"_ state of your page as a boolean flag in the related redux state and keep it up to date.
+* Configure the path to your _"isDirty"_ redux state in the router config for the related page: inside the `data` object add an `isDirty` property whose value is a string array representing the path to your _"isDirty"_ state flag, starting from the reducer name.
+
+For example, if you store your the "isDirty" flag in the `addWaiver` reducer in a variable called `isAddWaiverPageDirty`, the router config should look like this:
+```
+.state('addWaiver', {
+    ...
+    data: {
+        isDirty: ['addWaiver', 'isAddWaiverPageDirty']
+    }
+    ...
+})
+```
 
 For any questions about front-end development, reach out to the `@iq-laurel-team` in `#iq-laurel` in Slack

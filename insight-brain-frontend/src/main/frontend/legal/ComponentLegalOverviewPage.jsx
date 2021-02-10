@@ -91,17 +91,11 @@ export default function ComponentLegalOverviewPage(props) {
   const licenseNames = component && getLicenseNames(component.licenseLegalData.effectiveLicenses);
 
   const isTextBasedObligation = (licenseObligation) => {
-    return TEXT_BASED_OBLIGATIONS.includes(licenseObligation.name);
+    return TEXT_BASED_OBLIGATIONS.indexOf(licenseObligation.name) >= 0;
   };
 
   const createLicenseObligationAttributionTileContainer = (licenseObligation, index) => {
-    return <LicenseObligationAttributionTileContainer key={ index }
-                                                      name={ licenseObligation.name }
-                                                      attributionText={ licenseObligation.attributions.length > 0 ?
-                                                        licenseObligation.attributions[0].content : '' }
-                                                      obligationFulfilled={ licenseObligation.status === 'FULFILLED' }
-                                                      availableScopes={ availableScopes }
-    />;
+    return <LicenseObligationAttributionTileContainer key={ index } name={ licenseObligation.name }/>;
   };
 
   const createSubtitle = () => {

@@ -57,8 +57,8 @@ export const licenseObligationsPropType = PropTypes.arrayOf(
       status: PropTypes.string.isRequired,
       comment: PropTypes.string,
       attributions: PropTypes.arrayOf(PropTypes.shape({
-        id: PropTypes.string.isRequired,
-        content: PropTypes.string.isRequired
+        id: PropTypes.string,
+        content: PropTypes.string
       }).isRequired).isRequired
     })
 );
@@ -74,8 +74,8 @@ export const licenseObligationPropTypes = PropTypes.arrayOf(PropTypes.shape({
   status: PropTypes.string.isRequired,
   comment: PropTypes.string,
   attributions: PropTypes.arrayOf(PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    content: PropTypes.string.isRequired
+    id: PropTypes.string,
+    content: PropTypes.string
   }).isRequired).isRequired
 }).isRequired);
 

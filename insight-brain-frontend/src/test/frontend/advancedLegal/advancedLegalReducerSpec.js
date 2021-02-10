@@ -17,9 +17,18 @@ import {
   ADVANCED_LEGAL_LOAD_COMPONENT_FAILED,
   ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED,
   ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED,
-  ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED
+  ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED,
+  ADVANCED_LEGAL_SET_ATTRIBUTION_TEXT,
+  ADVANCED_LEGAL_SET_OBLIGATION_FULFILLED,
+  ADVANCED_LEGAL_SET_ATTRIBUTION_SCOPE,
+  ADVANCED_LEGAL_SET_SHOW_ATTRIBUTION_MODAL,
+  ADVANCED_LEGAL_SAVE_ATTRIBUTION_REQUESTED,
+  ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED,
+  ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED,
+  ADVANCED_LEGAL_SAVE_ATTRIBUTION_SUBMIT_MASK_DONE
 } from '../../../main/frontend/advancedLegal/advancedLegalActions.js';
 import { pick } from 'ramda';
+import { TEXT_BASED_OBLIGATIONS } from '../../../main/frontend/legal/advancedLegalConstants';
 
 describe('advancedLegalReducer', function () {
   describe('initial state', function () {
@@ -79,7 +88,8 @@ describe('advancedLegalReducer', function () {
         }
       };
       const componentInfo = {
-        foo: 'bar'
+        foo: 'bar',
+        obligations: []
       };
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
@@ -90,6 +100,89 @@ describe('advancedLegalReducer', function () {
       expect(component.loading).toBeFalsy();
       expect(component.error).toBeUndefined();
       expect(component.foo).toBe('bar');
+    });
+
+    it('sets the obligation attribution data for text based obligations without attributions', function () {
+      const state = {
+        component: {
+          loading: true,
+          error: null
+        }
+      };
+      const componentInfo = {
+        foo: 'bar',
+        obligations: []
+      };
+      TEXT_BASED_OBLIGATIONS.forEach(element => {
+        componentInfo.obligations.push({ name: element, status: 'status', attributions: [] });
+      });
+      componentInfo.obligations.push({ name: 'other', status: 'status', attributions: [] });
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
+        payload: componentInfo
+      });
+
+      const { component } = newState;
+      component.obligations.forEach(obligation => {
+        expect(obligation.originalStatus).toBe(obligation.status);
+        if (TEXT_BASED_OBLIGATIONS.indexOf(obligation.name) >= 0) {
+          expect(obligation.attributions.length).toBeGreaterThan(0);
+          const attribution = obligation.attributions[0];
+          expect(attribution.id).toBeNull();
+          expect(attribution.content).toBe('');
+          expect(attribution.ownerId).toBe('ROOT_ORGANIZATION_ID');
+          expect(attribution.originalContent).toBe(attribution.content);
+          expect(attribution.originalOwnerId).toBe(attribution.ownerId);
+          expect(attribution.showAttributionModal).toBeFalsy();
+          expect(attribution.error).toBeNull();
+          expect(attribution.saveAttributionSubmitMask).toBeNull();
+        }
+        else {
+          expect(obligation.attributions.length).toBe(0);
+        }
+      });
+    });
+
+    it('sets the obligation attribution data for text based obligations with attributions', function () {
+      const state = {
+        component: {
+          loading: true,
+          error: null
+        }
+      };
+      const componentInfo = {
+        foo: 'bar',
+        obligations: []
+      };
+      TEXT_BASED_OBLIGATIONS.forEach(element => {
+        componentInfo.obligations.push(
+            { name: element, status: 'status', attributions: [{ id: 'id', content: 'content', ownerId: 'ownerId' }] });
+      });
+      componentInfo.obligations.push({ name: 'other', status: 'status', attributions: [] });
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
+        payload: componentInfo
+      });
+
+      const { component } = newState;
+      component.obligations.forEach(obligation => {
+        expect(obligation.originalStatus).toBe(obligation.status);
+        if (TEXT_BASED_OBLIGATIONS.indexOf(obligation.name) >= 0) {
+          expect(obligation.attributions.length).toBeGreaterThan(0);
+          const attribution = obligation.attributions[0];
+          expect(attribution.id).toBe('id');
+          expect(attribution.content).toBe('content');
+          expect(attribution.ownerId).toBe('ownerId');
+          expect(attribution.originalContent).toBe(attribution.content);
+          expect(attribution.originalOwnerId).toBe(attribution.ownerId);
+          expect(attribution.showAttributionModal).toBeFalsy();
+          expect(attribution.error).toBeNull();
+          expect(attribution.saveAttributionSubmitMask).toBeNull();
+        }
+        else {
+          expect(obligation.attributions.length).toBe(0);
+        }
+      });
     });
   });
 
@@ -285,6 +378,180 @@ describe('advancedLegalReducer', function () {
       const { availableScopes } = newState;
       expect(availableScopes.loading).toBeFalsy();
       expect(availableScopes.error).toBe(errorTest);
+    });
+  });
+
+  describe('ADVANCED_LEGAL_SET_ATTRIBUTION_TEXT action', function () {
+    it('sets the content of the first attribution of the matching obligation', function () {
+      const state = {
+        component: {
+          obligations: [{ name: 'obligation1', attributions: [{}] }, { name: 'obligation2' }]
+        }
+      };
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_SET_ATTRIBUTION_TEXT,
+        payload: { name: 'obligation1', value: 'content' }
+      });
+      const obligation1Attribution = newState.component.obligations[0].attributions[0];
+      expect(obligation1Attribution.content).toBe('content');
+      expect(newState.component.obligations[1]).toEqual({ name: 'obligation2' });
+    });
+  });
+
+  describe('ADVANCED_LEGAL_SET_OBLIGATION_FULFILLED action', function () {
+    it('sets the status of the matching obligation to fulfilled if the value is true', function () {
+      const state = {
+        component: {
+          obligations: [{ name: 'obligation1', status: 'OPEN' }, { name: 'obligation2' }]
+        }
+      };
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_SET_OBLIGATION_FULFILLED,
+        payload: { name: 'obligation1', value: true }
+      });
+      const obligation1 = newState.component.obligations[0];
+      expect(obligation1.status).toBe('FULFILLED');
+      expect(newState.component.obligations[1]).toEqual({ name: 'obligation2' });
+    });
+
+    it('sets the status of the matching obligation to its original status if the value is false', function () {
+      const state = {
+        component: {
+          obligations: [{ name: 'obligation1', status: 'FULFILLED', originalStatus: 'OPEN' }, { name: 'obligation2' }]
+        }
+      };
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_SET_OBLIGATION_FULFILLED,
+        payload: { name: 'obligation1', value: false }
+      });
+      const obligation1 = newState.component.obligations[0];
+      expect(obligation1.status).toBe('OPEN');
+      expect(newState.component.obligations[1]).toEqual({ name: 'obligation2' });
+    });
+  });
+
+  describe('ADVANCED_LEGAL_SET_ATTRIBUTION_SCOPE action', function () {
+    it('sets the ownerId of the first attribution of the matching obligation', function () {
+      const state = {
+        component: {
+          obligations: [{ name: 'obligation1', attributions: [{}] }, { name: 'obligation2' }]
+        }
+      };
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_SET_ATTRIBUTION_SCOPE,
+        payload: { name: 'obligation1', value: 'ownerId' }
+      });
+      const obligation1Attribution = newState.component.obligations[0].attributions[0];
+      expect(obligation1Attribution.ownerId).toBe('ownerId');
+      expect(newState.component.obligations[1]).toEqual({ name: 'obligation2' });
+    });
+  });
+
+  describe('ADVANCED_LEGAL_SET_SHOW_ATTRIBUTION_MODAL action', function () {
+    it('sets showAttributionModal of the first attribution of the matching obligation', function () {
+      const state = {
+        component: {
+          obligations: [{ name: 'obligation1', attributions: [{}] }, { name: 'obligation2' }]
+        }
+      };
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_SET_SHOW_ATTRIBUTION_MODAL,
+        payload: { name: 'obligation1', value: true }
+      });
+      const obligation1Attribution = newState.component.obligations[0].attributions[0];
+      expect(obligation1Attribution.showAttributionModal).toBeTruthy();
+      expect(newState.component.obligations[1]).toEqual({ name: 'obligation2' });
+    });
+  });
+
+  describe('ADVANCED_LEGAL_SAVE_ATTRIBUTION_REQUESTED action', function() {
+    it('sets error and saveAttributionSubmitMask to null of the first attribution of the matching obligation',
+        function() {
+          const state = {
+            component: {
+              obligations: [{ name: 'obligation1', attributions: [{}] }, { name: 'obligation2' }]
+            }
+          };
+          const newState = reduce(state, {
+            type: ADVANCED_LEGAL_SAVE_ATTRIBUTION_REQUESTED,
+            payload: { name: 'obligation1' }
+          });
+          const obligation1Attribution = newState.component.obligations[0].attributions[0];
+          expect(obligation1Attribution.error).toBeNull();
+          expect(obligation1Attribution.saveAttributionSubmitMask).toBeNull();
+          expect(newState.component.obligations[1]).toEqual({ name: 'obligation2' });
+        });
+  });
+
+  describe('ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED action', function() {
+    it('sets the matching obligation and its first attribution to the payload', function() {
+      const state = {
+        component: {
+          obligations: [
+            { name: 'obligation1', status: 'OPEN', attributions: [{}] }, { name: 'obligation2' }
+          ]
+        }
+      };
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED,
+        payload: { name: 'obligation1', value: { id: 'id', content: 'content', ownerId: 'ownerId' } }
+      });
+      const obligation1 = newState.component.obligations[0];
+      expect(obligation1.originalStatus).toBe('OPEN');
+      expect(obligation1.status).toBe('OPEN');
+      const obligation1Attribution = obligation1.attributions[0];
+      expect(obligation1Attribution.id).toBe('id');
+      expect(obligation1Attribution.originalContent).toBe('content');
+      expect(obligation1Attribution.content).toBe('content');
+      expect(obligation1Attribution.originalOwnerId).toBe('ownerId');
+      expect(obligation1Attribution.ownerId).toBe('ownerId');
+      expect(obligation1Attribution.error).toBeNull();
+      expect(obligation1Attribution.saveAttributionSubmitMask).toBeTruthy();
+      expect(newState.component.obligations[1]).toEqual({ name: 'obligation2' });
+    });
+  });
+
+  describe('ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED action', function() {
+    it('sets error to payload and saveAttributionSubmitMask to false of the first attribution of the matching' +
+        'obligation',
+    function() {
+      const state = {
+        component: {
+          obligations: [
+            { name: 'obligation1', attributions: [{}] }, { name: 'obligation2' }
+          ]
+        }
+      };
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED,
+        payload: { name: 'obligation1', value: 'error' }
+      });
+      const obligation1Attribution = newState.component.obligations[0].attributions[0];
+      expect(obligation1Attribution.error).toBe('error');
+      expect(obligation1Attribution.saveAttributionSubmitMask).toBeNull();
+      expect(newState.component.obligations[1]).toEqual({ name: 'obligation2' });
+    });
+  });
+
+  describe('ADVANCED_LEGAL_SAVE_ATTRIBUTION_SUBMIT_MASK_DONE action', function() {
+    it('sets saveAttributionSubmitMask to null and showAttributionModal to false of the first attribution of the' +
+        'matching obligation',
+    function() {
+      const state = {
+        component: {
+          obligations: [
+            { name: 'obligation1', attributions: [{}] }, { name: 'obligation2' }
+          ]
+        }
+      };
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_SAVE_ATTRIBUTION_SUBMIT_MASK_DONE,
+        payload: { name: 'obligation1' }
+      });
+      const obligation1Attribution = newState.component.obligations[0].attributions[0];
+      expect(obligation1Attribution.saveAttributionSubmitMask).toBeNull();
+      expect(obligation1Attribution.showAttributionModal).toBeFalsy();
+      expect(newState.component.obligations[1]).toEqual({ name: 'obligation2' });
     });
   });
 });

@@ -3,18 +3,18 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   NxButton,
   NxCheckbox,
+  NxFieldset,
   NxFontAwesomeIcon,
-  NxModal,
-  NxTextInput,
-  NxFormGroup,
   NxForm,
-  NxFieldset
+  NxFormGroup,
+  NxModal,
+  NxTextInput
 } from '@sonatype/react-shared-components';
-import { faPlus, faPen } from '@fortawesome/pro-solid-svg-icons';
+import { faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { availableScopesPropType } from './advancedLegalPropTypes';
@@ -24,31 +24,48 @@ export default function LicenseObligationAttributionTile(props) {
     // actions
     setAttributionText,
     setObligationFulfilled,
-    setScope,
+    setAttributionScope,
+    saveAttribution,
+    setShowAttributionModal,
     // state
+    id,
     name,
+    originalAttributionText,
     attributionText,
+    originalObligationFulfilled,
     obligationFulfilled,
     availableScopes,
-    scope
+    originalScope,
+    scope,
+    error,
+    saveAttributionSubmitMask,
+    showAttributionModal
   } = props;
-  const [showAttributionModal, setShowAttributionModal] = useState(false);
-  const attributionModalCloseHandler = () => setShowAttributionModal(false);
-  const isAttributionPresent = () => attributionText !== '';
+  const isAttributionPresent = () => id !== null;
 
-  function load() {
-    setAttributionText({ name: name, value: attributionText });
-    setObligationFulfilled({ name: name, value: obligationFulfilled });
-    setScope({ name: name, value: availableScopes.values[availableScopes.values.length - 1].id });
+  function isDirty() {
+    return attributionText !== originalAttributionText ||
+        obligationFulfilled !== originalObligationFulfilled ||
+        scope !== originalScope;
   }
 
-  useEffect(load, [availableScopes]);
+  function onCancel() {
+    setAttributionText({ name: name, value: originalAttributionText });
+    setObligationFulfilled({ name: name, value: originalObligationFulfilled });
+    setAttributionScope({ name: name, value: originalScope });
+    setShowAttributionModal({ name: name, value: false });
+  }
 
   const createAttributionModal = () => {
-    return <NxModal id="license-obligation-attribution-modal" onClose={ attributionModalCloseHandler }>
-      <NxForm onCancel={ attributionModalCloseHandler }
+    const [markObligationAsFulfilled, setMarkObligationAsFulfilled] = useState(false);
+    return <NxModal id="license-obligation-attribution-modal"
+                    onClose={ () => setShowAttributionModal({ name: name, value: false }) }>
+      <NxForm onCancel={ onCancel }
               submitBtnText="Save"
-              onSubmit={ attributionModalCloseHandler }>
+              onSubmit={ () => isDirty() && saveAttribution(name) }
+              submitError={ error }
+              submitMaskState={ saveAttributionSubmitMask }
+              submitBtnClasses={ classnames({ disabled: !isDirty() }) }>
         <header className="nx-modal-header">
           <h2 className="nx-h2">
             Attribution for &quot;{ name }&quot;
@@ -66,15 +83,19 @@ export default function LicenseObligationAttributionTile(props) {
               />
           </NxFormGroup>
           <NxFieldset label="Update Obligation Review Status">
-            <NxCheckbox isChecked={ obligationFulfilled }
-                        onChange={ () => setObligationFulfilled(({ name: name, value: !obligationFulfilled })) }>
+            <NxCheckbox isChecked={ markObligationAsFulfilled }
+                        onChange={() => {
+                          const newMarkObligationAsFulfilled = !markObligationAsFulfilled;
+                          setMarkObligationAsFulfilled(newMarkObligationAsFulfilled);
+                          setObligationFulfilled({ name: name, value: newMarkObligationAsFulfilled });
+                        }}>
               Mark &quot;{ name }&quot; as fulfilled.
             </NxCheckbox>
           </NxFieldset>
           <NxFormGroup label="Scope" sublabel="Apply changes to" isRequired>
             <select className="nx-form-select"
                     value={ scope }
-                    onChange={ payload => setScope({ name: name, value: payload.currentTarget.value }) }>
+                    onChange={ payload => setAttributionScope({ name: name, value: payload.currentTarget.value }) }>
               { availableScopes.values.map(createScopeOption) }
             </select>
           </NxFormGroup>
@@ -96,7 +117,7 @@ export default function LicenseObligationAttributionTile(props) {
           <h2 className="nx-h2">Attribution for &quot;{ name }&quot;</h2>
         </div>
         <div className="nx-tile__actions">
-          <NxButton variant="tertiary" onClick={ () => setShowAttributionModal(true) }>
+          <NxButton variant="tertiary" onClick={ () => setShowAttributionModal({ name: name, value: true }) }>
             <NxFontAwesomeIcon icon={ isAttributionPresent() ? faPen : faPlus }/>
             <span>{ isAttributionPresent() ? 'Edit' : 'Add' } Attribution</span>
           </NxButton>
@@ -104,7 +125,7 @@ export default function LicenseObligationAttributionTile(props) {
         { showAttributionModal && createAttributionModal() }
       </header>
       <div className={ classes }>
-        { isAttributionPresent() ? attributionText : 'None added' }
+        { isAttributionPresent() ? originalAttributionText : 'None added' }
       </div>
     </section>
   );
@@ -113,10 +134,19 @@ export default function LicenseObligationAttributionTile(props) {
 LicenseObligationAttributionTile.propTypes = {
   setAttributionText: PropTypes.func.isRequired,
   setObligationFulfilled: PropTypes.func.isRequired,
-  setScope: PropTypes.func.isRequired,
+  setAttributionScope: PropTypes.func.isRequired,
+  saveAttribution: PropTypes.func.isRequired,
+  setShowAttributionModal: PropTypes.func.isRequired,
+  id: PropTypes.string,
   name: PropTypes.string.isRequired,
-  attributionText: PropTypes.string,
+  originalAttributionText: PropTypes.string,
+  attributionText: PropTypes.string.isRequired,
+  originalObligationFulfilled: PropTypes.bool,
   obligationFulfilled: PropTypes.bool.isRequired,
   availableScopes: availableScopesPropType,
-  scope: PropTypes.string
+  originalScope: PropTypes.string,
+  scope: PropTypes.string.isRequired,
+  error: PropTypes.string,
+  saveAttributionSubmitMask: PropTypes.bool,
+  showAttributionModal: PropTypes.bool.isRequired
 };

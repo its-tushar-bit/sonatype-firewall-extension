@@ -252,6 +252,20 @@ export function getOwnerHierarchyUrl(ownerType, ownerId) {
   return uriTemplate`/rest/owner/${ownerType}/${ownerId}/hierarchy`;
 }
 
+export function getSaveComponentObligationAttributionUrl(orgOrApp, ownerId) {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/obligation/attribution`;
+}
+
+export function getComponentObligationAttributionUrl(orgOrApp, ownerId, componentIdentifier, obligationName) {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/obligation/attribution` +
+      `?componentIdentifier=${JSON.stringify(componentIdentifier)}&obligationName=${obligationName}`;
+}
+
+export function getDeleteComponentObligationAttributionUrl(componentObligationAttributionId) {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/component/obligation/attribution/` +
+      `${componentObligationAttributionId}`;
+}
+
 export default
 angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl', '$window', function(baseUrl, $window) {

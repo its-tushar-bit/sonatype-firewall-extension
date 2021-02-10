@@ -5,34 +5,38 @@
  */
 import * as enzymeUtils from '../enzymeUtils';
 import LicenseObligationAttributionTile from '../../../main/frontend/legal/LicenseObligationAttributionTile';
-import { mount } from 'enzyme';
-import React from 'react';
 import { NxButton, NxTextInput, NxCheckbox } from '@sonatype/react-shared-components';
 
 describe('LicenseObligationAttributionTile component', function() {
   let getShallowComponent,
       setAttributionTextSpy = jasmine.createSpy('setAttributionTextSpy'),
       setObligationFulfilledSpy = jasmine.createSpy('setObligationFulfilledSpy'),
-      setScopeSpy = jasmine.createSpy('setScopeSpy');
+      setAttributionScopeSpy = jasmine.createSpy('setAttributionScope'),
+      saveAttributionSpy = jasmine.createSpy('saveAttributionSpy'),
+      setShowAttributionModalSpy = jasmine.createSpy('setShowAttributionModalSpy');
 
   const minimalProps = {
     setAttributionText: setAttributionTextSpy,
     setObligationFulfilled: setObligationFulfilledSpy,
-    setScope: setScopeSpy,
+    setAttributionScope: setAttributionScopeSpy,
+    saveAttribution: saveAttributionSpy,
+    setShowAttributionModal: setShowAttributionModalSpy,
+    id: null,
     name: 'License Obligation Name',
+    originalAttributionText: '',
     attributionText: '',
+    originalObligationFulfilled: false,
     obligationFulfilled: false,
-    availableScopes: { values: [{ id: 'ROOT_ORGANIZATION_ID', name: 'Root Organization', label: 'Organization' }] }
+    availableScopes: { values: [{ id: 'ROOT_ORGANIZATION_ID', name: 'Root Organization', label: 'Organization' }] },
+    originalScope: 'ROOT_ORGANIZATION_ID',
+    scope: 'ROOT_ORGANIZATION_ID',
+    error: null,
+    saveAttributionSubmitMask: null,
+    showAttributionModal: false
   };
 
   beforeEach(function() {
     getShallowComponent = enzymeUtils.getShallowComponent(LicenseObligationAttributionTile, minimalProps);
-  });
-
-  it('sets the initial scope', function() {
-    const component = mount(<LicenseObligationAttributionTile { ...minimalProps }/>);
-    expect(setScopeSpy).toHaveBeenCalledWith({ name: 'License Obligation Name', value: 'ROOT_ORGANIZATION_ID' });
-    component.unmount();
   });
 
   it('renders a header with a label matching the license obligation name', function() {
@@ -46,7 +50,7 @@ describe('LicenseObligationAttributionTile component', function() {
   });
 
   it('renders an Edit Attribution button if there is an attribution', function() {
-    const wrapper = getShallowComponent({ attributionText: 'Some attribution text.' });
+    const wrapper = getShallowComponent({ id: 'id' });
     expect(wrapper.find('.nx-tile__actions span')).toHaveText('Edit Attribution');
   });
 
@@ -55,20 +59,17 @@ describe('LicenseObligationAttributionTile component', function() {
     expect(wrapper.find('.nx-tile-content')).toHaveText('None added');
   });
 
-  it('renders the attribution text as content if there is an attribution', function() {
-    const attribution = { attributionText: 'Some attribution text.' };
+  it('renders the original attribution text as content if there is an attribution', function() {
+    const attribution = { id: 'id', originalAttributionText: 'Some attribution text.' };
     const wrapper = getShallowComponent(attribution);
-    expect(wrapper.find('.nx-tile-content')).toHaveText(attribution.attributionText);
+    expect(wrapper.find('.nx-tile-content')).toHaveText(attribution.originalAttributionText);
   });
 
   it('renders the modal with root org data', function() {
-    const wrapper = mount(<LicenseObligationAttributionTile {...{ ...minimalProps, scope: 'ROOT_ORGANIZATION_ID' }}/>);
-    expect(setAttributionTextSpy).toHaveBeenCalledWith({ name: 'License Obligation Name', value: '' });
-    expect(setObligationFulfilledSpy).toHaveBeenCalledWith({ name: 'License Obligation Name', value: false });
-    expect(setScopeSpy).toHaveBeenCalledWith({ name: 'License Obligation Name', value: 'ROOT_ORGANIZATION_ID' });
+    const wrapper = getShallowComponent({ showAttributionModal: true });
     wrapper.find('.nx-tile__actions').find(NxButton).simulate('click');
     expect(wrapper.find('.nx-modal-header')).toHaveText('Attribution for "License Obligation Name"');
-    expect(wrapper.find(NxTextInput)).toHaveText('');
+    expect(wrapper.find(NxTextInput)).toHaveProp('value', '');
     let checkbox = wrapper.find(NxCheckbox);
     expect(checkbox).toHaveProp('isChecked', false);
     expect(checkbox.text()).toContain('Mark "License Obligation Name" as fulfilled.');
@@ -81,28 +82,25 @@ describe('LicenseObligationAttributionTile component', function() {
 
   it('renders the modal with org data', function() {
     let orgData = {
-      attributionText: 'Some obligation text.',
+      attributionText: 'Some obligation attribution text.',
       obligationFulfilled: true,
       availableScopes: {
         values: [
           { id: 'orgId', name: 'org', label: 'Organization' },
           { id: 'ROOT_ORGANIZATION_ID', name: 'Root Organization', label: 'Organization' }
         ]
-      }
+      },
+      showAttributionModal: true
     };
-    const wrapper = mount(<LicenseObligationAttributionTile { ...{ ...minimalProps, ...orgData, scope: 'orgId' } }/>);
-    expect(setAttributionTextSpy).toHaveBeenCalledWith(
-        { name: 'License Obligation Name', value: 'Some obligation text.' });
-    expect(setObligationFulfilledSpy).toHaveBeenCalledWith({ name: 'License Obligation Name', value: true });
-    expect(setScopeSpy).toHaveBeenCalledWith({ name: 'License Obligation Name', value: 'ROOT_ORGANIZATION_ID' });
+    const wrapper = getShallowComponent(orgData);
     wrapper.find('.nx-tile__actions').find(NxButton).simulate('click');
     expect(wrapper.find('.nx-modal-header')).toHaveText('Attribution for "License Obligation Name"');
-    expect(wrapper.find(NxTextInput)).toHaveText('Some obligation text.');
+    expect(wrapper.find(NxTextInput)).toHaveProp('value', 'Some obligation attribution text.');
     let checkbox = wrapper.find(NxCheckbox);
-    expect(checkbox).toHaveProp('isChecked', true);
+    expect(checkbox).toHaveProp('isChecked', false);
     expect(checkbox.text()).toContain('Mark "License Obligation Name" as fulfilled.');
     let select = wrapper.find('select');
-    expect(select).toHaveProp('value', 'orgId');
+    expect(select).toHaveProp('value', 'ROOT_ORGANIZATION_ID');
     let options = wrapper.find('option');
     expect(options.length).toBe(2);
     expect(options.at(0)).toHaveText('Organization - org');
@@ -111,7 +109,7 @@ describe('LicenseObligationAttributionTile component', function() {
 
   it('renders the modal with app data', function() {
     let appData = {
-      attributionText: 'Some obligation text.',
+      attributionText: 'Some obligation attribution text.',
       obligationFulfilled: true,
       availableScopes: {
         values: [
@@ -119,21 +117,18 @@ describe('LicenseObligationAttributionTile component', function() {
           { id: 'orgId', name: 'org', label: 'Organization' },
           { id: 'ROOT_ORGANIZATION_ID', name: 'Root Organization', label: 'Organization' }
         ]
-      }
+      },
+      showAttributionModal: true
     };
-    const wrapper = mount(<LicenseObligationAttributionTile {...{ ...minimalProps, ...appData, scope: 'appId' }}/>);
-    expect(setAttributionTextSpy).toHaveBeenCalledWith(
-        { name: 'License Obligation Name', value: 'Some obligation text.' });
-    expect(setObligationFulfilledSpy).toHaveBeenCalledWith({ name: 'License Obligation Name', value: true });
-    expect(setScopeSpy).toHaveBeenCalledWith({ name: 'License Obligation Name', value: 'ROOT_ORGANIZATION_ID' });
+    const wrapper = getShallowComponent(appData);
     wrapper.find('.nx-tile__actions').find(NxButton).simulate('click');
     expect(wrapper.find('.nx-modal-header')).toHaveText('Attribution for "License Obligation Name"');
-    expect(wrapper.find(NxTextInput)).toHaveText('Some obligation text.');
+    expect(wrapper.find(NxTextInput)).toHaveProp('value', 'Some obligation attribution text.');
     let checkbox = wrapper.find(NxCheckbox);
-    expect(checkbox).toHaveProp('isChecked', true);
+    expect(checkbox).toHaveProp('isChecked', false);
     expect(checkbox.text()).toContain('Mark "License Obligation Name" as fulfilled.');
     let select = wrapper.find('select');
-    expect(select).toHaveProp('value', 'appId');
+    expect(select).toHaveProp('value', 'ROOT_ORGANIZATION_ID');
     let options = wrapper.find('option');
     expect(options.length).toBe(3);
     expect(options.at(0)).toHaveText('Application - app');

@@ -27,8 +27,10 @@ import {sortItemsByFields} from '../../util/sortUtils';
 import * as textInputStateHelpers from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
 import {validateHostUrl} from './utils/validators';
 import {hasValidationErrors} from '../../util/validationUtil';
-import { over, lensPath } from 'ramda';
+import {over, lensPath} from 'ramda';
 import { propSet } from '../../util/jsUtil';
+import {UI_ROUTER_ON_FINISH} from '../../reduxUiRouter/routerActions';
+import ownerConstant from '../../utility/services/owner.constant';
 
 const initialState = {
   configState: {
@@ -64,6 +66,17 @@ const initialState = {
     dir: 'asc'
   }
 };
+
+/*
+ resets the page to a clean state, ready for subsequent calls
+ */
+function resetPage(payload, state) {
+  return {
+    ...initialState,
+    // retain only the config
+    configState: state.configState
+  };
+}
 
 function loadConfigFulfilled(payload, state) {
   return {
@@ -104,6 +117,10 @@ function loadPageRequested(payload) {
 }
 
 function loadPageFulfilled(payload, state) {
+  const rootOrg = payload.organizationsResults.find(org => org.organization.id === ownerConstant.ROOT_ORGANIZATION_ID);
+  const orgForTokens = payload.compositeSourceControlResults ?
+    payload.compositeSourceControlResults :
+    rootOrg.sourceControl;
   return {
     ...state,
     viewState: {
@@ -113,19 +130,16 @@ function loadPageFulfilled(payload, state) {
     configState: {
       ...state.configState,
       isScmOnboardingFeatureEnabled: payload.configResults.scmOnboardingFeatureEnabled,
-      isScmTokenConfigured: payload.compositeSourceControlResults === null ? false :
-        !!payload.compositeSourceControlResults.token.value ||
-        !!payload.compositeSourceControlResults.token.parentValue,
-      isScmTokenOverridden: payload.compositeSourceControlResults !== null &&
-        !!payload.compositeSourceControlResults.token.value,
-      scmProvider: payload.compositeSourceControlResults !== null
-        ? payload.compositeSourceControlResults.provider : null
+      isScmTokenConfigured: orgForTokens === null ?
+        false : !!orgForTokens.token.value || !!orgForTokens.token.parentValue,
+      isScmTokenOverridden: orgForTokens !== null && !!orgForTokens.token.value,
+      scmProvider: orgForTokens !== null ? orgForTokens.provider : null
     },
     formState: {
       ...state.formState,
       selectedOrganization: payload.organizationsResults.find(org =>
-        org.id === state.formState.preselectedOrganizationId),
-      organizations: payload.organizationsResults,
+        org.organization.id === state.formState.preselectedOrganizationId),
+      organizations: payload.organizationsResults.filter(org => org.organization.id !== 'ROOT_ORGANIZATION_ID'),
       defaultHostUrl: payload.hostUrlResult !== null
         ? payload.hostUrlResult.defaultHostUrl : null,
       currentHostUrlState: payload.hostUrlResult !== null
@@ -146,9 +160,14 @@ function loadPageFailed(payload) {
   };
 }
 
-function setSelectedOrganization(payload, state) {
+function targetOrganizationChanged(payload, state) {
   return {
     ...state,
+    configState: {
+      isScmTokenOverridden: payload.sourceControl !== null && !!payload.sourceControl.token.value,
+      isScmTokenConfigured: payload.sourceControl !== null
+          && (!!payload.sourceControl.token.value || !!payload.sourceControl.token.parentValue)
+    },
     formState: {
       ...state.formState,
       selectedOrganization: payload
@@ -161,7 +180,9 @@ function loadRepositoriesRequested(payload, state) {
     ...state,
     viewState: {
       ...state.viewState,
-      loadingRepositories: true
+      loadingRepositories: true,
+      generalError: null,
+      loadRepositoriesAuthError: null
     },
     formState: {
       ...state.formState,
@@ -171,6 +192,8 @@ function loadRepositoriesRequested(payload, state) {
 }
 
 function loadRepositoriesFulfilled(payload, state) {
+  const repos = payload.availableRepositories ? sortItemsByFields(state.sortConfiguration.sortingOrder,
+      payload.availableRepositories) : null;
   return payload.status === 'SUCCESS' ? {
     ...state,
     viewState: {
@@ -179,7 +202,7 @@ function loadRepositoriesFulfilled(payload, state) {
     },
     formState: {
       ...state.formState,
-      repositories: sortItemsByFields(state.sortConfiguration.sortingOrder, payload.availableRepositories),
+      repositories: repos,
       totalRepositories: payload.totalRepositories,
       importedRepositoryCount: 0,
       selectedRepositoryCount: 0
@@ -341,7 +364,7 @@ const reducerActionMap = {
   [SCM_ONBOARDING_IMPORT_REPOS_FULFILLED]: importRepositoriesFulfilled,
   [SCM_ONBOARDING_IMPORT_REPOS_FAILED]: importRepositoriesFailed,
 
-  [SCM_ONBOARDING_SET_TARGET_ORGANIZATION]: setSelectedOrganization,
+  [SCM_ONBOARDING_SET_TARGET_ORGANIZATION]: targetOrganizationChanged,
 
   [SCM_ONBOARDING_SET_CURRENT_HOST_URL]: setCurrentHostUrl,
 
@@ -349,7 +372,8 @@ const reducerActionMap = {
 
   [SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_REQUESTED]: validateScmHostUrlRequested,
   [SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FULFILLED]: validateScmHostUrlFulfilled,
-  [SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FAILED]: validateScmHostUrlFailed
+  [SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FAILED]: validateScmHostUrlFailed,
+  [UI_ROUTER_ON_FINISH]: resetPage
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

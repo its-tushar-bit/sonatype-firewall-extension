@@ -14,14 +14,12 @@ export default function TargetOrganizationDropdown(props) {
     // input: organizations
     organizations,
     loadingOrganizations,
-    provider,
 
     // output: selected organization
     selectedOrganization,
 
     // action
-    setSelectedOrganization,
-    loadOrgHostUrl
+    setSelectedOrganization
   } = props;
 
   const [isOpen, setOpen] = useState(false),
@@ -29,7 +27,6 @@ export default function TargetOrganizationDropdown(props) {
       onClick = (event) => {
         setSelectedOrganization(event);
         setOpen(false);
-        loadOrgHostUrl(event.organizationId, provider);
       };
 
   function getOptionClassNames(isSelected) {
@@ -43,7 +40,7 @@ export default function TargetOrganizationDropdown(props) {
       id='iq-scm-target-organization'
       label={ loadingOrganizations
         ? 'Loading...'
-        : selectedOrganization ? selectedOrganization.name : 'Select' }
+        : selectedOrganization ? selectedOrganization.organization.name : 'Select' }
       disabled={ loadingOrganizations }
       isOpen={isOpen}
       onToggleCollapse={onToggleCollapse}
@@ -52,10 +49,11 @@ export default function TargetOrganizationDropdown(props) {
       { organizations
           .filter(org => org.id !== 'ROOT_ORGANIZATION_ID')
           .map(org =>
-            <button key={org.id}
+            <button key={org.organization.id}
                     onClick={() => {onClick(org);}}
-                    className={getOptionClassNames(selectedOrganization && selectedOrganization.id === org.id)}>
-              {org.name}
+                    className={getOptionClassNames(selectedOrganization &&
+                        selectedOrganization.organization.id === org.id)}>
+              {org.organization.name}
             </button>
           )}
     </NxDropdown>
@@ -63,10 +61,8 @@ export default function TargetOrganizationDropdown(props) {
 }
 
 TargetOrganizationDropdown.propTypes = {
-  organizations: PropTypes.arrayOf(PropTypes.shape(organizationPropType)).isRequired,
-  loadingOrganizations: PropTypes.bool.isRequired,
-  provider: PropTypes.string.isRequired,
+  organizations: PropTypes.arrayOf(PropTypes.shape(organizationPropType)),
+  loadingOrganizations: PropTypes.bool,
   setSelectedOrganization: PropTypes.func.isRequired,
-  selectedOrganization: PropTypes.shape(organizationPropType),
-  loadOrgHostUrl: PropTypes.func.isRequired
+  selectedOrganization: PropTypes.shape(organizationPropType)
 };

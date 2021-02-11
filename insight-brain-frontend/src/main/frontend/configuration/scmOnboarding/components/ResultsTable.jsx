@@ -4,7 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import LoadWrapper from '../../../react/LoadWrapper';
 import {
   NxCheckbox,
   NxTable,
@@ -15,10 +14,9 @@ import {
   NxTooltip,
   NxPagination
 } from '@sonatype/react-shared-components';
-import React, {Fragment, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import * as PropTypes from 'prop-types';
 import {repositoryPropType} from '../ScmOnboarding';
-import NxButton from '@sonatype/react-shared-components/components/NxButton/NxButton';
 import NxFilterInput from '@sonatype/react-shared-components/components/NxFilterInput/NxFilterInput';
 import NxExternalLink from '../../../react/NxExternalLink';
 import {propSet} from '../../../util/jsUtil';
@@ -27,28 +25,21 @@ export default function ResultsTable(props) {
   const {
     loadingRepositories,
     repositories,
-    totalRepositories,
-    preselectedOrganizationId,
 
     // sorting
     sortConfiguration,
 
+    // selection
+    isAllChecked,
+    selectedRepositories,
+
     // actions
     setSortingParameters,
-    importSelectedRepositories,
-    loadRepositories
+    setIsAllChecked,
+    setSelectedRepositories
   } = props;
 
-  function importPercentage() {
-    if (repositories && totalRepositories > 0) {
-      return Math.round(((totalRepositories - repositories.length) / totalRepositories) * 100.0);
-    }
-    return 0;
-  }
-
   const [filters, setFilters] = useState({project: '', namespace: '', description: ''}),
-      [isAllChecked, setIsAllChecked] = useState(false),
-      [selectedRepositories, setSelectedRepositories] = useState([]),
       [page, setPage] = useState(0);
 
   const maxRowsPerPage = 15;
@@ -149,129 +140,70 @@ export default function ResultsTable(props) {
     setPage(0);
   }
 
-  function handleImportSelectedRepositories() {
-    const prevImportedCount = totalRepositories - repositories.length;
-    importSelectedRepositories(preselectedOrganizationId, totalRepositories, prevImportedCount, selectedRepositories);
-    setSelectedRepositories([]);
-    setIsAllChecked(false);
-  }
-
   return (
-    <Fragment>
-      <header className="nx-tile-header nx-tile-header--hrule">
-        <div className="nx-tile-header__title">
-          <h2 className="nx-h2">Import Repositories</h2>
-        </div>
-        { !loadingRepositories &&
-          <div className="nx-tile-header__subtitle iq-scmonboarding-stats">
-            <div className="iq-scmonboarding-stats-row">
-              <h3 id="repository-count"
-                  className="iq-caption_text iq-scmonboarding-stats-highlight">{repositories.length}</h3>
-              <div className="iq-scmonboarding-stats-column">
-                <h3 className="iq-caption_text">REPOSITORIES</h3>
-                <div className="iq-caption_subtext">found</div>
-              </div>
-            </div>
-            <div className="iq-scmonboarding-stats-row">
-              <h3 id="scm-already-imported"
-                  className='iq-caption_text iq-scmonboarding-stats-highlight'>{totalRepositories -
-              repositories.length}</h3>
-              <div className="iq-scmonboarding-stats-column">
-                <h3 className="iq-caption_text">ALREADY IMPORTED</h3>
-                <div id="scm-import-percentage" className="iq-caption_subtext">({importPercentage()}%)</div>
-              </div>
-            </div>
-          </div>
-        }
-      </header>
-      <div className="nx-tile-content">
-        <LoadWrapper loading={loadingRepositories} retryHandler={loadRepositories}>
-          <div className="nx-table-container onboarding-repo-table">
-            <NxTable id="iq-scm-onboarding-repositories">
-              <NxTableHead>
-                <NxTableRow>
-                  <NxTableCell>Selection</NxTableCell>
-                  <NxTableCell id='namespace-header' isSortable sortDir={sortDirNamespace}
-                               onClick={() => requestSort(sortSettingsNamespace)}>Namespace</NxTableCell>
-                  <NxTableCell id='project-header' isSortable sortDir={sortDirProject}
-                               onClick={() => requestSort(sortSettingsProject)}>Project</NxTableCell>
-                  <NxTableCell id='description-header' isSortable sortDir={sortDirDescription}
-                               onClick={() => requestSort(sortSettingsDescription)}>Description</NxTableCell>
-                </NxTableRow>
-                <NxTableRow isFilterHeader>
-                  <NxTableCell className="iq-scmonboarding__select-all-cell">
-                    <NxCheckbox checkboxId="iq-scmonboarding-select-all"
-                                isChecked={isAllChecked}
-                                onChange={toggleSelectAll}>
-                      All
-                    </NxCheckbox>
-                  </NxTableCell>
-                  <NxTableCell className="iq-scmonboarding__filter-cell">
-                    <NxFilterInput value={filters.namespace}
-                                   onChange={filterValue => changeFilter('namespace', filterValue)} />
-                  </NxTableCell>
-                  <NxTableCell className="iq-scmonboarding__filter-cell">
-                    <NxFilterInput id="project-filter"
-                                   value={filters.project}
-                                   onChange={filterValue => changeFilter('project', filterValue)} />
-                  </NxTableCell>
-                  <NxTableCell className="iq-scmonboarding__filter-cell">
-                    <NxFilterInput value={filters.description}
-                                   onChange={filterValue => changeFilter('description', filterValue)} />
-                  </NxTableCell>
-                </NxTableRow>
-              </NxTableHead>
-              <NxTableBody emptyMessage="No matching repositories.">
-                { currentPagedRepos.map(repo =>
-                  <RepositoryRow repo={repo}
-                                 key={repo.httpCloneUrl}
-                                 rowKey={repo.httpCloneUrl}
-                                 selectedRepositories={selectedRepositories}
-                                 setSelectedRepositories={setSelectedRepositories} />
-                )}
-              </NxTableBody>
-            </NxTable>
-            {canRenderPagination() &&
-            <div className='nx-table-container__footer'>
-              <NxPagination onChange={setCurrentPage} pageCount={getPageCount()} currentPage={getCurrentPage()}/>
-            </div>
-            }
-          </div>
-        </LoadWrapper>
+    <div className="nx-table-container onboarding-repo-table">
+      <NxTable id="iq-scm-onboarding-repositories">
+        <NxTableHead>
+          <NxTableRow>
+            <NxTableCell>Selection</NxTableCell>
+            <NxTableCell id='namespace-header' isSortable sortDir={sortDirNamespace}
+                         onClick={() => requestSort(sortSettingsNamespace)}>Namespace</NxTableCell>
+            <NxTableCell id='project-header' isSortable sortDir={sortDirProject}
+                         onClick={() => requestSort(sortSettingsProject)}>Project</NxTableCell>
+            <NxTableCell id='description-header' isSortable sortDir={sortDirDescription}
+                         onClick={() => requestSort(sortSettingsDescription)}>Description</NxTableCell>
+          </NxTableRow>
+          <NxTableRow isFilterHeader>
+            <NxTableCell className="iq-scmonboarding__select-all-cell">
+              <NxCheckbox checkboxId="iq-scmonboarding-select-all"
+                          isChecked={isAllChecked}
+                          onChange={toggleSelectAll}>
+                All
+              </NxCheckbox>
+            </NxTableCell>
+            <NxTableCell className="iq-scmonboarding__filter-cell">
+              <NxFilterInput value={filters.namespace}
+                             onChange={filterValue => changeFilter('namespace', filterValue)} />
+            </NxTableCell>
+            <NxTableCell className="iq-scmonboarding__filter-cell">
+              <NxFilterInput id="project-filter"
+                             value={filters.project}
+                             onChange={filterValue => changeFilter('project', filterValue)} />
+            </NxTableCell>
+            <NxTableCell className="iq-scmonboarding__filter-cell">
+              <NxFilterInput value={filters.description}
+                             onChange={filterValue => changeFilter('description', filterValue)} />
+            </NxTableCell>
+          </NxTableRow>
+        </NxTableHead>
+        <NxTableBody emptyMessage="No matching repositories.">
+          { currentPagedRepos.map(repo =>
+            <RepositoryRow repo={repo}
+                           key={repo.httpCloneUrl}
+                           rowKey={repo.httpCloneUrl}
+                           selectedRepositories={selectedRepositories}
+                           setSelectedRepositories={setSelectedRepositories} />
+          )}
+        </NxTableBody>
+      </NxTable>
+      {canRenderPagination() &&
+      <div className='nx-table-container__footer'>
+        <NxPagination onChange={setCurrentPage} pageCount={getPageCount()} currentPage={getCurrentPage()}/>
       </div>
-      { repositories.length > 0 &&
-        <footer className="nx-footer nx-footer--scmonboarding">
-          <div className="iq-scmonboarding-stats-row">
-            <h3 id="selected-repository-count"
-                className="iq-caption_text iq-scmonboarding-stats-highlight">
-              {selectedRepositories.length}
-            </h3>
-            <div className="iq-scmonboarding-stats-column">
-              <h3 id="selected-total-count" className="iq-caption_text">OF {repositories.length} REPOSITORIES</h3>
-              <div className="iq-caption_subtext">selected to import</div>
-            </div>
-          </div>
-          <div className="nx-btn-bar">
-            <NxButton id="iq-scm-import-button"
-                      variant="primary"
-                      disabled={selectedRepositories.length <= 0}
-                      onClick={handleImportSelectedRepositories}>
-              Import Repositories
-            </NxButton>
-          </div>
-        </footer>
       }
-    </Fragment>
+    </div>
   );
 }
 
 ResultsTable.propTypes = {
-  loadingRepositories: PropTypes.bool.isRequired,
+  loadingRepositories: PropTypes.bool,
   repositories: PropTypes.arrayOf(PropTypes.shape(repositoryPropType)),
   totalRepositories: PropTypes.number,
-  selectedRepositoryCount: PropTypes.number.isRequired,
+  selectedRepositoryCount: PropTypes.number,
   importedRepositoryCount: PropTypes.number,
   preselectedOrganizationId: PropTypes.string,
+  selectedRepositories: PropTypes.arrayOf(PropTypes.shape(repositoryPropType)),
+  isAllChecked: PropTypes.bool,
   sortConfiguration: PropTypes.shape({
     sortFields: PropTypes.arrayOf(PropTypes.string),
     dir: PropTypes.string,
@@ -281,8 +213,8 @@ ResultsTable.propTypes = {
   // actions
   setSortingParameters: PropTypes.func,
   onRepositorySelectionChanged: PropTypes.func.isRequired,
-  importSelectedRepositories: PropTypes.func.isRequired,
-  loadRepositories: PropTypes.func.isRequired
+  setIsAllChecked: PropTypes.func.isRequired,
+  setSelectedRepositories: PropTypes.func.isRequired
 };
 
 function RepositoryRow(props) {

@@ -13,7 +13,9 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.ScmOnboardingPage;
+import com.sonatype.clm.testing.functional.pages.ScmOnboardingPage.OrganizationsDropdownMenu;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.User;
@@ -21,9 +23,11 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
 
 import com.codeborne.selenide.CollectionCondition;
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.codehaus.plexus.util.IOUtil;
@@ -35,18 +39,11 @@ import org.junit.Test;
 import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.CollectionCondition.exactTexts;
-import static com.codeborne.selenide.Condition.attribute;
-import static com.codeborne.selenide.Condition.checked;
-import static com.codeborne.selenide.Condition.cssClass;
-import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.hidden;
-import static com.codeborne.selenide.Condition.selected;
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.value;
-import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.*;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.removeStub;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.google.common.collect.ImmutableMap.of;
@@ -78,6 +75,9 @@ public class ScmOnboardingTest
   @Rule
   public final WireMockRule gitService = new WireMockRule(wireMockConfig().dynamicPort());
 
+  @Rule
+  public final WireMockRule secondaryGitService = new WireMockRule(wireMockConfig().dynamicPort());
+
   @AfterClass
   public static void cleanup() {
     testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(of(SCM_ONBOARDING.getFlag(), false));
@@ -93,6 +93,10 @@ public class ScmOnboardingTest
     // given the feature flag is true
     testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(of(Feature.SCM_ONBOARDING.getFlag(), true));
     gitService.stubFor(get(urlPathEqualTo("/api/v3/user"))
+        .willReturn(aResponse()
+            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .withBody("{\"username\":\"foo\"}")));
+    secondaryGitService.stubFor(get(urlPathEqualTo("/api/v3/user"))
         .willReturn(aResponse()
             .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
             .withBody("{\"username\":\"foo\"}")));
@@ -123,7 +127,11 @@ public class ScmOnboardingTest
   }
 
   private void mockRepoForPage(int page, String json) {
-    gitService.stubFor(get(urlPathEqualTo("/api/v3/user/repos"))
+    mockRepoForPage(gitService, page, json);
+  }
+
+  private void mockRepoForPage(WireMockRule service, int page, String json) {
+    service.stubFor(get(urlPathEqualTo("/api/v3/user/repos"))
         .withQueryParam("per_page", equalTo("100"))
         .withQueryParam("page", equalTo(Integer.toString(page)))
         .willReturn(aResponse()
@@ -220,8 +228,8 @@ public class ScmOnboardingTest
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
 
-    // and no page titles are visible
-    scmOnboardingPage.getPageTitleElements().shouldHaveSize(0);
+    // then org selection is visible
+    scmOnboardingPage.organizationsDropdown().shouldBe(visible);
 
     // then the message from IQ server is forwarded
     scmOnboardingPage.loadError().shouldHave(text("An error occurred loading data. Internal Server Error"));
@@ -249,7 +257,7 @@ public class ScmOnboardingTest
   public void testPopulatesRepositories_scmAuthenticationFailure() throws Exception {
     // given an SCM with authentication failure
     setupSourceControl();
-    gitService.stubFor(get(urlPathEqualTo("/api/v3/user/repos"))
+    StubMapping stubMapping = gitService.stubFor(get(urlPathEqualTo("/api/v3/user/repos"))
         .willReturn(aResponse().withStatus(HttpStatus.SC_UNAUTHORIZED)));
 
     // when the scm onboarding page is opened
@@ -262,9 +270,10 @@ public class ScmOnboardingTest
         " You can update your login credentials here."));
 
     // when authentication is fixed and retry button is pressed
+    removeStub(stubMapping);
     setupMockRepos();
+
     scmOnboardingPage.retry().click();
-    scmOnboardingPage.retry().click(); // for some reason selenium needs extra click ?!
 
     // page is rendered without error
     scmOnboardingPage.resultsTable().shouldBe(visible);
@@ -439,7 +448,7 @@ public class ScmOnboardingTest
     // NOTE the missing space before the org name is deliberate. In the UI there is an icon there with
     // appropriate margins.
     scmOnboardingPage.onboardingPageTitle().shouldBe(visible)
-        .shouldBe(text("Import Applications toTest Org"));
+        .shouldBe(text("Import Applications from github"));
   }
 
   @Test
@@ -665,6 +674,7 @@ public class ScmOnboardingTest
     // select all projects, a mix of good & bad
     scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
     scmOnboardingPage.resultsTableSelectAll().parent().click();
+    scmOnboardingPage.selectedRepositoryCount().shouldBe(text("3"));
 
     // when we import the selected repos
     scmOnboardingPage.importRepoButton().click();
@@ -982,5 +992,160 @@ public class ScmOnboardingTest
     // then the page is reset to the first one
     scmOnboardingPage.paginationButtons().get(0).shouldHave(cssClass("selected"));
     scmOnboardingPage.paginationButtons().shouldHaveSize(1);
+  }
+
+  @Test
+  public void testOrgDropdown() throws Exception {
+    // given a mock git service
+    setupMockRepos();
+    setupSourceControl();
+
+    // given several additional organizations, created in non-alphabetic order
+    Organization org5 = tempEntity.newOrganization("Test Org 5");
+    Organization org2 = tempEntity.newOrganization("Test Org 2");
+    Organization org4 = tempEntity.newOrganization("Test Org 4");
+    Organization org3 = tempEntity.newOrganization("Test Org 3");
+
+    // given SCM onboarding page with a selected organization
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
+    loginAsAdmin();
+
+    // update the default host URL
+    updateHostUrl(scmOnboardingPage);
+    scmOnboardingPage.reloadRepoButton().shouldBe(enabled).click();
+
+    // then the org dropdown is shown
+    scmOnboardingPage.organizationsDropdown().shouldBe(enabled);
+    scmOnboardingPage.organizationsDropdown().selectedOrganization().shouldHave(text("Test Org"));
+
+    // and the tooltip will show
+    scmOnboardingPage.importLabelQuestionIcon()
+        .shouldNotHave(attribute("aria-describedby"));
+    scmOnboardingPage.importLabelQuestionIcon().hover();
+    Tooltip.get().shouldHave(text("IQ Server will attempt to connect to github using the credentials " +
+        "associated with the target organization"));
+
+    // when we pull down the list
+    OrganizationsDropdownMenu menu = scmOnboardingPage.organizationsDropdown().dropdownMenu();
+
+    // then the org list is complete
+    menu.options().containsAll(Arrays.asList(org, org2, org3, org4, org5));
+  }
+
+  @Test
+  public void testOrgDropdown_noOrgSelected() throws Exception {
+    // given a mock git service
+    setupMockRepos();
+    setupSourceControl();
+
+    // given SCM onboarding page with a selected organization
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url());
+    loginAsAdmin();
+
+    // then the org dropdown is shown with no org selected
+    scmOnboardingPage.organizationsDropdown().shouldBe(enabled);
+    scmOnboardingPage.organizationsDropdown().selectedOrganization().shouldHave(text("Select"));
+
+    // table is rendered, and shows no entries
+    scmOnboardingPage.resultsTableBody().shouldHave(text("No matching repositories."));
+
+    // when select the org without a custom token
+    scmOnboardingPage.organizationsDropdown().click();
+    scmOnboardingPage.orgDropdownItems().find(exactText("Test Org")).click();
+
+    // then it triggers a reload, repo list is unchanged
+    scmOnboardingPage.resultsTableProject().shouldHaveSize(13);
+  }
+
+  @Test
+  public void testOrgDropdown_requeryOnSelection() throws Exception {
+    // given a mock git service
+    setupMockRepos();
+    setupSourceControl();
+
+    // given an org that does not override the token
+    tempEntity.newOrganization("Test Org 2");
+
+    // given an org that does override the token
+    Organization orgCustomToken = tempEntity.newOrganization("Custom Token Org");
+    PasswordHandler pwHandler = testCLMServer.getCLMServer().getInstance(PasswordHandler.class);
+    String encryptedPwd = new String(pwHandler.encryptPassword("CUSTOM".toCharArray()));
+    tempEntity.newSourceControl(orgCustomToken.getId(), null, encryptedPwd, null);
+
+    // given a second git server
+    ObjectMapper mapper = new ObjectMapper();
+    String repoUrl = "/org/repo.git";
+    String cloneUrl = secondaryGitService.baseUrl() + repoUrl;
+    String json = mapper.writeValueAsString(
+        Arrays.asList(of(
+            "name", "test",
+            "description", "",
+            "private", false,
+            "clone_url", cloneUrl)
+        )
+    );
+    mockRepoForPage(secondaryGitService, 0, json);
+    mockRepoForPage(secondaryGitService, 1, "[]");
+
+    // given SCM entries for custom org which point to the second git service
+    Application customApp = tempEntity.newApplication(orgCustomToken.getId());
+    tempEntity.newSourceControl(customApp.getId(), secondaryGitService.baseUrl() + "/org/existingrepo", null);
+
+    // given SCM onboarding page with a selected organization
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
+    loginAsAdmin();
+
+    // update the default host URL
+    updateHostUrl(scmOnboardingPage);
+    scmOnboardingPage.reloadRepoButton().shouldBe(enabled).click();
+
+    // then the org dropdown is shown
+    scmOnboardingPage.organizationsDropdown().shouldBe(enabled);
+    scmOnboardingPage.organizationsDropdown().selectedOrganization().shouldHave(text("Test Org"));
+
+    // and the repo list is full
+    scmOnboardingPage.resultsTableProject().shouldHaveSize(13);
+
+    // when we pull down the list
+    scmOnboardingPage.organizationsDropdown().click();
+    ElementsCollection menuButtons = scmOnboardingPage.orgDropdownItems();
+
+    // then the org list is complete. Should be sorted, with 'Test Org' at the top and in the middle as it is
+    // the current selection
+    menuButtons.shouldHave(exactTexts("Test Org", "Custom Token Org", "Test Org", "Test Org 2"));
+
+    // when select the org without a custom token
+    menuButtons.find(exactText("Test Org 2")).click();
+
+    // then it doesn't trigger a reload, repo list is unchanged
+    scmOnboardingPage.resultsTableProject().shouldHaveSize(13);
+
+    // when select org with a custom token
+    scmOnboardingPage.organizationsDropdown().click();
+    scmOnboardingPage.orgDropdownItems().find(exactText("Custom Token Org")).click();
+
+    // then it triggers a reload
+    scmOnboardingPage.loadingSpinner().is(visible);
+
+    // and the page finishes loading
+    scmOnboardingPage.loadingSpinner().waitWhile(visible, 1000);
+
+    // and the host URL field is updated
+    scmOnboardingPage.hostUrl().shouldHave(value(secondaryGitService.baseUrl()));
+
+    // and the results contain the custom repo list
+    scmOnboardingPage.reloadRepoButton().shouldBe(enabled);
+    scmOnboardingPage.resultsTableProject().shouldHaveSize(1);
+
+    // when we select the initial org again
+    scmOnboardingPage.organizationsDropdown().click();
+    scmOnboardingPage.orgDropdownItems().find(exactText("Test Org")).click();
+
+    // then the repo list is full again
+    scmOnboardingPage.loadingSpinner().shouldNotBe(visible);
+    scmOnboardingPage.resultsTableProject().shouldHaveSize(13);
   }
 }

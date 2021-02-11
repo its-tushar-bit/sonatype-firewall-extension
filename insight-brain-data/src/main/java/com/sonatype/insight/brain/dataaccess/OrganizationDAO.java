@@ -90,15 +90,6 @@ public class OrganizationDAO
     return getList(sQuery);
   }
 
-  public List<Organization> getAll(boolean includeRoot) {
-    String sQuery = "SELECT entity FROM Organization entity";
-    if (!includeRoot) {
-      sQuery += " WHERE entity.parentOrganizationId IS NOT NULL";
-    }
-    sQuery += " ORDER BY entity.name";
-    return getList(sQuery);
-  }
-
   @Override
   public void insert(TransactionContext tx, Organization organization) {
     NameHelper.validate("Name", organization.getName(), NameHelper.MAX_NAME_LENGTH_APP_ORG);

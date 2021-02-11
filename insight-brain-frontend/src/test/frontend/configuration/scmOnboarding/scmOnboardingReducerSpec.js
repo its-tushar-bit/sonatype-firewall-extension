@@ -7,6 +7,7 @@
 import reduce from '../../../../main/frontend/configuration/scmOnboarding/scmOnboardingReducer';
 import { initialState } from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
 import * as textInputStateHelpers from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
+import {UI_ROUTER_ON_FINISH} from '../../../../main/frontend/reduxUiRouter/routerActions';
 
 describe('scmOnboardingReducer', function() {
   let otherObject;
@@ -27,7 +28,14 @@ describe('scmOnboardingReducer', function() {
   });
 
   describe('SCM_ONBOARDING_LOAD_PAGE', function() {
-    let previousState, defaultOrganizationsPayload;
+    let previousState, defaultOrganizationsPayloadWithoutRoot, defaultOrganizationsPayload;
+    const rootOrgPayload = {
+      organization: {
+        'name': 'Root Organization',
+        'id': 'ROOT_ORGANIZATION_ID'
+      },
+      sourceControl: {provider: 'github', token: {value: 'redacted token'}}
+    };
 
     beforeEach(() => {
       previousState = {
@@ -47,13 +55,23 @@ describe('scmOnboardingReducer', function() {
           preselectedOrganizationId: 'id1'
         }
       };
-      defaultOrganizationsPayload = [{
-        'name': 'name0',
-        'id': 'id0'
-      }, {
-        'name': 'name1',
-        'id': 'id1'
-      }];
+      defaultOrganizationsPayloadWithoutRoot = [
+        {
+          organization: {
+            'name': 'name0',
+            'id': 'id0'
+          },
+          sourceControl: {provider: 'github', token: {value: null}}
+        },
+        {
+          organization: {
+            'name': 'name1',
+            'id': 'id1'
+          },
+          sourceControl: {provider: 'github', token: {value: null}}
+        }
+      ];
+      defaultOrganizationsPayload = [...defaultOrganizationsPayloadWithoutRoot, rootOrgPayload];
     });
 
     describe('FULFILLED', function() {
@@ -86,7 +104,7 @@ describe('scmOnboardingReducer', function() {
           },
           formState: {
             selectedOrganization: defaultOrganizationsPayload[1],
-            organizations: defaultOrganizationsPayload,
+            organizations: defaultOrganizationsPayloadWithoutRoot,
             defaultHostUrl: 'http://localhost/',
             currentHostUrlState: initialState('http://localhost/'),
             preselectedOrganizationId: 'id1'
@@ -123,7 +141,7 @@ describe('scmOnboardingReducer', function() {
           },
           formState: {
             selectedOrganization: defaultOrganizationsPayload[1],
-            organizations: defaultOrganizationsPayload,
+            organizations: defaultOrganizationsPayloadWithoutRoot,
             defaultHostUrl: 'http://localhost/',
             currentHostUrlState: initialState('http://localhost/'),
             preselectedOrganizationId: 'id1'
@@ -156,6 +174,38 @@ describe('scmOnboardingReducer', function() {
           }
         });
       });
+    });
+  });
+
+  describe('SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED action', function() {
+    it('clears the error state', function() {
+      // given a state with errors
+      const state = Object.freeze({
+        other: otherObject,
+        viewState: {
+          loadingRepositories: false,
+          generalError: 'general error',
+          loadRepositoriesAuthError: 'auth error'
+        },
+        formState: {
+          repositories: ['a']
+        }
+      });
+
+      // when reduce is invoked
+      const newState = reduce(state, {
+        type: 'SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED',
+        payload: undefined
+      });
+
+      // then state is updated
+      expect(newState.formState.repositories).toEqual([]);
+      expect(newState.viewState.loadingRepositories).toBe(true);
+      expect(newState.viewState.generalError).toBe(null);
+      expect(newState.viewState.loadRepositoriesAuthError).toBe(null);
+
+      // and other properties are not modified
+      expect(newState.other).toEqual(otherObject);
     });
   });
 
@@ -345,15 +395,23 @@ describe('scmOnboardingReducer', function() {
       // given no organization is selected
       const state = Object.freeze({
         other: otherObject,
+        configState: {
+          isScmTokenOverridden: true
+        },
         formState: {
           selectedOrganization: null
         }
       });
 
       const selectedOrganization = {
-        'project': 'project',
-        'namespace': 'namespace',
-        'description': 'description'
+        organization: {
+          'project': 'project',
+          'namespace': 'namespace',
+          'description': 'description'
+        },
+        sourceControl: {
+          token: {value: 'redacted'}
+        }
       };
 
       // when reduce is invoked
@@ -364,6 +422,7 @@ describe('scmOnboardingReducer', function() {
 
       // then state is updated
       expect(newState.formState.selectedOrganization).toBe(selectedOrganization);
+      expect(newState.configState.isScmTokenOverridden).toBe(true);
 
       // and other properties are not modified
       expect(newState.other).toBe(otherObject);
@@ -612,6 +671,64 @@ describe('scmOnboardingReducer', function() {
         });
         expect(newState.other).toBe(otherObject); // other properties are not modified
       });
+    });
+  });
+
+  describe('UI_ROUTER_ON_FINISH', () => {
+    it('retains only configState', () => {
+      // given a state with lots of values set
+      const state = Object.freeze({
+        configState: {
+          isScmOnboardingFeatureEnabled: true,
+          customProp: 'configValue'
+        },
+        viewState: {
+          customProp: 'viewValue'
+        },
+        formState: {
+          customProp: 'formValue'
+        },
+        sortConfiguration: {
+          customProp: 'sortValue'
+        },
+        rootCustomProp: {
+          mykey: 'rootCustomPropValue'
+        }
+      });
+
+      const newState = reduce(state, { type: UI_ROUTER_ON_FINISH });
+
+      // then state is reset
+      expect(newState.formState).toEqual({
+        organizations: [],
+        selectedOrganization: null,
+        preselectedOrganizationId: null,
+        repositories: [],
+        selectedRepositoryCount: 0,
+        importedRepositoryCount: 0,
+        totalRepositories: 0,
+        newlyImportedRepos: [],
+        defaultHostUrl: '',
+        currentHostUrlState: textInputStateHelpers.initialState(''),
+        failedImportCount: 0
+      });
+      expect(newState.viewState).toEqual({
+        loadingPage: false,
+        loadingRepositories: false,
+        validatingCompositeSourceControl: false,
+
+        generalError: null,
+        loadRepositoriesAuthError: null
+      });
+      expect(newState.sortConfiguration).toEqual({
+        key: 'namespace',
+        sortingOrder: ['namespace', 'project', 'description'],
+        dir: 'asc'
+      });
+      expect(newState.rootCustomProp).toBeUndefined();
+
+      // and configState is retained
+      expect(newState.configState).toEqual(state.configState);
     });
   });
 });

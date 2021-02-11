@@ -6,10 +6,9 @@
 import React, {useEffect, Fragment, useState} from 'react';
 
 import * as PropTypes from 'prop-types';
-import {NxBackButton, NxFontAwesomeIcon, NxTextInput} from '@sonatype/react-shared-components';
+import {NxBackButton, NxTextInput} from '@sonatype/react-shared-components';
 import LoadWrapper from '../../react/LoadWrapper';
-import ResultsTable from './components/ResultsTable';
-import {faSitemap} from '@fortawesome/pro-regular-svg-icons';
+import RepositoryPane from './components/RepositoryPane';
 import NxButton from '@sonatype/react-shared-components/components/NxButton/NxButton';
 import {NxSuccessAlert, NxErrorAlert, NxInfoAlert} from '@sonatype/react-shared-components/components/NxAlert/NxAlert';
 import {validateHostUrl} from './utils/validators';
@@ -33,6 +32,7 @@ export default function ScmOnboarding(props) {
     importSelectedRepositories,
     onRepositorySelectionChanged,
     setCurrentHostUrl,
+    setSelectedOrganization,
 
     // configuration state
     loadingPage,
@@ -43,6 +43,7 @@ export default function ScmOnboarding(props) {
 
     // orgs
     selectedOrganization,
+    organizations,
 
     // repositories state
     repositories,
@@ -75,16 +76,10 @@ export default function ScmOnboarding(props) {
           <a href={scmConfigurationHref}>here</a>.
         </Fragment>
       ),
-      scmAuthenticationErrorFragment = error => (
-        <Fragment>
-          {error.message}. You can update your login credentials{' '}<a href={scmConfigurationHref}>here</a>.
-        </Fragment>
-      ),
       pageError = !isAuthorized ? iqAuthorizationErrorMessage :
         isScmOnboardingFeatureEnabled === false ? scmFeatureDisabledErrorMessage :
           isScmTokenConfigured === false ? tokenNotConfiguredFragment :
-            generalError,
-      resultsTableError = loadRepositoriesAuthError ? scmAuthenticationErrorFragment(loadRepositoriesAuthError) : null;
+            null;
 
   function load() {
     loadPage(preselectedOrganizationId);
@@ -143,35 +138,34 @@ export default function ScmOnboarding(props) {
         <LoadWrapper
             loading={loadingPage}
             error={pageError} retryHandler={load}>
-          {isSuccessMessageOpen &&
-          <NxSuccessAlert onClose={dismissSuccessMessage}>
-            {newlyImportedRepos.length} repositories were successfully imported to IQ Server as applications under
-            the {selectedOrganization.name} Organization.
-          </NxSuccessAlert>
-          }
-          {isFormInfoOpen &&
-          <NxInfoAlert onClose={dismissFormInfo}>
-            {newlyImportedRepos.length} repositories were successfully imported to IQ Server as applications under
-            the {selectedOrganization.name} Organization.<br/>
-            {failedImportCount} repositories failed to import.
-          </NxInfoAlert>
-          }
-          {isFormErrorOpen &&
-          <NxErrorAlert onClose={dismissFormError}>
-            {failedImportCount} repositories failed to import.
-          </NxErrorAlert>
+          {!!selectedOrganization &&
+          <Fragment>
+            {isSuccessMessageOpen &&
+            <NxSuccessAlert onClose={dismissSuccessMessage}>
+              {newlyImportedRepos.length} repositories were successfully imported to IQ Server as applications under
+              the {selectedOrganization.organization.name} Organization.
+            </NxSuccessAlert>
+            }
+            {isFormInfoOpen &&
+            <NxInfoAlert onClose={dismissFormInfo}>
+              {newlyImportedRepos.length} repositories were successfully imported to IQ Server as applications under
+              the {selectedOrganization.organization.name} Organization.<br/>
+              {failedImportCount} repositories failed to import.
+            </NxInfoAlert>
+            }
+            {isFormErrorOpen &&
+            <NxErrorAlert onClose={dismissFormError}>
+              {failedImportCount} repositories failed to import.
+            </NxErrorAlert>
+            }
+          </Fragment>
           }
           <div className="nx-page-title iq-scmonboarding-title">
             { selectedOrganization &&
             <h1 className="nx-h1">
-              <span>Import Applications to</span>
-              <NxFontAwesomeIcon icon={faSitemap}/>
-              <span>{selectedOrganization.name}</span>
+              <span>Import Applications from {scmProvider}</span>
             </h1>
             }
-            <div className="nx-page-title__description">
-              <p className="nx-p">Use the filters and checkboxes to select repositories to import</p>
-            </div>
           </div>
           <section className="nx-tile host-url-tile">
             <form className="nx-form">
@@ -201,20 +195,26 @@ export default function ScmOnboarding(props) {
             </form>
           </section>
           <section className="nx-tile">
-            <LoadWrapper loading={loadingRepositories} error={resultsTableError} retryHandler={loadRepositories}>
-              <ResultsTable { ...{
-                repositories,
-                loadingRepositories,
-                selectedRepositoryCount,
-                totalRepositories,
-                onRepositorySelectionChanged,
-                importSelectedRepositories,
-                loadRepositories,
-                preselectedOrganizationId,
-                sortConfiguration,
-                setSortingParameters
-              }} />);
-            </LoadWrapper>
+            <RepositoryPane { ...{
+              repositories,
+              loadingRepositories,
+              selectedRepositoryCount,
+              totalRepositories,
+              onRepositorySelectionChanged,
+              importSelectedRepositories,
+              loadRepositories,
+              sortConfiguration,
+              scmProvider,
+              setSortingParameters,
+              setSelectedOrganization,
+              selectedOrganization,
+              organizations,
+              loadRepositoriesAuthError,
+              generalError,
+              scmConfigurationHref,
+              isScmTokenOverridden,
+              currentHostUrlState
+            }} />
           </section>
         </LoadWrapper>
       }
@@ -223,8 +223,8 @@ export default function ScmOnboarding(props) {
 }
 
 export const organizationPropType = {
-  id: PropTypes.string.isRequired,
-  name: PropTypes.string.isRequired
+  id: PropTypes.string,
+  name: PropTypes.string
 };
 
 export const repositoryPropType = {
@@ -248,7 +248,7 @@ ScmOnboarding.propTypes = {
   loadingPage: PropTypes.bool.isRequired,
   isScmOnboardingFeatureEnabled: PropTypes.bool,
   $state: PropTypes.object.isRequired,
-  isScmTokenConfigured: PropTypes.bool.isRequired,
+  isScmTokenConfigured: PropTypes.bool,
   isScmTokenOverridden: PropTypes.bool,
   scmProvider: PropTypes.string,
 

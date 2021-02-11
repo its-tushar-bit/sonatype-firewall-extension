@@ -86,6 +86,10 @@ export function getOrganizationsUrl() {
   return uriTemplate`/rest/organization`;
 }
 
+export function getScmOrganizationsUrl() {
+  return uriTemplate`/api/experimental/onboarding/organizations`;
+}
+
 export function getApplicationSummaryUrl(applicationPublicId) {
   return uriTemplate`/rest/application/services/summary/${applicationPublicId}`;
 }

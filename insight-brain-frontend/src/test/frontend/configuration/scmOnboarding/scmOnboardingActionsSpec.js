@@ -6,7 +6,7 @@
 import axios from 'axios';
 import {
   getScmOnboardingConfigUrl,
-  getOrganizationsUrl,
+  getScmOrganizationsUrl,
   getScmDefaultHostUrl,
   getScmRepositoriesUrl,
   getCompositeSourceControlUrl,
@@ -20,7 +20,7 @@ describe('scmOnboardingActions', function() {
       scmOnboardingConfigPayload = {
         scmOnboardingFeatureEnabled: true
       },
-      organizationsUrl = getOrganizationsUrl(),
+      scmOrganizationsUrl = getScmOrganizationsUrl(),
       defaultScmHostUrl = getScmDefaultHostUrl('ownerId', 'github');
 
   let store, state, scmOnboardingActions;
@@ -44,10 +44,10 @@ describe('scmOnboardingActions', function() {
         unconfiguredCompositeSourceControlPayload = {provider: undefined, token: undefined},
         scmDefaultHostPayload = {defaultHostUrl: 'http://localhost/'},
         orgResults = [
-          {id: 'id1', name: 'org 1'},
-          {id: 'id2', name: 'org 2'},
-          {id: 'id3', name: 'org 3'},
-          {id: 'id4', name: 'org 4'}
+          {organization: {id: 'id1', name: 'org 1'}, sourceControl: {}},
+          {organization: {id: 'id2', name: 'org 2'}, sourceControl: {}},
+          {organization: {id: 'id3', name: 'org 3'}, sourceControl: {}},
+          {organization: {id: 'id4', name: 'org 4'}, sourceControl: {}}
         ];
 
     describe('loads data from IQ', () => {
@@ -58,7 +58,7 @@ describe('scmOnboardingActions', function() {
             [scmOnboardingConfigUrl]: Promise.resolve({data: scmOnboardingConfigPayload}),
             [getCompositeSourceControlUrl('organization', 'id1')]: Promise.resolve(
                 {data: compositeSourceControlPayload}),
-            [organizationsUrl]: Promise.resolve({data: orgResults}),
+            [scmOrganizationsUrl]: Promise.resolve({data: orgResults}),
             [getScmDefaultHostUrl('id1', 'github')]: Promise.resolve({data: scmDefaultHostPayload}),
             [getCompositeSourceControlUrl('organization', 'id2')]: Promise.resolve(
                 {data: unconfiguredCompositeSourceControlPayload})
@@ -149,7 +149,7 @@ describe('scmOnboardingActions', function() {
           get: {
             [scmOnboardingConfigUrl]: Promise.resolve({data: scmOnboardingConfigPayload}),
             [compositeSourceControlUrl]: Promise.resolve({data: compositeSourceControlPayload}),
-            [organizationsUrl]: Promise.reject('failed call'),
+            [scmOrganizationsUrl]: Promise.reject('failed call'),
             [defaultScmHostUrl]: Promise.resolve({data: scmDefaultHostPayload})
           }
         };
@@ -159,7 +159,7 @@ describe('scmOnboardingActions', function() {
           get: {
             [scmOnboardingConfigUrl]: Promise.reject('failed call'),
             [compositeSourceControlUrl]: Promise.resolve({data: compositeSourceControlPayload}),
-            [organizationsUrl]: Promise.resolve({data: organizationsPayload}),
+            [scmOrganizationsUrl]: Promise.resolve({data: organizationsPayload}),
             [defaultScmHostUrl]: Promise.resolve({data: scmDefaultHostPayload})
           }
         };
@@ -169,7 +169,7 @@ describe('scmOnboardingActions', function() {
           get: {
             [scmOnboardingConfigUrl]: Promise.resolve({data: scmOnboardingConfigPayload}),
             [compositeSourceControlUrl]: Promise.reject('failed call'),
-            [organizationsUrl]: Promise.resolve({data: organizationsPayload}),
+            [scmOrganizationsUrl]: Promise.resolve({data: organizationsPayload}),
             [defaultScmHostUrl]: Promise.resolve({data: scmDefaultHostPayload})
           }
         };
@@ -179,7 +179,7 @@ describe('scmOnboardingActions', function() {
           get: {
             [scmOnboardingConfigUrl]: Promise.resolve({data: scmOnboardingConfigPayload}),
             [compositeSourceControlUrl]: Promise.resolve({data: compositeSourceControlPayload}),
-            [organizationsUrl]: Promise.resolve({data: organizationsPayload}),
+            [scmOrganizationsUrl]: Promise.resolve({data: organizationsPayload}),
             [defaultScmHostUrl]: Promise.reject('failed call')
           }
         };
@@ -252,6 +252,143 @@ describe('scmOnboardingActions', function() {
       const actions = store.getActions();
       expect(actions.length).toBe(1);
       expect(actions[0]).toEqual({type: 'SCM_ONBOARDING_SET_CURRENT_HOST_URL', payload: hostUrlValue});
+    });
+  });
+
+  describe('setSelectedOrganization', function() {
+    const prevOrg = {
+      organization: {id: 'prevId'},
+      sourceControl: {token: {value: null}}
+    };
+
+    it('dispatches an org change', function() {
+      store = SpecUtil.mockReduxStore(state);
+      const selectedOrg = {
+        organization: {id: 'id1'},
+        sourceControl: {token: {value: null}}
+      };
+
+      // no axios calls
+      expect(store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg, false, prevOrg))).toBeUndefined();
+
+      const actions = store.getActions();
+      expect(actions).toEqual([
+        {type: 'SCM_ONBOARDING_SET_TARGET_ORGANIZATION', payload: selectedOrg}
+      ]);
+    });
+
+    it('dispatches loadRepositoriesRequested when the new token is overridden', function() {
+      store = SpecUtil.mockReduxStore(state);
+      const selectedOrg = {
+        organization: {id: 'id1'},
+        sourceControl: {token: {value: null}}
+      };
+
+      // triggers an attempt to get new default host URL
+      expect(store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg, true, prevOrg))).toBeDefined();
+
+      const actions = store.getActions();
+      expect(actions).toEqual([
+        {type: 'SCM_ONBOARDING_SET_TARGET_ORGANIZATION', payload: selectedOrg}
+      ]);
+    });
+
+    it('dispatches loadRepositoriesRequested when the old token was overridden', function() {
+      store = SpecUtil.mockReduxStore(state);
+      const selectedOrg = {
+        organization: {id: 'id1'},
+        sourceControl: {token: {value: 'redacted'}}
+      };
+
+      // attempts to check if default host URL changed
+      expect(store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg, false, prevOrg))).toBeDefined();
+
+      const actions = store.getActions();
+      expect(actions).toEqual([
+        {type: 'SCM_ONBOARDING_SET_TARGET_ORGANIZATION', payload: selectedOrg}
+      ]);
+    });
+    it('dispatches loadRepositoriesRequested when the both the new & old tokens are overridden', function() {
+      store = SpecUtil.mockReduxStore(state);
+      const selectedOrg = {
+        organization: {id: 'id1'},
+        sourceControl: {token: {value: 'redacted'}}
+      };
+
+      store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg, true, prevOrg));
+      const actions = store.getActions();
+      expect(actions).toEqual([
+        {type: 'SCM_ONBOARDING_SET_TARGET_ORGANIZATION', payload: selectedOrg}
+      ]);
+    });
+
+    it('dispatches loadRepositories and all further actions when the token is overridden', function(done) {
+      const scmDefaultHostPayload = {defaultHostUrl: 'http://localhost/'};
+      mockAxiosCalls({
+        get: {
+          [getScmDefaultHostUrl('id1', 'github')]: Promise.resolve({data: scmDefaultHostPayload})
+        }
+      });
+      store = SpecUtil.mockReduxStore(state);
+      const selectedOrg = {
+        organization: {id: 'id1'},
+        sourceControl: {token: {value: 'redacted'}, provider: 'github'}
+      };
+
+      store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg, true, prevOrg))
+          .then(() => {
+            let actions = store.getActions();
+            expect(actions.map(a => a.type)).toEqual([
+              'SCM_ONBOARDING_SET_TARGET_ORGANIZATION',
+              'SCM_ONBOARDING_SET_CURRENT_HOST_URL',
+              'SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED',
+              'SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED' // didn't mock the load repo endpoint
+            ]);
+            done();
+          });
+    });
+
+    it('dispatches loadRepositories when prev org is undefined', function(done) {
+      const scmDefaultHostPayload = {defaultHostUrl: 'http://localhost/'};
+      mockAxiosCalls({
+        get: {
+          [getScmDefaultHostUrl('id1', 'github')]: Promise.resolve({data: scmDefaultHostPayload})
+        }
+      });
+      store = SpecUtil.mockReduxStore(state);
+      const selectedOrg = {
+        organization: {id: 'id1'},
+        sourceControl: {token: {value: null}, provider: 'github'}
+      };
+
+      store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg, false, undefined))
+          .then(() => {
+            let actions = store.getActions();
+            expect(actions.map(a => a.type)).toEqual([
+              'SCM_ONBOARDING_SET_TARGET_ORGANIZATION',
+              'SCM_ONBOARDING_SET_CURRENT_HOST_URL',
+              'SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED',
+              'SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED' // didn't mock the load repo endpoint
+            ]);
+            done();
+          });
+    });
+
+    it('does not dispatch loadRepositories when token is unchanged', function() {
+      store = SpecUtil.mockReduxStore(state);
+      const selectedOrg = {
+        organization: {id: 'id1'},
+        sourceControl: {token: {value: null}, provider: 'github'}
+      };
+
+      // undefined because it does not make any axios calls
+      expect(store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg, false, prevOrg))).toBeUndefined();
+
+      const actions = store.getActions();
+      expect(actions).toEqual([
+        {type: 'SCM_ONBOARDING_SET_TARGET_ORGANIZATION', payload: selectedOrg}
+      ]);
+
     });
   });
 

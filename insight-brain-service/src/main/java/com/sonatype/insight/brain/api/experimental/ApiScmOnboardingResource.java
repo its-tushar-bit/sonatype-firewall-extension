@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.experimental;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -20,6 +21,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.experimental.dto.ImportRepositoriesRequest;
+import com.sonatype.insight.brain.api.experimental.dto.OnboardingOrganization;
 import com.sonatype.insight.brain.api.experimental.dto.SCMRepositories;
 import com.sonatype.insight.brain.api.experimental.dto.ValidationResponse;
 
@@ -45,6 +47,8 @@ public class ApiScmOnboardingResource
   static final String DEFAULT_HOST_URL = "defaultHostUrl";
 
   static final String VALIDATE_SCM_HOST_URL = "validate/{scmProvider}";
+
+  static final String ORGANIZATIONS = "organizations";
 
   private final ApiScmOnboardingService apiScmOnboardingService;
 
@@ -92,5 +96,12 @@ public class ApiScmOnboardingResource
       @QueryParam("scmHostUrl") String scmHostUrl)
   {
     return apiScmOnboardingService.validateScmHostUrl(scmProvider, scmHostUrl);
+  }
+
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path(ORGANIZATIONS)
+  public List<OnboardingOrganization> getOrgsForOnboarding() {
+    return apiScmOnboardingService.getOrgsForOnboarding();
   }
 }

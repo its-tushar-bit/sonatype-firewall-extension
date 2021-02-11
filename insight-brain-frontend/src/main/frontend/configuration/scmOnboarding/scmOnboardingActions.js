@@ -11,7 +11,7 @@ import {
   getCompositeSourceControlUrl,
   getValidateScmConfigUrl,
   getScmOnboardingConfigUrl,
-  getOrganizationsUrl,
+  getScmOrganizationsUrl,
   getScmRepositoriesUrl,
   getScmDefaultHostUrl,
   getImportRepositoriesUrl
@@ -49,7 +49,7 @@ export function loadPage(orgId) {
     dispatch(loadPageRequested(orgId));
 
     let config = axios.get(getScmOnboardingConfigUrl());
-    let organizations = axios.get(getOrganizationsUrl());
+    let organizations = axios.get(getScmOrganizationsUrl());
     let scm = orgId ? axios.get(getCompositeSourceControlUrl('organization', orgId)) : Promise.resolve(null);
     let hostUrl = scm.then(compositeSCResults => {
       return compositeSCResults !== null && compositeSCResults.data.provider !== null
@@ -93,6 +93,23 @@ const validateScmHostUrlDebounce = debounce((dispatch, scmProvider, scmHostUrl) 
       .then(({ data }) => { dispatch(validateScmHostUrlFulfilled(data)); })
       .catch(error => { dispatch(validateScmHostUrlFailed(error)); });
 }, validateScmHostUrlDebounceTimeout);
+
+export function setSelectedOrganization(selectedOrg, isScmTokenOverridden, previousOrg) {
+  return function(dispatch) {
+    const orgId = selectedOrg.organization.id;
+    const isSelectedTokenOverridden = selectedOrg.sourceControl.token.value != null;
+    dispatch(targetOrganizationChanged(selectedOrg));
+    if (isScmTokenOverridden || isSelectedTokenOverridden || !previousOrg) {
+      // newly selected org has a custom token, or previous one did, so reload repositories
+      return axios.get(getScmDefaultHostUrl(orgId, selectedOrg.sourceControl.provider))
+          .then(({ data }) => {
+            dispatch(setCurrentHostUrl(data.defaultHostUrl));
+            return dispatch(loadRepositories(orgId, data.defaultHostUrl));
+          })
+          .catch(error => dispatch(loadRepositoriesFailed(error)));
+    }
+  };
+}
 
 export function validateScmHostUrl(scmProvider, scmHostUrl) {
   return (dispatch) => validateScmHostUrlDebounce(dispatch, scmProvider, scmHostUrl);
@@ -149,7 +166,7 @@ const loadRepositoriesFulfilled = payloadParamActionCreator(SCM_ONBOARDING_LOAD_
 const loadRepositoriesFailed = payloadParamActionCreator(SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED);
 const repositorySelectionChanged = payloadParamActionCreator(SCM_ONBOARDING_REPOSITORY_SELECTION_CHANGED);
 
-export const setSelectedOrganization = payloadParamActionCreator(SCM_ONBOARDING_SET_TARGET_ORGANIZATION);
+export const targetOrganizationChanged = payloadParamActionCreator(SCM_ONBOARDING_SET_TARGET_ORGANIZATION);
 
 export const setCurrentHostUrl = payloadParamActionCreator(SCM_ONBOARDING_SET_CURRENT_HOST_URL);
 

@@ -19,6 +19,7 @@ import java.util.stream.IntStream;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.experimental.dto.ImportRepositoriesRequest;
+import com.sonatype.insight.brain.api.experimental.dto.OnboardingOrganization;
 import com.sonatype.insight.brain.api.experimental.dto.SCMRepositories;
 import com.sonatype.insight.brain.api.experimental.dto.ValidationResponse;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiCompositeSourceControlDTO;
@@ -372,5 +373,12 @@ public class ApiScmOnboardingService
         .findFirst()
         .orElseThrow(() -> new BadRequestException("Could not find unique name for publicId: [" +
             applicationNameConverter.buildPublicId(scmRepository) + "]"));
+  }
+
+  public List<OnboardingOrganization> getOrgsForOnboarding() {
+    return orgDAO.getAll().stream()
+        .map(organization -> new OnboardingOrganization(organization, apiCompositeSourceControlService
+            .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, organization.getId())))
+        .collect(Collectors.toList());
   }
 }

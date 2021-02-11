@@ -27,6 +27,11 @@ scm-onboarding {
   .onboarding-repo-table {
     height: pagination-table-height(15);
   }
+
+  // possible bug in RSC, dropdown is showing below table header
+  #iq-scm-target-organization {
+    z-index: 1;
+  }
 }
 
 .iq-scmonboarding-title.nx-page-title {

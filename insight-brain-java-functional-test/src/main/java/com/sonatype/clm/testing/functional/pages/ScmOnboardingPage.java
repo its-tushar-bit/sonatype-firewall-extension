@@ -47,6 +47,10 @@ public class ScmOnboardingPage
     return child("#iq-scm-onboarding-repositories");
   }
 
+  public SelenideElement resultsTableBody() {
+    return child("#iq-scm-onboarding-repositories tbody");
+  }
+
   public ElementsCollection resultsTableProject() {
     return children(".iq-scm-repository-project");
   }
@@ -158,6 +162,18 @@ public class ScmOnboardingPage
 
   public SelenideElement projectHeader() {
     return child("#project-header");
+  }
+
+  public SelenideElement importLabelQuestionIcon() {
+    return child("#import-label-question-icon");
+  }
+
+  public ElementsCollection orgDropdownItems() {
+    return children("#iq-scm-target-organization button");
+  }
+
+  public OrganizationsDropdown organizationsDropdown() {
+    return new OrganizationsDropdown();
   }
 
   public static class OrganizationsDropdown

@@ -56,10 +56,6 @@ public class ProductLicensePage
     return $$("#license-licensed-developers > div");
   }
 
-  public static SelenideElement applicationLimit() {
-    return $("#license-application-limit");
-  }
-
   public static SelenideElement installLicenseBtn() {
     return $("label[for=license-input]");
   }

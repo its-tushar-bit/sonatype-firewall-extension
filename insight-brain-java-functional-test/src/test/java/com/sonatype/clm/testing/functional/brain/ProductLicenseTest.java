@@ -64,7 +64,7 @@ public class ProductLicenseTest
 
     // NOTE: the emdashes are added in CSS and apparently don't show up here
     ProductLicensePage.licensedDevelopersRows().shouldHave(texts("Lifecycle50", "Firewall45"));
-    ProductLicensePage.applicationLimit().shouldBe(hidden);
+    ProductLicensePage.licensedApplications().shouldBe(hidden);
     ProductLicensePage.products().shouldHave(texts("Nexus Lifecycle", "Nexus Firewall"));
     ProductLicensePage.fingerprint().shouldBe(visible).should(matchText(FINGERPRINT_PATTERN));
 

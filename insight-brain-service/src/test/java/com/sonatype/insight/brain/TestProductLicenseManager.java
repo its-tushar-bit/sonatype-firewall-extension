@@ -103,6 +103,11 @@ public class TestProductLicenseManager
     return mockProductLicenseManager.applicationLimit;
   }
 
+  public void setMaxUsers(Integer maxUsers) {
+    wasChanged = true;
+    mockProductLicenseManager.setProperty(ProductLicenseDetails.PROPERTY_MAX_USERS, maxUsers);
+  }
+
   public void setMaxFirewallUsers(Integer maxFirewallUsers) {
     wasChanged = true;
     mockProductLicenseManager.setProperty(ProductLicenseDetails.PROPERTY_MAX_FIREWALL_USERS, maxFirewallUsers);

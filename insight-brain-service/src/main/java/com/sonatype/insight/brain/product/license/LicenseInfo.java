@@ -13,11 +13,8 @@ public class LicenseInfo
   public long expiryTimestamp;
 
   /*
-   * NOTE: The next two fields aren't necessarily the real limits, they're just the limits that we want
-   * to show to users in the License info page. In particular, Lifecycle licenses aren't sold by application limit,
-   * so we don't want to display it for those licenses. However, they do still technically have an application
-   * limit, which will not be reflected in the value of this property. Similarly, Auditor licenses don't really use
-   * the licensedUsers field, but it still has a value in the license simply because it isn't nullable.
+   * NOTE: Depending on the licensing model, the product could be priced based on application or user count. The counts
+   * that aren't applicable to the licensing model are left at null, i.e. not to be shown to end users.
    */
   public Integer licensedUsersToDisplay;
 

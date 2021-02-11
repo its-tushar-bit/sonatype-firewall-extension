@@ -41,6 +41,8 @@ public class ProductLicense
 
     private final Set<StageType> stageTypes;
 
+    private final ProductLicensingModel licensingModel;
+
     private final Integer maxApplications;
 
     private final Integer maxUsers;
@@ -56,6 +58,7 @@ public class ProductLicense
         Set<String> products,
         Set<LicensedFeature> features,
         Set<StageType> stageTypes,
+        ProductLicensingModel licensingModel,
         Integer maxApplications,
         Integer maxUsers,
         Integer maxFirewallUsers)
@@ -68,6 +71,7 @@ public class ProductLicense
       this.products = products;
       this.features = features;
       this.stageTypes = stageTypes;
+      this.licensingModel = licensingModel;
       this.maxApplications = maxApplications;
       this.maxUsers = maxUsers;
       this.maxFirewallUsers = maxFirewallUsers;
@@ -82,7 +86,7 @@ public class ProductLicense
 
   void clear() {
     productLicenseData = new ProductLicenseData(null, 0, null, null, null, Collections.emptySet(),
-        Collections.emptySet(), Collections.emptySet(), 0, 0, 0);
+        Collections.emptySet(), Collections.emptySet(), ProductLicensingModel.APP_BASED, 0, 0, 0);
   }
 
   void set(
@@ -91,6 +95,7 @@ public class ProductLicense
       Set<String> products,
       Set<LicensedFeature> features,
       Set<StageType> stageTypes,
+      ProductLicensingModel licensingModel,
       Integer maxApplications,
       Integer maxUsers,
       Integer maxFirewallUsers)
@@ -98,8 +103,8 @@ public class ProductLicense
     productLicenseData = new ProductLicenseData(fingerprint, productLicenseKey.getExpirationDate().getTime(),
         productLicenseKey.getContactName(), productLicenseKey.getContactCompany(),
         productLicenseKey.getContactEmailAddress(), Collections.unmodifiableSet(products),
-        Collections.unmodifiableSet(features), Collections.unmodifiableSet(stageTypes), maxApplications, maxUsers,
-        maxFirewallUsers);
+        Collections.unmodifiableSet(features), Collections.unmodifiableSet(stageTypes), licensingModel, maxApplications,
+        maxUsers, maxFirewallUsers);
   }
 
   /**
@@ -169,6 +174,10 @@ public class ProductLicense
 
   public Set<StageType> getStageTypes() {
     return productLicenseData.stageTypes;
+  }
+
+  public ProductLicensingModel getLicensingModel() {
+    return productLicenseData.licensingModel;
   }
 
   /**

@@ -335,27 +335,41 @@ public class CLMLicenseManager
         .toArray(String[]::new);
 
     String productEdition = getProductEdition();
+    ProductLicensingModel licensingModel = productLicense.getLicensingModel();
     Integer applicationLimitToDisplay = null;
     Integer licensedUsersToDisplay = null;
     Integer firewallUsersToDisplay = null;
 
-    switch (productEdition) {
-      case PRODUCT_AUDITOR:
+    switch (licensingModel) {
+      case LEGACY:
+        switch (productEdition) {
+          case PRODUCT_AUDITOR:
+            applicationLimitToDisplay = productLicense.getMaxApplications();
+            break;
+          case PRODUCT_PRO_PLUS:
+            licensedUsersToDisplay = productLicense.getMaxUsers();
+            break;
+          case PRODUCT_LIFECYCLE:
+            // fallthrough
+          case PRODUCT_LIFECYCLE_FOUNDATION:
+            licensedUsersToDisplay = productLicense.getMaxUsers();
+            // fallthrough
+          case PRODUCT_FIREWALL:
+            firewallUsersToDisplay = productLicense.getMaxFirewallUsers();
+            break;
+          default:
+            // no limits to display
+        }
+        break;
+      case APP_BASED:
         applicationLimitToDisplay = productLicense.getMaxApplications();
         break;
-      case PRODUCT_PRO_PLUS:
+      case USER_BASED:
         licensedUsersToDisplay = productLicense.getMaxUsers();
-        break;
-      case PRODUCT_LIFECYCLE:
-        // fallthrough
-      case PRODUCT_LIFECYCLE_FOUNDATION:
-        licensedUsersToDisplay = productLicense.getMaxUsers();
-        // fallthrough
-      case PRODUCT_FIREWALL:
         firewallUsersToDisplay = productLicense.getMaxFirewallUsers();
         break;
       default:
-        // no limits to display
+        throw new IllegalStateException("Unknown licensing model: " + licensingModel);
     }
 
     return new LicenseInfo(productLicense.getFingerprint(), productLicense.getExpirationTimestamp(),
@@ -413,6 +427,7 @@ public class CLMLicenseManager
       throw new LicensingException("Invalid license version: " + version);
     }
 
+    ProductLicensingModel licensingModel = getLicensingModel(key);
     Integer applicationCount = licenseDetails.maxApplications;
     Integer maxFirewallUsers = getMaxFirewallUsers(key);
     Integer maxUsers = getMaxUsers(key);
@@ -496,7 +511,7 @@ public class CLMLicenseManager
       }
     }
 
-    productLicense.set(key, licenseFingerprint, products, features, stageTypes, applicationCount,
+    productLicense.set(key, licenseFingerprint, products, features, stageTypes, licensingModel, applicationCount,
         maxUsers, maxFirewallUsers);
     notifyListeners();
   }
@@ -522,6 +537,20 @@ public class CLMLicenseManager
       Collections.addAll(products, value.split("\\s*,\\s*"));
     }
     return products;
+  }
+
+  private ProductLicensingModel getLicensingModel(ProductLicenseKey key) {
+    String prop = getProperty(key, ProductLicenseDetails.PROPERTY_LICENSING_MODEL);
+    if (ProductLicenseDetails.LICENSING_APP_BASED.equals(prop)) {
+      return ProductLicensingModel.APP_BASED;
+    }
+    else if (ProductLicenseDetails.LICENSING_USER_BASED.equals(prop)) {
+      return ProductLicensingModel.USER_BASED;
+    }
+    else if (prop == null) {
+      return ProductLicensingModel.LEGACY;
+    }
+    throw new LicensingException("Invalid licensing model: " + prop);
   }
 
   private Integer getMaxUsers(ProductLicenseKey key) {

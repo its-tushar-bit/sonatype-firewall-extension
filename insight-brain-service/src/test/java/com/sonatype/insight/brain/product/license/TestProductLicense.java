@@ -51,7 +51,8 @@ public class TestProductLicense
       set(productLicenseKey, "1234",
           new HashSet<>(Arrays.asList(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION,
               ProductLicenseDetails.PRODUCT_FIREWALL, ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY)),
-          EnumSet.allOf(LicensedFeature.class), new HashSet<>(StageTypes.getAll()), 100, 50, 45);
+          EnumSet.allOf(LicensedFeature.class), new HashSet<>(StageTypes.getAll()), ProductLicensingModel.LEGACY,
+          100, 50, 45);
     }
     catch (IOException e) {
       throw new UncheckedIOException(e);

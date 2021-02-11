@@ -824,7 +824,7 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testGetLicenseInfo_LicensedUsersToDisplay() throws Exception {
+  public void testGetLicenseInfo_LicensedUsersToDisplay_LegacyLicensing() throws Exception {
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
     assertThat(info.licensedUsersToDisplay).isEqualTo(50);
 
@@ -863,7 +863,7 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testGetLicenseInfo_FirewallUsersToDisplay() throws Exception {
+  public void testGetLicenseInfo_FirewallUsersToDisplay_LegacyLicensing() throws Exception {
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
     assertThat(info.firewallUsersToDisplay).isEqualTo(45);
 
@@ -899,7 +899,7 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testGetLicenseInfo_ApplicationLimitToDisplay() throws Exception {
+  public void testGetLicenseInfo_ApplicationLimitToDisplay_LegacyLicensing() throws Exception {
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
     assertThat(info.applicationLimitToDisplay).isNull();
 
@@ -913,6 +913,44 @@ public class CLMLicenseManagerTest
     installLicense();
     info = clmLicenseManager.getLicenseInfo();
     assertThat(info.applicationLimitToDisplay).isNull();
+  }
+
+  @Test
+  public void testGetLicenseInfo_LimitsToDisplay_AppBasedLicensing() throws Exception {
+    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_LICENSING_MODEL,
+        ProductLicenseDetails.LICENSING_APP_BASED);
+    licenseManager.setApplicationLimit(100);
+    licenseManager.setMaxUsers(8765);
+    licenseManager.setMaxFirewallUsers(4321);
+    installLicense();
+
+    LicenseInfo info = clmLicenseManager.getLicenseInfo();
+    assertThat(info.applicationLimitToDisplay).isEqualTo(100);
+    assertThat(info.licensedUsersToDisplay).isNull();
+    assertThat(info.firewallUsersToDisplay).isNull();
+  }
+
+  @Test
+  public void testGetLicenseInfo_LimitsToDisplay_UserBasedLicensing() throws Exception {
+    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_LICENSING_MODEL,
+        ProductLicenseDetails.LICENSING_USER_BASED);
+    licenseManager.setApplicationLimit(100);
+    licenseManager.setMaxUsers(8765);
+    licenseManager.setMaxFirewallUsers(null);
+    installLicense();
+
+    LicenseInfo info = clmLicenseManager.getLicenseInfo();
+    assertThat(info.applicationLimitToDisplay).isNull();
+    assertThat(info.licensedUsersToDisplay).isEqualTo(8765);
+    assertThat(info.firewallUsersToDisplay).isNull();
+
+    licenseManager.setMaxFirewallUsers(4321);
+    installLicense();
+
+    info = clmLicenseManager.getLicenseInfo();
+    assertThat(info.applicationLimitToDisplay).isNull();
+    assertThat(info.licensedUsersToDisplay).isEqualTo(8765);
+    assertThat(info.firewallUsersToDisplay).isEqualTo(4321);
   }
 
   @Test

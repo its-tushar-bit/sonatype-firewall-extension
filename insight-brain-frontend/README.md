@@ -25,7 +25,7 @@
     * [Redux and React conventions in the IQ frontend project](#redux-and-react-conventions-in-the-iq-frontend-project)
 * [ React Sample component ](#react-sample-component)
     * [Writing tests for React components](#writing-tests-for-react-components)
-    * [How to add an Unsaved Changes modal warning to your page](#)
+    * [How to add an Unsaved Changes modal warning to your page](#how-to-add-an-unsaved-changes-modal-warning-to-your-page)
 
 
 ## Front-end development

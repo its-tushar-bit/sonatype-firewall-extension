@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.MigrationTracker;
@@ -337,6 +338,7 @@ public class CLMLicenseManager
     String productEdition = getProductEdition();
     ProductLicensingModel licensingModel = productLicense.getLicensingModel();
     Integer applicationLimitToDisplay = null;
+    Integer applicationCountToDisplay = null;
     Integer licensedUsersToDisplay = null;
     Integer firewallUsersToDisplay = null;
 
@@ -372,9 +374,14 @@ public class CLMLicenseManager
         throw new IllegalStateException("Unknown licensing model: " + licensingModel);
     }
 
+    if (applicationLimitToDisplay != null) {
+      applicationCountToDisplay = new ApplicationDAO().getCount();
+    }
+
     return new LicenseInfo(productLicense.getFingerprint(), productLicense.getExpirationTimestamp(),
-        licensedUsersToDisplay, firewallUsersToDisplay, applicationLimitToDisplay, productLicense.getContactName(),
-        productLicense.getContactCompany(), productLicense.getContactEmail(), products, productEdition);
+        licensedUsersToDisplay, firewallUsersToDisplay, applicationLimitToDisplay, applicationCountToDisplay,
+        productLicense.getContactName(), productLicense.getContactCompany(), productLicense.getContactEmail(), products,
+        productEdition);
   }
 
   private String getProductEdition() {

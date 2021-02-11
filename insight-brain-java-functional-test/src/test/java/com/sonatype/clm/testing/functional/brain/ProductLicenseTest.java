@@ -78,7 +78,7 @@ public class ProductLicenseTest
     refreshOrOpen(ProductLicensePage.url());
 
     ProductLicensePage.licensedDevelopers().shouldNotBe(visible);
-    ProductLicensePage.licensedApplications().shouldBe(visible).shouldHave(text("100"));
+    ProductLicensePage.licensedApplications().shouldBe(visible).shouldHave(text("100 (0 in use)"));
     ProductLicensePage.products().shouldHave(texts("Nexus Auditor"));
   }
 

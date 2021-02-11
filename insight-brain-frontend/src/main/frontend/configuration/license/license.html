@@ -106,7 +106,7 @@
             </dd>
             <dt ng-if="vm.displayApplicationLimit">Licensed Applications</dt>
             <dd ng-if="vm.displayApplicationLimit" class="iq-read-only-data" id="license-application-limit">
-              {{::vm.license.applicationLimitToDisplay}}
+              {{::vm.license.applicationLimitToDisplay}} ({{::vm.license.applicationCountToDisplay}} in use)
             </dd>
             <dt>Fingerprint</dt>
             <dd class="iq-read-only-data" id="license-fingerprint">{{::vm.license.fingerprint}}</dd>

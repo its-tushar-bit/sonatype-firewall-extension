@@ -35,7 +35,9 @@
 
         <div ng-if="::vm.shouldDisplayApplicationLimit">
           <dt>Licensed Applications</dt>
-          <dd class="iq-read-only-data" id="license-application-limit">{{::vm.license.applicationLimitToDisplay}}</dd>
+          <dd class="iq-read-only-data" id="license-application-limit">
+            {{::vm.license.applicationLimitToDisplay}} ({{::vm.license.applicationCountToDisplay}} in use)
+          </dd>
         </div>
 
         <dt>Fingerprint</dt>

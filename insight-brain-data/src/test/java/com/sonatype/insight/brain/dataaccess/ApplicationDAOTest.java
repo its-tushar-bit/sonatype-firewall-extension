@@ -113,6 +113,11 @@ public class ApplicationDAOTest
   }
 
   @Test
+  public void testGetCount() {
+    assertThat(applicationDAO.getCount()).isEqualTo(1);
+  }
+
+  @Test
   public void testGetAll() throws Exception {
     // Create a few apps
     int appCount = 3;

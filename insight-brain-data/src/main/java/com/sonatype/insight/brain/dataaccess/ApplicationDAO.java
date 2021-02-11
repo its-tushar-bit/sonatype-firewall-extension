@@ -126,6 +126,11 @@ public class ApplicationDAO
     return getList(sQuery, contactInternalName);
   }
 
+  public int getCount() {
+    String sQuery = "SELECT COUNT(entity) FROM Application entity";
+    return getSingle(Number.class, sQuery).intValue();
+  }
+
   public List<Application> getAll(TransactionContext tx) {
     String sQuery = "SELECT entity FROM Application entity" + //
         " ORDER BY entity.publicIdLowercase";

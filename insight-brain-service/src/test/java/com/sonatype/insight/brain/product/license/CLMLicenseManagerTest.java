@@ -907,12 +907,14 @@ public class CLMLicenseManagerTest
     installLicense();
     info = clmLicenseManager.getLicenseInfo();
     assertThat(info.applicationLimitToDisplay).isEqualTo(100);
+    assertThat(info.applicationCountToDisplay).isEqualTo(0);
 
     // should also be null when it is just Firewall
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
     installLicense();
     info = clmLicenseManager.getLicenseInfo();
     assertThat(info.applicationLimitToDisplay).isNull();
+    assertThat(info.applicationCountToDisplay).isNull();
   }
 
   @Test
@@ -926,6 +928,7 @@ public class CLMLicenseManagerTest
 
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
     assertThat(info.applicationLimitToDisplay).isEqualTo(100);
+    assertThat(info.applicationCountToDisplay).isEqualTo(0);
     assertThat(info.licensedUsersToDisplay).isNull();
     assertThat(info.firewallUsersToDisplay).isNull();
   }
@@ -941,6 +944,7 @@ public class CLMLicenseManagerTest
 
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
     assertThat(info.applicationLimitToDisplay).isNull();
+    assertThat(info.applicationCountToDisplay).isNull();
     assertThat(info.licensedUsersToDisplay).isEqualTo(8765);
     assertThat(info.firewallUsersToDisplay).isNull();
 
@@ -949,6 +953,7 @@ public class CLMLicenseManagerTest
 
     info = clmLicenseManager.getLicenseInfo();
     assertThat(info.applicationLimitToDisplay).isNull();
+    assertThat(info.applicationCountToDisplay).isNull();
     assertThat(info.licensedUsersToDisplay).isEqualTo(8765);
     assertThat(info.firewallUsersToDisplay).isEqualTo(4321);
   }

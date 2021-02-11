@@ -20,6 +20,8 @@ public class LicenseInfo
 
   public Integer applicationLimitToDisplay;
 
+  public Integer applicationCountToDisplay;
+
   public Integer firewallUsersToDisplay;
 
   public String contactName;
@@ -38,6 +40,7 @@ public class LicenseInfo
                      Integer licensedUsersToDisplay,
                      Integer firewallUsersToDisplay,
                      Integer applicationLimitToDisplay,
+                     Integer applicationCountToDisplay,
                      String contactName,
                      String contactCompany,
                      String contactEmail,
@@ -51,6 +54,7 @@ public class LicenseInfo
     this.licensedUsersToDisplay = licensedUsersToDisplay;
     this.firewallUsersToDisplay = firewallUsersToDisplay;
     this.applicationLimitToDisplay = applicationLimitToDisplay;
+    this.applicationCountToDisplay = applicationCountToDisplay;
     this.contactName = contactName;
     this.contactCompany = contactCompany;
     this.contactEmail = contactEmail;

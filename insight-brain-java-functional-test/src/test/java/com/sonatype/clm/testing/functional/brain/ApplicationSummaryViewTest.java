@@ -118,6 +118,9 @@ public class ApplicationSummaryViewTest
     SelectContactModal.updateButton().shouldNotHave(DISABLED).click();
     SelectContactModal.body().shouldBe(hidden);
     OwnerSummaryPage.summaryTile().contact().shouldHave(text(tempUser.calculateDisplayName()));
+    // updated contact is retained upon page refresh
+    refresh();
+    OwnerSummaryPage.summaryTile().contact().shouldHave(text(tempUser.calculateDisplayName()));
     eyesWatcher.eyesCheck("Contact selected");
     // attempt removal but cancel out of confirmation dialog
     ActionDropDown.actionButton().click();

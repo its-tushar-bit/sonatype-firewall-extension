@@ -78,6 +78,7 @@ function OwnerSummaryController($state, $scope, $rootScope, $q, $http, $window, 
       if (vm.isApp) {
         vm.stages = results[3];
         vm.applicationSummary = results[4].data;
+        vm.owner.contact = vm.applicationSummary.contact;
         vm.isGrandfatheringEnabled = results[5].calculatedEnabled;
         getAppChangePermissions();
         getAppEvaluatePermissions();

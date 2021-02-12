@@ -68,8 +68,8 @@ public class ScmOnboardingPage
     return children(".iq-scm-repository-namespace");
   }
   
-  public SelenideElement resultsTablePercentageImported() {
-    return $("#scm-import-percentage");
+  public SelenideElement donutChartPercentImported() {
+    return $("#scm-imported-donut-chart");
   }
 
   public SelenideElement resultsTableAlreadyImported() {

@@ -9,6 +9,48 @@ scm-onboarding {
 
 #scm-onboarding-container {
 
+  .scm-org-selection {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 20px;
+
+    .scm-import-row {
+      flex-direction: row;
+
+      .scm-import-left {
+        align-self: flex-start;
+      }
+
+      .scm-import-right {
+        align-self: flex-end;
+      }
+    }
+  }
+  #scm-imported-donut-chart {
+    margin-right: 10px;
+    margin-bottom: -12px;
+    height: 48px;
+    width: 48px;
+  }
+
+  .iq-scmonboarding-stats {
+    display: flex;
+    align-items: center;
+
+    #iq-scmonbording-stats-repocount {
+      margin-right: 48px;
+    }
+  }
+
+  .iq-scmonboarding-stats-highlight {
+    font-size: 32px;
+    height: 48px;
+    font-weight: bold;
+    margin-right: 12px;
+  }
+
+
   .nx-footer {
     align-items: center;
     display: flex;
@@ -38,28 +80,6 @@ scm-onboarding {
   .nx-h1 {
     max-width: none;
   }
-}
-
-.iq-scmonboarding-stats {
-  display: flex;
-  margin-top: $nx-spacing-md;
-}
-
-.iq-scmonboarding-stats-row {
-  display: flex;
-  margin-right: 50px;
-}
-
-.iq-scmonboarding-stats-column {
-  display: flex;
-  flex-direction: column;
-}
-
-.iq-scmonboarding-stats-highlight {
-  font-size: 37px;
-  height: 26px;
-  font-weight: bold;
-  margin-right: 12px;
 }
 
 .iq-scmonboarding__filter-cell {

@@ -335,7 +335,7 @@ public class ScmOnboardingTest
     // then all repositories were loaded
     verifyAllReposLoaded(scmOnboardingPage);
 
-    scmOnboardingPage.resultsTablePercentageImported().shouldBe(text("0%"));
+    scmOnboardingPage.donutChartPercentImported().shouldHave(attribute("aria-label", "0% imported"));
     scmOnboardingPage.resultsTableAlreadyImported().shouldBe(text("0"));
     
     // the long descriptions are trimmed
@@ -354,7 +354,7 @@ public class ScmOnboardingTest
 
     // it is no longer displayed in the table and the UI is updated
     assertThat(scmOnboardingPage.resultsTableProject().texts()).doesNotContain("ci-project-1");
-    scmOnboardingPage.resultsTablePercentageImported().shouldBe(text("8%"));
+    scmOnboardingPage.donutChartPercentImported().shouldHave(attribute("aria-label", "8% imported"));
     scmOnboardingPage.resultsTableAlreadyImported().shouldBe(text("1"));
   }
 
@@ -373,7 +373,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.repositoryCount().waitUntil(text("0"), 2000);
 
     // the statistics are shown and indicate no available repositories (and none already imported)
-    scmOnboardingPage.resultsTablePercentageImported().shouldBe(text("0%"));
+    scmOnboardingPage.donutChartPercentImported().shouldHave(attribute("aria-label", "0% imported"));
     scmOnboardingPage.resultsTableAlreadyImported().shouldBe(text("0"));
   }
 
@@ -405,7 +405,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.repositoryCount().shouldBe(text("0"));
 
     // the statistics are shown and indicate no available repositories (and one already imported)
-    scmOnboardingPage.resultsTablePercentageImported().shouldBe(text("100%"));
+    scmOnboardingPage.donutChartPercentImported().shouldHave(attribute("aria-label", "100% imported"));
     scmOnboardingPage.resultsTableAlreadyImported().shouldBe(text("1"));
   }
 

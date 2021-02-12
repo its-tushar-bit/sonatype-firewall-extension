@@ -14,6 +14,7 @@ import {faQuestionCircle} from '@fortawesome/pro-solid-svg-icons';
 import ResultsTable from './ResultsTable';
 import TargetOrganizationDropdown from './TargetOrganizationDropdown';
 import {textInputPropType} from './ImportApplicationsForm';
+import RepoStatus from './RepoStatus';
 
 /*
  The tile which contains the repository list and all other associated UI elements
@@ -51,13 +52,6 @@ export default function RepositoryPane(props) {
       resultsTableError = loadRepositoriesAuthError ? scmAuthenticationErrorFragment(loadRepositoriesAuthError) :
         generalError;
 
-  function importPercentage() {
-    if (repositories && totalRepositories > 0) {
-      return Math.round(((totalRepositories - repositories.length) / totalRepositories) * 100.0);
-    }
-    return 0;
-  }
-
   const [isAllChecked, setIsAllChecked] = useState(false),
       [selectedRepositories, setSelectedRepositories] = useState([]);
 
@@ -70,7 +64,6 @@ export default function RepositoryPane(props) {
   }
 
   const repositoryCount = repositories ? repositories.length : 0;
-  const alreadyImportedCount = totalRepositories - repositoryCount;
 
   return (
     <Fragment>
@@ -89,35 +82,18 @@ export default function RepositoryPane(props) {
         </div>
       </header>
       <div className="nx-tile-content">
-        <div className="nx-form-group">
-          <TargetOrganizationDropdown { ...{
-            organizations,
-            selectedOrganization,
-            setSelectedOrganization: (event) => setSelectedOrganization(event, isScmTokenOverridden,
-                selectedOrganization)
-          }}/>
-        </div>
-        { !loadingRepositories &&
-          <div className="iq-scmonboarding-stats">
-            <div className="iq-scmonboarding-stats-row">
-              <h3 id="repository-count"
-                  className="iq-caption_text iq-scmonboarding-stats-highlight">{repositoryCount}</h3>
-              <div className="iq-scmonboarding-stats-column">
-                <h3 className="iq-caption_text">REPOSITORIES</h3>
-                <div className="iq-caption_subtext">found</div>
-              </div>
-            </div>
-            <div className="iq-scmonboarding-stats-row">
-              <h3 id="scm-already-imported" className='iq-caption_text iq-scmonboarding-stats-highlight'>
-                {alreadyImportedCount}
-              </h3>
-              <div className="iq-scmonboarding-stats-column">
-                <h3 className="iq-caption_text">ALREADY IMPORTED</h3>
-                <div id="scm-import-percentage" className="iq-caption_subtext">({importPercentage()}%)</div>
-              </div>
-            </div>
+        <div className="scm-org-selection">
+          <div className="scm-import-left">
+            <TargetOrganizationDropdown { ...{
+              organizations,
+              selectedOrganization,
+              setSelectedOrganization: (event) => setSelectedOrganization(event, isScmTokenOverridden)
+            }}/>
           </div>
-        }
+          <div className="scm-import-right">
+            <RepoStatus {...{repositories, totalRepositories}} />
+          </div>
+        </div>
         <LoadWrapper loading={loadingRepositories} error={resultsTableError}
                      retryHandler={() => loadRepositories(selectedOrganization.organization.id,
                          currentHostUrlState.value)}>

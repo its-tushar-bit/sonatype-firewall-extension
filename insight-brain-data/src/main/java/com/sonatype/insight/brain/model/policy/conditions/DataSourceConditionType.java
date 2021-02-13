@@ -77,6 +77,11 @@ public class DataSourceConditionType
   }
 
   @Override
+  protected boolean isApplicable(Component component) {
+    return true;
+  }
+
+  @Override
   protected boolean internalEvaluateCondition(Component component, String operator, String value) {
     AnalyzerFeatures analyzerFeatures = component.getAnalyzerFeatures();
     if (analyzerFeatures != null) {

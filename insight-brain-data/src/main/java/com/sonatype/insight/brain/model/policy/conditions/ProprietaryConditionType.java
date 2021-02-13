@@ -61,6 +61,11 @@ public class ProprietaryConditionType
   }
 
   @Override
+  protected boolean isApplicable(Component component) {
+    return true;
+  }
+
+  @Override
   protected boolean internalEvaluateCondition(Component component, String operator, String value) {
     return "is true".equals(operator) ? component.isProprietary() : !component.isProprietary();
   }

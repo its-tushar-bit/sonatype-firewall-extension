@@ -73,6 +73,11 @@ public class MatchStateConditionType
   }
 
   @Override
+  protected boolean isApplicable(Component component) {
+    return true;
+  }
+
+  @Override
   protected boolean internalEvaluateCondition(Component component, String operator, String value) {
     boolean result = component.getMatchState().getId().equals(value);
     return "is".equals(operator) ? result : !result;

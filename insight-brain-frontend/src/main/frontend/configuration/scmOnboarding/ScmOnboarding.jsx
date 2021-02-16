@@ -13,6 +13,7 @@ import NxButton from '@sonatype/react-shared-components/components/NxButton/NxBu
 import {NxSuccessAlert, NxErrorAlert, NxInfoAlert} from '@sonatype/react-shared-components/components/NxAlert/NxAlert';
 import {validateHostUrl} from './utils/validators';
 import {hasValidationErrors} from '../../util/validationUtil';
+import ReportsCta from './components/ReportsCta';
 
 const iqAuthorizationErrorMessage = `It appears you do not have permission to access this page.
         If you believe this to be incorrect please contact your administrator.`,
@@ -128,6 +129,9 @@ export default function ScmOnboarding(props) {
     }
   }
 
+  const repositoryCount = repositories ? repositories.length : 0;
+  const alreadyImportedCount = totalRepositories - repositoryCount;
+
   return (
     <main id="scm-onboarding-container" className="nx-page-main">
       <NxBackButton
@@ -161,10 +165,17 @@ export default function ScmOnboarding(props) {
           </Fragment>
           }
           <div className="nx-page-title iq-scmonboarding-title">
-            { selectedOrganization &&
-            <h1 className="nx-h1">
-              <span>Import Applications from {scmProvider}</span>
-            </h1>
+            { scmProvider &&
+            <Fragment>
+              <h1 className="nx-h1">
+                <span>Import Applications from {scmProvider}</span>
+              </h1>
+              {alreadyImportedCount > 0 &&
+              <div className="nx-btn-bar">
+                <ReportsCta { ...{$state}} id="scm-reports-cta"/>
+              </div>
+              }
+            </Fragment>
             }
           </div>
           <section className="nx-tile host-url-tile">

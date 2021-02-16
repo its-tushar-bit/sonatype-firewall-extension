@@ -83,16 +83,12 @@ export default function RepositoryPane(props) {
       </header>
       <div className="nx-tile-content">
         <div className="scm-org-selection">
-          <div className="scm-import-left">
-            <TargetOrganizationDropdown { ...{
-              organizations,
-              selectedOrganization,
-              setSelectedOrganization: (event) => setSelectedOrganization(event, isScmTokenOverridden)
-            }}/>
-          </div>
-          <div className="scm-import-right">
-            <RepoStatus {...{repositories, totalRepositories}} />
-          </div>
+          <TargetOrganizationDropdown { ...{
+            organizations,
+            selectedOrganization,
+            setSelectedOrganization: (event) => setSelectedOrganization(event, isScmTokenOverridden)
+          }}/>
+          <RepoStatus {...{repositories, totalRepositories}} />
         </div>
         <LoadWrapper loading={loadingRepositories} error={resultsTableError}
                      retryHandler={() => loadRepositories(selectedOrganization.organization.id,

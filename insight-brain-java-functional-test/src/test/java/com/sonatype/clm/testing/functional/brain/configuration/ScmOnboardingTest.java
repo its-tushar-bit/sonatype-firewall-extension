@@ -14,6 +14,7 @@ import java.util.stream.IntStream;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
+import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.ScmOnboardingPage;
 import com.sonatype.clm.testing.functional.pages.ScmOnboardingPage.OrganizationsDropdownMenu;
 import com.sonatype.insight.brain.model.Application;
@@ -325,12 +326,8 @@ public class ScmOnboardingTest
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
 
-    // update the default host URL
+    // then the default host URL is valid
     scmOnboardingPage.hostUrl().shouldBe(value(gitService.baseUrl()));
-    updateHostUrl(scmOnboardingPage);
-    scmOnboardingPage.reloadRepoButton().click();
-    updateHostUrl(scmOnboardingPage);
-    scmOnboardingPage.reloadRepoButton().waitUntil(enabled, 2000).click();
 
     // then all repositories were loaded
     verifyAllReposLoaded(scmOnboardingPage);
@@ -409,12 +406,6 @@ public class ScmOnboardingTest
     scmOnboardingPage.resultsTableAlreadyImported().shouldBe(text("1"));
   }
 
-  private void updateHostUrl(final ScmOnboardingPage scmOnboardingPage) {
-    scmOnboardingPage.hostUrl().clear();
-    scmOnboardingPage.hostUrl().setValue(gitService.baseUrl());
-    scmOnboardingPage.hostUrl().shouldBe(value(gitService.baseUrl()));
-  }
-
   private void verifyAllReposLoaded(final ScmOnboardingPage scmOnboardingPage) {
     // then results are automatically displayed in the table
     scmOnboardingPage.loadingSpinner().shouldNotBe(visible);
@@ -462,10 +453,6 @@ public class ScmOnboardingTest
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
 
-    // update the default host URL
-    updateHostUrl(scmOnboardingPage);
-    scmOnboardingPage.reloadRepoButton().shouldBe(enabled).click();
-
     // when select all is clicked
     scmOnboardingPage.repositoryCount().shouldBe(text("13"));
     scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
@@ -492,10 +479,6 @@ public class ScmOnboardingTest
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
-
-    // update the default host URL
-    updateHostUrl(scmOnboardingPage);
-    scmOnboardingPage.reloadRepoButton().shouldBe(enabled).click();
 
     // when select all is clicked
     scmOnboardingPage.repositoryCount().shouldBe(text("20"));
@@ -525,10 +508,6 @@ public class ScmOnboardingTest
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
 
-    // update the default host URL
-    updateHostUrl(scmOnboardingPage);
-    scmOnboardingPage.reloadRepoButton().shouldBe(enabled).click();
-
     // when select all is clicked while a filter is active
     scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
     scmOnboardingPage.projectFilter().setValue("ci-");
@@ -551,10 +530,6 @@ public class ScmOnboardingTest
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
-
-    // update the default host URL
-    updateHostUrl(scmOnboardingPage);
-    scmOnboardingPage.reloadRepoButton().shouldBe(enabled).click();
 
     // when select all is clicked while a filter is active
     scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
@@ -616,10 +591,6 @@ public class ScmOnboardingTest
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
 
-    // update the default host URL
-    updateHostUrl(scmOnboardingPage);
-    scmOnboardingPage.reloadRepoButton().shouldBe(enabled).click();
-
     // select project which will fail import
     scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
     scmOnboardingPage.projectFilter().setValue("broken");
@@ -667,10 +638,6 @@ public class ScmOnboardingTest
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
 
-    // update the default host URL
-    updateHostUrl(scmOnboardingPage);
-    scmOnboardingPage.reloadRepoButton().shouldBe(enabled).click();
-
     // select all projects, a mix of good & bad
     scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
     scmOnboardingPage.resultsTableSelectAll().parent().click();
@@ -713,10 +680,6 @@ public class ScmOnboardingTest
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
 
-    // update the default host URL
-    updateHostUrl(scmOnboardingPage);
-    scmOnboardingPage.reloadRepoButton().shouldBe(enabled).click();
-
     // and given that select all is clicked while a filter is active
     scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
     scmOnboardingPage.projectFilter().setValue("ci-");
@@ -744,10 +707,6 @@ public class ScmOnboardingTest
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
-
-    // update the default host URL
-    updateHostUrl(scmOnboardingPage);
-    scmOnboardingPage.reloadRepoButton().shouldBe(enabled).click();
 
     // and given that select all is clicked while a filter is active
     scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
@@ -803,10 +762,6 @@ public class ScmOnboardingTest
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
 
-    // update the default host URL
-    updateHostUrl(scmOnboardingPage);
-    scmOnboardingPage.reloadRepoButton().shouldBe(enabled).click();
-
     // when a repository is clicked
     scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
     scmOnboardingPage.selectionCheckboxById(CI_PROJECT_1_GIT).parent().click();
@@ -826,11 +781,6 @@ public class ScmOnboardingTest
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
-
-    // update the default host URL
-    updateHostUrl(scmOnboardingPage);
-    scmOnboardingPage.reloadRepoButton().shouldBe(enabled).click();
-    scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
 
     // then the repos are initially sorted by namespace first and project second
     scmOnboardingPage.namespaceHeader().shouldHave(attribute("aria-sort", "ascending"));
@@ -938,11 +888,6 @@ public class ScmOnboardingTest
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
 
-    // update the default host URL
-    updateHostUrl(scmOnboardingPage);
-    scmOnboardingPage.reloadRepoButton().shouldBe(enabled).click();
-    scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
-
     // then the repos list has the max page size
     scmOnboardingPage.resultsTableProject().shouldHaveSize(15);
 
@@ -971,11 +916,6 @@ public class ScmOnboardingTest
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
-
-    // update the default host URL
-    updateHostUrl(scmOnboardingPage);
-    scmOnboardingPage.reloadRepoButton().shouldBe(enabled).click();
-    scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
 
     // then the pagination buttons shows the first is selected
     scmOnboardingPage.paginationButtons().get(0).shouldHave(cssClass("selected"));
@@ -1010,10 +950,6 @@ public class ScmOnboardingTest
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
-
-    // update the default host URL
-    updateHostUrl(scmOnboardingPage);
-    scmOnboardingPage.reloadRepoButton().shouldBe(enabled).click();
 
     // then the org dropdown is shown
     scmOnboardingPage.organizationsDropdown().shouldBe(enabled);
@@ -1098,10 +1034,6 @@ public class ScmOnboardingTest
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
 
-    // update the default host URL
-    updateHostUrl(scmOnboardingPage);
-    scmOnboardingPage.reloadRepoButton().shouldBe(enabled).click();
-
     // then the org dropdown is shown
     scmOnboardingPage.organizationsDropdown().shouldBe(enabled);
     scmOnboardingPage.organizationsDropdown().selectedOrganization().shouldHave(text("Test Org"));
@@ -1147,5 +1079,63 @@ public class ScmOnboardingTest
     // then the repo list is full again
     scmOnboardingPage.loadingSpinner().shouldNotBe(visible);
     scmOnboardingPage.resultsTableProject().shouldHaveSize(13);
+  }
+  
+  @Test
+  public void testReportsCta() throws Exception {
+    // given SCM onboarding page with a selected organization
+    setupMockRepos();
+    setupSourceControl();
+
+    // and loading scm onboarding page with given org id
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
+    loginAsAdmin();
+
+    // then the "Go to Reports" button should not appear
+    scmOnboardingPage.titleReportsCta().shouldNotBe(visible);
+
+    // when we import several repositories
+    scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
+    scmOnboardingPage.projectFilter().setValue("ci-");
+    scmOnboardingPage.resultsTableSelectAll().parent().click();
+    scmOnboardingPage.importRepoButton().click();
+
+    // then the CTA should appear
+    scmOnboardingPage.titleReportsCta().shouldBe(visible);
+
+    // when we click the reports button
+    scmOnboardingPage.titleReportsCta().click();
+
+    // then we are taken to the reports page
+    waitUntilUrl(ReportListPage.url());
+  }
+
+  @Test
+  public void testReportsCta_alreadyImported() throws Exception {
+    // given an SCM with a single, already imported, git repo
+    ObjectMapper mapper = new ObjectMapper();
+    String repoUrl = "/org/repo.git";
+    String cloneUrl = gitService.baseUrl() + repoUrl;
+    String json = mapper.writeValueAsString(
+        Arrays.asList(of(
+            "name", "test",
+            "description", "",
+            "private", false,
+            "clone_url", cloneUrl)
+        )
+    );
+    mockRepoForPage(0, json);
+    mockRepoForPage(1, "[]");
+    setupOrgSourceControl();
+    setupAppSourceControl(repoUrl);
+
+    // given SCM onboarding page with a selected organization
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
+    loginAsAdmin();
+
+    // then the CTA should appear
+    scmOnboardingPage.titleReportsCta().shouldBe(visible);
   }
 }

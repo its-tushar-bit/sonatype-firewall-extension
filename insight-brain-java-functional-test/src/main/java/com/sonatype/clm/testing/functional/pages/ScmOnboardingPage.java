@@ -35,6 +35,10 @@ public class ScmOnboardingPage
     return children(".nx-page-title");
   }
 
+  public SelenideElement titleReportsCta() {
+    return child("#scm-reports-cta");
+  }
+
   public SelenideElement loadError() {
     return child(".nx-alert--load-error");
   }

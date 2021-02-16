@@ -133,7 +133,7 @@ function loadPageFulfilled(payload, state) {
       isScmTokenConfigured: orgForTokens === null ?
         false : !!orgForTokens.token.value || !!orgForTokens.token.parentValue,
       isScmTokenOverridden: orgForTokens !== null && !!orgForTokens.token.value,
-      scmProvider: orgForTokens !== null ? orgForTokens.provider : null
+      scmProvider: rootOrg !== null ? rootOrg.sourceControl.provider : null
     },
     formState: {
       ...state.formState,
@@ -164,6 +164,7 @@ function targetOrganizationChanged(payload, state) {
   return {
     ...state,
     configState: {
+      ...state.configState,
       isScmTokenOverridden: payload.sourceControl !== null && !!payload.sourceControl.token.value,
       isScmTokenConfigured: payload.sourceControl !== null
           && (!!payload.sourceControl.token.value || !!payload.sourceControl.token.parentValue)

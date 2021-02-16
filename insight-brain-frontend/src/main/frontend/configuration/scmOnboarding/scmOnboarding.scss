@@ -8,24 +8,9 @@ scm-onboarding {
 }
 
 #scm-onboarding-container {
-
   .scm-org-selection {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
     margin-bottom: 20px;
-
-    .scm-import-row {
-      flex-direction: row;
-
-      .scm-import-left {
-        align-self: flex-start;
-      }
-
-      .scm-import-right {
-        align-self: flex-end;
-      }
-    }
+    display: flex;
   }
   #scm-imported-donut-chart {
     margin-right: 10px;
@@ -35,8 +20,8 @@ scm-onboarding {
   }
 
   .iq-scmonboarding-stats {
+    margin-left: auto;
     display: flex;
-    align-items: center;
 
     #iq-scmonbording-stats-repocount {
       margin-right: 48px;

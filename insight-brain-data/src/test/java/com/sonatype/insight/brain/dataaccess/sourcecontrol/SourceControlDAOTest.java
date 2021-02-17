@@ -885,7 +885,8 @@ public class SourceControlDAOTest
     sourceControlDAO.insert(scAppCustom);
 
     // when we get applications with only the default token
-    List<SourceControl> appsWithDefaultTokens = sourceControlDAO.getApplicationSourceControlsWithRepositoriesAndDefaultToken();
+    List<SourceControl> appsWithDefaultTokens =
+        sourceControlDAO.getApplicationSourceControlsWithRepositoriesAndDefaultToken();
 
     // then it doesn't contain the apps with custom tokens or with orgs that have custom tokens
     assertThat(appsWithDefaultTokens)

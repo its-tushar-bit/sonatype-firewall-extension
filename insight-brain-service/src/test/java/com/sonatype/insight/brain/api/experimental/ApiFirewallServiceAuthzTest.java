@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.experimental;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.experimental.dto.FirewallConfigurationDTO;
+import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineSummaryDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
@@ -21,6 +22,7 @@ import org.junit.After;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ApiFirewallServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -36,6 +38,29 @@ public class ApiFirewallServiceAuthzTest
   @After
   public void cleanUp() {
     policyMonitoringDAO.getAll().forEach(policyMonitoringDAO::delete);
+  }
+
+  @Test
+  public void testGetFirewallUnquarantineSummary_Authorized() {
+    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
+    grantGlobalPermission(Permission.READ);
+
+    ApiFirewallReleaseQuarantineSummaryDTO dto = apiFirewallService.getReleaseQuarantineSummary();
+
+    assertThat(dto.autoReleaseQuarantineCountMTD).isZero();
+  }
+
+  @Test
+  public void testGetFirewallQuarantineSummary_Unauthorized() {
+    login();
+    assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(() ->
+        apiFirewallService.getReleaseQuarantineSummary());
+  }
+
+  @Test
+  public void testGetFirewallQuarantineSummary_Unauthenticated() {
+    assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() ->
+        apiFirewallService.getReleaseQuarantineSummary());
   }
 
   @Test

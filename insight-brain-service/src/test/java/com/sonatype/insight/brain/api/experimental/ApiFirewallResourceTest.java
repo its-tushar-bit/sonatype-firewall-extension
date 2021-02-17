@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.experimental;
 
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.experimental.dto.FirewallConfigurationDTO;
+import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineSummaryDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
@@ -35,6 +36,20 @@ public class ApiFirewallResourceTest
     //enable feature flag
     initServer(
         config -> config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true)));
+  }
+
+  @Test
+  public void testGetFirewallUnquarantineSummary() throws Exception {
+    // when GETing unquarantine summary
+    HttpResponse response = restRequest().path(
+        ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.RELEASE_QUARANTINE_SUMMARY_PATH).get();
+
+    // then result is OK
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK_200);
+
+    // and value is present
+    ApiFirewallReleaseQuarantineSummaryDTO dto = response.getBody(ApiFirewallReleaseQuarantineSummaryDTO.class);
+    assertThat(dto.autoReleaseQuarantineCountMTD).isZero();
   }
 
   @Test

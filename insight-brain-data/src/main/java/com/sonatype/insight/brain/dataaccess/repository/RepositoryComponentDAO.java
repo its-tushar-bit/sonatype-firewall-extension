@@ -120,6 +120,14 @@ public class RepositoryComponentDAO
     return getList(sQuery, repositoryId, sinceUtcTimestamp);
   }
 
+  public long getAutoReleaseQuarantinedCountByDate(Date date) {
+    String sQuery = "SELECT COUNT(component.id) FROM RepositoryComponent component" //
+        + " WHERE component.quarantineTime IS NOT NULL AND component.unquarantineTime >=?1"
+        + " AND component.autoUnquarantined = true";
+
+    return getSingle(Number.class, sQuery, date).longValue();
+  }
+
   public List<RepositoryComponent> getByRepositoryIdAndMatchStateId(String repositoryId, String matchStateId) {
     String sQuery = "SELECT entity FROM RepositoryComponent entity" + //
         " WHERE entity.repositoryId=?1 AND entity.matchStateId=?2";

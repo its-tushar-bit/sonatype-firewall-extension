@@ -5,12 +5,18 @@
  */
 package com.sonatype.insight.brain.api.experimental;
 
+import java.util.Date;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.experimental.dto.FirewallConfigurationDTO;
+import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineSummaryDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -21,10 +27,12 @@ import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.repository.RepositoryContainer.REPOSITORY_CONTAINER_ID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ApiFirewallServiceTest
     extends AbstractComponentTest
@@ -33,16 +41,75 @@ public class ApiFirewallServiceTest
   ApiFirewallService apiFirewallService;
 
   @Inject
+  RepositoryComponentDAO repositoryComponentDAO;
+
+  @Inject
   private InsightConfig config;
 
   @Inject
   private TestProductLicense testProductLicense;
+
+  private Repository repository;
+
+  @Before
+  public void before() {
+    repository = tempEntity.newRepository();
+  }
 
   private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
 
   @After
   public void cleanUp() {
     policyMonitoringDAO.getAll().forEach(policyMonitoringDAO::delete);
+  }
+
+  @Test
+  public void testGetFirewallReleaseQuarantineSummary() {
+    //setup: enable feature flag
+    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
+
+    RepositoryComponent repositoryComponent2 =
+        tempEntity.newRepositoryComponent(repository.getId(), "/quarantined2", new Date(), new Date());
+    repositoryComponent2.setUnquarantineTimeForMonitoring(new Date());   // updates auto_unquarantined flag
+    repositoryComponentDAO.update(repositoryComponent2);
+
+    //when: retrieving release quarantine summary
+    ApiFirewallReleaseQuarantineSummaryDTO releaseQuarantineSummary = apiFirewallService.getReleaseQuarantineSummary();
+
+    //then: expect to get a valid pojo back
+    assertThat(releaseQuarantineSummary.autoReleaseQuarantineCountMTD).isOne();
+  }
+
+  @Test
+  public void testGetFirewallReleaseQuarantineSummary_NoFirewallFeature() {
+    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
+
+    //setup: remove firewall feature
+    testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL);
+
+    //when: getting release quarantine summary
+    //then: expect invalid license exception
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
+        apiFirewallService.getReleaseQuarantineSummary());
+  }
+
+  @Test
+  public void testGetFirewallReleaseQuarantineSummary_NoReleaseIntegrityFeature() {
+    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
+    //setup: remove release integrity feature
+    testProductLicense.setMissingFeatures(LicensedFeature.RELEASE_INTEGRITY);
+
+    //when: getting release quarantine summary
+    //then: expect invalid license exception
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
+        apiFirewallService.getReleaseQuarantineSummary());
+  }
+
+  @Test(expected = BadRequestException.class)
+  public void testGetFirewallReleaseQuarantineSummary_FeatureFlag_False() {
+    //when: getting release quarantine summary
+    //then: expect bad request exception
+    apiFirewallService.getReleaseQuarantineSummary();
   }
 
   @Test
@@ -54,7 +121,7 @@ public class ApiFirewallServiceTest
     //when: retrieving firewall config
     FirewallConfigurationDTO firewallConfigurationDTO = apiFirewallService.getFirewallConfiguration();
 
-    //then: expect auto unquarintine to be enabled
+    //then: expect auto unquarantine to be enabled
     assertThat(firewallConfigurationDTO.autoUnquarantineEnabled).isTrue();
   }
 

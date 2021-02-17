@@ -521,6 +521,7 @@ CREATE TABLE repository_component (
 CREATE INDEX repository_component_hash_idx ON repository_component(hash);
 CREATE INDEX repository_component_repository_unquarantine_idx ON repository_component(repository_id, unquarantine_time);
 CREATE INDEX repository_component_quarantine_idx ON repository_component(repository_id, quarantine_time);
+CREATE INDEX repository_component_release_quarantine_idx ON repository_component (quarantine_time, unquarantine_time, auto_unquarantined);
 
 
 CREATE TABLE repository_policy_violation (

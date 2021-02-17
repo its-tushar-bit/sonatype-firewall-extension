@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.dataaccess.repository;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 
@@ -258,5 +260,29 @@ public class RepositoryComponentDAOTest
 
     assertThat(results).hasSize(1);
     assertThat(results.get(0).getPathname()).isEqualTo("quarantined-path");
+  }
+
+  @Test
+  public void testGetAutoReleaseQuarantinedCountByDate() {
+    final Date oneYearAgo = Date.from(
+        (LocalDate.now().minusYears(1)).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+    final Date startOfCurMonth =
+        Date.from((LocalDate.now().withDayOfMonth(1)).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+
+    RepositoryComponent repositoryComponent1 =
+        tempEntity.newRepositoryComponent(repository.getId(), "/quarantined1", new Date(), oneYearAgo);
+    repositoryComponent1.setUnquarantineTimeForMonitoring(oneYearAgo);        // updates auto_unquarantined flag
+    dao.update(repositoryComponent1);
+
+    RepositoryComponent repositoryComponent2 =
+        tempEntity.newRepositoryComponent(repository.getId(), "/quarantined2", new Date(), startOfCurMonth);
+    repositoryComponent2.setUnquarantineTimeForMonitoring(startOfCurMonth);   // updates auto_unquarantined flag
+    dao.update(repositoryComponent2);
+
+    // not a quarantined item, shouldn't add to count
+    tempEntity.newRepositoryComponent(repository.getId(), "/notquarantined", null, null);
+
+    assertThat(dao.getAutoReleaseQuarantinedCountByDate(startOfCurMonth)).isOne();
+
   }
 }

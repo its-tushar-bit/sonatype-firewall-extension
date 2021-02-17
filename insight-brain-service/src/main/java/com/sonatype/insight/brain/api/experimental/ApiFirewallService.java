@@ -5,15 +5,21 @@
  */
 package com.sonatype.insight.brain.api.experimental;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.api.experimental.dto.FirewallConfigurationDTO;
+import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineSummaryDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -39,15 +45,19 @@ public class ApiFirewallService
 
   private final ProductLicense productLicense;
 
+  private final RepositoryComponentDAO repositoryComponentDAO;
+
   @Inject
   public ApiFirewallService(
       final InsightConfig insightConfig,
       final PolicyMonitoringDAO policyMonitoringDAO,
-      final ProductLicense productLicense)
+      final ProductLicense productLicense,
+      final RepositoryComponentDAO repositoryComponentDAO)
   {
     this.insightConfig = insightConfig;
     this.policyMonitoringDAO = policyMonitoringDAO;
     this.productLicense = productLicense;
+    this.repositoryComponentDAO = repositoryComponentDAO;
   }
 
   @Authorize(permission = Permission.READ)
@@ -100,5 +110,22 @@ public class ApiFirewallService
         !productLicense.hasFeature(LicensedFeature.RELEASE_INTEGRITY)) {
       throw new InvalidLicenseException();
     }
+  }
+
+  @Authorize(permission = Permission.READ)
+  public ApiFirewallReleaseQuarantineSummaryDTO getReleaseQuarantineSummary() {
+    checkExperimentalFeatureFlag();
+    checkProductLicense();
+
+    final Date startOfCurMonth =
+        Date.from((LocalDate.now().withDayOfMonth(1)).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+
+    final ApiFirewallReleaseQuarantineSummaryDTO
+        apiFirewallReleaseQuarantineSummaryDTO = new ApiFirewallReleaseQuarantineSummaryDTO();
+
+    apiFirewallReleaseQuarantineSummaryDTO.autoReleaseQuarantineCountMTD =
+        repositoryComponentDAO.getAutoReleaseQuarantinedCountByDate(startOfCurMonth);
+
+    return apiFirewallReleaseQuarantineSummaryDTO;
   }
 }

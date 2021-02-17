@@ -355,6 +355,31 @@ public class ApiScmOnboardingServiceTest
   }
 
   @Test
+  public void testDefaultHostUrl_otherOrgsWithCustomTokens() {
+    // given an org with a custom token
+    Organization orgCustom = tempEntity.newOrganization("custom");
+    sourceControlDAO.insert(new SourceControl.Builder()
+        .setOwnerId(orgCustom.getId())
+        .setToken("token")
+        .build()
+    );
+
+    // given an app with a non-github repo URL
+    Application appCustom = tempEntity.newApplication(orgCustom.getId());
+    sourceControlDAO.insert(new SourceControl.Builder()
+        .setOwnerId(appCustom.getId())
+        .setRepositoryUrl("http://example.com/owner/app")
+        .build())
+    ;
+
+    // when we get the host URL for an org without SCMs defined
+    String defaultHostUrl = apiScmOnboardingService.getDefaultHostUrl("github", org.getId());
+
+    // then it should be just the default and skip the app
+    assertThat(defaultHostUrl).isEqualTo("https://github.com/");
+  }
+
+  @Test
   public void testDefaultHostUrl_orgWithNoScm() {
     // when we get the host URL for an org with no SCM defined
     String defaultHostUrl = apiScmOnboardingService.getDefaultHostUrl("github", org.getId());

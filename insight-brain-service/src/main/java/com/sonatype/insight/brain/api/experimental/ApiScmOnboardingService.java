@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -206,17 +205,16 @@ public class ApiScmOnboardingService
           sourceControlDAO.getApplicationSourceControlsByOrganizationWithRepositories(orgId);
     }
     if (sourceControls.isEmpty()) {
-      sourceControls = sourceControlDAO.getApplicationSourceControlsWithRepositories();
+      // no apps found within this org, look for apps in other orgs
+      sourceControls = sourceControlDAO.getApplicationSourceControlsWithRepositoriesAndDefaultToken();
     }
-    if (!sourceControls.isEmpty()) {
-      Optional<Entry<String, Long>> maxEntry = sourceControls.stream()
-          .map(SourceControl::getRepositoryUrl)
-          .collect(Collectors.groupingBy(repoUrl -> getBaseUrl(repoUrl, provider), counting()))
-          .entrySet().stream()
-          .max(Entry.comparingByValue());
-      return maxEntry.get().getKey();
-    }
-    return null;
+    return sourceControls.stream()
+        .map(SourceControl::getRepositoryUrl)
+        .collect(Collectors.groupingBy(repoUrl -> getBaseUrl(repoUrl, provider), counting()))
+        .entrySet().stream()
+        .max(Entry.comparingByValue())
+        .map(Entry::getKey)
+        .orElse(null);
   }
 
   private String getBaseUrl(String repoUrl, SourceControlProvider provider) {

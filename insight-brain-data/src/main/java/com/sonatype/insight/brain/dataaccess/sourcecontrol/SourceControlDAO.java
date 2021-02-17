@@ -162,10 +162,21 @@ public class SourceControlDAO
     return getList(query, orgId);
   }
 
-  public List<SourceControl> getApplicationSourceControlsWithRepositories() {
+  /**
+   * Gets a list of source control entries for applications that do not override
+   * the root token anywhere in their hierarchy (ie: at the app or org level)
+   * @return list of source controls for apps
+   */
+  public List<SourceControl> getApplicationSourceControlsWithRepositoriesAndDefaultToken() {
     String query = "SELECT entity " +
-        "FROM SourceControl entity " +
-        "WHERE entity.repositoryUrl IS NOT NULL AND entity.token IS NULL";
+        "FROM SourceControl entity, Application app " +
+        "WHERE entity.repositoryUrl IS NOT NULL and entity.token IS NULL " +
+        "AND app.id=entity.ownerId " +
+        "AND NOT EXISTS (" +
+        "SELECT orgEntity FROM SourceControl orgEntity " +
+        "WHERE orgEntity.ownerId = app.organizationId AND orgEntity.token IS NOT NULL " +
+        ")";
+
     return getList(query);
   }
 

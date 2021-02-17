@@ -851,7 +851,7 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void test_getApplicationSourceControlsWithRepositories() {
+  public void test_getApplicationSourceControlsWithRepositoriesAndDefaultToken() {
     // given a root org with github as a provider
     createRootOrgWithGitHubProvider();
     // and an app with a SC entry in the initial org
@@ -860,15 +860,35 @@ public class SourceControlDAOTest
     scApp1a.setRepositoryUrl("https://myhost.com/org/app-1");
     sourceControlDAO.insert(scApp1a);
 
-    // and an org with no SC entries
-    Organization org2 = tempEntity.newOrganization();
+    // given an org with a custom token
+    Organization orgCustom = tempEntity.newOrganization("custom");
+    sourceControlDAO.insert(new SourceControl.Builder()
+        .setOwnerId(orgCustom.getId())
+        .setToken("token")
+        .build()
+    );
 
-    // then we get the 0 entries when querying by org
-    assertThat(sourceControlDAO.getApplicationSourceControlsByOrganizationWithRepositories(org2.getId()))
-        .isEmpty();
+    // and given an app with a custom token
+    sourceControlDAO.insert(new SourceControl.Builder()
+        .setOwnerId(app.getId())
+        .setRepositoryUrl("https://mhost.com/org/custom-token-app")
+        .setToken("app-token")
+        .build()
+    );
 
-    // and we get a SC value when querying without an org
-    assertThat(sourceControlDAO.getApplicationSourceControlsWithRepositories())
+    // given an app with a custom repo URL
+    Application appCustom = tempEntity.newApplication(orgCustom.getId());
+    SourceControl scAppCustom = new SourceControl.Builder()
+        .setOwnerId(appCustom.getId())
+        .setRepositoryUrl("http://example.com/owner/app")
+        .build();
+    sourceControlDAO.insert(scAppCustom);
+
+    // when we get applications with only the default token
+    List<SourceControl> appsWithDefaultTokens = sourceControlDAO.getApplicationSourceControlsWithRepositoriesAndDefaultToken();
+
+    // then it doesn't contain the apps with custom tokens or with orgs that have custom tokens
+    assertThat(appsWithDefaultTokens)
         .extracting(SourceControl::getId)
         .containsOnly(scApp1a.getId());
   }

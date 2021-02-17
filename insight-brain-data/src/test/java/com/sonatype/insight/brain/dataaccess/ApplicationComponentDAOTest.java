@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.ApplicationComponentLicense;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -336,21 +337,40 @@ public class ApplicationComponentDAOTest
     tempEntity.newLicenseOverride(application.getId(), applicationComponent5.getComponentIdentifier(),
         LicenseOverrideStatus.OVERRIDDEN, Sets.newHashSet("Apache-1.0"));
 
+    Application otherApplicationForOrg = tempEntity.newApplicationWithParent();
+
+    ApplicationComponent applicationComponent6 = tempEntity.newApplicationComponent(otherApplicationForOrg.getId(),
+        DevelopStageType.ID, "hash6", ComponentIdentifier.createMavenCoordinates("g6", "a6", "v6"));
+    tempEntity.newApplicationComponentLicense(applicationComponent6.getId(), "MIT");
+    tempEntity.newLicenseOverride(otherApplicationForOrg.getOrganizationId(),
+        applicationComponent6.getComponentIdentifier(),
+        LicenseOverrideStatus.OVERRIDDEN, Sets.newHashSet("Apache-1.0"));
+
+    Application otherApplicationForRootOrg = tempEntity.newApplication(organization.getId());
+
+    ApplicationComponent applicationComponent7 = tempEntity.newApplicationComponent(otherApplicationForRootOrg.getId(),
+        BuildStageType.ID, "hash7", ComponentIdentifier.createMavenCoordinates("g7", "a7", "v7"));
+    tempEntity.newApplicationComponentLicense(applicationComponent7.getId(), "MIT");
+    tempEntity.newLicenseOverride(Organization.ROOT_ORGANIZATION_ID, applicationComponent7.getComponentIdentifier(),
+        LicenseOverrideStatus.OVERRIDDEN, Sets.newHashSet("Apache-2.0"));
+
     Application oneMoreApplication = tempEntity.newApplication(organization.getId());
-    ApplicationComponent applicationComponent6 = tempEntity.newApplicationComponent(oneMoreApplication.getId(),
-        BuildStageType.ID, "hash6", ComponentIdentifier.createMavenCoordinates("g6", "a6", "v6"));
-    tempEntity.newApplicationComponentLicense(applicationComponent6.getId(), "Apache-1.0");
-
-    ApplicationComponent applicationComponent7 = tempEntity.newApplicationComponent(application.getId(),
-        ReleaseStageType.ID, "hash7", ComponentIdentifier.createMavenCoordinates("g7", "a7", "v7"));
-    tempEntity.newApplicationComponentLicense(applicationComponent7.getId(), "Apache-2.0");
-
-    ApplicationComponent applicationComponent8 = tempEntity.newApplicationComponent(otherApplication.getId(),
+    ApplicationComponent applicationComponent8 = tempEntity.newApplicationComponent(oneMoreApplication.getId(),
         BuildStageType.ID, "hash8", ComponentIdentifier.createMavenCoordinates("g8", "a8", "v8"));
-    tempEntity.newApplicationComponentLicense(applicationComponent8.getId(), "MIT");
+    tempEntity.newApplicationComponentLicense(applicationComponent8.getId(), "Apache-1.0");
+
+    ApplicationComponent applicationComponent9 = tempEntity.newApplicationComponent(application.getId(),
+        ReleaseStageType.ID, "hash9", ComponentIdentifier.createMavenCoordinates("g9", "a9", "v9"));
+    tempEntity.newApplicationComponentLicense(applicationComponent9.getId(), "Apache-2.0");
+
+    ApplicationComponent applicationComponent10 = tempEntity.newApplicationComponent(otherApplication.getId(),
+        BuildStageType.ID, "hash10", ComponentIdentifier.createMavenCoordinates("g10", "a10", "v10"));
+    tempEntity.newApplicationComponentLicense(applicationComponent10.getId(), "MIT");
 
     List<Object[]> result =
-        dao.getApplicationIdsAndStageTypeIdsByLicenses(Sets.newHashSet(application.getId(), otherApplication.getId()),
+        dao.getApplicationIdsAndStageTypeIdsByLicenses(
+            Sets.newHashSet(application.getId(), otherApplication.getId(), otherApplicationForOrg.getId(),
+                otherApplicationForRootOrg.getId()),
             Sets.newHashSet(BuildStageType.ID, DevelopStageType.ID), Sets.newHashSet("Apache-1.0", "Apache-2.0"));
 
     assertThat(result)
@@ -359,7 +379,9 @@ public class ApplicationComponentDAOTest
             new Object[]{application.getId(), BuildStageType.ID},
             new Object[]{otherApplication.getId(), BuildStageType.ID},
             new Object[]{application.getId(), DevelopStageType.ID},
-            new Object[]{otherApplication.getId(), DevelopStageType.ID});
+            new Object[]{otherApplication.getId(), DevelopStageType.ID},
+            new Object[]{otherApplicationForOrg.getId(), DevelopStageType.ID},
+            new Object[]{otherApplicationForRootOrg.getId(), BuildStageType.ID});
   }
 
   @Test

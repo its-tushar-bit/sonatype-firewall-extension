@@ -223,7 +223,6 @@ export default function ScmOnboarding(props) {
               loadRepositoriesAuthError,
               generalError,
               scmConfigurationHref,
-              isScmTokenOverridden,
               currentHostUrlState
             }} />
           </section>

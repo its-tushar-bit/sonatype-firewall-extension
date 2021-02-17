@@ -1049,7 +1049,10 @@ public class ScmOnboardingTest
     // the current selection
     menuButtons.shouldHave(exactTexts("Test Org", "Custom Token Org", "Test Org", "Test Org 2"));
 
-    // when select the org without a custom token
+    // when we reset the git service responses to have 0 entries
+    mockRepoForPage(gitService, 0, "[]");
+
+    // and when select the org without a custom token
     menuButtons.find(exactText("Test Org 2")).click();
 
     // then it doesn't trigger a reload, repo list is unchanged
@@ -1076,9 +1079,9 @@ public class ScmOnboardingTest
     scmOnboardingPage.organizationsDropdown().click();
     scmOnboardingPage.orgDropdownItems().find(exactText("Test Org")).click();
 
-    // then the repo list is full again
+    // then the reload was triggerd and we see 0 entries
     scmOnboardingPage.loadingSpinner().shouldNotBe(visible);
-    scmOnboardingPage.resultsTableProject().shouldHaveSize(13);
+    scmOnboardingPage.resultsTableProject().shouldHaveSize(0);
   }
   
   @Test

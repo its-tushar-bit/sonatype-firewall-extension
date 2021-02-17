@@ -261,15 +261,30 @@ describe('scmOnboardingActions', function() {
       sourceControl: {token: {value: null}}
     };
 
+    // selected org action creator retrieves top-level state, so need to mock that instead of the narrow state
+    function mockReduxStoreForSelectedOrg(isScmTokenOverridden, previousOrg) {
+      return SpecUtil.mockReduxStore({
+        scmOnboarding: {
+          ...state,
+          configState: {
+            isScmTokenOverridden: isScmTokenOverridden
+          },
+          formState: {
+            selectedOrganization: previousOrg
+          }
+        }
+      });
+    }
+
     it('dispatches an org change', function() {
-      store = SpecUtil.mockReduxStore(state);
+      store = mockReduxStoreForSelectedOrg(false, prevOrg);
       const selectedOrg = {
         organization: {id: 'id1'},
         sourceControl: {token: {value: null}}
       };
 
       // no axios calls
-      expect(store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg, false, prevOrg))).toBeUndefined();
+      expect(store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg))).toBeUndefined();
 
       const actions = store.getActions();
       expect(actions).toEqual([
@@ -278,14 +293,14 @@ describe('scmOnboardingActions', function() {
     });
 
     it('dispatches loadRepositoriesRequested when the new token is overridden', function() {
-      store = SpecUtil.mockReduxStore(state);
+      store = mockReduxStoreForSelectedOrg(true, prevOrg);
       const selectedOrg = {
         organization: {id: 'id1'},
         sourceControl: {token: {value: null}}
       };
 
       // triggers an attempt to get new default host URL
-      expect(store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg, true, prevOrg))).toBeDefined();
+      expect(store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg))).toBeDefined();
 
       const actions = store.getActions();
       expect(actions).toEqual([
@@ -294,14 +309,14 @@ describe('scmOnboardingActions', function() {
     });
 
     it('dispatches loadRepositoriesRequested when the old token was overridden', function() {
-      store = SpecUtil.mockReduxStore(state);
+      store = mockReduxStoreForSelectedOrg(false, prevOrg);
       const selectedOrg = {
         organization: {id: 'id1'},
         sourceControl: {token: {value: 'redacted'}}
       };
 
       // attempts to check if default host URL changed
-      expect(store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg, false, prevOrg))).toBeDefined();
+      expect(store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg))).toBeDefined();
 
       const actions = store.getActions();
       expect(actions).toEqual([
@@ -309,13 +324,13 @@ describe('scmOnboardingActions', function() {
       ]);
     });
     it('dispatches loadRepositoriesRequested when the both the new & old tokens are overridden', function() {
-      store = SpecUtil.mockReduxStore(state);
+      store = mockReduxStoreForSelectedOrg(true, prevOrg);
       const selectedOrg = {
         organization: {id: 'id1'},
         sourceControl: {token: {value: 'redacted'}}
       };
 
-      store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg, true, prevOrg));
+      store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg));
       const actions = store.getActions();
       expect(actions).toEqual([
         {type: 'SCM_ONBOARDING_SET_TARGET_ORGANIZATION', payload: selectedOrg}
@@ -329,13 +344,13 @@ describe('scmOnboardingActions', function() {
           [getScmDefaultHostUrl('id1', 'github')]: Promise.resolve({data: scmDefaultHostPayload})
         }
       });
-      store = SpecUtil.mockReduxStore(state);
+      store = mockReduxStoreForSelectedOrg(true, prevOrg);
       const selectedOrg = {
         organization: {id: 'id1'},
         sourceControl: {token: {value: 'redacted'}, provider: 'github'}
       };
 
-      store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg, true, prevOrg))
+      store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg))
           .then(() => {
             let actions = store.getActions();
             expect(actions.map(a => a.type)).toEqual([
@@ -355,13 +370,13 @@ describe('scmOnboardingActions', function() {
           [getScmDefaultHostUrl('id1', 'github')]: Promise.resolve({data: scmDefaultHostPayload})
         }
       });
-      store = SpecUtil.mockReduxStore(state);
+      store = mockReduxStoreForSelectedOrg(false, undefined);
       const selectedOrg = {
         organization: {id: 'id1'},
         sourceControl: {token: {value: null}, provider: 'github'}
       };
 
-      store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg, false, undefined))
+      store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg))
           .then(() => {
             let actions = store.getActions();
             expect(actions.map(a => a.type)).toEqual([
@@ -375,14 +390,14 @@ describe('scmOnboardingActions', function() {
     });
 
     it('does not dispatch loadRepositories when token is unchanged', function() {
-      store = SpecUtil.mockReduxStore(state);
+      store = mockReduxStoreForSelectedOrg(false, prevOrg);
       const selectedOrg = {
         organization: {id: 'id1'},
         sourceControl: {token: {value: null}, provider: 'github'}
       };
 
       // undefined because it does not make any axios calls
-      expect(store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg, false, prevOrg))).toBeUndefined();
+      expect(store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg))).toBeUndefined();
 
       const actions = store.getActions();
       expect(actions).toEqual([

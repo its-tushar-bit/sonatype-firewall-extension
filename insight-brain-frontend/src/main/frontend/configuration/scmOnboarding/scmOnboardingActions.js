@@ -94,8 +94,11 @@ const validateScmHostUrlDebounce = debounce((dispatch, scmProvider, scmHostUrl) 
       .catch(error => { dispatch(validateScmHostUrlFailed(error)); });
 }, validateScmHostUrlDebounceTimeout);
 
-export function setSelectedOrganization(selectedOrg, isScmTokenOverridden, previousOrg) {
-  return function(dispatch) {
+export function setSelectedOrganization(selectedOrg) {
+  return function(dispatch, getState) {
+    const state = getState().scmOnboarding;
+    const isScmTokenOverridden = state.configState.isScmTokenOverridden;
+    const previousOrg = state.formState.selectedOrganization;
     const orgId = selectedOrg.organization.id;
     const isSelectedTokenOverridden = selectedOrg.sourceControl.token.value != null;
     dispatch(targetOrganizationChanged(selectedOrg));

@@ -30,7 +30,6 @@ export default function RepositoryPane(props) {
     loadRepositoriesAuthError,
     generalError,
     scmConfigurationHref,
-    isScmTokenOverridden,
     scmProvider,
     currentHostUrlState,
 
@@ -86,7 +85,7 @@ export default function RepositoryPane(props) {
           <TargetOrganizationDropdown { ...{
             organizations,
             selectedOrganization,
-            setSelectedOrganization: (event) => setSelectedOrganization(event, isScmTokenOverridden)
+            setSelectedOrganization
           }}/>
           <RepoStatus {...{repositories, totalRepositories}} />
         </div>
@@ -146,7 +145,6 @@ RepositoryPane.propTypes = {
     key: PropTypes.string
   }),
   scmConfigurationHref: PropTypes.string,
-  isScmTokenOverridden: PropTypes.bool,
   scmProvider: PropTypes.string,
   currentHostUrlState: PropTypes.shape(textInputPropType),
 

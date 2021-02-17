@@ -18,6 +18,28 @@
     @include container-horizontal;
   }
 
+  .nx-tile-header {
+    &.nx-tile-header--disabled {
+      // Increase padding due to the manage waivers button not being present
+      padding-top: $nx-spacing-l + $nx-spacing-xs/2;
+    }
+  }
+
+  .nx-tile-header__title {
+    &.nx-tile-header__title--disabled {
+      display: contents;
+
+      > h2 {
+        color: $nx-text-color-disabled;
+      }
+
+      > span {
+        color: $nx-text-color-disabled;
+        margin-left: 11px;
+      }
+    }
+  }
+
   .nx-tile__actions {
     .nx-btn {
       margin: 0;

@@ -35,4 +35,9 @@ describe('ViolationExclamation', function() {
     expect(getShallowComponent({ threatLevelCategory: 'critical' }))
         .toHaveClassName('iq-violation-exclamation--critical');
   });
+
+  it('has an iq-violation-exclamation--disabled modifier class threatLevelCategory is disabled', function() {
+    expect(getShallowComponent({ threatLevelCategory: 'disabled' })).toHaveClassName(
+        'iq-violation-exclamation--disabled');
+  });
 });

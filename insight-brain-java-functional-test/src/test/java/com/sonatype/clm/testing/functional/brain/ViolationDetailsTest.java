@@ -147,6 +147,7 @@ public class ViolationDetailsTest
   public void testDetails_PolicyNoLongerExists() {
     refreshOrOpen(ViolationDetailsPage.url(deletedPolicyViolation.getId()));
     ViolationDetailsPage.ViolationDetailsTile tile = new ViolationDetailsPage().detailsTile();
+    tile.headerTitle().shouldHave(text("Deleted Policy Policy no longer exists"));
     tile.policyOwner().shouldHave(text("Policy no longer exists"));
     tile.waiversIndicator().shouldNotBe(visible);
     tile.manageWaiversButton().shouldNotBe(visible);

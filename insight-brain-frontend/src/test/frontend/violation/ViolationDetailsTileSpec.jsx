@@ -106,6 +106,16 @@ describe('ViolationDetailsTile', function() {
       expect(header).toHaveText('<ViolationExclamation />Violation of pol');
     });
 
+    it('appends "Policy no longer exists" to the title when policyOwner prop has null ownerId', function() {
+      const component = getShallowComponent(pathSet(['violationDetails', 'policyOwner', 'ownerId'], null,
+              minimalProps)),
+          header = component.find('.nx-tile-header .nx-tile-header__title'),
+          texts = header.find('span');
+
+      expect(texts.at(0)).toHaveText('Violation of pol');
+      expect(texts.at(1)).toHaveText('Policy no longer exists');
+    });
+
     it('sets the correct threatLevelCategory on the ViolationExclamation', function() {
       expect(getShallowComponent().find(ViolationExclamation)).toHaveProp('threatLevelCategory', 'critical');
       expect(getShallowComponent({
@@ -132,6 +142,8 @@ describe('ViolationDetailsTile', function() {
           threatLevel: 0
         }
       }).find(ViolationExclamation)).toHaveProp('threatLevelCategory', 'none');
+      expect(getShallowComponent(pathSet(['violationDetails', 'policyOwner', 'ownerId'], null,
+          minimalProps)).find(ViolationExclamation)).toHaveProp('threatLevelCategory', 'disabled');
     });
 
     it('renders the policy name in an <em>', function() {
@@ -194,12 +206,18 @@ describe('ViolationDetailsTile', function() {
         expect(waiverIndicator.html()).toContain('Active Waivers');
         expect(waiverIndicator.html()).not.toContain('iq-waiver-indicator--inactive');
       });
-    });
 
-    it('does not render nx-tile__actions section when policyOwner prop has null ownerId', function() {
-      const component = getShallowComponent(pathSet(['violationDetails', 'policyOwner', 'ownerId'], null,
-          minimalProps));
-      expect(component.find('.nx-tile__actions')).not.toExist();
+      it('does not render nx-tile__actions section when policyOwner prop has null ownerId', function() {
+        const component = getShallowComponent(pathSet(['violationDetails', 'policyOwner', 'ownerId'], null,
+            minimalProps));
+        expect(component.find('.nx-tile__actions')).not.toExist();
+      });
+
+      it('does not render active waiver indicator when policyOwner prop has null ownerId', function() {
+        const component = getShallowComponent(pathSet(['violationDetails', 'policyOwner', 'ownerId'], null,
+            minimalProps));
+        expect(component.find(ActiveWaiversIndicator)).not.toExist();
+      });
     });
   });
 

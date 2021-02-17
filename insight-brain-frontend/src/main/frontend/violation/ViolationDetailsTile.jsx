@@ -74,20 +74,42 @@ export default function ViolationDetailsTile(props) {
   const secondFormGroupClasses =
       'nx-form-group iq-read-only iq-read-only-data--horizontal nx-grid-col iq-violation-details__right-details';
 
+  const headerMainTitle = () => {
+    const titleClassnames = classnames('nx-tile-header__title', { 'nx-tile-header__title--disabled': !policyExists });
+    let titleThreatLevelCategory,
+        nonExistingPolicyText,
+        violationNameText = <span>Violation of <em>{policyName}</em></span>;
+
+    if (policyExists) {
+      titleThreatLevelCategory = threatLevelCategory;
+      nonExistingPolicyText = null;
+    }
+    else {
+      titleThreatLevelCategory = 'disabled';
+      violationNameText = <strike>{violationNameText}</strike>;
+      nonExistingPolicyText = <span>Policy no longer exists</span>;
+    }
+
+    return (
+      <div className={titleClassnames}>
+        <h2 className='nx-h2'>
+          <ViolationExclamation threatLevelCategory={titleThreatLevelCategory}/>
+          {violationNameText}
+        </h2>
+        {nonExistingPolicyText}
+      </div>
+    );
+  };
+
   return (
     <section id="violation-details-tile" className="nx-tile iq-violation-details">
-      <header className="nx-tile-header">
-        <div className="nx-tile-header__title">
-          <h2 className="nx-h2">
-            <ViolationExclamation threatLevelCategory={threatLevelCategory} />
-            <span>Violation of <em>{policyName}</em></span>
-          </h2>
-        </div>
-        <ViolationDetailsSubtitle { ...violationDetails } />
-        { policyExists &&
+      <header className={classnames('nx-tile-header', { 'nx-tile-header--disabled': !policyExists })}>
+        {headerMainTitle()}
+        <ViolationDetailsSubtitle {...violationDetails} />
+        {policyExists &&
           <Fragment>
-            <div className="nx-tile__actions">{ manageWaiversButton }</div>
-            <ActiveWaiversIndicator noOfWaivers={ activeWaivers.length }/>
+            <div className="nx-tile__actions">{manageWaiversButton}</div>
+            <ActiveWaiversIndicator noOfWaivers={activeWaivers.length}/>
           </Fragment>
         }
       </header>

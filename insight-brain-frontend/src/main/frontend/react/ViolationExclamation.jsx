@@ -18,5 +18,5 @@ export default function ViolationExclamation({ threatLevelCategory }) {
 }
 
 ViolationExclamation.propTypes = {
-  threatLevelCategory: PropTypes.oneOf(allThreatLevelCategories).isRequired
+  threatLevelCategory: PropTypes.oneOf([...allThreatLevelCategories, 'disabled']).isRequired
 };

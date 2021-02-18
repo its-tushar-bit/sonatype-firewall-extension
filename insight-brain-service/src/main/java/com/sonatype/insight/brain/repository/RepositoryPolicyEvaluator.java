@@ -85,6 +85,8 @@ public class RepositoryPolicyEvaluator
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
   
   private final FirewallIgnorePatternService firewallIgnorePatternService;
+
+  private final ComponentDetailsLoaderFactory componentDetailsLoaderFactory;
   
   private final RepositoryComponentDeleteService repositoryComponentDeleteService;
 
@@ -99,6 +101,7 @@ public class RepositoryPolicyEvaluator
       FirewallQuarantineHdsClient quarantineHdsClient,
       PolicyViolationLoggerFactory policyViolationLoggerFactory,
       FirewallIgnorePatternService firewallIgnorePatternService,
+      ComponentDetailsLoaderFactory componentDetailsLoaderFactory,
       RepositoryComponentDeleteService repositoryComponentDeleteService,
       RepositoryPolicyAlertEmailer repositoryPolicyAlertEmailer)
   {
@@ -109,6 +112,7 @@ public class RepositoryPolicyEvaluator
     this.quarantineHdsClient = quarantineHdsClient;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
     this.firewallIgnorePatternService = firewallIgnorePatternService;
+    this.componentDetailsLoaderFactory = componentDetailsLoaderFactory;
     this.repositoryComponentDeleteService = repositoryComponentDeleteService;
     this.repositoryPolicyAlertEmailer = repositoryPolicyAlertEmailer;
   }
@@ -138,7 +142,7 @@ public class RepositoryPolicyEvaluator
     Predicate<String> componentPathnameMatchesIgnorePattern =
         firewallIgnorePatternService.componentPathnameMatchesIgnorePattern(repository);
     List<Component> components = new ArrayList<>();
-    ComponentDetailsLoader componentDetailsLoader = new DefaultComponentDetailsLoader(repository);
+    ComponentDetailsLoader componentDetailsLoader = componentDetailsLoaderFactory.newInstance(repository);
     for (int requestIndex = 0; requestIndex < componentEvaluationDataRequestList.components.size(); requestIndex++) {
       RepositoryComponentEvaluationDataRequest componentEvaluationRequest =
           componentEvaluationDataRequestList.components.get(requestIndex);

@@ -20,7 +20,7 @@ public class DefaultComponentDetailsLoader extends ComponentDetailsLoader
 
   private final ComponentDAO componentDAO;
 
-  public DefaultComponentDetailsLoader(Owner owner) {
+  DefaultComponentDetailsLoader(Owner owner) {
     componentDAO = new ComponentDAO(owner);
   }
 

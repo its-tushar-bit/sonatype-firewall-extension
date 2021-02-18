@@ -118,6 +118,9 @@ public class ComponentInfoServiceTest
   @Inject
   private ComponentInfoService componentInfoService;
 
+  @Inject
+  private ComponentDetailsLoaderFactory componentDetailsLoaderFactory;
+
   private String applicationPublicId = "ComponentInfoServiceTest";
 
   private Application application;
@@ -562,7 +565,7 @@ public class ComponentInfoServiceTest
 
     ComponentDetailsList componentDetailsList =
         componentInfoService.getComponentDetailsList(componentIdentifier1, null, null, null);
-    new DefaultComponentDetailsLoader(application).augmentComponentDetails(componentDetailsList.getList(),
+    componentDetailsLoaderFactory.newInstance(application).augmentComponentDetails(componentDetailsList.getList(),
         MatchState.EXACT.getId(), null);
 
     assertThat(componentDetailsList).isNotNull();

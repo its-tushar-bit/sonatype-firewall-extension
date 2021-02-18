@@ -37,7 +37,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentDetailsAdapter;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
-import com.sonatype.insight.brain.hds.DefaultComponentDetailsLoader;
+import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
@@ -81,6 +81,8 @@ public class ApiComponentEvaluationServiceV2
 
   private final ApiComponentDetailsAdapter componentDetailsAdapter;
 
+  private final ComponentDetailsLoaderFactory componentDetailsLoaderFactory;
+
   private final InsightWork work;
 
   private final ErrorResponseGenerator errorResponseGenerator;
@@ -90,6 +92,7 @@ public class ApiComponentEvaluationServiceV2
                                          final ApiComponentDetailsServiceV2 apiComponentDetailsServiceV2,
                                          final ComponentPolicyEvaluator componentPolicyEvaluator,
                                          final ApiComponentDetailsAdapter componentDetailsAdapter,
+                                         final ComponentDetailsLoaderFactory componentDetailsLoaderFactory,
                                          final InsightWork work,
                                          final ErrorResponseGenerator errorResponseGenerator)
   {
@@ -97,6 +100,7 @@ public class ApiComponentEvaluationServiceV2
     this.apiComponentDetailsServiceV2 = apiComponentDetailsServiceV2;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.componentDetailsAdapter = componentDetailsAdapter;
+    this.componentDetailsLoaderFactory = componentDetailsLoaderFactory;
     this.work = work;
     this.errorResponseGenerator = errorResponseGenerator;
   }
@@ -212,7 +216,7 @@ public class ApiComponentEvaluationServiceV2
       evaluationResultDTO.applicationId = application.getId();
 
       try {
-        ComponentDetailsLoader componentDetailsLoader = new DefaultComponentDetailsLoader(application);
+        ComponentDetailsLoader componentDetailsLoader = componentDetailsLoaderFactory.newInstance(application);
         List<ComponentEvaluationData> componentEvaluationDataList = apiComponentDetailsServiceV2
             .getComponentDetailsListFromHds(evaluationRequestDTO, PURPOSE_EVALUATION);
         for (ComponentEvaluationData componentEvaluationData : componentEvaluationDataList) {

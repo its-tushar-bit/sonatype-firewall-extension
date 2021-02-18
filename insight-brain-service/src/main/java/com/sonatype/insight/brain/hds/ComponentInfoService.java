@@ -98,6 +98,8 @@ public class ComponentInfoService
 
   private final ComponentPolicyEvaluator componentPolicyEvaluator;
 
+  private final ComponentDetailsLoaderFactory componentDetailsLoaderFactory;
+
   private final ComponentRemediationService componentRemediationService;
 
   private final ThirdPartyComponentDAO thirdPartyComponentDAO;
@@ -110,11 +112,13 @@ public class ComponentInfoService
   public ComponentInfoService(
       HdsClient hdsClient,
       ComponentPolicyEvaluator componentPolicyEvaluator,
+      ComponentDetailsLoaderFactory componentDetailsLoaderFactory,
       ComponentRemediationService componentRemediationService,
       ThirdPartyComponentDAO thirdPartyComponentDAO)
   {
     this.hdsClient = hdsClient;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
+    this.componentDetailsLoaderFactory = componentDetailsLoaderFactory;
     this.componentRemediationService = componentRemediationService;
     this.thirdPartyComponentDAO = thirdPartyComponentDAO;
     initUnspecifiedLicense();
@@ -199,7 +203,7 @@ public class ComponentInfoService
       componentDetails = createEmptyComponentDetails(hash, identifier);
     }
 
-    Component component = new DefaultComponentDetailsLoader(owner)
+    Component component = componentDetailsLoaderFactory.newInstance(owner)
         .augmentComponentDetails(componentDetails, dependencyType);
     component.setProprietary(proprietary);
 
@@ -326,7 +330,8 @@ public class ComponentInfoService
     auditComponentAccess(identifier, null);
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     ComponentDetailsList componentDetailsList = getComponentDetailsList(identifier, null, null, null);
-    new DefaultComponentDetailsLoader(app).augmentComponentDetails(componentDetailsList.getList(), matchState, null);
+    componentDetailsLoaderFactory.newInstance(app).augmentComponentDetails(componentDetailsList.getList(), matchState,
+        null);
     return componentDetailsList;
   }
 
@@ -363,7 +368,8 @@ public class ComponentInfoService
     auditComponentAccess(componentIdentifier, null);
     final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
     ComponentDetailsList componentDetailsList = getComponentDetailsList(componentIdentifier, owner, null, null);
-    new DefaultComponentDetailsLoader(owner).augmentComponentDetails(componentDetailsList.getList(), matchState, null);
+    componentDetailsLoaderFactory.newInstance(owner).augmentComponentDetails(componentDetailsList.getList(), matchState,
+        null);
     return componentDetailsList;
   }
 
@@ -436,9 +442,8 @@ public class ComponentInfoService
     List<ComponentDetails> componentDetailsList =
         getComponentDetailsList(componentIdentifier, owner, identificationSource, scanId).getList();
     // Fix match state to exact as there's no point propagating it to other versions.
-    List<Component> components =
-        new DefaultComponentDetailsLoader(owner).augmentComponentDetails(componentDetailsList, MatchState.EXACT.getId(),
-            dependencyType);
+    List<Component> components = componentDetailsLoaderFactory.newInstance(owner)
+        .augmentComponentDetails(componentDetailsList, MatchState.EXACT.getId(), dependencyType);
 
     // Evaluate the policies and get the PolicyAlerts
     List<PolicyAlert> allPolicyAlerts = componentPolicyEvaluator
@@ -645,7 +650,7 @@ public class ComponentInfoService
 
   public Component augmentComponentDetails(Owner owner, ComponentDetails componentDetails) {
     augmentEmptyLicensesAsUnspecified(componentDetails);
-    return new DefaultComponentDetailsLoader(owner).augmentComponentDetails(componentDetails);
+    return componentDetailsLoaderFactory.newInstance(owner).augmentComponentDetails(componentDetails);
   }
 
   /**
@@ -670,7 +675,7 @@ public class ComponentInfoService
 
     ComponentDetails componentDetails =
         getComponentDetails(null, hash, componentIdentifier, httpRequest, owner, identificationSource, scanId);
-    new DefaultComponentDetailsLoader(owner).augmentComponentDetails(componentDetails);
+    componentDetailsLoaderFactory.newInstance(owner).augmentComponentDetails(componentDetails);
     return new ComponentSecurityVulnerabilities(componentDetails.getSecurityVulnerabilities());
   }
 

@@ -81,6 +81,8 @@ public class ComponentRemediationService
 
   private final ComponentPolicyEvaluator componentPolicyEvaluator;
 
+  private final ComponentDetailsLoaderFactory componentDetailsLoaderFactory;
+
   private final ProductLicense productLicense;
 
   @Inject
@@ -88,11 +90,13 @@ public class ComponentRemediationService
       TelemetrySender telemetrySender,
       HdsClient hdsClient,
       ComponentPolicyEvaluator componentPolicyEvaluator,
+      ComponentDetailsLoaderFactory componentDetailsLoaderFactory,
       ProductLicense productLicense)
   {
     this.telemetrySender = telemetrySender;
     this.hdsClient = hdsClient;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
+    this.componentDetailsLoaderFactory = componentDetailsLoaderFactory;
     this.productLicense = productLicense;
   }
 
@@ -210,9 +214,8 @@ public class ComponentRemediationService
     // evaluate flattened dependencies
     // Fix match state to exact as there's no point propagating it to other versions.
     // Assume the dependencies are only transitive
-    List<Component> components =
-        new DefaultComponentDetailsLoader(owner).augmentComponentDetails(componentDetailsList, MatchState.EXACT.getId(),
-            DependencyType.TRANSITIVE);
+    List<Component> components = componentDetailsLoaderFactory.newInstance(owner)
+        .augmentComponentDetails(componentDetailsList, MatchState.EXACT.getId(), DependencyType.TRANSITIVE);
     Map<PackageUrlIdentifier, List<PolicyAlert>> policyAlertsByComponent =
         evaluateAndGetPolicyAlertsByComponent(owner.getId(), stage, components);
 

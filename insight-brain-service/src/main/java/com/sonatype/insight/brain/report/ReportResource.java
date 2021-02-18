@@ -62,6 +62,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
+import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.hds.DefaultComponentDetailsLoader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -125,6 +126,8 @@ public class ReportResource
 
   private final ScanPolicyEvaluator scanPolicyEvaluator;
 
+  private final ComponentDetailsLoaderFactory componentDetailsLoaderFactory;
+
   private final ApiReportDataServiceV2 reportDataService;
 
   private final ReleaseGraphService releaseGraphService;
@@ -146,6 +149,7 @@ public class ReportResource
   @Inject
   public ReportResource(final ReportService reportService,
                         final ScanPolicyEvaluator scanPolicyEvaluator,
+                        ComponentDetailsLoaderFactory componentDetailsLoaderFactory,
                         InsightWork work,
                         BaseUrl baseUrl,
                         ApiReportDataServiceV2 reportDataService,
@@ -155,6 +159,7 @@ public class ReportResource
   {
     this.reportService = reportService;
     this.scanPolicyEvaluator = scanPolicyEvaluator;
+    this.componentDetailsLoaderFactory = componentDetailsLoaderFactory;
     this.work = work;
     this.baseUrl = baseUrl;
     this.reportDataService = reportDataService;
@@ -356,7 +361,7 @@ public class ReportResource
       }
 
       try (ZipFile reportZip = new ZipFile(reportFile)) {
-        ComponentDetailsLoader componentDetailsLoader = new DefaultComponentDetailsLoader(app);
+        ComponentDetailsLoader componentDetailsLoader = componentDetailsLoaderFactory.newInstance(app);
 
         for (Enumeration<? extends ZipEntry> en = reportZip.entries(); en.hasMoreElements();) {
           ZipEntry entry = en.nextElement();

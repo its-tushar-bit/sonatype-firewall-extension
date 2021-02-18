@@ -60,6 +60,7 @@ import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.api.v2.service.DefaultApiLicenseDataAdapter;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
+import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
@@ -206,7 +207,8 @@ public class ApiLicenseLegalServiceTest
     binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
     apiLicenseDataAdapterSpy = spy(new DefaultApiLicenseDataAdapter(new MultiLicenseDAO()));
     binder.bind(ApiLicenseDataAdapter.class).toInstance(apiLicenseDataAdapterSpy);
-    componentInfoServiceSpy = spy(new ComponentInfoService(null, null, null, mockThirdPartyComponentDAO));
+    componentInfoServiceSpy = spy(
+        new ComponentInfoService(null, null, new ComponentDetailsLoaderFactory(), null, mockThirdPartyComponentDAO));
     binder.bind(ComponentInfoService.class).toInstance(componentInfoServiceSpy);
     binder.bind(ThirdPartyComponentDAO.class).toInstance(mockThirdPartyComponentDAO);
     super.configure(binder);

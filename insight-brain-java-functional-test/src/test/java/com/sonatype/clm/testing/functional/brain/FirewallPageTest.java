@@ -9,6 +9,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
+import com.sonatype.clm.testing.functional.pages.FirewallPage.FirewallAutoUnquarantineStatus;
 import com.sonatype.clm.testing.functional.pages.FirewallPage.FirewallConfigurationModal;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
@@ -121,13 +122,22 @@ public class FirewallPageTest
 
     page.shouldBe(visible);
 
+    final FirewallAutoUnquarantineStatus firewallAutoUnquarantineStatus = page.firewallAutoUnquarantineStatus();
+    firewallAutoUnquarantineStatus.shouldBe(visible);
+
     FirewallConfigurationModal firewallConfigurationModal = page.firewallConfigurationModal();
     firewallConfigurationModal.shouldBe(hidden);
 
-    //open modal
-    page.firewallAutoUnquarantineStatus().configureLink().click();
+    //verify initial auto unquarantine status
+    firewallAutoUnquarantineStatus.statusIndicatorIcon().shouldBe(visible);
+    firewallAutoUnquarantineStatus.statusIndicatorIconActive().shouldBe(hidden);
+    firewallAutoUnquarantineStatus.statusLabel().shouldHave(Condition.text("Inactive"));
+    firewallAutoUnquarantineStatus.statusDescription().shouldHave(Condition.text("releasing 0 of 1 policy types"));
 
-    //verify initial status
+    //open modal
+    firewallAutoUnquarantineStatus.configureLink().click();
+
+    //verify initial configuration status
     firewallConfigurationModal.shouldBe(visible);
     firewallConfigurationModal.autoUnquarantineToggle().shouldBe(visible);
     firewallConfigurationModal.autoUnquarantineCheckBox().shouldNotBe(checked);
@@ -165,6 +175,12 @@ public class FirewallPageTest
     assertThat(policyMonitoring).isNotNull();
     assertThat(policyMonitoring.getOwnerId()).isEqualTo(REPOSITORY_CONTAINER_ID);
     assertThat(policyMonitoring.getStageTypeId()).isEqualTo(StageTypes.PROXY.getId());
+
+    //verify auto unquarantine status after save
+    firewallAutoUnquarantineStatus.statusIndicatorIcon().shouldBe(visible);
+    firewallAutoUnquarantineStatus.statusIndicatorIconActive().shouldBe(visible);
+    firewallAutoUnquarantineStatus.statusLabel().shouldHave(Condition.text("Active"));
+    firewallAutoUnquarantineStatus.statusDescription().shouldHave(Condition.text("releasing 1 of 1 policy types"));
   }
 
   @Test
@@ -177,13 +193,22 @@ public class FirewallPageTest
 
     page.shouldBe(visible);
 
+    final FirewallAutoUnquarantineStatus firewallAutoUnquarantineStatus = page.firewallAutoUnquarantineStatus();
+    firewallAutoUnquarantineStatus.shouldBe(visible);
+
     FirewallConfigurationModal firewallConfigurationModal = page.firewallConfigurationModal();
     firewallConfigurationModal.shouldBe(hidden);
+
+    //verify initial auto unquarantine status
+    firewallAutoUnquarantineStatus.statusIndicatorIcon().shouldBe(visible);
+    firewallAutoUnquarantineStatus.statusIndicatorIconActive().shouldBe(visible);
+    firewallAutoUnquarantineStatus.statusLabel().shouldHave(Condition.text("Active"));
+    firewallAutoUnquarantineStatus.statusDescription().shouldHave(Condition.text("releasing 1 of 1 policy types"));
 
     //open modal
     page.firewallAutoUnquarantineStatus().configureLink().click();
 
-    //verify initial status
+    //verify initial configuration status
     firewallConfigurationModal.shouldBe(visible);
     firewallConfigurationModal.autoUnquarantineToggle().shouldBe(visible);
     firewallConfigurationModal.autoUnquarantineCheckBox().input().shouldBe(checked);
@@ -218,6 +243,12 @@ public class FirewallPageTest
     firewallConfigurationModal.shouldBe(hidden);
 
     assertThat(policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID)).isNull();
+
+    //verify auto unquarantine status after save
+    firewallAutoUnquarantineStatus.statusIndicatorIcon().shouldBe(visible);
+    firewallAutoUnquarantineStatus.statusIndicatorIconActive().shouldBe(hidden);
+    firewallAutoUnquarantineStatus.statusLabel().shouldHave(Condition.text("Inactive"));
+    firewallAutoUnquarantineStatus.statusDescription().shouldHave(Condition.text("releasing 0 of 1 policy types"));
   }
 
   @Test

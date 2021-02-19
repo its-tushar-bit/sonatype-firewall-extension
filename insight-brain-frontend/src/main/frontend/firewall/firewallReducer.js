@@ -6,12 +6,16 @@
 
 import {createReducerFromActionMap} from '../util/reduxUtil';
 import {
+  FIREWALL_LOAD_CONFIGURATION_FAILED,
+  FIREWALL_LOAD_CONFIGURATION_FULFILLED,
   FIREWALL_LOAD_STATUS_FAILED,
   FIREWALL_LOAD_STATUS_FULFILLED,
   FIREWALL_LOAD_STATUS_REQUESTED,
+  FIREWALL_SAVE_CONFIGURATION_FULFILLED,
   FIREWALL_SET_SHOW_CONFIGURATION_MODAL
 } from './firewallActions';
-import {always} from 'ramda';
+import {__, always, lensPath, over, merge} from 'ramda';
+import {pathSet, propSet} from '../util/jsUtil';
 
 const initialState = Object.freeze({
   viewState: Object.freeze({
@@ -19,8 +23,19 @@ const initialState = Object.freeze({
     loadStatusError: null,
     isShowConfigurationModal: false
   }),
-  configurationState: Object.freeze({
+  statusState: Object.freeze({
     isEnabled: false
+  }),
+  autoUnquarantineState: Object.freeze({
+    viewState: Object.freeze({
+      loadedConfiguration: false,
+      loadConfigurationError: null,
+      enabledPolicyConditionTypesCount: 0,
+      totalPolicyConditionTypesCount: 1
+    })
+  }),
+  configurationState: Object.freeze({
+    autoUnquarantineEnabled: false
   })
 });
 
@@ -31,8 +46,8 @@ const loadStatusFulfilled = (payload, state) => ({
     loadedStatus: true,
     loadStatusError: null
   },
-  configurationState: {
-    ...state.configurationState,
+  statusState: {
+    ...state.statusState,
     isEnabled: payload.experimentalFeatures.firewallAutoUnquarantine
   }
 });
@@ -54,11 +69,46 @@ const setShowConfigurationModal = (payload, state) => ({
   }
 });
 
+const saveConfigurationFulfilled = (payload, state) => ({
+  ...state,
+  autoUnquarantineState: pathSet(['viewState', 'enabledPolicyConditionTypesCount'],
+      numberOfenabledPolicyConditionTypesCount(payload), state.autoUnquarantineState),
+  configurationState: propSet('autoUnquarantineEnabled', payload.autoUnquarantineEnabled, state.configurationState)
+});
+
+const loadConfigurationFulfilled = (payload, state) => ({
+  ...state,
+  autoUnquarantineState: {
+    ...state.autoUnquarantineState,
+    viewState: {
+      ...state.autoUnquarantineState.viewState,
+      loadedConfiguration: true,
+      loadConfigurationError: null,
+      enabledPolicyConditionTypesCount: numberOfenabledPolicyConditionTypesCount(payload),
+      totalPolicyConditionTypesCount: 1
+    }
+  },
+  configurationState: payload
+});
+
+const loadConfigurationFailed = (payload, state) =>
+  over(lensPath(['autoUnquarantineState', 'viewState']), merge(__, {
+    loadedConfiguration: true,
+    loadConfigurationError: payload
+  }), state);
+
+function numberOfenabledPolicyConditionTypesCount(payload) {
+  return payload.autoUnquarantineEnabled ? 1 : 0;
+}
+
 const reducerActionMap = {
   [FIREWALL_LOAD_STATUS_FAILED]: loadStatusFailed,
   [FIREWALL_LOAD_STATUS_FULFILLED]: loadStatusFulfilled,
   [FIREWALL_LOAD_STATUS_REQUESTED]: always(initialState),
-  [FIREWALL_SET_SHOW_CONFIGURATION_MODAL]: setShowConfigurationModal
+  [FIREWALL_SET_SHOW_CONFIGURATION_MODAL]: setShowConfigurationModal,
+  [FIREWALL_LOAD_CONFIGURATION_FULFILLED]: loadConfigurationFulfilled,
+  [FIREWALL_LOAD_CONFIGURATION_FAILED]: loadConfigurationFailed,
+  [FIREWALL_SAVE_CONFIGURATION_FULFILLED]: saveConfigurationFulfilled
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

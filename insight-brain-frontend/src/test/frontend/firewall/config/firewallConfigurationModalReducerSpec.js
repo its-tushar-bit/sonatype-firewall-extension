@@ -27,8 +27,6 @@ describe('firewallConfigurationModalReducer', function() {
       //viewState
       expect(newState.viewState.sumbitMaskSuccessState).toBeNull();
       expect(newState.viewState.saveConfigurationError).toBeNull();
-      expect(newState.viewState.loadedConfiguration).toBe(false);
-      expect(newState.viewState.loadConfigurationError).toBeNull();
       expect(newState.viewState.isDirty).toBe(false);
 
       //serverState
@@ -97,7 +95,8 @@ describe('firewallConfigurationModalReducer', function() {
         }
       });
       const newState = reduce(state, {
-        type: 'FIREWALL_SAVE_CONFIGURATION_FULFILLED'
+        type: 'FIREWALL_SAVE_CONFIGURATION_FULFILLED',
+        payload: {}
       });
       // viewState
       expect(newState.viewState.sumbitMaskSuccessState).toBe(true);
@@ -161,8 +160,6 @@ describe('firewallConfigurationModalReducer', function() {
       //viewState
       expect(newState.viewState.sumbitMaskSuccessState).toBeNull();
       expect(newState.viewState.saveConfigurationError).toBeNull();
-      expect(newState.viewState.loadedConfiguration).toBe(false);
-      expect(newState.viewState.loadConfigurationError).toBeNull();
       //serverState
       expect(newState.serverState.autoUnquarantineEnabled).toBe(false);
       //formState
@@ -181,8 +178,6 @@ describe('firewallConfigurationModalReducer', function() {
         other: otherObject,
         viewState: {
           other: otherObject,
-          loadedConfiguration: false,
-          loadConfigurationError: 'error',
           isDirty: true
         },
         serverState: {
@@ -199,8 +194,6 @@ describe('firewallConfigurationModalReducer', function() {
         payload: {autoUnquarantineEnabled: true}
       });
       //viewState
-      expect(newState.viewState.loadedConfiguration).toBe(true);
-      expect(newState.viewState.loadConfigurationError).toBeNull();
       expect(newState.viewState.isDirty).toBe(false);
       //serverState
       expect(newState.serverState.autoUnquarantineEnabled).toBe(true);
@@ -212,37 +205,6 @@ describe('firewallConfigurationModalReducer', function() {
       // other properties are undefined for serverState and formState
       expect(newState.serverState.other).toBeUndefined();
       expect(newState.formState.other).toBeUndefined();
-    });
-  });
-
-  describe('FIREWALL_LOAD_CONFIGURATION_FAILED action', function() {
-    it('updates the state and sets the loadConfigurationError to the payload', function() {
-      const state = Object.freeze({
-        other: otherObject,
-        viewState: {
-          other: otherObject,
-          loadedConfiguration: false,
-          loadConfigurationError: null
-        },
-        serverState: {
-          other: otherObject
-        },
-        formState: {
-          other: otherObject
-        }
-      });
-      const newState = reduce(state, {
-        type: 'FIREWALL_LOAD_CONFIGURATION_FAILED',
-        payload: 'error'
-      });
-      //viewState
-      expect(newState.viewState.loadedConfiguration).toBe(true);
-      expect(newState.viewState.loadConfigurationError).toEqual('error');
-      // other properties are not modified
-      expect(newState.other).toBe(otherObject);
-      expect(newState.viewState.other).toEqual(otherObject);
-      expect(newState.serverState.other).toEqual(otherObject);
-      expect(newState.formState.other).toEqual(otherObject);
     });
   });
 

@@ -170,20 +170,20 @@ describe('mainHeaderSpec', function() {
           expect(mapStateToThis(mockStateWithServerDataAndIsEnabledFalse).isAdvancedSearchEnabled).toBe(false);
         });
 
-    it('returns an object with isFirewallEnabled set to false given a state with no firewall state configurationState',
+    it('returns an object with isFirewallEnabled set to false given a state with no firewall state statusState',
         function() {
-          let mockStateNoFirewallConfigurationState = {
+          let mockStateNoFirewallStatusState = {
             firewall: {}
           };
 
-          expect(mapStateToThis(mockStateNoFirewallConfigurationState).isFirewallEnabled).toBeFalsy();
+          expect(mapStateToThis(mockStateNoFirewallStatusState).isFirewallEnabled).toBeFalsy();
         });
 
-    it('returns an object with isFirewallEnabled true given state with firewall configurationState and isEnabled true',
+    it('returns an object with isFirewallEnabled true given state with firewall statusState and isEnabled true',
         function() {
           let mockStateWithIsEnabledTrue = {
             firewall: {
-              configurationState: {
+              statusState: {
                 isEnabled: true
               }
             }
@@ -192,11 +192,11 @@ describe('mainHeaderSpec', function() {
           expect(mapStateToThis(mockStateWithIsEnabledTrue).isFirewallEnabled).toBe(true);
         });
 
-    it('returns object with isFirewallEnabled false given state with firewall configurationState and isEnabled false',
+    it('returns object with isFirewallEnabled false given state with firewall statusState and isEnabled false',
         function() {
           let mockStateWithIsEnabledFalse = {
             firewall: {
-              configurationState: {
+              statusState: {
                 isEnabled: false
               }
             }

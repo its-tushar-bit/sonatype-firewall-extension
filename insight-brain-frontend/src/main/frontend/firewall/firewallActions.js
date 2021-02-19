@@ -35,7 +35,7 @@ export const FIREWALL_SAVE_CONFIGURATION_FAILED = 'FIREWALL_SAVE_CONFIGURATION_F
 export const FIREWALL_SAVE_CONFIGURATION_FULFILLED = 'FIREWALL_SAVE_CONFIGURATION_FULFILLED';
 
 const saveConfigurationRequested = noPayloadActionCreator(FIREWALL_SAVE_CONFIGURATION_REQUESTED);
-const saveConfigurationFulfilled = noPayloadActionCreator(FIREWALL_SAVE_CONFIGURATION_FULFILLED);
+const saveConfigurationFulfilled = payloadParamActionCreator(FIREWALL_SAVE_CONFIGURATION_FULFILLED);
 const saveConfigurationFailed = payloadParamActionCreator(FIREWALL_SAVE_CONFIGURATION_FAILED);
 
 export const FIREWALL_TOGGLE_AUTO_UNQUARANTINE_ENABLED = 'FIREWALL_TOGGLE_AUTO_UNQUARANTINE_ENABLED';
@@ -79,7 +79,7 @@ export function saveConfiguration() {
     const endpointUrl = getFirewallConfigurationUrl();
     return axios.put(endpointUrl, serverData)
         .then(() => {
-          dispatch(saveConfigurationFulfilled());
+          dispatch(saveConfigurationFulfilled(serverData));
           startSubmitMaskTimer(dispatch);
         })
         .catch((error) => {
@@ -105,4 +105,3 @@ export function openConfigurationModal() {
 export function closeConfigurationModal() {
   return setShowConfigurationModal(false);
 }
-

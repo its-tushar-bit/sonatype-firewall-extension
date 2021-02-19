@@ -116,7 +116,7 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
 function mapStateToThis(state) {
   return {
     isAdvancedSearchEnabled: path(['advancedSearchConfig', 'serverData', 'isEnabled'], state),
-    isFirewallEnabled: path(['firewall', 'configurationState', 'isEnabled'], state)
+    isFirewallEnabled: path(['firewall', 'statusState', 'isEnabled'], state)
   };
 }
 

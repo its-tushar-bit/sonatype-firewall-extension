@@ -8,7 +8,6 @@ import {always, equals, lensPath, not, over} from 'ramda';
 import {createReducerFromActionMap} from '../../util/reduxUtil';
 import {
   FIREWALL_CONFIGURATION_SAVE_MASK_TIMER_DONE,
-  FIREWALL_LOAD_CONFIGURATION_FAILED,
   FIREWALL_LOAD_CONFIGURATION_FULFILLED,
   FIREWALL_LOAD_CONFIGURATION_REQUESTED,
   FIREWALL_SAVE_CONFIGURATION_FAILED,
@@ -22,8 +21,6 @@ const initialState = Object.freeze({
   viewState: Object.freeze({
     sumbitMaskSuccessState: null,
     saveConfigurationError: null,
-    loadedConfiguration: false,
-    loadConfigurationError: null,
     isDirty: false
   }),
   serverState: Object.freeze({
@@ -65,21 +62,10 @@ const loadConfigurationFulfilled = (payload, state) => ({
   ...state,
   viewState: {
     ...state.viewState,
-    loadedConfiguration: true,
-    loadConfigurationError: null,
     isDirty: false
   },
   serverState: payload,
   formState: payload
-});
-
-const loadConfigurationFailed = (payload, state) => ({
-  ...state,
-  viewState: {
-    ...state.viewState,
-    loadedConfiguration: true,
-    loadConfigurationError: payload
-  }
 });
 
 const toggleAutoUnquarantineEnabled = (_, state) => {
@@ -102,7 +88,6 @@ const reducerActionMap = {
   [FIREWALL_SAVE_CONFIGURATION_FULFILLED]: saveConfigurationFulfilled,
   [FIREWALL_LOAD_CONFIGURATION_REQUESTED]: always(initialState),
   [FIREWALL_LOAD_CONFIGURATION_FULFILLED]: loadConfigurationFulfilled,
-  [FIREWALL_LOAD_CONFIGURATION_FAILED]: loadConfigurationFailed,
   [FIREWALL_TOGGLE_AUTO_UNQUARANTINE_ENABLED]: toggleAutoUnquarantineEnabled,
   [FIREWALL_CONFIGURATION_SAVE_MASK_TIMER_DONE]: configurationSaveMaskTimerDone
 };

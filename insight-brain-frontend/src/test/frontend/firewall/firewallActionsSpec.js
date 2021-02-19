@@ -48,10 +48,11 @@ describe('firewallActions', function() {
       firewallConfigurationModal: Object.freeze({
         viewState: Object.freeze({
           sumbitMaskSuccessState: false,
-          saveConfigurationSuccess: null,
           saveConfigurationError: null,
           loadedConfiguration: false,
-          loadConfigurationError: null
+          loadConfigurationError: null,
+          enabledPolicyConditionTypesCount: 0,
+          totalPolicyConditionTypesCount: 1
         }),
         serverState: Object.freeze({
           autoUnquarantineEnabled: false
@@ -240,7 +241,7 @@ describe('firewallActions', function() {
                   expect(actions[0].type).toBe(FIREWALL_SAVE_CONFIGURATION_REQUESTED);
                   expect(actions[0].payload).toBeUndefined();
                   expect(actions[1].type).toBe(FIREWALL_SAVE_CONFIGURATION_FULFILLED);
-                  expect(actions[1].payload).toBeUndefined();
+                  expect(actions[1].payload).toEqual({autoUnquarantineEnabled: false});
                   done();
                 });
 

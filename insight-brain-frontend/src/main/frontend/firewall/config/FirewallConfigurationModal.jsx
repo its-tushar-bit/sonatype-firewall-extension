@@ -19,8 +19,6 @@ export default function FirewallConfigurationModal(props) {
 
   //viewState
   const {
-    loadedConfiguration,
-    loadConfigurationError,
     sumbitMaskSuccessState,
     saveConfigurationError,
     isDirty
@@ -29,6 +27,12 @@ export default function FirewallConfigurationModal(props) {
   //formState
   const {
     autoUnquarantineEnabled
+  } = props;
+
+  //autoUnquarantineState
+  const {
+    loadedConfiguration,
+    loadConfigurationError
   } = props;
 
   return (

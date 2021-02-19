@@ -29,8 +29,17 @@ describe('firewallReducer', function() {
       expect(newState.viewState.loadStatusError).toBeNull();
       expect(newState.viewState.isShowConfigurationModal).toBe(false);
 
+      //statusState
+      expect(newState.statusState.isEnabled).toBe(false);
+
+      //autoUnquarantineState.viewState
+      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(false);
+      expect(newState.autoUnquarantineState.viewState.loadConfigurationError).toBeNull();
+      expect(newState.autoUnquarantineState.viewState.enabledPolicyConditionTypesCount).toBe(0);
+      expect(newState.autoUnquarantineState.viewState.totalPolicyConditionTypesCount).toBe(1);
+
       //configurationState
-      expect(newState.configurationState.isEnabled).toBe(false);
+      expect(newState.configurationState.autoUnquarantineEnabled).toBe(false);
     });
   });
 
@@ -57,8 +66,18 @@ describe('firewallReducer', function() {
       expect(newState.viewState.loadedStatus).toBe(false);
       expect(newState.viewState.loadStatusError).toBeNull();
       expect(newState.viewState.isShowConfigurationModal).toBe(false);
+
+      //statusState
+      expect(newState.statusState.isEnabled).toBe(false);
+
+      //autoUnquarantineState.viewState
+      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(false);
+      expect(newState.autoUnquarantineState.viewState.loadConfigurationError).toBeNull();
+      expect(newState.autoUnquarantineState.viewState.enabledPolicyConditionTypesCount).toBe(0);
+      expect(newState.autoUnquarantineState.viewState.totalPolicyConditionTypesCount).toBe(1);
+
       //configurationState
-      expect(newState.configurationState.isEnabled).toBe(false);
+      expect(newState.configurationState.autoUnquarantineEnabled).toBe(false);
     });
   });
 
@@ -71,8 +90,14 @@ describe('firewallReducer', function() {
           loadedStatus: false,
           loadStatusError: 'error!'
         },
-        configurationState: {
+        statusState: {
           isEnabled: false,
+          other: otherObject
+        },
+        autoUnquarantineState: {
+          other: otherObject
+        },
+        configurationState: {
           other: otherObject
         }
       });
@@ -85,11 +110,13 @@ describe('firewallReducer', function() {
       });
       expect(newState.viewState.loadedStatus).toBe(true);
       expect(newState.viewState.loadStatusError).toBeNull();
-      //configurationState
-      expect(newState.configurationState.isEnabled).toBe(true);
+      //statusState
+      expect(newState.statusState.isEnabled).toBe(true);
       // other properties are not modified
       expect(newState.other).toBe(otherObject);
       expect(newState.viewState.other).toEqual(otherObject);
+      expect(newState.statusState.other).toEqual(otherObject);
+      expect(newState.autoUnquarantineState.other).toEqual(otherObject);
       expect(newState.configurationState.other).toEqual(otherObject);
     });
   });
@@ -103,8 +130,14 @@ describe('firewallReducer', function() {
           loadedStatus: false,
           loadStatusError: null
         },
-        configurationState: {
+        statusState: {
           isEnabled: false,
+          other: otherObject
+        },
+        autoUnquarantineState: {
+          other: otherObject
+        },
+        configurationState: {
           other: otherObject
         }
       });
@@ -115,11 +148,13 @@ describe('firewallReducer', function() {
       expect(newState.viewState.loadedStatus).toBe(true);
       expect(newState.viewState.loadStatusError).toBe('error!');
       //configurationState
-      expect(newState.configurationState.isEnabled).toBe(false);
+      expect(newState.statusState.isEnabled).toBe(false);
       // other properties are not modified
       expect(newState.other).toBe(otherObject);
-      expect(newState.configurationState.other).toEqual(otherObject);
+      expect(newState.statusState.other).toEqual(otherObject);
       expect(newState.viewState.other).toEqual(otherObject);
+      expect(newState.autoUnquarantineState.other).toEqual(otherObject);
+      expect(newState.configurationState.other).toEqual(otherObject);
     });
   });
 
@@ -130,6 +165,12 @@ describe('firewallReducer', function() {
         viewState: {
           other: otherObject,
           isShowConfigurationModal: false
+        },
+        statusState: {
+          other: otherObject
+        },
+        autoUnquarantineState: {
+          other: otherObject
         },
         configurationState: {
           other: otherObject
@@ -143,8 +184,138 @@ describe('firewallReducer', function() {
       expect(newState.viewState.isShowConfigurationModal).toBe(true);
       // other properties are not modified
       expect(newState.other).toBe(otherObject);
-      expect(newState.configurationState.other).toEqual(otherObject);
+      expect(newState.statusState.other).toEqual(otherObject);
       expect(newState.viewState.other).toEqual(otherObject);
+      expect(newState.autoUnquarantineState.other).toEqual(otherObject);
+      expect(newState.configurationState.other).toEqual(otherObject);
+    });
+  });
+
+  describe('FIREWALL_SAVE_CONFIGURATION_FULFILLED action', function() {
+    it('updates the state', function() {
+      const state = Object.freeze({
+        other: otherObject,
+        viewState: {
+          other: otherObject
+        },
+        statusState: {
+          other: otherObject
+        },
+        autoUnquarantineState: {
+          other: otherObject,
+          viewState: {
+            other: otherObject,
+            enabledPolicyConditionTypesCount: 0
+          }
+        },
+        configurationState: {
+          other: otherObject,
+          autoUnquarantineEnabled: false
+        }
+      });
+      const newState = reduce(state, {
+        type: 'FIREWALL_SAVE_CONFIGURATION_FULFILLED',
+        payload: {autoUnquarantineEnabled: true}
+      });
+      // autoUnquarantineState
+      expect(newState.autoUnquarantineState.viewState.enabledPolicyConditionTypesCount).toBe(1);
+
+      // configurationState
+      expect(newState.configurationState.autoUnquarantineEnabled).toBeTrue();
+
+      // other properties are not modified
+      expect(newState.other).toBe(otherObject);
+      expect(newState.viewState.other).toBe(otherObject);
+      expect(newState.statusState.other).toBe(otherObject);
+      expect(newState.autoUnquarantineState.other).toBe(otherObject);
+      expect(newState.autoUnquarantineState.viewState.other).toBe(otherObject);
+      expect(newState.configurationState.other).toEqual(otherObject);
+    });
+  });
+
+  describe('FIREWALL_LOAD_CONFIGURATION_FULFILLED action', function() {
+    it('updates the state', function() {
+      const state = Object.freeze({
+        other: otherObject,
+        viewState: {
+          other: otherObject
+        },
+        statusState: {
+          other: otherObject
+        },
+        autoUnquarantineState: {
+          other: otherObject,
+          viewState: {
+            other: otherObject,
+            loadedConfiguration: false,
+            loadConfigurationError: 'error!',
+            enabledPolicyConditionTypesCount: 0,
+            totalPolicyConditionTypesCount: 1
+          }
+        },
+        configurationState: null
+      });
+      const newState = reduce(state, {
+        type: 'FIREWALL_LOAD_CONFIGURATION_FULFILLED',
+        payload: {autoUnquarantineEnabled: true}
+      });
+
+      // autoUnquarantineState
+      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBeTrue();
+      expect(newState.autoUnquarantineState.viewState.loadConfigurationError).toBeNull();
+      expect(newState.autoUnquarantineState.viewState.enabledPolicyConditionTypesCount).toBe(1);
+      expect(newState.autoUnquarantineState.viewState.totalPolicyConditionTypesCount).toBe(1);
+
+      // configurationState
+      expect(newState.configurationState).toEqual({autoUnquarantineEnabled: true});
+
+      // properties are not modified
+      expect(newState.other).toBe(otherObject);
+      expect(newState.viewState.other).toBe(otherObject);
+      expect(newState.statusState.other).toBe(otherObject);
+      expect(newState.autoUnquarantineState.other).toBe(otherObject);
+      expect(newState.autoUnquarantineState.viewState.other).toBe(otherObject);
+    });
+  });
+
+  describe('FIREWALL_LOAD_CONFIGURATION_FAILED action', function() {
+    it('updates the state', function() {
+      const state = Object.freeze({
+        other: otherObject,
+        viewState: {
+          other: otherObject
+        },
+        statusState: {
+          other: otherObject
+        },
+        autoUnquarantineState: {
+          other: otherObject,
+          viewState: {
+            other: otherObject,
+            loadedConfiguration: false,
+            loadConfigurationError: null
+          }
+        },
+        configurationState: {
+          other: otherObject
+        }
+      });
+      const newState = reduce(state, {
+        type: 'FIREWALL_LOAD_CONFIGURATION_FAILED',
+        payload: 'error!'
+      });
+
+      // autoUnquarantineState
+      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBeTrue();
+      expect(newState.autoUnquarantineState.viewState.loadConfigurationError).toBe('error!');
+
+      // properties are not modified
+      expect(newState.other).toBe(otherObject);
+      expect(newState.viewState.other).toBe(otherObject);
+      expect(newState.statusState.other).toBe(otherObject);
+      expect(newState.autoUnquarantineState.other).toBe(otherObject);
+      expect(newState.autoUnquarantineState.viewState.other).toBe(otherObject);
+      expect(newState.configurationState.other).toBe(otherObject);
     });
   });
 });

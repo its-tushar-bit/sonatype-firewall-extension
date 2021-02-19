@@ -94,8 +94,28 @@ public class FirewallPage
       return child(CHILD_HEADER_CSS_CLASS);
     }
 
+    public SelenideElement statusIndicatorIcon() {
+      return child(".iq-status-indicator-icon");
+    }
+
+    public SelenideElement statusIndicatorIconActive() {
+      return child(".iq-status-indicator-icon--active");
+    }
+
+    public SelenideElement statusLabel() {
+      return child(".iq-status-indicator span");
+    }
+
+    public SelenideElement statusDescription() {
+      return child(".nx-p");
+    }
+
     public SelenideElement configureLink() {
       return child(".nx-text-link");
+    }
+
+    public Button retryButton() {
+      return new Button(childSelector(".nx-load-error__retry"));
     }
   }
 

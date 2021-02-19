@@ -8,27 +8,48 @@ import React from 'react';
 import StatusIndicatorIcon from '../react/statusIndicatorIcon/StatusIndicatorIcon';
 import * as PropTypes from 'prop-types';
 
-export default function FirewallAutoUnquarantineStatus({onConfigureClicked}) {
+export default function FirewallAutoUnquarantineStatus(props) {
+  // Actions
+  const {
+    openConfigurationModal
+  } = props;
+
+  //viewState
+  const {
+    enabledPolicyConditionTypesCount,
+    totalPolicyConditionTypesCount
+  } = props;
+
+  //serverState
+  const {
+    autoUnquarantineEnabled
+  } = props;
+
   return (
     <section id="firewall-auto-unquarantine-status" className="nx-card">
       <header className="nx-card__header">
-        <h3 className="nx-h3">Auto Unquarantine Status</h3>
+        <h3 className="nx-h3">Auto Release from Quarantine Status</h3>
       </header>
       <div className="nx-card__content">
         <div className="iq-status-indicator">
-          <StatusIndicatorIcon status={true}/>
-          <span>Active</span>
+          <StatusIndicatorIcon status={autoUnquarantineEnabled}/>
+          <span>{autoUnquarantineEnabled ? 'Active' : 'Inactive'}</span>
         </div>
-        <p className="nx-p">unquarantining 10 of 25 policy types</p>
+        <p className="nx-p">
+          releasing {enabledPolicyConditionTypesCount} of {totalPolicyConditionTypesCount} policy types
+        </p>
       </div>
       <footer className="nx-card__footer">
-        <a className="nx-text-link" onClick={onConfigureClicked}>Configure</a>
+        <a className="nx-text-link" onClick={openConfigurationModal}>Configure</a>
       </footer>
     </section>
   );
 }
 
 FirewallAutoUnquarantineStatus.propTypes = {
-  onConfigureClicked: PropTypes.func.isRequired
+  autoUnquarantineEnabled: PropTypes.bool.isRequired,
+  enabledPolicyConditionTypesCount: PropTypes.number.isRequired,
+  totalPolicyConditionTypesCount: PropTypes.number.isRequired,
+  openConfigurationModal: PropTypes.func.isRequired
 };
 

@@ -7,9 +7,11 @@ import {connect} from 'react-redux';
 
 import FirewallConfigurationModal from './FirewallConfigurationModal';
 import * as firewallActions from '../firewallActions';
+import {pick} from 'ramda';
 
-function mapStateToProps({firewallConfigurationModal}) {
+function mapStateToProps({firewall, firewallConfigurationModal}) {
   return {
+    ...pick(['loadedConfiguration', 'loadConfigurationError'], firewall.autoUnquarantineState.viewState),
     ...firewallConfigurationModal.viewState,
     ...firewallConfigurationModal.formState
   };

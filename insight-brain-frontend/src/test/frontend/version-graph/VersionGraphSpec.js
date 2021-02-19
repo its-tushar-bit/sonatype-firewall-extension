@@ -3,7 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import * as versionGraph from '../../../main/frontend/version-graph/version.graph/versionGraph';
 
 var clmEndpointTemplate = {
       openView: angular.noop,
@@ -35,15 +34,30 @@ var clmEndpointTemplate = {
   });
 
   describe('CIP Tests', function() {
-    let versionGraphModule, versionGraphAppModule;
+    let versionGraphModule, versionGraphAppModule, versionGraphMock;
 
     beforeEach(function() {
+      versionGraphMock = jasmine.createSpyObj('versionGraph', ['renderVersionGraph', 'selectVersion']);
+
       // re-import for each test to ensure globals (ie Insight) are set up correctly
       const exceptionHandler =
           require('inject-loader!../../../main/frontend/version-graph/app/exception.handler.factory')();
 
+      const componentController =
+          require('inject-loader!../../../main/frontend/version-graph/version.graph/component.controller')({
+            '@sonatype/version-graph': versionGraphMock
+          }).default;
+
+      const graphDirective =
+          require('inject-loader!../../../main/frontend/version-graph/version.graph/graph.directive')({
+            '@sonatype/version-graph': versionGraphMock
+          }).default;
+
       versionGraphModule =
-          require('inject-loader!../../../main/frontend/version-graph/version.graph/version.graph.module')().default;
+          require('inject-loader!../../../main/frontend/version-graph/version.graph/version.graph.module')({
+            './component.controller': componentController,
+            './graph.directive': graphDirective
+          }).default;
 
       versionGraphAppModule =
           require('inject-loader!../../../main/frontend/version-graph/app/version.graph.app')({
@@ -1083,7 +1097,6 @@ var clmEndpointTemplate = {
             describe('For next-no-violations', function() {
 
               beforeEach(function() {
-                spyOn(versionGraph, 'selectVersion');
                 scope.markSelection({ type: 'next-no-violations'});
               });
 
@@ -1092,14 +1105,13 @@ var clmEndpointTemplate = {
               }));
 
               it('selects proper version in the graph', function () {
-                expect(versionGraph.selectVersion).toHaveBeenCalledWith(1);
+                expect(versionGraphMock.selectVersion).toHaveBeenCalledWith(1);
               });
             });
 
             describe('For next-no-fail', function() {
 
               beforeEach(function() {
-                spyOn(versionGraph, 'selectVersion');
                 scope.markSelection({type: 'next-non-failing'});
               });
 
@@ -1108,7 +1120,7 @@ var clmEndpointTemplate = {
               }));
 
               it('selects proper version in the graph', function() {
-                expect(versionGraph.selectVersion).toHaveBeenCalledWith(2);
+                expect(versionGraphMock.selectVersion).toHaveBeenCalledWith(2);
               });
             });
           });
@@ -1134,7 +1146,6 @@ var clmEndpointTemplate = {
             describe('For next-no-violations', function() {
 
               beforeEach(function() {
-                spyOn(versionGraph, 'selectVersion');
                 scope.markSelection({type: 'next-no-violations'});
               });
 
@@ -1143,14 +1154,13 @@ var clmEndpointTemplate = {
               }));
 
               it('does not selected a version in the graph', function() {
-                expect(versionGraph.selectVersion).not.toHaveBeenCalled();
+                expect(versionGraphMock.selectVersion).not.toHaveBeenCalled();
               });
             });
 
             describe('For next-no-fail', function() {
 
               beforeEach(function() {
-                spyOn(versionGraph, 'selectVersion');
                 scope.markSelection({type: 'next-non-failing'});
               });
 
@@ -1159,7 +1169,7 @@ var clmEndpointTemplate = {
               }));
 
               it('does not selected a version in the graph', function() {
-                expect(versionGraph.selectVersion).not.toHaveBeenCalled();
+                expect(versionGraphMock.selectVersion).not.toHaveBeenCalled();
               });
             });
           });
@@ -1447,7 +1457,6 @@ var clmEndpointTemplate = {
       var parentScope = null;
 
       beforeEach(inject(function($compile, $rootScope, Coordinates) {
-        spyOn(versionGraph, 'renderVersionGraph').and.returnValue(undefined);
 
         parentScope = $rootScope.$new();
         parentScope.componentDetails = [
@@ -1622,10 +1631,10 @@ var clmEndpointTemplate = {
       });
 
       it('Version Click', inject(function(Coordinates) {
-        versionGraph.renderVersionGraph.calls.mostRecent().args[0].versionClick('5.5.23');
+        versionGraphMock.renderVersionGraph.calls.mostRecent().args[0].versionClick('5.5.23');
         expect(Coordinates.getSelected()).toEqual({'version': '5.5.23'});
 
-        versionGraph.renderVersionGraph.calls.mostRecent().args[0].versionClick('5.0.28');
+        versionGraphMock.renderVersionGraph.calls.mostRecent().args[0].versionClick('5.0.28');
         expect(Coordinates.getSelected()).toEqual({'version': '5.0.28'});
       }));
 
@@ -1635,7 +1644,7 @@ var clmEndpointTemplate = {
         parentScope.$on('viewDetails', function(event, v) {
           version = v;
         });
-        versionGraph.renderVersionGraph.calls.mostRecent().args[0].versionDblClick('5.5.23');
+        versionGraphMock.renderVersionGraph.calls.mostRecent().args[0].versionDblClick('5.5.23');
         expect(version).toEqual(null);
       }));
 
@@ -1645,7 +1654,7 @@ var clmEndpointTemplate = {
         parentScope.$on('viewDetails', function(event, v) {
           version = v;
         });
-        versionGraph.renderVersionGraph.calls.mostRecent().args[0].versionDblClick('5.5.23');
+        versionGraphMock.renderVersionGraph.calls.mostRecent().args[0].versionDblClick('5.5.23');
         expect(version).toEqual('5.5.23');
       }));
     });

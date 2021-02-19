@@ -359,6 +359,11 @@
     ramda "0.26.1"
     react-commonmark "3.0.0"
 
+"@sonatype/version-graph@^1.0.1":
+  version "1.0.1"
+  resolved "https://repo.sonatype.com/repository/npm-all/@sonatype/version-graph/-/version-graph-1.0.1.tgz#12357412e68d5c20eac1d3d337fd9d236f6f0b65"
+  integrity sha512-7KRsi5O3hBKs3beCZxFnrKe8mY5ihiyd2+AB3Zvn6nyRIb0q/6cWGB7clxP0kSJ6gNpWUbw2mKgRDBg8hGcoBg==
+
 "@types/angular@^1.6.39":
   version "1.7.3"
   resolved "https://repo.sonatype.com/repository/npm-all/@types/angular/-/angular-1.7.3.tgz#138c2f2f688e9dcb413c6052d9483d773ce7f627"

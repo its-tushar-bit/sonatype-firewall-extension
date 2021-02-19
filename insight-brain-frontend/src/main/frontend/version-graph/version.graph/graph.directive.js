@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { renderVersionGraph } from './versionGraph';
+import { renderVersionGraph } from '@sonatype/version-graph';
 
 export default function graphDirective(Coordinates) {
   return {

@@ -5,7 +5,7 @@
  */
 /*global angular, Brain, clmEndpoint*/
 
-import { selectVersion } from './versionGraph';
+import { selectVersion } from '@sonatype/version-graph';
 
 const NEXT_NO_VIOLATIONS = 'next-no-violations';
 const NEXT_NO_VIOLATIONS_DEPENDENCIES = 'next-no-violations-with-dependencies';

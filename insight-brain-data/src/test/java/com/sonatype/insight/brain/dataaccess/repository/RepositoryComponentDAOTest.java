@@ -285,4 +285,20 @@ public class RepositoryComponentDAOTest
     assertThat(dao.getAutoReleaseQuarantinedCountByDate(startOfCurMonth)).isOne();
 
   }
+
+  @Test
+  public void testGetQuarantinedComponentCount() {
+    Date quarantineDate = new Date();
+    Date unquarantineDate = new Date();
+    Repository repo1 = tempEntity.newRepository(tempEntity.newRepositoryManager(), "repo1", true, true);
+    tempEntity.newRepositoryComponent(repo1.getId(), "repo1/not-quarantined", null, null);
+    tempEntity.newRepositoryComponent(repo1.getId(), "repo1/quarantined", quarantineDate, null);
+    tempEntity.newRepositoryComponent(repo1.getId(), "repo1/unquarantined", quarantineDate, unquarantineDate);
+    Repository repo2 = tempEntity.newRepository(tempEntity.newRepositoryManager(), "repo2", true, true);
+    tempEntity.newRepositoryComponent(repo2.getId(), "repo2/not-quarantined", null, null);
+    tempEntity.newRepositoryComponent(repo2.getId(), "repo2/quarantined", quarantineDate, null);
+    tempEntity.newRepositoryComponent(repo2.getId(), "repo2/unquarantined", quarantineDate, unquarantineDate);
+
+    assertThat(dao.getQuarantinedComponentCount()).isEqualTo(2);
+  }
 }

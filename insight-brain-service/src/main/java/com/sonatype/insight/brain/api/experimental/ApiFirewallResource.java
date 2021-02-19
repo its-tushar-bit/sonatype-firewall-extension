@@ -16,6 +16,7 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.experimental.dto.FirewallConfigurationDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineSummaryDTO;
+import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallQuarantineSummaryDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 
@@ -38,6 +39,10 @@ public class ApiFirewallResource
   static final String SUMMARY_PATH = "summary";
 
   static final String RELEASE_QUARANTINE_SUMMARY_PATH = RELEASE_QUARANTINE + "/" + SUMMARY_PATH;
+
+  static final String QUARANTINE_PATH = "quarantine";
+
+  static final String QUARANTINE_SUMMARY_PATH = QUARANTINE_PATH + "/summary";
 
   private final ApiFirewallService apiFirewallService;
 
@@ -66,5 +71,11 @@ public class ApiFirewallResource
   @Audited(AuditEvent.CONFIGURE_CONTINUOUS_MONITORING)
   public FirewallConfigurationDTO setFirewallConfiguration(final FirewallConfigurationDTO firewallConfigurationDTO) {
     return apiFirewallService.setFirewallConfiguration(firewallConfigurationDTO);
+  }
+
+  @GET
+  @Path(QUARANTINE_SUMMARY_PATH)
+  public ApiFirewallQuarantineSummaryDTO getQuarantineSummary() {
+    return apiFirewallService.getQuarantineSummary();
   }
 }

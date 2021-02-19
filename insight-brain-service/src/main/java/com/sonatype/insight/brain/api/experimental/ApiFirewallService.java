@@ -12,6 +12,7 @@ import java.util.Date;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.experimental.dto.FirewallConfigurationDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineSummaryDTO;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -19,6 +20,7 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -47,17 +49,21 @@ public class ApiFirewallService
 
   private final RepositoryComponentDAO repositoryComponentDAO;
 
+  private final RepositoryDAO repositoryDAO;
+
   @Inject
   public ApiFirewallService(
       final InsightConfig insightConfig,
       final PolicyMonitoringDAO policyMonitoringDAO,
       final ProductLicense productLicense,
-      final RepositoryComponentDAO repositoryComponentDAO)
+      final RepositoryComponentDAO repositoryComponentDAO,
+      final RepositoryDAO repositoryDAO)
   {
     this.insightConfig = insightConfig;
     this.policyMonitoringDAO = policyMonitoringDAO;
     this.productLicense = productLicense;
     this.repositoryComponentDAO = repositoryComponentDAO;
+    this.repositoryDAO = repositoryDAO;
   }
 
   @Authorize(permission = Permission.READ)
@@ -97,6 +103,21 @@ public class ApiFirewallService
       AuditData.get().setOwner(new OwnerDAO().getById(REPOSITORY_CONTAINER_ID)).setStageId(StageTypes.PROXY.getId());
       runnable.run();
     }
+  }
+
+  @Authorize(permission = Permission.READ)
+  public ApiFirewallQuarantineSummaryDTO getQuarantineSummary() {
+    checkExperimentalFeatureFlag();
+    checkProductLicense();
+
+    ApiFirewallQuarantineSummaryDTO summary = new ApiFirewallQuarantineSummaryDTO();
+    summary.repositoryCount = repositoryDAO.getCount();
+    summary.quarantineEnabledRepositoryCount = repositoryDAO.getQuarantineEnabledCount();
+    summary.quarantineEnabled = summary.quarantineEnabledRepositoryCount > 0;
+    summary.totalComponentCount = repositoryComponentDAO.getCount();
+    summary.quarantinedComponentCount = repositoryComponentDAO.getQuarantinedComponentCount();
+
+    return summary;
   }
 
   private void checkExperimentalFeatureFlag() {

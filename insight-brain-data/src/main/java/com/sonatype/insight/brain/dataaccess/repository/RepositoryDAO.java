@@ -228,4 +228,14 @@ public class RepositoryDAO
     String sQuery = "SELECT COUNT(entity) FROM Repository entity";
     return getSingle(Long.class, sQuery);
   }
+
+  /**
+   * @since 1.106
+   */
+  public long getQuarantineEnabledCount() {
+    String sQuery = "SELECT COUNT(entity) FROM Repository entity" +
+        " WHERE entity.quarantineEnabled = true";
+
+    return getSingle(Long.class, sQuery);
+  }
 }

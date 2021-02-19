@@ -81,6 +81,16 @@ public class RepositoryComponentDAO
     return getSingle(Number.class, sQuery, repositoryId).intValue();
   }
 
+  /**
+   * @since 1.106
+   */
+  public long getQuarantinedComponentCount() {
+    String sQuery = "SELECT COUNT(component.id) FROM RepositoryComponent component" //
+        + " WHERE component.quarantineTime IS NOT NULL AND component.unquarantineTime IS NULL";
+
+    return getSingle(Long.class, sQuery);
+  }
+
   public List<RepositoryComponent> getQuarantinedByRepositoryId(TransactionContext tx, String repositoryId) {
     String sQuery = "SELECT entity FROM RepositoryComponent entity" + //
         " WHERE entity.repositoryId=?1 AND entity.quarantineTime IS NOT NULL AND entity.unquarantineTime IS NULL";

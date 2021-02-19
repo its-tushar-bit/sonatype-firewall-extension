@@ -342,4 +342,12 @@ public class RepositoryDAOTest
     tempEntity.newRepository("repo3");
     assertThat(dao.getCount()).isEqualTo(3);
   }
+
+  @Test
+  public void testGetQuarantineEnabledCount() {
+    tempEntity.newRepository(tempEntity.newRepositoryManager(), "repo1", true, true /* quarantineEnabled */);
+    tempEntity.newRepository(tempEntity.newRepositoryManager(), "repo2", true, false /* quarantineEnabled */);
+
+    assertThat(dao.getQuarantineEnabledCount()).isEqualTo(1);
+  }
 }

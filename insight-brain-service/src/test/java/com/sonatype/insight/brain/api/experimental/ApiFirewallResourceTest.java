@@ -5,10 +5,14 @@
  */
 package com.sonatype.insight.brain.api.experimental;
 
+import java.util.Date;
+
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.experimental.dto.FirewallConfigurationDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineSummaryDTO;
+import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallQuarantineSummaryDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -156,5 +160,25 @@ public class ApiFirewallResourceTest
 
     // then result is payment required 402
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.PAYMENT_REQUIRED_402);
+  }
+
+  @Test
+  public void testGetQuarantineSummary() throws Exception {
+    Repository repo = tempEntity.newRepository(tempEntity.newRepositoryManager(), "repo1", true, true);
+    tempEntity.newRepositoryComponent(repo, "hash");
+    tempEntity.newRepositoryComponent(repo.getId(), "path", new Date(), null);
+    tempEntity.newRepository(tempEntity.newRepositoryManager(), "repo2", true, false);
+
+    HttpResponse response =
+        restRequest().path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.QUARANTINE_SUMMARY_PATH).get();
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK_200);
+    ApiFirewallQuarantineSummaryDTO summary = response.getBody(ApiFirewallQuarantineSummaryDTO.class);
+    assertThat(summary).isNotNull();
+    assertThat(summary.repositoryCount).isEqualTo(2);
+    assertThat(summary.quarantineEnabled).isTrue();
+    assertThat(summary.quarantineEnabledRepositoryCount).isEqualTo(1);
+    assertThat(summary.totalComponentCount).isEqualTo(2);
+    assertThat(summary.quarantinedComponentCount).isEqualTo(1);
   }
 }

@@ -113,4 +113,24 @@ public class ApiFirewallServiceAuthzTest
     firewallConfigurationDTO.autoUnquarantineEnabled = true;
     apiFirewallService.setFirewallConfiguration(firewallConfigurationDTO);
   }
+
+  @Test
+  public void testGetQuarantineSummary_Authorized() {
+    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
+    grantGlobalPermission(Permission.READ);
+
+    assertThat(apiFirewallService.getQuarantineSummary()).isNotNull();
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetQuarantineSummary_Unauthenticated() {
+    apiFirewallService.getQuarantineSummary();
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetQuarantineSummary_Unauthorized() {
+    login();
+
+    apiFirewallService.getQuarantineSummary();
+  }
 }

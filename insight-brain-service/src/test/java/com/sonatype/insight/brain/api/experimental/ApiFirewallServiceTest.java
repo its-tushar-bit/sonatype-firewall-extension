@@ -11,6 +11,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.experimental.dto.FirewallConfigurationDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineSummaryDTO;
+import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallQuarantineSummaryDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
@@ -27,7 +28,6 @@ import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.repository.RepositoryContainer.REPOSITORY_CONTAINER_ID;
@@ -49,13 +49,6 @@ public class ApiFirewallServiceTest
   @Inject
   private TestProductLicense testProductLicense;
 
-  private Repository repository;
-
-  @Before
-  public void before() {
-    repository = tempEntity.newRepository();
-  }
-
   private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
 
   @After
@@ -68,6 +61,7 @@ public class ApiFirewallServiceTest
     //setup: enable feature flag
     config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
 
+    Repository repository = tempEntity.newRepository();
     RepositoryComponent repositoryComponent2 =
         tempEntity.newRepositoryComponent(repository.getId(), "/quarantined2", new Date(), new Date());
     repositoryComponent2.setUnquarantineTimeForMonitoring(new Date());   // updates auto_unquarantined flag
@@ -261,5 +255,50 @@ public class ApiFirewallServiceTest
     //when: setting firewall status
     //then: expect bad request exception
     apiFirewallService.setFirewallConfiguration(new FirewallConfigurationDTO());
+  }
+
+  @Test
+  public void testGetQuarantineSummary() {
+    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
+    Repository repo = tempEntity.newRepository(tempEntity.newRepositoryManager(), "repo1", true, true);
+    tempEntity.newRepositoryComponent(repo, "hash");
+    tempEntity.newRepositoryComponent(repo.getId(), "path", new Date(), null);
+    tempEntity.newRepository(tempEntity.newRepositoryManager(), "repo2", true, false);
+
+    ApiFirewallQuarantineSummaryDTO summary = apiFirewallService.getQuarantineSummary();
+
+    assertThat(summary).isNotNull();
+    assertThat(summary.repositoryCount).isEqualTo(2);
+    assertThat(summary.quarantineEnabled).isTrue();
+    assertThat(summary.quarantineEnabledRepositoryCount).isEqualTo(1);
+    assertThat(summary.totalComponentCount).isEqualTo(2);
+    assertThat(summary.quarantinedComponentCount).isEqualTo(1);
+  }
+
+  @Test
+  public void testGetQuarantineSummary_NoExperimentalFeature() {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      apiFirewallService.getQuarantineSummary();
+    }).withMessage("Firewall experimental feature is not enabled.");
+  }
+
+  @Test
+  public void testGetQuarantineSummary_NoReleaseIntegrityFeature() {
+    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
+    testProductLicense.setMissingFeatures(LicensedFeature.RELEASE_INTEGRITY);
+
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      apiFirewallService.getQuarantineSummary();
+    });
+  }
+
+  @Test
+  public void testGetQuarantineSummary_NoFirewallFeature() {
+    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
+    testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL);
+
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      apiFirewallService.getQuarantineSummary();
+    });
   }
 }

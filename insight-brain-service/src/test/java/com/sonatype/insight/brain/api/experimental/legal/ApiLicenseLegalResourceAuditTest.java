@@ -10,6 +10,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.CopyrightOverrideDTO;
@@ -20,7 +21,9 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
+import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
+import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.assertj.core.util.Lists;
@@ -234,6 +237,117 @@ public class ApiLicenseLegalResourceAuditTest
     assertApplicationData(auditDTO, application);
   }
 
+  @Test
+  public void testSaveComponentObligation_Create() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    ApiLicenseLegalObligationDTO bodyDto = new ApiLicenseLegalObligationDTO();
+    bodyDto.setComponentIdentifier(ApiComponentIdentifierDTOV2.fromComponentIdentifier(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v")));
+    bodyDto.setName("obligationName");
+    bodyDto.setStatus(ObligationStatus.OPEN);
+
+    restRequest()
+        .path(ApiLicenseLegalResource.COMPONENT_OBLIGATION_PATH)
+        .parameter(application.getType(), application.getPublicId())
+        .body(bodyDto)
+        .post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_COMPONENT_OBLIGATION, null);
+    assertComponentObligationData(auditDTO, application, bodyDto);
+  }
+
+  @Test
+  public void testSaveComponentObligation_Create_Unauthorized() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    ApiLicenseLegalObligationDTO bodyDto = new ApiLicenseLegalObligationDTO();
+    bodyDto.setComponentIdentifier(ApiComponentIdentifierDTOV2.fromComponentIdentifier(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v")));
+    bodyDto.setName("obligationName");
+    bodyDto.setStatus(ObligationStatus.OPEN);
+
+    restRequest()
+        .path(ApiLicenseLegalResource.COMPONENT_OBLIGATION_PATH)
+        .parameter(application.getType(), application.getPublicId())
+        .body(bodyDto)
+        .with(unauthorizedUser())
+        .post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_COMPONENT_OBLIGATION, "unauthorized");
+    assertApplicationData(auditDTO, application);
+  }
+
+  @Test
+  public void testSaveComponentObligation_Update() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    ComponentObligation componentObligation = tempEntity.newComponentObligation(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), application.getId(), "obligationName", null,
+        ObligationStatus.OPEN, ComponentLegalService.NOT_IMPLEMENTED);
+    ApiLicenseLegalObligationDTO bodyDto = new ApiLicenseLegalObligationDTO(componentObligation);
+    bodyDto.setComment("updatedComment");
+
+    restRequest()
+        .path(ApiLicenseLegalResource.COMPONENT_OBLIGATION_PATH)
+        .parameter(application.getType(), application.getPublicId())
+        .body(bodyDto)
+        .post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_COMPONENT_OBLIGATION, null);
+    assertComponentObligationData(auditDTO, application, bodyDto);
+  }
+
+  @Test
+  public void testSaveComponentObligation_Update_Unauthorized() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    ComponentObligation componentObligation = tempEntity.newComponentObligation(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), application.getId(), "obligationName", null,
+        ObligationStatus.OPEN, ComponentLegalService.NOT_IMPLEMENTED);
+    ApiLicenseLegalObligationDTO bodyDto = new ApiLicenseLegalObligationDTO(componentObligation);
+    bodyDto.setComment("updatedComment");
+
+    restRequest()
+        .path(ApiLicenseLegalResource.COMPONENT_OBLIGATION_PATH)
+        .parameter(application.getType(), application.getPublicId())
+        .body(bodyDto)
+        .with(unauthorizedUser())
+        .post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_COMPONENT_OBLIGATION, "unauthorized");
+    assertApplicationData(auditDTO, application);
+  }
+
+  @Test
+  public void testDeleteComponentObligation() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    ComponentObligation componentObligation = tempEntity.newComponentObligation(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), application.getId(), "obligationName", null,
+        ObligationStatus.OPEN, ComponentLegalService.NOT_IMPLEMENTED);
+
+    restRequest()
+        .path(ApiLicenseLegalResource.COMPONENT_OBLIGATION_DELETE_PATH)
+        .parameter(componentObligation.getId())
+        .delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_COMPONENT_OBLIGATION, null);
+    assertComponentObligationData(auditDTO, application, new ApiLicenseLegalObligationDTO(componentObligation));
+  }
+
+  @Test
+  public void testDeleteComponentObligation_Unauthorized() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    ComponentObligation componentObligation = tempEntity.newComponentObligation(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), application.getId(), "obligationName", null,
+        ObligationStatus.OPEN, ComponentLegalService.NOT_IMPLEMENTED);
+
+    restRequest()
+        .path(ApiLicenseLegalResource.COMPONENT_OBLIGATION_DELETE_PATH)
+        .parameter(componentObligation.getId())
+        .with(unauthorizedUser())
+        .delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_COMPONENT_OBLIGATION, "unauthorized");
+    assertComponentObligationData(auditDTO, application, new ApiLicenseLegalObligationDTO(componentObligation));
+  }
+
   private void assertComponentObligationAttributionData(
       AuditDTO actual,
       Owner expectedOwner,
@@ -243,5 +357,17 @@ public class ApiLicenseLegalResourceAuditTest
     assertCustomObject(actual, "componentIdentifier", expected.getComponentIdentifier().toComponentIdentifier());
     assertCustomData(actual, "obligationName", expected.getObligationName());
     assertCustomData(actual, "content", expected.getContent());
+  }
+
+  private void assertComponentObligationData(
+      AuditDTO actual,
+      Owner expectedOwner,
+      ApiLicenseLegalObligationDTO expected)
+  {
+    assertOwnerData(actual, expectedOwner);
+    assertCustomObject(actual, "componentIdentifier", expected.getComponentIdentifier().toComponentIdentifier());
+    assertCustomData(actual, "obligationName", expected.getName());
+    assertCustomData(actual, "obligationStatus", expected.getStatus().toString());
+    assertCustomData(actual, "comment", expected.getComment());
   }
 }

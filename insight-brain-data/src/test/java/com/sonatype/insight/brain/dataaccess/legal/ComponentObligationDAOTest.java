@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.Before;
@@ -66,6 +67,14 @@ public class ComponentObligationDAOTest
     // Delete
     dao.delete(componentObligation);
     assertThat(dao.getById(componentObligation.getId())).isNull();
+  }
+
+  @Test
+  public void testGetByIdNotNull() {
+    String id = "doesNotExist";
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> dao.getByIdNotNull(id))
+        .withMessageContaining("ComponentObligation with ID " + id + " does not exist.");
   }
 
   @Test

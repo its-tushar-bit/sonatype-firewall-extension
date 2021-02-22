@@ -13,21 +13,29 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.CopyrightOverrideDTO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentCopyrightDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationAttributionDAO;
+import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
+import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
+import com.sonatype.insight.brain.model.legal.ObligationStatus;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.common.collect.Lists;
 import org.junit.Test;
@@ -45,7 +53,20 @@ public class ComponentLegalServiceTest
   private ComponentCopyrightDAO componentCopyrightDAO;
 
   @Inject
+  private ComponentObligationDAO componentObligationDAO;
+
+  @Inject
   private ComponentObligationAttributionDAO componentObligationAttributionDAO;
+
+  @Inject
+  private TestProductLicense testProductLicense;
+
+  @Test
+  public void testSaveComponentCopyright_Unlicensed() {
+    testProductLicense.setMissingFeatures(LicensedFeature.ADVANCED_LEGAL_PACK);
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> componentLegalService.saveComponentCopyright(null, null, null));
+  }
 
   @Test
   public void testSaveNewComponentCopyright() {
@@ -263,6 +284,13 @@ public class ComponentLegalServiceTest
   }
 
   @Test
+  public void testSaveComponentObligationAttribution_Unlicensed() {
+    testProductLicense.setMissingFeatures(LicensedFeature.ADVANCED_LEGAL_PACK);
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> componentLegalService.saveComponentObligationAttribution(null, null, null));
+  }
+
+  @Test
   public void testSaveComponentObligationAttribution_NullComponentIdentifier() {
     Application application = tempEntity.newApplicationWithParent();
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
@@ -417,7 +445,7 @@ public class ComponentLegalServiceTest
             .fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g", "a", "v")));
     componentObligationAttributionDTO.setContent("content");
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() ->
         componentLegalService.saveComponentObligationAttribution(
             application.getType(),
             application.getPublicId(),
@@ -425,6 +453,13 @@ public class ComponentLegalServiceTest
         )
     ).withMessageContaining(
         "ComponentObligationAttribution with ID " + componentObligationAttributionDTO.getId() + " does not exist.");
+  }
+
+  @Test
+  public void testDeleteComponentObligationAttribution_Unlicensed() {
+    testProductLicense.setMissingFeatures(LicensedFeature.ADVANCED_LEGAL_PACK);
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> componentLegalService.deleteComponentObligationAttribution(null));
   }
 
   @Test
@@ -466,9 +501,16 @@ public class ComponentLegalServiceTest
   public void testDeleteComponentObligationAttribution_DoesNotExist() {
     String id = "doesNotExist";
 
-    assertThatExceptionOfType(BadRequestException.class)
+    assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> componentLegalService.deleteComponentObligationAttribution(id))
         .withMessageContaining("ComponentObligationAttribution with ID " + id + " does not exist.");
+  }
+
+  @Test
+  public void testGetComponentObligationAttributions_Unlicensed() {
+    testProductLicense.setMissingFeatures(LicensedFeature.ADVANCED_LEGAL_PACK);
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> componentLegalService.getComponentObligationAttributions(null, null, null, null));
   }
 
   @Test
@@ -494,6 +536,198 @@ public class ComponentLegalServiceTest
         application.getPublicId(), componentIdentifier, obligationName))
         .usingRecursiveFieldByFieldElementComparator()
         .containsExactly(new ComponentObligationAttributionDTO(override));
+  }
+
+  @Test
+  public void testSaveComponentObligation_Unlicensed() {
+    testProductLicense.setMissingFeatures(LicensedFeature.ADVANCED_LEGAL_PACK);
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> componentLegalService.saveComponentObligation(null, null, null));
+  }
+
+  @Test
+  public void testSaveComponentObligation_NullComponentIdentifier() {
+    Application app = tempEntity.newApplicationWithParent();
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> componentLegalService
+        .saveComponentObligation(app.getType(), app.getPublicId(), new ApiLicenseLegalObligationDTO()))
+        .withMessageContaining("The component identifier cannot be null.");
+  }
+
+  @Test
+  public void testSaveComponentObligation_InvalidComponentIdentifier() {
+    Application app = tempEntity.newApplicationWithParent();
+    ApiLicenseLegalObligationDTO dto = new ApiLicenseLegalObligationDTO();
+    dto.setComponentIdentifier(new ApiComponentIdentifierDTOV2());
+    assertThatExceptionOfType(InvalidComponentIdentifierException.class)
+        .isThrownBy(() -> componentLegalService.saveComponentObligation(app.getType(), app.getPublicId(), dto));
+  }
+
+  @Test
+  public void testSaveComponentObligation_BlankObligationName() {
+    Application app = tempEntity.newApplicationWithParent();
+    ApiLicenseLegalObligationDTO dto = createMinimalComponentObligationDTO();
+    dto.setName(null);
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> componentLegalService.saveComponentObligation(app.getType(), app.getPublicId(), dto))
+        .withMessageContaining("ComponentObligation must have a name.");
+    dto.setName("");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> componentLegalService.saveComponentObligation(app.getType(), app.getPublicId(), dto))
+        .withMessageContaining("ComponentObligation must have a name.");
+    dto.setName(" ");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> componentLegalService.saveComponentObligation(app.getType(), app.getPublicId(), dto))
+        .withMessageContaining("ComponentObligation must have a name.");
+  }
+
+  @Test
+  public void testSaveComponentObligation_NullStatus() {
+    Application app = tempEntity.newApplicationWithParent();
+    ApiLicenseLegalObligationDTO componentObligationDTO = createMinimalComponentObligationDTO();
+    componentObligationDTO.setStatus(null);
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> componentLegalService.saveComponentObligation(app.getType(), app.getPublicId(), componentObligationDTO))
+        .withMessageContaining("ComponentObligation must have a status.");
+  }
+
+  @Test
+  public void testSaveComponentObligation_Create() {
+    Application app = tempEntity.newApplicationWithParent();
+    ApiLicenseLegalObligationDTO dto = createMinimalComponentObligationDTO();
+
+    ApiLicenseLegalObligationDTO resultDto =
+        componentLegalService.saveComponentObligation(app.getType(), app.getPublicId(), dto);
+
+    ComponentObligation componentObligation = componentObligationDAO.getByIdNotNull(resultDto.getId());
+    assertComponentObligation(componentObligation, app, dto);
+    assertComponentObligation(resultDto, componentObligation);
+  }
+
+  @Test
+  public void testSaveComponentObligation_Update_DoesNotExist() {
+    Application app = tempEntity.newApplicationWithParent();
+    ApiLicenseLegalObligationDTO dto = createMinimalComponentObligationDTO();
+    String id = "doesNotExist";
+    dto.setId(id);
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> componentLegalService.saveComponentObligation(app.getType(), app.getPublicId(), dto))
+        .withMessageContaining("ComponentObligation with ID " + id + " does not exist.");
+  }
+
+  @Test
+  public void testSaveComponentObligation_Update() {
+    Application app = tempEntity.newApplicationWithParent();
+    ApiLicenseLegalObligationDTO dto = createMinimalComponentObligationDTO();
+    ComponentObligation componentObligation = tempEntity.newComponentObligation(
+        dto.getComponentIdentifier().toComponentIdentifier().createAlternativeVersion("v0"), app.getOrganizationId(),
+        "original" + dto.getName(), "original" + dto.getComment(), ObligationStatus.FLAGGED,
+        ComponentLegalService.NOT_IMPLEMENTED);
+    dto.setId(componentObligation.getId());
+
+    ApiLicenseLegalObligationDTO resultDto =
+        componentLegalService.saveComponentObligation(app.getType(), app.getPublicId(), dto);
+
+    componentObligation = componentObligationDAO.getByIdNotNull(resultDto.getId());
+    assertComponentObligation(componentObligation, app, dto);
+    assertComponentObligation(resultDto, componentObligation);
+  }
+
+  @Test
+  public void testDeleteComponentObligation_Unlicensed() {
+    testProductLicense.setMissingFeatures(LicensedFeature.ADVANCED_LEGAL_PACK);
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> componentLegalService.deleteComponentObligation(null));
+  }
+
+  @Test
+  public void testDeleteComponentObligation_DoesNotExist() {
+    String id = "doesNotExist";
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> componentLegalService.deleteComponentObligation(id))
+        .withMessageContaining("ComponentObligation with ID " + id + " does not exist.");
+  }
+
+  @Test
+  public void testDeleteComponentObligation() {
+    Application app = tempEntity.newApplicationWithParent();
+    ApiLicenseLegalObligationDTO dto = createMinimalComponentObligationDTO();
+    ComponentObligation componentObligation = tempEntity.newComponentObligation(
+        dto.getComponentIdentifier().toComponentIdentifier(), app.getId(), dto.getName(), dto.getComment(),
+        dto.getStatus(), ComponentLegalService.NOT_IMPLEMENTED);
+
+    componentLegalService.deleteComponentObligation(componentObligation.getId());
+
+    assertThat(componentObligationDAO.getById(componentObligation.getId())).isNull();
+  }
+
+  @Test
+  public void testGetComponentObligation_Unlicensed() {
+    testProductLicense.setMissingFeatures(LicensedFeature.ADVANCED_LEGAL_PACK);
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> componentLegalService.getComponentObligation(null, null, null, null));
+  }
+
+  @Test
+  public void testGetComponentObligation_NullComponentIdentifier() {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> componentLegalService
+            .getComponentObligation(OwnerType.APPLICATION, "ownerId", null, "obligationName"))
+        .withMessageContaining("The component identifier cannot be null.");
+  }
+
+  @Test
+  public void testGetComponentObligation_InvalidComponentIdentifier() {
+    assertThatExceptionOfType(InvalidComponentIdentifierException.class).isThrownBy(() -> componentLegalService
+        .getComponentObligation(OwnerType.APPLICATION, "ownerId",
+            new ApiComponentIdentifierDTOV2().toComponentIdentifier(), "obligationName"));
+  }
+
+  @Test
+  public void testGetComponentObligation_ReturnsSameScope() {
+    Application app = tempEntity.newApplicationWithParent();
+    ApiLicenseLegalObligationDTO dto = createMinimalComponentObligationDTO();
+    ComponentObligation componentObligation = tempEntity.newComponentObligation(
+        dto.getComponentIdentifier().toComponentIdentifier(), app.getId(), dto.getName(), dto.getComment(),
+        dto.getStatus(), ComponentLegalService.NOT_IMPLEMENTED);
+
+    ApiLicenseLegalObligationDTO resultDto = componentLegalService.getComponentObligation(app.getType(),
+        app.getPublicId(), dto.getComponentIdentifier().toComponentIdentifier(), dto.getName());
+
+    assertComponentObligation(resultDto, componentObligation);
+  }
+
+  @Test
+  public void testGetComponentObligation_ReturnsHigherScope() {
+    Application app = tempEntity.newApplicationWithParent();
+    ApiLicenseLegalObligationDTO dto = createMinimalComponentObligationDTO();
+    ComponentObligation componentObligation = tempEntity.newComponentObligation(
+        dto.getComponentIdentifier().toComponentIdentifier(), app.getOrganizationId(), dto.getName(), dto.getComment(),
+        dto.getStatus(), ComponentLegalService.NOT_IMPLEMENTED);
+
+    ApiLicenseLegalObligationDTO resultDto = componentLegalService.getComponentObligation(app.getType(),
+        app.getPublicId(), dto.getComponentIdentifier().toComponentIdentifier(), dto.getName());
+
+    assertComponentObligation(resultDto, componentObligation);
+  }
+
+  @Test
+  public void testGetComponentObligation_NotFound() {
+    ApiLicenseLegalObligationDTO dto = createMinimalComponentObligationDTO();
+    Application app = tempEntity.newApplicationWithParent();
+
+    ApiLicenseLegalObligationDTO resultDto = componentLegalService.getComponentObligation(app.getType(),
+        app.getPublicId(), dto.getComponentIdentifier().toComponentIdentifier(), dto.getName());
+
+    assertThat(resultDto).isNull();
+  }
+
+  private ApiLicenseLegalObligationDTO createMinimalComponentObligationDTO() {
+    ApiLicenseLegalObligationDTO componentObligationDTO = new ApiLicenseLegalObligationDTO();
+    componentObligationDTO.setComponentIdentifier(
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g", "a", "v")));
+    componentObligationDTO.setName("obligationName");
+    componentObligationDTO.setStatus(ObligationStatus.OPEN);
+    return componentObligationDTO;
   }
 
   private void assertComponentObligationAttribution(
@@ -526,5 +760,40 @@ public class ComponentLegalServiceTest
     assertThat(actual.getContent()).isEqualTo(expected.getContent());
     assertThat(actual.getLastUpdatedAt()).isEqualTo(expected.getLastUpdatedAt());
     assertThat(actual.getLastUpdatedByUsername()).isEqualTo(expected.getLastUpdatedByUsername());
+  }
+
+  private void assertComponentObligation(
+      ComponentObligation actual,
+      Owner expectedOwner,
+      ApiLicenseLegalObligationDTO expected)
+  {
+    if (expected.getId() == null) {
+      assertThat(actual.getId()).isNotNull();
+    }
+    else {
+      assertThat(actual.getId()).isEqualTo(expected.getId());
+    }
+    assertThat(actual.getOwnerId()).isEqualTo(expectedOwner.getId());
+    assertThat(actual.getComponentIdentifier()).isEqualTo(expected.getComponentIdentifier().toComponentIdentifier());
+    assertThat(actual.getObligationName()).isEqualTo(expected.getName());
+    assertThat(actual.getComment()).isEqualTo(expected.getComment());
+    assertThat(actual.getStatus()).isEqualTo(expected.getStatus());
+    assertThat(actual.getLegalContentHash()).isEqualTo(ComponentLegalService.NOT_IMPLEMENTED);
+    assertThat(actual.getLastUpdatedAt()).isNotNull();
+    assertThat(actual.getLastUpdatedByUsername()).isEqualTo(USERNAME);
+  }
+
+  private void assertComponentObligation(
+      ApiLicenseLegalObligationDTO actual,
+      ComponentObligation expected)
+  {
+    assertThat(actual.getId()).isEqualTo(expected.getId());
+    assertThat(actual.getComponentIdentifier().toComponentIdentifier()).isEqualTo(expected.getComponentIdentifier());
+    assertThat(actual.getOwnerId()).isEqualTo(expected.getOwnerId());
+    assertThat(actual.getName()).isEqualTo(expected.getObligationName());
+    assertThat(actual.getStatus()).isEqualTo(expected.getStatus());
+    assertThat(actual.getComment()).isEqualTo(expected.getComment());
+    assertThat(actual.getLastUpdatedByUsername()).isEqualTo(expected.getLastUpdatedByUsername());
+    assertThat(actual.getLastUpdatedAt()).isEqualTo(expected.getLastUpdatedAt());
   }
 }

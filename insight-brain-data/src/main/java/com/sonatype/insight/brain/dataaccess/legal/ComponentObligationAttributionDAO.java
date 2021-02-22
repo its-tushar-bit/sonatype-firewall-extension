@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 /**
  * @since 1.105
@@ -37,7 +38,7 @@ public class ComponentObligationAttributionDAO
   public ComponentObligationAttribution getByIdNotNull(TransactionContext tx, String id) {
     ComponentObligationAttribution componentObligationAttribution = getById(tx, id);
     if (componentObligationAttribution == null) {
-      throw new BadRequestException("ComponentObligationAttribution with ID " + id + " does not exist.");
+      throw new NotFoundException("ComponentObligationAttribution with ID " + id + " does not exist.");
     }
     return componentObligationAttribution;
   }

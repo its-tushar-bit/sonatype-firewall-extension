@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.Before;
@@ -70,7 +71,7 @@ public class ComponentObligationAttributionDAOTest
   @Test
   public void testGetByIdNotNull() {
     String id = "doesNotExist";
-    assertThatExceptionOfType(BadRequestException.class)
+    assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> dao.getByIdNotNull(id))
         .withMessageContaining("ComponentObligationAttribution with ID " + id + " does not exist.");
   }

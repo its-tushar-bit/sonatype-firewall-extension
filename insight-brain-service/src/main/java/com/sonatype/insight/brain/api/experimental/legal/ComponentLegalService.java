@@ -15,6 +15,7 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.CopyrightOverrideDTO;
@@ -23,13 +24,16 @@ import com.sonatype.insight.brain.component.ComponentIdentifierValidator;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentCopyrightDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationAttributionDAO;
+import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
 import com.sonatype.insight.brain.dataaccess.legal.CopyrightOverrideDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
+import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
 import com.sonatype.insight.brain.model.legal.CopyrightOverride;
+import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -58,6 +62,8 @@ public class ComponentLegalService
 
   private final ComponentCopyrightDAO componentCopyrightDAO;
 
+  private final ComponentObligationDAO componentObligationDAO;
+
   private final ComponentObligationAttributionDAO componentObligationAttributionDAO;
 
   private final OwnerDAO ownerDAO;
@@ -70,6 +76,7 @@ public class ComponentLegalService
   public ComponentLegalService(
       final CopyrightOverrideDAO copyrightOverrideDAO,
       final ComponentCopyrightDAO componentCopyrightDAO,
+      final ComponentObligationDAO componentObligationDAO,
       final ComponentObligationAttributionDAO componentObligationAttributionDAO,
       final OwnerDAO ownerDAO,
       final ProductLicense productLicense,
@@ -77,6 +84,7 @@ public class ComponentLegalService
   {
     this.copyrightOverrideDAO = copyrightOverrideDAO;
     this.componentCopyrightDAO = componentCopyrightDAO;
+    this.componentObligationDAO = componentObligationDAO;
     this.componentObligationAttributionDAO = componentObligationAttributionDAO;
     this.ownerDAO = ownerDAO;
     this.productLicense = productLicense;
@@ -223,12 +231,15 @@ public class ComponentLegalService
   }
 
   /**
-   * Get the {@link ComponentObligationAttribution}s for a given owner, component, and obligation name.
+   * Get a list of {@link ComponentObligationAttributionDTO} representing the {@link ComponentObligationAttribution}s
+   * for a given owner, component, and obligation name.
    *
    * @param ownerType           the owner type for each {@link ComponentObligationAttribution} owner.
    * @param ownerId             the owner id for each {@link ComponentObligationAttribution} owner.
    * @param componentIdentifier the {@link ComponentIdentifier} for each {@link ComponentObligationAttribution}.
    * @param obligationName      the obligation name for each {@link ComponentObligationAttribution}.
+   * @return a list of {@link ComponentObligationAttributionDTO} representing the {@link
+   * ComponentObligationAttribution}s.
    * @since 1.106
    */
   @Authorize(permission = Permission.LEGAL_REVIEWER)
@@ -241,14 +252,120 @@ public class ComponentLegalService
     checkLicense();
     ComponentIdentifierValidator.validate(componentIdentifier);
     Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
-    try (TransactionContext tx = componentObligationAttributionDAO.createTransactionContext()) {
-      return componentObligationAttributionDAO.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
-          tx,
-          owner.getId(),
+    return componentObligationAttributionDAO.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
+        owner.getId(),
+        componentIdentifier,
+        Collections.singleton(obligationName)
+    ).stream().map(ComponentObligationAttributionDTO::new).collect(Collectors.toList());
+  }
+
+  /**
+   * Create or update a {@link ComponentObligation}. If {@link ApiLicenseLegalObligationDTO#getId()} is null, then the
+   * {@link ComponentObligation} will be created. Otherwise, if {@link ApiLicenseLegalObligationDTO#getId()} is not
+   * null, then it must correspond to an existing {@link ComponentObligation#getId()} and this will be updated. Note
+   * that in either case, {@link ApiLicenseLegalObligationDTO#getComponentIdentifier()} must be valid, {@link
+   * ApiLicenseLegalObligationDTO#getName()} must not be null or empty, and {@link
+   * ApiLicenseLegalObligationDTO#getStatus()} must not be null.
+   *
+   * @param ownerType              the owner type for the {@link ComponentObligation} owner.
+   * @param ownerId                the owner id for the {@link ComponentObligation} owner.
+   * @param componentObligationDTO the {@link ApiLicenseLegalObligationDTO} representing the {@link ComponentObligation}
+   *                               to be created/updated.
+   * @return a {@link ApiLicenseLegalObligationDTO} representing the created/updated {@link ComponentObligation}.
+   * @since 1.106
+   */
+  @Authorize(permission = Permission.LEGAL_REVIEWER)
+  public ApiLicenseLegalObligationDTO saveComponentObligation(
+      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) String ownerId,
+      ApiLicenseLegalObligationDTO componentObligationDTO)
+  {
+    checkLicense();
+    validateComponentObligationDTO(componentObligationDTO);
+    ComponentIdentifier componentIdentifier = componentObligationDTO.getComponentIdentifier().toComponentIdentifier();
+    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    auditComponentObligation(owner, componentIdentifier, componentObligationDTO.getName(),
+        componentObligationDTO.getStatus(), componentObligationDTO.getComment());
+    ComponentObligation componentObligation;
+    if (componentObligationDTO.getId() == null) {
+      componentObligation = new ComponentObligation(
           componentIdentifier,
-          Collections.singleton(obligationName)
-      ).stream().map(ComponentObligationAttributionDTO::new).collect(Collectors.toList());
+          owner.getId(),
+          componentObligationDTO.getName(),
+          componentObligationDTO.getComment(),
+          componentObligationDTO.getStatus(),
+          NOT_IMPLEMENTED,
+          currentUser.getUsername());
+      componentObligationDAO.insert(componentObligation);
     }
+    else {
+      try (TransactionContext tx = componentObligationDAO.createTransactionContext()) {
+        tx.begin();
+        componentObligation =
+            componentObligationDAO.getByIdNotNull(tx, componentObligationDTO.getId());
+        if (!componentObligation.getOwnerId().equals(owner.getId())) {
+          checkLegalReviewerPermission(ownerDAO.getById(tx, componentObligation.getOwnerId()));
+        }
+        componentObligation.setComponentIdentifier(componentIdentifier);
+        componentObligation.setOwnerId(owner.getId());
+        componentObligation.setObligationName(componentObligationDTO.getName());
+        componentObligation.setComment(componentObligationDTO.getComment());
+        componentObligation.setStatus(componentObligationDTO.getStatus());
+        componentObligation.setLastUpdatedByUsername(currentUser.getUsername());
+        componentObligationDAO.update(tx, componentObligation);
+        tx.commit();
+      }
+    }
+    return new ApiLicenseLegalObligationDTO(componentObligation);
+  }
+
+  /**
+   * Delete a {@link ComponentObligation} by its {@link ComponentObligation#getId()}.
+   *
+   * @param componentObligationId the {@link ComponentObligation#getId()} representing the {@link ComponentObligation}
+   *                              to be deleted.
+   * @since 1.106
+   */
+  public void deleteComponentObligation(String componentObligationId) {
+    checkLicense();
+    try (TransactionContext tx = componentObligationDAO.createTransactionContext()) {
+      tx.begin();
+      ComponentObligation componentObligation = componentObligationDAO.getByIdNotNull(tx, componentObligationId);
+      Owner owner = ownerDAO.getById(tx, componentObligation.getOwnerId());
+      auditComponentObligation(owner, componentObligation.getComponentIdentifier(),
+          componentObligation.getObligationName(), componentObligation.getStatus(), componentObligation.getComment());
+      checkLegalReviewerPermission(owner);
+      componentObligationDAO.delete(tx, componentObligation);
+      tx.commit();
+    }
+  }
+
+  /**
+   * Get a {@link ApiLicenseLegalObligationDTO} representing the {@link ComponentObligation} for a given owner,
+   * component, and obligation name.
+   *
+   * @param ownerType           the owner type for the {@link ComponentObligation} owner.
+   * @param ownerId             the owner id for the {@link ComponentObligation} owner.
+   * @param componentIdentifier the {@link ComponentIdentifier} for the {@link ComponentObligation}.
+   * @param obligationName      the obligation name for the {@link ComponentObligation}.
+   * @return a {@link ApiLicenseLegalObligationDTO} representing the {@link ComponentObligation}.
+   * @since 1.106
+   */
+  @Authorize(permission = Permission.LEGAL_REVIEWER)
+  public ApiLicenseLegalObligationDTO getComponentObligation(
+      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) String ownerId,
+      ComponentIdentifier componentIdentifier,
+      String obligationName)
+  {
+    checkLicense();
+    ComponentIdentifierValidator.validate(componentIdentifier);
+    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    return componentObligationDAO.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
+        owner.getId(),
+        componentIdentifier,
+        Collections.singleton(obligationName)
+    ).stream().map(ApiLicenseLegalObligationDTO::new).findFirst().orElse(null);
   }
 
   @Authorize(permission = Permission.LEGAL_REVIEWER)
@@ -313,6 +430,21 @@ public class ComponentLegalService
         .setData("content", content);
   }
 
+  private void auditComponentObligation(
+      Owner owner,
+      ComponentIdentifier componentIdentifier,
+      String obligationName,
+      ObligationStatus obligationStatus,
+      String comment)
+  {
+    AuditData.get()
+        .setOwner(owner)
+        .setComponentIdentifier(componentIdentifier)
+        .setData("obligationName", obligationName)
+        .setData("obligationStatus", obligationStatus.toString())
+        .setData("comment", comment);
+  }
+
   private void persistCopyrightOverrides(
       final TransactionContext tx,
       final List<CopyrightOverride> copyrightOverrides)
@@ -368,6 +500,16 @@ public class ComponentLegalService
     validateApiComponentIdentifierDTOV2(componentObligationAttributionDTO.getComponentIdentifier());
     if (StringUtils.isBlank(componentObligationAttributionDTO.getContent())) {
       throw new BadRequestException("ComponentObligationAttribution must have content.");
+    }
+  }
+
+  private void validateComponentObligationDTO(ApiLicenseLegalObligationDTO componentObligationDTO) {
+    validateApiComponentIdentifierDTOV2(componentObligationDTO.getComponentIdentifier());
+    if (StringUtils.isBlank(componentObligationDTO.getName())) {
+      throw new BadRequestException("ComponentObligation must have a name.");
+    }
+    if (componentObligationDTO.getStatus() == null) {
+      throw new BadRequestException("ComponentObligation must have a status.");
     }
   }
 

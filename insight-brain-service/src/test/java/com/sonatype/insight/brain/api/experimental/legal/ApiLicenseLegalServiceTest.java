@@ -1022,13 +1022,18 @@ public class ApiLicenseLegalServiceTest
         .getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), c, null, null, null, null, null);
 
     // Without saved obligation data (no obligations or obligation attributions), we get defaults
-    assertThat(licenseLegalComponentReport.obligations).extracting(o -> o.name)
-        .containsExactlyInAnyOrder("name1", "name2", "name3", "name4");
-    assertThat(licenseLegalComponentReport.obligations).extracting(o -> o.status)
-        .containsExactly(ObligationStatus.OPEN, ObligationStatus.OPEN, ObligationStatus.OPEN, ObligationStatus.OPEN);
-    assertThat(licenseLegalComponentReport.obligations).extracting(o -> o.comment)
+    assertThat(licenseLegalComponentReport.obligations).extracting(ApiLicenseLegalObligationDTO::getId)
         .containsExactly(null, null, null, null);
-    assertThat(licenseLegalComponentReport.obligations).flatExtracting(o -> o.attributions).isEmpty();
+    assertThat(licenseLegalComponentReport.obligations).extracting(ApiLicenseLegalObligationDTO::getOwnerId)
+        .containsExactly(null, null, null, null);
+    assertThat(licenseLegalComponentReport.obligations).extracting(ApiLicenseLegalObligationDTO::getName)
+        .containsExactlyInAnyOrder("name1", "name2", "name3", "name4");
+    assertThat(licenseLegalComponentReport.obligations).extracting(ApiLicenseLegalObligationDTO::getStatus)
+        .containsExactly(ObligationStatus.OPEN, ObligationStatus.OPEN, ObligationStatus.OPEN, ObligationStatus.OPEN);
+    assertThat(licenseLegalComponentReport.obligations).extracting(ApiLicenseLegalObligationDTO::getComment)
+        .containsExactly(null, null, null, null);
+    assertThat(licenseLegalComponentReport.obligations).flatExtracting(ApiLicenseLegalObligationDTO::getAttributions)
+        .isEmpty();
 
     // Save some obligation data
     ComponentObligation componentObligation1 = tempEntity
@@ -1054,35 +1059,43 @@ public class ApiLicenseLegalServiceTest
     // With saved obligation data, the corresponding set is as expected
     assertThat(licenseLegalComponentReport.obligations).isNotEmpty();
     ApiLicenseLegalObligationDTO obligation1 = licenseLegalComponentReport.obligations.stream()
-        .filter(o -> o.name.equals(componentObligation1.getObligationName())).findFirst().orElse(null);
+        .filter(o -> o.getName().equals(componentObligation1.getObligationName())).findFirst().orElse(null);
     assertThat(obligation1).isNotNull();
-    assertThat(obligation1.status).isEqualTo(componentObligation1.getStatus());
-    assertThat(obligation1.comment).isEqualTo(componentObligation1.getComment());
-    assertThat(obligation1.attributions).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+    assertThat(obligation1.getId()).isEqualTo(componentObligation1.getId());
+    assertThat(obligation1.getOwnerId()).isEqualTo(componentObligation1.getOwnerId());
+    assertThat(obligation1.getStatus()).isEqualTo(componentObligation1.getStatus());
+    assertThat(obligation1.getComment()).isEqualTo(componentObligation1.getComment());
+    assertThat(obligation1.getAttributions()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
         new ComponentObligationAttributionDTO(componentObligationAttribution1.getId(),
             owner.getId(), componentObligationAttribution1.getContent()),
         new ComponentObligationAttributionDTO(componentObligationAttribution2.getId(),
             owner.getId(), componentObligationAttribution2.getContent()));
     ApiLicenseLegalObligationDTO obligation2 = licenseLegalComponentReport.obligations.stream()
-        .filter(o -> o.name.equals(componentObligation2.getObligationName())).findFirst().orElse(null);
+        .filter(o -> o.getName().equals(componentObligation2.getObligationName())).findFirst().orElse(null);
     assertThat(obligation2).isNotNull();
-    assertThat(obligation2.status).isEqualTo(componentObligation2.getStatus());
-    assertThat(obligation2.comment).isEqualTo(componentObligation2.getComment());
-    assertThat(obligation2.attributions).usingRecursiveFieldByFieldElementComparator().containsExactly(
+    assertThat(obligation2.getId()).isEqualTo(componentObligation2.getId());
+    assertThat(obligation2.getOwnerId()).isEqualTo(componentObligation2.getOwnerId());
+    assertThat(obligation2.getStatus()).isEqualTo(componentObligation2.getStatus());
+    assertThat(obligation2.getComment()).isEqualTo(componentObligation2.getComment());
+    assertThat(obligation2.getAttributions()).usingRecursiveFieldByFieldElementComparator().containsExactly(
         new ComponentObligationAttributionDTO(componentObligationAttribution3.getId(),
             owner.getId(), componentObligationAttribution3.getContent()));
     ApiLicenseLegalObligationDTO obligation3 = licenseLegalComponentReport.obligations.stream()
-        .filter(o -> o.name.equals(componentObligation3.getObligationName())).findFirst().orElse(null);
+        .filter(o -> o.getName().equals(componentObligation3.getObligationName())).findFirst().orElse(null);
     assertThat(obligation3).isNotNull();
-    assertThat(obligation3.status).isEqualTo(ObligationStatus.IGNORED);
-    assertThat(obligation3.comment).isEqualTo(componentObligation3.getComment());
-    assertThat(obligation3.attributions).isEmpty();
+    assertThat(obligation3.getId()).isEqualTo(componentObligation3.getId());
+    assertThat(obligation3.getOwnerId()).isEqualTo(componentObligation3.getOwnerId());
+    assertThat(obligation3.getStatus()).isEqualTo(ObligationStatus.IGNORED);
+    assertThat(obligation3.getComment()).isEqualTo(componentObligation3.getComment());
+    assertThat(obligation3.getAttributions()).isEmpty();
     ApiLicenseLegalObligationDTO obligation4 = licenseLegalComponentReport.obligations.stream()
-        .filter(o -> o.name.equals(componentObligationAttribution4.getObligationName())).findFirst().orElse(null);
+        .filter(o -> o.getName().equals(componentObligationAttribution4.getObligationName())).findFirst().orElse(null);
     assertThat(obligation4).isNotNull();
-    assertThat(obligation4.status).isEqualTo(ObligationStatus.OPEN);
-    assertThat(obligation4.comment).isNull();
-    assertThat(obligation4.attributions).usingRecursiveFieldByFieldElementComparator().containsExactly(
+    assertThat(obligation4.getId()).isNull();
+    assertThat(obligation4.getOwnerId()).isNull();
+    assertThat(obligation4.getStatus()).isEqualTo(ObligationStatus.OPEN);
+    assertThat(obligation4.getComment()).isNull();
+    assertThat(obligation4.getAttributions()).usingRecursiveFieldByFieldElementComparator().containsExactly(
         new ComponentObligationAttributionDTO(componentObligationAttribution4.getId(),
             owner.getId(), componentObligationAttribution4.getContent()));
   }

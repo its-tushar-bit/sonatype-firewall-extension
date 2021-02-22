@@ -29,14 +29,18 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentReportDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalFilterDTO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationAttributionDAO;
+import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
+import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
+import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -313,6 +317,64 @@ public class ApiLicenseLegalResourceTest
         Arrays.asList(response.getBody(ComponentObligationAttributionDTO[].class));
     assertThat(responseBody).extracting(ComponentObligationAttributionDTO::getId)
         .containsExactly(componentObligationAttribution.getId());
+  }
+
+  @Test
+  public void testSaveComponentObligation() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    ApiLicenseLegalObligationDTO bodyDto = new ApiLicenseLegalObligationDTO();
+    bodyDto.setComponentIdentifier(ApiComponentIdentifierDTOV2.fromComponentIdentifier(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v")));
+    bodyDto.setName("obligationName");
+    bodyDto.setStatus(ObligationStatus.OPEN);
+
+    HttpResponse response = restRequest()
+        .path(ApiLicenseLegalResource.COMPONENT_OBLIGATION_PATH)
+        .parameter(application.getType(), application.getPublicId())
+        .body(bodyDto)
+        .post();
+
+    assertResponseStatus(200, response);
+    ApiLicenseLegalObligationDTO responseDto = response.getBody(ApiLicenseLegalObligationDTO.class);
+    assertThat(responseDto).usingRecursiveComparison().ignoringExpectedNullFields().isEqualTo(bodyDto);
+    assertThat(responseDto.getId()).isNotNull();
+    assertThat(new ComponentObligationDAO().getById(responseDto.getId())).isNotNull();
+  }
+
+  @Test
+  public void testDeleteComponentObligation() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    ComponentObligation componentObligation = tempEntity.newComponentObligation(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), application.getId(), "obligationName", null,
+        ObligationStatus.OPEN, ComponentLegalService.NOT_IMPLEMENTED);
+
+    HttpResponse response = restRequest()
+        .path(ApiLicenseLegalResource.COMPONENT_OBLIGATION_DELETE_PATH)
+        .parameter(componentObligation.getId())
+        .delete();
+
+    assertResponseStatus(204, response);
+    assertThat(new ComponentObligationDAO().getById(componentObligation.getId())).isNull();
+  }
+
+  @Test
+  public void testGetComponentObligation() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    ComponentObligation componentObligation = tempEntity.newComponentObligation(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), application.getId(), "obligationName", null,
+        ObligationStatus.OPEN, ComponentLegalService.NOT_IMPLEMENTED);
+
+    HttpResponse response = restRequest()
+        .path(ApiLicenseLegalResource.COMPONENT_OBLIGATION_PATH)
+        .parameter(application.getType(), application.getPublicId())
+        .query("componentIdentifier", componentObligation.getComponentIdentifier())
+        .query("obligationName", componentObligation.getObligationName())
+        .get();
+
+    assertResponseStatus(200, response);
+    ApiLicenseLegalObligationDTO responseDto = response.getBody(ApiLicenseLegalObligationDTO.class);
+    assertThat(responseDto).isNotNull();
+    assertThat(responseDto.getId()).isEqualTo(componentObligation.getId());
   }
 
   private void mockReport(PolicyEvaluation evaluation) {

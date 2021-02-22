@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 /**
  * @since 1.105
@@ -32,6 +33,20 @@ public class ComponentObligationDAO
     String sQuery = "SELECT entity FROM ComponentObligation entity" + //
         " WHERE entity.id=?1";
     return get(tx, sQuery, id);
+  }
+
+  public ComponentObligation getByIdNotNull(TransactionContext tx, String id) {
+    ComponentObligation componentObligation = getById(tx, id);
+    if (componentObligation == null) {
+      throw new NotFoundException("ComponentObligation with ID " + id + " does not exist.");
+    }
+    return componentObligation;
+  }
+
+  public ComponentObligation getByIdNotNull(String id) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByIdNotNull(tx, id);
+    }
   }
 
   public List<ComponentObligation> getByOwnerId(TransactionContext tx, String ownerId) {

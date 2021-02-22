@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDas
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDashboardDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentReportDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalFilterDTO;
@@ -55,6 +56,8 @@ public class ApiLicenseLegalResource
 
   public static final String COMPONENT_OBLIGATION_PATH =
       "{ownerType: application|organization}/{ownerId}/component/obligation";
+
+  public static final String COMPONENT_OBLIGATION_DELETE_PATH = "/component/obligation/{componentObligationId}";
 
   public static final String COMPONENT_OBLIGATION_ATTRIBUTION_PATH = COMPONENT_OBLIGATION_PATH + "/attribution";
 
@@ -178,5 +181,49 @@ public class ApiLicenseLegalResource
       @PathParam("componentObligationAttributionId") String componentObligationAttributionId)
   {
     componentLegalService.deleteComponentObligationAttribution(componentObligationAttributionId);
+  }
+
+  /**
+   * @since 1.106
+   */
+  @GET
+  @Path(COMPONENT_OBLIGATION_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public ApiLicenseLegalObligationDTO getComponentObligation(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId,
+      @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier,
+      @QueryParam("obligationName") String obligationName)
+  {
+    return componentLegalService.getComponentObligation(ownerType, ownerId, componentIdentifier, obligationName);
+  }
+
+  /**
+   * @since 1.106
+   */
+  @POST
+  @Path(COMPONENT_OBLIGATION_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CREATE_COMPONENT_OBLIGATION)
+  public ApiLicenseLegalObligationDTO saveComponentObligation(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId,
+      ApiLicenseLegalObligationDTO componentObligationDTO)
+  {
+    if (componentObligationDTO.getId() != null) {
+      AuditData.get().setEvent(AuditEvent.UPDATE_COMPONENT_OBLIGATION);
+    }
+    return componentLegalService.saveComponentObligation(ownerType, ownerId, componentObligationDTO);
+  }
+
+  /**
+   * @since 1.106
+   */
+  @DELETE
+  @Path(COMPONENT_OBLIGATION_DELETE_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.DELETE_COMPONENT_OBLIGATION)
+  public void deleteComponentObligation(@PathParam("componentObligationId") String componentObligationId) {
+    componentLegalService.deleteComponentObligation(componentObligationId);
   }
 }

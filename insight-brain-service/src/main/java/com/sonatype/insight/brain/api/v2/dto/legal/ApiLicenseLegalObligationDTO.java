@@ -5,22 +5,51 @@
  */
 package com.sonatype.insight.brain.api.v2.dto.legal;
 
+import java.util.Date;
 import java.util.List;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+@JsonInclude(Include.NON_NULL)
 public class ApiLicenseLegalObligationDTO
 {
-  public String name;
+  private String id;
 
-  public ObligationStatus status;
+  private String name;
 
-  public String comment;
+  private ObligationStatus status;
 
-  public List<ComponentObligationAttributionDTO> attributions;
+  private String comment;
+
+  private List<ComponentObligationAttributionDTO> attributions;
+
+  private ApiComponentIdentifierDTOV2 componentIdentifier;
+
+  private String ownerId;
+
+  private Date lastUpdatedAt;
+
+  private String lastUpdatedByUsername;
 
   public ApiLicenseLegalObligationDTO() {
     // for jackson
+  }
+
+  public ApiLicenseLegalObligationDTO(ComponentObligation componentObligation) {
+    id = componentObligation.getId();
+    name = componentObligation.getObligationName();
+    status = componentObligation.getStatus();
+    comment = componentObligation.getComment();
+    componentIdentifier =
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentObligation.getComponentIdentifier());
+    ownerId = componentObligation.getOwnerId();
+    lastUpdatedAt = componentObligation.getLastUpdatedAt();
+    lastUpdatedByUsername = componentObligation.getLastUpdatedByUsername();
   }
 
   public ApiLicenseLegalObligationDTO(
@@ -33,5 +62,77 @@ public class ApiLicenseLegalObligationDTO
     this.status = status;
     this.comment = comment;
     this.attributions = attributions;
+  }
+
+  public String getId() {
+    return id;
+  }
+
+  public void setId(String id) {
+    this.id = id;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public ObligationStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(ObligationStatus status) {
+    this.status = status;
+  }
+
+  public String getComment() {
+    return comment;
+  }
+
+  public void setComment(String comment) {
+    this.comment = comment;
+  }
+
+  public List<ComponentObligationAttributionDTO> getAttributions() {
+    return attributions;
+  }
+
+  public void setAttributions(List<ComponentObligationAttributionDTO> attributions) {
+    this.attributions = attributions;
+  }
+
+  public ApiComponentIdentifierDTOV2 getComponentIdentifier() {
+    return componentIdentifier;
+  }
+
+  public void setComponentIdentifier(ApiComponentIdentifierDTOV2 componentIdentifier) {
+    this.componentIdentifier = componentIdentifier;
+  }
+
+  public String getOwnerId() {
+    return ownerId;
+  }
+
+  public void setOwnerId(String ownerId) {
+    this.ownerId = ownerId;
+  }
+
+  public Date getLastUpdatedAt() {
+    return lastUpdatedAt;
+  }
+
+  public void setLastUpdatedAt(Date lastUpdatedAt) {
+    this.lastUpdatedAt = lastUpdatedAt;
+  }
+
+  public String getLastUpdatedByUsername() {
+    return lastUpdatedByUsername;
+  }
+
+  public void setLastUpdatedByUsername(String lastUpdatedByUsername) {
+    this.lastUpdatedByUsername = lastUpdatedByUsername;
   }
 }

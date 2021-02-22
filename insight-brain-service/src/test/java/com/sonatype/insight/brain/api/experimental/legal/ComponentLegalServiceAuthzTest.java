@@ -9,6 +9,7 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.CopyrightOverrideDTO;
@@ -16,7 +17,9 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
+import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
+import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import com.google.common.collect.Lists;
@@ -336,11 +339,191 @@ public class ComponentLegalServiceAuthzTest
         .getComponentObligationAttributions(app.getType(), app.getPublicId(), componentIdentifier, "obligationName");
   }
 
+  @Test(expected = UnauthenticatedException.class)
+  public void testSaveComponentObligation_ApplicationScope_Unauthenticated() {
+    componentLegalService
+        .saveComponentObligation(app.getType(), app.getPublicId(), createMinimalComponentObligationDTO());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testSaveComponentObligation_ApplicationScope_Unauthorized() {
+    login();
+    componentLegalService
+        .saveComponentObligation(app.getType(), app.getPublicId(), createMinimalComponentObligationDTO());
+  }
+
+  @Test
+  public void testSaveComponentObligation_ApplicationScope_Authorized() {
+    grantLegalReviewerPermission(app.getId());
+    componentLegalService
+        .saveComponentObligation(app.getType(), app.getPublicId(), createMinimalComponentObligationDTO());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testSaveComponentObligation_OrganizationScope_Unauthenticated() {
+    componentLegalService
+        .saveComponentObligation(org.getType(), org.getPublicId(), createMinimalComponentObligationDTO());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testSaveComponentObligation_OrganizationScope_Unauthorized() {
+    login();
+    componentLegalService
+        .saveComponentObligation(org.getType(), org.getPublicId(), createMinimalComponentObligationDTO());
+  }
+
+  @Test
+  public void testSaveComponentObligation_OrganizationScope_Authorized() {
+    grantLegalReviewerPermission(org.getId());
+    componentLegalService
+        .saveComponentObligation(org.getType(), org.getPublicId(), createMinimalComponentObligationDTO());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testDeleteComponentObligation_ApplicationScope_Unauthenticated() {
+    ComponentObligation componentObligation = tempEntity.newComponentObligation(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), app.getId(), "obligationName", null,
+        ObligationStatus.OPEN, ComponentLegalService.NOT_IMPLEMENTED);
+    componentLegalService.deleteComponentObligation(componentObligation.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testDeleteComponentObligation_ApplicationScope_Unauthorized() {
+    login();
+    ComponentObligation componentObligation = tempEntity.newComponentObligation(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), app.getId(), "obligationName", null,
+        ObligationStatus.OPEN, ComponentLegalService.NOT_IMPLEMENTED);
+    componentLegalService.deleteComponentObligation(componentObligation.getId());
+  }
+
+  @Test
+  public void testDeleteComponentObligation_ApplicationScope_Authorized() {
+    grantLegalReviewerPermission(app.getId());
+    ComponentObligation componentObligation = tempEntity.newComponentObligation(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), app.getId(), "obligationName", null,
+        ObligationStatus.OPEN, ComponentLegalService.NOT_IMPLEMENTED);
+    componentLegalService.deleteComponentObligation(componentObligation.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testDeleteComponentObligation_OrganizationScope_Unauthenticated() {
+    ComponentObligation componentObligation = tempEntity.newComponentObligation(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), org.getId(), "obligationName", null,
+        ObligationStatus.OPEN, ComponentLegalService.NOT_IMPLEMENTED);
+    componentLegalService.deleteComponentObligation(componentObligation.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testDeleteComponentObligation_OrganizationScope_Unauthorized() {
+    login();
+    ComponentObligation componentObligation = tempEntity.newComponentObligation(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), org.getId(), "obligationName", null,
+        ObligationStatus.OPEN, ComponentLegalService.NOT_IMPLEMENTED);
+    componentLegalService.deleteComponentObligation(componentObligation.getId());
+  }
+
+  @Test
+  public void testDeleteComponentObligation_OrganizationScope_Authorized() {
+    grantLegalReviewerPermission(org.getId());
+    ComponentObligation componentObligation = tempEntity.newComponentObligation(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), org.getId(), "obligationName", null,
+        ObligationStatus.OPEN, ComponentLegalService.NOT_IMPLEMENTED);
+    componentLegalService.deleteComponentObligation(componentObligation.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetComponentObligation_ApplicationScope_Unauthenticated() {
+    ComponentObligation componentObligation = tempEntity.newComponentObligation(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), app.getId(), "obligationName", null,
+        ObligationStatus.OPEN, ComponentLegalService.NOT_IMPLEMENTED);
+    componentLegalService.getComponentObligation(app.getType(), app.getPublicId(),
+        componentObligation.getComponentIdentifier(), componentObligation.getObligationName());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetComponentObligation_ApplicationScope_Unauthorized() {
+    login();
+    ComponentObligation componentObligation = tempEntity.newComponentObligation(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), app.getId(), "obligationName", null,
+        ObligationStatus.OPEN, ComponentLegalService.NOT_IMPLEMENTED);
+    componentLegalService.getComponentObligation(app.getType(), app.getPublicId(),
+        componentObligation.getComponentIdentifier(), componentObligation.getObligationName());
+  }
+
+  @Test
+  public void testGetComponentObligation_ApplicationScope_Authorized() {
+    grantLegalReviewerPermission(app.getId());
+    ComponentObligation componentObligation = tempEntity.newComponentObligation(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), app.getId(), "obligationName", null,
+        ObligationStatus.OPEN, ComponentLegalService.NOT_IMPLEMENTED);
+    componentLegalService.getComponentObligation(app.getType(), app.getPublicId(),
+        componentObligation.getComponentIdentifier(), componentObligation.getObligationName());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetComponentObligation_OrganizationScope_Unauthenticated() {
+    ComponentObligation componentObligation = tempEntity.newComponentObligation(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), org.getId(), "obligationName", null,
+        ObligationStatus.OPEN, ComponentLegalService.NOT_IMPLEMENTED);
+    componentLegalService.getComponentObligation(org.getType(), org.getPublicId(),
+        componentObligation.getComponentIdentifier(), componentObligation.getObligationName());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetComponentObligation_OrganizationScope_Unauthorized() {
+    login();
+    ComponentObligation componentObligation = tempEntity.newComponentObligation(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), org.getId(), "obligationName", null,
+        ObligationStatus.OPEN, ComponentLegalService.NOT_IMPLEMENTED);
+    componentLegalService.getComponentObligation(org.getType(), org.getPublicId(),
+        componentObligation.getComponentIdentifier(), componentObligation.getObligationName());
+  }
+
+  @Test
+  public void testGetComponentObligation_OrganizationScope_Authorized() {
+    grantLegalReviewerPermission(org.getId());
+    ComponentObligation componentObligation = tempEntity.newComponentObligation(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), org.getId(), "obligationName", null,
+        ObligationStatus.OPEN, ComponentLegalService.NOT_IMPLEMENTED);
+    componentLegalService.getComponentObligation(org.getType(), org.getPublicId(),
+        componentObligation.getComponentIdentifier(), componentObligation.getObligationName());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testSaveComponentObligation_Unauthorized_UpdateAtLowerScope() {
+    ApiLicenseLegalObligationDTO componentObligationDTO = createMinimalComponentObligationDTO();
+    ComponentObligation componentObligation = tempEntity.newComponentObligation(
+        componentObligationDTO.getComponentIdentifier().toComponentIdentifier(), app.getOrganizationId(),
+        componentObligationDTO.getName(), null, componentObligationDTO.getStatus(),
+        ComponentLegalService.NOT_IMPLEMENTED);
+    componentObligationDTO.setId(componentObligation.getId());
+    grantLegalReviewerPermission(app.getId());
+    componentLegalService.saveComponentObligation(OwnerType.APPLICATION, app.getPublicId(), componentObligationDTO);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testDeleteComponentObligation_Unauthorized_DeleteAtLowerScope() {
+    ComponentObligation componentObligation = tempEntity.newComponentObligation(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), app.getOrganizationId(), "obligationName", null,
+        ObligationStatus.OPEN, ComponentLegalService.NOT_IMPLEMENTED);
+    grantLegalReviewerPermission(app.getId());
+    componentLegalService.deleteComponentObligation(componentObligation.getId());
+  }
+
   private ComponentObligationAttributionDTO buildComponentObligationAttributionDTO() {
     ComponentObligationAttributionDTO componentObligationAttributionDTO = new ComponentObligationAttributionDTO();
     componentObligationAttributionDTO.setComponentIdentifier(
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g", "a", "v")));
     componentObligationAttributionDTO.setContent("content");
     return componentObligationAttributionDTO;
+  }
+
+  private ApiLicenseLegalObligationDTO createMinimalComponentObligationDTO() {
+    ApiLicenseLegalObligationDTO componentObligationDTO = new ApiLicenseLegalObligationDTO();
+    componentObligationDTO.setComponentIdentifier(
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g", "a", "v")));
+    componentObligationDTO.setName("obligationName");
+    componentObligationDTO.setStatus(ObligationStatus.OPEN);
+    return componentObligationDTO;
   }
 }

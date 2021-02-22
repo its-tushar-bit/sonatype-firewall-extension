@@ -601,14 +601,16 @@ public class ApiLicenseLegalService
             .collect(groupingBy(ComponentObligationAttribution::getObligationName));
     for (String obligationName : obligationNames) {
       ApiLicenseLegalObligationDTO apiLicenseLegalObligationDTO = new ApiLicenseLegalObligationDTO();
-      apiLicenseLegalObligationDTO.name = obligationName;
-      apiLicenseLegalObligationDTO.status = ObligationStatus.OPEN;
-      apiLicenseLegalObligationDTO.attributions = new ArrayList<>();
+      apiLicenseLegalObligationDTO.setName(obligationName);
+      apiLicenseLegalObligationDTO.setStatus(ObligationStatus.OPEN);
+      apiLicenseLegalObligationDTO.setAttributions(new ArrayList<>());
 
       ComponentObligation componentObligation = componentObligationByName.get(obligationName);
       if (componentObligation != null) {
-        apiLicenseLegalObligationDTO.status = componentObligation.getStatus();
-        apiLicenseLegalObligationDTO.comment = componentObligation.getComment();
+        apiLicenseLegalObligationDTO.setId(componentObligation.getId());
+        apiLicenseLegalObligationDTO.setOwnerId(componentObligation.getOwnerId());
+        apiLicenseLegalObligationDTO.setStatus(componentObligation.getStatus());
+        apiLicenseLegalObligationDTO.setComment(componentObligation.getComment());
       }
 
       List<ComponentObligationAttribution> componentObligationAttributions =
@@ -621,7 +623,7 @@ public class ApiLicenseLegalService
         ComponentObligationAttributionDTO componentObligationAttributionDTO =
             new ComponentObligationAttributionDTO(componentObligationAttribution.getId(), owner.getId(),
                 componentObligationAttribution.getContent());
-        apiLicenseLegalObligationDTO.attributions.add(componentObligationAttributionDTO);
+        apiLicenseLegalObligationDTO.getAttributions().add(componentObligationAttributionDTO);
       }
       apiLicenseLegalObligationDTOs.add(apiLicenseLegalObligationDTO);
     }

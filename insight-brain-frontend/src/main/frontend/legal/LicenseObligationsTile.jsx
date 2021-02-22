@@ -3,59 +3,30 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useState } from 'react';
-import { NxAccordion, NxDropdown, NxFontAwesomeIcon, NxOverflowTooltip } from '@sonatype/react-shared-components';
-import { licenseObligationPropTypes } from './advancedLegalPropTypes';
-import { OBLIGATION_STATUSES, OBLIGATION_STATUS_TO_DISPLAY } from './advancedLegalConstants';
+import React, { Fragment, useState } from 'react';
+import {
+  NxAccordion,
+  NxFontAwesomeIcon,
+  NxOverflowTooltip,
+  NxStatefulAccordion,
+  NxSegmentedButton
+} from '@sonatype/react-shared-components';
+import { licenseLegalMetadataPropType, licenseObligationsPropTypes } from './advancedLegalPropTypes';
+import { OBLIGATION_STATUS_TO_DISPLAY, OBLIGATION_STATUSES } from './advancedLegalConstants';
 import { faCheckCircle, faExclamationTriangle, faMinusCircle } from '@fortawesome/pro-solid-svg-icons';
+import * as PropTypes from 'prop-types';
+import LicenseObligationModalContainer from './LicenseObligationModalContainer';
+import { find, propEq } from 'ramda';
 
-export default function LicenseObligationsTile({ licenseObligations }) {
-  const createItemContentTexts = (licenseObligationLicenseText, index) => {
-    return <p className="obligation-text" key={ index }>{ licenseObligationLicenseText }</p>;
-  };
-
-  const createItemContent = (licenseObligationLicense, index) => {
-    return <div key={ index }>
-      <h4 className="nx-h4">{ licenseObligationLicense.name }</h4>
-      { licenseObligationLicense.texts.map(createItemContentTexts) }
-    </div>;
-  };
-
-  const createItemAccordionHeader = (licenseObligation) => {
-    let headerText = licenseObligation.name;
-    if (licenseObligation.licenses && licenseObligation.licenses.length > 1) {
-      headerText += ` (${ licenseObligation.licenses.length })`;
-    }
-    return headerText;
-  };
-
-  const createItem = (licenseObligation, index) => {
-    const [isAccordionOpen, setAccordionOpen] = useState(false);
-    const [isStatusDropdownOpen, setStatusDropdownOpen] = useState(false);
-    const onToggleCollapse = () => { setStatusDropdownOpen(!isStatusDropdownOpen); };
-    const statusDropdownLabel = <span>{ createObligationStatusIcon(licenseObligation.status) }
-      { OBLIGATION_STATUS_TO_DISPLAY[licenseObligation.status] }</span>;
-    return <NxAccordion key={ index } open={ isAccordionOpen } onToggle={ setAccordionOpen }>
-      <NxAccordion.Header>
-        <NxOverflowTooltip>
-          <h3 className="nx-accordion__header-title nx-truncate-ellipsis">
-            { createItemAccordionHeader(licenseObligation) }
-          </h3>
-        </NxOverflowTooltip>
-        <NxDropdown label={ statusDropdownLabel } isOpen={ isStatusDropdownOpen } onToggleCollapse={ onToggleCollapse }>
-          {
-            OBLIGATION_STATUSES.filter(obligationStatus => obligationStatus !== licenseObligation.status)
-                .map((obligationStatus, index) => {
-                  return <button key={ index } className="nx-dropdown-button">
-                    Mark as { OBLIGATION_STATUS_TO_DISPLAY[obligationStatus] }
-                  </button>;
-                })
-          }
-        </NxDropdown>
-      </NxAccordion.Header>
-      { licenseObligation.licenses.map(createItemContent) }
-    </NxAccordion>;
-  };
+export default function LicenseObligationsTile(props) {
+  const {
+    // actions
+    setObligationStatus,
+    setShowObligationModal,
+    // state
+    licenseObligations,
+    licenseLegalMetadata
+  } = props;
 
   const createObligationStatusIcon = obligationStatus => {
     switch (obligationStatus) {
@@ -68,6 +39,89 @@ export default function LicenseObligationsTile({ licenseObligations }) {
     }
   };
 
+  const getLicensesWithObligation = licenseObligation => {
+    return licenseLegalMetadata.filter(element => element.obligations !== null &&
+        element.obligations.some(obligation => obligation.name === licenseObligation.name));
+  };
+
+  const createItemAccordionHeader = (licenseObligation, licensesWithObligation) => {
+    let headerText = licenseObligation.name;
+    if (licensesWithObligation && licensesWithObligation.length > 1) {
+      headerText += ` (${ licensesWithObligation.length })`;
+    }
+    return headerText;
+  };
+
+  const [openSegmentedButton, setOpenSegmentedButton] = useState(null);
+
+  const createSegmentedButtonDropdownOptions = licenseObligation => {
+    return OBLIGATION_STATUSES.filter(obligationStatus => obligationStatus !== licenseObligation.originalStatus)
+        .map(obligationStatus => {
+          return <button key={ obligationStatus + '-segmented-button-dropdown-option' }
+                         type="button"
+                         className="nx-dropdown-button"
+                         onClick={ () => {
+                           setOpenSegmentedButton(null);
+                           setObligationStatus({ name: licenseObligation.name, value: obligationStatus });
+                           setShowObligationModal({ name: licenseObligation.name, value: true });
+                         } }>
+            { createObligationStatusIcon(obligationStatus) }
+            <span>Mark as { OBLIGATION_STATUS_TO_DISPLAY[obligationStatus] }</span>
+          </button>;
+        });
+  };
+
+  const createReviewStatus = licenseObligation => {
+    return <div>
+      <h4 className="nx-h4">Review Status</h4>
+      <p className="obligation-text">{ OBLIGATION_STATUS_TO_DISPLAY[licenseObligation.status] }</p>
+    </div>;
+  };
+
+  const createItemContentTexts = (licenseObligationLicenseText, index) => {
+    return <blockquote className="nx-blockquote" key={ index }>{ licenseObligationLicenseText }</blockquote>;
+  };
+
+  const createItemContent = (licenseObligation, licenseWithObligations) => {
+    return <div key={ licenseWithObligations.licenseName + '-' + licenseObligation.name }>
+      <h4 className="nx-h4">{ licenseWithObligations.licenseName } — License Obligation Text</h4>
+      { find(propEq('name', licenseObligation.name), licenseWithObligations.obligations)
+          .obligationTexts.map(createItemContentTexts) }
+    </div>;
+  };
+
+  const createItem = licenseObligation => {
+    const statusSegmentedButtonLabel = (
+      <Fragment>
+        { createObligationStatusIcon(licenseObligation.originalStatus) }
+        <span>{ OBLIGATION_STATUS_TO_DISPLAY[licenseObligation.originalStatus] }</span>
+      </Fragment>
+    );
+    const licensesWithObligation = getLicensesWithObligation(licenseObligation);
+    return <NxStatefulAccordion key={ licenseObligation.name + '-accordion' } defaultOpen={ false }>
+      <NxAccordion.Header>
+        <NxOverflowTooltip>
+          <h3 className="nx-accordion__header-title nx-truncate-ellipsis">
+            { createItemAccordionHeader(licenseObligation, licensesWithObligation) }
+          </h3>
+        </NxOverflowTooltip>
+        <NxSegmentedButton variant="tertiary"
+                           buttonContent={ statusSegmentedButtonLabel }
+                           isOpen={ openSegmentedButton !== null }
+                           onToggleOpen={ () => openSegmentedButton !== null ?
+                             setOpenSegmentedButton(null) : setOpenSegmentedButton(licenseObligation.name) }
+                           onClick={ () => {
+                             setShowObligationModal({ name: licenseObligation.name, value: true });
+                           } }>
+          { createSegmentedButtonDropdownOptions(licenseObligation) }
+        </NxSegmentedButton>
+      </NxAccordion.Header>
+      { createReviewStatus(licenseObligation) }
+      { licensesWithObligation.map(
+          licenseWithObligation => createItemContent(licenseObligation, licenseWithObligation)) }
+    </NxStatefulAccordion>;
+  };
+
   return (
     <section id="license-obligations-tile" className="nx-tile">
       <header className="nx-tile-header">
@@ -78,10 +132,21 @@ export default function LicenseObligationsTile({ licenseObligations }) {
       <div className="nx-tile-content nx-tile-content--accordion-container">
         { licenseObligations.map(createItem) }
       </div>
+      {
+        licenseObligations.map(licenseObligation => {
+          return licenseObligation.showObligationModal &&
+            <LicenseObligationModalContainer key={ licenseObligation.name + '-modal' }
+                                             licenseObligation={ licenseObligation }
+                                             createObligationStatusIcon={ createObligationStatusIcon }/>;
+        })
+      }
     </section>
   );
 }
 
 LicenseObligationsTile.propTypes = {
-  licenseObligations: licenseObligationPropTypes
+  setObligationStatus: PropTypes.func.isRequired,
+  setShowObligationModal: PropTypes.func.isRequired,
+  licenseObligations: licenseObligationsPropTypes,
+  licenseLegalMetadata: licenseLegalMetadataPropType
 };

@@ -220,4 +220,63 @@ describe('CLMLocation.js', function() {
     expect(CLMLocation.getLegalDashboardApplicationsUrl())
         .toBe('/api/experimental/licenseLegalMetadata/dashboard/applications');
   });
+
+  it('should return the owner hierarchy url', function() {
+    expect(CLMLocation.getOwnerHierarchyUrl('ownerType', 'ownerId'))
+        .toBe('/rest/owner/ownerType/ownerId/hierarchy');
+  });
+
+  it('should return the save component obligation attribution url', function() {
+    expect(CLMLocation.getSaveComponentObligationAttributionUrl('ownerType', 'ownerId'))
+        .toBe('/api/experimental/licenseLegalMetadata/ownerType/ownerId/component/obligation/attribution');
+  });
+
+  it('should return the get component obligation attribution url', function() {
+    const compIdentifier = {
+      format: 'maven',
+      coordinates: {
+        artifactId: 'logback-access',
+        classifier: '',
+        extension: 'jar',
+        groupId: 'ch.qos.logback',
+        version: '0.6'
+      }
+    };
+    expect(CLMLocation.getComponentObligationAttributionUrl('ownerType', 'ownerId', compIdentifier, 'obligationName'))
+        .toBe('/api/experimental/licenseLegalMetadata/ownerType/ownerId/component/obligation/attribution?' +
+            'componentIdentifier={"format":"maven","coordinates":{"artifactId":"logback-access","classifier":"",' +
+            '"extension":"jar","groupId":"ch.qos.logback","version":"0.6"}}&obligationName=obligationName');
+  });
+
+  it('should return the delete component obligation attribution url', function() {
+    expect(CLMLocation.getDeleteComponentObligationAttributionUrl('attributionId'))
+        .toBe('/api/experimental/licenseLegalMetadata/component/obligation/attribution/attributionId');
+  });
+
+  it('should return the save component obligation url', function() {
+    expect(CLMLocation.getSaveComponentObligationUrl('ownerType', 'ownerId'))
+        .toBe('/api/experimental/licenseLegalMetadata/ownerType/ownerId/component/obligation');
+  });
+
+  it('should return the get component obligation url', function() {
+    const componentIdentifier = {
+      format: 'maven',
+      coordinates: {
+        artifactId: 'logback-access',
+        classifier: '',
+        extension: 'jar',
+        groupId: 'ch.qos.logback',
+        version: '0.6'
+      }
+    };
+    expect(CLMLocation.getComponentObligationUrl('ownerType', 'ownerId', componentIdentifier, 'obligationName'))
+        .toBe('/api/experimental/licenseLegalMetadata/ownerType/ownerId/component/obligation?' +
+            'componentIdentifier={"format":"maven","coordinates":{"artifactId":"logback-access","classifier":"",' +
+            '"extension":"jar","groupId":"ch.qos.logback","version":"0.6"}}&obligationName=obligationName');
+  });
+
+  it('should return the delete component obligation url', function() {
+    expect(CLMLocation.getDeleteComponentObligationUrl('obligationId'))
+        .toBe('/api/experimental/licenseLegalMetadata/component/obligation/obligationId');
+  });
 });

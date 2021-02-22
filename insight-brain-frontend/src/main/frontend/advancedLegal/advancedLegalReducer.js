@@ -3,31 +3,23 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
 import { createReducerFromActionMap } from '../util/reduxUtil';
 import {
-  ADVANCED_LEGAL_LOAD_APPLICATIONS_REQUESTED,
-  ADVANCED_LEGAL_LOAD_APPLICATIONS_FULFILLED,
-  ADVANCED_LEGAL_LOAD_APPLICATIONS_FAILED,
-  ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_REQUESTED,
-  ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FULFILLED,
   ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FAILED,
-  ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED,
-  ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
-  ADVANCED_LEGAL_LOAD_COMPONENT_FAILED,
-  ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED,
-  ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED,
+  ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FULFILLED,
+  ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_REQUESTED,
+  ADVANCED_LEGAL_LOAD_APPLICATIONS_FAILED,
+  ADVANCED_LEGAL_LOAD_APPLICATIONS_FULFILLED,
+  ADVANCED_LEGAL_LOAD_APPLICATIONS_REQUESTED,
   ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED,
-  ADVANCED_LEGAL_SET_ATTRIBUTION_TEXT,
-  ADVANCED_LEGAL_SET_OBLIGATION_FULFILLED,
-  ADVANCED_LEGAL_SET_ATTRIBUTION_SCOPE,
-  ADVANCED_LEGAL_SET_SHOW_ATTRIBUTION_MODAL,
-  ADVANCED_LEGAL_SAVE_ATTRIBUTION_REQUESTED,
-  ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED,
-  ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED,
-  ADVANCED_LEGAL_SAVE_ATTRIBUTION_SUBMIT_MASK_DONE
+  ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED,
+  ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED,
+  ADVANCED_LEGAL_LOAD_COMPONENT_FAILED,
+  ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
+  ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED
 } from './advancedLegalActions';
 import { TEXT_BASED_OBLIGATIONS } from '../legal/advancedLegalConstants';
+import { advancedLegalObligationReducerActionMap } from '../legal/advancedLegalObligationReducer';
 
 const initialState = {
   viewStateApplications: {
@@ -125,31 +117,51 @@ function loadComponentRequested() {
 }
 
 function loadComponentFulfilled(payload, state) {
-  const newState = {
-    ...state,
-    component: {
-      loading: false,
-      ...payload
-    }
-  };
-  newState.component.obligations.forEach(element => {
-    element.originalStatus = element.status;
-    if (TEXT_BASED_OBLIGATIONS.indexOf(element.name) >= 0) {
-      if (element.attributions.length === 0) {
-        element.attributions.push({
+  const newObligations = payload.obligations.map(obligation => {
+    const status = obligation.status || 'OPEN';
+    const comment = obligation.comment || '';
+    const ownerId = obligation.ownerId || 'ROOT_ORGANIZATION_ID';
+    const newObligation = {
+      ...obligation,
+      status: status,
+      originalStatus: status,
+      comment: comment,
+      originalComment: comment,
+      ownerId: ownerId,
+      originalOwnerId: ownerId,
+      showObligationModal: false,
+      error: null,
+      saveObligationSubmitMask: null
+    };
+    if (TEXT_BASED_OBLIGATIONS.indexOf(newObligation.name) >= 0) {
+      if (newObligation.attributions.length === 0) {
+        newObligation.attributions = [...newObligation.attributions, {
           id: null,
           content: '',
           ownerId: 'ROOT_ORGANIZATION_ID'
-        });
+        }];
       }
-      element.attributions[0].originalContent = element.attributions[0].content;
-      element.attributions[0].originalOwnerId = element.attributions[0].ownerId;
-      element.attributions[0].showAttributionModal = false;
-      element.attributions[0].error = null;
-      element.attributions[0].saveAttributionSubmitMask = null;
+      newObligation.attributions = newObligation.attributions.map(attribution => {
+        return {
+          ...attribution,
+          originalContent: attribution.content,
+          originalOwnerId: attribution.ownerId,
+          showAttributionModal: false,
+          error: null,
+          saveAttributionSubmitMask: null
+        };
+      });
     }
+    return newObligation;
   });
-  return newState;
+  return {
+    ...state,
+    component: {
+      loading: false,
+      ...payload,
+      obligations: newObligations
+    }
+  };
 }
 
 function loadComponentFailed(payload, state) {
@@ -193,106 +205,6 @@ function loadAvailableScopesFailed(payload, state) {
   };
 }
 
-function setAttributionText(payload, state) {
-  const newState = { ...state };
-  newState.component.obligations.some(element => {
-    if (element.name === payload.name) {
-      element.attributions[0].content = payload.value;
-      return true;
-    }
-  });
-  return newState;
-}
-
-function setObligationFulfilled(payload, state) {
-  const newState = { ...state };
-  newState.component.obligations.some(element => {
-    if (element.name === payload.name) {
-      element.status = payload.value ? 'FULFILLED' : element.originalStatus;
-      return true;
-    }
-  });
-  return newState;
-}
-
-function setAttributionScope(payload, state) {
-  const newState = { ...state };
-  newState.component.obligations.some(element => {
-    if (element.name === payload.name) {
-      element.attributions[0].ownerId = payload.value;
-      return true;
-    }
-  });
-  return newState;
-}
-
-function setShowAttributionModal(payload, state) {
-  const newState = { ...state };
-  newState.component.obligations.some(element => {
-    if (element.name === payload.name) {
-      element.attributions[0].showAttributionModal = payload.value;
-      return true;
-    }
-  });
-  return newState;
-}
-
-function saveAttributionRequested(payload, state) {
-  const newState = { ...state };
-  newState.component.obligations.some(element => {
-    if (element.name === payload.name) {
-      element.attributions[0].error = null;
-      element.attributions[0].saveAttributionSubmitMask = null;
-      return true;
-    }
-  });
-  return newState;
-}
-
-function saveAttributionFulfilled(payload, state) {
-  const newState = { ...state };
-  newState.component.obligations.some(element => {
-    if (element.name === payload.name) {
-      const newStatus = element.status; // TODO: read obligation status in DLS-1021
-      element.originalStatus = newStatus;
-      element.status = newStatus;
-      element.attributions[0].id = payload.value.id;
-      element.attributions[0].originalContent = payload.value.content;
-      element.attributions[0].content = payload.value.content;
-      element.attributions[0].originalOwnerId = payload.value.ownerId;
-      element.attributions[0].ownerId = payload.value.ownerId;
-      element.attributions[0].error = null;
-      element.attributions[0].saveAttributionSubmitMask = true;
-      return true;
-    }
-  });
-  return newState;
-}
-
-function saveAttributionFailed(payload, state) {
-  const newState = { ...state };
-  newState.component.obligations.some(element => {
-    if (element.name === payload.name) {
-      element.attributions[0].error = payload.value;
-      element.attributions[0].saveAttributionSubmitMask = null;
-      return true;
-    }
-  });
-  return newState;
-}
-
-function saveAttributionSubmitMaskDone(payload, state) {
-  const newState = { ...state };
-  newState.component.obligations.some(element => {
-    if (element.name === payload.name) {
-      element.attributions[0].saveAttributionSubmitMask = null;
-      element.attributions[0].showAttributionModal = false;
-      return true;
-    }
-  });
-  return newState;
-}
-
 const reducerActionMap = {
   [ADVANCED_LEGAL_LOAD_APPLICATIONS_REQUESTED]: loadApplicationsRequested,
   [ADVANCED_LEGAL_LOAD_APPLICATIONS_FULFILLED]: loadApplicationsFulfilled,
@@ -306,14 +218,7 @@ const reducerActionMap = {
   [ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED]: loadAvailableScopesRequested,
   [ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED]: loadAvailableScopesFulfilled,
   [ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED]: loadAvailableScopesFailed,
-  [ADVANCED_LEGAL_SET_ATTRIBUTION_TEXT]: setAttributionText,
-  [ADVANCED_LEGAL_SET_OBLIGATION_FULFILLED]: setObligationFulfilled,
-  [ADVANCED_LEGAL_SET_ATTRIBUTION_SCOPE]: setAttributionScope,
-  [ADVANCED_LEGAL_SET_SHOW_ATTRIBUTION_MODAL]: setShowAttributionModal,
-  [ADVANCED_LEGAL_SAVE_ATTRIBUTION_REQUESTED]: saveAttributionRequested,
-  [ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED]: saveAttributionFulfilled,
-  [ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED]: saveAttributionFailed,
-  [ADVANCED_LEGAL_SAVE_ATTRIBUTION_SUBMIT_MASK_DONE]: saveAttributionSubmitMaskDone
+  ...advancedLegalObligationReducerActionMap
 };
 
 const advancedLegalReducer = createReducerFromActionMap(reducerActionMap, initialState);

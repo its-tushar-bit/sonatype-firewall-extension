@@ -8,7 +8,6 @@ import * as PropTypes from 'prop-types';
 import { NxBackButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { faGlobe, faSitemap, faTerminal } from '@fortawesome/free-solid-svg-icons';
 import ComponentOverviewTile from './ComponentOverviewTile';
-import LicenseObligationsTile from './LicenseObligationsTile';
 import LicenseDetailsTile from './LicenseDetailsTile';
 import CopyrightStatementsTile from './CopyrightStatementsTile';
 import NoticeTextsTile from './NoticeTextsTile';
@@ -21,8 +20,9 @@ import {
   licenseObligationsPropType,
   availableScopesPropType
 } from './advancedLegalPropTypes';
-import { chain, find, flip, groupBy, map, pipe, prop, propEq, toPairs, values, reject } from 'ramda';
+import { find, flip, map, pipe, prop, propEq } from 'ramda';
 import { TEXT_BASED_OBLIGATIONS } from './advancedLegalConstants';
+import LicenseObligationsTileContainer from './LicenseObligationsTileContainer';
 
 export default function ComponentLegalOverviewPage(props) {
   const {
@@ -57,33 +57,6 @@ export default function ComponentLegalOverviewPage(props) {
   }
 
   useEffect(load, [hash]);
-
-  const mapObligationsToLicenseAndTexts = chain(({ licenseName, obligations }) => map(obligation => ({
-    obligationName: obligation.name,
-    licenseName,
-    texts: obligation.obligationTexts
-  }), obligations));
-
-  const groupObligationsByLicense = map(([obligationName, licenses]) => ({
-    name: obligationName,
-    licenses: map(({ licenseName, texts }) => ({ name: licenseName, texts }), licenses)
-  }));
-
-  const getLicenseObligationsByName = pipe(
-      mapObligationsToLicenseAndTexts,
-      groupBy(prop('obligationName')),
-      toPairs,
-      groupObligationsByLicense
-  );
-
-  const mergeByName = (array1, array2) =>
-    array1.map(itm => ({
-      ...array2.find((item) => (item.name === itm.name) && item),
-      ...itm
-    }));
-
-  const licenseObligations = licenseLegalMetadata && obligations && mergeByName(getLicenseObligationsByName(
-      reject(licenseLegalMetadata => !licenseLegalMetadata.obligations, values(licenseLegalMetadata))), obligations);
 
   const getLicenseNames = effectiveLicenses => map(
       pipe(propEq('licenseId'), flip(find)(licenseLegalMetadata), prop('licenseName')), effectiveLicenses);
@@ -128,17 +101,17 @@ export default function ComponentLegalOverviewPage(props) {
           { createSubtitle() }
         </div>
         <div id="component-legal-overview-details">
-          <ComponentOverviewTile obligationCount={ licenseObligations && licenseObligations.length }
+          <ComponentOverviewTile obligationCount={ obligations && obligations.length }
                                  licenseNames={ licenseNames }
           />
-          <LicenseObligationsTile licenseObligations={ licenseObligations } />
+          { licenseLegalMetadata && obligations && <LicenseObligationsTileContainer /> }
           <div id="component-legal-overview-details-right">
             <LicenseDetailsTile licenseNames={ licenseNames }/>
             <CopyrightStatementsTile component={ component }/>
             <NoticeTextsTile component={ component }/>
             <LicenseTextsTile component={ component }/>
-            { licenseObligations &&
-            licenseObligations.filter(isTextBasedObligation).map(createLicenseObligationAttributionTileContainer) }
+            { obligations &&
+            obligations.filter(isTextBasedObligation).map(createLicenseObligationAttributionTileContainer) }
           </div>
         </div>
       </LoadWrapper>

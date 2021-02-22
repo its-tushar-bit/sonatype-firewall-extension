@@ -5,19 +5,23 @@
  */
 import { connect } from 'react-redux';
 
-import * as advancedLegalActions from '../advancedLegal/advancedLegalActions';
+import {
+  cancelAttributionModal,
+  saveAttribution,
+  setAttributionScope,
+  setAttributionText,
+  setShowAttributionModal
+} from './advancedLegalObligationActions';
 import LicenseObligationAttributionTile from './LicenseObligationAttributionTile';
-import { pick } from 'ramda';
+import { find, propEq } from 'ramda';
 
 function mapStateToProps({ advancedLegal }, ownProps) {
-  let obligationState = advancedLegal.component.obligations.filter(element => element.name === ownProps.name)[0];
-  let attributionState = obligationState.attributions[0];
+  const obligationState = find(propEq('name', ownProps.name), advancedLegal.component.obligations);
+  const attributionState = obligationState.attributions[0];
   return {
     id: attributionState.id,
     originalAttributionText: attributionState.originalContent,
     attributionText: attributionState.content,
-    originalObligationFulfilled: obligationState.originalStatus === 'FULFILLED',
-    obligationFulfilled: obligationState.status === 'FULFILLED',
     originalScope: attributionState.originalOwnerId,
     scope: attributionState.ownerId,
     showAttributionModal: attributionState.showAttributionModal,
@@ -27,12 +31,12 @@ function mapStateToProps({ advancedLegal }, ownProps) {
   };
 }
 
-const mapDispatchToProps = pick([
-  'setAttributionText',
-  'setObligationFulfilled',
-  'setAttributionScope',
-  'setShowAttributionModal',
-  'saveAttribution'
-], advancedLegalActions);
+const mapDispatchToProps = {
+  setAttributionText,
+  setAttributionScope,
+  setShowAttributionModal,
+  saveAttribution,
+  cancelAttributionModal
+};
 
 export default connect(mapStateToProps, mapDispatchToProps)(LicenseObligationAttributionTile);

@@ -14,8 +14,8 @@
       display: none;
     }
 
-    .nx-dropdown-menu {
-      z-index: 9999;
+    .nx-segmented-btn {
+      z-index: unset;
     }
 
     .nx-truncate-ellipsis {
@@ -49,5 +49,11 @@
 
   .license-obligation-ignored-icon {
     color: $iq-slate;
+  }
+
+  .nx-modal {
+    .nx-text-input {
+      width: 100%;
+    }
   }
 }

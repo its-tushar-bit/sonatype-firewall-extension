@@ -1,0 +1,196 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import axios from 'axios';
+import {
+  getComponentObligationAttributionUrl,
+  getComponentObligationUrl,
+  getDeleteComponentObligationAttributionUrl,
+  getDeleteComponentObligationUrl,
+  getSaveComponentObligationAttributionUrl,
+  getSaveComponentObligationUrl
+} from '../util/CLMLocation';
+import { payloadParamActionCreator } from '../util/reduxUtil';
+import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
+import { find, findIndex, pick, propEq } from 'ramda';
+import { Messages } from '../util/CommonServices';
+
+export const ADVANCED_LEGAL_SET_ATTRIBUTION_TEXT = 'ADVANCED_LEGAL_SET_ATTRIBUTION_TEXT';
+export const ADVANCED_LEGAL_SET_ATTRIBUTION_SCOPE = 'ADVANCED_LEGAL_SET_ATTRIBUTION_SCOPE';
+export const ADVANCED_LEGAL_SET_SHOW_ATTRIBUTION_MODAL = 'ADVANCED_LEGAL_SET_SHOW_ATTRIBUTION_MODAL';
+export const ADVANCED_LEGAL_CANCEL_ATTRIBUTION_MODAL = 'ADVANCED_LEGAL_CANCEL_ATTRIBUTION_MODAL';
+
+export const setAttributionText = payloadParamActionCreator(ADVANCED_LEGAL_SET_ATTRIBUTION_TEXT);
+export const setAttributionScope = payloadParamActionCreator(ADVANCED_LEGAL_SET_ATTRIBUTION_SCOPE);
+export const setShowAttributionModal = payloadParamActionCreator(ADVANCED_LEGAL_SET_SHOW_ATTRIBUTION_MODAL);
+export const cancelAttributionModal = payloadParamActionCreator(ADVANCED_LEGAL_CANCEL_ATTRIBUTION_MODAL);
+
+export const ADVANCED_LEGAL_SAVE_ATTRIBUTION_REQUESTED = 'ADVANCED_LEGAL_SAVE_ATTRIBUTION_REQUESTED';
+export const ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED = 'ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED';
+export const ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED = 'ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED';
+export const ADVANCED_LEGAL_SAVE_ATTRIBUTION_SUBMIT_MASK_DONE
+    = 'ADVANCED_LEGAL_SAVE_ATTRIBUTION_SUBMIT_MASK_DONE';
+
+const saveAttributionRequested = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_ATTRIBUTION_REQUESTED);
+const saveAttributionFulfilled = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED);
+const saveAttributionFailed = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED);
+
+export function saveAttribution(name) {
+  return (dispatch, getState) => {
+    dispatch(saveAttributionRequested({ name }));
+
+    const advancedLegalState = getState().advancedLegal;
+    const obligationState = find(propEq('name', name), advancedLegalState.component.obligations);
+    const attributionState = obligationState.attributions[0];
+    const ownerId = attributionState.ownerId;
+    const scope = find(propEq('id', ownerId), advancedLegalState.availableScopes.values);
+    const ownerType = scope.type;
+    const ownerPublicId = scope.publicId;
+    const componentIdentifier = advancedLegalState.component.component.componentIdentifier;
+
+    if (attributionState.id !== null && attributionState.content === '') {
+      return axios.delete(getDeleteComponentObligationAttributionUrl(attributionState.id))
+          .then(() => {
+            axios.get(getComponentObligationAttributionUrl(ownerType, ownerPublicId, componentIdentifier, name))
+                .then(payload => {
+                  const value = payload.data.length > 0 ? pick(['id', 'content', 'ownerId'], payload.data[0]) :
+                    { id: null, content: '', ownerId: 'ROOT_ORGANIZATION_ID' };
+                  dispatch(saveAttributionFulfilled({ name, value }));
+                  startSaveAttributionSubmitMaskDoneTimer(dispatch, { name });
+                })
+                .catch(error => {
+                  dispatch(saveAttributionFailed({ name, value: Messages.getHttpErrorMessage(error) }));
+                });
+          })
+          .catch(error => {
+            dispatch(saveAttributionFailed({ name, value: Messages.getHttpErrorMessage(error) }));
+          });
+    }
+    else {
+      const attributionPayload = getAttributionPayload(advancedLegalState, obligationState, attributionState);
+      return axios.post(getSaveComponentObligationAttributionUrl(ownerType, ownerPublicId), attributionPayload)
+          .then(payload => {
+            dispatch(saveAttributionFulfilled({ name, value: payload.data }));
+            startSaveAttributionSubmitMaskDoneTimer(dispatch, { name });
+          })
+          .catch(error => {
+            dispatch(saveAttributionFailed({ name, value: Messages.getHttpErrorMessage(error) }));
+          });
+    }
+  };
+}
+
+function getAttributionPayload(advancedLegalState, obligationState, attributionState) {
+  const payload = {
+    'id': attributionState.id,
+    'componentIdentifier': advancedLegalState.component.component.componentIdentifier,
+    'obligationName': obligationState.name,
+    'content': attributionState.content
+  };
+  if (payload.id !== null && isOverride(attributionState.originalOwnerId, attributionState.ownerId,
+      advancedLegalState.availableScopes.values)) {
+    payload.id = null;
+  }
+  return payload;
+}
+
+function isOverride(originalOwnerId, ownerId, availableScopeValues) {
+  const originalOwnerLevel = findIndex(propEq('id', originalOwnerId), availableScopeValues);
+  const newOwnerLevel = findIndex(propEq('id', ownerId), availableScopeValues);
+  return originalOwnerLevel > newOwnerLevel;
+}
+
+function startSaveAttributionSubmitMaskDoneTimer(dispatch, payload) {
+  setTimeout(() => {
+    dispatch({ type: ADVANCED_LEGAL_SAVE_ATTRIBUTION_SUBMIT_MASK_DONE, payload });
+  }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+}
+
+export const ADVANCED_LEGAL_SET_OBLIGATION_STATUS = 'ADVANCED_LEGAL_SET_OBLIGATION_STATUS';
+export const ADVANCED_LEGAL_SET_OBLIGATION_COMMENT = 'ADVANCED_LEGAL_SET_OBLIGATION_COMMENT';
+export const ADVANCED_LEGAL_SET_OBLIGATION_SCOPE = 'ADVANCED_LEGAL_SET_OBLIGATION_SCOPE';
+export const ADVANCED_LEGAL_SET_SHOW_OBLIGATION_MODAL = 'ADVANCED_LEGAL_SET_SHOW_OBLIGATION_MODAL';
+export const ADVANCED_LEGAL_CANCEL_OBLIGATION_MODAL = 'ADVANCED_LEGAL_CANCEL_OBLIGATION_MODAL';
+
+export const setObligationStatus = payloadParamActionCreator(ADVANCED_LEGAL_SET_OBLIGATION_STATUS);
+export const setObligationComment = payloadParamActionCreator(ADVANCED_LEGAL_SET_OBLIGATION_COMMENT);
+export const setObligationScope = payloadParamActionCreator(ADVANCED_LEGAL_SET_OBLIGATION_SCOPE);
+export const setShowObligationModal = payloadParamActionCreator(ADVANCED_LEGAL_SET_SHOW_OBLIGATION_MODAL);
+export const cancelObligationModal = payloadParamActionCreator(ADVANCED_LEGAL_CANCEL_OBLIGATION_MODAL);
+
+export const ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED = 'ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED';
+export const ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED = 'ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED';
+export const ADVANCED_LEGAL_SAVE_OBLIGATION_FAILED = 'ADVANCED_LEGAL_SAVE_OBLIGATION_FAILED';
+export const ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE = 'ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE';
+
+const saveObligationRequested = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED);
+const saveObligationSucceeded = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
+const saveObligationFailed = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_OBLIGATION_FAILED);
+
+export function saveObligation(name) {
+  return (dispatch, getState) => {
+    dispatch(saveObligationRequested({ name }));
+
+    const advancedLegalState = getState().advancedLegal;
+    const obligationState = find(propEq('name', name), advancedLegalState.component.obligations);
+    const ownerId = obligationState.ownerId;
+    const scope = find(propEq('id', ownerId), advancedLegalState.availableScopes.values);
+    const ownerType = scope.type;
+    const ownerPublicId = scope.publicId;
+    const componentIdentifier = advancedLegalState.component.component.componentIdentifier;
+
+    if (obligationState.id !== null && obligationState.comment === '' && obligationState.status === 'OPEN') {
+      return axios.delete(getDeleteComponentObligationUrl(obligationState.id))
+          .then(() => {
+            axios.get(getComponentObligationUrl(ownerType, ownerPublicId, componentIdentifier, name))
+                .then(payload => {
+                  const value = payload.data ? pick(['id', 'comment', 'ownerId', 'status'], payload.data) :
+                    { id: null, comment: '', ownerId: 'ROOT_ORGANIZATION_ID', status: 'OPEN' };
+                  dispatch(saveObligationSucceeded({ name, value }));
+                  startSaveObligationSubmitMaskDoneTimer(dispatch, { name });
+                })
+                .catch(error => {
+                  dispatch(saveObligationFailed({ name, value: Messages.getHttpErrorMessage(error) }));
+                });
+          })
+          .catch(error => {
+            dispatch(saveObligationFailed({ name, value: Messages.getHttpErrorMessage(error) }));
+          });
+    }
+    else {
+      const obligationPayload = getObligationPayload(advancedLegalState, obligationState);
+      return axios.post(getSaveComponentObligationUrl(ownerType, ownerPublicId), obligationPayload)
+          .then(payload => {
+            dispatch(saveObligationSucceeded({ name, value: payload.data }));
+            startSaveObligationSubmitMaskDoneTimer(dispatch, { name });
+          })
+          .catch(error => {
+            dispatch(saveObligationFailed({ name, value: Messages.getHttpErrorMessage(error) }));
+          });
+    }
+  };
+}
+
+function getObligationPayload(advancedLegalState, obligationState) {
+  const payload = {
+    'id': obligationState.id,
+    'componentIdentifier': advancedLegalState.component.component.componentIdentifier,
+    'name': obligationState.name,
+    'comment': obligationState.comment,
+    'status': obligationState.status
+  };
+
+  if (payload.id !== null && isOverride(obligationState.originalOwnerId, obligationState.ownerId,
+      advancedLegalState.availableScopes.values)) {
+    payload.id = null;
+  }
+  return payload;
+}
+
+function startSaveObligationSubmitMaskDoneTimer(dispatch, payload) {
+  setTimeout(() => {
+    dispatch({ type: ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE, payload });
+  }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+}

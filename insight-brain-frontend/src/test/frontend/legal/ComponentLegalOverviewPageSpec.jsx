@@ -8,11 +8,11 @@ import React from 'react';
 import ComponentOverviewTile from '../../../main/frontend/legal/ComponentOverviewTile';
 import NoticeTextsTile from '../../../main/frontend/legal/NoticeTextsTile';
 import LicenseTextsTile from '../../../main/frontend/legal/LicenseTextsTile';
-import LicenseObligationsTile from '../../../main/frontend/legal/LicenseObligationsTile';
 import LicenseDetailsTile from '../../../main/frontend/legal/LicenseDetailsTile';
 import CopyrightStatementsTile from '../../../main/frontend/legal/CopyrightStatementsTile';
 import ComponentLegalOverviewPage from '../../../main/frontend/legal/ComponentLegalOverviewPage';
 import { mount } from 'enzyme/build';
+import LicenseObligationsTileContainer from '../../../main/frontend/legal/LicenseObligationsTileContainer';
 
 describe('ComponentLegalOverviewPage', function() {
   let minimalProps,
@@ -145,42 +145,7 @@ describe('ComponentLegalOverviewPage', function() {
 
   it('renders the LicenseObligationsTile', function() {
     const wrapper = getShallowComponent();
-    const obligationsTile = wrapper.find(LicenseObligationsTile);
-    const expectedObligations = [{
-      name: 'obligation 1',
-      licenses: [{
-        name: 'license1',
-        texts: ['text1', 'text2']
-      }],
-      status: 'OPEN',
-      comment: null,
-      attributions: []
-    }, {
-      name: 'obligation 2',
-      licenses: [{
-        name: 'license1',
-        texts: ['text3', 'text4']
-      }, {
-        name: 'license2',
-        texts: ['text5', 'text6']
-      }],
-      status: 'IGNORED',
-      comment: 'comment',
-      attributions: [{ id: 'attribution1', content: 'attributionText' }]
-    }, {
-      name: 'obligation 3',
-      licenses: [{
-        name: 'license2',
-        texts: ['text7', 'text8']
-      }],
-      status: 'FULFILLED',
-      comment: null,
-      attributions: [
-        { id: 'attribution2', content: 'attributionText1' }, { id: 'attribution3', content: 'attributionText2' }
-      ]
-    }];
-    expect(obligationsTile).toExist();
-    expect(obligationsTile).toHaveProp('licenseObligations', expectedObligations);
+    expect(wrapper.find(LicenseObligationsTileContainer)).toExist();
   });
 
   it('renders the LicenseTextsTile', function() {

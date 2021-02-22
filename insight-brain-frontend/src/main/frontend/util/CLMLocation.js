@@ -275,6 +275,19 @@ export function getDeleteComponentObligationAttributionUrl(componentObligationAt
       `${componentObligationAttributionId}`;
 }
 
+export function getSaveComponentObligationUrl(orgOrApp, ownerId) {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/obligation`;
+}
+
+export function getComponentObligationUrl(orgOrApp, ownerId, componentIdentifier, obligationName) {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/obligation` +
+      `?componentIdentifier=${JSON.stringify(componentIdentifier)}&obligationName=${obligationName}`;
+}
+
+export function getDeleteComponentObligationUrl(componentObligationId) {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/component/obligation/${componentObligationId}`;
+}
+
 export default
 angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl', '$window', function(baseUrl, $window) {

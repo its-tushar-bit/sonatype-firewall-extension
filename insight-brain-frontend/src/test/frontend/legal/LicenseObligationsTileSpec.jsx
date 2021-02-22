@@ -5,47 +5,81 @@
  */
 import * as enzymeUtils from '../enzymeUtils';
 import LicenseObligationsTile from '../../../main/frontend/legal/LicenseObligationsTile';
+import { NxFontAwesomeIcon, NxSegmentedButton, NxStatefulAccordion } from '@sonatype/react-shared-components';
 
 describe('LicenseObligationsTile component', function() {
 
-  let getShallowComponent;
-  const licenseObligations = [{
-    name: 'obligation 1',
-    licenses: [{
-      name: 'license1',
-      texts: ['text1', 'text2']
-    }],
-    status: 'OPEN'
-  }, {
-    name: 'obligation 2',
-    licenses: [{
-      name: 'license1',
-      texts: ['text3', 'text4']
-    }, {
-      name: 'license2',
-      texts: ['text5', 'text6']
-    }],
-    status: 'IGNORED'
-  }, {
-    name: 'obligation 3',
-    licenses: [{
-      name: 'license2',
-      texts: ['text7', 'text8']
-    }],
-    status: 'FULFILLED'
-  }, {
-    name: 'obligation 4',
-    licenses: [{
-      name: 'license3',
-      texts: ['text9']
-    }],
-    status: 'FLAGGED'
-  }];
-  const minimalProps = {
-    licenseObligations
-  };
+  let getShallowComponent,
+      setObligationStatus,
+      setObligationComment,
+      setObligationScope,
+      saveObligation,
+      setShowObligationModal,
+      licenseObligations,
+      availableScopes,
+      licenseLegalMetadata;
 
   beforeEach(function() {
+    setObligationStatus = jasmine.createSpy('setObligationStatus');
+    setObligationComment = jasmine.createSpy('setObligationComment');
+    setObligationScope = jasmine.createSpy('setObligationScope');
+    saveObligation = jasmine.createSpy('saveObligation');
+    setShowObligationModal = jasmine.createSpy('setShowObligationModal');
+    licenseObligations = [
+      {
+        name: 'obligation 1',
+        originalStatus: 'OPEN',
+        status: 'OPEN'
+      }, {
+        name: 'obligation 2',
+        originalStatus: 'IGNORED',
+        status: 'IGNORED'
+      }, {
+        name: 'obligation 3',
+        originalStatus: 'FULFILLED',
+        status: 'FULFILLED'
+      }, {
+        name: 'obligation 4',
+        originalStatus: 'FLAGGED',
+        status: 'FLAGGED'
+      }
+    ];
+    availableScopes = {
+      values: [
+        {
+          id: 'ROOT_ORGANIZATION_ID',
+          name: 'Root Organization',
+          label: 'Organization'
+        }
+      ]
+    };
+    licenseLegalMetadata = [
+      {
+        'licenseName': 'license1',
+        obligations: [
+          { name: 'obligation 1', obligationTexts: ['text1', 'text2'] },
+          { name: 'obligation 2', obligationTexts: ['text3', 'text4'] }
+        ]
+      },
+      {
+        'licenseName': 'license2',
+        obligations: [
+          { name: 'obligation 2', obligationTexts: ['text5', 'text6'] },
+          { name: 'obligation 3', obligationTexts: ['text7', 'text8'] }
+        ]
+      },
+      { 'licenseName': 'license3', obligations: [{ name: 'obligation 4', obligationTexts: ['text9'] }] }
+    ];
+    const minimalProps = {
+      setObligationStatus,
+      setObligationComment,
+      setObligationScope,
+      saveObligation,
+      setShowObligationModal,
+      licenseObligations,
+      availableScopes,
+      licenseLegalMetadata
+    };
     getShallowComponent = enzymeUtils.getShallowComponent(LicenseObligationsTile, minimalProps);
   });
 
@@ -54,115 +88,128 @@ describe('LicenseObligationsTile component', function() {
     expect(wrapper.find('h2.nx-h2')).toHaveText('License Obligations');
   });
 
-  it('renders the given license obligations', function() {
+  it('renders the correct number of license obligation sections`', function() {
     const wrapper = getShallowComponent();
-    let licenseObligationSections = wrapper.find('NxAccordion');
-    expect(licenseObligationSections.length).toBe(4);
+    expect(wrapper.find(NxStatefulAccordion).length).toBe(4);
+  });
+
+  it('renders the license obligation review status`', function() {
+    const wrapper = getShallowComponent();
+    const licenseObligationSections = wrapper.find(NxStatefulAccordion);
+    licenseObligationSections.forEach(node => {
+      expect(node.find('h4').at(0).text()).toBe('Review Status');
+    });
+    const expectedStatuses = ['Unreviewed', 'Not Applicable', 'Fulfilled', 'Flagged'];
+    licenseObligationSections.find('.obligation-text').forEach((node, index) => {
+      expect(node.text()).toBe(expectedStatuses[index]);
+    });
+  });
+
+  it('renders the license obligation names and license counts`', function() {
+    const wrapper = getShallowComponent();
+    const licenseObligationSections = wrapper.find(NxStatefulAccordion);
+    const expectedObligationNamesAndCounts = ['obligation 1', 'obligation 2 (2)', 'obligation 3', 'obligation 4'];
+    licenseObligationSections.find('h3').forEach((node, index) => {
+      expect(node.text()).toBe(expectedObligationNamesAndCounts[index]);
+    });
+  });
+
+  it('renders the license obligation license names`', function() {
+    const wrapper = getShallowComponent();
+    const licenseObligationSections = wrapper.find(NxStatefulAccordion);
+    const expectedObligationLicenseNames = [
+      ['license1 — License Obligation Text'],
+      ['license1 — License Obligation Text', 'license2 — License Obligation Text'],
+      ['license2 — License Obligation Text'],
+      ['license3 — License Obligation Text']
+    ];
+    licenseObligationSections.forEach((node1, index1) => {
+      node1.find('h4').forEach((node2, index2) => {
+        if (index2 !== 0) {
+          expect(node2).toHaveText(expectedObligationLicenseNames[index1][index2 - 1]);
+        }
+      });
+    });
+  });
+
+  it('renders the license obligation license texts`', function() {
+    const wrapper = getShallowComponent();
+    const licenseObligationSections = wrapper.find(NxStatefulAccordion);
+    const expectedObligationLicenseTexts = [
+      ['text1', 'text2'],
+      ['text3', 'text4', 'text5', 'text6'],
+      ['text7', 'text8'],
+      ['text9']
+    ];
+    licenseObligationSections.forEach((node1, index1) => {
+      node1.find('blockquote').forEach((node2, index2) => {
+        expect(node2).toHaveText(expectedObligationLicenseTexts[index1][index2]);
+      });
+    });
+  });
+
+  it('renders the license obligation selected status options and icons`', function() {
+    const wrapper = getShallowComponent();
+    const licenseObligationSections = wrapper.find(NxStatefulAccordion);
+    const expectedSelectedObligationStatuses = ['Unreviewed', 'Not Applicable', 'Fulfilled', 'Flagged'];
+    licenseObligationSections.find(NxSegmentedButton).forEach((node, index) => {
+      const buttonContentPropChildren = node.prop('buttonContent').props['children'];
+      if (index === 0) {
+        expect(buttonContentPropChildren[0]).toBeUndefined();
+      }
+      else {
+        expect(buttonContentPropChildren[0]).toBeDefined();
+      }
+      expect(buttonContentPropChildren[1].props['children']).toEqual(expectedSelectedObligationStatuses[index]);
+    });
+  });
+
+  it('renders the license obligation unselected status options and icons', function() {
+    const wrapper = getShallowComponent();
+    const licenseObligationSections = wrapper.find(NxStatefulAccordion);
 
     let licenseObligation1Section = licenseObligationSections.at(0);
-    let licenseObligation1Name = licenseObligation1Section.find('h3');
-    expect(licenseObligation1Name.length).toBe(1);
-    expect(licenseObligation1Name.at(0)).toHaveText('obligation 1');
-    let licenseObligation1LicenseNames = licenseObligation1Section.find('h4');
-    expect(licenseObligation1LicenseNames.length).toBe(1);
-    expect(licenseObligation1LicenseNames.at(0)).toHaveText('license1');
-    let licenseObligation1LicenseTexts = licenseObligation1Section.find('.obligation-text');
-    expect(licenseObligation1LicenseTexts.length).toBe(2);
-    expect(licenseObligation1LicenseTexts.at(0)).toHaveText('text1');
-    expect(licenseObligation1LicenseTexts.at(1)).toHaveText('text2');
-    let licenseObligation1Dropdown = licenseObligation1Section.find('NxDropdown').at(0);
-    let licenseObligation1DropdownIcon = licenseObligation1Dropdown.prop('label').props['children'][0];
-    expect(licenseObligation1DropdownIcon).toBeUndefined();
-    expect(licenseObligation1Dropdown.prop('label').props['children'][1]).toBe('Unreviewed');
+    let licenseObligation1Dropdown = licenseObligation1Section.find(NxSegmentedButton).at(0);
     let licenseObligation1DropdownOptions = licenseObligation1Dropdown.find('.nx-dropdown-button');
     expect(licenseObligation1DropdownOptions.length).toBe(3);
-    let licenseObligation1DropdownOptionTexts = [
-      licenseObligation1DropdownOptions.at(0).text(),
-      licenseObligation1DropdownOptions.at(1).text(),
-      licenseObligation1DropdownOptions.at(2).text()
-    ];
-    expect(licenseObligation1DropdownOptionTexts).toContain('Mark as Not Applicable');
-    expect(licenseObligation1DropdownOptionTexts).toContain('Mark as Flagged');
-    expect(licenseObligation1DropdownOptionTexts).toContain('Mark as Fulfilled');
+    expect(licenseObligation1DropdownOptions.at(0).find(NxFontAwesomeIcon).at(0)).toExist();
+    expect(licenseObligation1DropdownOptions.at(0)).toIncludeText('Mark as Fulfilled');
+    expect(licenseObligation1DropdownOptions.at(1).find(NxFontAwesomeIcon).at(0)).toExist();
+    expect(licenseObligation1DropdownOptions.at(1)).toIncludeText('Mark as Flagged');
+    expect(licenseObligation1DropdownOptions.at(2).find(NxFontAwesomeIcon).at(0)).toExist();
+    expect(licenseObligation1DropdownOptions.at(2)).toIncludeText('Mark as Not Applicable');
 
     let licenseObligation2Section = licenseObligationSections.at(1);
-    let licenseObligation2Name = licenseObligation2Section.find('h3');
-    expect(licenseObligation2Name.length).toBe(1);
-    expect(licenseObligation2Name.at(0)).toHaveText('obligation 2 (2)');
-    let licenseObligation2LicenseNames = licenseObligation2Section.find('h4');
-    expect(licenseObligation2LicenseNames.length).toBe(2);
-    expect(licenseObligation2LicenseNames.at(0)).toHaveText('license1');
-    expect(licenseObligation2LicenseNames.at(1)).toHaveText('license2');
-    let licenseObligation2LicenseTexts = licenseObligation2Section.find('.obligation-text');
-    expect(licenseObligation2LicenseTexts.length).toBe(4);
-    expect(licenseObligation2LicenseTexts.at(0)).toHaveText('text3');
-    expect(licenseObligation2LicenseTexts.at(1)).toHaveText('text4');
-    expect(licenseObligation2LicenseTexts.at(2)).toHaveText('text5');
-    expect(licenseObligation2LicenseTexts.at(3)).toHaveText('text6');
-    let licenseObligation2Dropdown = licenseObligation2Section.find('NxDropdown').at(0);
-    let licenseObligation2DropdownIcon = licenseObligation2Dropdown.prop('label').props['children'][0];
-    expect(licenseObligation2DropdownIcon).not.toBeUndefined();
-    expect(licenseObligation2Dropdown.prop('label').props['children'][1]).toBe('Not Applicable');
+    let licenseObligation2Dropdown = licenseObligation2Section.find(NxSegmentedButton).at(0);
     let licenseObligation2DropdownOptions = licenseObligation2Dropdown.find('.nx-dropdown-button');
     expect(licenseObligation2DropdownOptions.length).toBe(3);
-    let licenseObligation2DropdownOptionTexts = [
-      licenseObligation2DropdownOptions.at(0).text(),
-      licenseObligation2DropdownOptions.at(1).text(),
-      licenseObligation2DropdownOptions.at(2).text()
-    ];
-    expect(licenseObligation2DropdownOptionTexts).toContain('Mark as Unreviewed');
-    expect(licenseObligation2DropdownOptionTexts).toContain('Mark as Flagged');
-    expect(licenseObligation2DropdownOptionTexts).toContain('Mark as Fulfilled');
+    expect(licenseObligation2DropdownOptions.at(0).find(NxFontAwesomeIcon).at(0)).toExist();
+    expect(licenseObligation2DropdownOptions.at(0)).toIncludeText('Mark as Fulfilled');
+    expect(licenseObligation2DropdownOptions.at(1).find(NxFontAwesomeIcon).at(0)).toExist();
+    expect(licenseObligation2DropdownOptions.at(1)).toIncludeText('Mark as Flagged');
+    expect(licenseObligation2DropdownOptions.at(2).find(NxFontAwesomeIcon).length).toBe(0);
+    expect(licenseObligation2DropdownOptions.at(2)).toIncludeText('Mark as Unreviewed');
 
     let licenseObligation3Section = licenseObligationSections.at(2);
-    let licenseObligation3Name = licenseObligation3Section.find('h3');
-    expect(licenseObligation3Name.length).toBe(1);
-    expect(licenseObligation3Name.at(0)).toHaveText('obligation 3');
-    let licenseObligation3LicenseNames = licenseObligation3Section.find('h4');
-    expect(licenseObligation3LicenseNames.length).toBe(1);
-    expect(licenseObligation3LicenseNames.at(0)).toHaveText('license2');
-    let licenseObligation3LicenseTexts = licenseObligation3Section.find('.obligation-text');
-    expect(licenseObligation3LicenseTexts.length).toBe(2);
-    expect(licenseObligation3LicenseTexts.at(0)).toHaveText('text7');
-    expect(licenseObligation3LicenseTexts.at(1)).toHaveText('text8');
-    let licenseObligation3Dropdown = licenseObligation3Section.find('NxDropdown').at(0);
-    let licenseObligation3DropdownIcon = licenseObligation3Dropdown.prop('label').props['children'][0];
-    expect(licenseObligation3DropdownIcon).not.toBeUndefined();
-    expect(licenseObligation3Dropdown.prop('label').props['children'][1]).toBe('Fulfilled');
+    let licenseObligation3Dropdown = licenseObligation3Section.find(NxSegmentedButton).at(0);
     let licenseObligation3DropdownOptions = licenseObligation3Dropdown.find('.nx-dropdown-button');
     expect(licenseObligation3DropdownOptions.length).toBe(3);
-    let licenseObligation3DropdownOptionTexts = [
-      licenseObligation3DropdownOptions.at(0).text(),
-      licenseObligation3DropdownOptions.at(1).text(),
-      licenseObligation3DropdownOptions.at(2).text()
-    ];
-    expect(licenseObligation3DropdownOptionTexts).toContain('Mark as Unreviewed');
-    expect(licenseObligation3DropdownOptionTexts).toContain('Mark as Flagged');
-    expect(licenseObligation3DropdownOptionTexts).toContain('Mark as Not Applicable');
+    expect(licenseObligation3DropdownOptions.at(0).find(NxFontAwesomeIcon).at(0)).toExist();
+    expect(licenseObligation3DropdownOptions.at(0)).toIncludeText('Mark as Flagged');
+    expect(licenseObligation3DropdownOptions.at(1).find(NxFontAwesomeIcon).at(0)).toExist();
+    expect(licenseObligation3DropdownOptions.at(1)).toIncludeText('Mark as Not Applicable');
+    expect(licenseObligation3DropdownOptions.at(2).find(NxFontAwesomeIcon).length).toBe(0);
+    expect(licenseObligation3DropdownOptions.at(2)).toIncludeText('Mark as Unreviewed');
 
     let licenseObligation4Section = licenseObligationSections.at(3);
-    let licenseObligation4Name = licenseObligation4Section.find('h3');
-    expect(licenseObligation4Name.length).toBe(1);
-    expect(licenseObligation4Name.at(0)).toHaveText('obligation 4');
-    let licenseObligation4LicenseNames = licenseObligation4Section.find('h4');
-    expect(licenseObligation4LicenseNames.length).toBe(1);
-    expect(licenseObligation4LicenseNames.at(0)).toHaveText('license3');
-    let licenseObligation4LicenseTexts = licenseObligation4Section.find('.obligation-text');
-    expect(licenseObligation4LicenseTexts.length).toBe(1);
-    expect(licenseObligation4LicenseTexts.at(0)).toHaveText('text9');
-    let licenseObligation4Dropdown = licenseObligation4Section.find('NxDropdown').at(0);
-    let licenseObligation4DropdownIcon = licenseObligation4Dropdown.prop('label').props['children'][0];
-    expect(licenseObligation4DropdownIcon).not.toBeUndefined();
-    expect(licenseObligation4Dropdown.prop('label').props['children'][1]).toBe('Flagged');
+    let licenseObligation4Dropdown = licenseObligation4Section.find(NxSegmentedButton).at(0);
     let licenseObligation4DropdownOptions = licenseObligation4Dropdown.find('.nx-dropdown-button');
     expect(licenseObligation4DropdownOptions.length).toBe(3);
-    let licenseObligation4DropdownOptionTexts = [
-      licenseObligation4DropdownOptions.at(0).text(),
-      licenseObligation4DropdownOptions.at(1).text(),
-      licenseObligation4DropdownOptions.at(2).text()
-    ];
-    expect(licenseObligation4DropdownOptionTexts).toContain('Mark as Not Applicable');
-    expect(licenseObligation4DropdownOptionTexts).toContain('Mark as Unreviewed');
-    expect(licenseObligation4DropdownOptionTexts).toContain('Mark as Fulfilled');
+    expect(licenseObligation4DropdownOptions.at(0).find(NxFontAwesomeIcon).at(0)).toExist();
+    expect(licenseObligation4DropdownOptions.at(0)).toIncludeText('Mark as Fulfilled');
+    expect(licenseObligation4DropdownOptions.at(1).find(NxFontAwesomeIcon).at(0)).toExist();
+    expect(licenseObligation4DropdownOptions.at(1)).toIncludeText('Mark as Not Applicable');
+    expect(licenseObligation4DropdownOptions.at(2).find(NxFontAwesomeIcon).length).toBe(0);
+    expect(licenseObligation4DropdownOptions.at(2)).toIncludeText('Mark as Unreviewed');
   });
 });

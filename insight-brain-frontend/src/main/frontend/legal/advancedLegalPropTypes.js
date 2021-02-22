@@ -68,7 +68,7 @@ export const licenseObligationLicensesPropTypes = PropTypes.arrayOf(PropTypes.sh
   texts: PropTypes.arrayOf(PropTypes.string).isRequired
 }));
 
-export const licenseObligationPropTypes = PropTypes.arrayOf(PropTypes.shape({
+export const licenseObligationPropType = PropTypes.shape({
   name: PropTypes.string.isRequired,
   licenses: licenseObligationLicensesPropTypes,
   status: PropTypes.string.isRequired,
@@ -77,7 +77,9 @@ export const licenseObligationPropTypes = PropTypes.arrayOf(PropTypes.shape({
     id: PropTypes.string,
     content: PropTypes.string
   }).isRequired).isRequired
-}).isRequired);
+});
+
+export const licenseObligationsPropTypes = PropTypes.arrayOf(licenseObligationPropType.isRequired);
 
 export const scopePropType = PropTypes.shape({
   id: PropTypes.string.isRequired,

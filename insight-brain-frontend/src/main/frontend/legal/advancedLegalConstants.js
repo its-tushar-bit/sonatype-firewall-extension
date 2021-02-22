@@ -5,11 +5,11 @@
  */
 export const TEXT_BASED_OBLIGATIONS = ['Must Give Credit', 'Inclusion of Install Instructions', 'Must State Changes'];
 
-export const OBLIGATION_STATUSES = ['OPEN', 'IGNORED', 'FLAGGED', 'FULFILLED'];
+export const OBLIGATION_STATUSES = ['FULFILLED', 'FLAGGED', 'IGNORED', 'OPEN'];
 
 export const OBLIGATION_STATUS_TO_DISPLAY = {
-  'OPEN': 'Unreviewed',
-  'IGNORED': 'Not Applicable',
+  'FULFILLED': 'Fulfilled',
   'FLAGGED': 'Flagged',
-  'FULFILLED': 'Fulfilled'
+  'IGNORED': 'Not Applicable',
+  'OPEN': 'Unreviewed'
 };

@@ -95,7 +95,7 @@ export default function LicenseObligationModal(props) {
                        { ...commentTextInput }
                        onChange={ payload => {
                          setObligationComment({ name: licenseObligation.name, value: payload });
-                         setCommentTextInput(userInput(null, licenseObligation.comment));
+                         setCommentTextInput(userInput(null, payload));
                        } }
           />
         </NxFormGroup>

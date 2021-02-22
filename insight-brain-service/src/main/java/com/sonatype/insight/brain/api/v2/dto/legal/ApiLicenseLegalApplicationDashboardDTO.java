@@ -24,7 +24,7 @@ public class ApiLicenseLegalApplicationDashboardDTO
 
   public String stageTypeName;
 
-  public int reviewCompletedCount;
+  public int componentsReviewedCount;
 
-  public int reviewTotalCount;
+  public int componentsTotalCount;
 }

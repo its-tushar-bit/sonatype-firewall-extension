@@ -146,4 +146,14 @@ public class ComponentIdentifierAdapter
       throw new InvalidComponentIdentifierException("Error transforming to component identifier: " + e.getMessage());
     }
   }
+
+  @SuppressWarnings("unchecked")
+  public static ComponentIdentifier formatAndJsonToComponentIdentifier(String format, String coordinatesJson) {
+    try {
+      return new ComponentIdentifier(format, JsonUtils.parse(coordinatesJson, Map.class));
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
 }

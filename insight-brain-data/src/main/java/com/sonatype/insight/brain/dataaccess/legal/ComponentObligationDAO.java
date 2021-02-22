@@ -7,8 +7,10 @@ package com.sonatype.insight.brain.dataaccess.legal;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -18,6 +20,7 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
+import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -47,6 +50,11 @@ public class ComponentObligationDAO
     try (TransactionContext tx = createTransactionContext()) {
       return getByIdNotNull(tx, id);
     }
+  }
+
+  public List<ComponentObligation> getAll() {
+    String sQuery = "SELECT entity FROM ComponentObligation entity";
+    return getList(sQuery);
   }
 
   public List<ComponentObligation> getByOwnerId(TransactionContext tx, String ownerId) {
@@ -144,6 +152,32 @@ public class ComponentObligationDAO
       return getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(tx, ownerId, componentIdentifier,
           obligationNames);
     }
+  }
+
+  public Map<ComponentIdentifier, Set<String>> getAddressedObligationsByOwnerIdWithHierarchy(String ownerId) {
+    // Keeps a set of all obligations saved by component to avoid considering them when querying the parent owner
+    Map<ComponentIdentifier, Set<String>> componentObligationsFound = new HashMap<>();
+    // Keeps a set of fulfilled or ignored obligations by component
+    Map<ComponentIdentifier, Set<String>> componentObligationsAddressed = new HashMap<>();
+
+    try (TransactionContext tx = createTransactionContext()) {
+      for (Owner owner : new OwnerDAO().walkHierarchy(ownerId)) {
+        getByOwnerId(tx, owner.getId()).forEach(componentObligation -> {
+          Set<String> obligationNames = componentObligationsFound
+              .computeIfAbsent(componentObligation.getComponentIdentifier(), key -> new HashSet<String>());
+          if (obligationNames.add(componentObligation.getObligationName())
+              && (componentObligation.getStatus() == ObligationStatus.FULFILLED
+                  || componentObligation.getStatus() == ObligationStatus.IGNORED)) {
+            // The obligation was not saved in the scope of the previous owner and has been addressed in the current one
+            Set<String> obligationNamesAddressed = componentObligationsAddressed
+                .computeIfAbsent(componentObligation.getComponentIdentifier(), key -> new HashSet<String>());
+            obligationNamesAddressed.add(componentObligation.getObligationName());
+          }
+        });
+      }
+    }
+
+    return componentObligationsAddressed;
   }
 
   @Override

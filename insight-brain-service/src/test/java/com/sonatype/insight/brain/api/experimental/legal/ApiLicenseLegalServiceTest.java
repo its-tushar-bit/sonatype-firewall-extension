@@ -106,6 +106,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Binder;
 import org.apache.commons.io.IOUtils;
@@ -123,6 +124,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
@@ -364,9 +366,55 @@ public class ApiLicenseLegalServiceTest
 
     assertThat(results).hasSize(2);
     assertLegalLicenseApplicationDashboardDTO(appTagEval1.getLeft(), appTagEval1.getMiddle(), appTagEval1.getRight(),
-        findResult(results, appTagEval1.getLeft().getId()));
+        findResult(results, appTagEval1.getLeft().getId()), 1, 1);
     assertLegalLicenseApplicationDashboardDTO(appTagEval2.getLeft(), appTagEval2.getMiddle(), appTagEval2.getRight(),
-        findResult(results, appTagEval2.getLeft().getId()));
+        findResult(results, appTagEval2.getLeft().getId()), 1, 1);
+  }
+
+  @Test
+  public void testGetLicenseLegalApplicationsDashboard_WithComponentsReviewed() {
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2");
+    Triple<Application, Tag, PolicyEvaluation> appTagEval1 = setupApplicationWithLicenses(componentIdentifier1, "MIT");
+    Triple<Application, Tag, PolicyEvaluation> appTagEval2 = setupApplicationWithLicenses(componentIdentifier2, "MIT");
+    tempEntity.newLicenseOverride(appTagEval2.getLeft().getId(), componentIdentifier2, LicenseOverrideStatus.OVERRIDDEN,
+        Sets.newHashSet("Apache-1.0", "Apache-2.0"));
+
+    tempEntity.newComponentObligation(componentIdentifier1, appTagEval1.getLeft().getId(), "obligation1", "comment1",
+        ObligationStatus.FULFILLED, "hash1");
+    tempEntity.newComponentObligation(componentIdentifier1, appTagEval1.getLeft().getId(), "obligation2", "comment2",
+        ObligationStatus.OPEN, "hash2");
+
+    tempEntity.newComponentObligation(componentIdentifier2, appTagEval2.getLeft().getId(), "obligation3", "comment3",
+        ObligationStatus.FULFILLED, "hash3");
+    tempEntity.newComponentObligation(componentIdentifier2, appTagEval2.getLeft().getId(), "obligation4", "comment4",
+        ObligationStatus.IGNORED, "hash4");
+    tempEntity.newComponentObligation(componentIdentifier2, appTagEval2.getLeft().getId(), "obligation5", "comment5",
+        ObligationStatus.FULFILLED, "hash5");
+
+    List<String> licenses = Lists.newArrayList("MIT", "Apache-1.0", "Apache-2.0");
+
+    List<LicenseMetadataDTO> licenseMetadataDTOs = createLicenseMetadataDTOs(licenses);
+    licenseMetadataDTOs.get(0).setLicenseObligations(new LinkedHashSet<>(Arrays
+        .asList(new LicenseObligationDTO("obligation1", Collections.emptySet()),
+            new LicenseObligationDTO("obligation2", Collections.emptySet()))));
+    licenseMetadataDTOs.get(1).setLicenseObligations(new LinkedHashSet<>(Arrays
+        .asList(new LicenseObligationDTO("obligation3", Collections.emptySet()))));
+    licenseMetadataDTOs.get(2).setLicenseObligations(new LinkedHashSet<>(Arrays
+        .asList(new LicenseObligationDTO("obligation4", Collections.emptySet()),
+            new LicenseObligationDTO("obligation5", Collections.emptySet()))));
+
+    doReturn(licenseMetadataDTOs)
+        .when(mockApiLicenseLegalHdsService).getLicenseMetadata(argThat(list -> list.containsAll(licenses)));
+
+    List<ApiLicenseLegalApplicationDashboardDTO> results =
+        apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, 1, 10);
+
+    assertThat(results).hasSize(2);
+    assertLegalLicenseApplicationDashboardDTO(appTagEval1.getLeft(), appTagEval1.getMiddle(), appTagEval1.getRight(),
+        findResult(results, appTagEval1.getLeft().getId()), 0, 1);
+    assertLegalLicenseApplicationDashboardDTO(appTagEval2.getLeft(), appTagEval2.getMiddle(), appTagEval2.getRight(),
+        findResult(results, appTagEval2.getLeft().getId()), 1, 1);
   }
 
   @Test
@@ -1664,6 +1712,17 @@ public class ApiLicenseLegalServiceTest
       PolicyEvaluation latestPolicyEvaluation,
       ApiLicenseLegalApplicationDashboardDTO dto)
   {
+    assertLegalLicenseApplicationDashboardDTO(app, tag, latestPolicyEvaluation, dto, 0, 0);
+  }
+
+  private void assertLegalLicenseApplicationDashboardDTO(
+      Application app,
+      Tag tag,
+      PolicyEvaluation latestPolicyEvaluation,
+      ApiLicenseLegalApplicationDashboardDTO dto,
+      int componentsReviewedCount,
+      int componentsTotalCount)
+  {
     assertThat(dto.applicationId).isEqualTo(app.getId());
     assertThat(dto.applicationName).isEqualTo(app.getName());
     assertThat(dto.applicationPublicId).isEqualTo(app.getPublicId());
@@ -1671,8 +1730,8 @@ public class ApiLicenseLegalServiceTest
     assertThat(dto.lastScanTime).isEqualTo(latestPolicyEvaluation.getTime().getTime());
     assertThat(dto.stageTypeId).isEqualTo(latestPolicyEvaluation.getStageTypeId());
     assertThat(dto.stageTypeName).isEqualTo(StageTypes.getById(latestPolicyEvaluation.getStageTypeId()).getName());
-    assertThat(dto.reviewCompletedCount).isZero();
-    assertThat(dto.reviewTotalCount).isZero();
+    assertThat(dto.componentsReviewedCount).isEqualTo(componentsReviewedCount);
+    assertThat(dto.componentsTotalCount).isEqualTo(componentsTotalCount);
   }
 
   private Pair<Application, Tag> setupComponentDashboardEntities(

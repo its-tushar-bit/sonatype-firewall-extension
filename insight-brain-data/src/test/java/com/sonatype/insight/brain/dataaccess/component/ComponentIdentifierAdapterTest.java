@@ -193,4 +193,15 @@ public class ComponentIdentifierAdapterTest
     assertThat(identifier.getCoordinates()).hasSize(2)
         .containsExactlyInAnyOrderEntriesOf(ImmutableMap.of("name", "glibc", VERSION, "f6536+45"));
   }
+
+  @Test
+  public void testFormatAndJsonToComponentIdentifier() {
+    ComponentIdentifier result = ComponentIdentifierAdapter.formatAndJsonToComponentIdentifier("maven",
+        "{\"groupId\":\"g\",\"artifactId\":\"a\",\"version\":\"v\"}");
+    assertThat(result).isEqualTo(ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
+
+    result = ComponentIdentifierAdapter.formatAndJsonToComponentIdentifier("nuget",
+        "{\"packageId\":\"package\",\"version\":\"1.0\"}");
+    assertThat(result).isEqualTo(ComponentIdentifier.createNugetCoordinates("package", "1.0"));
+  }
 }

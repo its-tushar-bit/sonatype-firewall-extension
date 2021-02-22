@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -277,5 +278,50 @@ public class ComponentObligationDAOTest
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(application.getId(),
         componentIdentifier, obligationNames)).usingRecursiveFieldByFieldElementComparator()
         .containsExactlyInAnyOrder(c1App, c2Org, c3App);
+  }
+
+  @Test
+  public void testGetAddressedObligationsByOwnerIdWithHierarchy() {
+    assertThat(dao.getAddressedObligationsByOwnerIdWithHierarchy(application.getId())).isEmpty();
+
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2");
+
+    tempEntity.newComponentObligation(componentIdentifier1, Organization.ROOT_ORGANIZATION_ID, "name1", "comment1",
+        ObligationStatus.OPEN, "hash1");
+
+    assertThat(dao.getAddressedObligationsByOwnerIdWithHierarchy(application.getId())).isEmpty();
+
+    tempEntity.newComponentObligation(componentIdentifier1, Organization.ROOT_ORGANIZATION_ID, "name2", "comment2",
+        ObligationStatus.FULFILLED, "hash2");
+
+    Map<ComponentIdentifier, Set<String>> result =
+        dao.getAddressedObligationsByOwnerIdWithHierarchy(application.getId());
+    assertThat(result).hasSize(1);
+    assertThat(result.get(componentIdentifier1)).containsExactly("name2");
+
+    tempEntity.newComponentObligation(componentIdentifier1, application.getOrganizationId(), "name3", "comment3",
+        ObligationStatus.FLAGGED, "hash3");
+
+    result = dao.getAddressedObligationsByOwnerIdWithHierarchy(application.getId());
+    assertThat(result).hasSize(1);
+    assertThat(result.get(componentIdentifier1)).containsExactly("name2");
+
+    tempEntity.newComponentObligation(componentIdentifier1, application.getOrganizationId(), "name4", "comment4",
+        ObligationStatus.IGNORED, "hash4");
+
+    result = dao.getAddressedObligationsByOwnerIdWithHierarchy(application.getId());
+    assertThat(result).hasSize(1);
+    assertThat(result.get(componentIdentifier1)).containsExactlyInAnyOrder("name2", "name4");
+
+    tempEntity.newComponentObligation(componentIdentifier1, application.getId(), "name4", "comment4",
+        ObligationStatus.FULFILLED, "hash4");
+    tempEntity.newComponentObligation(componentIdentifier2, application.getId(), "name5", "comment5",
+        ObligationStatus.FULFILLED, "hash5");
+
+    result = dao.getAddressedObligationsByOwnerIdWithHierarchy(application.getId());
+    assertThat(result).hasSize(2);
+    assertThat(result.get(componentIdentifier1)).containsExactlyInAnyOrder("name2", "name4");
+    assertThat(result.get(componentIdentifier2)).containsExactly("name5");
   }
 }

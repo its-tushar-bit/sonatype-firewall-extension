@@ -67,6 +67,7 @@ import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.ApplicationComponentLicense;
+import com.sonatype.insight.brain.model.ApplicationComponentLicensesDTO;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -106,6 +107,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -290,7 +292,10 @@ public class ApiLicenseLegalService
 
     Collections.sort(result, newDashboardComparator(order));
 
-    return result.subList(startIndex, Math.min(page * pageSize, result.size()));
+    result = result.subList(startIndex, Math.min(page * pageSize, result.size()));
+    calculateComponentsReviewed(result);
+
+    return result;
   }
 
   public List<ApiLicenseLegalComponentDashboardDTO> getLicenseLegalComponentsDashboard(
@@ -819,5 +824,68 @@ public class ApiLicenseLegalService
         throw new IllegalArgumentException("Unknown ordering: " + order);
     }
     return comparator.thenComparing(dto -> dto.stageTypeName);
+  }
+
+  private void calculateComponentsReviewed(List<ApiLicenseLegalApplicationDashboardDTO> result) {
+    MultiKeyMap<String, List<ApplicationComponentLicensesDTO>> applicationIdStageTypeIdComponentLicensesMap =
+        new MultiKeyMap<>();
+    Set<String> licenseIdsFound = new HashSet<>();
+    Map<String, Map<ComponentIdentifier, Set<String>>> applicationIdAddressedObligationsMap = new HashMap<>();
+
+    for (ApiLicenseLegalApplicationDashboardDTO dto : result) {
+      List<ApplicationComponentLicensesDTO> componentLicenses =
+          applicationComponentLicenseDAO.getApplicationComponentEffectiveLicenses(dto.applicationId, dto.stageTypeId);
+
+      applicationIdStageTypeIdComponentLicensesMap.put(dto.applicationId, dto.stageTypeId, componentLicenses);
+      // Collect all licenses to make a single HDS call instead of one per component
+      licenseIdsFound.addAll(componentLicenses.stream()
+          .flatMap(component -> component.getLicenses().stream())
+          .collect(Collectors.toSet()));
+
+      applicationIdAddressedObligationsMap.computeIfAbsent(dto.applicationId,
+          componentObligationDAO::getAddressedObligationsByOwnerIdWithHierarchy);
+    }
+
+    Map<String, Set<String>> licenseIdObligationNamesMap =
+        apiLicenseLegalHdsService.getLicenseMetadata(licenseIdsFound).parallelStream()
+        .collect(Collectors.toMap(
+                LicenseMetadataDTO::getLicenseId,
+            licenseMetadata -> licenseMetadata.getLicenseObligations().stream()
+                .map(LicenseObligationDTO::getName)
+                .collect(Collectors.toSet())));
+
+    for (ApiLicenseLegalApplicationDashboardDTO dto : result) {
+      List<ApplicationComponentLicensesDTO> componentLicenses =
+          applicationIdStageTypeIdComponentLicensesMap.get(dto.applicationId, dto.stageTypeId);
+      dto.componentsTotalCount = componentLicenses.size();
+      dto.componentsReviewedCount = getComponentsReviewedCount(componentLicenses, licenseIdObligationNamesMap,
+          applicationIdAddressedObligationsMap.get(dto.applicationId));
+    }
+  }
+
+  private int getComponentsReviewedCount(
+      List<ApplicationComponentLicensesDTO> componentLicenses,
+      Map<String, Set<String>> licenseIdObligationNamesMap,
+      Map<ComponentIdentifier, Set<String>> componentObligationsAddressed)
+  {
+    int componentsFullyReviewed = 0;
+
+    for (ApplicationComponentLicensesDTO componentLicensesDTO : componentLicenses) {
+      Set<String> allObligationNames = componentLicensesDTO.getLicenses().stream()
+          .filter(licenseIdObligationNamesMap::containsKey)
+          .flatMap(licenseId -> licenseIdObligationNamesMap.get(licenseId).stream())
+          .collect(Collectors.toSet());
+
+      long addressedObligationCount = componentObligationsAddressed
+          .getOrDefault(componentLicensesDTO.getComponentIdentifier(), Collections.emptySet()).stream()
+          .filter(allObligationNames::contains)
+          .count();
+
+      if (addressedObligationCount >= allObligationNames.size()) {
+        componentsFullyReviewed++;
+      }
+    }
+
+    return componentsFullyReviewed;
   }
 }

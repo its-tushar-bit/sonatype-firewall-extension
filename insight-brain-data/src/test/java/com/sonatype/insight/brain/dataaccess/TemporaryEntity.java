@@ -590,6 +590,8 @@ public class TemporaryEntity
         systemConfigurationPropertyDAO.delete(property);
       }
     }
+
+    componentObligationDAO.getAll().forEach(componentObligationDAO::delete);
   }
 
   private <E> void detachEntity(E entity) {

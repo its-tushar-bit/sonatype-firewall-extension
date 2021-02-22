@@ -98,6 +98,8 @@ public class ApiLicenseLegalResourceTest
         tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
     mockReport(policyEvaluation);
 
+    hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.METADATA_URL);
+
     HttpResponse response =
         restRequest().path(ApiLicenseLegalResource.DASHBOARD_APPLICATIONS_PATH).body(filter).auth().post();
 
@@ -112,8 +114,8 @@ public class ApiLicenseLegalResourceTest
     assertThat(dto.applicationPublicId).isEqualTo(application.getPublicId());
     assertThat(dto.applicationTagNames).containsExactly(tag.getName());
     assertThat(dto.lastScanTime).isEqualTo(policyEvaluation.getTime().getTime());
-    assertThat(dto.reviewCompletedCount).isZero();
-    assertThat(dto.reviewTotalCount).isZero();
+    assertThat(dto.componentsReviewedCount).isZero();
+    assertThat(dto.componentsTotalCount).isZero();
   }
 
   @Test

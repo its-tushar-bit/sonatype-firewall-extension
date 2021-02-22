@@ -5,17 +5,12 @@
  */
 package com.sonatype.insight.brain.model;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.util.Map;
-
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.Transient;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
-import com.sonatype.insight.json.store.JsonUtils;
 
 /**
  * @since 1.13.0
@@ -37,13 +32,8 @@ public abstract class HasComponentId
       return null;
     }
     if (componentIdentifier == null) {
-      try {
-        componentIdentifier = new ComponentIdentifier(componentIdFormat, JsonUtils.parse(componentIdCoordinatesJson,
-            Map.class));
-      }
-      catch (IOException e) {
-        throw new UncheckedIOException(e);
-      }
+      componentIdentifier =
+          ComponentIdentifierAdapter.formatAndJsonToComponentIdentifier(componentIdFormat, componentIdCoordinatesJson);
     }
     return componentIdentifier;
   }

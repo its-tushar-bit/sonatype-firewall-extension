@@ -74,7 +74,7 @@ export default function LicenseObligationsTile(props) {
   const createReviewStatus = licenseObligation => {
     return <div>
       <h4 className="nx-h4">Review Status</h4>
-      <p className="obligation-text">{ OBLIGATION_STATUS_TO_DISPLAY[licenseObligation.status] }</p>
+      <p className="obligation-text">{ OBLIGATION_STATUS_TO_DISPLAY[licenseObligation.originalStatus] }</p>
     </div>;
   };
 

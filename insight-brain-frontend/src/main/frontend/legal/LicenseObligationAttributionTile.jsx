@@ -49,7 +49,7 @@ export default function LicenseObligationAttributionTile(props) {
 
   const createAttributionModal = () => {
     return <NxModal id="license-obligation-attribution-modal"
-                    onClose={ () => setShowAttributionModal({ name, value: false }) }>
+                    onClose={ () => cancelAttributionModal({ name }) }>
       <NxForm onCancel={ () => cancelAttributionModal({ name }) }
               submitBtnText="Save"
               onSubmit={ () => saveAttribution(name) }
@@ -99,7 +99,10 @@ export default function LicenseObligationAttributionTile(props) {
           <h2 className="nx-h2">Attribution for &quot;{ name }&quot;</h2>
         </div>
         <div className="nx-tile__actions">
-          <NxButton variant="tertiary" onClick={ () => setShowAttributionModal({ name, value: true }) }>
+          <NxButton variant="tertiary" onClick={ () => {
+            setAttributionTextInput(initialState(attributionText));
+            setShowAttributionModal({ name, value: true });
+          } }>
             <NxFontAwesomeIcon icon={ isAttributionPresent() ? faPen : faPlus }/>
             <span>{ isAttributionPresent() ? 'Edit' : 'Add' } Attribution</span>
           </NxButton>

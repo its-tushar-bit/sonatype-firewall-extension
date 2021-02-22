@@ -11,6 +11,7 @@ import {faTrashAlt} from '@fortawesome/pro-regular-svg-icons';
 import {
   NxButton,
   NxCheckbox,
+  NxFieldset,
   NxFontAwesomeIcon,
   NxInfoAlert,
   NxModal,
@@ -188,13 +189,10 @@ export default function MailConfig(props) {
       </div>
 
       {field(systemEmailState, setSystemEmail, 'nexus@iqserver', 'email-config-systemEmail', 'System Email')}
-      <fieldset className="nx-fieldset">
-        <legend className="nx-legend">
-          <span className="nx-legend__text">Security Options</span>
-        </legend>
+      <NxFieldset label="Security Options">
         {sslInput}
         {tlsInput}
-      </fieldset>
+      </NxFieldset>
 
       <section className="nx-tile-subsection">
         <div className="nx-form-row">

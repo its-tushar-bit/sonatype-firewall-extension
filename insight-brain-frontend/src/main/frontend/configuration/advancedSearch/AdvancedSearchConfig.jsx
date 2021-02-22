@@ -12,6 +12,7 @@ import LoadError from '../../react/LoadError';
 import {
   NxButton,
   NxCheckbox,
+  NxFieldset,
   NxFontAwesomeIcon,
   NxSubmitMask
 } from '@sonatype/react-shared-components';
@@ -113,10 +114,7 @@ export default function AdvancedSearchConfig(props) {
               { submitMaskState !== null &&
                 <NxSubmitMask success={submitMaskState} message={submitMaskMessage} />
               }
-              <fieldset className="nx-fieldset">
-                <legend className="nx-legend">
-                  <span className="nx-legend__text">Advanced Search Status</span>
-                </legend>
+              <NxFieldset label="Advanced Search Status" isRequired>
                 <NxCheckbox id="advanced-search-config-is-enabled-checkbox"
                             isChecked={isEnabled}
                             onChange={setIsEnabled}>
@@ -126,7 +124,7 @@ export default function AdvancedSearchConfig(props) {
                   Note: It is recommended that you manually re-index after enabling this feature in
                   order for Advanced Search to index your historical data.
                 </p>
-              </fieldset>
+              </NxFieldset>
               <section className="nx-tile-subsection">
                 <header className="nx-tile-subsection__header">
                   <h3 className="nx-h3">Indexing</h3>

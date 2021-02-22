@@ -7,13 +7,14 @@ import React, { useState } from 'react';
 
 import {
   NxButton,
+  NxFieldset,
   NxFontAwesomeIcon,
+  NxLoadError,
   NxModal,
   NxRadio,
   NxSubmitMask,
   NxTextInput,
-  NxWarningAlert,
-  NxLoadError
+  NxWarningAlert
 } from '@sonatype/react-shared-components';
 import { initialState, userInput } from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
 import { faSave } from '@fortawesome/free-solid-svg-icons';
@@ -89,8 +90,7 @@ export default function SaveFilterModalContent(props) {
     </NxWarningAlert>;
 
   const formContent =
-    <fieldset className="nx-fieldset">
-      <legend className="nx-legend">Choose an Option</legend>
+    <NxFieldset label="Choose an Option" isRequired>
       <NxRadio id="dashboard-filter-overwrite"
                name="saveMode"
                isChecked={saveMode === SAVE_MODE_OVERWRITE}
@@ -115,7 +115,7 @@ export default function SaveFilterModalContent(props) {
                        onChange={filterNameChangeHandler}/>
         </div>
       }
-    </fieldset>;
+    </NxFieldset>;
 
   return (
     <NxModal id="save-filter-modal" onClose={cancelSaveFilter}>

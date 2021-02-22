@@ -9,6 +9,7 @@ import { find, propEq } from 'ramda';
 import classnames from 'classnames';
 import {
   NxButton,
+  NxFieldset,
   NxTextInput,
   NxRadio
 } from '@sonatype/react-shared-components';
@@ -143,8 +144,7 @@ export default function AddWaiverForm(props) {
         }
 
         { /* Scope */ }
-        <fieldset className="nx-fieldset iq-add-waiver-form__scope">
-          <legend className="nx-legend">Scope</legend>
+        <NxFieldset className="iq-add-waiver-form__scope" label="Scope" isRequired>
           { availableWaiverScopes && availableWaiverScopes.map(({ id, name, label }) =>
             <NxRadio name="add-waiver-target"
                      value={id}
@@ -154,11 +154,10 @@ export default function AddWaiverForm(props) {
               {label} - {name}
             </NxRadio>
           )}
-        </fieldset>
+        </NxFieldset>
 
         { /* Components */ }
-        <fieldset className="nx-fieldset iq-add-waiver-form__components">
-          <legend className="nx-legend">Components</legend>
+        <NxFieldset className="iq-add-waiver-form__components" label="Components" isRequired>
           <NxRadio name="add-waiver-components"
                    value={componentName}
                    isChecked={!applyToAllComponents}
@@ -171,11 +170,10 @@ export default function AddWaiverForm(props) {
                    onChange={handleComponentsChange}>
             All Components
           </NxRadio>
-        </fieldset>
+        </NxFieldset>
 
         { /* Expiry time */ }
-        <fieldset className="nx-fieldset iq-add-waiver-form__expiryTime">
-          <legend className="nx-legend">Waiver Expiration</legend>
+        <NxFieldset className="iq-add-waiver-form__expiryTime" label="Waiver Expiration" isRequired>
           <select id="waiver-expiration-select"
                   onChange={onExpiryTimeChange}
                   value={expiryTime || ''}>
@@ -183,7 +181,7 @@ export default function AddWaiverForm(props) {
               <option key={index} value={value}>{name}</option>
             )}
           </select>
-        </fieldset>
+        </NxFieldset>
 
         { /* Comments */}
         <div className="nx-form-group iq-add-waiver-form__comments">

@@ -5,8 +5,9 @@
  */
 import {
   NxButton,
-  NxTextInput,
-  NxRadio
+  NxFieldset,
+  NxRadio,
+  NxTextInput
 } from '@sonatype/react-shared-components';
 
 import * as enzymeUtils from '../enzymeUtils';
@@ -159,7 +160,8 @@ describe('AddWaiverForm', function() {
         waiverTargetsSection = component.find('.iq-add-waiver-form__scope'),
         targetRadios = waiverTargetsSection.find(NxRadio);
 
-    expect(waiverTargetsSection).toHaveClassName('.nx-fieldset');
+    expect(waiverTargetsSection.find(NxFieldset)).toExist();
+    expect(waiverTargetsSection).toHaveProp('label', 'Scope');
 
     expect(targetRadios.length).toBe(2);
     expect(targetRadios.at(0)).toHaveProp('name', 'add-waiver-target');
@@ -197,7 +199,9 @@ describe('AddWaiverForm', function() {
         componentsSection = component.find('.iq-add-waiver-form__components'),
         componentRadios = componentsSection.find(NxRadio);
 
-    expect(componentsSection).toHaveClassName('.nx-fieldset');
+    expect(componentsSection.find(NxFieldset)).toExist();
+    expect(componentsSection).toHaveProp('label', 'Components');
+
     expect(componentRadios.length).toBe(2);
 
     expect(componentRadios.at(0)).toHaveProp('name', 'add-waiver-components');
@@ -234,7 +238,8 @@ describe('AddWaiverForm', function() {
         selectComponent = expiryTimeSection.find('select'),
         options = selectComponent.find('option');
 
-    expect(expiryTimeSection).toHaveClassName('.nx-fieldset');
+    expect(expiryTimeSection.find(NxFieldset)).toExist();
+    expect(expiryTimeSection).toHaveProp('label', 'Waiver Expiration');
     expect(selectComponent).toExist();
     expect(options.length).toBe(7);
 

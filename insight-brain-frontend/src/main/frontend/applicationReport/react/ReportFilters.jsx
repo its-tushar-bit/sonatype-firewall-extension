@@ -5,6 +5,7 @@
  */
 import React from 'react';
 import {
+  NxFieldset,
   NxRadio,
   NxStatefulTreeViewMultiSelect
 } from '@sonatype/react-shared-components';
@@ -128,8 +129,7 @@ export default function ReportFilters(props) {
   return (
     <aside className="nx-page-sidebar" id="report-sidebar">
       <BackButton stateName="violations" $state={$state} text="All Reports"/>
-      <fieldset className="nx-fieldset">
-        <legend className="nx-legend">Application Report View</legend>
+      <NxFieldset label="Application Report View">
         <NxRadio name="view-mode"
                  id="aggregate-by-component-radio"
                  value={VIEW_MODE_AGGREGATE}
@@ -144,10 +144,9 @@ export default function ReportFilters(props) {
                  isChecked={!aggregate}>
           All Violations
         </NxRadio>
-      </fieldset>
+      </NxFieldset>
 
-      <fieldset className="nx-fieldset">
-        <legend className="nx-legend">Filters</legend>
+      <NxFieldset label="Filters">
         <div className="report-filters">
           <NxStatefulTreeViewMultiSelect options={proprietaryFilterOptions}
                                          selectedIds={derivedSelectedProprietaryOptions}
@@ -195,7 +194,7 @@ export default function ReportFilters(props) {
             <span>Policy Threat Level</span>
           </IqTreeViewPolicyThreatSlider>
         </div>
-      </fieldset>
+      </NxFieldset>
     </aside>
   );
 }

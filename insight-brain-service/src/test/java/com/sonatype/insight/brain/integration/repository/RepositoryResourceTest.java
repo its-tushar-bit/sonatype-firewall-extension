@@ -20,7 +20,9 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
@@ -117,5 +119,20 @@ public class RepositoryResourceTest
     securityVulnerability.setUrl("test-url");
     securityVulnerabilities.add(securityVulnerability);
     return securityVulnerabilities;
+  }
+
+  @Test
+  public void testRemoveProprietaryComponentNames() throws Exception {
+    String repoManId = tempEntity.newRepositoryManager().getInstanceId();
+    String repoId = "hosted-repo";
+    ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO = new ProprietaryComponentNamePatternDAO();
+    proprietaryComponentNamePatternDAO
+        .insert(new ProprietaryComponentNamePattern("npm").withRepository(repoManId, repoId));
+
+    HttpResponse response =
+        restRequest().path(RepositoryResource.PROPRIETARY_NAMES_PATH).parameter(repoManId, repoId).delete();
+    assertResponseStatus(204, response);
+
+    assertThat(proprietaryComponentNamePatternDAO.getByFormat("npm")).isEmpty();
   }
 }

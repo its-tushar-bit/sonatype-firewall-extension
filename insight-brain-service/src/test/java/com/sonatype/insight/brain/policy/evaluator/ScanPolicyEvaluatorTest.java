@@ -80,6 +80,7 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupLeve
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.PackageUrlConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflictConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
@@ -1777,6 +1778,7 @@ public class ScanPolicyEvaluatorTest
     ConditionTypes.enableConditionType(ConditionTypes.IntegrityRatingConditionType);
     try {
       Set<String> expectedConditionTypeIds = ConditionTypes.getAll().stream().map(ConditionType::getId)
+          .filter(id -> !ProprietaryNameConflictConditionType.ID.equals(id))
           .collect(Collectors.toSet());
       assertThat(conditions.stream().map(Condition::getConditionTypeId).collect(toSet()))
           .isEqualTo(expectedConditionTypeIds);

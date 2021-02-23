@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.component.ProprietaryComponentNames;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
@@ -127,6 +128,16 @@ class ArtifactoryRepositoryServiceWrapper
     return repositoryService
         .getUnquarantinedComponents(getRepositoryManagerInstanceId(repositoryManagerInstanceId, repositoryPublicId),
             repositoryPublicId, sinceUtcTimestamp);
+  }
+
+  void addProprietaryComponentNames(
+      final String repositoryManagerInstanceId,
+      final String repositoryPublicId,
+      final ProprietaryComponentNames proprietaryComponentNames)
+  {
+    repositoryService.addProprietaryComponentNames(
+        getRepositoryManagerInstanceId(repositoryManagerInstanceId, repositoryPublicId), repositoryPublicId,
+        proprietaryComponentNames);
   }
 
   /**

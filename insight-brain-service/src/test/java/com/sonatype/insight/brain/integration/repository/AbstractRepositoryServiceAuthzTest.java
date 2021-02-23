@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
+import com.sonatype.clm.dto.model.component.ProprietaryComponentNames;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -178,5 +179,42 @@ public abstract class AbstractRepositoryServiceAuthzTest
   public void testGetUnquarantinedComponents_Unauthorized() {
     login();
     getRepositoryService().getUnquarantinedComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), 0);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testAddProprietaryComponentNames_Unauthenticated() {
+    getRepositoryService().addProprietaryComponentNames(tempEntity.newRepositoryManager().getInstanceId(), "internal",
+        new ProprietaryComponentNames("npm", "private"));
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testAddProprietaryComponentNames_Unauthorized() {
+    login();
+    getRepositoryService().addProprietaryComponentNames(tempEntity.newRepositoryManager().getInstanceId(), "internal",
+        new ProprietaryComponentNames("npm", "private"));
+  }
+
+  @Test
+  public void testAddProprietaryComponentNames_Authorized() {
+    grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    getRepositoryService().addProprietaryComponentNames(tempEntity.newRepositoryManager().getInstanceId(), "internal",
+        new ProprietaryComponentNames("npm", "private"));
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testRemoveProprietaryComponentNames_Unauthenticated() {
+    getRepositoryService().removeProprietaryComponentNames(MANUAL_REPO_MAN_INSTANCE_ID, "internal");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testRemoveProprietaryComponentNames_Unauthorized() {
+    login();
+    getRepositoryService().removeProprietaryComponentNames(MANUAL_REPO_MAN_INSTANCE_ID, "internal");
+  }
+
+  @Test
+  public void testRemoveProprietaryComponentNames_Authorized() {
+    grantManageProprietaryPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    getRepositoryService().removeProprietaryComponentNames(MANUAL_REPO_MAN_INSTANCE_ID, "internal");
   }
 }

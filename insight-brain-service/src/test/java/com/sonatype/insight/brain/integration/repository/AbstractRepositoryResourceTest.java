@@ -6,14 +6,18 @@
 package com.sonatype.insight.brain.integration.repository;
 
 import java.util.Date;
+import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.ProprietaryComponentNames;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -154,5 +158,26 @@ public abstract class AbstractRepositoryResourceTest
     assertResponseStatus(200, response);
     UnquarantinedComponentList result = response.getBody(UnquarantinedComponentList.class);
     assertThat(result.pathnames).containsExactly(pathname);
+  }
+
+  @Test
+  public void testAddProprietaryComponentNames() throws Exception {
+    String repoManId = tempEntity.newRepositoryManager().getInstanceId();
+    String repoId = "hosted-repo";
+    ProprietaryComponentNames proprietaryComponentNames = new ProprietaryComponentNames("npm", "name1", "name2");
+
+    HttpResponse response = restRequest().path(RepositoryResource.PROPRIETARY_NAMES_PATH).parameter(repoManId, repoId)
+        .body(proprietaryComponentNames).post();
+    assertResponseStatus(204, response);
+
+    List<ProprietaryComponentNamePattern> patterns = new ProprietaryComponentNamePatternDAO().getByFormat("npm");
+    assertThat(patterns).allSatisfy(pattern -> {
+      assertThat(pattern.getFormat()).isEqualTo("npm");
+      assertThat(pattern.getNamespacePattern()).isNull();
+      assertThat(pattern.getRepositoryManagerInstanceId()).isEqualTo(repoManId);
+      assertThat(pattern.getRepositoryPublicId()).isEqualTo(repoId);
+    }).extracting(ProprietaryComponentNamePattern::getNamePattern).containsExactlyInAnyOrder("name1", "name2");
+
+    assertThat(new RepositoryDAO().getByRepositoryManagerInstanceIdAndPublicId(repoManId, repoId)).isNull();
   }
 }

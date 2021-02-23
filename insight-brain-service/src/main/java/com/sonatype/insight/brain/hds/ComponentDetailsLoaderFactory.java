@@ -5,16 +5,25 @@
  */
 package com.sonatype.insight.brain.hds;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.repository.ProprietaryComponentNameDetector;
 
 @Named
 @Singleton
 public class ComponentDetailsLoaderFactory
 {
+  private final ProprietaryComponentNameDetector proprietaryComponentNameDetector;
+
+  @Inject
+  public ComponentDetailsLoaderFactory(ProprietaryComponentNameDetector proprietaryComponentNameDetector) {
+    this.proprietaryComponentNameDetector = proprietaryComponentNameDetector;
+  }
+
   public ComponentDetailsLoader newInstance(Owner owner) {
-    return new DefaultComponentDetailsLoader(owner);
+    return new DefaultComponentDetailsLoader(owner, proprietaryComponentNameDetector);
   }
 }

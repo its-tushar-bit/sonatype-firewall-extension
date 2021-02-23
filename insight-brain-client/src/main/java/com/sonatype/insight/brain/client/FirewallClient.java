@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.client;
 
 import java.io.IOException;
 
+import com.sonatype.clm.dto.model.component.ProprietaryComponentNames;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
@@ -40,6 +41,8 @@ public class FirewallClient
   private static final String UNQUARANTINED_COMPONENTS_PATH = "components/unquarantined";
 
   private static final String EVALUATE_COMPONENT_WITH_QUARANTINE_PATH = "evaluate/quarantine";
+
+  private static final String PROPRIETARY_NAMES_PATH = "proprietary/names";
 
   private final String repositoryManagerInstanceId;
 
@@ -127,5 +130,14 @@ public class FirewallClient
     Result result = path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, UNQUARANTINED_COMPONENTS_PATH)
         .query("sinceUtcTimestamp", Long.toString(sinceUtcTimestamp)).get();
     return parseResult(result, UnquarantinedComponentList.class);
+  }
+
+  public void addProprietaryComponentNames(ProprietaryComponentNames proprietaryComponentNames) throws IOException {
+    ByteArrayEntity entity =
+        new ByteArrayEntity(JsonUtils.generate(proprietaryComponentNames), ContentType.APPLICATION_JSON);
+
+    Result result =
+        path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, PROPRIETARY_NAMES_PATH).post(entity);
+    verifyStatusCode(result);
   }
 }

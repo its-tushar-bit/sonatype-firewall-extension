@@ -72,6 +72,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
@@ -313,6 +314,9 @@ public class TemporaryEntity
 
   private final ProprietaryConfigDAO proprietaryConfigDAO = new ProprietaryConfigDAO();
 
+  private final ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO =
+      new ProprietaryComponentNamePatternDAO();
+
   private ProxyServerConfigurationDAO proxyServerConfigurationDAO = new ProxyServerConfigurationDAO();
 
   private ProxyServerConfiguration savedProxyServerConfiguration;
@@ -536,6 +540,8 @@ public class TemporaryEntity
     delete(licenseThreatGroups, licenseThreatGroupDAO);
     delete(policyMonitorings, policyMonitoringDAO);
     delete(repositories, repositoryDAO);
+    repositoryManagers
+        .forEach(repoMan -> proprietaryComponentNamePatternDAO.deleteByRepositoryManager(repoMan.getInstanceId()));
     delete(repositoryManagers, repositoryManagerDAO);
     delete(webhooks, webhookDAO);
     delete(policyViolationAggregations, policyViolationAggregationDAO);

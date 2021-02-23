@@ -9,7 +9,9 @@ import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.repository.ProprietaryComponentNameDetector;
 
 /**
  * Assists in loading data for the CIP.
@@ -20,13 +22,23 @@ public class DefaultComponentDetailsLoader extends ComponentDetailsLoader
 
   private final ComponentDAO componentDAO;
 
-  DefaultComponentDetailsLoader(Owner owner) {
+  private final ProprietaryComponentNameDetector proprietaryComponentNameDetector;
+
+  DefaultComponentDetailsLoader(Owner owner, ProprietaryComponentNameDetector proprietaryComponentNameDetector) {
     componentDAO = new ComponentDAO(owner);
+    this.proprietaryComponentNameDetector =
+        OwnerType.REPOSITORY.equals(owner.getType()) ? proprietaryComponentNameDetector : null;
   }
 
   @Override
   protected Component getComponent(ComponentDetails componentDetails) {
-    return componentDAO.getComponent(componentDetails);
+    Component component = componentDAO.getComponent(componentDetails);
+    if (proprietaryComponentNameDetector != null) {
+      String conflictingProprietaryName =
+          proprietaryComponentNameDetector.findProprietaryComponentName(component.getComponentIdentifier());
+      component.setConflictingProprietaryName(conflictingProprietaryName != null ? conflictingProprietaryName : "");
+    }
+    return component;
   }
 
   @Override

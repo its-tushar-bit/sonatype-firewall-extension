@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -12,6 +13,8 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.ProprietaryComponentNames;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
@@ -27,6 +30,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -35,6 +39,7 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.policy.violation.RepositoryPolicyViolationLogger;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.repository.ProprietaryComponentNameDetector;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -42,6 +47,7 @@ import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.lqa.LqaComponentIdentifier;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -63,6 +69,8 @@ public abstract class AbstractRepositoryService
 
   private final RepositoryPolicyEvaluator repositoryPolicyEvaluator;
 
+  private final ProprietaryComponentNameDetector proprietaryComponentNameDetector;
+
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
   // Visible for tests
@@ -70,11 +78,13 @@ public abstract class AbstractRepositoryService
 
   @Inject
   public AbstractRepositoryService(RepositoryPolicyEvaluator repositoryPolicyEvaluator,
+                                   ProprietaryComponentNameDetector proprietaryComponentNameDetector,
                                    ProductLicense productLicense,
                                    PolicyViolationLoggerFactory policyViolationLoggerFactory,
                                    LicensedFeature requiredFeature)
   {
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
+    this.proprietaryComponentNameDetector = proprietaryComponentNameDetector;
     this.productLicense = productLicense;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
     this.requiredFeature = requiredFeature;
@@ -428,5 +438,93 @@ public abstract class AbstractRepositoryService
         repository.getId(), System.currentTimeMillis() - start);
 
     return result;
+  }
+
+  public void addProprietaryComponentNames(
+      String repositoryManagerInstanceId,
+      String repositoryPublicId,
+      ProprietaryComponentNames proprietaryComponentNames)
+  {
+    checkLicenseFeature();
+    Repository repository = new Repository(null, repositoryPublicId);
+    addProprietaryComponentNames(repositoryManagerInstanceId, repository, proprietaryComponentNames);
+  }
+
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  void addProprietaryComponentNames(
+      String repositoryManagerInstanceId,
+      @AuthzContext(Key.REPOSITORY) Repository repository,
+      ProprietaryComponentNames proprietaryComponentNames)
+  {
+    if (proprietaryComponentNames == null) {
+      throw new BadRequestException("No component name patterns specified");
+    }
+    if (StringUtils.isBlank(proprietaryComponentNames.format)) {
+      throw new BadRequestException("No component format specified");
+    }
+    String format = translateRepositoryFormat(proprietaryComponentNames.format);
+    List<ProprietaryComponentNamePattern> patterns = new ArrayList<>();
+    if (proprietaryComponentNames.namespaces != null) {
+      for (String namespace : proprietaryComponentNames.namespaces) {
+        validatePattern("namespace", namespace);
+        patterns.add(new ProprietaryComponentNamePattern(format).withNamespacePattern(namespace));
+      }
+    }
+    if (proprietaryComponentNames.names != null) {
+      for (String name : proprietaryComponentNames.names) {
+        validatePattern("name", name);
+        patterns.add(new ProprietaryComponentNamePattern(format).withNamePattern(name));
+      }
+    }
+    if (patterns.isEmpty()) {
+      throw new BadRequestException("No component name patterns specified");
+    }
+    for (ProprietaryComponentNamePattern pattern : patterns) {
+      pattern.withRepository(repositoryManagerInstanceId, repository.getPublicId());
+    }
+    proprietaryComponentNameDetector.addPatterns(format, patterns);
+  }
+
+  private void validatePattern(String type, String pattern) {
+    if (StringUtils.isBlank(pattern)) {
+      throw new BadRequestException("Empty component " + type + " pattern");
+    }
+    int first = pattern.indexOf('*');
+    int next = pattern.indexOf('*', first + 1);
+    if (first >= 0 && (next >= 0 || (first > 0 && first < pattern.length() - 1) || pattern.length() == 1)) {
+      throw new BadRequestException("Invalid component " + type + " pattern: " + pattern);
+    }
+  }
+
+  private String translateRepositoryFormat(String format) {
+    switch (format) {
+      case "apk":
+        return LqaComponentIdentifier.FORMAT_ALPINE;
+      case "apt":
+        return LqaComponentIdentifier.FORMAT_DEBIAN;
+      case "go":
+        return ComponentIdentifier.FORMAT_GOLANG;
+      case "maven2":
+        return ComponentIdentifier.FORMAT_MAVEN;
+      case "r":
+        return LqaComponentIdentifier.FORMAT_CRAN;
+      case "rubygems":
+        return ComponentIdentifier.FORMAT_RUBYGEMS;
+      default:
+        return format;
+    }
+  }
+
+  public void removeProprietaryComponentNames(String repositoryManagerInstanceId, String repositoryPublicId) {
+    Repository repository = new Repository(null, repositoryPublicId);
+    removeProprietaryComponentNames(repositoryManagerInstanceId, repository);
+  }
+
+  @Authorize(permission = Permission.MANAGE_PROPRIETARY)
+  void removeProprietaryComponentNames(
+      String repositoryManagerInstanceId,
+      @AuthzContext(Key.REPOSITORY) Repository repository)
+  {
+    proprietaryComponentNameDetector.removePatterns(repositoryManagerInstanceId, repository.getPublicId());
   }
 }

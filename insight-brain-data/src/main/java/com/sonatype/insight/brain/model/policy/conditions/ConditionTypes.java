@@ -53,6 +53,9 @@ public class ConditionTypes
 
   public static final ProprietaryConditionType ProprietaryConditionType = new ProprietaryConditionType();
 
+  public static final ProprietaryNameConflictConditionType ProprietaryNameConflictConditionType =
+      new ProprietaryNameConflictConditionType();
+
   public static final IdentificationSourceConditionType IdentificationSourceConditionType =
       new IdentificationSourceConditionType();
 
@@ -87,6 +90,7 @@ public class ConditionTypes
     add(LicenseThreatGroupLevelConditionType);
     add(MatchStateConditionType);
     add(ProprietaryConditionType);
+    add(ProprietaryNameConflictConditionType);
     add(RelativePopularityConditionType);
     add(SecurityVulnerabilitySeverityConditionType);
     add(SecurityVulnerabilityStatusConditionType);

@@ -23,6 +23,7 @@ import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
+import com.sonatype.clm.dto.model.component.ProprietaryComponentNames;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
@@ -34,6 +35,7 @@ import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
@@ -57,6 +59,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
+import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -86,6 +89,7 @@ import org.mockito.Mock;
 import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -119,6 +123,9 @@ public abstract class AbstractRepositoryServiceTest
   private RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
 
   private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
+
+  private ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO =
+      new ProprietaryComponentNamePatternDAO();
 
   @Mock
   private FirewallAuditHdsClient auditHdsClient;
@@ -1861,5 +1868,142 @@ public abstract class AbstractRepositoryServiceTest
 
     assertThat(policyViolationLoggerOutput.getInfoMessages(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME))
         .isEmpty();
+  }
+
+  @Test
+  public void testAddProprietaryComponentNames() {
+    String repoManId = tempEntity.newRepositoryManager().getInstanceId();
+    String repoId = "hosted-repo";
+    ProprietaryComponentNames proprietaryComponentNames =
+        new ProprietaryComponentNames("npm").addNames("sonatype*").addNamespaces("@sonatype");
+
+    getRepositoryService().addProprietaryComponentNames(repoManId, repoId, proprietaryComponentNames);
+
+    List<ProprietaryComponentNamePattern> patterns = proprietaryComponentNamePatternDAO.getByFormat("npm");
+    assertThat(patterns).allSatisfy(pattern -> {
+      assertThat(pattern.getFormat()).isEqualTo("npm");
+      assertThat(pattern.getRepositoryManagerInstanceId()).isEqualTo(repoManId);
+      assertThat(pattern.getRepositoryPublicId()).isEqualTo(repoId);
+    }).extracting(ProprietaryComponentNamePattern::getNamespacePattern, ProprietaryComponentNamePattern::getNamePattern)
+        .containsExactlyInAnyOrder(tuple("@sonatype", null), tuple(null, "sonatype*"));
+  }
+
+  @Test
+  public void testAddProprietaryComponentNames_MissingLicenseFeature() throws Exception {
+    testProductLicense.setMissingFeatures(getRepositoryService().requiredFeature);
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      getRepositoryService().addProprietaryComponentNames(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+          new ProprietaryComponentNames());
+    }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
+  }
+
+  @Test
+  public void testAddProprietaryComponentNames_NoFirewallRepositoryRegistered() {
+    String repoManId = tempEntity.newRepositoryManager().getInstanceId();
+    String repoId = "hosted-repo";
+    ProprietaryComponentNames proprietaryComponentNames = new ProprietaryComponentNames("npm", "name");
+
+    getRepositoryService().addProprietaryComponentNames(repoManId, repoId, proprietaryComponentNames);
+
+    assertThat(repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repoManId, repoId)).isNull();
+  }
+
+  @Test
+  public void testAddProprietaryComponentNames_NullDto() {
+    String repoManId = tempEntity.newRepositoryManager().getInstanceId();
+    String repoId = "hosted-repo";
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().addProprietaryComponentNames(repoManId, repoId, null);
+    }).withMessageContaining("No component name patterns specified");
+  }
+
+  @Test
+  public void testAddProprietaryComponentNames_NoPatterns() {
+    String repoManId = tempEntity.newRepositoryManager().getInstanceId();
+    String repoId = "hosted-repo";
+    ProprietaryComponentNames proprietaryComponentNames = new ProprietaryComponentNames("npm");
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().addProprietaryComponentNames(repoManId, repoId, proprietaryComponentNames);
+    }).withMessageContaining("No component name patterns specified");
+  }
+
+  @Test
+  public void testAddProprietaryComponentNames_NoFormat() {
+    String repoManId = tempEntity.newRepositoryManager().getInstanceId();
+    String repoId = "hosted-repo";
+    ProprietaryComponentNames proprietaryComponentNames = new ProprietaryComponentNames(null, "name");
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().addProprietaryComponentNames(repoManId, repoId, proprietaryComponentNames);
+    }).withMessageContaining("No component format specified");
+  }
+
+  @Test
+  public void testAddProprietaryComponentNames_BadPattern() {
+    String repoManId = tempEntity.newRepositoryManager().getInstanceId();
+    String repoId = "hosted-repo";
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().addProprietaryComponentNames(repoManId, repoId,
+          new ProprietaryComponentNames("npm").addNames(""));
+    }).withMessageContaining("Empty component name pattern");
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().addProprietaryComponentNames(repoManId, repoId,
+          new ProprietaryComponentNames("npm").addNames("*"));
+    }).withMessageContaining("Invalid component name pattern: *");
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().addProprietaryComponentNames(repoManId, repoId,
+          new ProprietaryComponentNames("npm").addNamespaces("foo*bar"));
+    }).withMessageContaining("Invalid component namespace pattern: foo*bar");
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().addProprietaryComponentNames(repoManId, repoId,
+          new ProprietaryComponentNames("npm").addNamespaces("*foo*"));
+    }).withMessageContaining("Invalid component namespace pattern: *foo*");
+  }
+
+  @Test
+  public void testAddProprietaryComponentNames_FormatTranslation_Maven2() {
+    testAddProprietaryComponentNames_FormatTranslation("maven2", "maven");
+  }
+
+  @Test
+  public void testAddProprietaryComponentNames_FormatTranslation_Apk() {
+    testAddProprietaryComponentNames_FormatTranslation("apk", "alpine");
+  }
+
+  @Test
+  public void testAddProprietaryComponentNames_FormatTranslation_Apt() {
+    testAddProprietaryComponentNames_FormatTranslation("apt", "deb");
+  }
+
+  @Test
+  public void testAddProprietaryComponentNames_FormatTranslation_Go() {
+    testAddProprietaryComponentNames_FormatTranslation("go", "golang");
+  }
+
+  @Test
+  public void testAddProprietaryComponentNames_FormatTranslation_R() {
+    testAddProprietaryComponentNames_FormatTranslation("r", "cran");
+  }
+
+  @Test
+  public void testAddProprietaryComponentNames_FormatTranslation_Rubygems() {
+    testAddProprietaryComponentNames_FormatTranslation("rubygems", "gem");
+  }
+
+  private void testAddProprietaryComponentNames_FormatTranslation(String repoFormat, String componentFormat) {
+    String repoManId = tempEntity.newRepositoryManager().getInstanceId();
+    String repoId = "hosted-repo";
+    ProprietaryComponentNames proprietaryComponentNames = new ProprietaryComponentNames(repoFormat, "format-test");
+
+    getRepositoryService().addProprietaryComponentNames(repoManId, repoId, proprietaryComponentNames);
+
+    assertThat(proprietaryComponentNamePatternDAO.getByFormat(componentFormat))
+        .extracting(ProprietaryComponentNamePattern::getNamePattern).containsExactlyInAnyOrder("format-test");
   }
 }

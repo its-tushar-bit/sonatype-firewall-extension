@@ -36,6 +36,8 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentLicenses;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentSecurityVulnerabilities;
 import com.sonatype.insight.brain.hds.ComponentInfoService.LicenseWithThreatLevel;
@@ -62,9 +64,11 @@ import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflictConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -681,6 +685,38 @@ public class ComponentInfoServiceTest
     assertCategories(componentDetails);
     List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
     assertThat(policyAlerts).extracting(alert -> alert.getTrigger().getPolicyName()).containsExactly("Policy1");
+  }
+
+  @Test
+  public void testGetComponentDetails_PolicyAlerts_ProprietaryComponentNameConflict() throws Exception {
+    String hash = "01234567890123456789";
+
+    Constraint constraint = new Constraint(null, "Constraint", LogicalOperator.OR);
+    constraint.addCondition(
+        new Condition(ProprietaryNameConflictConditionType.ID, ProprietaryNameConflictConditionType.OP_IS_PRESENT));
+    Policy policy = new Policy(null, "Dependency Confusion");
+    policy.setOwnerId(Organization.ROOT_ORGANIZATION_ID);
+    policy.setThreatLevel(8);
+    policy.addConstraint(constraint);
+    tempEntity.newPolicy(policy);
+
+    new ProprietaryComponentNamePatternDAO()
+        .insert(new ProprietaryComponentNamePattern(MAVEN_A1_COORDINATES.getFormat())
+            .withNamespacePattern(MAVEN_A1_COORDINATES.get(ComponentIdentifier.MAVEN_GROUP_ID))
+            .withRepository(new RepositoryManagerDAO().getById(repository.getRepositoryManagerId()).getInstanceId(),
+                repository.getPublicId()));
+
+    NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
+    hdsComponentDetails.setHash(hash);
+    mockHdsGetComponentDetails(hdsComponentDetails);
+
+    ComponentDetails componentDetails = componentInfoService.getComponentDetails(repository, MAVEN_A1_COORDINATES,
+        MatchState.EXACT.getId(), hash, false /* proprietary */, httpRequestMock, null, null, DependencyType.DIRECT);
+
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_A1_COORDINATES);
+    List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
+    assertThat(policyAlerts).extracting(alert -> alert.getTrigger().getPolicyName()).containsExactly(policy.getName());
   }
 
   @Test

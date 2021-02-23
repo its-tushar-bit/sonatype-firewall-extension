@@ -65,6 +65,8 @@ public class Component
 
   private boolean proprietary;
 
+  private String conflictingProprietaryName;
+
   private IdentificationSource identificationSource = IdentificationSource.SONATYPE;
 
   private List<String> pathnames = new ArrayList<>();
@@ -326,6 +328,17 @@ public class Component
 
   public void setProprietary(boolean proprietary) {
     this.proprietary = proprietary;
+  }
+
+  /**
+   * @return {@code null} if unknown/inapplicable, {@code ""} if no conflict, otherwise conflicting name.
+   */
+  public String getConflictingProprietaryName() {
+    return conflictingProprietaryName;
+  }
+
+  public void setConflictingProprietaryName(String conflictingProprietaryName) {
+    this.conflictingProprietaryName = conflictingProprietaryName;
   }
 
   public IdentificationSource getIdentificationSource() {

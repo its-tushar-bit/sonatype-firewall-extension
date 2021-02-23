@@ -17,6 +17,7 @@ import com.sonatype.clm.dto.model.Resource;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
+import com.sonatype.clm.dto.model.component.ProprietaryComponentNames;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
@@ -260,6 +261,21 @@ public class RestClientFactory
               "upgrade it to version 1.20, or newer, to support it.", e);
         }
         throw e;
+      }
+    }
+
+    @Override
+    public void addProprietaryComponentNames(ProprietaryComponentNames proprietaryComponentNames) throws IOException {
+      try {
+        newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId, repositoryManagerType)
+            .addProprietaryComponentNames(proprietaryComponentNames);
+      }
+      catch (HttpResponseException e) {
+        if (e.getStatusCode() == 404) {
+          throw new UnsupportedOperationException("IQ Server doesn't support cataloging proprietary component names, "
+              + "upgrade it to version 106, or newer, to support it.", e);
+        }
+        throw handleError(e);
       }
     }
   }

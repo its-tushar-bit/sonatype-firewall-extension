@@ -19,6 +19,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.clm.dto.model.component.ProprietaryComponentNames;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
@@ -55,6 +56,8 @@ public class ArtifactoryRepositoryResource
   static final String EVALUATE_COMPONENT_WITH_QUARANTINE_PATH = REPOSITORY_PATH + "evaluate/quarantine";
 
   static final String UNQUARANTINED_COMPONENTS_PATH = REPOSITORY_PATH + "components/unquarantined";
+
+  static final String PROPRIETARY_NAMES = REPOSITORY_PATH + "proprietary/names";
 
   private final ArtifactoryRepositoryServiceWrapper repositoryService;
 
@@ -148,5 +151,20 @@ public class ArtifactoryRepositoryResource
   {
     return repositoryService
         .getUnquarantinedComponents(repositoryManagerInstanceId, repositoryPublicId, sinceUtcTimestamp);
+  }
+
+  /**
+   * @since 1.106
+   */
+  @POST
+  @Path(PROPRIETARY_NAMES)
+  @Consumes({MediaType.APPLICATION_JSON})
+  public void addProprietaryComponentNames(
+      @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
+      @PathParam("repositoryPublicId") String repositoryPublicId,
+      ProprietaryComponentNames proprietaryComponentNames)
+  {
+    repositoryService.addProprietaryComponentNames(repositoryManagerInstanceId, repositoryPublicId,
+        proprietaryComponentNames);
   }
 }

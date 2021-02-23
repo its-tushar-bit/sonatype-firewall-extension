@@ -20,6 +20,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
+import com.sonatype.clm.dto.model.component.ProprietaryComponentNames;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
@@ -58,6 +59,8 @@ public class RepositoryResource
   static final String EVALUATE_COMPONENT_WITH_QUARANTINE_PATH = REPOSITORY_PATH + "evaluate/quarantine";
 
   static final String UNQUARANTINED_COMPONENTS_PATH = REPOSITORY_PATH + "components/unquarantined";
+
+  static final String PROPRIETARY_NAMES_PATH = REPOSITORY_PATH + "proprietary/names";
 
   static final String IGNORE_PATTERNS_PATH = "evaluate/ignorePatterns";
 
@@ -188,5 +191,32 @@ public class RepositoryResource
   @Produces({ MediaType.APPLICATION_JSON })
   public FirewallIgnorePatterns getIgnorePatterns() {
     return firewallIgnorePatternService.getIgnorePatterns();
+  }
+
+  /**
+   * @since 1.106
+   */
+  @POST
+  @Path(PROPRIETARY_NAMES_PATH)
+  @Consumes({MediaType.APPLICATION_JSON})
+  public void addProprietaryComponentNames(
+      @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
+      @PathParam("repositoryPublicId") String repositoryPublicId,
+      ProprietaryComponentNames proprietaryComponentNames)
+  {
+    repositoryService.addProprietaryComponentNames(repositoryManagerInstanceId, repositoryPublicId,
+        proprietaryComponentNames);
+  }
+
+  /**
+   * @since 1.106
+   */
+  @DELETE
+  @Path(PROPRIETARY_NAMES_PATH)
+  public void removeProprietaryComponentNames(
+      @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
+      @PathParam("repositoryPublicId") String repositoryPublicId)
+  {
+    repositoryService.removeProprietaryComponentNames(repositoryManagerInstanceId, repositoryPublicId);
   }
 }

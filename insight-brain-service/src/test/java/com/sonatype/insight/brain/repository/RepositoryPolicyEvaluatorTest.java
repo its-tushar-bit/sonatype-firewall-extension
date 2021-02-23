@@ -33,6 +33,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
 import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
@@ -50,9 +51,12 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.DataSourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflictConditionType;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
+import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
@@ -631,5 +635,48 @@ public class RepositoryPolicyEvaluatorTest
       assertThat(extractProperty("pathname").from(components)).containsOnly("path0");
       assertThat(extractProperty("hash").from(components)).containsOnly("h0");
     }
+  }
+
+  @Test
+  public void testEvaluate_SupportsProprietaryNameConflictCondition() {
+    RepositoryManager repoMan = tempEntity.newRepositoryManager();
+    new ProprietaryComponentNamePatternDAO().insert(new ProprietaryComponentNamePattern(ComponentIdentifier.FORMAT_NPM)
+        .withNamespacePattern("@sonatype").withRepository(repoMan.getInstanceId(), "hosted-repo"));
+    Repository repo = tempEntity.newRepository(repoMan, "proxy-repo");
+
+    Policy policy = new Policy(null, "Namespace Confusion");
+    policy.setAction(Stage.ID_PROXY, Action.ID_FAIL);
+    policy.setThreatLevel(10);
+    policy.setOwnerId(repo.getParentOwnerId());
+    Constraint constraint = new Constraint(null, "No Conflicting Name", LogicalOperator.OR);
+    constraint.addCondition(
+        new Condition(ProprietaryNameConflictConditionType.ID, ProprietaryNameConflictConditionType.OP_IS_PRESENT));
+    policy.addConstraint(constraint);
+    tempEntity.newPolicy(policy);
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    for (int i = 0; i < 2; i++) {
+      componentEvaluationDataRequestList.components
+          .add(new RepositoryComponentEvaluationDataRequest("npm", i == 0 ? "@sonatype/cli" : "cli-" + i, "h" + i));
+      hdsResult.components.add(createComponentEvaluationData(
+          ComponentIdentifier.createNpmCoordinates(i == 0 ? "@sonatype/cli" : "cli-" + i, "999"), "h" + i,
+          MatchState.EXACT, i, null, null, null, null));
+    }
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
+
+    RepositoryComponentEvaluationDataList resultList =
+        repositoryPolicyEvaluator.evaluate(repo, componentEvaluationDataRequestList, true, null);
+    
+    assertThat(resultList.componentEvalResults).hasSize(2);
+    assertThat(resultList.componentEvalResults.get(0).quarantine).isTrue();
+    assertThat(resultList.componentEvalResults.get(1).quarantine).isFalse();
+
+    List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repo.getId());
+    assertThat(policyViolations).hasSize(1);
+    assertThat(policyViolations.get(0).getPolicyId()).isEqualTo(policy.getId());
+    assertThat(policyViolations.get(0).getComponentIdentifier())
+        .isEqualTo(ComponentIdentifier.createNpmCoordinates("@sonatype/cli", "999"));
   }
 }

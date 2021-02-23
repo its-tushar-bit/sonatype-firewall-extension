@@ -87,7 +87,8 @@ public class ApiLicenseLegalResource
       LicenseLegalFilterDTO filter)
   {
     return apiLicenseLegalService.getLicenseLegalApplicationsDashboard(filter.organizationIds, filter.applicationIds,
-        filter.tagIds, filter.stageTypeIds, filter.licenseIds, filter.order, filter.page, filter.pageSize);
+        filter.tagIds, filter.stageTypeIds, filter.licenseIds, filter.reviewStatus, filter.order, filter.page,
+        filter.pageSize);
   }
 
   @POST

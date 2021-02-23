@@ -19,6 +19,8 @@ public class LicenseLegalFilterDTO
 
   public Set<String> licenseIds;
 
+  public LicenseLegalReviewStatus reviewStatus;
+
   public LicenseLegalResultsOrder order;
 
   public int page;

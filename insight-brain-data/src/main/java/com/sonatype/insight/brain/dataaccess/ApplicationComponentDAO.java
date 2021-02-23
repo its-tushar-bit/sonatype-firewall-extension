@@ -28,6 +28,8 @@ import com.google.common.annotations.VisibleForTesting;
 public class ApplicationComponentDAO
     extends AbstractOperationalSqlDAO<ApplicationComponent>
 {
+  private static final int H2_IN_OPERATOR_THRESHOLD_COMPLEX_QUERY = 350;
+
   @Override
   public ApplicationComponent getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
@@ -173,8 +175,7 @@ public class ApplicationComponentDAO
           " AND COALESCE(li.license_id, li2.license_id, li3.license_id, acl.effective_license_id) IN " + //
           buildPositionalParameters(licenseIds, stageTypeIds.size() + 2);
 
-      // For this particular query degradation starts before H2_IN_OPERATOR_THRESHOLD
-      boolean requiresManualFilter = isDatabaseEmbedded() && applicationIds.size() >= 350;
+      boolean requiresManualFilter = requiresManualFilter(applicationIds);
 
       if (!requiresManualFilter) {
         sQuery += " AND ac.application_id IN "
@@ -196,6 +197,75 @@ public class ApplicationComponentDAO
           .filter(array -> applicationIds.contains(array[0].toString()))
           .collect(Collectors.toList());
     }
+  }
+
+  /**
+   * Queries the combination of applications IDs and stage type IDs where the components found in the last evaluation
+   * have a review of the license legal obligations already started or not.
+   * 
+   * A license legal obligations review is considered started in an application and stage type when there is a least one
+   * entry for a component in {@ComponentObligation} whether at the application, organization or root organization scope
+   * while a not started review is when there is not a single entry.
+   * 
+   * @param applicationIds  Applications IDs where the query can be made.
+   * @param stageTypeIds    Stage type IDs where the query can be made.
+   * @param isReviewStarted {@code true} to query the applications and stage types where the review already started,
+   *                        {@code false} to query the ones where the review hasn't started.
+   * @return A list of Object arrays with 2 positions: the application ID and the stage type ID.
+   */
+  @SuppressWarnings("unchecked")
+  public List<Object[]> getApplicationIdsAndStageTypeIdsByReviewStatus(
+      Set<String> applicationIds,
+      Set<String> stageTypeIds,
+      boolean isReviewStarted)
+  {
+    String reviewStartedCondition = isReviewStarted ? "" : " NOT ";
+    String reviewStartedOperator = (isReviewStarted ? " OR " : " AND ") + reviewStartedCondition;
+
+    try (TransactionContext tx = createTransactionContext()) {
+      String sQuery = "SELECT DISTINCT ac.applicationId, ac.stageTypeId" + //
+          " FROM ApplicationComponent ac, Application a" + //
+          " WHERE a.id = ac.applicationId" + //
+          " AND ac.stageTypeId IN (?1)" + //
+          " AND (" + reviewStartedCondition + " EXISTS (SELECT 1" + //
+          "                  FROM ComponentObligation co" + //
+          "                  WHERE co.ownerId = ac.applicationId" + //
+          "                  AND co.componentIdFormat = ac.componentIdFormat" + //
+          "                  AND co.componentIdCoordinatesJson = ac.componentIdCoordinatesJson)" + //
+          reviewStartedOperator + " EXISTS (SELECT 1" + //
+          "                  FROM ComponentObligation co" + //
+          "                  WHERE co.ownerId = a.organizationId" + //
+          "                  AND co.componentIdFormat = ac.componentIdFormat" + //
+          "                  AND co.componentIdCoordinatesJson = ac.componentIdCoordinatesJson)" + //
+          reviewStartedOperator + " EXISTS (SELECT 1" + //
+          "                  FROM ComponentObligation co" + //
+          "                  WHERE co.ownerId = ?2" + //
+          "                  AND co.componentIdFormat = ac.componentIdFormat" + //
+          "                  AND co.componentIdCoordinatesJson = ac.componentIdCoordinatesJson))";
+
+      boolean requiresManualFilter = requiresManualFilter(applicationIds);
+
+      if (!requiresManualFilter) {
+        sQuery += " AND ac.applicationId IN (?3)";
+      }
+
+      javax.persistence.Query query = tx.createQuery(sQuery);
+      query.setParameter(1, stageTypeIds);
+      query.setParameter(2, Organization.ROOT_ORGANIZATION_ID);
+
+      if (!requiresManualFilter) {
+        query.setParameter(3, applicationIds);
+        return query.getResultList();
+      }
+
+      return ((Stream<Object[]>) query.getResultStream()).parallel()
+          .filter(array -> applicationIds.contains(array[0].toString()))
+          .collect(Collectors.toList());
+    }
+  }
+
+  private boolean requiresManualFilter(Collection<?> items) {
+    return isDatabaseEmbedded() && items.size() >= H2_IN_OPERATOR_THRESHOLD_COMPLEX_QUERY;
   }
 
   @VisibleForTesting

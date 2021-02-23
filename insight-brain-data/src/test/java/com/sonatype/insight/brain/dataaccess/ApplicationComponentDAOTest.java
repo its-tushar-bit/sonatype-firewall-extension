@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.ApplicationComponentLicense;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
@@ -449,6 +450,84 @@ public class ApplicationComponentDAOTest
     verify(query).setParameter(25, "y");
     verify(query).setParameter(26, "z");
     verifyNoMoreInteractions(query);
+  }
+
+  @Test
+  public void testGetApplicationIdsAndStageTypeIdsByReviewStatus() {
+    ApplicationComponent applicationComponent1 = tempEntity.newApplicationComponent(application.getId(),
+        BuildStageType.ID, "hash1", ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
+    tempEntity.newComponentObligation(applicationComponent1.getComponentIdentifier(),
+        applicationComponent1.getApplicationId(), "obligation1", "comment1", ObligationStatus.FULFILLED, "hash1");
+
+    Application otherApplication = tempEntity.newApplication(organization.getId());
+
+    ApplicationComponent applicationComponent2 = tempEntity.newApplicationComponent(otherApplication.getId(),
+        BuildStageType.ID, "hash2", ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"));
+    tempEntity.newComponentObligation(applicationComponent2.getComponentIdentifier(),
+        applicationComponent2.getApplicationId(), "obligation2", "comment2", ObligationStatus.IGNORED, "hash2");
+
+    ApplicationComponent applicationComponent3 = tempEntity.newApplicationComponent(application.getId(),
+        DevelopStageType.ID, "hash3", ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3"));
+    tempEntity.newComponentObligation(applicationComponent3.getComponentIdentifier(),
+        applicationComponent3.getApplicationId(), "obligation3", "comment3", ObligationStatus.OPEN, "hash3");
+
+    ApplicationComponent applicationComponent4 = tempEntity.newApplicationComponent(otherApplication.getId(),
+        DevelopStageType.ID, "hash4", ComponentIdentifier.createMavenCoordinates("g4", "a4", "v4"));
+    tempEntity.newComponentObligation(applicationComponent4.getComponentIdentifier(),
+        applicationComponent4.getApplicationId(), "obligation4", "comment4", ObligationStatus.FLAGGED, "hash4");
+
+    Application applicationNewParent = tempEntity.newApplicationWithParent();
+
+    ApplicationComponent applicationComponent5 = tempEntity.newApplicationComponent(applicationNewParent.getId(),
+        BuildStageType.ID, "hash5", ComponentIdentifier.createMavenCoordinates("g5", "a5", "v5"));
+    tempEntity.newComponentObligation(applicationComponent5.getComponentIdentifier(),
+        applicationNewParent.getOrganizationId(),
+        "obligation5", "comment5", ObligationStatus.FULFILLED, "hash5");
+
+    Application applicationForRoot = tempEntity.newApplicationWithParent();
+
+    ApplicationComponent applicationComponent6 = tempEntity.newApplicationComponent(applicationForRoot.getId(),
+        DevelopStageType.ID, "hash6", ComponentIdentifier.createMavenCoordinates("g6", "a6", "v6"));
+    tempEntity.newComponentObligation(applicationComponent6.getComponentIdentifier(), Organization.ROOT_ORGANIZATION_ID,
+        "obligation6", "comment6", ObligationStatus.IGNORED, "hash6");
+
+    Application oneMoreApplication = tempEntity.newApplication(organization.getId());
+    ApplicationComponent applicationComponent7 = tempEntity.newApplicationComponent(oneMoreApplication.getId(),
+        BuildStageType.ID, "hash7", ComponentIdentifier.createMavenCoordinates("g7", "a7", "v7"));
+    tempEntity.newComponentObligation(applicationComponent7.getComponentIdentifier(),
+        applicationComponent7.getApplicationId(), "obligation7", "comment7", ObligationStatus.IGNORED, "hash7");
+
+    ApplicationComponent applicationComponent8 = tempEntity.newApplicationComponent(application.getId(),
+        ReleaseStageType.ID, "hash8", ComponentIdentifier.createMavenCoordinates("g8", "a8", "v8"));
+    tempEntity.newComponentObligation(applicationComponent7.getComponentIdentifier(),
+        applicationComponent8.getApplicationId(), "obligation8", "comment8", ObligationStatus.FULFILLED, "hash8");
+
+    Application applicationWithoutReview = tempEntity.newApplication(organization.getId());
+    tempEntity.newApplicationComponent(applicationWithoutReview.getId(), DevelopStageType.ID, "hash9",
+        ComponentIdentifier.createMavenCoordinates("g9", "a9", "v9"));
+
+    List<Object[]> result = dao.getApplicationIdsAndStageTypeIdsByReviewStatus(
+        Sets.newHashSet(application.getId(), otherApplication.getId(), applicationNewParent.getId(),
+            applicationForRoot.getId(), applicationWithoutReview.getId()),
+        Sets.newHashSet(BuildStageType.ID, DevelopStageType.ID),
+        true);
+
+    assertThat(result).isNotEmpty().containsExactlyInAnyOrder(
+        new Object[]{application.getId(), BuildStageType.ID},
+        new Object[]{otherApplication.getId(), BuildStageType.ID},
+        new Object[]{application.getId(), DevelopStageType.ID},
+        new Object[]{otherApplication.getId(), DevelopStageType.ID},
+        new Object[]{applicationNewParent.getId(), BuildStageType.ID},
+        new Object[]{applicationForRoot.getId(), DevelopStageType.ID});
+
+    result = dao.getApplicationIdsAndStageTypeIdsByReviewStatus(
+        Sets.newHashSet(application.getId(), otherApplication.getId(), applicationNewParent.getId(),
+            applicationForRoot.getId(), applicationWithoutReview.getId()),
+        Sets.newHashSet(BuildStageType.ID, DevelopStageType.ID),
+        false);
+
+    assertThat(result).isNotEmpty().containsExactlyInAnyOrder(
+        new Object[]{applicationWithoutReview.getId(), DevelopStageType.ID});
   }
 
   public void assertApplicationComponent(ApplicationComponent expected, ApplicationComponent actual) {

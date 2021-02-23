@@ -59,7 +59,8 @@ public class ApiLicenseLegalServiceAuthzTest
   @Test
   public void testGetLicenseLegalApplicationsDashboard_Unauthenticated() {
     setupResultForDashboard();
-    assertThat(apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, 1, 10))
+    assertThat(
+        apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, null, 1, 10))
         .isEmpty();
   }
 
@@ -67,7 +68,8 @@ public class ApiLicenseLegalServiceAuthzTest
   public void testGetLicenseLegalApplicationsDashboard_Unauthorized() {
     setupResultForDashboard();
     login();
-    assertThat(apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, 1, 10))
+    assertThat(
+        apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, null, 1, 10))
         .isEmpty();
   }
 
@@ -75,7 +77,8 @@ public class ApiLicenseLegalServiceAuthzTest
   public void testGetLicenseLegalApplicationsDashboard_Authorized() {
     setupResultForDashboard();
     grantLegalReviewerPermission(app.getId());
-    assertThat(apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, 1, 10))
+    assertThat(
+        apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, null, 1, 10))
         .isNotEmpty();
   }
 

@@ -47,6 +47,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApplicationLicenseUsageTelemetry;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalResultsOrder;
+import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalReviewStatus;
 import com.sonatype.insight.brain.api.v2.service.ApiLicenseDataAdapter;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.dataaccess.AggregateFileDAO;
@@ -237,6 +238,7 @@ public class ApiLicenseLegalService
       Set<String> tagIds,
       Set<String> stageTypeIds,
       Set<String> licenseIds,
+      LicenseLegalReviewStatus reviewStatus,
       LicenseLegalResultsOrder order,
       int page,
       int pageSize)
@@ -257,17 +259,21 @@ public class ApiLicenseLegalService
             ? StageTypes.getAll().stream().map(StageType::getId).collect(Collectors.toSet())
             : stageTypeIds;
 
-    if (!applicationIdsToCheck.isEmpty() && isNotEmpty(licenseIds)) {
+    if (isNotEmpty(applicationIdsToCheck) && reviewStatus != null) {
+      List<Object[]> applicationIdsAndStageTypeIds = applicationComponentDAO
+          .getApplicationIdsAndStageTypeIdsByReviewStatus(applicationIdsToCheck, stageTypeIdsToCheck,
+              reviewStatus == LicenseLegalReviewStatus.OPEN);
+
+      recalculateApplicationIdsAndStateTypeIds(applicationIdsAndStageTypeIds, applicationIdsToCheck,
+          stageTypeIdsToCheck);
+    }
+
+    if (isNotEmpty(applicationIdsToCheck) && isNotEmpty(licenseIds)) {
       List<Object[]> applicationIdsAndStageTypeIds = applicationComponentDAO
           .getApplicationIdsAndStageTypeIdsByLicenses(applicationIdsToCheck, stageTypeIdsToCheck, licenseIds);
 
-      applicationIdsToCheck.clear();
-      stageTypeIdsToCheck.clear();
-
-      for (Object[] array : applicationIdsAndStageTypeIds) {
-        applicationIdsToCheck.add(array[0].toString());
-        stageTypeIdsToCheck.add(array[1].toString());
-      }
+      recalculateApplicationIdsAndStateTypeIds(applicationIdsAndStageTypeIds, applicationIdsToCheck,
+          stageTypeIdsToCheck);
     }
 
     if (isEmpty(applicationIdsToCheck) || isEmpty(stageTypeIdsToCheck)) {
@@ -943,6 +949,20 @@ public class ApiLicenseLegalService
         throw new IllegalArgumentException("Unknown ordering: " + order);
     }
     return comparator.thenComparing(dto -> dto.stageTypeName);
+  }
+
+  private void recalculateApplicationIdsAndStateTypeIds(
+      List<Object[]> applicationIdsAndStageTypeIds,
+      Set<String> applicationIdsToCheck,
+      Set<String> stageTypeIdsToCheck)
+  {
+    applicationIdsToCheck.clear();
+    stageTypeIdsToCheck.clear();
+
+    for (Object[] array : applicationIdsAndStageTypeIds) {
+      applicationIdsToCheck.add(array[0].toString());
+      stageTypeIdsToCheck.add(array[1].toString());
+    }
   }
 
   private void calculateComponentsReviewed(List<ApiLicenseLegalApplicationDashboardDTO> result) {

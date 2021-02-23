@@ -15,6 +15,7 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.license.dto.model.AnameAggregateFileGroup;
 import com.sonatype.insight.license.dto.model.ComponentLegalCommentDTO;
 import com.sonatype.insight.license.dto.model.ComponentLegalFileDTO;
 import com.sonatype.insight.license.dto.model.LegalCommentDTO;
@@ -24,6 +25,9 @@ import com.sonatype.insight.license.dto.model.LicenseMetadataDTO;
 import com.sonatype.insight.license.dto.model.LicenseObligationDTO;
 import com.sonatype.insight.license.dto.model.LicenseThreatGroupDTO;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.inject.Binder;
 import org.junit.Test;
@@ -31,6 +35,7 @@ import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 public class ApiLicenseLegalHdsServiceTest
@@ -117,6 +122,97 @@ public class ApiLicenseLegalHdsServiceTest
     Set<ComponentLegalCommentDTO> results = apiLicenseLegalHdsService.getComponentLegalComments(components);
 
     assertThat(results).isEqualTo(expectedLegalComments);
+  }
+
+  @Test
+  public void testGetANameComponentLegalComments() {
+    final ComponentIdentifier componentId1 = ComponentIdentifier.createAnameCoordinates("groupId1", "", "version1");
+    final ComponentIdentifier componentId2 = ComponentIdentifier.createAnameCoordinates("groupId2", "", "version2");
+    final List<AnameAggregateFileGroup> aggregageFileGroups = ImmutableList.of(
+        new AnameAggregateFileGroup(
+            componentId1,
+            ImmutableList.of("11111111111111111111", "22222222222222222222")),
+        new AnameAggregateFileGroup(
+            componentId2,
+            ImmutableList.of("11111111111111111111", "33333333333333333333"))
+    );
+
+    final LegalCommentDTO legalComment1 = new LegalCommentDTO();
+    legalComment1.setContent("Content 1");
+    legalComment1.setCopyrights(Sets.newHashSet(new LegalCopyrightDTO("Content 1", "content1Hash", "Author 1", "Year1"),
+        new LegalCopyrightDTO("Content 1.1", "content11Hash", "Author 1.1", "Year1.1")));
+    final LegalCommentDTO legalComment2 = new LegalCommentDTO();
+    legalComment2.setContent("Content 2");
+    legalComment2
+        .setCopyrights(Sets.newHashSet(new LegalCopyrightDTO("Content 2", "content2Hash", "Author 2", "Year2")));
+    final LegalCommentDTO legalComment3 = new LegalCommentDTO();
+    legalComment3.setContent("Content 3");
+    legalComment3
+        .setCopyrights(Sets.newHashSet(new LegalCopyrightDTO("Content 3", "content3Hash", "Author 3", "Year3")));
+
+    final ComponentLegalCommentDTO componentLegalComment1 = createComponentCommentsDTO(
+        componentId1,
+        "11111111111111111111",
+        legalComment1
+    );
+    final ComponentLegalCommentDTO componentLegalComment2 = createComponentCommentsDTO(
+        componentId1,
+        "22222222222222222222",
+        legalComment2
+    );
+    final ComponentLegalCommentDTO componentLegalComment3 = createComponentCommentsDTO(
+        componentId2,
+        "11111111111111111111",
+        legalComment1
+    );
+    final ComponentLegalCommentDTO componentLegalComment4 = createComponentCommentsDTO(
+        componentId2,
+        "33333333333333333333",
+        legalComment3
+    );
+
+    final ComponentLegalCommentDTO expectedLegalComments1 = createComponentCommentsDTO(
+        componentId1,
+        "component_1_hash",
+        legalComment1, legalComment2
+    );
+    final ComponentLegalCommentDTO expectedLegalComments2 = createComponentCommentsDTO(
+        componentId2,
+        "component_2_hash",
+        legalComment1, legalComment3
+    );
+
+    final Set<ComponentLegalCommentDTO> expectedLegalComments =
+        new LinkedHashSet<>(Arrays.asList(expectedLegalComments1, expectedLegalComments2));
+
+    doReturn(new ComponentLegalCommentDTO[]{
+        componentLegalComment1, componentLegalComment2, componentLegalComment3, componentLegalComment4
+    })
+        .when(mockHdsClient)
+        .post(ComponentLegalCommentDTO[].class,
+            ApiLicenseLegalHdsService.LEGAL_ANAME_COMMENT_URL,
+            aggregageFileGroups);
+
+    final Set<ComponentLegalCommentDTO> results = apiLicenseLegalHdsService.getAnameComponentLegalComments(
+        ImmutableSet.copyOf(aggregageFileGroups),
+        ImmutableMap.of(
+            componentId1, "component_1_hash",
+            componentId2, "component_2_hash")
+    );
+
+    assertThat(results).isEqualTo(expectedLegalComments);
+  }
+
+  private ComponentLegalCommentDTO createComponentCommentsDTO(
+      final ComponentIdentifier componentIdentifier,
+      final String componentHash,
+      final LegalCommentDTO... comments)
+  {
+    final ComponentLegalCommentDTO componentLegalComment = new ComponentLegalCommentDTO();
+    componentLegalComment.setComponentIdentifier(componentIdentifier);
+    componentLegalComment.setHash(componentHash);
+    componentLegalComment.setComments(Sets.newHashSet(comments));
+    return componentLegalComment;
   }
 
   @Test

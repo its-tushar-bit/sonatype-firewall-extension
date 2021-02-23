@@ -106,6 +106,8 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Binder;
@@ -785,7 +787,8 @@ public class ApiLicenseLegalServiceTest
     List<Collection<ComponentIdentifier>> queriedComponents = componentIdentifiersArgumentCaptor.getAllValues();
     assertThat(queriedComponents).hasSize(2);
     queriedComponents.forEach(
-        componentIdentifiers -> assertThat(componentIdentifiers).containsExactly(expectedComponentIdentifiers));
+        componentIdentifiers -> assertThat(componentIdentifiers)
+            .containsExactlyInAnyOrder(expectedComponentIdentifiers));
 
     assertApplicationTelemetry(app, rawReport);
   }
@@ -1042,6 +1045,84 @@ public class ApiLicenseLegalServiceTest
     assertThat(apiLicenseLegalComponentDTO.licenseLegalData.noticeFiles).containsExactly(
         new ApiLicenseLegalFileDTO(noticeOverride.getId(), null, noticeOverride.getContent(),
             noticeOverride.getOriginalContentHash()));
+  }
+
+  @Test
+  public void testGetAnameComponentLegalComments_reconstructComponentHash() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier
+        .createAnameCoordinates("aname-test", "", "1.0.0");
+
+    LegalCopyrightDTO copyright = new LegalCopyrightDTO();
+    copyright.setContentHash("copyrightHash");
+    copyright.setContent("copyrightContent");
+    copyright.setAuthor("author");
+    copyright.setYear("year");
+    LegalCommentDTO comment = new LegalCommentDTO();
+    comment.setContent("content");
+    comment.setCopyrights(ImmutableSet.of(copyright));
+
+    ComponentLegalCommentDTO resultDTO = new ComponentLegalCommentDTO();
+    resultDTO.setComponentIdentifier(componentIdentifier);
+    resultDTO.setHash("compHash");
+    resultDTO.setComments(ImmutableSet.of(comment));
+
+    Application app = tempEntity.newApplicationWithParent();
+    ApplicationComponent appComp =
+        tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "compHash", componentIdentifier);
+    tempEntity.newAggregateFile(appComp.getId(), "aggregate_file_hash", Sets.newHashSet("some/path"));
+
+    doReturn(ImmutableSet.of(resultDTO))
+        .when(mockApiLicenseLegalHdsService)
+        .getAnameComponentLegalComments(
+            any(),
+            eq(ImmutableMap.of(componentIdentifier, "compHash")));
+
+    Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>> results =
+        apiLicenseLegalService.getAnameComponentLegalComments(ImmutableMap.of(componentIdentifier, "compHash"));
+
+    assertThat(results).hasSize(1).containsKey(componentIdentifier);
+    assertThat(results.get(componentIdentifier))
+        .extracting("hash", String.class)
+        .containsExactly("compHash");
+  }
+
+  @Test
+  public void testGetComponentLegalComments_reconstructComponentHashForAname() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier
+        .createAnameCoordinates("aname-test", "", "1.0.0");
+
+    LegalCopyrightDTO copyright = new LegalCopyrightDTO();
+    copyright.setContentHash("copyrightHash");
+    copyright.setContent("copyrightContent");
+    copyright.setAuthor("author");
+    copyright.setYear("year");
+    LegalCommentDTO comment = new LegalCommentDTO();
+    comment.setContent("content");
+    comment.setCopyrights(ImmutableSet.of(copyright));
+
+    ComponentLegalCommentDTO resultDTO = new ComponentLegalCommentDTO();
+    resultDTO.setComponentIdentifier(componentIdentifier);
+    resultDTO.setHash("compHash");
+    resultDTO.setComments(ImmutableSet.of(comment));
+
+    Application app = tempEntity.newApplicationWithParent();
+    ApplicationComponent appComp =
+        tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "compHash", componentIdentifier);
+    tempEntity.newAggregateFile(appComp.getId(), "aggregate_file_hash", Sets.newHashSet("some/path"));
+
+    doReturn(ImmutableSet.of(resultDTO))
+        .when(mockApiLicenseLegalHdsService)
+        .getAnameComponentLegalComments(
+        any(),
+        eq(ImmutableMap.of(componentIdentifier, "compHash")));
+
+    Set<ComponentLegalCommentDTO> results =
+        apiLicenseLegalService.getComponentLegalComments(componentIdentifier, "compHash");
+
+    assertThat(results).hasSize(1);
+    assertThat(results).hasSize(1)
+        .extracting("hash", String.class)
+        .containsExactly("compHash");
   }
 
   @Test
@@ -1557,7 +1638,10 @@ public class ApiLicenseLegalServiceTest
     });
   }
 
-  private void assertComponentData(List<ApiLicenseLegalComponentDTO> components, ApiReportRawDataDTOV2 rawReport) {
+  private void assertComponentData(
+      List<ApiLicenseLegalComponentDTO> components,
+      ApiReportRawDataDTOV2 rawReport)
+  {
     components.forEach(this::assertValidComponent);
 
     Map<String, ApiLicenseDataDTOV2> expectedComponentData = rawReport.components.stream()

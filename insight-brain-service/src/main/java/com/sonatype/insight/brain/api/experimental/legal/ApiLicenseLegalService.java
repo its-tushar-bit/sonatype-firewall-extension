@@ -49,6 +49,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributio
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalResultsOrder;
 import com.sonatype.insight.brain.api.v2.service.ApiLicenseDataAdapter;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
+import com.sonatype.insight.brain.dataaccess.AggregateFileDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -64,6 +65,7 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
+import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.ApplicationComponentLicense;
@@ -98,6 +100,7 @@ import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.license.dto.model.AnameAggregateFileGroup;
 import com.sonatype.insight.license.dto.model.ComponentLegalCommentDTO;
 import com.sonatype.insight.license.dto.model.ComponentLegalFileDTO;
 import com.sonatype.insight.license.dto.model.LicenseMetadataDTO;
@@ -108,7 +111,10 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -169,6 +175,8 @@ public class ApiLicenseLegalService
 
   private final LicenseOverrideDAO licenseOverrideDAO;
 
+  private final AggregateFileDAO aggregateFileDAO;
+
   private final OwnerDAO ownerDAO;
 
   @Inject
@@ -194,6 +202,7 @@ public class ApiLicenseLegalService
       LegalFileOverrideDAO legalFileOverrideDAO,
       ComponentObligationDAO componentObligationDAO,
       ComponentObligationAttributionDAO componentObligationAttributionDAO,
+      AggregateFileDAO aggregateFileDAO,
       OwnerDAO ownerDAO)
   {
     this.multiLicenseDAO = multiLicenseDAO;
@@ -218,6 +227,7 @@ public class ApiLicenseLegalService
     this.legalFileOverrideDAO = legalFileOverrideDAO;
     this.componentObligationDAO = componentObligationDAO;
     this.componentObligationAttributionDAO = componentObligationAttributionDAO;
+    this.aggregateFileDAO = aggregateFileDAO;
     this.ownerDAO = ownerDAO;
   }
 
@@ -384,6 +394,10 @@ public class ApiLicenseLegalService
         .getApplicationsByIdsAndOrganizationIdsAndTagIdsNoAuthz(organizationIds, applicationIds, tagIds);
   }
 
+  /**
+   * @deprecated This method is used for generating legacy report page and should not be used by ALP code
+   */
+  @Deprecated
   @Authorize(permission = Permission.LEGAL_REVIEWER)
   public ApiLicenseLegalApplicationReportDTO getLicenseLegalApplicationReport(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
@@ -507,7 +521,7 @@ public class ApiLicenseLegalService
                 .stream()
                 .collect(toMap(LicenseMetadataDTO::getLicenseId, Function.identity()));
     Set<ComponentLegalCommentDTO> componentLegalComments =
-        apiLicenseLegalHdsService.getComponentLegalComments(Collections.singleton(compIdentifier));
+        getComponentLegalComments(compIdentifier, component.getHash());
     Set<ComponentLegalFileDTO> componentLegalFiles =
         apiLicenseLegalHdsService.getComponentLegalFiles(Collections.singleton(compIdentifier));
     List<CopyrightOverride> copyrightOverrides =
@@ -528,6 +542,34 @@ public class ApiLicenseLegalService
     Set<ApiLicenseLegalObligationDTO> obligations =
         createApiLicenseLegalObligationDTOs(owner.getId(), compIdentifier, getObligationNames(licenseLegalMetadata));
     return new ApiLicenseLegalComponentReportDTO(componentDTO, licenseLegalMetadata, obligations);
+  }
+
+  @VisibleForTesting
+  Set<ComponentLegalCommentDTO> getComponentLegalComments(
+      final ComponentIdentifier componentIdentifier,
+      final String componentHash)
+  {
+    if (componentIdentifier.isAname()) {
+      final List<String> componentAggregateHashes = getAggregateHashes(componentHash);
+      if (componentAggregateHashes.isEmpty()) {
+        return Collections.emptySet();
+      }
+      final AnameAggregateFileGroup anameAggregateFileGroup =
+          new AnameAggregateFileGroup(componentIdentifier, componentAggregateHashes);
+      return apiLicenseLegalHdsService.getAnameComponentLegalComments(
+          Collections.singleton(anameAggregateFileGroup),
+          ImmutableMap.of(componentIdentifier, componentHash));
+    }
+    else {
+      return apiLicenseLegalHdsService.getComponentLegalComments(Collections.singleton(componentIdentifier));
+    }
+  }
+
+  private List<String> getAggregateHashes(final String componentHash) {
+    final ApplicationComponent lastByHash = applicationComponentDAO.getLastByHash(componentHash);
+    return aggregateFileDAO.getByApplicationComponentId(lastByHash.getId()).stream()
+        .map(AggregateFile::getHash)
+        .collect(Collectors.toList());
   }
 
   private Set<String> getObligationNames(Set<ApiLicenseLegalMetadataDTO> apiLicenseLegalMetadataDTOs) {
@@ -641,11 +683,27 @@ public class ApiLicenseLegalService
         .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
+  private Set<Pair<ComponentIdentifier, String>> getComponentIdentifierHashes(
+      Collection<ApiReportRawDataDTOV2> rawReports)
+  {
+    return rawReports.stream()
+        .flatMap(rawReport -> getComponentIdentifierHashes(rawReport).stream())
+        .collect(Collectors.toCollection(LinkedHashSet::new));
+  }
+
   private Set<ComponentIdentifier> getComponentIdentifiers(ApiReportRawDataDTOV2 rawReport) {
     return rawReport.components.stream()
         .map(component -> component.componentIdentifier)
         .filter(Objects::nonNull)
         .map(apiComponentIdentifierDTOV2 -> apiComponentIdentifierDTOV2.toComponentIdentifier())
+        .collect(Collectors.toCollection(LinkedHashSet::new));
+  }
+
+  private Set<Pair<ComponentIdentifier, String>> getComponentIdentifierHashes(ApiReportRawDataDTOV2 rawReport) {
+    return rawReport.components.stream()
+        .map(component -> Pair.of(component.componentIdentifier, component.hash))
+        .filter(pair -> pair.getLeft() != null)
+        .map(pair -> Pair.of(pair.getLeft().toComponentIdentifier(), pair.getRight()))
         .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
@@ -664,10 +722,71 @@ public class ApiLicenseLegalService
   private Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>> getComponentLegalCommentsByComponentIdentifier(
       Collection<ApiReportRawDataDTOV2> rawReports)
   {
-    return apiLicenseLegalHdsService.getComponentLegalComments(
-        getComponentIdentifiers(rawReports)).stream()
-        .collect(Collectors
-            .groupingBy(c -> LegalComponentIdentifierUtil.removeClassifierAndExtension(c.getComponentIdentifier()),
+    final Map<ComponentIdentifier, String> componentIdentifiers = getComponentIdentifierHashes(rawReports)
+        .stream()
+        .collect(Collectors.toMap(
+            Pair::getKey,
+            Pair::getValue,
+            (h1, h2) -> h1));
+
+    // get all non-a-name comments
+    final Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>>
+        nonAname = getNonAnameComponentLegalComments(componentIdentifiers);
+
+    // get all a-name comments
+    final Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>>
+        aname = getAnameComponentLegalComments(componentIdentifiers);
+
+    // combine it all together. components in aname and nonAname do not intersect, so we can just pu them together
+    // in the same map
+    final Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>> result = new HashMap<>();
+    result.putAll(nonAname);
+    result.putAll(aname);
+
+    return result;
+  }
+
+  /**
+   * Filters out A-Name components and performs a request to HDS to retrieve Comments for the rest of components
+   *
+   * @param componentIdentifiers Pairs of ComponentIdentifier - Component Hash
+   * @return Map from component identifier to a set of comments
+   */
+  @VisibleForTesting
+  Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>> getAnameComponentLegalComments(
+      final Map<ComponentIdentifier, String> componentIdentifiers)
+  {
+    final Set<AnameAggregateFileGroup> aNameComponents = componentIdentifiers.entrySet().stream()
+        .filter(entry -> entry.getKey().isAname())
+        .map(entry -> new AnameAggregateFileGroup(entry.getKey(),
+            getAggregateHashes(entry.getValue())))
+        .collect(Collectors.toCollection(LinkedHashSet::new));
+
+    return apiLicenseLegalHdsService.getAnameComponentLegalComments(
+        aNameComponents,
+        componentIdentifiers).stream()
+        // reconstruct component comments by adding component hashes to each element of returned set
+        .collect(
+            groupingBy(c -> LegalComponentIdentifierUtil.removeClassifierAndExtension(c.getComponentIdentifier()),
+                Collectors.toCollection(LinkedHashSet::new)));
+  }
+
+  /**
+   * Filters out non-A-Name components and performs a request to HDS to retrieve Comments for the A-Name components
+   *
+   * @param componentIdentifiers Pairs of ComponentIdentifier - Component Hash
+   * @return Map from component identifier to a set of comments
+   */
+  private Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>> getNonAnameComponentLegalComments(
+      final Map<ComponentIdentifier, String> componentIdentifiers)
+  {
+    final Set<ComponentIdentifier> nonAnameComponents = componentIdentifiers.keySet().stream()
+        .filter(s -> !s.isAname())
+        .collect(Collectors.toCollection(LinkedHashSet::new));
+
+    return apiLicenseLegalHdsService.getComponentLegalComments(nonAnameComponents).stream()
+        .collect(
+            groupingBy(c -> LegalComponentIdentifierUtil.removeClassifierAndExtension(c.getComponentIdentifier()),
                 Collectors.toCollection(LinkedHashSet::new)));
   }
 

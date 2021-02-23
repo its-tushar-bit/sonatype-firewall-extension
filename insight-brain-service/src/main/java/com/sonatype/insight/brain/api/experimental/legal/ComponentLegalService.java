@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.experimental.legal;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -380,14 +381,31 @@ public class ComponentLegalService
     try (TransactionContext tx = componentCopyrightDAO.createTransactionContext()) {
       tx.begin();
       ComponentCopyright existingComponentCopyright = componentCopyrightDAO.getById(tx, componentCopyright.getId());
+
       if (!existingComponentCopyright.getOwnerId().equals(componentCopyright.getOwnerId())) {
         checkLegalReviewerPermission(ownerDAO.getById(existingComponentCopyright.getOwnerId()));
       }
+      findConflictingComponentCopyright(componentCopyright, tx)
+          .ifPresent(copyright -> componentCopyrightDAO.delete(tx, copyright));
+
       componentCopyrightDAO.update(tx, componentCopyright);
       persistCopyrightOverrides(tx, copyrightOverrides);
       tx.commit();
     }
     auditComponentCopyright(componentCopyright, copyrightOverrides);
+  }
+
+  private Optional<ComponentCopyright> findConflictingComponentCopyright(
+      final ComponentCopyright componentCopyright, final TransactionContext tx)
+  {
+    ComponentCopyright conflictingComponentCopyright = componentCopyrightDAO
+        .getByOwnerIdAndComponentIdentifier(tx, componentCopyright.getOwnerId(),
+            componentCopyright.getComponentIdentifier());
+    if (conflictingComponentCopyright == null ||
+        conflictingComponentCopyright.getId().equals(componentCopyright.getId())) {
+      return Optional.empty();
+    }
+    return Optional.of(conflictingComponentCopyright);
   }
 
   private void persistNewComponentCopyright(

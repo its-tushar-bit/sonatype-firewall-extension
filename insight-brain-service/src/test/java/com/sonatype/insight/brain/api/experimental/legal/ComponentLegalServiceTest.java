@@ -235,6 +235,60 @@ public class ComponentLegalServiceTest
     assertThat(updatedComponentCopyrightDTO.getCopyrightOverrides()).isEmpty();
   }
 
+  /**
+   * The scenario is the following: - a ComponentCopyright with ID A exists at the OrgScope - a ComponentCopyright with
+   * ID B exists at the ApplicationScope - user modifies ComponentCopyright B to OrgScope. The ComponentCopyright A is
+   * deleted, now we only have ComponentCopyright B at the OrgScope.
+   */
+  @Test
+  public void testConflictingComponentCopyright() {
+    ApiComponentIdentifierDTOV2 componentIdentifier = ApiComponentIdentifierDTOV2
+        .fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"));
+
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getId());
+
+    ComponentCopyright orgComponentCopyright =
+        tempEntity.newComponentCopyright(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"),
+            organization.getId(), "lch");
+    ComponentCopyright appComponentCopyright =
+        tempEntity.newComponentCopyright(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"),
+            application.getId(), "lch");
+
+    assertThat(componentCopyrightDAO.getById(appComponentCopyright.getId())).isNotNull();
+
+    ComponentCopyrightDTO componentCopyrightDTO = new ComponentCopyrightDTO(
+        appComponentCopyright.getId(),
+        componentIdentifier,
+        Lists.newArrayList(new CopyrightOverrideDTO(
+                null,
+                "originalContentHash",
+                "content",
+                ComponentLegalPartStatus.ENABLED
+            ),
+            new CopyrightOverrideDTO(
+                null,
+                "originalContentHash2",
+                "content2",
+                ComponentLegalPartStatus.DISABLED
+            )
+        ),
+        null,
+        null
+    );
+
+    ComponentCopyrightDTO returnedComponentCopyrightDTO = componentLegalService
+        .saveComponentCopyright(OwnerType.ORGANIZATION, organization.getPublicId(), componentCopyrightDTO);
+
+    assertThat(componentCopyrightDAO.getById(orgComponentCopyright.getId())).isNull();
+    assertThat(returnedComponentCopyrightDTO.getCopyrightOverrides()).hasSize(2);
+    assertThat(returnedComponentCopyrightDTO.getId()).isEqualTo(appComponentCopyright.getId());
+
+    ComponentCopyright persistedComponentCopyright =
+        componentCopyrightDAO.getById(returnedComponentCopyrightDTO.getId());
+    assertThat(persistedComponentCopyright.getOwnerId()).isEqualTo(organization.getId());
+  }
+
   @Test(expected = InvalidComponentIdentifierException.class)
   public void testInvalidComponentIdentifier() throws IOException {
     Application application = tempEntity.newApplicationWithParent();

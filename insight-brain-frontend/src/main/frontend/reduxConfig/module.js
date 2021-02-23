@@ -10,6 +10,8 @@ import reducers from './reducers';
 
 const middleware = [thunk, 'routerMiddleware'];
 
+const enhancers = [];
+
 // don't use redux-logger in PROD or in Browser with no console.log.apply (IE9)
 if (window.angularDebug && window.console && window.console.log.apply) {
   // use require because es6 import redux-logger breaks in IE9
@@ -18,8 +20,13 @@ if (window.angularDebug && window.console && window.console.log.apply) {
   middleware.push(logger);
 }
 
+// enable support for https://github.com/zalmoxisus/redux-devtools-extension
+if (window.angularDebug && window.__REDUX_DEVTOOLS_EXTENSION__) {
+  enhancers.push(window.__REDUX_DEVTOOLS_EXTENSION__());
+}
+
 function config($ngReduxProvider) {
-  $ngReduxProvider.createStoreWith(reducers, middleware);
+  $ngReduxProvider.createStoreWith(reducers, middleware, enhancers);
 }
 config.$inject = ['$ngReduxProvider'];
 

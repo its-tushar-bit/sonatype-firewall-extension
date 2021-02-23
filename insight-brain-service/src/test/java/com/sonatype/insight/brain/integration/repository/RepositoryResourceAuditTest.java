@@ -46,6 +46,11 @@ public class RepositoryResourceAuditTest
     return RepositoryResource.EVALUATE_COMPONENT_WITH_QUARANTINE_PATH;
   }
 
+  @Override
+  protected String getProprietaryComponentsNamePath() {
+    return RepositoryResource.PROPRIETARY_NAMES_PATH;
+  }
+
   @Test
   public void testEvaluateComponentsAdhoc_Unauthorized() throws Exception {
     Repository repository = tempEntity.newRepository(REPOSITORY_MANAGER_INSTANCE_ID, REPOSITORY_PUBLIC_ID);
@@ -90,5 +95,25 @@ public class RepositoryResourceAuditTest
     AuditDTO auditDTO = assertAuditLog(AuditEvent.EVALUATE_AD_HOC, null);
     assertRepositoryData(auditDTO, repository);
     assertRepositoryEvaluationData(auditDTO, count, RepositoryComponentEvaluationDataRequestList.ADHOC);
+  }
+
+  @Test
+  public void testRemoveProprietaryComponentNames() throws Exception {
+    restRequest().path(getResourcePath(), getProprietaryComponentsNamePath())
+        .parameter(REPOSITORY_MANAGER_INSTANCE_ID, REPOSITORY_PUBLIC_ID).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_PROPRIETARY_COMPONENT_NAMES, null);
+    assertCustomData(auditDTO, "repositoryManagerInstanceId", REPOSITORY_MANAGER_INSTANCE_ID);
+    assertCustomData(auditDTO, "repositoryPublicId", REPOSITORY_PUBLIC_ID);
+  }
+
+  @Test
+  public void testRemoveProprietaryComponentNames_Unauthorized() throws Exception {
+    restRequest().path(getResourcePath(), getProprietaryComponentsNamePath())
+        .parameter(REPOSITORY_MANAGER_INSTANCE_ID, REPOSITORY_PUBLIC_ID).with(unauthorizedUser()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_PROPRIETARY_COMPONENT_NAMES, "unauthorized");
+    assertCustomData(auditDTO, "repositoryManagerInstanceId", REPOSITORY_MANAGER_INSTANCE_ID);
+    assertCustomData(auditDTO, "repositoryPublicId", REPOSITORY_PUBLIC_ID);
   }
 }

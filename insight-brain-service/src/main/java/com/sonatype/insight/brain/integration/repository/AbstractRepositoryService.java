@@ -122,7 +122,7 @@ public abstract class AbstractRepositoryService
   }
 
   void setEnabled(String repositoryManagerInstanceId, String repositoryPublicId, boolean enable) {
-    AuditData.get().setData("repositoryManagerInstanceId", repositoryManagerInstanceId)
+    AuditData.get().setRepositoryManagerInstanceId(repositoryManagerInstanceId)
         .setRepositoryPublicId(repositoryPublicId);
     checkLicenseFeature();
 
@@ -445,6 +445,7 @@ public abstract class AbstractRepositoryService
       String repositoryPublicId,
       ProprietaryComponentNames proprietaryComponentNames)
   {
+    AuditData.get().setRepositoryManagerInstanceId(repositoryManagerInstanceId);
     checkLicenseFeature();
     Repository repository = new Repository(null, repositoryPublicId);
     addProprietaryComponentNames(repositoryManagerInstanceId, repository, proprietaryComponentNames);
@@ -482,7 +483,8 @@ public abstract class AbstractRepositoryService
     for (ProprietaryComponentNamePattern pattern : patterns) {
       pattern.withRepository(repositoryManagerInstanceId, repository.getPublicId());
     }
-    proprietaryComponentNameDetector.addPatterns(format, patterns);
+    int added = proprietaryComponentNameDetector.addPatterns(format, patterns);
+    AuditData.get().setData("addedPatternCount", added);
   }
 
   private void validatePattern(String type, String pattern) {
@@ -516,6 +518,7 @@ public abstract class AbstractRepositoryService
   }
 
   public void removeProprietaryComponentNames(String repositoryManagerInstanceId, String repositoryPublicId) {
+    AuditData.get().setRepositoryManagerInstanceId(repositoryManagerInstanceId);
     Repository repository = new Repository(null, repositoryPublicId);
     removeProprietaryComponentNames(repositoryManagerInstanceId, repository);
   }

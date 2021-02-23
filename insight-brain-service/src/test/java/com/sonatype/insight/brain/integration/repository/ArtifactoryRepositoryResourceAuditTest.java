@@ -46,4 +46,9 @@ public class ArtifactoryRepositoryResourceAuditTest
   protected String getEvaluateComponentWithQuarantinePath() {
     return ArtifactoryRepositoryResource.EVALUATE_COMPONENT_WITH_QUARANTINE_PATH;
   }
+
+  @Override
+  protected String getProprietaryComponentsNamePath() {
+    return ArtifactoryRepositoryResource.PROPRIETARY_NAMES;
+  }
 }

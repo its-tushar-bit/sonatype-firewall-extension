@@ -159,6 +159,7 @@ public class ArtifactoryRepositoryResource
   @POST
   @Path(PROPRIETARY_NAMES)
   @Consumes({MediaType.APPLICATION_JSON})
+  @Audited(AuditEvent.ADD_PROPRIETARY_COMPONENT_NAMES)
   public void addProprietaryComponentNames(
       @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") String repositoryPublicId,

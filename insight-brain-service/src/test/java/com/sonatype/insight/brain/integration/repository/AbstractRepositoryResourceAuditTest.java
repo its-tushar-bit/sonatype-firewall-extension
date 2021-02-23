@@ -11,6 +11,7 @@ import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
+import com.sonatype.clm.dto.model.component.ProprietaryComponentNames;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -54,6 +55,8 @@ public abstract class AbstractRepositoryResourceAuditTest
   protected abstract String getComponentsPath();
 
   protected abstract String getEvaluateComponentWithQuarantinePath();
+
+  protected abstract String getProprietaryComponentsNamePath();
 
   @Test
   public void testSetEnabled_Connect() throws Exception {
@@ -351,6 +354,34 @@ public abstract class AbstractRepositoryResourceAuditTest
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_QUARANTINE, null);
     assertRepositoryData(auditDTO, repository);
     assertCustomData(auditDTO, "quarantine", "enabled");
+  }
+
+  @Test
+  public void testAddProprietaryComponentNames() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+
+    restRequest().path(getResourcePath(), getProprietaryComponentsNamePath())
+        .parameter(repositoryManager.getInstanceId(), REPOSITORY_PUBLIC_ID)
+        .body(new ProprietaryComponentNames("npm").addNames("name1", "name").addNamespaces("namespace1")).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.ADD_PROPRIETARY_COMPONENT_NAMES, null);
+    assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
+    assertCustomData(auditDTO, "repositoryPublicId", REPOSITORY_PUBLIC_ID);
+    assertCustomData(auditDTO, "addedPatternCount", 3);
+  }
+
+  @Test
+  public void testAddProprietaryComponentNames_Unauthorized() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+
+    restRequest().path(getResourcePath(), getProprietaryComponentsNamePath())
+        .parameter(repositoryManager.getInstanceId(), REPOSITORY_PUBLIC_ID)
+        .body(new ProprietaryComponentNames("npm").addNames("name1", "name").addNamespaces("namespace1"))
+        .with(unauthorizedUser()).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.ADD_PROPRIETARY_COMPONENT_NAMES, "unauthorized");
+    assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
+    assertCustomData(auditDTO, "repositoryPublicId", REPOSITORY_PUBLIC_ID);
   }
 
   private HttpRequest enableRequest(String repositoryManagerInstanceId, String repositoryPublicId, boolean enabled) {

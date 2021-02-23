@@ -199,6 +199,7 @@ public class RepositoryResource
   @POST
   @Path(PROPRIETARY_NAMES_PATH)
   @Consumes({MediaType.APPLICATION_JSON})
+  @Audited(AuditEvent.ADD_PROPRIETARY_COMPONENT_NAMES)
   public void addProprietaryComponentNames(
       @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") String repositoryPublicId,
@@ -213,6 +214,7 @@ public class RepositoryResource
    */
   @DELETE
   @Path(PROPRIETARY_NAMES_PATH)
+  @Audited(AuditEvent.REMOVE_PROPRIETARY_COMPONENT_NAMES)
   public void removeProprietaryComponentNames(
       @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") String repositoryPublicId)

@@ -83,14 +83,16 @@ public class ProprietaryComponentNameDetector
     return false;
   }
 
-  public void addPatterns(String format, Collection<ProprietaryComponentNamePattern> patterns) {
+  public int addPatterns(String format, Collection<ProprietaryComponentNamePattern> patterns) {
     Collection<ProprietaryComponentNamePattern> newlyAdded = getMatcher(format).add(patterns);
     if (!newlyAdded.isEmpty()) {
       log.debug("Adding {} new proprietary component names ({})", newlyAdded.size(), format);
     }
+    int inserted = 0;
     for (ProprietaryComponentNamePattern pattern : newlyAdded) {
       try {
         proprietaryComponentNamePatternDAO.insert(pattern);
+        inserted++;
       }
       catch (PersistenceException e) {
         if (e.getCause() instanceof EntityExistsException) {
@@ -99,6 +101,7 @@ public class ProprietaryComponentNameDetector
         throw e;
       }
     }
+    return inserted;
   }
 
   public void removePatterns(String repositoryManagerInstanceId, String repositoryPublicId) {

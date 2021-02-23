@@ -94,7 +94,9 @@ public class ProprietaryComponentNameDetectorTest
         .withNamePattern("sonatype*").withRepository(repoManId, repoId);
     ProprietaryComponentNamePattern pattern2 = new ProprietaryComponentNamePattern(ComponentIdentifier.FORMAT_NPM)
         .withNamespacePattern("@sonatype").withRepository(repoManId, repoId);
-    proprietaryComponentNameDetector.addPatterns(ComponentIdentifier.FORMAT_NPM, Arrays.asList(pattern1, pattern2));
+    assertThat(
+        proprietaryComponentNameDetector.addPatterns(ComponentIdentifier.FORMAT_NPM, Arrays.asList(pattern1, pattern2)))
+            .isEqualTo(2);
 
     assertThat(proprietaryComponentNamePatternDAO.getByFormat(ComponentIdentifier.FORMAT_NPM))
         .extracting(ProprietaryComponentNamePattern::getId)
@@ -111,9 +113,9 @@ public class ProprietaryComponentNameDetectorTest
     assertThat(proprietaryComponentNameDetector
         .findProprietaryComponentName(ComponentIdentifier.createNpmCoordinates("@NOTsonatype/cli", "99"))).isNull();
 
-    proprietaryComponentNameDetector.addPatterns(ComponentIdentifier.FORMAT_NPM,
+    assertThat(proprietaryComponentNameDetector.addPatterns(ComponentIdentifier.FORMAT_NPM,
         Arrays.asList(new ProprietaryComponentNamePattern(ComponentIdentifier.FORMAT_NPM).withNamePattern("sonatype*")
-            .withRepository(repoManId, repoId)));
+            .withRepository(repoManId, repoId)))).isEqualTo(0);
 
     assertThat(proprietaryComponentNamePatternDAO.getByFormat(ComponentIdentifier.FORMAT_NPM))
         .extracting(ProprietaryComponentNamePattern::getId)

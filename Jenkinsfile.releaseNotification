@@ -35,7 +35,7 @@ pipeline {
       steps {
         emailext(
           mimeType: 'text/html',
-          subject: "${params.releaseVersion} Release Complete",
+          subject: "IQ ${params.releaseVersion} Release Complete",
           body: "<p>Dear Product Owners, All the release binaries are up, and can be found by following the link below.<br>\
           Furthermore, the in-product notification was pushed and displayed at ${params.notificationTime}, marking the completion of the ${params.releaseVersion} Release.</p>\
           <p><a href='https://help.sonatype.com/display/NXIQ/Download+and+Compatibility'>https://help.sonatype.com/display/NXIQ/Download+and+Compatibility</a></p>",

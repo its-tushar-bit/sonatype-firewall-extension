@@ -124,7 +124,7 @@ public class ExportEmbeddedDatabaseCommand
     log.info("Reading tables, please be patient");
     try (Connection connection = dataSource.getConnection();
         Statement statement = connection.createStatement();
-        ResultSet results = statement.executeQuery("SCRIPT SIMPLE NOSETTINGS BLOCKSIZE 10000000")) {
+        ResultSet results = statement.executeQuery("SCRIPT SIMPLE NOSETTINGS BLOCKSIZE " + Integer.MAX_VALUE)) {
       String currentTable = null;
       while (results.next()) {
         String sql = results.getString(1);

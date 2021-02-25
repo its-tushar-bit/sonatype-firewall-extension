@@ -15,6 +15,7 @@ import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class FirewallServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -31,14 +32,16 @@ public class FirewallServiceAuthzTest
     assertThat(firewallStatusDTO).isNotNull();
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testGetFirewallStatus_Unauthenticated() {
-    firewallService.getFirewallStatus();
+    assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() ->
+        firewallService.getFirewallStatus());
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testGetFirewallStatus_Unauthorized() {
     login();
-    firewallService.getFirewallStatus();
+    assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(() ->
+        firewallService.getFirewallStatus());
   }
 }

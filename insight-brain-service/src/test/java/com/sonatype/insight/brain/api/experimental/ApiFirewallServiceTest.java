@@ -9,15 +9,13 @@ import java.util.Date;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.api.experimental.dto.FirewallConfigurationDTO;
-import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallQuarantineSummaryDTO;
+import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineSummaryDTO;
+import com.sonatype.insight.brain.api.experimental.dto.FirewallConfigurationDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -27,6 +25,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.lang3.time.DateUtils;
 import org.junit.After;
 import org.junit.Test;
 
@@ -39,9 +38,6 @@ public class ApiFirewallServiceTest
 {
   @Inject
   ApiFirewallService apiFirewallService;
-
-  @Inject
-  RepositoryComponentDAO repositoryComponentDAO;
 
   @Inject
   private InsightConfig config;
@@ -60,18 +56,36 @@ public class ApiFirewallServiceTest
   public void testGetFirewallReleaseQuarantineSummary() {
     //setup: enable feature flag
     config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
-
     Repository repository = tempEntity.newRepository();
-    RepositoryComponent repositoryComponent2 =
-        tempEntity.newRepositoryComponent(repository.getId(), "/quarantined2", new Date(), new Date());
-    repositoryComponent2.setUnquarantineTimeForMonitoring(new Date());   // updates auto_unquarantined flag
-    repositoryComponentDAO.update(repositoryComponent2);
+    // create repository components in various state of quarantine
+    final Date mtdDate = new Date();
+    final Date ytdDate = DateUtils.setMonths(new Date(), 0);
+    final Date previousYearDate = DateUtils.addYears(new Date(), -1);
+    tempEntity.newRepositoryComponent(repository.getId(), "/audit", null, null);
+    tempEntity.newRepositoryComponent(repository.getId(), "/quarantined", mtdDate, null);
+    tempEntity.newRepositoryComponent(repository.getId(), "/autoUnquarantinedMtd", mtdDate, mtdDate, true);
+    tempEntity.newRepositoryComponent(repository.getId(), "/manualUnquarantinedMtd", mtdDate, mtdDate, false);
+    tempEntity.newRepositoryComponent(repository.getId(), "/autoUnquarantinedYtd", ytdDate, ytdDate, true);
+    tempEntity.newRepositoryComponent(repository.getId(), "/manualUnquarantinedYtd", ytdDate, ytdDate, false);
+    tempEntity
+        .newRepositoryComponent(repository.getId(), "/autoUnquarantinedPrevious", previousYearDate, previousYearDate,
+            true);
+    tempEntity
+        .newRepositoryComponent(repository.getId(), "/manualUnquarantinedPrevious", previousYearDate, previousYearDate,
+            false);
 
     //when: retrieving release quarantine summary
     ApiFirewallReleaseQuarantineSummaryDTO releaseQuarantineSummary = apiFirewallService.getReleaseQuarantineSummary();
 
     //then: expect to get a valid pojo back
-    assertThat(releaseQuarantineSummary.autoReleaseQuarantineCountMTD).isOne();
+    // if MTD and YTD dates are the same day it's January, and MTD counts will equal YTD counts
+    if (DateUtils.isSameDay(mtdDate, ytdDate)) {
+      assertThat(releaseQuarantineSummary.autoReleaseQuarantineCountMTD).isEqualTo(2);
+    }
+    else {
+      assertThat(releaseQuarantineSummary.autoReleaseQuarantineCountMTD).isOne();
+    }
+    assertThat(releaseQuarantineSummary.autoReleaseQuarantineCountYTD).isEqualTo(2);
   }
 
   @Test
@@ -99,11 +113,12 @@ public class ApiFirewallServiceTest
         apiFirewallService.getReleaseQuarantineSummary());
   }
 
-  @Test(expected = BadRequestException.class)
+  @Test
   public void testGetFirewallReleaseQuarantineSummary_FeatureFlag_False() {
     //when: getting release quarantine summary
     //then: expect bad request exception
-    apiFirewallService.getReleaseQuarantineSummary();
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
+        apiFirewallService.getReleaseQuarantineSummary());
   }
 
   @Test
@@ -131,7 +146,7 @@ public class ApiFirewallServiceTest
     assertThat(firewallConfigurationDTO.autoUnquarantineEnabled).isFalse();
   }
 
-  @Test(expected = InvalidLicenseException.class)
+  @Test
   public void testGetFirewallConfiguration_NoFirewallFeature() {
     config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
     //setup: remove firewall feature
@@ -139,10 +154,11 @@ public class ApiFirewallServiceTest
 
     //when: getting firewall config
     //then: expect invalid license exception
-    apiFirewallService.setFirewallConfiguration(new FirewallConfigurationDTO());
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
+        apiFirewallService.getFirewallConfiguration());
   }
 
-  @Test(expected = InvalidLicenseException.class)
+  @Test
   public void testGetFirewallConfiguration_NoReleaseIntegrityFeature() {
     config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
     //setup: remove release integrity feature
@@ -150,14 +166,16 @@ public class ApiFirewallServiceTest
 
     //when: getting firewall config
     //then: expect invalid license exception
-    apiFirewallService.setFirewallConfiguration(new FirewallConfigurationDTO());
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
+        apiFirewallService.getFirewallConfiguration());
   }
 
-  @Test(expected = BadRequestException.class)
+  @Test
   public void testGetFirewallConfiguration_FeatureFlag_False() {
     //when: getting firewall status
     //then: expect bad request exception
-    apiFirewallService.getFirewallConfiguration();
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
+        apiFirewallService.getFirewallConfiguration());
   }
 
   @Test
@@ -228,7 +246,7 @@ public class ApiFirewallServiceTest
     assertThat(policyMonitoring.getId()).isEqualTo(existingPolicyMonitoring.getId());
   }
 
-  @Test(expected = InvalidLicenseException.class)
+  @Test
   public void testSetFirewallConfiguration_NoFirewallFeature() {
     config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
     //setup: remove firewall feature
@@ -236,10 +254,11 @@ public class ApiFirewallServiceTest
 
     //when: setting firewall auto unquarantine
     //then: expect invalid license exception
-    apiFirewallService.setFirewallConfiguration(new FirewallConfigurationDTO());
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy( () ->
+        apiFirewallService.setFirewallConfiguration(new FirewallConfigurationDTO()));
   }
 
-  @Test(expected = InvalidLicenseException.class)
+  @Test
   public void testSetFirewallConfiguration_NoReleaseIntegrityFeature() {
     config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
     //setup: remove release integrity feature
@@ -247,14 +266,16 @@ public class ApiFirewallServiceTest
 
     //when: setting firewall auto unquarantine
     //then: expect invalid license exception
-    apiFirewallService.setFirewallConfiguration(new FirewallConfigurationDTO());
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy( () ->
+        apiFirewallService.setFirewallConfiguration(new FirewallConfigurationDTO()));
   }
 
-  @Test(expected = BadRequestException.class)
+  @Test
   public void testSetFirewallConfiguration_FeatureFlag_False() {
     //when: setting firewall status
     //then: expect bad request exception
-    apiFirewallService.setFirewallConfiguration(new FirewallConfigurationDTO());
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy( () ->
+        apiFirewallService.setFirewallConfiguration(new FirewallConfigurationDTO()));
   }
 
   @Test

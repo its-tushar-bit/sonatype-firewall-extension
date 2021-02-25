@@ -20,6 +20,7 @@ import org.junit.After;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class FirewallServiceTest
     extends AbstractComponentTest
@@ -60,23 +61,26 @@ public class FirewallServiceTest
         .containsEntry(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), false);
   }
 
-  @Test(expected = InvalidLicenseException.class)
+  @Test
   public void testGetFirewallStatus_NoFirewallFeature() {
     //setup: remove firewall feature
     testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL);
 
     //when: setting firewall auto unquarantine
     //then: expect invalid license exception
-    firewallService.getFirewallStatus();
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
+        firewallService.getFirewallStatus());
   }
 
-  @Test(expected = InvalidLicenseException.class)
+  @Test
   public void testtestGetFirewallStatus_NoReleaseIntegrityFeature() {
     //setup: remove release integrity feature
     testProductLicense.setMissingFeatures(LicensedFeature.RELEASE_INTEGRITY);
 
     //when: setting firewall auto unquarantine
     //then: expect invalid license exception
-    firewallService.getFirewallStatus();
+
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
+        firewallService.getFirewallStatus());
   }
 }

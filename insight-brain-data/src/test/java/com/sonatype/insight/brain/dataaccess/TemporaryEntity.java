@@ -2009,7 +2009,17 @@ public class TemporaryEntity
                                                     Date quarantineTime,
                                                     Date unquarantineTime)
   {
-    return newRepositoryComponent(repositoryId, pathname, quarantineTime, unquarantineTime, new Date());
+    return newRepositoryComponent(repositoryId, pathname, quarantineTime, unquarantineTime, new Date(), false);
+  }
+
+  public RepositoryComponent newRepositoryComponent(String repositoryId,
+                                                    String pathname,
+                                                    Date quarantineTime,
+                                                    Date unquarantineTime,
+                                                    boolean isAutoUnquarantined)
+  {
+    return newRepositoryComponent(repositoryId, pathname, quarantineTime, unquarantineTime, new Date(),
+        isAutoUnquarantined);
   }
 
   public RepositoryComponent newRepositoryComponent(
@@ -2031,12 +2041,27 @@ public class TemporaryEntity
                                                     Date unquarantineTime,
                                                     Date evalTime)
   {
+    return newRepositoryComponent(repositoryId, pathname, quarantineTime, unquarantineTime, evalTime, false);
+  }
+
+  public RepositoryComponent newRepositoryComponent(String repositoryId,
+                                                    String pathname,
+                                                    Date quarantineTime,
+                                                    Date unquarantineTime,
+                                                    Date evalTime,
+                                                    boolean isAutoUnquarantined)
+  {
     RepositoryComponent repositoryComponent = new RepositoryComponent(repositoryId, pathname, new Date(), "hash",
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"), MatchState.EXACT.getId(),
         IdentificationSource.SONATYPE.getId(), evalTime);
     repositoryComponent.setQuarantineTime(quarantineTime);
     if (unquarantineTime != null) {
-      repositoryComponent.setUnquarantineTimeForManualRelease(unquarantineTime);
+      if (isAutoUnquarantined) {
+        repositoryComponent.setUnquarantineTimeForMonitoring(unquarantineTime);
+      }
+      else {
+        repositoryComponent.setUnquarantineTimeForManualRelease(unquarantineTime);
+      }
     }
     repositoryComponentDAO.insert(repositoryComponent);
     return repositoryComponent;

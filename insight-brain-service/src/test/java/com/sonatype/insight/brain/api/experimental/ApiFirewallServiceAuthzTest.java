@@ -73,15 +73,18 @@ public class ApiFirewallServiceAuthzTest
     assertThat(firewallConfigurationDTO).isNotNull();
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testGetFirewallConfiguration_Unauthenticated() {
-    apiFirewallService.getFirewallConfiguration();
+    assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() ->
+        apiFirewallService.getFirewallConfiguration());
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testGetFirewallConfiguration_Unauthorized() {
     login();
-    apiFirewallService.getFirewallConfiguration();
+    assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(() ->
+        apiFirewallService.getFirewallConfiguration());
+
   }
 
   @Test
@@ -97,21 +100,23 @@ public class ApiFirewallServiceAuthzTest
     assertThat(firewallConfigurationDTO).isNotNull();
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testSetFirewallConfiguration_Unauthenticated() {
     FirewallConfigurationDTO firewallConfigurationDTO = new FirewallConfigurationDTO();
     firewallConfigurationDTO.autoUnquarantineEnabled = true;
 
-    apiFirewallService.setFirewallConfiguration(firewallConfigurationDTO);
+    assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() ->
+        apiFirewallService.setFirewallConfiguration(firewallConfigurationDTO));
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testSetFirewallConfiguration_Unauthorized() {
     login();
 
     FirewallConfigurationDTO firewallConfigurationDTO = new FirewallConfigurationDTO();
     firewallConfigurationDTO.autoUnquarantineEnabled = true;
-    apiFirewallService.setFirewallConfiguration(firewallConfigurationDTO);
+    assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(() ->
+        apiFirewallService.setFirewallConfiguration(firewallConfigurationDTO));
   }
 
   @Test

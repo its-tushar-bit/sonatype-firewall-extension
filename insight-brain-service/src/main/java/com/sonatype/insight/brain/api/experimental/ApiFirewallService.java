@@ -140,12 +140,17 @@ public class ApiFirewallService
 
     final Date startOfCurMonth =
         Date.from((LocalDate.now().withDayOfMonth(1)).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+    final Date startOfCurYear =
+        Date.from((LocalDate.now().withDayOfYear(1)).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 
     final ApiFirewallReleaseQuarantineSummaryDTO
         apiFirewallReleaseQuarantineSummaryDTO = new ApiFirewallReleaseQuarantineSummaryDTO();
 
     apiFirewallReleaseQuarantineSummaryDTO.autoReleaseQuarantineCountMTD =
         repositoryComponentDAO.getAutoReleaseQuarantinedCountByDate(startOfCurMonth);
+
+    apiFirewallReleaseQuarantineSummaryDTO.autoReleaseQuarantineCountYTD =
+        repositoryComponentDAO.getAutoReleaseQuarantinedCountByDate(startOfCurYear);
 
     return apiFirewallReleaseQuarantineSummaryDTO;
   }

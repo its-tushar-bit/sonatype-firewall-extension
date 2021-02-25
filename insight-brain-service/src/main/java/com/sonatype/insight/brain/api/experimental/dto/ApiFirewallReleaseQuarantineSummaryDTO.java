@@ -8,4 +8,6 @@ package com.sonatype.insight.brain.api.experimental.dto;
 public class ApiFirewallReleaseQuarantineSummaryDTO
 {
   public long autoReleaseQuarantineCountMTD;
+
+  public long autoReleaseQuarantineCountYTD;
 }

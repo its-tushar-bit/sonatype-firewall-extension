@@ -34,8 +34,11 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ApiLicenseLegalHdsServiceTest
@@ -201,6 +204,23 @@ public class ApiLicenseLegalHdsServiceTest
     );
 
     assertThat(results).isEqualTo(expectedLegalComments);
+  }
+
+  @Test
+  public void testGetANameComponentLegalComments_EmptyAggregateHash() {
+    final ComponentIdentifier componentId1 = ComponentIdentifier.createAnameCoordinates("groupId1", "", "version1");
+    final List<AnameAggregateFileGroup> aggregageFileGroups = ImmutableList.of(
+        new AnameAggregateFileGroup(componentId1, ImmutableList.of())
+    );
+
+    apiLicenseLegalHdsService.getAnameComponentLegalComments(
+        ImmutableSet.copyOf(aggregageFileGroups),
+        ImmutableMap.of(componentId1, "component_1_hash"));
+
+    verify(mockHdsClient, never())
+        .post(eq(ComponentLegalCommentDTO[].class),
+            eq(ApiLicenseLegalHdsService.LEGAL_ANAME_COMMENT_URL),
+            any());
   }
 
   private ComponentLegalCommentDTO createComponentCommentsDTO(

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.experimental.legal;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -108,15 +109,22 @@ public class ApiLicenseLegalHdsService
       final Set<AnameAggregateFileGroup> anameAggregateFileGroups,
       final Map<ComponentIdentifier, String> componentIdentifierHash)
   {
+    final List<AnameAggregateFileGroup> filteredGroups = anameAggregateFileGroups.stream()
+        .filter(group -> !group.getAggregateHashes().isEmpty())
+        .collect(Collectors.toList());
+
+    if (filteredGroups.isEmpty()) {
+      return Collections.emptySet();
+    }
+
     final Set<ComponentLegalCommentDTO> componentComments = StreamSupport.stream(
         Iterables.partition(
-            anameAggregateFileGroups,
+            filteredGroups,
             insightConfig.getLicenseLegalHdsRequestLimit()).spliterator(),
         true)
         .flatMap(
             partition -> Arrays
-                .stream(
-                    hdsClient.post(ComponentLegalCommentDTO[].class,
+                .stream(hdsClient.post(ComponentLegalCommentDTO[].class,
                         LEGAL_ANAME_COMMENT_URL,
                         partition)))
         .collect(Collectors.toCollection(LinkedHashSet::new));

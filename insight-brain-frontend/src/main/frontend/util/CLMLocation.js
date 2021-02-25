@@ -176,7 +176,10 @@ export function getFirewallStatusUrl() {
 
 export function getFirewallConfigurationUrl() {
   return uriTemplate`/api/experimental/firewall/configuration`;
+}
 
+export function getFirewallReleaseQuarantineSummaryUrl() {
+  return uriTemplate`/api/experimental/firewall/releaseQuarantine/summary`;
 }
 
 export const getReportBomUrl = getBrowseReportUrl('bom.json');

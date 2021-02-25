@@ -47,7 +47,7 @@ public class FirewallPage
     return new FirewallAutoUnquarantine();
   }
 
-  public FirewallAutoUnquarantine firewallAutoUnquarantine() {
+  public FirewallAutoUnquarantine firewallAutoReleaseQuarantine() {
     return new FirewallAutoUnquarantine();
   }
 
@@ -135,11 +135,15 @@ public class FirewallPage
       extends BasicElement<FirewallAutoUnquarantine>
   {
     public FirewallAutoUnquarantine() {
-      super(ROOT, "#firewall-auto-unquarantine");
+      super(ROOT, "#firewall-auto-release-quarantine");
     }
 
     public SelenideElement header() {
       return child(CHILD_HEADER_CSS_CLASS);
+    }
+
+    public SelenideElement cardContent() {
+      return child(".nx-card__call-out");
     }
   }
 

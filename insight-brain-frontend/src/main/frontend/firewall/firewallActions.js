@@ -7,7 +7,8 @@ import axios from 'axios';
 import {SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS} from '@sonatype/react-shared-components';
 
 import {noPayloadActionCreator, payloadParamActionCreator} from '../util/reduxUtil';
-import {getFirewallConfigurationUrl, getFirewallStatusUrl} from '../util/CLMLocation';
+import {getFirewallConfigurationUrl, getFirewallStatusUrl, getFirewallReleaseQuarantineSummaryUrl}
+  from '../util/CLMLocation';
 import {Messages} from '../util/CommonServices';
 
 export const FIREWALL_LOAD_STATUS_REQUESTED = 'FIREWALL_LOAD_STATUS_REQUESTED';
@@ -44,6 +45,14 @@ export const FIREWALL_CONFIGURATION_SAVE_MASK_TIMER_DONE = 'FIREWALL_CONFIGURATI
 export const toggleAutoUnquarantineEnabled = noPayloadActionCreator(FIREWALL_TOGGLE_AUTO_UNQUARANTINE_ENABLED);
 const configurationSaveMaskTimerDone = noPayloadActionCreator(FIREWALL_CONFIGURATION_SAVE_MASK_TIMER_DONE);
 
+export const FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED = 'FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED';
+export const FIREWALL_RELEASE_QUARANTINE_SUMMARY_FULFILLED = 'FIREWALL_RELEASE_QUARANTINE_SUMMARY_FULFILLED';
+export const FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED = 'FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED';
+
+const loadReleaseQuarantineSummaryRequested = noPayloadActionCreator(FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED);
+const loadReleaseQuarantineSummaryFulfilled = payloadParamActionCreator(FIREWALL_RELEASE_QUARANTINE_SUMMARY_FULFILLED);
+const loadReleaseQuarantineSummaryFailed = payloadParamActionCreator(FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED);
+
 export function loadStatus() {
   return function(dispatch) {
     dispatch(loadStatusRequested());
@@ -53,6 +62,19 @@ export function loadStatus() {
         })
         .catch(error => {
           dispatch(loadStatusFailed(error));
+        });
+  };
+}
+
+export function loadReleaseQuarantineSummary() {
+  return function(dispatch) {
+    dispatch(loadReleaseQuarantineSummaryRequested());
+    return axios.get(getFirewallReleaseQuarantineSummaryUrl())
+        .then(({data}) => {
+          dispatch(loadReleaseQuarantineSummaryFulfilled(data));
+        })
+        .catch(error => {
+          dispatch(loadReleaseQuarantineSummaryFailed(Messages.getHttpErrorMessage(error)));
         });
   };
 }

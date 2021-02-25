@@ -14,6 +14,7 @@ function mapStateToProps({firewall}) {
     ...pick(['isEnabled'], firewall.statusState),
     ...pick(['autoUnquarantineEnabled'], firewall.configurationState),
     ...pick([
+      'loadedReleaseQuarantineSummary', 'loadReleaseQuarantineSummaryError', 'autoReleaseQuarantineCountMTD',
       'loadedConfiguration', 'loadConfigurationError', 'enabledPolicyConditionTypesCount',
       'totalPolicyConditionTypesCount'
     ], firewall.autoUnquarantineState.viewState)

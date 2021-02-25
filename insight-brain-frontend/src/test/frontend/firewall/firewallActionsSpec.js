@@ -18,18 +18,24 @@ import {
   FIREWALL_SAVE_CONFIGURATION_FULFILLED,
   FIREWALL_SAVE_CONFIGURATION_REQUESTED,
   FIREWALL_SET_SHOW_CONFIGURATION_MODAL,
+  FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED,
+  FIREWALL_RELEASE_QUARANTINE_SUMMARY_FULFILLED,
+  FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED,
   loadConfiguration,
+  loadReleaseQuarantineSummary,
   loadStatus,
   openConfigurationModal,
   saveConfiguration
 } from '../../../main/frontend/firewall/firewallActions';
-import {getFirewallConfigurationUrl, getFirewallStatusUrl} from '../../../main/frontend/util/CLMLocation';
+import {getFirewallConfigurationUrl, getFirewallReleaseQuarantineSummaryUrl, getFirewallStatusUrl}
+  from '../../../main/frontend/util/CLMLocation';
 import {SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS} from '@sonatype/react-shared-components';
 
 describe('firewallActions', function() {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios),
       firewallConfigUrl = getFirewallConfigurationUrl(),
-      firewallStatusUrl = getFirewallStatusUrl();
+      firewallStatusUrl = getFirewallStatusUrl(),
+      firewallReleaseQuarantineSummaryUrl = getFirewallReleaseQuarantineSummaryUrl();
 
   let store, state;
 
@@ -333,5 +339,73 @@ describe('firewallActions', function() {
           expect(actions[0].payload).toBe(false);
           done();
         });
+  });
+
+  describe('loadReleaseQuarantineSummary', function() {
+    afterEach(function() {
+      expect(axios.get).toHaveBeenCalledWith(firewallReleaseQuarantineSummaryUrl);
+    });
+
+    it('immediately dispatches a FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED action', function() {
+      mockAxiosCalls({
+        get: {
+          [firewallReleaseQuarantineSummaryUrl]: Promise.resolve({data: {'autoReleaseQuarantineCountMTD': 3}})
+        }
+      });
+
+      store.dispatch(loadReleaseQuarantineSummary());
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED);
+      expect(actions[0].payload).toBeUndefined();
+    });
+
+    describe('after a successful GET call', function() {
+      it('dispatches FIREWALL_RELEASE_QUARANTINE_SUMMARY_FULFILLED action',
+          function(done) {
+            mockAxiosCalls({
+              get: {
+                [firewallReleaseQuarantineSummaryUrl]: Promise.resolve({data: {'autoReleaseQuarantineCountMTD': 3}})
+              }
+            });
+
+            store.dispatch(loadReleaseQuarantineSummary())
+                .then(() => {
+                  actions = store.getActions();
+                  expect(actions.length).toBe(2);
+                  expect(actions[0].type).toBe(FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED);
+                  expect(actions[0].payload).toBeUndefined();
+                  expect(actions[1].type).toBe(FIREWALL_RELEASE_QUARANTINE_SUMMARY_FULFILLED);
+                  expect(actions[1].payload).toEqual({'autoReleaseQuarantineCountMTD': 3});
+                  done();
+                });
+
+            let actions = store.getActions();
+            expect(actions.length).toBe(1);
+          });
+    });
+
+    describe('after a failed GET call', function() {
+      it('dispatches an FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED action', function(done) {
+        mockAxiosCalls({
+          get: {
+            [firewallReleaseQuarantineSummaryUrl]: () => Promise.reject('error!')
+          }
+        });
+
+        store.dispatch(loadReleaseQuarantineSummary())
+            .then(() => {
+              actions = store.getActions();
+              expect(actions.length).toBe(2);
+              expect(actions[1].type).toBe(FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED);
+              expect(actions[1].payload).toBe('error!');
+              done();
+            });
+
+        let actions = store.getActions();
+        expect(actions.length).toBe(1);
+      });
+    });
   });
 });

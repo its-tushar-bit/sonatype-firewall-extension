@@ -9,6 +9,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
+import com.sonatype.clm.testing.functional.pages.FirewallPage.FirewallAutoUnquarantine;
 import com.sonatype.clm.testing.functional.pages.FirewallPage.FirewallAutoUnquarantineStatus;
 import com.sonatype.clm.testing.functional.pages.FirewallPage.FirewallConfigurationModal;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
@@ -68,7 +69,7 @@ public class FirewallPageTest
     page.firewallQuarantineStatus().shouldBe(hidden);
     page.firewallAutoUnquarantineStatus().shouldBe(hidden);
     page.firewallQuarantine().shouldBe(hidden);
-    page.firewallAutoUnquarantine().shouldBe(hidden);
+    page.firewallAutoReleaseQuarantine().shouldBe(hidden);
     page.firewallQuarantineTable().shouldBe(hidden);
     page.firewallConfigurationModal().shouldBe(hidden);
   }
@@ -85,9 +86,23 @@ public class FirewallPageTest
     page.firewallQuarantineStatus().shouldBe(visible);
     page.firewallAutoUnquarantineStatus().shouldBe(visible);
     page.firewallQuarantine().shouldBe(visible);
-    page.firewallAutoUnquarantine().shouldBe(visible);
+    page.firewallAutoReleaseQuarantine().shouldBe(visible);
     page.firewallQuarantineTable().shouldBe(visible);
     page.firewallConfigurationModal().shouldBe(hidden);
+  }
+
+  @Test
+  public void testFirewallAutoReleaseQuarantine_showsCount() {
+    testCLMServer.getCLMServer().getConfiguration()
+        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
+
+    refreshOrOpen(FirewallPage.url());
+    page.shouldBe(visible);
+
+    FirewallAutoUnquarantine firewallAutoUnquarantine = page.firewallAutoReleaseQuarantine();
+    firewallAutoUnquarantine.shouldBe(visible);
+    firewallAutoUnquarantine.shouldBe(visible);
+    firewallAutoUnquarantine.cardContent().shouldBe(Condition.text("0"));
   }
 
   @Test

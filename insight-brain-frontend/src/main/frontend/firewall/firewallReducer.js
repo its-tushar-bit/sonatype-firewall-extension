@@ -12,7 +12,10 @@ import {
   FIREWALL_LOAD_STATUS_FULFILLED,
   FIREWALL_LOAD_STATUS_REQUESTED,
   FIREWALL_SAVE_CONFIGURATION_FULFILLED,
-  FIREWALL_SET_SHOW_CONFIGURATION_MODAL
+  FIREWALL_SET_SHOW_CONFIGURATION_MODAL,
+  FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED,
+  FIREWALL_RELEASE_QUARANTINE_SUMMARY_FULFILLED,
+  FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED
 } from './firewallActions';
 import {__, always, lensPath, over, merge} from 'ramda';
 import {pathSet, propSet} from '../util/jsUtil';
@@ -30,6 +33,9 @@ const initialState = Object.freeze({
     viewState: Object.freeze({
       loadedConfiguration: false,
       loadConfigurationError: null,
+      loadedReleaseQuarantineSummary: false,
+      loadReleaseQuarantineSummaryError: null,
+      autoReleaseQuarantineCountMTD: '-',
       enabledPolicyConditionTypesCount: 0,
       totalPolicyConditionTypesCount: 1
     })
@@ -58,6 +64,31 @@ const loadStatusFailed = (payload, state) => ({
     ...state.viewState,
     loadedStatus: true,
     loadStatusError: payload
+  }
+});
+
+const loadedReleaseQuarantineSummaryFulfilled = (payload, state) => ({
+  ...state,
+  autoUnquarantineState: {
+    ...state.autoUnquarantineState,
+    viewState: {
+      ...state.autoUnquarantineState.viewState,
+      loadedReleaseQuarantineSummary: true,
+      loadReleaseQuarantineSummaryError: null,
+      autoReleaseQuarantineCountMTD: payload.autoReleaseQuarantineCountMTD.toString()
+    }
+  }
+});
+
+const loadedReleaseQuarantineSummaryFailed = (payload, state) => ({
+  ...state,
+  autoUnquarantineState: {
+    ...state.autoUnquarantineState,
+    viewState: {
+      ...state.autoUnquarantineState.viewState,
+      loadedReleaseQuarantineSummary: true,
+      loadReleaseQuarantineSummaryError: payload
+    }
   }
 });
 
@@ -108,7 +139,10 @@ const reducerActionMap = {
   [FIREWALL_SET_SHOW_CONFIGURATION_MODAL]: setShowConfigurationModal,
   [FIREWALL_LOAD_CONFIGURATION_FULFILLED]: loadConfigurationFulfilled,
   [FIREWALL_LOAD_CONFIGURATION_FAILED]: loadConfigurationFailed,
-  [FIREWALL_SAVE_CONFIGURATION_FULFILLED]: saveConfigurationFulfilled
+  [FIREWALL_SAVE_CONFIGURATION_FULFILLED]: saveConfigurationFulfilled,
+  [FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED]: loadedReleaseQuarantineSummaryFailed,
+  [FIREWALL_RELEASE_QUARANTINE_SUMMARY_FULFILLED]: loadedReleaseQuarantineSummaryFulfilled,
+  [FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED]: always(initialState)
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

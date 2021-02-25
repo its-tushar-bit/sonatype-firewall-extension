@@ -33,6 +33,9 @@ describe('firewallReducer', function() {
       expect(newState.statusState.isEnabled).toBe(false);
 
       //autoUnquarantineState.viewState
+      expect(newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary).toBe(false);
+      expect(newState.autoUnquarantineState.viewState.loadReleaseQuarantineSummaryError).toBe(null);
+      expect(newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountMTD).toBe('-');
       expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(false);
       expect(newState.autoUnquarantineState.viewState.loadConfigurationError).toBeNull();
       expect(newState.autoUnquarantineState.viewState.enabledPolicyConditionTypesCount).toBe(0);
@@ -308,6 +311,119 @@ describe('firewallReducer', function() {
       // autoUnquarantineState
       expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBeTruthy();
       expect(newState.autoUnquarantineState.viewState.loadConfigurationError).toBe('error!');
+
+      // properties are not modified
+      expect(newState.other).toBe(otherObject);
+      expect(newState.viewState.other).toBe(otherObject);
+      expect(newState.statusState.other).toBe(otherObject);
+      expect(newState.autoUnquarantineState.other).toBe(otherObject);
+      expect(newState.autoUnquarantineState.viewState.other).toBe(otherObject);
+      expect(newState.configurationState.other).toBe(otherObject);
+    });
+  });
+
+  describe('FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED action', function() {
+    it('updates to the initial state', function() {
+      const state = Object.freeze({
+        other: otherObject
+      });
+      const newState = reduce(state, {
+        type: 'FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED'
+      });
+
+      // viewState
+      expect(newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary).toBe(false);
+      expect(newState.autoUnquarantineState.viewState.loadReleaseQuarantineSummaryError).toBeNull();
+
+      // statusState
+      expect(newState.statusState.isEnabled).toBe(false);
+
+      // autoUnquarantineState.viewState
+      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(false);
+      expect(newState.autoUnquarantineState.viewState.loadConfigurationError).toBeNull();
+      expect(newState.autoUnquarantineState.viewState.enabledPolicyConditionTypesCount).toBe(0);
+      expect(newState.autoUnquarantineState.viewState.totalPolicyConditionTypesCount).toBe(1);
+
+      // configurationState
+      expect(newState.configurationState.autoUnquarantineEnabled).toBe(false);
+    });
+  });
+
+  describe('FIREWALL_RELEASE_QUARANTINE_SUMMARY_FULFILLED action', function() {
+    it('updates the state', function() {
+      const state = Object.freeze({
+        other: otherObject,
+        viewState: {
+          other: otherObject
+        },
+        statusState: {
+          other: otherObject
+        },
+        autoUnquarantineState: {
+          other: otherObject,
+          viewState: {
+            other: otherObject,
+            loadedReleaseQuarantineSummary: false,
+            loadReleaseQuarantineSummaryError: null,
+            autoReleaseQuarantineCountMTD: '-'
+          }
+        },
+        configurationState: {
+          other: otherObject
+        }
+      });
+      const newState = reduce(state, {
+        type: 'FIREWALL_RELEASE_QUARANTINE_SUMMARY_FULFILLED',
+        payload: {'autoReleaseQuarantineCountMTD': 0}
+      });
+
+      // viewState
+      expect(newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountMTD).toBe('0');
+      expect(newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary).toBe(true);
+      expect(newState.autoUnquarantineState.viewState.loadReleaseQuarantineSummaryError).toBeNull();
+
+      // properties are not modified
+      expect(newState.other).toBe(otherObject);
+      expect(newState.viewState.other).toBe(otherObject);
+      expect(newState.statusState.other).toBe(otherObject);
+      expect(newState.autoUnquarantineState.other).toBe(otherObject);
+      expect(newState.autoUnquarantineState.viewState.other).toBe(otherObject);
+      expect(newState.configurationState.other).toBe(otherObject);
+    });
+  });
+
+  describe('FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED action', function() {
+    it('updates the state', function() {
+      const state = Object.freeze({
+        other: otherObject,
+        viewState: {
+          other: otherObject
+        },
+        statusState: {
+          other: otherObject
+        },
+        autoUnquarantineState: {
+          other: otherObject,
+          viewState: {
+            other: otherObject,
+            loadedReleaseQuarantineSummary: false,
+            loadReleaseQuarantineSummaryError: null,
+            autoReleaseQuarantineCountMTD: '-'
+          }
+        },
+        configurationState: {
+          other: otherObject
+        }
+      });
+      const newState = reduce(state, {
+        type: 'FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED',
+        payload: 'error'
+      });
+
+      // viewState
+      expect(newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountMTD).toBe('-');
+      expect(newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary).toBe(true);
+      expect(newState.autoUnquarantineState.viewState.loadReleaseQuarantineSummaryError).toBe('error');
 
       // properties are not modified
       expect(newState.other).toBe(otherObject);

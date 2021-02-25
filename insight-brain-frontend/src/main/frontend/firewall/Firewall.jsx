@@ -9,7 +9,7 @@ import LoadWrapper from '../react/LoadWrapper';
 import FirewallStatus from './FirewallStatus';
 import FirewallQuarantineStatus from './FirewallQuarantineStatus';
 import FirewallQuarantine from './FirewallQuarantine';
-import FirewallAutoUnquarantine from './FirewallAutoUnquarantine';
+import FirewallAutoReleaseQuarantine from './FirewallAutoReleaseQuarantine';
 import FirewallQuarantineTable from './FirewallQuarantineTable';
 import * as PropTypes from 'prop-types';
 import FirewallConfigurationModalContainer from './config/FirewallConfigurationModalContainer';
@@ -19,6 +19,7 @@ export default function Firewall(props) {
   // Actions
   const {
     loadStatus,
+    loadReleaseQuarantineSummary,
     loadConfiguration
   } = props;
 
@@ -35,14 +36,19 @@ export default function Firewall(props) {
   } = props;
 
   const {
+    autoReleaseQuarantineCountMTD,
+    loadedReleaseQuarantineSummary,
+    loadReleaseQuarantineSummaryError,
     loadedConfiguration,
     loadConfigurationError
   } = props;
 
-  const error = determineError(loadedStatus, isEnabled, loadStatusError, loadConfigurationError);
+  const error = determineError(loadedStatus, loadedReleaseQuarantineSummary, isEnabled, loadStatusError,
+      loadReleaseQuarantineSummaryError, loadConfigurationError);
 
   function loadData() {
     loadStatus();
+    loadReleaseQuarantineSummary();
     loadConfiguration();
   }
 
@@ -53,13 +59,14 @@ export default function Firewall(props) {
   return (
     <main id="firewall-page" className="nx-page-main">
       {isShowConfigurationModal && <FirewallConfigurationModalContainer/>}
-      <LoadWrapper loading={!loadedStatus || !loadedConfiguration} error={error} retryHandler={loadData}>
+      <LoadWrapper loading={!loadedStatus || !loadedReleaseQuarantineSummary || !loadedConfiguration} error={error}
+                   retryHandler={loadData}>
         <FirewallStatus/>
         <div className="nx-card-container nx-card-container--row iq-firewall__horizontal">
           <FirewallQuarantineStatus/>
           <FirewallAutoUnquarantineStatus { ...props }/>
           <FirewallQuarantine/>
-          <FirewallAutoUnquarantine/>
+          <FirewallAutoReleaseQuarantine autoReleaseQuarantineCountMTD={autoReleaseQuarantineCountMTD}/>
         </div>
         <FirewallQuarantineTable/>
       </LoadWrapper>
@@ -67,15 +74,17 @@ export default function Firewall(props) {
   );
 }
 
-function determineError(loadedStatus, isEnabled, loadStatusError, loadConfigurationError) {
+function determineError(loadedStatus, loadedReleaseQuarantineSummary, isEnabled, loadStatusError,
+                        loadReleaseQuarantineSummaryError, loadConfigurationError) {
   if (loadedStatus && !isEnabled) {
     return 'The Firewall feature is disabled';
   }
-
   else if (loadedStatus && loadStatusError) {
     return loadStatusError;
   }
-
+  else if (loadedReleaseQuarantineSummary && loadReleaseQuarantineSummaryError) {
+    return loadReleaseQuarantineSummaryError;
+  }
   else {
     return loadConfigurationError;
   }
@@ -85,6 +94,10 @@ Firewall.propTypes = {
   loadStatus: PropTypes.func.isRequired,
   loadedStatus: PropTypes.bool.isRequired,
   loadStatusError: PropTypes.object,
+  loadReleaseQuarantineSummary: PropTypes.func.isRequired,
+  autoReleaseQuarantineCountMTD: PropTypes.string.isRequired,
+  loadedReleaseQuarantineSummary: PropTypes.bool.isRequired,
+  loadReleaseQuarantineSummaryError: PropTypes.object,
   isEnabled: PropTypes.bool.isRequired,
   isShowConfigurationModal: PropTypes.bool.isRequired,
   loadConfiguration: PropTypes.func.isRequired,

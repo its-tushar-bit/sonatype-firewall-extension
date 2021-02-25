@@ -107,8 +107,8 @@ export default function LicenseObligationsTile(props) {
         </NxOverflowTooltip>
         <NxSegmentedButton variant="tertiary"
                            buttonContent={ statusSegmentedButtonLabel }
-                           isOpen={ openSegmentedButton !== null }
-                           onToggleOpen={ () => openSegmentedButton !== null ?
+                           isOpen={ openSegmentedButton === licenseObligation.name }
+                           onToggleOpen={ () => openSegmentedButton === licenseObligation.name ?
                              setOpenSegmentedButton(null) : setOpenSegmentedButton(licenseObligation.name) }
                            onClick={ () => {
                              setShowObligationModal({ name: licenseObligation.name, value: true });

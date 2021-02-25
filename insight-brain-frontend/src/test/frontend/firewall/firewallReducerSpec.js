@@ -221,7 +221,7 @@ describe('firewallReducer', function() {
       expect(newState.autoUnquarantineState.viewState.enabledPolicyConditionTypesCount).toBe(1);
 
       // configurationState
-      expect(newState.configurationState.autoUnquarantineEnabled).toBeTrue();
+      expect(newState.configurationState.autoUnquarantineEnabled).toBeTruthy();
 
       // other properties are not modified
       expect(newState.other).toBe(otherObject);
@@ -261,7 +261,7 @@ describe('firewallReducer', function() {
       });
 
       // autoUnquarantineState
-      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBeTrue();
+      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBeTruthy();
       expect(newState.autoUnquarantineState.viewState.loadConfigurationError).toBeNull();
       expect(newState.autoUnquarantineState.viewState.enabledPolicyConditionTypesCount).toBe(1);
       expect(newState.autoUnquarantineState.viewState.totalPolicyConditionTypesCount).toBe(1);
@@ -306,7 +306,7 @@ describe('firewallReducer', function() {
       });
 
       // autoUnquarantineState
-      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBeTrue();
+      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBeTruthy();
       expect(newState.autoUnquarantineState.viewState.loadConfigurationError).toBe('error!');
 
       // properties are not modified

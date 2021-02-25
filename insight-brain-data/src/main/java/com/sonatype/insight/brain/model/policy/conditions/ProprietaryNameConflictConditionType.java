@@ -15,6 +15,9 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+/**
+ * @since 1.106
+ */
 public class ProprietaryNameConflictConditionType
     extends AbstractComponentConditionType<String>
 {

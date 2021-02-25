@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.thirdparty;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
+
 public class ThirdPartyApplicationReportDTO
 {
   public List<ThirdPartyBillOfMaterialsRowDTO> billOfMaterials = new ArrayList<>();

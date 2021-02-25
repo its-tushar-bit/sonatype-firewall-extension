@@ -5,9 +5,11 @@
  */
 package com.sonatype.insight.brain.thirdparty;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -18,6 +20,7 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
+import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
@@ -36,6 +39,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.InvalidPackageURLException;
+import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -60,6 +64,8 @@ public class ThirdPartyDataService
 
   private final ThirdPartyVulnerabilityDAO thirdPartyVulnerabilityDAO;
 
+  private final ThirdPartyComponentDAO thirdPartyComponentDAO;
+
   @Inject
   public ThirdPartyDataService(
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
@@ -68,7 +74,8 @@ public class ThirdPartyDataService
       final ThirdPartyScanDAO thirdPartyScanDAO,
       final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO,
       final LicenseDAO licenseDAO,
-      final ThirdPartyVulnerabilityDAO thirdPartyVulnerabilityDAO)
+      final ThirdPartyVulnerabilityDAO thirdPartyVulnerabilityDAO,
+      final ThirdPartyComponentDAO thirdPartyComponentDAO)
   {
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
@@ -77,6 +84,7 @@ public class ThirdPartyDataService
     this.thirdPartyCoordinateLicenseDAO = thirdPartyCoordinateLicenseDAO;
     this.licenseDAO = licenseDAO;
     this.thirdPartyVulnerabilityDAO = thirdPartyVulnerabilityDAO;
+    this.thirdPartyComponentDAO = thirdPartyComponentDAO;
   }
 
   public ThirdPartyApplicationReportDTO getScanData(final String scanId) {
@@ -101,7 +109,10 @@ public class ThirdPartyDataService
     thirdPartyFileDAO.deleteByScanId(scanId);
   }
 
-  private ThirdPartyApplicationReportDTO loadThirdPartyDataForScan(String scanId, final Date scanTime) {
+  private ThirdPartyApplicationReportDTO loadThirdPartyDataForScan(
+      String scanId,
+      final Date scanTime)
+  {
     ThirdPartyApplicationReportDTO thirdPartyApplicationReportDTO = new ThirdPartyApplicationReportDTO();
 
     List<ThirdPartyFile> scanFiles = thirdPartyFileDAO.getByScanId(scanId);
@@ -235,6 +246,35 @@ public class ThirdPartyDataService
     List<ThirdPartyCoordinateSecurity> secVulnerabilities = getSecurityVulnerabilitiesForScanId(scanId);
     Set<ThirdPartyVulnerability> vulnerabilityList =
         secVulnerabilities.stream().map(ThirdPartyVulnerability::new).collect(Collectors.toSet());
+    saveOrUpdate(vulnerabilityList);
+  }
+
+  public void saveOrUpdate(final Set<ThirdPartyVulnerability> vulnerabilityList) {
     thirdPartyVulnerabilityDAO.saveOrUpdate(vulnerabilityList);
+  }
+
+  public ThirdPartyApplicationReportDTO loadThirdPartyInfrastructureAsCodeData(final File report) {
+    ThirdPartyApplicationReportDTO thirdPartyApplicationReportDTO = new ThirdPartyApplicationReportDTO();
+    Map<String, ThirdPartyReportComponentDTO> data = thirdPartyComponentDAO.getData(report);
+    if (data == null) {
+      return thirdPartyApplicationReportDTO;
+    }
+    Set<ThirdPartyVulnerability> vulnerabilities = new HashSet<>();
+    for (ThirdPartyReportComponentDTO componentDTO : data.values()) {
+      if (IdentificationSource.SONATYPE_IAC.getName().equals(componentDTO.bomRow.identificationSource))  {
+        for (ThirdPartyHealthCheckReportSecurityRowDTO securityRow : componentDTO.securityRows) {
+          ThirdPartyVulnerability thirdPartyVulnerability = new ThirdPartyVulnerability();
+          thirdPartyVulnerability.setRefId(securityRow.reference);
+          thirdPartyVulnerability.setDescription(securityRow.description);
+          thirdPartyVulnerability.setSeverity(securityRow.score);
+          thirdPartyVulnerability.setVulnerabilitySource(componentDTO.bomRow.identificationSource);
+          vulnerabilities.add(thirdPartyVulnerability);
+        }
+        thirdPartyApplicationReportDTO.billOfMaterials.add(componentDTO.bomRow);
+        thirdPartyApplicationReportDTO.securityRows.addAll(componentDTO.securityRows);
+      }
+    }
+    saveOrUpdate(vulnerabilities);
+    return thirdPartyApplicationReportDTO;
   }
 }

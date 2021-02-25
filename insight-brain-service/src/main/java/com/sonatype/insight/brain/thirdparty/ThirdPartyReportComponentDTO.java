@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.insight.scan.RowWithComponentIdentifierDTO;
+import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
 
 /**
  * @since 1.75

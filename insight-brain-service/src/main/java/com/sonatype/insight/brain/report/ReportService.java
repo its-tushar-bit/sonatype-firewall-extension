@@ -42,6 +42,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
+import com.google.common.annotations.VisibleForTesting;
 import org.codehaus.plexus.util.FileUtils;
 
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME;
@@ -131,9 +132,16 @@ public class ReportService
     }
   }
 
-  private void processThirdPartyData(final String scanId, final File tempFile) throws IOException {
+  @VisibleForTesting
+  void processThirdPartyData(final String scanId, final File tempFile) throws IOException {
     ThirdPartyApplicationReportDTO thirdPartyApplicationReportDTO = thirdPartyDataService.getScanData(scanId);
+    ThirdPartyApplicationReportDTO thirdPartyApplicationReportForInfrastructureAsCodeDTO =
+        thirdPartyDataService.loadThirdPartyInfrastructureAsCodeData(tempFile);
     if (thirdPartyApplicationReportDTO != null) {
+      thirdPartyApplicationReportDTO.billOfMaterials
+          .addAll(thirdPartyApplicationReportForInfrastructureAsCodeDTO.billOfMaterials);
+      thirdPartyApplicationReportDTO.securityRows
+          .addAll(thirdPartyApplicationReportForInfrastructureAsCodeDTO.securityRows);
       includeThirdPartyData(tempFile, thirdPartyApplicationReportDTO);
       thirdPartyDataService.indexVulnerabilities(scanId);
       thirdPartyDataService.deleteByScanId(scanId);

@@ -1266,7 +1266,7 @@ public abstract class AbstractPolicyEditorTest
     identificationSource.operator().selectedItem().shouldHave(text("is")).click();
     identificationSource.operator().listItem(1).shouldHave(text("is not")).click();
     identificationSource.value().selectedItem().shouldHave(text(IdentificationSource.SONATYPE.getName())).click();
-    identificationSource.value().listItem(1).shouldHave(text(IdentificationSource.MANUAL.getName())).click();
+    identificationSource.value().listItem(2).shouldHave(text(IdentificationSource.MANUAL.getName())).click();
 
     newConstraint.addConditionButton().click();
     InputConditionEditSection packageUrlCondition = newConstraint.inputCondition(15);

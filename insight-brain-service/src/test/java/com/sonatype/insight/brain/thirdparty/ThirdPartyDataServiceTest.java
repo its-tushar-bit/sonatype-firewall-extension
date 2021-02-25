@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.thirdparty;
 
+import java.io.File;
+import java.net.URISyntaxException;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -13,12 +16,16 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.utils.ReportHelper;
+import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
 
 import org.junit.Test;
 
@@ -212,6 +219,22 @@ public class ThirdPartyDataServiceTest
     assertThat(coordinateSecurities).hasSize(2);
     assertThat(coordinateSecurities.stream().map(ThirdPartyCoordinateSecurity::getRefId))
         .containsExactlyInAnyOrder("r1", "r2");
+  }
+
+  @Test
+  public void testProcessThirdPartyData_withInfrastructureAsCodeSavesVulnerabilities() throws Exception {
+    final File reportZip = zipReportDir("/ThirdPartyDataServiceTest/report-with-third-party-iac");
+
+    ThirdPartyApplicationReportDTO dto = handler.loadThirdPartyInfrastructureAsCodeData(reportZip);
+    assertThat(dto).isNotNull();
+
+    ThirdPartyVulnerability vulnerability =
+        new ThirdPartyVulnerabilityDAO().getByRefId(dto.securityRows.get(0).reference);
+    assertThat(vulnerability).isNotNull();
+  }
+
+  private File zipReportDir(String reportResourceName) throws URISyntaxException {
+    return Paths.get(ReportHelper.zipReport(reportResourceName, tempDir).toURI()).toFile();
   }
 
   private void assertSecurityRowsForComponent(

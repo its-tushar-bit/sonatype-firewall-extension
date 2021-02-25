@@ -42,12 +42,12 @@ import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyApplicationReportDTO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyBillOfMaterialsRowDTO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyDataService;
-import com.sonatype.insight.brain.thirdparty.ThirdPartyHealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyLicenseRowDTO;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
@@ -129,7 +129,8 @@ public class ReportServiceTest
     reportDownloader = mockReportDownloader.getMock();
 
     ReportService reportService = createReportService();
-    when(thirdPartyDataServiceSpy.getScanData(scanId)).thenReturn(new ThirdPartyApplicationReportDTO());
+    when(thirdPartyDataServiceSpy.getScanData(scanId))
+        .thenReturn(new ThirdPartyApplicationReportDTO());
 
     File report = reportService.fetchReport(app, scanId);
     assertThat(report).isNotNull();
@@ -349,6 +350,32 @@ public class ReportServiceTest
     assertThatReportZipContains(reportZip, "thirdparty-bom.json");
     assertThatReportZipContains(reportZip, "thirdparty-security.json");
     assertThatReportZipContains(reportZip, "thirdparty-license.json");
+  }
+
+  @Test
+  public void testProcessThirdPartyData_withInfrastructureAsCodeMergedWithExisting() throws Exception {
+    final File reportZip = zipReportDir("/ReportServiceTest/report-with-third-party-iac");
+    createReportFile(app.getId(), scanId, reportZip);
+    ReportService reportService = createReportService();
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
+
+    ThirdPartyApplicationReportDTO dto = new ThirdPartyApplicationReportDTO();
+
+    ComponentIdentifier coord = new ComponentIdentifier("sbom",
+        ImmutableMap.of("group", "group1", "artifactId", "existing1", "version", "1.0"));
+    dto.billOfMaterials.add(new ThirdPartyBillOfMaterialsRowDTO(coord, "existing1"));
+    dto.securityRows.add(new ThirdPartyHealthCheckReportSecurityRowDTO(coord, "existing1"));
+
+    when(thirdPartyDataServiceSpy.getScanData(scanId)).thenReturn(dto);
+    reportService.processThirdPartyData(scanId, reportZip);
+
+    assertThat(dto.billOfMaterials).hasSize(3);
+    assertThat(dto.billOfMaterials.get(0).componentIdentifier.getFormat()).isEqualTo("sbom");
+    assertThat(dto.billOfMaterials.get(1).componentIdentifier.getFormat()).isEqualTo("terraform");
+
+    assertThat(dto.securityRows).hasSize(13);
+    assertThat(dto.securityRows.get(0).componentIdentifier.getFormat()).isEqualTo("sbom");
+    assertThat(dto.securityRows.get(1).componentIdentifier.getFormat()).isEqualTo("terraform");
   }
 
   @Test

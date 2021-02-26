@@ -114,6 +114,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -238,7 +239,7 @@ public class ApiLicenseLegalService
       Set<String> tagIds,
       Set<String> stageTypeIds,
       Set<String> licenseIds,
-      LicenseLegalReviewStatus reviewStatus,
+      Set<LicenseLegalReviewStatus> reviewStatus,
       LicenseLegalResultsOrder order,
       int page,
       int pageSize)
@@ -259,10 +260,11 @@ public class ApiLicenseLegalService
             ? StageTypes.getAll().stream().map(StageType::getId).collect(Collectors.toSet())
             : stageTypeIds;
 
-    if (isNotEmpty(applicationIdsToCheck) && reviewStatus != null) {
-      List<Object[]> applicationIdsAndStageTypeIds = applicationComponentDAO
-          .getApplicationIdsAndStageTypeIdsByReviewStatus(applicationIdsToCheck, stageTypeIdsToCheck,
-              reviewStatus == LicenseLegalReviewStatus.OPEN);
+    if (isNotEmpty(applicationIdsToCheck) && isNotEmpty(reviewStatus) && !reviewStatus
+        .containsAll(Sets.newHashSet(LicenseLegalReviewStatus.OPEN, LicenseLegalReviewStatus.NOT_STARTED))) {
+      List<Object[]> applicationIdsAndStageTypeIds =
+          applicationComponentDAO.getApplicationIdsAndStageTypeIdsByReviewStatus(applicationIdsToCheck,
+              stageTypeIdsToCheck, reviewStatus.contains(LicenseLegalReviewStatus.OPEN));
 
       recalculateApplicationIdsAndStateTypeIds(applicationIdsAndStageTypeIds, applicationIdsToCheck,
           stageTypeIdsToCheck);

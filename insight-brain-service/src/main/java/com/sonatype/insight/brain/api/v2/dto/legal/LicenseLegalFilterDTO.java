@@ -19,7 +19,7 @@ public class LicenseLegalFilterDTO
 
   public Set<String> licenseIds;
 
-  public LicenseLegalReviewStatus reviewStatus;
+  public Set<LicenseLegalReviewStatus> reviewStatus;
 
   public LicenseLegalResultsOrder order;
 

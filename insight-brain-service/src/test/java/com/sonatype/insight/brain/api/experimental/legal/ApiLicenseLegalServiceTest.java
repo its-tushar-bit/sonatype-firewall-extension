@@ -433,13 +433,13 @@ public class ApiLicenseLegalServiceTest
     tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, "hash1", componentIdentifier);
 
     List<ApiLicenseLegalApplicationDashboardDTO> result = apiLicenseLegalService.getLicenseLegalApplicationsDashboard(
-        null, null, null, null, null, LicenseLegalReviewStatus.NOT_STARTED, null, 1, 10);
+        null, null, null, null, null, Sets.newHashSet(LicenseLegalReviewStatus.NOT_STARTED), null, 1, 10);
 
     assertThat(result).hasSize(1);
     assertLegalLicenseApplicationDashboardDTO(app, tag, policyEvaluation, result.get(0), 1, 1);
 
     result = apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null,
-        LicenseLegalReviewStatus.OPEN, null, 1, 10);
+        Sets.newHashSet(LicenseLegalReviewStatus.OPEN), null, 1, 10);
 
     assertThat(result).isEmpty();
 
@@ -447,15 +447,24 @@ public class ApiLicenseLegalServiceTest
         "hash");
 
     result = apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null,
-        LicenseLegalReviewStatus.NOT_STARTED, null, 1, 10);
+        Sets.newHashSet(LicenseLegalReviewStatus.NOT_STARTED), null, 1, 10);
 
     assertThat(result).isEmpty();
 
     result = apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null,
-        LicenseLegalReviewStatus.OPEN, null, 1, 10);
+        Sets.newHashSet(LicenseLegalReviewStatus.OPEN), null, 1, 10);
 
     assertThat(result).hasSize(1);
     assertLegalLicenseApplicationDashboardDTO(app, tag, policyEvaluation, result.get(0), 1, 1);
+
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createGolangCoordinates("n2", "v2");
+    tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, "hash2", componentIdentifier2);
+
+    result = apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null,
+        Sets.newHashSet(LicenseLegalReviewStatus.OPEN, LicenseLegalReviewStatus.NOT_STARTED), null, 1, 10);
+
+    assertThat(result).hasSize(1);
+    assertLegalLicenseApplicationDashboardDTO(app, tag, policyEvaluation, result.get(0), 2, 2);
   }
 
   @Test

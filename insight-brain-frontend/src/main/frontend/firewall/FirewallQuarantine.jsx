@@ -5,8 +5,14 @@
  */
 
 import React from 'react';
+import * as PropTypes from 'prop-types';
 
-export default function FirewallQuarantine() {
+export default function FirewallQuarantine(props) {
+  //viewState
+  const {
+    quarantinedComponentCount
+  } = props;
+
   return (
     <section id="firewall-quarantine" className="nx-card iq-firewall-quarantine-card">
       <header className="nx-card__header">
@@ -14,7 +20,7 @@ export default function FirewallQuarantine() {
       </header>
       <div className="nx-card__content">
         <div className="nx-card__call-out nx-card__call-out--text-only">
-          128
+          {quarantinedComponentCount}
         </div>
         <p className="nx-p">
           components in quarantine
@@ -25,3 +31,6 @@ export default function FirewallQuarantine() {
   );
 }
 
+FirewallQuarantine.propTypes = {
+  quarantinedComponentCount: PropTypes.number.isRequired
+};

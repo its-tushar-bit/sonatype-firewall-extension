@@ -182,6 +182,10 @@ export function getFirewallReleaseQuarantineSummaryUrl() {
   return uriTemplate`/api/experimental/firewall/releaseQuarantine/summary`;
 }
 
+export function getFirewallQuarantineSummaryUrl() {
+  return uriTemplate`/api/experimental/firewall/quarantine/summary`;
+}
+
 export const getReportBomUrl = getBrowseReportUrl('bom.json');
 
 export const getReportUnknownJsUrl = getBrowseReportUrl('unknownjs.json');

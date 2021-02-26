@@ -21,13 +21,18 @@ import {
   FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED,
   FIREWALL_RELEASE_QUARANTINE_SUMMARY_FULFILLED,
   FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED,
+  FIREWALL_QUARANTINE_SUMMARY_FAILED,
+  FIREWALL_QUARANTINE_SUMMARY_FULFILLED,
+  FIREWALL_QUARANTINE_SUMMARY_REQUESTED,
   loadConfiguration,
   loadReleaseQuarantineSummary,
   loadStatus,
   openConfigurationModal,
-  saveConfiguration
+  saveConfiguration,
+  loadQuarantineSummary
 } from '../../../main/frontend/firewall/firewallActions';
-import {getFirewallConfigurationUrl, getFirewallReleaseQuarantineSummaryUrl, getFirewallStatusUrl}
+import {getFirewallConfigurationUrl, getFirewallReleaseQuarantineSummaryUrl, getFirewallStatusUrl,
+  getFirewallQuarantineSummaryUrl}
   from '../../../main/frontend/util/CLMLocation';
 import {SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS} from '@sonatype/react-shared-components';
 
@@ -35,7 +40,8 @@ describe('firewallActions', function() {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios),
       firewallConfigUrl = getFirewallConfigurationUrl(),
       firewallStatusUrl = getFirewallStatusUrl(),
-      firewallReleaseQuarantineSummaryUrl = getFirewallReleaseQuarantineSummaryUrl();
+      firewallReleaseQuarantineSummaryUrl = getFirewallReleaseQuarantineSummaryUrl(),
+      firewallQuarantineSummaryUrl = getFirewallQuarantineSummaryUrl();
 
   let store, state;
 
@@ -399,6 +405,77 @@ describe('firewallActions', function() {
               actions = store.getActions();
               expect(actions.length).toBe(2);
               expect(actions[1].type).toBe(FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED);
+              expect(actions[1].payload).toBe('error!');
+              done();
+            });
+
+        let actions = store.getActions();
+        expect(actions.length).toBe(1);
+      });
+    });
+  });
+
+  describe('loadQuarantineSummary', function() {
+
+    afterEach(function() {
+      expect(axios.get).toHaveBeenCalledWith(firewallQuarantineSummaryUrl);
+    });
+
+    it('immediately dispatches a FIREWALL_QUARANTINE_SUMMARY_REQUESTED action', function() {
+      mockAxiosCalls({
+        get: {
+          [firewallQuarantineSummaryUrl]: Promise.resolve(
+              {data: {experimentalFeatures: {firewallAutoUnquarantine: true}}})
+        }
+      });
+
+      store.dispatch(loadQuarantineSummary());
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(FIREWALL_QUARANTINE_SUMMARY_REQUESTED);
+      expect(actions[0].payload).toBeUndefined();
+    });
+
+    describe('after a successful GET call', function() {
+      it('dispatches FIREWALL_QUARANTINE_SUMMARY_FULFILLED action',
+          function(done) {
+            mockAxiosCalls({
+              get: {
+                [firewallQuarantineSummaryUrl]: Promise.resolve(
+                    {data: {experimentalFeatures: {firewallAutoUnquarantine: true}}})
+              }
+            });
+
+            store.dispatch(loadQuarantineSummary())
+                .then(() => {
+                  actions = store.getActions();
+                  expect(actions.length).toBe(2);
+                  expect(actions[0].type).toBe(FIREWALL_QUARANTINE_SUMMARY_REQUESTED);
+                  expect(actions[0].payload).toBeUndefined();
+                  expect(actions[1].type).toBe(FIREWALL_QUARANTINE_SUMMARY_FULFILLED);
+                  expect(actions[1].payload).toEqual({experimentalFeatures: {firewallAutoUnquarantine: true}});
+                  done();
+                });
+
+            let actions = store.getActions();
+            expect(actions.length).toBe(1);
+          });
+    });
+
+    describe('after a failed GET call', function() {
+      it('dispatches an FIREWALL_QUARANTINE_SUMMARY_FAILED action', function(done) {
+        mockAxiosCalls({
+          get: {
+            [firewallQuarantineSummaryUrl]: () => Promise.reject('error!')
+          }
+        });
+
+        store.dispatch(loadQuarantineSummary())
+            .then(() => {
+              actions = store.getActions();
+              expect(actions.length).toBe(2);
+              expect(actions[1].type).toBe(FIREWALL_QUARANTINE_SUMMARY_FAILED);
               expect(actions[1].payload).toBe('error!');
               done();
             });

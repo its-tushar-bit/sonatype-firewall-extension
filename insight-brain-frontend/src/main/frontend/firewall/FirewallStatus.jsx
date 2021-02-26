@@ -7,8 +7,15 @@
 import React from 'react';
 import {faShieldCheck} from '@fortawesome/pro-solid-svg-icons';
 import {NxFontAwesomeIcon} from '@sonatype/react-shared-components';
+import * as PropTypes from 'prop-types';
 
-export default function FirewallStatus() {
+export default function FirewallStatus(props) {
+  //viewState
+  const {
+    totalComponentCount,
+    repositoryCount
+  } = props;
+
   return (
     <section id="firewall-status">
       <header className="nx-page-title">
@@ -21,7 +28,7 @@ export default function FirewallStatus() {
           <div className="iq-firewall-status-description-line">
           </div>
           <div>
-            Firewall is currently monitoring 2201 components in 20 repositories
+            Firewall is currently monitoring {totalComponentCount} components in {repositoryCount} repositories
           </div>
         </div>
 
@@ -30,3 +37,7 @@ export default function FirewallStatus() {
   );
 }
 
+FirewallStatus.propTypes = {
+  totalComponentCount: PropTypes.number.isRequired,
+  repositoryCount: PropTypes.number.isRequired
+};

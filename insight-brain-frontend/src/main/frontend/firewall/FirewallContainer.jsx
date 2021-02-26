@@ -10,14 +10,18 @@ import {pick} from 'ramda';
 
 function mapStateToProps({firewall}) {
   return {
-    ...pick(['loadedStatus', 'loadStatusError', 'isShowConfigurationModal'], firewall.viewState),
+    ...pick(['loadedStatus', 'loadStatusError', 'isShowConfigurationModal'],
+        firewall.viewState),
     ...pick(['isEnabled'], firewall.statusState),
     ...pick(['autoUnquarantineEnabled'], firewall.configurationState),
     ...pick([
       'loadedReleaseQuarantineSummary', 'loadReleaseQuarantineSummaryError', 'autoReleaseQuarantineCountMTD',
       'loadedConfiguration', 'loadConfigurationError', 'enabledPolicyConditionTypesCount',
       'totalPolicyConditionTypesCount'
-    ], firewall.autoUnquarantineState.viewState)
+    ], firewall.autoUnquarantineState.viewState),
+    ...pick(['loadedQuarantineSummary', 'loadQuarantineSummaryError', 'quarantineEnabled',
+      'quarantineEnabledRepositoryCount', 'repositoryCount', 'totalComponentCount', 'quarantinedComponentCount'
+    ], firewall.quarantineSummaryState.viewState)
   };
 }
 

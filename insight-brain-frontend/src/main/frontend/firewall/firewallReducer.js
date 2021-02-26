@@ -15,7 +15,10 @@ import {
   FIREWALL_SET_SHOW_CONFIGURATION_MODAL,
   FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED,
   FIREWALL_RELEASE_QUARANTINE_SUMMARY_FULFILLED,
-  FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED
+  FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED,
+  FIREWALL_QUARANTINE_SUMMARY_REQUESTED,
+  FIREWALL_QUARANTINE_SUMMARY_FULFILLED,
+  FIREWALL_QUARANTINE_SUMMARY_FAILED
 } from './firewallActions';
 import {__, always, lensPath, over, merge} from 'ramda';
 import {pathSet, propSet} from '../util/jsUtil';
@@ -42,6 +45,17 @@ const initialState = Object.freeze({
   }),
   configurationState: Object.freeze({
     autoUnquarantineEnabled: false
+  }),
+  quarantineSummaryState: Object.freeze({
+    viewState: Object.freeze({
+      loadedQuarantineSummary: false,
+      loadQuarantineSummaryError: null,
+      quarantineEnabled: false,
+      quarantineEnabledRepositoryCount: null,
+      repositoryCount: null,
+      totalComponentCount: null,
+      quarantinedComponentCount: null
+    })
   })
 });
 
@@ -132,6 +146,46 @@ function numberOfenabledPolicyConditionTypesCount(payload) {
   return payload.autoUnquarantineEnabled ? 1 : 0;
 }
 
+const quarantineSummaryRequested = (payload, state) => ({
+  ...state,
+  quarantineSummaryState: {
+    ...state.quarantineSummaryState,
+    viewState: {
+      ...state.quarantineSummaryState.viewState,
+      loadedQuarantineSummary: false,
+      loadQuarantineSummaryError: null
+    }
+  }
+});
+
+const quarantineSummaryFulfilled = (payload, state) => ({
+  ...state,
+  quarantineSummaryState: {
+    ...state.quarantineSummaryState,
+    viewState: {
+      ...state.quarantineSummaryState.viewState,
+      loadedQuarantineSummary: true,
+      quarantineEnabled: payload.quarantineEnabled,
+      quarantineEnabledRepositoryCount: payload.quarantineEnabledRepositoryCount,
+      repositoryCount: payload.repositoryCount,
+      totalComponentCount: payload.totalComponentCount,
+      quarantinedComponentCount: payload.quarantinedComponentCount
+    }
+  }
+});
+
+const quarantineSummaryFailed = (payload, state) => ({
+  ...state,
+  quarantineSummaryState: {
+    ...state.quarantineSummaryState,
+    viewState: {
+      ...state.quarantineSummaryState.viewState,
+      loadedQuarantineSummary: true,
+      loadQuarantineSummaryError: payload
+    }
+  }
+});
+
 const reducerActionMap = {
   [FIREWALL_LOAD_STATUS_FAILED]: loadStatusFailed,
   [FIREWALL_LOAD_STATUS_FULFILLED]: loadStatusFulfilled,
@@ -142,7 +196,11 @@ const reducerActionMap = {
   [FIREWALL_SAVE_CONFIGURATION_FULFILLED]: saveConfigurationFulfilled,
   [FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED]: loadedReleaseQuarantineSummaryFailed,
   [FIREWALL_RELEASE_QUARANTINE_SUMMARY_FULFILLED]: loadedReleaseQuarantineSummaryFulfilled,
-  [FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED]: always(initialState)
+  [FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED]: always(initialState),
+  [FIREWALL_SAVE_CONFIGURATION_FULFILLED]: saveConfigurationFulfilled,
+  [FIREWALL_QUARANTINE_SUMMARY_REQUESTED]: quarantineSummaryRequested,
+  [FIREWALL_QUARANTINE_SUMMARY_FULFILLED]: quarantineSummaryFulfilled,
+  [FIREWALL_QUARANTINE_SUMMARY_FAILED]: quarantineSummaryFailed
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

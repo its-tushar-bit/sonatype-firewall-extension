@@ -7,8 +7,8 @@ import axios from 'axios';
 import {SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS} from '@sonatype/react-shared-components';
 
 import {noPayloadActionCreator, payloadParamActionCreator} from '../util/reduxUtil';
-import {getFirewallConfigurationUrl, getFirewallStatusUrl, getFirewallReleaseQuarantineSummaryUrl}
-  from '../util/CLMLocation';
+import {getFirewallConfigurationUrl, getFirewallStatusUrl, getFirewallReleaseQuarantineSummaryUrl,
+  getFirewallQuarantineSummaryUrl} from '../util/CLMLocation';
 import {Messages} from '../util/CommonServices';
 
 export const FIREWALL_LOAD_STATUS_REQUESTED = 'FIREWALL_LOAD_STATUS_REQUESTED';
@@ -52,6 +52,14 @@ export const FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED = 'FIREWALL_RELEASE_QUAR
 const loadReleaseQuarantineSummaryRequested = noPayloadActionCreator(FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED);
 const loadReleaseQuarantineSummaryFulfilled = payloadParamActionCreator(FIREWALL_RELEASE_QUARANTINE_SUMMARY_FULFILLED);
 const loadReleaseQuarantineSummaryFailed = payloadParamActionCreator(FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED);
+
+export const FIREWALL_QUARANTINE_SUMMARY_REQUESTED = 'FIREWALL_QUARANTINE_SUMMARY_REQUESTED';
+export const FIREWALL_QUARANTINE_SUMMARY_FULFILLED = 'FIREWALL_QUARANTINE_SUMMARY_FULFILLED';
+export const FIREWALL_QUARANTINE_SUMMARY_FAILED = 'FIREWALL_QUARANTINE_SUMMARY_FAILED';
+
+const quarantineSummaryRequested = noPayloadActionCreator(FIREWALL_QUARANTINE_SUMMARY_REQUESTED);
+const quarantineSummaryFulfilled = payloadParamActionCreator(FIREWALL_QUARANTINE_SUMMARY_FULFILLED);
+const quarantineSummaryFailed = payloadParamActionCreator(FIREWALL_QUARANTINE_SUMMARY_FAILED);
 
 export function loadStatus() {
   return function(dispatch) {
@@ -106,6 +114,19 @@ export function saveConfiguration() {
         })
         .catch((error) => {
           dispatch(saveConfigurationFailed(Messages.getHttpErrorMessage(error)));
+        });
+  };
+}
+
+export function loadQuarantineSummary() {
+  return function(dispatch) {
+    dispatch(quarantineSummaryRequested());
+    return axios.get(getFirewallQuarantineSummaryUrl())
+        .then(({data}) => {
+          dispatch(quarantineSummaryFulfilled(data));
+        })
+        .catch(error => {
+          dispatch(quarantineSummaryFailed(Messages.getHttpErrorMessage(error)));
         });
   };
 }

@@ -20,7 +20,8 @@ export default function Firewall(props) {
   const {
     loadStatus,
     loadReleaseQuarantineSummary,
-    loadConfiguration
+    loadConfiguration,
+    loadQuarantineSummary
   } = props;
 
   // viewState
@@ -43,6 +44,14 @@ export default function Firewall(props) {
     loadConfigurationError
   } = props;
 
+  // quarantineSummaryState
+  const {
+    loadedQuarantineSummary
+  } = props;
+
+  const dataLoaded = isDataLoaded(loadedStatus, loadedReleaseQuarantineSummary, loadedConfiguration,
+      loadedQuarantineSummary);
+
   const error = determineError(loadedStatus, loadedReleaseQuarantineSummary, isEnabled, loadStatusError,
       loadReleaseQuarantineSummaryError, loadConfigurationError);
 
@@ -50,6 +59,7 @@ export default function Firewall(props) {
     loadStatus();
     loadReleaseQuarantineSummary();
     loadConfiguration();
+    loadQuarantineSummary();
   }
 
   useEffect(() => {
@@ -59,13 +69,12 @@ export default function Firewall(props) {
   return (
     <main id="firewall-page" className="nx-page-main">
       {isShowConfigurationModal && <FirewallConfigurationModalContainer/>}
-      <LoadWrapper loading={!loadedStatus || !loadedReleaseQuarantineSummary || !loadedConfiguration} error={error}
-                   retryHandler={loadData}>
+      <LoadWrapper loading={!dataLoaded} error={error} retryHandler={loadData}>
         <FirewallStatus/>
         <div className="nx-card-container nx-card-container--row iq-firewall__horizontal">
-          <FirewallQuarantineStatus/>
+          <FirewallQuarantineStatus { ...props }/>
           <FirewallAutoUnquarantineStatus { ...props }/>
-          <FirewallQuarantine/>
+          <FirewallQuarantine { ...props }/>
           <FirewallAutoReleaseQuarantine autoReleaseQuarantineCountMTD={autoReleaseQuarantineCountMTD}/>
         </div>
         <FirewallQuarantineTable/>
@@ -85,9 +94,14 @@ function determineError(loadedStatus, loadedReleaseQuarantineSummary, isEnabled,
   else if (loadedReleaseQuarantineSummary && loadReleaseQuarantineSummaryError) {
     return loadReleaseQuarantineSummaryError;
   }
+
   else {
     return loadConfigurationError;
   }
+}
+
+function isDataLoaded(loadedStatus, loadedReleaseQuarantineSummary, loadedConfiguration, loadedQuarantineSummary) {
+  return loadedStatus && loadedReleaseQuarantineSummary && loadedConfiguration && loadedQuarantineSummary;
 }
 
 Firewall.propTypes = {
@@ -102,5 +116,7 @@ Firewall.propTypes = {
   isShowConfigurationModal: PropTypes.bool.isRequired,
   loadConfiguration: PropTypes.func.isRequired,
   loadedConfiguration: PropTypes.bool.isRequired,
-  loadConfigurationError: PropTypes.bool
+  loadConfigurationError: PropTypes.bool,
+  loadQuarantineSummary: PropTypes.func.isRequired,
+  loadedQuarantineSummary: PropTypes.bool.isRequired
 };

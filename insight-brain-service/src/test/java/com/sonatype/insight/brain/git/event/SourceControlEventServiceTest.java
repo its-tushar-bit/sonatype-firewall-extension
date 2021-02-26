@@ -18,7 +18,7 @@ import com.sonatype.insight.brain.concurrent.SemaphorePool;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.GitCommitStatusService;
 import com.sonatype.insight.brain.git.ManifestScanService;
-import com.sonatype.insight.brain.git.PullRequestCommentingService;
+import com.sonatype.insight.brain.git.PullRequestCommentingEventHandler;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
 import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.git.SourceControlService;
@@ -62,7 +62,7 @@ public class SourceControlEventServiceTest
   private SourceControlInstanceManager mockSourceControlInstanceManager;
 
   @Mock
-  private PullRequestCommentingService mockPullRequestCommentingService;
+  private PullRequestCommentingEventHandler mockPullRequestCommentingEventHandler;
 
   @Mock
   private PullRequestRemediationService mockPullRequestRemediationService;
@@ -91,7 +91,7 @@ public class SourceControlEventServiceTest
     MockitoAnnotations.openMocks(this);
     super.setup();
     eventService = spy(new SourceControlEventService(mockSourceControlEventDAO, mockSourceControlInstanceManager,
-        mockPullRequestCommentingService, mockPullRequestRemediationService, mockGitCommitStatusService,
+        mockPullRequestCommentingEventHandler, mockPullRequestRemediationService, mockGitCommitStatusService,
         mockManifestScanService, mockSourceControlService));
     when(mockSourceControlInstanceManager.canProcessEvents()).thenReturn(true);
   }
@@ -278,7 +278,7 @@ public class SourceControlEventServiceTest
     when(mockSourceControlEventDAO
         .selectEventsForInstance(eq(eventService.getInstanceId()), anyInt()))
         .thenReturn(events);
-    doThrow(new RuntimeException(errorMsg)).when(mockPullRequestCommentingService)
+    doThrow(new RuntimeException(errorMsg)).when(mockPullRequestCommentingEventHandler)
         .onDiscoveredPullRequest(any(SourceControlEvent.class));
 
     CountDownLatch event0Latch = createOnEventFinishedLatch(events.get(0));
@@ -332,7 +332,7 @@ public class SourceControlEventServiceTest
     doAnswer(a -> {
       lock.lock();
       return null;
-    }).when(mockPullRequestCommentingService).onApplicationEvaluation(any(SourceControlEvent.class));
+    }).when(mockPullRequestCommentingEventHandler).onApplicationEvaluation(any(SourceControlEvent.class));
 
     // when: process events for an "unloaded" event service, which will load up the service
     eventService.processEvents();
@@ -412,7 +412,7 @@ public class SourceControlEventServiceTest
     doAnswer(a -> {
       lock.lock();
       return null;
-    }).when(mockPullRequestCommentingService).onApplicationEvaluation(any(SourceControlEvent.class));
+    }).when(mockPullRequestCommentingEventHandler).onApplicationEvaluation(any(SourceControlEvent.class));
 
     // when:
     int eventsProcessed = eventService.processEvents();
@@ -566,7 +566,7 @@ public class SourceControlEventServiceTest
     when(mockSourceControlEventDAO
         .selectEventsForInstance(eq(eventService.getInstanceId()), anyInt()))
         .thenReturn(ImmutableList.of(event));
-    doThrow(new RuntimeException("simulated")).when(mockPullRequestCommentingService)
+    doThrow(new RuntimeException("simulated")).when(mockPullRequestCommentingEventHandler)
         .onApplicationEvaluation(eq(event));
     doThrow(new RuntimeException("simulated")).when(mockSourceControlEventDAO)
         .markEventHasError(eq(event.getId()), any());
@@ -774,24 +774,24 @@ public class SourceControlEventServiceTest
     }
 
     if (actionSet.contains(EventProcessAction.noPropagation)) {
-      verify(mockPullRequestCommentingService, never()).onDiscoveredPullRequest(eq(event));
-      verify(mockPullRequestCommentingService, never()).onApplicationEvaluation(eq(event));
+      verify(mockPullRequestCommentingEventHandler, never()).onDiscoveredPullRequest(eq(event));
+      verify(mockPullRequestCommentingEventHandler, never()).onApplicationEvaluation(eq(event));
       verify(mockPullRequestRemediationService, never()).onRemediateComponent(eq(event));
       verify(mockManifestScanService, never()).onManifestScan(any(SourceControlEvent.class));
       verify(mockGitCommitStatusService, never()).onSendCommitStatus(eq(event));
       verify(mockSourceControlService, never()).onRepositoryUrlUpdated(eq(event));
     }
     else if (actionSet.contains(EventProcessAction.onAppEval)) {
-      verify(mockPullRequestCommentingService, times(1)).onApplicationEvaluation(eq(event));
-      verify(mockPullRequestCommentingService, never()).onDiscoveredPullRequest(eq(event));
+      verify(mockPullRequestCommentingEventHandler, times(1)).onApplicationEvaluation(eq(event));
+      verify(mockPullRequestCommentingEventHandler, never()).onDiscoveredPullRequest(eq(event));
       verify(mockPullRequestRemediationService, never()).onRemediateComponent(eq(event));
       verify(mockManifestScanService, never()).onManifestScan(any(SourceControlEvent.class));
       verify(mockGitCommitStatusService, never()).onSendCommitStatus(eq(event));
       verify(mockSourceControlService, never()).onRepositoryUrlUpdated(eq(event));
     }
     else if (actionSet.contains(EventProcessAction.onPrDiscovered)) {
-      verify(mockPullRequestCommentingService, times(1)).onDiscoveredPullRequest(eq(event));
-      verify(mockPullRequestCommentingService, never()).onApplicationEvaluation(eq(event));
+      verify(mockPullRequestCommentingEventHandler, times(1)).onDiscoveredPullRequest(eq(event));
+      verify(mockPullRequestCommentingEventHandler, never()).onApplicationEvaluation(eq(event));
       verify(mockPullRequestRemediationService, never()).onRemediateComponent(eq(event));
       verify(mockManifestScanService, never()).onManifestScan(any(SourceControlEvent.class));
       verify(mockGitCommitStatusService, never()).onSendCommitStatus(eq(event));
@@ -799,25 +799,25 @@ public class SourceControlEventServiceTest
     }
     else if (actionSet.contains(EventProcessAction.onComponentRemediation)) {
       verify(mockPullRequestRemediationService, times(1)).onRemediateComponent(eq(event));
-      verify(mockPullRequestCommentingService, never()).onDiscoveredPullRequest(eq(event));
-      verify(mockPullRequestCommentingService, never()).onApplicationEvaluation(eq(event));
+      verify(mockPullRequestCommentingEventHandler, never()).onDiscoveredPullRequest(eq(event));
+      verify(mockPullRequestCommentingEventHandler, never()).onApplicationEvaluation(eq(event));
       verify(mockManifestScanService, never()).onManifestScan(any(SourceControlEvent.class));
       verify(mockGitCommitStatusService, never()).onSendCommitStatus(eq(event));
       verify(mockSourceControlService, never()).onRepositoryUrlUpdated(eq(event));
     }
     else if (actionSet.contains(EventProcessAction.onManifestScan)) {
       verify(mockManifestScanService, times(1)).onManifestScan(eq(event));
-      verifyNoMoreInteractions(mockPullRequestCommentingService, mockPullRequestRemediationService,
+      verifyNoMoreInteractions(mockPullRequestCommentingEventHandler, mockPullRequestRemediationService,
           mockGitCommitStatusService, mockSourceControlService);
     }
     else if (actionSet.contains(EventProcessAction.onStatusUpdate)) {
       verify(mockGitCommitStatusService, times(1)).onSendCommitStatus(eq(event));
-      verifyNoMoreInteractions(mockPullRequestCommentingService, mockPullRequestRemediationService,
+      verifyNoMoreInteractions(mockPullRequestCommentingEventHandler, mockPullRequestRemediationService,
           mockManifestScanService, mockSourceControlService);
     }
     else if (actionSet.contains(EventProcessAction.onRepositoryUrlUpdated)) {
       verify(mockSourceControlService, times(1)).onRepositoryUrlUpdated(eq(event));
-      verifyNoMoreInteractions(mockPullRequestCommentingService, mockPullRequestRemediationService,
+      verifyNoMoreInteractions(mockPullRequestCommentingEventHandler, mockPullRequestRemediationService,
           mockManifestScanService, mockSourceControlService);
     }
   }

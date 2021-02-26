@@ -189,6 +189,30 @@ public class  SourceControlEvent
     return this;
   }
 
+  public SourceControlEvent forApplicationEvaluation() {
+    return setEventType(APPLICATION_EVALUATION_EVENT);
+  }
+
+  public SourceControlEvent forDiscoveredPullRequest() {
+    return setEventType(DISCOVERED_PULL_REQUEST_EVENT);
+  }
+
+  public SourceControlEvent forSourceControlEvaluation() {
+    return setEventType(MANIFEST_EVALUATION_EVENT);
+  }
+
+  public SourceControlEvent forRemediationPullRequest() {
+    return setEventType(REMEDIATION_PULL_REQUEST_EVENT);
+  }
+
+  public SourceControlEvent forRepositoryUrlUpdated() {
+    return setEventType(REPOSITORY_URL_UPDATED_EVENT);
+  }
+
+  public SourceControlEvent forStatusUpdate() {
+    return setEventType(STATUS_UPDATE_EVENT);
+  }
+
   public int getEventPriority() {
     return eventPriority;
   }

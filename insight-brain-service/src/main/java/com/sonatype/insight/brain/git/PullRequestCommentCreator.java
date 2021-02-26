@@ -1,0 +1,277 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.git;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.brain.telemetry.PullRequestCommentTelemetry;
+import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
+import com.sonatype.nexus.scm.api.model.CommentResponse;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+@Named
+@Singleton
+public class PullRequestCommentCreator
+{
+  private static final Logger log = LoggerFactory.getLogger(PullRequestCommentCreator.class);
+
+  private final GitClientFactory gitClientFactory;
+
+  private final SourceControlPullRequestCommentDAO pullRequestCommentDAO;
+
+  private final PullRequestLocationDiscoveryEligibilityValidator locationDiscoveryEligibilityValidator;
+
+  private final PullRequestFeedbackMarkupService pullRequestFeedbackMarkupService;
+
+  private final PullRequestCommentingClient pullRequestCommentingClient;
+
+  private final PullRequestCommentingMetricsService prCommentingMetricsService;
+
+  private final PullRequestLineCommentingService pullRequestLineCommentingService;
+
+  // note: the framework will inject an empty list in the event there are no post-comment action classes defined
+  private final List<PullRequestPostCommentAction> pullRequestPostCommentActionList;
+
+  private final PullRequestLocationDiscoveryService locationDiscoveryService;
+
+  private final SourceControlComponentLoader sourceControlComponentLoader;
+
+  @Inject
+  public PullRequestCommentCreator(
+      final GitClientFactory gitClientFactory,
+      final SourceControlPullRequestCommentDAO pullRequestCommentDAO,
+      final PullRequestFeedbackMarkupService pullRequestFeedbackMarkupService,
+      final PullRequestCommentingClient pullRequestCommentingClient,
+      final PullRequestCommentingMetricsService prCommentingMetricsService,
+      final PullRequestLineCommentingService pullRequestLineCommentingService,
+      final List<PullRequestPostCommentAction> pullRequestPostCommentActionList,
+      final PullRequestLocationDiscoveryService locationDiscoveryService,
+      final PullRequestLocationDiscoveryEligibilityValidator locationDiscoveryEligibilityValidator,
+      final SourceControlComponentLoader sourceControlComponentLoader)
+  {
+    this.gitClientFactory = gitClientFactory;
+    this.pullRequestCommentDAO = pullRequestCommentDAO;
+    this.pullRequestFeedbackMarkupService = pullRequestFeedbackMarkupService;
+    this.pullRequestCommentingClient = pullRequestCommentingClient;
+    this.prCommentingMetricsService = prCommentingMetricsService;
+    this.pullRequestLineCommentingService = pullRequestLineCommentingService;
+    this.pullRequestPostCommentActionList = pullRequestPostCommentActionList;
+    this.locationDiscoveryService = locationDiscoveryService;
+    this.locationDiscoveryEligibilityValidator = locationDiscoveryEligibilityValidator;
+    this.sourceControlComponentLoader = sourceControlComponentLoader;
+  }
+
+  public void createPullRequestComment(
+      PullRequestPolicyEvaluationsDTO prPolicyEvaluationsDTO,
+      PolicyViolationDiff<PolicyViolation> policyViolationDiff,
+      Map<ComponentIdentifier, String> remediationVersionMap,
+      String contentHash)
+      throws IOException
+  {
+    doCreateOrUpdateComments(prPolicyEvaluationsDTO, null, policyViolationDiff, remediationVersionMap, contentHash);
+  }
+
+  public void updatePullRequestComment(
+      PullRequestPolicyEvaluationsDTO prPolicyEvaluationsDTO,
+      SourceControlPullRequestComment existingPullRequestComment,
+      PolicyViolationDiff<PolicyViolation> policyViolationDiff,
+      Map<ComponentIdentifier, String> remediationVersionMap,
+      String contentHash)
+      throws IOException
+  {
+    doCreateOrUpdateComments(prPolicyEvaluationsDTO, existingPullRequestComment, policyViolationDiff,
+        remediationVersionMap, contentHash);
+  }
+
+  private void doCreateOrUpdateComments(
+      PullRequestPolicyEvaluationsDTO prPolicyEvaluationsDTO,
+      final SourceControlPullRequestComment existingPullRequestComment,
+      final PolicyViolationDiff<PolicyViolation> policyViolationDiff,
+      final Map<ComponentIdentifier, String> remediationVersionMap,
+      final String contentHash)
+      throws IOException
+  {
+    PullRequestCommentTelemetry telemetry = new PullRequestCommentTelemetry(
+        prPolicyEvaluationsDTO.getApplicationId(), prPolicyEvaluationsDTO.getPullRequestNumber());
+
+    PolicyEvaluation featureBranchPolicyEvaluation = prPolicyEvaluationsDTO.getFeatureBranchPolicyEvaluation();
+    PolicyEvaluation defaultBranchPolicyEvaluation = prPolicyEvaluationsDTO.getDefaultBranchPolicyEvaluation();
+
+    LocationDiscoveryResult locationDiscoveryResult = getLocationDiscovery(prPolicyEvaluationsDTO, policyViolationDiff);
+
+    // line comment sub-flow
+    List<PullRequestLineCommentDTO> pullRequestLineComments = pullRequestLineCommentingService
+        .createPullRequestLineComments(
+            policyViolationDiff.getAppeared(),
+            prPolicyEvaluationsDTO.getGitRepositoryInfo(),
+            remediationVersionMap,
+            prPolicyEvaluationsDTO.getPullRequestNumber(),
+            featureBranchPolicyEvaluation.getCommitHash(),
+            prPolicyEvaluationsDTO.getApplicationId(),
+            featureBranchPolicyEvaluation.getId(),
+            defaultBranchPolicyEvaluation.getId(),
+            locationDiscoveryResult);
+
+    telemetry.lineCommentCount = pullRequestLineComments.size();
+
+    SourceControlComponentDetails sourceControlComponentDetails =
+        getSourceControlComponentDetails(prPolicyEvaluationsDTO, policyViolationDiff, pullRequestLineComments);
+
+    Optional<String> policyEvaluationDiffMarkup = pullRequestFeedbackMarkupService.createMarkup(
+        policyViolationDiff, remediationVersionMap, pullRequestLineComments,
+        prPolicyEvaluationsDTO.getGitRepositoryInfo(), prPolicyEvaluationsDTO.getPullRequestNumber(),
+        featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, sourceControlComponentDetails, telemetry);
+
+    if (policyEvaluationDiffMarkup.isPresent()) {
+      Optional<CommentResponse> response = pullRequestCommentingClient.createOrUpdateCommentInGitSCM(
+          prPolicyEvaluationsDTO.getApplicationId(),
+          prPolicyEvaluationsDTO.getGitRepositoryInfo(),
+          prPolicyEvaluationsDTO.getPullRequestNumber(),
+          policyEvaluationDiffMarkup.get(),
+          existingPullRequestComment,
+          telemetry);
+
+      if (response.isPresent()) {
+        CommentResponse commentResponse = response.get();
+        recordCommentInDatabase(
+            prPolicyEvaluationsDTO,
+            commentResponse.getId(),
+            commentResponse.getVersion(),
+            contentHash,
+            existingPullRequestComment);
+
+        invokePostCommentActions(
+            prPolicyEvaluationsDTO.getGitRepositoryInfo(),
+            policyViolationDiff,
+            sourceControlComponentDetails,
+            featureBranchPolicyEvaluation,
+            defaultBranchPolicyEvaluation,
+            prPolicyEvaluationsDTO.getFeatureBranchName(),
+            locationDiscoveryResult);
+
+        prCommentingMetricsService.sendTelemetry(telemetry);
+
+        AuditEvent auditEvent = existingPullRequestComment == null
+            ? AuditEvent.CREATE_PULL_REQUEST_COMMENT : AuditEvent.UPDATE_PULL_REQUEST_COMMENT;
+        prCommentingMetricsService.addAuditRecord(
+            auditEvent, prPolicyEvaluationsDTO.getApplicationId(),
+            prPolicyEvaluationsDTO.getGitRepositoryInfo().repositoryUrl,
+            prPolicyEvaluationsDTO.getPullRequestNumber());
+      }
+    }
+    else {
+      log.info("generated feedback markup was empty for application '{}' pull request '{}'",
+          prPolicyEvaluationsDTO.getApplicationId(), prPolicyEvaluationsDTO.getPullRequestNumber());
+    }
+  }
+
+  private SourceControlComponentDetails getSourceControlComponentDetails(
+      PullRequestPolicyEvaluationsDTO pullRequestPolicyEvaluationsDTO,
+      PolicyViolationDiff<PolicyViolation> policyViolationDiff,
+      List<PullRequestLineCommentDTO> pullRequestLineComments) throws IOException
+  {
+    SourceControlComponentDetails sourceControlComponentDetails = sourceControlComponentLoader
+        .getSourceControlComponentDetails(
+            pullRequestPolicyEvaluationsDTO.getApplicationId(),
+            pullRequestPolicyEvaluationsDTO.getFeatureBranchPolicyEvaluation().getScanId());
+
+    sourceControlComponentLoader
+        .enhanceSourceControlComponentDetails(sourceControlComponentDetails, policyViolationDiff.getCleared());
+
+    sourceControlComponentLoader
+        .enhanceSourceControlComponentDetailsWithDirectDependencyInformation(sourceControlComponentDetails,
+            pullRequestLineComments);
+
+    return sourceControlComponentDetails;
+  }
+
+  private LocationDiscoveryResult getLocationDiscovery(
+      PullRequestPolicyEvaluationsDTO pullRequestPolicyEvaluationsDTO,
+      PolicyViolationDiff<PolicyViolation> policyViolationDiff)
+  {
+    LocationDiscoveryResult locationDiscoveryResult = new LocationDiscoveryResult();
+    if (locationDiscoveryEligibilityValidator.isLocationDiscoveryNeededAndAllowed(
+        pullRequestPolicyEvaluationsDTO.getSourceControlProvider(), policyViolationDiff)) {
+      locationDiscoveryResult = locationDiscoveryService.doLocationDiscovery(
+          policyViolationDiff.getAppeared(),
+          pullRequestPolicyEvaluationsDTO.getGitRepositoryInfo(),
+          pullRequestPolicyEvaluationsDTO.getFeatureBranchName(),
+          pullRequestPolicyEvaluationsDTO.getApplicationId());
+    }
+    return locationDiscoveryResult;
+  }
+
+  /**
+   * record in the DB that we've created or updated a comment for the given pull request for the given app
+   */
+  private void recordCommentInDatabase(
+      PullRequestPolicyEvaluationsDTO pullRequestPolicyEvaluationsDTO,
+      Integer commentId,
+      Integer commentVersion,
+      String contentHash,
+      SourceControlPullRequestComment existingPullRequestComment)
+  {
+    if (existingPullRequestComment == null) {
+      SourceControlPullRequestComment pullRequestComment =
+          new SourceControlPullRequestComment(
+              pullRequestPolicyEvaluationsDTO.getApplicationId(),
+              pullRequestPolicyEvaluationsDTO.getPullRequestNumber(),
+              commentId,
+              commentVersion,
+              contentHash,
+              pullRequestPolicyEvaluationsDTO.getFeatureBranchPolicyEvaluationId(),
+              pullRequestPolicyEvaluationsDTO.getDefaultBranchPolicyEvaluationId()
+          );
+      pullRequestCommentDAO.insert(pullRequestComment);
+    }
+    else {
+      existingPullRequestComment.setPullRequestCommentId(commentId);
+      existingPullRequestComment.setPullRequestCommentVersion(commentVersion);
+      existingPullRequestComment.setContentHash(contentHash);
+      existingPullRequestComment
+          .setSourcePolicyEvaluationId(pullRequestPolicyEvaluationsDTO.getFeatureBranchPolicyEvaluationId());
+      existingPullRequestComment
+          .setTargetPolicyEvaluationId(pullRequestPolicyEvaluationsDTO.getDefaultBranchPolicyEvaluationId());
+      pullRequestCommentDAO.update(existingPullRequestComment);
+    }
+    log.debug("pull request comment '{}' for application '{}' pull request '{}' recorded in database", commentId,
+        pullRequestPolicyEvaluationsDTO.getApplicationId(), pullRequestPolicyEvaluationsDTO.getPullRequestNumber());
+  }
+
+  /**
+   * Invoked after a comment has been created or updated
+   */
+  private void invokePostCommentActions(
+      final GitRepositoryInfo gitRepositoryInfo,
+      final PolicyViolationDiff<PolicyViolation> policyViolationDiff,
+      final SourceControlComponentDetails sourceControlComponentDetails,
+      final PolicyEvaluation sourceCommitPolicyEvaluation,
+      final PolicyEvaluation baseBranchPolicyEvaluation,
+      final String branch,
+      final LocationDiscoveryResult locationDiscoveryResult)
+  {
+    pullRequestPostCommentActionList.forEach(pullRequestPostCommentAction -> pullRequestPostCommentAction
+        .invokeAction(gitClientFactory, gitRepositoryInfo, policyViolationDiff, sourceControlComponentDetails,
+            sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation, branch, locationDiscoveryResult));
+  }
+}

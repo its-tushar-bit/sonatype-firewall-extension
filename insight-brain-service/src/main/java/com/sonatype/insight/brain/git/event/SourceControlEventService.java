@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.concurrent.SemaphorePool;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.GitCommitStatusService;
 import com.sonatype.insight.brain.git.ManifestScanService;
-import com.sonatype.insight.brain.git.PullRequestCommentingService;
+import com.sonatype.insight.brain.git.PullRequestCommentingEventHandler;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
 import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.git.SourceControlService;
@@ -84,7 +84,7 @@ public class SourceControlEventService
 
   private final SourceControlInstanceManager sourceControlInstanceManager;
 
-  private final PullRequestCommentingService pullRequestCommentingService;
+  private final PullRequestCommentingEventHandler pullRequestCommentingEventHandler;
 
   private ThreadPoolExecutor threadPoolExecutor;
 
@@ -100,7 +100,7 @@ public class SourceControlEventService
   public SourceControlEventService(
       SourceControlEventDAO sourceControlEventDAO,
       SourceControlInstanceManager sourceControlInstanceManager,
-      PullRequestCommentingService pullRequestCommentingService,
+      PullRequestCommentingEventHandler pullRequestCommentingEventHandler,
       PullRequestRemediationService pullRequestRemediationService,
       GitCommitStatusService gitCommitStatusService,
       ManifestScanService manifestScanService,
@@ -108,7 +108,7 @@ public class SourceControlEventService
   {
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.sourceControlInstanceManager = sourceControlInstanceManager;
-    this.pullRequestCommentingService = pullRequestCommentingService;
+    this.pullRequestCommentingEventHandler = pullRequestCommentingEventHandler;
     this.pullRequestRemediationService = pullRequestRemediationService;
     this.gitCommitStatusService = gitCommitStatusService;
     this.manifestScanService = manifestScanService;
@@ -251,11 +251,11 @@ public class SourceControlEventService
     try {
       switch (event.getEventType()) {
         case SourceControlEvent.APPLICATION_EVALUATION_EVENT:
-          pullRequestCommentingService.onApplicationEvaluation(event);
+          pullRequestCommentingEventHandler.onApplicationEvaluation(event);
           break;
 
         case SourceControlEvent.DISCOVERED_PULL_REQUEST_EVENT:
-          pullRequestCommentingService.onDiscoveredPullRequest(event);
+          pullRequestCommentingEventHandler.onDiscoveredPullRequest(event);
           break;
 
         case SourceControlEvent.MANIFEST_EVALUATION_EVENT:

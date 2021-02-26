@@ -1,0 +1,429 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.git;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.UUID;
+
+import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.eventbus.AsyncEventBus;
+import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
+import com.sonatype.insight.brain.git.helper.ApplicationEvaluationEventBuilder;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
+import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
+import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.nexus.scm.SourceControlProvider;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+public class PullRequestCommentingEventHandlerTest
+    extends VerifiableLoggingTestBase
+{
+  @Mock
+  private AsyncEventBus mockAsyncEventBus;
+
+  @Mock
+  private PullRequestCommentingMetricsService mockPrCommentingMetricsService;
+
+  @Mock
+  private PullRequestCommentingService mockPullRequestCommentingService;
+
+  @Mock
+  private SourceControlEventPublisher mockSourceControlEventPublisher;
+
+  @Captor
+  private ArgumentCaptor<List<PullRequestPolicyEvaluationsDTO>> pullRequestPolicyEvaluationsDTOCaptor;
+
+  public PullRequestCommentingEventHandlerTest() {
+    super(PullRequestCommentingEventHandler.class);
+  }
+
+  private TestProductLicense testProductLicense;
+
+  @Before
+  @Override
+  public void setup() {
+    MockitoAnnotations.openMocks(this);
+    super.setup();
+
+    TestProductLicenseManager productLicenseManager = new TestProductLicenseManager();
+    testProductLicense = new TestProductLicense(productLicenseManager);
+  }
+
+  @Test
+  public void testOnApplicationEvaluation_featureDisabled() {
+    // given: PR commenting feature disabled
+    PullRequestCommentingEventHandler commentingEventHandler = new TestablePullRequestCommentingEventHandlerBuilder()
+        .withCommentingFeatureEnabled(false)
+        .build();
+
+    ApplicationEvaluationEvent event = new ApplicationEvaluationEventBuilder()
+        .withApplicationId("app1")
+        .withPolicyEvaluationId("pe1")
+        .withCommitHash("commit456")
+        .build();
+
+    // when: handler invoked
+    commentingEventHandler.onApplicationEvaluation(event);
+
+    // then: should be no downstream interactions
+    verify(mockSourceControlEventPublisher, never()).publishEvent(any());
+    verify(mockPrCommentingMetricsService, never()).sendTelemetry(any());
+  }
+
+  @Test
+  public void testOnApplicationEvaluation_Unlicensed() throws Exception {
+    // remove automation feature, leaving notifications
+    testProductLicense.setMissingFeatures(LicensedFeature.AUTOMATION);
+
+    // given : commenting service object, scm enabled, and an event with a commit hash
+    PullRequestCommentingEventHandler commentingEventHandler = new TestablePullRequestCommentingEventHandlerBuilder()
+        .withScmEnabled(true)
+        .build();
+
+    ApplicationEvaluationEvent event = new ApplicationEvaluationEventBuilder()
+        .withApplicationId("app1")
+        .withPolicyEvaluationId("pe1")
+        .withCommitHash("commit456")
+        .build();
+
+    // when : process event
+    commentingEventHandler.onApplicationEvaluation(event);
+
+    // then : a debug message is logged
+    assertThatLogMessagesEqual(
+        debug("License does not support SourceControl automation features"));
+
+    // and : processing stops there
+    verify(mockSourceControlEventPublisher, never()).publishEvent(any());
+    verify(mockPrCommentingMetricsService, never()).sendTelemetry(any());
+  }
+
+  @Test
+  public void testOnApplicationEvaluation_missingCommitHash() throws Exception {
+    // given : commenting service object, scm enabled, and an event without a commit hash
+    PullRequestCommentingEventHandler commentingEventHandler = new TestablePullRequestCommentingEventHandlerBuilder()
+        .withScmEnabled(true)
+        .build();
+
+    ApplicationEvaluationEvent event = new ApplicationEvaluationEventBuilder()
+        .withApplicationId("app1")
+        .withPolicyEvaluationId("pe1")
+        .build();
+
+    // when : process event
+    commentingEventHandler.onApplicationEvaluation(event);
+
+    // then : comment was not created
+    verify(mockSourceControlEventPublisher, never()).publishEvent(any());
+    verify(mockPrCommentingMetricsService, never()).sendTelemetry(any());
+    assertThatLogMessagesEqual(
+        debug("no commit hash : skipping PR commenting for application 'app1' with policy evaluation 'pe1'"));
+  }
+
+  @Test
+  public void testOnApplicationEvaluation_scmDisabled() throws Exception {
+    // given : commenting service object, scm disabled, and an event with a commit hash
+    PullRequestCommentingEventHandler commentingEventHandler = new TestablePullRequestCommentingEventHandlerBuilder()
+        .withScmEnabled(false)
+        .build();
+
+    ApplicationEvaluationEvent event = new ApplicationEvaluationEventBuilder()
+        .withApplicationId("app1")
+        .withPolicyEvaluationId("pe1")
+        .withCommitHash("commit123")
+        .build();
+
+    // when : process event
+    commentingEventHandler.onApplicationEvaluation(event);
+
+    // then : comment was not created
+    verify(mockSourceControlEventPublisher, never()).publishEvent(any());
+    verify(mockPrCommentingMetricsService, never()).sendTelemetry(any());
+    assertThatLogMessagesEqual(
+        debug("scm disabled : skipping PR commenting for application 'app1' with policy evaluation 'pe1'"));
+  }
+
+  @Test
+  public void testOnApplicationEvaluation_publishSourceControlEvent() throws Exception {
+    // given : commenting service object, scm enabled, and an event with a commit hash
+    PullRequestCommentingEventHandler commentingEventHandler = new TestablePullRequestCommentingEventHandlerBuilder()
+        .withScmEnabled(true)
+        .build();
+
+    ApplicationEvaluationEvent event = new ApplicationEvaluationEventBuilder()
+        .withApplicationId("app1")
+        .withPolicyEvaluationId("pe1")
+        .withCommitHash("commit456")
+        .build();
+
+    // when : check event
+    commentingEventHandler.onApplicationEvaluation(event);
+
+    // then : event is ok for processing
+    final ArgumentCaptor<SourceControlEvent> sourceControlEventCaptor =
+        ArgumentCaptor.forClass(SourceControlEvent.class);
+    verify(mockSourceControlEventPublisher, times(1)).publishEvent(sourceControlEventCaptor.capture());
+    final SourceControlEvent sourceControlEvent = sourceControlEventCaptor.getValue();
+    assertThat(sourceControlEvent.getApplicationId()).isEqualTo(event.ownerId);
+    assertThat(sourceControlEvent.getCommitHash()).isEqualTo(event.commitHash);
+    assertThat(sourceControlEvent.getEventType()).isEqualTo(SourceControlEvent.APPLICATION_EVALUATION_EVENT);
+    assertThat(sourceControlEvent.getPolicyEvaluationId()).isEqualTo(event.policyEvaluationId);
+  }
+
+  @Test
+  public void testOnApplicationEvaluationSourceControlEvent_createsComments() {
+    // given: a scenario that will lead to comments being created
+    List<PullRequestPolicyEvaluationsDTO> pullRequestPolicyEvaluationDTOs = createDTOs("app33", 5);
+    PullRequestCommentingEventHandler commentingEventHandler = new TestablePullRequestCommentingEventHandlerBuilder()
+        .withPullRequestPolicyEvaluationDTOs(pullRequestPolicyEvaluationDTOs)
+        .build();
+
+    SourceControlEvent sourceControlEvent = new SourceControlEvent()
+        .forApplicationEvaluation();
+
+    // when: invoke handler
+    commentingEventHandler.onApplicationEvaluation(sourceControlEvent);
+
+    // then: there should have been multiple attempts to create PR comments
+    final ArgumentCaptor<PullRequestPolicyEvaluationsDTO> policyEvalDTOCaptor =
+        ArgumentCaptor.forClass(PullRequestPolicyEvaluationsDTO.class);
+
+    verify(mockPullRequestCommentingService, times(pullRequestPolicyEvaluationDTOs.size()))
+        .doCreateOrUpdatePullRequestComment(policyEvalDTOCaptor.capture());
+    List<PullRequestPolicyEvaluationsDTO> capturedDTOs = policyEvalDTOCaptor.getAllValues();
+    verifyPullRequestPolicyEvalationsDTOs(capturedDTOs, pullRequestPolicyEvaluationDTOs);
+  }
+
+  @Test
+  public void testOnApplicationEvaluationSourceControlEvent_doesNotCreateComments() {
+    // given: a resolver that doesn't return any resolved PR policy evals
+    PullRequestCommentingEventHandler commentingEventHandler = new TestablePullRequestCommentingEventHandlerBuilder()
+        .build();
+
+    SourceControlEvent sourceControlEvent = new SourceControlEvent()
+        .forApplicationEvaluation();
+
+    // when: invoke handler
+    commentingEventHandler.onApplicationEvaluation(sourceControlEvent);
+
+    // then: we never attempted to create comments
+    final ArgumentCaptor<PullRequestPolicyEvaluationsDTO> policyEvalDTOCaptor =
+        ArgumentCaptor.forClass(PullRequestPolicyEvaluationsDTO.class);
+
+    verify(mockPullRequestCommentingService, never())
+        .doCreateOrUpdatePullRequestComment(policyEvalDTOCaptor.capture());
+    List<PullRequestPolicyEvaluationsDTO> capturedDTOs = policyEvalDTOCaptor.getAllValues();
+    assertThat(capturedDTOs).isEmpty();
+  }
+
+  @Test
+  public void testOnDiscoveredPullRequest_createsComments() {
+    // given: a resolver and a discovered PR event that will lead to comments being created
+    List<PullRequestPolicyEvaluationsDTO> pullRequestPolicyEvaluationDTOs = createDTOs("app75", 1);
+    PullRequestCommentingEventHandler commentingEventHandler = new TestablePullRequestCommentingEventHandlerBuilder()
+        .withPullRequestPolicyEvaluationDTOs(pullRequestPolicyEvaluationDTOs)
+        .build();
+
+    SourceControlEvent sourceControlEvent = new SourceControlEvent()
+        .forDiscoveredPullRequest()
+        .setPullRequestNumber(pullRequestPolicyEvaluationDTOs.get(0).getPullRequestNumber());
+
+    // when: invoke handler
+    commentingEventHandler.onDiscoveredPullRequest(sourceControlEvent);
+
+    // then: there should have been 1 attempt to create a PR comment
+    final ArgumentCaptor<PullRequestPolicyEvaluationsDTO> policyEvalDTOCaptor =
+        ArgumentCaptor.forClass(PullRequestPolicyEvaluationsDTO.class);
+
+    verify(mockPullRequestCommentingService, times(1))
+        .doCreateOrUpdatePullRequestComment(policyEvalDTOCaptor.capture());
+    PullRequestPolicyEvaluationsDTO capturedDTO = policyEvalDTOCaptor.getValue();
+    assertThat(capturedDTO).isEqualTo(pullRequestPolicyEvaluationDTOs.get(0));
+  }
+
+  @Test
+  public void testOnDiscoveredPullRequest_doesNotCreateComments() {
+    // given: a resolver that doesn't return any PR policy evals
+    PullRequestCommentingEventHandler commentingEventHandler = new TestablePullRequestCommentingEventHandlerBuilder()
+        .build();
+
+    SourceControlEvent sourceControlEvent = new SourceControlEvent()
+        .forDiscoveredPullRequest()
+        .setPullRequestNumber(1);
+
+    // when: invoke handler
+    commentingEventHandler.onDiscoveredPullRequest(sourceControlEvent);
+
+    // then: there should have been no attempt to create a PR comment
+    verify(mockPullRequestCommentingService, never()).doCreateOrUpdatePullRequestComment(any());
+  }
+
+  @Test
+  public void testRegisteredAndUnregisteredFromEventBus() throws Exception {
+    // given:  a commenting event handler
+    PullRequestCommentingEventHandler commentingEventHandler =
+        new TestablePullRequestCommentingEventHandlerBuilder()
+            .build();
+
+    // when:  start the handler
+    commentingEventHandler.start();
+
+    // then:  registered with event bus
+    verify(mockAsyncEventBus, times(1)).register(commentingEventHandler);
+
+    // when: stop the handler
+    commentingEventHandler.stop();
+    verify(mockAsyncEventBus, times(1)).unregister(commentingEventHandler);
+  }
+
+  private List<PullRequestPolicyEvaluationsDTO> createDTOs(String applicationId, int quantity) {
+    List<PullRequestPolicyEvaluationsDTO> result = new ArrayList<>();
+
+    Random random = new Random();
+    for (int i = 0; i < quantity; i++) {
+      PullRequestPolicyEvaluationsDTO dto = new PullRequestPolicyEvaluationsDTO()
+          .setApplicationId(applicationId)
+          .setPullRequestNumber(random.nextInt())
+          .setPullRequestHeadCommit(UUID.randomUUID().toString())
+          .setFeatureBranchName(UUID.randomUUID().toString())
+          .setPullRequestHeadCommit(UUID.randomUUID().toString())
+          .setFeatureBranchPolicyEvaluation(createPolicyEvaluation(applicationId))
+          .setDefaultBranchPolicyEvaluation(createPolicyEvaluation(applicationId));
+      result.add(dto);
+    }
+
+    return result;
+  }
+
+  private PolicyEvaluation createPolicyEvaluation(String applicationId) {
+    PolicyEvaluation policyEvaluation = new PolicyEvaluation();
+    policyEvaluation.setApplicationId(applicationId);
+    policyEvaluation.setId(UUID.randomUUID().toString());
+    return policyEvaluation;
+  }
+
+  private void verifyPullRequestPolicyEvalationsDTOs(
+      List<PullRequestPolicyEvaluationsDTO> actual,
+      List<PullRequestPolicyEvaluationsDTO> expected)
+  {
+    assertThat(actual).isNotEmpty();
+    assertThat(actual.size()).isEqualTo(expected.size());
+  }
+
+  private class TestablePullRequestCommentingEventHandlerBuilder
+  {
+    @Mock
+    private SourceControlUtils mockSourceControlUtils;
+
+    @Mock
+    private PullRequestPolicyEvaluationResolver mockPullRequestPolicyEvaluationResolver;
+
+    private boolean scmEnabled = true;
+
+    private String org = "testOrg";
+
+    private String repo = "testRepo";
+
+    private String username = null;
+
+    private String token = "testToken";
+
+    private SourceControlProvider provider = SourceControlProvider.GITHUB;
+
+    private String baseBranch = "master";
+
+    private boolean enablePullRequests = true;
+
+    private boolean enableStatusChecks = true;
+
+    private GitRepositoryInfo gitRepositoryInfo;
+
+    private boolean featureFlagEnabled = true;
+
+    private List<PullRequestPolicyEvaluationsDTO> pullRequestPolicyEvaluationsDTOs;
+
+    PullRequestCommentingEventHandler build() {
+      MockitoAnnotations.openMocks(this);
+
+      doReturn(scmEnabled).when(mockSourceControlUtils).isScmEnabled(any(String.class));
+      doReturn(scmEnabled).when(mockSourceControlUtils).isScmEnabled(any(GitRepositoryInfo.class));
+
+      String repositoryUrl = String.format("http://%s.com/%s/%s", provider.toString(), org, repo);
+      gitRepositoryInfo = new GitRepositoryInfo(repositoryUrl, username, token, provider, baseBranch,
+          enablePullRequests, enableStatusChecks);
+      doReturn(gitRepositoryInfo).when(mockSourceControlUtils).getGitRepositoryInfoForApplication(any());
+
+      doReturn(null != pullRequestPolicyEvaluationsDTOs ? pullRequestPolicyEvaluationsDTOs : new ArrayList<>())
+          .when(mockPullRequestPolicyEvaluationResolver).resolveForPolicyEvaluation(any(), any(), any(), any());
+
+      doReturn(CollectionUtils.isNotEmpty(pullRequestPolicyEvaluationsDTOs)
+          ? pullRequestPolicyEvaluationsDTOs.get(0)
+          : null)
+          .when(mockPullRequestPolicyEvaluationResolver)
+          .resolveForPullRequest(any(), any(), anyInt(), any(), any());
+
+      return new PullRequestCommentingEventHandler(
+          mockPullRequestCommentingService,
+          mockSourceControlUtils,
+          mockSourceControlEventPublisher,
+          mockAsyncEventBus,
+          testProductLicense,
+          getInsightConfig(featureFlagEnabled),
+          mockPullRequestPolicyEvaluationResolver
+      );
+    }
+
+    TestablePullRequestCommentingEventHandlerBuilder withPullRequestPolicyEvaluationDTOs(
+        List<PullRequestPolicyEvaluationsDTO> pullRequestPolicyEvaluationDTOs)
+    {
+      this.pullRequestPolicyEvaluationsDTOs = pullRequestPolicyEvaluationDTOs;
+      return this;
+    }
+
+    TestablePullRequestCommentingEventHandlerBuilder withScmEnabled(boolean scmEnabled) {
+      this.scmEnabled = scmEnabled;
+      return this;
+    }
+
+    TestablePullRequestCommentingEventHandlerBuilder withCommentingFeatureEnabled(boolean isEnabled) {
+      this.featureFlagEnabled = isEnabled;
+      return this;
+    }
+
+    private InsightConfig getInsightConfig(boolean enableFeatureFlag) {
+      InsightConfig config = new InsightConfig();
+      Map<String, Boolean> features = new HashMap<>();
+      features.put(Feature.PR_COMMENTING.getFlag(), enableFeatureFlag);
+      config.setFeatures(features);
+      return config;
+    }
+  }
+}

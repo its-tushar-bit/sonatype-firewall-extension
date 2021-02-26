@@ -1,0 +1,313 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.git;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.brain.telemetry.PullRequestCommentTelemetry;
+import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
+import com.sonatype.nexus.scm.SourceControlProvider;
+import com.sonatype.nexus.scm.api.model.CommentResponse;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+public class PullRequestCommentCreatorTest
+    extends VerifiableLoggingTestBase
+{
+  public PullRequestCommentCreatorTest() {
+    super(PullRequestCommentCreator.class);
+  }
+
+  @Mock
+  private PullRequestCommentingClient mockCommentingClient;
+
+  @Mock
+  private PullRequestCommentingMetricsService mockCommentingMetricsService;
+
+  @Before
+  @Override
+  public void setup() {
+    MockitoAnnotations.openMocks(this);
+    super.setup();
+  }
+
+  @Test
+  public void testDoCreateOrUpdateComments_noMarkup() throws IOException {
+    // given: valid test case but no markup generated
+    final String featureBranchHeadCommit = "feature-1-commit-1";
+    TestCase testCase = new TestCase()
+        .forApplication("app1")
+        .withPullRequest(1, featureBranchHeadCommit)
+        .withDefaultBranchPolicyEvaluation("default-eval-1", "default-commit-1")
+        .withFeatureBranchPolicyEvaluation("feature-eval-1", featureBranchHeadCommit)
+        .withContentHash("contentHash");
+
+    PullRequestCommentCreator pullRequestCommentCreator = new TestablePullRequestCommentCreatorBuilder()
+        .withoutMarkup()
+        .build();
+
+    // when: try to create a comment
+    pullRequestCommentCreator
+        .createPullRequestComment(testCase.pullRequestPolicyEvaluationsDTO, testCase.policyViolationDiff,
+            testCase.remediationVersionMap, testCase.contentHash);
+
+    // then: no comment created and no telemetry generated
+    assertThatLogMessagesEqual(
+        info("generated feedback markup was empty for application 'app1' pull request '1'")
+    );
+    verify(mockCommentingClient, never()).createOrUpdateCommentInGitSCM(any(), any(), anyInt(), any(), any(), any());
+    verify(mockCommentingMetricsService, never()).sendTelemetry(any());
+
+    // and when: try to update a comment
+    testCase.withExistingPullRequestComment().withPullRequest(2, featureBranchHeadCommit);
+    pullRequestCommentCreator
+        .updatePullRequestComment(testCase.pullRequestPolicyEvaluationsDTO, testCase.existingPullRequestComment,
+            testCase.policyViolationDiff, testCase.remediationVersionMap, testCase.contentHash);
+
+    // then: no comment updated and no telemetry generated
+    assertThatLogMessagesEqual(
+        info("generated feedback markup was empty for application 'app1' pull request '1'"),
+        info("generated feedback markup was empty for application 'app1' pull request '2'")
+    );
+    verify(mockCommentingClient, never()).createOrUpdateCommentInGitSCM(any(), any(), anyInt(), any(), any(), any());
+    verify(mockCommentingMetricsService, never()).sendTelemetry(any());
+  }
+
+  @Test
+  public void testCreatePullRequestComment_withMarkup() throws IOException {
+    // given: valid test case but no markup generated
+    final String featureBranchHeadCommit = "feature-1-commit-1";
+    TestCase testCase = new TestCase()
+        .forApplication("app1")
+        .withPullRequest(1, featureBranchHeadCommit)
+        .withDefaultBranchPolicyEvaluation("default-eval-1", "default-commit-1")
+        .withFeatureBranchPolicyEvaluation("feature-eval-1", featureBranchHeadCommit)
+        .withContentHash("contentHash");
+
+    PullRequestPostCommentAction mockPostCommentAction = mock(PullRequestPostCommentAction.class);
+
+    PullRequestCommentCreator pullRequestCommentCreator = new TestablePullRequestCommentCreatorBuilder()
+        .withLineComments(5)
+        .withMarkup("simulated-markup")
+        .withPostCommentAction(mockPostCommentAction)
+        .build();
+
+    // when: try to create a comment
+    pullRequestCommentCreator
+        .createPullRequestComment(testCase.pullRequestPolicyEvaluationsDTO, testCase.policyViolationDiff,
+            testCase.remediationVersionMap, testCase.contentHash);
+
+    // then: comment created, metrics generated, and downstream processes invoked
+    verify(mockCommentingClient, times(1)).createOrUpdateCommentInGitSCM(any(), any(), anyInt(), any(), any(), any());
+    ArgumentCaptor<PullRequestCommentTelemetry> telemetryCaptor =
+        ArgumentCaptor.forClass(PullRequestCommentTelemetry.class);
+    verify(mockCommentingMetricsService).sendTelemetry(telemetryCaptor.capture());
+    assertThat(telemetryCaptor.getValue().lineCommentCount).isEqualTo(5);
+    verify(mockPostCommentAction, times(1)).invokeAction(any(), any(), any(), any(), any(), any(), any(), any());
+  }
+
+  @Test
+  public void testUpdatePullRequestComment_withMarkup() throws IOException {
+    // given: valid test case but no markup generated
+    final String featureBranchHeadCommit = "feature-1-commit-1";
+    TestCase testCase = new TestCase()
+        .forApplication("app1")
+        .withPullRequest(1, featureBranchHeadCommit)
+        .withDefaultBranchPolicyEvaluation("default-eval-1", "default-commit-1")
+        .withFeatureBranchPolicyEvaluation("feature-eval-1", featureBranchHeadCommit)
+        .withContentHash("contentHash")
+        .withExistingPullRequestComment();
+
+    PullRequestPostCommentAction mockPostCommentAction = mock(PullRequestPostCommentAction.class);
+
+    PullRequestCommentCreator pullRequestCommentCreator = new TestablePullRequestCommentCreatorBuilder()
+        .withLineComments(3)
+        .withMarkup("simulated-markup")
+        .withPostCommentAction(mockPostCommentAction)
+        .build();
+
+    // when: try to create a comment
+    pullRequestCommentCreator
+        .updatePullRequestComment(testCase.pullRequestPolicyEvaluationsDTO, testCase.existingPullRequestComment,
+            testCase.policyViolationDiff, testCase.remediationVersionMap, testCase.contentHash);
+
+    // then: comment created, metrics generated, and downstream processes invoked
+    verify(mockCommentingClient, times(1)).createOrUpdateCommentInGitSCM(any(), any(), anyInt(), any(), any(), any());
+    ArgumentCaptor<PullRequestCommentTelemetry> telemetryCaptor =
+        ArgumentCaptor.forClass(PullRequestCommentTelemetry.class);
+    verify(mockCommentingMetricsService).sendTelemetry(telemetryCaptor.capture());
+    assertThat(telemetryCaptor.getValue().lineCommentCount).isEqualTo(3);
+    verify(mockPostCommentAction, times(1)).invokeAction(any(), any(), any(), any(), any(), any(), any(), any());
+  }
+
+  private class TestCase
+  {
+    private final PullRequestPolicyEvaluationsDTO pullRequestPolicyEvaluationsDTO =
+        new PullRequestPolicyEvaluationsDTO();
+
+    private final PolicyViolationDiff<PolicyViolation> policyViolationDiff = new PolicyViolationDiff<>();
+
+    private final Map<ComponentIdentifier, String> remediationVersionMap = new HashMap<>();
+
+    private String contentHash;
+
+    private SourceControlPullRequestComment existingPullRequestComment;
+
+    TestCase() {
+      pullRequestPolicyEvaluationsDTO.setGitRepositoryInfo(
+          new GitRepositoryInfo("http://gitlab.com/test/app1", "user", "token", SourceControlProvider.GITLAB, "master",
+              true, true));
+    }
+
+    TestCase forApplication(String applicationId) {
+      pullRequestPolicyEvaluationsDTO.setApplicationId(applicationId);
+      return this;
+    }
+
+    TestCase withContentHash(String contentHash) {
+      this.contentHash = contentHash;
+      return this;
+    }
+
+    TestCase withExistingPullRequestComment() {
+      existingPullRequestComment = new SourceControlPullRequestComment();
+      return this;
+    }
+
+    TestCase withPullRequest(int pullRequestNumber, String headCommit) {
+      pullRequestPolicyEvaluationsDTO
+          .setPullRequestNumber(pullRequestNumber)
+          .setPullRequestHeadCommit(headCommit);
+      return this;
+    }
+
+    TestCase withDefaultBranchPolicyEvaluation(String id, String commitHash) {
+      PolicyEvaluation policyEvaluation = new PolicyEvaluation();
+      policyEvaluation.setId(id);
+      policyEvaluation.setCommitHash(commitHash);
+      pullRequestPolicyEvaluationsDTO.setDefaultBranchPolicyEvaluation(policyEvaluation);
+      return this;
+    }
+
+    TestCase withFeatureBranchPolicyEvaluation(String id, String commitHash) {
+      PolicyEvaluation policyEvaluation = new PolicyEvaluation();
+      policyEvaluation.setId(id);
+      policyEvaluation.setCommitHash(commitHash);
+      pullRequestPolicyEvaluationsDTO.setFeatureBranchPolicyEvaluation(policyEvaluation);
+      return this;
+    }
+  }
+
+  private class TestablePullRequestCommentCreatorBuilder
+  {
+    @Mock
+    private GitClientFactory mockGitClientFactory;
+
+    @Mock
+    private SourceControlPullRequestCommentDAO mockPullRequestCommentDAO;
+
+    @Mock
+    private PullRequestFeedbackMarkupService mockFeedbackMarkupService;
+
+    @Mock
+    private PullRequestLineCommentingService mockLineCommentingService;
+
+    @Mock
+    private PullRequestLocationDiscoveryService mockLocationDiscoveryService;
+
+    @Mock
+    private PullRequestLocationDiscoveryEligibilityValidator mockLocationDiscoveryEligibilityValidator;
+
+    @Mock
+    private SourceControlComponentLoader mockComponentLoader;
+
+    private LocationDiscoveryResult locationDiscoveryResult = new LocationDiscoveryResult();
+
+    private List<PullRequestPostCommentAction> postCommentActionList = new ArrayList<>();
+
+    private Optional<String> markup = Optional.of("default-markup");
+
+    PullRequestCommentCreator build() throws IOException {
+      MockitoAnnotations.openMocks(this);
+
+      doReturn(locationDiscoveryResult).when(mockLocationDiscoveryService)
+          .doLocationDiscovery(anyList(), any(), anyString(), anyString());
+
+      doReturn(markup).when(mockFeedbackMarkupService)
+          .createMarkup(any(), any(), any(), any(), anyInt(), any(), any(), any(), any());
+
+      doReturn(lineComments).when(mockLineCommentingService)
+          .createPullRequestLineComments(any(), any(), any(), anyInt(), any(), any(), any(), any(), any());
+
+      doReturn(Optional.of(mock(CommentResponse.class))).when(mockCommentingClient)
+          .createOrUpdateCommentInGitSCM(any(), any(), anyInt(), any(), any(), any());
+
+      return new PullRequestCommentCreator(
+          mockGitClientFactory,
+          mockPullRequestCommentDAO,
+          mockFeedbackMarkupService,
+          mockCommentingClient,
+          mockCommentingMetricsService,
+          mockLineCommentingService,
+          postCommentActionList,
+          mockLocationDiscoveryService,
+          mockLocationDiscoveryEligibilityValidator,
+          mockComponentLoader
+      );
+    }
+
+    TestablePullRequestCommentCreatorBuilder withoutMarkup() {
+      markup = Optional.empty();
+      return this;
+    }
+
+    TestablePullRequestCommentCreatorBuilder withMarkup(String markup) {
+      this.markup = Optional.of(markup);
+      return this;
+    }
+
+    private List<PullRequestLineCommentDTO> lineComments = new ArrayList<>();
+
+    TestablePullRequestCommentCreatorBuilder withLineComments(int lineCommentCount) {
+      for (int i = 0; i < lineCommentCount; i++) {
+        lineComments.add(mock(PullRequestLineCommentDTO.class));
+      }
+      return this;
+    }
+
+    TestablePullRequestCommentCreatorBuilder withPostCommentAction(PullRequestPostCommentAction postCommentAction) {
+      this.postCommentActionList.add(postCommentAction);
+      return this;
+    }
+  }
+}

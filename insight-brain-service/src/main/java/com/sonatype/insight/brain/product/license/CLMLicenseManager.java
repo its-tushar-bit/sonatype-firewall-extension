@@ -84,6 +84,8 @@ public class CLMLicenseManager
 
   public static final String PRODUCT_ADVANCED_DEVELOPMENT_PACK = "Advanced Development Pack";
 
+  public static final String PRODUCT_INFRASTRUCTURE_AS_CODE_PACK = "Infrastructure as Code Pack";
+
   // Visible for testing
   static final String TASK_NAME = "ProductLicenseLoad";
 
@@ -318,6 +320,9 @@ public class CLMLicenseManager
       case ProductLicenseDetails.PRODUCT_ADVANCED_DEVELOPMENT_PACK:
         marketingNameSuffix = PRODUCT_ADVANCED_DEVELOPMENT_PACK;
         break;
+      case ProductLicenseDetails.PRODUCT_INFRASTRUCTURE_AS_CODE_PACK:
+        marketingNameSuffix = PRODUCT_INFRASTRUCTURE_AS_CODE_PACK;
+        break;
       default:
         return null;
     }
@@ -510,7 +515,8 @@ public class CLMLicenseManager
         LicensedFeature.RELEASE_INTEGRITY, //
         LicensedFeature.NODE_CLUSTERING, //
         LicensedFeature.ADVANCED_LEGAL_PACK, //
-        LicensedFeature.DATA_INSIGHTS //
+        LicensedFeature.DATA_INSIGHTS, //
+        LicensedFeature.INFRASTRUCTURE_AS_CODE_PACK
     );
     for (LicensedFeature feature : hdsControlledFeatures) {
       if (licenseDetails.features.contains(feature.name())) {

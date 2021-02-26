@@ -1112,4 +1112,15 @@ public class CLMLicenseManagerTest
 
     verify(clmLicenseManagerSpy, never()).loadProductLicenseOnAllOtherClusterNodes();
   }
+
+  @Test
+  public void testInstallLicense_InfrastructureAsCodePackFeatureFromHds() throws Exception {
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).doesNotContain(LicensedFeature.INFRASTRUCTURE_AS_CODE_PACK);
+
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.INFRASTRUCTURE_AS_CODE_PACK));
+    installLicense();
+    assertThat(productLicense.getFeatures()).contains(LicensedFeature.INFRASTRUCTURE_AS_CODE_PACK);
+  }
 }

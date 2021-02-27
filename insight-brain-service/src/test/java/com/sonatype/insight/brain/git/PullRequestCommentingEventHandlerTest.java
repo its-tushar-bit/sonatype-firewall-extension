@@ -31,7 +31,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -57,9 +56,6 @@ public class PullRequestCommentingEventHandlerTest
 
   @Mock
   private SourceControlEventPublisher mockSourceControlEventPublisher;
-
-  @Captor
-  private ArgumentCaptor<List<PullRequestPolicyEvaluationsDTO>> pullRequestPolicyEvaluationsDTOCaptor;
 
   public PullRequestCommentingEventHandlerTest() {
     super(PullRequestCommentingEventHandler.class);

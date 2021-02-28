@@ -13,11 +13,6 @@ properties(
           name: 'releaseVersion',
           defaultValue: '',
           description: 'The version number for the product, like "52"'
-        ),
-        string (
-          name: 'notificationTime',
-          defaultValue: '',
-          description: 'The time the in-product notification was pushed and displayed, like "12pm EST Today"'
         )
       ]
     )
@@ -36,8 +31,8 @@ pipeline {
         emailext(
           mimeType: 'text/html',
           subject: "IQ ${params.releaseVersion} Release Complete",
-          body: "<p>Dear Product Owners, All the release binaries are up, and can be found by following the link below.<br>\
-          Furthermore, the in-product notification was pushed and displayed at ${params.notificationTime}, marking the completion of the ${params.releaseVersion} Release.</p>\
+          body: "<p>Dear Product Owners,</p>\
+          <p>All the release binaries are up, and can be found by following the link below.</p>\
           <p><a href='https://help.sonatype.com/display/NXIQ/Download+and+Compatibility'>https://help.sonatype.com/display/NXIQ/Download+and+Compatibility</a></p>",
           to: "jwhitehouse@sonatype.com, products@sonatype.com, dev@sonatype.com, sonatype-se-discussion-group@sonatype.com, success@sonatype.com, support-team-group@sonatype.com"
         )

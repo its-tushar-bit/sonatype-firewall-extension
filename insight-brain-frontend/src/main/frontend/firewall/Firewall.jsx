@@ -70,7 +70,7 @@ export default function Firewall(props) {
     <main id="firewall-page" className="nx-page-main">
       {isShowConfigurationModal && <FirewallConfigurationModalContainer/>}
       <LoadWrapper loading={!dataLoaded} error={error} retryHandler={loadData}>
-        <FirewallStatus/>
+        <FirewallStatus { ...props }/>
         <div className="nx-card-container nx-card-container--row iq-firewall__horizontal">
           <FirewallQuarantineStatus { ...props }/>
           <FirewallAutoUnquarantineStatus { ...props }/>

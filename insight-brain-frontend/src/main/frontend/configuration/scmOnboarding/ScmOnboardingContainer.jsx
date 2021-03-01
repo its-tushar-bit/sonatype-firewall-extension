@@ -37,6 +37,9 @@ function mapStateToProps({ scmOnboarding, router }) {
     // host URL
     defaultHostUrl: scmOnboarding.formState.defaultHostUrl,
     currentHostUrlState: scmOnboarding.formState.currentHostUrlState,
+    isGitHostDialogVisible: scmOnboarding.viewState.isGitHostDialogVisible,
+    isGitHostNeeded: scmOnboarding.viewState.isGitHostNeeded,
+    isSelectingOrganization: scmOnboarding.viewState.isSelectingOrganization,
 
     // sorting
     sortConfiguration: scmOnboarding.sortConfiguration,

@@ -259,13 +259,13 @@ public class ApiScmOnboardingServiceTest
 
   @Test
   public void testDefaultHostUrl_noOrgId() {
-    testDefaultByProvider("github", "https://github.com/");
-    testDefaultByProvider("gitlab", "https://gitlab.com/");
-    testDefaultByProvider("bitbucket", "https://bitbucket.org/");
+    testDefaultByProvider("github", "");
+    testDefaultByProvider("gitlab", "");
+    testDefaultByProvider("bitbucket", "");
   }
 
   private void testDefaultByProvider(String provider, String expectedUrl) {
-    assertThat(apiScmOnboardingService.getDefaultHostUrl(provider, null)).isEqualTo(expectedUrl);
+    assertThat(apiScmOnboardingService.getDefaultHostUrl(provider, org.getId())).isEqualTo(expectedUrl);
   }
 
   @Test
@@ -376,7 +376,7 @@ public class ApiScmOnboardingServiceTest
     String defaultHostUrl = apiScmOnboardingService.getDefaultHostUrl("github", org.getId());
 
     // then it should be just the default and skip the app
-    assertThat(defaultHostUrl).isEqualTo("https://github.com/");
+    assertThat(defaultHostUrl).isEqualTo("");
   }
 
   @Test
@@ -385,7 +385,7 @@ public class ApiScmOnboardingServiceTest
     String defaultHostUrl = apiScmOnboardingService.getDefaultHostUrl("github", org.getId());
 
     // then it should be the default
-    assertThat(defaultHostUrl).isEqualTo("https://github.com/");
+    assertThat(defaultHostUrl).isEqualTo("");
   }
 
   @Test

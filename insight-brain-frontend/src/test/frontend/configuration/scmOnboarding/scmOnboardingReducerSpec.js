@@ -8,6 +8,15 @@ import reduce from '../../../../main/frontend/configuration/scmOnboarding/scmOnb
 import { initialState } from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
 import * as textInputStateHelpers from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
 import {UI_ROUTER_ON_FINISH} from '../../../../main/frontend/reduxUiRouter/routerActions';
+import {
+  SCM_ONBOARDING_IS_GIT_HOST_NEEDED,
+  SCM_ONBOARDING_LOAD_PAGE_FULFILLED,
+  SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FAILED,
+  SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED,
+  SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED,
+  SCM_ONBOARDING_SHOW_HOST_DIALOG
+} from '../../../../main/frontend/configuration/scmOnboarding/scmOnboardingActions';
+import ownerConstant from '../../../../main/frontend/utility/services/owner.constant';
 
 describe('scmOnboardingReducer', function() {
   let otherObject;
@@ -32,7 +41,7 @@ describe('scmOnboardingReducer', function() {
     const rootOrgPayload = {
       organization: {
         'name': 'Root Organization',
-        'id': 'ROOT_ORGANIZATION_ID'
+        'id': ownerConstant.ROOT_ORGANIZATION_ID
       },
       sourceControl: {provider: 'github', token: {value: 'redacted token'}}
     };
@@ -88,18 +97,21 @@ describe('scmOnboardingReducer', function() {
         };
 
         // when reduce is invoked
-        const newState = reduce(state, {type: 'SCM_ONBOARDING_LOAD_PAGE_FULFILLED', payload: payload});
+        const newState = reduce(state, {type: SCM_ONBOARDING_LOAD_PAGE_FULFILLED, payload: payload});
 
         // then state is updated
         expect(newState).toEqual({
           other: otherObject,
           viewState: {
-            loadingPage: false
+            loadingPage: false,
+            isGitHostNeeded: false,
+            isGitHostDialogVisible: false,
+            isSelectingOrganization: false
           },
           configState: {
             isScmOnboardingFeatureEnabled: true,
             isScmTokenConfigured: true,
-            isScmTokenOverridden: true,
+            isScmTokenOverridden: false,
             scmProvider: 'github'
           },
           formState: {
@@ -127,11 +139,14 @@ describe('scmOnboardingReducer', function() {
         // when reduce is invoked
         const newState = reduce(state, {type: 'SCM_ONBOARDING_LOAD_PAGE_FULFILLED', payload: payload});
 
-        // then state is updated
+        // then state is updated and the git host is still needed
         expect(newState).toEqual({
           other: otherObject,
           viewState: {
-            loadingPage: false
+            loadingPage: false,
+            isGitHostNeeded: false,
+            isGitHostDialogVisible: false,
+            isSelectingOrganization: false
           },
           configState: {
             isScmOnboardingFeatureEnabled: true,
@@ -146,6 +161,36 @@ describe('scmOnboardingReducer', function() {
             currentHostUrlState: initialState('http://localhost/'),
             preselectedOrganizationId: 'id1'
           }
+        });
+      });
+
+      it('does not show the host dialog when no org has been selected', () => {
+        // given an initial state where there is no preselected organization
+        const state = Object.freeze({
+          ...previousState,
+          formState: {
+            ...previousState,
+            preselectedOrganizationId: null
+          }
+        });
+
+        // and an initial load with no host URL or selected org
+        const payload = {
+          configResults: { scmOnboardingFeatureEnabled: true },
+          organizationsResults: defaultOrganizationsPayload,
+          compositeSourceControlResults: null,
+          hostUrlResult: {defaultHostUrl: ''}
+        };
+
+        // when reduce is invoked
+        const newState = reduce(state, {type: 'SCM_ONBOARDING_LOAD_PAGE_FULFILLED', payload: payload});
+
+        // then state is updated and dialog is not shown
+        expect(newState.viewState).toEqual({
+          loadingPage: false,
+          isGitHostNeeded: false,
+          isGitHostDialogVisible: false,
+          isSelectingOrganization: false
         });
       });
     });
@@ -167,11 +212,14 @@ describe('scmOnboardingReducer', function() {
         expect(newState.viewState).toEqual({
           loadingPage: false,
           loadingRepositories: false,
+          isSelectingOrganization: false,
           validatingCompositeSourceControl: false,
           loadRepositoriesAuthError: null,
           generalError: {
             status: 502
-          }
+          },
+          isGitHostNeeded: false,
+          isGitHostDialogVisible: false
         });
       });
     });
@@ -188,7 +236,10 @@ describe('scmOnboardingReducer', function() {
           loadRepositoriesAuthError: 'auth error'
         },
         formState: {
-          repositories: ['a']
+          repositories: ['a'],
+          totalRepositories: 1,
+          importedRepositoryCount: 1,
+          selectedRepositoryCount: 1
         }
       });
 
@@ -199,7 +250,12 @@ describe('scmOnboardingReducer', function() {
       });
 
       // then state is updated
-      expect(newState.formState.repositories).toEqual([]);
+      expect(newState.formState).toEqual({
+        repositories: [],
+        totalRepositories: 0,
+        importedRepositoryCount: 0,
+        selectedRepositoryCount: 0
+      });
       expect(newState.viewState.loadingRepositories).toBe(true);
       expect(newState.viewState.generalError).toBe(null);
       expect(newState.viewState.loadRepositoriesAuthError).toBe(null);
@@ -315,10 +371,7 @@ describe('scmOnboardingReducer', function() {
           generalError: null
         },
         formState: {
-          repositories: [{project: 'project', namespace: 'namespace', description: 'description'}],
-          totalRepositories: 1,
-          importedRepositoryCount: 1,
-          selectedRepositoryCount: 1
+          repositories: [{project: 'project', namespace: 'namespace', description: 'description'}]
         },
         other: otherObject
       });
@@ -332,13 +385,11 @@ describe('scmOnboardingReducer', function() {
         viewState: {
           loadingRepositories: false,
           generalError: errorResponse,
-          loadRepositoriesAuthError: null
+          loadRepositoriesAuthError: null,
+          isGitHostDialogVisible: false
         },
         formState: {
-          repositories: null,
-          totalRepositories: 0,
-          importedRepositoryCount: 0,
-          selectedRepositoryCount: 0
+          repositories: null
         },
         other: otherObject
       });
@@ -363,7 +414,8 @@ describe('scmOnboardingReducer', function() {
       expect(newState.viewState).toEqual({
         loadingRepositories: false,
         loadRepositoriesAuthError: new Error('Authentication with provider failed'),
-        generalError: null
+        generalError: null,
+        isGitHostDialogVisible: true
       });
     });
 
@@ -385,47 +437,225 @@ describe('scmOnboardingReducer', function() {
       expect(newState.viewState).toEqual({
         loadingRepositories: false,
         loadRepositoriesAuthError: new Error('Permission denied by provider'),
-        generalError: null
+        generalError: null,
+        isGitHostDialogVisible: true
       });
     });
   });
 
   describe('SCM_ONBOARDING_SET_TARGET_ORGANIZATION action', function() {
-    it('populates selected organization', function() {
-      // given no organization is selected
-      const state = Object.freeze({
-        other: otherObject,
-        configState: {
-          isScmTokenOverridden: true
-        },
-        formState: {
-          selectedOrganization: null
+    describe('FULFILLED', () => {
+      it('populates selected organization', function() {
+        // given no organization is selected
+        const state = Object.freeze({
+          other: otherObject,
+          configState: {
+            isScmTokenOverridden: true
+          },
+          formState: {
+            selectedOrganization: null
+          },
+          viewState: {
+          }
+        });
+
+        const selectedOrganization = {
+          organization: {
+            'project': 'project',
+            'namespace': 'namespace',
+            'description': 'description'
+          },
+          sourceControl: {
+            token: {value: 'redacted'}
+          }
+        };
+
+        const defaultHostUrl = 'http://localhost:1234/';
+
+        // when reduce is invoked
+        const newState = reduce(state, {
+          type: SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED,
+          payload: {selectedOrganization, defaultHostUrl}
+        });
+
+        // then state is updated
+        expect(newState.formState.selectedOrganization).toBe(selectedOrganization);
+        expect(newState.configState.isScmTokenOverridden).toBe(true);
+
+        // and other properties are not modified
+        expect(newState.other).toBe(otherObject);
+      });
+
+      describe('sets the show dialog state: ', () => {
+        const testData = [
+          {
+            description: 'org is defined and overrides scm token, no default host => show dialog',
+            prevState: {
+              configState: {},
+              formState: {},
+              viewState: {}
+            },
+            newState: {
+              configState: {
+                isScmTokenOverridden: true
+              },
+              viewState: {
+                defaultHostUrl: ''
+              },
+              formState: {
+                selectedOrganization: {sourceControl: {token: {value: 'redacted'}}}
+              }
+            },
+            expectedValue: true
+          },
+          {
+            description: 'org is defined with no custom token, but prev state had a custom token => show dialog',
+            prevState: {
+              configState: {
+                isScmTokenOverridden: true
+              },
+              formState: {},
+              viewState: {}
+            },
+            newState: {
+              configState: {
+                isScmTokenOverridden: false
+              },
+              viewState: {
+                defaultHostUrl: ''
+              },
+              formState: {
+                selectedOrganization: {sourceControl: {token: {value: null}}}
+              }
+            },
+            expectedValue: true
+          }
+        ];
+
+        for (let currTest of testData) {
+          it(currTest.description, function() {
+            // when reduce is invoked
+            const newState = reduce(currTest.prevState, {
+              type: SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED,
+              payload: {
+                selectedOrganization: currTest.newState.formState.selectedOrganization,
+                defaultHostUrl: currTest.newState.viewState.defaultHostUrl
+              }
+            });
+
+            // then state is updated
+            expect(newState.formState).toEqual(jasmine.objectContaining(currTest.newState.formState));
+            expect(newState.viewState).toEqual(jasmine.objectContaining({
+              isGitHostNeeded: currTest.expectedValue,
+              isGitHostDialogVisible: currTest.expectedValue
+            }));
+          });
         }
       });
 
-      const selectedOrganization = {
-        organization: {
-          'project': 'project',
-          'namespace': 'namespace',
-          'description': 'description'
-        },
-        sourceControl: {
-          token: {value: 'redacted'}
+      describe('calculates a suggested host URL:', () => {
+        const providerData = [
+          {provider: 'github', url: 'https://github.com/'},
+          {provider: 'gitlab', url: 'https://gitlab.com/'},
+          {provider: 'bitbucket', url: 'https://bitbucket.org/'}
+        ];
+        for (let testData of providerData) {
+          it('defaults to ' + testData.url + ' when provider is ' + testData.provider, function() {
+            // given empty repositories list
+            const state = Object.freeze({
+              other: otherObject,
+              configState: {
+                scmProvider: testData.provider
+              },
+              viewState: {
+                isSelectingOrganization: true
+              },
+              formState: {
+              }
+            });
+
+            // when reduce is invoked without an identified URL
+            const selectedOrganization = {sourceControl: {token: {value: null}}};
+            const newState = reduce(state, {
+              type: SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED,
+              payload: {
+                selectedOrganization: selectedOrganization,
+                defaultHostUrl: ''
+              }
+            });
+
+            // then current host URL state is updated to the provider defaults
+            expect(newState.formState).toEqual({
+              defaultHostUrl: '',
+              currentHostUrlState: initialState(testData.url),
+              selectedOrganization: selectedOrganization
+            });
+            expect(newState.viewState).toEqual({
+              isSelectingOrganization: false,
+              isGitHostNeeded: true,
+              isGitHostDialogVisible: true
+            });
+
+            // and other properties are not modified
+            expect(newState.other).toEqual(otherObject);
+          });
         }
-      };
-
-      // when reduce is invoked
-      const newState = reduce(state, {
-        type: 'SCM_ONBOARDING_SET_TARGET_ORGANIZATION',
-        payload: selectedOrganization
       });
+    });
 
-      // then state is updated
-      expect(newState.formState.selectedOrganization).toBe(selectedOrganization);
-      expect(newState.configState.isScmTokenOverridden).toBe(true);
+    describe('REQUESTED action', function() {
+      it('sets the loading state', function() {
+        // given a state with errors
+        const state = Object.freeze({
+          other: otherObject,
+          viewState: {
+            isSelectingOrganization: false
+          }
+        });
 
-      // and other properties are not modified
-      expect(newState.other).toBe(otherObject);
+        // when reduce is invoked
+        const newState = reduce(state, {
+          type: SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED
+        });
+
+        // then state is updated
+        expect(newState.viewState).toEqual({
+          isSelectingOrganization: true
+        });
+
+        // and other properties are not modified
+        expect(newState.other).toEqual(otherObject);
+      });
+    });
+
+    describe('FAILED action', function() {
+      it('sets generalError field to value of error', function() {
+        // given an initial state
+        const state = Object.freeze({
+          viewState: {
+            isSelectingOrganization: true,
+            generalError: null
+          },
+          other: otherObject
+        });
+        const errorResponse = {response: {status: 502}};
+
+        // when the reducer is invoked
+        const newState = reduce(state, {
+          type: SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FAILED,
+          payload: errorResponse
+        });
+
+        // the state is updated as expected
+        expect(newState).toEqual({
+          viewState: {
+            isSelectingOrganization: false,
+            generalError: errorResponse
+          },
+          other: otherObject
+        });
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
     });
   });
 
@@ -674,6 +904,60 @@ describe('scmOnboardingReducer', function() {
     });
   });
 
+  describe('SCM_ONBOARDING_IS_GIT_HOST_NEEDED', () => {
+    for (let payload in [true, false]) {
+      it('sets the loading state using ' + payload, function() {
+        // given a state with errors
+        const state = Object.freeze({
+          other: otherObject,
+          viewState: {
+          }
+        });
+
+        // when reduce is invoked
+        const newState = reduce(state, {
+          type: SCM_ONBOARDING_IS_GIT_HOST_NEEDED,
+          payload
+        });
+
+        // then state is updated
+        expect(newState.viewState).toEqual({
+          isGitHostNeeded: payload
+        });
+
+        // and other properties are not modified
+        expect(newState.other).toEqual(otherObject);
+      });
+    }
+  });
+
+  describe('SCM_ONBOARDING_SHOW_HOST_DIALOG', () => {
+    for (let payload in [true, false]) {
+      it('sets the dialog visible state ' + payload, function() {
+        // given a state with errors
+        const state = Object.freeze({
+          other: otherObject,
+          viewState: {
+          }
+        });
+
+        // when reduce is invoked
+        const newState = reduce(state, {
+          type: SCM_ONBOARDING_SHOW_HOST_DIALOG,
+          payload
+        });
+
+        // then state is updated
+        expect(newState.viewState).toEqual({
+          isGitHostDialogVisible: payload
+        });
+
+        // and other properties are not modified
+        expect(newState.other).toEqual(otherObject);
+      });
+    }
+  });
+
   describe('UI_ROUTER_ON_FINISH', () => {
     it('retains only configState', () => {
       // given a state with lots of values set
@@ -716,6 +1000,9 @@ describe('scmOnboardingReducer', function() {
         loadingPage: false,
         loadingRepositories: false,
         validatingCompositeSourceControl: false,
+        isGitHostNeeded: false,
+        isGitHostDialogVisible: false,
+        isSelectingOrganization: false,
 
         generalError: null,
         loadRepositoriesAuthError: null

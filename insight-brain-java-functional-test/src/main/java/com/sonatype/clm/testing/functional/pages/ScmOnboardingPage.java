@@ -43,6 +43,10 @@ public class ScmOnboardingPage
     return child(".nx-alert--load-error");
   }
 
+  public SelenideElement loadErrorAnchor() {
+    return child(".nx-alert--load-error a");
+  }
+
   public SelenideElement retry() {
     return child(".nx-load-error__retry");
   }
@@ -125,11 +129,19 @@ public class ScmOnboardingPage
   }
 
   public SelenideElement hostUrlInvalidMessage() {
-    return child(".host-url-tile .nx-text-input__invalid-message");
+    return child(".nx-modal-content .nx-text-input__invalid-message");
   }
 
-  public SelenideElement reloadRepoButton() {
-    return child("#iq-scm-load-button");
+  public SelenideElement modalDialog() {
+    return child(".nx-modal");
+  }
+
+  public SelenideElement hostUrlContinueButton() {
+    return child(".nx-modal .nx-btn-bar .nx-btn--primary");
+  }
+
+  public SelenideElement hostUrlCancelButton() {
+    return child(".nx-modal .nx-btn-bar .nx-btn--undefined");
   }
 
   public SelenideElement loadingSpinner() {

@@ -6,13 +6,10 @@
 import React, {useEffect, Fragment, useState} from 'react';
 
 import * as PropTypes from 'prop-types';
-import {NxBackButton, NxTextInput} from '@sonatype/react-shared-components';
+import {NxBackButton} from '@sonatype/react-shared-components';
 import LoadWrapper from '../../react/LoadWrapper';
 import RepositoryPane from './components/RepositoryPane';
-import NxButton from '@sonatype/react-shared-components/components/NxButton/NxButton';
 import {NxSuccessAlert, NxErrorAlert, NxInfoAlert} from '@sonatype/react-shared-components/components/NxAlert/NxAlert';
-import {validateHostUrl} from './utils/validators';
-import {hasValidationErrors} from '../../util/validationUtil';
 import ReportsCta from './components/ReportsCta';
 
 const iqAuthorizationErrorMessage = `It appears you do not have permission to access this page.
@@ -22,18 +19,8 @@ const iqAuthorizationErrorMessage = `It appears you do not have permission to ac
 
 export default function ScmOnboarding(props) {
   const {
-    // sorting
-    sortConfiguration,
-
     // actions
-    setSortingParameters,
     loadPage,
-    loadRepositories,
-    validateScmHostUrl,
-    importSelectedRepositories,
-    onRepositorySelectionChanged,
-    setCurrentHostUrl,
-    setSelectedOrganization,
 
     // configuration state
     loadingPage,
@@ -44,28 +31,17 @@ export default function ScmOnboarding(props) {
 
     // orgs
     selectedOrganization,
-    organizations,
 
     // repositories state
     repositories,
-    loadingRepositories,
-    selectedRepositoryCount,
     totalRepositories,
     newlyImportedRepos,
     failedImportCount,
 
-    // host URL
-    defaultHostUrl,
-    currentHostUrlState,
-
     // from angular URL router
     isAuthorized,
     preselectedOrganizationId,
-    $state,
-
-    // errors
-    generalError,
-    loadRepositoriesAuthError
+    $state
   } = props;
 
   const scmConfigurationHref = $state.href($state.get('management.edit.organization.edit-source-control'), {
@@ -89,12 +65,6 @@ export default function ScmOnboarding(props) {
     load();
   }, []);
 
-  useEffect(() => {
-    if (preselectedOrganizationId && defaultHostUrl) {
-      loadRepositories(preselectedOrganizationId, currentHostUrlState.value);
-    }
-  }, [defaultHostUrl]);
-
   const [isSuccessMessageOpen, setIsSuccessMessageOpen] = useState(false),
       [isFormErrorOpen, setIsFormErrorOpen] = useState(false),
       [isFormInfoOpen, setIsFormInfoOpen] = useState(false);
@@ -115,18 +85,6 @@ export default function ScmOnboarding(props) {
 
   function dismissFormInfo() {
     setIsFormInfoOpen(false);
-  }
-
-  function handleLoadRepositories(event) {
-    event.preventDefault();
-    loadRepositories(preselectedOrganizationId, currentHostUrlState.value ? currentHostUrlState.value : defaultHostUrl);
-  }
-
-  function validateAndSetCurrentHostUrl(value) {
-    setCurrentHostUrl(value);
-    if (value && !hasValidationErrors(validateHostUrl(value))) {
-      validateScmHostUrl(scmProvider, value);
-    }
   }
 
   const repositoryCount = repositories ? repositories.length : 0;
@@ -178,53 +136,8 @@ export default function ScmOnboarding(props) {
             </Fragment>
             }
           </div>
-          <section className="nx-tile host-url-tile">
-            <form className="nx-form">
-              <div className='nx-tile-content'>
-                <div className="nx-form-row">
-                  <div className="nx-form-group">
-                    <label className="nx-label">
-                      <span className="nx-label__text">Host URL</span>
-                      <NxTextInput id="iq-scm-default-host-field"
-                                   { ...currentHostUrlState }
-                                   onChange={validateAndSetCurrentHostUrl}
-                                   validatable={true}
-                                   placeholder={defaultHostUrl}/>
-                    </label>
-                  </div>
-                  <div className="nx-btn-bar">
-                    <NxButton
-                        id="iq-scm-load-button"
-                        variant="primary"
-                        disabled={loadingRepositories || hasValidationErrors(currentHostUrlState.validationErrors) }
-                        onClick={handleLoadRepositories}>
-                      Reload Repositories
-                    </NxButton>
-                  </div>
-                </div>
-              </div>
-            </form>
-          </section>
           <section className="nx-tile">
-            <RepositoryPane { ...{
-              repositories,
-              loadingRepositories,
-              selectedRepositoryCount,
-              totalRepositories,
-              onRepositorySelectionChanged,
-              importSelectedRepositories,
-              loadRepositories,
-              sortConfiguration,
-              scmProvider,
-              setSortingParameters,
-              setSelectedOrganization,
-              selectedOrganization,
-              organizations,
-              loadRepositoriesAuthError,
-              generalError,
-              scmConfigurationHref,
-              currentHostUrlState
-            }} />
+            <RepositoryPane { ...props } />
           </section>
         </LoadWrapper>
       }
@@ -246,13 +159,6 @@ export const repositoryPropType = {
   isImported: PropTypes.bool
 };
 
-const textInputPropType = {
-  value: PropTypes.string.isRequired,
-  trimmedValue: PropTypes.string.isRequired,
-  isPristine: PropTypes.bool.isRequired,
-  validationErrors: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.string.isRequired), PropTypes.string])
-};
-
 ScmOnboarding.propTypes = {
   // config
   loadingPage: PropTypes.bool.isRequired,
@@ -263,15 +169,10 @@ ScmOnboarding.propTypes = {
   scmProvider: PropTypes.string,
 
   // organizations
-  organizations: PropTypes.arrayOf(PropTypes.shape(organizationPropType)),
-  setSelectedOrganization: PropTypes.func.isRequired,
   selectedOrganization: PropTypes.shape(organizationPropType),
 
   // repositories
-  loadRepositories: PropTypes.func.isRequired,
-  loadingRepositories: PropTypes.bool.isRequired,
   repositories: PropTypes.arrayOf(PropTypes.shape(repositoryPropType)),
-  selectedRepositoryCount: PropTypes.number.isRequired,
   totalRepositories: PropTypes.number,
   importedRepositoryCount: PropTypes.number,
   failedImportCount: PropTypes.number,
@@ -281,26 +182,6 @@ ScmOnboarding.propTypes = {
   isAuthorized: PropTypes.bool.isRequired,
   preselectedOrganizationId: PropTypes.string,
 
-  // sorting
-  sortConfiguration: PropTypes.shape({
-    sortFields: PropTypes.arrayOf(PropTypes.string),
-    dir: PropTypes.string,
-    key: PropTypes.string
-  }),
-
   // actions
-  setSortingParameters: PropTypes.func,
-  loadPage: PropTypes.func.isRequired,
-  importSelectedRepositories: PropTypes.func.isRequired,
-  onRepositorySelectionChanged: PropTypes.func.isRequired,
-  setCurrentHostUrl: PropTypes.func.isRequired,
-  validateScmHostUrl: PropTypes.func.isRequired,
-
-  // base URL
-  defaultHostUrl: PropTypes.string,
-  currentHostUrlState: PropTypes.shape(textInputPropType),
-
-  // errors
-  generalError: LoadWrapper.propTypes.error,
-  loadRepositoriesAuthError: LoadWrapper.propTypes.error
+  loadPage: PropTypes.func.isRequired
 };

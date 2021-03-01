@@ -32,17 +32,23 @@ export const SCM_ONBOARDING_REPOSITORY_SELECTION_CHANGED = 'SCM_ONBOARDING_REPOS
 
 export const SCM_ONBOARDING_SET_CURRENT_HOST_URL = 'SCM_ONBOARDING_SET_CURRENT_HOST_URL';
 
+export const SCM_ONBOARDING_IS_GIT_HOST_NEEDED = 'SCM_ONBOARDING_IS_GIT_HOST_NEEDED';
+
 export const SCM_ONBOARDING_IMPORT_REPOS_REQUESTED = 'SCM_ONBOARDING_IMPORT_REPOS_REQUESTED';
 export const SCM_ONBOARDING_IMPORT_REPOS_FULFILLED = 'SCM_ONBOARDING_IMPORT_REPOS_FULFILLED';
 export const SCM_ONBOARDING_IMPORT_REPOS_FAILED = 'SCM_ONBOARDING_IMPORT_REPOS_FAILED';
 
-export const SCM_ONBOARDING_SET_TARGET_ORGANIZATION = 'SCM_ONBOARDING_SET_TARGET_ORGANIZATION';
+export const SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED = 'SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED';
+export const SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED = 'SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED';
+export const SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FAILED = 'SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FAILED';
 
 export const SCM_ONBOARDING_SET_SORTING_PARAMETERS = 'SCM_ONBOARDING_SET_SORTING_PARAMETERS';
 
 export const SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_REQUESTED = 'SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_REQUESTED';
 export const SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FULFILLED = 'SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FULFILLED';
 export const SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FAILED = 'SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FAILED';
+
+export const SCM_ONBOARDING_SHOW_HOST_DIALOG = 'SCM_ONBOARDING_SHOW_HOST_DIALOG';
 
 export function loadPage(orgId) {
   return function(dispatch) {
@@ -59,12 +65,15 @@ export function loadPage(orgId) {
 
     return Promise.all([config, organizations, scm, hostUrl])
         .then(([configResults, organizationsResults, compositeSourceControlResults, hostUrlResult]) => {
-          return dispatch(loadPageFulfilled({
+          dispatch(loadPageFulfilled({
             configResults: configResults.data,
             organizationsResults: organizationsResults.data,
             compositeSourceControlResults: compositeSourceControlResults ? compositeSourceControlResults.data : null,
             hostUrlResult: hostUrlResult ? hostUrlResult.data : null
           }));
+          if (orgId && hostUrlResult && hostUrlResult.data.defaultHostUrl) {
+            dispatch(loadRepositories(orgId, hostUrlResult.data.defaultHostUrl));
+          }
         })
         .catch(error => {
           dispatch(loadPageFailed(error));
@@ -101,15 +110,29 @@ export function setSelectedOrganization(selectedOrg) {
     const previousOrg = state.formState.selectedOrganization;
     const orgId = selectedOrg.organization.id;
     const isSelectedTokenOverridden = selectedOrg.sourceControl.token.value != null;
-    dispatch(targetOrganizationChanged(selectedOrg));
+    dispatch(setTargetOrganizationRequested());
     if (isScmTokenOverridden || isSelectedTokenOverridden || !previousOrg) {
-      // newly selected org has a custom token, or previous one did, so reload repositories
+      // newly selected org has a custom token, or previous one did, so requery for host URL, possibly reload repos
       return axios.get(getScmDefaultHostUrl(orgId, selectedOrg.sourceControl.provider))
           .then(({ data }) => {
-            dispatch(setCurrentHostUrl(data.defaultHostUrl));
-            return dispatch(loadRepositories(orgId, data.defaultHostUrl));
+            dispatch(setTargetOrganizationFulfilled({
+              selectedOrganization: selectedOrg,
+              defaultHostUrl: data.defaultHostUrl
+            }));
+            if (data.defaultHostUrl) {
+              dispatch(loadRepositories(orgId, data.defaultHostUrl));
+            }
           })
-          .catch(error => dispatch(loadRepositoriesFailed(error)));
+          .catch(error => {
+            dispatch(setTargetOrganizationFailed(error));
+          });
+    }
+    else {
+      // can use existing host URL
+      dispatch(setTargetOrganizationFulfilled({
+        selectedOrganization: selectedOrg,
+        defaultHostUrl: state.formState.defaultHostUrl
+      }));
     }
   };
 }
@@ -120,6 +143,9 @@ export function validateScmHostUrl(scmProvider, scmHostUrl) {
 
 export function loadRepositories(orgId, scmUrl) {
   return function(dispatch) {
+    if (!scmUrl) {
+      return;
+    }
     dispatch(loadRepositoriesRequested());
 
     return axios.get(getScmRepositoriesUrl(orgId, scmUrl))
@@ -157,6 +183,20 @@ export function setSortingParameters(key, sortFields, dir) {
   };
 }
 
+export function setShowHostDialog(isShow) {
+  return {
+    type: SCM_ONBOARDING_SHOW_HOST_DIALOG,
+    payload: isShow
+  };
+}
+
+export function setIsGitHostNeeded(isNeeded) {
+  return {
+    type: SCM_ONBOARDING_IS_GIT_HOST_NEEDED,
+    payload: isNeeded
+  };
+}
+
 const loadConfigFulfilled = payloadParamActionCreator(SCM_ONBOARDING_LOAD_CONFIG_FULFILLED);
 const loadConfigFailed = payloadParamActionCreator(SCM_ONBOARDING_LOAD_CONFIG_FAILED);
 
@@ -169,7 +209,11 @@ const loadRepositoriesFulfilled = payloadParamActionCreator(SCM_ONBOARDING_LOAD_
 const loadRepositoriesFailed = payloadParamActionCreator(SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED);
 const repositorySelectionChanged = payloadParamActionCreator(SCM_ONBOARDING_REPOSITORY_SELECTION_CHANGED);
 
-export const targetOrganizationChanged = payloadParamActionCreator(SCM_ONBOARDING_SET_TARGET_ORGANIZATION);
+export const setTargetOrganizationRequested = noPayloadActionCreator(
+    SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED);
+export const setTargetOrganizationFulfilled = payloadParamActionCreator(
+    SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED);
+export const setTargetOrganizationFailed = payloadParamActionCreator(SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FAILED);
 
 export const setCurrentHostUrl = payloadParamActionCreator(SCM_ONBOARDING_SET_CURRENT_HOST_URL);
 
@@ -192,6 +236,8 @@ export default function scmOnboarding() {
     loadRepositories,
     onRepositorySelectionChanged,
     importSelectedRepositories,
-    setSortingParameters
+    setSortingParameters,
+    setShowHostDialog,
+    setIsGitHostNeeded
   };
 }

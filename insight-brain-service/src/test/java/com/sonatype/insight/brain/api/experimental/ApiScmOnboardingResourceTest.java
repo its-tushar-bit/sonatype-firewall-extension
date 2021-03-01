@@ -108,14 +108,14 @@ public class ApiScmOnboardingResourceTest
     // when
     HttpResponse response = restRequest().path(DEFAULT_HOST_URL)
         .query("provider", "github")
-        .query("orgId", "no-org-here")
+        .query("orgId", org.getId())
         .get();
 
     // then the response is OK
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SC_OK);
     Map<String, String> responseList = response.getBody(Map.class);
     assertThat(responseList).hasSize(1);
-    assertThat(responseList.get("defaultHostUrl")).isEqualTo("https://github.com/");
+    assertThat(responseList.get("defaultHostUrl")).isEqualTo("");
   }
 
   @Test

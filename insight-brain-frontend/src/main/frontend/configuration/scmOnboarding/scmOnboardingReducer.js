@@ -17,11 +17,15 @@ import {
   SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED,
   SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED,
   SCM_ONBOARDING_SET_CURRENT_HOST_URL,
+  SCM_ONBOARDING_IS_GIT_HOST_NEEDED,
   SCM_ONBOARDING_SET_SORTING_PARAMETERS,
-  SCM_ONBOARDING_SET_TARGET_ORGANIZATION,
+  SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FAILED,
+  SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED,
+  SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED,
   SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FAILED,
   SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FULFILLED,
-  SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_REQUESTED
+  SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_REQUESTED,
+  SCM_ONBOARDING_SHOW_HOST_DIALOG
 } from './scmOnboardingActions';
 import {sortItemsByFields} from '../../util/sortUtils';
 import * as textInputStateHelpers from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
@@ -42,7 +46,10 @@ const initialState = {
   viewState: {
     loadingPage: false,
     loadingRepositories: false,
+    isSelectingOrganization: false,
     validatingCompositeSourceControl: false,
+    isGitHostNeeded: false,
+    isGitHostDialogVisible: false,
 
     generalError: null,
     loadRepositoriesAuthError: null
@@ -116,39 +123,6 @@ function loadPageRequested(payload) {
   };
 }
 
-function loadPageFulfilled(payload, state) {
-  const rootOrg = payload.organizationsResults.find(org => org.organization.id === ownerConstant.ROOT_ORGANIZATION_ID);
-  const orgForTokens = payload.compositeSourceControlResults ?
-    payload.compositeSourceControlResults :
-    rootOrg.sourceControl;
-  return {
-    ...state,
-    viewState: {
-      ...state.viewState,
-      loadingPage: false
-    },
-    configState: {
-      ...state.configState,
-      isScmOnboardingFeatureEnabled: payload.configResults.scmOnboardingFeatureEnabled,
-      isScmTokenConfigured: orgForTokens === null ?
-        false : !!orgForTokens.token.value || !!orgForTokens.token.parentValue,
-      isScmTokenOverridden: orgForTokens !== null && !!orgForTokens.token.value,
-      scmProvider: rootOrg !== null ? rootOrg.sourceControl.provider : null
-    },
-    formState: {
-      ...state.formState,
-      selectedOrganization: payload.organizationsResults.find(org =>
-        org.organization.id === state.formState.preselectedOrganizationId),
-      organizations: payload.organizationsResults.filter(org => org.organization.id !== 'ROOT_ORGANIZATION_ID'),
-      defaultHostUrl: payload.hostUrlResult !== null
-        ? payload.hostUrlResult.defaultHostUrl : null,
-      currentHostUrlState: payload.hostUrlResult !== null
-        ? textInputStateHelpers.initialState(payload.hostUrlResult.defaultHostUrl)
-        : textInputStateHelpers.initialState('')
-    }
-  };
-}
-
 function loadPageFailed(payload) {
   return {
     ...initialState,
@@ -160,20 +134,134 @@ function loadPageFailed(payload) {
   };
 }
 
-function targetOrganizationChanged(payload, state) {
-  return {
+function loadPageFulfilled(payload, state) {
+  const rootOrg = payload.organizationsResults.find(org => org.organization.id === ownerConstant.ROOT_ORGANIZATION_ID);
+  const selectedOrganization = payload.organizationsResults.find(org =>
+    org.organization.id === state.formState.preselectedOrganizationId);
+  let newState = {
     ...state,
+    viewState: {
+      ...state.viewState,
+      loadingPage: false
+    },
     configState: {
       ...state.configState,
-      isScmTokenOverridden: payload.sourceControl !== null && !!payload.sourceControl.token.value,
-      isScmTokenConfigured: payload.sourceControl !== null
-          && (!!payload.sourceControl.token.value || !!payload.sourceControl.token.parentValue)
+      isScmOnboardingFeatureEnabled: payload.configResults.scmOnboardingFeatureEnabled,
+      isScmTokenConfigured: !!rootOrg.sourceControl.token.value,
+      scmProvider: rootOrg !== null ? rootOrg.sourceControl.provider : null
     },
     formState: {
       ...state.formState,
-      selectedOrganization: payload
+      organizations: payload.organizationsResults.filter(
+          org => org.organization.id !== ownerConstant.ROOT_ORGANIZATION_ID)
     }
   };
+  return setTargetOrgFulfilled({
+    defaultHostUrl: payload.hostUrlResult ? payload.hostUrlResult.defaultHostUrl : null,
+    selectedOrganization: selectedOrganization
+  }, newState);
+}
+
+function setShowHostDialogChanged(payload, state) {
+  return {
+    ...state,
+    viewState: {
+      ...state.viewState,
+      isGitHostDialogVisible: payload
+    }
+  };
+}
+
+function setIsGitHostNeeded(payload, state) {
+  return {
+    ...state,
+    viewState: {
+      ...state.viewState,
+      isGitHostNeeded: payload
+    }
+  };
+}
+
+function setTargetOrgRequested(payload, state) {
+  return {
+    ...state,
+    viewState: {
+      ...state.viewState,
+      isSelectingOrganization: true
+    }
+  };
+}
+function setTargetOrgFailed(payload, state) {
+  return {
+    ...state,
+    viewState: {
+      ...state.viewState,
+      isSelectingOrganization: false,
+      generalError: payload
+    }
+  };
+}
+function setTargetOrgFulfilled({selectedOrganization, defaultHostUrl}, state) {
+  const prevOrg = state.formState.selectedOrganization;
+  const prevTokenOverridden = state.configState.isScmTokenOverridden;
+
+  const currOrg = selectedOrganization;
+  const currTokenOverridden = !!selectedOrganization && !!selectedOrganization.sourceControl &&
+      !!selectedOrganization.sourceControl.token.value;
+
+  const isAuthFailure = !!state.viewState.loadRepositoriesAuthError;
+
+  const prevGitHostNeeded = state.viewState.isGitHostNeeded;
+
+  // we need to prompt the user to enter a host URL when:
+  // A. we get an authentication failure OR
+  // B. the default host URL is empty AND an org is selected AND
+  //    1. the token is overridden at the org level
+  //    2. OR the previous token was overridden at the org level
+  //    3. OR the previous org was empty (ie: this is the first selected org)
+  //    4. OR the user needed to enter the git URL in the previous org
+  const showHostDialog = isAuthFailure ||
+      (!defaultHostUrl && !!currOrg && (currTokenOverridden || prevTokenOverridden || !prevOrg || prevGitHostNeeded));
+
+  // we will set the current host URL to a default cloud value if the current host URL is empty
+  const overrideCurrentHostUrl = !defaultHostUrl;
+
+  return {
+    ...state,
+    viewState: {
+      ...state.viewState,
+      isSelectingOrganization: false,
+      isGitHostNeeded: showHostDialog,
+      isGitHostDialogVisible: showHostDialog
+    },
+    configState: {
+      ...state.configState,
+      isScmTokenOverridden: currTokenOverridden
+    },
+    formState: {
+      ...state.formState,
+      defaultHostUrl: defaultHostUrl,
+      selectedOrganization: selectedOrganization,
+      currentHostUrlState: overrideCurrentHostUrl ?
+        initialHostUrlState(defaultHostUrl, state.configState.scmProvider) :
+        textInputStateHelpers.initialState(defaultHostUrl)
+    }
+  };
+}
+
+const providerCloudDefaults = {
+  'github': 'https://github.com/',
+  'gitlab': 'https://gitlab.com/',
+  'bitbucket': 'https://bitbucket.org/'
+};
+
+function initialHostUrlState(defaultHostUrl, scmProvider) {
+  if (defaultHostUrl) {
+    return textInputStateHelpers.initialState(defaultHostUrl);
+  }
+  let initialHostUrl = providerCloudDefaults[scmProvider];
+  initialHostUrl = !initialHostUrl ? '' : initialHostUrl;
+  return textInputStateHelpers.initialState(initialHostUrl);
 }
 
 function loadRepositoriesRequested(payload, state) {
@@ -187,7 +275,10 @@ function loadRepositoriesRequested(payload, state) {
     },
     formState: {
       ...state.formState,
-      repositories: []
+      repositories: [],
+      totalRepositories: 0,
+      importedRepositoryCount: 0,
+      selectedRepositoryCount: 0
     }
   };
 }
@@ -204,9 +295,7 @@ function loadRepositoriesFulfilled(payload, state) {
     formState: {
       ...state.formState,
       repositories: repos,
-      totalRepositories: payload.totalRepositories,
-      importedRepositoryCount: 0,
-      selectedRepositoryCount: 0
+      totalRepositories: payload.totalRepositories
     }
   } : handleLoadRepositoriesFailed({
     loadRepositoriesAuthError: (() => {
@@ -233,14 +322,12 @@ function handleLoadRepositoriesFailed({generalError, loadRepositoriesAuthError},
       ...state.viewState,
       loadingRepositories: false,
       generalError: generalError ? generalError : null,
-      loadRepositoriesAuthError: loadRepositoriesAuthError ? loadRepositoriesAuthError : null
+      loadRepositoriesAuthError: loadRepositoriesAuthError ? loadRepositoriesAuthError : null,
+      isGitHostDialogVisible: state.viewState.isGitHostNeeded || !!loadRepositoriesAuthError
     },
     formState: {
       ...state.formState,
-      repositories: null,
-      totalRepositories: 0,
-      importedRepositoryCount: 0,
-      selectedRepositoryCount: 0
+      repositories: null
     }
   };
 }
@@ -365,7 +452,9 @@ const reducerActionMap = {
   [SCM_ONBOARDING_IMPORT_REPOS_FULFILLED]: importRepositoriesFulfilled,
   [SCM_ONBOARDING_IMPORT_REPOS_FAILED]: importRepositoriesFailed,
 
-  [SCM_ONBOARDING_SET_TARGET_ORGANIZATION]: targetOrganizationChanged,
+  [SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED]: setTargetOrgFulfilled,
+  [SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED]: setTargetOrgRequested,
+  [SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FAILED]: setTargetOrgFailed,
 
   [SCM_ONBOARDING_SET_CURRENT_HOST_URL]: setCurrentHostUrl,
 
@@ -374,6 +463,10 @@ const reducerActionMap = {
   [SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_REQUESTED]: validateScmHostUrlRequested,
   [SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FULFILLED]: validateScmHostUrlFulfilled,
   [SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FAILED]: validateScmHostUrlFailed,
+
+  [SCM_ONBOARDING_IS_GIT_HOST_NEEDED]: setIsGitHostNeeded,
+  [SCM_ONBOARDING_SHOW_HOST_DIALOG]: setShowHostDialogChanged,
+
   [UI_ROUTER_ON_FINISH]: resetPage
 };
 

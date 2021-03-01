@@ -12,6 +12,15 @@ import {
   getCompositeSourceControlUrl,
   getValidateScmConfigUrl
 } from '../../../../main/frontend/util/CLMLocation';
+import {
+  SCM_ONBOARDING_LOAD_PAGE_FAILED,
+  SCM_ONBOARDING_LOAD_PAGE_FULFILLED,
+  SCM_ONBOARDING_LOAD_PAGE_REQUESTED,
+  SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED,
+  SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FAILED,
+  SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED,
+  SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED
+} from '../../../../main/frontend/configuration/scmOnboarding/scmOnboardingActions';
 
 describe('scmOnboardingActions', function() {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios),
@@ -90,7 +99,14 @@ describe('scmOnboardingActions', function() {
 
           // then the SCM_ONBOARDING_LOAD_PAGE_REQUESTED action is created with the expected payload
           let actions = store.getActions();
-          expect(actions.length).toBe(2);
+          expect(actions.map(a => a.type)).toEqual([
+            SCM_ONBOARDING_LOAD_PAGE_REQUESTED,
+            SCM_ONBOARDING_LOAD_PAGE_FULFILLED,
+            SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED,
+            // the call to load repos fails in our loadPage promise, falling into the loadPage
+            // catch block - we didn't stub out the calls to load repos
+            SCM_ONBOARDING_LOAD_PAGE_FAILED
+          ]);
           expect(actions[0].type).toBe('SCM_ONBOARDING_LOAD_PAGE_REQUESTED');
           expect(actions[0].payload).toEqual('id1');
 
@@ -202,18 +218,20 @@ describe('scmOnboardingActions', function() {
 
   describe('load repositories', function() {
     it('requests a load of repositories', function(done) {
+      const orgId = 'orgid';
+      const scmUrl = 'http://localhost:1234';
       mockAxiosCalls({
         get: {
-          [getScmRepositoriesUrl()]: Promise.resolve([{httpCloneUrl: 'http://localhost/my/repo.git', isPrivate: true}])
+          [getScmRepositoriesUrl(orgId, scmUrl)]:
+              Promise.resolve([{httpCloneUrl: 'http://localhost/my/repo.git', isPrivate: true}])
         }
       });
 
       store = SpecUtil.mockReduxStore(state);
 
-      store.dispatch(scmOnboardingActions.loadRepositories())
+      store.dispatch(scmOnboardingActions.loadRepositories(orgId, scmUrl))
           .then(() => {
-            expect(axios.get).toHaveBeenCalledWith(getScmRepositoriesUrl());
-
+            expect(axios.get).toHaveBeenCalledWith(getScmRepositoriesUrl(orgId, scmUrl));
             done();
           });
       const actions = store.getActions();
@@ -222,24 +240,26 @@ describe('scmOnboardingActions', function() {
     });
 
     it('handles errors', function(done) {
+      const orgId = 'orgid';
+      const scmUrl = 'http://localhost:1234';
       mockAxiosCalls({
         get: {
-          [getScmRepositoriesUrl()]: Promise.reject('Failed request')
+          [getScmRepositoriesUrl(orgId, scmUrl)]: Promise.reject('Failed request')
         }
       });
 
       store = SpecUtil.mockReduxStore(state);
 
-      store.dispatch(scmOnboardingActions.loadRepositories())
+      store.dispatch(scmOnboardingActions.loadRepositories(orgId, scmUrl))
           .then(() => {
-            expect(axios.get).toHaveBeenCalledWith(getScmRepositoriesUrl());
+            expect(axios.get).toHaveBeenCalledWith(getScmRepositoriesUrl(orgId, scmUrl));
             expect(store.getActions().length).toBe(2);
             expect(store.getActions()[1].type).toBe('SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED');
             expect(store.getActions()[1].payload).toBe('Failed request');
             done();
           });
       expect(store.getActions().length).toBe(1);
-      expect(axios.get).toHaveBeenCalledWith(getScmRepositoriesUrl());
+      expect(axios.get).toHaveBeenCalledWith(getScmRepositoriesUrl(orgId, scmUrl));
     });
   });
 
@@ -288,7 +308,9 @@ describe('scmOnboardingActions', function() {
 
       const actions = store.getActions();
       expect(actions).toEqual([
-        {type: 'SCM_ONBOARDING_SET_TARGET_ORGANIZATION', payload: selectedOrg}
+        {type: SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED},
+        {type: SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED,
+          payload: {selectedOrganization: selectedOrg, defaultHostUrl: undefined}}
       ]);
     });
 
@@ -304,7 +326,7 @@ describe('scmOnboardingActions', function() {
 
       const actions = store.getActions();
       expect(actions).toEqual([
-        {type: 'SCM_ONBOARDING_SET_TARGET_ORGANIZATION', payload: selectedOrg}
+        {type: SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED}
       ]);
     });
 
@@ -320,7 +342,7 @@ describe('scmOnboardingActions', function() {
 
       const actions = store.getActions();
       expect(actions).toEqual([
-        {type: 'SCM_ONBOARDING_SET_TARGET_ORGANIZATION', payload: selectedOrg}
+        {type: SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED}
       ]);
     });
     it('dispatches loadRepositoriesRequested when the both the new & old tokens are overridden', function() {
@@ -333,7 +355,7 @@ describe('scmOnboardingActions', function() {
       store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg));
       const actions = store.getActions();
       expect(actions).toEqual([
-        {type: 'SCM_ONBOARDING_SET_TARGET_ORGANIZATION', payload: selectedOrg}
+        {type: SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED}
       ]);
     });
 
@@ -354,10 +376,10 @@ describe('scmOnboardingActions', function() {
           .then(() => {
             let actions = store.getActions();
             expect(actions.map(a => a.type)).toEqual([
-              'SCM_ONBOARDING_SET_TARGET_ORGANIZATION',
-              'SCM_ONBOARDING_SET_CURRENT_HOST_URL',
-              'SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED',
-              'SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED' // didn't mock the load repo endpoint
+              SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED,
+              SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED,
+              SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED,
+              SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FAILED
             ]);
             done();
           });
@@ -380,10 +402,10 @@ describe('scmOnboardingActions', function() {
           .then(() => {
             let actions = store.getActions();
             expect(actions.map(a => a.type)).toEqual([
-              'SCM_ONBOARDING_SET_TARGET_ORGANIZATION',
-              'SCM_ONBOARDING_SET_CURRENT_HOST_URL',
-              'SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED',
-              'SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED' // didn't mock the load repo endpoint
+              SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED,
+              SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED,
+              SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED,
+              SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FAILED
             ]);
             done();
           });
@@ -401,7 +423,13 @@ describe('scmOnboardingActions', function() {
 
       const actions = store.getActions();
       expect(actions).toEqual([
-        {type: 'SCM_ONBOARDING_SET_TARGET_ORGANIZATION', payload: selectedOrg}
+        {type: SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED},
+        {type: SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED,
+          payload: {
+            selectedOrganization: selectedOrg,
+            defaultHostUrl: undefined
+          }
+        }
       ]);
 
     });

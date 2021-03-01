@@ -181,21 +181,7 @@ public class ApiScmOnboardingService
     }
 
     // if org is provided, try to gather URL from an app within the org
-    String repoUrl = getMostCommonRepoBaseUrlForOrg(orgId, provider);
-    if (!StringUtils.isEmpty(repoUrl)) {
-      return repoUrl;
-    }
-
-    switch (provider) {
-      case GITHUB:
-        return "https://github.com/";
-      case GITLAB:
-        return "https://gitlab.com/";
-      case BITBUCKET:
-        return "https://bitbucket.org/";
-      default:
-        return null;
-    }
+    return getMostCommonRepoBaseUrlForOrg(orgId, provider);
   }
 
   private String getMostCommonRepoBaseUrlForOrg(final String orgId, SourceControlProvider provider) {
@@ -204,7 +190,7 @@ public class ApiScmOnboardingService
       sourceControls =
           sourceControlDAO.getApplicationSourceControlsByOrganizationWithRepositories(orgId);
     }
-    if (sourceControls.isEmpty()) {
+    if (sourceControls.isEmpty() && orgUsesRootToken(orgId)) {
       // no apps found within this org, look for apps in other orgs
       sourceControls = sourceControlDAO.getApplicationSourceControlsWithRepositoriesAndDefaultToken();
     }
@@ -214,7 +200,14 @@ public class ApiScmOnboardingService
         .entrySet().stream()
         .max(Entry.comparingByValue())
         .map(Entry::getKey)
-        .orElse(null);
+        .orElse("");
+  }
+
+  private boolean orgUsesRootToken(final String orgId) {
+    ApiCompositeSourceControlDTO sourceControlDTO =
+        apiCompositeSourceControlService.getCompositeSourceControlByOwnerDecrypted(OwnerType.ORGANIZATION, orgId);
+
+    return sourceControlDTO.token.value == null;
   }
 
   private String getBaseUrl(String repoUrl, SourceControlProvider provider) {

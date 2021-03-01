@@ -71,6 +71,10 @@ public class ScmOnboardingTest
   private static final String REPOSITORY_VGO_GIT =
       SCM_ROOT + "sonatype-nexus-community\\/nexus-repository-vgo";
 
+  public static final String EMPTY_JSON_ARRAY = "[]";
+
+  private PasswordHandler pwHandler;
+
   private Organization org;
 
   @Rule
@@ -91,6 +95,7 @@ public class ScmOnboardingTest
 
   @Before
   public void setup() {
+    pwHandler = testCLMServer.getCLMServer().getInstance(PasswordHandler.class);
     // given the feature flag is true
     testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(of(Feature.SCM_ONBOARDING.getFlag(), true));
     gitService.stubFor(get(urlPathEqualTo("/api/v3/user"))
@@ -107,7 +112,7 @@ public class ScmOnboardingTest
 
   private void setupMockRepos() throws IOException {
     mockRepoForPage(0, getResourceAsString("/ScmOnboardingTest/allRepos0.json"));
-    mockRepoForPage(1, "[]");
+    mockRepoForPage(1, EMPTY_JSON_ARRAY);
   }
 
   private void setupSourceControl() {
@@ -122,7 +127,6 @@ public class ScmOnboardingTest
   }
 
   private void setupOrgSourceControl() {
-    PasswordHandler pwHandler = testCLMServer.getCLMServer().getInstance(PasswordHandler.class);
     String encryptedPwd = new String(pwHandler.encryptPassword("TOKEN".toCharArray()));
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, encryptedPwd, GITHUB);
   }
@@ -233,7 +237,8 @@ public class ScmOnboardingTest
     scmOnboardingPage.organizationsDropdown().shouldBe(visible);
 
     // then the message from IQ server is forwarded
-    scmOnboardingPage.loadError().shouldHave(text("An error occurred loading data. Internal Server Error"));
+    scmOnboardingPage.loadError()
+        .shouldHave(text("An error occurred loading data. Request failed with status code 500"));
   }
 
   @Test
@@ -274,7 +279,7 @@ public class ScmOnboardingTest
     removeStub(stubMapping);
     setupMockRepos();
 
-    scmOnboardingPage.retry().click();
+    scmOnboardingPage.hostUrlContinueButton().click();
 
     // page is rendered without error
     scmOnboardingPage.resultsTable().shouldBe(visible);
@@ -326,9 +331,6 @@ public class ScmOnboardingTest
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
 
-    // then the default host URL is valid
-    scmOnboardingPage.hostUrl().shouldBe(value(gitService.baseUrl()));
-
     // then all repositories were loaded
     verifyAllReposLoaded(scmOnboardingPage);
 
@@ -358,7 +360,7 @@ public class ScmOnboardingTest
   @Test
   public void testPopulatesRepositories_noAvailableRepositories() throws Exception {
     // given an SCM without git repos
-    mockRepoForPage(0, "[]");
+    mockRepoForPage(0, EMPTY_JSON_ARRAY);
     setupSourceControl();
 
     // given SCM onboarding page with a selected organization
@@ -389,7 +391,7 @@ public class ScmOnboardingTest
         )
     );
     mockRepoForPage(0, json);
-    mockRepoForPage(1, "[]");
+    mockRepoForPage(1, EMPTY_JSON_ARRAY);
     setupOrgSourceControl();
     setupAppSourceControl(repoUrl);
 
@@ -472,7 +474,7 @@ public class ScmOnboardingTest
   public void testSelection_resetAfterPageFlip() throws Exception {
     // given an SCM with enough git repos to require pagination
     mockRepoForPage(0, getResourceAsString("/ScmOnboardingTest/mixedOrderRepos.json"));
-    mockRepoForPage(1, "[]");
+    mockRepoForPage(1, EMPTY_JSON_ARRAY);
     setupSourceControl();
 
     // given SCM onboarding page with a selected organization
@@ -583,7 +585,7 @@ public class ScmOnboardingTest
   public void testSelectAndImport_error() throws Exception {
     // given an SCM with git repos but with bad URLs
     mockRepoForPage(0, getResourceAsString("/ScmOnboardingTest/reposWithErrors.json"));
-    mockRepoForPage(1, "[]");
+    mockRepoForPage(1, EMPTY_JSON_ARRAY);
     setupSourceControl();
 
     // given SCM onboarding page with a selected organization
@@ -630,7 +632,7 @@ public class ScmOnboardingTest
   public void testSelectAndImport_successAndError() throws Exception {
     // given an SCM with git repos but with bad URLs
     mockRepoForPage(0, getResourceAsString("/ScmOnboardingTest/reposWithErrors.json"));
-    mockRepoForPage(1, "[]");
+    mockRepoForPage(1, EMPTY_JSON_ARRAY);
     setupSourceControl();
 
     // given SCM onboarding page with a selected organization
@@ -775,7 +777,7 @@ public class ScmOnboardingTest
     // given an SCM with git repos that start unsorted
     setupSourceControl();
     mockRepoForPage(0, getResourceAsString("/ScmOnboardingTest/mixedOrderRepos.json"));
-    mockRepoForPage(1, "[]");
+    mockRepoForPage(1, EMPTY_JSON_ARRAY);
 
     // given SCM onboarding page with a selected organization
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
@@ -846,7 +848,9 @@ public class ScmOnboardingTest
   public void testValidation() throws Exception {
     // given a mock git service
     setupMockRepos();
-    setupSourceControl();
+
+    // given org has SC setup but no apps created, so no default host URL
+    setupOrgSourceControl();
 
     // given SCM onboarding page with a selected organization
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
@@ -881,14 +885,15 @@ public class ScmOnboardingTest
     // given an SCM with git repos that are unsorted initially
     setupSourceControl();
     mockRepoForPage(0, getResourceAsString("/ScmOnboardingTest/mixedOrderRepos.json"));
-    mockRepoForPage(1, "[]");
+    mockRepoForPage(1, EMPTY_JSON_ARRAY);
 
     // given SCM onboarding page with a selected organization
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
 
-    // then the repos list has the max page size
+    // then the repos list loads and has the max page size
+    scmOnboardingPage.loadingSpinner().shouldNotBe(visible);
     scmOnboardingPage.resultsTableProject().shouldHaveSize(15);
 
     // and pagination buttons are present
@@ -910,7 +915,7 @@ public class ScmOnboardingTest
     // given an SCM with git repos that are unsorted initially
     setupSourceControl();
     mockRepoForPage(0, getResourceAsString("/ScmOnboardingTest/mixedOrderRepos.json"));
-    mockRepoForPage(1, "[]");
+    mockRepoForPage(1, EMPTY_JSON_ARRAY);
 
     // given SCM onboarding page with a selected organization
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
@@ -999,15 +1004,16 @@ public class ScmOnboardingTest
   public void testOrgDropdown_requeryOnSelection() throws Exception {
     // given a mock git service
     setupMockRepos();
-    setupSourceControl();
 
-    // given an org that does not override the token
+    // given source control at the root
+    setupOrgSourceControl();
+
+    // given another org that does not override the token
     tempEntity.newOrganization("Test Org 2");
 
-    // given an org that does override the token
-    Organization orgCustomToken = tempEntity.newOrganization("Custom Token Org");
-    PasswordHandler pwHandler = testCLMServer.getCLMServer().getInstance(PasswordHandler.class);
-    String encryptedPwd = new String(pwHandler.encryptPassword("CUSTOM".toCharArray()));
+    // given an org that overrides the token
+    Organization orgCustomToken = tempEntity.newOrganization("Custom Token");
+    String encryptedPwd = new String(pwHandler.encryptPassword("TOKEN2".toCharArray()));
     tempEntity.newSourceControl(orgCustomToken.getId(), null, encryptedPwd, null);
 
     // given a second git server
@@ -1023,65 +1029,119 @@ public class ScmOnboardingTest
         )
     );
     mockRepoForPage(secondaryGitService, 0, json);
-    mockRepoForPage(secondaryGitService, 1, "[]");
+    mockRepoForPage(secondaryGitService, 1, EMPTY_JSON_ARRAY);
 
-    // given SCM entries for custom org which point to the second git service
-    Application customApp = tempEntity.newApplication(orgCustomToken.getId());
-    tempEntity.newSourceControl(customApp.getId(), secondaryGitService.baseUrl() + "/org/existingrepo", null);
+    // given an org that overrides the token and uses the second git service
+    Organization orgCustomHost = tempEntity.newOrganization("Custom Host");
+    tempEntity.newSourceControl(orgCustomHost.getId(), null, encryptedPwd, null);
+    Application appCustomHost = tempEntity.newApplication(orgCustomHost.getId());
+    tempEntity.newSourceControl(appCustomHost.getId(), secondaryGitService.baseUrl() + "/org/existingrepo", null);
 
-    // given SCM onboarding page with a selected organization
+    // given SCM onboarding page with no selected org (from cog menu)
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
-    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
+    refreshOrOpen(ScmOnboardingPage.url());
     loginAsAdmin();
 
-    // then the org dropdown is shown
+    // then the org dropdown is shown with no current selection
     scmOnboardingPage.organizationsDropdown().shouldBe(enabled);
-    scmOnboardingPage.organizationsDropdown().selectedOrganization().shouldHave(text("Test Org"));
+    scmOnboardingPage.organizationsDropdown().selectedOrganization().shouldHave(text("Select"));
 
-    // and the repo list is full
-    scmOnboardingPage.resultsTableProject().shouldHaveSize(13);
+    // and the repo list is empty with no errors
+    scmOnboardingPage.resultsTableProject().shouldHaveSize(0);
+    scmOnboardingPage.resultsTableBody().shouldHave(text("No matching repositories."));
 
     // when we pull down the list
     scmOnboardingPage.organizationsDropdown().click();
     ElementsCollection menuButtons = scmOnboardingPage.orgDropdownItems();
 
-    // then the org list is complete. Should be sorted, with 'Test Org' at the top and in the middle as it is
-    // the current selection
-    menuButtons.shouldHave(exactTexts("Test Org", "Custom Token Org", "Test Org", "Test Org 2"));
+    // then the org list is complete. Should be sorted alphabetically with the current option at the top, duped
+    menuButtons.shouldHave(exactTexts("Select", "Custom Host", "Custom Token", "Test Org", "Test Org 2"));
 
-    // when we reset the git service responses to have 0 entries
-    mockRepoForPage(gitService, 0, "[]");
+    // when we select an org
+    menuButtons.find(exactText("Test Org")).click();
 
-    // and when select the org without a custom token
+    // then we're prompted for a host URL as no SC entries exist, except those with custom tokens
+    scmOnboardingPage.loadingSpinner().shouldNotBe(visible);
+    scmOnboardingPage.modalDialog().shouldBe(visible);
+    scmOnboardingPage.hostUrl().shouldBe(visible, enabled);
+
+    // and the git host URL field should default to the cloud provider
+    scmOnboardingPage.hostUrl().shouldHave(value("https://github.com/"));
+
+    // when we set the host URL to our local git service and continue
+    scmOnboardingPage.hostUrl().setValue(gitService.baseUrl());
+    scmOnboardingPage.hostUrl().shouldHave(value(gitService.baseUrl()));
+    scmOnboardingPage.hostUrlInvalidMessage().shouldNotBe(visible);
+    scmOnboardingPage.hostUrlContinueButton().shouldBe(enabled).click();
+
+    // then the repository list gets populated
+    scmOnboardingPage.modalDialog().shouldNotBe(visible);
+    scmOnboardingPage.loadingSpinner().shouldNotBe(visible);
+    scmOnboardingPage.resultsTableProject().shouldHaveSize(13);
+
+    // when we reset the git service responses to have 0 entries, letting us test if a requery happens
+    mockRepoForPage(gitService, 0, EMPTY_JSON_ARRAY);
+
+    // and when select another the org without a custom token
+    scmOnboardingPage.organizationsDropdown().click();
     menuButtons.find(exactText("Test Org 2")).click();
 
     // then it doesn't trigger a reload, repo list is unchanged
     scmOnboardingPage.resultsTableProject().shouldHaveSize(13);
 
-    // when select org with a custom token
+    // when select org with a custom token and no SC entries
     scmOnboardingPage.organizationsDropdown().click();
-    scmOnboardingPage.orgDropdownItems().find(exactText("Custom Token Org")).click();
+    scmOnboardingPage.orgDropdownItems().find(exactText("Custom Token")).click();
 
-    // then it triggers a reload
-    scmOnboardingPage.loadingSpinner().is(visible);
+    // then it prompts us for a git host
+    scmOnboardingPage.modalDialog().shouldBe(visible);
 
-    // and the page finishes loading
-    scmOnboardingPage.loadingSpinner().waitWhile(visible, 1000);
+    // when we cancel
+    scmOnboardingPage.hostUrlCancelButton().click();
 
-    // and the host URL field is updated
-    scmOnboardingPage.hostUrl().shouldHave(value(secondaryGitService.baseUrl()));
+    // then the dialog is hidden
+    scmOnboardingPage.modalDialog().shouldNotBe(visible);
 
-    // and the results contain the custom repo list
-    scmOnboardingPage.reloadRepoButton().shouldBe(enabled);
-    scmOnboardingPage.resultsTableProject().shouldHaveSize(1);
+    // then we see an error message with a link enabling us to relaunch the dialog
+    scmOnboardingPage.loadError().shouldHave(text(
+        "An error occurred loading data. IQ Server was unable to identify the URL for your github host.\n" +
+        "Click here to change the git host URL.\n" +
+        "Retry"));
+    scmOnboardingPage.loadErrorAnchor().click();
 
-    // when we select the initial org again
-    scmOnboardingPage.organizationsDropdown().click();
-    scmOnboardingPage.orgDropdownItems().find(exactText("Test Org")).click();
+    // then the dialog is visible again
+    scmOnboardingPage.modalDialog().shouldBe(visible);
 
-    // then the reload was triggerd and we see 0 entries
+    // when we cancel
+    scmOnboardingPage.hostUrlCancelButton().click();
+
+    // and click the 'retry' button instead
+    scmOnboardingPage.retry().click();
+
+    // then it launches the git host dialog (instead of just trying to query)
+    scmOnboardingPage.modalDialog().shouldBe(visible);
     scmOnboardingPage.loadingSpinner().shouldNotBe(visible);
-    scmOnboardingPage.resultsTableProject().shouldHaveSize(0);
+
+    // when we restore the list of repos
+    setupMockRepos();
+
+    // when we set the host URL to our local git service and continue
+    scmOnboardingPage.hostUrl().setValue(gitService.baseUrl());
+    scmOnboardingPage.hostUrl().shouldHave(value(gitService.baseUrl()));
+    scmOnboardingPage.hostUrlInvalidMessage().shouldNotBe(visible);
+    scmOnboardingPage.hostUrlContinueButton().shouldBe(enabled).click();
+
+    // then the repository list gets populated
+    scmOnboardingPage.modalDialog().shouldNotBe(visible);
+    scmOnboardingPage.loadingSpinner().shouldNotBe(visible);
+    scmOnboardingPage.resultsTableProject().shouldHaveSize(13);
+
+    // when we select the custom host org
+    scmOnboardingPage.organizationsDropdown().click();
+    menuButtons.find(exactText("Custom Host")).click();
+
+    // then it loads the page immediately with our secondary git service results
+    scmOnboardingPage.resultsTableProject().shouldHaveSize(1);
   }
   
   @Test
@@ -1129,7 +1189,7 @@ public class ScmOnboardingTest
         )
     );
     mockRepoForPage(0, json);
-    mockRepoForPage(1, "[]");
+    mockRepoForPage(1, EMPTY_JSON_ARRAY);
     setupOrgSourceControl();
     setupAppSourceControl(repoUrl);
 

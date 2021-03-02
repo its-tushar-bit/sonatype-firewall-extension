@@ -11,6 +11,7 @@ import LoadWrapper from '../../react/LoadWrapper';
 import RepositoryPane from './components/RepositoryPane';
 import {NxSuccessAlert, NxErrorAlert, NxInfoAlert} from '@sonatype/react-shared-components/components/NxAlert/NxAlert';
 import ReportsCta from './components/ReportsCta';
+import {displayName} from './utils/providers';
 
 const iqAuthorizationErrorMessage = `It appears you do not have permission to access this page.
         If you believe this to be incorrect please contact your administrator.`,
@@ -126,7 +127,7 @@ export default function ScmOnboarding(props) {
             { scmProvider &&
             <Fragment>
               <h1 className="nx-h1">
-                <span>Import Applications from {scmProvider}</span>
+                <span>Import Applications from {displayName(scmProvider)}</span>
               </h1>
               {alreadyImportedCount > 0 &&
               <div className="nx-btn-bar">

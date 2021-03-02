@@ -35,6 +35,7 @@ import {over, lensPath} from 'ramda';
 import { propSet } from '../../util/jsUtil';
 import {UI_ROUTER_ON_FINISH} from '../../reduxUiRouter/routerActions';
 import ownerConstant from '../../utility/services/owner.constant';
+import {displayName} from './utils/providers';
 
 const initialState = {
   configState: {
@@ -301,9 +302,9 @@ function loadRepositoriesFulfilled(payload, state) {
     loadRepositoriesAuthError: (() => {
       switch (payload.status) {
         case 'SCM_AUTHN_FAILURE':
-          return new Error(`Authentication with ${state.configState.scmProvider} failed`);
+          return new Error(`Authentication with ${displayName(state.configState.scmProvider)} failed`);
         case 'SCM_AUTHZ_FAILURE':
-          return new Error(`Permission denied by ${state.configState.scmProvider}`);
+          return new Error(`Permission denied by ${displayName(state.configState.scmProvider)}`);
         default:
           return new Error('Unknown Error');
       }

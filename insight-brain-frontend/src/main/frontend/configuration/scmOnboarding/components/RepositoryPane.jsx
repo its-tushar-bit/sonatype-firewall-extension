@@ -16,6 +16,7 @@ import TargetOrganizationDropdown from './TargetOrganizationDropdown';
 import {textInputPropType} from './ImportApplicationsForm';
 import RepoStatus from './RepoStatus';
 import GitHostModal from './GitHostModal';
+import {displayName} from '../utils/providers';
 
 /*
  The tile which contains the repository list and all other associated UI elements
@@ -55,7 +56,7 @@ export default function RepositoryPane(props) {
         {organizationId: selectedOrganization.organization.id});
     if (!defaultHostUrl) {
       return (
-        <span>IQ Server was unable to identify the URL for your {scmProvider} host.</span>
+        <span>IQ Server was unable to identify the URL for your {displayName(scmProvider)} host.</span>
       );
     }
     if (selectedOrganization && selectedOrganization.organization && selectedOrganization.name) {
@@ -124,7 +125,7 @@ export default function RepositoryPane(props) {
             <NxTooltip
                 id="import-label-tooltip"
                 title={'IQ Server will attempt to connect to ' +
-                scmProvider + ' using the credentials associated with the target organization'}
+                displayName(scmProvider) + ' using the credentials associated with the target organization'}
             >
               <span id="import-label-question-icon"><NxFontAwesomeIcon icon={faQuestionCircle} color="blue"/></span>
             </NxTooltip>

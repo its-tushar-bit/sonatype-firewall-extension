@@ -272,7 +272,7 @@ public class ScmOnboardingTest
     loginAsAdmin();
 
     // then an authentication error is displayed
-    scmOnboardingPage.loadError().shouldHave(text("An error occurred loading data. Authentication with github failed." +
+    scmOnboardingPage.loadError().shouldHave(text("An error occurred loading data. Authentication with GitHub failed." +
         " You can update your login credentials here."));
 
     // when authentication is fixed and retry button is pressed
@@ -299,7 +299,7 @@ public class ScmOnboardingTest
     loginAsAdmin();
 
     // then an authorization error is displayed
-    scmOnboardingPage.loadError().shouldHave(text("An error occurred loading data. Permission denied by github."));
+    scmOnboardingPage.loadError().shouldHave(text("An error occurred loading data. Permission denied by GitHub."));
   }
 
   @Test
@@ -441,7 +441,7 @@ public class ScmOnboardingTest
     // NOTE the missing space before the org name is deliberate. In the UI there is an icon there with
     // appropriate margins.
     scmOnboardingPage.onboardingPageTitle().shouldBe(visible)
-        .shouldBe(text("Import Applications from github"));
+        .shouldBe(text("Import Applications from GitHub"));
   }
 
   @Test
@@ -964,7 +964,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.importLabelQuestionIcon()
         .shouldNotHave(attribute("aria-describedby"));
     scmOnboardingPage.importLabelQuestionIcon().hover();
-    Tooltip.get().shouldHave(text("IQ Server will attempt to connect to github using the credentials " +
+    Tooltip.get().shouldHave(text("IQ Server will attempt to connect to GitHub using the credentials " +
         "associated with the target organization"));
 
     // when we pull down the list
@@ -1104,7 +1104,7 @@ public class ScmOnboardingTest
 
     // then we see an error message with a link enabling us to relaunch the dialog
     scmOnboardingPage.loadError().shouldHave(text(
-        "An error occurred loading data. IQ Server was unable to identify the URL for your github host.\n" +
+        "An error occurred loading data. IQ Server was unable to identify the URL for your GitHub host.\n" +
         "Click here to change the git host URL.\n" +
         "Retry"));
     scmOnboardingPage.loadErrorAnchor().click();

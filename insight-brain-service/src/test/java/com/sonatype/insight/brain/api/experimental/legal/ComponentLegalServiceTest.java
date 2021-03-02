@@ -241,7 +241,7 @@ public class ComponentLegalServiceTest
    * deleted, now we only have ComponentCopyright B at the OrgScope.
    */
   @Test
-  public void testConflictingComponentCopyright() {
+  public void testConflictingComponentCopyrightWhileUpdating() {
     ApiComponentIdentifierDTOV2 componentIdentifier = ApiComponentIdentifierDTOV2
         .fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"));
 
@@ -283,6 +283,54 @@ public class ComponentLegalServiceTest
     assertThat(componentCopyrightDAO.getById(orgComponentCopyright.getId())).isNull();
     assertThat(returnedComponentCopyrightDTO.getCopyrightOverrides()).hasSize(2);
     assertThat(returnedComponentCopyrightDTO.getId()).isEqualTo(appComponentCopyright.getId());
+
+    ComponentCopyright persistedComponentCopyright =
+        componentCopyrightDAO.getById(returnedComponentCopyrightDTO.getId());
+    assertThat(persistedComponentCopyright.getOwnerId()).isEqualTo(organization.getId());
+  }
+
+  /**
+   * The scenario is the following: Inserting a new ComponentCopyright at an existing scope.
+   * A ComponentCopyright with ID A exists at the OrgScope. The user inserts a new
+   * ComponentCopyright from the application scope at the OrgScope. There is a conflict. The ComponentCopyright A is
+   * deleted, now we only have ComponentCopyright B at the OrgScope.
+   */
+  @Test
+  public void testConflictingComponentCopyrightWhileInserting() {
+    ApiComponentIdentifierDTOV2 componentIdentifier = ApiComponentIdentifierDTOV2
+        .fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"));
+
+    Organization organization = tempEntity.newOrganization();
+
+    ComponentCopyright orgComponentCopyright =
+        tempEntity.newComponentCopyright(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"),
+            organization.getId(), "lch");
+
+    ComponentCopyrightDTO componentCopyrightDTO = new ComponentCopyrightDTO(
+        null, //null ID signifies we are creating a new ComponentCopyright
+        componentIdentifier,
+        Lists.newArrayList(new CopyrightOverrideDTO(
+                "123",
+                "originalContentHash",
+                "content",
+                ComponentLegalPartStatus.ENABLED
+            ),
+            new CopyrightOverrideDTO(
+                "456",
+                "originalContentHash2",
+                "content2",
+                ComponentLegalPartStatus.DISABLED
+            )
+        ),
+        null,
+        null
+    );
+
+    ComponentCopyrightDTO returnedComponentCopyrightDTO = componentLegalService
+        .saveComponentCopyright(OwnerType.ORGANIZATION, organization.getPublicId(), componentCopyrightDTO);
+
+    assertThat(componentCopyrightDAO.getById(orgComponentCopyright.getId())).isNull();
+    assertThat(returnedComponentCopyrightDTO.getCopyrightOverrides()).hasSize(2);
 
     ComponentCopyright persistedComponentCopyright =
         componentCopyrightDAO.getById(returnedComponentCopyrightDTO.getId());

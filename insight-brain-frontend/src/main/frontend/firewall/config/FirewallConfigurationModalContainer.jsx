@@ -9,11 +9,11 @@ import FirewallConfigurationModal from './FirewallConfigurationModal';
 import * as firewallActions from '../firewallActions';
 import {pick} from 'ramda';
 
-function mapStateToProps({firewall, firewallConfigurationModal}) {
+function mapStateToProps({firewallConfigurationModal, firewall}) {
   return {
-    ...pick(['loadedConfiguration', 'loadConfigurationError'], firewall.autoUnquarantineState.viewState),
     ...firewallConfigurationModal.viewState,
-    ...firewallConfigurationModal.formState
+    ...firewallConfigurationModal.formState,
+    ...pick(['loadedConfiguration', 'loadConfigurationError'], firewall.autoUnquarantineState.viewState)
   };
 }
 

@@ -11,6 +11,10 @@ import {getFirewallConfigurationUrl, getFirewallStatusUrl, getFirewallReleaseQua
   getFirewallQuarantineSummaryUrl} from '../util/CLMLocation';
 import {Messages} from '../util/CommonServices';
 
+export const FIREWALL_LOAD_DATA_REQUESTED = 'FIREWALL_LOAD_DATA_REQUESTED';
+
+const loadDataRequested = noPayloadActionCreator(FIREWALL_LOAD_DATA_REQUESTED);
+
 export const FIREWALL_LOAD_STATUS_REQUESTED = 'FIREWALL_LOAD_STATUS_REQUESTED';
 export const FIREWALL_LOAD_STATUS_FULFILLED = 'FIREWALL_LOAD_STATUS_FULFILLED';
 export const FIREWALL_LOAD_STATUS_FAILED = 'FIREWALL_LOAD_STATUS_FAILED';
@@ -60,6 +64,16 @@ export const FIREWALL_QUARANTINE_SUMMARY_FAILED = 'FIREWALL_QUARANTINE_SUMMARY_F
 const quarantineSummaryRequested = noPayloadActionCreator(FIREWALL_QUARANTINE_SUMMARY_REQUESTED);
 const quarantineSummaryFulfilled = payloadParamActionCreator(FIREWALL_QUARANTINE_SUMMARY_FULFILLED);
 const quarantineSummaryFailed = payloadParamActionCreator(FIREWALL_QUARANTINE_SUMMARY_FAILED);
+
+export function loadData() {
+  return function(dispatch) {
+    dispatch(loadDataRequested());
+    dispatch(loadStatus());
+    dispatch(loadConfiguration());
+    dispatch(loadReleaseQuarantineSummary());
+    dispatch(loadQuarantineSummary());
+  };
+}
 
 export function loadStatus() {
   return function(dispatch) {

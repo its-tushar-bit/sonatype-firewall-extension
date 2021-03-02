@@ -7,21 +7,16 @@
 import React from 'react';
 import * as PropTypes from 'prop-types';
 
-export default function FirewallAutoReleaseQuarantine(props) {
+export default function FirewallAutoReleaseQuarantineMtd(props) {
   // viewState
   const {
     autoReleaseQuarantineCountMTD
   } = props;
 
-  // state
-  const {
-    $state
-  } = props;
-
   return (
-    <section id="firewall-auto-release-quarantine" className="nx-card iq-firewall-auto-release-quarantine-card">
+    <section id="firewall-auto-release-quarantine-mtd" className="nx-card">
       <header className="nx-card__header">
-        <h3 className="nx-h3">Auto Released from Quarantine</h3>
+        <h3 className="nx-h3">Auto Released from Quarantine MTD</h3>
       </header>
       <div className="nx-card__content">
         <div className="nx-card__call-out">
@@ -30,17 +25,11 @@ export default function FirewallAutoReleaseQuarantine(props) {
 
         <div className="nx-card__text">components released month-to-date</div>
       </div>
-      <footer className="nx-card__footer">
-        <a href={$state.href('firewallAutoUnquarantine')} className="nx-text-link">View Auto Unquarantine</a>
-      </footer>
     </section>
   );
 }
 
-FirewallAutoReleaseQuarantine.propTypes = {
-  autoReleaseQuarantineCountMTD: PropTypes.string,
-  $state: PropTypes.shape({
-    href: PropTypes.func.isRequired
-  })
+FirewallAutoReleaseQuarantineMtd.propTypes = {
+  autoReleaseQuarantineCountMTD: PropTypes.string
 };
 

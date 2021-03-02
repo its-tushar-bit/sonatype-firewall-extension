@@ -21,6 +21,7 @@ import {
   FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED,
   FIREWALL_RELEASE_QUARANTINE_SUMMARY_FULFILLED,
   FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED,
+  FIREWALL_LOAD_DATA_REQUESTED,
   FIREWALL_QUARANTINE_SUMMARY_FAILED,
   FIREWALL_QUARANTINE_SUMMARY_FULFILLED,
   FIREWALL_QUARANTINE_SUMMARY_REQUESTED,
@@ -29,6 +30,7 @@ import {
   loadStatus,
   openConfigurationModal,
   saveConfiguration,
+  loadData,
   loadQuarantineSummary
 } from '../../../main/frontend/firewall/firewallActions';
 import {getFirewallConfigurationUrl, getFirewallReleaseQuarantineSummaryUrl, getFirewallStatusUrl,
@@ -483,6 +485,25 @@ describe('firewallActions', function() {
         let actions = store.getActions();
         expect(actions.length).toBe(1);
       });
+    });
+  });
+
+  describe('loadData', function() {
+    it('immediately dispatches actions to load all firewall data', function() {
+      store.dispatch(loadData());
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(5);
+      expect(actions[0].type).toBe(FIREWALL_LOAD_DATA_REQUESTED);
+      expect(actions[0].payload).toBeUndefined();
+      expect(actions[1].type).toBe(FIREWALL_LOAD_STATUS_REQUESTED);
+      expect(actions[1].payload).toBeUndefined();
+      expect(actions[2].type).toBe(FIREWALL_LOAD_CONFIGURATION_REQUESTED);
+      expect(actions[2].payload).toBeUndefined();
+      expect(actions[3].type).toBe(FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED);
+      expect(actions[3].payload).toBeUndefined();
+      expect(actions[4].type).toBe(FIREWALL_QUARANTINE_SUMMARY_REQUESTED);
+      expect(actions[4].payload).toBeUndefined();
     });
   });
 });

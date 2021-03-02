@@ -47,10 +47,10 @@ export default function FirewallConfigurationModal(props) {
               submitBtnText="Save Changes"
               validationErrors={isDirty ? undefined : 'There are no changes to save.'}
               onCancel={closeConfigurationModal}>
+        <header className="nx-modal-header">
+          <h2 className="nx-h2">Auto Release From Quarantine Configuration</h2>
+        </header>
         <div className="nx-modal-content">
-          <h2 className="nx-h2">
-            <span>Auto Unquarantine Configuration</span>
-          </h2>
           <NxFieldset isRequired
                       label="Auto Unquarantine"
                       sublabel="When Auto Unquarantine is set to active, quarantined components will be automatically

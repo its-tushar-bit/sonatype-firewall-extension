@@ -10,11 +10,13 @@ import {
   FIREWALL_LOAD_CONFIGURATION_FULFILLED,
   FIREWALL_LOAD_STATUS_FAILED,
   FIREWALL_LOAD_STATUS_FULFILLED,
-  FIREWALL_LOAD_STATUS_REQUESTED,
   FIREWALL_SAVE_CONFIGURATION_FULFILLED,
   FIREWALL_SET_SHOW_CONFIGURATION_MODAL,
   FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED,
   FIREWALL_RELEASE_QUARANTINE_SUMMARY_FULFILLED,
+  FIREWALL_LOAD_DATA_REQUESTED,
+  FIREWALL_LOAD_CONFIGURATION_REQUESTED,
+  FIREWALL_LOAD_STATUS_REQUESTED,
   FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED,
   FIREWALL_QUARANTINE_SUMMARY_REQUESTED,
   FIREWALL_QUARANTINE_SUMMARY_FULFILLED,
@@ -27,7 +29,8 @@ const initialState = Object.freeze({
   viewState: Object.freeze({
     loadedStatus: false,
     loadStatusError: null,
-    isShowConfigurationModal: false
+    isShowConfigurationModal: false,
+    loadError: null
   }),
   statusState: Object.freeze({
     isEnabled: false
@@ -39,6 +42,7 @@ const initialState = Object.freeze({
       loadedReleaseQuarantineSummary: false,
       loadReleaseQuarantineSummaryError: null,
       autoReleaseQuarantineCountMTD: '-',
+      autoReleaseQuarantineCountYTD: '-',
       enabledPolicyConditionTypesCount: 0,
       totalPolicyConditionTypesCount: 1
     })
@@ -51,13 +55,19 @@ const initialState = Object.freeze({
       loadedQuarantineSummary: false,
       loadQuarantineSummaryError: null,
       quarantineEnabled: false,
-      quarantineEnabledRepositoryCount: null,
-      repositoryCount: null,
-      totalComponentCount: null,
-      quarantinedComponentCount: null
+      quarantineEnabledRepositoryCount: 0,
+      repositoryCount: 0,
+      totalComponentCount: 0,
+      quarantinedComponentCount: 0
     })
   })
 });
+
+const loadStatusRequested = (_, state) =>
+  over(lensPath(['viewState']), merge(__, {
+    loadedStatus: false,
+    loadStatusError: null
+  }), state);
 
 const loadStatusFulfilled = (payload, state) => ({
   ...state,
@@ -77,11 +87,18 @@ const loadStatusFailed = (payload, state) => ({
   viewState: {
     ...state.viewState,
     loadedStatus: true,
-    loadStatusError: payload
+    loadStatusError: payload,
+    loadError: state.viewState.loadError || payload
   }
 });
 
-const loadedReleaseQuarantineSummaryFulfilled = (payload, state) => ({
+const loadReleaseQuarantineSummaryRequested = (_, state) =>
+  over(lensPath(['autoUnquarantineState', 'viewState']), merge(__, {
+    loadedReleaseQuarantineSummary: false,
+    loadReleaseQuarantineSummaryError: null
+  }), state);
+
+const loadReleaseQuarantineSummaryFulfilled = (payload, state) => ({
   ...state,
   autoUnquarantineState: {
     ...state.autoUnquarantineState,
@@ -89,13 +106,18 @@ const loadedReleaseQuarantineSummaryFulfilled = (payload, state) => ({
       ...state.autoUnquarantineState.viewState,
       loadedReleaseQuarantineSummary: true,
       loadReleaseQuarantineSummaryError: null,
-      autoReleaseQuarantineCountMTD: payload.autoReleaseQuarantineCountMTD.toString()
+      autoReleaseQuarantineCountMTD: payload.autoReleaseQuarantineCountMTD.toString(),
+      autoReleaseQuarantineCountYTD: payload.autoReleaseQuarantineCountYTD.toString()
     }
   }
 });
 
-const loadedReleaseQuarantineSummaryFailed = (payload, state) => ({
+const loadReleaseQuarantineSummaryFailed = (payload, state) => ({
   ...state,
+  viewState: {
+    ...state.viewState,
+    loadError: state.viewState.loadError || payload
+  },
   autoUnquarantineState: {
     ...state.autoUnquarantineState,
     viewState: {
@@ -121,6 +143,12 @@ const saveConfigurationFulfilled = (payload, state) => ({
   configurationState: propSet('autoUnquarantineEnabled', payload.autoUnquarantineEnabled, state.configurationState)
 });
 
+const loadConfigurationRequested = (_, state) =>
+  over(lensPath(['autoUnquarantineState', 'viewState']), merge(__, {
+    loadedConfiguration: false,
+    loadConfigurationError: null
+  }), state);
+
 const loadConfigurationFulfilled = (payload, state) => ({
   ...state,
   autoUnquarantineState: {
@@ -136,11 +164,13 @@ const loadConfigurationFulfilled = (payload, state) => ({
   configurationState: payload
 });
 
-const loadConfigurationFailed = (payload, state) =>
-  over(lensPath(['autoUnquarantineState', 'viewState']), merge(__, {
+const loadConfigurationFailed = (payload, state) => {
+  const newState = over(lensPath(['autoUnquarantineState', 'viewState']), merge(__, {
     loadedConfiguration: true,
     loadConfigurationError: payload
   }), state);
+  return pathSet(['viewState', 'loadError'], newState.viewState.loadError || payload, newState);
+};
 
 function numberOfenabledPolicyConditionTypesCount(payload) {
   return payload.autoUnquarantineEnabled ? 1 : 0;
@@ -176,6 +206,10 @@ const quarantineSummaryFulfilled = (payload, state) => ({
 
 const quarantineSummaryFailed = (payload, state) => ({
   ...state,
+  viewState: {
+    ...state.viewState,
+    loadError: state.viewState.loadError || payload
+  },
   quarantineSummaryState: {
     ...state.quarantineSummaryState,
     viewState: {
@@ -187,17 +221,18 @@ const quarantineSummaryFailed = (payload, state) => ({
 });
 
 const reducerActionMap = {
+  [FIREWALL_LOAD_DATA_REQUESTED]: always(initialState),
+  [FIREWALL_LOAD_STATUS_REQUESTED]: loadStatusRequested,
   [FIREWALL_LOAD_STATUS_FAILED]: loadStatusFailed,
   [FIREWALL_LOAD_STATUS_FULFILLED]: loadStatusFulfilled,
-  [FIREWALL_LOAD_STATUS_REQUESTED]: always(initialState),
   [FIREWALL_SET_SHOW_CONFIGURATION_MODAL]: setShowConfigurationModal,
+  [FIREWALL_LOAD_CONFIGURATION_REQUESTED]: loadConfigurationRequested,
   [FIREWALL_LOAD_CONFIGURATION_FULFILLED]: loadConfigurationFulfilled,
   [FIREWALL_LOAD_CONFIGURATION_FAILED]: loadConfigurationFailed,
   [FIREWALL_SAVE_CONFIGURATION_FULFILLED]: saveConfigurationFulfilled,
-  [FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED]: loadedReleaseQuarantineSummaryFailed,
-  [FIREWALL_RELEASE_QUARANTINE_SUMMARY_FULFILLED]: loadedReleaseQuarantineSummaryFulfilled,
-  [FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED]: always(initialState),
-  [FIREWALL_SAVE_CONFIGURATION_FULFILLED]: saveConfigurationFulfilled,
+  [FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED]: loadReleaseQuarantineSummaryRequested,
+  [FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED]: loadReleaseQuarantineSummaryFailed,
+  [FIREWALL_RELEASE_QUARANTINE_SUMMARY_FULFILLED]: loadReleaseQuarantineSummaryFulfilled,
   [FIREWALL_QUARANTINE_SUMMARY_REQUESTED]: quarantineSummaryRequested,
   [FIREWALL_QUARANTINE_SUMMARY_FULFILLED]: quarantineSummaryFulfilled,
   [FIREWALL_QUARANTINE_SUMMARY_FAILED]: quarantineSummaryFailed

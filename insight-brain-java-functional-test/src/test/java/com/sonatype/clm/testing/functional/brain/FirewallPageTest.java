@@ -8,11 +8,11 @@ package com.sonatype.clm.testing.functional.brain;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
+import com.sonatype.clm.testing.functional.pages.FirewallAutoUnquarantinePage;
+import com.sonatype.clm.testing.functional.pages.FirewallConfigurationModal;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
-import com.sonatype.clm.testing.functional.pages.FirewallPage.FirewallAutoUnquarantine;
-import com.sonatype.clm.testing.functional.pages.FirewallPage.FirewallAutoUnquarantineStatus;
-import com.sonatype.clm.testing.functional.pages.FirewallPage.FirewallConfigurationModal;
-import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallAutoUnquarantine;
+import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallAutoUnquarantineStatus;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -43,7 +43,7 @@ public class FirewallPageTest
   public void before() {
     setFeatures(LicensedFeature.FIREWALL, LicensedFeature.RELEASE_INTEGRITY);
 
-    refreshOrOpen(ReportListPage.url());
+    refreshOrOpen(FirewallPage.url());
     loginAsAdmin();
   }
 
@@ -103,6 +103,7 @@ public class FirewallPageTest
     firewallAutoUnquarantine.shouldBe(visible);
     firewallAutoUnquarantine.shouldBe(visible);
     firewallAutoUnquarantine.cardContent().shouldBe(Condition.text("0"));
+    firewallAutoUnquarantine.autoUnquarantineLink().shouldBe(visible);
   }
 
   @Test
@@ -365,5 +366,21 @@ public class FirewallPageTest
     assertThat(policyMonitoring).isNotNull();
     assertThat(policyMonitoring.getOwnerId()).isEqualTo(REPOSITORY_CONTAINER_ID);
     assertThat(policyMonitoring.getStageTypeId()).isEqualTo(StageTypes.PROXY.getId());
+  }
+
+  @Test
+  public void testFirewall_AutoUnquarantineLink() {
+    testCLMServer.getCLMServer().getConfiguration()
+        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
+
+    refreshOrOpen(FirewallPage.url());
+
+    page.shouldBe(visible);
+
+    // click button
+    page.firewallAutoReleaseQuarantine().autoUnquarantineLink().click();
+
+    // verify firewall page loads
+    waitUntilUrl(FirewallAutoUnquarantinePage.url());
   }
 }

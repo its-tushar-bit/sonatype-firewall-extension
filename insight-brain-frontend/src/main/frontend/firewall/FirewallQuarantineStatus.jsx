@@ -26,7 +26,7 @@ export default function FirewallQuarantineStatus(props) {
           <StatusIndicatorIcon status={quarantineEnabled}/>
           <span>{quarantineEnabled ? 'Active' : 'Inactive'}</span>
         </div>
-        <p className="nx-p">on {quarantineEnabledRepositoryCount} of {repositoryCount} repositories</p>
+        <div className="nx-card__text">on {quarantineEnabledRepositoryCount} of {repositoryCount} repositories</div>
       </div>
     </section>
 

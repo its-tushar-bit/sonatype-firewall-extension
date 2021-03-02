@@ -18,17 +18,14 @@ import FirewallAutoUnquarantineStatus from './FirewallAutoUnquarantineStatus';
 export default function Firewall(props) {
   // Actions
   const {
-    loadStatus,
-    loadReleaseQuarantineSummary,
-    loadConfiguration,
-    loadQuarantineSummary
+    loadData
   } = props;
 
   // viewState
   const {
     loadedStatus,
-    loadStatusError,
-    isShowConfigurationModal
+    isShowConfigurationModal,
+    loadError
   } = props;
 
   // statusState
@@ -36,12 +33,11 @@ export default function Firewall(props) {
     isEnabled
   } = props;
 
+  // autoUnquarantineState.viewState
   const {
     autoReleaseQuarantineCountMTD,
     loadedReleaseQuarantineSummary,
-    loadReleaseQuarantineSummaryError,
-    loadedConfiguration,
-    loadConfigurationError
+    loadedConfiguration
   } = props;
 
   // quarantineSummaryState
@@ -49,18 +45,15 @@ export default function Firewall(props) {
     loadedQuarantineSummary
   } = props;
 
+  // state
+  const {
+    $state
+  } = props;
+
   const dataLoaded = isDataLoaded(loadedStatus, loadedReleaseQuarantineSummary, loadedConfiguration,
       loadedQuarantineSummary);
 
-  const error = determineError(loadedStatus, loadedReleaseQuarantineSummary, isEnabled, loadStatusError,
-      loadReleaseQuarantineSummaryError, loadConfigurationError);
-
-  function loadData() {
-    loadStatus();
-    loadReleaseQuarantineSummary();
-    loadConfiguration();
-    loadQuarantineSummary();
-  }
+  const error = determineError(loadedStatus, isEnabled, loadError);
 
   useEffect(() => {
     loadData();
@@ -71,11 +64,12 @@ export default function Firewall(props) {
       {isShowConfigurationModal && <FirewallConfigurationModalContainer/>}
       <LoadWrapper loading={!dataLoaded} error={error} retryHandler={loadData}>
         <FirewallStatus { ...props }/>
-        <div className="nx-card-container nx-card-container--row iq-firewall__horizontal">
+        <div className="nx-card-container nx-card-container--no-wrap">
           <FirewallQuarantineStatus { ...props }/>
-          <FirewallAutoUnquarantineStatus { ...props }/>
+          <FirewallAutoUnquarantineStatus { ...props } showCounts={true}/>
           <FirewallQuarantine { ...props }/>
-          <FirewallAutoReleaseQuarantine autoReleaseQuarantineCountMTD={autoReleaseQuarantineCountMTD}/>
+          <FirewallAutoReleaseQuarantine autoReleaseQuarantineCountMTD={autoReleaseQuarantineCountMTD}
+                                         $state={$state}/>
         </div>
         <FirewallQuarantineTable/>
       </LoadWrapper>
@@ -83,20 +77,12 @@ export default function Firewall(props) {
   );
 }
 
-function determineError(loadedStatus, loadedReleaseQuarantineSummary, isEnabled, loadStatusError,
-                        loadReleaseQuarantineSummaryError, loadConfigurationError) {
+function determineError(loadedStatus, isEnabled, loadError) {
+  if (loadError) {
+    return loadError;
+  }
   if (loadedStatus && !isEnabled) {
     return 'The Firewall feature is disabled';
-  }
-  else if (loadedStatus && loadStatusError) {
-    return loadStatusError;
-  }
-  else if (loadedReleaseQuarantineSummary && loadReleaseQuarantineSummaryError) {
-    return loadReleaseQuarantineSummaryError;
-  }
-
-  else {
-    return loadConfigurationError;
   }
 }
 
@@ -105,18 +91,16 @@ function isDataLoaded(loadedStatus, loadedReleaseQuarantineSummary, loadedConfig
 }
 
 Firewall.propTypes = {
-  loadStatus: PropTypes.func.isRequired,
+  loadData: PropTypes.func.isRequired,
   loadedStatus: PropTypes.bool.isRequired,
-  loadStatusError: PropTypes.object,
-  loadReleaseQuarantineSummary: PropTypes.func.isRequired,
   autoReleaseQuarantineCountMTD: PropTypes.string.isRequired,
   loadedReleaseQuarantineSummary: PropTypes.bool.isRequired,
-  loadReleaseQuarantineSummaryError: PropTypes.object,
   isEnabled: PropTypes.bool.isRequired,
   isShowConfigurationModal: PropTypes.bool.isRequired,
-  loadConfiguration: PropTypes.func.isRequired,
   loadedConfiguration: PropTypes.bool.isRequired,
-  loadConfigurationError: PropTypes.bool,
-  loadQuarantineSummary: PropTypes.func.isRequired,
-  loadedQuarantineSummary: PropTypes.bool.isRequired
+  loadedQuarantineSummary: PropTypes.bool.isRequired,
+  loadError: PropTypes.string,
+  $state: PropTypes.shape({
+    href: PropTypes.func.isRequired
+  }).isRequired
 };

@@ -22,9 +22,9 @@ export default function FirewallQuarantine(props) {
         <div className="nx-card__call-out nx-card__call-out--text-only">
           {quarantinedComponentCount}
         </div>
-        <p className="nx-p">
+        <div className="nx-card__text">
           components in quarantine
-        </p>
+        </div>
       </div>
     </section>
 

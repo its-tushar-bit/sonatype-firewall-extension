@@ -1,0 +1,103 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+import React, {useEffect} from 'react';
+import LoadWrapper from '../../react/LoadWrapper';
+import FirewallAutoUnquarantineStatus from '../FirewallAutoUnquarantineStatus';
+import FirewallUnquarantineTable from './FirewallUnquarantineTable';
+import * as PropTypes from 'prop-types';
+import BackButton from '../../react/BackButton';
+import FirewallPolicyConditionTypes from './FirewallPolicyConditionTypes';
+import FirewallConfigurationModalContainer from '../config/FirewallConfigurationModalContainer';
+import FirewallAutoReleaseQuarantineMtd from './FirewallAutoReleaseQuarantineMtd';
+import FirewallAutoReleaseQuarantineYtd from './FirewallAutoReleaseQuarantineYtd';
+
+export default function FirewallAutoUnquarantinePage(props) {
+  // Actions
+  const {
+    loadData,
+    loadError
+  } = props;
+
+  // viewState
+  const {
+    loadedStatus,
+    isShowConfigurationModal
+  } = props;
+
+  // statusState
+  const {
+    isEnabled
+  } = props;
+
+  // autoUnquarantineState.viewState
+  const {
+    autoReleaseQuarantineCountMTD,
+    autoReleaseQuarantineCountYTD,
+    loadedReleaseQuarantineSummary,
+    loadedConfiguration
+  } = props;
+
+  // state
+  const {
+    $state
+  } = props;
+
+  const dataLoaded = isDataLoaded(loadedStatus, loadedReleaseQuarantineSummary, loadedConfiguration);
+
+  const error = determineError(loadedStatus, isEnabled, loadError);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  return (
+    <main id="firewall-auto-unquarantine-page" className="nx-page-main">
+      <LoadWrapper loading={!dataLoaded} error={error} retryHandler={loadData}>
+        <BackButton stateName="firewall" $state={$state} text="Back to Quarantine"/>
+        {isShowConfigurationModal && <FirewallConfigurationModalContainer/>}
+        <div className="nx-page-title">
+          <h1 className="nx-h1">Auto Release from Quarantine</h1>
+        </div>
+        <div className="nx-card-container nx-card-container--no-wrap">
+          <FirewallAutoReleaseQuarantineMtd autoReleaseQuarantineCountMTD={autoReleaseQuarantineCountMTD}/>
+          <FirewallAutoReleaseQuarantineYtd autoReleaseQuarantineCountYTD={autoReleaseQuarantineCountYTD}/>
+          <FirewallAutoUnquarantineStatus { ...props } showCounts={false}/>
+          <FirewallPolicyConditionTypes { ...props }/>
+        </div>
+        <FirewallUnquarantineTable/>
+      </LoadWrapper>
+    </main>
+  );
+}
+
+function determineError(loadedStatus, isEnabled, loadError) {
+  if (loadError) {
+    return loadError;
+  }
+  if (loadedStatus && !isEnabled) {
+    return 'The Firewall feature is disabled';
+  }
+}
+
+function isDataLoaded(loadedStatus, loadedReleaseQuarantineSummary, loadedConfiguration) {
+  return loadedStatus && loadedReleaseQuarantineSummary && loadedConfiguration;
+}
+
+FirewallAutoUnquarantinePage.propTypes = {
+  loadData: PropTypes.func.isRequired,
+  loadedStatus: PropTypes.bool.isRequired,
+  autoReleaseQuarantineCountMTD: PropTypes.string.isRequired,
+  autoReleaseQuarantineCountYTD: PropTypes.string.isRequired,
+  loadedReleaseQuarantineSummary: PropTypes.bool.isRequired,
+  isEnabled: PropTypes.bool.isRequired,
+  isShowConfigurationModal: PropTypes.bool.isRequired,
+  loadedConfiguration: PropTypes.bool.isRequired,
+  loadError: PropTypes.string,
+  $state: PropTypes.shape({
+    href: PropTypes.func.isRequired
+  }).isRequired
+};

@@ -3,38 +3,37 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-firewall {
+
+@import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+firewall, firewall-auto-unquarantine {
   display: contents;
 
-  .iq-firewall__horizontal {
+  .nx-card {
+    max-width: none;
+  }
+
+  .iq-status-indicator {
     @include container-horizontal;
-    justify-content: space-between;
-
-    // combined with nx-card bottom margin for a total of 24px;
-    margin-bottom: $nx-spacing-xs;
-
-    .nx-card__content-container {
-      align-items: start;
-      flex-grow: 1;
-    }
-
-    .nx-card__content {
-      @include container-vertical;
-
-      display: flex;
-      flex-grow: 1;
-      flex-direction: column;
-      justify-content: start;
-
-      .nx-p {
-        margin-top: 0;
-      }
-    }
+    @include nx-truncate-ellipsis;
   }
 }
 
-.iq-status-indicator {
-  margin-bottom: $nx-spacing-md;
+#firewall-policy-condition-types {
+  .nx-card__content {
+    align-content: start;
+  }
+
+  .iq-firewall-policy-condition-types {
+    text-align: left;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $nx-spacing-xs $nx-spacing-l;
+
+    .nx-text-link {
+      text-align: center;
+    }
+  }
 }
 
 // Firewall Table

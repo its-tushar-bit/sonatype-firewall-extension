@@ -41,6 +41,10 @@ scm-onboarding {
     }
   }
 
+  #scm-repo-to-import-count {
+    font-weight: bold;
+  }
+
   .onboarding-repo-table {
     height: pagination-table-height(15);
   }

@@ -160,17 +160,12 @@ export default function RepositoryPane(props) {
       </div>
       { repositoryCount > 0 &&
         <footer className="nx-footer">
-          <div className="iq-scmonboarding-stats-row">
-            <h3 id="selected-repository-count"
-                className="iq-caption_text iq-scmonboarding-stats-highlight">
-              {selectedRepositories.length}
-            </h3>
-            <div className="iq-scmonboarding-stats-column">
-              <h3 id="selected-total-count" className="iq-caption_text">OF {repositoryCount} REPOSITORIES</h3>
-              <div className="iq-caption_subtext">selected to import</div>
-            </div>
-          </div>
           <div className="nx-btn-bar">
+            <div>
+              <span id="scm-repo-to-import-count">
+                {selectedRepositories.length} of {repositoryCount} repositories
+              </span> selected to import
+            </div>
             <NxButton id="iq-scm-import-button"
                       variant="primary"
                       disabled={selectedRepositories.length <= 0}

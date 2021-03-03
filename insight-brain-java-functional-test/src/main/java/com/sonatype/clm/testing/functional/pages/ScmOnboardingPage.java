@@ -104,12 +104,8 @@ public class ScmOnboardingPage
     return child("#repository-count");
   }
 
-  public SelenideElement selectedTotalCount() {
-    return child("#selected-total-count");
-  }
-
-  public SelenideElement selectedRepositoryCount() {
-    return child("#selected-repository-count");
+  public SelenideElement selectedToImportCount() {
+    return child("#scm-repo-to-import-count");
   }
 
   public SelenideElement alreadyImportedCount() {

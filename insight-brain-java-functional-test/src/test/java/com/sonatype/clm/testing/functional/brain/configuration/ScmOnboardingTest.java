@@ -413,8 +413,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.loadingSpinner().shouldNotBe(visible);
     scmOnboardingPage.resultsTable().shouldBe(visible);
     scmOnboardingPage.repositoryCount().shouldBe(visible);
-    scmOnboardingPage.repositoryCount().shouldBe(text("13"));
-    scmOnboardingPage.selectedTotalCount().shouldBe(text("OF 13 REPOSITORIES"));
+    scmOnboardingPage.selectedToImportCount().shouldBe(text("0 of 13 repositories"));
     scmOnboardingPage.resultsTableProject().shouldHaveSize(13);
     assertThat(scmOnboardingPage.resultsTableNamespace().texts()).containsAnyOf("depshield-ci",
         "sonatype-nexus-community");
@@ -461,13 +460,13 @@ public class ScmOnboardingTest
     scmOnboardingPage.resultsTableSelectAll().parent().click();
 
     // then selected count is updated
-    scmOnboardingPage.selectedRepositoryCount().shouldBe(text("13"));
+    scmOnboardingPage.selectedToImportCount().shouldBe(text("13 of 13 repositories"));
 
     // when select all is clicked again (delected)
     scmOnboardingPage.resultsTableSelectAll().parent().click();
 
     // then selected count is updated
-    scmOnboardingPage.selectedRepositoryCount().shouldBe(text("0"));
+    scmOnboardingPage.selectedToImportCount().shouldBe(text("0"));
   }
 
   @Test
@@ -487,13 +486,13 @@ public class ScmOnboardingTest
     scmOnboardingPage.resultsTableSelectAll().parent().click();
 
     // then selected count is updated to be the max # of repos/page, not all repos
-    scmOnboardingPage.selectedRepositoryCount().shouldBe(text("15"));
+    scmOnboardingPage.selectedToImportCount().shouldBe(text("15"));
 
     // when we flip pages
     scmOnboardingPage.paginationButtons().get(1).click();
 
     // then selections are reset
-    scmOnboardingPage.selectedRepositoryCount().shouldBe(text("0"));
+    scmOnboardingPage.selectedToImportCount().shouldBe(text("0"));
 
     // and the Select All state is reset
     scmOnboardingPage.resultsTableSelectAll().shouldNotBe(checked);
@@ -516,7 +515,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.resultsTableSelectAll().parent().click();
 
     // then selected count is updated with the number of filtered repositories
-    scmOnboardingPage.selectedRepositoryCount().shouldBe(text("2"));
+    scmOnboardingPage.selectedToImportCount().shouldBe(text("2 of 13 repositories"));
     scmOnboardingPage.resultsTableProject().shouldHave(exactTexts("ci-project-1",
         "ci-project-16"));
 
@@ -539,7 +538,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.resultsTableSelectAll().parent().click();
 
     // then selected count is updated with the number of filtered repositories
-    scmOnboardingPage.selectedRepositoryCount().shouldBe(text("2"));
+    scmOnboardingPage.selectedToImportCount().shouldBe(text("2  of 13 repositories"));
     scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.texts("ci-project-1",
         "ci-project-16"));
 
@@ -561,7 +560,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.alreadyImportedCount().shouldBe(text("2"));
 
     // and the initially selected elements are no longer visible
-    scmOnboardingPage.selectedRepositoryCount().shouldBe(text("0"));
+    scmOnboardingPage.selectedToImportCount().shouldBe(text("0  of 11 repositories"));
     scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.size(0));
 
     // and they are not there when the filter is updated
@@ -569,7 +568,7 @@ public class ScmOnboardingTest
         .mapToObj(i -> Keys.BACK_SPACE).toArray(CharSequence[]::new));
     scmOnboardingPage.resultsTableSelectAll().parent().click();
     scmOnboardingPage.repositoryCount().shouldBe(text("11"));
-    scmOnboardingPage.selectedTotalCount().shouldBe(text("OF 11 REPOSITORIES"));
+    scmOnboardingPage.selectedToImportCount().shouldBe(text("11 of 11 repositories"));
     scmOnboardingPage.resultsTableProject().shouldHaveSize(11);
     assertThat(scmOnboardingPage.resultsTableNamespace().texts()).containsAnyOf("sonatype-nexus-community");
     scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.textsInAnyOrder(
@@ -599,7 +598,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.resultsTableSelectAll().parent().click();
 
     // then selected count is updated with the number of filtered repositories
-    scmOnboardingPage.selectedRepositoryCount().shouldBe(text("2"));
+    scmOnboardingPage.selectedToImportCount().shouldBe(text("2 of 3 repositories"));
     scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.textsInAnyOrder("broken-url-1",
         "broken-url-2"));
 
@@ -643,7 +642,7 @@ public class ScmOnboardingTest
     // select all projects, a mix of good & bad
     scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
     scmOnboardingPage.resultsTableSelectAll().parent().click();
-    scmOnboardingPage.selectedRepositoryCount().shouldBe(text("3"));
+    scmOnboardingPage.selectedToImportCount().shouldBe(text("3 of 3 repositories"));
 
     // when we import the selected repos
     scmOnboardingPage.importRepoButton().click();
@@ -686,13 +685,13 @@ public class ScmOnboardingTest
     scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
     scmOnboardingPage.projectFilter().setValue("ci-");
     scmOnboardingPage.resultsTableSelectAll().parent().click();
-    scmOnboardingPage.selectedRepositoryCount().shouldBe(text("2"));
+    scmOnboardingPage.selectedToImportCount().shouldBe(text("2 of 13 repositories"));
 
     // when a new selection is made
     scmOnboardingPage.projectFilter().setValue("nexus");
     scmOnboardingPage.resultsTableSelectAll().parent().click(); // uncheck box
     scmOnboardingPage.resultsTableSelectAll().parent().click(); // check box
-    scmOnboardingPage.selectedRepositoryCount().shouldBe(text("7"));
+    scmOnboardingPage.selectedToImportCount().shouldBe(text("7 of 13 repositories"));
     scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.texts(
         "nexus-repository-p2", "nexus-repository-puppet", "nexus-repository-terraform",
         "nexus-repository-vgo", "nexus-scripting-examples", "nexus-webhook-example-collection",
@@ -714,7 +713,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
     scmOnboardingPage.projectFilter().setValue("nexus");
     scmOnboardingPage.resultsTableSelectAll().parent().click();
-    scmOnboardingPage.selectedRepositoryCount().shouldBe(text("7"));
+    scmOnboardingPage.selectedToImportCount().shouldBe(text("7 of 13 repositories"));
     scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.texts(
         "nexus-repository-p2", "nexus-repository-puppet", "nexus-repository-terraform",
         "nexus-repository-vgo", "nexus-scripting-examples", "nexus-webhook-example-collection",
@@ -724,7 +723,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.projectFilter().setValue("nexus-repository");
 
     // then the selected count is updated
-    scmOnboardingPage.selectedRepositoryCount().shouldBe(text("4"));
+    scmOnboardingPage.selectedToImportCount().shouldBe(text("4 of 13 repositories"));
 
     // and the result table contains exactly 4 projects
     scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.texts(
@@ -750,7 +749,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.selectionCheckboxById(CI_PROJECT_1_GIT).shouldNotBe(selected);
 
     // and the selected count is unchanged
-    scmOnboardingPage.selectedRepositoryCount().shouldBe(text("4"));
+    scmOnboardingPage.selectedToImportCount().shouldBe(text("4 of 13 repositories"));
   }
 
   @Test

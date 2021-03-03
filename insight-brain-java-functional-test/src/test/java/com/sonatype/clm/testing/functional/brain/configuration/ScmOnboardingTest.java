@@ -17,6 +17,7 @@ import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.ScmOnboardingPage;
 import com.sonatype.clm.testing.functional.pages.ScmOnboardingPage.OrganizationsDropdownMenu;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.User;
@@ -29,6 +30,7 @@ import com.codeborne.selenide.Selenide;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
+import com.google.common.collect.ImmutableMap;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.codehaus.plexus.util.IOUtil;
@@ -51,6 +53,8 @@ import static com.google.common.collect.ImmutableMap.of;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.service.InsightConfig.Feature.SCM_ONBOARDING;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
+import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ScmOnboardingTest
@@ -91,6 +95,8 @@ public class ScmOnboardingTest
   @After
   public void clearCookies() {
     Selenide.clearBrowserCookies();
+    OrganizationDAO organizationDAO = new OrganizationDAO();
+    organizationDAO.getByNames(singleton("Foo Organization")).forEach(organizationDAO::delete);
   }
 
   @Before
@@ -336,7 +342,7 @@ public class ScmOnboardingTest
 
     scmOnboardingPage.donutChartPercentImported().shouldHave(attribute("aria-label", "0% imported"));
     scmOnboardingPage.resultsTableAlreadyImported().shouldBe(text("0"));
-    
+
     // the long descriptions are trimmed
     assertThat(scmOnboardingPage.resultsTableDescription().get(0).getCssValue("text-overflow")).isEqualTo("ellipsis");
 
@@ -384,9 +390,9 @@ public class ScmOnboardingTest
     String cloneUrl = gitService.baseUrl() + repoUrl;
     String json = mapper.writeValueAsString(
         Arrays.asList(of(
-            "name", "test", 
-            "description", "", 
-            "private", false, 
+            "name", "test",
+            "description", "",
+            "private", false,
             "clone_url", cloneUrl)
         )
     );
@@ -878,7 +884,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.hostUrlInvalidMessage().shouldBe(text("Unable to parse repository URL: " +
         "java.net.URISyntaxException: Illegal character in authority at index 7: http://host"));
   }
-  
+
   @Test
   public void testPagination() throws Exception {
     // given an SCM with git repos that are unsorted initially
@@ -1142,7 +1148,7 @@ public class ScmOnboardingTest
     // then it loads the page immediately with our secondary git service results
     scmOnboardingPage.resultsTableProject().shouldHaveSize(1);
   }
-  
+
   @Test
   public void testReportsCta() throws Exception {
     // given SCM onboarding page with a selected organization
@@ -1199,5 +1205,103 @@ public class ScmOnboardingTest
 
     // then the CTA should appear
     scmOnboardingPage.titleReportsCta().shouldBe(visible);
+  }
+
+  @Test
+  public void testNewOrgCreation() throws Exception {
+    // given a mock git service
+    setupMockRepos();
+    setupSourceControl();
+
+    // given SCM onboarding page with a selected organization
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
+    loginAsAdmin();
+
+    // then the org dropdown is shown
+    scmOnboardingPage.organizationsDropdown().selectedOrganization().shouldHave(text("Test Org"));
+
+    // when creating a new organization
+    scmOnboardingPage.newOrgButton().click();
+    scmOnboardingPage.createOrgButton().shouldHave(cssClass("disabled"));
+    scmOnboardingPage.newOrgName().setValue("Foo Organization");
+    scmOnboardingPage.createOrgButton().shouldNotHave(cssClass("disabled"));
+    scmOnboardingPage.createOrgButton().click();
+    scmOnboardingPage.newOrgModal().shouldBe(hidden);
+
+    // Then the new organization is created and selected
+    scmOnboardingPage.organizationsDropdown().selectedOrganization().shouldHave(text("Foo Organization"));
+  }
+
+  @Test
+  public void testNewOrgCreation_error() throws Exception {
+    // given a mock git service
+    setupMockRepos();
+    setupSourceControl();
+
+    // given SCM onboarding page with a selected organization
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
+    loginAsAdmin();
+
+    // when creating a new organization that already exists
+    scmOnboardingPage.newOrgButton().click();
+    scmOnboardingPage.newOrgName().setValue("Foo Organization");
+    scmOnboardingPage.createOrgButton().click();
+    scmOnboardingPage.newOrgModal().shouldBe(hidden);
+    scmOnboardingPage.newOrgButton().click();
+    scmOnboardingPage.newOrgName().setValue("Foo Organization");
+    scmOnboardingPage.createOrgButton().click();
+
+    // Then the new organization is created and selected
+    scmOnboardingPage.newOrgModalError().shouldHave(text("Failed to create organization. Foo Organization is already" +
+        " used as a name."));
+  }
+
+  @Test
+  public void testNewOrgCreation_reloadTriggered() throws Exception {
+    // given a mock git service
+    setupMockRepos();
+    setupSourceControl();
+    String json = new ObjectMapper().writeValueAsString(
+        singletonList(ImmutableMap.of(
+            "name", "test",
+            "description", "",
+            "private", false,
+            "clone_url", secondaryGitService.baseUrl() + "/org/repo.git")
+        )
+    );
+    mockRepoForPage(secondaryGitService, 0, json);
+    mockRepoForPage(secondaryGitService, 1, EMPTY_JSON_ARRAY);
+
+    // given an org that overrides the token and uses the second git service
+    Organization orgCustomHost = tempEntity.newOrganization("Custom Host");
+    String encryptedPwd = new String(pwHandler.encryptPassword("password".toCharArray()));
+    tempEntity.newSourceControl(orgCustomHost.getId(), null, encryptedPwd, null);
+    Application appCustomHost = tempEntity.newApplication(orgCustomHost.getId());
+    tempEntity.newSourceControl(appCustomHost.getId(), secondaryGitService.baseUrl() + "/org/existingrepo", null);
+
+    // given SCM onboarding page with a selected organization
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url(orgCustomHost.getId()));
+    loginAsAdmin();
+
+    // then the org dropdown is shown
+    scmOnboardingPage.organizationsDropdown().selectedOrganization().shouldHave(text("Custom Host"));
+    scmOnboardingPage.loadingSpinner().shouldNotBe(visible);
+    scmOnboardingPage.resultsTableProject().shouldHaveSize(1);
+
+    // when creating a new organization
+    scmOnboardingPage.newOrgButton().click();
+    scmOnboardingPage.createOrgButton().shouldHave(cssClass("disabled"));
+    scmOnboardingPage.newOrgName().setValue("Foo Organization");
+    scmOnboardingPage.createOrgButton().shouldNotHave(cssClass("disabled"));
+    scmOnboardingPage.createOrgButton().click();
+    scmOnboardingPage.newOrgModal().shouldBe(hidden);
+
+    // Then the new organization is created and selected
+    scmOnboardingPage.organizationsDropdown().selectedOrganization().shouldHave(text("Foo Organization"));
+    scmOnboardingPage.loadingSpinner().shouldNotBe(visible);
+    scmOnboardingPage.resultsTableProject().shouldHaveSize(13);
   }
 }

@@ -25,7 +25,10 @@ import {
   SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FAILED,
   SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FULFILLED,
   SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_REQUESTED,
-  SCM_ONBOARDING_SHOW_HOST_DIALOG
+  SCM_ONBOARDING_SHOW_HOST_DIALOG,
+  SCM_ONBOARDING_ADD_ORGANIZATION_FULFILLED,
+  SCM_ONBOARDING_ADD_ORGANIZATION_FAILED,
+  SCM_ONBOARDING_SET_IS_NEW_ORGANIZATION_MODAL_VISIBLE
 } from './scmOnboardingActions';
 import {sortItemsByFields} from '../../util/sortUtils';
 import * as textInputStateHelpers from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
@@ -51,9 +54,11 @@ const initialState = {
     validatingCompositeSourceControl: false,
     isGitHostNeeded: false,
     isGitHostDialogVisible: false,
+    isNewOrganizationModalVisible: false,
 
     generalError: null,
-    loadRepositoriesAuthError: null
+    loadRepositoriesAuthError: null,
+    addOrganizationError: null
   },
   formState: {
     organizations: [],
@@ -265,6 +270,42 @@ function initialHostUrlState(defaultHostUrl, scmProvider) {
   return textInputStateHelpers.initialState(initialHostUrl);
 }
 
+function addOrganizationFulfilled(payload, state) {
+  return {
+    ...state,
+    formState: {
+      ...state.formState,
+      organizations: [...state.formState.organizations, payload]
+    },
+    viewState: {
+      ...state.viewState,
+      addOrganizationError: null,
+      isNewOrganizationModalVisible: false
+    }
+  };
+}
+
+function addOrganizationFailed(payload, state) {
+  return {
+    ...state,
+    viewState: {
+      ...state.viewState,
+      addOrganizationError: payload
+    }
+  };
+}
+
+function setIsNewOrganizationModalVisible(payload, state) {
+  return {
+    ...state,
+    viewState: {
+      ...state.viewState,
+      isNewOrganizationModalVisible: payload,
+      addOrganizationError: null
+    }
+  };
+}
+
 function loadRepositoriesRequested(payload, state) {
   return {
     ...state,
@@ -456,6 +497,10 @@ const reducerActionMap = {
   [SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED]: setTargetOrgFulfilled,
   [SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED]: setTargetOrgRequested,
   [SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FAILED]: setTargetOrgFailed,
+
+  [SCM_ONBOARDING_ADD_ORGANIZATION_FULFILLED]: addOrganizationFulfilled,
+  [SCM_ONBOARDING_ADD_ORGANIZATION_FAILED]: addOrganizationFailed,
+  [SCM_ONBOARDING_SET_IS_NEW_ORGANIZATION_MODAL_VISIBLE]: setIsNewOrganizationModalVisible,
 
   [SCM_ONBOARDING_SET_CURRENT_HOST_URL]: setCurrentHostUrl,
 

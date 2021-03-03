@@ -75,7 +75,7 @@ public class ScmOnboardingPage
   public ElementsCollection resultsTableNamespace() {
     return children(".iq-scm-repository-namespace");
   }
-  
+
   public SelenideElement donutChartPercentImported() {
     return $("#scm-imported-donut-chart");
   }
@@ -186,6 +186,26 @@ public class ScmOnboardingPage
 
   public OrganizationsDropdown organizationsDropdown() {
     return new OrganizationsDropdown();
+  }
+
+  public SelenideElement newOrgButton() {
+    return child("#repository-pane-add-org");
+  }
+
+  public SelenideElement createOrgButton() {
+    return child("#new-organization-modal button.nx-btn.nx-btn--primary");
+  }
+
+  public SelenideElement newOrgName() {
+    return child("#new-organization-modal-org-name");
+  }
+
+  public SelenideElement newOrgModal() {
+    return child("#new-organization-modal");
+  }
+
+  public SelenideElement newOrgModalError() {
+    return child("#new-organization-modal .nx-load-error__message");
   }
 
   public static class OrganizationsDropdown

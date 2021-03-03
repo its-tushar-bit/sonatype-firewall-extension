@@ -14,7 +14,8 @@ import {
   getScmOrganizationsUrl,
   getScmRepositoriesUrl,
   getScmDefaultHostUrl,
-  getImportRepositoriesUrl
+  getImportRepositoriesUrl,
+  getOrganizationsUrl
 } from '../../util/CLMLocation';
 
 export const SCM_ONBOARDING_LOAD_CONFIG_FULFILLED = 'SCM_ONBOARDING_LOAD_CONFIG_FULFILLED';
@@ -41,6 +42,11 @@ export const SCM_ONBOARDING_IMPORT_REPOS_FAILED = 'SCM_ONBOARDING_IMPORT_REPOS_F
 export const SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED = 'SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED';
 export const SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED = 'SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED';
 export const SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FAILED = 'SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FAILED';
+
+export const SCM_ONBOARDING_ADD_ORGANIZATION_FULFILLED = 'SCM_ONBOARDING_ADD_ORGANIZATION_FULFILLED';
+export const SCM_ONBOARDING_ADD_ORGANIZATION_FAILED = 'SCM_ONBOARDING_ADD_ORGANIZATION_FAILED';
+export const SCM_ONBOARDING_SET_IS_NEW_ORGANIZATION_MODAL_VISIBLE =
+  'SCM_ONBOARDING_SET_IS_NEW_ORGANIZATION_MODAL_VISIBLE';
 
 export const SCM_ONBOARDING_SET_SORTING_PARAMETERS = 'SCM_ONBOARDING_SET_SORTING_PARAMETERS';
 
@@ -137,6 +143,24 @@ export function setSelectedOrganization(selectedOrg) {
   };
 }
 
+export function addOrganization(organizationName) {
+  return function(dispatch, getState) {
+    return axios.post(getOrganizationsUrl(), {name: organizationName})
+        .then(({data}) => {
+          // Note INT-4477: provider is set here in preparation for work to be done in the epic to support multiple SCMs
+          const newOrganization = {
+            sourceControl: {
+              token: {value: null},
+              provider: getState().scmOnboarding.configState.scmProvider},
+            organization: data
+          };
+          dispatch(addOrganizationFulfilled(newOrganization));
+          dispatch(setSelectedOrganization(newOrganization));
+        })
+        .catch(error => dispatch(addOrganizationFailed(error)));
+  };
+}
+
 export function validateScmHostUrl(scmProvider, scmHostUrl) {
   return (dispatch) => validateScmHostUrlDebounce(dispatch, scmProvider, scmHostUrl);
 }
@@ -215,7 +239,13 @@ export const setTargetOrganizationFulfilled = payloadParamActionCreator(
     SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED);
 export const setTargetOrganizationFailed = payloadParamActionCreator(SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FAILED);
 
+export const setIsNewOrganizationModalVisible = payloadParamActionCreator(
+    SCM_ONBOARDING_SET_IS_NEW_ORGANIZATION_MODAL_VISIBLE);
+
 export const setCurrentHostUrl = payloadParamActionCreator(SCM_ONBOARDING_SET_CURRENT_HOST_URL);
+
+const addOrganizationFulfilled = payloadParamActionCreator(SCM_ONBOARDING_ADD_ORGANIZATION_FULFILLED);
+const addOrganizationFailed = payloadParamActionCreator(SCM_ONBOARDING_ADD_ORGANIZATION_FAILED);
 
 const importSelectedRepositoriesRequested = noPayloadActionCreator(SCM_ONBOARDING_IMPORT_REPOS_REQUESTED);
 const importSelectedRepositoriesFulfilled = payloadParamActionCreator(SCM_ONBOARDING_IMPORT_REPOS_FULFILLED);
@@ -229,6 +259,7 @@ const validateScmHostUrlFailed = payloadParamActionCreator(SCM_ONBOARDING_VALIDA
 export default function scmOnboarding() {
   return {
     setSelectedOrganization,
+    addOrganization,
     setCurrentHostUrl,
     validateScmHostUrl,
     loadConfig,

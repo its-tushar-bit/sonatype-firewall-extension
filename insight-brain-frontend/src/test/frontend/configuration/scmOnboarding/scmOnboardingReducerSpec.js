@@ -215,6 +215,8 @@ describe('scmOnboardingReducer', function() {
           isSelectingOrganization: false,
           validatingCompositeSourceControl: false,
           loadRepositoriesAuthError: null,
+          isNewOrganizationModalVisible: false,
+          addOrganizationError: null,
           generalError: {
             status: 502
           },
@@ -1005,7 +1007,9 @@ describe('scmOnboardingReducer', function() {
         isSelectingOrganization: false,
 
         generalError: null,
-        loadRepositoriesAuthError: null
+        loadRepositoriesAuthError: null,
+        isNewOrganizationModalVisible: false,
+        addOrganizationError: null
       });
       expect(newState.sortConfiguration).toEqual({
         key: 'namespace',
@@ -1016,6 +1020,78 @@ describe('scmOnboardingReducer', function() {
 
       // and configState is retained
       expect(newState.configState).toEqual(state.configState);
+    });
+  });
+
+  describe('organization creation reducers', () => {
+
+    it('create organization fulfilled', () => {
+
+      const createOrgPayload = {
+        organization: { 'name': 'My Organization 3', 'id': 'id3'},
+        sourceControl: {provider: 'github', token: {value: 'redacted token'}}
+      };
+
+      const existingOrganizations = [
+        {
+          organization: { 'name': 'My Organization 1', 'id': 'id1'},
+          sourceControl: {provider: 'github', token: {value: 'redacted token'}}
+        },
+        {
+          organization: { 'name': 'My Organization 2', 'id': 'id2'},
+          sourceControl: {provider: 'github', token: {value: 'redacted token'}}
+        }];
+
+      const state = Object.freeze({
+        formState: {
+          organizations: existingOrganizations
+        },
+        viewState: {
+          addOrganizationError: 'crash bang',
+          isNewOrganizationModalVisible: true
+        }
+      });
+
+      // when reducer is invoked
+      const newState = reduce(state, {type: 'SCM_ONBOARDING_ADD_ORGANIZATION_FULFILLED', payload: createOrgPayload});
+
+      // then the list of orgs is updated
+      expect(newState.formState.organizations).toEqual([...existingOrganizations, createOrgPayload]);
+      // and error message is reset
+      expect(newState.viewState.addOrganizationError).toBeNull();
+      // and the modal dialog is closed
+      expect(newState.viewState.isNewOrganizationModalVisible).toBeFalsy();
+    });
+
+    it('create organization failed', () => {
+      const errorPayload = {error: 'error'};
+
+      const state = Object.freeze({
+        viewState: {
+          addOrganizationError: null
+        }
+      });
+
+      // when reducer is invoked
+      const newState = reduce(state, {type: 'SCM_ONBOARDING_ADD_ORGANIZATION_FAILED', payload: errorPayload});
+
+      // then error is stored
+      expect(newState.viewState.addOrganizationError).toEqual(errorPayload);
+    });
+
+    it('sets new organization modal visibility', () => {
+
+      const state = Object.freeze({
+        viewState: {
+          isNewOrganizationModalVisible: false
+        }
+      });
+
+      // when reducer is invoked
+      const newState = reduce(state, {type: 'SCM_ONBOARDING_SET_IS_NEW_ORGANIZATION_MODAL_VISIBLE', payload: true});
+
+      // the modal visibility is updated
+      expect(newState.viewState.isNewOrganizationModalVisible).toBeTruthy();
     });
   });
 });

@@ -10,7 +10,8 @@ import {
   getScmDefaultHostUrl,
   getScmRepositoriesUrl,
   getCompositeSourceControlUrl,
-  getValidateScmConfigUrl
+  getValidateScmConfigUrl,
+  getOrganizationsUrl
 } from '../../../../main/frontend/util/CLMLocation';
 import {
   SCM_ONBOARDING_LOAD_PAGE_FAILED,
@@ -35,10 +36,7 @@ describe('scmOnboardingActions', function() {
   let store, state, scmOnboardingActions;
 
   beforeEach(function() {
-    state = {
-      scmOnboardingFeatureEnabled: false
-    };
-    store = SpecUtil.mockReduxStore(state);
+    store = SpecUtil.mockReduxStore();
   });
 
   beforeEach(angular.mock.module('configurationModule'));
@@ -507,6 +505,91 @@ describe('scmOnboardingActions', function() {
         // turn time forwards to allow request to continue
         jasmine.clock().mockDate(new Date.now() + 3000);
         jasmine.clock().tick(3000);
+      });
+    });
+  });
+
+  describe('organization creation', () => {
+
+    describe('success', () => {
+
+      const createOrgPayload = {id: 'id', name: 'My Organization', tags: []};
+
+      const rootOrgPayload = {
+        organization: { 'name': 'Root Organization', 'id': 'ROOT_ORGANIZATION_ID'},
+        sourceControl: {provider: 'github', token: {value: 'redacted token'}}
+      };
+
+      const initialState = {
+        scmOnboarding: {
+          formState: {
+            rootOrganization: rootOrgPayload,
+            selectedOrganization: {id: 'idPrevious', name: 'Previous Organization', tags: []}
+          },
+          configState: {
+            isScmTokenOverridden: false,
+            scmProvider: 'configuredProvider'
+          }
+        }
+      };
+      const state = SpecUtil.mockReduxStore(initialState);
+
+      beforeEach(function() {
+        mockAxiosCalls({
+          post: {
+            [getOrganizationsUrl()]: Promise.resolve({data: {...createOrgPayload}})
+          }
+        });
+      });
+
+      it('dispatches SCM_ONBOARDING_ADD_ORGANIZATION_FULFILLED', function(done) {
+
+        state.dispatch(scmOnboardingActions.addOrganization('My Organization'))
+            .then(() => {
+              actions = state.getActions();
+              expect(actions.length).toBe(3);
+              expect(actions[0].type).toBe('SCM_ONBOARDING_ADD_ORGANIZATION_FULFILLED');
+              expect(actions[0].payload).toEqual({
+                organization: createOrgPayload,
+                sourceControl: {provider: 'configuredProvider', token: {value: null}}
+              });
+              // also triggers actions to set target organization
+              expect(actions[1].type).toBe('SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED');
+              expect(actions[2].type).toBe('SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED');
+              done();
+            });
+
+        let actions = state.getActions();
+        expect(actions.length).toBe(0);
+      });
+
+    });
+
+    describe('failure', () => {
+
+      const failureMessage = {error: 'error'};
+
+      beforeEach(function() {
+        mockAxiosCalls({
+          post: {
+            [getOrganizationsUrl()]: Promise.reject(failureMessage)
+          }
+        });
+      });
+
+      it('dispatches SCM_ONBOARDING_ADD_ORGANIZATION_FAILED', function(done) {
+
+        store.dispatch(scmOnboardingActions.addOrganization('My Organization'))
+            .then(() => {
+              actions = store.getActions();
+              expect(actions.length).toBe(1);
+              expect(actions[0].type).toBe('SCM_ONBOARDING_ADD_ORGANIZATION_FAILED');
+              expect(actions[0].payload).toEqual(failureMessage);
+              done();
+            });
+
+        let actions = store.getActions();
+        expect(actions.length).toBe(0);
       });
     });
   });

@@ -171,6 +171,7 @@ ScmOnboarding.propTypes = {
 
   // organizations
   selectedOrganization: PropTypes.shape(organizationPropType),
+  isNewOrganizationModalVisible: PropTypes.bool.isRequired,
 
   // repositories
   repositories: PropTypes.arrayOf(PropTypes.shape(repositoryPropType)),

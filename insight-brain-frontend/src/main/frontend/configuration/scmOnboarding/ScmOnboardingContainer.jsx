@@ -24,6 +24,7 @@ function mapStateToProps({ scmOnboarding, router }) {
     // organizations
     organizations: scmOnboarding.formState.organizations,
     selectedOrganization: scmOnboarding.formState.selectedOrganization,
+    isNewOrganizationModalVisible: scmOnboarding.viewState.isNewOrganizationModalVisible,
 
     // repositories
     loadingRepositories: scmOnboarding.viewState.loadingRepositories,
@@ -49,7 +50,8 @@ function mapStateToProps({ scmOnboarding, router }) {
 
     // error state
     generalError: scmOnboarding.viewState.generalError,
-    loadRepositoriesAuthError: scmOnboarding.viewState.loadRepositoriesAuthError
+    loadRepositoriesAuthError: scmOnboarding.viewState.loadRepositoriesAuthError,
+    addOrganizationError: scmOnboarding.viewState.addOrganizationError
   };
 }
 

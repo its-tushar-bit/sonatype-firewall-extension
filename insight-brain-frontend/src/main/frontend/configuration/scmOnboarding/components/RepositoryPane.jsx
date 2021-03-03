@@ -10,11 +10,13 @@ import * as PropTypes from 'prop-types';
 import {organizationPropType, repositoryPropType} from '../ScmOnboarding';
 import NxButton from '@sonatype/react-shared-components/components/NxButton/NxButton';
 import {NxFontAwesomeIcon, NxTooltip} from '@sonatype/react-shared-components';
-import {faQuestionCircle} from '@fortawesome/pro-solid-svg-icons';
+import {faPlus, faQuestionCircle} from '@fortawesome/pro-solid-svg-icons';
 import ResultsTable from './ResultsTable';
 import TargetOrganizationDropdown from './TargetOrganizationDropdown';
 import {textInputPropType} from './ImportApplicationsForm';
 import RepoStatus from './RepoStatus';
+import NewOrganizationModal from './NewOrganizationModal';
+import LoadError from '../../../react/LoadError';
 import GitHostModal from './GitHostModal';
 import {displayName} from '../utils/providers';
 
@@ -31,6 +33,8 @@ export default function RepositoryPane(props) {
     onRepositorySelectionChanged,
     loadRepositoriesAuthError,
     generalError,
+    addOrganizationError,
+    isNewOrganizationModalVisible,
     scmConfigurationHref,
     scmProvider,
     currentHostUrlState,
@@ -48,6 +52,8 @@ export default function RepositoryPane(props) {
     importSelectedRepositories,
     loadRepositories,
     setSelectedOrganization,
+    addOrganization,
+    setIsNewOrganizationModalVisible,
     setShowHostDialog
   } = props;
 
@@ -139,6 +145,16 @@ export default function RepositoryPane(props) {
             selectedOrganization,
             setSelectedOrganization
           }}/>
+          <NxButton onClick={() => setIsNewOrganizationModalVisible(true)} id='repository-pane-add-org'>
+            <NxFontAwesomeIcon icon={faPlus}/> New Organization
+          </NxButton>
+          { isNewOrganizationModalVisible &&
+            <NewOrganizationModal
+              addOrganization={addOrganization}
+              setIsNewOrganizationModalVisible={setIsNewOrganizationModalVisible}
+              addOrganizationError={addOrganizationError}
+            />
+          }
           <RepoStatus {...{repositories, totalRepositories}} />
         </div>
         <LoadWrapper loading={loadingRepositories || isSelectingOrganization} error={resultsTableError}
@@ -198,6 +214,7 @@ RepositoryPane.propTypes = {
   isGitHostNeeded: PropTypes.bool,
   isSelectingOrganization: PropTypes.bool,
   $state: PropTypes.object.isRequired,
+  isNewOrganizationModalVisible: PropTypes.bool.isRequired,
 
   // actions
   setSorting: PropTypes.func,
@@ -208,8 +225,11 @@ RepositoryPane.propTypes = {
   selectedOrganization: PropTypes.shape(organizationPropType),
   onRepositorySelectionChanged: PropTypes.func.isRequired,
   setShowHostDialog: PropTypes.func,
+  addOrganization: PropTypes.func.isRequired,
+  setIsNewOrganizationModalVisible: PropTypes.func.isRequired,
 
   // errors
   generalError: LoadWrapper.propTypes.error,
-  loadRepositoriesAuthError: LoadWrapper.propTypes.error
+  loadRepositoriesAuthError: LoadWrapper.propTypes.error,
+  addOrganizationError: LoadError.propTypes.error
 };

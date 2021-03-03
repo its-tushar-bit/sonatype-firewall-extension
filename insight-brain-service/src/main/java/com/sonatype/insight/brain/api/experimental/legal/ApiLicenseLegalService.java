@@ -57,6 +57,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentCopyrightDAO;
+import com.sonatype.insight.brain.dataaccess.legal.ComponentLegalFileDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationAttributionDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
 import com.sonatype.insight.brain.dataaccess.legal.CopyrightOverrideDAO;
@@ -77,6 +78,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
+import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
 import com.sonatype.insight.brain.model.legal.CopyrightOverride;
@@ -157,6 +159,8 @@ public class ApiLicenseLegalService
 
   private final ComponentCopyrightDAO componentCopyrightDAO;
 
+  private final ComponentLegalFileDAO componentLegalFileDAO;
+
   private final LegalFileOverrideDAO legalFileOverrideDAO;
 
   private final ComponentObligationDAO componentObligationDAO;
@@ -193,6 +197,7 @@ public class ApiLicenseLegalService
       ApplicationComponentDAO applicationComponentDAO,
       HashComponentIdentifierDAO hashComponentIdentifierDAO,
       final ComponentCopyrightDAO componentCopyrightDAO,
+      ComponentLegalFileDAO componentLegalFileDAO,
       ComponentInfoService componentInfoService,
       ApiLicenseDataAdapter apiLicenseDataAdapter,
       ProductLicense productLicense,
@@ -217,6 +222,7 @@ public class ApiLicenseLegalService
     this.applicationComponentDAO = applicationComponentDAO;
     this.hashComponentIdentifierDAO = hashComponentIdentifierDAO;
     this.componentCopyrightDAO = componentCopyrightDAO;
+    this.componentLegalFileDAO = componentLegalFileDAO;
     this.componentInfoService = componentInfoService;
     this.componentInfoService.setToolName("ci");
     this.apiLicenseDataAdapter = apiLicenseDataAdapter;
@@ -438,6 +444,8 @@ public class ApiLicenseLegalService
         getCopyrightOverridesByComponentIdentifier(application.getId(), componentIdentifiers);
     Map<ComponentIdentifier, ComponentCopyright> componentCopyrights =
         getComponentCopyrights(application.getId(), componentIdentifiers);
+    Map<ComponentIdentifier, ComponentLegalFile> componentLegalFileByComponentIdentifier =
+        getComponentLegalFileByComponentIdentifier(application.getId(), componentIdentifiers);
     Map<ComponentIdentifier, Set<ComponentLegalFileDTO>> componentLegalFilesByComponentIdentifier =
         getComponentLegalFilesByComponentIdentifier(Collections.singleton(latestRawReport));
     Map<ComponentIdentifier, List<LegalFileOverride>> licenseOverridesByComponentIdentifier =
@@ -453,6 +461,7 @@ public class ApiLicenseLegalService
             componentLegalCommentsByComponentIdentifier,
             copyrightOverridesByComponentIdentifier,
             componentCopyrights,
+            componentLegalFileByComponentIdentifier,
             componentLegalFilesByComponentIdentifier,
             licenseOverridesByComponentIdentifier,
             noticeOverridesByComponentIdentifier,
@@ -536,13 +545,15 @@ public class ApiLicenseLegalService
         copyrightOverrideDAO.getByOwnerIdAndComponentIdentifierWithHierarchy(owner.getId(), compIdentifier);
     ComponentCopyright componentCopyright =
         componentCopyrightDAO.getByOwnerIdAndComponentIdentifier(owner.getId(), compIdentifier);
+    ComponentLegalFile componentLegalFile =
+        componentLegalFileDAO.getByOwnerIdAndComponentIdentifierWithHierarchy(owner.getId(), compIdentifier);
     List<LegalFileOverride> licenseOverrides = legalFileOverrideDAO
         .getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(owner.getId(), compIdentifier, LegalFileType.LICENSE);
     List<LegalFileOverride> noticeOverrides = legalFileOverrideDAO
         .getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(owner.getId(), compIdentifier, LegalFileType.NOTICE);
     ApiLicenseLegalDataDTO licenseLegalData =
         legalReportBuilder.getLicenseLegalData(licenseData, componentLegalComments, copyrightOverrides,
-            componentCopyright, componentLegalFiles, licenseOverrides, noticeOverrides);
+            componentCopyright, componentLegalFile, componentLegalFiles, licenseOverrides, noticeOverrides);
     ApiLicenseLegalComponentDTO componentDTO =
         new ApiLicenseLegalComponentDTO(toComponentDTO(component), licenseLegalData);
     Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata = legalReportBuilder.getLicenseLegalMetadata(
@@ -821,7 +832,7 @@ public class ApiLicenseLegalService
     try (TransactionContext tx = componentCopyrightDAO.createTransactionContext()) {
       for (ComponentIdentifier componentIdentifier : componentIdentifiers) {
         ComponentCopyright result =
-            componentCopyrightDAO.getByOwnerIdAndComponentIdentifier(ownerId, componentIdentifier);
+            componentCopyrightDAO.getByOwnerIdAndComponentIdentifier(tx, ownerId, componentIdentifier);
         if (result != null) {
           componentCopyrights
               .put(LegalComponentIdentifierUtil.removeClassifierAndExtension(componentIdentifier), result);
@@ -829,6 +840,24 @@ public class ApiLicenseLegalService
       }
     }
     return componentCopyrights;
+  }
+
+  private Map<ComponentIdentifier, ComponentLegalFile> getComponentLegalFileByComponentIdentifier(
+      final String ownerId,
+      final Set<ComponentIdentifier> componentIdentifiers)
+  {
+    Map<ComponentIdentifier, ComponentLegalFile> componentLegalFileByComponentIdentifier = new HashMap<>();
+    try (TransactionContext tx = componentLegalFileDAO.createTransactionContext()) {
+      for (ComponentIdentifier componentIdentifier : componentIdentifiers) {
+        ComponentLegalFile result =
+            componentLegalFileDAO.getByOwnerIdAndComponentIdentifier(tx, ownerId, componentIdentifier);
+        if (result != null) {
+          componentLegalFileByComponentIdentifier
+              .put(LegalComponentIdentifierUtil.removeClassifierAndExtension(componentIdentifier), result);
+        }
+      }
+    }
+    return componentLegalFileByComponentIdentifier;
   }
 
   private Map<ComponentIdentifier, Set<ComponentLegalFileDTO>> getComponentLegalFilesByComponentIdentifier(

@@ -14,6 +14,8 @@ import javax.persistence.Table;
 
 import com.sonatype.insight.model.HasStringId;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * @since 1.105
  */
@@ -120,6 +122,6 @@ public class LegalFileOverride
   }
 
   public boolean isUserCreated() {
-    return originalContentHash == null;
+    return StringUtils.isBlank(originalContentHash);
   }
 }

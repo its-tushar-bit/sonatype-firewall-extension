@@ -11,11 +11,13 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ComponentLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.CopyrightOverrideDTO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
+import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
@@ -136,6 +138,93 @@ public class ComponentLegalServiceAuthzTest
         null,
         null
     );
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testSaveComponentLegalFile_ApplicationScope_Unauthenticated() {
+    componentLegalService
+        .saveComponentLegalFile(OwnerType.APPLICATION, app.getPublicId(), buildComponentLegalFileDTO());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testSaveComponentLegalFile_OrganizationScope_Unauthenticated() {
+    componentLegalService
+        .saveComponentLegalFile(OwnerType.ORGANIZATION, org.getPublicId(), buildComponentLegalFileDTO());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testSaveComponentLegalFile_RootScope_Unauthenticated() {
+    componentLegalService
+        .saveComponentLegalFile(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID,
+            buildComponentLegalFileDTO());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testSaveComponentLegalFile_ApplicationScope_Unauthorized() {
+    login();
+    componentLegalService
+        .saveComponentLegalFile(OwnerType.APPLICATION, app.getPublicId(), buildComponentLegalFileDTO());
+  }
+
+  @Test
+  public void testSaveComponentLegalFile_ApplicationScope_Authorized() {
+    grantLegalReviewerPermission(app.getId());
+    componentLegalService
+        .saveComponentLegalFile(OwnerType.APPLICATION, app.getPublicId(), buildComponentLegalFileDTO());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testSaveComponentLegalFile_OrganizationScope_Unauthorized() {
+    login();
+    componentLegalService
+        .saveComponentLegalFile(OwnerType.ORGANIZATION, org.getPublicId(), buildComponentLegalFileDTO());
+  }
+
+  @Test
+  public void testSaveComponentLegalFile_OrganizationScope_Authorized() {
+    grantLegalReviewerPermission(org.getId());
+    componentLegalService
+        .saveComponentLegalFile(OwnerType.APPLICATION, app.getPublicId(), buildComponentLegalFileDTO());
+    componentLegalService
+        .saveComponentLegalFile(OwnerType.ORGANIZATION, org.getPublicId(), buildComponentLegalFileDTO());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testSaveComponentLegalFile_RootScope_Unauthorized() {
+    login();
+    componentLegalService
+        .saveComponentLegalFile(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID,
+            buildComponentLegalFileDTO());
+  }
+
+  @Test
+  public void testSaveComponentLegalFile_RootScope_Authorized() {
+    grantLegalReviewerPermission(Organization.ROOT_ORGANIZATION_ID);
+    componentLegalService
+        .saveComponentLegalFile(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID,
+            buildComponentLegalFileDTO());
+    componentLegalService
+        .saveComponentLegalFile(OwnerType.ORGANIZATION, org.getPublicId(), buildComponentLegalFileDTO());
+    componentLegalService
+        .saveComponentLegalFile(OwnerType.APPLICATION, app.getPublicId(), buildComponentLegalFileDTO());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testSaveComponentLegalFile_Unauthorized_UpdateAtLowerScope() {
+    ComponentLegalFileDTO componentLegalFileDTO = buildComponentLegalFileDTO();
+    ComponentLegalFile componentLegalFile = tempEntity.newComponentLegalFile(
+        componentLegalFileDTO.getComponentIdentifier().toComponentIdentifier(), org.getId(),
+        ComponentLegalService.NOT_IMPLEMENTED);
+    componentLegalFileDTO.setId(componentLegalFile.getId());
+    grantLegalReviewerPermission(app.getId());
+    componentLegalService.saveComponentLegalFile(OwnerType.APPLICATION, app.getPublicId(), componentLegalFileDTO);
+  }
+
+  private ComponentLegalFileDTO buildComponentLegalFileDTO() {
+    ComponentLegalFileDTO componentLegalFileDTO = new ComponentLegalFileDTO();
+    componentLegalFileDTO.setComponentIdentifier(
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g", "a", "v")));
+    return componentLegalFileDTO;
   }
 
   @Test(expected = UnauthenticatedException.class)

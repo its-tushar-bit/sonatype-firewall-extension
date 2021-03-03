@@ -13,10 +13,9 @@ public class LegalFileOverrideTest
 {
   @Test
   public void testIsUserCreated_True() {
-    LegalFileOverride legalFileOverride = new LegalFileOverride();
-    assertThat(legalFileOverride.getOriginalContentHash()).isNull();
-
-    assertThat(legalFileOverride.isUserCreated()).isTrue();
+    assertThat(new LegalFileOverride(null, null, null, null, null, null).isUserCreated()).isTrue();
+    assertThat(new LegalFileOverride(null, "", null, null, null, null).isUserCreated()).isTrue();
+    assertThat(new LegalFileOverride(null, " \t", null, null, null, null).isUserCreated()).isTrue();
   }
 
   @Test

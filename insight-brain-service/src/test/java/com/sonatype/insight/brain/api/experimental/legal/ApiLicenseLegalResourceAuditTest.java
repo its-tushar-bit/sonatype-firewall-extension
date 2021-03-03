@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.api.experimental.legal;
 
+import java.util.Arrays;
+import java.util.Collections;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -12,17 +15,21 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ComponentLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.CopyrightOverrideDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.LegalFileOverrideDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
+import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
+import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
@@ -114,6 +121,59 @@ public class ApiLicenseLegalResourceAuditTest
         .post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_COMPONENT_COPYRIGHT, "unauthorized");
+    assertApplicationData(auditDTO, app);
+  }
+
+  @Test
+  public void testSaveComponentLegalFile() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentLegalFileDTO componentLegalFileDTO = new ComponentLegalFileDTO();
+    componentLegalFileDTO
+        .setComponentIdentifier(ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
+    LegalFileOverrideDTO notice1 =
+        new LegalFileOverrideDTO(LegalFileType.NOTICE, null, "notice1", ComponentLegalPartStatus.ENABLED);
+    LegalFileOverrideDTO notice2 =
+        new LegalFileOverrideDTO(LegalFileType.NOTICE, null, "notice2", ComponentLegalPartStatus.ENABLED);
+    LegalFileOverrideDTO notice3 =
+        new LegalFileOverrideDTO(LegalFileType.NOTICE, null, "notice3", ComponentLegalPartStatus.DISABLED);
+    LegalFileOverrideDTO license1 =
+        new LegalFileOverrideDTO(LegalFileType.LICENSE, null, "license1", ComponentLegalPartStatus.ENABLED);
+    LegalFileOverrideDTO license2 =
+        new LegalFileOverrideDTO(LegalFileType.LICENSE, null, "license2", ComponentLegalPartStatus.ENABLED);
+    LegalFileOverrideDTO license3 =
+        new LegalFileOverrideDTO(LegalFileType.LICENSE, null, "license3", ComponentLegalPartStatus.DISABLED);
+    componentLegalFileDTO.setLegalFileOverrides(Arrays.asList(notice1, notice2, notice3, license1, license2, license3));
+
+    HttpResponse response = restRequest().path(ApiLicenseLegalResource.COMPONENT_LEGAL_FILE_PATH)
+        .parameter(app.getType().toString(), app.getPublicId())
+        .body(componentLegalFileDTO)
+        .post();
+
+    ComponentLegalFileDTO resultDto = response.getBody(ComponentLegalFileDTO.class);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_COMPONENT_LEGAL_FILE, null);
+    assertApplicationData(auditDTO, app);
+    assertCustomObject(auditDTO, "componentIdentifier", componentIdentifier);
+    assertCustomData(auditDTO, "notices", Arrays
+        .asList(resultDto.getLegalFileOverrides().get(0).getId(), resultDto.getLegalFileOverrides().get(1).getId()));
+    assertCustomData(auditDTO, "licenses", Arrays
+        .asList(resultDto.getLegalFileOverrides().get(3).getId(), resultDto.getLegalFileOverrides().get(4).getId()));
+  }
+
+  @Test
+  public void testSaveComponentLegalFile_Unauthorized() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentLegalFile componentLegalFile =
+        tempEntity.newComponentLegalFile(componentIdentifier, app.getId(), "legalContentHash");
+
+    restRequest().path(ApiLicenseLegalResource.COMPONENT_LEGAL_FILE_PATH)
+        .parameter(app.getType().toString(), app.getPublicId())
+        .body(new ComponentLegalFileDTO(componentLegalFile, Collections.emptyList()))
+        .with(unauthorizedUser())
+        .post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_COMPONENT_LEGAL_FILE, "unauthorized");
     assertApplicationData(auditDTO, app);
   }
 

@@ -14,6 +14,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,18 +32,22 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationRep
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ComponentLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalFilterDTO;
+import com.sonatype.insight.brain.dataaccess.legal.ComponentLegalFileDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationAttributionDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
+import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -261,6 +266,31 @@ public class ApiLicenseLegalResourceTest
     assertThat(responseDto).isNotNull();
     assertThat(responseDto.getComponentIdentifier().toComponentIdentifier())
         .isEqualTo(componentIdentifier);
+  }
+
+  @Test
+  public void testSaveComponentLegalFile() throws Exception {
+    Owner owner = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentLegalFile componentLegalFile =
+        tempEntity.newComponentLegalFile(componentIdentifier, owner.getId(), "legalContentHash");
+    ComponentLegalFileDTO bodyDto = new ComponentLegalFileDTO(componentLegalFile, Collections.emptyList());
+    bodyDto.setLastUpdatedByUsername(null);
+    bodyDto.setLastUpdatedAt(null);
+    Date now = new Date();
+
+    HttpResponse response = restRequest().path(ApiLicenseLegalResource.COMPONENT_LEGAL_FILE_PATH)
+        .parameter(owner.getType(), owner.getPublicId())
+        .body(bodyDto)
+        .post();
+
+    assertResponseStatus(200, response);
+    ComponentLegalFileDTO responseDto = response.getBody(ComponentLegalFileDTO.class);
+    assertThat(responseDto).usingRecursiveComparison().ignoringExpectedNullFields().isEqualTo(bodyDto);
+    assertThat(responseDto.getLastUpdatedAt()).isAfterOrEqualTo(now);
+    assertThat(responseDto.getLastUpdatedByUsername()).isEqualTo(User.ADMIN_USERNAME);
+    assertThat(responseDto.getId()).isNotNull();
+    assertThat(new ComponentLegalFileDAO().getById(responseDto.getId())).isNotNull();
   }
 
   @Test

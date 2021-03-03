@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDashb
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ComponentLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalFilterDTO;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -53,6 +54,9 @@ public class ApiLicenseLegalResource
 
   public static final String COMPONENT_COPYRIGHT_PATH =
       "{ownerType: application|organization}/{ownerId}/component/copyright";
+
+  public static final String COMPONENT_LEGAL_FILE_PATH =
+      "{ownerType: application|organization}/{ownerId}/component/legalFile";
 
   public static final String COMPONENT_OBLIGATION_PATH =
       "{ownerType: application|organization}/{ownerId}/component/obligation";
@@ -134,6 +138,21 @@ public class ApiLicenseLegalResource
       @PathParam("ownerId") String ownerId)
   {
     return componentLegalService.saveComponentCopyright(ownerType, ownerId, componentCopyrightDTO);
+  }
+
+  /**
+   * @since 1.107
+   */
+  @POST
+  @Path(COMPONENT_LEGAL_FILE_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.UPDATE_COMPONENT_LEGAL_FILE)
+  public ComponentLegalFileDTO saveComponentLegalFile(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId,
+      ComponentLegalFileDTO componentLegalFileDTO)
+  {
+    return componentLegalService.saveComponentLegalFile(ownerType, ownerId, componentLegalFileDTO);
   }
 
   /**

@@ -6,6 +6,9 @@
 package com.sonatype.insight.brain.api.experimental.legal;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -15,19 +18,26 @@ import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ComponentLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.CopyrightOverrideDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.LegalFileOverrideDTO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentCopyrightDAO;
+import com.sonatype.insight.brain.dataaccess.legal.ComponentLegalFileDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationAttributionDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
+import com.sonatype.insight.brain.dataaccess.legal.LegalFileOverrideDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
+import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
+import com.sonatype.insight.brain.model.legal.LegalFileOverride;
+import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
@@ -38,6 +48,8 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
+import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -57,6 +69,12 @@ public class ComponentLegalServiceTest
 
   @Inject
   private ComponentObligationAttributionDAO componentObligationAttributionDAO;
+
+  @Inject
+  private ComponentLegalFileDAO componentLegalFileDAO;
+
+  @Inject
+  private LegalFileOverrideDAO legalFileOverrideDAO;
 
   @Inject
   private TestProductLicense testProductLicense;
@@ -383,6 +401,300 @@ public class ComponentLegalServiceTest
 
     componentLegalService
         .saveComponentCopyright(OwnerType.APPLICATION, application.getPublicId(), componentCopyrightDTO);
+  }
+
+  @Test
+  public void testSaveComponentLegalFile_Unlicensed() {
+    testProductLicense.setMissingFeatures(LicensedFeature.ADVANCED_LEGAL_PACK);
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> componentLegalService.saveComponentLegalFile(null, null, null));
+  }
+
+  @Test
+  public void testSaveComponentLegalFile_NullComponentIdentifier() {
+    Application application = tempEntity.newApplicationWithParent();
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
+        componentLegalService.saveComponentLegalFile(
+            application.getType(),
+            application.getPublicId(),
+            new ComponentLegalFileDTO()
+        )
+    ).withMessageContaining("The component identifier cannot be null.");
+  }
+
+  @Test
+  public void testSaveComponentLegalFile_InvalidComponentIdentifier() {
+    Application application = tempEntity.newApplicationWithParent();
+    ComponentLegalFileDTO componentLegalFileDTO = new ComponentLegalFileDTO();
+    componentLegalFileDTO.setComponentIdentifier(new ApiComponentIdentifierDTOV2());
+    assertThatExceptionOfType(InvalidComponentIdentifierException.class).isThrownBy(() ->
+        componentLegalService.saveComponentLegalFile(
+            application.getType(),
+            application.getPublicId(),
+            componentLegalFileDTO
+        )
+    );
+  }
+
+  @Test
+  public void testSaveComponentLegalFile_LegalFileOverrideNullLegalFileType() {
+    Application application = tempEntity.newApplicationWithParent();
+    ComponentLegalFileDTO componentLegalFileDTO = new ComponentLegalFileDTO();
+    componentLegalFileDTO.setComponentIdentifier(
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g", "a", "v")));
+    LegalFileOverrideDTO legalFileOverrideDTO = new LegalFileOverrideDTO();
+    componentLegalFileDTO.setLegalFileOverrides(Collections.singletonList(legalFileOverrideDTO));
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
+        componentLegalService.saveComponentLegalFile(
+            application.getType(),
+            application.getPublicId(),
+            componentLegalFileDTO
+        )
+    ).withMessageContaining("LegalFileOverride must have a legal file type.");
+  }
+
+  @Test
+  public void testSaveComponentLegalFile_LegalFileOverrideNullStatus() {
+    Application application = tempEntity.newApplicationWithParent();
+    ComponentLegalFileDTO componentLegalFileDTO = new ComponentLegalFileDTO();
+    componentLegalFileDTO.setComponentIdentifier(
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g", "a", "v")));
+    LegalFileOverrideDTO legalFileOverrideDTO = new LegalFileOverrideDTO();
+    legalFileOverrideDTO.setLegalFileType(LegalFileType.NOTICE);
+    componentLegalFileDTO.setLegalFileOverrides(Collections.singletonList(legalFileOverrideDTO));
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
+        componentLegalService.saveComponentLegalFile(
+            application.getType(),
+            application.getPublicId(),
+            componentLegalFileDTO
+        )
+    ).withMessageContaining("LegalFileOverride must have a status.");
+  }
+
+  @Test
+  public void testSaveComponentLegalFile_New() {
+    Application app = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentLegalFileDTO componentLegalFileDTO = new ComponentLegalFileDTO();
+    componentLegalFileDTO
+        .setComponentIdentifier(ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
+    LegalFileOverrideDTO notice1 = new LegalFileOverrideDTO(LegalFileType.NOTICE, "originalContentHash1", "content1",
+        ComponentLegalPartStatus.ENABLED);
+    LegalFileOverrideDTO notice2 = new LegalFileOverrideDTO(LegalFileType.NOTICE, null, "content2",
+        ComponentLegalPartStatus.DISABLED);
+    LegalFileOverrideDTO notice3 = new LegalFileOverrideDTO(LegalFileType.NOTICE, "originalContentHash2", null,
+        ComponentLegalPartStatus.ENABLED);
+    LegalFileOverrideDTO notice4 = new LegalFileOverrideDTO(LegalFileType.NOTICE, null, null,
+        ComponentLegalPartStatus.DISABLED);
+    LegalFileOverrideDTO license1 = new LegalFileOverrideDTO(LegalFileType.LICENSE, "originalContentHash3", "content3",
+        ComponentLegalPartStatus.ENABLED);
+    LegalFileOverrideDTO license2 = new LegalFileOverrideDTO(LegalFileType.LICENSE, null, "content4",
+        ComponentLegalPartStatus.DISABLED);
+    LegalFileOverrideDTO license3 = new LegalFileOverrideDTO(LegalFileType.LICENSE, "originalContentHash4", null,
+        ComponentLegalPartStatus.ENABLED);
+    LegalFileOverrideDTO license4 = new LegalFileOverrideDTO(LegalFileType.LICENSE, null, null,
+        ComponentLegalPartStatus.DISABLED);
+    componentLegalFileDTO.setLegalFileOverrides(
+        Arrays.asList(notice1, notice2, notice3, notice4, license1, license2, license3, license4));
+    Date date = new Date();
+
+    ComponentLegalFileDTO resultDto =
+        componentLegalService.saveComponentLegalFile(app.getType(), app.getPublicId(), componentLegalFileDTO);
+
+    assertComponentLegalFile(resultDto, componentLegalFileDTO, app.getId(), date);
+    assertComponentLegalFile(resultDto,
+        new ComponentLegalFileDTO(componentLegalFileDAO.getById(resultDto.getId()), Collections.emptyList()),
+        app.getId(), date);
+    notice3.setContent("");
+    license3.setContent("");
+    assertThat(resultDto.getLegalFileOverrides()).usingRecursiveFieldByFieldElementComparator(
+        RecursiveComparisonConfiguration.builder().withIgnoredFields("id").build())
+        .containsExactlyInAnyOrder(notice1, notice2, notice3, license1, license2, license3);
+    for (LegalFileOverrideDTO legalFileOverride : resultDto.getLegalFileOverrides()) {
+      assertThat(legalFileOverride.getId()).isNotNull();
+      assertLegalFileOverride(new LegalFileOverrideDTO(legalFileOverrideDAO.getById(legalFileOverride.getId())),
+          legalFileOverride);
+    }
+  }
+
+  @Test
+  public void testSaveComponentLegalFile_NewConflict() {
+    Organization org = tempEntity.newOrganization();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentLegalFile componentLegalFile =
+        tempEntity.newComponentLegalFile(componentIdentifier, org.getId(), "legalContentHash");
+    LegalFileOverride noticeOverride =
+        tempEntity.newLegalFileOverride(LegalFileType.NOTICE, "originalContentHash1", "hash1",
+            "content1", ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
+    ComponentLegalFileDTO componentLegalFileDTO = new ComponentLegalFileDTO();
+    componentLegalFileDTO
+        .setComponentIdentifier(ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
+    LegalFileOverrideDTO notice = new LegalFileOverrideDTO(noticeOverride);
+    LegalFileOverrideDTO license = new LegalFileOverrideDTO(LegalFileType.LICENSE, "originalContentHash2", "content2",
+        ComponentLegalPartStatus.ENABLED);
+    componentLegalFileDTO.setLegalFileOverrides(Arrays.asList(notice, license));
+    Date date = new Date();
+
+    ComponentLegalFileDTO resultDto = componentLegalService
+        .saveComponentLegalFile(org.getType(), org.getPublicId(), componentLegalFileDTO);
+
+    assertThat(componentLegalFileDAO.getById(componentLegalFile.getId())).isNull();
+    assertComponentLegalFile(resultDto, componentLegalFileDTO, org.getId(), date);
+    assertComponentLegalFile(resultDto,
+        new ComponentLegalFileDTO(componentLegalFileDAO.getById(resultDto.getId()), Collections.emptyList()),
+        org.getId(), date);
+    assertThat(resultDto.getLegalFileOverrides()).usingRecursiveFieldByFieldElementComparator(
+        RecursiveComparisonConfiguration.builder().withIgnoredFields("id").build())
+        .containsExactlyInAnyOrder(notice, license);
+    for (LegalFileOverrideDTO legalFileOverride : resultDto.getLegalFileOverrides()) {
+      assertThat(legalFileOverride.getId()).isNotNull().isNotEqualTo(noticeOverride.getId());
+      assertLegalFileOverride(new LegalFileOverrideDTO(legalFileOverrideDAO.getById(legalFileOverride.getId())),
+          legalFileOverride);
+    }
+  }
+
+  @Test
+  public void testSaveComponentLegalFile_ExistingConflict() {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentLegalFile orgComponentLegalFile =
+        tempEntity.newComponentLegalFile(componentIdentifier, app.getOrganizationId(), "legalContentHash1");
+    ComponentLegalFile appComponentLegalFile =
+        tempEntity.newComponentLegalFile(componentIdentifier, app.getId(), "legalContentHash2");
+    ComponentLegalFileDTO componentLegalFileDTO = new ComponentLegalFileDTO();
+    componentLegalFileDTO.setId(appComponentLegalFile.getId());
+    componentLegalFileDTO
+        .setComponentIdentifier(ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
+    LegalFileOverrideDTO notice1 = new LegalFileOverrideDTO(LegalFileType.NOTICE, "originalContentHash1", "content1",
+        ComponentLegalPartStatus.ENABLED);
+    LegalFileOverrideDTO license1 = new LegalFileOverrideDTO(LegalFileType.LICENSE, "originalContentHash2", "content2",
+        ComponentLegalPartStatus.ENABLED);
+    componentLegalFileDTO.setLegalFileOverrides(Arrays.asList(notice1, license1));
+    Date date = new Date();
+
+    ComponentLegalFileDTO resultDto = componentLegalService
+        .saveComponentLegalFile(org.getType(), org.getPublicId(), componentLegalFileDTO);
+
+    assertThat(componentLegalFileDAO.getById(orgComponentLegalFile.getId())).isNull();
+    assertComponentLegalFile(resultDto, componentLegalFileDTO, org.getId(), date);
+    assertComponentLegalFile(resultDto,
+        new ComponentLegalFileDTO(componentLegalFileDAO.getById(resultDto.getId()), Collections.emptyList()),
+        org.getId(), date);
+    assertThat(resultDto.getLegalFileOverrides()).usingRecursiveFieldByFieldElementComparator(
+        RecursiveComparisonConfiguration.builder().withIgnoredFields("id").build())
+        .containsExactlyInAnyOrder(notice1, license1);
+    for (LegalFileOverrideDTO legalFileOverride : resultDto.getLegalFileOverrides()) {
+      assertThat(legalFileOverride.getId()).isNotNull();
+      assertLegalFileOverride(new LegalFileOverrideDTO(legalFileOverrideDAO.getById(legalFileOverride.getId())),
+          legalFileOverride);
+    }
+  }
+
+  private void assertComponentLegalFile(
+      ComponentLegalFileDTO actual,
+      ComponentLegalFileDTO expected,
+      String expectedOwnerId,
+      Date expectedDate)
+  {
+    if (expected.getId() == null) {
+      assertThat(actual.getId()).isNotNull();
+    }
+    else {
+      assertThat(actual.getId()).isEqualTo(expected.getId());
+    }
+    assertThat(actual.getComponentIdentifier()).usingRecursiveComparison().isEqualTo(expected.getComponentIdentifier());
+    assertThat(actual.getOwnerId()).isEqualTo(expectedOwnerId);
+    assertThat(actual.getLastUpdatedAt()).isAfterOrEqualTo(expectedDate);
+    assertThat(actual.getLastUpdatedByUsername()).isEqualTo(USERNAME);
+  }
+
+  private void assertLegalFileOverride(LegalFileOverrideDTO actual, LegalFileOverrideDTO expected) {
+    if (expected.getId() == null) {
+      assertThat(actual.getId()).isNotNull();
+    }
+    else {
+      assertThat(actual.getId()).isEqualTo(expected.getId());
+    }
+    assertThat(actual.getLegalFileType()).isEqualTo(expected.getLegalFileType());
+    assertThat(actual.getOriginalContentHash()).isEqualTo(expected.getOriginalContentHash());
+    assertThat(actual.getContent()).isEqualTo(StringUtils.trimToEmpty(expected.getContent()));
+    assertThat(actual.getStatus()).isEqualTo(expected.getStatus());
+  }
+
+  @Test
+  public void testSaveComponentLegalFile_Existing_UpdatesAllFields() {
+    Application app = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
+    ComponentLegalFile componentLegalFile =
+        tempEntity.newComponentLegalFile(componentIdentifier1, app.getId(), "legalContentHash1");
+    LegalFileOverride legalFileOverride =
+        tempEntity.newLegalFileOverride(LegalFileType.NOTICE, "originalContentHash", "hash",
+            "", ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
+    ComponentLegalFileDTO componentLegalFileDTO = new ComponentLegalFileDTO();
+    componentLegalFileDTO.setId(componentLegalFile.getId());
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2");
+    componentLegalFileDTO
+        .setComponentIdentifier(ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier2));
+    LegalFileOverrideDTO legalFileOverrideDTO = new LegalFileOverrideDTO(LegalFileType.LICENSE, null, "content",
+        ComponentLegalPartStatus.DISABLED);
+    legalFileOverrideDTO.setId(legalFileOverride.getId());
+    componentLegalFileDTO.setLegalFileOverrides(Collections.singletonList(legalFileOverrideDTO));
+
+    ComponentLegalFileDTO resultDto =
+        componentLegalService.saveComponentLegalFile(app.getType(), app.getPublicId(), componentLegalFileDTO);
+
+    assertComponentLegalFile(resultDto, componentLegalFileDTO, app.getId(), componentLegalFile.getLastUpdatedAt());
+    assertComponentLegalFile(resultDto,
+        new ComponentLegalFileDTO(componentLegalFileDAO.getById(resultDto.getId()), Collections.emptyList()),
+        app.getId(), componentLegalFile.getLastUpdatedAt());
+    assertThat(resultDto.getLegalFileOverrides()).usingRecursiveFieldByFieldElementComparator(
+        RecursiveComparisonConfiguration.builder().build())
+        .containsExactly(legalFileOverrideDTO);
+    assertLegalFileOverride(new LegalFileOverrideDTO(legalFileOverrideDAO.getById(legalFileOverride.getId())),
+        legalFileOverrideDTO);
+  }
+
+  @Test
+  public void testSaveComponentLegalFile_Existing_DeletesCustomOverridesWithNoContent() {
+    Application app = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
+    ComponentLegalFile componentLegalFile =
+        tempEntity.newComponentLegalFile(componentIdentifier, app.getId(), "legalContentHash1");
+    LegalFileOverride legalFileOverride1 = tempEntity.newLegalFileOverride(LegalFileType.NOTICE, "originalContentHash1",
+        "hash1", "content", ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
+    LegalFileOverride legalFileOverride2 = tempEntity.newLegalFileOverride(LegalFileType.NOTICE, "originalContentHash2",
+        "hash2", "", ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
+    LegalFileOverride legalFileOverride3 = tempEntity.newLegalFileOverride(LegalFileType.NOTICE, null,
+        "hash1", "content", ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
+    ComponentLegalFileDTO componentLegalFileDTO = new ComponentLegalFileDTO();
+    componentLegalFileDTO.setId(componentLegalFile.getId());
+    componentLegalFileDTO
+        .setComponentIdentifier(ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
+    LegalFileOverrideDTO legalFileOverrideDTO1 = new LegalFileOverrideDTO(legalFileOverride1);
+    legalFileOverrideDTO1.setContent("");
+    LegalFileOverrideDTO legalFileOverrideDTO2 = new LegalFileOverrideDTO(legalFileOverride2);
+    legalFileOverrideDTO2.setContent("");
+    LegalFileOverrideDTO legalFileOverrideDTO3 = new LegalFileOverrideDTO(legalFileOverride3);
+    legalFileOverrideDTO3.setContent("");
+    componentLegalFileDTO
+        .setLegalFileOverrides(Arrays.asList(legalFileOverrideDTO1, legalFileOverrideDTO2, legalFileOverrideDTO3));
+
+    ComponentLegalFileDTO resultDto =
+        componentLegalService.saveComponentLegalFile(app.getType(), app.getPublicId(), componentLegalFileDTO);
+
+    assertComponentLegalFile(resultDto, componentLegalFileDTO, app.getId(), componentLegalFile.getLastUpdatedAt());
+    assertComponentLegalFile(resultDto,
+        new ComponentLegalFileDTO(componentLegalFileDAO.getById(resultDto.getId()), Collections.emptyList()),
+        app.getId(), componentLegalFile.getLastUpdatedAt());
+    assertThat(resultDto.getLegalFileOverrides()).usingRecursiveFieldByFieldElementComparator(
+        RecursiveComparisonConfiguration.builder().build())
+        .containsExactlyInAnyOrder(legalFileOverrideDTO1, legalFileOverrideDTO2);
+    assertLegalFileOverride(new LegalFileOverrideDTO(legalFileOverrideDAO.getById(legalFileOverrideDTO1.getId())),
+        legalFileOverrideDTO1);
+    assertLegalFileOverride(new LegalFileOverrideDTO(legalFileOverrideDAO.getById(legalFileOverrideDTO2.getId())),
+        legalFileOverrideDTO2);
+    assertThat(legalFileOverrideDAO.getById(legalFileOverrideDTO3.getId())).isNull();
   }
 
   @Test

@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Objects;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
+import com.sonatype.insight.brain.model.legal.ComponentCopyright;
+import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 
 /**
  * @since 1.101
@@ -30,14 +32,24 @@ public class ApiLicenseLegalDataDTO
   public List<ApiLicenseLegalFileDTO> noticeFiles;
 
   /**
-   * Persisted {@link ComponentCopyrightDTO} identifier associated with this component, if any.
+   * Persisted {@link ComponentCopyright} identifier associated with this component, if any.
    */
   public String componentCopyrightId;
 
   /**
-   * Internal owner ID of the {@link ComponentCopyrightDTO} scope.
+   * Internal owner ID of the {@link ComponentCopyright} scope.
    */
   public String componentCopyrightScopeOwnerId;
+
+  /**
+   * Persisted {@link ComponentLegalFile} identifier associated with this component, if any.
+   */
+  public String componentLegalFileId;
+
+  /**
+   * Internal owner ID of the {@link ComponentLegalFile} scope.
+   */
+  public String componentLegalFileScopeOwnerId;
 
   public ApiLicenseLegalDataDTO() {
     // for jackson
@@ -52,7 +64,9 @@ public class ApiLicenseLegalDataDTO
       final List<ApiLicenseLegalFileDTO> licenseFiles,
       final List<ApiLicenseLegalFileDTO> noticeFiles,
       final String componentCopyrightId,
-      final String componentCopyrightScopeOwnerId)
+      final String componentCopyrightScopeOwnerId,
+      final String componentLegalFileId,
+      final String componentLegalFileScopeOwnerId)
   {
     this.declaredLicenses = declaredLicenses;
     this.observedLicenses = observedLicenses;
@@ -63,6 +77,8 @@ public class ApiLicenseLegalDataDTO
     this.noticeFiles = noticeFiles;
     this.componentCopyrightId = componentCopyrightId;
     this.componentCopyrightScopeOwnerId = componentCopyrightScopeOwnerId;
+    this.componentLegalFileId = componentLegalFileId;
+    this.componentLegalFileScopeOwnerId = componentLegalFileScopeOwnerId;
   }
 
   @Override
@@ -82,13 +98,16 @@ public class ApiLicenseLegalDataDTO
         Objects.equals(licenseFiles, that.licenseFiles) &&
         Objects.equals(noticeFiles, that.noticeFiles) &&
         Objects.equals(componentCopyrightId, that.componentCopyrightId) &&
-        Objects.equals(componentCopyrightScopeOwnerId, that.componentCopyrightScopeOwnerId);
+        Objects.equals(componentCopyrightScopeOwnerId, that.componentCopyrightScopeOwnerId) &&
+        Objects.equals(componentLegalFileId, that.componentLegalFileId) &&
+        Objects.equals(componentLegalFileScopeOwnerId, that.componentLegalFileScopeOwnerId);
   }
 
   @Override
   public int hashCode() {
     return Objects
         .hash(declaredLicenses, observedLicenses, effectiveLicenses, effectiveLicenseThreats, copyrights, licenseFiles,
-            noticeFiles, componentCopyrightId, componentCopyrightScopeOwnerId);
+            noticeFiles, componentCopyrightId, componentCopyrightScopeOwnerId, componentLegalFileId,
+            componentLegalFileScopeOwnerId);
   }
 }

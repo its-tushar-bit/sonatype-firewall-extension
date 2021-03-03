@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalMetadataDTO;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
+import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.legal.CopyrightOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileOverride;
@@ -48,6 +49,7 @@ public class LegalReportBuilder
       Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>> componentLegalCommentsByComponentIdentifier,
       Map<ComponentIdentifier, List<CopyrightOverride>> copyrightOverridesByComponentIdentifier,
       Map<ComponentIdentifier, ComponentCopyright> componentCopyrightsByComponentIdentifier,
+      Map<ComponentIdentifier, ComponentLegalFile> componentLegalFileByComponentIdentifier,
       Map<ComponentIdentifier, Set<ComponentLegalFileDTO>> componentLegalFilesByComponentIdentifier,
       Map<ComponentIdentifier, List<LegalFileOverride>> licenseOverridesByComponentIdentifier,
       Map<ComponentIdentifier, List<LegalFileOverride>> noticeOverridesByComponentIdentifier,
@@ -56,8 +58,11 @@ public class LegalReportBuilder
       Map<String, LicenseMetadataDTO> licenseMetadataById)
   {
     List<ApiLicenseLegalComponentDTO> components =
-        getLicenseLegalComponents(rawReport, componentLegalCommentsByComponentIdentifier,
-            copyrightOverridesByComponentIdentifier, componentCopyrightsByComponentIdentifier,
+        getLicenseLegalComponents(rawReport,
+            componentLegalCommentsByComponentIdentifier,
+            copyrightOverridesByComponentIdentifier,
+            componentCopyrightsByComponentIdentifier,
+            componentLegalFileByComponentIdentifier,
             componentLegalFilesByComponentIdentifier,
             licenseOverridesByComponentIdentifier, noticeOverridesByComponentIdentifier);
     Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata =
@@ -70,6 +75,7 @@ public class LegalReportBuilder
       Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>> componentLegalCommentsByComponentIdentifier,
       Map<ComponentIdentifier, List<CopyrightOverride>> copyrightOverridesByComponentIdentifier,
       Map<ComponentIdentifier, ComponentCopyright> componentCopyrightsByComponentIdentifier,
+      Map<ComponentIdentifier, ComponentLegalFile> componentLegalFileByComponentIdentifier,
       Map<ComponentIdentifier, Set<ComponentLegalFileDTO>> componentLegalFilesByComponentIdentifier,
       Map<ComponentIdentifier, List<LegalFileOverride>> licenseOverridesByComponentIdentifier,
       Map<ComponentIdentifier, List<LegalFileOverride>> noticeOverridesByComponentIdentifier)
@@ -82,6 +88,7 @@ public class LegalReportBuilder
               componentLegalCommentsByComponentIdentifier.getOrDefault(key, new LinkedHashSet<>()),
               copyrightOverridesByComponentIdentifier.getOrDefault(key, Collections.emptyList()),
               componentCopyrightsByComponentIdentifier.getOrDefault(key, null),
+              componentLegalFileByComponentIdentifier.getOrDefault(key, null),
               componentLegalFilesByComponentIdentifier.getOrDefault(key, new LinkedHashSet<>()),
               licenseOverridesByComponentIdentifier.getOrDefault(key, Collections.emptyList()),
               noticeOverridesByComponentIdentifier.getOrDefault(key, Collections.emptyList())));
@@ -94,6 +101,7 @@ public class LegalReportBuilder
       Set<ComponentLegalCommentDTO> componentLegalComments,
       List<CopyrightOverride> copyrightOverrides,
       ComponentCopyright componentCopyright,
+      ComponentLegalFile componentLegalFile,
       Set<ComponentLegalFileDTO> componentLegalFiles,
       List<LegalFileOverride> licenseOverrides,
       List<LegalFileOverride> noticeOverrides)
@@ -111,7 +119,9 @@ public class LegalReportBuilder
         getLegalFiles(LegalFileType.LICENSE, componentLegalFiles, licenseOverrides),
         getLegalFiles(LegalFileType.NOTICE, componentLegalFiles, noticeOverrides),
         componentCopyright == null ? null : componentCopyright.getId(),
-        componentCopyright == null ? null : componentCopyright.getOwnerId());
+        componentCopyright == null ? null : componentCopyright.getOwnerId(),
+        componentLegalFile == null ? null : componentLegalFile.getId(),
+        componentLegalFile == null ? null : componentLegalFile.getOwnerId());
   }
 
   private List<String> toLicenseIds(List<ApiLicenseDTO> licenses) {
@@ -150,12 +160,13 @@ public class LegalReportBuilder
     if (legalFileOverrides.isEmpty()) {
       return componentLegalFiles.stream()
           .flatMap(c -> c.getLegalFiles().stream())
-          .filter(c -> c.getType().equals(legalFileType.toString()))
+          .filter(c -> c.getType().equalsIgnoreCase(legalFileType.toString()))
           .map(legalFileDTO -> new ApiLicenseLegalFileDTO(
               null,
               legalFileDTO.getRelPath(),
               legalFileDTO.getContent(),
-              legalFileDTO.getContentHash()))
+              legalFileDTO.getContentHash(),
+              ComponentLegalPartStatus.ENABLED))
           .collect(Collectors.toList());
     }
 
@@ -173,7 +184,8 @@ public class LegalReportBuilder
               legalFileOverride.getId(),
               relPath,
               legalFileOverride.getContent(),
-              legalFileOverride.getOriginalContentHash());
+              legalFileOverride.getOriginalContentHash(),
+              legalFileOverride.getStatus());
         })
         .collect(Collectors.toList());
   }

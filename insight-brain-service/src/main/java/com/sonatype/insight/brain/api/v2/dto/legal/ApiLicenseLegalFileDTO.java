@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.api.v2.dto.legal;
 
 import java.util.Objects;
 
+import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
+
 public class ApiLicenseLegalFileDTO
 {
   public String id;
@@ -17,6 +19,8 @@ public class ApiLicenseLegalFileDTO
 
   public String originalContentHash;
 
+  public ComponentLegalPartStatus status;
+
   public ApiLicenseLegalFileDTO() {
     //for jackson
   }
@@ -25,12 +29,14 @@ public class ApiLicenseLegalFileDTO
       final String id,
       final String relPath,
       final String content,
-      final String originalContentHash)
+      final String originalContentHash,
+      final ComponentLegalPartStatus status)
   {
     this.id = id;
     this.relPath = relPath;
     this.content = content;
     this.originalContentHash = originalContentHash;
+    this.status = status;
   }
 
   @Override
@@ -44,12 +50,13 @@ public class ApiLicenseLegalFileDTO
     ApiLicenseLegalFileDTO that = (ApiLicenseLegalFileDTO) o;
     return Objects.equals(id, that.id) && Objects.equals(relPath, that.relPath) &&
         Objects.equals(content, that.content) &&
-        Objects.equals(originalContentHash, that.originalContentHash);
+        Objects.equals(originalContentHash, that.originalContentHash) &&
+        Objects.equals(status, that.status);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, relPath, content, originalContentHash);
+    return Objects.hash(id, relPath, content, originalContentHash, status);
   }
 
   @Override
@@ -59,6 +66,7 @@ public class ApiLicenseLegalFileDTO
         ", relPath='" + relPath + '\'' +
         ", content='" + content + '\'' +
         ", originalContentHash='" + originalContentHash + '\'' +
+        ", status='" + status + '\'' +
         '}';
   }
 }

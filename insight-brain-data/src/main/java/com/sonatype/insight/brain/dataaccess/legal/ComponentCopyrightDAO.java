@@ -10,7 +10,9 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.legal.CopyrightOverride;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -60,6 +62,31 @@ public class ComponentCopyrightDAO
   {
     try (TransactionContext tx = createTransactionContext()) {
       return getByOwnerIdAndComponentIdentifier(tx, ownerId, componentIdentifier);
+    }
+  }
+
+  public ComponentCopyright getByOwnerIdAndComponentIdentifierWithHierarchy(
+      TransactionContext tx,
+      String ownerId,
+      ComponentIdentifier componentIdentifier)
+  {
+    OwnerDAO ownerDAO = new OwnerDAO();
+    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
+      ComponentCopyright componentCopyright =
+          getByOwnerIdAndComponentIdentifier(tx, owner.getId(), componentIdentifier);
+      if (componentCopyright != null) {
+        return componentCopyright;
+      }
+    }
+    return null;
+  }
+
+  public ComponentCopyright getByOwnerIdAndComponentIdentifierWithHierarchy(
+      String ownerId,
+      ComponentIdentifier componentIdentifier)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByOwnerIdAndComponentIdentifierWithHierarchy(tx, ownerId, componentIdentifier);
     }
   }
 

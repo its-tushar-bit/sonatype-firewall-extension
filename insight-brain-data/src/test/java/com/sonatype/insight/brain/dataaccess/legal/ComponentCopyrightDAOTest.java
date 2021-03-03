@@ -10,6 +10,7 @@ import java.util.Date;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.legal.CopyrightOverride;
@@ -143,6 +144,49 @@ public class ComponentCopyrightDAOTest
 
     assertThat(dao.getByOwnerIdAndComponentIdentifier(organization.getId(), componentIdentifier))
         .usingRecursiveComparison().isEqualTo(componentCopyright);
+  }
+
+  @Test
+  public void testGetByOwnerIdAndComponentIdentifierWithHierarchy() {
+    ComponentIdentifier compIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentCopyright rootOrgComponentCopyright = tempEntity.newComponentCopyright(compIdentifier,
+        Organization.ROOT_ORGANIZATION_ID, "legalContentHash1");
+    ComponentCopyright orgComponentCopyright = tempEntity.newComponentCopyright(compIdentifier,
+        organization.getId(), "legalContentHash2");
+    ComponentCopyright appComponentCopyright = tempEntity.newComponentCopyright(compIdentifier,
+        application.getId(), "legalContentHash3");
+
+    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(Organization.ROOT_ORGANIZATION_ID, compIdentifier))
+        .usingRecursiveComparison().isEqualTo(rootOrgComponentCopyright);
+    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(organization.getId(), compIdentifier))
+        .usingRecursiveComparison().isEqualTo(orgComponentCopyright);
+    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(), compIdentifier))
+        .usingRecursiveComparison().isEqualTo(appComponentCopyright);
+
+    dao.delete(appComponentCopyright);
+
+    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(Organization.ROOT_ORGANIZATION_ID, compIdentifier))
+        .usingRecursiveComparison().isEqualTo(rootOrgComponentCopyright);
+    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(organization.getId(), compIdentifier))
+        .usingRecursiveComparison().isEqualTo(orgComponentCopyright);
+    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(), compIdentifier))
+        .usingRecursiveComparison().isEqualTo(orgComponentCopyright);
+
+    dao.delete(orgComponentCopyright);
+
+    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(Organization.ROOT_ORGANIZATION_ID, compIdentifier))
+        .usingRecursiveComparison().isEqualTo(rootOrgComponentCopyright);
+    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(organization.getId(), compIdentifier))
+        .usingRecursiveComparison().isEqualTo(rootOrgComponentCopyright);
+    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(), compIdentifier))
+        .usingRecursiveComparison().isEqualTo(rootOrgComponentCopyright);
+
+    dao.delete(rootOrgComponentCopyright);
+
+    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(Organization.ROOT_ORGANIZATION_ID, compIdentifier))
+        .isNull();
+    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(organization.getId(), compIdentifier)).isNull();
+    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(), compIdentifier)).isNull();
   }
 
   @Test

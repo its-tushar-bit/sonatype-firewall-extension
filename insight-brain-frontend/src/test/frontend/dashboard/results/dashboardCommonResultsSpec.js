@@ -54,23 +54,27 @@ describe('dashboardCommonResultsSpec', function() {
 
     it('returns true when results array is not empty', function() {
       vm.results = [{}, {}];
+      vm.numResults = 2;
       expect(vm.loadCommonResults()).toBe(true);
     });
 
     it('returns true when results array length is greater than maxResults', function() {
       vm.results = [{}, {}];
+      vm.numResults = 2;
       expect(vm.maxResults).toBe(1);
       expect(vm.loadCommonResults()).toBe(true);
     });
 
     it('returns false when results array length is not greater than maxResults', function() {
       vm.results = [{}];
+      vm.numResults = 1;
       expect(vm.maxResults).toBe(1);
       expect(vm.loadCommonResults()).toBe(false);
     });
 
     it('returns true when results array length is not greater than maxResults but needsAcknowledgement is true', () => {
       vm.results = [{}];
+      vm.numResults = 1;
       vm.needsAcknowledgement = true;
       expect(vm.maxResults).toBe(1);
       expect(vm.loadCommonResults()).toBe(true);

@@ -38,7 +38,7 @@
                mask-message="">
           <tr id="app{{$index}}_"
               class="iq-table-row applications-row total-application-risks"
-              ng-repeat-start="application in vm.results.applications.results | limitTo: vm.maxResults">
+              ng-repeat-start="application in vm.results.applications.results">
             <td class="iq-cell iq-cell--label iq-cell--application-name"
                 iq-tooltip
                 tooltip-attach-to-body
@@ -90,6 +90,7 @@
           <tr class="iq-footer-row">
             <td class="iq-footer-cell">
               <dashboard-common-results results="vm.results.applications.results"
+                                        num-results="vm.results.applications.numResults"
                                         is-violations-tab="false"
                                         needs-acknowledgement="vm.needsAcknowledgement"
                                         max-results="vm.maxResults"

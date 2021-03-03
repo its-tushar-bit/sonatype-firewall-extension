@@ -104,6 +104,7 @@ describe('DashboardComponentsTable', function() {
       const dashboardComponentProps = {
         componentResults: {
           results: resultsRange,
+          numResults: 120,
           sortFields: ['-score']
         }
       };
@@ -122,6 +123,7 @@ describe('DashboardComponentsTable', function() {
       const dashboardComponentProps = {
         componentResults: {
           results: resultsRange,
+          numResults: 120,
           sortFields: ['-score']
         }
       };

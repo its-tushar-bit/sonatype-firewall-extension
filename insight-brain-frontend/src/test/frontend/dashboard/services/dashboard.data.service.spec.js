@@ -17,7 +17,7 @@ describe('dashboard.data.service.spec', function() {
   const filter = { filterParam: 'filter value' };
 
   const expectedRequestPayload = {
-    maxResults: 101,
+    maxResults: 100,
     organizationIds: undefined,
     applicationIds: undefined,
     stageIds: undefined,

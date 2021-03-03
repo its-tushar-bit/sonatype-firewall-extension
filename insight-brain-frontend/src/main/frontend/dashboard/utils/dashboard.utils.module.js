@@ -36,7 +36,7 @@ export function createDashboardDataRequestPayload(filter, maxResults, sortFields
     params.orderBy = sortFields.join();
   }
   if (maxResults) {
-    params.maxResults = maxResults + 1;
+    params.maxResults = maxResults;
   }
   if (filter) {
     params.organizationIds = setToArray(filter.organizations);

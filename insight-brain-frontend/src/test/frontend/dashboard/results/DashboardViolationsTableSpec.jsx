@@ -64,6 +64,7 @@ describe('DashboardViolationsTable', function() {
             firstOccurrenceTime: Date.now()
           }
         ],
+        numResults: 4,
         sortFields: ['-threatLevel', '-firstOccurrenceTime']
       }
     };

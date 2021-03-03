@@ -61,7 +61,7 @@ describe('dashboardFilterActions: non-angular', function() {
 
   const expectedRisksPayload = {
     orderBy: '-undefined,-THREAT_LEVEL',
-    maxResults: 101,
+    maxResults: 100,
     organizationIds: undefined,
     applicationIds: undefined,
     stageIds: undefined,

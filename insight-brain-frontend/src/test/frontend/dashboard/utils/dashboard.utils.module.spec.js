@@ -16,8 +16,8 @@ describe('dashboard.utils.module', function() {
       createDashboardDataRequestPayload = $injector.get('createDashboardDataRequestPayload');
     }));
 
-    it('sets maxResults incremented by 1', function() {
-      expect(createDashboardDataRequestPayload(null, 1)).toEqual({maxResults: 2});
+    it('sets maxResults as specified', function() {
+      expect(createDashboardDataRequestPayload(null, 1)).toEqual({maxResults: 1});
     });
 
     it('converts policyThreatLevel to string', function() {

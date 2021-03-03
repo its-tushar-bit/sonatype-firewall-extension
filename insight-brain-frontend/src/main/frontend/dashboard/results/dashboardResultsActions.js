@@ -60,7 +60,8 @@ export function sortResults(resultsType, sortFields) {
 
     const dashboardState = getState().dashboard;
     const results = dashboardState[resultsType].results;
-    if (!results || results.length > MAX_RESULTS) {
+    const numResults = dashboardState[resultsType].numResults;
+    if (!results || numResults > MAX_RESULTS) {
       return dispatch(loadResults(resultsType));
     }
     else {

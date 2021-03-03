@@ -10,6 +10,7 @@ const dashboardCommonResults = {
   bindings: {
     isViolationsTab: '<',
     results: '<',
+    numResults: '<',
     needsAcknowledgement: '<',
     maxResults: '<',
     maxDaysOld: '<',
@@ -29,7 +30,7 @@ function DashboardCommonResultsController(Dialog, ApplicationStore, Messages, $n
   Object.assign(vm, {
 
     loadCommonResults() {
-      return !vm.results || vm.results.length === 0 || vm.results.length > vm.maxResults || vm.needsAcknowledgement;
+      return !vm.results || vm.results.length === 0 || vm.numResults > vm.maxResults || vm.needsAcknowledgement;
     },
 
     $onChanges({error}) {

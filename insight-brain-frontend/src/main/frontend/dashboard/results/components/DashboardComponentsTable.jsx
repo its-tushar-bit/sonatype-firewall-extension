@@ -26,6 +26,7 @@ export default function DashboardComponentsTable(props) {
   const {
         componentResults: {
           results,
+          numResults,
           sortFields,
           error
         },
@@ -39,7 +40,6 @@ export default function DashboardComponentsTable(props) {
       componentsToDisplay = results && take(MAX_RESULTS, results),
       currentSortedColumnName = extractSortFieldName(sortFields[0]),
       isCurrentColumnSortDescending = sortFields[0].includes('-'),
-      displayingTruncatedResults = results && results.length > MAX_RESULTS,
       emptyTableMessage = 'No data available given the applied filters and permissions.';
 
   const generateNeedsAcknowledgementInfoRow = () => (
@@ -66,7 +66,7 @@ export default function DashboardComponentsTable(props) {
                                                       stateGo={stateGo}
                                                       colorStyler={colorStyler}/>
         )}
-        {displayingTruncatedResults && generateMaxResultsInfoRow()}
+        {numResults > MAX_RESULTS && generateMaxResultsInfoRow()}
       </Fragment>
     );
   };
@@ -168,6 +168,7 @@ export default function DashboardComponentsTable(props) {
 DashboardComponentsTable.propTypes = {
   componentResults: PropTypes.shape({
     results: PropTypes.arrayOf(componentPropTypes),
+    numResults: PropTypes.number,
     sortFields: PropTypes.arrayOf(PropTypes.string),
     error: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object])
   }),

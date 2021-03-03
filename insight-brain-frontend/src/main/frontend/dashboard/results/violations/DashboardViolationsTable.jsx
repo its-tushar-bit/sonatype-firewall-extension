@@ -37,12 +37,12 @@ export default function DashboardViolationsTable(props) {
         needsAcknowledgement,
         violations: {
           results,
+          numResults,
           sortFields,
           error
         }
       } = props,
       isLoading = !error && !results && !needsAcknowledgement,
-      truncatedResults = results && results.length > MAX_RESULTS,
       violationsToDisplay = results && take(MAX_RESULTS, results),
       sortedColumn = extractSortFieldName(sortFields[0]),
       isSortReversed = sortFields[0].includes('-'),
@@ -105,7 +105,7 @@ export default function DashboardViolationsTable(props) {
           { violationsToDisplay.map(violation =>
             <DashboardViolationsTableRow { ...({ stateGo, violation }) } key={violation.policyViolationId} />
           )}
-          { truncatedResults && maxResultsInfoRow() }
+          { numResults > MAX_RESULTS && maxResultsInfoRow() }
         </Fragment>
       );
     }
@@ -159,6 +159,7 @@ DashboardViolationsTable.propTypes = {
   needsAcknowledgement: PropTypes.bool.isRequired,
   violations: PropTypes.shape({
     results: PropTypes.arrayOf(violationPropTypes),
+    numResults: PropTypes.number,
     sortFields: PropTypes.arrayOf(PropTypes.string),
     error: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object])
   })

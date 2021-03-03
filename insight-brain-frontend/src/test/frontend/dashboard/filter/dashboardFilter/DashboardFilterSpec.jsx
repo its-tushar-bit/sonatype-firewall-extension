@@ -22,8 +22,8 @@ import ManageFiltersDropdown
   from '../../../../../main/frontend/dashboard/filter/manageFiltersDropdown/ManageFiltersDropdown';
 
 describe('DashboardFilter', function() {
-  let getShallowComponent, loadFilterSpy, minimalProps, SaveFilterModalContainerMock, DeleteFilterModalContainerMock,
-      DashboardFilter;
+  let getShallowComponent, getMountedComponent, loadFilterSpy, minimalProps, SaveFilterModalContainerMock,
+      DeleteFilterModalContainerMock, DashboardFilter;
 
   const filterData = {
     organizations: [
@@ -102,6 +102,7 @@ describe('DashboardFilter', function() {
     }).default;
 
     getShallowComponent = enzymeUtils.getShallowComponent(DashboardFilter, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(DashboardFilter, minimalProps);
   });
 
   /**
@@ -161,7 +162,7 @@ describe('DashboardFilter', function() {
             showDirtyAsterisk: true,
             loading: true
           },
-          shallowRender = getShallowComponent(props),
+          shallowRender = getMountedComponent(props),
           header = shallowRender.find('.dashboard-filter-header');
 
       expect(header.find('.iq-manage-filters-dropdown')).not.toExist();
@@ -173,7 +174,7 @@ describe('DashboardFilter', function() {
             showDirtyAsterisk: true,
             loadError: 'Error'
           },
-          shallowRender = getShallowComponent(props),
+          shallowRender = getMountedComponent(props),
           header = shallowRender.find('.dashboard-filter-header');
 
       expect(header.find('.iq-manage-filters-dropdown')).not.toExist();

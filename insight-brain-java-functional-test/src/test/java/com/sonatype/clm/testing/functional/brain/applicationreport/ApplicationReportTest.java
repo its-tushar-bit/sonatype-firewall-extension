@@ -129,6 +129,8 @@ public class ApplicationReportTest
         .print(policyEvaluationTime.getTime());
     reportPage.shouldBe(visible);
     reportPage.reportTitle().shouldHave(text(app.getName() + " Build Report"));
+    reportPage.policyEvaluationTriggerType()
+        .shouldHave(text("Triggered by " + policyEvaluation.getTriggerType().getDisplayName() + " on "));
     reportPage.reportDate().shouldHave(text(policyEvaluationTimeStr));
     reportPage.commitHash().shouldHave(text(policyEvaluation.getCommitHash()));
 

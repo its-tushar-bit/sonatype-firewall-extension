@@ -23,6 +23,8 @@ public class ReportMetadataDTO
 
   private String initiator;
 
+  private String policyEvaluationTriggerType;
+
   public Date getReportTime() {
     return reportTime;
   }
@@ -69,5 +71,13 @@ public class ReportMetadataDTO
 
   public void setInitiator(final String initiator) {
     this.initiator = initiator;
+  }
+
+  public String getPolicyEvaluationTriggerType() {
+    return policyEvaluationTriggerType;
+  }
+
+  public void setPolicyEvaluationTriggerType(final String policyEvaluationTriggerType) {
+    this.policyEvaluationTriggerType = policyEvaluationTriggerType;
   }
 }

@@ -292,6 +292,7 @@ public class ReportServiceTest
     assertThat(metadata.getApplication().getId()).isEqualTo(app.getId());
     assertThat(metadata.getReportTitle()).isEqualTo("Build Report");
     assertThat(metadata.getReportTime()).isEqualTo(eval1.getTime());
+    assertThat(metadata.getPolicyEvaluationTriggerType()).isEqualTo(eval1.getTriggerType().getDisplayName());
     assertThat(metadata.getStageId()).isEqualTo("build");
     assertThat(metadata.getCommitHash()).isNull();
     assertThat(metadata.getInitiator()).isEqualTo("system");
@@ -301,6 +302,7 @@ public class ReportServiceTest
     assertThat(metadata.getApplication().getId()).isEqualTo(app.getId());
     assertThat(metadata.getReportTitle()).isEqualTo("Release Report");
     assertThat(metadata.getReportTime()).isEqualTo(eval2.getTime());
+    assertThat(metadata.getPolicyEvaluationTriggerType()).isEqualTo(eval2.getTriggerType().getDisplayName());
     assertThat(metadata.getStageId()).isEqualTo("release");
     assertThat(metadata.getCommitHash()).isEqualTo(commitHash);
     assertThat(metadata.getInitiator()).isEqualTo("system");

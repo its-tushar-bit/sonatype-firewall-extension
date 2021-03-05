@@ -48,6 +48,10 @@ public class ApplicationReportPage
     return child(".nx-page-title .nx-h1");
   }
 
+  public SelenideElement policyEvaluationTriggerType() {
+    return child("#application-report-policy-eval-trigger-type");
+  }
+
   public SelenideElement reportDate() {
     return child("#application-report-time");
   }

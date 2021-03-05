@@ -193,6 +193,7 @@ public class ReportService
     metadata.setStageId(evaluation.getStageTypeId());
     metadata.setCommitHash(evaluation.getCommitHash());
     metadata.setInitiator(evaluation.getInitiator());
+    metadata.setPolicyEvaluationTriggerType(evaluation.getTriggerType().getDisplayName());
 
     // For NVS where a scanLabel is set for the application name and the stage name doesn't matter
     if (Report.getEntry(reportFile, "template.properties") != null) {

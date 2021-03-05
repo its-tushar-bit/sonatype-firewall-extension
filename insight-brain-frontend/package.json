@@ -19,7 +19,7 @@
   "dependencies": {
     "@fortawesome/pro-regular-svg-icons": "^5.11.2",
     "@fortawesome/pro-solid-svg-icons": "^5.11.2",
-    "@sonatype/react-shared-components": "^4.1.0",
+    "@sonatype/react-shared-components": "^4.3.5",
     "@sonatype/version-graph": "^1.0.1",
     "@uirouter/angularjs": "^1.0.5",
     "angular": "~1.6.10",

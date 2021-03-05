@@ -188,29 +188,29 @@
   resolved "https://repo.sonatype.com/repository/npm-all/@emotion/hash/-/hash-0.8.0.tgz#bbbff68978fefdbe68ccb533bc8cbe1d1afb5413"
   integrity sha512-kBJtf7PH6aWwZ6fka3zQ0p6SBYzx4fl1LoZXE2RrnYST9Xljm7WfKJrU4g/Xr3Beg72MLrp1AWNUmuYJTL7Cow==
 
-"@fortawesome/fontawesome-common-types@^0.2.17":
-  version "0.2.32"
-  resolved "https://repo.sonatype.com/repository/npm-all/@fortawesome/fontawesome-common-types/-/fontawesome-common-types-0.2.32.tgz#3436795d5684f22742989bfa08f46f50f516f259"
-  integrity sha512-ux2EDjKMpcdHBVLi/eWZynnPxs0BtFVXJkgHIxXRl+9ZFaHPvYamAfCzeeQFqHRjuJtX90wVnMRaMQAAlctz3w==
-
 "@fortawesome/fontawesome-common-types@^0.2.30":
   version "0.2.30"
   resolved "https://repo.sonatype.com/repository/npm-all/@fortawesome/fontawesome-common-types/-/fontawesome-common-types-0.2.30.tgz#2f1cc5b46bd76723be41d0013a8450c9ba92b777"
   integrity sha512-TsRwpTuKwFNiPhk1UfKgw7zNPeV5RhNp2Uw3pws+9gDAkPGKrtjR1y2lI3SYn7+YzyfuNknflpBA1LRKjt7hMg==
 
-"@fortawesome/fontawesome-svg-core@1.2.17":
-  version "1.2.17"
-  resolved "https://repo.sonatype.com/repository/npm-all/@fortawesome/fontawesome-svg-core/-/fontawesome-svg-core-1.2.17.tgz#8fce4402e824ebe99a04b1949d56d696eeae2e6d"
-  integrity sha512-TORMW/wIX2QyyGBd4XwHGPir4/0U18Wxf+iDBAUW3EIJ0/VC/ZMpJOiyiCe1f8g9h0PPzA7sqVtl8JtTUtm4uA==
-  dependencies:
-    "@fortawesome/fontawesome-common-types" "^0.2.17"
+"@fortawesome/fontawesome-common-types@^0.2.34":
+  version "0.2.34"
+  resolved "https://repo.sonatype.com/repository/npm-all/@fortawesome/fontawesome-common-types/-/fontawesome-common-types-0.2.34.tgz#0a8c348bb23b7b760030f5b1d912e582be4ec915"
+  integrity sha512-XcIn3iYbTEzGIxD0/dY5+4f019jIcEIWBiHc3KrmK/ROahwxmZ/s+tdj97p/5K0klz4zZUiMfUlYP0ajhSJjmA==
 
-"@fortawesome/free-solid-svg-icons@=5.8.1":
-  version "5.8.1"
-  resolved "https://repo.sonatype.com/repository/npm-all/@fortawesome/free-solid-svg-icons/-/free-solid-svg-icons-5.8.1.tgz#086c70f95b34a4bcf6f50ff1078d46e53486eb52"
-  integrity sha512-FUcxR75PtMOo3ihRHJOZz64IsWIVdWgB2vCMLJjquTv487wVVCMH5H5gWa72et2oI9lKKD2jvjQ+y+7mxhscVQ==
+"@fortawesome/fontawesome-svg-core@^1.2.32":
+  version "1.2.34"
+  resolved "https://repo.sonatype.com/repository/npm-all/@fortawesome/fontawesome-svg-core/-/fontawesome-svg-core-1.2.34.tgz#1d1a7c92537cbc2b8a83eef6b6d824b4b5b46b26"
+  integrity sha512-0KNN0nc5eIzaJxlv43QcDmTkDY1CqeN6J7OCGSs+fwGPdtv0yOQqRjieopBCmw+yd7uD3N2HeNL3Zm5isDleLg==
   dependencies:
-    "@fortawesome/fontawesome-common-types" "^0.2.17"
+    "@fortawesome/fontawesome-common-types" "^0.2.34"
+
+"@fortawesome/free-solid-svg-icons@^5.15.1":
+  version "5.15.2"
+  resolved "https://repo.sonatype.com/repository/npm-all/@fortawesome/free-solid-svg-icons/-/free-solid-svg-icons-5.15.2.tgz#25bb035de57cf85aee8072965732368ccc8e8943"
+  integrity sha512-ZfCU+QjaFsdNZmOGmfqEWhzI3JOe37x5dF4kz9GeXvKn/sTxhqMtZ7mh3lBf76SvcYY5/GKFuyG7p1r4iWMQqw==
+  dependencies:
+    "@fortawesome/fontawesome-common-types" "^0.2.34"
 
 "@fortawesome/pro-regular-svg-icons@^5.11.2":
   version "5.14.0"
@@ -226,87 +226,76 @@
   dependencies:
     "@fortawesome/fontawesome-common-types" "^0.2.30"
 
-"@fortawesome/react-fontawesome@=0.1.4":
-  version "0.1.4"
-  resolved "https://repo.sonatype.com/repository/npm-all/@fortawesome/react-fontawesome/-/react-fontawesome-0.1.4.tgz#18d61d9b583ca289a61aa7dccc05bd164d6bc9ad"
-  integrity sha512-GwmxQ+TK7PEdfSwvxtGnMCqrfEm0/HbRHArbUudsYiy9KzVCwndxa2KMcfyTQ8El0vROrq8gOOff09RF1oQe8g==
+"@fortawesome/react-fontawesome@^0.1.14":
+  version "0.1.14"
+  resolved "https://repo.sonatype.com/repository/npm-all/@fortawesome/react-fontawesome/-/react-fontawesome-0.1.14.tgz#bf28875c3935b69ce2dc620e1060b217a47f64ca"
+  integrity sha512-4wqNb0gRLVaBm/h+lGe8UfPPivcbuJ6ecI4hIgW0LjI7kzpYB9FkN0L9apbVzg+lsBdcTf0AlBtODjcSX5mmKA==
   dependencies:
-    humps "^2.0.1"
-    prop-types "^15.5.10"
+    prop-types "^15.7.2"
 
-"@material-ui/core@4.5.0":
-  version "4.5.0"
-  resolved "https://repo.sonatype.com/repository/npm-all/@material-ui/core/-/core-4.5.0.tgz#7e57cc40988c71b6340e3b2569b47dbac1820351"
-  integrity sha512-UHVAjU+1uDtA+OMBNBHb4RlCZOu514XeYPafNJv+GTdXBDr1SCPK7yqRE6TV1/bulxlDusTgu5Q6BAUgpmO4MA==
+"@material-ui/core@^4.11.2":
+  version "4.11.3"
+  resolved "https://repo.sonatype.com/repository/npm-all/@material-ui/core/-/core-4.11.3.tgz#f22e41775b0bd075e36a7a093d43951bf7f63850"
+  integrity sha512-Adt40rGW6Uds+cAyk3pVgcErpzU/qxc7KBR94jFHBYretU4AtWZltYcNsbeMn9tXL86jjVL1kuGcIHsgLgFGRw==
   dependencies:
     "@babel/runtime" "^7.4.4"
-    "@material-ui/styles" "^4.5.0"
-    "@material-ui/system" "^4.5.0"
-    "@material-ui/types" "^4.1.1"
-    "@material-ui/utils" "^4.4.0"
+    "@material-ui/styles" "^4.11.3"
+    "@material-ui/system" "^4.11.3"
+    "@material-ui/types" "^5.1.0"
+    "@material-ui/utils" "^4.11.2"
     "@types/react-transition-group" "^4.2.0"
-    clsx "^1.0.2"
-    convert-css-length "^2.0.1"
-    deepmerge "^4.0.0"
-    hoist-non-react-statics "^3.2.1"
-    is-plain-object "^3.0.0"
-    normalize-scroll-left "^0.2.0"
-    popper.js "^1.14.1"
+    clsx "^1.0.4"
+    hoist-non-react-statics "^3.3.2"
+    popper.js "1.16.1-lts"
     prop-types "^15.7.2"
-    react-transition-group "^4.3.0"
+    react-is "^16.8.0 || ^17.0.0"
+    react-transition-group "^4.4.0"
 
-"@material-ui/styles@^4.5.0":
-  version "4.10.0"
-  resolved "https://repo.sonatype.com/repository/npm-all/@material-ui/styles/-/styles-4.10.0.tgz#2406dc23aa358217aa8cc772e6237bd7f0544071"
-  integrity sha512-XPwiVTpd3rlnbfrgtEJ1eJJdFCXZkHxy8TrdieaTvwxNYj42VnnCyFzxYeNW9Lhj4V1oD8YtQ6S5Gie7bZDf7Q==
+"@material-ui/styles@^4.11.3":
+  version "4.11.3"
+  resolved "https://repo.sonatype.com/repository/npm-all/@material-ui/styles/-/styles-4.11.3.tgz#1b8d97775a4a643b53478c895e3f2a464e8916f2"
+  integrity sha512-HzVzCG+PpgUGMUYEJ2rTEmQYeonGh41BYfILNFb/1ueqma+p1meSdu4RX6NjxYBMhf7k+jgfHFTTz+L1SXL/Zg==
   dependencies:
     "@babel/runtime" "^7.4.4"
     "@emotion/hash" "^0.8.0"
     "@material-ui/types" "^5.1.0"
-    "@material-ui/utils" "^4.9.6"
+    "@material-ui/utils" "^4.11.2"
     clsx "^1.0.4"
     csstype "^2.5.2"
     hoist-non-react-statics "^3.3.2"
-    jss "^10.0.3"
-    jss-plugin-camel-case "^10.0.3"
-    jss-plugin-default-unit "^10.0.3"
-    jss-plugin-global "^10.0.3"
-    jss-plugin-nested "^10.0.3"
-    jss-plugin-props-sort "^10.0.3"
-    jss-plugin-rule-value-function "^10.0.3"
-    jss-plugin-vendor-prefixer "^10.0.3"
+    jss "^10.5.1"
+    jss-plugin-camel-case "^10.5.1"
+    jss-plugin-default-unit "^10.5.1"
+    jss-plugin-global "^10.5.1"
+    jss-plugin-nested "^10.5.1"
+    jss-plugin-props-sort "^10.5.1"
+    jss-plugin-rule-value-function "^10.5.1"
+    jss-plugin-vendor-prefixer "^10.5.1"
     prop-types "^15.7.2"
 
-"@material-ui/system@^4.5.0":
-  version "4.9.14"
-  resolved "https://repo.sonatype.com/repository/npm-all/@material-ui/system/-/system-4.9.14.tgz#4b00c48b569340cefb2036d0596b93ac6c587a5f"
-  integrity sha512-oQbaqfSnNlEkXEziDcJDDIy8pbvwUmZXWNqlmIwDqr/ZdCK8FuV3f4nxikUh7hvClKV2gnQ9djh5CZFTHkZj3w==
+"@material-ui/system@^4.11.3":
+  version "4.11.3"
+  resolved "https://repo.sonatype.com/repository/npm-all/@material-ui/system/-/system-4.11.3.tgz#466bc14c9986798fd325665927c963eb47cc4143"
+  integrity sha512-SY7otguNGol41Mu2Sg6KbBP1ZRFIbFLHGK81y4KYbsV2yIcaEPOmsCK6zwWlp+2yTV3J/VwT6oSBARtGIVdXPw==
   dependencies:
     "@babel/runtime" "^7.4.4"
-    "@material-ui/utils" "^4.9.6"
+    "@material-ui/utils" "^4.11.2"
     csstype "^2.5.2"
     prop-types "^15.7.2"
-
-"@material-ui/types@^4.1.1":
-  version "4.1.1"
-  resolved "https://repo.sonatype.com/repository/npm-all/@material-ui/types/-/types-4.1.1.tgz#b65e002d926089970a3271213a3ad7a21b17f02b"
-  integrity sha512-AN+GZNXytX9yxGi0JOfxHrRTbhFybjUJ05rnsBVjcB+16e466Z0Xe5IxawuOayVZgTBNDxmPKo5j4V6OnMtaSQ==
-  dependencies:
-    "@types/react" "*"
 
 "@material-ui/types@^5.1.0":
   version "5.1.0"
   resolved "https://repo.sonatype.com/repository/npm-all/@material-ui/types/-/types-5.1.0.tgz#efa1c7a0b0eaa4c7c87ac0390445f0f88b0d88f2"
   integrity sha512-7cqRjrY50b8QzRSYyhSpx4WRw2YuO0KKIGQEVk5J8uoz2BanawykgZGoWEqKm7pVIbzFDN0SpPcVV4IhOFkl8A==
 
-"@material-ui/utils@^4.4.0", "@material-ui/utils@^4.9.6":
-  version "4.10.2"
-  resolved "https://repo.sonatype.com/repository/npm-all/@material-ui/utils/-/utils-4.10.2.tgz#3fd5470ca61b7341f1e0468ac8f29a70bf6df321"
-  integrity sha512-eg29v74P7W5r6a4tWWDAAfZldXIzfyO1am2fIsC39hdUUHm/33k6pGOKPbgDjg/U/4ifmgAePy/1OjkKN6rFRw==
+"@material-ui/utils@^4.11.2":
+  version "4.11.2"
+  resolved "https://repo.sonatype.com/repository/npm-all/@material-ui/utils/-/utils-4.11.2.tgz#f1aefa7e7dff2ebcb97d31de51aecab1bb57540a"
+  integrity sha512-Uul8w38u+PICe2Fg2pDKCaIG7kOyhowZ9vjiC1FsVwPABTW8vPPKfF6OvxRq3IiBaI1faOJmgdvMG7rMJARBhA==
   dependencies:
     "@babel/runtime" "^7.4.4"
     prop-types "^15.7.2"
-    react-is "^16.8.0"
+    react-is "^16.8.0 || ^17.0.0"
 
 "@mrmlnc/readdir-enhanced@^2.2.1":
   version "2.2.1"
@@ -340,24 +329,24 @@
     "@react-hook/passive-layout-effect" "^1.2.0"
     resize-observer-polyfill "^1.5.1"
 
-"@sonatype/react-shared-components@^4.1.0":
-  version "4.1.0"
-  resolved "https://repo.sonatype.com/repository/npm-all/@sonatype/react-shared-components/-/react-shared-components-4.1.0.tgz#c9825ea3a1996bf1266dc443a71cc027888504e8"
-  integrity sha512-5oWDR/IxiTqamG60inMGIYAEzn29XcN1EIz2aNbixrFXXX3jqADzojHS7zw9+33jth4So/dMOWQ7+APZogBc1g==
+"@sonatype/react-shared-components@^4.3.5":
+  version "4.3.5"
+  resolved "https://repo.sonatype.com/repository/npm-all/@sonatype/react-shared-components/-/react-shared-components-4.3.5.tgz#2cab4e86341da0dbed1672f1b687e6840454ec58"
+  integrity sha512-OoIrepLGZY7VzULIqxK46GyALHq7MxJlQDATPuJMBWL6JBh68NZAacQJHGFp9oPnK6tmMaodaZmVJK6LkuE5Bw==
   dependencies:
-    "@fortawesome/fontawesome-svg-core" "1.2.17"
-    "@fortawesome/free-solid-svg-icons" "=5.8.1"
-    "@fortawesome/react-fontawesome" "=0.1.4"
-    "@material-ui/core" "4.5.0"
+    "@fortawesome/fontawesome-svg-core" "^1.2.32"
+    "@fortawesome/free-solid-svg-icons" "^5.15.1"
+    "@fortawesome/react-fontawesome" "^0.1.14"
+    "@material-ui/core" "^4.11.2"
     "@react-hook/resize-observer" "^1.1.0"
-    "@types/classnames" "=2.2.7"
-    "@types/prop-types" "15.7.1"
-    "@types/ramda" "0.26.8"
-    classnames "=2.2.6"
-    fuse.js "6.4.0"
-    prop-types "15.7.2"
-    ramda "0.26.1"
-    react-commonmark "3.0.0"
+    "@types/classnames" "^2.2.11"
+    "@types/prop-types" "^15.7.3"
+    "@types/ramda" "^0.27.34"
+    classnames "^2.2.6"
+    fuse.js "^6.4.6"
+    prop-types "^15.7.2"
+    ramda "^0.27.1"
+    react-commonmark "^3.0.0"
 
 "@sonatype/version-graph@^1.0.1":
   version "1.0.1"
@@ -369,10 +358,10 @@
   resolved "https://repo.sonatype.com/repository/npm-all/@types/angular/-/angular-1.7.3.tgz#138c2f2f688e9dcb413c6052d9483d773ce7f627"
   integrity sha512-rr40P9yHTlLuY6y+PUfwHeoBWO8uEJTazcs89o83fheyH/b9OZW7p7EsvFMriCPam3p6VSD57zkgn+nAQCvfUw==
 
-"@types/classnames@=2.2.7":
-  version "2.2.7"
-  resolved "https://repo.sonatype.com/repository/npm-all/@types/classnames/-/classnames-2.2.7.tgz#fb68cc9be8487e6ea5b13700e759bfbab7e0fefd"
-  integrity sha512-rzOhiQ55WzAiFgXRtitP/ZUT8iVNyllEpylJ5zHzR4vArUvMB39GTk+Zon/uAM0JxEFAWnwsxC2gH8s+tZ3Myg==
+"@types/classnames@^2.2.11":
+  version "2.2.11"
+  resolved "https://repo.sonatype.com/repository/npm-all/@types/classnames/-/classnames-2.2.11.tgz#2521cc86f69d15c5b90664e4829d84566052c1cf"
+  integrity sha512-2koNhpWm3DgWRp5tpkiJ8JGc1xTn2q0l+jUNUE7oMKXUf5NpI9AIdC4kbjGNFBdHtcxBD18LAksoudAVhFKCjw==
 
 "@types/color-name@^1.1.1":
   version "1.1.1"
@@ -626,20 +615,17 @@
   resolved "https://repo.sonatype.com/repository/npm-all/@types/node/-/node-14.10.0.tgz#15815dff82c8dc30827f6b1286f865902945095a"
   integrity sha512-SOIyrdADB4cq6eY1F+9iU48iIomFAPltu11LCvA9PKcyEwHadjCFzNVPotAR+oEJA0bCP4Xvvgy+vwu1ZjVh8g==
 
-"@types/prop-types@*":
+"@types/prop-types@*", "@types/prop-types@^15.7.3":
   version "15.7.3"
   resolved "https://repo.sonatype.com/repository/npm-all/@types/prop-types/-/prop-types-15.7.3.tgz#2ab0d5da2e5815f94b0b9d4b95d1e5f243ab2ca7"
   integrity sha512-KfRL3PuHmqQLOG+2tGpRO26Ctg+Cq1E01D2DMriKEATHgWLfeNDmq9e29Q9WIky0dQ3NPkd1mzYH8Lm936Z9qw==
 
-"@types/prop-types@15.7.1":
-  version "15.7.1"
-  resolved "https://repo.sonatype.com/repository/npm-all/@types/prop-types/-/prop-types-15.7.1.tgz#f1a11e7babb0c3cad68100be381d1e064c68f1f6"
-  integrity sha512-CFzn9idOEpHrgdw8JsoTkaDDyRWk1jrzIV8djzcgpq0y9tG4B4lFT+Nxh52DVpDXV+n4+NPNv7M1Dj5uMp6XFg==
-
-"@types/ramda@0.26.8":
-  version "0.26.8"
-  resolved "https://repo.sonatype.com/repository/npm-all/@types/ramda/-/ramda-0.26.8.tgz#e002612cca52e52f9176d577f4d6229c8c72a10a"
-  integrity sha512-PSMkNNhB900U2xcyndlkVjJeCXpVtf1yod0Kdq/ArsLDIE0tW8pLBChmQeJs4o4dfp3AEP+AGm6zIseZPU4ndA==
+"@types/ramda@^0.27.34":
+  version "0.27.38"
+  resolved "https://repo.sonatype.com/repository/npm-all/@types/ramda/-/ramda-0.27.38.tgz#797d5cdc9e00482e665dfea28142bb6c3c5f11e7"
+  integrity sha512-tZoQ0lv1WKkrpBHemL8yCkI9p8kUk/1PSMwhl0eeyqMQjD+2ePUtVLV8PpNS9Kq3OktObwOx9I3k+HumxTviRg==
+  dependencies:
+    ts-toolbelt "^6.15.1"
 
 "@types/react-transition-group@^4.2.0":
   version "4.4.0"
@@ -2436,7 +2422,7 @@ class-utils@^0.3.5:
     isobject "^3.0.0"
     static-extend "^0.1.1"
 
-classnames@=2.2.6, classnames@^2.2.6:
+classnames@^2.2.6:
   version "2.2.6"
   resolved "https://repo.sonatype.com/repository/npm-all/classnames/-/classnames-2.2.6.tgz#43935bffdd291f326dad0a205309b38d00f650ce"
   integrity sha512-JR/iSQOSt+LQIWwrwEzJ9uk0xfN3mTVYMwt1Ir5mUcSN6pU+V4zQFFaJsclJbPuAUQH+yfWef6tm7l1quW3C8Q==
@@ -2532,7 +2518,7 @@ clone@^1.0.2:
   resolved "https://repo.sonatype.com/repository/npm-all/clone/-/clone-1.0.4.tgz#da309cc263df15994c688ca902179ca3c7cd7c7e"
   integrity sha1-2jCcwmPfFZlMaIypAheco8fNfH4=
 
-clsx@^1.0.2, clsx@^1.0.4:
+clsx@^1.0.4:
   version "1.1.1"
   resolved "https://repo.sonatype.com/repository/npm-all/clsx/-/clsx-1.1.1.tgz#98b3134f9abbdf23b2663491ace13c5c03a73188"
   integrity sha512-6/bPho624p3S2pMyvP5kKBPXnI3ufHLObBFCfgx+LkeR5lg2XYy2hqZqUf45ypD8COn2bhgGJSUE+l5dhNBieA==
@@ -2815,11 +2801,6 @@ content-type@~1.0.4:
   version "1.0.4"
   resolved "https://repo.sonatype.com/repository/npm-all/content-type/-/content-type-1.0.4.tgz#e138cc75e040c727b1966fe5e5f8c9aee256fe3b"
   integrity sha512-hIP3EEPs8tB9AT1L+NUqtwOAps4mk2Zob89MWXMHjHWg9milF/j4osnnQLXBCBFBk/tvIG/tUc9mOUJiPBhPXA==
-
-convert-css-length@^2.0.1:
-  version "2.0.1"
-  resolved "https://repo.sonatype.com/repository/npm-all/convert-css-length/-/convert-css-length-2.0.1.tgz#90a76bde5bfd24d72881a5b45d02249b2c1d257c"
-  integrity sha512-iGpbcvhLPRKUbBc0Quxx7w/bV14AC3ItuBEGMahA5WTYqB8lq9jH0kTXFheCBASsYnqeMFZhiTruNxr1N59Axg==
 
 convert-source-map@^0.3.3:
   version "0.3.5"
@@ -3590,11 +3571,6 @@ deep-is@~0.1.3:
   version "0.1.3"
   resolved "https://repo.sonatype.com/repository/npm-all/deep-is/-/deep-is-0.1.3.tgz#b369d6fb5dbc13eecf524f91b070feedc357cf34"
   integrity sha1-s2nW+128E+7PUk+RsHD+7cNXzzQ=
-
-deepmerge@^4.0.0:
-  version "4.2.2"
-  resolved "https://repo.sonatype.com/repository/npm-all/deepmerge/-/deepmerge-4.2.2.tgz#44d2ea3679b8f4d4ffba33f03d865fc1e7bf4955"
-  integrity sha512-FJ3UgI4gIl+PHZm53knsuSFpE+nESMr7M4v9QcgB7S63Kj/6WqMiFQJpBBYz1Pt+66bZpP3Q7Lye0Oo9MPKEdg==
 
 default-require-extensions@^2.0.0:
   version "2.0.0"
@@ -4883,15 +4859,15 @@ functions-have-names@^1.2.0:
   resolved "https://repo.sonatype.com/repository/npm-all/functions-have-names/-/functions-have-names-1.2.1.tgz#a981ac397fa0c9964551402cdc5533d7a4d52f91"
   integrity sha512-j48B/ZI7VKs3sgeI2cZp7WXWmZXu7Iq5pl5/vptV5N2mq+DGFuS/ulaDjtaoLpYzuD6u8UgrUKHfgo7fDTSiBA==
 
-fuse.js@6.4.0:
-  version "6.4.0"
-  resolved "https://repo.sonatype.com/repository/npm-all/fuse.js/-/fuse.js-6.4.0.tgz#a8db8b1c301cdb313f2ebb6812b31aa7dc2a6a14"
-  integrity sha512-MagWS1i3kj58BgF9xymo+n2ZiSs9MoyVfxkCcr11+mzMpNEyTDyLtbU3DyrVjHsy0Gkjf58FH1n+TaihylFcIA==
-
 fuse.js@^6.4.0:
   version "6.4.1"
   resolved "https://repo.sonatype.com/repository/npm-all/fuse.js/-/fuse.js-6.4.1.tgz#76f1b4ab9cd021b854a68381b35628033d27507e"
   integrity sha512-+hAS7KYgLXontDh/vqffs7wIBw0ceb9Sx8ywZQhOsiQGcSO5zInGhttWOUYQYlvV/yYMJOacQ129Xs3mP3+oZQ==
+
+fuse.js@^6.4.6:
+  version "6.4.6"
+  resolved "https://repo.sonatype.com/repository/npm-all/fuse.js/-/fuse.js-6.4.6.tgz#62f216c110e5aa22486aff20be7896d19a059b79"
+  integrity sha512-/gYxR/0VpXmWSfZOIPS3rWwU8SHgsRTwWuXhyb2O6s7aRuVtHtxCkR33bNYu3wyLyNx/Wpv0vU7FZy8Vj53VNw==
 
 gauge@~2.7.3:
   version "2.7.4"
@@ -5228,7 +5204,7 @@ hmac-drbg@^1.0.0:
     minimalistic-assert "^1.0.0"
     minimalistic-crypto-utils "^1.0.1"
 
-hoist-non-react-statics@^3.2.1, hoist-non-react-statics@^3.3.0, hoist-non-react-statics@^3.3.2:
+hoist-non-react-statics@^3.3.0, hoist-non-react-statics@^3.3.2:
   version "3.3.2"
   resolved "https://repo.sonatype.com/repository/npm-all/hoist-non-react-statics/-/hoist-non-react-statics-3.3.2.tgz#ece0acaf71d62c2969c2ec59feff42a4b1a85b45"
   integrity sha512-/gGivxi8JPKWNm/W0jSmzcMPpfpPLc3dY/6GxhX2hQ9iGj3aDfklV4ET7NjKpSinLpJ5vafa9iiGIEZg10SfBw==
@@ -5420,11 +5396,6 @@ https-browserify@^1.0.0:
   resolved "https://repo.sonatype.com/repository/npm-all/https-browserify/-/https-browserify-1.0.0.tgz#ec06c10e0a34c0f2faf199f7fd7fc78fffd03c73"
   integrity sha1-7AbBDgo0wPL68Zn3/X/Hj//QPHM=
 
-humps@^2.0.1:
-  version "2.0.1"
-  resolved "https://repo.sonatype.com/repository/npm-all/humps/-/humps-2.0.1.tgz#dd02ea6081bd0568dc5d073184463957ba9ef9aa"
-  integrity sha1-3QLqYIG9BWjcXQcxhEY5V7qe+ao=
-
 hyphenate-style-name@^1.0.3:
   version "1.0.4"
   resolved "https://repo.sonatype.com/repository/npm-all/hyphenate-style-name/-/hyphenate-style-name-1.0.4.tgz#691879af8e220aea5750e8827db4ef62a54e361d"
@@ -5504,6 +5475,13 @@ in-publish@^2.0.0:
   version "2.0.1"
   resolved "https://repo.sonatype.com/repository/npm-all/in-publish/-/in-publish-2.0.1.tgz#948b1a535c8030561cea522f73f78f4be357e00c"
   integrity sha512-oDM0kUSNFC31ShNxHKUyfZKy8ZeXZBWMjMdZHKLOk13uvT27VTL/QzRGfRUcevJhpkZAvlhPYuXkF7eNWrtyxQ==
+
+indefinite-observable@^2.0.1:
+  version "2.0.1"
+  resolved "https://repo.sonatype.com/repository/npm-all/indefinite-observable/-/indefinite-observable-2.0.1.tgz#574af29bfbc17eb5947793797bddc94c9d859400"
+  integrity sha512-G8vgmork+6H9S8lUAg1gtXEj2JxIQTo0g2PbFiYOdjkziSI0F7UYBiVwhZRuixhBCNGczAls34+5HJPyZysvxQ==
+  dependencies:
+    symbol-observable "1.2.0"
 
 indent-string@^2.1.0:
   version "2.1.0"
@@ -5880,11 +5858,6 @@ is-plain-object@^2.0.3, is-plain-object@^2.0.4:
   integrity sha512-h5PpgXkWitc38BBMYawTYMWJHFZJVnBquFE57xFpjB8pJFiF6gZ+bU+WyI/yqXiFR5mdLsgYNaPe8uao6Uv9Og==
   dependencies:
     isobject "^3.0.1"
-
-is-plain-object@^3.0.0:
-  version "3.0.1"
-  resolved "https://repo.sonatype.com/repository/npm-all/is-plain-object/-/is-plain-object-3.0.1.tgz#662d92d24c0aa4302407b0d45d21f2251c85f85b"
-  integrity sha512-Xnpx182SBMrr/aBik8y+GuR4U1L9FqMSojwDQwPMmxyC6bvEqly9UBCxhauBF5vNh2gwWJNX6oDV7O+OM4z34g==
 
 is-regex@^1.0.4, is-regex@^1.0.5, is-regex@^1.1.0, is-regex@^1.1.1:
   version "1.1.1"
@@ -6277,73 +6250,74 @@ jsprim@^1.2.2:
     json-schema "0.2.3"
     verror "1.10.0"
 
-jss-plugin-camel-case@^10.0.3:
-  version "10.4.0"
-  resolved "https://repo.sonatype.com/repository/npm-all/jss-plugin-camel-case/-/jss-plugin-camel-case-10.4.0.tgz#46c75ff7fd61c304984c21af5817823f0f501ceb"
-  integrity sha512-9oDjsQ/AgdBbMyRjc06Kl3P8lDCSEts2vYZiPZfGAxbGCegqE4RnMob3mDaBby5H9vL9gWmyyImhLRWqIkRUCw==
+jss-plugin-camel-case@^10.5.1:
+  version "10.5.1"
+  resolved "https://repo.sonatype.com/repository/npm-all/jss-plugin-camel-case/-/jss-plugin-camel-case-10.5.1.tgz#427b24a9951b4c2eaa7e3d5267acd2e00b0934f9"
+  integrity sha512-9+oymA7wPtswm+zxVti1qiowC5q7bRdCJNORtns2JUj/QHp2QPXYwSNRD8+D2Cy3/CEMtdJzlNnt5aXmpS6NAg==
   dependencies:
     "@babel/runtime" "^7.3.1"
     hyphenate-style-name "^1.0.3"
-    jss "10.4.0"
+    jss "10.5.1"
 
-jss-plugin-default-unit@^10.0.3:
-  version "10.4.0"
-  resolved "https://repo.sonatype.com/repository/npm-all/jss-plugin-default-unit/-/jss-plugin-default-unit-10.4.0.tgz#2b10f01269eaea7f36f0f5fd1cfbfcc76ed42854"
-  integrity sha512-BYJ+Y3RUYiMEgmlcYMLqwbA49DcSWsGgHpVmEEllTC8MK5iJ7++pT9TnKkKBnNZZxTV75ycyFCR5xeLSOzVm4A==
+jss-plugin-default-unit@^10.5.1:
+  version "10.5.1"
+  resolved "https://repo.sonatype.com/repository/npm-all/jss-plugin-default-unit/-/jss-plugin-default-unit-10.5.1.tgz#2be385d71d50aee2ee81c2a9ac70e00592ed861b"
+  integrity sha512-D48hJBc9Tj3PusvlillHW8Fz0y/QqA7MNmTYDQaSB/7mTrCZjt7AVRROExoOHEtd2qIYKOYJW3Jc2agnvsXRlQ==
   dependencies:
     "@babel/runtime" "^7.3.1"
-    jss "10.4.0"
+    jss "10.5.1"
 
-jss-plugin-global@^10.0.3:
-  version "10.4.0"
-  resolved "https://repo.sonatype.com/repository/npm-all/jss-plugin-global/-/jss-plugin-global-10.4.0.tgz#19449425a94e4e74e113139b629fd44d3577f97d"
-  integrity sha512-b8IHMJUmv29cidt3nI4bUI1+Mo5RZE37kqthaFpmxf5K7r2aAegGliAw4hXvA70ca6ckAoXMUl4SN/zxiRcRag==
+jss-plugin-global@^10.5.1:
+  version "10.5.1"
+  resolved "https://repo.sonatype.com/repository/npm-all/jss-plugin-global/-/jss-plugin-global-10.5.1.tgz#0e1793dea86c298360a7e2004721351653c7e764"
+  integrity sha512-jX4XpNgoaB8yPWw/gA1aPXJEoX0LNpvsROPvxlnYe+SE0JOhuvF7mA6dCkgpXBxfTWKJsno7cDSCgzHTocRjCQ==
   dependencies:
     "@babel/runtime" "^7.3.1"
-    jss "10.4.0"
+    jss "10.5.1"
 
-jss-plugin-nested@^10.0.3:
-  version "10.4.0"
-  resolved "https://repo.sonatype.com/repository/npm-all/jss-plugin-nested/-/jss-plugin-nested-10.4.0.tgz#017d0c02c0b6b454fd9d7d3fc33470a15eea9fd1"
-  integrity sha512-cKgpeHIxAP0ygeWh+drpLbrxFiak6zzJ2toVRi/NmHbpkNaLjTLgePmOz5+67ln3qzJiPdXXJB1tbOyYKAP4Pw==
+jss-plugin-nested@^10.5.1:
+  version "10.5.1"
+  resolved "https://repo.sonatype.com/repository/npm-all/jss-plugin-nested/-/jss-plugin-nested-10.5.1.tgz#8753a80ad31190fb6ac6fdd39f57352dcf1295bb"
+  integrity sha512-xXkWKOCljuwHNjSYcXrCxBnjd8eJp90KVFW1rlhvKKRXnEKVD6vdKXYezk2a89uKAHckSvBvBoDGsfZrldWqqQ==
   dependencies:
     "@babel/runtime" "^7.3.1"
-    jss "10.4.0"
+    jss "10.5.1"
     tiny-warning "^1.0.2"
 
-jss-plugin-props-sort@^10.0.3:
-  version "10.4.0"
-  resolved "https://repo.sonatype.com/repository/npm-all/jss-plugin-props-sort/-/jss-plugin-props-sort-10.4.0.tgz#7110bf0b6049cc2080b220b506532bf0b70c0e07"
-  integrity sha512-j/t0R40/2fp+Nzt6GgHeUFnHVY2kPGF5drUVlgkcwYoHCgtBDOhTTsOfdaQFW6sHWfoQYgnGV4CXdjlPiRrzwA==
+jss-plugin-props-sort@^10.5.1:
+  version "10.5.1"
+  resolved "https://repo.sonatype.com/repository/npm-all/jss-plugin-props-sort/-/jss-plugin-props-sort-10.5.1.tgz#ab1c167fd2d4506fb6a1c1d66c5f3ef545ff1cd8"
+  integrity sha512-t+2vcevNmMg4U/jAuxlfjKt46D/jHzCPEjsjLRj/J56CvP7Iy03scsUP58Iw8mVnaV36xAUZH2CmAmAdo8994g==
   dependencies:
     "@babel/runtime" "^7.3.1"
-    jss "10.4.0"
+    jss "10.5.1"
 
-jss-plugin-rule-value-function@^10.0.3:
-  version "10.4.0"
-  resolved "https://repo.sonatype.com/repository/npm-all/jss-plugin-rule-value-function/-/jss-plugin-rule-value-function-10.4.0.tgz#7cff4a91e84973536fa49b6ebbdbf7f339b01c82"
-  integrity sha512-w8504Cdfu66+0SJoLkr6GUQlEb8keHg8ymtJXdVHWh0YvFxDG2l/nS93SI5Gfx0fV29dO6yUugXnKzDFJxrdFQ==
+jss-plugin-rule-value-function@^10.5.1:
+  version "10.5.1"
+  resolved "https://repo.sonatype.com/repository/npm-all/jss-plugin-rule-value-function/-/jss-plugin-rule-value-function-10.5.1.tgz#37f4030523fb3032c8801fab48c36c373004de7e"
+  integrity sha512-3gjrSxsy4ka/lGQsTDY8oYYtkt2esBvQiceGBB4PykXxHoGRz14tbCK31Zc6DHEnIeqsjMUGbq+wEly5UViStQ==
   dependencies:
     "@babel/runtime" "^7.3.1"
-    jss "10.4.0"
+    jss "10.5.1"
     tiny-warning "^1.0.2"
 
-jss-plugin-vendor-prefixer@^10.0.3:
-  version "10.4.0"
-  resolved "https://repo.sonatype.com/repository/npm-all/jss-plugin-vendor-prefixer/-/jss-plugin-vendor-prefixer-10.4.0.tgz#2a78f3c5d57d1e024fe7ad7c41de34d04e72ecc0"
-  integrity sha512-DpF+/a+GU8hMh/948sBGnKSNfKkoHg2p9aRFUmyoyxgKjOeH9n74Ht3Yt8lOgdZsuWNJbPrvaa3U4PXKwxVpTQ==
+jss-plugin-vendor-prefixer@^10.5.1:
+  version "10.5.1"
+  resolved "https://repo.sonatype.com/repository/npm-all/jss-plugin-vendor-prefixer/-/jss-plugin-vendor-prefixer-10.5.1.tgz#45a183a3a0eb097bdfab0986b858d99920c0bbd8"
+  integrity sha512-cLkH6RaPZWHa1TqSfd2vszNNgxT1W0omlSjAd6hCFHp3KIocSrW21gaHjlMU26JpTHwkc+tJTCQOmE/O1A4FKQ==
   dependencies:
     "@babel/runtime" "^7.3.1"
     css-vendor "^2.0.8"
-    jss "10.4.0"
+    jss "10.5.1"
 
-jss@10.4.0, jss@^10.0.3:
-  version "10.4.0"
-  resolved "https://repo.sonatype.com/repository/npm-all/jss/-/jss-10.4.0.tgz#473a6fbe42e85441020a07e9519dac1e8a2e79ca"
-  integrity sha512-l7EwdwhsDishXzqTc3lbsbyZ83tlUl5L/Hb16pHCvZliA9lRDdNBZmHzeJHP0sxqD0t1mrMmMR8XroR12JBYzw==
+jss@10.5.1, jss@^10.5.1:
+  version "10.5.1"
+  resolved "https://repo.sonatype.com/repository/npm-all/jss/-/jss-10.5.1.tgz#93e6b2428c840408372d8b548c3f3c60fa601c40"
+  integrity sha512-hbbO3+FOTqVdd7ZUoTiwpHzKXIo5vGpMNbuXH1a0wubRSWLWSBvwvaq4CiHH/U42CmjOnp6lVNNs/l+Z7ZdDmg==
   dependencies:
     "@babel/runtime" "^7.3.1"
     csstype "^3.0.2"
+    indefinite-observable "^2.0.1"
     is-in-browser "^1.1.3"
     tiny-warning "^1.0.2"
 
@@ -7377,11 +7351,6 @@ normalize-range@^0.1.2:
   resolved "https://repo.sonatype.com/repository/npm-all/normalize-range/-/normalize-range-0.1.2.tgz#2d10c06bdfd312ea9777695a4d28439456b75942"
   integrity sha1-LRDAa9/TEuqXd2laTShDlFa3WUI=
 
-normalize-scroll-left@^0.2.0:
-  version "0.2.1"
-  resolved "https://repo.sonatype.com/repository/npm-all/normalize-scroll-left/-/normalize-scroll-left-0.2.1.tgz#978fdd04bfeb2d3543e16696814285557c127502"
-  integrity sha512-YanMJCtsykxVQuWiwQR531bbyPtMt/jpUKy2XcVVe/oHiDgYme0NmuEZfceLeZhFbrQtO/GS/9KvWbSfDGRblA==
-
 normalize-selector@^0.2.0:
   version "0.2.0"
   resolved "https://repo.sonatype.com/repository/npm-all/normalize-selector/-/normalize-selector-0.2.0.tgz#d0b145eb691189c63a78d201dc4fdb1293ef0c03"
@@ -7986,10 +7955,10 @@ pluralize@^7.0.0:
   resolved "https://repo.sonatype.com/repository/npm-all/pluralize/-/pluralize-7.0.0.tgz#298b89df8b93b0221dbf421ad2b1b1ea23fc6777"
   integrity sha512-ARhBOdzS3e41FbkW/XWrTEtukqqLoK5+Z/4UeDaLuSW+39JPeFgs4gCGqsrJHVZX0fUrx//4OF0K1CUGwlIFow==
 
-popper.js@^1.14.1:
-  version "1.16.1"
-  resolved "https://repo.sonatype.com/repository/npm-all/popper.js/-/popper.js-1.16.1.tgz#2a223cb3dc7b6213d740e40372be40de43e65b1b"
-  integrity sha512-Wb4p1J4zyFTbM+u6WuO4XstYx4Ky9Cewe4DWrel7B0w6VVICvPwdOpotjzcf6eD8TsckVnIMNONQyPIUFOUbCQ==
+popper.js@1.16.1-lts:
+  version "1.16.1-lts"
+  resolved "https://repo.sonatype.com/repository/npm-all/popper.js/-/popper.js-1.16.1-lts.tgz#cf6847b807da3799d80ee3d6d2f90df8a3f50b05"
+  integrity sha512-Kjw8nKRl1m+VrSFCoVGPph93W/qrSO7ZkqPpTf7F4bk/sqcfWK019dWBUpE/fBOsOQY1dks/Bmcbfn1heM/IsA==
 
 portfinder@^1.0.9:
   version "1.0.28"
@@ -8432,7 +8401,7 @@ prop-types-exact@^1.2.0:
     object.assign "^4.1.0"
     reflect.ownkeys "^0.2.0"
 
-prop-types@15.7.2, prop-types@^15.5.10, prop-types@^15.6.2, prop-types@^15.7.2:
+prop-types@^15.5.10, prop-types@^15.6.2, prop-types@^15.7.2:
   version "15.7.2"
   resolved "https://repo.sonatype.com/repository/npm-all/prop-types/-/prop-types-15.7.2.tgz#52c41e75b8c87e72b9d9360e0206b99dcbffa6c5"
   integrity sha512-8QQikdH7//R2vurIJSutZ1smHYTcLpRWEOlHnzcWHmBYrOGUysKwSsrC89BCiFj3CbrfJ/nXFdJepOVrY1GCHQ==
@@ -8577,15 +8546,15 @@ railroad-diagrams@^1.0.0:
   resolved "https://repo.sonatype.com/repository/npm-all/railroad-diagrams/-/railroad-diagrams-1.0.0.tgz#eb7e6267548ddedfb899c1b90e57374559cddb7e"
   integrity sha1-635iZ1SN3t+4mcG5Dlc3RVnN234=
 
-ramda@0.26.1:
-  version "0.26.1"
-  resolved "https://repo.sonatype.com/repository/npm-all/ramda/-/ramda-0.26.1.tgz#8d41351eb8111c55353617fc3bbffad8e4d35d06"
-  integrity sha512-hLWjpy7EnsDBb0p+Z3B7rPi3GDeRG5ZtiI33kJhTt+ORCd38AbAIjB/9zRIUoeTbE/AVX5ZkU7m6bznsvrf8eQ==
-
 ramda@^0.25.0:
   version "0.25.0"
   resolved "https://repo.sonatype.com/repository/npm-all/ramda/-/ramda-0.25.0.tgz#8fdf68231cffa90bc2f9460390a0cb74a29b29a9"
   integrity sha512-GXpfrYVPwx3K7RQ6aYT8KPS8XViSXUVJT1ONhoKPE9VAleW42YE+U+8VEyGWt41EnEQW7gwecYJriTI0pKoecQ==
+
+ramda@^0.27.1:
+  version "0.27.1"
+  resolved "https://repo.sonatype.com/repository/npm-all/ramda/-/ramda-0.27.1.tgz#66fc2df3ef873874ffc2da6aa8984658abacf5c9"
+  integrity sha512-PgIdVpn5y5Yns8vqb8FzBUEYn98V3xcPgawAkkgj0YJ0qDsnHCiNmZYfOGMgOvoB0eWFLpYbhxUR3mxfDIMvpw==
 
 randexp@0.4.6:
   version "0.4.6"
@@ -8625,7 +8594,7 @@ raw-body@2.4.0:
     iconv-lite "0.4.24"
     unpipe "1.0.0"
 
-react-commonmark@3.0.0:
+react-commonmark@^3.0.0:
   version "3.0.0"
   resolved "https://repo.sonatype.com/repository/npm-all/react-commonmark/-/react-commonmark-3.0.0.tgz#b396453e0e50f02e9ae1aad604a32c1394e7fc3d"
   integrity sha1-s5ZFPg5Q8C6a4arWBKMsE5Tn/D0=
@@ -8645,10 +8614,15 @@ react-dom@^16.8.6:
     prop-types "^15.6.2"
     scheduler "^0.19.1"
 
-react-is@^16.13.1, react-is@^16.7.0, react-is@^16.8.0, react-is@^16.8.1, react-is@^16.8.6, react-is@^16.9.0:
+react-is@^16.13.1, react-is@^16.7.0, react-is@^16.8.1, react-is@^16.8.6, react-is@^16.9.0:
   version "16.13.1"
   resolved "https://repo.sonatype.com/repository/npm-all/react-is/-/react-is-16.13.1.tgz#789729a4dc36de2999dc156dd6c1d9c18cea56a4"
   integrity sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==
+
+"react-is@^16.8.0 || ^17.0.0":
+  version "17.0.1"
+  resolved "https://repo.sonatype.com/repository/npm-all/react-is/-/react-is-17.0.1.tgz#5b3531bd76a645a4c9fb6e693ed36419e3301339"
+  integrity sha512-NAnt2iGDXohE5LI7uBnLnqvLQMtzhkiAOLXTmv+qnF9Ky7xAPcX8Up/xWIhxvLVGJvuLiNc4xQLtuqDRzb4fSA==
 
 react-redux@^7.0.3:
   version "7.2.1"
@@ -8671,7 +8645,7 @@ react-test-renderer@^16.0.0-0:
     react-is "^16.8.6"
     scheduler "^0.19.1"
 
-react-transition-group@^4.3.0:
+react-transition-group@^4.4.0:
   version "4.4.1"
   resolved "https://repo.sonatype.com/repository/npm-all/react-transition-group/-/react-transition-group-4.4.1.tgz#63868f9325a38ea5ee9535d828327f85773345c9"
   integrity sha512-Djqr7OQ2aPUiYurhPalTrVy9ddmFCCzwhqQmtN+J3+3DzLO209Fdr70QrN8Z3DsglWql6iY1lDWAfpFiBtuKGw==
@@ -10144,7 +10118,7 @@ swap-case@^1.1.0:
     lower-case "^1.1.1"
     upper-case "^1.1.1"
 
-symbol-observable@^1.0.3:
+symbol-observable@1.2.0, symbol-observable@^1.0.3:
   version "1.2.0"
   resolved "https://repo.sonatype.com/repository/npm-all/symbol-observable/-/symbol-observable-1.2.0.tgz#c22688aed4eab3cdc2dfeacbb561660560a00804"
   integrity sha512-e900nM8RRtGhlV36KGEU9k65K3mPb1WV70OdjfxlG2EAuM1noi/E/BaW/uMhL7bPEssK8QV57vN3esixjUvcXQ==
@@ -10348,6 +10322,11 @@ trough@^1.0.0:
   integrity sha512-m6s2OdQe5wgpFMC+pAJ+q9djG82O2jcHPOI6RNg1yy9rCYR+WD6Nbpl32fDpfC56nirdRy+opFa/Vk7HYhqaew==
   dependencies:
     glob "^7.1.2"
+
+ts-toolbelt@^6.15.1:
+  version "6.15.5"
+  resolved "https://repo.sonatype.com/repository/npm-all/ts-toolbelt/-/ts-toolbelt-6.15.5.tgz#cb3b43ed725cb63644782c64fbcad7d8f28c0a83"
+  integrity sha512-FZIXf1ksVyLcfr7M317jbB67XFJhOO1YqdTcuGaq9q5jLUoTikukZ+98TPjKiP2jC5CgmYdWWYs0s2nLSU0/1A==
 
 tslib@~1.8.0:
   version "1.8.1"

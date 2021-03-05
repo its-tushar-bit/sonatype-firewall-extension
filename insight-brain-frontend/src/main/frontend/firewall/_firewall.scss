@@ -36,6 +36,13 @@ firewall, firewall-auto-unquarantine {
   }
 }
 
+// override the special Safari rule from .nx-cards.scss
+#firewall-policy-condition-types {
+  .iq-status-indicator {
+    margin-bottom: 0;
+  }
+}
+
 // Firewall Table
 .iq-firewall-table-header {
   align-items: center;

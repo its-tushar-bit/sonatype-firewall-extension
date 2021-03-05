@@ -39,6 +39,10 @@ public class ScmOnboardingPage
     return child("#scm-reports-cta");
   }
 
+  public SelenideElement importStatusCta() {
+    return child("#scm-success-gotoreports");
+  }
+
   public SelenideElement loadError() {
     return child(".nx-alert--load-error");
   }
@@ -148,16 +152,20 @@ public class ScmOnboardingPage
     return child("#iq-scm-import-button");
   }
 
-  public SelenideElement successMessage() {
-    return child(".nx-alert--success");
+  public SelenideElement importStatusModal() {
+    return child("#scm-import-status-modal");
   }
 
-  public SelenideElement infoMessage() {
-    return child(".nx-alert--info");
+  public SelenideElement importStatusContinue() {
+    return child("#scm-continue-importing");
+  }
+
+  public SelenideElement successMessage() {
+    return importStatusModal().$(".nx-alert--success");
   }
 
   public SelenideElement errorMessage() {
-    return child(".nx-alert--error");
+    return importStatusModal().$(".nx-alert--error");
   }
 
   public SelenideElement namespaceHeader() {

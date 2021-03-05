@@ -3,15 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, {useEffect, Fragment, useState} from 'react';
+import React, {useEffect, Fragment} from 'react';
 
 import * as PropTypes from 'prop-types';
 import {NxBackButton} from '@sonatype/react-shared-components';
 import LoadWrapper from '../../react/LoadWrapper';
 import RepositoryPane from './components/RepositoryPane';
-import {NxSuccessAlert, NxErrorAlert, NxInfoAlert} from '@sonatype/react-shared-components/components/NxAlert/NxAlert';
 import ReportsCta from './components/ReportsCta';
 import {displayName} from './utils/providers';
+import ImportStatusModal from './components/ImportStatusModal';
 
 const iqAuthorizationErrorMessage = `It appears you do not have permission to access this page.
         If you believe this to be incorrect please contact your administrator.`,
@@ -30,14 +30,9 @@ export default function ScmOnboarding(props) {
     isScmTokenOverridden,
     scmProvider,
 
-    // orgs
-    selectedOrganization,
-
     // repositories state
     repositories,
     totalRepositories,
-    newlyImportedRepos,
-    failedImportCount,
 
     // from angular URL router
     isAuthorized,
@@ -66,28 +61,6 @@ export default function ScmOnboarding(props) {
     load();
   }, []);
 
-  const [isSuccessMessageOpen, setIsSuccessMessageOpen] = useState(false),
-      [isFormErrorOpen, setIsFormErrorOpen] = useState(false),
-      [isFormInfoOpen, setIsFormInfoOpen] = useState(false);
-
-  useEffect(() => {
-    setIsSuccessMessageOpen(newlyImportedRepos.length > 0 && failedImportCount === 0);
-    setIsFormErrorOpen(newlyImportedRepos.length === 0 && failedImportCount > 0);
-    setIsFormInfoOpen(newlyImportedRepos.length > 0 && failedImportCount > 0);
-  }, [failedImportCount, newlyImportedRepos]);
-
-  function dismissSuccessMessage() {
-    setIsSuccessMessageOpen(false);
-  }
-
-  function dismissFormError() {
-    setIsFormErrorOpen(false);
-  }
-
-  function dismissFormInfo() {
-    setIsFormInfoOpen(false);
-  }
-
   const repositoryCount = repositories ? repositories.length : 0;
   const alreadyImportedCount = totalRepositories - repositoryCount;
 
@@ -101,28 +74,7 @@ export default function ScmOnboarding(props) {
         <LoadWrapper
             loading={loadingPage}
             error={pageError} retryHandler={load}>
-          {!!selectedOrganization &&
-          <Fragment>
-            {isSuccessMessageOpen &&
-            <NxSuccessAlert onClose={dismissSuccessMessage}>
-              {newlyImportedRepos.length} repositories were successfully imported to IQ Server as applications under
-              the {selectedOrganization.organization.name} Organization.
-            </NxSuccessAlert>
-            }
-            {isFormInfoOpen &&
-            <NxInfoAlert onClose={dismissFormInfo}>
-              {newlyImportedRepos.length} repositories were successfully imported to IQ Server as applications under
-              the {selectedOrganization.organization.name} Organization.<br/>
-              {failedImportCount} repositories failed to import.
-            </NxInfoAlert>
-            }
-            {isFormErrorOpen &&
-            <NxErrorAlert onClose={dismissFormError}>
-              {failedImportCount} repositories failed to import.
-            </NxErrorAlert>
-            }
-          </Fragment>
-          }
+          <ImportStatusModal {...props} />
           <div className="nx-page-title iq-scmonboarding-title">
             { scmProvider &&
             <Fragment>
@@ -170,15 +122,12 @@ ScmOnboarding.propTypes = {
   scmProvider: PropTypes.string,
 
   // organizations
-  selectedOrganization: PropTypes.shape(organizationPropType),
   isNewOrganizationModalVisible: PropTypes.bool.isRequired,
 
   // repositories
   repositories: PropTypes.arrayOf(PropTypes.shape(repositoryPropType)),
   totalRepositories: PropTypes.number,
   importedRepositoryCount: PropTypes.number,
-  failedImportCount: PropTypes.number,
-  newlyImportedRepos: PropTypes.arrayOf(PropTypes.shape(repositoryPropType)).isRequired,
 
   // from angular router
   isAuthorized: PropTypes.bool.isRequired,

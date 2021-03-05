@@ -551,16 +551,16 @@ public class ScmOnboardingTest
     // when we import the selected repos
     scmOnboardingPage.importRepoButton().click();
 
-    // then we see a success message
+    // then we see a success message in the status dialog
+    scmOnboardingPage.importStatusModal().shouldBe(visible);
     scmOnboardingPage.successMessage().shouldBe(visible);
     scmOnboardingPage.errorMessage().shouldBe(hidden);
-    scmOnboardingPage.infoMessage().shouldBe(hidden);
     scmOnboardingPage.successMessage().shouldBe(text(
-        "2 repositories were successfully imported to IQ Server as applications under the Test Org Organization."));
+        "2 Repositories were successfully imported to IQ Server as applications under the Test Org Organization."));
 
-    // and can dismiss the message
-    scmOnboardingPage.successMessage().$("button").click();
-    scmOnboardingPage.successMessage().shouldBe(hidden);
+    // and can dismiss the dialog
+    scmOnboardingPage.importStatusContinue().click();
+    scmOnboardingPage.importStatusModal().shouldBe(hidden);
 
     // and the imported count is incremented
     scmOnboardingPage.alreadyImportedCount().shouldBe(text("2"));
@@ -612,15 +612,12 @@ public class ScmOnboardingTest
     scmOnboardingPage.importRepoButton().click();
 
     // then we see an error message
-    scmOnboardingPage.errorMessage().shouldBe(visible);
-    scmOnboardingPage.successMessage().shouldBe(hidden);
-    scmOnboardingPage.infoMessage().shouldBe(hidden);
-    scmOnboardingPage.errorMessage().shouldBe(text(
-        "2 repositories failed to import."));
+    scmOnboardingPage.successMessage().shouldNotBe(visible);
+    scmOnboardingPage.errorMessage().shouldBe(text("2 Repositories failed to import."));
 
-    // and can dismiss the message
-    scmOnboardingPage.errorMessage().$("button").click();
-    scmOnboardingPage.errorMessage().shouldBe(hidden);
+    // and can dismiss the dialog
+    scmOnboardingPage.importStatusContinue().click();
+    scmOnboardingPage.importStatusModal().shouldBe(hidden);
 
     // and the imported count is unchanged
     scmOnboardingPage.alreadyImportedCount().shouldBe(text("0"));
@@ -653,17 +650,15 @@ public class ScmOnboardingTest
     // when we import the selected repos
     scmOnboardingPage.importRepoButton().click();
 
-    // then we see an info message
-    scmOnboardingPage.infoMessage().shouldBe(visible);
-    scmOnboardingPage.successMessage().shouldBe(hidden);
-    scmOnboardingPage.errorMessage().shouldBe(hidden);
-    scmOnboardingPage.infoMessage().shouldBe(text(
-        "1 repositories were successfully imported to IQ Server as applications under the Test Org Organization.\n" +
-            "2 repositories failed to import."));
+    // then we see an import message
+    scmOnboardingPage.importStatusModal().shouldBe(visible);
+    scmOnboardingPage.successMessage().shouldBe(text(
+        "1 Repositories were successfully imported to IQ Server as applications under the Test Org Organization."));
+    scmOnboardingPage.errorMessage().shouldBe(text("2 Repositories failed to import."));
 
-    // and can dismiss the message
-    scmOnboardingPage.infoMessage().$("button").click();
-    scmOnboardingPage.infoMessage().shouldBe(hidden);
+    // and can dismiss the dialog
+    scmOnboardingPage.importStatusContinue().click();
+    scmOnboardingPage.importStatusModal().shouldBe(hidden);
 
     // and the imported count is incremented
     scmOnboardingPage.alreadyImportedCount().shouldBe(text("1"));
@@ -1150,7 +1145,7 @@ public class ScmOnboardingTest
   }
 
   @Test
-  public void testReportsCta() throws Exception {
+  public void testReportsCta_modal() throws Exception {
     // given SCM onboarding page with a selected organization
     setupMockRepos();
     setupSourceControl();
@@ -1168,6 +1163,39 @@ public class ScmOnboardingTest
     scmOnboardingPage.projectFilter().setValue("ci-");
     scmOnboardingPage.resultsTableSelectAll().parent().click();
     scmOnboardingPage.importRepoButton().click();
+
+    // then the status modal should appear
+    scmOnboardingPage.importStatusModal().shouldBe(visible);
+
+    // when we click the reports button
+    scmOnboardingPage.importStatusCta().click();
+
+    // then we are taken to the reports page
+    waitUntilUrl(ReportListPage.url());
+  }
+
+  @Test
+  public void testReportsCta_header() throws Exception {
+    // given SCM onboarding page with a selected organization
+    setupMockRepos();
+    setupSourceControl();
+
+    // and loading scm onboarding page with given org id
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
+    loginAsAdmin();
+
+    // then the "Go to Reports" button should not appear
+    scmOnboardingPage.titleReportsCta().shouldNotBe(visible);
+
+    // when we import several repositories
+    scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
+    scmOnboardingPage.projectFilter().setValue("ci-");
+    scmOnboardingPage.resultsTableSelectAll().parent().click();
+    scmOnboardingPage.importRepoButton().click();
+
+    // when we dismiss the status dialog
+    scmOnboardingPage.importStatusContinue().click();
 
     // then the CTA should appear
     scmOnboardingPage.titleReportsCta().shouldBe(visible);

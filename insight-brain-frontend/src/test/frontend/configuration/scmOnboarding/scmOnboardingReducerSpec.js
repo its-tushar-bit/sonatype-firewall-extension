@@ -10,6 +10,7 @@ import * as textInputStateHelpers from '@sonatype/react-shared-components/compon
 import {UI_ROUTER_ON_FINISH} from '../../../../main/frontend/reduxUiRouter/routerActions';
 import {
   SCM_ONBOARDING_IS_GIT_HOST_NEEDED,
+  SCM_ONBOARDING_IS_IMPORT_STATUS_MODAL_VISIBLE,
   SCM_ONBOARDING_LOAD_PAGE_FULFILLED,
   SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FAILED,
   SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED,
@@ -221,7 +222,8 @@ describe('scmOnboardingReducer', function() {
             status: 502
           },
           isGitHostNeeded: false,
-          isGitHostDialogVisible: false
+          isGitHostDialogVisible: false,
+          isImportStatusDialogVisible: false
         });
       });
     });
@@ -765,6 +767,9 @@ describe('scmOnboardingReducer', function() {
             newlyImportedRepos: [],
             failedImportCount: 0
           },
+          viewState: {
+            isImportStatusDialogVisible: false
+          },
           other: otherObject
         });
 
@@ -792,6 +797,9 @@ describe('scmOnboardingReducer', function() {
           {httpCloneUrl: 'http://host/prj/e'},
           {httpCloneUrl: 'http://host/prj/f'}
         ]);
+        expect(newState.viewState).toEqual({
+          isImportStatusDialogVisible: true
+        });
 
         // and other properties are not modified
         expect(newState.other).toBe(otherObject);
@@ -960,6 +968,33 @@ describe('scmOnboardingReducer', function() {
     }
   });
 
+  describe('SCM_ONBOARDING_IS_IMPORT_STATUS_MODAL_VISIBLE', () => {
+    for (let payload in [true, false]) {
+      it('sets the dialog visible state ' + payload, function() {
+        // given a state with errors
+        const state = Object.freeze({
+          other: otherObject,
+          viewState: {
+          }
+        });
+
+        // when reduce is invoked
+        const newState = reduce(state, {
+          type: SCM_ONBOARDING_IS_IMPORT_STATUS_MODAL_VISIBLE,
+          payload
+        });
+
+        // then state is updated
+        expect(newState.viewState).toEqual({
+          isImportStatusDialogVisible: payload
+        });
+
+        // and other properties are not modified
+        expect(newState.other).toEqual(otherObject);
+      });
+    }
+  });
+
   describe('UI_ROUTER_ON_FINISH', () => {
     it('retains only configState', () => {
       // given a state with lots of values set
@@ -1005,6 +1040,7 @@ describe('scmOnboardingReducer', function() {
         isGitHostNeeded: false,
         isGitHostDialogVisible: false,
         isSelectingOrganization: false,
+        isImportStatusDialogVisible: false,
 
         generalError: null,
         loadRepositoriesAuthError: null,

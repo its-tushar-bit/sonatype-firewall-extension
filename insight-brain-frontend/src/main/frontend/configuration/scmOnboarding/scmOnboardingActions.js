@@ -56,6 +56,8 @@ export const SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FAILED = 'SCM_ONBOARDING_VALID
 
 export const SCM_ONBOARDING_SHOW_HOST_DIALOG = 'SCM_ONBOARDING_SHOW_HOST_DIALOG';
 
+export const SCM_ONBOARDING_IS_IMPORT_STATUS_MODAL_VISIBLE = 'SCM_ONBOARDING_IS_IMPORT_STATUS_MODAL_VISIBLE';
+
 export function loadPage(orgId) {
   return function(dispatch) {
     dispatch(loadPageRequested(orgId));
@@ -256,6 +258,8 @@ const validateScmHostUrlFulfilled = payloadParamActionCreator(
     SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FULFILLED);
 const validateScmHostUrlFailed = payloadParamActionCreator(SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FAILED);
 
+export const setIsImportStatusDialogVisible = payloadParamActionCreator(SCM_ONBOARDING_IS_IMPORT_STATUS_MODAL_VISIBLE);
+
 export default function scmOnboarding() {
   return {
     setSelectedOrganization,
@@ -269,6 +273,7 @@ export default function scmOnboarding() {
     importSelectedRepositories,
     setSortingParameters,
     setShowHostDialog,
-    setIsGitHostNeeded
+    setIsGitHostNeeded,
+    setIsImportStatusDialogVisible
   };
 }

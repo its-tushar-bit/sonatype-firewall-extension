@@ -26,6 +26,7 @@ import {
   SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FULFILLED,
   SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_REQUESTED,
   SCM_ONBOARDING_SHOW_HOST_DIALOG,
+  SCM_ONBOARDING_IS_IMPORT_STATUS_MODAL_VISIBLE,
   SCM_ONBOARDING_ADD_ORGANIZATION_FULFILLED,
   SCM_ONBOARDING_ADD_ORGANIZATION_FAILED,
   SCM_ONBOARDING_SET_IS_NEW_ORGANIZATION_MODAL_VISIBLE
@@ -55,6 +56,7 @@ const initialState = {
     isGitHostNeeded: false,
     isGitHostDialogVisible: false,
     isNewOrganizationModalVisible: false,
+    isImportStatusDialogVisible: false,
 
     generalError: null,
     loadRepositoriesAuthError: null,
@@ -166,6 +168,16 @@ function loadPageFulfilled(payload, state) {
     defaultHostUrl: payload.hostUrlResult ? payload.hostUrlResult.defaultHostUrl : null,
     selectedOrganization: selectedOrganization
   }, newState);
+}
+
+function setIsImportStatusDialogVisibleChanged(payload, state) {
+  return {
+    ...state,
+    viewState: {
+      ...state.viewState,
+      isImportStatusDialogVisible: payload
+    }
+  };
 }
 
 function setShowHostDialogChanged(payload, state) {
@@ -399,6 +411,10 @@ function importRepositoriesFulfilled(payload, state) {
       selectedRepositoryCount: 0,
       newlyImportedRepos: importedRepos,
       failedImportCount: payload.failedImportCount
+    },
+    viewState: {
+      ...state.viewState,
+      isImportStatusDialogVisible: true
     }
   };
 }
@@ -512,6 +528,8 @@ const reducerActionMap = {
 
   [SCM_ONBOARDING_IS_GIT_HOST_NEEDED]: setIsGitHostNeeded,
   [SCM_ONBOARDING_SHOW_HOST_DIALOG]: setShowHostDialogChanged,
+
+  [SCM_ONBOARDING_IS_IMPORT_STATUS_MODAL_VISIBLE]: setIsImportStatusDialogVisibleChanged,
 
   [UI_ROUTER_ON_FINISH]: resetPage
 };

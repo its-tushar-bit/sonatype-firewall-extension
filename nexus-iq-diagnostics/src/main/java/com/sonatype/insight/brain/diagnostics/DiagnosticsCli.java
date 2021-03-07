@@ -160,8 +160,8 @@ public class DiagnosticsCli
         "repository_manager", "repository", "repository_component", "repository_policy_violation",
         "proprietary_component_name_pattern"};
     for (String table : tables) {
-      try (Statement statement = connection.createStatement()) {
-        ResultSet result = statement.executeQuery("SELECT COUNT(*) FROM " + table);
+      try (Statement statement = connection.createStatement();
+          ResultSet result = statement.executeQuery("SELECT COUNT(*) FROM " + table)) {
         while (result.next()) {
           log.info("  {}: {}", table, result.getLong(1));
         }
@@ -182,8 +182,8 @@ public class DiagnosticsCli
         "repository_manager", "repository", "repository_component", "repository_policy_violation",
         "proprietary_component_name_pattern"};
     for (String table : tables) {
-      try (Statement statement = connection.createStatement()) {
-        ResultSet result = statement.executeQuery("SELECT DISK_SPACE_USED('" + table + "')");
+      try (Statement statement = connection.createStatement();
+          ResultSet result = statement.executeQuery("SELECT DISK_SPACE_USED('" + table + "')")) {
         while (result.next()) {
           log.info("  {}: {}", table, result.getLong(1));
         }
@@ -198,8 +198,8 @@ public class DiagnosticsCli
   }
 
   private void logOldestEvaluation(Connection connection) throws Exception {
-    try (Statement statement = connection.createStatement()) {
-      ResultSet result = statement.executeQuery("SELECT MIN(time) FROM policy_evaluation");
+    try (Statement statement = connection.createStatement();
+        ResultSet result = statement.executeQuery("SELECT MIN(time) FROM policy_evaluation")) {
       while (result.next()) {
         log.info("Oldest policy evaluation: {}", result.getDate(1));
       }
@@ -210,15 +210,9 @@ public class DiagnosticsCli
     log.info("Unique coordinates:");
     String[] tables = { "policy_violation", "application_component" };
     for (String table : tables) {
-      try (Statement statement = connection.createStatement()) {
-        ResultSet result;
-        try {
-          result = statement.executeQuery("SELECT COUNT(DISTINCT component_id_coordinates_json) FROM " + table);
-        }
-        catch (SQLException e) {
-          result = statement
-              .executeQuery("SELECT COUNT(DISTINCT CONCAT(group_id, artifact_id, version)) FROM " + table);
-        }
+      try (Statement statement = connection.createStatement();
+          ResultSet result = query(statement, "SELECT COUNT(DISTINCT component_id_coordinates_json) FROM " + table,
+              "SELECT COUNT(DISTINCT CONCAT(group_id, artifact_id, version)) FROM " + table)) {
         while (result.next()) {
           log.info("  {}: {}", table, result.getLong(1));
         }
@@ -229,35 +223,44 @@ public class DiagnosticsCli
   private void logAverageColumnSizes(Connection connection) throws Exception {
     log.info("Average column sizes:");
     try (Statement statement = connection.createStatement()) {
-      ResultSet result;
-      result = statement.executeQuery("SELECT AVG(LENGTH(policy_name)) FROM policy_violation");
-      while (result.next()) {
-        log.info("  policy_name: {}", result.getLong(1));
+      try (ResultSet result = statement.executeQuery("SELECT AVG(LENGTH(policy_name)) FROM policy_violation")) {
+        while (result.next()) {
+          log.info("  policy_name: {}", result.getLong(1));
+        }
       }
-      result = statement.executeQuery("SELECT AVG(LENGTH(constraint_facts_json)) FROM policy_violation");
-      while (result.next()) {
-        log.info("  constraints: {}", result.getLong(1));
+      try (ResultSet result =
+          statement.executeQuery("SELECT AVG(LENGTH(constraint_facts_json)) FROM policy_violation")) {
+        while (result.next()) {
+          log.info("  constraints: {}", result.getLong(1));
+        }
       }
-      try {
-        result = statement.executeQuery("SELECT AVG(LENGTH(pathnames)) FROM policy_violation");
+      try (ResultSet result = query(statement, "SELECT AVG(LENGTH(pathnames)) FROM policy_violation",
+          "SELECT AVG(LENGTH(filename)) FROM policy_violation")) {
+        while (result.next()) {
+          log.info("  path-/filename: {}", result.getLong(1));
+        }
       }
-      catch (SQLException e) {
-        result = statement.executeQuery("SELECT AVG(LENGTH(filename)) FROM policy_violation");
-      }
-      while (result.next()) {
-        log.info("  path-/filename: {}", result.getLong(1));
-      }
-      try {
-        result = statement.executeQuery("SELECT AVG(LENGTH(component_id_coordinates_json)) FROM policy_violation");
-      }
-      catch (SQLException e) {
-        result = statement
-            .executeQuery("SELECT AVG(LENGTH(CONCAT(group_id, artifact_id, version))) FROM policy_violation");
-      }
-      while (result.next()) {
-        log.info("  coordinates: {}", result.getLong(1));
+      try (
+          ResultSet result = query(statement, "SELECT AVG(LENGTH(component_id_coordinates_json)) FROM policy_violation",
+              "SELECT AVG(LENGTH(CONCAT(group_id, artifact_id, version))) FROM policy_violation")) {
+        while (result.next()) {
+          log.info("  coordinates: {}", result.getLong(1));
+        }
       }
     }
+  }
+
+  private ResultSet query(Statement statement, String... queries) throws Exception {
+    Exception exception = new IllegalArgumentException("no queries specified");
+    for (String query : queries) {
+      try {
+        return statement.executeQuery(query);
+      }
+      catch (SQLException e) {
+        exception = e;
+      }
+    }
+    throw exception;
   }
 
   private void compactDatabase(Connection connection) throws Exception {
@@ -268,15 +271,15 @@ public class DiagnosticsCli
   }
 
   private void logDatabaseSettings(Connection connection) {
-    try (Statement statement = connection.createStatement()) {
-      try (ResultSet result = statement
-          .executeQuery("SELECT NAME, VALUE FROM INFORMATION_SCHEMA.SETTINGS ORDER BY NAME")) {
-        log.info("Database settings:");
-        while (result.next()) {
-          String name = result.getString(1);
-          String value = result.getString(2);
-          log.info("  {}={}", name, value);
-        }
+    try (Statement statement = connection.createStatement();
+        ResultSet result =
+            statement.executeQuery("SELECT NAME, VALUE FROM INFORMATION_SCHEMA.SETTINGS ORDER BY NAME")) {
+      log.info("Database settings:");
+      while (result.next()) {
+        String name = result.getString(1);
+        String value = result.getString(2);
+        value = value != null ? value.replace("\r", "\\r").replace("\n", "\\n") : value;
+        log.info("  {}={}", name, value);
       }
     }
     catch (Exception e) {

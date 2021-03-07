@@ -41,7 +41,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.openqa.selenium.Keys;
 
-import static com.codeborne.selenide.CollectionCondition.exactTexts;
+import static com.codeborne.selenide.CollectionCondition.*;
 import static com.codeborne.selenide.Condition.*;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
@@ -344,13 +344,11 @@ public class ScmOnboardingTest
     scmOnboardingPage.resultsTableAlreadyImported().shouldBe(text("0"));
 
     // the long descriptions are trimmed
-    assertThat(scmOnboardingPage.resultsTableDescription().get(0).getCssValue("text-overflow")).isEqualTo("ellipsis");
+    scmOnboardingPage.resultsTableDescription().get(0).shouldHave(cssValue("text-overflow", "ellipsis"));
 
     // and there is a hover tooltip over the trimmed description
     scmOnboardingPage.resultsTableDescription().get(0).hover();
-    String tooltipText = scmOnboardingPage.descriptionTooltip().text();
-    assertThat(tooltipText.length() > 100).isTrue();
-    assertThat(tooltipText).doesNotContain("...");
+    scmOnboardingPage.descriptionTooltip().should(matchText(".{101,}")).shouldNotHave(text("..."));
 
     // when the application already exists in IQ
     Application application = tempEntity.newApplication(org.getId());
@@ -358,6 +356,7 @@ public class ScmOnboardingTest
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
 
     // it is no longer displayed in the table and the UI is updated
+    scmOnboardingPage.resultsTableProject().shouldHave(sizeGreaterThan(0));
     assertThat(scmOnboardingPage.resultsTableProject().texts()).doesNotContain("ci-project-1");
     scmOnboardingPage.donutChartPercentImported().shouldHave(attribute("aria-label", "8% imported"));
     scmOnboardingPage.resultsTableAlreadyImported().shouldBe(text("1"));
@@ -420,13 +419,12 @@ public class ScmOnboardingTest
     scmOnboardingPage.resultsTable().shouldBe(visible);
     scmOnboardingPage.repositoryCount().shouldBe(visible);
     scmOnboardingPage.selectedToImportCount().shouldBe(text("0 of 13 repositories"));
-    scmOnboardingPage.resultsTableProject().shouldHaveSize(13);
-    assertThat(scmOnboardingPage.resultsTableNamespace().texts()).containsAnyOf("depshield-ci",
-        "sonatype-nexus-community");
     scmOnboardingPage.resultsTableProject().shouldHave(exactTexts("ci-project-1",
         "ci-project-16", "create-react-app", "nexus-repository-p2", "nexus-repository-puppet",
         "nexus-repository-terraform", "nexus-repository-vgo", "nexus-scripting-examples",
         "nexus-webhook-example-collection", "nxrm-cli", "ossindex-gradle-plugin", "oysteR", "prime-nexus-proxy-repos"));
+    assertThat(scmOnboardingPage.resultsTableNamespace().texts()).containsAnyOf("depshield-ci",
+        "sonatype-nexus-community");
   }
 
   @Test
@@ -575,12 +573,11 @@ public class ScmOnboardingTest
     scmOnboardingPage.resultsTableSelectAll().parent().click();
     scmOnboardingPage.repositoryCount().shouldBe(text("11"));
     scmOnboardingPage.selectedToImportCount().shouldBe(text("11 of 11 repositories"));
-    scmOnboardingPage.resultsTableProject().shouldHaveSize(11);
-    assertThat(scmOnboardingPage.resultsTableNamespace().texts()).containsAnyOf("sonatype-nexus-community");
     scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.textsInAnyOrder(
         "create-react-app", "nexus-repository-p2", "nexus-repository-puppet",
         "nexus-repository-terraform", "nexus-repository-vgo", "nexus-scripting-examples",
         "nexus-webhook-example-collection", "nxrm-cli", "ossindex-gradle-plugin", "oysteR", "prime-nexus-proxy-repos"));
+    assertThat(scmOnboardingPage.resultsTableNamespace().texts()).containsAnyOf("sonatype-nexus-community");
 
     // and the select all checkbox is checked
     scmOnboardingPage.resultsTableSelectAll().shouldBe(checked);
@@ -769,7 +766,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.selectionCheckboxById(CI_PROJECT_1_GIT).parent().click();
 
     // then the checkbox is selected
-    assertThat(scmOnboardingPage.selectionCheckboxById(CI_PROJECT_1_GIT).isSelected()).isTrue();
+    scmOnboardingPage.selectionCheckboxById(CI_PROJECT_1_GIT).shouldBe(selected);
   }
 
   @Test
@@ -786,6 +783,7 @@ public class ScmOnboardingTest
 
     // then the repos are initially sorted by namespace first and project second
     scmOnboardingPage.namespaceHeader().shouldHave(attribute("aria-sort", "ascending"));
+    scmOnboardingPage.resultsTableNamespace().shouldHave(sizeGreaterThan(0));
     List<String> namespaceTexts = scmOnboardingPage.resultsTableNamespace().texts();
     assertThat(namespaceTexts).isSorted();
 

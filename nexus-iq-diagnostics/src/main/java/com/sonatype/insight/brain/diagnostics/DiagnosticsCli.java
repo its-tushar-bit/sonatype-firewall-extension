@@ -155,9 +155,10 @@ public class DiagnosticsCli
 
   private void logRowCounts(Connection connection) throws Exception {
     log.info("Row counts:");
-    String[] tables = { "organization", "application", "policy", "policy_evaluation", "last_policy_evaluation",
+    String[] tables = {"organization", "application", "policy", "policy_evaluation", "last_policy_evaluation",
         "policy_violation", "first_occurrence_policy_violation", "waived_policy_violation", "application_component",
-        "repository_manager", "repository", "repository_component", "repository_policy_violation" };
+        "repository_manager", "repository", "repository_component", "repository_policy_violation",
+        "proprietary_component_name_pattern"};
     for (String table : tables) {
       try (Statement statement = connection.createStatement()) {
         ResultSet result = statement.executeQuery("SELECT COUNT(*) FROM " + table);
@@ -176,9 +177,10 @@ public class DiagnosticsCli
 
   private void logTableSizes(Connection connection) throws Exception {
     log.info("Table sizes:");
-    String[] tables = { "organization", "application", "policy", "policy_evaluation", "last_policy_evaluation",
+    String[] tables = {"organization", "application", "policy", "policy_evaluation", "last_policy_evaluation",
         "policy_violation", "first_occurrence_policy_violation", "waived_policy_violation", "application_component",
-        "repository_manager", "repository", "repository_component", "repository_policy_violation" };
+        "repository_manager", "repository", "repository_component", "repository_policy_violation",
+        "proprietary_component_name_pattern"};
     for (String table : tables) {
       try (Statement statement = connection.createStatement()) {
         ResultSet result = statement.executeQuery("SELECT DISK_SPACE_USED('" + table + "')");

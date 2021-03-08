@@ -17,7 +17,7 @@ pipeline {
   }
 
   parameters {
-    choice(name: 'DATABASE_TYPE', choices: ['H2', 'PostgreSQL'], description: 'Defines the database engine to be used')
+    choice(name: 'DATABASE_GROUP', choices: ['H2', 'PostgreSQL', 'PostgreSQL-RDS'], description: 'Defines the database engine to be used')
   }
 
   stages {
@@ -38,7 +38,7 @@ pipeline {
         build job: '../Test-performance',
                 parameters: [
                         string(name: 'BRANCH_NAME', value: "${env.BRANCH_NAME}"),
-                        string(name: 'DATABASE_TYPE', value: "${DATABASE_TYPE}")
+                        string(name: 'DATABASE_GROUP', value: "${DATABASE_GROUP}")
                 ],
                 wait: true
       }

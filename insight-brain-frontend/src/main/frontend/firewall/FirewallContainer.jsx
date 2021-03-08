@@ -4,9 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import {connect} from 'react-redux';
-import * as firewallActions from './firewallActions';
 import Firewall from './Firewall';
 import {pick} from 'ramda';
+import {loadData, openConfigurationModal} from './firewallActions';
 
 function mapStateToProps({firewall}) {
   return {
@@ -23,4 +23,9 @@ function mapStateToProps({firewall}) {
   };
 }
 
-export default connect(mapStateToProps, firewallActions)(Firewall);
+const mapDispatchToProps = {
+  loadData,
+  openConfigurationModal
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Firewall);

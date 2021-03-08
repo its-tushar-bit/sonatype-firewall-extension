@@ -61,7 +61,7 @@ describe('firewallActions', function() {
       }),
       firewallConfigurationModal: Object.freeze({
         viewState: Object.freeze({
-          sumbitMaskSuccessState: false,
+          submitMaskSuccessState: false,
           saveConfigurationError: null,
           loadedConfiguration: false,
           loadConfigurationError: null,

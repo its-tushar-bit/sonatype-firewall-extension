@@ -19,7 +19,7 @@ export default function FirewallConfigurationModal(props) {
 
   //viewState
   const {
-    sumbitMaskSuccessState,
+    submitMaskSuccessState,
     saveConfigurationError,
     isDirty
   } = props;
@@ -43,7 +43,7 @@ export default function FirewallConfigurationModal(props) {
               doLoad={loadConfiguration}
               submitMaskMessage="Saving…"
               submitError={saveConfigurationError}
-              submitMaskState={sumbitMaskSuccessState}
+              submitMaskState={submitMaskSuccessState}
               submitBtnText="Save Changes"
               validationErrors={isDirty ? undefined : 'There are no changes to save.'}
               onCancel={closeConfigurationModal}>
@@ -52,7 +52,7 @@ export default function FirewallConfigurationModal(props) {
         </header>
         <div className="nx-modal-content">
           <NxFieldset isRequired
-                      label="Auto Unquarantine"
+                      label="Auto Release From Quarantine"
                       sublabel="When Auto Unquarantine is set to active, quarantined components will be automatically
                                 released when they are confirmed not malicious.">
             <NxToggle id="auto-unquarantine-toggle"
@@ -73,7 +73,7 @@ FirewallConfigurationModal.propTypes = {
   loadConfigurationError: PropTypes.object,
   loadConfiguration: PropTypes.func.isRequired,
   autoUnquarantineEnabled: PropTypes.bool.isRequired,
-  sumbitMaskSuccessState: PropTypes.bool,
+  submitMaskSuccessState: PropTypes.bool,
   saveConfiguration: PropTypes.func.isRequired,
   saveConfigurationError: PropTypes.string,
   toggleAutoUnquarantineEnabled: PropTypes.func.isRequired,

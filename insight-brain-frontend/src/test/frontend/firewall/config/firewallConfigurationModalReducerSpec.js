@@ -25,7 +25,7 @@ describe('firewallConfigurationModalReducer', function() {
       const newState = reduce(undefined, action);
 
       //viewState
-      expect(newState.viewState.sumbitMaskSuccessState).toBeNull();
+      expect(newState.viewState.submitMaskSuccessState).toBeNull();
       expect(newState.viewState.saveConfigurationError).toBeNull();
       expect(newState.viewState.isDirty).toBe(false);
 
@@ -54,7 +54,7 @@ describe('firewallConfigurationModalReducer', function() {
         other: otherObject,
         viewState: {
           other: otherObject,
-          sumbitMaskSuccessState: true,
+          submitMaskSuccessState: true,
           saveConfigurationError: 'error'
         },
         serverState: {
@@ -68,7 +68,7 @@ describe('firewallConfigurationModalReducer', function() {
         type: 'FIREWALL_SAVE_CONFIGURATION_REQUESTED'
       });
       // viewState
-      expect(newState.viewState.sumbitMaskSuccessState).toBe(false);
+      expect(newState.viewState.submitMaskSuccessState).toBe(false);
       expect(newState.viewState.saveConfigurationError).toBeNull();
       // other properties are not modified
       expect(newState.other).toBe(otherObject);
@@ -84,7 +84,7 @@ describe('firewallConfigurationModalReducer', function() {
         other: otherObject,
         viewState: {
           other: otherObject,
-          sumbitMaskSuccessState: false,
+          submitMaskSuccessState: false,
           saveConfigurationError: 'error'
         },
         serverState: {
@@ -99,7 +99,7 @@ describe('firewallConfigurationModalReducer', function() {
         payload: {}
       });
       // viewState
-      expect(newState.viewState.sumbitMaskSuccessState).toBe(true);
+      expect(newState.viewState.submitMaskSuccessState).toBe(true);
       expect(newState.viewState.saveConfigurationError).toBeNull();
       // other properties are not modified
       expect(newState.other).toBe(otherObject);
@@ -115,7 +115,7 @@ describe('firewallConfigurationModalReducer', function() {
         other: otherObject,
         viewState: {
           other: otherObject,
-          sumbitMaskSuccessState: true,
+          submitMaskSuccessState: true,
           saveConfigurationError: null
         },
         serverState: {
@@ -130,7 +130,7 @@ describe('firewallConfigurationModalReducer', function() {
         payload: 'error'
       });
       // viewState
-      expect(newState.viewState.sumbitMaskSuccessState).toBe(null);
+      expect(newState.viewState.submitMaskSuccessState).toBe(null);
       expect(newState.viewState.saveConfigurationError).toEqual('error');
       // other properties are not modified
       expect(newState.other).toBe(otherObject);
@@ -158,7 +158,7 @@ describe('firewallConfigurationModalReducer', function() {
         type: 'FIREWALL_LOAD_CONFIGURATION_REQUESTED'
       });
       //viewState
-      expect(newState.viewState.sumbitMaskSuccessState).toBeNull();
+      expect(newState.viewState.submitMaskSuccessState).toBeNull();
       expect(newState.viewState.saveConfigurationError).toBeNull();
       //serverState
       expect(newState.serverState.autoUnquarantineEnabled).toBe(false);
@@ -302,7 +302,7 @@ describe('firewallConfigurationModalReducer', function() {
         other: otherObject,
         viewState: {
           other: otherObject,
-          sumbitMaskSuccessState: true,
+          submitMaskSuccessState: true,
           saveConfigurationError: 'error'
         },
         serverState: {
@@ -316,7 +316,7 @@ describe('firewallConfigurationModalReducer', function() {
         type: 'FIREWALL_CONFIGURATION_SAVE_MASK_TIMER_DONE'
       });
       //viewState
-      expect(newState.viewState.sumbitMaskSuccessState).toBeNull();
+      expect(newState.viewState.submitMaskSuccessState).toBeNull();
       expect(newState.viewState.saveConfigurationError).toBeNull();
       // other properties are not modified
       expect(newState.other).toBe(otherObject);

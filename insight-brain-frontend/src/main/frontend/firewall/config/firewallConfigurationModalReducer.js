@@ -19,7 +19,7 @@ import {pathSet} from '../../util/jsUtil';
 
 const initialState = Object.freeze({
   viewState: Object.freeze({
-    sumbitMaskSuccessState: null,
+    submitMaskSuccessState: null,
     saveConfigurationError: null,
     isDirty: false
   }),
@@ -35,7 +35,7 @@ const saveConfigurationRequested = (_, state) => ({
   ...state,
   viewState: {
     ...state.viewState,
-    sumbitMaskSuccessState: false,
+    submitMaskSuccessState: false,
     saveConfigurationError: null
   }
 });
@@ -45,7 +45,7 @@ const saveConfigurationFulfilled = (payload, state) => ({
   viewState: {
     ...state.viewState,
     saveConfigurationError: null,
-    sumbitMaskSuccessState: true
+    submitMaskSuccessState: true
   }
 });
 
@@ -53,7 +53,7 @@ const saveConfigurationFailed = (payload, state) => ({
   ...state,
   viewState: {
     ...state.viewState,
-    sumbitMaskSuccessState: null,
+    submitMaskSuccessState: null,
     saveConfigurationError: payload
   }
 });
@@ -77,7 +77,7 @@ const configurationSaveMaskTimerDone = (_, state) => ({
   ...state,
   viewState: {
     ...state.viewState,
-    sumbitMaskSuccessState: null,
+    submitMaskSuccessState: null,
     saveConfigurationError: null
   }
 });

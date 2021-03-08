@@ -18,14 +18,14 @@ import FirewallAutoReleaseQuarantineYtd from './FirewallAutoReleaseQuarantineYtd
 export default function FirewallAutoUnquarantinePage(props) {
   // Actions
   const {
-    loadData,
-    loadError
+    loadData
   } = props;
 
   // viewState
   const {
     loadedStatus,
-    isShowConfigurationModal
+    isShowConfigurationModal,
+    loadError
   } = props;
 
   // statusState

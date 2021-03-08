@@ -6,8 +6,13 @@
 import {connect} from 'react-redux';
 
 import FirewallConfigurationModal from './FirewallConfigurationModal';
-import * as firewallActions from '../firewallActions';
 import {pick} from 'ramda';
+import {
+  closeConfigurationModal,
+  loadConfiguration,
+  saveConfiguration,
+  toggleAutoUnquarantineEnabled
+} from '../firewallActions';
 
 function mapStateToProps({firewallConfigurationModal, firewall}) {
   return {
@@ -17,5 +22,12 @@ function mapStateToProps({firewallConfigurationModal, firewall}) {
   };
 }
 
-const FirewallConfigurationModalContainer = connect(mapStateToProps, firewallActions)(FirewallConfigurationModal);
+const mapDispatchToProps = {
+  loadConfiguration,
+  toggleAutoUnquarantineEnabled,
+  closeConfigurationModal,
+  saveConfiguration
+};
+
+const FirewallConfigurationModalContainer = connect(mapStateToProps, mapDispatchToProps)(FirewallConfigurationModal);
 export default FirewallConfigurationModalContainer;

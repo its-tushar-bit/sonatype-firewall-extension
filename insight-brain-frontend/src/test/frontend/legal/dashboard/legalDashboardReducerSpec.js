@@ -6,9 +6,9 @@
 
 import legalDashboardReducer from '../../../../main/frontend/legal/dashboard/legalDashboardReducer';
 import {
-  LOAD_LEGAL_RESULTS_FAILED,
-  LOAD_LEGAL_RESULTS_FULFILLED,
-  LOAD_LEGAL_RESULTS_REQUESTED
+  LEGAL_DASHBOARD_LOAD_RESULTS_FAILED,
+  LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED,
+  LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED
 } from '../../../../main/frontend/legal/dashboard/legalDashboardActions';
 
 const otherObject = {value: 'test value'};
@@ -51,14 +51,14 @@ describe('legalDashboardReducer', function () {
     });
   });
 
-  describe('LOAD_LEGAL_RESULTS_REQUESTED action', function() {
+  describe('LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED action', function() {
     it('resets applications state', function() {
       const state = Object.freeze({
         components: {results: [], error: 'foo'},
         applications: {results: [], numResults: 0, error: 'foo'},
         other: otherObject
       });
-      const action = {type: LOAD_LEGAL_RESULTS_REQUESTED, payload: 'applications'};
+      const action = {type: LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED, payload: 'applications'};
       const newState = legalDashboardReducer(state, action);
       expect(newState.applications.results).toEqual([]);
       expect(newState.applications.error).toBeNull();
@@ -67,7 +67,7 @@ describe('legalDashboardReducer', function () {
     });
   });
 
-  describe('LOAD_LEGAL_RESULTS_FULFILLED action', function() {
+  describe('LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED action', function() {
     it('updates applications results and classyBrew', function() {
       const state = Object.freeze({
         components: {results: []},
@@ -75,7 +75,7 @@ describe('legalDashboardReducer', function () {
         other: otherObject
       });
       const action = {
-        type: LOAD_LEGAL_RESULTS_FULFILLED,
+        type: LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED,
         payload: {
           resultsType: 'applications',
           results: [{ foo: 'bar'}]
@@ -87,7 +87,7 @@ describe('legalDashboardReducer', function () {
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });
-  describe('LOAD_LEGAL_RESULTS_FAILED action', function() {
+  describe('LEGAL_DASHBOARD_LOAD_RESULTS_FAILED action', function() {
     it('sets error in applications state', function() {
       const state = Object.freeze({
         components: {error: {}},
@@ -96,7 +96,7 @@ describe('legalDashboardReducer', function () {
         other: otherObject
       });
       const action = {
-        type: LOAD_LEGAL_RESULTS_FAILED,
+        type: LEGAL_DASHBOARD_LOAD_RESULTS_FAILED,
         payload: {
           resultsType: 'applications',
           error: 'error'

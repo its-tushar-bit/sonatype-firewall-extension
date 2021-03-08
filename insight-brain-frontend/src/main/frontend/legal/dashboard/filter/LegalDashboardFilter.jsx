@@ -4,77 +4,89 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { Fragment, useEffect } from 'react';
-import { NxStatefulTreeViewMultiSelect } from '@sonatype/react-shared-components';
+import { NxErrorAlert, NxStatefulTreeViewMultiSelect } from '@sonatype/react-shared-components';
 import LoadWrapper from '../../../react/LoadWrapper';
 import IqOrgAppPicker from '../../../components/iqOrgAppPicker/IqOrgAppPicker';
 import Hexagon from '../../../react/Hexagon';
 import * as PropTypes from 'prop-types';
 import { curryN } from 'ramda';
 import LegalDashboardFilterFooter from './LegalDashboardFilterFooter';
-import { setToArray } from '../../../util/jsUtil';
+import ManageFiltersDropdown from '../../../dashboard/filter/manageFiltersDropdown/ManageFiltersDropdown';
+import SaveLegalFilterModalContainer from './SaveLegalFilterModalContainer';
+import DeleteLegalFilterModalContainer from './DeleteLegalFilterModalContainer';
+import { filterToJson } from './legalDashboardFilterService';
 
 export default function LegalDashboardFilter(props) {
 
   const {
     loading,
     loadError,
-    // loadErrorFilterName,
+    loadErrorFilterName,
     applyFilterError,
-    // showDirtyAsterisk,
+    showDirtyAsterisk,
     filtersAreDirty,
     needsAcknowledgement,
-    // showSaveFilterModal,
-    // savedFilters,
-    // filtersDropdownOpen,
-    // filterToDelete,
+    showSaveFilterModal,
+    savedFilters,
+    filtersDropdownOpen,
+    filterToDelete,
 
     // filter items
     organizations,
     applications,
     categories,
     stages,
+    progressOptions,
 
     // selected items
-    // appliedFilterName,
+    appliedFilterName,
     selected,
 
     // actions
     applyFilter,
-    // applyFilterCancelled,
+    applyFilterCancelled,
     setDisplaySaveFilterModal,
     loadFilter,
     revert,
     toggleFilter,
-    toggleAppsAndOrgs
-    // applyDefaultFilter,
-    // applySavedFilter,
-    // toggleFiltersDropdown,
-    // selectFilterToDelete,
-    // handleDocumentClick
+    toggleAppsAndOrgs,
+    applyDefaultFilter,
+    applySavedFilter,
+    toggleFiltersDropdown,
+    selectFilterToDelete,
+    handleDocumentClick
   } = props;
-
-  const filterToJson = (filter) => {
-    return {
-      organizationFilters: setToArray(filter.organizations),
-      applicationFilters: setToArray(filter.applications),
-      policyThreatCategoryFilters: setToArray(filter.policyTypes),
-      stageTypeFilters: setToArray(filter.stages)
-    };
-  };
 
   useEffect(() => { loadFilter(); }, []);
 
   const curriedToggleFilter = curryN(2, toggleFilter);
   const onCategoriesChange = curriedToggleFilter('categories');
   const onStagesChange = curriedToggleFilter('stages');
-
-  const appliedFilterName = '';
-  const applyFilterCancelled = () => {};
+  const onProgressOptionsChange = curriedToggleFilter('progressOptions');
 
   const applicationCategoryTooltip = (prop) => prop && prop.owner && `in ${prop.owner}` || '';
 
   return (
     <Fragment>
+      { showSaveFilterModal && <SaveLegalFilterModalContainer/> }
+      { filterToDelete && <DeleteLegalFilterModalContainer/> }
+      <header className="dashboard-filter-header" id="dashboard-filter-header">
+        <h3 className="nx-h3">Filter</h3>
+        {!loading && !loadError &&
+        <ManageFiltersDropdown {...{
+          appliedFilterName,
+          showDirtyAsterisk,
+          savedFilters,
+          applyDefaultFilter,
+          applySavedFilter,
+          filtersDropdownOpen,
+          toggleFiltersDropdown,
+          selectFilterToDelete,
+          handleDocumentClick
+        }}/>
+        }
+        {loadErrorFilterName && <NxErrorAlert>Failed to load {loadErrorFilterName}</NxErrorAlert>}
+      </header>
       <div className="dashboard-filter nx-viewport-sized__scrollable">
         <LoadWrapper loading={loading} error={loadError} retryHandler={loadFilter}>
           {() =>
@@ -101,6 +113,14 @@ export default function LegalDashboardFilter(props) {
                                              name="stages"
                                              id="legal-stage-filter">
                 Stages
+              </NxStatefulTreeViewMultiSelect>
+              <NxStatefulTreeViewMultiSelect options={progressOptions}
+                                             selectedIds={selected.progressOptions}
+                                             onChange={onProgressOptionsChange}
+                                             filterPlaceholder="Review Progress"
+                                             name="progressOptions"
+                                             id="legal-progress-options-filter">
+                Review Progress
               </NxStatefulTreeViewMultiSelect>
             </Fragment>
           }
@@ -133,16 +153,20 @@ LegalDashboardFilter.propTypes = {
   applications: PropTypes.array,
   categories: PropTypes.array,
   stages: PropTypes.array,
+  progressOptions: PropTypes.array,
   selected: PropTypes.shape({
     organizations: PropTypes.instanceOf(Set).isRequired,
     applications: PropTypes.instanceOf(Set).isRequired,
     categories: PropTypes.instanceOf(Set).isRequired,
-    stages: PropTypes.instanceOf(Set).isRequired
+    stages: PropTypes.instanceOf(Set).isRequired,
+    progressOptions: PropTypes.instanceOf(Set).isRequired
   }),
   applyFilter: PropTypes.func.isRequired,
   setDisplaySaveFilterModal: PropTypes.func.isRequired,
   loadFilter: PropTypes.func.isRequired,
   revert: PropTypes.func.isRequired,
+  selectAge: PropTypes.func,
   toggleAppsAndOrgs: PropTypes.func,
-  toggleFilter: PropTypes.func
+  toggleFilter: PropTypes.func,
+  ...ManageFiltersDropdown.propTypes
 };

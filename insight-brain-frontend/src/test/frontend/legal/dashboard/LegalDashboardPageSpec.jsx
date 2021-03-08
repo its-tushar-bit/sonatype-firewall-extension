@@ -32,7 +32,8 @@ describe('LegalDashboardPage', function() {
       applications: mockApplications,
       components: [],
       loadResults: loadResultsSpy,
-      isAuthorized: true
+      isAuthorized: true,
+      filtersAreDirty: 'filtersAreDirty'
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(LegalDashboardPage, minimalProps);
@@ -48,6 +49,7 @@ describe('LegalDashboardPage', function() {
     let applicationsTab = wrapper.find(LegalDashboardApplicationsTab);
     expect(applicationsTab).toExist();
     expect(applicationsTab).toHaveProp('applications', mockApplications.results);
+    expect(applicationsTab).toHaveProp('filtersAreDirty', 'filtersAreDirty');
   });
 
   it('renders an LegalDashboardComponentsTab', function() {
@@ -55,5 +57,6 @@ describe('LegalDashboardPage', function() {
     let componentsTab = wrapper.find(LegalDashboardComponentsTab);
     expect(componentsTab).toExist();
     expect(componentsTab).toHaveProp('components');
+    expect(componentsTab).toHaveProp('filtersAreDirty', 'filtersAreDirty');
   });
 });

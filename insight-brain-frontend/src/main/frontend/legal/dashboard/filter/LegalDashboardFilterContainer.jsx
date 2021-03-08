@@ -5,11 +5,28 @@
  */
 import { connect } from 'react-redux';
 import LegalDashboardFilter from './LegalDashboardFilter';
+import { pick } from 'ramda';
+import * as manageLegalFiltersActions from './manageLegalFiltersActions';
 import * as legalDashboardFilterActions from './legalDashboardFilterActions';
 
-function mapStateToProps({ legalDashboardFilter }) {
-  return legalDashboardFilter;
+function mapStateToProps({ manageLegalFilters, legalDashboardFilter }) {
+  return {
+    ...legalDashboardFilter,
+    ...pick([
+      'appliedFilterName',
+      'showDirtyAsterisk',
+      'showSaveFilterModal',
+      'savedFilters',
+      'filtersDropdownOpen',
+      'filterToDelete'
+    ], manageLegalFilters)
+  };
 }
 
-const LegalDashboardFilterContainer = connect(mapStateToProps, legalDashboardFilterActions)(LegalDashboardFilter);
+const mapDispatchToProps = {
+  ...manageLegalFiltersActions,
+  ...legalDashboardFilterActions
+};
+
+const LegalDashboardFilterContainer = connect(mapStateToProps, mapDispatchToProps)(LegalDashboardFilter);
 export default LegalDashboardFilterContainer;

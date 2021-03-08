@@ -5,11 +5,14 @@
  */
 
 import {
-  LOAD_LEGAL_RESULTS_FAILED,
-  LOAD_LEGAL_RESULTS_FULFILLED,
-  LOAD_LEGAL_RESULTS_REQUESTED
+  LEGAL_DASHBOARD_LOAD_RESULTS_FAILED,
+  LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED,
+  LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED
 } from './legalDashboardActions';
-import { APPLY_LEGAL_FILTER_REQUESTED, LOAD_LEGAL_FILTER_REQUESTED } from './filter/legalDashboardFilterActions';
+import {
+  LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED,
+  LEGAL_DASHBOARD_LOAD_FILTER_REQUESTED
+} from './filter/legalDashboardFilterActions';
 
 const initState = {
   applications: {
@@ -28,19 +31,19 @@ const initState = {
 
 export default function(state = initState, {type, payload}) {
   switch (type) {
-    case LOAD_LEGAL_FILTER_REQUESTED:
-    case APPLY_LEGAL_FILTER_REQUESTED:
+    case LEGAL_DASHBOARD_LOAD_FILTER_REQUESTED:
+    case LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED:
       return resetAllTabs(state);
 
-    case LOAD_LEGAL_RESULTS_REQUESTED:
+    case LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED:
       return resetResults(state, payload);
 
-    case LOAD_LEGAL_RESULTS_FULFILLED: {
+    case LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED: {
       const {resultsType, results} = payload;
       return updateResults(state, resultsType, {results});
     }
 
-    case LOAD_LEGAL_RESULTS_FAILED: {
+    case LEGAL_DASHBOARD_LOAD_RESULTS_FAILED: {
       const {resultsType, error} = payload;
       return updateResults(state, resultsType, {error});
     }

@@ -21,7 +21,8 @@ describe('legalDashboardActions', function () {
           applications: [],
           organizations: [],
           stages: [],
-          categories: []
+          categories: [],
+          progressOptions: []
         }
       }
     };
@@ -40,7 +41,7 @@ describe('legalDashboardActions', function () {
               .then(() => {
                 expect(store.getActions().length).toBe(2);
                 expect(store.getActions()[1]).toEqual({
-                  type: 'LOAD_LEGAL_RESULTS_FULFILLED',
+                  type: 'LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED',
                   payload: {
                     resultsType: tab.resultsType,
                     results: 'results'
@@ -51,7 +52,7 @@ describe('legalDashboardActions', function () {
 
           expect(store.getActions().length).toBe(1);
           expect(store.getActions()[0]).toEqual({
-            type: 'LOAD_LEGAL_RESULTS_REQUESTED',
+            type: 'LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED',
             payload: tab.resultsType
           });
         });
@@ -69,7 +70,7 @@ describe('legalDashboardActions', function () {
               .catch(() => {
                 expect(store.getActions().length).toBe(2);
                 expect(store.getActions()[1]).toEqual({
-                  type: 'LOAD_LEGAL_RESULTS_FAILED',
+                  type: 'LEGAL_DASHBOARD_LOAD_RESULTS_FAILED',
                   payload: {
                     resultsType: tab.resultsType,
                     error: errorTest
@@ -80,7 +81,7 @@ describe('legalDashboardActions', function () {
 
           expect(store.getActions().length).toBe(1);
           expect(store.getActions()[0]).toEqual({
-            type: 'LOAD_LEGAL_RESULTS_REQUESTED',
+            type: 'LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED',
             payload: tab.resultsType
           });
         });

@@ -8,7 +8,7 @@ import { NxButton, NxErrorAlert } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../../enzymeUtils';
 import LegalDashboardFilterFooter from '../../../../../main/frontend/legal/dashboard/filter/LegalDashboardFilterFooter';
 
-describe('LegalDashboardFilter footer', function() {
+describe('LegalDashboardFilterFooter', function() {
   const getShallowComponent = enzymeUtils.getShallowComponent(LegalDashboardFilterFooter, {});
 
   it('renders a section with the footer classes', function() {
@@ -218,6 +218,55 @@ describe('LegalDashboardFilter footer', function() {
 
       shallowRender.find('#legal-dashboard-filter-revert').simulate('click');
       expect(revert).toHaveBeenCalled();
+    });
+  });
+
+  describe('Save button onClick handler', function() {
+    let setDisplaySaveFilterModal;
+    beforeEach(function() {
+      setDisplaySaveFilterModal = jasmine.createSpy('setDisplaySaveFilterModal');
+    });
+
+    it('calls setDisplaySaveFilterModal callback if filters are not dirty', function() {
+      const shallowRender = getShallowComponent({
+        filtersAreDirty: false,
+        setDisplaySaveFilterModal
+      });
+
+      shallowRender.find('#legal-dashboard-filter-save').simulate('click');
+      expect(setDisplaySaveFilterModal).toHaveBeenCalledWith(true);
+    });
+
+    it('doesn\'t call setDisplaySaveFilterModal if filters are dirty', function() {
+      const shallowRender = getShallowComponent({
+        filtersAreDirty: true,
+        setDisplaySaveFilterModal
+      });
+
+      shallowRender.find('#legal-dashboard-filter-save').simulate('click');
+      expect(setDisplaySaveFilterModal).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Save button', function() {
+    it('is disabled with tooltip when filters are dirty', function() {
+      const shallowRender = getShallowComponent({ filtersAreDirty: true }),
+          saveBtnTooltip = shallowRender.find('#legal-dashboard-filter-save-tooltip'),
+          saveBtn = saveBtnTooltip.find(NxButton);
+
+      expect(saveBtnTooltip).toHaveTagName('NxTooltip');
+      expect(saveBtnTooltip).toHaveProp('title', 'Please apply filter before saving');
+      expect(saveBtn).toHaveClassName('disabled');
+    });
+
+    it('is enabled with no tooltip when filters are not dirty', function() {
+      const shallowRender = getShallowComponent({ filtersAreDirty: false }),
+          saveBtnTooltip = shallowRender.find('#legal-dashboard-filter-save-tooltip'),
+          saveBtn = saveBtnTooltip.find(NxButton);
+
+      expect(saveBtnTooltip).toHaveTagName('NxTooltip');
+      expect(saveBtnTooltip).toHaveProp('title', '');
+      expect(saveBtn).not.toHaveClassName('disabled');
     });
   });
 });

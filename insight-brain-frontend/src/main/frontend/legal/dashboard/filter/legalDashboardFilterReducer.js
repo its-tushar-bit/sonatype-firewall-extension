@@ -5,21 +5,24 @@
  */
 import { compose, curry, equals, find, indexBy, map, merge, pick, prop, propEq, sortBy, uniqBy } from 'ramda';
 import { propSet, pathSet, lookup } from '../../../util/jsUtil';
-import defaultFilter from '../../../dashboard/filter/defaultFilter';
 import { uncategorizedCategory } from '../../../dashboard/filter/staticFilterEntries';
 import {
-  APPLY_LEGAL_FILTER_FAILED,
-  APPLY_LEGAL_FILTER_FULFILLED,
-  APPLY_LEGAL_FILTER_REQUESTED,
-  APPLY_SAVED_FILTER_FAILED,
-  FETCH_LEGAL_AVAILABLE_FILTER_OPTIONS_FULFILLED,
-  FETCH_LEGAL_CURRENT_FILTER_FULFILLED,
-  LOAD_LEGAL_FILTER_FAILED,
-  LOAD_LEGAL_FILTER_REQUESTED,
-  REVERT_LEGAL_FILTER,
-  TOGGLE_LEGAL_APPS_AND_ORGS,
-  TOGGLE_LEGAL_FILTER
+  LEGAL_DASHBOARD_APPLY_FILTER_CANCELLED,
+  LEGAL_DASHBOARD_APPLY_FILTER_FAILED,
+  LEGAL_DASHBOARD_APPLY_FILTER_FULFILLED,
+  LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED,
+  LEGAL_DASHBOARD_APPLY_SAVED_FILTER_FAILED,
+  LEGAL_DASHBOARD_FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED,
+  LEGAL_DASHBOARD_FETCH_CURRENT_FILTER_FULFILLED,
+  LEGAL_DASHBOARD_LOAD_FILTER_FAILED,
+  LEGAL_DASHBOARD_LOAD_FILTER_REQUESTED,
+  LEGAL_DASHBOARD_REVERT_FILTER,
+  LEGAL_DASHBOARD_SET_DISPLAY_SAVE_FILTER_MODAL,
+  LEGAL_DASHBOARD_TOGGLE_APPS_AND_ORGS,
+  LEGAL_DASHBOARD_TOGGLE_FILTER
 } from './legalDashboardFilterActions';
+import defaultFilter from './defaultFilter';
+import { progressOptions } from './staticFilterEntries';
 
 const initState = Object.freeze({
   loading: true,
@@ -37,6 +40,7 @@ const initState = Object.freeze({
   applications: [],
   categories: [],
   stages: [],
+  progressOptions,
 
   // selected filter items
   appliedFilter: defaultFilter,
@@ -47,58 +51,64 @@ const resetProps = curry((propNames, state) => merge(state, pick(propNames, init
 
 export default function dashboardFilterReducer(state = initState, {type, payload}) {
   switch (type) {
-    case LOAD_LEGAL_FILTER_REQUESTED:
+    case LEGAL_DASHBOARD_LOAD_FILTER_REQUESTED:
       return compose(
           propSet('loading', true),
           resetProps(['loadError'])
       )(state);
 
-    case LOAD_LEGAL_FILTER_FAILED:
+    case LEGAL_DASHBOARD_LOAD_FILTER_FAILED:
       return {...state, loadError: payload, loading: false};
 
-    case FETCH_LEGAL_AVAILABLE_FILTER_OPTIONS_FULFILLED:
+    case LEGAL_DASHBOARD_FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED:
       return setAvailable(state, payload);
 
-    case FETCH_LEGAL_CURRENT_FILTER_FULFILLED:
+    case LEGAL_DASHBOARD_FETCH_CURRENT_FILTER_FULFILLED:
       return compose(
           applyFilter(payload),
           propSet('needsAcknowledgement', payload.needsAcknowledgement),
           propSet('loading', false)
       )(state);
 
-    case APPLY_LEGAL_FILTER_REQUESTED:
+    case LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED:
       return resetProps(['applyFilterError', 'loadErrorFilterName'], state);
 
-    case APPLY_LEGAL_FILTER_FULFILLED: {
+    case LEGAL_DASHBOARD_APPLY_FILTER_FULFILLED: {
       return compose(
           applyFilter(payload),
           propSet('needsAcknowledgement', false)
       )(state);
     }
 
-    case APPLY_LEGAL_FILTER_FAILED:
+    case LEGAL_DASHBOARD_APPLY_FILTER_FAILED:
       return {...state, applyFilterError: payload};
 
-    case APPLY_SAVED_FILTER_FAILED:
+    case LEGAL_DASHBOARD_APPLY_SAVED_FILTER_FAILED:
       return {...state, loadErrorFilterName: payload};
 
-    case TOGGLE_LEGAL_FILTER:
+    case LEGAL_DASHBOARD_APPLY_FILTER_CANCELLED:
+      return {...state, applyFilterError: null};
+
+    case LEGAL_DASHBOARD_TOGGLE_FILTER:
       return compose(
           setFiltersAreDirty,
           toggleFilter(payload)
       )(state);
 
-    case TOGGLE_LEGAL_APPS_AND_ORGS:
+    case LEGAL_DASHBOARD_TOGGLE_APPS_AND_ORGS:
       return compose(
           setFiltersAreDirty,
           toggleAppsAndOrgs(payload)
       )(state);
 
-    case REVERT_LEGAL_FILTER:
+    case LEGAL_DASHBOARD_REVERT_FILTER:
       return compose(
           revertFilter,
           resetProps(['filtersAreDirty', 'loadErrorFilterName'])
       )(state);
+
+    case LEGAL_DASHBOARD_SET_DISPLAY_SAVE_FILTER_MODAL:
+      return {...state, showSaveFilterModal: payload};
 
     default:
       return state;
@@ -175,18 +185,20 @@ const applyFilter = ({filter}) => state => {
   const applications = new Set([...filter.applicationFilters, ...appsFromSelectedOrgs]);
 
   // categories: avoid adding no-longer-existing category ids to selected.categories
-  const tagFilters = filter.tagFilters || [];
+  const categoryFilters = filter.categoryFilters || [];
   const existingCategoryIds = new Set(state.categories.map(prop('id')));
-  const selectedCategoryIds = tagFilters.filter(categoryId => existingCategoryIds.has(categoryId));
+  const selectedCategoryIds = categoryFilters.filter(categoryId => existingCategoryIds.has(categoryId));
   const categories = new Set(selectedCategoryIds);
 
   const stages = new Set(filter.stageTypeFilters);
+  const progressOptionFilters = new Set(filter.progressOptionsFilters);
 
   const selected = Object.freeze({
     organizations,
     applications,
     categories,
-    stages
+    stages,
+    progressOptions: progressOptionFilters
   });
 
   return {...state, selected, appliedFilter: selected, filtersAreDirty: false};

@@ -23,6 +23,9 @@ describe('LegalDashboardContainerSpec', function() {
         loading: 'loading',
         loadError: 'loadError',
         isAuthorized: 'isAuthorized'
+      },
+      legalDashboardFilter: {
+        filtersAreDirty: false
       }
     };
 
@@ -45,6 +48,7 @@ describe('LegalDashboardContainerSpec', function() {
     expect(wrapper).toHaveProp('loading', 'loading');
     expect(wrapper).toHaveProp('loadError', 'loadError');
     expect(wrapper).toHaveProp('isAuthorized', 'isAuthorized');
+    expect(wrapper).toHaveProp('filtersAreDirty', false);
   });
 
   it('correctly maps the action creators to the LegalDashboardContainer props', function() {

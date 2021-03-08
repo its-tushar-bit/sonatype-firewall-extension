@@ -3,16 +3,19 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
-import { mount } from 'enzyme';
-
 import { uncategorizedCategory } from '../../../../../main/frontend/dashboard/filter/staticFilterEntries';
 import * as enzymeUtils from '../../../enzymeUtils';
 import LegalDashboardFilterFooter from '../../../../../main/frontend/legal/dashboard/filter/LegalDashboardFilterFooter';
 import LoadWrapper from '../../../../../main/frontend/react/LoadWrapper';
+import { mount } from 'enzyme/build';
+import React from 'react';
+import { NxErrorAlert } from '@sonatype/react-shared-components';
+import ManageFiltersDropdown
+  from '../../../../../main/frontend/dashboard/filter/manageFiltersDropdown/ManageFiltersDropdown';
 
 describe('LegalDashboardFilter', function() {
-  let getShallowComponent, loadFilterSpy, minimalProps, LegalDashboardFilter;
+  let getShallowComponent, getMountedComponent, loadFilterSpy, minimalProps, SaveLegalFilterModalContainerMock,
+      DeleteLegalFilterModalContainerMock, LegalDashboardFilter;
 
   const filterData = {
     organizations: [
@@ -39,13 +42,32 @@ describe('LegalDashboardFilter', function() {
       {id: 'release', name: 'Release'},
       {id: 'operate', name: 'Operate'}
     ],
+    progressOptions: [
+      {
+        id: 'NOT_STARTED',
+        name: 'Unreviewed'
+      }, {
+        id: 'OPEN',
+        name: 'In Progress or Completed'
+      }
+    ],
     selected: {
       organizations: new Set(),
       applications: new Set(),
       categories: new Set(),
-      stages: new Set()
+      stages: new Set(),
+      progressOptions: new Set()
     }
   };
+
+  const savedFilters = [
+    {
+      name: 'foo'
+    },
+    {
+      name: 'bar'
+    }
+  ];
 
   beforeEach(function() {
     loadFilterSpy = jasmine.createSpy('loadFilter');
@@ -53,24 +75,91 @@ describe('LegalDashboardFilter', function() {
       ...filterData,
       loadFilter: loadFilterSpy,
       loading: false,
+      savedFilters,
       applyDefaultFilter: jasmine.createSpy('applyDefaultFilter'),
       applySavedFilter: jasmine.createSpy('applySavedFilter'),
       toggleFiltersDropdown: jasmine.createSpy('toggleFiltersDropdown'),
       handleDocumentClick: jasmine.createSpy('handleDocumentClick')
     };
 
+    SaveLegalFilterModalContainerMock = jasmine.createSpy('SaveFilterModalContainer')
+        .and.returnValue(<div>Save Filter Modal</div>);
+
+    DeleteLegalFilterModalContainerMock = jasmine.createSpy('DeleteFilterModalContainer')
+        .and.returnValue(<div>Delete Filter Modal</div>);
+
     LegalDashboardFilter = require(
         'inject-loader!../../../../../main/frontend/legal/dashboard/filter/LegalDashboardFilter'
     )({
+      './SaveLegalFilterModalContainer': SaveLegalFilterModalContainerMock,
+      './DeleteLegalFilterModalContainer': DeleteLegalFilterModalContainerMock
     }).default;
 
     getShallowComponent = enzymeUtils.getShallowComponent(LegalDashboardFilter, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(LegalDashboardFilter, minimalProps);
   });
 
   it('fires the loadFilter action', function() {
     const component = mount(<LegalDashboardFilter {...minimalProps} />);
     expect(loadFilterSpy).toHaveBeenCalled();
     component.unmount();
+  });
+
+  describe('apply named filter error', function() {
+    it('is rendered within the header if loadErrorFilterName is not null', function() {
+      const props = { loadErrorFilterName: 'filter 1234' },
+          shallowRender = getShallowComponent(props),
+          header = shallowRender.find('.dashboard-filter-header');
+
+      expect(header).toContainReact(<NxErrorAlert>Failed to load filter 1234</NxErrorAlert>);
+    });
+
+    it('is not rendered if loadErrorFilterName is null', function() {
+      const props = { loadErrorFilterName: null },
+          shallowRender = getShallowComponent(props),
+          error = shallowRender.find('.nx-alert');
+      expect(error).not.toExist();
+    });
+  });
+
+  describe('filter header', function() {
+    it('renders ManageFiltersDropdown outside of header element', function() {
+      const props = {
+            appliedFilterName: 'some filter',
+            showDirtyAsterisk: true
+          },
+          shallowRender = getShallowComponent(props),
+          header = shallowRender.find('.dashboard-filter-header');
+
+      expect(header.childAt(0)).toMatchSelector('h3.nx-h3');
+      expect(header.childAt(0)).toHaveText('Filter');
+
+      expect(header.childAt(1).find(ManageFiltersDropdown)).toExist();
+    });
+
+    it('does not render ManageFiltersDropdown if loading', function() {
+      const props = {
+            appliedFilterName: 'some filter',
+            showDirtyAsterisk: true,
+            loading: true
+          },
+          mountedRender = getMountedComponent(props),
+          header = mountedRender.find('.dashboard-filter-header');
+
+      expect(header.find('.iq-manage-filters-dropdown')).not.toExist();
+    });
+
+    it('does not render ManageFiltersDropdown if loadError', function() {
+      const props = {
+            appliedFilterName: 'some filter',
+            showDirtyAsterisk: true,
+            loadError: 'Error'
+          },
+          mountedRender = getMountedComponent(props),
+          header = mountedRender.find('.dashboard-filter-header');
+
+      expect(header.find('.iq-manage-filters-dropdown')).not.toExist();
+    });
   });
 
   it('renders a LegalDashboardFilterFooter with the correct props', function() {
@@ -107,7 +196,8 @@ describe('LegalDashboardFilter', function() {
           })),
           orgAppFilter = filterContent.find('#legal-org-app-filters'),
           categoryFilter = filterContent.find('#legal-category-filter'),
-          stageFilter = filterContent.find('#legal-stage-filter');
+          stageFilter = filterContent.find('#legal-stage-filter'),
+          progressOptionsFilter = filterContent.find('#legal-progress-options-filter');
 
       expect(orgAppFilter).toHaveProp('organizations', minimalProps.organizations);
       expect(orgAppFilter).toHaveProp('applications', minimalProps.applications);
@@ -137,6 +227,13 @@ describe('LegalDashboardFilter', function() {
       const selectedStages = ['build'];
       stageFilter.simulate('change', selectedStages);
       expect(toggleFilterSpy).toHaveBeenCalledWith('stages', selectedStages);
+
+      expect(progressOptionsFilter).toHaveProp('options', minimalProps.progressOptions);
+      expect(progressOptionsFilter).toHaveProp('selectedIds', minimalProps.selected.stages);
+      expect(progressOptionsFilter).toHaveProp('onChange');
+      const selectedProgressOptions = ['build'];
+      progressOptionsFilter.simulate('change', selectedStages);
+      expect(toggleFilterSpy).toHaveBeenCalledWith('progressOptions', selectedProgressOptions);
     });
 
     it('renders a loading loadWrapper if it is loading', function() {
@@ -152,6 +249,70 @@ describe('LegalDashboardFilter', function() {
 
       expect(loadWrapperElement).toHaveProp('loading', true);
       expect(loadWrapperElement).toHaveProp('retryHandler', loadFilterSpy);
+    });
+  });
+
+  describe('applyCurrentFilter callback', function() {
+    const selectedItems = {
+      organizations: new Set(['org1']),
+      applications: new Set(['app1']),
+      stages: new Set(['release', 'stage-release', 'build']),
+      categories: new Set([null]),
+      progressOptions: new Set(['NOT_REVIEWED'])
+    };
+
+    const expectedJsonFilter = {
+      organizationFilters: ['org1'],
+      applicationFilters: ['app1'],
+      categoryFilters: [null],
+      stageTypeFilters: ['release', 'stage-release', 'build'],
+      progressOptionsFilters: ['NOT_REVIEWED']
+    };
+
+    it('calls applyFilter action', function() {
+      const applySpy = jasmine.createSpy('applyFilter'),
+          shallowRender = getShallowComponent({
+            applyFilter: applySpy,
+            selected: selectedItems,
+            appliedFilterName: 'foo filter'
+          });
+
+      shallowRender.find(LegalDashboardFilterFooter).simulate('applyCurrentFilter');
+      expect(applySpy).toHaveBeenCalledWith(expectedJsonFilter, 'foo filter');
+    });
+  });
+
+  describe('SaveFilterModal', function() {
+    it('is rendered when showSaveFilterModal is true', function() {
+      const shallowRender = getShallowComponent({
+        showSaveFilterModal: true
+      });
+
+      expect(shallowRender).toContainReact(<SaveLegalFilterModalContainerMock/>);
+    });
+
+    it('is not rendered when showSaveFilterModal is false', function() {
+      const shallowRender = getShallowComponent({
+        showSaveFilterModal: false
+      });
+
+      expect(shallowRender).not.toContainReact(<SaveLegalFilterModalContainerMock/>);
+    });
+  });
+
+  describe('DeleteFilterModal', function() {
+    it('is rendered when filterToDelete is not null', function() {
+      const shallowRender = getShallowComponent({
+        filterToDelete: 'bar'
+      });
+
+      expect(shallowRender).toContainReact(<DeleteLegalFilterModalContainerMock/>);
+    });
+
+    it('is not rendered when filterToDelete is null', function() {
+      const shallowRender = getShallowComponent();
+
+      expect(shallowRender).not.toContainReact(<DeleteLegalFilterModalContainerMock/>);
     });
   });
 });

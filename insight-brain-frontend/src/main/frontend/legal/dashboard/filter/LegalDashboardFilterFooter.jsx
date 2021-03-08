@@ -23,7 +23,7 @@ export default function LegalDashboardFilterFooter(props) {
   const applyBtnDisabled = !filtersAreDirty && !needsAcknowledgement,
       revertBtnClassnames = classnames({'disabled': !filtersAreDirty}),
       applyBtnClassnames = classnames({'disabled': applyBtnDisabled}),
-      saveBtnClassnames = 'disabled',
+      saveBtnClassnames = classnames({'disabled': filtersAreDirty}),
       handleSaveBtnClick = () => {
         if (filtersAreDirty) {
           return;

@@ -36,4 +36,16 @@ describe('LegalDashboardApplicationsTab component', function() {
     expect(rows.at(0)).toHaveProp('row', 'row1');
     expect(rows.at(1)).toHaveProp('row', 'row2');
   });
+
+  it('displays the mask if filtersAreDirty is true', function() {
+    const wrapper = getShallowComponent({ filtersAreDirty: true });
+    let mask = wrapper.find('.form-mask');
+    expect(mask).toExist();
+  });
+
+  it('does not display the mask if filtersAreDirty is false', function() {
+    const wrapper = getShallowComponent({ filtersAreDirty: false });
+    let mask = wrapper.find('.form-mask');
+    expect(mask).not.toExist();
+  });
 });

@@ -16,6 +16,7 @@ export default function LegalDashboardPage(props) {
   const {
     applications,
     components,
+    filtersAreDirty,
     loadResults,
     loading,
     loadError,
@@ -47,10 +48,12 @@ export default function LegalDashboardPage(props) {
                 <NxTab>Components</NxTab>
               </NxTabList>
               <NxTabPanel className="nx-viewport-sized__container">
-                <LegalDashboardApplicationsTab applications = { applications.results } />
+                <LegalDashboardApplicationsTab applications = { applications.results }
+                                               filtersAreDirty = { filtersAreDirty } />
               </NxTabPanel>
               <NxTabPanel className="nx-viewport-sized__container">
-                <LegalDashboardComponentsTab components = { components } />
+                <LegalDashboardComponentsTab components = { components }
+                                             filtersAreDirty = { filtersAreDirty } />
               </NxTabPanel>
             </NxStatefulTabs>
           </div>
@@ -67,6 +70,7 @@ LegalDashboardPage.propTypes = {
     sortFields: PropTypes.arrayOf(applicationPropType)
   }),
   components: PropTypes.any,
+  filtersAreDirty: PropTypes.bool,
   loadResults: PropTypes.func,
   isAuthorized: PropTypes.bool,
   loading: PropTypes.bool.isRequired,

@@ -6,14 +6,20 @@
 import axios from 'axios';
 import {
   loadFilter,
-  applyFilter
+  applyFilter,
+  applyDefaultFilter,
+  applyFilterCancelled
 } from '../../../../../main/frontend/legal/dashboard/filter/legalDashboardFilterActions';
 import {
   getApplicationsUrl,
   getOrganizationsUrl,
   getApplicationTagsUrl,
-  getDashboardFilters, getLegalDashboardApplicationsUrl
+  getLegalDashboardApplicationsUrl,
+  getLegalDashboardFilters,
+  getLegalDashboardSavedFilters
 } from '../../../../../main/frontend/util/CLMLocation';
+import { filterToJson } from '../../../../../main/frontend/legal/dashboard/filter/legalDashboardFilterService';
+import defaultFilter from '../../../../../main/frontend/legal/dashboard/filter/defaultFilter';
 
 describe('legalDashboardFilterActions', function() {
   let store;
@@ -30,7 +36,8 @@ describe('legalDashboardFilterActions', function() {
     [getApplicationsUrl()]: Promise.resolve({data: 'applications data'}),
     [getOrganizationsUrl()]: Promise.resolve({data: 'organizations data'}),
     [getApplicationTagsUrl()]: Promise.resolve({data: 'tag data'}),
-    [getDashboardFilters()]: Promise.resolve({data: filterJson})
+    [getLegalDashboardFilters()]: Promise.resolve({data: filterJson}),
+    [getLegalDashboardSavedFilters()]: Promise.resolve({data: 'saved filters data'})
   };
 
   const initialState = {
@@ -44,7 +51,8 @@ describe('legalDashboardFilterActions', function() {
         applications: [],
         organizations: [],
         stages: [],
-        categories: []
+        categories: [],
+        progressOptions: []
       }
     },
     legalDashboard: {
@@ -54,7 +62,15 @@ describe('legalDashboardFilterActions', function() {
     }
   };
 
-  const applicationsPayload = { applicationIds: [], organizationIds: [], stageTypeIds: [], tagIds: [] };
+  const applicationsPayload = {
+    applicationIds: [],
+    organizationIds: [],
+    stageTypeIds: [],
+    tagIds: [],
+    reviewStatus: [],
+    page: 1,
+    pageSize: 10
+  };
 
   describe('loadFilter', function() {
     describe('when failed fetching filter data', function() {
@@ -73,19 +89,24 @@ describe('legalDashboardFilterActions', function() {
               expect(axios.get).toHaveBeenCalledWith(getApplicationsUrl());
               expect(axios.get).toHaveBeenCalledWith(getOrganizationsUrl());
               expect(axios.get).toHaveBeenCalledWith(getApplicationTagsUrl());
-              expect(axios.get).toHaveBeenCalledWith(getDashboardFilters());
+              expect(axios.get).toHaveBeenCalledWith(getLegalDashboardFilters());
 
-              expect(store.getActions().length).toBe(2);
+              expect(store.getActions().length).toBe(3);
 
               expect(store.getActions()[1]).toEqual({
-                type: 'LOAD_LEGAL_FILTER_FAILED',
+                type: 'LEGAL_DASHBOARD_FETCH_SAVE_FILTERS_FULFILLED',
+                payload: 'saved filters data'
+              });
+
+              expect(store.getActions()[2]).toEqual({
+                type: 'LEGAL_DASHBOARD_LOAD_FILTER_FAILED',
                 payload: 'failed to get applications data'
               });
               done();
             });
 
         expect(store.getActions()[0]).toEqual({
-          type: 'LOAD_LEGAL_FILTER_REQUESTED'
+          type: 'LEGAL_DASHBOARD_LOAD_FILTER_REQUESTED'
         });
       });
     });
@@ -93,7 +114,7 @@ describe('legalDashboardFilterActions', function() {
 
   describe('applyFilter', function() {
     const expectedFailAction = {
-      type: 'APPLY_LEGAL_FILTER_FAILED',
+      type: 'LEGAL_DASHBOARD_APPLY_FILTER_FAILED',
       payload: 'Error 403'
     };
 
@@ -104,36 +125,36 @@ describe('legalDashboardFilterActions', function() {
     testFailedToUpdateFilter(action, 'test filters', 'test filter name', expectedFailAction);
   });
 
-  // describe('applyDefaultFilter', function() {
-  //   const filter = filterToJson(defaultFilter);
-  //
-  //   const expectedFailAction = {
-  //     type: 'APPLY_SAVED_FILTER_FAILED',
-  //     payload: 'Default filter'
-  //   };
-  //
-  //   const action = applyDefaultFilter();
-  //
-  //   testSuccessfullyUpdatesFiltersAndLoadsResults(action, filter, null);
-  //   testSuccessfullyUpdatesFiltersButFailsToLoadsResults(action, filter, null);
-  //   testFailedToUpdateFilter(action, filter, null, expectedFailAction);
-  // });
+  describe('applyDefaultFilter', function() {
+    const filter = filterToJson(defaultFilter);
 
-  // describe('applyFilterCancelled', function() {
-  //   it('dispatches an APPLY_FILTER_CANCELLED function', () => {
-  //     store = SpecUtil.mockReduxStore(initialState);
-  //
-  //     store.dispatch(applyFilterCancelled());
-  //     expect(store.getActions().length).toBe(1);
-  //     expect(store.getActions()[0]).toEqual({type: 'APPLY_FILTER_CANCELLED'});
-  //   });
-  // });
+    const expectedFailAction = {
+      type: 'LEGAL_DASHBOARD_APPLY_SAVED_FILTER_FAILED',
+      payload: 'Default filter'
+    };
+
+    const action = applyDefaultFilter();
+
+    testSuccessfullyUpdatesFiltersAndLoadsResults(action, filter, null);
+    testSuccessfullyUpdatesFiltersButFailsToLoadsResults(action, filter, null);
+    testFailedToUpdateFilter(action, filter, null, expectedFailAction);
+  });
+
+  describe('applyFilterCancelled', function() {
+    it('dispatches an LEGAL_DASHBOARD_APPLY_FILTER_CANCELLED function', () => {
+      store = SpecUtil.mockReduxStore(initialState);
+
+      store.dispatch(applyFilterCancelled());
+      expect(store.getActions().length).toBe(1);
+      expect(store.getActions()[0]).toEqual({type: 'LEGAL_DASHBOARD_APPLY_FILTER_CANCELLED'});
+    });
+  });
 
   function testFailedToUpdateFilter(action, expectedFilter, expectedFilterName, expectedFailAction) {
     it(`dispatches ${expectedFailAction.type} if failed to update filters`, function(done) {
       mockAxiosCalls({
         put: {
-          [getDashboardFilters()]: Promise.reject({ status: 403 })
+          [getLegalDashboardFilters()]: Promise.reject({ status: 403 })
         },
         post: {
           [getLegalDashboardApplicationsUrl()]: Promise.resolve({
@@ -146,9 +167,10 @@ describe('legalDashboardFilterActions', function() {
 
       store.dispatch(action)
           .catch(() => {
-            expect(axios.put).toHaveBeenCalledWith(getDashboardFilters(), {
+            expect(axios.put).toHaveBeenCalledWith(getLegalDashboardFilters(), {
               filter: expectedFilter,
-              basedOnFilterName: expectedFilterName
+              basedOnFilterName: expectedFilterName,
+              type: 'ADVANCED_LEGAL_PACK_DASHBOARD'
             });
             expect(axios.post).not.toHaveBeenCalledWith(getLegalDashboardApplicationsUrl());
 
@@ -160,7 +182,7 @@ describe('legalDashboardFilterActions', function() {
           });
 
       expect(store.getActions().length).toBe(1);
-      expect(store.getActions()[0]).toEqual({type: 'APPLY_LEGAL_FILTER_REQUESTED'});
+      expect(store.getActions()[0]).toEqual({type: 'LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED'});
     });
   }
 
@@ -168,7 +190,7 @@ describe('legalDashboardFilterActions', function() {
     it('updates filters and loads results', function(done) {
       mockAxiosCalls({
         put: {
-          [getDashboardFilters()]: Promise.resolve({data: 'update filters response'})
+          [getLegalDashboardFilters()]: Promise.resolve({ data: { filter: 'update filters response' } })
         },
         post: {
           [getLegalDashboardApplicationsUrl()]: Promise.resolve({
@@ -182,27 +204,28 @@ describe('legalDashboardFilterActions', function() {
       store.dispatch(action)
           .then(() => {
             expect(axios.post).toHaveBeenCalledWith(getLegalDashboardApplicationsUrl(), applicationsPayload);
-            expect(axios.put).toHaveBeenCalledWith(getDashboardFilters(), {
+            expect(axios.put).toHaveBeenCalledWith(getLegalDashboardFilters(), {
               filter: expectedFilter,
-              basedOnFilterName: expectedFilterName
+              basedOnFilterName: expectedFilterName,
+              type: 'ADVANCED_LEGAL_PACK_DASHBOARD'
             });
 
             expect(store.getActions().length).toBe(4);
 
             expect(store.getActions()[1]).toEqual({
-              type: 'APPLY_LEGAL_FILTER_FULFILLED',
+              type: 'LEGAL_DASHBOARD_APPLY_FILTER_FULFILLED',
               payload: {
                 filter: 'update filters response',
                 basedOnFilterName: expectedFilterName
               }
             });
             expect(store.getActions()[2]).toEqual({
-              type: 'LOAD_LEGAL_RESULTS_REQUESTED',
+              type: 'LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED',
               payload: 'applications'
             });
 
             expect(store.getActions()[3]).toEqual({
-              type: 'LOAD_LEGAL_RESULTS_FULFILLED',
+              type: 'LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED',
               payload: {
                 resultsType: 'applications',
                 results: { applications: { results: [] }}
@@ -213,7 +236,7 @@ describe('legalDashboardFilterActions', function() {
           });
 
       expect(store.getActions().length).toBe(1);
-      expect(store.getActions()[0]).toEqual({type: 'APPLY_LEGAL_FILTER_REQUESTED'});
+      expect(store.getActions()[0]).toEqual({type: 'LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED'});
     });
   }
 
@@ -222,7 +245,7 @@ describe('legalDashboardFilterActions', function() {
         function(done) {
           mockAxiosCalls({
             put: {
-              [getDashboardFilters()]: Promise.resolve({data: 'update filters response'})
+              [getLegalDashboardFilters()]: Promise.resolve({ data: { filter: 'update filters response' } })
             },
             post: {
               [getLegalDashboardApplicationsUrl()]: Promise.reject('load results error')
@@ -234,15 +257,16 @@ describe('legalDashboardFilterActions', function() {
           store.dispatch(action)
               .catch(() => {
                 expect(axios.post).toHaveBeenCalledWith(getLegalDashboardApplicationsUrl(), applicationsPayload);
-                expect(axios.put).toHaveBeenCalledWith(getDashboardFilters(), {
+                expect(axios.put).toHaveBeenCalledWith(getLegalDashboardFilters(), {
                   filter: expectedFilter,
-                  basedOnFilterName: expectedFilterName
+                  basedOnFilterName: expectedFilterName,
+                  type: 'ADVANCED_LEGAL_PACK_DASHBOARD'
                 });
 
                 expect(store.getActions().length).toBe(4);
 
                 expect(store.getActions()[1]).toEqual({
-                  type: 'APPLY_LEGAL_FILTER_FULFILLED',
+                  type: 'LEGAL_DASHBOARD_APPLY_FILTER_FULFILLED',
                   payload: {
                     filter: 'update filters response',
                     basedOnFilterName: expectedFilterName
@@ -250,12 +274,12 @@ describe('legalDashboardFilterActions', function() {
                 });
 
                 expect(store.getActions()[2]).toEqual({
-                  type: 'LOAD_LEGAL_RESULTS_REQUESTED',
+                  type: 'LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED',
                   payload: 'applications'
                 });
 
                 expect(store.getActions()[3]).toEqual({
-                  type: 'LOAD_LEGAL_RESULTS_FAILED',
+                  type: 'LEGAL_DASHBOARD_LOAD_RESULTS_FAILED',
                   payload: {
                     error: 'load results error',
                     resultsType: 'applications'
@@ -266,7 +290,7 @@ describe('legalDashboardFilterActions', function() {
               });
 
           expect(store.getActions().length).toBe(1);
-          expect(store.getActions()[0]).toEqual({type: 'APPLY_LEGAL_FILTER_REQUESTED'});
+          expect(store.getActions()[0]).toEqual({type: 'LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED'});
         }
     );
   }

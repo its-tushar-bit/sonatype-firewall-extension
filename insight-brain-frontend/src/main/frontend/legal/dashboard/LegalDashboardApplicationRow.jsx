@@ -6,12 +6,14 @@
 import React from 'react';
 import { NxBinaryDonutChart, NxTableCell, NxTableRow } from '@sonatype/react-shared-components';
 import { join } from 'ramda';
-import moment from 'moment';
 import { applicationPropType } from '../advancedLegalPropTypes';
+import { terseAgo } from '../../util/CommonServices';
 
 export default function LegalDashboardApplicationRow({ row }) {
   const percentage =
-      row.reviewTotalCount > 0 ? Math.min(100, row.reviewCompletedCount * 100 / row.reviewTotalCount) : 0;
+      row.componentsTotalCount > 0 ? Math.min(100, row.componentsReviewedCount * 100 / row.componentsTotalCount) : 0;
+
+  const scanTimeDisplay = (row.lastScanTime ? terseAgo(row.lastScanTime) + ' - ' : '') + row.stageTypeName;
 
   return (
     <NxTableRow key={ row.applicationId }>
@@ -19,14 +21,14 @@ export default function LegalDashboardApplicationRow({ row }) {
         { row.applicationName }
       </NxTableCell>
       <NxTableCell className="legal-dashboard-applications-last-scan">
-        { row.lastScanTime ? moment(row.lastScanTime).fromNow() : ''}
+        { scanTimeDisplay }
       </NxTableCell>
       <NxTableCell className="legal-dashboard-applications-category nx-truncate-ellipsis">
         { join(', ', row.applicationTagNames) }
       </NxTableCell>
       <NxTableCell className="legal-dashboard-applications-review-progress">
         <NxBinaryDonutChart percent = { percentage } />
-        <span>{ row.reviewCompletedCount } / { row.reviewTotalCount }</span>
+        <span>{ row.componentsReviewedCount } / { row.componentsTotalCount }</span>
       </NxTableCell>
     </NxTableRow>
   );

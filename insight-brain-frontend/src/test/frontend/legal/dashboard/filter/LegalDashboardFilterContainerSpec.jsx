@@ -13,21 +13,33 @@ describe('LegalDashboardFilterContainerSpec', function() {
       state,
       vdom,
       LegalDashboardFilterContainer,
-      loadFilterMock;
-  const legalDashboardFilter = {
-    foo: 'bar'
-  };
+      loadFilterMock,
+      manageFilterActionMock;
 
   beforeEach(function() {
     state = {
-      legalDashboardFilter
+      manageLegalFilters: {
+        appliedFilterName: 'appliedFilterName',
+        showDirtyAsterisk: 'showDirtyAsterisk',
+        showSaveFilterModal: 'showSaveFilterModal',
+        savedFilters: 'savedFilters',
+        filtersDropdownOpen: 'filtersDropdownOpen',
+        filterToDelete: 'filterToDelete'
+      },
+      legalDashboardFilter: {
+        foo: 'bar'
+      }
     };
 
     loadFilterMock = jasmine.createSpy('loadFilter').and.returnValue({ type: 'FOO' });
+    manageFilterActionMock = jasmine.createSpy('manageFilterAction').and.returnValue({ type: 'FOO2' });
     LegalDashboardFilterContainer =
         require('inject-loader!../../../../../main/frontend/legal/dashboard/filter/LegalDashboardFilterContainer')({
           './legalDashboardFilterActions': {
             loadFilter: loadFilterMock
+          },
+          './manageLegalFiltersActions': {
+            manageFilterAction: manageFilterActionMock
           }
         }).default;
 
@@ -37,6 +49,12 @@ describe('LegalDashboardFilterContainerSpec', function() {
 
   it('maps the state slice to props', () => {
     let wrapper = shallow(vdom).dive();
+    expect(wrapper).toHaveProp('appliedFilterName', 'appliedFilterName');
+    expect(wrapper).toHaveProp('showDirtyAsterisk', 'showDirtyAsterisk');
+    expect(wrapper).toHaveProp('showSaveFilterModal', 'showSaveFilterModal');
+    expect(wrapper).toHaveProp('savedFilters', 'savedFilters');
+    expect(wrapper).toHaveProp('filtersDropdownOpen', 'filtersDropdownOpen');
+    expect(wrapper).toHaveProp('filterToDelete', 'filterToDelete');
     expect(wrapper).toHaveProp('foo', 'bar');
   });
 
@@ -48,6 +66,12 @@ describe('LegalDashboardFilterContainerSpec', function() {
     expect(store.getActions()).toEqual([]);
     loadFilterActionCreator('test');
     expect(store.getActions()).toEqual([{ type: 'FOO' }]);
+
+    const manageFilterActionCreator = wrapper.prop('manageFilterAction');
+    expect(manageFilterActionCreator).toEqual(jasmine.any(Function));
+
+    manageFilterActionCreator('test');
+    expect(store.getActions()[1]).toEqual({ type: 'FOO2' });
   });
 
   it('renders LegalDashboardFilter component', function() {

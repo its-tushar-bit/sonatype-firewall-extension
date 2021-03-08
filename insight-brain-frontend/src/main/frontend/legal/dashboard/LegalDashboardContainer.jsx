@@ -7,16 +7,17 @@
 import { connect } from 'react-redux';
 import { pick } from 'ramda';
 import LegalDashboardPage from './LegalDashboardPage';
-import { loadResults } from './legalDashboardActions';
+import * as legalDashboardActions from './legalDashboardActions';
 
-function mapStateToProps({ legalDashboard }) {
+function mapStateToProps({ legalDashboard, legalDashboardFilter }) {
   return {
-    ...pick(['applications', 'components', 'loading', 'loadError', 'isAuthorized'], legalDashboard)
+    ...pick(['applications', 'components', 'loading', 'loadError', 'isAuthorized'], legalDashboard),
+    ...pick(['filtersAreDirty'], legalDashboardFilter)
   };
 }
 
 const mapDispatchToProps = {
-  loadResults
+  ...legalDashboardActions
 };
 
 const LegalDashboardContainer = connect(mapStateToProps, mapDispatchToProps)(LegalDashboardPage);

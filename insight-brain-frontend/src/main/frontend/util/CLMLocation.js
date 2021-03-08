@@ -54,6 +54,10 @@ export function getDashboardSavedFilters() {
   return uriTemplate`/rest/dashboard/filters/named`;
 }
 
+export function getLegalDashboardSavedFilters() {
+  return uriTemplate`/rest/userFilter/named?type=ADVANCED_LEGAL_PACK_DASHBOARD`;
+}
+
 export function getNewestRisksUrl() {
   return uriTemplate`/rest/dashboard/policy/newestRisks`;
 }
@@ -100,6 +104,10 @@ export function getApplicationTagsUrl() {
 
 export function getDashboardFilters() {
   return uriTemplate`/rest/dashboard/filters/active`;
+}
+
+export function getLegalDashboardFilters() {
+  return uriTemplate`/rest/userFilter/active?type=ADVANCED_LEGAL_PACK_DASHBOARD`;
 }
 
 export function getActionStageUrl() {
@@ -149,6 +157,10 @@ export function getCompositeSourceControlUrl(ownerType, ownerId) {
 
 export function getDashboardDeleteFilterUrl(filterName) {
   return uriTemplate`/rest/dashboard/filters/named/delete?filterName=${filterName}`;
+}
+
+export function getLegalDashboardDeleteFilterUrl(filterName) {
+  return uriTemplate`/rest/userFilter/?name=${filterName}&type=ADVANCED_LEGAL_PACK_DASHBOARD`;
 }
 
 export function getApplicableWaiversUrl(policyViolationId) {

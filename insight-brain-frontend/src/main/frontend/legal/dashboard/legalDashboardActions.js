@@ -7,20 +7,20 @@ import axios from 'axios';
 
 import { getLegalDashboardApplicationsUrl } from '../../util/CLMLocation';
 
-export const LOAD_LEGAL_RESULTS_REQUESTED = 'LOAD_LEGAL_RESULTS_REQUESTED';
-export const LOAD_LEGAL_RESULTS_FULFILLED = 'LOAD_LEGAL_RESULTS_FULFILLED';
-export const LOAD_LEGAL_RESULTS_FAILED = 'LOAD_LEGAL_RESULTS_FAILED';
+export const LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED = 'LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED';
+export const LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED = 'LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED';
+export const LEGAL_DASHBOARD_LOAD_RESULTS_FAILED = 'LEGAL_DASHBOARD_LOAD_RESULTS_FAILED';
 
 function loadResultsFulfilled(resultsType, results) {
   return {
-    type: LOAD_LEGAL_RESULTS_FULFILLED,
+    type: LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED,
     payload: { resultsType, results }
   };
 }
 
 function loadResultsFailed(resultsType, error) {
   return {
-    type: LOAD_LEGAL_RESULTS_FAILED,
+    type: LEGAL_DASHBOARD_LOAD_RESULTS_FAILED,
     payload: { resultsType, error }
   };
 }
@@ -28,7 +28,7 @@ function loadResultsFailed(resultsType, error) {
 export function loadResults(resultsType) {
   return (dispatch, getState) => {
     dispatch({
-      type: LOAD_LEGAL_RESULTS_REQUESTED,
+      type: LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED,
       payload: resultsType
     });
 
@@ -44,12 +44,15 @@ export function loadResults(resultsType) {
 }
 
 function fetchResults(resultsType, state) {
-  const { applications, organizations, stages, categories } = state.legalDashboardFilter.appliedFilter;
+  const { applications, organizations, stages, categories, progressOptions } = state.legalDashboardFilter.appliedFilter;
   const applicationFilter = {
     applicationIds: Array.from(applications),
     organizationIds: Array.from(organizations),
     stageTypeIds: Array.from(stages),
-    tagIds: Array.from(categories)
+    tagIds: Array.from(categories),
+    reviewStatus: Array.from(progressOptions),
+    page: 1,
+    pageSize: 10
   };
 
   const serviceMethod = getServiceMethod(resultsType);

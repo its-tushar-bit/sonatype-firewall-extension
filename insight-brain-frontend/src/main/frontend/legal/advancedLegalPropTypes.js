@@ -10,8 +10,8 @@ export const applicationPropType = PropTypes.shape({
   applicationName: PropTypes.string.isRequired,
   lastScanTime: PropTypes.number.isRequired,
   applicationTagNames: PropTypes.arrayOf(PropTypes.string).isRequired,
-  reviewCompletedCount: PropTypes.number.isRequired,
-  reviewTotalCount: PropTypes.number.isRequired
+  componentsReviewedCount: PropTypes.number.isRequired,
+  componentsTotalCount: PropTypes.number.isRequired
 });
 
 export const componentPropType = PropTypes.shape({

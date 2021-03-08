@@ -17,20 +17,21 @@ import { slice } from 'ramda';
 import LegalDashboardApplicationRow from './LegalDashboardApplicationRow';
 import { applicationPropType } from '../advancedLegalPropTypes';
 
-export default function LegalDashboardApplicationsTab({ applications }) {
+export default function LegalDashboardApplicationsTab({ applications, filtersAreDirty }) {
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 30;
   const rows = slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE, applications);
 
   return (
     <div className="nx-scrollable nx-table-container nx-viewport-sized__scrollable">
+      { filtersAreDirty && <div className="form-mask" /> }
       <NxTable id="legal-dashboard-applications-table" className="legal-dashboard-table">
         <NxTableHead>
           <NxTableRow>
             <NxTableCell>Application</NxTableCell>
             <NxTableCell>Last Scan</NxTableCell>
             <NxTableCell>App Categories</NxTableCell>
-            <NxTableCell>Review Progress</NxTableCell>
+            <NxTableCell>Components Reviewed</NxTableCell>
           </NxTableRow>
         </NxTableHead>
         <NxTableBody emptyMessage="No applications found">
@@ -49,5 +50,6 @@ export default function LegalDashboardApplicationsTab({ applications }) {
 }
 
 LegalDashboardApplicationsTab.propTypes = {
-  applications: PropTypes.arrayOf(applicationPropType)
+  applications: PropTypes.arrayOf(applicationPropType),
+  filtersAreDirty: PropTypes.bool
 };

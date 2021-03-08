@@ -35,14 +35,24 @@ describe('legalDashboardFilterReducer', function() {
     });
   });
 
-  describe('LOAD_LEGAL_FILTER_REQUESTED action', function() {
+  describe('LEGAL_DASHBOARD_SET_DISPLAY_SAVE_FILTER_MODAL action', function() {
+    it('sets the showSaveFilterModal value to the payload', function() {
+      var state = Object.freeze({ showSaveFilterModal: true, other: otherObject });
+      var action = {type: 'LEGAL_DASHBOARD_SET_DISPLAY_SAVE_FILTER_MODAL', payload: false};
+      var newState = legalDashboardFilterReducer(state, action);
+      expect(newState.showSaveFilterModal).toBe(false);
+      expect(newState.other).toBe(otherObject);
+    });
+  });
+
+  describe('LEGAL_DASHBOARD_LOAD_FILTER_REQUESTED action', function() {
     it('sets loading to true and resets filter', function() {
       var state = Object.freeze({
         loadError: 'error',
         loading: false,
         other: otherObject
       });
-      var action = {type: 'LOAD_LEGAL_FILTER_REQUESTED'};
+      var action = {type: 'LEGAL_DASHBOARD_LOAD_FILTER_REQUESTED'};
       var newState = legalDashboardFilterReducer(state, action);
       expect(newState.loading).toBe(true);
       expect(newState.loadError).toBeNull();
@@ -50,7 +60,7 @@ describe('legalDashboardFilterReducer', function() {
     });
   });
 
-  describe('LOAD_LEGAL_FILTER_FAILED action', function() {
+  describe('LEGAL_DASHBOARD_LOAD_FILTER_FAILED action', function() {
     it('sets loading to false and sets error', function() {
       var state = Object.freeze({
         loadError: null,
@@ -58,7 +68,7 @@ describe('legalDashboardFilterReducer', function() {
         other: otherObject
       });
       var action = {
-        type: 'LOAD_LEGAL_FILTER_FAILED',
+        type: 'LEGAL_DASHBOARD_LOAD_FILTER_FAILED',
         payload: 'load filter error'
       };
       var newState = legalDashboardFilterReducer(state, action);
@@ -68,7 +78,7 @@ describe('legalDashboardFilterReducer', function() {
     });
   });
 
-  describe('FETCH_LEGAL_AVAILABLE_FILTER_OPTIONS_FULFILLED action', function() {
+  describe('LEGAL_DASHBOARD_FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED action', function() {
     var initState, action;
 
     beforeEach(function() {
@@ -77,7 +87,7 @@ describe('legalDashboardFilterReducer', function() {
         other: otherObject
       };
       action = {
-        type: 'FETCH_LEGAL_AVAILABLE_FILTER_OPTIONS_FULFILLED',
+        type: 'LEGAL_DASHBOARD_FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED',
         payload: {
           organizations: [
             {
@@ -195,21 +205,15 @@ describe('legalDashboardFilterReducer', function() {
         applications: {},
         categories: {},
         stages: {},
-        policyTypes: {},
-        policyViolationStates: {OPEN: true},
-        maxDaysOld: 30,
-        policyThreatLevels: [2, 10]
+        progressOptions: {}
       });
       filterJson = {
         organizationFilters: ['orgId1', 'orgId2', 'org3'],
         policyThreatCategoryFilters: ['QUALITY', 'OTHER', 'SECURITY'],
         stageTypeFilters: ['release', 'stage-release', 'build'],
-        tagFilters: ['tagId1', 'tagId2', null],
+        categoryFilters: ['tagId1', 'tagId2', null],
         applicationFilters: ['applicationIdZ', 'applicationIdA', 'applicationIdQ'],
-        policyViolationStates: ['OPEN', 'WAIVED', 'GRANDFATHERED'],
-        maxDaysOld: 90,
-        minPolicyThreatLevel: 3,
-        maxPolicyThreatLevel: 6
+        progressOptionsFilters: ['NOT_REVIEWED']
       };
       initState = {
         showAgeFilter: false,
@@ -236,11 +240,11 @@ describe('legalDashboardFilterReducer', function() {
       };
     });
 
-    describe('FETCH_LEGAL_CURRENT_FILTER_FULFILLED action', function() {
+    describe('LEGAL_DASHBOARD_FETCH_CURRENT_FILTER_FULFILLED action', function() {
 
       beforeEach(function() {
         action = {
-          type: 'FETCH_LEGAL_CURRENT_FILTER_FULFILLED',
+          type: 'LEGAL_DASHBOARD_FETCH_CURRENT_FILTER_FULFILLED',
           payload: {
             filter: filterJson,
             basedOnFilterName: 'Test1'
@@ -268,10 +272,10 @@ describe('legalDashboardFilterReducer', function() {
       testApplyFilter();
     });
 
-    describe('APPLY_LEGAL_FILTER_FULFILLED action', function() {
+    describe('LEGAL_DASHBOARD_APPLY_FILTER_FULFILLED action', function() {
       beforeEach(function() {
         action = {
-          type: 'APPLY_LEGAL_FILTER_FULFILLED',
+          type: 'LEGAL_DASHBOARD_APPLY_FILTER_FULFILLED',
           payload: {
             filter: filterJson,
             basedOnFilterName: 'Test1'
@@ -333,11 +337,11 @@ describe('legalDashboardFilterReducer', function() {
     }
   });
 
-  describe('APPLY_LEGAL_FILTER_FAILED action', function() {
+  describe('LEGAL_DASHBOARD_APPLY_FILTER_FAILED action', function() {
     it('sets applyFilterError', function() {
       var state = Object.freeze({applyFilterError: null, other: otherObject});
       var action = {
-        type: 'APPLY_LEGAL_FILTER_FAILED',
+        type: 'LEGAL_DASHBOARD_APPLY_FILTER_FAILED',
         payload: 'update filter error'
       };
       expect(state.applyFilterError).toBeNull();
@@ -347,7 +351,20 @@ describe('legalDashboardFilterReducer', function() {
     });
   });
 
-  describe('APPLY_LEGAL_FILTER_REQUESTED action', function() {
+  describe('LEGAL_DASHBOARD_APPLY_FILTER_CANCELLED action', function() {
+    it('resets applyFilterError', function() {
+      const state = Object.freeze({applyFilterError: 'Error', other: otherObject});
+      const action = {
+        type: 'LEGAL_DASHBOARD_APPLY_FILTER_CANCELLED'
+      };
+      expect(state.applyFilterError).toBe('Error');
+      const newState = legalDashboardFilterReducer(state, action);
+      expect(newState.applyFilterError).toBeNull();
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED action', function() {
     it('resets applyFilterError and loadErrorFilterName', function() {
       var state = Object.freeze({
         applyFilterError: 'apply filter error',
@@ -355,7 +372,7 @@ describe('legalDashboardFilterReducer', function() {
         other: otherObject
       });
       var action = {
-        type: 'APPLY_LEGAL_FILTER_REQUESTED'
+        type: 'LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED'
       };
       var newState = legalDashboardFilterReducer(state, action);
       expect(newState).toEqual({
@@ -367,7 +384,17 @@ describe('legalDashboardFilterReducer', function() {
     });
   });
 
-  describe('TOGGLE_LEGAL_APPS_AND_ORGS action', function() {
+  describe('LEGAL_DASHBOARD_APPLY_SAVED_FILTER_FAILED action', function() {
+    it('sets loadErrorFilterName to payload', function() {
+      var state = Object.freeze({loadErrorFilterName: null, other: otherObject});
+      var action = {type: 'LEGAL_DASHBOARD_APPLY_SAVED_FILTER_FAILED', payload: 'test filter name'};
+      var newState = legalDashboardFilterReducer(state, action);
+      expect(newState.loadErrorFilterName).toBe('test filter name');
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('LEGAL_DASHBOARD_TOGGLE_APPS_AND_ORGS action', function() {
     it('sets selected orgs and apps and sets filtersAreDirty to true', function() {
       var state = Object.freeze({
         other: otherObject,
@@ -375,7 +402,7 @@ describe('legalDashboardFilterReducer', function() {
         selected: {}
       });
       var action = {
-        type: 'TOGGLE_LEGAL_APPS_AND_ORGS',
+        type: 'LEGAL_DASHBOARD_TOGGLE_APPS_AND_ORGS',
         payload: {
           selectedOrganizations: new Set(['org1']),
           selectedApplications: new Set(['app1', 'app2'])
@@ -389,7 +416,7 @@ describe('legalDashboardFilterReducer', function() {
     });
   });
 
-  describe('TOGGLE_LEGAL_FILTER action', function() {
+  describe('LEGAL_DASHBOARD_TOGGLE_FILTER action', function() {
     var initState;
 
     beforeEach(function() {
@@ -404,7 +431,7 @@ describe('legalDashboardFilterReducer', function() {
     it('sets selected categories and sets filtersAreDirty to true', function() {
       var state = Object.freeze(initState);
       var action = {
-        type: 'TOGGLE_LEGAL_FILTER',
+        type: 'LEGAL_DASHBOARD_TOGGLE_FILTER',
         payload: {
           filterName: 'categories',
           selectedIds: new Set(['cat1', 'cat2'])
@@ -419,7 +446,7 @@ describe('legalDashboardFilterReducer', function() {
     it('sets selected stages and sets filtersAreDirty to true', function() {
       var state = Object.freeze(initState);
       var action = {
-        type: 'TOGGLE_LEGAL_FILTER',
+        type: 'LEGAL_DASHBOARD_TOGGLE_FILTER',
         payload: {
           filterName: 'stages',
           selectedIds: new Set(['stage1', 'stage2'])
@@ -432,7 +459,7 @@ describe('legalDashboardFilterReducer', function() {
     });
   });
 
-  describe('REVERT_LEGAL_FILTER action', function() {
+  describe('LEGAL_DASHBOARD_REVERT_FILTER action', function() {
     it('sets selected filter to current appliedFilter, resets filtersAreDirty and loadErrorFilterName', function() {
       var state = Object.freeze({
         loadErrorFilterName: 'Test filter name',
@@ -446,7 +473,7 @@ describe('legalDashboardFilterReducer', function() {
         selected: {},
         other: otherObject
       });
-      const newState = legalDashboardFilterReducer(state, {type: 'REVERT_LEGAL_FILTER'});
+      const newState = legalDashboardFilterReducer(state, {type: 'LEGAL_DASHBOARD_REVERT_FILTER'});
       expect(newState.loadErrorFilterName).toBeNull();
       expect(newState.filtersAreDirty).toBe(false);
       expect(newState.selected).toEqual(state.appliedFilter);

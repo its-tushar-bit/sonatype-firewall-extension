@@ -16,13 +16,14 @@ import {
 import * as PropTypes from 'prop-types';
 import LegalDashboardComponentRow from './LegalDashboardComponentRow';
 
-export default function LegalDashboardComponentsTab({ components }) {
+export default function LegalDashboardComponentsTab({ components, filtersAreDirty }) {
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 5;
   const rows = slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE, components);
 
   return (
     <div className="nx-scrollable nx-table-container nx-viewport-sized__scrollable">
+      { filtersAreDirty && <div className="form-mask" /> }
       <NxTable id="legal-dashboard-applications-table" className="legal-dashboard-table">
         <NxTableHead>
           <NxTableRow>
@@ -48,5 +49,6 @@ export default function LegalDashboardComponentsTab({ components }) {
 }
 
 LegalDashboardComponentsTab.propTypes = {
-  components: PropTypes.any
+  components: PropTypes.any,
+  filtersAreDirty: PropTypes.bool
 };

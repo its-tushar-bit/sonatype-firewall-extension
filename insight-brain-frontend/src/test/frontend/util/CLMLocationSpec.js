@@ -221,14 +221,23 @@ describe('CLMLocation.js', function() {
         .toBe('/api/experimental/licenseLegalMetadata/dashboard/applications');
   });
 
-  it('should return the application save copyright override url', function() {
-    expect(CLMLocation.getSaveCopyrightOverrideUrl('application', 'appId'))
-        .toBe('/api/experimental/licenseLegalMetadata/application/appId/component/copyright');
+  it('should return the legal dashboard get filters url', function() {
+    expect(CLMLocation.getLegalDashboardFilters()).toBe('/rest/userFilter/active?type=ADVANCED_LEGAL_PACK_DASHBOARD');
+  });
+
+  it('should return the legal dashboard saved filters url', function() {
+    expect(CLMLocation.getLegalDashboardSavedFilters())
+        .toBe('/rest/userFilter/named?type=ADVANCED_LEGAL_PACK_DASHBOARD');
+  });
+
+  it('should return the legal dashboard delete filters url', function() {
+    expect(CLMLocation.getLegalDashboardDeleteFilterUrl('theFilterName'))
+        .toBe('/rest/userFilter/?name=theFilterName&type=ADVANCED_LEGAL_PACK_DASHBOARD');
   });
 
   it('should return the application save copyright override url', function() {
-    expect(CLMLocation.getSaveCopyrightOverrideUrl('organization', 'orgId'))
-        .toBe('/api/experimental/licenseLegalMetadata/organization/orgId/component/copyright');
+    expect(CLMLocation.getSaveCopyrightOverrideUrl('application', 'appId'))
+        .toBe('/api/experimental/licenseLegalMetadata/application/appId/component/copyright');
   });
 
   it('should return the owner hierarchy url', function() {

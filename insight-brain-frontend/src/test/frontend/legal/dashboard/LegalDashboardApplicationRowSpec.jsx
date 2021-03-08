@@ -5,12 +5,10 @@
  */
 import * as enzymeUtils from '../../enzymeUtils';
 import { NxBinaryDonutChart, NxTableCell, NxTableRow } from '@sonatype/react-shared-components';
-import LegalDashboardApplicationRow from '../../../../main/frontend/legal/dashboard/LegalDashboardApplicationRow';
-import moment from 'moment';
 
 describe('LegalDashboardApplicationRow component', function() {
 
-  let getShallowComponent;
+  let getShallowComponent, terseAgoSpy, LegalDashboardApplicationRow;
 
   const minimalProps = {
     row: {
@@ -18,30 +16,33 @@ describe('LegalDashboardApplicationRow component', function() {
       applicationName: 'appName1',
       lastScanTime: 1607030429000,
       applicationTagNames: ['tag1', 'tag2'],
-      reviewCompletedCount: 12,
-      reviewTotalCount: 20
+      stageTypeName: 'Build',
+      componentsReviewedCount: 12,
+      componentsTotalCount: 20
     }
   };
 
-  const baselineDate = moment('2020-12-05T19:56:17.509+0000', 'YYYY-MM-DDThh:mm:ss.SSS+0000');
-  const currentDate = moment.now();
+  terseAgoSpy = jasmine.createSpy('terseAgo').and.returnValue('2d');
 
   beforeEach(function() {
+    LegalDashboardApplicationRow = require(
+        'inject-loader!../../../../main/frontend/legal/dashboard/LegalDashboardApplicationRow'
+    )({
+      '../../util/CommonServices': { terseAgo: terseAgoSpy }
+    }).default;
+
     getShallowComponent = enzymeUtils.getShallowComponent(LegalDashboardApplicationRow, minimalProps);
-    moment.now = () => baselineDate;
   });
 
-  afterEach(() => moment.now = () => currentDate);
-
   it('renders a NxTableRow with appropriate cells', function() {
-
     const wrapper = getShallowComponent();
     let tableRow = wrapper.find(NxTableRow);
     expect(tableRow).toExist();
     let cells = tableRow.find(NxTableCell);
     expect(cells.length).toEqual(4);
     expect(cells.at(0).children().text()).toEqual('appName1');
-    expect(cells.at(1).children().text()).toEqual('2 days ago');
+    expect(terseAgoSpy).toHaveBeenCalledWith(1607030429000);
+    expect(cells.at(1).children().text()).toEqual('2d - Build');
     expect(cells.at(2).children().text()).toEqual('tag1, tag2');
     let donutChart = cells.at(3).find(NxBinaryDonutChart);
     expect(donutChart).toExist();
@@ -56,8 +57,8 @@ describe('LegalDashboardApplicationRow component', function() {
         applicationName: 'appName1',
         lastScanTime: 1607030429000,
         applicationTagNames: ['tag1', 'tag2'],
-        reviewCompletedCount: 0,
-        reviewTotalCount: 0
+        componentsReviewedCount: 0,
+        componentsTotalCount: 0
       }
     };
     const wrapper = getShallowComponent(props);
@@ -77,8 +78,8 @@ describe('LegalDashboardApplicationRow component', function() {
         applicationName: 'appName1',
         lastScanTime: 1607030429000,
         applicationTagNames: ['tag1', 'tag2'],
-        reviewCompletedCount: 10,
-        reviewTotalCount: 5
+        componentsReviewedCount: 10,
+        componentsTotalCount: 5
       }
     };
     const wrapper = getShallowComponent(props);

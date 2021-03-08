@@ -36,7 +36,8 @@ export const componentPropType = PropTypes.shape({
       relPath: PropTypes.string.isRequired,
       originalContentHash: PropTypes.string
     }).isRequired).isRequired,
-    componentCopyrightId: PropTypes.string
+    componentCopyrightId: PropTypes.string,
+    componentCopyrightScopeOwnerId: PropTypes.string
   }).isRequired
 });
 

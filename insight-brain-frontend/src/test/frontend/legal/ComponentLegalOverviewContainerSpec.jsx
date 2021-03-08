@@ -34,6 +34,9 @@ describe('ComponentLegalOverviewContainer', function() {
       },
       router: {
         currentParams: { hash: 'fooHash', organizationId: 'organizationId', applicationPublicId: 'applicationPublicId' }
+      },
+      copyrightOverrides: {
+        showEditCopyrightOverrideModal: false
       }
     };
 

@@ -221,6 +221,16 @@ describe('CLMLocation.js', function() {
         .toBe('/api/experimental/licenseLegalMetadata/dashboard/applications');
   });
 
+  it('should return the application save copyright override url', function() {
+    expect(CLMLocation.getSaveCopyrightOverrideUrl('application', 'appId'))
+        .toBe('/api/experimental/licenseLegalMetadata/application/appId/component/copyright');
+  });
+
+  it('should return the application save copyright override url', function() {
+    expect(CLMLocation.getSaveCopyrightOverrideUrl('organization', 'orgId'))
+        .toBe('/api/experimental/licenseLegalMetadata/organization/orgId/component/copyright');
+  });
+
   it('should return the owner hierarchy url', function() {
     expect(CLMLocation.getOwnerHierarchyUrl('ownerType', 'ownerId'))
         .toBe('/rest/owner/ownerType/ownerId/hierarchy');

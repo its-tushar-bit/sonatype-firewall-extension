@@ -9,7 +9,7 @@ import ComponentOverviewTile from '../../../main/frontend/legal/ComponentOvervie
 import NoticeTextsTile from '../../../main/frontend/legal/NoticeTextsTile';
 import LicenseTextsTile from '../../../main/frontend/legal/LicenseTextsTile';
 import LicenseDetailsTile from '../../../main/frontend/legal/LicenseDetailsTile';
-import CopyrightStatementsTile from '../../../main/frontend/legal/CopyrightStatementsTile';
+import CopyrightStatementsTile from '../../../main/frontend/legal/copyright/CopyrightStatementsTile';
 import ComponentLegalOverviewPage from '../../../main/frontend/legal/ComponentLegalOverviewPage';
 import { mount } from 'enzyme/build';
 import LicenseObligationsTileContainer from '../../../main/frontend/legal/LicenseObligationsTileContainer';

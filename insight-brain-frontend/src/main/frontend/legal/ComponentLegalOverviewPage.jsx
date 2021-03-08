@@ -3,25 +3,25 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect } from 'react';
+import React, {useEffect} from 'react';
 import * as PropTypes from 'prop-types';
-import { NxBackButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
-import { faGlobe, faSitemap, faTerminal } from '@fortawesome/free-solid-svg-icons';
+import {NxBackButton, NxFontAwesomeIcon} from '@sonatype/react-shared-components';
+import {faGlobe, faSitemap, faTerminal} from '@fortawesome/free-solid-svg-icons';
 import ComponentOverviewTile from './ComponentOverviewTile';
 import LicenseDetailsTile from './LicenseDetailsTile';
-import CopyrightStatementsTile from './CopyrightStatementsTile';
+import CopyrightStatementsTile from './copyright/CopyrightStatementsTile';
 import NoticeTextsTile from './NoticeTextsTile';
 import LicenseTextsTile from './LicenseTextsTile';
 import LicenseObligationAttributionTileContainer from './LicenseObligationAttributionTileContainer';
 import LoadWrapper from '../react/LoadWrapper';
 import {
+  availableScopesPropType,
   componentPropType,
   licenseLegalMetadataPropType,
-  licenseObligationsPropType,
-  availableScopesPropType
+  licenseObligationsPropType
 } from './advancedLegalPropTypes';
-import { find, flip, map, pipe, prop, propEq } from 'ramda';
-import { TEXT_BASED_OBLIGATIONS } from './advancedLegalConstants';
+import {find, flip, map, pipe, prop, propEq} from 'ramda';
+import {TEXT_BASED_OBLIGATIONS} from './advancedLegalConstants';
 import LicenseObligationsTileContainer from './LicenseObligationsTileContainer';
 
 export default function ComponentLegalOverviewPage(props) {
@@ -34,9 +34,13 @@ export default function ComponentLegalOverviewPage(props) {
     organizationId,
     applicationPublicId,
     hash,
-    loadComponent,
+    availableScopes,
+    showEditCopyrightOverrideModal,
+
+    //actions
+    setDisplayCopyrightOverrideModal,
     loadAvailableScopes,
-    availableScopes
+    loadComponent
   } = props;
 
   function load() {
@@ -107,7 +111,11 @@ export default function ComponentLegalOverviewPage(props) {
           { licenseLegalMetadata && obligations && <LicenseObligationsTileContainer /> }
           <div id="component-legal-overview-details-right">
             <LicenseDetailsTile licenseNames={ licenseNames }/>
-            <CopyrightStatementsTile component={ component }/>
+            <CopyrightStatementsTile
+                component={ component }
+                availableScopes={ availableScopes }
+                showEditCopyrightOverrideModal = { showEditCopyrightOverrideModal }
+                setDisplayCopyrightOverrideModal = {setDisplayCopyrightOverrideModal }/>
             <NoticeTextsTile component={ component }/>
             <LicenseTextsTile component={ component }/>
             { obligations &&
@@ -130,5 +138,7 @@ ComponentLegalOverviewPage.propTypes = {
   obligations: licenseObligationsPropType,
   loadComponent: PropTypes.func,
   loadAvailableScopes: PropTypes.func,
-  availableScopes: availableScopesPropType
+  availableScopes: availableScopesPropType,
+  showEditCopyrightOverrideModal: PropTypes.bool.isRequired,
+  setDisplayCopyrightOverrideModal: PropTypes.func.isRequired
 };

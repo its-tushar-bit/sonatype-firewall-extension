@@ -372,4 +372,56 @@ describe('advancedLegalReducer', function () {
       expect(availableScopes.error).toBe(errorTest);
     });
   });
+
+  describe('COPYRIGHT_OVERRIDE_SAVE_FULFILLED action', function() {
+    it('sets componentCopyrightId, componentCopyrightScopeOwnerId, and updated list of copyrights', function() {
+      const state = {
+        component: {
+          component: {
+            licenseLegalData: {
+              componentCopyrightId: undefined,
+              componentCopyrightScopeOwnerId: undefined,
+              copyrights: [
+                {
+                  id: '1',
+                  content: 'Copyright 2043',
+                  originalContentHash: 'originalContentHash1',
+                  status: 'enabled'
+                }
+              ]
+            }
+          }
+        }
+      };
+
+      const copyrightOverrides = [
+        {
+          id: '1',
+          content: 'Copyright 2043',
+          originalContentHash: 'originalContentHash1',
+          status: 'disabled'
+        },
+        {
+          id: '2',
+          content: 'Copyright 2020',
+          originalContentHash: 'originalContentHash2',
+          status: 'enabled'
+        }
+      ];
+
+      const newState = reduce(state, {
+        type: 'COPYRIGHT_OVERRIDE_SAVE_FULFILLED',
+        payload: {
+          id: 'componentCopyrightId',
+          copyrightOverrides,
+          componentCopyrightScopeOwnerId: 'owner'
+        }
+      });
+
+      expect(newState.component.component.licenseLegalData.componentCopyrightId).toBe('componentCopyrightId');
+      expect(newState.component.component.licenseLegalData.componentCopyrightScopeOwnerId).toBe('owner');
+      expect(newState.component.component.licenseLegalData.copyrights).toBe(copyrightOverrides);
+    });
+
+  });
 });

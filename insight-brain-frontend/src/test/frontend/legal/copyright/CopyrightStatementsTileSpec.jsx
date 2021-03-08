@@ -3,8 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import * as enzymeUtils from '../enzymeUtils';
-import CopyrightStatementsTile from '../../../main/frontend/legal/CopyrightStatementsTile';
+import * as enzymeUtils from '../../enzymeUtils';
+import CopyrightStatementsTile from '../../../../main/frontend/legal/copyright/CopyrightStatementsTile';
 
 describe('CopyrightStatementsTile component', function() {
 
@@ -18,12 +18,20 @@ describe('CopyrightStatementsTile component', function() {
             {
               id: '',
               content: 'Copyright 2043',
-              originalContentHash: ''
+              originalContentHash: '',
+              status: 'enabled'
+            },
+            {
+              id: '',
+              content: 'Disabled Copyright',
+              originalContentHash: '',
+              status: 'disabled'
             },
             {
               id: '',
               content: 'Copyright 0',
-              originalContentHash: ''
+              originalContentHash: '',
+              status: 'enabled'
             }
           ]
       }

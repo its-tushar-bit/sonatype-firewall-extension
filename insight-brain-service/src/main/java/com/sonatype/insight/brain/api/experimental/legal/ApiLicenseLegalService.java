@@ -544,7 +544,7 @@ public class ApiLicenseLegalService
     List<CopyrightOverride> copyrightOverrides =
         copyrightOverrideDAO.getByOwnerIdAndComponentIdentifierWithHierarchy(owner.getId(), compIdentifier);
     ComponentCopyright componentCopyright =
-        componentCopyrightDAO.getByOwnerIdAndComponentIdentifier(owner.getId(), compIdentifier);
+        componentCopyrightDAO.getByOwnerIdAndComponentIdentifierWithHierarchy(owner.getId(), compIdentifier);
     ComponentLegalFile componentLegalFile =
         componentLegalFileDAO.getByOwnerIdAndComponentIdentifierWithHierarchy(owner.getId(), compIdentifier);
     List<LegalFileOverride> licenseOverrides = legalFileOverrideDAO

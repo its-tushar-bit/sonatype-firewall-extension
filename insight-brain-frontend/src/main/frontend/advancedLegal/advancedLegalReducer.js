@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { createReducerFromActionMap } from '../util/reduxUtil';
+import {createReducerFromActionMap} from '../util/reduxUtil';
 import {
   ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FAILED,
   ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FULFILLED,
@@ -18,8 +18,10 @@ import {
   ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
   ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED
 } from './advancedLegalActions';
-import { TEXT_BASED_OBLIGATIONS } from '../legal/advancedLegalConstants';
-import { advancedLegalObligationReducerActionMap } from '../legal/advancedLegalObligationReducer';
+import {TEXT_BASED_OBLIGATIONS} from '../legal/advancedLegalConstants';
+import {COPYRIGHT_OVERRIDE_SAVE_FULFILLED} from '../legal/copyright/copyrightOverrideFormActions';
+import {lensPath, over} from 'ramda';
+import {advancedLegalObligationReducerActionMap} from '../legal/advancedLegalObligationReducer';
 
 const initialState = {
   viewStateApplications: {
@@ -205,6 +207,15 @@ function loadAvailableScopesFailed(payload, state) {
   };
 }
 
+function saveCopyrightOverrideFulfilled(payload, state) {
+  return over(lensPath(['component', 'component', 'licenseLegalData']), lld => ({
+    ...lld,
+    componentCopyrightId: payload.id,
+    componentCopyrightScopeOwnerId: payload.componentCopyrightScopeOwnerId,
+    copyrights: payload.copyrightOverrides
+  }), state);
+}
+
 const reducerActionMap = {
   [ADVANCED_LEGAL_LOAD_APPLICATIONS_REQUESTED]: loadApplicationsRequested,
   [ADVANCED_LEGAL_LOAD_APPLICATIONS_FULFILLED]: loadApplicationsFulfilled,
@@ -218,6 +229,7 @@ const reducerActionMap = {
   [ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED]: loadAvailableScopesRequested,
   [ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED]: loadAvailableScopesFulfilled,
   [ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED]: loadAvailableScopesFailed,
+  [COPYRIGHT_OVERRIDE_SAVE_FULFILLED]: saveCopyrightOverrideFulfilled,
   ...advancedLegalObligationReducerActionMap
 };
 

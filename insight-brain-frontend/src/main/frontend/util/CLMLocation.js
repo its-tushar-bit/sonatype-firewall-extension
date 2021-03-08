@@ -4,10 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular */
-import { pick } from 'ramda';
+import {pick} from 'ramda';
 
 import commonServicesModule from '../util/CommonServices';
-import { toURIParams, uriTemplate } from './urlUtil';
+import {toURIParams, uriTemplate} from './urlUtil';
 
 /**
  * Generates the url to fetch the vulnerability details of a given refId.
@@ -280,6 +280,10 @@ export function getComponentObligationAttributionUrl(orgOrApp, ownerId, componen
 export function getDeleteComponentObligationAttributionUrl(componentObligationAttributionId) {
   return uriTemplate`/api/experimental/licenseLegalMetadata/component/obligation/attribution/` +
       `${componentObligationAttributionId}`;
+}
+
+export function getSaveCopyrightOverrideUrl(orgOrApp, ownerId) {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/copyright`;
 }
 
 export function getSaveComponentObligationUrl(orgOrApp, ownerId) {

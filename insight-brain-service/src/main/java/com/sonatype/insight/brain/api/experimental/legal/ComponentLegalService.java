@@ -523,7 +523,6 @@ public class ComponentLegalService
   {
     try (TransactionContext tx = componentCopyrightDAO.createTransactionContext()) {
       tx.begin();
-
       // Check if we are creating a new ComponentCopyright at an existing scope, if so
       // delete the existing ComponentCopyright and replace with the new one.
       findConflictingComponentCopyright(componentCopyright, tx)

@@ -135,6 +135,7 @@ public class LegalReportBuilder
     if (copyrightOverrides.isEmpty()) {
       return componentLegalComments.stream()
           .flatMap(c -> c.getUniqueCopyrights().stream())
+          .distinct()
           .map(legalCopyrightDTO -> new ApiLicenseLegalCopyrightDTO(
               null,
               legalCopyrightDTO.getContent(),

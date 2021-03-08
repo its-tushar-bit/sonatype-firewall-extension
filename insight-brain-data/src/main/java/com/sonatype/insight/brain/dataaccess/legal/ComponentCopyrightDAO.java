@@ -124,4 +124,9 @@ public class ComponentCopyrightDAO
     }
     super.delete(tx, componentCopyright);
   }
+
+  public List<ComponentCopyright> getAll() {
+    String sQuery = "SELECT entity FROM ComponentCopyright entity";
+    return getList(sQuery);
+  }
 }

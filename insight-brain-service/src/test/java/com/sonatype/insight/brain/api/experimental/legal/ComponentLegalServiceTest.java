@@ -17,6 +17,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightWithOwnerDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
@@ -308,10 +309,9 @@ public class ComponentLegalServiceTest
   }
 
   /**
-   * The scenario is the following: Inserting a new ComponentCopyright at an existing scope.
-   * A ComponentCopyright with ID A exists at the OrgScope. The user inserts a new
-   * ComponentCopyright from the application scope at the OrgScope. There is a conflict. The ComponentCopyright A is
-   * deleted, now we only have ComponentCopyright B at the OrgScope.
+   * The scenario is the following: Inserting a new ComponentCopyright at an existing scope. A ComponentCopyright with
+   * ID A exists at the OrgScope. The user inserts a new ComponentCopyright from the application scope at the OrgScope.
+   * There is a conflict. The ComponentCopyright A is deleted, now we only have ComponentCopyright B at the OrgScope.
    */
   @Test
   public void testConflictingComponentCopyrightWhileInserting() {
@@ -1133,6 +1133,71 @@ public class ComponentLegalServiceTest
         app.getPublicId(), dto.getComponentIdentifier().toComponentIdentifier(), dto.getName());
 
     assertThat(resultDto).isNull();
+  }
+
+  @Test
+  public void testGetComponentCopyrightWithHierarchy() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getId());
+
+    ComponentCopyright orgComponentCopyright =
+        tempEntity.newComponentCopyright(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"),
+            organization.getId(), "lch");
+    ComponentCopyright appComponentCopyright =
+        tempEntity.newComponentCopyright(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"),
+            application.getId(), "lch");
+
+    ComponentCopyrightWithOwnerDTO componentCopyrightWithOwnerDTO = componentLegalService
+        .getComponentCopyrightWithHierarchy(OwnerType.APPLICATION, application.getPublicId(), componentIdentifier);
+
+    assertThat(componentCopyrightWithOwnerDTO.getComponentCopyrightDTO().getId())
+        .isEqualTo(appComponentCopyright.getId());
+
+    componentCopyrightWithOwnerDTO = componentLegalService
+        .getComponentCopyrightWithHierarchy(OwnerType.ORGANIZATION, organization.getPublicId(), componentIdentifier);
+
+    assertThat(componentCopyrightWithOwnerDTO.getComponentCopyrightDTO().getId())
+        .isEqualTo(orgComponentCopyright.getId());
+  }
+
+  @Test
+  public void testGetComponentCopyrightWithHierarchy_higherScope() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getId());
+
+    ComponentCopyright orgComponentCopyright =
+        tempEntity.newComponentCopyright(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"),
+            organization.getId(), "lch");
+
+    ComponentCopyrightWithOwnerDTO componentCopyrightWithOwnerDTO = componentLegalService
+        .getComponentCopyrightWithHierarchy(OwnerType.APPLICATION, application.getPublicId(), componentIdentifier);
+
+    assertThat(componentCopyrightWithOwnerDTO.getComponentCopyrightDTO().getId())
+        .isEqualTo(orgComponentCopyright.getId());
+    assertThat(componentCopyrightWithOwnerDTO.getOwnerId())
+        .isEqualTo(organization.getId());
+  }
+
+  @Test
+  public void testGetComponentCopyrightWithHierarchy_notFound() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+    Organization org = tempEntity.newOrganization();
+
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> componentLegalService
+        .getComponentCopyrightWithHierarchy(OwnerType.ORGANIZATION, org.getPublicId(), componentIdentifier))
+    .withMessageContaining("No component copyright");
+  }
+
+  @Test
+  public void testGetComponentCopyrightWithHierarchy_Unlicensed() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+    testProductLicense.setMissingFeatures(LicensedFeature.ADVANCED_LEGAL_PACK);
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
+        componentLegalService.getComponentCopyrightWithHierarchy(OwnerType.APPLICATION, "n/a", componentIdentifier));
   }
 
   private ApiLicenseLegalObligationDTO createMinimalComponentObligationDTO() {

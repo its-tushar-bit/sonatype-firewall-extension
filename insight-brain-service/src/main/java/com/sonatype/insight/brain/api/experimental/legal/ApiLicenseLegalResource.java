@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationRep
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDashboardDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightWithOwnerDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
@@ -138,6 +139,17 @@ public class ApiLicenseLegalResource
       @PathParam("ownerId") String ownerId)
   {
     return componentLegalService.saveComponentCopyright(ownerType, ownerId, componentCopyrightDTO);
+  }
+
+  @GET
+  @Path(COMPONENT_COPYRIGHT_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public ComponentCopyrightWithOwnerDTO getComponentCopyright(
+      @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier,
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId)
+  {
+    return componentLegalService.getComponentCopyrightWithHierarchy(ownerType, ownerId, componentIdentifier);
   }
 
   /**

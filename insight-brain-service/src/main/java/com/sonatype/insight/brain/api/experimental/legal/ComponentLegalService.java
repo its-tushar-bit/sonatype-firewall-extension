@@ -17,6 +17,7 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightWithOwnerDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
@@ -52,6 +53,7 @@ import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.apache.commons.lang.StringUtils;
@@ -105,6 +107,45 @@ public class ComponentLegalService
     this.ownerDAO = ownerDAO;
     this.productLicense = productLicense;
     this.currentUser = currentUser;
+  }
+
+  /**
+   * Given a ComponentIdentifier and scope, return a ComponentCopyright which is equal in scope or higher. ROOT_ORG >
+   * Organization > Application.
+   * <p>
+   * Throws {@link NotFoundException} if none match.
+   *
+   * @param ownerType           - The ownerType of the scope we want
+   * @param ownerId             - The ownerId of the scope we want
+   * @param componentIdentifier - The component identifier of the ComponentCopyright
+   * @return A {@link ComponentCopyrightWithOwnerDTO}, which contains the ComponentCopyright at the scope at which it is
+   * applied.
+   * @throws NotFoundException if no ComponentCopyrightFound
+   * @since 1.107
+   */
+  @Authorize(permission = Permission.LEGAL_REVIEWER)
+  public ComponentCopyrightWithOwnerDTO getComponentCopyrightWithHierarchy(
+      @AuthzContext(Key.TYPE) final OwnerType ownerType, @AuthzContext(Key.ID) final String ownerId,
+      ComponentIdentifier componentIdentifier)
+  {
+    checkLicense();
+    componentIdentifier.validate();
+    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+
+    ComponentCopyright componentCopyright =
+        componentCopyrightDAO.getByOwnerIdAndComponentIdentifierWithHierarchy(owner.getId(), componentIdentifier);
+    if (componentCopyright == null) {
+      throw new NotFoundException("No component copyright found.");
+    }
+    List<CopyrightOverride> copyrightOverrides =
+        copyrightOverrideDAO.getByComponentCopyrightId(componentCopyright.getId());
+
+    return new ComponentCopyrightWithOwnerDTO(
+        ComponentCopyrightDTO.fromComponentCopyright(
+            componentCopyright,
+            copyrightOverrides.stream().map(CopyrightOverrideDTO::fromCopyrightOverride).collect(Collectors.toList())),
+        componentCopyright.getOwnerId()
+    );
   }
 
   /**

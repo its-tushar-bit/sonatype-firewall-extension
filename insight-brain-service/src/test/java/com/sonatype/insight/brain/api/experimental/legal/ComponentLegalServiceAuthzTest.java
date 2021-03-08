@@ -599,6 +599,66 @@ public class ComponentLegalServiceAuthzTest
     componentLegalService.deleteComponentObligation(componentObligation.getId());
   }
 
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetComponentCopyright_ApplicationScope_Unauthenticated() {
+    tempEntity.newComponentCopyright(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"),
+        app.getId(), "lch");
+    componentLegalService
+        .getComponentCopyrightWithHierarchy(app.getType(), app.getPublicId(),
+            ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetComponentCopyright_ApplicationScope_Unauthorized() {
+    login();
+    tempEntity.newComponentCopyright(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"),
+        app.getId(), "lch");
+    componentLegalService
+        .getComponentCopyrightWithHierarchy(app.getType(), app.getPublicId(),
+            ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
+  }
+
+  @Test
+  public void testGetComponentCopyright_ApplicationScope_Authorized() {
+    grantLegalReviewerPermission(app.getId());
+    final ComponentIdentifier componentIdentifier =
+        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+    tempEntity.newComponentCopyright(componentIdentifier,
+        app.getId(), "lch");
+    componentLegalService
+        .getComponentCopyrightWithHierarchy(app.getType(), app.getPublicId(), componentIdentifier);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetComponentCopyright_OrganizationScope_Unauthenticated() {
+    tempEntity.newComponentCopyright(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"),
+        org.getId(), "lch");
+    componentLegalService
+        .getComponentCopyrightWithHierarchy(app.getType(), org.getPublicId(),
+            ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetComponentCopyright_OrganizationScope_Unauthorized() {
+    login();
+    tempEntity.newComponentCopyright(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"),
+        org.getId(), "lch");
+    componentLegalService
+        .getComponentCopyrightWithHierarchy(org.getType(), org.getPublicId(),
+            ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
+  }
+
+  @Test
+  public void testGetComponentCopyright_OrganizationScope_Authorized() {
+    grantLegalReviewerPermission(org.getId());
+    final ComponentIdentifier componentIdentifier =
+        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+    tempEntity.newComponentCopyright(componentIdentifier,
+        org.getId(), "lch");
+    componentLegalService
+        .getComponentCopyrightWithHierarchy(org.getType(), org.getPublicId(), componentIdentifier);
+  }
+
   private ComponentObligationAttributionDTO buildComponentObligationAttributionDTO() {
     ComponentObligationAttributionDTO componentObligationAttributionDTO = new ComponentObligationAttributionDTO();
     componentObligationAttributionDTO.setComponentIdentifier(

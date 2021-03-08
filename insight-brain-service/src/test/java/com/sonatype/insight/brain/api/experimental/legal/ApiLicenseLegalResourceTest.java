@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDas
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightWithOwnerDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
@@ -39,6 +40,7 @@ import com.sonatype.insight.brain.dataaccess.legal.ComponentLegalFileDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationAttributionDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
@@ -407,6 +409,28 @@ public class ApiLicenseLegalResourceTest
     ApiLicenseLegalObligationDTO responseDto = response.getBody(ApiLicenseLegalObligationDTO.class);
     assertThat(responseDto).isNotNull();
     assertThat(responseDto.getId()).isEqualTo(componentObligation.getId());
+  }
+
+  @Test
+  public void testGetComponentCopyright() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getId());
+    ComponentCopyright componentCopyright =
+        tempEntity.newComponentCopyright(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"),
+            organization.getId(), "lch");
+
+    HttpResponse response = restRequest()
+        .path(ApiLicenseLegalResource.COMPONENT_COPYRIGHT_PATH)
+        .parameter(application.getType(), application.getPublicId())
+        .query("componentIdentifier", componentCopyright.getComponentIdentifier())
+        .get();
+
+    assertResponseStatus(200, response);
+    ComponentCopyrightWithOwnerDTO componentCopyrightWithOwnerDTO =
+        response.getBody(ComponentCopyrightWithOwnerDTO.class);
+    assertThat(componentCopyrightWithOwnerDTO).isNotNull();
+    assertThat(componentCopyrightWithOwnerDTO.getComponentCopyrightDTO().getId()).isEqualTo(componentCopyright.getId());
+    assertThat(componentCopyrightWithOwnerDTO.getOwnerId()).isEqualTo(organization.getId());
   }
 
   private void mockReport(PolicyEvaluation evaluation) {

@@ -9,6 +9,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -17,15 +18,12 @@ import javax.inject.Singleton;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
-import com.sonatype.insight.brain.api.v2.service.ApiComponentRemediationService;
+import com.sonatype.insight.brain.git.PullRequestCommentingRemediationService;
 import com.sonatype.insight.brain.git.PullRequestFeatureCheck;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
+import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -49,13 +47,11 @@ public class PolicyAlertScmNotifier
 
   public static final int APP_ID_BRANCH_TRUNCATE_INDEX = 6;
 
-  private static final String VERSION_KEY = "version";
-
   private static final String POLICY_ALERT = "policy alert";
 
   private final PullRequestFeatureCheck pullRequestFeatureCheck;
 
-  private final ApiComponentRemediationService remediationService;
+  private final PullRequestCommentingRemediationService remediationService;
 
   private final PolicyAlertSourceCodeOrganizer policyAlertSourceCodeOrganizer;
 
@@ -63,10 +59,6 @@ public class PolicyAlertScmNotifier
       new VersionRemediationTitleGenerator();
 
   private final BaseUrl baseUrl;
-
-  private static final String STAGE_ID = null;
-
-  private static final OwnerType OWNER_TYPE = OwnerType.APPLICATION;
 
   private final SourceControlUtils sourceControlUtils;
 
@@ -87,7 +79,7 @@ public class PolicyAlertScmNotifier
   @Inject
   public PolicyAlertScmNotifier(
       final PullRequestFeatureCheck pullRequestFeatureCheck,
-      final ApiComponentRemediationService remediationService,
+      final PullRequestCommentingRemediationService remediationService,
       final PolicyAlertSourceCodeOrganizer policyAlertSourceCodeOrganizer,
       final BaseUrl baseUrl,
       final SourceControlUtils sourceControlUtils,
@@ -154,21 +146,23 @@ public class PolicyAlertScmNotifier
         continue;
       }
 
-      final List<ApiVersionChangeOptionDTO> remediationOptions = getRemediationList(entry.getKey(), app.getId());
-      if (remediationOptions.isEmpty()) {
-        log.debug("No remediation options found for component [{}]", entry.getKey());
-        continue;
+      Optional<RemediationVersionDTO> remediationVersion =
+          remediationService.getRemediationVersion(entry.getKey(), app.getId());
+
+      if (remediationVersion.isPresent()) {
+        String nextVersion = remediationVersion.get().getVersion();
+        final String branchName = getBranchName(app, entry.getKey(), nextVersion);
+
+        if (!sourceControlEventPublisher.doesRemediationEventExistForBranch(app.getId(), branchName)) {
+          PullRequestRemediationDetails pullRequestRemediationDetails =
+              new PullRequestRemediationDetails(entry.getKey(), nextVersion,
+                  remediationVersion.get().getBreakingChangesCount(), branchName, entry.getValue(), app,
+                  scanId, stage.getStageTypeId(), baseUrl.getConfigured(), gitRepositoryInfo.provider);
+          publishRemediationPullRequestEvent(pullRequestRemediationDetails);
+        }
       }
-
-      String nextVersion = getNextVersion(remediationOptions);
-      final String branchName = getBranchName(app, entry.getKey(), nextVersion);
-
-      if (!sourceControlEventPublisher.doesRemediationEventExistForBranch(app.getId(), branchName)) {
-        PullRequestRemediationDetails pullRequestRemediationDetails =
-            new PullRequestRemediationDetails(entry.getKey(), nextVersion, branchName, entry.getValue(), app, scanId,
-                stage.getStageTypeId(), baseUrl.getConfigured(), gitRepositoryInfo.provider);
-
-        publishRemediationPullRequestEvent(pullRequestRemediationDetails);
+      else {
+        log.debug("No remediation options found for component [{}]", entry.getKey());
       }
     }
   }
@@ -202,30 +196,14 @@ public class PolicyAlertScmNotifier
         branchPrefix, componentIdentifier, nextVersion);
   }
 
-  private String getNextVersion(final List<ApiVersionChangeOptionDTO> remediationOptions) {
-    return remediationOptions.get(0).getData()
-        .getComponent().componentIdentifier.getCoordinates().get(VERSION_KEY);
-  }
-
   private boolean isFormatSupported(final String format) {
     return pullRequestRemediationService.isFormatSupportedForPullRequestRemediation(format);
-  }
-
-  private List<ApiVersionChangeOptionDTO> getRemediationList(
-      final ComponentIdentifier componentIdentifier, final String ownerId)
-  {
-    final ApiComponentDTOV2 componentDto = new ApiComponentDTOV2();
-    componentDto.componentIdentifier =
-        ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
-
-    return remediationService.getSuggestedRemediationForComponentNoAuth(
-        componentDto, OWNER_TYPE, ownerId, STAGE_ID, null, null).remediation.versionChanges;
   }
 
   /**
    * Invoke the PR runnable in a named thread. Package-private to allow for mocking in tests.
    */
-  class PullRequestInvoker
+  static class PullRequestInvoker
   {
     public void execute(final String scanId, Runnable runnable) {
       new Thread(runnable, "PolicyAlertScmNotifierForScan-" + scanId).start();

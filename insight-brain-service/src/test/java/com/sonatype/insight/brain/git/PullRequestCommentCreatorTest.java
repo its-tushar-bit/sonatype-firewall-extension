@@ -177,7 +177,7 @@ public class PullRequestCommentCreatorTest
 
     private final PolicyViolationDiff<PolicyViolation> policyViolationDiff = new PolicyViolationDiff<>();
 
-    private final Map<ComponentIdentifier, String> remediationVersionMap = new HashMap<>();
+    private final Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap = new HashMap<>();
 
     private String contentHash;
 

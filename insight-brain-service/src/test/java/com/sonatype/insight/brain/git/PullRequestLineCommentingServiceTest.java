@@ -63,7 +63,7 @@ public class PullRequestLineCommentingServiceTest
   @Mock
   private SourceControlPullRequestCommentDAO mockPullRequestCommentDAO;
 
-  private final Map<ComponentIdentifier, String> remediationVersionMap = new HashMap<>();
+  private final Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap = new HashMap<>();
 
   private final int pullRequestId = 1;
 

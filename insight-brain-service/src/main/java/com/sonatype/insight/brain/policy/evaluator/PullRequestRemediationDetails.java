@@ -62,6 +62,8 @@ public class PullRequestRemediationDetails
 
   private final String stage;
 
+  private final Integer breakingChangesCount;
+
   static {
     try {
       policyThreatsMDEmbeddedHtmlTemplate =
@@ -77,6 +79,7 @@ public class PullRequestRemediationDetails
   private PullRequestRemediationDetails(
       final ComponentIdentifier toBeRemediated,
       final String remediatedVersion,
+      final Integer breakingChangesCount,
       final String pullRequestBranchName,
       final Application app,
       final String scanId,
@@ -93,6 +96,7 @@ public class PullRequestRemediationDetails
 
     this.toBeRemediated = toBeRemediated;
     this.remediatedVersion = remediatedVersion;
+    this.breakingChangesCount = breakingChangesCount;
     this.pullRequestBranchName = pullRequestBranchName;
     this.title = constructTitle();
     this.app = app;
@@ -103,6 +107,7 @@ public class PullRequestRemediationDetails
   public PullRequestRemediationDetails(
       final ComponentIdentifier toBeRemediated,
       final String remediatedVersion,
+      final Integer breakingChangesCount,
       final String pullRequestBranchName,
       final List<PolicyNotification> notifications,
       final Application app,
@@ -111,7 +116,7 @@ public class PullRequestRemediationDetails
       final String baseUrl,
       final SourceControlProvider provider) throws IOException
   {
-    this(toBeRemediated, remediatedVersion, pullRequestBranchName, app, scanId, stage);
+    this(toBeRemediated, remediatedVersion, breakingChangesCount, pullRequestBranchName, app, scanId, stage);
     this.contents = constructContents(notifications, baseUrl, provider);
   }
 
@@ -124,7 +129,7 @@ public class PullRequestRemediationDetails
       final String stage,
       final String contents) throws IOException
   {
-    this(toBeRemediated, remediatedVersion, pullRequestBranchName, app, scanId, stage);
+    this(toBeRemediated, remediatedVersion, null, pullRequestBranchName, app, scanId, stage);
     this.contents = contents;
   }
 
@@ -185,6 +190,7 @@ public class PullRequestRemediationDetails
         .put("componentName", getComponentName(getToBeRemediated()))
         .put("initialVersionDisplay", constructVersionDisplay(toBeRemediated))
         .put("targetVersionDisplay", constructVersionDisplay(remediatedComponent))
+        .put("breakingChangesCount", breakingChangesCount == null ? -1 : breakingChangesCount)
         .put("applicationName", app.getName())
         .put("organizationName", getOrganizationName(app))
         .put("threatList", threatList)

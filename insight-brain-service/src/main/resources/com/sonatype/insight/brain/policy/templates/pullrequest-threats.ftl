@@ -1,3 +1,4 @@
+<#include "iq-for-scm-common.ftl">
 ## :shield: Automated <#if provider.name() == "GITLAB">merge<#else>pull</#if> request: Nexus IQ found ${threatList?size} Policy Violation<#if (threatList?size > 1)>s</#if>
 
 ### Description
@@ -5,6 +6,7 @@
 - Component: **${componentName}**
 - Current version (with violations): **${initialVersionDisplay}**
 - New version (for remediation): **${targetVersionDisplay}**
+<@breakingChanges count=breakingChangesCount minimalMarkdown=false />
 
 ### Policy
 Threat (of 10) | Policy | Violation Details

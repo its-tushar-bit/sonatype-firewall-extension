@@ -66,7 +66,7 @@ public class PullRequestCommentingHashBuilderTest
         .withRemovedViolations(1)
         .withUnknownComponentsRemoved(1)
         .build();
-    SortedMap<ComponentIdentifier, String> remediationVersionMap = createRemediationVersionMap(2);
+    SortedMap<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap = createRemediationVersionMap(2);
     
     // when:
     String hash = new PullRequestCommentingHashBuilder()
@@ -83,7 +83,7 @@ public class PullRequestCommentingHashBuilderTest
   public void testGenerateHash_ViolationsAndNoRemediations_Success() throws Exception {
     // given: 
     PolicyViolationDiff<PolicyViolation> diff = new PolicyViolationDiffBuilder().build();
-    SortedMap<ComponentIdentifier, String> remediationVersionMap = createRemediationVersionMap(0);
+    SortedMap<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap = createRemediationVersionMap(0);
     
     // when:
     String hash = new PullRequestCommentingHashBuilder()
@@ -103,7 +103,7 @@ public class PullRequestCommentingHashBuilderTest
         .withAddedViolations(0)
         .withUnknownComponentsAdded(0)
         .build();
-    SortedMap<ComponentIdentifier, String> remediationVersionMap = createRemediationVersionMap(0);
+    SortedMap<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap = createRemediationVersionMap(0);
     
     // when:
     String hash = new PullRequestCommentingHashBuilder()
@@ -125,7 +125,7 @@ public class PullRequestCommentingHashBuilderTest
         .withRemovedViolations(0)
         .withUnknownComponentsRemoved(0)
         .build();
-    SortedMap<ComponentIdentifier, String> remediationVersionMap = createRemediationVersionMap(0);
+    SortedMap<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap = createRemediationVersionMap(0);
     
     // when:
     String hash = new PullRequestCommentingHashBuilder()
@@ -148,7 +148,7 @@ public class PullRequestCommentingHashBuilderTest
         .withUnknownComponentsRemoved(1)
         .withNoReferencesForConditionFacts()
         .build();
-    SortedMap<ComponentIdentifier, String> remediationVersionMap = createRemediationVersionMap(2);
+    SortedMap<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap = createRemediationVersionMap(2);
 
     // when:
     String hash = new PullRequestCommentingHashBuilder()
@@ -171,7 +171,7 @@ public class PullRequestCommentingHashBuilderTest
         .withUnknownComponentsRemoved(1)
         .withConditionFactsPerConstraintFact(0)
         .build();
-    SortedMap<ComponentIdentifier, String> remediationVersionMap = createRemediationVersionMap(2);
+    SortedMap<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap = createRemediationVersionMap(2);
 
     // when:
     String hash = new PullRequestCommentingHashBuilder()
@@ -194,7 +194,7 @@ public class PullRequestCommentingHashBuilderTest
         .withUnknownComponentsRemoved(1)
         .withConstraintFactsPerViolation(0)
         .build();
-    SortedMap<ComponentIdentifier, String> remediationVersionMap = createRemediationVersionMap(2);
+    SortedMap<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap = createRemediationVersionMap(2);
 
     // when:
     String hash = new PullRequestCommentingHashBuilder()
@@ -212,7 +212,7 @@ public class PullRequestCommentingHashBuilderTest
     // given: 
     PolicyViolationDiff<PolicyViolation> diff1 = new PolicyViolationDiffBuilder().build();
     PolicyViolationDiff<PolicyViolation> diff2 = new PolicyViolationDiffBuilder().build();
-    SortedMap<ComponentIdentifier, String> remediationVersionMap = createRemediationVersionMap(2);
+    SortedMap<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap = createRemediationVersionMap(2);
     
     // when:
     String hash1 = new PullRequestCommentingHashBuilder()
@@ -246,7 +246,7 @@ public class PullRequestCommentingHashBuilderTest
         .withUnknownComponentsRemoved(2)
         .withReversedViolationOrder()
         .build();
-    SortedMap<ComponentIdentifier, String> remediationVersionMap = createRemediationVersionMap(2);
+    SortedMap<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap = createRemediationVersionMap(2);
     
     // when:
     String hash1 = new PullRequestCommentingHashBuilder()
@@ -275,7 +275,7 @@ public class PullRequestCommentingHashBuilderTest
         .withAddedViolations(2)
         .withUnknownComponentsAdded(2)
         .build();
-    SortedMap<ComponentIdentifier, String> remediationVersionMap = createRemediationVersionMap(2);
+    SortedMap<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap = createRemediationVersionMap(2);
     
     // when:
     String hash1 = new PullRequestCommentingHashBuilder()
@@ -304,7 +304,7 @@ public class PullRequestCommentingHashBuilderTest
         .withAddedViolations(2)
         .withUnknownComponentsAdded(0)
         .build();
-    SortedMap<ComponentIdentifier, String> remediationVersionMap = createRemediationVersionMap(2);
+    SortedMap<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap = createRemediationVersionMap(2);
 
     // when:
     String hash1 = new PullRequestCommentingHashBuilder()
@@ -333,7 +333,7 @@ public class PullRequestCommentingHashBuilderTest
         .withAddedViolations(0)
         .withUnknownComponentsAdded(2)
         .build();
-    SortedMap<ComponentIdentifier, String> remediationVersionMap = createRemediationVersionMap(2);
+    SortedMap<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap = createRemediationVersionMap(2);
 
     // when:
     String hash1 = new PullRequestCommentingHashBuilder()
@@ -356,8 +356,8 @@ public class PullRequestCommentingHashBuilderTest
     // given: 
     PolicyViolationDiff<PolicyViolation> diff1 = new PolicyViolationDiffBuilder().build();
     PolicyViolationDiff<PolicyViolation> diff2 = new PolicyViolationDiffBuilder().build();
-    SortedMap<ComponentIdentifier, String> remediationVersionMap1 = createRemediationVersionMap(1);
-    SortedMap<ComponentIdentifier, String> remediationVersionMap2 = createRemediationVersionMap(2);
+    SortedMap<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap1 = createRemediationVersionMap(1);
+    SortedMap<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap2 = createRemediationVersionMap(2);
 
     // when:
     String hash1 = new PullRequestCommentingHashBuilder()
@@ -375,10 +375,10 @@ public class PullRequestCommentingHashBuilderTest
     assertThat(hash1).isNotEqualTo(hash2);
   }
 
-  private SortedMap<ComponentIdentifier, String> createRemediationVersionMap(final int entryCount) {
-    SortedMap<ComponentIdentifier, String> map = new TreeMap<>();
+  private SortedMap<ComponentIdentifier, RemediationVersionDTO> createRemediationVersionMap(final int entryCount) {
+    SortedMap<ComponentIdentifier, RemediationVersionDTO> map = new TreeMap<>();
     for (int i = 0; i < entryCount; i++) {
-      map.put(identifiers[i], "2.0.0");
+      map.put(identifiers[i], new RemediationVersionDTO("2.0.0"));
     }
     return map;
   }

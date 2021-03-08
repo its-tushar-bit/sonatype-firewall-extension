@@ -25,6 +25,7 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.git.PullRequestLineCommentDTO;
+import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.git.SourceControlComponentDetails;
 import com.sonatype.insight.brain.git.SourceControlComponentDetails.ComponentInfo;
 import com.sonatype.insight.brain.git.SourceControlComponentLoader;
@@ -34,7 +35,10 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.policy.PolicyEvaluationDiffService;
-import com.sonatype.insight.brain.service.*;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.DefaultBaseUrl;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -74,7 +78,7 @@ public class PullRequestFeedbackDetailsTest
 
   private PolicyViolationDiff<PolicyViolation> diff;
   
-  private Map<ComponentIdentifier, String> remediationVersionMap;
+  private Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap;
 
   private List<PullRequestLineCommentDTO> pullRequestLineComments;
   
@@ -700,7 +704,7 @@ public class PullRequestFeedbackDetailsTest
     //setup remediationVersionMap
     remediationVersionMap = new HashMap<>();
     ComponentIdentifier ci = ComponentIdentifier.createMavenCoordinates("com.h2database", "h2", "1.4.190", "", "jar");
-    remediationVersionMap.put(ci, "1.4.200");
+    remediationVersionMap.put(ci, new RemediationVersionDTO("1.4.200"));
 
     //setup pullRequestLineComments
     pullRequestLineComments = new ArrayList<>();

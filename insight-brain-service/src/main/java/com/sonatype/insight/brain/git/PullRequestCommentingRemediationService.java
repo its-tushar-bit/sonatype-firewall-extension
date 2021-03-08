@@ -17,38 +17,64 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
-import com.sonatype.insight.brain.api.v2.service.ApiComponentRemediationService;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
+import com.sonatype.insight.brain.hds.ComponentInfoService;
+import com.sonatype.insight.brain.hds.ComponentRemediationService;
 import com.sonatype.insight.brain.model.HasComponentId;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 @Named
 @Singleton
 public class PullRequestCommentingRemediationService
 {
   private static final String VERSION_KEY = "version";
-  
-  private final ApiComponentRemediationService remediationService;
-  
+
+  static final String BREAKING_CHANGES_IN_IQ_FOR_SCM = "breakingChangesInIqForScm";
+
+  private final ApplicationDAO applicationDAO;
+
+  private final ComponentInfoService componentInfoService;
+
+  private final ComponentRemediationService componentRemediationService;
+
+  private final ProductLicense productLicense;
+
+  private final InsightConfig insightConfig;
+
   @Inject
-  public PullRequestCommentingRemediationService(final ApiComponentRemediationService remediationService) {
-    this.remediationService = remediationService;
+  public PullRequestCommentingRemediationService(
+      final ApplicationDAO applicationDAO,
+      final ComponentInfoService componentInfoService,
+      final ComponentRemediationService componentRemediationService,
+      final ProductLicense productLicense,
+      final InsightConfig insightConfig)
+  {
+    this.applicationDAO = applicationDAO;
+    this.componentInfoService = componentInfoService;
+    componentInfoService.setToolName("ci");
+    this.componentRemediationService = componentRemediationService;
+    this.productLicense = productLicense;
+    this.insightConfig = insightConfig;
   }
-  
+
   /**
    * Returns a map of component identifier and remediation versions for a given set of component identifiers.
    * The map will contains entries only for the components for which a remediation version is found.
    */
-  public SortedMap<ComponentIdentifier, String> getRemediationVersionMap(
+  public SortedMap<ComponentIdentifier, RemediationVersionDTO> getRemediationVersionMap(
       final List<PolicyViolation> policyViolations,
       final String ownerId)
   {
-    SortedMap<ComponentIdentifier, String> remediationVersionMap = new TreeMap<>();
+    SortedMap<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap = new TreeMap<>();
     if (policyViolations != null && !policyViolations.isEmpty()) {
       Set<ComponentIdentifier> componentIdentifiers = policyViolations.stream()
           .filter(pv -> pv.getComponentIdentifier() != null)
@@ -56,7 +82,7 @@ public class PullRequestCommentingRemediationService
           .collect(Collectors.toSet());
 
       for (ComponentIdentifier componentIdentifier : componentIdentifiers) {
-        Optional<String> suggestedVersion = getRemediationVersion(componentIdentifier, ownerId);
+        Optional<RemediationVersionDTO> suggestedVersion = getRemediationVersion(componentIdentifier, ownerId);
         suggestedVersion.ifPresent(s -> remediationVersionMap.put(componentIdentifier, s));
       }
     }
@@ -66,24 +92,70 @@ public class PullRequestCommentingRemediationService
   /**
    * Gets remediation versions, if any, for a given component identifier
    */
-  private Optional<String> getRemediationVersion(final ComponentIdentifier componentIdentifier, final String ownerId) {
-    String nextVersion = null;
-    final ApiComponentDTOV2 componentDto = new ApiComponentDTOV2();
-    componentDto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
-    ApiComponentRemediationDTO remediationDTO = remediationService.getSuggestedRemediationForComponentNoAuth(
-        componentDto, OwnerType.APPLICATION, ownerId, null, null, null);
-    if (remediationDTO != null) {
-      List<ApiVersionChangeOptionDTO> versionChanges = remediationDTO.remediation.versionChanges;
+  public Optional<RemediationVersionDTO> getRemediationVersion(
+      final ComponentIdentifier componentIdentifier,
+      final String ownerId)
+  {
+    RemediationVersionDTO remediationVersionDTO = null;
+
+    String publicOwnerId = applicationDAO.getByIdNotNull(ownerId).getPublicId();
+
+    List<ComponentDetailsDTO> componentDetailsDTOs = componentInfoService
+        .getComponentDetailsForAllVersionsNoAuth(OwnerType.APPLICATION, publicOwnerId, componentIdentifier,
+            null, null, null, null);
+
+    ApiComponentRemediationValueDTO remediationValueDto =
+        componentRemediationService.getSuggestedRemediation(componentIdentifier, componentDetailsDTOs,
+            OwnerType.APPLICATION, ownerId, null);
+
+    if (remediationValueDto != null) {
+      ComponentIdentifier remediationComponentIdentifier = getRemediationComponentIdentifier(remediationValueDto);
+      remediationVersionDTO = getRemediationVersionDTO(componentDetailsDTOs, remediationComponentIdentifier);
+    }
+    return Optional.ofNullable(remediationVersionDTO);
+  }
+
+  private RemediationVersionDTO getRemediationVersionDTO(
+      final List<ComponentDetailsDTO> componentDetailsDTOs,
+      final ComponentIdentifier remediationComponentIdentifier)
+  {
+    if (remediationComponentIdentifier != null) {
+      if (productLicense.hasFeature(LicensedFeature.BREAKING_CHANGE) &&
+          insightConfig.isExperimentalFeatureEnabled(BREAKING_CHANGES_IN_IQ_FOR_SCM) // to be removed at the end
+      ) {
+        // Collect breaking changes info
+        Optional<ComponentDetailsDTO> componentDetailsDTO = componentDetailsDTOs.stream()
+            .filter(dto -> dto.componentIdentifier.compareTo(remediationComponentIdentifier) == 0)
+            .findFirst();
+
+        if (componentDetailsDTO.isPresent()) {
+          return
+              new RemediationVersionDTO(remediationComponentIdentifier.getCoordinates().get(VERSION_KEY),
+                  componentDetailsDTO.get().breakingChangesCount);
+        }
+      }
+      return new RemediationVersionDTO(remediationComponentIdentifier.getCoordinates().get(VERSION_KEY));
+    }
+    return null;
+  }
+
+  private ComponentIdentifier getRemediationComponentIdentifier(ApiComponentRemediationValueDTO remediationValueDto) {
+    ComponentIdentifier remediationComponentIdentifier = null;
+
+    if (remediationValueDto != null) {
+      List<ApiVersionChangeOptionDTO> versionChanges = remediationValueDto.versionChanges;
       if (!versionChanges.isEmpty()) {
         for (ApiVersionChangeOptionDTO versionChange : versionChanges) {
           if (versionChange.getType() == ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS) {
-            nextVersion =
-                versionChange.getData().getComponent().componentIdentifier.getCoordinates().get(VERSION_KEY);
+            ApiComponentIdentifierDTOV2 identifierDTOV2 =
+                versionChange.getData().getComponent().componentIdentifier;
+            remediationComponentIdentifier =
+                new ComponentIdentifier(identifierDTOV2.getFormat(), identifierDTOV2.getCoordinates());
             break;
           }
         }
       }
     }
-    return Optional.ofNullable(nextVersion);
+    return remediationComponentIdentifier;
   }
 }

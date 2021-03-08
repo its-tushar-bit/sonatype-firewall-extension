@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.git.PullRequestLineCommentDTO;
+import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.git.SourceControlComponentDetails;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
@@ -83,7 +84,7 @@ public class PullRequestFeedbackDetails
 
   private final PolicyViolationDiff<PolicyViolation> diff;
   
-  private final Map<ComponentIdentifier, String> remediationVersionMap;
+  private final Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap;
   
   private final List<PullRequestLineCommentDTO> pullRequestLineComments;
   
@@ -114,7 +115,7 @@ public class PullRequestFeedbackDetails
       final PolicyEvaluation featureBranchEvaluation,
       final PolicyEvaluation defaultBranchEvaluation,
       final PolicyViolationDiff<PolicyViolation> diff,
-      final Map<ComponentIdentifier, String> remediationVersionMap,
+      final Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap,
       final List<PullRequestLineCommentDTO> pullRequestLineComments,
       final GitRepositoryInfo gitRepositoryInfo,
       final int pullRequestNumber, 
@@ -242,7 +243,7 @@ public class PullRequestFeedbackDetails
   @VisibleForTesting
   List<Map<String, Object>> getNewComponentFeedbackList(
       final Map<String, List<PolicyViolation>> componentPolicyViolationsMap,
-      final Map<ComponentIdentifier, String> remediationVersionMap,
+      final Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap,
       final List<PullRequestLineCommentDTO> pullRequestLineComments,
       final GitRepositoryInfo gitRepositoryInfo,
       final int prNumber,
@@ -323,15 +324,15 @@ public class PullRequestFeedbackDetails
   }
 
   private static String getSuggestedVersion(
-      final Map<ComponentIdentifier, String> remediationVersionMap,
+      final Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap,
       final List<PolicyViolation> violationList)
   {
     String version = "";
     ComponentIdentifier identifier = getComponentIdentifier(violationList);
     if (identifier != null) {
-      String remediationVersion = remediationVersionMap.get(identifier);
-      if (StringUtils.isNotEmpty(remediationVersion)) {
-        version = remediationVersion;
+      RemediationVersionDTO remediationVersion = remediationVersionMap.get(identifier);
+      if (remediationVersion != null && StringUtils.isNotEmpty(remediationVersion.getVersion())) {
+        version = remediationVersion.getVersion();
       }
     }
     return version;

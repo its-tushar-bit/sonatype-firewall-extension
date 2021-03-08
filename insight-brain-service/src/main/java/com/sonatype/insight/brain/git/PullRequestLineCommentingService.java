@@ -79,7 +79,7 @@ public class PullRequestLineCommentingService
   public List<PullRequestLineCommentDTO> createPullRequestLineComments(
       final List<PolicyViolation> violationList,
       final GitRepositoryInfo gitRepositoryInfo,
-      final Map<ComponentIdentifier, String> remediationVersionMap,
+      final Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap,
       final int pullRequestId,
       final String commitHash,
       final String applicationId,
@@ -176,15 +176,18 @@ public class PullRequestLineCommentingService
    */
   private void addMarkupToLineComments(
       final List<PullRequestLineCommentDTO> lineCommentList,
-      final Map<ComponentIdentifier, String> remediationVersionMap,
+      final Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap,
       final SourceControlProvider provider)
   {
     for (PullRequestLineCommentDTO lineCommentDTO : lineCommentList) {
       ComponentIdentifier componentIdentifier = lineCommentDTO.getComponentIdentifier();
+      String remediationVersion =
+          remediationVersionMap.containsKey(componentIdentifier) ? remediationVersionMap.get(componentIdentifier)
+              .getVersion() : null;
       //Create the line comment body, if possible
       Optional<String> markupOptional = pullRequestFeedbackMarkupService.createLineMarkup(
           lineCommentDTO.getPolicyViolations(), ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString(),
-          remediationVersionMap.get(componentIdentifier), provider);
+          remediationVersion, provider);
       markupOptional.ifPresent(lineCommentDTO::setMarkup);
     }
   }

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -21,13 +22,13 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediation
 import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentChangeActionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
-import com.sonatype.insight.brain.api.v2.service.ApiComponentRemediationService;
+import com.sonatype.insight.brain.git.PullRequestCommentingRemediationService;
 import com.sonatype.insight.brain.git.PullRequestFeatureCheck;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
+import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
@@ -49,7 +50,6 @@ import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -67,7 +67,7 @@ public class PolicyAlertScmNotifierTest
   private PullRequestFeatureCheck pullRequestFeatureCheck;
 
   @Mock
-  private ApiComponentRemediationService remediationService;
+  private PullRequestCommentingRemediationService mockPullRequestCommentingRemediationService;
 
   @Mock
   private GitRepositoryInfo gitRepositoryInfo;
@@ -94,8 +94,9 @@ public class PolicyAlertScmNotifierTest
   @Before
   public void setup() {
     scmNotifier =
-        new PolicyAlertScmNotifier(pullRequestFeatureCheck, remediationService, new PolicyAlertSourceCodeOrganizer(),
-            baseUrl, sourceControlUtils, mockPullRequestRemediationService, mockSourceControlEventPublisher);
+        new PolicyAlertScmNotifier(pullRequestFeatureCheck, mockPullRequestCommentingRemediationService,
+            new PolicyAlertSourceCodeOrganizer(), baseUrl, sourceControlUtils, mockPullRequestRemediationService,
+            mockSourceControlEventPublisher);
     Organization organization = tempEntity.newOrganization();
     application = tempEntity.newApplication(NAME, PUBLIC_ID, organization.getId());
   }
@@ -167,10 +168,8 @@ public class PolicyAlertScmNotifierTest
         application, gitRepositoryInfo)).thenReturn(true);
 
     // and there are no suggested remediations
-    ApiComponentRemediationDTO emptyRemediationDTO = new ApiComponentRemediationDTO();
-    when(remediationService.getSuggestedRemediationForComponentNoAuth(
-        any(ApiComponentDTOV2.class), eq(OwnerType.APPLICATION),
-        eq(application.getId()), isNull(), isNull(), isNull())).thenReturn(emptyRemediationDTO);
+    when(mockPullRequestCommentingRemediationService.getRemediationVersion(
+        any(), eq(application.getId()))).thenReturn(Optional.empty());
 
     when(mockPullRequestRemediationService.isFormatSupportedForPullRequestRemediation(any())).thenReturn(true);
 
@@ -200,10 +199,9 @@ public class PolicyAlertScmNotifierTest
         application, githubRepositoryInfo)).thenReturn(true);
 
     // and there are suggested remediations
-    ApiComponentRemediationDTO remediationDTO = buildRemediationDTOWithSuggestion();
-    when(remediationService.getSuggestedRemediationForComponentNoAuth(
-        any(ApiComponentDTOV2.class), eq(OwnerType.APPLICATION),
-        eq(application.getId()), isNull(), isNull(), isNull())).thenReturn(remediationDTO);
+    Optional<RemediationVersionDTO> remediationVersionOptional = Optional.of(new RemediationVersionDTO("2.0.1"));
+    when(mockPullRequestCommentingRemediationService.getRemediationVersion(
+        any(), eq(application.getId()))).thenReturn(remediationVersionOptional);
 
     when(mockPullRequestRemediationService.isFormatSupportedForPullRequestRemediation(any())).thenReturn(true);
 
@@ -239,10 +237,9 @@ public class PolicyAlertScmNotifierTest
         application, githubRepositoryInfo)).thenReturn(true);
 
     // and there are suggested remediations
-    ApiComponentRemediationDTO remediationDTO = buildRemediationDTOWithSuggestion();
-    when(remediationService.getSuggestedRemediationForComponentNoAuth(
-        any(ApiComponentDTOV2.class), eq(OwnerType.APPLICATION),
-        eq(application.getId()), isNull(), isNull(), isNull())).thenReturn(remediationDTO);
+    Optional<RemediationVersionDTO> remediationVersionOptional = Optional.of(new RemediationVersionDTO("2.0.1"));
+    when(mockPullRequestCommentingRemediationService.getRemediationVersion(
+        any(), eq(application.getId()))).thenReturn(remediationVersionOptional);
 
     when(mockPullRequestRemediationService.isFormatSupportedForPullRequestRemediation(any())).thenReturn(true);
 

@@ -65,16 +65,55 @@ public class PullRequestRemediationDetailsTest
   @Test
   public void testSecurityVulnerabilityReport_richHtml() throws Exception {
     testSecurityVulnerabilityReport(SourceControlProvider.GITHUB,
-        "/PullRequestRemediationDetailsTest/VulnerabilityReport.md");
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport.md", null);
+  }
+
+  @Test
+  public void testSecurityVulnerabilityReport_richHtml_noBreakingChanges() throws Exception {
+    testSecurityVulnerabilityReport(SourceControlProvider.GITHUB,
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_noBreakingChanges.md", 0);
+  }
+
+  @Test
+  public void testSecurityVulnerabilityReport_richHtml_fewBreakingChanges() throws Exception {
+    testSecurityVulnerabilityReport(SourceControlProvider.GITHUB,
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_fewBreakingChanges.md", 2);
+  }
+
+  @Test
+  public void testSecurityVulnerabilityReport_richHtml_manyBreakingChanges() throws Exception {
+    testSecurityVulnerabilityReport(SourceControlProvider.GITHUB,
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_manyBreakingChanges.md", 7);
   }
 
   @Test
   public void testSecurityVulnerabilityReport_minimalHtml() throws Exception {
     testSecurityVulnerabilityReport(SourceControlProvider.BITBUCKET,
-        "/PullRequestRemediationDetailsTest/VulnerabilityReport_bitbucket.md");
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_bitbucket.md", null);
   }
 
-  private void testSecurityVulnerabilityReport(SourceControlProvider provider, String expectedResource)
+  @Test
+  public void testSecurityVulnerabilityReport_minimalHtml_noBreakingChanges() throws Exception {
+    testSecurityVulnerabilityReport(SourceControlProvider.BITBUCKET,
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_bb_noBreakingChanges.md", 0);
+  }
+
+  @Test
+  public void testSecurityVulnerabilityReport_minimalHtml_fewBreakingChanges() throws Exception {
+    testSecurityVulnerabilityReport(SourceControlProvider.BITBUCKET,
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_bb_fewBreakingChanges.md", 2);
+  }
+
+  @Test
+  public void testSecurityVulnerabilityReport_minimalHtml_manyBreakingChanges() throws Exception {
+    testSecurityVulnerabilityReport(SourceControlProvider.BITBUCKET,
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_bb_manyBreakingChanges.md", 7);
+  }
+
+  private void testSecurityVulnerabilityReport(
+      SourceControlProvider provider,
+      String expectedResource,
+      Integer breakingChangesCount)
       throws Exception
   {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("org.jooq", "jooq", "3.11.2");
@@ -83,8 +122,8 @@ public class PullRequestRemediationDetailsTest
     List<PolicyNotification> policyNotifications = createPolicyNotifications(componentIdentifier, componentIdentifier2);
 
     PullRequestRemediationDetails details =
-        new PullRequestRemediationDetails(componentIdentifier, "3.11.3", "pullRequest", policyNotifications, app,
-            SCAN_ID, Stage.ID_BUILD, config.getBaseUrl(), provider);
+        new PullRequestRemediationDetails(componentIdentifier, "3.11.3", breakingChangesCount, "pullRequest",
+            policyNotifications, app, SCAN_ID, Stage.ID_BUILD, config.getBaseUrl(), provider);
 
     assertThat(details.getTitle()).isEqualTo("Bump jooq to 3.11.3");
 
@@ -127,7 +166,7 @@ public class PullRequestRemediationDetailsTest
     policyNotifications.add(criticalPolicyNotification);
 
     PullRequestRemediationDetails details =
-        new PullRequestRemediationDetails(componentIdentifier, "1.1", "pullRequest", policyNotifications, app,
+        new PullRequestRemediationDetails(componentIdentifier, "1.1", null, "pullRequest", policyNotifications, app,
             SCAN_ID, Stage.ID_BUILD, config.getBaseUrl(), provider);
 
     assertThat(details.getTitle()).isEqualTo("Bump @sonatype/foo to 1.1");
@@ -172,7 +211,7 @@ public class PullRequestRemediationDetailsTest
     policyNotifications.add(criticalPolicyNotification);
 
     PullRequestRemediationDetails details =
-        new PullRequestRemediationDetails(componentIdentifier, "v0.3.3", "pullRequest", policyNotifications, app,
+        new PullRequestRemediationDetails(componentIdentifier, "v0.3.3", null, "pullRequest", policyNotifications, app,
             SCAN_ID, Stage.ID_BUILD, config.getBaseUrl(), provider);
 
     assertThat(details.getTitle()).isEqualTo("Bump golang.org/x/text to v0.3.3");
@@ -189,7 +228,7 @@ public class PullRequestRemediationDetailsTest
         new PolicyFact("critical-id", "Security-Critical", 10), new Notifications()));
 
     PullRequestRemediationDetails details =
-        new PullRequestRemediationDetails(componentIdentifier, "3.11.3", "pullRequest", policyNotifications, app,
+        new PullRequestRemediationDetails(componentIdentifier, "3.11.3", null, "pullRequest", policyNotifications, app,
             SCAN_ID, Stage.ID_BUILD, config.getBaseUrl(), SourceControlProvider.GITHUB);
 
     assertThat(details.getContents().replace("\r\n", "\n"))

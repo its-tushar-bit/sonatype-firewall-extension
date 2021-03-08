@@ -72,7 +72,7 @@ public class PullRequestCommentingService
 
       if (policyViolationDiff.isPresent()) {
         // retrieve suggested remediation map for components in the appeared violation list
-        SortedMap<ComponentIdentifier, String> remediationVersionMap = commentingRemediationService
+        SortedMap<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap = commentingRemediationService
             .getRemediationVersionMap(policyViolationDiff.get().getAppeared(), dto.getApplicationId());
 
         // calculate comment content hash

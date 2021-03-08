@@ -84,7 +84,7 @@ public class PullRequestCommentCreator
   public void createPullRequestComment(
       PullRequestPolicyEvaluationsDTO prPolicyEvaluationsDTO,
       PolicyViolationDiff<PolicyViolation> policyViolationDiff,
-      Map<ComponentIdentifier, String> remediationVersionMap,
+      Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap,
       String contentHash)
       throws IOException
   {
@@ -95,7 +95,7 @@ public class PullRequestCommentCreator
       PullRequestPolicyEvaluationsDTO prPolicyEvaluationsDTO,
       SourceControlPullRequestComment existingPullRequestComment,
       PolicyViolationDiff<PolicyViolation> policyViolationDiff,
-      Map<ComponentIdentifier, String> remediationVersionMap,
+      Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap,
       String contentHash)
       throws IOException
   {
@@ -107,7 +107,7 @@ public class PullRequestCommentCreator
       PullRequestPolicyEvaluationsDTO prPolicyEvaluationsDTO,
       final SourceControlPullRequestComment existingPullRequestComment,
       final PolicyViolationDiff<PolicyViolation> policyViolationDiff,
-      final Map<ComponentIdentifier, String> remediationVersionMap,
+      final Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap,
       final String contentHash)
       throws IOException
   {

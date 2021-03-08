@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.git;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -12,13 +13,22 @@ import java.util.Map;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentChangeActionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
-import com.sonatype.insight.brain.api.v2.service.ApiComponentRemediationService;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
+import com.sonatype.insight.brain.hds.ComponentInfoService;
+import com.sonatype.insight.brain.hds.ComponentRemediationService;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.license.model.LicensedFeature;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -26,72 +36,156 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PullRequestCommentingRemediationServiceTest
+    extends AbstractComponentTest
 {
   @Mock
-  private ApiComponentRemediationService mockRemediationService;
+  private ComponentInfoService mockComponentInfoService;
 
-  private final ComponentIdentifier id1 = ComponentIdentifier.createNpmCoordinates("artifact-1", "1.0.0");
+  @Mock
+  private ComponentRemediationService mockComponentRemediationService;
 
-  private final ComponentIdentifier remediationForId1 = ComponentIdentifier.createNpmCoordinates("artifact-1", "1.2.0");
+  @Mock
+  private ProductLicense mockProductLicense;
 
-  private final ComponentIdentifier id2 = ComponentIdentifier.createNpmCoordinates("artifact-2", "2.0.0");
-  
+  private Application application;
+
+  // Subject
+  PullRequestCommentingRemediationService service;
+
+  @Before
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    application = tempEntity.newApplicationWithParent();
+  }
+
   @Test
-  public void testGetRemediationVersionMap_remediationFound() {
-    // given: test subject and a policy violation list
-    PullRequestCommentingRemediationService service =
-        new PullRequestCommentingRemediationService(mockRemediationService);
-    
+  public void testGetRemediationVersionMap_remediationFound_adpEnabled_featureFlagEnabled() {
+    testGetRemediationVersionMap_remediationFound(true, true);
+  }
+
+  @Test
+  public void testGetRemediationVersionMap_remediationFound_adpEnabled_featureFlagDisabled() {
+    testGetRemediationVersionMap_remediationFound(true, false);
+  }
+
+  @Test
+  public void testGetRemediationVersionMap_remediationFound_adpDisabled_featureFlagEnabled() {
+    testGetRemediationVersionMap_remediationFound(false, true);
+  }
+
+  @Test
+  public void testGetRemediationVersionMap_remediationFound_adpDisabled_featureFlagDisabled() {
+    testGetRemediationVersionMap_remediationFound(false, false);
+  }
+
+  private void testGetRemediationVersionMap_remediationFound(boolean adpEnabled, boolean featureFlagEnabled) {
+    // given:
+    service = new PullRequestCommentingRemediationService(new ApplicationDAO(), mockComponentInfoService,
+        mockComponentRemediationService, mockProductLicense, getInsightConfig(featureFlagEnabled));
+
+    ComponentIdentifier id1 = ComponentIdentifier.createNpmCoordinates("artifact-1", "1.0.0");
+
     List<PolicyViolation> violationList = new LinkedList<>();
     PolicyViolation violation = new PolicyViolation();
     violation.setComponentIdentifier(id1);
     violationList.add(violation);
-    
-    // and: there is a remediation version for the component identifier   
-    ApiComponentDTOV2 componentDto = new ApiComponentDTOV2();
-    componentDto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(remediationForId1);
-    ApiComponentChangeActionDTO componentChangeActionDTO = new ApiComponentChangeActionDTO(componentDto);
-    ApiVersionChangeOptionDTO versionChangeOptionDTO = new ApiVersionChangeOptionDTO();
-    versionChangeOptionDTO.setType(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
-    versionChangeOptionDTO.setData(componentChangeActionDTO);
-    ApiComponentRemediationDTO remediationDTO = new ApiComponentRemediationDTO();
-    remediationDTO.remediation.versionChanges.add(versionChangeOptionDTO);
-    
-    when(mockRemediationService.getSuggestedRemediationForComponentNoAuth(
-        any(), any(), any(), any(), any(), any())).thenReturn(remediationDTO);
 
-    // when: 
-    Map<ComponentIdentifier, String> versionMap = service.getRemediationVersionMap(violationList, "appId");
+    // and: there is a remediation version for the component identifier
+    componentInfoServiceSetup(adpEnabled);
+    componentRemediationServiceSetup(ComponentIdentifier.createNpmCoordinates("artifact-1", "1.2.0"));
 
-    // then: remediation version returned in map 
+    // when:
+    Map<ComponentIdentifier, RemediationVersionDTO> versionMap =
+        service.getRemediationVersionMap(violationList, application.getId());
+
+    // then: remediation version returned in map
     assertThat(versionMap.containsKey(id1)).isTrue();
-    assertThat(versionMap.get(id1)).isEqualTo("1.2.0");
+    assertThat(versionMap.get(id1).getVersion()).isEqualTo("1.2.0");
+    if (adpEnabled && featureFlagEnabled) {
+      assertThat(versionMap.get(id1).getBreakingChangesCount()).isEqualTo(7);
+    }
+    else {
+      assertThat(versionMap.get(id1).getBreakingChangesCount()).isNull();
+    }
   }
 
   @Test
   public void testGetRemediationVersionMap_remediationNotFound() {
-    // given: test subject and a policy violation list
-    PullRequestCommentingRemediationService service =
-        new PullRequestCommentingRemediationService(mockRemediationService);
+    // given:
+    service = new PullRequestCommentingRemediationService(new ApplicationDAO(), mockComponentInfoService,
+        mockComponentRemediationService, mockProductLicense, getInsightConfig(true));
+
+    ComponentIdentifier id2 = ComponentIdentifier.createNpmCoordinates("artifact-2", "2.0.0");
 
     List<PolicyViolation> violationList = new LinkedList<>();
     PolicyViolation violation = new PolicyViolation();
     violation.setComponentIdentifier(id2);
     violationList.add(violation);
-    
-    // and: there is no remediation version for the component identifier   
-    ApiComponentRemediationDTO remediationDTO = new ApiComponentRemediationDTO();
-    when(mockRemediationService.getSuggestedRemediationForComponentNoAuth(
-        any(), any(), any(), any(), any(), any())).thenReturn(remediationDTO);
 
-    // when: 
-    Map<ComponentIdentifier, String> versionMap = service.getRemediationVersionMap(violationList, "appId");
+    // and: there is no remediation version for the component identifier
+    componentInfoServiceSetup(true);
+    componentRemediationServiceSetup(null);
+
+    // when:
+    Map<ComponentIdentifier, RemediationVersionDTO> versionMap =
+        service.getRemediationVersionMap(violationList, application.getId());
 
     // then: remediation version returned in map
     assertThat(versionMap.containsKey(id2)).isFalse();
+  }
+
+  private void componentInfoServiceSetup(boolean adpEnabled) {
+    lenient().when(mockProductLicense.hasFeature(LicensedFeature.BREAKING_CHANGE)).thenReturn(adpEnabled);
+
+    List<ComponentDetailsDTO> componentDetailsDTOs = new LinkedList<>();
+    ComponentDetailsDTO componentDetailsDTO = new ComponentDetailsDTO();
+    componentDetailsDTO.componentIdentifier = ComponentIdentifier.createNpmCoordinates("artifact-1", "1.0.0");
+    componentDetailsDTO.breakingChangesCount = adpEnabled ? 0 : null;
+    componentDetailsDTOs.add(componentDetailsDTO);
+
+    componentDetailsDTO = new ComponentDetailsDTO();
+    componentDetailsDTO.componentIdentifier = ComponentIdentifier.createNpmCoordinates("artifact-1", "1.1.0");
+    componentDetailsDTO.breakingChangesCount = adpEnabled ? 2 : null;
+    componentDetailsDTOs.add(componentDetailsDTO);
+
+    componentDetailsDTO = new ComponentDetailsDTO();
+    componentDetailsDTO.componentIdentifier = ComponentIdentifier.createNpmCoordinates("artifact-1", "1.2.0");
+    componentDetailsDTO.breakingChangesCount = adpEnabled ? 7 : null;
+    componentDetailsDTOs.add(componentDetailsDTO);
+
+    when(mockComponentInfoService.getComponentDetailsForAllVersionsNoAuth(
+        any(), any(), any(), any(), any(), any(), any())).thenReturn(componentDetailsDTOs);
+  }
+
+  private void componentRemediationServiceSetup(ComponentIdentifier componentIdentifier) {
+    ApiComponentRemediationValueDTO remediationValueDto = new ApiComponentRemediationValueDTO();
+    remediationValueDto.versionChanges = new LinkedList<>();
+    if (componentIdentifier != null) {
+      ApiVersionChangeOptionDTO versionChangeOptionDTO = new ApiVersionChangeOptionDTO();
+      ApiComponentDTOV2 componentDTOV2 = new ApiComponentDTOV2();
+      componentDTOV2.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
+      ApiComponentChangeActionDTO data = new ApiComponentChangeActionDTO(componentDTOV2);
+      versionChangeOptionDTO.setType(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
+      versionChangeOptionDTO.setData(data);
+      remediationValueDto.versionChanges.add(versionChangeOptionDTO);
+    }
+    when(mockComponentRemediationService.getSuggestedRemediation(
+        any(), any(), any(), any(), any())).thenReturn(remediationValueDto);
+  }
+
+  private InsightConfig getInsightConfig(boolean featureFlagEnabled) {
+    InsightConfig config = new InsightConfig();
+    Map<String, Boolean> experimentalFeatures = new HashMap<>();
+    if (featureFlagEnabled) {
+      experimentalFeatures.put(PullRequestCommentingRemediationService.BREAKING_CHANGES_IN_IQ_FOR_SCM, true);
+    }
+    config.setExperimentalFeatures(experimentalFeatures);
+    return config;
   }
 }

@@ -39,7 +39,7 @@ public class PullRequestCommentingHashBuilder
   
   private PolicyViolationDiff<PolicyViolation> policyViolationDiff;
   
-  private SortedMap<ComponentIdentifier, String> remediationVersionMap;
+  private SortedMap<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap;
 
   public PullRequestCommentingHashBuilder withPolicyViolationDiff(
       PolicyViolationDiff<PolicyViolation> policyViolationDiff) 
@@ -49,7 +49,7 @@ public class PullRequestCommentingHashBuilder
   }
 
   public PullRequestCommentingHashBuilder withRemediationVersionMap(
-      SortedMap<ComponentIdentifier, String> remediationVersionMap) 
+      SortedMap<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap)
   {
     this.remediationVersionMap = remediationVersionMap;
     return this;
@@ -80,13 +80,13 @@ public class PullRequestCommentingHashBuilder
 
   private void collectRelevantDataFromRemediations(
       final StringBuilder stringBuilder,
-      final SortedMap<ComponentIdentifier, String> remediationVersionMap)
+      final SortedMap<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap)
   {
     stringBuilder.append("remediationMap:\n");
-    for (Entry<ComponentIdentifier, String> entry : remediationVersionMap.entrySet()) { 
+    for (Entry<ComponentIdentifier, RemediationVersionDTO> entry : remediationVersionMap.entrySet()) {
       stringBuilder.append(entry.getKey().toString()); // component identifier
       stringBuilder.append(" : ");
-      stringBuilder.append(entry.getValue()); // remediation version
+      stringBuilder.append(entry.getValue().getVersion()); // remediation version
       stringBuilder.append('\n');
     }
   }

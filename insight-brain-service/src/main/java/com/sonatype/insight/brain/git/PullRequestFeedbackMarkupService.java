@@ -49,7 +49,7 @@ public class PullRequestFeedbackMarkupService
    */
   public Optional<String> createMarkup(
       PolicyViolationDiff<PolicyViolation> policyViolationDiff,
-      Map<ComponentIdentifier, String> remediationVersionMap,
+      Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap,
       List<PullRequestLineCommentDTO> pullRequestLineComments,
       GitRepositoryInfo gitRepositoryInfo,
       int pullRequestNumber,

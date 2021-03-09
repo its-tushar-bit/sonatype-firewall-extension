@@ -81,6 +81,12 @@ public class PullRequestRemediationDetailsTest
   }
 
   @Test
+  public void testSecurityVulnerabilityReport_richHtml_severalBreakingChanges() throws Exception {
+    testSecurityVulnerabilityReport(SourceControlProvider.GITHUB,
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_severalBreakingChanges.md", 3);
+  }
+
+  @Test
   public void testSecurityVulnerabilityReport_richHtml_manyBreakingChanges() throws Exception {
     testSecurityVulnerabilityReport(SourceControlProvider.GITHUB,
         "/PullRequestRemediationDetailsTest/VulnerabilityReport_manyBreakingChanges.md", 7);

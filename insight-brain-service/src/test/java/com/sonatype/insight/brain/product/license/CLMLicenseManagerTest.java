@@ -636,6 +636,17 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testInstallLicense_BreakingChangeFeatureFromHds() throws Exception {
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).doesNotContain(LicensedFeature.BREAKING_CHANGE);
+
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.BREAKING_CHANGE));
+    installLicense();
+    assertThat(productLicense.getFeatures()).contains(LicensedFeature.BREAKING_CHANGE);
+  }
+
+  @Test
   public void testInstallLicense_NodeClusteringFeatureFromHds() throws Exception {
     mockHdsProductLicenseDetails(withFeatures());
     installLicense();

@@ -516,7 +516,8 @@ public class CLMLicenseManager
         LicensedFeature.NODE_CLUSTERING, //
         LicensedFeature.ADVANCED_LEGAL_PACK, //
         LicensedFeature.DATA_INSIGHTS, //
-        LicensedFeature.INFRASTRUCTURE_AS_CODE_PACK
+        LicensedFeature.INFRASTRUCTURE_AS_CODE_PACK, //
+        LicensedFeature.BREAKING_CHANGE
     );
     for (LicensedFeature feature : hdsControlledFeatures) {
       if (licenseDetails.features.contains(feature.name())) {

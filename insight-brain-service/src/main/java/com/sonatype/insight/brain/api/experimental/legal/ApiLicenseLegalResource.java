@@ -23,7 +23,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDashboardDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentReportDTO;
@@ -88,7 +88,7 @@ public class ApiLicenseLegalResource
   @POST
   @Path(DASHBOARD_APPLICATIONS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public List<ApiLicenseLegalApplicationDashboardDTO> getLicenseLegalApplicationsDashboard(
+  public ApiLicenseLegalApplicationDashboardResultDTO getLicenseLegalApplicationsDashboard(
       LicenseLegalFilterDTO filter)
   {
     return apiLicenseLegalService.getLicenseLegalApplicationsDashboard(filter.organizationIds, filter.applicationIds,

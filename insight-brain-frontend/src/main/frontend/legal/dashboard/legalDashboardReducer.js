@@ -7,7 +7,8 @@
 import {
   LEGAL_DASHBOARD_LOAD_RESULTS_FAILED,
   LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED,
-  LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED
+  LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED,
+  LEGAL_DASHBOARD_FETCH_BACKEND_PAGE
 } from './legalDashboardActions';
 import {
   LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED,
@@ -17,7 +18,10 @@ import {
 const initState = {
   applications: {
     results: [],
+    totalResultsCount: 0,
+    backendPage: 1,
     error: null,
+    loading: false,
     sortFields: []
   },
   components: {
@@ -40,12 +44,17 @@ export default function(state = initState, {type, payload}) {
 
     case LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED: {
       const {resultsType, results} = payload;
-      return updateResults(state, resultsType, {results});
+      return updateResults(state, resultsType, { ...results, loading: false });
     }
 
     case LEGAL_DASHBOARD_LOAD_RESULTS_FAILED: {
       const {resultsType, error} = payload;
-      return updateResults(state, resultsType, {error});
+      return updateResults(state, resultsType, { error, loading: false });
+    }
+
+    case LEGAL_DASHBOARD_FETCH_BACKEND_PAGE: {
+      const {resultsType, page} = payload;
+      return updateResults(state, resultsType, { backendPage: page });
     }
 
     default:
@@ -54,12 +63,23 @@ export default function(state = initState, {type, payload}) {
 }
 
 function resetResults(state, resultsType) {
+  const { backendPage } = state[resultsType];
   const results = resetTabState(state[resultsType]);
+  results.loading = true;
+  results.backendPage = backendPage;
   return {...state, [resultsType]: results};
 }
 
 function resetTabState(tabState) {
-  return {...tabState, results: [], error: null};
+  return {
+    ...tabState,
+    results: [],
+    totalResultsCount: 0,
+    backendPage: 1,
+    error: null,
+    loading: false,
+    sortFields: []
+  };
 }
 
 function updateResults(state, resultsType, props) {

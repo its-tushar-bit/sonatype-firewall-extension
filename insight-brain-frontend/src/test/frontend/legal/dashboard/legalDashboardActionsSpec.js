@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { loadResults } from '../../../../main/frontend/legal/dashboard/legalDashboardActions';
+import { loadResults, fetchBackendPage } from '../../../../main/frontend/legal/dashboard/legalDashboardActions';
 import axios from 'axios';
 import { getLegalDashboardApplicationsUrl } from '../../../../main/frontend/util/CLMLocation';
 
@@ -24,6 +24,9 @@ describe('legalDashboardActions', function () {
           categories: [],
           progressOptions: []
         }
+      },
+      legalDashboard: {
+        applications: {}
       }
     };
 
@@ -88,6 +91,45 @@ describe('legalDashboardActions', function () {
       });
     }
 
+    function testFetchBackendPageAction(tab) {
+      describe('fetchBackendPage for ' + tab.resultsType, function() {
+        it('sets the backend page', function(done) {
+          const store = SpecUtil.mockReduxStore(initialState);
+
+          mockAxiosCalls({
+            post: {
+              [getLegalDashboardApplicationsUrl()]: Promise.resolve({ data: 'results' })
+            }
+          });
+
+          store.dispatch(fetchBackendPage(tab.resultsType, 3))
+              .then(() => {
+                expect(store.getActions().length).toBe(3);
+                expect(store.getActions()[0]).toEqual({
+                  type: 'LEGAL_DASHBOARD_FETCH_BACKEND_PAGE',
+                  payload: {
+                    resultsType: tab.resultsType,
+                    page: 3
+                  }
+                });
+                expect(store.getActions()[1]).toEqual({
+                  type: 'LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED',
+                  payload: 'applications'
+                });
+                expect(store.getActions()[2]).toEqual({
+                  type: 'LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED',
+                  payload: {
+                    resultsType: tab.resultsType,
+                    results: 'results'
+                  }
+                });
+                done();
+              });
+        });
+      });
+    }
+
     tabs.forEach(testLoadResultsAction);
+    tabs.forEach(testFetchBackendPageAction);
   });
 });

@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
@@ -87,9 +88,11 @@ public class ApiLicenseLegalResourceTest
         restRequest().path(ApiLicenseLegalResource.DASHBOARD_APPLICATIONS_PATH).body(filter).auth().post();
 
     assertResponseStatus(200, response);
-    List<ApiLicenseLegalApplicationDashboardDTO> result =
-        Arrays.asList(response.getBody(ApiLicenseLegalApplicationDashboardDTO[].class));
-    assertThat(result).isNotNull().isEmpty();
+    ApiLicenseLegalApplicationDashboardResultDTO result =
+        response.getBody(ApiLicenseLegalApplicationDashboardResultDTO.class);
+    assertThat(result).isNotNull();
+    assertThat(result.results).isEmpty();
+    assertThat(result.totalResultsCount).isZero();
   }
 
   @Test
@@ -111,11 +114,13 @@ public class ApiLicenseLegalResourceTest
         restRequest().path(ApiLicenseLegalResource.DASHBOARD_APPLICATIONS_PATH).body(filter).auth().post();
 
     assertResponseStatus(200, response);
-    List<ApiLicenseLegalApplicationDashboardDTO> result =
-        Arrays.asList(response.getBody(ApiLicenseLegalApplicationDashboardDTO[].class));
-    assertThat(result).isNotEmpty();
+    ApiLicenseLegalApplicationDashboardResultDTO result =
+        response.getBody(ApiLicenseLegalApplicationDashboardResultDTO.class);
+    assertThat(result).isNotNull();
+    assertThat(result.results).isNotEmpty();
+    assertThat(result.totalResultsCount).isEqualTo(1);
 
-    ApiLicenseLegalApplicationDashboardDTO dto = result.get(0);
+    ApiLicenseLegalApplicationDashboardDTO dto = result.results.get(0);
     assertThat(dto.applicationId).isEqualTo(application.getId());
     assertThat(dto.applicationName).isEqualTo(application.getName());
     assertThat(dto.applicationPublicId).isEqualTo(application.getPublicId());

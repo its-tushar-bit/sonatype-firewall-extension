@@ -8,7 +8,8 @@ import legalDashboardReducer from '../../../../main/frontend/legal/dashboard/leg
 import {
   LEGAL_DASHBOARD_LOAD_RESULTS_FAILED,
   LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED,
-  LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED
+  LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED,
+  LEGAL_DASHBOARD_FETCH_BACKEND_PAGE
 } from '../../../../main/frontend/legal/dashboard/legalDashboardActions';
 
 const otherObject = {value: 'test value'};
@@ -30,7 +31,10 @@ describe('legalDashboardReducer', function () {
       expect(newState.applications).toEqual({
         results: [],
         error: null,
-        sortFields: []
+        sortFields: [],
+        totalResultsCount: 0,
+        backendPage: 1,
+        loading: false
       });
       expect(newState.components).toEqual({
         results: [],
@@ -78,11 +82,16 @@ describe('legalDashboardReducer', function () {
         type: LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED,
         payload: {
           resultsType: 'applications',
-          results: [{ foo: 'bar'}]
+          results: {
+            results: [{ foo: 'bar'}],
+            totalResultsCount: 1
+          }
         }
       };
       const newState = legalDashboardReducer(state, action);
-      expect(newState.applications.results).toBe(action.payload.results);
+      expect(newState.applications.results).toBe(action.payload.results.results);
+      expect(newState.applications.totalResultsCount).toBe(action.payload.results.totalResultsCount);
+      expect(newState.applications.loading).toBeFalsy();
       expect(newState.components).toBe(state.components);
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
@@ -104,6 +113,28 @@ describe('legalDashboardReducer', function () {
       };
       const newState = legalDashboardReducer(state, action);
       expect(newState.applications.error).toBe(action.payload.error);
+      expect(newState.applications.loading).toBeFalsy();
+      expect(newState.components).toBe(state.components);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+  describe('LEGAL_DASHBOARD_FETCH_BACKEND_PAGE action', function() {
+    it('sets the backend page in applications state', function() {
+      const state = Object.freeze({
+        components: {error: {}},
+        applications: {error: null},
+        currentTab: 'applications',
+        other: otherObject
+      });
+      const action = {
+        type: LEGAL_DASHBOARD_FETCH_BACKEND_PAGE,
+        payload: {
+          resultsType: 'applications',
+          page: 10
+        }
+      };
+      const newState = legalDashboardReducer(state, action);
+      expect(newState.applications.backendPage).toBe(action.payload.page);
       expect(newState.components).toBe(state.components);
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });

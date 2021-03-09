@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDashboardDTO;
@@ -113,10 +114,10 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
-import org.apache.commons.collections4.map.MultiKeyMap;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -239,7 +240,7 @@ public class ApiLicenseLegalService
     this.ownerDAO = ownerDAO;
   }
 
-  public List<ApiLicenseLegalApplicationDashboardDTO> getLicenseLegalApplicationsDashboard(
+  public ApiLicenseLegalApplicationDashboardResultDTO getLicenseLegalApplicationsDashboard(
       Set<String> organizationIds,
       Set<String> applicationIds,
       Set<String> tagIds,
@@ -285,7 +286,7 @@ public class ApiLicenseLegalService
     }
 
     if (isEmpty(applicationIdsToCheck) || isEmpty(stageTypeIdsToCheck)) {
-      return Collections.emptyList();
+      return new ApiLicenseLegalApplicationDashboardResultDTO();
     }
 
     List<PolicyEvaluation> policyEvaluations =
@@ -293,7 +294,9 @@ public class ApiLicenseLegalService
 
     int startIndex = (page - 1) * pageSize;
     if (startIndex >= policyEvaluations.size()) {
-      return Collections.emptyList();
+      ApiLicenseLegalApplicationDashboardResultDTO resultDto = new ApiLicenseLegalApplicationDashboardResultDTO();
+      resultDto.totalResultsCount = policyEvaluations.size();
+      return resultDto;
     }
 
     Map<String, List<String>> mapApplicationIdTagNames = getTagNamesByApplicationIds(applicationIdsToCheck);
@@ -316,10 +319,14 @@ public class ApiLicenseLegalService
 
     Collections.sort(result, newDashboardComparator(order));
 
+    ApiLicenseLegalApplicationDashboardResultDTO resultDto = new ApiLicenseLegalApplicationDashboardResultDTO();
+    resultDto.totalResultsCount = result.size();
+
     result = result.subList(startIndex, Math.min(page * pageSize, result.size()));
     calculateComponentsReviewed(result);
 
-    return result;
+    resultDto.results = result;
+    return resultDto;
   }
 
   public List<ApiLicenseLegalComponentDashboardDTO> getLicenseLegalComponentsDashboard(

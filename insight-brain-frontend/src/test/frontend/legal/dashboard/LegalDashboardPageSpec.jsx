@@ -48,7 +48,7 @@ describe('LegalDashboardPage', function() {
     const wrapper = getShallowComponent();
     let applicationsTab = wrapper.find(LegalDashboardApplicationsTab);
     expect(applicationsTab).toExist();
-    expect(applicationsTab).toHaveProp('applications', mockApplications.results);
+    expect(applicationsTab).toHaveProp('applications', mockApplications);
     expect(applicationsTab).toHaveProp('filtersAreDirty', 'filtersAreDirty');
   });
 

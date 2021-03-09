@@ -4,16 +4,39 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../../enzymeUtils';
-import { NxTable } from '@sonatype/react-shared-components';
+import { NxPagination, NxTable } from '@sonatype/react-shared-components';
 import LegalDashboardApplicationsTab from '../../../../main/frontend/legal/dashboard/LegalDashboardApplicationsTab';
 import LegalDashboardApplicationRow from '../../../../main/frontend/legal/dashboard/LegalDashboardApplicationRow';
+import { DASHBOARD } from '../../../../main/frontend/legal/advancedLegalConstants';
 
 describe('LegalDashboardApplicationsTab component', function() {
 
   let getShallowComponent;
 
   const minimalProps = {
-    applications: ['row1', 'row2']
+    applications: {
+      results: [
+        {
+          applicationId: '1',
+          applicationName: 'app1',
+          lastScanTime: 1000,
+          applicationTagNames: ['tag'],
+          componentsReviewedCount: 1,
+          componentsTotalCount: 2
+        },
+        {
+          applicationId: '2',
+          applicationName: 'app2',
+          lastScanTime: 2000,
+          applicationTagNames: ['tag'],
+          componentsReviewedCount: 2,
+          componentsTotalCount: 3
+        }
+      ],
+      totalResultsCount: 2,
+      backendPage: 1
+    },
+    fetchBackendPage: () => {}
   };
 
   beforeEach(function() {
@@ -33,8 +56,8 @@ describe('LegalDashboardApplicationsTab component', function() {
     let rows = table.find(LegalDashboardApplicationRow);
     expect(rows).toExist();
     expect(rows.length).toEqual(2);
-    expect(rows.at(0)).toHaveProp('row', 'row1');
-    expect(rows.at(1)).toHaveProp('row', 'row2');
+    expect(rows.at(0)).toHaveProp('row', minimalProps.applications.results[0]);
+    expect(rows.at(1)).toHaveProp('row', minimalProps.applications.results[1]);
   });
 
   it('displays the mask if filtersAreDirty is true', function() {
@@ -47,5 +70,48 @@ describe('LegalDashboardApplicationsTab component', function() {
     const wrapper = getShallowComponent({ filtersAreDirty: false });
     let mask = wrapper.find('.form-mask');
     expect(mask).not.toExist();
+  });
+
+  it('paginates locally without calling backend until reaching end of pages loaded', function() {
+    const { itemsPerPage, pagesToFill } = DASHBOARD.applications;
+    const items = [];
+    for (let index = 0; index < itemsPerPage * pagesToFill; index++) {
+      items.push({
+        applicationId: `app${index}`,
+        applicationName: `app${index}`,
+        lastScanTime: 1000,
+        applicationTagNames: ['tag'],
+        componentsReviewedCount: 1,
+        componentsTotalCount: 2
+      });
+    }
+
+    const appProps = {
+      applications: {
+        results: items,
+        totalResultsCount: items.length * 3,
+        backendPage: 1
+      },
+      fetchBackendPage: () => {}
+    };
+
+    spyOn(appProps, 'fetchBackendPage');
+
+    const wrapper = enzymeUtils.getShallowComponent(LegalDashboardApplicationsTab, appProps)();
+    let pagination = wrapper.find(NxPagination);
+    expect(pagination).toExist();
+
+    const onChangePage = pagination.prop('onChange');
+    for (let index = 0; index < pagesToFill; index++) {
+      onChangePage(index);
+    }
+
+    expect(appProps.fetchBackendPage).not.toHaveBeenCalled();
+
+    onChangePage(pagesToFill);
+    expect(appProps.fetchBackendPage).toHaveBeenCalledWith('applications', 2);
+
+    onChangePage(pagesToFill * 2);
+    expect(appProps.fetchBackendPage).toHaveBeenCalledWith('applications', 3);
   });
 });

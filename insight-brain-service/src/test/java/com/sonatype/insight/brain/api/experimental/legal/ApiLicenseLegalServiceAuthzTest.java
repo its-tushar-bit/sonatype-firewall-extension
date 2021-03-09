@@ -12,6 +12,7 @@ import java.util.HashSet;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardResultDTO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
@@ -59,27 +60,36 @@ public class ApiLicenseLegalServiceAuthzTest
   @Test
   public void testGetLicenseLegalApplicationsDashboard_Unauthenticated() {
     setupResultForDashboard();
-    assertThat(
-        apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, null, 1, 10))
-        .isEmpty();
+
+    ApiLicenseLegalApplicationDashboardResultDTO dto =
+        apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, null, 1, 10);
+    assertThat(dto).isNotNull();
+    assertThat(dto.results).isEmpty();
+    assertThat(dto.totalResultsCount).isZero();
   }
 
   @Test
   public void testGetLicenseLegalApplicationsDashboard_Unauthorized() {
     setupResultForDashboard();
     login();
-    assertThat(
-        apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, null, 1, 10))
-        .isEmpty();
+
+    ApiLicenseLegalApplicationDashboardResultDTO dto =
+        apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, null, 1, 10);
+    assertThat(dto).isNotNull();
+    assertThat(dto.results).isEmpty();
+    assertThat(dto.totalResultsCount).isZero();
   }
 
   @Test
   public void testGetLicenseLegalApplicationsDashboard_Authorized() {
     setupResultForDashboard();
     grantLegalReviewerPermission(app.getId());
-    assertThat(
-        apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, null, 1, 10))
-        .isNotEmpty();
+
+    ApiLicenseLegalApplicationDashboardResultDTO dto =
+        apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, null, 1, 10);
+    assertThat(dto).isNotNull();
+    assertThat(dto.results).isNotEmpty();
+    assertThat(dto.totalResultsCount).isNotZero();
   }
 
   @Test

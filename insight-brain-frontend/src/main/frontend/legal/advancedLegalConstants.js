@@ -13,3 +13,14 @@ export const OBLIGATION_STATUS_TO_DISPLAY = {
   'IGNORED': 'Not Applicable',
   'OPEN': 'Unreviewed'
 };
+
+export const DASHBOARD = {
+  applications: {
+    itemsPerPage: 15,
+    pagesToFill: 5
+  },
+  components: {
+    itemsPerPage: 30,
+    pagesToFill: 1
+  }
+};

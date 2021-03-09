@@ -20,7 +20,8 @@ export default function LegalDashboardPage(props) {
     loadResults,
     loading,
     loadError,
-    isAuthorized
+    isAuthorized,
+    fetchBackendPage
   } = props;
 
   const authErrorMessage = `It appears you do not have permission to access this page.
@@ -48,7 +49,8 @@ export default function LegalDashboardPage(props) {
                 <NxTab>Components</NxTab>
               </NxTabList>
               <NxTabPanel className="nx-viewport-sized__container">
-                <LegalDashboardApplicationsTab applications = { applications.results }
+                <LegalDashboardApplicationsTab applications = { applications }
+                                               fetchBackendPage = { fetchBackendPage }
                                                filtersAreDirty = { filtersAreDirty } />
               </NxTabPanel>
               <NxTabPanel className="nx-viewport-sized__container">
@@ -66,7 +68,10 @@ export default function LegalDashboardPage(props) {
 LegalDashboardPage.propTypes = {
   applications: PropTypes.shape({
     results: PropTypes.arrayOf(applicationPropType).isRequired,
-    error: PropTypes.string,
+    totalResultsCount: PropTypes.number.isRequired,
+    backendPage: PropTypes.number.isRequired,
+    error: LoadWrapper.propTypes.error,
+    loading: PropTypes.bool,
     sortFields: PropTypes.arrayOf(applicationPropType)
   }),
   components: PropTypes.any,
@@ -74,5 +79,6 @@ LegalDashboardPage.propTypes = {
   loadResults: PropTypes.func,
   isAuthorized: PropTypes.bool,
   loading: PropTypes.bool.isRequired,
-  loadError: LoadWrapper.propTypes.error
+  loadError: LoadWrapper.propTypes.error,
+  fetchBackendPage: PropTypes.func.isRequired
 };

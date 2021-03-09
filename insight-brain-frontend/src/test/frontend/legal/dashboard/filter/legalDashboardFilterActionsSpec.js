@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
+import { DASHBOARD } from '../../../../../main/frontend/legal/advancedLegalConstants';
 import {
   loadFilter,
   applyFilter,
@@ -69,7 +70,7 @@ describe('legalDashboardFilterActions', function() {
     tagIds: [],
     reviewStatus: [],
     page: 1,
-    pageSize: 10
+    pageSize: DASHBOARD.applications.itemsPerPage * DASHBOARD.applications.pagesToFill
   };
 
   describe('loadFilter', function() {

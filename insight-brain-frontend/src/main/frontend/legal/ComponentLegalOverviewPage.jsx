@@ -10,7 +10,6 @@ import {faGlobe, faSitemap, faTerminal} from '@fortawesome/free-solid-svg-icons'
 import ComponentOverviewTile from './ComponentOverviewTile';
 import LicenseDetailsTile from './LicenseDetailsTile';
 import CopyrightStatementsTile from './copyright/CopyrightStatementsTile';
-import NoticeTextsTile from './NoticeTextsTile';
 import LicenseTextsTile from './LicenseTextsTile';
 import LicenseObligationAttributionTileContainer from './LicenseObligationAttributionTileContainer';
 import LoadWrapper from '../react/LoadWrapper';
@@ -23,6 +22,7 @@ import {
 import {find, flip, map, pipe, prop, propEq} from 'ramda';
 import {TEXT_BASED_OBLIGATIONS} from './advancedLegalConstants';
 import LicenseObligationsTileContainer from './LicenseObligationsTileContainer';
+import NoticeTextsTileContainer from './files/notices/NoticeTextsTileContainer';
 
 export default function ComponentLegalOverviewPage(props) {
   const {
@@ -116,7 +116,7 @@ export default function ComponentLegalOverviewPage(props) {
                 availableScopes={ availableScopes }
                 showEditCopyrightOverrideModal = { showEditCopyrightOverrideModal }
                 setDisplayCopyrightOverrideModal = {setDisplayCopyrightOverrideModal }/>
-            <NoticeTextsTile component={ component }/>
+            <NoticeTextsTileContainer/>
             <LicenseTextsTile component={ component }/>
             { obligations &&
             obligations.filter(isTextBasedObligation).map(createLicenseObligationAttributionTileContainer) }

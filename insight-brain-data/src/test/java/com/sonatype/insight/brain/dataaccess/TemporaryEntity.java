@@ -599,6 +599,7 @@ public class TemporaryEntity
 
     componentObligationDAO.getAll().forEach(componentObligationDAO::delete);
     componentCopyrightDAO.getAll().forEach(componentCopyrightDAO::delete);
+    componentLegalFileDAO.getAll().forEach(componentLegalFileDAO::delete);
   }
 
   private <E> void detachEntity(E entity) {

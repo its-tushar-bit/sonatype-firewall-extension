@@ -14,6 +14,13 @@ export const applicationPropType = PropTypes.shape({
   componentsTotalCount: PropTypes.number.isRequired
 });
 
+export const legalFilesPropType = PropTypes.arrayOf(PropTypes.shape({
+  id: PropTypes.string,
+  content: PropTypes.string.isRequired,
+  relPath: PropTypes.string,
+  originalContentHash: PropTypes.string
+}).isRequired).isRequired;
+
 export const componentPropType = PropTypes.shape({
   displayName: PropTypes.string.isRequired,
   licenseLegalData: PropTypes.shape({
@@ -24,20 +31,12 @@ export const componentPropType = PropTypes.shape({
       originalContentHash: PropTypes.string,
       status: PropTypes.string.isRequired
     }).isRequired).isRequired,
-    noticeFiles: PropTypes.arrayOf(PropTypes.shape({
-      id: PropTypes.string,
-      content: PropTypes.string.isRequired,
-      relPath: PropTypes.string.isRequired,
-      originalContentHash: PropTypes.string
-    }).isRequired).isRequired,
-    licenseFiles: PropTypes.arrayOf(PropTypes.shape({
-      id: PropTypes.string,
-      content: PropTypes.string.isRequired,
-      relPath: PropTypes.string.isRequired,
-      originalContentHash: PropTypes.string
-    }).isRequired).isRequired,
+    noticeFiles: legalFilesPropType,
+    licenseFiles: legalFilesPropType,
     componentCopyrightId: PropTypes.string,
-    componentCopyrightScopeOwnerId: PropTypes.string
+    componentCopyrightScopeOwnerId: PropTypes.string,
+    componentLegalFileId: PropTypes.string,
+    componentLegalFileScopeOwnerId: PropTypes.string
   }).isRequired
 });
 

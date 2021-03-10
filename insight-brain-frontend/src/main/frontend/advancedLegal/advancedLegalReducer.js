@@ -22,6 +22,7 @@ import {TEXT_BASED_OBLIGATIONS} from '../legal/advancedLegalConstants';
 import {COPYRIGHT_OVERRIDE_SAVE_FULFILLED} from '../legal/copyright/copyrightOverrideFormActions';
 import {lensPath, over} from 'ramda';
 import {advancedLegalObligationReducerActionMap} from '../legal/advancedLegalObligationReducer';
+import {advancedLegalFileReducerActionMap} from '../legal/files/advancedLegalFileReducer';
 
 const initialState = {
   viewStateApplications: {
@@ -156,11 +157,35 @@ function loadComponentFulfilled(payload, state) {
     }
     return newObligation;
   });
+  const newNoticeFiles = payload.component.licenseLegalData.noticeFiles.map(noticeFile => {
+    return {
+      ...noticeFile,
+      originalContent: noticeFile.content,
+      originalStatus: noticeFile.status,
+      isPristine: true
+    };
+  });
+  const componentLegalFileScopeOwnerId = payload.component.licenseLegalData.componentLegalFileScopeOwnerId ||
+            'ROOT_ORGANIZATION_ID';
+  const newLicenseLegalData = {
+    ...payload.component.licenseLegalData,
+    showNoticesModal: false,
+    componentLegalFileScopeOwnerId: componentLegalFileScopeOwnerId,
+    originalComponentLegalFileScopeOwnerId: componentLegalFileScopeOwnerId,
+    noticeFiles: newNoticeFiles,
+    noticesError: null,
+    saveNoticesSubmitMask: null
+  };
   return {
     ...state,
     component: {
+      ...state.component,
       loading: false,
       ...payload,
+      component: {
+        ...payload.component,
+        licenseLegalData: newLicenseLegalData
+      },
       obligations: newObligations
     }
   };
@@ -230,7 +255,8 @@ const reducerActionMap = {
   [ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED]: loadAvailableScopesFulfilled,
   [ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED]: loadAvailableScopesFailed,
   [COPYRIGHT_OVERRIDE_SAVE_FULFILLED]: saveCopyrightOverrideFulfilled,
-  ...advancedLegalObligationReducerActionMap
+  ...advancedLegalObligationReducerActionMap,
+  ...advancedLegalFileReducerActionMap
 };
 
 const advancedLegalReducer = createReducerFromActionMap(reducerActionMap, initialState);

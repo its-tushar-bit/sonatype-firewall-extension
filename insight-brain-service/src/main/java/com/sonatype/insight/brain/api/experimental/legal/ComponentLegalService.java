@@ -258,6 +258,25 @@ public class ComponentLegalService
     return new ComponentLegalFileDTO(componentLegalFile, legalFileOverrides);
   }
 
+  @Authorize(permission = Permission.LEGAL_REVIEWER)
+  public ComponentLegalFileDTO getComponentLegalFile(
+      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) String ownerId,
+      ComponentIdentifier componentIdentifier)
+  {
+    checkLicense();
+    ComponentIdentifierValidator.validate(componentIdentifier);
+    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    ComponentLegalFile componentLegalFile =
+        componentLegalFileDAO.getByOwnerIdAndComponentIdentifierWithHierarchy(owner.getId(), componentIdentifier);
+    if (componentLegalFile == null) {
+      return null;
+    }
+    List<LegalFileOverride> legalFileOverrides =
+        legalFileOverrideDAO.getByComponentLegalFileId(componentLegalFile.getId());
+    return new ComponentLegalFileDTO(componentLegalFile, legalFileOverrides);
+  }
+
   /**
    * Create or update a {@link ComponentObligationAttribution}. If {@link ComponentObligationAttributionDTO#getId()} is
    * null, then the {@link ComponentObligationAttribution} will be created. Otherwise, if {@link

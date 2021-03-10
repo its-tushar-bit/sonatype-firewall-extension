@@ -5,8 +5,6 @@
  */
 
 .legal-file {
-  margin-bottom: 20px;
-
   .nx-tile__actions {
     float: right;
   }
@@ -20,7 +18,46 @@
   white-space: pre-wrap;
 }
 
-.legal-file-path {
-  font-style: italic;
-  font-weight: bold;
+.legal-file-override-table {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: $nx-spacing-l;
+  align-items: baseline;
+
+  thead th {
+    text-align: left;
+    margin-bottom: $nx-spacing-md;
+    padding: 0;
+  }
+
+  thead, tbody, tr {
+    display: contents;
+  }
+
+  td {
+    padding: 0;
+  }
+
+  .nx-text-input--full {
+    width: 100%;
+  }
+
+  .nx-toggle {
+    justify-content: center;
+
+    .nx-toggle__content {
+      flex-grow: 0;
+    }
+  }
+
+  .no-legal-texts-found {
+    margin-bottom: 32px;
+  }
+}
+
+.nx-btn-bar.nx-btn-bar--left {
+  justify-content: left;
+  margin-top: 0;
+  margin-bottom: $nx-spacing-xl;
 }

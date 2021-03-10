@@ -29,6 +29,8 @@ import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
 public class ComponentLegalServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
@@ -657,6 +659,60 @@ public class ComponentLegalServiceAuthzTest
         org.getId(), "lch");
     componentLegalService
         .getComponentCopyrightWithHierarchy(org.getType(), org.getPublicId(), componentIdentifier);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetComponentLegalFile_Unauthenticated() {
+    componentLegalService.getComponentLegalFile(null, null, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetComponentLegalFile_Unauthorized_RootOrganization() {
+    login();
+    componentLegalService.getComponentLegalFile(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetComponentLegalFile_Unauthorized_Organization() {
+    login();
+    componentLegalService.getComponentLegalFile(org.getType(), org.getPublicId(), null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetComponentLegalFile_Unauthorized_Application() {
+    login();
+    componentLegalService.getComponentLegalFile(app.getType(), app.getPublicId(), null);
+  }
+
+  @Test
+  public void testGetComponentLegalFile_Authorized_RootOrganization() {
+    grantLegalReviewerPermission(Organization.ROOT_ORGANIZATION_ID);
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    componentLegalService
+        .getComponentLegalFile(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID, componentIdentifier);
+    componentLegalService.getComponentLegalFile(org.getType(), org.getPublicId(), componentIdentifier);
+    componentLegalService.getComponentLegalFile(app.getType(), app.getPublicId(), componentIdentifier);
+  }
+
+  @Test
+  public void testGetComponentLegalFile_Authorized_Organization() {
+    grantLegalReviewerPermission(org.getId());
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(() -> componentLegalService
+        .getComponentLegalFile(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID, componentIdentifier));
+    componentLegalService.getComponentLegalFile(org.getType(), org.getPublicId(), componentIdentifier);
+    componentLegalService.getComponentLegalFile(app.getType(), app.getPublicId(), componentIdentifier);
+  }
+
+  @Test
+  public void testGetComponentLegalFile_Authorized_Application() {
+    grantLegalReviewerPermission(app.getId());
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(() -> componentLegalService
+        .getComponentLegalFile(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID, componentIdentifier));
+    assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(
+        () -> componentLegalService.getComponentLegalFile(org.getType(), org.getPublicId(), componentIdentifier));
+    componentLegalService.getComponentLegalFile(app.getType(), app.getPublicId(), componentIdentifier);
   }
 
   private ComponentObligationAttributionDTO buildComponentObligationAttributionDTO() {

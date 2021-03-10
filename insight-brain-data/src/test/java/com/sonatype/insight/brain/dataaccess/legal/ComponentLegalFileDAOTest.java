@@ -148,6 +148,18 @@ public class ComponentLegalFileDAOTest
   }
 
   @Test
+  public void testGetAll() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentLegalFile componentLegalFile1 = tempEntity.newComponentLegalFile(componentIdentifier, organization.getId(),
+        "legalContentHash1");
+    ComponentLegalFile componentLegalFile2 = tempEntity.newComponentLegalFile(componentIdentifier, application.getId(),
+        "legalContentHash2");
+
+    assertThat(dao.getAll()).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(componentLegalFile1, componentLegalFile2);
+  }
+
+  @Test
   public void testGetByOwnerIdAndComponentIdentifierWithHierarchy() {
     ComponentIdentifier compIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     ComponentLegalFile rootOrgComponentLegalFile = tempEntity.newComponentLegalFile(compIdentifier,

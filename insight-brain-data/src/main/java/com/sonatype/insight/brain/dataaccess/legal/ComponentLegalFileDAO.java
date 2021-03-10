@@ -90,6 +90,11 @@ public class ComponentLegalFileDAO
     }
   }
 
+  public List<ComponentLegalFile> getAll() {
+    String sQuery = "SELECT entity FROM ComponentLegalFile entity";
+    return getList(sQuery);
+  }
+
   @Override
   public void insert(TransactionContext tx, ComponentLegalFile componentLegalFile) {
     if (getByOwnerIdAndComponentIdentifier(tx, componentLegalFile.getOwnerId(),

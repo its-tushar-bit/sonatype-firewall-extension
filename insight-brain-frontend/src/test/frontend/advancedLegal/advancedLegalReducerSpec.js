@@ -81,7 +81,12 @@ describe('advancedLegalReducer', function () {
       };
       const componentInfo = {
         foo: 'bar',
-        obligations: []
+        obligations: [],
+        component: {
+          licenseLegalData: {
+            noticeFiles: []
+          }
+        }
       };
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
@@ -90,7 +95,7 @@ describe('advancedLegalReducer', function () {
 
       const { component } = newState;
       expect(component.loading).toBeFalsy();
-      expect(component.error).toBeUndefined();
+      expect(component.error).toBeNull();
       expect(component.foo).toBe('bar');
     });
 
@@ -103,7 +108,12 @@ describe('advancedLegalReducer', function () {
       };
       const componentInfo = {
         foo: 'bar',
-        obligations: []
+        obligations: [],
+        component: {
+          licenseLegalData: {
+            noticeFiles: []
+          }
+        }
       };
       TEXT_BASED_OBLIGATIONS.forEach(element => {
         componentInfo.obligations.push({ name: element, status: 'status', attributions: [] });
@@ -144,7 +154,12 @@ describe('advancedLegalReducer', function () {
       };
       const componentInfo = {
         foo: 'bar',
-        obligations: []
+        obligations: [],
+        component: {
+          licenseLegalData: {
+            noticeFiles: []
+          }
+        }
       };
       TEXT_BASED_OBLIGATIONS.forEach(element => {
         componentInfo.obligations.push(
@@ -175,6 +190,80 @@ describe('advancedLegalReducer', function () {
           expect(obligation.attributions.length).toBe(0);
         }
       });
+    });
+
+    it('sets the notices view data', function() {
+      const state = {
+        component: {
+          loading: true,
+          error: null
+        }
+      };
+      const componentInfo = {
+        foo: 'bar',
+        obligations: [],
+        component: {
+          licenseLegalData: {
+            componentLegalFileScopeOwnerId: 'appId',
+            noticeFiles: [{ content: 'content1', status: 'enabled' }, { content: '', status: 'disabled' }]
+          }
+        }
+      };
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
+        payload: componentInfo
+      });
+
+      expect(newState.component.component.licenseLegalData).toEqual({
+        showNoticesModal: false,
+        componentLegalFileScopeOwnerId: 'appId',
+        originalComponentLegalFileScopeOwnerId: 'appId',
+        noticeFiles: [
+          {
+            originalContent: 'content1',
+            content: 'content1',
+            originalStatus: 'enabled',
+            status: 'enabled',
+            isPristine: true
+          },
+          {
+            originalContent: '',
+            content: '',
+            originalStatus: 'disabled',
+            status: 'disabled',
+            isPristine: true
+          }
+        ],
+        noticesError: null,
+        saveNoticesSubmitMask: null
+      });
+    });
+
+    it('sets the default legal file scope owner id if there is none', function() {
+      const state = {
+        component: {
+          loading: true,
+          error: null
+        }
+      };
+      const componentInfo = {
+        foo: 'bar',
+        obligations: [],
+        component: {
+          licenseLegalData: {
+            componentLegalFileScopeOwnerId: null,
+            noticeFiles: []
+          }
+        }
+      };
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
+        payload: componentInfo
+      });
+
+      expect(newState.component.component.licenseLegalData.originalComponentLegalFileScopeOwnerId).toBe(
+          'ROOT_ORGANIZATION_ID');
+      expect(newState.component.component.licenseLegalData.componentLegalFileScopeOwnerId).toBe('ROOT_ORGANIZATION_ID');
     });
   });
 

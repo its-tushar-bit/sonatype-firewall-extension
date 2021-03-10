@@ -14,8 +14,9 @@ import {
 } from '../util/CLMLocation';
 import { payloadParamActionCreator } from '../util/reduxUtil';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
-import { find, findIndex, pick, propEq } from 'ramda';
+import { find, pick, propEq } from 'ramda';
 import { Messages } from '../util/CommonServices';
+import { isScopeOverride } from './legalUtility';
 
 export const ADVANCED_LEGAL_SET_ATTRIBUTION_TEXT = 'ADVANCED_LEGAL_SET_ATTRIBUTION_TEXT';
 export const ADVANCED_LEGAL_SET_ATTRIBUTION_SCOPE = 'ADVANCED_LEGAL_SET_ATTRIBUTION_SCOPE';
@@ -89,17 +90,11 @@ function getAttributionPayload(advancedLegalState, obligationState, attributionS
     'obligationName': obligationState.name,
     'content': attributionState.content
   };
-  if (payload.id !== null && isOverride(attributionState.originalOwnerId, attributionState.ownerId,
+  if (payload.id !== null && isScopeOverride(attributionState.originalOwnerId, attributionState.ownerId,
       advancedLegalState.availableScopes.values)) {
     payload.id = null;
   }
   return payload;
-}
-
-function isOverride(originalOwnerId, ownerId, availableScopeValues) {
-  const originalOwnerLevel = findIndex(propEq('id', originalOwnerId), availableScopeValues);
-  const newOwnerLevel = findIndex(propEq('id', ownerId), availableScopeValues);
-  return originalOwnerLevel > newOwnerLevel;
 }
 
 function startSaveAttributionSubmitMaskDoneTimer(dispatch, payload) {
@@ -182,7 +177,7 @@ function getObligationPayload(advancedLegalState, obligationState) {
     'status': obligationState.status
   };
 
-  if (payload.id !== null && isOverride(obligationState.originalOwnerId, obligationState.ownerId,
+  if (payload.id !== null && isScopeOverride(obligationState.originalOwnerId, obligationState.ownerId,
       advancedLegalState.availableScopes.values)) {
     payload.id = null;
   }

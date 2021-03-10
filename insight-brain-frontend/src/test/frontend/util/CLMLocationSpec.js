@@ -298,4 +298,26 @@ describe('CLMLocation.js', function() {
     expect(CLMLocation.getDeleteComponentObligationUrl('obligationId'))
         .toBe('/api/experimental/licenseLegalMetadata/component/obligation/obligationId');
   });
+
+  it('should return the save legal file url', function() {
+    expect(CLMLocation.getSaveLegalFileUrl('ownerType', 'ownerId'))
+        .toBe('/api/experimental/licenseLegalMetadata/ownerType/ownerId/component/legalFile');
+  });
+
+  it('should return the legal file url', function() {
+    const componentIdentifier = {
+      format: 'maven',
+      coordinates: {
+        artifactId: 'logback-access',
+        classifier: '',
+        extension: 'jar',
+        groupId: 'ch.qos.logback',
+        version: '0.6'
+      }
+    };
+    expect(CLMLocation.getLegalFileUrl('ownerType', 'ownerId', componentIdentifier))
+        .toBe('/api/experimental/licenseLegalMetadata/ownerType/ownerId/component/legalFile?' +
+            'componentIdentifier={"format":"maven","coordinates":{"artifactId":"logback-access","classifier":"",' +
+            '"extension":"jar","groupId":"ch.qos.logback","version":"0.6"}}');
+  });
 });

@@ -438,6 +438,25 @@ public class ApiLicenseLegalResourceTest
     assertThat(componentCopyrightWithOwnerDTO.getOwnerId()).isEqualTo(organization.getId());
   }
 
+  @Test
+  public void testGetComponentLegalFile() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentLegalFile componentLegalFile =
+        tempEntity.newComponentLegalFile(componentIdentifier, app.getId(), "legalContentHash");
+
+    HttpResponse response = restRequest()
+        .path(ApiLicenseLegalResource.COMPONENT_LEGAL_FILE_PATH)
+        .parameter(app.getType(), app.getPublicId())
+        .query("componentIdentifier", componentIdentifier)
+        .get();
+
+    assertResponseStatus(200, response);
+    ComponentLegalFileDTO componentLegalFileDTO = response.getBody(ComponentLegalFileDTO.class);
+    assertThat(componentLegalFileDTO).isNotNull();
+    assertThat(componentLegalFile.getId()).isEqualTo(componentLegalFile.getId());
+  }
+
   private void mockReport(PolicyEvaluation evaluation) {
     try {
       Path reportDir = getCLMServer().getInstance(InsightWork.class)

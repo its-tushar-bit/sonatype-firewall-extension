@@ -168,6 +168,20 @@ public class ApiLicenseLegalResource
   }
 
   /**
+   * @since 1.107
+   */
+  @GET
+  @Path(COMPONENT_LEGAL_FILE_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public ComponentLegalFileDTO getComponentLegalFile(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId,
+      @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier)
+  {
+    return componentLegalService.getComponentLegalFile(ownerType, ownerId, componentIdentifier);
+  }
+
+  /**
    * @since 1.106
    */
   @GET

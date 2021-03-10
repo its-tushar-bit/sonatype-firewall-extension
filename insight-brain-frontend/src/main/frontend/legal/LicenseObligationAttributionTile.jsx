@@ -90,7 +90,7 @@ export default function LicenseObligationAttributionTile(props) {
     return <option key={ value.id } value={ value.id }>{ value.label } - { value.name }</option>;
   };
 
-  const classes = classnames('nx-tile-content', { 'license-obligation-no-attribution-text': !isAttributionPresent() });
+  const classes = classnames('nx-tile-content', { 'license-no-legal-elements-text': !isAttributionPresent() });
 
   return (
     <section id="license-obligation-attribution-tile" className="nx-tile">

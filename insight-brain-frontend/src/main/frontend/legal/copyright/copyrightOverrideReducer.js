@@ -51,7 +51,7 @@ function setEditCopyrightOverrideModal(payload, state) {
   };
 }
 
-function saveCopyrightOverrideSubmitMaskDone(payload, state) {
+function saveCopyrightOverrideSubmitMaskDone(state) {
   return {
     ...state,
     saveCopyrightError: null,

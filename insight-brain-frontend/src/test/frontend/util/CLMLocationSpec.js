@@ -235,9 +235,26 @@ describe('CLMLocation.js', function() {
         .toBe('/rest/userFilter/?name=theFilterName&type=ADVANCED_LEGAL_PACK_DASHBOARD');
   });
 
-  it('should return the application save copyright override url', function() {
-    expect(CLMLocation.getSaveCopyrightOverrideUrl('application', 'appId'))
+  it('should return the application save component copyright override url', function() {
+    expect(CLMLocation.getSaveComponentCopyrightOverrideUrl('application', 'appId'))
         .toBe('/api/experimental/licenseLegalMetadata/application/appId/component/copyright');
+  });
+
+  it('should return the application get component copyright override url', function() {
+    const compIdentifier = {
+      format: 'maven',
+      coordinates: {
+        artifactId: 'logback-access',
+        classifier: '',
+        extension: 'jar',
+        groupId: 'ch.qos.logback',
+        version: '0.6'
+      }
+    };
+    expect(CLMLocation.getComponentCopyrightOverrideUrl('application', 'appId', compIdentifier))
+        .toBe('/api/experimental/licenseLegalMetadata/application/appId/component/copyright?' +
+            'componentIdentifier={"format":"maven","coordinates":{"artifactId":"logback-access","classifier":"",' +
+            '"extension":"jar","groupId":"ch.qos.logback","version":"0.6"}}');
   });
 
   it('should return the owner hierarchy url', function() {

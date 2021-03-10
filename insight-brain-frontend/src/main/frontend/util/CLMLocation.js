@@ -294,8 +294,13 @@ export function getDeleteComponentObligationAttributionUrl(componentObligationAt
       `${componentObligationAttributionId}`;
 }
 
-export function getSaveCopyrightOverrideUrl(orgOrApp, ownerId) {
+export function getSaveComponentCopyrightOverrideUrl(orgOrApp, ownerId) {
   return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/copyright`;
+}
+
+export function getComponentCopyrightOverrideUrl(orgOrApp, ownerId, componentIdentifier) {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/copyright` +
+      `?componentIdentifier=${JSON.stringify(componentIdentifier)}`;
 }
 
 export function getSaveComponentObligationUrl(orgOrApp, ownerId) {

@@ -5,7 +5,7 @@
  */
 
 import {noPayloadActionCreator, payloadParamActionCreator} from '../../util/reduxUtil';
-import {getSaveCopyrightOverrideUrl} from '../../util/CLMLocation';
+import {getComponentCopyrightOverrideUrl, getSaveComponentCopyrightOverrideUrl} from '../../util/CLMLocation';
 import axios from 'axios';
 import {SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS} from '@sonatype/react-shared-components';
 import {isScopeOverride} from '../legalUtility';
@@ -26,8 +26,11 @@ export function saveCopyrightOverride({copyrights, scopeOwnerId}) {
 
     //If the scope is lower, then we need to create a new ComponentCopyright. We do this
     // by setting the ID to null. If scope is higher, we will modify the existing entity.
-    const componentCopyrightId = isScopeOverride(existingComponentCopyrightScopeOwnerId, scopeOwnerId,
-        availableScopes.values) ? null : advancedLegalState.component.component.licenseLegalData.componentCopyrightId;
+    const isScopeOverrideValue = isScopeOverride(existingComponentCopyrightScopeOwnerId, scopeOwnerId,
+        availableScopes.values);
+    const isHigherScopeOverride = existingComponentCopyrightScopeOwnerId != null && !isScopeOverrideValue;
+    const componentCopyrightId = isScopeOverrideValue ? null :
+      advancedLegalState.component.component.licenseLegalData.componentCopyrightId;
 
     const payload = {
       id: componentCopyrightId,
@@ -37,14 +40,28 @@ export function saveCopyrightOverride({copyrights, scopeOwnerId}) {
 
     dispatch(saveRequested());
     const matchingScope = availableScopes.values.find(s => s.id === scopeOwnerId);
-    return axios.post(getSaveCopyrightOverrideUrl(matchingScope.type, matchingScope.publicId), payload)
-        .then((responsePayload) => {
-          const descriptiveResponse = {
-            ...responsePayload.data,
-            componentCopyrightScopeOwnerId: scopeOwnerId
-          };
-          dispatch(saveFulfilled(descriptiveResponse));
-          startSaveCopyrightOverrideSubmitMaskDoneTimer(dispatch, descriptiveResponse);
+    return axios.post(getSaveComponentCopyrightOverrideUrl(matchingScope.type, matchingScope.publicId), payload)
+        .then((postResponsePayload) => {
+          //Fetch the updated ComponentCopyright separately in case we need values at a higher scope.
+          if (isHigherScopeOverride) {
+            axios.get(getComponentCopyrightOverrideUrl(matchingScope.type, matchingScope.publicId, componentIdentifier))
+                .then((getResponsePayload) => {
+                  const descriptiveResponse = {
+                    ...getResponsePayload.data.componentCopyrightDTO,
+                    componentCopyrightScopeOwnerId: getResponsePayload.data.ownerId
+                  };
+                  dispatch(saveFulfilled(descriptiveResponse));
+                  startSaveCopyrightOverrideSubmitMaskDoneTimer(dispatch);
+                });
+          }
+          else {
+            const descriptiveResponse = {
+              ...postResponsePayload.data,
+              componentCopyrightScopeOwnerId: scopeOwnerId
+            };
+            dispatch(saveFulfilled(descriptiveResponse));
+            startSaveCopyrightOverrideSubmitMaskDoneTimer(dispatch);
+          }
         })
         .catch(error => {
           dispatch(saveFailed(error));
@@ -52,9 +69,9 @@ export function saveCopyrightOverride({copyrights, scopeOwnerId}) {
   };
 }
 
-function startSaveCopyrightOverrideSubmitMaskDoneTimer(dispatch, payload) {
+function startSaveCopyrightOverrideSubmitMaskDoneTimer(dispatch) {
   setTimeout(() => {
-    dispatch({type: COPYRIGHT_OVERRIDE_SUBMIT_MASK_DONE, payload: payload});
+    dispatch({type: COPYRIGHT_OVERRIDE_SUBMIT_MASK_DONE});
   }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 }
 

@@ -13,7 +13,10 @@ import {
   saveCopyrightOverride
 } from '../../../../main/frontend/legal/copyright/copyrightOverrideFormActions';
 import {SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS} from '@sonatype/react-shared-components';
-import {getSaveCopyrightOverrideUrl} from '../../../../main/frontend/util/CLMLocation';
+import {
+  getComponentCopyrightOverrideUrl,
+  getSaveComponentCopyrightOverrideUrl
+} from '../../../../main/frontend/util/CLMLocation';
 import {pathSet} from '@sonatype/react-shared-components/util/jsUtil';
 
 describe('copyrightOverrideFormAction', function() {
@@ -102,7 +105,7 @@ describe('copyrightOverrideFormAction', function() {
       };
       mockAxiosCalls({
         post: {
-          [getSaveCopyrightOverrideUrl('organization', 'org')]: Promise.resolve(
+          [getSaveComponentCopyrightOverrideUrl('organization', 'org')]: Promise.resolve(
               {
                 data: {
                   data: 'data'
@@ -123,7 +126,6 @@ describe('copyrightOverrideFormAction', function() {
           expect(actions[1].type).toBe(COPYRIGHT_OVERRIDE_SAVE_FULFILLED);
           expect(actions[1].payload).toEqual({data: 'data', componentCopyrightScopeOwnerId: 'org'});
           expect(actions[2].type).toBe(COPYRIGHT_OVERRIDE_SUBMIT_MASK_DONE);
-          expect(actions[2].payload).toEqual({data: 'data', componentCopyrightScopeOwnerId: 'org'});
           done();
         }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
       });
@@ -155,7 +157,7 @@ describe('copyrightOverrideFormAction', function() {
       };
       mockAxiosCalls({
         post: {
-          [getSaveCopyrightOverrideUrl('organization', 'org')]: Promise.reject('error')
+          [getSaveComponentCopyrightOverrideUrl('organization', 'org')]: Promise.reject('error')
         }
       });
 
@@ -234,7 +236,7 @@ describe('copyrightOverrideFormAction', function() {
           }
         ]
       };
-      assertExpectedCalls('org', 'organization', expectedPostBody, done);
+      assertExpectedHighScopeCalls('org', 'organization', expectedPostBody, done);
     });
 
     it('ComponentCopyright exists at appScope, change to root scope', function(done) {
@@ -258,7 +260,7 @@ describe('copyrightOverrideFormAction', function() {
         ]
       };
 
-      assertExpectedCalls('ROOT_ORGANIZATION_ID', 'organization', expectedPostBody, done);
+      assertExpectedHighScopeCalls('ROOT_ORGANIZATION_ID', 'organization', expectedPostBody, done);
     });
 
     it('ComponentCopyright exists at orgScope, change to root scope', function(done) {
@@ -285,7 +287,7 @@ describe('copyrightOverrideFormAction', function() {
         ]
       };
 
-      assertExpectedCalls('ROOT_ORGANIZATION_ID', 'organization', expectedPostBody, done);
+      assertExpectedHighScopeCalls('ROOT_ORGANIZATION_ID', 'organization', expectedPostBody, done);
     });
 
     it('ComponentCopyright exists at orgScope, change to app scope', function(done) {
@@ -318,7 +320,7 @@ describe('copyrightOverrideFormAction', function() {
     function assertExpectedCalls(expectedScope, orgOrApp, expectedPostBody, done) {
       mockAxiosCalls({
         post: {
-          [getSaveCopyrightOverrideUrl(orgOrApp, expectedScope)]: Promise.resolve(
+          [getSaveComponentCopyrightOverrideUrl(orgOrApp, expectedScope)]: Promise.resolve(
               {
                 data: {
                   data: 'data'
@@ -328,7 +330,7 @@ describe('copyrightOverrideFormAction', function() {
       });
       store.dispatch(saveCopyrightOverride(
           {
-            copyrights: copyrights,
+            copyrights,
             scopeOwnerId: expectedScope
           })).then(() => {
         setTimeout(() => {
@@ -340,9 +342,51 @@ describe('copyrightOverrideFormAction', function() {
           expect(actions[1].type).toBe(COPYRIGHT_OVERRIDE_SAVE_FULFILLED);
           expect(actions[1].payload).toEqual({data: 'data', componentCopyrightScopeOwnerId: expectedScope});
           expect(actions[2].type).toBe(COPYRIGHT_OVERRIDE_SUBMIT_MASK_DONE);
-          expect(actions[2].payload).toEqual({data: 'data', componentCopyrightScopeOwnerId: expectedScope});
           done();
         }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+      });
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(COPYRIGHT_OVERRIDE_SAVE_REQUESTED);
+    }
+
+    function assertExpectedHighScopeCalls(persistedAtScope, orgOrApp, expectedPostBody, done) {
+      mockAxiosCalls({
+        post: {
+          [getSaveComponentCopyrightOverrideUrl(orgOrApp, persistedAtScope)]: Promise.resolve(
+              {
+                data: {
+                  data: 'dataPOST'
+                }
+              })
+        },
+        get: {
+          [getComponentCopyrightOverrideUrl(orgOrApp, persistedAtScope, 'componentIdentifier')]: Promise.resolve(
+              {
+                data: {
+                  componentCopyrightDTO: {data: 'dataGET'},
+                  ownerId: 'realOwner'
+                }
+              })
+        }
+      });
+      store.dispatch(saveCopyrightOverride(
+          {
+            copyrights,
+            scopeOwnerId: persistedAtScope
+          })).then(() => {
+        const actions = store.getActions();
+        expect(axios.post).toHaveBeenCalledWith(
+            '/api/experimental/licenseLegalMetadata/' + orgOrApp + '/' + persistedAtScope + '/component/copyright',
+            expectedPostBody);
+        expect(axios.get).toHaveBeenCalledWith(
+            '/api/experimental/licenseLegalMetadata/' + orgOrApp + '/' + persistedAtScope +
+            '/component/copyright?componentIdentifier="componentIdentifier"');
+        expect(actions.length).toBe(2);
+        expect(actions[1].type).toBe(COPYRIGHT_OVERRIDE_SAVE_FULFILLED);
+        expect(actions[1].payload).toEqual({data: 'dataGET', componentCopyrightScopeOwnerId: 'realOwner'});
+        done();
       });
 
       const actions = store.getActions();

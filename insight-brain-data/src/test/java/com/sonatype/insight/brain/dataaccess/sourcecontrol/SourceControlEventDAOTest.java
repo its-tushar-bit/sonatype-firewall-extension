@@ -11,8 +11,6 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Application;
@@ -184,11 +182,6 @@ public class SourceControlEventDAOTest
     sourceControlEventList = sourceControlEventDAO.selectEventsForInstance("instance1", 10);
     assertThat(sourceControlEventList).hasSize(5);
     sourceControlEventList.forEach(event -> assertThat(event.getInstanceId()).isEqualTo("instance1"));
-  }
-
-  private Map<String, SourceControlEvent> getEventMap() {
-    List<SourceControlEvent> events = sourceControlEventDAO.getAll();
-    return events.stream().collect(Collectors.toMap(SourceControlEvent::getId, event -> event));
   }
 
   @Test

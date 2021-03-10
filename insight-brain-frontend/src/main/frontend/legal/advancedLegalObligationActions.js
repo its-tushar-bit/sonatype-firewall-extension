@@ -53,18 +53,7 @@ export function saveAttribution(name) {
 
     if (attributionState.id !== null && attributionState.content === '') {
       return axios.delete(getDeleteComponentObligationAttributionUrl(attributionState.id))
-          .then(() => {
-            axios.get(getComponentObligationAttributionUrl(ownerType, ownerPublicId, componentIdentifier, name))
-                .then(payload => {
-                  const value = payload.data.length > 0 ? pick(['id', 'content', 'ownerId'], payload.data[0]) :
-                    { id: null, content: '', ownerId: 'ROOT_ORGANIZATION_ID' };
-                  dispatch(saveAttributionFulfilled({ name, value }));
-                  startSaveAttributionSubmitMaskDoneTimer(dispatch, { name });
-                })
-                .catch(error => {
-                  dispatch(saveAttributionFailed({ name, value: Messages.getHttpErrorMessage(error) }));
-                });
-          })
+          .then(() => onAttributionSaveSuccess(dispatch, ownerType, ownerPublicId, componentIdentifier, name))
           .catch(error => {
             dispatch(saveAttributionFailed({ name, value: Messages.getHttpErrorMessage(error) }));
           });
@@ -72,10 +61,7 @@ export function saveAttribution(name) {
     else {
       const attributionPayload = getAttributionPayload(advancedLegalState, obligationState, attributionState);
       return axios.post(getSaveComponentObligationAttributionUrl(ownerType, ownerPublicId), attributionPayload)
-          .then(payload => {
-            dispatch(saveAttributionFulfilled({ name, value: payload.data }));
-            startSaveAttributionSubmitMaskDoneTimer(dispatch, { name });
-          })
+          .then(() => onAttributionSaveSuccess(dispatch, ownerType, ownerPublicId, componentIdentifier, name))
           .catch(error => {
             dispatch(saveAttributionFailed({ name, value: Messages.getHttpErrorMessage(error) }));
           });
@@ -96,6 +82,18 @@ function getAttributionPayload(advancedLegalState, obligationState, attributionS
   }
   return payload;
 }
+
+const onAttributionSaveSuccess = (dispatch, ownerType, ownerPublicId, componentIdentifier, name) =>
+  axios.get(getComponentObligationAttributionUrl(ownerType, ownerPublicId, componentIdentifier, name))
+      .then(payload => {
+        const value = payload.data.length > 0 ? pick(['id', 'content', 'ownerId'], payload.data[0]) :
+          { id: null, content: '', ownerId: 'ROOT_ORGANIZATION_ID' };
+        dispatch(saveAttributionFulfilled({ name, value }));
+        startSaveAttributionSubmitMaskDoneTimer(dispatch, { name });
+      })
+      .catch(error => {
+        dispatch(saveAttributionFailed({ name, value: Messages.getHttpErrorMessage(error) }));
+      });
 
 function startSaveAttributionSubmitMaskDoneTimer(dispatch, payload) {
   setTimeout(() => {
@@ -138,18 +136,7 @@ export function saveObligation(name) {
 
     if (obligationState.id !== null && obligationState.comment === '' && obligationState.status === 'OPEN') {
       return axios.delete(getDeleteComponentObligationUrl(obligationState.id))
-          .then(() => {
-            axios.get(getComponentObligationUrl(ownerType, ownerPublicId, componentIdentifier, name))
-                .then(payload => {
-                  const value = payload.data ? pick(['id', 'comment', 'ownerId', 'status'], payload.data) :
-                    { id: null, comment: '', ownerId: 'ROOT_ORGANIZATION_ID', status: 'OPEN' };
-                  dispatch(saveObligationSucceeded({ name, value }));
-                  startSaveObligationSubmitMaskDoneTimer(dispatch, { name });
-                })
-                .catch(error => {
-                  dispatch(saveObligationFailed({ name, value: Messages.getHttpErrorMessage(error) }));
-                });
-          })
+          .then(() => onObligationSaveSuccess(dispatch, ownerType, ownerPublicId, componentIdentifier, name))
           .catch(error => {
             dispatch(saveObligationFailed({ name, value: Messages.getHttpErrorMessage(error) }));
           });
@@ -157,10 +144,7 @@ export function saveObligation(name) {
     else {
       const obligationPayload = getObligationPayload(advancedLegalState, obligationState);
       return axios.post(getSaveComponentObligationUrl(ownerType, ownerPublicId), obligationPayload)
-          .then(payload => {
-            dispatch(saveObligationSucceeded({ name, value: payload.data }));
-            startSaveObligationSubmitMaskDoneTimer(dispatch, { name });
-          })
+          .then(() => onObligationSaveSuccess(dispatch, ownerType, ownerPublicId, componentIdentifier, name))
           .catch(error => {
             dispatch(saveObligationFailed({ name, value: Messages.getHttpErrorMessage(error) }));
           });
@@ -183,6 +167,18 @@ function getObligationPayload(advancedLegalState, obligationState) {
   }
   return payload;
 }
+
+const onObligationSaveSuccess = (dispatch, ownerType, ownerPublicId, componentIdentifier, name) =>
+  axios.get(getComponentObligationUrl(ownerType, ownerPublicId, componentIdentifier, name))
+      .then(payload => {
+        const value = payload.data ? pick(['id', 'comment', 'ownerId', 'status'], payload.data) :
+          { id: null, comment: '', ownerId: 'ROOT_ORGANIZATION_ID', status: 'OPEN' };
+        dispatch(saveObligationSucceeded({ name, value }));
+        startSaveObligationSubmitMaskDoneTimer(dispatch, { name });
+      })
+      .catch(error => {
+        dispatch(saveObligationFailed({ name, value: Messages.getHttpErrorMessage(error) }));
+      });
 
 function startSaveObligationSubmitMaskDoneTimer(dispatch, payload) {
   setTimeout(() => {

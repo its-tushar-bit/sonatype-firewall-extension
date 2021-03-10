@@ -64,15 +64,20 @@ describe('advancedLegalObligationActions', function () {
         ' create/update', function(done) {
       store = SpecUtil.mockReduxStore(initialState);
       const expectedPostBody = {
-        'id': 'id',
-        'componentIdentifier': 'componentIdentifier',
-        'obligationName': 'name',
-        'content': 'content'
+        id: 'id',
+        componentIdentifier: 'componentIdentifier',
+        obligationName: 'name',
+        content: 'content'
       };
       mockAxiosCalls({
         post: {
           [getSaveComponentObligationAttributionUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve(
-              { data: 'data' })
+              { data: 'postData' })
+        },
+        get: {
+          [getComponentObligationAttributionUrl('organization', 'ROOT_ORGANIZATION_ID', 'componentIdentifier', 'name')]:
+              Promise.resolve(
+                  { data: [{ id: 'id', content: 'content', ownerId: 'ROOT_ORGANIZATION_ID', foo: 'bar' }] })
         }
       });
 
@@ -83,9 +88,13 @@ describe('advancedLegalObligationActions', function () {
               '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/obligation' +
               '/attribution',
               expectedPostBody);
+          expect(axios.get).toHaveBeenCalledWith(
+              '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/obligation' +
+              '/attribution?componentIdentifier="componentIdentifier"&obligationName=name');
           expect(actions.length).toBe(3);
           expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED);
-          expect(actions[1].payload).toEqual({ name: 'name', value: 'data' });
+          expect(actions[1].payload).toEqual(
+              { name: 'name', value: { id: 'id', content: 'content', ownerId: 'ROOT_ORGANIZATION_ID' } });
           expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_SUBMIT_MASK_DONE);
           expect(actions[2].payload).toEqual({ name: 'name' });
           done();
@@ -98,18 +107,55 @@ describe('advancedLegalObligationActions', function () {
       expect(actions[0].payload).toEqual({ name: 'name' });
     });
 
-    it('dispatches a ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED action when the API fails with' +
+    it('dispatches a ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED action when the save API fails with' +
         ' create/update', function(done) {
       store = SpecUtil.mockReduxStore(initialState);
       const expectedPostBody = {
-        'id': 'id',
-        'componentIdentifier': 'componentIdentifier',
-        'obligationName': 'name',
-        'content': 'content'
+        id: 'id',
+        componentIdentifier: 'componentIdentifier',
+        obligationName: 'name',
+        content: 'content'
       };
       mockAxiosCalls({
         post: {
           [getSaveComponentObligationAttributionUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.reject('error')
+        }
+      });
+
+      store.dispatch(saveAttribution('name')).then(() => {
+        const actions = store.getActions();
+        expect(axios.post).toHaveBeenCalledWith(
+            '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/obligation/attribution',
+            expectedPostBody);
+        expect(actions.length).toBe(2);
+        expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED);
+        expect(actions[1].payload).toEqual({ name: 'name', value: 'error' });
+        done();
+      });
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_REQUESTED);
+      expect(actions[0].payload).toEqual({ name: 'name' });
+    });
+
+    it('dispatches a ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED action when the get API fails with' +
+        ' create/update', function(done) {
+      store = SpecUtil.mockReduxStore(initialState);
+      const expectedPostBody = {
+        id: 'id',
+        componentIdentifier: 'componentIdentifier',
+        obligationName: 'name',
+        content: 'content'
+      };
+      mockAxiosCalls({
+        post: {
+          [getSaveComponentObligationAttributionUrl('organization', 'ROOT_ORGANIZATION_ID')]:
+              Promise.resolve('postData')
+        },
+        get: {
+          [getComponentObligationAttributionUrl('organization', 'ROOT_ORGANIZATION_ID', 'componentIdentifier', 'name')]:
+              Promise.reject('error')
         }
       });
 
@@ -283,7 +329,19 @@ describe('advancedLegalObligationActions', function () {
       mockAxiosCalls({
         post: {
           [getSaveComponentObligationUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve(
-              { data: 'data' })
+              { data: 'postData' })
+        },
+        get: {
+          [getComponentObligationUrl('organization', 'ROOT_ORGANIZATION_ID', 'componentIdentifier', 'name')]:
+              Promise.resolve({
+                data: {
+                  id: 'id',
+                  comment: 'comment',
+                  ownerId: 'ROOT_ORGANIZATION_ID',
+                  status: 'OPEN',
+                  foo: 'bar'
+                }
+              })
         }
       });
 
@@ -293,9 +351,15 @@ describe('advancedLegalObligationActions', function () {
           expect(axios.post).toHaveBeenCalledWith(
               '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/obligation',
               expectedPostBody);
+          expect(axios.get).toHaveBeenCalledWith(
+              '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/' +
+              'obligation?componentIdentifier="componentIdentifier"&obligationName=name');
           expect(actions.length).toBe(3);
           expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
-          expect(actions[1].payload).toEqual({ name: 'name', value: 'data' });
+          expect(actions[1].payload).toEqual({
+            name: 'name',
+            value: { id: 'id', comment: 'comment', ownerId: 'ROOT_ORGANIZATION_ID', status: 'OPEN' }
+          });
           expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE);
           expect(actions[2].payload).toEqual({ name: 'name' });
           done();
@@ -308,7 +372,7 @@ describe('advancedLegalObligationActions', function () {
       expect(actions[0].payload).toEqual({ name: 'name' });
     });
 
-    it('dispatches a ADVANCED_LEGAL_SAVE_OBLIGATION_FAILED action when the API fails with' +
+    it('dispatches a ADVANCED_LEGAL_SAVE_OBLIGATION_FAILED action when the save API fails with' +
         ' create/update', function(done) {
       store = SpecUtil.mockReduxStore(initialState);
       const expectedPostBody = {
@@ -321,6 +385,43 @@ describe('advancedLegalObligationActions', function () {
       mockAxiosCalls({
         post: {
           [getSaveComponentObligationUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.reject('error')
+        }
+      });
+
+      store.dispatch(saveObligation('name')).then(() => {
+        const actions = store.getActions();
+        expect(axios.post).toHaveBeenCalledWith(
+            '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/obligation',
+            expectedPostBody);
+        expect(actions.length).toBe(2);
+        expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_FAILED);
+        expect(actions[1].payload).toEqual({ name: 'name', value: 'error' });
+        done();
+      });
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED);
+      expect(actions[0].payload).toEqual({ name: 'name' });
+    });
+
+    it('dispatches a ADVANCED_LEGAL_SAVE_OBLIGATION_FAILED action when the get API fails with' +
+        ' create/update', function(done) {
+      store = SpecUtil.mockReduxStore(initialState);
+      const expectedPostBody = {
+        id: 'id',
+        componentIdentifier: 'componentIdentifier',
+        name: 'name',
+        comment: 'comment',
+        status: 'OPEN'
+      };
+      mockAxiosCalls({
+        post: {
+          [getSaveComponentObligationUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve('postData')
+        },
+        get: {
+          [getComponentObligationUrl('organization', 'ROOT_ORGANIZATION_ID', 'componentIdentifier', 'name')]:
+              Promise.reject('error')
         }
       });
 

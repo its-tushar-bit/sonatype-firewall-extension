@@ -536,7 +536,7 @@ public class ComponentInfoService
 
     ComponentDetailsList componentDetailsList;
 
-    if (isKnownFormat(identifier.getFormat())) {
+    if (isKnownFormat(identifier)) {
       componentDetailsList = getInformationVersionsHds(identifier, identificationSource);
       //In case it's a third-party component, the data must be replace with the local information
       updateThirdPartyInformation(identifier, identificationSource, componentDetailsList, owner, scanId);
@@ -593,8 +593,11 @@ public class ComponentInfoService
     return componentDetailsList;
   }
 
-  private boolean isKnownFormat(String format) {
-    return ComponentIdentifier.getSupportedFormats().contains(format) || LqaFormat.isLqaFormat(format);
+  private boolean isKnownFormat(ComponentIdentifier identifier) {
+    // terraform details come in as third-party identification source
+    return (ComponentIdentifier.getSupportedFormats().contains(identifier.getFormat()) ||
+        LqaFormat.isLqaFormat(identifier.getFormat())) &&
+            !identifier.isTerraform();
   }
 
   /**

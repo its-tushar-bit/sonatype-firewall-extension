@@ -392,7 +392,7 @@ CREATE TABLE policy_violation (
   constraint_facts_json text NOT NULL,
 
   -- the most recent action during the violation's lifetime
-  action_type_id varchar(20), 
+  action_type_id varchar(20),
 
   -- timestamps recording the state and transitions thereof for the violation
   open_time timestamp NOT NULL,    -- when the violation first occurred
@@ -502,7 +502,7 @@ CREATE TABLE repository (
 CREATE TABLE repository_component (
   repository_component_id varchar(50) NOT NULL,
   repository_id varchar(50) NOT NULL,
-  pathname varchar(1000) NOT NULL, 
+  pathname varchar(1000) NOT NULL,
   time timestamp NOT NULL,
   hash varchar(20) NOT NULL,
   component_id_format varchar(10),
@@ -527,7 +527,7 @@ CREATE INDEX repository_component_release_quarantine_idx ON repository_component
 CREATE TABLE repository_policy_violation (
   repository_policy_violation_id varchar(50) NOT NULL,
   repository_id varchar(50) NOT NULL,
-  pathname varchar(1000) NOT NULL, 
+  pathname varchar(1000) NOT NULL,
   time timestamp NOT NULL,
   policy_id varchar(50) NOT NULL,
   policy_name varchar(60) NOT NULL, -- the policy name as it was when the policy violation was generated
@@ -553,9 +553,9 @@ CREATE TABLE proprietary_component_name_pattern (
   proprietary_component_name_pattern_id varchar(50) NOT NULL,
 
   format varchar(50) NOT NULL,
-  namespace_pattern varchar(200) NOT NULL, 
-  name_pattern varchar(300) NOT NULL, 
-  
+  namespace_pattern varchar(200) NOT NULL,
+  name_pattern varchar(300) NOT NULL,
+
   repository_manager_instance_id varchar(50) NOT NULL,
   repository_public_id varchar(500) NOT NULL,
 
@@ -1007,4 +1007,10 @@ CREATE TABLE user_filter (
   filter_type varchar(100) NOT NULL,
   CONSTRAINT user_filter_pk PRIMARY KEY (user_filter_id),
   CONSTRAINT user_filter_uk UNIQUE (username_lowercase, realm_id, name_lowercase_no_whitespace, filter_type)
+);
+
+-- Since 1.107
+CREATE TABLE auto_unquarantine_policy_condition_type (
+  condition_type_id varchar(100) NOT NULL, -- stores the id from ConditionType
+  CONSTRAINT auto_unquarantine_policy_condition_type_pk PRIMARY KEY (condition_type_id)
 );

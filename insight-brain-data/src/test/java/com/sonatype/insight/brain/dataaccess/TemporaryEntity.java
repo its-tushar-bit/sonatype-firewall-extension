@@ -65,6 +65,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -149,7 +150,9 @@ import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.notification.UserViewedProductNotification;
+import com.sonatype.insight.brain.model.policy.AutoUnquarantinePolicyConditionType;
 import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -388,6 +391,9 @@ public class TemporaryEntity
   private final ComponentObligationAttributionDAO componentObligationAttributionDAO =
       new ComponentObligationAttributionDAO();
 
+  private final AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO =
+      new AutoUnquarantinePolicyConditionTypeDAO();
+
   private MailConfiguration savedMailConfiguration;
 
   private Collection<MigrationTracker> migrationTrackers;
@@ -600,6 +606,7 @@ public class TemporaryEntity
     componentObligationDAO.getAll().forEach(componentObligationDAO::delete);
     componentCopyrightDAO.getAll().forEach(componentCopyrightDAO::delete);
     componentLegalFileDAO.getAll().forEach(componentLegalFileDAO::delete);
+    autoUnquarantinePolicyConditionTypeDAO.getAll().forEach(autoUnquarantinePolicyConditionTypeDAO::delete);
   }
 
   private <E> void detachEntity(E entity) {
@@ -2894,5 +2901,12 @@ public class TemporaryEntity
         new ComponentObligationAttribution(componentIdentifier, ownerId, name, content, legalContentHash, "username");
     componentObligationAttributionDAO.insert(componentObligationAttribution);
     return componentObligationAttribution;
+  }
+
+  public AutoUnquarantinePolicyConditionType newAutoUnquarantinePolicyConditionType(ConditionType conditionType) {
+    final AutoUnquarantinePolicyConditionType autoUnquarantinePolicyConditionType =
+        new AutoUnquarantinePolicyConditionType(conditionType.getId());
+    autoUnquarantinePolicyConditionTypeDAO.insert(autoUnquarantinePolicyConditionType);
+    return autoUnquarantinePolicyConditionType;
   }
 }

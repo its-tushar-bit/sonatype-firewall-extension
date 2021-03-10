@@ -5,11 +5,14 @@
  */
 import { react2angular } from 'react2angular';
 import ComponentLegalOverviewContainer from './ComponentLegalOverviewContainer';
+import LegalApplicationDetailsContainer from './application/LegalApplicationDetailsContainer';
 import withStoreProvider from '../reactAdapter/StoreProvider';
 
 export default angular.module('legalModule', [])
     .component('componentLegalOverview',
         react2angular(withStoreProvider(ComponentLegalOverviewContainer), [], ['$ngRedux']))
+    .component('legalApplicationDetails',
+        react2angular(withStoreProvider(LegalApplicationDetailsContainer), [], ['$ngRedux']))
     .config(routes);
 
 function routes($stateProvider) {
@@ -26,6 +29,13 @@ function routes($stateProvider) {
         component: 'componentLegalOverview',
         data: {
           title: 'Component - Legal Overview'
+        }
+      })
+      .state('legalApplicationDetails', {
+        url: '/legal/application/{applicationPublicId}',
+        component: 'legalApplicationDetails',
+        data: {
+          title: 'Application Details'
         }
       })
       .state('applicationComponentLegalOverview', {

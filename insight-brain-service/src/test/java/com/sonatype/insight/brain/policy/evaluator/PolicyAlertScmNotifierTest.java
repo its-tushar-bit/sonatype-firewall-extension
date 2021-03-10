@@ -16,12 +16,6 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationDTO;
-import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentChangeActionDTO;
-import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
-import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.git.PullRequestCommentingRemediationService;
 import com.sonatype.insight.brain.git.PullRequestFeatureCheck;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
@@ -271,21 +265,6 @@ public class PolicyAlertScmNotifierTest
       assertThat(event.getApplicationId()).isEqualTo(application.getId());
       return true;
     }));
-  }
-
-  private ApiComponentRemediationDTO buildRemediationDTOWithSuggestion() {
-    ApiVersionChangeOptionDTO versionChangeOptionDTO = new ApiVersionChangeOptionDTO();
-    versionChangeOptionDTO.setType(ApiVersionChangeOptionType.NEXT_NON_FAILING);
-    ApiComponentChangeActionDTO changeActionDTO = new ApiComponentChangeActionDTO();
-    ApiComponentDTOV2 componentDTOV2 = new ApiComponentDTOV2();
-    changeActionDTO.setComponent(componentDTOV2);
-    versionChangeOptionDTO.setData(changeActionDTO);
-    // upgrade version
-    componentDTOV2.componentIdentifier = ApiComponentIdentifierDTOV2
-        .fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("groupid", "Package1", "2.0.1"));
-    ApiComponentRemediationDTO remediationDTO = new ApiComponentRemediationDTO();
-    remediationDTO.remediation.versionChanges = Arrays.asList(versionChangeOptionDTO);
-    return remediationDTO;
   }
 
   private List<PolicyNotification> buildPolicyNotifications() {

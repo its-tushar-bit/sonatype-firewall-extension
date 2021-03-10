@@ -30,38 +30,40 @@ export default function LegalDashboardPage(props) {
   const hasError = isAuthorized ? loadError : authErrorMessage;
 
   return (
-    <LoadWrapper loading={ loading } error={ hasError } retryHandler={ loadResults }>
-      <aside id="legal-dashboard-filter-container" className="nx-page-sidebar nx-viewport-sized">
-        <LegalDashboardFilterContainer />
-      </aside>
-      <main id="legal-dashboard-container" className="nx-page-main nx-viewport-sized">
-        <div className="nx-page-title nx-page-title__actions">
-          <h1 className="nx-h1">Legal Obligations</h1>
-          <div className="nx-btn-bar">
-            <NxButton variant="primary">Create Attribution Report</NxButton>
+    <div id="legal-dashboard" className="nx-page-content">
+      <LoadWrapper loading={ loading } error={ hasError } retryHandler={ loadResults }>
+        <aside id="legal-dashboard-filter-container" className="nx-page-sidebar">
+          <LegalDashboardFilterContainer />
+        </aside>
+        <main id="legal-dashboard-container" className="nx-page-main">
+          <div className="nx-page-title nx-page-title__actions">
+            <h1 className="nx-h1">Legal Obligations</h1>
+            <div className="nx-btn-bar">
+              <NxButton variant="primary">Create Attribution Report</NxButton>
+            </div>
           </div>
-        </div>
-        <div className="nx-tile nx-viewport-sized__container">
-          <div className="nx-tile-content nx-viewport-sized__container">
-            <NxStatefulTabs className="nx-viewport-sized__container" defaultActiveTab={0} onTabSelect={() => {}}>
-              <NxTabList>
-                <NxTab>Applications</NxTab>
-                <NxTab>Components</NxTab>
-              </NxTabList>
-              <NxTabPanel className="nx-viewport-sized__container">
-                <LegalDashboardApplicationsTab applications = { applications }
-                                               fetchBackendPage = { fetchBackendPage }
+          <div className="nx-tile nx-viewport-sized__container">
+            <div className="nx-tile-content nx-viewport-sized__container">
+              <NxStatefulTabs className="nx-viewport-sized__container" defaultActiveTab={0} onTabSelect={() => {}}>
+                <NxTabList>
+                  <NxTab>Applications</NxTab>
+                  <NxTab>Components</NxTab>
+                </NxTabList>
+                <NxTabPanel className="nx-viewport-sized__container">
+                  <LegalDashboardApplicationsTab applications = { applications }
+                                                 fetchBackendPage = { fetchBackendPage }
+                                                 filtersAreDirty = { filtersAreDirty } />
+                </NxTabPanel>
+                <NxTabPanel className="nx-viewport-sized__container">
+                  <LegalDashboardComponentsTab components = { components }
                                                filtersAreDirty = { filtersAreDirty } />
-              </NxTabPanel>
-              <NxTabPanel className="nx-viewport-sized__container">
-                <LegalDashboardComponentsTab components = { components }
-                                             filtersAreDirty = { filtersAreDirty } />
-              </NxTabPanel>
-            </NxStatefulTabs>
+                </NxTabPanel>
+              </NxStatefulTabs>
+            </div>
           </div>
-        </div>
-      </main>
-    </LoadWrapper>
+        </main>
+      </LoadWrapper>
+    </div>
   );
 }
 

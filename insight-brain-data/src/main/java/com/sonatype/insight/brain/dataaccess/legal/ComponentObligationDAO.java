@@ -164,13 +164,13 @@ public class ComponentObligationDAO
       for (Owner owner : new OwnerDAO().walkHierarchy(ownerId)) {
         getByOwnerId(tx, owner.getId()).forEach(componentObligation -> {
           Set<String> obligationNames = componentObligationsFound
-              .computeIfAbsent(componentObligation.getComponentIdentifier(), key -> new HashSet<String>());
+              .computeIfAbsent(componentObligation.getComponentIdentifier(), key -> new HashSet<>());
           if (obligationNames.add(componentObligation.getObligationName())
               && (componentObligation.getStatus() == ObligationStatus.FULFILLED
                   || componentObligation.getStatus() == ObligationStatus.IGNORED)) {
             // The obligation was not saved in the scope of the previous owner and has been addressed in the current one
             Set<String> obligationNamesAddressed = componentObligationsAddressed
-                .computeIfAbsent(componentObligation.getComponentIdentifier(), key -> new HashSet<String>());
+                .computeIfAbsent(componentObligation.getComponentIdentifier(), key -> new HashSet<>());
             obligationNamesAddressed.add(componentObligation.getObligationName());
           }
         });

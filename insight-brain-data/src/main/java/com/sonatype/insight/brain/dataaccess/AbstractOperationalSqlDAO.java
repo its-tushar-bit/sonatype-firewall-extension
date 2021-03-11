@@ -42,6 +42,17 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     insertSearchIndexChange(tx, newSearchIndexChangeForDelete(entity));
   }
 
+  public static javax.persistence.Query createPaginationQuery(
+      TransactionContext tx,
+      String sQuery,
+      int offset,
+      int pageSize)
+  {
+    javax.persistence.Query query = tx.createQuery(sQuery);
+    query.setFirstResult(offset).setMaxResults(pageSize);
+    return query;
+  }
+
   protected void insertSearchIndexChange(TransactionContext tx, SearchIndexChange searchIndexChange) {
     if (searchIndexChange != null) {
       new SearchIndexChangeDAO().insert(tx, searchIndexChange);

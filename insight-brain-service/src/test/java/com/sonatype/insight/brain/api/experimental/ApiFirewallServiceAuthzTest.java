@@ -5,11 +5,17 @@
  */
 package com.sonatype.insight.brain.api.experimental;
 
+import java.util.Collections;
+
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.api.experimental.dto.FirewallConfigurationDTO;
+import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallComponentDTO;
+import com.sonatype.insight.brain.api.experimental.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineSummaryDTO;
+import com.sonatype.insight.brain.api.experimental.dto.FirewallConfigurationDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
+import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter;
+import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -84,7 +90,6 @@ public class ApiFirewallServiceAuthzTest
     login();
     assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(() ->
         apiFirewallService.getFirewallConfiguration());
-
   }
 
   @Test
@@ -137,5 +142,38 @@ public class ApiFirewallServiceAuthzTest
     login();
 
     apiFirewallService.getQuarantineSummary();
+  }
+
+  @Test
+  public void testGetUnquarantineList_Authorized() {
+    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
+    grantGlobalPermission(Permission.READ);
+
+    final String sortField = FirewallSortableField.UNQUARANTINE_TIME.name();
+    final FirewallRepositoryComponentFilter filter =
+        new FirewallRepositoryComponentFilter(1, 2, false, true, sortField, true, Collections.emptyList());
+    final ApiPageResult<ApiFirewallComponentDTO> dto = apiFirewallService.getUnquarantineList(filter);
+
+    assertThat(dto.getTotal()).isZero();
+  }
+
+  @Test
+  public void testGetUnquarantineList_Unauthorized() {
+    login();
+
+    final String sortField = FirewallSortableField.UNQUARANTINE_TIME.name();
+    final FirewallRepositoryComponentFilter filter =
+        new FirewallRepositoryComponentFilter(1, 2, false, true, sortField, true, Collections.emptyList());
+    assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(() ->
+        apiFirewallService.getUnquarantineList(filter));
+  }
+
+  @Test
+  public void testGetUnquarantineList_Unauthenticated() {
+    final String sortField = FirewallSortableField.UNQUARANTINE_TIME.name();
+    final FirewallRepositoryComponentFilter filter =
+        new FirewallRepositoryComponentFilter(1, 2, false, true, sortField, true, Collections.emptyList());
+    assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() ->
+        apiFirewallService.getUnquarantineList(filter));
   }
 }

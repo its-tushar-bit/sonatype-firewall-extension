@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentPolicyViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentsInQuarantineDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dto.repository.RepositoryDTO;
@@ -27,7 +28,6 @@ import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.repository.RepositoryService;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
-import com.sonatype.insight.brain.audit.AuditData;
 
 /**
  * @since 1.77
@@ -42,19 +42,19 @@ public class ApiComponentsInQuarantineReportingService
 
   private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
 
-  private final PolicyViolationAdapter policyViolationAdapter;
+  private final ApiPolicyViolationAdapter apiPolicyViolationAdapter;
 
   @Inject
   public ApiComponentsInQuarantineReportingService(
       final RepositoryService repositoryService,
       final RepositoryComponentDAO repositoryComponentDAO,
       final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
-      final PolicyViolationAdapter policyViolationAdapter)
+      final ApiPolicyViolationAdapter apiPolicyViolationAdapter)
   {
     this.repositoryService = repositoryService;
     this.repositoryComponentDAO = repositoryComponentDAO;
     this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
-    this.policyViolationAdapter = policyViolationAdapter;
+    this.apiPolicyViolationAdapter = apiPolicyViolationAdapter;
   }
 
   public ApiComponentsInQuarantineDTO getComponentsInQuarantine() {
@@ -111,7 +111,7 @@ public class ApiComponentsInQuarantineReportingService
           .getByRepositoryIdAndPathnameAndActionAndNotWaived(repositoryDTO.repository.getId(),
               repositoryComponent.getPathname(), Action.ID_FAIL);
       for (RepositoryPolicyViolation repositoryPolicyViolation : repositoryPolicyViolations) {
-        policyViolationDTOV2List.add(convertEntityToDTO(repositoryPolicyViolation));
+        policyViolationDTOV2List.add(apiPolicyViolationAdapter.convert(repositoryPolicyViolation));
       }
       repositoryComponentPolicyViolationDTO.policyViolations = policyViolationDTOV2List;
 
@@ -141,15 +141,5 @@ public class ApiComponentsInQuarantineReportingService
     repositoryComponentDTO.quarantineTime = repositoryComponent.getQuarantineTime();
     repositoryComponentDTO.quarantineReleaseTime = repositoryComponent.getUnquarantineTime();
     return repositoryComponentDTO;
-  }
-
-  private ApiPolicyViolationDTOV2 convertEntityToDTO(RepositoryPolicyViolation repositoryPolicyViolation) {
-    ApiPolicyViolationDTOV2 policyViolationDTOV2 = new ApiPolicyViolationDTOV2();
-    policyViolationDTOV2.policyId = repositoryPolicyViolation.getPolicyId();
-    policyViolationDTOV2.policyName = repositoryPolicyViolation.getPolicyName();
-    policyViolationDTOV2.threatLevel = repositoryPolicyViolation.getThreatLevel();
-    policyViolationDTOV2.policyViolationId = repositoryPolicyViolation.getId();
-    policyViolationDTOV2.constraintViolations = policyViolationAdapter.convert(repositoryPolicyViolation);
-    return policyViolationDTOV2;
   }
 }

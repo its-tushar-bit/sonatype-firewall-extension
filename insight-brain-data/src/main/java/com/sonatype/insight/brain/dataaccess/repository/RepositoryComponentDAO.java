@@ -5,11 +5,13 @@
  */
 package com.sonatype.insight.brain.dataaccess.repository;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField.FirewallFilterableField;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -136,6 +138,80 @@ public class RepositoryComponentDAO
         + " AND component.autoUnquarantined = true";
 
     return getSingle(Number.class, sQuery, date).longValue();
+  }
+
+  public List<RepositoryComponent> getFirewallRepositoryComponents(FirewallRepositoryComponentFilter filter) {
+    String baseQuery = getBaseFirewallComponentsQueryAndViolations(filter, "SELECT DISTINCT component");
+
+    StringBuilder sQuery = new StringBuilder(baseQuery);
+
+    // SORTING
+    if (null == filter.sortableField) {
+      filter.sortableField = FirewallSortableField.UNQUARANTINE_TIME.name();
+    }
+    FirewallSortableField sortField = FirewallSortableField.valueOf(filter.sortableField);
+
+    sQuery.append(" ORDER BY component.").append(sortField.getColumn());
+    if (filter.asc) {
+      sQuery.append(" ASC");
+    }
+    else {
+      sQuery.append(" DESC");
+    }
+
+    // PAGINATION
+    int offset = (filter.page - 1) * filter.pageSize;
+    try (TransactionContext tx = createTransactionContext()) {
+      final javax.persistence.Query paginationQuery =
+          createPaginationQuery(tx, sQuery.toString(), offset, filter.pageSize);
+
+      if (filter.getFilterFieldsMap().containsKey(FirewallFilterableField.POLICY_ID)) {
+        paginationQuery.setParameter(1, filter.getFilterFieldsMap().get(FirewallFilterableField.POLICY_ID));
+      }
+
+      return paginationQuery.getResultList();
+    }
+  }
+
+  public long getTotalFirewallRepositoryComponents(FirewallRepositoryComponentFilter filter) {
+    List<Object> parameters = new ArrayList<>();
+
+    // FILTER
+    if (filter.getFilterFieldsMap().containsKey(FirewallFilterableField.POLICY_ID)) {
+      parameters.add(filter.getFilterFieldsMap().get(FirewallFilterableField.POLICY_ID));
+    }
+
+    String sQuery = getBaseFirewallComponentsQueryAndViolations(filter, "SELECT COUNT(component)");
+
+    return getSingle(Long.class, sQuery, parameters.toArray());
+  }
+
+  private static String getBaseFirewallComponentsQueryAndViolations(
+      FirewallRepositoryComponentFilter filter,
+      String selectStatement)
+  {
+    StringBuilder sQuery = new StringBuilder(selectStatement
+        + " FROM RepositoryComponent component, "
+        + " RepositoryPolicyViolation policyViolation"
+        + " WHERE component.repositoryId = policyViolation.repositoryId"
+        + " AND component.pathname = policyViolation.pathname");
+
+    // include auto released components from quarantine?
+    if (filter.includeAutoUnquarantine) {
+      sQuery.append(" AND (component.quarantineTime IS NOT NULL AND component.unquarantineTime IS NOT NULL"
+          + " AND component.autoUnquarantined = true)");
+    }
+    else {
+      sQuery.append(" AND (component.quarantineTime IS NULL OR component.unquarantineTime IS NULL OR" +
+          " component.autoUnquarantined = false)");
+    }
+
+    // FILTER
+    if (filter.getFilterFieldsMap().containsKey(FirewallFilterableField.POLICY_ID)) {
+      sQuery.append(" AND policyViolation.policyId=?1");
+    }
+
+    return sQuery.toString();
   }
 
   public List<RepositoryComponent> getByRepositoryIdAndMatchStateId(String repositoryId, String matchStateId) {

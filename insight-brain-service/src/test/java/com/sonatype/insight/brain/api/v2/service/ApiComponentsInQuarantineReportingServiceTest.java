@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -15,13 +14,7 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.clm.dto.model.policy.ConditionFact;
-import com.sonatype.clm.dto.model.policy.ConstraintFact;
-import com.sonatype.clm.dto.model.policy.TriggerReference;
-import com.sonatype.clm.dto.model.policy.TriggerReference.Type;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentsInQuarantineDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentPolicyViolationDTO;
@@ -36,7 +29,6 @@ import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.junit.Before;
@@ -86,7 +78,8 @@ public class ApiComponentsInQuarantineReportingServiceTest
     Repository repository = tempEntity.newRepository("repositoryManager1", "repo1", "maven3");
     RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
         "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
-    RepositoryPolicyViolation policyViolation = createPolicyViolationFail(policy1, component);
+    RepositoryPolicyViolation policyViolation = PolicyViolationTestHelper
+        .createPolicyViolationFail(policy1, component, tempEntity);
 
     ApiComponentsInQuarantineDTO componentsInQuarantineDTO = service.getComponentsInQuarantine();
 
@@ -99,7 +92,7 @@ public class ApiComponentsInQuarantineReportingServiceTest
     Repository repository = tempEntity.newRepository("repositoryManager1", "repo1", "maven3");
     RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
         "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
-    createPolicyViolationWaived(policy1, component);
+    PolicyViolationTestHelper.createPolicyViolationWaived(policy1, component, tempEntity);
 
     ApiComponentsInQuarantineDTO componentsInQuarantineDTO = service.getComponentsInQuarantine();
 
@@ -111,9 +104,10 @@ public class ApiComponentsInQuarantineReportingServiceTest
     Repository repository = tempEntity.newRepository("repositoryManager1", "repo1", "maven3");
     RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
         "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
-    createPolicyViolationWarn(policy1, component);
-    RepositoryPolicyViolation policyViolation = createPolicyViolationFail(policy1, component);
-    createPolicyViolationWaived(policy1, component);
+    PolicyViolationTestHelper.createPolicyViolationWarn(policy1, component, tempEntity);
+    RepositoryPolicyViolation policyViolation = PolicyViolationTestHelper
+        .createPolicyViolationFail(policy1, component, tempEntity);
+    PolicyViolationTestHelper.createPolicyViolationWaived(policy1, component, tempEntity);
 
     ApiComponentsInQuarantineDTO componentsInQuarantineDTO = service.getComponentsInQuarantine();
 
@@ -154,22 +148,30 @@ public class ApiComponentsInQuarantineReportingServiceTest
     Repository repository1 = tempEntity.newRepository("repositoryManager1", "repo1", "maven3");
     RepositoryComponent componentInQuarantine1 = tempEntity.newRepositoryComponent(repository1.getId(),
         MatchState.EXACT, "pathname1", "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
-    RepositoryPolicyViolation policyViolation1 = createPolicyViolationFail(policy1, componentInQuarantine1);
-    RepositoryPolicyViolation policyViolation2 = createPolicyViolationFail(policy2, componentInQuarantine1);
+    RepositoryPolicyViolation policyViolation1 = PolicyViolationTestHelper
+        .createPolicyViolationFail(policy1, componentInQuarantine1, tempEntity);
+    RepositoryPolicyViolation policyViolation2 = PolicyViolationTestHelper
+        .createPolicyViolationFail(policy2, componentInQuarantine1, tempEntity);
     RepositoryComponent componentInQuarantine2 = tempEntity.newRepositoryComponent(repository1.getId(),
         MatchState.EXACT, "pathname2", "hash2", ComponentIdentifier.createMavenCoordinates("g", "a2", "v"), true);
-    RepositoryPolicyViolation policyViolation3 = createPolicyViolationFail(policy1, componentInQuarantine2);
-    RepositoryPolicyViolation policyViolation4 = createPolicyViolationFail(policy2, componentInQuarantine2);
+    RepositoryPolicyViolation policyViolation3 = PolicyViolationTestHelper
+        .createPolicyViolationFail(policy1, componentInQuarantine2, tempEntity);
+    RepositoryPolicyViolation policyViolation4 = PolicyViolationTestHelper
+        .createPolicyViolationFail(policy2, componentInQuarantine2, tempEntity);
 
     Repository repository2 = tempEntity.newRepository("repositoryManager2", "repo2", "maven2");
     RepositoryComponent componentInQuarantine3 = tempEntity.newRepositoryComponent(repository2.getId(),
         MatchState.EXACT, "pathname3", "hash3", ComponentIdentifier.createMavenCoordinates("g", "a3", "v"), true);
-    RepositoryPolicyViolation policyViolation5 = createPolicyViolationFail(policy1, componentInQuarantine3);
-    RepositoryPolicyViolation policyViolation6 = createPolicyViolationFail(policy2, componentInQuarantine3);
+    RepositoryPolicyViolation policyViolation5 = PolicyViolationTestHelper
+        .createPolicyViolationFail(policy1, componentInQuarantine3, tempEntity);
+    RepositoryPolicyViolation policyViolation6 = PolicyViolationTestHelper
+        .createPolicyViolationFail(policy2, componentInQuarantine3, tempEntity);
     RepositoryComponent componentInQuarantine4 = tempEntity.newRepositoryComponent(repository2.getId(),
         MatchState.EXACT, "pathname4", "hash4", ComponentIdentifier.createMavenCoordinates("g", "a4", "v"), true);
-    RepositoryPolicyViolation policyViolation7 = createPolicyViolationFail(policy1, componentInQuarantine4);
-    RepositoryPolicyViolation policyViolation8 = createPolicyViolationFail(policy2, componentInQuarantine4);
+    RepositoryPolicyViolation policyViolation7 = PolicyViolationTestHelper
+        .createPolicyViolationFail(policy1, componentInQuarantine4, tempEntity);
+    RepositoryPolicyViolation policyViolation8 = PolicyViolationTestHelper
+        .createPolicyViolationFail(policy2, componentInQuarantine4, tempEntity);
 
     ApiComponentsInQuarantineDTO componentsInQuarantineDTO = service.getComponentsInQuarantine();
     // sort to guarantee order for assertions
@@ -186,68 +188,6 @@ public class ApiComponentsInQuarantineReportingServiceTest
         componentsInQuarantineDTO.componentsInQuarantine.get(1), repository2, componentInQuarantine3,
         componentInQuarantine4, Arrays.asList(policyViolation5, policyViolation6),
         Arrays.asList(policyViolation7, policyViolation8));
-  }
-
-  private RepositoryPolicyViolation createPolicyViolationFail(Policy policy, RepositoryComponent component) {
-    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation();
-    policyViolation.setRepositoryId(component.getRepositoryId());
-    policyViolation.setPathname(component.getPathname());
-    policyViolation.setTime(new Date());
-    policyViolation.setHash(component.getHash());
-    policyViolation.setComponentIdentifier(component.getComponentIdentifier());
-    policyViolation.setPolicyId(policy.getId());
-    policyViolation.setPolicyName(policy.getName());
-    policyViolation.setThreatLevel(policy.getThreatLevel());
-    policyViolation.setThreatCategory(policy.getThreatCategory());
-    policyViolation.setConstraintFactsJson(createConstraintFactsJsonAndReturn(policy));
-    policyViolation.setActionTypeId(Action.ID_FAIL);
-    return tempEntity.newRepositoryPolicyViolation(policyViolation);
-  }
-
-  private void createPolicyViolationWaived(Policy policy, RepositoryComponent component) {
-    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation();
-    policyViolation.setRepositoryId(component.getRepositoryId());
-    policyViolation.setPathname(component.getPathname());
-    policyViolation.setTime(new Date());
-    policyViolation.setHash(component.getHash());
-    policyViolation.setComponentIdentifier(component.getComponentIdentifier());
-    policyViolation.setPolicyId(policy.getId());
-    policyViolation.setPolicyName(policy.getName());
-    policyViolation.setThreatLevel(policy.getThreatLevel());
-    policyViolation.setThreatCategory(policy.getThreatCategory());
-    policyViolation.setConstraintFactsJson(createConstraintFactsJsonAndReturn(policy));
-    policyViolation.setActionTypeId(Action.ID_FAIL);
-    policyViolation.setWaived(true);
-    policyViolation.setPolicyWaiverId("waiver1");
-    policyViolation.setWaiveTime(new Date());
-    tempEntity.newRepositoryPolicyViolation(policyViolation);
-  }
-
-  private void createPolicyViolationWarn(Policy policy, RepositoryComponent component) {
-    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation();
-    policyViolation.setRepositoryId(component.getRepositoryId());
-    policyViolation.setPathname(component.getPathname());
-    policyViolation.setTime(new Date());
-    policyViolation.setHash(component.getHash());
-    policyViolation.setComponentIdentifier(component.getComponentIdentifier());
-    policyViolation.setPolicyId(policy.getId());
-    policyViolation.setPolicyName(policy.getName());
-    policyViolation.setThreatLevel(policy.getThreatLevel());
-    policyViolation.setThreatCategory(policy.getThreatCategory());
-    policyViolation.setConstraintFactsJson(createConstraintFactsJsonAndReturn(policy));
-    tempEntity.newRepositoryPolicyViolation(policyViolation);
-  }
-
-  private String createConstraintFactsJsonAndReturn(Policy policy) {
-    Constraint constraint = policy.getConstraints().get(0);
-    Condition condition = constraint.getConditions().get(0);
-    TriggerReference triggerReference = new TriggerReference(Type.SECURITY_VULNERABILITY_REFID, "refId");
-    ConstraintFact constraintFact = new ConstraintFact(constraint.getId(), constraint.getName(),
-        constraint.getOperator().toString());
-    constraintFact.addConditionFact(new ConditionFact("", 0, "", "random for condition "
-        + condition.getConditionTypeId(), triggerReference));
-
-    return JsonUtils.writeUnformatted(Collections.singleton(constraintFact));
   }
 
   private void sortApiComponentsInQuarantineDTO(ApiComponentsInQuarantineDTO componentsInQuarantineDTO) {
@@ -311,7 +251,7 @@ public class ApiComponentsInQuarantineReportingServiceTest
 
     ApiPolicyViolationDTOV2 policyViolationDTOV2 = repositoryComponentPolicyViolationDTO.policyViolations.get(0);
 
-    assertApiPolicyViolationDTOV2(policyViolationDTOV2, expectedPolicyViolation);
+    PolicyViolationTestHelper.assertApiPolicyViolationDTOV2(policyViolationDTOV2, expectedPolicyViolation);
   }
 
   private void assertOneRepositoryAndTwoComponentsAndTwoPolicyViolationsForEachComponent(
@@ -330,18 +270,22 @@ public class ApiComponentsInQuarantineReportingServiceTest
         repositoryComponentsInQuarantineDTO.components.get(0);
     assertApiRepositoryComponentDTO(repositoryComponentPolicyViolationDTO.component, firstExpectedComponent);
     assertThat(repositoryComponentPolicyViolationDTO.policyViolations).hasSize(2);
-    assertApiPolicyViolationDTOV2(repositoryComponentPolicyViolationDTO.policyViolations.get(0),
-        firstComponentExpectedPolicyViolations.get(0));
-    assertApiPolicyViolationDTOV2(repositoryComponentPolicyViolationDTO.policyViolations.get(1),
-        firstComponentExpectedPolicyViolations.get(1));
+    PolicyViolationTestHelper
+        .assertApiPolicyViolationDTOV2(repositoryComponentPolicyViolationDTO.policyViolations.get(0),
+            firstComponentExpectedPolicyViolations.get(0));
+    PolicyViolationTestHelper
+        .assertApiPolicyViolationDTOV2(repositoryComponentPolicyViolationDTO.policyViolations.get(1),
+            firstComponentExpectedPolicyViolations.get(1));
 
     repositoryComponentPolicyViolationDTO = repositoryComponentsInQuarantineDTO.components.get(1);
     assertApiRepositoryComponentDTO(repositoryComponentPolicyViolationDTO.component, secondExpectedComponent);
     assertThat(repositoryComponentPolicyViolationDTO.policyViolations).hasSize(2);
-    assertApiPolicyViolationDTOV2(repositoryComponentPolicyViolationDTO.policyViolations.get(0),
-        secondComponentExpectedPolicyViolations.get(0));
-    assertApiPolicyViolationDTOV2(repositoryComponentPolicyViolationDTO.policyViolations.get(1),
-        secondComponentExpectedPolicyViolations.get(1));
+    PolicyViolationTestHelper
+        .assertApiPolicyViolationDTOV2(repositoryComponentPolicyViolationDTO.policyViolations.get(0),
+            secondComponentExpectedPolicyViolations.get(0));
+    PolicyViolationTestHelper
+        .assertApiPolicyViolationDTOV2(repositoryComponentPolicyViolationDTO.policyViolations.get(1),
+            secondComponentExpectedPolicyViolations.get(1));
   }
 
   private void assertApiRepositoryDTO(ApiRepositoryDTO repositoryDTO, Repository expectedRepository) {
@@ -370,32 +314,5 @@ public class ApiComponentsInQuarantineReportingServiceTest
     assertThat(repositoryComponentDTO.quarantineId).isEqualTo(expectedComponent.getId());
     assertThat(repositoryComponentDTO.quarantineTime).isEqualTo(expectedComponent.getQuarantineTime());
     assertThat(repositoryComponentDTO.quarantineReleaseTime).isNull();
-  }
-
-  private void assertApiPolicyViolationDTOV2(
-      ApiPolicyViolationDTOV2 policyViolationDTOV2,
-      RepositoryPolicyViolation expectedPolicyViolation)
-  {
-    assertThat(policyViolationDTOV2.policyId).isEqualTo(expectedPolicyViolation.getPolicyId());
-    assertThat(policyViolationDTOV2.policyName).isEqualTo(expectedPolicyViolation.getPolicyName());
-    assertThat(policyViolationDTOV2.threatLevel).isEqualTo(expectedPolicyViolation.getThreatLevel());
-    assertThat(policyViolationDTOV2.policyViolationId).isEqualTo(expectedPolicyViolation.getId());
-    assertApiConstraintViolationDTO(policyViolationDTOV2.constraintViolations,
-        expectedPolicyViolation.getConstraintFacts().get(0));
-  }
-
-  private void assertApiConstraintViolationDTO(
-      List<ApiConstraintViolationDTO> constraintViolationDTOs,
-      ConstraintFact expectedConstraintFact)
-  {
-    assertThat(constraintViolationDTOs).hasSize(1);
-    ApiConstraintViolationDTO constraintViolationDTO = constraintViolationDTOs.get(0);
-    assertThat(constraintViolationDTO.constraintId).isEqualTo(expectedConstraintFact.getConstraintId());
-    assertThat(constraintViolationDTO.constraintName).isEqualTo(expectedConstraintFact.getConstraintName());
-    assertThat(constraintViolationDTO.reasons.get(0).reason)
-        .isEqualTo(expectedConstraintFact.getConditionFacts().get(0).getReason());
-    TriggerReference triggerReference = expectedConstraintFact.getConditionFacts().get(0).getReference();
-    assertThat(constraintViolationDTO.reasons.get(0).reference.type).isEqualTo(triggerReference.getType().toString());
-    assertThat(constraintViolationDTO.reasons.get(0).reference.value).isEqualTo(triggerReference.getValue());
   }
 }

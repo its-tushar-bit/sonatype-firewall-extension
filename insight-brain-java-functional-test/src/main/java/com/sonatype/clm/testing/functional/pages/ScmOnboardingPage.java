@@ -47,6 +47,18 @@ public class ScmOnboardingPage
     return child(".nx-alert--load-error");
   }
 
+  public SelenideElement loadErrorLink() {
+    return child(".nx-alert--load-error a");
+  }
+
+  public SelenideElement hostUrlAuthError() {
+    return child(".nx-modal .nx-alert--error");
+  }
+
+  public SelenideElement hostUrlAuthErrorLink() {
+    return child(".nx-modal .nx-alert--error a");
+  }
+
   public SelenideElement loadErrorAnchor() {
     return child(".nx-alert--load-error a");
   }

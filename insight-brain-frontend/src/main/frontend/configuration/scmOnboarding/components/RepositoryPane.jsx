@@ -19,6 +19,7 @@ import NewOrganizationModal from './NewOrganizationModal';
 import LoadError from '../../../react/LoadError';
 import GitHostModal from './GitHostModal';
 import {displayName} from '../utils/providers';
+import CredentialsError from './CredentialsError';
 
 /*
  The tile which contains the repository list and all other associated UI elements
@@ -35,7 +36,6 @@ export default function RepositoryPane(props) {
     generalError,
     addOrganizationError,
     isNewOrganizationModalVisible,
-    scmConfigurationHref,
     scmProvider,
     currentHostUrlState,
     defaultHostUrl,
@@ -91,10 +91,7 @@ export default function RepositoryPane(props) {
   };
 
   const scmAuthenticationErrorFragment = error => (
-    <Fragment>
-      {error.message}. You can update your login credentials{' '}<a href={scmConfigurationHref}>here</a>.
-    </Fragment>
-      ),
+    <CredentialsError { ...{error, $state, selectedOrganization}} />),
       resultsTableError = loadRepoGitHostMessage(isGitHostNeeded ? gitHostUrlMessage() :
         loadRepositoriesAuthError ? scmAuthenticationErrorFragment(loadRepositoriesAuthError) :
           generalError ? generalError.message : null);

@@ -10,6 +10,8 @@ import {organizationPropType} from '../ScmOnboarding';
 import {textInputPropType} from './ImportApplicationsForm';
 import {hasValidationErrors} from '../../../util/validationUtil';
 import {validateHostUrl} from '../utils/validators';
+import CredentialsError from './CredentialsError';
+import LoadWrapper from '../../../react/LoadWrapper';
 /*
  The dialog which prompts users for a base host URL
  */
@@ -22,10 +24,12 @@ export default function GitHostModal(props) {
     setCurrentHostUrl,
     validateScmHostUrl,
     loadRepositories,
+    loadRepositoriesAuthError,
     isGitHostDialogVisible,
     setShowHostDialog,
     setIsGitHostNeeded,
-    errorText
+    errorText,
+    $state
   } = props;
 
   const onCancelClicked = () => {
@@ -47,7 +51,14 @@ export default function GitHostModal(props) {
 
   const errorMessage = () => {
     return (
-      <NxErrorAlert>{errorText}</NxErrorAlert>
+      loadRepositoriesAuthError
+        ? <NxErrorAlert>
+          <CredentialsError
+              $state={$state}
+              error={loadRepositoriesAuthError}
+              selectedOrganization={selectedOrganization} />
+        </NxErrorAlert>
+        : <NxErrorAlert>{errorText}</NxErrorAlert>
     );
   };
 
@@ -95,5 +106,7 @@ GitHostModal.propTypes = {
   isGitHostDialogVisible: PropTypes.bool,
   setShowHostDialog: PropTypes.func,
   errorText: PropTypes.object,
-  setIsGitHostNeeded: PropTypes.func
+  setIsGitHostNeeded: PropTypes.func,
+  $state: PropTypes.object.isRequired,
+  loadRepositoriesAuthError: LoadWrapper.propTypes.error
 };

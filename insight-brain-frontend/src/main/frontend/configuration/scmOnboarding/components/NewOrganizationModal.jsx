@@ -14,6 +14,16 @@ import {validateNonEmpty} from '../../../util/validationUtil';
 import LoadError from '../../../react/LoadError';
 import {Messages} from '../../../util/CommonServices';
 
+/*
+ * Displays a modal to allow creation of a new IQ organization.
+ *
+ * * setIsNewOrganizationModalVisible is a function to close the modal
+ * * addOrganization is a function to create a new organization
+ * * addOrganizationError is displayed in case of an error
+ *
+ * This component currently lives within scmOnboarding but the intention is that i can be used as generic component in
+ * IQ. See https://issues.sonatype.org/browse/INT-4524
+ */
 function NewOrganizationModal({setIsNewOrganizationModalVisible, addOrganization, addOrganizationError}) {
 
   const validateOrgNameChange = (val) => reject(isNil, [validateNonEmpty(val)]);

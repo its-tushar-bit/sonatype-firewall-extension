@@ -17,6 +17,7 @@ import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.ScmOnboardingPage;
 import com.sonatype.clm.testing.functional.pages.ScmOnboardingPage.OrganizationsDropdownMenu;
+import com.sonatype.clm.testing.functional.pages.SourceControlEditorPage;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -1329,5 +1330,64 @@ public class ScmOnboardingTest
     scmOnboardingPage.organizationsDropdown().selectedOrganization().shouldHave(text("Foo Organization"));
     scmOnboardingPage.loadingSpinner().shouldNotBe(visible);
     scmOnboardingPage.resultsTableProject().shouldHaveSize(13);
+  }
+
+  @Test
+  public void testHostModal_scmAuthenticationFailure_rootToken() throws Exception {
+    // given an SCM with authentication failure
+    setupSourceControl();
+    gitService.stubFor(get(urlPathEqualTo("/api/v3/user/repos"))
+        .willReturn(aResponse().withStatus(HttpStatus.SC_UNAUTHORIZED)));
+
+    // when the scm onboarding page is opened
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
+    loginAsAdmin();
+
+    // then an authentication error is displayed inside the results table
+    String expectedUrl = SourceControlEditorPage.url("organization", ROOT_ORGANIZATION_ID);
+    scmOnboardingPage.loadError().shouldHave(text("An error occurred loading data. Authentication with github failed." +
+        " You can update your login credentials here."));
+    scmOnboardingPage.loadErrorLink().shouldHave(attribute("href", expectedUrl));
+
+    // and an authentication error is displayed in the host URL modal
+    scmOnboardingPage.hostUrlAuthError().shouldHave(text("Authentication with github failed." +
+        " You can update your login credentials here."));
+    scmOnboardingPage.hostUrlAuthErrorLink().shouldHave(attribute("href", expectedUrl));
+  }
+
+  @Test
+  public void testHostModal_scmAuthenticationFailure_tokenOverride() throws Exception {
+    // given an SCM with authentication failure
+    setupSourceControl();
+    setupMockRepos();
+    gitService.stubFor(get(urlPathEqualTo("/api/v3/user/repos"))
+        .willReturn(aResponse().withStatus(HttpStatus.SC_UNAUTHORIZED)));
+
+    // given an org that overrides the token
+    Organization orgCustomToken = tempEntity.newOrganization("Custom Host");
+    String encryptedPwd = new String(pwHandler.encryptPassword("password".toCharArray()));
+    tempEntity.newSourceControl(orgCustomToken.getId(), null, encryptedPwd, null);
+
+    // when the scm onboarding page is opened
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url(orgCustomToken.getId()));
+    loginAsAdmin();
+    scmOnboardingPage.hostUrl().setValue(gitService.baseUrl());
+    scmOnboardingPage.hostUrl().shouldHave(value(gitService.baseUrl()));
+    scmOnboardingPage.hostUrlInvalidMessage().shouldNotBe(visible);
+    scmOnboardingPage.hostUrlContinueButton().shouldBe(enabled).click();
+
+    // then an authentication error is displayed inside the results table
+    String expectedUrl = SourceControlEditorPage.url("organization", orgCustomToken.getId());
+    scmOnboardingPage.loadError().shouldHave(text("An error occurred loading data. Authentication with github failed." +
+        " You can update your login credentials here."));
+    scmOnboardingPage.loadErrorLink().shouldHave(attribute("href", expectedUrl));
+
+    // and an authentication error is displayed in the host URL modal
+    scmOnboardingPage.hostUrlAuthError().shouldHave(text("Authentication with github failed." +
+        " You can update your login credentials here."));
+    scmOnboardingPage.hostUrlAuthErrorLink().shouldHave(attribute("href", expectedUrl));
+
   }
 }

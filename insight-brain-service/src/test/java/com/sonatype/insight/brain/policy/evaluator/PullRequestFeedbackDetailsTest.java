@@ -704,7 +704,10 @@ public class PullRequestFeedbackDetailsTest
     //setup remediationVersionMap
     remediationVersionMap = new HashMap<>();
     ComponentIdentifier ci = ComponentIdentifier.createMavenCoordinates("com.h2database", "h2", "1.4.190", "", "jar");
-    remediationVersionMap.put(ci, new RemediationVersionDTO("1.4.200"));
+    remediationVersionMap.put(ci, new RemediationVersionDTO("1.4.200", 3));
+    ComponentIdentifier ci2 = ComponentIdentifier
+        .createMavenCoordinates("org.springframework.security", "spring-security-web", "4.2.3.RELEASE", "", "jar");
+    remediationVersionMap.put(ci2, new RemediationVersionDTO("4.5.0.RELEASE"));
 
     //setup pullRequestLineComments
     pullRequestLineComments = new ArrayList<>();

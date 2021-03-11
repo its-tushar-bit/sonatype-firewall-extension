@@ -252,22 +252,32 @@ public class PullRequestFeedbackDetails
     return componentPolicyViolationsMap
         .entrySet()
         .stream()
-        .map(componentEntry -> ImmutableMap.<String, Object>builder()
-            .put("componentNameAndVersion",
-                sourceControlComponentDetails.getComponentInfo(componentEntry.getKey()).getDisplayName())
-            .put("dependencyLogo",
-                sourceControlComponentDetails.getComponentInfo(componentEntry.getKey()).getDirectDependency() ==
-                    null ? BLANK_LOGO :
-                    sourceControlComponentDetails.getComponentInfo(componentEntry.getKey()).getDirectDependency() ?
-                        D_LOGO : T_LOGO
-            )
-            .put("highestThreatLevel",
-                getHighestThreatLevel(componentEntry.getValue()))
-            .put("suggestedVersion", getSuggestedVersion(remediationVersionMap, componentEntry.getValue()))
-            .put("lineCommentLink",
-                getLineCommentLink(pullRequestLineComments, componentEntry.getValue(), gitRepositoryInfo, prNumber))
-            .put("policiesViolated", getPoliciesViolatedMap(componentEntry.getValue(), baseUrl, true))
-            .build())
+        .map(componentEntry -> {
+          RemediationVersionDTO remediationVersionDTO =
+              getSuggestedVersion(remediationVersionMap, componentEntry.getValue());
+          String suggestedVersion = remediationVersionDTO != null ? remediationVersionDTO.getVersion() : "";
+          int breakingChangesCount = -1;
+          if (remediationVersionDTO != null && remediationVersionDTO.getBreakingChangesCount() != null) {
+            breakingChangesCount = remediationVersionDTO.getBreakingChangesCount();
+          }
+          return ImmutableMap.<String, Object>builder()
+              .put("componentNameAndVersion",
+                  sourceControlComponentDetails.getComponentInfo(componentEntry.getKey()).getDisplayName())
+              .put("dependencyLogo",
+                  sourceControlComponentDetails.getComponentInfo(componentEntry.getKey()).getDirectDependency() ==
+                      null ? BLANK_LOGO :
+                      sourceControlComponentDetails.getComponentInfo(componentEntry.getKey()).getDirectDependency() ?
+                          D_LOGO : T_LOGO
+              )
+              .put("highestThreatLevel",
+                  getHighestThreatLevel(componentEntry.getValue()))
+              .put("suggestedVersion", suggestedVersion)
+              .put("breakingChangesCount", breakingChangesCount)
+              .put("lineCommentLink",
+                  getLineCommentLink(pullRequestLineComments, componentEntry.getValue(), gitRepositoryInfo, prNumber))
+              .put("policiesViolated", getPoliciesViolatedMap(componentEntry.getValue(), baseUrl, true))
+              .build();
+        })
         .sorted(
             (o1, o2) -> Integer.compare((Integer) o2.get("highestThreatLevel"), (Integer) o1.get("highestThreatLevel")))
         .collect(Collectors.toList());
@@ -323,19 +333,15 @@ public class PullRequestFeedbackDetails
     return linkUrl;
   }
 
-  private static String getSuggestedVersion(
+  private static RemediationVersionDTO getSuggestedVersion(
       final Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap,
       final List<PolicyViolation> violationList)
   {
-    String version = "";
     ComponentIdentifier identifier = getComponentIdentifier(violationList);
     if (identifier != null) {
-      RemediationVersionDTO remediationVersion = remediationVersionMap.get(identifier);
-      if (remediationVersion != null && StringUtils.isNotEmpty(remediationVersion.getVersion())) {
-        version = remediationVersion.getVersion();
-      }
+      return remediationVersionMap.get(identifier);
     }
-    return version;
+    return null;
   }
 
   private static ComponentIdentifier getComponentIdentifier(final List<PolicyViolation> violationList) {

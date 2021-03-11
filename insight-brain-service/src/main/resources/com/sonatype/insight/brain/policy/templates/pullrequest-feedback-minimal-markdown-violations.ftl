@@ -1,3 +1,4 @@
+<#include "iq-for-scm-common.ftl">
 <#if ( policiesViolatedCount > 0 )><#t>
 ### :thinking_face: Nexus IQ found <#if ( policiesViolatedCount > 1 )>multiple policy violations<#else>a policy violation</#if> introduced by this PR:
 
@@ -15,6 +16,7 @@
 
   <#if component.suggestedVersion?has_content>
     :shield: **Bumping to version ${component.suggestedVersion}** will resolve <#if ( component.policiesViolated?size > 1 )>these violations<#else>this violation</#if><#lt>
+    <@breakingChanges count=component.breakingChangesCount minimalMarkdown=true />
   <#else>
     :warning: No recommended versions are available for this component<#lt>
   </#if>

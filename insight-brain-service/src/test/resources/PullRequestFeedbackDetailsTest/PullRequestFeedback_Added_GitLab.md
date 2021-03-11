@@ -8,6 +8,7 @@ com.h2database : h2 : 1.4.190</b> - <a href="https://gitlab.com/sonatype/enhance
 <p></p>
 
 :shield: **Bumping to version 1.4.200** will resolve these violations
+  - <img alt="Few breaking changes" src="https://cdn.sonatype.com/iq-for-scm/1.0/orange-bar.png" width="14" height="14">&nbsp; Few breaking changes - This version upgrade may require moderate effort.
 
 Threat (of 10) | Policy | Violation Details
 --- | --- | --- |
@@ -23,7 +24,7 @@ Threat (of 10) | Policy | Violation Details
 org.springframework.security : spring-security-web : 4.2.3.RELEASE</b></summary>
 <p></p>
 
-:warning: No recommended versions are available for this component
+:shield: **Bumping to version 4.5.0.RELEASE** will resolve these violations
 
 Threat (of 10) | Policy | Violation Details
 --- | --- | --- |

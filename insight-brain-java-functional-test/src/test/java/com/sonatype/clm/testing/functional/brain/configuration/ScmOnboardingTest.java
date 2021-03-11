@@ -282,9 +282,6 @@ public class ScmOnboardingTest
     // then an authentication error is displayed
     scmOnboardingPage.gitHostError().shouldHave(text("Authentication with GitHub failed. " +
             "You can update your login credentials here."));
-    scmOnboardingPage.gitHostError().shouldHave(text("IQ Server was unable to connect to " +
-        gitService.baseUrl() + ". You may try a different host URL or manage your SCM configuration " +
-            "in the Orgs & Policies page."));
 
     // when authentication is fixed and retry button is pressed
     removeStub(stubMapping);
@@ -313,9 +310,6 @@ public class ScmOnboardingTest
     scmOnboardingPage.loadError().shouldHave(text("An error occurred loading data. Permission denied by GitHub."));
     scmOnboardingPage.gitHostError().shouldHave(text("Permission denied by GitHub. " +
         "You can update your login credentials here."));
-    scmOnboardingPage.gitHostError().shouldHave(text("IQ Server was unable to connect to " +
-        gitService.baseUrl() + ". You may try a different host URL or manage your SCM configuration " +
-        "in the Orgs & Policies page."));
   }
 
   @Test

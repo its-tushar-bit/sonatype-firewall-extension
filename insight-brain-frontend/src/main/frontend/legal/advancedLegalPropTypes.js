@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as PropTypes from 'prop-types';
+import LoadWrapper from '../react/LoadWrapper';
 
 export const applicationPropType = PropTypes.shape({
   applicationId: PropTypes.string.isRequired,
@@ -12,6 +13,17 @@ export const applicationPropType = PropTypes.shape({
   applicationTagNames: PropTypes.arrayOf(PropTypes.string).isRequired,
   componentsReviewedCount: PropTypes.number.isRequired,
   componentsTotalCount: PropTypes.number.isRequired
+});
+
+export const applicationsTabPropType = PropTypes.shape({
+  results: PropTypes.arrayOf(applicationPropType).isRequired,
+  totalResultsCount: PropTypes.number.isRequired,
+  backendPage: PropTypes.number.isRequired,
+  error: LoadWrapper.propTypes.error,
+  loading: PropTypes.bool,
+  sortField: PropTypes.oneOf([
+    'APPLICATION_NAME_ASC', 'APPLICATION_NAME_DESC', 'LAST_SCAN_TIME_ASC', 'LAST_SCAN_TIME_DESC', 'TAG_NAMES_ASC',
+    'TAG_NAMES_DESC', null])
 });
 
 export const legalFilesPropType = PropTypes.arrayOf(PropTypes.shape({

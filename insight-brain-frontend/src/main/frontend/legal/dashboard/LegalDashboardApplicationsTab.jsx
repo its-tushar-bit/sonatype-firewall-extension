@@ -15,13 +15,17 @@ import {
 import * as PropTypes from 'prop-types';
 import { slice } from 'ramda';
 import LegalDashboardApplicationRow from './LegalDashboardApplicationRow';
-import { applicationPropType } from '../advancedLegalPropTypes';
+import { applicationsTabPropType } from '../advancedLegalPropTypes';
 import { DASHBOARD } from '../advancedLegalConstants';
 import { isNilOrEmpty } from '../../util/jsUtil';
-import LoadWrapper from '../../react/LoadWrapper';
 import { Messages } from '../../util/CommonServices';
 
-export default function LegalDashboardApplicationsTab({ applications, filtersAreDirty, fetchBackendPage }) {
+export default function LegalDashboardApplicationsTab({
+  applications,
+  filtersAreDirty,
+  fetchBackendPage,
+  changeSortField
+}) {
   const [page, setPage] = useState(0);
   const { itemsPerPage, pagesToFill } = DASHBOARD.applications;
   const previousResultsBackend = (applications.backendPage - 1) * pagesToFill * itemsPerPage;
@@ -38,15 +42,46 @@ export default function LegalDashboardApplicationsTab({ applications, filtersAre
     }
   }
 
+  function getSortDir(fieldName) {
+    const { sortField } = applications;
+    if (sortField && sortField.startsWith(fieldName)) {
+      return sortField.endsWith('ASC') ? 'asc' : 'desc';
+    }
+    return null;
+  }
+
+  function sort(fieldName) {
+    let newSortField = '';
+    switch (getSortDir(fieldName)) {
+      case 'asc':
+        newSortField = `${fieldName}_DESC`;
+        break;
+      case 'desc':
+        newSortField = null;
+        break;
+      default:
+        newSortField = `${fieldName}_ASC`;
+        break;
+    }
+    changeSortField('applications', newSortField);
+    setPage(0);
+  }
+
   return (
     <div className="nx-scrollable nx-table-container nx-viewport-sized__scrollable">
       { filtersAreDirty && <div className="form-mask" /> }
       <NxTable id="legal-dashboard-applications-table" className="legal-dashboard-table">
         <NxTableHead>
           <NxTableRow>
-            <NxTableCell>Application</NxTableCell>
-            <NxTableCell>Last Scan</NxTableCell>
-            <NxTableCell>App Categories</NxTableCell>
+            <NxTableCell isSortable sortDir={getSortDir('APPLICATION_NAME')} onClick={() => sort('APPLICATION_NAME')}>
+              Application
+            </NxTableCell>
+            <NxTableCell isSortable sortDir={getSortDir('LAST_SCAN_TIME')} onClick={() => sort('LAST_SCAN_TIME')}>
+              Last Scan
+            </NxTableCell>
+            <NxTableCell isSortable sortDir={getSortDir('TAG_NAMES')} onClick={() => sort('TAG_NAMES')}>
+              App Categories
+            </NxTableCell>
             <NxTableCell>Components Reviewed</NxTableCell>
           </NxTableRow>
         </NxTableHead>
@@ -68,14 +103,8 @@ export default function LegalDashboardApplicationsTab({ applications, filtersAre
 }
 
 LegalDashboardApplicationsTab.propTypes = {
-  applications: PropTypes.shape({
-    results: PropTypes.arrayOf(applicationPropType).isRequired,
-    totalResultsCount: PropTypes.number.isRequired,
-    backendPage: PropTypes.number.isRequired,
-    error: LoadWrapper.propTypes.error,
-    loading: PropTypes.bool,
-    sortFields: PropTypes.arrayOf(applicationPropType)
-  }),
+  applications: applicationsTabPropType,
   fetchBackendPage: PropTypes.func.isRequired,
-  filtersAreDirty: PropTypes.bool
+  filtersAreDirty: PropTypes.bool,
+  changeSortField: PropTypes.func.isRequired
 };

@@ -59,7 +59,7 @@ describe('legalDashboardFilterActions', function() {
     legalDashboard: {
       currentTab: 'applications',
       components: {sortFields: ['-score']},
-      applications: {sortFields: ['-totalApplicationRisk.totalRisk']}
+      applications: {sortField: null}
     }
   };
 
@@ -70,7 +70,8 @@ describe('legalDashboardFilterActions', function() {
     tagIds: [],
     reviewStatus: [],
     page: 1,
-    pageSize: DASHBOARD.applications.itemsPerPage * DASHBOARD.applications.pagesToFill
+    pageSize: DASHBOARD.applications.itemsPerPage * DASHBOARD.applications.pagesToFill,
+    order: null
   };
 
   describe('loadFilter', function() {

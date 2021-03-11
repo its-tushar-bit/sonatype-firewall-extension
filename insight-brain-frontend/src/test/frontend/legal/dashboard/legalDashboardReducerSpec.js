@@ -9,7 +9,8 @@ import {
   LEGAL_DASHBOARD_LOAD_RESULTS_FAILED,
   LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED,
   LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED,
-  LEGAL_DASHBOARD_FETCH_BACKEND_PAGE
+  LEGAL_DASHBOARD_FETCH_BACKEND_PAGE,
+  LEGAL_DASHBOARD_CHANGE_SORT_FIELD
 } from '../../../../main/frontend/legal/dashboard/legalDashboardActions';
 
 const otherObject = {value: 'test value'};
@@ -31,7 +32,7 @@ describe('legalDashboardReducer', function () {
       expect(newState.applications).toEqual({
         results: [],
         error: null,
-        sortFields: [],
+        sortField: null,
         totalResultsCount: 0,
         backendPage: 1,
         loading: false
@@ -39,7 +40,7 @@ describe('legalDashboardReducer', function () {
       expect(newState.components).toEqual({
         results: [],
         error: null,
-        sortFields: []
+        sortField: null
       });
     });
   });
@@ -135,6 +136,27 @@ describe('legalDashboardReducer', function () {
       };
       const newState = legalDashboardReducer(state, action);
       expect(newState.applications.backendPage).toBe(action.payload.page);
+      expect(newState.components).toBe(state.components);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+  describe('LEGAL_DASHBOARD_CHANGE_SORT_FIELD action', function() {
+    it('sets the sort field in applications state', function() {
+      const state = Object.freeze({
+        components: {error: {}},
+        applications: {error: null},
+        currentTab: 'applications',
+        other: otherObject
+      });
+      const action = {
+        type: LEGAL_DASHBOARD_CHANGE_SORT_FIELD,
+        payload: {
+          resultsType: 'applications',
+          sortField: 'LAST_SCAN_TIME_ASC'
+        }
+      };
+      const newState = legalDashboardReducer(state, action);
+      expect(newState.applications.sortField).toBe(action.payload.sortField);
       expect(newState.components).toBe(state.components);
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });

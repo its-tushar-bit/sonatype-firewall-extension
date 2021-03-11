@@ -10,7 +10,7 @@ import LegalDashboardComponentsTab from './LegalDashboardComponentsTab';
 import * as PropTypes from 'prop-types';
 import LegalDashboardFilterContainer from './filter/LegalDashboardFilterContainer';
 import LoadWrapper from '../../react/LoadWrapper';
-import { applicationPropType } from '../advancedLegalPropTypes';
+import { applicationsTabPropType } from '../advancedLegalPropTypes';
 
 export default function LegalDashboardPage(props) {
   const {
@@ -21,7 +21,8 @@ export default function LegalDashboardPage(props) {
     loading,
     loadError,
     isAuthorized,
-    fetchBackendPage
+    fetchBackendPage,
+    changeSortField
   } = props;
 
   const authErrorMessage = `It appears you do not have permission to access this page.
@@ -52,7 +53,8 @@ export default function LegalDashboardPage(props) {
                 <NxTabPanel className="nx-viewport-sized__container">
                   <LegalDashboardApplicationsTab applications = { applications }
                                                  fetchBackendPage = { fetchBackendPage }
-                                                 filtersAreDirty = { filtersAreDirty } />
+                                                 filtersAreDirty = { filtersAreDirty }
+                                                 changeSortField = { changeSortField } />
                 </NxTabPanel>
                 <NxTabPanel className="nx-viewport-sized__container">
                   <LegalDashboardComponentsTab components = { components }
@@ -68,19 +70,13 @@ export default function LegalDashboardPage(props) {
 }
 
 LegalDashboardPage.propTypes = {
-  applications: PropTypes.shape({
-    results: PropTypes.arrayOf(applicationPropType).isRequired,
-    totalResultsCount: PropTypes.number.isRequired,
-    backendPage: PropTypes.number.isRequired,
-    error: LoadWrapper.propTypes.error,
-    loading: PropTypes.bool,
-    sortFields: PropTypes.arrayOf(applicationPropType)
-  }),
+  applications: applicationsTabPropType,
   components: PropTypes.any,
   filtersAreDirty: PropTypes.bool,
   loadResults: PropTypes.func,
   isAuthorized: PropTypes.bool,
   loading: PropTypes.bool.isRequired,
   loadError: LoadWrapper.propTypes.error,
-  fetchBackendPage: PropTypes.func.isRequired
+  fetchBackendPage: PropTypes.func.isRequired,
+  changeSortField: PropTypes.func.isRequired
 };

@@ -8,7 +8,8 @@ import {
   LEGAL_DASHBOARD_LOAD_RESULTS_FAILED,
   LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED,
   LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED,
-  LEGAL_DASHBOARD_FETCH_BACKEND_PAGE
+  LEGAL_DASHBOARD_FETCH_BACKEND_PAGE,
+  LEGAL_DASHBOARD_CHANGE_SORT_FIELD
 } from './legalDashboardActions';
 import {
   LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED,
@@ -22,12 +23,12 @@ const initState = {
     backendPage: 1,
     error: null,
     loading: false,
-    sortFields: []
+    sortField: null
   },
   components: {
     results: [],
     error: null,
-    sortFields: []
+    sortField: null
   },
   loading: false,
   loadError: null
@@ -57,16 +58,22 @@ export default function(state = initState, {type, payload}) {
       return updateResults(state, resultsType, { backendPage: page });
     }
 
+    case LEGAL_DASHBOARD_CHANGE_SORT_FIELD: {
+      const {resultsType, sortField} = payload;
+      return updateResults(state, resultsType, { sortField: sortField });
+    }
+
     default:
       return state;
   }
 }
 
 function resetResults(state, resultsType) {
-  const { backendPage } = state[resultsType];
+  const { backendPage, sortField } = state[resultsType];
   const results = resetTabState(state[resultsType]);
   results.loading = true;
   results.backendPage = backendPage;
+  results.sortField = sortField;
   return {...state, [resultsType]: results};
 }
 
@@ -78,7 +85,7 @@ function resetTabState(tabState) {
     backendPage: 1,
     error: null,
     loading: false,
-    sortFields: []
+    sortField: null
   };
 }
 

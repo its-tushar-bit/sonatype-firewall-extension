@@ -13,8 +13,10 @@ export const LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED = 'LEGAL_DASHBOARD_LOAD_RESU
 export const LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED = 'LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED';
 export const LEGAL_DASHBOARD_LOAD_RESULTS_FAILED = 'LEGAL_DASHBOARD_LOAD_RESULTS_FAILED';
 export const LEGAL_DASHBOARD_FETCH_BACKEND_PAGE = 'LEGAL_DASHBOARD_FETCH_BACKEND_PAGE';
+export const LEGAL_DASHBOARD_CHANGE_SORT_FIELD = 'LEGAL_DASHBOARD_CHANGE_SORT_FIELD';
 
-const loadLegalFetchBackendPage = payloadParamActionCreator(LEGAL_DASHBOARD_FETCH_BACKEND_PAGE);
+const legalDashboardFetchBackendPage = payloadParamActionCreator(LEGAL_DASHBOARD_FETCH_BACKEND_PAGE);
+const legalDashboardChangeSortField = payloadParamActionCreator(LEGAL_DASHBOARD_CHANGE_SORT_FIELD);
 
 function loadResultsFulfilled(resultsType, results) {
   return {
@@ -58,7 +60,8 @@ function fetchResults(resultsType, state) {
     tagIds: Array.from(categories),
     reviewStatus: Array.from(progressOptions),
     page: backendPage,
-    pageSize: DASHBOARD[resultsType].itemsPerPage * DASHBOARD[resultsType].pagesToFill
+    pageSize: DASHBOARD[resultsType].itemsPerPage * DASHBOARD[resultsType].pagesToFill,
+    order: state.legalDashboard[resultsType].sortField
   };
 
   const serviceMethod = getServiceMethod(resultsType);
@@ -77,7 +80,14 @@ function getServiceMethod(resultsType) {
 
 export function fetchBackendPage(resultsType, page) {
   return (dispatch) => {
-    dispatch(loadLegalFetchBackendPage({ resultsType, page }));
+    dispatch(legalDashboardFetchBackendPage({ resultsType, page }));
     return dispatch(loadResults(resultsType));
+  };
+}
+
+export function changeSortField(resultsType, sortField) {
+  return (dispatch) => {
+    dispatch(legalDashboardChangeSortField({ resultsType, sortField }));
+    return dispatch(fetchBackendPage(resultsType, 1));
   };
 }

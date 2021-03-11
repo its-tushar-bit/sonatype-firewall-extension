@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../../enzymeUtils';
-import { NxPagination, NxTable } from '@sonatype/react-shared-components';
+import { NxPagination, NxTable, NxTableCell, NxTableHead } from '@sonatype/react-shared-components';
 import LegalDashboardApplicationsTab from '../../../../main/frontend/legal/dashboard/LegalDashboardApplicationsTab';
 import LegalDashboardApplicationRow from '../../../../main/frontend/legal/dashboard/LegalDashboardApplicationRow';
 import { DASHBOARD } from '../../../../main/frontend/legal/advancedLegalConstants';
@@ -36,7 +36,8 @@ describe('LegalDashboardApplicationsTab component', function() {
       totalResultsCount: 2,
       backendPage: 1
     },
-    fetchBackendPage: () => {}
+    fetchBackendPage: () => {},
+    changeSortField: () => {}
   };
 
   beforeEach(function() {
@@ -113,5 +114,35 @@ describe('LegalDashboardApplicationsTab component', function() {
 
     onChangePage(pagesToFill * 2);
     expect(appProps.fetchBackendPage).toHaveBeenCalledWith('applications', 3);
+  });
+
+  it('changes the sortField properly', function() {
+    spyOn(minimalProps, 'changeSortField');
+    const wrapper = getShallowComponent();
+    const table = wrapper.find(NxTable);
+    const tableHeadCells = table.find(NxTableHead).find(NxTableCell);
+
+    expect(tableHeadCells).toExist();
+    expect(tableHeadCells.length).toBe(4);
+
+    const expectedResults = ['APPLICATION_NAME', 'LAST_SCAN_TIME', 'TAG_NAMES'];
+
+    for (let index = 0; index < 3; index++) {
+      const onClickSort = tableHeadCells.at(index).prop('onClick');
+
+      onClickSort();
+      let expectedResult = `${expectedResults[index]}_ASC`;
+      expect(minimalProps.changeSortField).toHaveBeenCalledWith('applications', expectedResult);
+      minimalProps.applications.sortField = expectedResult;
+
+      onClickSort();
+      expectedResult = `${expectedResults[index]}_DESC`;
+      expect(minimalProps.changeSortField).toHaveBeenCalledWith('applications', expectedResult);
+      minimalProps.applications.sortField = expectedResult;
+
+      onClickSort();
+      expectedResult = null;
+      expect(minimalProps.changeSortField).toHaveBeenCalledWith('applications', expectedResult);
+    }
   });
 });

@@ -3,7 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { loadResults, fetchBackendPage } from '../../../../main/frontend/legal/dashboard/legalDashboardActions';
+import {
+  loadResults,
+  fetchBackendPage,
+  changeSortField
+} from '../../../../main/frontend/legal/dashboard/legalDashboardActions';
 import axios from 'axios';
 import { getLegalDashboardApplicationsUrl } from '../../../../main/frontend/util/CLMLocation';
 
@@ -129,7 +133,53 @@ describe('legalDashboardActions', function () {
       });
     }
 
+    function testChangeSortFieldAction(tab) {
+      describe('changeSortField for ' + tab.resultsType, function() {
+        it('sets the sort field value', function(done) {
+          const store = SpecUtil.mockReduxStore(initialState);
+
+          mockAxiosCalls({
+            post: {
+              [getLegalDashboardApplicationsUrl()]: Promise.resolve({ data: 'results' })
+            }
+          });
+
+          store.dispatch(changeSortField(tab.resultsType, 'TAG_NAMES_ASC'))
+              .then(() => {
+                expect(store.getActions().length).toBe(4);
+                expect(store.getActions()[0]).toEqual({
+                  type: 'LEGAL_DASHBOARD_CHANGE_SORT_FIELD',
+                  payload: {
+                    resultsType: tab.resultsType,
+                    sortField: 'TAG_NAMES_ASC'
+                  }
+                });
+                expect(store.getActions()[1]).toEqual({
+                  type: 'LEGAL_DASHBOARD_FETCH_BACKEND_PAGE',
+                  payload: {
+                    resultsType: tab.resultsType,
+                    page: 1
+                  }
+                });
+                expect(store.getActions()[2]).toEqual({
+                  type: 'LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED',
+                  payload: 'applications'
+                });
+                expect(store.getActions()[3]).toEqual({
+                  type: 'LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED',
+                  payload: {
+                    resultsType: tab.resultsType,
+                    results: 'results'
+                  }
+                });
+                done();
+              });
+        });
+      });
+    }
+
     tabs.forEach(testLoadResultsAction);
     tabs.forEach(testFetchBackendPageAction);
+    tabs.forEach(testChangeSortFieldAction);
   });
 });

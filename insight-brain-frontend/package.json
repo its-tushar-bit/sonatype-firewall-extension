@@ -49,7 +49,7 @@
     "jquery": "^3.5.0",
     "jquery.browser": "^0.1.0",
     "moment": "^2.22.2",
-    "ng-redux": "^4.4.1",
+    "ng-redux": "^4.4.3",
     "plottable": "^3.7.0",
     "prop-types": "^15.7.2",
     "query-string": "^5.1.1",
@@ -114,6 +114,9 @@
     "webpack": "^3.11.0",
     "webpack-dev-server": "^2.11.3",
     "xmldom": "^0.1.27"
+  },
+  "resolutions": {
+    "lodash": "^4.17.21"
   },
   "repository": {
     "type": "git",

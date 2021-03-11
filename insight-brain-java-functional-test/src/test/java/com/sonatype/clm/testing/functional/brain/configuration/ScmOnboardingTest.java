@@ -29,6 +29,7 @@ import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.google.common.collect.ImmutableMap;
@@ -279,8 +280,11 @@ public class ScmOnboardingTest
     loginAsAdmin();
 
     // then an authentication error is displayed
-    scmOnboardingPage.loadError().shouldHave(text("An error occurred loading data. Authentication with GitHub failed." +
-        " You can update your login credentials here."));
+    scmOnboardingPage.gitHostError().shouldHave(text("Authentication with GitHub failed. " +
+            "You can update your login credentials here."));
+    scmOnboardingPage.gitHostError().shouldHave(text("IQ Server was unable to connect to " +
+        gitService.baseUrl() + ". You may try a different host URL or manage your SCM configuration " +
+            "in the Orgs & Policies page."));
 
     // when authentication is fixed and retry button is pressed
     removeStub(stubMapping);
@@ -307,6 +311,30 @@ public class ScmOnboardingTest
 
     // then an authorization error is displayed
     scmOnboardingPage.loadError().shouldHave(text("An error occurred loading data. Permission denied by GitHub."));
+    scmOnboardingPage.gitHostError().shouldHave(text("Permission denied by GitHub. " +
+        "You can update your login credentials here."));
+    scmOnboardingPage.gitHostError().shouldHave(text("IQ Server was unable to connect to " +
+        gitService.baseUrl() + ". You may try a different host URL or manage your SCM configuration " +
+        "in the Orgs & Policies page."));
+  }
+
+  @Test
+  public void testPopulatesRepositories_scmUnableToConnect() throws Exception {
+    // given an endpoint which does not respond
+    setupSourceControl();
+    gitService.stubFor(get(urlPathEqualTo("/api/v3/user/repos"))
+        .willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)));
+
+    // when the scm onboarding page is opened
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url() + "/" + org.getId());
+    loginAsAdmin();
+
+    // then an error indicating a connection failure is shown
+    scmOnboardingPage.loadError()
+        .shouldHave(text("An error occurred loading data. Request failed with status code 500"));
+    scmOnboardingPage.loadError().shouldHave(text("Click here to change the git host URL."));
+    scmOnboardingPage.gitHostError().shouldNotBe(visible);
   }
 
   @Test
@@ -1094,6 +1122,7 @@ public class ScmOnboardingTest
 
     // then it prompts us for a git host
     scmOnboardingPage.modalDialog().shouldBe(visible);
+    scmOnboardingPage.gitHostError().shouldHave(text("IQ Server was unable to identify the URL for your GitHub host."));
 
     // when we cancel
     scmOnboardingPage.hostUrlCancelButton().click();

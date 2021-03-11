@@ -57,28 +57,40 @@ export default function RepositoryPane(props) {
     setShowHostDialog
   } = props;
 
-  const gitHostUrlMessage = () => {
+  const updateScmConfigMessage = () => {
     const orgsAndPoliciesHref = !selectedOrganization ? '' : $state.href($state.get('management.view.organization'),
         {organizationId: selectedOrganization.organization.id});
-    if (!defaultHostUrl) {
-      return (
-        <span>IQ Server was unable to identify the URL for your {displayName(scmProvider)} host.</span>
-      );
-    }
     if (selectedOrganization && selectedOrganization.organization && selectedOrganization.name) {
       return (
-        <span>IQ Server was unable to connect to {defaultHostUrl} using the credentials associated
+        <p>IQ Server was unable to connect to {defaultHostUrl} using the credentials associated
           with the {selectedOrganization.organization.name} Organization. You may try a different
+          host URL or manage your SCM configuration in
+          the <a href={orgsAndPoliciesHref}>Orgs & Policies</a> page.</p>
+      );
+    }
+    if (defaultHostUrl) {
+      return (
+        <span>IQ Server was unable to connect to {defaultHostUrl}. You may try a different
           host URL or manage your SCM configuration in
           the <a href={orgsAndPoliciesHref}>Orgs & Policies</a> page.</span>
       );
     }
+  };
+
+  const gitHostUrlMessage = () => {
     return (
-      <span>IQ Server was unable to connect to {defaultHostUrl}. You may try a different
-        host URL or manage your SCM configuration in
-        the <a href={orgsAndPoliciesHref}>Orgs & Policies</a> page.</span>
+      <div>
+        {loadRepositoriesAuthError &&
+        <p>{scmAuthenticationErrorFragment(loadRepositoriesAuthError)}</p>
+        }
+        {!defaultHostUrl && !loadRepositoriesAuthError &&
+        <p>IQ Server was unable to identify the URL for your {displayName(scmProvider)} host.</p>
+        }
+        {updateScmConfigMessage()}
+      </div>
     );
   };
+
   const loadRepoGitHostMessage = (errorText) => {
     if (errorText) {
       return (

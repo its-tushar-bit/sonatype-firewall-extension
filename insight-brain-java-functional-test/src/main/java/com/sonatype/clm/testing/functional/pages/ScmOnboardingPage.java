@@ -43,6 +43,10 @@ public class ScmOnboardingPage
     return child("#scm-success-gotoreports");
   }
 
+  public SelenideElement gitHostError() {
+    return modalDialog().$(".nx-alert--error");
+  }
+
   public SelenideElement loadError() {
     return child(".nx-alert--load-error");
   }

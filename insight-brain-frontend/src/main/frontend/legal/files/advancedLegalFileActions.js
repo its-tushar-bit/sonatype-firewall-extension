@@ -47,6 +47,7 @@ export function saveNotices() {
       originalComponentLegalFileScopeOwnerId: originalOwnerId,
       noticeFiles
     } = licenseLegalData;
+    const scopeVisited = advancedLegalState.availableScopes.values[0];
     const scope = find(propEq('id', ownerId), availableScopeValues);
     const ownerType = scope.type;
     const ownerPublicId = scope.publicId;
@@ -67,7 +68,7 @@ export function saveNotices() {
 
     return axios.post(getSaveLegalFileUrl(ownerType, ownerPublicId), payload)
         .then(() => {
-          axios.get(getLegalFileUrl(ownerType, ownerPublicId, componentIdentifier))
+          axios.get(getLegalFileUrl(scopeVisited.type, scopeVisited.publicId, componentIdentifier))
               .then(responsePayload => {
                 dispatch(saveNoticesSucceeded(responsePayload.data));
                 startSaveNoticesSubmitMaskDoneTimer(dispatch);

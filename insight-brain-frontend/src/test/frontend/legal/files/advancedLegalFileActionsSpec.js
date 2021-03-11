@@ -70,7 +70,7 @@ describe('advancedLegalFileActions', function() {
           [getSaveLegalFileUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve({ data: 'postData' })
         },
         get: {
-          [getLegalFileUrl('organization', 'ROOT_ORGANIZATION_ID', 'componentIdentifier')]: Promise.resolve(
+          [getLegalFileUrl('application', 'app', 'componentIdentifier')]: Promise.resolve(
               { data: 'getData' })
         }
       });
@@ -85,6 +85,9 @@ describe('advancedLegalFileActions', function() {
           expect(axios.post).toHaveBeenCalledWith(
               '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/legalFile',
               expectedPostBody);
+          expect(axios.get).toHaveBeenCalledWith(
+              '/api/experimental/licenseLegalMetadata/application/app/component/legalFile' +
+              '?componentIdentifier="componentIdentifier"');
           expect(actions.length).toBe(3);
           expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_NOTICES_SUCCEEDED);
           expect(actions[1].payload).toEqual('getData');
@@ -136,6 +139,9 @@ describe('advancedLegalFileActions', function() {
         const actions = store.getActions();
         expect(axios.post).toHaveBeenCalledWith(
             '/api/experimental/licenseLegalMetadata/application/app/component/legalFile', expectedPostBody);
+        expect(axios.get).toHaveBeenCalledWith(
+            '/api/experimental/licenseLegalMetadata/application/app/component/legalFile' +
+            '?componentIdentifier="componentIdentifier"');
         expect(actions.length).toBe(2);
         expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_NOTICES_SUCCEEDED);
         expect(actions[1].payload).toEqual('getData');
@@ -185,6 +191,9 @@ describe('advancedLegalFileActions', function() {
         const actions = store.getActions();
         expect(axios.post).toHaveBeenCalledWith(
             '/api/experimental/licenseLegalMetadata/application/app/component/legalFile', expectedPostBody);
+        expect(axios.get).toHaveBeenCalledWith(
+            '/api/experimental/licenseLegalMetadata/application/app/component/legalFile' +
+            '?componentIdentifier="componentIdentifier"');
         expect(actions.length).toBe(2);
         expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_NOTICES_SUCCEEDED);
         expect(actions[1].payload).toEqual('getData');
@@ -231,7 +240,7 @@ describe('advancedLegalFileActions', function() {
           [getSaveLegalFileUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve()
         },
         get: {
-          [getLegalFileUrl('organization', 'ROOT_ORGANIZATION_ID', 'componentIdentifier')]: Promise.reject('error')
+          [getLegalFileUrl('application', 'app', 'componentIdentifier')]: Promise.reject('error')
         }
       });
       const expectedPostBody = {
@@ -244,6 +253,9 @@ describe('advancedLegalFileActions', function() {
         expect(axios.post).toHaveBeenCalledWith(
             '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/legalFile',
             expectedPostBody);
+        expect(axios.get).toHaveBeenCalledWith(
+            '/api/experimental/licenseLegalMetadata/application/app/component/legalFile' +
+            '?componentIdentifier="componentIdentifier"');
         expect(actions.length).toBe(2);
         expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_NOTICES_FAILED);
         expect(actions[1].payload).toEqual('error');

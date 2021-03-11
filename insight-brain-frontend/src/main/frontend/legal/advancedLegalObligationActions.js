@@ -46,6 +46,7 @@ export function saveAttribution(name) {
     const obligationState = find(propEq('name', name), advancedLegalState.component.obligations);
     const attributionState = obligationState.attributions[0];
     const ownerId = attributionState.ownerId;
+    const scopeVisited = advancedLegalState.availableScopes.values[0];
     const scope = find(propEq('id', ownerId), advancedLegalState.availableScopes.values);
     const ownerType = scope.type;
     const ownerPublicId = scope.publicId;
@@ -53,7 +54,8 @@ export function saveAttribution(name) {
 
     if (attributionState.id !== null && attributionState.content === '') {
       return axios.delete(getDeleteComponentObligationAttributionUrl(attributionState.id))
-          .then(() => onAttributionSaveSuccess(dispatch, ownerType, ownerPublicId, componentIdentifier, name))
+          .then(() => onAttributionSaveSuccess(dispatch, scopeVisited.type, scopeVisited.publicId, componentIdentifier,
+              name))
           .catch(error => {
             dispatch(saveAttributionFailed({ name, value: Messages.getHttpErrorMessage(error) }));
           });
@@ -61,7 +63,8 @@ export function saveAttribution(name) {
     else {
       const attributionPayload = getAttributionPayload(advancedLegalState, obligationState, attributionState);
       return axios.post(getSaveComponentObligationAttributionUrl(ownerType, ownerPublicId), attributionPayload)
-          .then(() => onAttributionSaveSuccess(dispatch, ownerType, ownerPublicId, componentIdentifier, name))
+          .then(() => onAttributionSaveSuccess(dispatch, scopeVisited.type, scopeVisited.publicId, componentIdentifier,
+              name))
           .catch(error => {
             dispatch(saveAttributionFailed({ name, value: Messages.getHttpErrorMessage(error) }));
           });
@@ -129,6 +132,7 @@ export function saveObligation(name) {
     const advancedLegalState = getState().advancedLegal;
     const obligationState = find(propEq('name', name), advancedLegalState.component.obligations);
     const ownerId = obligationState.ownerId;
+    const scopeVisited = advancedLegalState.availableScopes.values[0];
     const scope = find(propEq('id', ownerId), advancedLegalState.availableScopes.values);
     const ownerType = scope.type;
     const ownerPublicId = scope.publicId;
@@ -136,7 +140,8 @@ export function saveObligation(name) {
 
     if (obligationState.id !== null && obligationState.comment === '' && obligationState.status === 'OPEN') {
       return axios.delete(getDeleteComponentObligationUrl(obligationState.id))
-          .then(() => onObligationSaveSuccess(dispatch, ownerType, ownerPublicId, componentIdentifier, name))
+          .then(() => onObligationSaveSuccess(dispatch, scopeVisited.type, scopeVisited.publicId, componentIdentifier,
+              name))
           .catch(error => {
             dispatch(saveObligationFailed({ name, value: Messages.getHttpErrorMessage(error) }));
           });
@@ -144,7 +149,8 @@ export function saveObligation(name) {
     else {
       const obligationPayload = getObligationPayload(advancedLegalState, obligationState);
       return axios.post(getSaveComponentObligationUrl(ownerType, ownerPublicId), obligationPayload)
-          .then(() => onObligationSaveSuccess(dispatch, ownerType, ownerPublicId, componentIdentifier, name))
+          .then(() => onObligationSaveSuccess(dispatch, scopeVisited.type, scopeVisited.publicId, componentIdentifier,
+              name))
           .catch(error => {
             dispatch(saveObligationFailed({ name, value: Messages.getHttpErrorMessage(error) }));
           });

@@ -75,7 +75,7 @@ describe('advancedLegalObligationActions', function () {
               { data: 'postData' })
         },
         get: {
-          [getComponentObligationAttributionUrl('organization', 'ROOT_ORGANIZATION_ID', 'componentIdentifier', 'name')]:
+          [getComponentObligationAttributionUrl('organization', 'org', 'componentIdentifier', 'name')]:
               Promise.resolve(
                   { data: [{ id: 'id', content: 'content', ownerId: 'ROOT_ORGANIZATION_ID', foo: 'bar' }] })
         }
@@ -89,7 +89,7 @@ describe('advancedLegalObligationActions', function () {
               '/attribution',
               expectedPostBody);
           expect(axios.get).toHaveBeenCalledWith(
-              '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/obligation' +
+              '/api/experimental/licenseLegalMetadata/organization/org/component/obligation' +
               '/attribution?componentIdentifier="componentIdentifier"&obligationName=name');
           expect(actions.length).toBe(3);
           expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED);
@@ -154,7 +154,7 @@ describe('advancedLegalObligationActions', function () {
               Promise.resolve('postData')
         },
         get: {
-          [getComponentObligationAttributionUrl('organization', 'ROOT_ORGANIZATION_ID', 'componentIdentifier', 'name')]:
+          [getComponentObligationAttributionUrl('organization', 'org', 'componentIdentifier', 'name')]:
               Promise.reject('error')
         }
       });
@@ -187,7 +187,7 @@ describe('advancedLegalObligationActions', function () {
           [getDeleteComponentObligationAttributionUrl('id')]: Promise.resolve({})
         },
         get: {
-          [getComponentObligationAttributionUrl('organization', 'ROOT_ORGANIZATION_ID', 'componentIdentifier',
+          [getComponentObligationAttributionUrl('organization', 'org', 'componentIdentifier',
               'name')]: Promise.resolve({ data: [] })
         }
       });
@@ -198,7 +198,7 @@ describe('advancedLegalObligationActions', function () {
           expect(axios.delete).toHaveBeenCalledWith(
               '/api/experimental/licenseLegalMetadata/component/obligation/attribution/id');
           expect(axios.get).toHaveBeenCalledWith(
-              '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/' +
+              '/api/experimental/licenseLegalMetadata/organization/org/component/' +
               'obligation/attribution?componentIdentifier="componentIdentifier"&obligationName=name');
           expect(actions.length).toBe(3);
           expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED);
@@ -332,7 +332,7 @@ describe('advancedLegalObligationActions', function () {
               { data: 'postData' })
         },
         get: {
-          [getComponentObligationUrl('organization', 'ROOT_ORGANIZATION_ID', 'componentIdentifier', 'name')]:
+          [getComponentObligationUrl('organization', 'org', 'componentIdentifier', 'name')]:
               Promise.resolve({
                 data: {
                   id: 'id',
@@ -352,7 +352,7 @@ describe('advancedLegalObligationActions', function () {
               '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/obligation',
               expectedPostBody);
           expect(axios.get).toHaveBeenCalledWith(
-              '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/' +
+              '/api/experimental/licenseLegalMetadata/organization/org/component/' +
               'obligation?componentIdentifier="componentIdentifier"&obligationName=name');
           expect(actions.length).toBe(3);
           expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
@@ -420,7 +420,7 @@ describe('advancedLegalObligationActions', function () {
           [getSaveComponentObligationUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve('postData')
         },
         get: {
-          [getComponentObligationUrl('organization', 'ROOT_ORGANIZATION_ID', 'componentIdentifier', 'name')]:
+          [getComponentObligationUrl('organization', 'org', 'componentIdentifier', 'name')]:
               Promise.reject('error')
         }
       });
@@ -454,7 +454,7 @@ describe('advancedLegalObligationActions', function () {
           [getDeleteComponentObligationUrl('id')]: Promise.resolve({})
         },
         get: {
-          [getComponentObligationUrl('organization', 'ROOT_ORGANIZATION_ID', 'componentIdentifier',
+          [getComponentObligationUrl('organization', 'org', 'componentIdentifier',
               'name')]: Promise.resolve({ data: null })
         }
       });
@@ -465,7 +465,7 @@ describe('advancedLegalObligationActions', function () {
           expect(axios.delete).toHaveBeenCalledWith(
               '/api/experimental/licenseLegalMetadata/component/obligation/id');
           expect(axios.get).toHaveBeenCalledWith(
-              '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/' +
+              '/api/experimental/licenseLegalMetadata/organization/org/component/' +
               'obligation?componentIdentifier="componentIdentifier"&obligationName=name');
           expect(actions.length).toBe(3);
           expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);

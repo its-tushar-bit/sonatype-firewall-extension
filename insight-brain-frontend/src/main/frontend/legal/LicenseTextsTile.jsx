@@ -13,6 +13,8 @@ export default function LicenseTextsTile(props) {
     component
   } = props;
 
+  const isLicensePresent = () => component.licenseLegalData.licenseFiles.length > 0;
+
   return (
     <section id="license-texts-tile" className="nx-tile">
       <header className="nx-tile-header">
@@ -21,7 +23,7 @@ export default function LicenseTextsTile(props) {
         </div>
       </header>
       <div className="nx-tile-content legal-files">
-        { component.licenseLegalData.licenseFiles.map(createItem) }
+        { isLicensePresent() ? component.licenseLegalData.licenseFiles.map(createItem) : 'None found' }
       </div>
     </section>
   );

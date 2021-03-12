@@ -54,4 +54,33 @@ describe('CopyrightStatementsTile component', function() {
     expect(copyrightSpans.at(0)).toHaveText('Copyright 2043');
     expect(copyrightSpans.at(1)).toHaveText('Copyright 0');
   });
+
+  it('renders None found if there are no licenses', function() {
+    const wrapper = enzymeUtils.getShallowComponent(CopyrightStatementsTile, {
+      component: {
+        licenseLegalData: {
+          copyrights: []
+        }
+      }})();
+    const content = wrapper.find('.nx-tile-content');
+    expect(content).toHaveText('None found');
+  });
+
+  it('renders None enabled if all the licenses are disabled', function() {
+    const wrapper = enzymeUtils.getShallowComponent(CopyrightStatementsTile, {
+      component: {
+        licenseLegalData: {
+          copyrights: [
+            {
+              id: '',
+              content: 'Disabled Copyright',
+              originalContentHash: '',
+              status: 'disabled'
+            }
+          ]
+        }
+      }})();
+    const content = wrapper.find('.nx-tile-content');
+    expect(content).toHaveText('None enabled');
+  });
 });

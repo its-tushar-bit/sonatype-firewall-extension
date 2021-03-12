@@ -10,6 +10,7 @@ import { NxFontAwesomeIcon, NxSegmentedButton, NxStatefulAccordion } from '@sona
 describe('LicenseObligationsTile component', function() {
 
   let getShallowComponent,
+      minimalProps,
       setObligationStatus,
       setObligationComment,
       setObligationScope,
@@ -212,4 +213,12 @@ describe('LicenseObligationsTile component', function() {
     expect(licenseObligation4DropdownOptions.at(2).find(NxFontAwesomeIcon).length).toBe(0);
     expect(licenseObligation4DropdownOptions.at(2)).toIncludeText('Mark as Unreviewed');
   });
+
+  it('renders None found if there are no obligations', function() {
+    const wrapper = enzymeUtils.getShallowComponent(LicenseObligationsTile,
+        {...minimalProps, licenseObligations: []})();
+    const content = wrapper.find('.nx-tile-content');
+    expect(content).toHaveText('None found');
+  });
+
 });

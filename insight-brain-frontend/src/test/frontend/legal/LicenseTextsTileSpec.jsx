@@ -39,4 +39,15 @@ describe('LicenseTextsTile component', function() {
     expect(licenseTextDivs.at(1).find('span.legal-file-path')).toHaveText('path2/licenseText.txt');
     expect(licenseTextDivs.at(1).find('blockquote')).toHaveText('licenseText content 2');
   });
+
+  it('renders None found if there are no licenses', function() {
+    const wrapper = enzymeUtils.getShallowComponent(LicenseTextsTile, {
+      component: {
+        licenseLegalData: {
+          licenseFiles: []
+        }
+      }})();
+    const content = wrapper.find('.nx-tile-content');
+    expect(content).toHaveText('None found');
+  });
 });

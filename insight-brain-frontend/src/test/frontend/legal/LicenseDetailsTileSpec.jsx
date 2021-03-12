@@ -31,4 +31,11 @@ describe('LicenseDetailsTile component', function() {
     expect(licenseSpans.at(1)).toHaveText('License-2.0');
     expect(licenseSpans.at(2)).toHaveText('License-1.0-License-2.0');
   });
+
+  it('renders None found if there are no licenses', function() {
+    const wrapper = enzymeUtils.getShallowComponent(LicenseDetailsTile, { licenseNames: [] })();
+    const content = wrapper.find('.nx-tile-content');
+    expect(content).toHaveText('None found');
+  });
+
 });

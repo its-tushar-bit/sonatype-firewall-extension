@@ -28,6 +28,8 @@ export default function LicenseObligationsTile(props) {
     licenseLegalMetadata
   } = props;
 
+  const isObligationPresent = () => licenseObligations.length > 0;
+
   const createObligationStatusIcon = obligationStatus => {
     switch (obligationStatus) {
       case 'FULFILLED':
@@ -130,7 +132,7 @@ export default function LicenseObligationsTile(props) {
         </div>
       </header>
       <div className="nx-tile-content nx-tile-content--accordion-container">
-        { licenseObligations.map(createItem) }
+        { isObligationPresent() ? licenseObligations.map(createItem) : 'None found' }
       </div>
       {
         licenseObligations.map(licenseObligation => {

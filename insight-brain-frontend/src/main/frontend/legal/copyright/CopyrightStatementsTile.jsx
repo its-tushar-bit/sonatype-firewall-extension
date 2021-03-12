@@ -21,6 +21,10 @@ export default function CopyrightStatementsTile(props) {
 
   const createAttributionModal = <CopyrightOverrideFormContainer/>;
 
+  const isCopyrightPresent = () => component.licenseLegalData.copyrights.filter(c => c.status === 'enabled').length > 0;
+
+  const noDataText = () => component.licenseLegalData.copyrights.length > 0 ? 'None enabled' : 'None found';
+
   return (
     <section id="copyright-statements-tile" className="nx-tile">
       <header className="nx-tile-header">
@@ -37,7 +41,10 @@ export default function CopyrightStatementsTile(props) {
       </header>
       <div className="nx-tile-content">
         <ul className="nx-list">
-          {component.licenseLegalData.copyrights.filter(c => c.status === 'enabled').map(createItem)}
+          {isCopyrightPresent() ?
+            component.licenseLegalData.copyrights.filter(c => c.status === 'enabled').map(createItem) :
+            noDataText()
+            }
         </ul>
       </div>
     </section>

@@ -613,7 +613,8 @@ describe('scmOnboardingReducer', function() {
         const state = Object.freeze({
           other: otherObject,
           viewState: {
-            isSelectingOrganization: false
+            isSelectingOrganization: false,
+            loadRepositoriesAuthError: { }
           }
         });
 
@@ -624,7 +625,8 @@ describe('scmOnboardingReducer', function() {
 
         // then state is updated
         expect(newState.viewState).toEqual({
-          isSelectingOrganization: true
+          isSelectingOrganization: true,
+          loadRepositoriesAuthError: null
         });
 
         // and other properties are not modified

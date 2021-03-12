@@ -313,6 +313,49 @@ public class ScmOnboardingTest
   }
 
   @Test
+  public void testGitHost_afterAuthFailure() throws Exception {
+    // given an org with no apps
+    setupOrgSourceControl();
+
+    // given attempts to load repos results in an auth failure
+    gitService.stubFor(get(urlPathEqualTo("/api/v3/user/repos"))
+        .willReturn(aResponse().withStatus(HttpStatus.SC_UNAUTHORIZED)));
+
+    // given an org that overrides the token
+    Organization orgCustomToken = tempEntity.newOrganization("Custom Token");
+    String encryptedPwd = new String(pwHandler.encryptPassword("TOKEN2".toCharArray()));
+    tempEntity.newSourceControl(orgCustomToken.getId(), null, encryptedPwd, null);
+
+    // when the scm onboarding page is opened to the org with the custom token
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url() + "/" + orgCustomToken.getId());
+    loginAsAdmin();
+
+    // then the git host dialog is loaded
+    scmOnboardingPage.modalDialog().shouldBe(visible);
+    scmOnboardingPage.gitHostError().shouldHave(text("IQ Server was unable to identify the URL for your GitHub host."));
+
+    // when we update the URL and attempt to load
+    scmOnboardingPage.hostUrl().setValue(gitService.baseUrl());
+    scmOnboardingPage.hostUrl().shouldHave(value(gitService.baseUrl()));
+    scmOnboardingPage.hostUrlInvalidMessage().shouldNotBe(visible);
+    scmOnboardingPage.hostUrlContinueButton().shouldBe(enabled).click();
+
+    // then an authorization error is displayed
+    scmOnboardingPage.modalDialog().shouldBe(visible);
+    scmOnboardingPage.gitHostError().shouldHave(text("Authentication with GitHub failed."));
+
+    // when we cancel and switch to a new org
+    scmOnboardingPage.hostUrlCancelButton().click();
+    scmOnboardingPage.organizationsDropdown().click();
+    scmOnboardingPage.orgDropdownItems().find(exactText("Test Org")).click();
+
+    // then we should get a git host dialog prompting us for the git host URL
+    scmOnboardingPage.modalDialog().shouldBe(visible);
+    scmOnboardingPage.gitHostError().shouldHave(text("IQ Server was unable to identify the URL for your GitHub host."));
+  }
+
+  @Test
   public void testPopulatesRepositories_scmUnableToConnect() throws Exception {
     // given an endpoint which does not respond
     setupSourceControl();

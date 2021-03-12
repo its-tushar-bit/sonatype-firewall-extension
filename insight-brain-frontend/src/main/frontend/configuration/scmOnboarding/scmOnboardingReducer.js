@@ -205,7 +205,8 @@ function setTargetOrgRequested(payload, state) {
     ...state,
     viewState: {
       ...state.viewState,
-      isSelectingOrganization: true
+      isSelectingOrganization: true,
+      loadRepositoriesAuthError: null
     }
   };
 }

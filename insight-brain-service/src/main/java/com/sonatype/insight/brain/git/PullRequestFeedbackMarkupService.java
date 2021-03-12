@@ -79,11 +79,11 @@ public class PullRequestFeedbackMarkupService
   public Optional<String> createLineMarkup(
       final List<PolicyViolation> violations,
       final String componentNameAndVersion,
-      final String suggestedVersion, 
+      final RemediationVersionDTO remediationVersion,
       final SourceControlProvider provider)
   {
     PullRequestLineFeedback details =
-        new PullRequestLineFeedback(violations, componentNameAndVersion, baseUrl.getConfigured(), suggestedVersion);
+        new PullRequestLineFeedback(violations, componentNameAndVersion, baseUrl.getConfigured(), remediationVersion);
     return details.renderTemplateAndGetContents(provider);
   }
 }

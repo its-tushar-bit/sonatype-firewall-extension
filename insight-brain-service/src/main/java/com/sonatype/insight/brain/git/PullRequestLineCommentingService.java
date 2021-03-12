@@ -181,9 +181,7 @@ public class PullRequestLineCommentingService
   {
     for (PullRequestLineCommentDTO lineCommentDTO : lineCommentList) {
       ComponentIdentifier componentIdentifier = lineCommentDTO.getComponentIdentifier();
-      String remediationVersion =
-          remediationVersionMap.containsKey(componentIdentifier) ? remediationVersionMap.get(componentIdentifier)
-              .getVersion() : null;
+      RemediationVersionDTO remediationVersion = remediationVersionMap.get(componentIdentifier);
       //Create the line comment body, if possible
       Optional<String> markupOptional = pullRequestFeedbackMarkupService.createLineMarkup(
           lineCommentDTO.getPolicyViolations(), ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString(),

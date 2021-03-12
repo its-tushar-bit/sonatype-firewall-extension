@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.utils.TemplateUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -35,7 +36,7 @@ public class PullRequestLineFeedback
 
   private final String displayName;
 
-  private final String suggestedVersion;
+  private final RemediationVersionDTO remediationVersionDTO;
 
   private final String baseUrl;
 
@@ -43,13 +44,13 @@ public class PullRequestLineFeedback
       final List<PolicyViolation> violations,
       final String displayName,
       final String baseUrl,
-      final String suggestedVersion)
+      final RemediationVersionDTO remediationVersionDTO)
   {
     Preconditions.checkNotNull(violations, "violations is required and cannot be null");
     this.violations = violations;
     Preconditions.checkNotNull(displayName, "displayName is required and cannot be null");
     this.displayName = displayName;
-    this.suggestedVersion = suggestedVersion;
+    this.remediationVersionDTO = remediationVersionDTO;
     this.baseUrl = baseUrl;
   }
 
@@ -99,7 +100,7 @@ public class PullRequestLineFeedback
 
     //Get a map containing the values to be populated in the template for the component
     final Map<String, Object> componentFeedbackList =
-        getComponentFeedbackList(displayName, violations, baseUrl, suggestedVersion, provider);
+        getComponentFeedbackList(displayName, violations, baseUrl, remediationVersionDTO, provider);
     return TemplateUtils
         .render(getLineFeedbackTemplate(provider.supportsEmbeddedHtmlInMarkdown()), componentFeedbackList);
   }
@@ -107,10 +108,10 @@ public class PullRequestLineFeedback
   /**
    * Gets a list of feedback items for each of the components
    *
-   * @param displayName      The display name for the given component
-   * @param violations       The list of violations for the given component
-   * @param baseUrl          The baseUrl of the IQ server
-   * @param suggestedVersion Recommended version to upgrade to
+   * @param displayName           The display name for the given component
+   * @param violations            The list of violations for the given component
+   * @param baseUrl               The baseUrl of the IQ server
+   * @param remediationVersionDTO Recommended version to upgrade to
    * @return A map containing the feedback for a specific component
    */
   @VisibleForTesting
@@ -118,17 +119,23 @@ public class PullRequestLineFeedback
       final String displayName,
       final List<PolicyViolation> violations,
       final String baseUrl,
-      final String suggestedVersion,
+      final RemediationVersionDTO remediationVersionDTO,
       final SourceControlProvider provider)
   {
     int threatLevel = getHighestThreatLevel(violations);
     String threatImage = PullRequestFeedbackDetails.getImageForThreatLevel(threatLevel);
+    String suggestedVersion = remediationVersionDTO == null ? "" : remediationVersionDTO.getVersion();
+    int breakingChangesCount = -1;
+    if (remediationVersionDTO != null && remediationVersionDTO.getBreakingChangesCount() != null) {
+      breakingChangesCount = remediationVersionDTO.getBreakingChangesCount();
+    }
     return ImmutableMap.<String, Object>builder()
         .put("componentNameAndVersion", displayName)
         .put("threatLevel", threatLevel)
         .put("threatImage", threatImage)
         .put("policiesViolated", getPoliciesViolatedMap(violations, baseUrl, true))
-        .put("suggestedVersion", suggestedVersion == null ? "" : suggestedVersion)
+        .put("suggestedVersion", suggestedVersion)
+        .put("breakingChangesCount", breakingChangesCount)
         .put("policiesViolatedCount", violations.size())
         .put("date", new SimpleDateFormat("MMM dd, yyyy").format(new Date()))
         .put("provider", provider)

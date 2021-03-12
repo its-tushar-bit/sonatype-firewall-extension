@@ -1,3 +1,5 @@
+<#include "iq-for-scm-common.ftl">
+<#if provider.name() == "GITLAB"><#assign width=14><#else><#assign width=12></#if>
 ### :thinking: Nexus IQ found <#if ( policiesViolatedCount > 1 )>policy violations<#else>a policy violation</#if> introduced by:<#lt>
 
 <details open>
@@ -6,10 +8,11 @@
 <p></p>
 
 <#if suggestedVersion?has_content>
-  :shield: **Bumping to version ${suggestedVersion}** will resolve <#if ( policiesViolatedCount > 1 )>these violations<#else>this violation</#if><#t>
+  :shield: **Bumping to version ${suggestedVersion}** will resolve <#if ( policiesViolatedCount > 1 )>these violations<#else>this violation</#if> (as of _${date}_)<#lt>
+  <@breakingChanges count=breakingChangesCount minimalMarkdown=false width=width/><#lt>
 <#else>
-  :warning: No recommended versions are available for this component<#t>
-</#if> (as of _${date}_)
+  :warning: No recommended versions are available for this component (as of _${date}_)<#lt>
+</#if>
 
 Threat (of 10) | Policy | Violation Details
 --- | --- | --- |

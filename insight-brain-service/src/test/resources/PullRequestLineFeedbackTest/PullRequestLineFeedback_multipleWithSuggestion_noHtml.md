@@ -1,6 +1,7 @@
 ### :thinking_face: Nexus IQ found policy violations introduced by this change.
 
 :shield: **Bumping to version 123** will resolve these violations (as of _Jul 03, 2020_)
+  - Few breaking changes - This version upgrade may require moderate effort.
 
 Threat (of 10) | Policy | Violation Details
 --- | --- | --- |

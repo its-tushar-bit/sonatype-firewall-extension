@@ -10,10 +10,12 @@ import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.component.IntegrityRating;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.policy.AutoUnquarantinePolicyConditionType;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -50,6 +52,9 @@ public class FirewallReleaseIntegrityLicenseListenerTest
 
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
 
+  private final AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO =
+      new AutoUnquarantinePolicyConditionTypeDAO();
+
   private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
 
   @After
@@ -61,6 +66,8 @@ public class FirewallReleaseIntegrityLicenseListenerTest
       policyDAO.delete(policies.get(0));
     }
     policyMonitoringDAO.getAll().forEach(policyMonitoringDAO::delete);
+    autoUnquarantinePolicyConditionTypeDAO
+        .delete(new AutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID));
   }
 
   @Test
@@ -76,6 +83,7 @@ public class FirewallReleaseIntegrityLicenseListenerTest
     PolicyMonitoring policyMonitoring = policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID);
     assertThat(policyMonitoring).isNotNull();
     assertThat(policyMonitoring.getStageTypeId()).isEqualTo(StageTypes.PROXY.getId());
+    assertThat(autoUnquarantinePolicyConditionTypeDAO.getById(IntegrityRatingConditionType.ID)).isNotNull();
   }
 
   @Test
@@ -91,6 +99,7 @@ public class FirewallReleaseIntegrityLicenseListenerTest
         .getByName(SystemConfigurationProperty.FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED).getValue())
         .isEqualTo(String.valueOf(true));
     assertThat(policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID)).isNull();
+    assertThat(autoUnquarantinePolicyConditionTypeDAO.getById(IntegrityRatingConditionType.ID)).isNull();
   }
 
   @Test
@@ -108,6 +117,7 @@ public class FirewallReleaseIntegrityLicenseListenerTest
     PolicyMonitoring policyMonitoring = policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID);
     assertThat(policyMonitoring).isNotNull();
     assertThat(policyMonitoring.getStageTypeId()).isEqualTo(StageTypes.PROXY.getId());
+    assertThat(autoUnquarantinePolicyConditionTypeDAO.getById(IntegrityRatingConditionType.ID)).isNotNull();
   }
 
   @Test
@@ -138,6 +148,7 @@ public class FirewallReleaseIntegrityLicenseListenerTest
     assertThat(systemConfigurationPropertyDAO
         .getByName(SystemConfigurationProperty.FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED)).isNull();
     assertThat(policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID)).isNull();
+    assertThat(autoUnquarantinePolicyConditionTypeDAO.getById(IntegrityRatingConditionType.ID)).isNull();
   }
 
   @Test
@@ -151,6 +162,7 @@ public class FirewallReleaseIntegrityLicenseListenerTest
     assertThat(systemConfigurationPropertyDAO
         .getByName(SystemConfigurationProperty.FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED)).isNull();
     assertThat(policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID)).isNull();
+    assertThat(autoUnquarantinePolicyConditionTypeDAO.getById(IntegrityRatingConditionType.ID)).isNull();
   }
 
   @Test
@@ -164,6 +176,7 @@ public class FirewallReleaseIntegrityLicenseListenerTest
     assertThat(systemConfigurationPropertyDAO
         .getByName(SystemConfigurationProperty.FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED)).isNull();
     assertThat(policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID)).isNull();
+    assertThat(autoUnquarantinePolicyConditionTypeDAO.getById(IntegrityRatingConditionType.ID)).isNull();
   }
 
   @Test
@@ -178,5 +191,17 @@ public class FirewallReleaseIntegrityLicenseListenerTest
     assertThat(policyMonitoring).isNotNull();
     assertThat(policyMonitoring.getId()).isEqualTo(policyMonitoringId);
     assertThat(policyMonitoring.getStageTypeId()).isEqualTo(StageTypes.PROXY.getId());
+    assertThat(autoUnquarantinePolicyConditionTypeDAO.getById(IntegrityRatingConditionType.ID)).isNotNull();
+  }
+
+  @Test
+  public void testProductLicenseChanged_AutoUnquarantineAlreadyEnabled() {
+    insightConfig.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
+    autoUnquarantinePolicyConditionTypeDAO
+        .insert(new AutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID));
+
+    listener.productLicenseChanged();
+
+    assertThat(autoUnquarantinePolicyConditionTypeDAO.getById(IntegrityRatingConditionType.ID)).isNotNull();
   }
 }

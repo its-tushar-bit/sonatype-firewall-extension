@@ -16,11 +16,13 @@ import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.IntegrityRating;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.policy.AutoUnquarantinePolicyConditionType;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -57,6 +59,9 @@ public class FirewallReleaseIntegrityLicenseListener
 
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
 
+  private final AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO =
+      new AutoUnquarantinePolicyConditionTypeDAO();
+
   private final AuditRecorder auditRecorder;
 
   @Inject
@@ -89,10 +94,18 @@ public class FirewallReleaseIntegrityLicenseListener
       if (existingLicenseProperty == null || !Boolean.parseBoolean(existingLicenseProperty.getValue())) {
         installIntegrityRatingPolicy(tx);
         enablePolicyMonitoringForAllRepositories(tx);
+        addIntegrityRatingConditionTypeForMonitoring(tx);
 
         setConfigurationProperty(tx, existingLicenseProperty != null);
       }
       tx.commit();
+    }
+  }
+
+  private void addIntegrityRatingConditionTypeForMonitoring(TransactionContext tx) {
+    if (null == autoUnquarantinePolicyConditionTypeDAO.getById(IntegrityRatingConditionType.ID)) {
+      autoUnquarantinePolicyConditionTypeDAO
+          .insert(tx, new AutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID));
     }
   }
 

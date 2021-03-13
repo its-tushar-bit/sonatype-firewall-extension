@@ -18,6 +18,7 @@ export default function ImportStatusModal(props) {
     selectedOrganization,
     newlyImportedRepos,
     failedImportCount,
+    failedRepos,
     setIsImportStatusDialogVisible
   } = props;
 
@@ -25,21 +26,62 @@ export default function ImportStatusModal(props) {
     setIsImportStatusDialogVisible(false);
   };
 
-  const errorMessage = () => {
-    return (
-      <Fragment>
-        {newlyImportedRepos && newlyImportedRepos.length > 0 &&
-        <NxSuccessAlert>
-          <strong>{newlyImportedRepos.length} Repositories</strong> were successfully imported to IQ Server
-          as applications under the {selectedOrganization.organization.name} Organization.
-        </NxSuccessAlert>
-        }
-        {failedImportCount > 0 &&
+  const repositoryPluralized = count => count > 1 ? 'repositories' : 'repository';
+  const wasPlural = count => count > 1 ? 'were' : 'was';
+
+  const statusMessage = () => {
+    if (failedImportCount > 0) {
+      return (
         <NxErrorAlert>
-          {failedImportCount} Repositories failed to import.
+          {failedImportCount} {repositoryPluralized(failedImportCount)} had an error. See details below.
         </NxErrorAlert>
-        }
-      </Fragment>
+      );
+    }
+    if (newlyImportedRepos && newlyImportedRepos.length > 0) {
+      return (
+        <NxSuccessAlert>
+          <strong>All repositories</strong> were successfully imported. See details below.
+        </NxSuccessAlert>
+      );
+    }
+
+    return (
+      <Fragment />
+    );
+  };
+
+  const successDetails = () => {
+    if (newlyImportedRepos && newlyImportedRepos.length > 0) {
+      return (
+        <li className="scm-import-detail-success">
+          <strong>{newlyImportedRepos.length} {repositoryPluralized(newlyImportedRepos.length)}</strong>
+          {' '}{wasPlural(newlyImportedRepos.length)} successfully imported to IQ Server as applications under
+          the {selectedOrganization.organization.name} Organization.
+        </li>
+      );
+    }
+    return <Fragment/>;
+  };
+
+  const errorDetails = () => {
+    if (failedImportCount === 0) {
+      return null;
+    }
+
+    return (
+      <li className="scm-import-detail-error">
+        <strong>{failedImportCount} {repositoryPluralized(failedImportCount)}</strong> had an error
+        <ul className="scm-import-error-detail-list">
+          {failedRepos.map(({repository, errorMessage}) =>
+            <li key={repository.httpCloneUrl} className="scm-import-error-detail-item">
+              <strong>{repository.namespace}/{repository.project}</strong>
+              {errorMessage &&
+              <Fragment> failed with {errorMessage}</Fragment>
+              }
+            </li>
+          )}
+        </ul>
+      </li>
     );
   };
 
@@ -53,7 +95,12 @@ export default function ImportStatusModal(props) {
           </h2>
         </header>
         <div className="nx-modal-content">
-          {errorMessage()}
+          {statusMessage()}
+          <strong>Details</strong>
+          <ul className="scm-import-details">
+            {successDetails()}
+            {errorDetails()}
+          </ul>
           <p className="nx-p">
             You may continue the importing process or view the applications you just created on the reports page.
           </p>
@@ -76,6 +123,7 @@ ImportStatusModal.propTypes = {
   isImportStatusDialogVisible: PropTypes.bool,
   newlyImportedRepos: PropTypes.arrayOf(PropTypes.shape(repositoryPropType)).isRequired,
   failedImportCount: PropTypes.number,
+  failedRepos: PropTypes.arrayOf(PropTypes.shape(repositoryPropType)),
   selectedOrganization: PropTypes.shape(organizationPropType),
 
   // actions

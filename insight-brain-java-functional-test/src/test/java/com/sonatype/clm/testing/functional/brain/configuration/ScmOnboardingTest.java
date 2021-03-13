@@ -620,7 +620,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.successMessage().shouldBe(visible);
     scmOnboardingPage.errorMessage().shouldBe(hidden);
     scmOnboardingPage.successMessage().shouldBe(text(
-        "2 Repositories were successfully imported to IQ Server as applications under the Test Org Organization."));
+        "All repositories were successfully imported. See details below."));
 
     // and can dismiss the dialog
     scmOnboardingPage.importStatusContinue().click();
@@ -676,7 +676,7 @@ public class ScmOnboardingTest
 
     // then we see an error message
     scmOnboardingPage.successMessage().shouldNotBe(visible);
-    scmOnboardingPage.errorMessage().shouldBe(text("2 Repositories failed to import."));
+    scmOnboardingPage.errorMessage().shouldBe(text("2 repositories had an error. See details below."));
 
     // and can dismiss the dialog
     scmOnboardingPage.importStatusContinue().click();
@@ -715,9 +715,14 @@ public class ScmOnboardingTest
 
     // then we see an import message
     scmOnboardingPage.importStatusModal().shouldBe(visible);
-    scmOnboardingPage.successMessage().shouldBe(text(
-        "1 Repositories were successfully imported to IQ Server as applications under the Test Org Organization."));
-    scmOnboardingPage.errorMessage().shouldBe(text("2 Repositories failed to import."));
+    scmOnboardingPage.errorMessage().shouldBe(text("2 repositories had an error. See details below."));
+    scmOnboardingPage.importSuccessDetailMsg().shouldBe(text("1 repository was successfully imported to IQ Server " +
+            "as applications under the Test Org Organization."));
+    scmOnboardingPage.importErrorDetailMsg().shouldBe(text("2 repositories had an error"));
+    scmOnboardingPage.importErrorDetails().shouldHave(exactTexts(
+        "org2/broken-url-1 failed with Unsupported repository URL format: `h://localhost/org2/broken-url-1.git`",
+        "org2/broken-url-2 failed with Unsupported repository URL format: `ht://host/org2/broken-url-2.git`"
+    ));
 
     // and can dismiss the dialog
     scmOnboardingPage.importStatusContinue().click();

@@ -33,6 +33,7 @@ function mapStateToProps({ scmOnboarding, router }) {
     selectedRepositoryCount: scmOnboarding.formState.selectedRepositoryCount,
     importedRepositoryCount: scmOnboarding.formState.importedRepositoryCount,
     failedImportCount: scmOnboarding.formState.failedImportCount,
+    failedRepos: scmOnboarding.formState.failedRepos,
     newlyImportedRepos: scmOnboarding.formState.newlyImportedRepos,
     isImportStatusDialogVisible: scmOnboarding.viewState.isImportStatusDialogVisible,
 

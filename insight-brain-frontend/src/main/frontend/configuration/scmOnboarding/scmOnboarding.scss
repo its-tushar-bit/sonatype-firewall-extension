@@ -55,6 +55,43 @@ scm-onboarding {
   }
 }
 
+.scm-import-details {
+  list-style: none;
+  padding: 0;
+  margin-left: 0;
+
+  .scm-import-detail-success:before {
+    padding-left: 22px;
+    padding-top: 16px;
+    content: "\f058"; /* FontAwesome Unicode: check-circle */
+    font-family: FontAwesome;
+    display: inline-block;
+    margin-left: -22px; /* same as padding-left */
+    width: 22px; /* same as padding-left */
+    color: $nx-green-700;
+  }
+
+  .scm-import-detail-error:before {
+    padding-left: 22px;
+    padding-top: 16px;
+    content: "\f06a"; /* FontAwesome Unicode: exclamation-circle */
+    font-family: FontAwesome;
+    display: inline-block;
+    margin-left: -22px; /* same as padding-left */
+    width: 22px; /* same as padding-left */
+    color: $nx-red-800;
+  }
+
+  .scm-import-error-detail-list {
+    list-style-type: disc;
+  }
+
+  .scm-import-error-detail-item {
+    margin-left: 12px;
+    margin-top: 5px;
+  }
+}
+
 .iq-scmonboarding-title.nx-page-title {
   .nx-h1 {
     max-width: none;

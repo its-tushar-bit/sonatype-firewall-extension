@@ -73,7 +73,8 @@ const initialState = {
     newlyImportedRepos: [],
     defaultHostUrl: '',
     currentHostUrlState: textInputStateHelpers.initialState(''),
-    failedImportCount: 0
+    failedImportCount: 0,
+    failedRepos: []
   },
   sortConfiguration: {
     key: 'namespace',
@@ -393,7 +394,8 @@ function importRepositoriesRequested(payload, state) {
     formState: {
       ...state.formState,
       selectedRepositoryCount: 0,
-      failedImportCount: 0
+      failedImportCount: 0,
+      failedRepos: []
     }
   };
 }
@@ -411,7 +413,8 @@ function importRepositoriesFulfilled(payload, state) {
       importedRepositoryCount: state.formState.importedRepositoryCount + importedRepos.length,
       selectedRepositoryCount: 0,
       newlyImportedRepos: importedRepos,
-      failedImportCount: payload.failedImportCount
+      failedImportCount: payload.failedImportCount,
+      failedRepos: payload.failedRepositories
     },
     viewState: {
       ...state.viewState,

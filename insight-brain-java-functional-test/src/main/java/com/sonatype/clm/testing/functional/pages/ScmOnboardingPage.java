@@ -184,6 +184,18 @@ public class ScmOnboardingPage
     return importStatusModal().$(".nx-alert--error");
   }
 
+  public SelenideElement importSuccessDetailMsg() {
+    return child(".scm-import-detail-success");
+  }
+
+  public SelenideElement importErrorDetailMsg() {
+    return child(".scm-import-detail-error");
+  }
+
+  public ElementsCollection importErrorDetails() {
+    return children(".scm-import-error-detail-item");
+  }
+
   public SelenideElement namespaceHeader() {
     return child("#namespace-header");
   }

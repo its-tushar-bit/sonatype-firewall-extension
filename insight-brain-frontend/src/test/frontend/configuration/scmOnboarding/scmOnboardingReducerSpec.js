@@ -1033,7 +1033,8 @@ describe('scmOnboardingReducer', function() {
         newlyImportedRepos: [],
         defaultHostUrl: '',
         currentHostUrlState: textInputStateHelpers.initialState(''),
-        failedImportCount: 0
+        failedImportCount: 0,
+        failedRepos: []
       });
       expect(newState.viewState).toEqual({
         loadingPage: false,

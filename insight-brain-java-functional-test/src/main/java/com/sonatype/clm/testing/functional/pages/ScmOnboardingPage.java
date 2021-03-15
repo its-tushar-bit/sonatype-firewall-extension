@@ -117,7 +117,7 @@ public class ScmOnboardingPage
   }
 
   public SelenideElement projectFilter() {
-    return child("#project-filter");
+    return child("#iq-scmonboarding-project-filter");
   }
 
   public SelenideElement repositoryCount() {

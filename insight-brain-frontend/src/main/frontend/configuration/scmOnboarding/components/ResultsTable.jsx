@@ -162,16 +162,18 @@ export default function ResultsTable(props) {
               </NxCheckbox>
             </NxTableCell>
             <NxTableCell className="iq-scmonboarding__filter-cell">
-              <NxFilterInput value={filters.namespace}
+              <NxFilterInput id="iq-scmonboarding-namespace-filter"
+                             value={filters.namespace}
                              onChange={filterValue => changeFilter('namespace', filterValue)} />
             </NxTableCell>
             <NxTableCell className="iq-scmonboarding__filter-cell">
-              <NxFilterInput id="project-filter"
+              <NxFilterInput id="iq-scmonboarding-project-filter"
                              value={filters.project}
                              onChange={filterValue => changeFilter('project', filterValue)} />
             </NxTableCell>
             <NxTableCell className="iq-scmonboarding__filter-cell">
-              <NxFilterInput value={filters.description}
+              <NxFilterInput id="iq-scmonboarding-description-filter"
+                             value={filters.description}
                              onChange={filterValue => changeFilter('description', filterValue)} />
             </NxTableCell>
           </NxTableRow>
@@ -217,7 +219,7 @@ ResultsTable.propTypes = {
   setSelectedRepositories: PropTypes.func.isRequired
 };
 
-function RepositoryRow(props) {
+export function RepositoryRow(props) {
   const {
     rowKey,
     repo,

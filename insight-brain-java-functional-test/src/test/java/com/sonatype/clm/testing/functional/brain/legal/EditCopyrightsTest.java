@@ -97,9 +97,9 @@ public class EditCopyrightsTest
     CopyrightStatements copyrightStatements = ComponentLegalOverviewPage.copyrightStatements();
     assertThat(copyrightStatements.at(0).value()).isEqualTo("Copyright SomeDeveloper 2017");
     assertThat(copyrightStatements.at(1).value())
-        .isEqualTo("UPDATED COPYRIGHT");
-    assertThat(copyrightStatements.at(2).value())
         .isEqualTo("Copyright SomeDeveloper 2019-2020");
+    assertThat(copyrightStatements.at(2).value())
+        .isEqualTo("UPDATED COPYRIGHT");
 
     assertThat(ComponentLegalOverviewPage.copyrightStatements().all().size()).isEqualTo(3);
   }

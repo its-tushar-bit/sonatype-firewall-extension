@@ -145,12 +145,23 @@ public class LegalReportBuilder
           .collect(Collectors.toList());
     }
     return copyrightOverrides.stream()
+        .sorted(LegalReportBuilder::sortCopyrightOverrides)
         .map(copyrightOverride -> new ApiLicenseLegalCopyrightDTO(
             copyrightOverride.getId(),
             copyrightOverride.getContent(),
             copyrightOverride.getOriginalContentHash(),
             copyrightOverride.getStatus()))
         .collect(Collectors.toList());
+  }
+
+  public static int sortCopyrightOverrides(CopyrightOverride c1, CopyrightOverride c2) {
+    if (c1.getOriginalContentHash() != null && c2.getOriginalContentHash() == null) {
+      return -1;
+    }
+    if (c1.getOriginalContentHash() == null && c2.getOriginalContentHash() != null) {
+      return 1;
+    }
+    return c1.getContent().compareTo(c2.getContent());
   }
 
   private List<ApiLicenseLegalFileDTO> getLegalFiles(
@@ -168,10 +179,12 @@ public class LegalReportBuilder
               legalFileDTO.getContent(),
               legalFileDTO.getContentHash(),
               ComponentLegalPartStatus.ENABLED))
+          .sorted(Comparator.comparing(lc -> lc.content))
           .collect(Collectors.toList());
     }
 
     return legalFileOverrides.stream()
+        .sorted(LegalReportBuilder::sortLegalFileOverrides)
         .filter(legalFileOverride -> legalFileOverride.getType() == legalFileType)
         .map(legalFileOverride -> {
           //Find the relPath by matching the contentHash.
@@ -189,6 +202,16 @@ public class LegalReportBuilder
               legalFileOverride.getStatus());
         })
         .collect(Collectors.toList());
+  }
+
+  public static int sortLegalFileOverrides(LegalFileOverride l1, LegalFileOverride l2) {
+    if (l1.getOriginalContentHash() != null && l2.getOriginalContentHash() == null) {
+      return -1;
+    }
+    if (l1.getOriginalContentHash() == null && l2.getOriginalContentHash() != null) {
+      return 1;
+    }
+    return l1.getContent().compareTo(l2.getContent());
   }
 
   Set<ApiLicenseLegalMetadataDTO> getLicenseLegalMetadata(

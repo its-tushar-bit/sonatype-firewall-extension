@@ -108,7 +108,16 @@ describe('copyrightOverrideFormAction', function() {
           [getSaveComponentCopyrightOverrideUrl('organization', 'org')]: Promise.resolve(
               {
                 data: {
-                  data: 'data'
+                  data: 'dataPOST'
+                }
+              })
+        },
+        get: {
+          [getComponentCopyrightOverrideUrl('organization', 'org', 'componentIdentifier')]: Promise.resolve(
+              {
+                data: {
+                  componentCopyrightDTO: {data: 'dataGET'},
+                  ownerId: 'realOwner'
                 }
               })
         }
@@ -122,9 +131,12 @@ describe('copyrightOverrideFormAction', function() {
           const actions = store.getActions();
           expect(axios.post).toHaveBeenCalledWith(
               '/api/experimental/licenseLegalMetadata/organization/org/component/copyright', expectedPostBody);
+          expect(axios.get).toHaveBeenCalledWith(
+              '/api/experimental/licenseLegalMetadata/organization/org' +
+              '/component/copyright?componentIdentifier=%22componentIdentifier%22');
           expect(actions.length).toBe(3);
           expect(actions[1].type).toBe(COPYRIGHT_OVERRIDE_SAVE_FULFILLED);
-          expect(actions[1].payload).toEqual({data: 'data', componentCopyrightScopeOwnerId: 'org'});
+          expect(actions[1].payload).toEqual({data: 'dataGET', componentCopyrightScopeOwnerId: 'realOwner'});
           expect(actions[2].type).toBe(COPYRIGHT_OVERRIDE_SUBMIT_MASK_DONE);
           done();
         }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
@@ -300,13 +312,13 @@ describe('copyrightOverrideFormAction', function() {
         'componentIdentifier': 'componentIdentifier',
         'copyrightOverrides': [
           {
-            'id': '1',
+            'id': null,
             'content': 'Copyright 2043',
             'originalContentHash': 'originalContentHash1',
             'status': 'enabled'
           },
           {
-            'id': '2',
+            'id': null,
             'content': 'Copyright 2',
             'originalContentHash': 'originalContentHash2',
             'status': 'disabled'
@@ -326,6 +338,15 @@ describe('copyrightOverrideFormAction', function() {
                   data: 'data'
                 }
               })
+        },
+        get: {
+          [getComponentCopyrightOverrideUrl('application', 'app', 'componentIdentifier')]: Promise.resolve(
+              {
+                data: {
+                  componentCopyrightDTO: {data: 'dataGET'},
+                  ownerId: 'realOwner'
+                }
+              })
         }
       });
       store.dispatch(saveCopyrightOverride(
@@ -340,7 +361,7 @@ describe('copyrightOverrideFormAction', function() {
               expectedPostBody);
           expect(actions.length).toBe(3);
           expect(actions[1].type).toBe(COPYRIGHT_OVERRIDE_SAVE_FULFILLED);
-          expect(actions[1].payload).toEqual({data: 'data', componentCopyrightScopeOwnerId: expectedScope});
+          expect(actions[1].payload).toEqual({data: 'dataGET', componentCopyrightScopeOwnerId: 'realOwner'});
           expect(actions[2].type).toBe(COPYRIGHT_OVERRIDE_SUBMIT_MASK_DONE);
           done();
         }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
@@ -362,7 +383,7 @@ describe('copyrightOverrideFormAction', function() {
               })
         },
         get: {
-          [getComponentCopyrightOverrideUrl(orgOrApp, persistedAtScope, 'componentIdentifier')]: Promise.resolve(
+          [getComponentCopyrightOverrideUrl('application', 'app', 'componentIdentifier')]: Promise.resolve(
               {
                 data: {
                   componentCopyrightDTO: {data: 'dataGET'},
@@ -381,7 +402,7 @@ describe('copyrightOverrideFormAction', function() {
             '/api/experimental/licenseLegalMetadata/' + orgOrApp + '/' + persistedAtScope + '/component/copyright',
             expectedPostBody);
         expect(axios.get).toHaveBeenCalledWith(
-            '/api/experimental/licenseLegalMetadata/' + orgOrApp + '/' + persistedAtScope +
+            '/api/experimental/licenseLegalMetadata/application/app' +
             '/component/copyright?componentIdentifier=%22componentIdentifier%22');
         expect(actions.length).toBe(2);
         expect(actions[1].type).toBe(COPYRIGHT_OVERRIDE_SAVE_FULFILLED);

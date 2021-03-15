@@ -17,8 +17,8 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
-import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightWithOwnerDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightWithOwnerDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.CopyrightOverrideDTO;
@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
+import com.sonatype.insight.brain.model.legal.CopyrightOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
@@ -1189,7 +1190,7 @@ public class ComponentLegalServiceTest
 
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> componentLegalService
         .getComponentCopyrightWithHierarchy(OwnerType.ORGANIZATION, org.getPublicId(), componentIdentifier))
-    .withMessageContaining("No component copyright");
+        .withMessageContaining("No component copyright");
   }
 
   @Test
@@ -1297,6 +1298,52 @@ public class ComponentLegalServiceTest
         componentIdentifier)).isNull();
     assertThat(componentLegalService.getComponentLegalFile(org.getType(), org.getId(), componentIdentifier)).isNull();
     assertThat(componentLegalService.getComponentLegalFile(app.getType(), app.getId(), componentIdentifier)).isNull();
+  }
+
+  @Test
+  public void testGetComponentCopyright_Order() {
+    Application app = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentCopyright componentCopyright =
+        tempEntity.newComponentCopyright(componentIdentifier, app.getId(), "legalContentHash1");
+    CopyrightOverride copyrightOverride1 = tempEntity.newCopyrightOverride(null, "hash1", "y",
+        ComponentLegalPartStatus.ENABLED, componentCopyright.getId());
+    CopyrightOverride copyrightOverride2 = tempEntity.newCopyrightOverride(null, "hash2", "b",
+        ComponentLegalPartStatus.ENABLED, componentCopyright.getId());
+    CopyrightOverride copyrightOverride3 = tempEntity.newCopyrightOverride("originalHash1", "hash3", "z",
+        ComponentLegalPartStatus.ENABLED, componentCopyright.getId());
+    CopyrightOverride copyrightOverride4 = tempEntity.newCopyrightOverride("originalHash2", "hash4", "a",
+        ComponentLegalPartStatus.ENABLED, componentCopyright.getId());
+
+    ComponentCopyrightWithOwnerDTO expected = new ComponentCopyrightWithOwnerDTO(
+        ComponentCopyrightDTO.fromComponentCopyright(componentCopyright,
+            Arrays.asList(CopyrightOverrideDTO.fromCopyrightOverride(copyrightOverride4),
+                CopyrightOverrideDTO.fromCopyrightOverride(copyrightOverride3),
+                CopyrightOverrideDTO.fromCopyrightOverride(copyrightOverride2),
+                CopyrightOverrideDTO.fromCopyrightOverride(copyrightOverride1))),
+        componentCopyright.getOwnerId());
+    assertThat(componentLegalService.getComponentCopyrightWithHierarchy(app.getType(), app.getPublicId(),
+        componentIdentifier)).usingRecursiveComparison().isEqualTo(expected);
+  }
+
+  @Test
+  public void testGetComponentLegalFile_Order() {
+    Application app = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentLegalFile componentLegalFile =
+        tempEntity.newComponentLegalFile(componentIdentifier, app.getId(), "legalContentHash1");
+    LegalFileOverride legalFileOverride1 = tempEntity.newLegalFileOverride(LegalFileType.NOTICE, null,
+        "hash1", "y", ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
+    LegalFileOverride legalFileOverride2 = tempEntity.newLegalFileOverride(LegalFileType.NOTICE, null,
+        "hash2", "b", ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
+    LegalFileOverride legalFileOverride3 = tempEntity.newLegalFileOverride(LegalFileType.NOTICE, "originalHash1",
+        "hash3", "z", ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
+    LegalFileOverride legalFileOverride4 = tempEntity.newLegalFileOverride(LegalFileType.NOTICE, "originalHash2",
+        "hash4", "a", ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
+
+    assertThat(componentLegalService.getComponentLegalFile(app.getType(), app.getPublicId(), componentIdentifier))
+        .usingRecursiveComparison().isEqualTo(new ComponentLegalFileDTO(componentLegalFile,
+        Arrays.asList(legalFileOverride4, legalFileOverride3, legalFileOverride2, legalFileOverride1)));
   }
 
   private ApiLicenseLegalObligationDTO createMinimalComponentObligationDTO() {

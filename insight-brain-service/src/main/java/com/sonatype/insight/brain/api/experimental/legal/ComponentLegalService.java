@@ -17,8 +17,8 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
-import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightWithOwnerDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightWithOwnerDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.CopyrightOverrideDTO;
@@ -143,7 +143,8 @@ public class ComponentLegalService
     return new ComponentCopyrightWithOwnerDTO(
         ComponentCopyrightDTO.fromComponentCopyright(
             componentCopyright,
-            copyrightOverrides.stream().map(CopyrightOverrideDTO::fromCopyrightOverride).collect(Collectors.toList())),
+            copyrightOverrides.stream().sorted(LegalReportBuilder::sortCopyrightOverrides)
+                .map(CopyrightOverrideDTO::fromCopyrightOverride).collect(Collectors.toList())),
         componentCopyright.getOwnerId()
     );
   }
@@ -273,7 +274,8 @@ public class ComponentLegalService
       return null;
     }
     List<LegalFileOverride> legalFileOverrides =
-        legalFileOverrideDAO.getByComponentLegalFileId(componentLegalFile.getId());
+        legalFileOverrideDAO.getByComponentLegalFileId(componentLegalFile.getId()).stream()
+            .sorted(LegalReportBuilder::sortLegalFileOverrides).collect(Collectors.toList());
     return new ComponentLegalFileDTO(componentLegalFile, legalFileOverrides);
   }
 

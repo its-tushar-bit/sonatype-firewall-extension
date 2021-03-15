@@ -76,9 +76,9 @@ export default function CopyrightOverrideForm(props) {
   const addNewCustomCopyright = () => {
     setCopyrights([
       ...copyrights, {
-        id: '',
+        id: null,
         content: initialState(''),
-        originalContentHash: '',
+        originalContentHash: null,
         status: 'enabled'
       }
     ]);
@@ -87,7 +87,7 @@ export default function CopyrightOverrideForm(props) {
   const trySave = () => {
     saveCopyrightOverride({
       copyrights: copyrights
-          .filter(c => c.id !== 0 && c.content.trimmedValue.length !== 0)
+          .filter(c => c.id !== null || c.originalContentHash !== null || c.content.trimmedValue.length !== 0)
           .map(({ content, ...rest }) => ({
             content: content.trimmedValue,
             ...rest

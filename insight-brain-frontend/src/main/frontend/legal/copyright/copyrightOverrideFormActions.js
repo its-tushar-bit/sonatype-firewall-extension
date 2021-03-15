@@ -28,40 +28,31 @@ export function saveCopyrightOverride({copyrights, scopeOwnerId}) {
     // by setting the ID to null. If scope is higher, we will modify the existing entity.
     const isScopeOverrideValue = isScopeOverride(existingComponentCopyrightScopeOwnerId, scopeOwnerId,
         availableScopes.values);
-    const isHigherScopeOverride = existingComponentCopyrightScopeOwnerId != null && !isScopeOverrideValue;
     const componentCopyrightId = isScopeOverrideValue ? null :
       advancedLegalState.component.component.licenseLegalData.componentCopyrightId;
 
     const payload = {
       id: componentCopyrightId,
       componentIdentifier: componentIdentifier,
-      copyrightOverrides: copyrights
+      copyrightOverrides: copyrights.map(
+          copyright => ({ ...copyright, id: isScopeOverrideValue ? null : copyright.id }))
     };
 
     dispatch(saveRequested());
     const matchingScope = availableScopes.values.find(s => s.id === scopeOwnerId);
+    const visitedScope = availableScopes.values[0];
     return axios.post(getSaveComponentCopyrightOverrideUrl(matchingScope.type, matchingScope.publicId), payload)
-        .then((postResponsePayload) => {
+        .then(() => {
           //Fetch the updated ComponentCopyright separately in case we need values at a higher scope.
-          if (isHigherScopeOverride) {
-            axios.get(getComponentCopyrightOverrideUrl(matchingScope.type, matchingScope.publicId, componentIdentifier))
-                .then((getResponsePayload) => {
-                  const descriptiveResponse = {
-                    ...getResponsePayload.data.componentCopyrightDTO,
-                    componentCopyrightScopeOwnerId: getResponsePayload.data.ownerId
-                  };
-                  dispatch(saveFulfilled(descriptiveResponse));
-                  startSaveCopyrightOverrideSubmitMaskDoneTimer(dispatch);
-                });
-          }
-          else {
-            const descriptiveResponse = {
-              ...postResponsePayload.data,
-              componentCopyrightScopeOwnerId: scopeOwnerId
-            };
-            dispatch(saveFulfilled(descriptiveResponse));
-            startSaveCopyrightOverrideSubmitMaskDoneTimer(dispatch);
-          }
+          axios.get(getComponentCopyrightOverrideUrl(visitedScope.type, visitedScope.publicId, componentIdentifier))
+              .then((getResponsePayload) => {
+                const descriptiveResponse = {
+                  ...getResponsePayload.data.componentCopyrightDTO,
+                  componentCopyrightScopeOwnerId: getResponsePayload.data.ownerId
+                };
+                dispatch(saveFulfilled(descriptiveResponse));
+                startSaveCopyrightOverrideSubmitMaskDoneTimer(dispatch);
+              });
         })
         .catch(error => {
           dispatch(saveFailed(error));

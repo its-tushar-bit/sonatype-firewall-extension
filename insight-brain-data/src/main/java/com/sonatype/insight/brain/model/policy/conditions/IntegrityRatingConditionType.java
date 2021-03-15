@@ -93,4 +93,9 @@ public class IntegrityRatingConditionType
   public PolicyThreatCategory getThreatCategory() {
     return PolicyThreatCategory.QUALITY;
   }
+
+  @Override
+  public boolean isAutoUnquarantineSupported() {
+    return true;
+  }
 }

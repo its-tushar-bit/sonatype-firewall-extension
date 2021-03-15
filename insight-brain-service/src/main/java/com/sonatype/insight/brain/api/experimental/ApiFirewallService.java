@@ -21,22 +21,27 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallComponentDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineSummaryDTO;
-import com.sonatype.insight.brain.api.experimental.dto.FirewallConfigurationDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiPageResult;
+import com.sonatype.insight.brain.api.experimental.dto.FirewallConfigurationDTO;
+import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineConfigDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyViolationAdapter;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.model.policy.AutoUnquarantinePolicyConditionType;
+import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -75,6 +80,8 @@ public class ApiFirewallService
 
   private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
 
+  private final AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO;
+
   private final ApiPolicyViolationAdapter apiPolicyViolationAdapter;
 
   @Inject
@@ -85,8 +92,8 @@ public class ApiFirewallService
       final RepositoryComponentDAO repositoryComponentDAO,
       final RepositoryDAO repositoryDAO,
       final ApiPolicyViolationAdapter apiPolicyViolationAdapter,
-      final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO
-  )
+      final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      final AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO)
   {
     this.insightConfig = insightConfig;
     this.policyMonitoringDAO = policyMonitoringDAO;
@@ -95,6 +102,7 @@ public class ApiFirewallService
     this.repositoryDAO = repositoryDAO;
     this.apiPolicyViolationAdapter = apiPolicyViolationAdapter;
     this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.autoUnquarantinePolicyConditionTypeDAO = autoUnquarantinePolicyConditionTypeDAO;
   }
 
   @Authorize(permission = Permission.READ)
@@ -149,6 +157,35 @@ public class ApiFirewallService
     summary.quarantinedComponentCount = repositoryComponentDAO.getQuarantinedComponentCount();
 
     return summary;
+  }
+
+  @Authorize(permission = Permission.READ)
+  public List<ApiFirewallReleaseQuarantineConfigDTO> getReleaseQuarantineConfig() {
+    checkExperimentalFeatureFlag();
+    checkProductLicense();
+
+    final Set<String> enabledPolicyConditionTypes = autoUnquarantinePolicyConditionTypeDAO.getAll().stream()
+        .map(AutoUnquarantinePolicyConditionType::getId)
+        .collect(Collectors.toSet());
+
+    return ConditionTypes.getAll().stream()
+        .filter(ConditionType::isAutoUnquarantineSupported)
+        .map(conditionType -> generateReleaseQuarantineConfigDto(enabledPolicyConditionTypes, conditionType))
+        .collect(Collectors.toList());
+  }
+
+  private ApiFirewallReleaseQuarantineConfigDTO generateReleaseQuarantineConfigDto(
+      final Set<String> enabledPolicyConditionTypes,
+      final ConditionType conditionType)
+  {
+    ApiFirewallReleaseQuarantineConfigDTO apiFirewallReleaseQuarantineConfigDTO =
+        new ApiFirewallReleaseQuarantineConfigDTO();
+    apiFirewallReleaseQuarantineConfigDTO.autoReleaseQuarantineEnabled =
+        enabledPolicyConditionTypes.contains(conditionType.getId());
+    apiFirewallReleaseQuarantineConfigDTO.id = conditionType.getId();
+    apiFirewallReleaseQuarantineConfigDTO.name = conditionType.getName();
+
+    return apiFirewallReleaseQuarantineConfigDTO;
   }
 
   private void checkExperimentalFeatureFlag() {

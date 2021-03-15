@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallQuarantineSumm
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.experimental.dto.FirewallConfigurationDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiPageResult;
+import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineConfigDTO;
 import com.sonatype.insight.brain.api.experimental.dto.PaginationResponseBuilder;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -56,6 +57,8 @@ public class ApiFirewallResource
 
   static final String RELEASE_QUARANTINE_SUMMARY_PATH = RELEASE_QUARANTINE + "/" + SUMMARY_PATH;
 
+  static final String RELEASE_QUARANTINE_CONFIGURATION_PATH = RELEASE_QUARANTINE + "/" + CONFIGURATION_PATH;
+
   static final String QUARANTINE_PATH = "quarantine";
 
   static final String QUARANTINE_SUMMARY_PATH = QUARANTINE_PATH + "/summary";
@@ -75,6 +78,12 @@ public class ApiFirewallResource
   @Path(RELEASE_QUARANTINE_SUMMARY_PATH)
   public ApiFirewallReleaseQuarantineSummaryDTO getFirewallUnquarantineSummary() {
     return apiFirewallService.getReleaseQuarantineSummary();
+  }
+
+  @GET
+  @Path(RELEASE_QUARANTINE_CONFIGURATION_PATH)
+  public List<ApiFirewallReleaseQuarantineConfigDTO> getFirewallAutoUnquarantineConfig() {
+    return apiFirewallService.getReleaseQuarantineConfig();
   }
 
   /**

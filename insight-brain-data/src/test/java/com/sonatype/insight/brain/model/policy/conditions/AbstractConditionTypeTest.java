@@ -55,6 +55,11 @@ public class AbstractConditionTypeTest
       public String explainMatch(final Condition condition, final MatchFact matchFact) {
         return null;
       }
+
+      @Override
+      public boolean isAutoUnquarantineSupported() {
+        return false;
+      }
     };
     assertThat(abstractConditionType.convertIfNeeded("value")).isEqualTo("value");
   }

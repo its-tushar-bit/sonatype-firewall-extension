@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.experimental;
 
 import java.util.Collections;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -13,6 +14,7 @@ import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallComponentDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.experimental.dto.FirewallConfigurationDTO;
+import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineConfigDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
@@ -67,6 +69,29 @@ public class ApiFirewallServiceAuthzTest
   public void testGetFirewallQuarantineSummary_Unauthenticated() {
     assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() ->
         apiFirewallService.getReleaseQuarantineSummary());
+  }
+
+  @Test
+  public void testGetFirewallAutoUnquarantineConfig_Authorized() {
+    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
+    grantGlobalPermission(Permission.READ);
+
+    List<ApiFirewallReleaseQuarantineConfigDTO> dto = apiFirewallService.getReleaseQuarantineConfig();
+
+    assertThat(dto.size()).isGreaterThan(0);
+  }
+
+  @Test
+  public void testGetFirewallAutoUnquarantineConfig_Unauthorized() {
+    login();
+    assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(() ->
+        apiFirewallService.getReleaseQuarantineConfig());
+  }
+
+  @Test
+  public void testGetFirewallAutoUnquarantineConfig_Unauthenticated() {
+    assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() ->
+        apiFirewallService.getReleaseQuarantineConfig());
   }
 
   @Test

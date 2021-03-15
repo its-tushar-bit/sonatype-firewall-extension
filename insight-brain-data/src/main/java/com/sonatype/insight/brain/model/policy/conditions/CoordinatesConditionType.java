@@ -79,6 +79,11 @@ public class CoordinatesConditionType
     return convertToWildcardWhereNeeded(value);
   }
 
+  @Override
+  public boolean isAutoUnquarantineSupported() {
+    return false;
+  }
+
   private String convertToWildcardWhereNeeded(final String value) {
     if (StringUtils.isEmpty(value)) {
       return value;

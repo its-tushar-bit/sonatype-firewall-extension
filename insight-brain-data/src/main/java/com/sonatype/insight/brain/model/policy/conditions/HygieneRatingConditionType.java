@@ -81,6 +81,11 @@ public class HygieneRatingConditionType
   }
 
   @Override
+  public boolean isAutoUnquarantineSupported() {
+    return false;
+  }
+
+  @Override
   protected boolean internalEvaluateCondition(Component component, String operator, String value) {
     if (component.getHygieneRating() == null) {
       return false;

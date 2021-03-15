@@ -150,4 +150,9 @@ public class LicenseThreatGroupConditionType
     return "$conditionTriggers.add(new ConditionTrigger(" + conditionIndex + ", new TriggerLicenseThreatGroup("
         + asDroolsString(condition.getValue()) + ")));";
   }
+
+  @Override
+  public boolean isAutoUnquarantineSupported() {
+    return true;
+  }
 }

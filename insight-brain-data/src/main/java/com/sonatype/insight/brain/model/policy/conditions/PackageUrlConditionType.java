@@ -77,6 +77,11 @@ public class PackageUrlConditionType
   }
 
   @Override
+  public boolean isAutoUnquarantineSupported() {
+    return false;
+  }
+
+  @Override
   public String getValueTypeId() {
     return PackageUrlValueType.ID;
   }

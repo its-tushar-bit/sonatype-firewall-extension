@@ -9,24 +9,32 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallComponentDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineSummaryDTO;
-import com.sonatype.insight.brain.api.experimental.dto.FirewallConfigurationDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiPageResult;
+import com.sonatype.insight.brain.api.experimental.dto.FirewallConfigurationDTO;
+import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineConfigDTO;
 import com.sonatype.insight.brain.api.v2.service.PolicyViolationTestHelper;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
 import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
+import com.sonatype.insight.brain.model.policy.conditions.IntegrityRatingConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -133,6 +141,70 @@ public class ApiFirewallServiceTest
     //then: expect bad request exception
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
         apiFirewallService.getReleaseQuarantineSummary());
+  }
+
+  @Test
+  public void testGetFirewallReleaseQuarantineConfig() {
+    //setup: enable feature flag
+    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
+
+    IntegrityRatingConditionType integrityRatingConditionType = new IntegrityRatingConditionType();
+    LicenseConditionType licenseConditionType = new LicenseConditionType();
+
+    tempEntity.newAutoUnquarantinePolicyConditionType(integrityRatingConditionType);
+    tempEntity.newAutoUnquarantinePolicyConditionType(licenseConditionType);
+
+    final String[] autoUnquarantinedConditionTypes = ConditionTypes.getAll().stream()
+        .filter(ConditionType::isAutoUnquarantineSupported)
+        .map(ConditionType::getName)
+        .toArray(String[]::new);
+
+    //when: getting release quarantine config
+    //then: expect the auto unquarantined enabled policy condition types with the enabled flag set
+    Map<String, ApiFirewallReleaseQuarantineConfigDTO> releaseQuarantineConfig =
+        apiFirewallService.getReleaseQuarantineConfig().stream()
+          .collect(Collectors.toMap(dto -> dto.id, Function.identity()));
+    long numTrue = releaseQuarantineConfig.values().stream().filter(dto -> dto.autoReleaseQuarantineEnabled).count();
+
+    assertThat(releaseQuarantineConfig.values()).extracting("name")
+        .containsOnly(autoUnquarantinedConditionTypes);
+    // Ensures correct number of falses
+    assertThat(numTrue).isEqualTo(2);
+    assertThat(releaseQuarantineConfig.get(integrityRatingConditionType.getId()).autoReleaseQuarantineEnabled).isTrue();
+    assertThat(releaseQuarantineConfig.get(licenseConditionType.getId()).autoReleaseQuarantineEnabled).isTrue();
+  }
+
+  @Test
+  public void testGetFirewallReleaseQuarantineConfig_NoFirewallFeature() {
+    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
+
+    //setup: remove firewall feature
+    testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL);
+
+    //when: getting release quarantine config
+    //then: expect invalid license exception
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
+        apiFirewallService.getReleaseQuarantineConfig());
+  }
+
+  @Test
+  public void testGetFirewallReleaseQuarantineConfig_NoReleaseIntegrityFeature() {
+    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
+    //setup: remove release integrity feature
+    testProductLicense.setMissingFeatures(LicensedFeature.RELEASE_INTEGRITY);
+
+    //when: getting release quarantine config
+    //then: expect invalid license exception
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
+        apiFirewallService.getReleaseQuarantineConfig());
+  }
+
+  @Test
+  public void testGetFirewallReleaseQuarantineConfig_FeatureFlag_False() {
+    //when: getting release quarantine config
+    //then: expect bad request exception
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
+        apiFirewallService.getReleaseQuarantineConfig());
   }
 
   @Test

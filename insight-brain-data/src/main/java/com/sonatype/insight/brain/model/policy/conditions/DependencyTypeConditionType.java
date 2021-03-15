@@ -102,6 +102,11 @@ public class DependencyTypeConditionType
     }
   }
 
+  @Override
+  public boolean isAutoUnquarantineSupported() {
+    return false;
+  }
+
   private DependencyType getDependencyType(final Component component) {
     return component != null && component.getDirectDependency() != null &&
         component.getDirectDependency() ? DependencyType.DIRECT : DependencyType.TRANSITIVE;

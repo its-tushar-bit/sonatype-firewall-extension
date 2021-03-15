@@ -57,6 +57,11 @@ public class LabelConditionType
   }
 
   @Override
+  public boolean isAutoUnquarantineSupported() {
+    return false;
+  }
+
+  @Override
   public String getId() {
     return ID;
   }

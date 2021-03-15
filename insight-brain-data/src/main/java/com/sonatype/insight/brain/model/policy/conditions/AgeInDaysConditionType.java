@@ -84,6 +84,11 @@ public class AgeInDaysConditionType
   }
 
   @Override
+  public boolean isAutoUnquarantineSupported() {
+    return false;
+  }
+
+  @Override
   public String getValueHint() {
     return "Enter term";
   }

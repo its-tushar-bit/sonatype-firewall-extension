@@ -56,6 +56,11 @@ public class ProprietaryConditionType
   }
 
   @Override
+  public boolean isAutoUnquarantineSupported() {
+    return false;
+  }
+
+  @Override
   public String getValueTypeId() {
     return null;
   }

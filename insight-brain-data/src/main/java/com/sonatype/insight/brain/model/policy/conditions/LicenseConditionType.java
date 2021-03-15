@@ -97,4 +97,9 @@ public class LicenseConditionType
     return "$conditionTriggers.add(new ConditionTrigger(" + conditionIndex + ", new TriggerLicense("
         + asDroolsString(condition.getValue()) + ")));";
   }
+
+  @Override
+  public boolean isAutoUnquarantineSupported() {
+    return true;
+  }
 }

@@ -85,6 +85,11 @@ public class ComponentCategoryConditionType
   }
 
   @Override
+  public boolean isAutoUnquarantineSupported() {
+    return false;
+  }
+
+  @Override
   protected boolean internalEvaluateCondition(Component component, String operator, String value) {
     if (component.getComponentCategories() == null) {
       return false;

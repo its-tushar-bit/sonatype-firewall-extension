@@ -71,6 +71,11 @@ public class IdentificationSourceConditionType
   }
 
   @Override
+  public boolean isAutoUnquarantineSupported() {
+    return false;
+  }
+
+  @Override
   protected boolean internalEvaluateCondition(Component component, String operator, String value) {
     boolean result = component.getIdentificationSource().getId().equals(value);
     return "is".equals(operator) ? result : !result;

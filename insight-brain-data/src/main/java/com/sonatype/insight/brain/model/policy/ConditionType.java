@@ -74,4 +74,9 @@ public interface ConditionType
    * @since 1.87
    */
   boolean isEnabled();
+
+  /**
+   * @since 1.107
+   */
+  boolean isAutoUnquarantineSupported();
 }

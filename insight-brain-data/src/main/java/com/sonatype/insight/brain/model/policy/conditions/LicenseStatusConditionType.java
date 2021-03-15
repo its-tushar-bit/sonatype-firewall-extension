@@ -82,6 +82,11 @@ public class LicenseStatusConditionType
   }
 
   @Override
+  public boolean isAutoUnquarantineSupported() {
+    return false;
+  }
+
+  @Override
   protected boolean internalEvaluateCondition(Component component, String operator, String value) {
     boolean result = component.getLicenseOverrideStatus().getId().equals(value);
     return "is".equals(operator) ? result : !result;

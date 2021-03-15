@@ -71,6 +71,11 @@ public class RelativePopularityConditionType
   }
 
   @Override
+  public boolean isAutoUnquarantineSupported() {
+    return false;
+  }
+
+  @Override
   public String getValueHint() {
     return "Enter percent value, 1 to 100";
   }

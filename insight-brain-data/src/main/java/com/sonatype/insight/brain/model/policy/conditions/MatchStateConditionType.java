@@ -73,6 +73,11 @@ public class MatchStateConditionType
   }
 
   @Override
+  public boolean isAutoUnquarantineSupported() {
+    return false;
+  }
+
+  @Override
   protected boolean isApplicable(Component component) {
     return true;
   }

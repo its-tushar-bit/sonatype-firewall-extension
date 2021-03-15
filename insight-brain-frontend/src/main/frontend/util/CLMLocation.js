@@ -135,8 +135,8 @@ export function getScmOnboardingConfigUrl() {
 }
 
 export function getScmRepositoriesUrl(organizationId, defaultHostUrl) {
-  return uriTemplate(['/api/experimental/onboarding/loadRepositories?orgId=', '&defaultHostUrl=', ''], organizationId,
-      defaultHostUrl);
+  return uriTemplate`/api/experimental/onboarding/loadRepositories?\
+orgId=${organizationId}&defaultHostUrl=${defaultHostUrl}`;
 }
 
 export function getScmDefaultHostUrl(organizationId, provider) {
@@ -285,16 +285,13 @@ export function getSaveComponentObligationAttributionUrl(orgOrApp, ownerId) {
 }
 
 export function getComponentObligationAttributionUrl(orgOrApp, ownerId, componentIdentifier, obligationName) {
-  return uriTemplate([
-    '/api/experimental/licenseLegalMetadata/', '/', '/component/obligation/attribution?componentIdentifier=',
-    '&obligationName=', ''
-  ], orgOrApp, ownerId, JSON.stringify(componentIdentifier), obligationName);
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/obligation/attribution\
+?componentIdentifier=${JSON.stringify(componentIdentifier)}&obligationName=${obligationName}`;
 }
 
 export function getDeleteComponentObligationAttributionUrl(componentObligationAttributionId) {
-  return uriTemplate([
-    '/api/experimental/licenseLegalMetadata/component/obligation/attribution/', ''
-  ], componentObligationAttributionId);
+  return uriTemplate`/api/experimental/licenseLegalMetadata/component/obligation/attribution/\
+${componentObligationAttributionId}`;
 }
 
 export function getSaveComponentCopyrightOverrideUrl(orgOrApp, ownerId) {
@@ -302,9 +299,8 @@ export function getSaveComponentCopyrightOverrideUrl(orgOrApp, ownerId) {
 }
 
 export function getComponentCopyrightOverrideUrl(orgOrApp, ownerId, componentIdentifier) {
-  return uriTemplate([
-    '/api/experimental/licenseLegalMetadata/', '/', '/component/copyright?componentIdentifier=', ''
-  ], orgOrApp, ownerId, JSON.stringify(componentIdentifier));
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/copyright\
+?componentIdentifier=${JSON.stringify(componentIdentifier)}`;
 }
 
 export function getSaveComponentObligationUrl(orgOrApp, ownerId) {
@@ -312,9 +308,8 @@ export function getSaveComponentObligationUrl(orgOrApp, ownerId) {
 }
 
 export function getComponentObligationUrl(orgOrApp, ownerId, componentIdentifier, obligationName) {
-  return uriTemplate([
-    '/api/experimental/licenseLegalMetadata/', '/', '/component/obligation?componentIdentifier=', '&obligationName=', ''
-  ], orgOrApp, ownerId, JSON.stringify(componentIdentifier), obligationName);
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/obligation\
+?componentIdentifier=${JSON.stringify(componentIdentifier)}&obligationName=${obligationName}`;
 }
 
 export function getDeleteComponentObligationUrl(componentObligationId) {
@@ -326,9 +321,8 @@ export function getSaveLegalFileUrl(orgOrApp, ownerId) {
 }
 
 export function getLegalFileUrl(orgOrApp, ownerId, componentIdentifier) {
-  return uriTemplate([
-    '/api/experimental/licenseLegalMetadata/', '/', '/component/legalFile?componentIdentifier=', ''
-  ], orgOrApp, ownerId, JSON.stringify(componentIdentifier));
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/legalFile\
+?componentIdentifier=${JSON.stringify(componentIdentifier)}`;
 }
 
 export default

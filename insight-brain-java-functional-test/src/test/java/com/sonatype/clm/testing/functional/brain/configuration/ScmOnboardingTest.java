@@ -1357,6 +1357,78 @@ public class ScmOnboardingTest
   }
 
   @Test
+  public void testNewOrgCreation_trimsWhitespace() throws Exception {
+    // given a mock git service
+    setupMockRepos();
+    setupSourceControl();
+
+    // given SCM onboarding page with a selected organization
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
+    loginAsAdmin();
+
+    // when creating a new organization with whitespace in its name
+    scmOnboardingPage.newOrgButton().click();
+    scmOnboardingPage.createOrgButton().shouldHave(cssClass("disabled"));
+    scmOnboardingPage.newOrgName().setValue("  Foo Organization  ");
+    scmOnboardingPage.createOrgButton().shouldNotHave(cssClass("disabled"));
+    scmOnboardingPage.createOrgButton().click();
+    scmOnboardingPage.newOrgModal().shouldBe(hidden);
+
+    // Then the new organization is created and selected
+    scmOnboardingPage.organizationsDropdown().selectedOrganization().shouldHave(text("Foo Organization"));
+  }
+
+  @Test
+  public void testNewOrgCreation_clearsError() throws Exception {
+    // given a mock git service
+    setupMockRepos();
+    setupSourceControl();
+
+    // given SCM onboarding page with a selected organization
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
+    loginAsAdmin();
+
+    // and an organization that already exists
+    scmOnboardingPage.newOrgButton().click();
+    scmOnboardingPage.newOrgName().setValue("Foo Organization");
+    scmOnboardingPage.createOrgButton().click();
+    scmOnboardingPage.newOrgModal().shouldBe(hidden);
+    scmOnboardingPage.newOrgButton().click();
+    scmOnboardingPage.newOrgName().setValue("Foo Organization");
+    scmOnboardingPage.createOrgButton().click();
+    scmOnboardingPage.newOrgModalError().shouldHave(text("Failed to create organization. Foo Organization is already" +
+        " used as a name."));
+
+    // when the organzation name is modified
+    scmOnboardingPage.newOrgName().setValue("Bar Organization");
+
+    // then the error is cleared
+    scmOnboardingPage.newOrgModalError().shouldBe(hidden);
+  }
+
+  @Test
+  public void testNewOrgCreation_invalidChars() throws Exception {
+    // given a mock git service
+    setupMockRepos();
+    setupSourceControl();
+
+    // given SCM onboarding page with a selected organization
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
+    loginAsAdmin();
+
+    // when creating a new organization that already exists
+    scmOnboardingPage.newOrgButton().click();
+    scmOnboardingPage.newOrgName().setValue("!#$@");
+
+    // then an form validation error is displayed
+    scmOnboardingPage.newOrganizationInvalidMessage().shouldHave(
+        text("Organization name contains an invalid character"));
+  }
+
+  @Test
   public void testNewOrgCreation_reloadTriggered() throws Exception {
     // given a mock git service
     setupMockRepos();

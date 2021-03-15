@@ -148,6 +148,10 @@ public class ScmOnboardingPage
     return child(".nx-modal-content .nx-text-input__invalid-message");
   }
 
+  public SelenideElement newOrganizationInvalidMessage() {
+    return child(".nx-modal-content .nx-text-input__invalid-message");
+  }
+
   public SelenideElement modalDialog() {
     return child(".nx-modal");
   }

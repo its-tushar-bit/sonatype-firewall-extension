@@ -4,13 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import * as PropTypes from 'prop-types';
 import {NxFontAwesomeIcon, NxForm, NxFormGroup, NxModal, NxTextInput} from '@sonatype/react-shared-components';
 import {faSitemap} from '@fortawesome/pro-solid-svg-icons';
 import {initialState, userInput} from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
 import {isNil, reject} from 'ramda';
-import {validateNonEmpty} from '../../../util/validationUtil';
+import {validateMaxLength, validateNonEmpty, validatePatternMatch} from '../../../util/validationUtil';
 import LoadError from '../../../react/LoadError';
 import {Messages} from '../../../util/CommonServices';
 
@@ -26,17 +26,27 @@ import {Messages} from '../../../util/CommonServices';
  */
 function NewOrganizationModal({setIsNewOrganizationModalVisible, addOrganization, addOrganizationError}) {
 
-  const validateOrgNameChange = (val) => reject(isNil, [validateNonEmpty(val)]);
+  const ORGANIZATION_REGEX = /^[^!@#$%^&*()\\=£+|[\]{};:~`"',.<>/?]*$/;
+
+  const validateOrgNameChange = (val) => reject(isNil, [
+    validateNonEmpty(val),
+    validatePatternMatch(ORGANIZATION_REGEX, 'Organization name contains an invalid character', val),
+    validateMaxLength(200, val)]);
 
   const [newOrganizationName, setNewOrganizationName] = useState(initialState('', validateOrgNameChange));
 
-  const newOrganizationNameChanged = (newValue) => setNewOrganizationName(userInput(validateOrgNameChange, newValue));
+  const [submitError, setSubmitError] = useState(null);
 
-  const addOrganizationClicked = () => addOrganization(newOrganizationName.value);
+  const newOrganizationNameChanged = (newValue) => {
+    setNewOrganizationName(userInput(validateOrgNameChange, newValue));
+    setSubmitError(null);
+  };
+
+  const addOrganizationClicked = () => addOrganization(newOrganizationName.trimmedValue);
 
   const closeModal = () => setIsNewOrganizationModalVisible(false);
 
-  const submitError = Messages.getHttpErrorMessage(addOrganizationError);
+  useEffect(() => setSubmitError(Messages.getHttpErrorMessage(addOrganizationError)), [addOrganizationError]);
 
   return (
     <NxModal onClose={closeModal} variant='narrow' id='new-organization-modal'>

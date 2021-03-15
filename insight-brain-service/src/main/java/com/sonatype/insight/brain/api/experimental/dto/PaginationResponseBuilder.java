@@ -75,7 +75,7 @@ public class PaginationResponseBuilder<T>
 
     // add pagination Link headers
     List<Link> links = new ArrayList<>();
-    final long lastPage = calculateLastPage(pageSize, (double) result.getTotal());
+    final long lastPage = calculateLastPage(pageSize, result.getTotal());
 
     // add a link header of first page
     links.add(Link.fromUri(pathBuilder.replaceQueryParam(PAGE_PARAM, 1).build()).rel(FIRST_REL).build());

@@ -1409,6 +1409,46 @@ public class ComponentInfoServiceTest
   }
 
   @Test
+  public void testGetComponentDetailsList_TerraformWithNullIdentificationSource() {
+    String scanId = "test";
+    String identificationSource = null;
+
+    Map<String, String> coordinates = new HashMap<>();
+    coordinates.put("plan", "plan.tfplan");
+    coordinates.put("name", "test");
+    coordinates.put("version", "current");
+    ComponentIdentifier componentIdentifier1 =
+        new ComponentIdentifier(ComponentIdentifier.FORMAT_TERRAFORM, coordinates);
+
+    ComponentDetails tpComponentDetails = newNamedComponentDetails(componentIdentifier1);
+    tpComponentDetails.setIdentificationSource(identificationSource);
+    tpComponentDetails.setSecurityVulnerabilities(asList(
+        new SecurityVulnerability("cve-8", "cve", 8.1f),
+        new SecurityVulnerability("cve-4", "cve", 4f)));
+
+    ComponentDetailsList tpComponentDetailsList = new ComponentDetailsList();
+    tpComponentDetailsList.setList(Arrays.asList(tpComponentDetails));
+
+    when(thirdPartyComponentDAO.getAllVersions(application.getId(), componentIdentifier1, scanId))
+        .thenReturn(tpComponentDetailsList);
+
+    ComponentDetailsList componentDetailsList =
+        componentInfoService.getComponentDetailsList(componentIdentifier1, application, identificationSource, scanId);
+
+    assertThat(componentDetailsList).isNotNull();
+    ComponentDetails componentDetails = componentDetailsList.getList().get(0);
+    assertThat(componentDetails.getIdentificationSource()).isNull();
+    ComponentIdentifier componentIdentifier = componentDetails.getComponentIdentifier();
+    assertThat(componentIdentifier.getFormat()).isEqualTo(ComponentIdentifier.FORMAT_TERRAFORM);
+    assertThat(componentIdentifier.get("plan")).isEqualTo("plan.tfplan");
+    assertThat(componentIdentifier.get("name")).isEqualTo("test");
+    assertThat(componentIdentifier.get("version")).isEqualTo("current");
+    assertThat(componentDetails.getSecurityVulnerabilities()).hasSize(2);
+    assertThat(componentDetails.getSecurityVulnerabilities().get(0).getRefId()).isEqualTo("cve-8");
+    assertThat(componentDetails.getSecurityVulnerabilities().get(1).getRefId()).isEqualTo("cve-4");
+  }
+
+  @Test
   public void testGetComponentDetailsList_InvalidComponent() {
     Map<String, String> coordinates = new HashMap<>();
     coordinates.put("name", "test");

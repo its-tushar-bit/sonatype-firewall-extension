@@ -537,9 +537,15 @@ public class ComponentInfoService
     ComponentDetailsList componentDetailsList;
 
     if (isKnownFormat(identifier)) {
-      componentDetailsList = getInformationVersionsHds(identifier, identificationSource);
-      //In case it's a third-party component, the data must be replace with the local information
-      updateThirdPartyInformation(identifier, identificationSource, componentDetailsList, owner, scanId);
+      if (identifier.isTerraform()) {
+        //Terraform information is not stored in HDS
+        componentDetailsList = thirdPartyComponentDAO.getAllVersions(owner.getId(), identifier, scanId);
+      }
+      else {
+        componentDetailsList = getInformationVersionsHds(identifier, identificationSource);
+        //In case it's a third-party component, the data must be replace with the local information
+        updateThirdPartyInformation(identifier, identificationSource, componentDetailsList, owner, scanId);
+      }
     }
     else if (isThirdPartyIdentificationSource(identificationSource)) {
       componentDetailsList = thirdPartyComponentDAO.getAllVersions(owner.getId(), identifier, scanId);
@@ -594,10 +600,8 @@ public class ComponentInfoService
   }
 
   private boolean isKnownFormat(ComponentIdentifier identifier) {
-    // terraform details come in as third-party identification source
-    return (ComponentIdentifier.getSupportedFormats().contains(identifier.getFormat()) ||
-        LqaFormat.isLqaFormat(identifier.getFormat())) &&
-            !identifier.isTerraform();
+    return ComponentIdentifier.getSupportedFormats().contains(identifier.getFormat()) ||
+        LqaFormat.isLqaFormat(identifier.getFormat());
   }
 
   /**

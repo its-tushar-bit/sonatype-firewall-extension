@@ -382,7 +382,7 @@ describe('copyrightOverrideFormAction', function() {
             expectedPostBody);
         expect(axios.get).toHaveBeenCalledWith(
             '/api/experimental/licenseLegalMetadata/' + orgOrApp + '/' + persistedAtScope +
-            '/component/copyright?componentIdentifier="componentIdentifier"');
+            '/component/copyright?componentIdentifier=%22componentIdentifier%22');
         expect(actions.length).toBe(2);
         expect(actions[1].type).toBe(COPYRIGHT_OVERRIDE_SAVE_FULFILLED);
         expect(actions[1].payload).toEqual({data: 'dataGET', componentCopyrightScopeOwnerId: 'realOwner'});

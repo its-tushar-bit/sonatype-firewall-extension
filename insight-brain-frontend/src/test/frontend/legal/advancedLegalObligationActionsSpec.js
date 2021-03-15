@@ -90,7 +90,7 @@ describe('advancedLegalObligationActions', function () {
               expectedPostBody);
           expect(axios.get).toHaveBeenCalledWith(
               '/api/experimental/licenseLegalMetadata/organization/org/component/obligation' +
-              '/attribution?componentIdentifier="componentIdentifier"&obligationName=name');
+              '/attribution?componentIdentifier=%22componentIdentifier%22&obligationName=name');
           expect(actions.length).toBe(3);
           expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED);
           expect(actions[1].payload).toEqual(
@@ -199,7 +199,7 @@ describe('advancedLegalObligationActions', function () {
               '/api/experimental/licenseLegalMetadata/component/obligation/attribution/id');
           expect(axios.get).toHaveBeenCalledWith(
               '/api/experimental/licenseLegalMetadata/organization/org/component/' +
-              'obligation/attribution?componentIdentifier="componentIdentifier"&obligationName=name');
+              'obligation/attribution?componentIdentifier=%22componentIdentifier%22&obligationName=name');
           expect(actions.length).toBe(3);
           expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED);
           expect(actions[1].payload).toEqual(
@@ -240,7 +240,7 @@ describe('advancedLegalObligationActions', function () {
               '/api/experimental/licenseLegalMetadata/component/obligation/attribution/id');
           expect(axios.get).toHaveBeenCalledWith(
               '/api/experimental/licenseLegalMetadata/organization/org/component/' +
-              'obligation/attribution?componentIdentifier="componentIdentifier"&obligationName=name');
+              'obligation/attribution?componentIdentifier=%22componentIdentifier%22&obligationName=name');
           expect(actions.length).toBe(3);
           expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED);
           expect(actions[1].payload).toEqual(
@@ -353,7 +353,7 @@ describe('advancedLegalObligationActions', function () {
               expectedPostBody);
           expect(axios.get).toHaveBeenCalledWith(
               '/api/experimental/licenseLegalMetadata/organization/org/component/' +
-              'obligation?componentIdentifier="componentIdentifier"&obligationName=name');
+              'obligation?componentIdentifier=%22componentIdentifier%22&obligationName=name');
           expect(actions.length).toBe(3);
           expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
           expect(actions[1].payload).toEqual({
@@ -466,7 +466,7 @@ describe('advancedLegalObligationActions', function () {
               '/api/experimental/licenseLegalMetadata/component/obligation/id');
           expect(axios.get).toHaveBeenCalledWith(
               '/api/experimental/licenseLegalMetadata/organization/org/component/' +
-              'obligation?componentIdentifier="componentIdentifier"&obligationName=name');
+              'obligation?componentIdentifier=%22componentIdentifier%22&obligationName=name');
           expect(actions.length).toBe(3);
           expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
           expect(actions[1].payload).toEqual(
@@ -509,7 +509,7 @@ describe('advancedLegalObligationActions', function () {
               '/api/experimental/licenseLegalMetadata/component/obligation/id');
           expect(axios.get).toHaveBeenCalledWith(
               '/api/experimental/licenseLegalMetadata/organization/org/component/' +
-              'obligation?componentIdentifier="componentIdentifier"&obligationName=name');
+              'obligation?componentIdentifier=%22componentIdentifier%22&obligationName=name');
           expect(actions.length).toBe(3);
           expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
           expect(actions[1].payload).toEqual(

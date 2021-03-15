@@ -206,6 +206,12 @@ describe('CLMLocation.js', function() {
         .toBe('/api/v2/policyWaivers/organization/orgId/waiverId/');
   });
 
+  it('should return the scm repositories url', function() {
+    expect(CLMLocation.getScmRepositoriesUrl('organizationId', 'http://localhost:1234')).toBe(
+        '/api/experimental/onboarding/loadRepositories?orgId=organizationId' +
+        '&defaultHostUrl=http%3A%2F%2Flocalhost%3A1234');
+  });
+
   it('should return the license legal metadata url for the application', function() {
     expect(CLMLocation.getLicenseLegalApplicationReportUrl('appPublicId'))
         .toBe('/api/experimental/licenseLegalMetadata/application/appPublicId');
@@ -252,9 +258,10 @@ describe('CLMLocation.js', function() {
       }
     };
     expect(CLMLocation.getComponentCopyrightOverrideUrl('application', 'appId', compIdentifier))
-        .toBe('/api/experimental/licenseLegalMetadata/application/appId/component/copyright?' +
-            'componentIdentifier={"format":"maven","coordinates":{"artifactId":"logback-access","classifier":"",' +
-            '"extension":"jar","groupId":"ch.qos.logback","version":"0.6"}}');
+        .toBe('/api/experimental/licenseLegalMetadata/application/appId/component/copyright?componentIdentifier=' +
+            '%7B%22format%22%3A%22maven%22%2C%22coordinates%22%3A%7B%22artifactId%22%3A%22logback-access%22%2C%22' +
+            'classifier%22%3A%22%22%2C%22extension%22%3A%22jar%22%2C%22groupId%22%3A%22ch.qos.logback%22%2C%22' +
+            'version%22%3A%220.6%22%7D%7D');
   });
 
   it('should return the owner hierarchy url', function() {
@@ -280,8 +287,9 @@ describe('CLMLocation.js', function() {
     };
     expect(CLMLocation.getComponentObligationAttributionUrl('ownerType', 'ownerId', compIdentifier, 'obligationName'))
         .toBe('/api/experimental/licenseLegalMetadata/ownerType/ownerId/component/obligation/attribution?' +
-            'componentIdentifier={"format":"maven","coordinates":{"artifactId":"logback-access","classifier":"",' +
-            '"extension":"jar","groupId":"ch.qos.logback","version":"0.6"}}&obligationName=obligationName');
+            'componentIdentifier=%7B%22format%22%3A%22maven%22%2C%22coordinates%22%3A%7B%22artifactId%22%3A%22' +
+            'logback-access%22%2C%22classifier%22%3A%22%22%2C%22extension%22%3A%22jar%22%2C%22groupId%22%3A%22' +
+            'ch.qos.logback%22%2C%22version%22%3A%220.6%22%7D%7D&obligationName=obligationName');
   });
 
   it('should return the delete component obligation attribution url', function() {
@@ -307,8 +315,9 @@ describe('CLMLocation.js', function() {
     };
     expect(CLMLocation.getComponentObligationUrl('ownerType', 'ownerId', componentIdentifier, 'obligationName'))
         .toBe('/api/experimental/licenseLegalMetadata/ownerType/ownerId/component/obligation?' +
-            'componentIdentifier={"format":"maven","coordinates":{"artifactId":"logback-access","classifier":"",' +
-            '"extension":"jar","groupId":"ch.qos.logback","version":"0.6"}}&obligationName=obligationName');
+            'componentIdentifier=%7B%22format%22%3A%22maven%22%2C%22coordinates%22%3A%7B%22artifactId%22%3A%22' +
+            'logback-access%22%2C%22classifier%22%3A%22%22%2C%22extension%22%3A%22jar%22%2C%22groupId%22%3A%22' +
+            'ch.qos.logback%22%2C%22version%22%3A%220.6%22%7D%7D&obligationName=obligationName');
   });
 
   it('should return the delete component obligation url', function() {
@@ -334,7 +343,8 @@ describe('CLMLocation.js', function() {
     };
     expect(CLMLocation.getLegalFileUrl('ownerType', 'ownerId', componentIdentifier))
         .toBe('/api/experimental/licenseLegalMetadata/ownerType/ownerId/component/legalFile?' +
-            'componentIdentifier={"format":"maven","coordinates":{"artifactId":"logback-access","classifier":"",' +
-            '"extension":"jar","groupId":"ch.qos.logback","version":"0.6"}}');
+            'componentIdentifier=%7B%22format%22%3A%22maven%22%2C%22coordinates%22%3A%7B%22artifactId%22%3A%22' +
+            'logback-access%22%2C%22classifier%22%3A%22%22%2C%22extension%22%3A%22jar%22%2C%22groupId%22%3A%22' +
+            'ch.qos.logback%22%2C%22version%22%3A%220.6%22%7D%7D');
   });
 });

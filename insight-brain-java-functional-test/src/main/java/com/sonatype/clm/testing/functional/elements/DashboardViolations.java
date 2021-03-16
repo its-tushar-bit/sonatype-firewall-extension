@@ -67,7 +67,7 @@ public class DashboardViolations
     }
 
     public SelenideElement mask() {
-      return $(".form-mask");
+      return $(".iq-dashboard-form-mask");
     }
   }
 

@@ -9,8 +9,8 @@ import { NxTableCell, NxTableRow } from '@sonatype/react-shared-components';
 
 import DashboardComponentsTableRow
   from '../../../../../main/frontend/dashboard/results/components/DashboardComponentsTableRow';
-import DashboardComponentsHeatMapCell
-  from '../../../../../main/frontend/dashboard/results/components/DashboardComponentsHeatMapCell';
+import DashboardHeatMapCell
+  from '../../../../../main/frontend/dashboard/results/DashboardHeatMapCell';
 
 describe('DashboardComponentsTableRow', function() {
   let minimalProps,
@@ -42,7 +42,7 @@ describe('DashboardComponentsTableRow', function() {
 
     const tableRow = row.find(NxTableRow),
         cells = row.find(NxTableCell),
-        heatmapColoredCells = row.find(DashboardComponentsHeatMapCell);
+        heatmapColoredCells = row.find(DashboardHeatMapCell);
 
     expect(tableRow).toHaveProp('isClickable', true);
     expect(heatmapColoredCells.length).toBe(6);

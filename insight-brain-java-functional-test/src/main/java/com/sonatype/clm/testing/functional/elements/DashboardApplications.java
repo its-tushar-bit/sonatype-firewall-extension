@@ -25,51 +25,60 @@ public class DashboardApplications
     return new ApplicationsResults();
   }
 
+  public ApplicationsResultsMask resultsMask() {
+    return new ApplicationsResultsMask();
+  }
+
   public static class ApplicationsHeaders
       extends BasicElement<ApplicationsHeaders>
   {
+    private static final String HEADER_CLASS_NAME = ".nx-cell--header";
+
     ApplicationsHeaders() {
-      super(ROOT, ".iq-dashboard-headers");
+      super(ROOT, ".nx-table-row--header");
     }
 
-    public IqSortingHeader totalRiskHeader() {
-      return new IqSortingHeader(childSelector(".iq-cell--total-risk a"));
+    public NxSortingHeader applicationNameHeader() {
+      return new NxSortingHeader(childSelector(createSelector(HEADER_CLASS_NAME, nthChild(1))));
     }
 
-    public IqSortingHeader lowRiskHeader() {
-      return new IqSortingHeader(childSelector(".iq-cell--low-risk a"));
+    public NxSortingHeader totalRiskHeader() {
+      return new NxSortingHeader(childSelector(createSelector(HEADER_CLASS_NAME, nthChild(2))));
     }
 
-    public IqSortingHeader moderateRiskHeader() {
-      return new IqSortingHeader(childSelector(".iq-cell--moderate-risk a"));
+    public NxSortingHeader criticalRiskHeader() {
+      return new NxSortingHeader(childSelector(createSelector(HEADER_CLASS_NAME, nthChild(3))));
     }
 
-    public IqSortingHeader severeRiskHeader() {
-      return new IqSortingHeader(childSelector(".iq-cell--severe-risk a"));
+    public NxSortingHeader severeRiskHeader() {
+      return new NxSortingHeader(childSelector(createSelector(HEADER_CLASS_NAME, nthChild(4))));
     }
 
-    public IqSortingHeader criticalRiskHeader() {
-      return new IqSortingHeader(childSelector(".iq-cell--critical-risk a"));
+    public NxSortingHeader moderateRiskHeader() {
+      return new NxSortingHeader(childSelector(createSelector(HEADER_CLASS_NAME, nthChild(5))));
     }
 
-    public IqSortingHeader applicationNameHeader() {
-      return new IqSortingHeader(childSelector(".iq-cell--application-name a"));
+    public NxSortingHeader lowRiskHeader() {
+      return new NxSortingHeader(childSelector(createSelector(HEADER_CLASS_NAME, nthChild(6))));
     }
   }
 
   public static class ApplicationsResults
       extends BasicElement<ApplicationsResults>
   {
+    private static final String ROW_CLASS_NAME = ".iq-dashboard-application-row";
+
     ApplicationsResults() {
-      super(ROOT, ".iq-tile--dashboard-table-container");
+      super(ROOT, "tbody");
     }
 
     public ElementsCollection applications() {
-      return children(".total-application-risks");
+      return children(ROW_CLASS_NAME);
     }
 
     public ApplicationElement application(int index) {
-      return new ApplicationElement(childSelector("tr[id^=\"app" + index + "_\"]"));
+      String selectorQuery = String.format("tr[id^=\"app%d_\"]", index);
+      return new ApplicationElement(childSelector(selectorQuery));
     }
 
     public ApplicationElement firstApplication() {
@@ -85,22 +94,20 @@ public class DashboardApplications
     }
 
     public SelenideElement noDataMessage() {
-      return child("#dashboard-common-results-no-data");
-    }
-
-    public SelenideElement mask() {
-      return child(".form-mask");
+      return child("tr:last-child");
     }
   }
 
   public static class ApplicationElement
       extends BasicElement<ApplicationElement>
   {
+    private static final String CELL_CLASS_NAME = ".nx-cell";
+
     private final ApplicationStageList applicationStageList;
 
     ApplicationElement(String selector) {
-      super(selector);               
-      applicationStageList = new ApplicationStageList(this.selector + ".stage-application-risks");
+      super(selector);
+      applicationStageList = new ApplicationStageList(this.selector + ".iq-dashboard-application-risk-row");
     }
 
     public ElementsCollection getRows() {
@@ -109,6 +116,10 @@ public class DashboardApplications
 
     public ElementsCollection getTotalsInRow(int index) {
       return children(nthChild(index + 1), ".iq-cell--heatmap");
+    }
+
+    public ElementsCollection getTotalsInStageRow(int index) {
+      return applicationStageList.getTotalsInRow(index);
     }
 
     public ElementsCollection getStages() {
@@ -120,27 +131,27 @@ public class DashboardApplications
     }
 
     public SelenideElement name() {
-      return child(".iq-cell--application-name");
+      return child(createSelector(CELL_CLASS_NAME, nthChild(1)));
     }
 
     public SelenideElement totalRisk() {
-      return child(".iq-cell--total-risk");
+      return child(createSelector(CELL_CLASS_NAME, nthChild(2)));
     }
 
     public SelenideElement criticalRisk() {
-      return child(".iq-cell--critical-risk");
+      return child(createSelector(CELL_CLASS_NAME, nthChild(3)));
     }
 
     public SelenideElement severeRisk() {
-      return child(".iq-cell--severe-risk");
+      return child(createSelector(CELL_CLASS_NAME, nthChild(4)));
     }
 
     public SelenideElement moderateRisk() {
-      return child(".iq-cell--moderate-risk");
+      return child(createSelector(CELL_CLASS_NAME, nthChild(5)));
     }
 
     public SelenideElement lowRisk() {
-      return child(".iq-cell--low-risk");
+      return child(createSelector(CELL_CLASS_NAME, nthChild(6)));
     }
 
     private static class ApplicationStageList
@@ -155,8 +166,20 @@ public class DashboardApplications
       }
 
       public SelenideElement getStageLinkByRow(int index) {
-        return children().get(index).$(createSelector(nthChild(index + 2), "a[target=_blank]"));
+        return children().get(index).$(createSelector("a[target=_blank]"));
       }
+
+      public ElementsCollection getTotalsInRow(int index) {
+        return children().get(index).$$(createSelector(CELL_CLASS_NAME)).last(5);
+      }
+    }
+  }
+
+  public static class ApplicationsResultsMask
+      extends BasicElement<ApplicationsResultsMask>
+  {
+    ApplicationsResultsMask() {
+      super(ROOT, ".iq-dashboard-form-mask");
     }
   }
 }

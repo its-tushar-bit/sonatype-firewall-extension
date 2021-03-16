@@ -12,11 +12,17 @@
 // RGB value comes from /frontend/dashboard/utils/classybrew.factory.js
 $iq-cell-heatmap-border-color: rgb(247,251,255);
 
-#dashboard-components {
+#dashboard-applications {
   position: relative;
 
   .nx-table {
     background-color: $nx-white;
+
+    .iq-dashboard-application-risk-row {
+      > td:first-child {
+        text-align: right;
+      }
+    }
 
     .iq-cell--heatmap {
       @include semi-bold();
@@ -33,22 +39,7 @@ $iq-cell-heatmap-border-color: rgb(247,251,255);
       }
     }
 
-    // padding and width fixed values due to space limitations
-    .nx-cell {
-      padding-left: 12px;
-      padding-right: 12px;
-    }
-
-    // Remove padding from chevron due to space limitations
-    .nx-cell--chevron {
-      border-left: none;
-      padding-left: 0;
-    }
-
     .nx-cell--num {
-      &.iq-cell--affected-app {
-        width: 76px;
-      }
       &.iq-cell--total-risk {
         width: 121px;
       }
@@ -76,17 +67,9 @@ $iq-cell-heatmap-border-color: rgb(247,251,255);
         border-top: $iq-border-row;
       }
 
-      .nx-table-row {
-        &:hover {
-          .nx-cell {
-            border-top: $iq-border-row-hover;
-          }
-
-          + .nx-table-row {
-            .nx-cell {
-              border-top: $iq-border-row-hover;
-            }
-          }
+      .iq-dashboard-application-risk-row--separator-border {
+        .nx-cell {
+          border-bottom: 3px solid $nx-indigo-50;
         }
       }
     }

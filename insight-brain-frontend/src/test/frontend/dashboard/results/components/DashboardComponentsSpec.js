@@ -7,6 +7,7 @@ import * as enzymeUtils from '../../../enzymeUtils';
 import DashboardComponents from '../../../../../main/frontend/dashboard/results/components/DashboardComponents';
 import DashboardComponentsTable
   from '../../../../../main/frontend/dashboard/results/components/DashboardComponentsTable';
+import DashboardMask from '../../../../../main/frontend/dashboard/results/dashboardMask/DashboardMask';
 
 describe('DashboardComponents', function() {
   let minimalProps,
@@ -58,7 +59,7 @@ describe('DashboardComponents', function() {
     };
 
     const dashBoardComponents = getShallowComponent(dashboardComponentProps),
-        mask = dashBoardComponents.find('.form-mask');
+        mask = dashBoardComponents.find(DashboardMask);
     expect(mask).toExist();
   });
 

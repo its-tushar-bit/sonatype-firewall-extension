@@ -7,7 +7,7 @@ import React from 'react';
 import { NxTableCell } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 
-export default function DashboardComponentsHeatMapCell(props) {
+export default function DashboardHeatMapCell(props) {
   const { children, threatScore, colorStyler, chevron } = props,
       score = threatScore !== undefined ? threatScore : children;
 
@@ -32,7 +32,7 @@ export const heatMapColorStylerPropTypes = PropTypes.shape({
   getColor: PropTypes.func.isRequired
 });
 
-DashboardComponentsHeatMapCell.propTypes = {
+DashboardHeatMapCell.propTypes = {
   children: PropTypes.number,
   threatScore: PropTypes.number,
   colorStyler: heatMapColorStylerPropTypes,

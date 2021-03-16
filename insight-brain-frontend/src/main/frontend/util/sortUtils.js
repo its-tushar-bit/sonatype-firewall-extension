@@ -55,3 +55,24 @@ export const extractSortFieldName = (orderedField) => {
     return orderedField;
   }
 };
+
+export const sortColumn = (sortFunction,
+                           currentSortedColumnName,
+                           isCurrentColumnSortDescending,
+                           columnNameWithDefaultSortDirection) => {
+  const columnNameAscending = extractSortFieldName(columnNameWithDefaultSortDirection);
+  if (currentSortedColumnName === columnNameAscending) {
+    sortFunction(isCurrentColumnSortDescending ? [columnNameAscending] : [`-${columnNameAscending}`]);
+  }
+  else {
+    sortFunction([columnNameWithDefaultSortDirection]);
+  }
+};
+
+export const getColumnDirection = (currentSortedColumnName, isCurrentColumnSortDescending, columnName) => {
+  const isThisColumnSorted = currentSortedColumnName === columnName,
+      isAscending = isThisColumnSorted && !isCurrentColumnSortDescending,
+      isDescending = isThisColumnSorted && isCurrentColumnSortDescending;
+
+  return isAscending ? 'asc' : isDescending ? 'desc' : null;
+};

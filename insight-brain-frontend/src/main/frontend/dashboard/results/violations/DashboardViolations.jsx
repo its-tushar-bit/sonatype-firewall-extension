@@ -8,6 +8,7 @@ import * as PropTypes from 'prop-types';
 import { partial } from 'ramda';
 
 import DashboardViolationsTable from './DashboardViolationsTable';
+import DashboardMask from '../dashboardMask/DashboardMask';
 
 export default function DashboardViolations(props) {
   const VIOLATIONS_RESULTS_TYPE = 'violations';
@@ -47,7 +48,7 @@ export default function DashboardViolations(props) {
 
   return (
     <div id="dashboard-violations" className="iq-dashboard-violations nx-viewport-sized__container">
-      { filtersAreDirty && <div className="form-mask" /> }
+      { filtersAreDirty && <DashboardMask /> }
       <DashboardViolationsTable { ...tableProps } />
     </div>
   );

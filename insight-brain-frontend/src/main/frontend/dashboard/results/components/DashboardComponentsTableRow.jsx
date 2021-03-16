@@ -7,7 +7,7 @@ import React from 'react';
 import { NxOverflowTooltip, NxTableCell, NxTableRow } from '@sonatype/react-shared-components';
 
 import * as PropTypes from 'prop-types';
-import DashboardComponentsHeatMapCell, { heatMapColorStylerPropTypes } from './DashboardComponentsHeatMapCell';
+import DashboardHeatMapCell, { heatMapColorStylerPropTypes } from '../DashboardHeatMapCell';
 
 export default function DashboardComponentsTableRow(props) {
   const { component, stateGo, colorStyler } = props;
@@ -30,25 +30,25 @@ export default function DashboardComponentsTableRow(props) {
       <NxTableCell className={'nx-cell--num'}>
         {component.affectedApplications}
       </NxTableCell>
-      <DashboardComponentsHeatMapCell colorStyler={colorStyler}>
+      <DashboardHeatMapCell colorStyler={colorStyler}>
         {component.score}
-      </DashboardComponentsHeatMapCell>
-      <DashboardComponentsHeatMapCell colorStyler={colorStyler}>
+      </DashboardHeatMapCell>
+      <DashboardHeatMapCell colorStyler={colorStyler}>
         {component.scoreCritical}
-      </DashboardComponentsHeatMapCell>
-      <DashboardComponentsHeatMapCell colorStyler={colorStyler}>
+      </DashboardHeatMapCell>
+      <DashboardHeatMapCell colorStyler={colorStyler}>
         {component.scoreSevere}
-      </DashboardComponentsHeatMapCell>
-      <DashboardComponentsHeatMapCell colorStyler={colorStyler}>
+      </DashboardHeatMapCell>
+      <DashboardHeatMapCell colorStyler={colorStyler}>
         {component.scoreModerate}
-      </DashboardComponentsHeatMapCell>
-      <DashboardComponentsHeatMapCell colorStyler={colorStyler}>
+      </DashboardHeatMapCell>
+      <DashboardHeatMapCell colorStyler={colorStyler}>
         {component.scoreLow}
-      </DashboardComponentsHeatMapCell>
-      <DashboardComponentsHeatMapCell threatScore={component.scoreLow}
-                                      colorStyler={colorStyler}
-                                      chevron>
-      </DashboardComponentsHeatMapCell>
+      </DashboardHeatMapCell>
+      <DashboardHeatMapCell threatScore={component.scoreLow}
+                            colorStyler={colorStyler}
+                            chevron>
+      </DashboardHeatMapCell>
     </NxTableRow>
   );
 }

@@ -73,7 +73,7 @@ public class DashboardComponents
       extends BasicElement<ComponentsResultsMask>
   {
     ComponentsResultsMask() {
-      super(ROOT, ".form-mask");
+      super(ROOT, ".iq-dashboard-form-mask");
     }
   }
 

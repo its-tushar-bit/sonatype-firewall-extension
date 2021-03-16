@@ -3,13 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import * as enzymeUtils from '../../../enzymeUtils';
+import * as enzymeUtils from '../../enzymeUtils';
 import { always } from 'ramda';
 
-import DashboardComponentsHeatMapCell
-  from '../../../../../main/frontend/dashboard/results/components/DashboardComponentsHeatMapCell';
+import DashboardHeatMapCell
+  from '../../../../main/frontend/dashboard/results/DashboardHeatMapCell';
 
-describe('DashboardComponentsHeatMapCell', function() {
+describe('DashboardHeatMapCell', function() {
   let getShallowComponent;
 
   beforeEach(function() {
@@ -20,7 +20,7 @@ describe('DashboardComponentsHeatMapCell', function() {
       }
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(DashboardComponentsHeatMapCell, minimalProps);
+    getShallowComponent = enzymeUtils.getShallowComponent(DashboardHeatMapCell, minimalProps);
   });
 
   it('renders score passed as children prop', function() {

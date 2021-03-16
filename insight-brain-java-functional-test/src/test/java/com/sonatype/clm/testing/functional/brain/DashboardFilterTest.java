@@ -281,7 +281,7 @@ public class DashboardFilterTest
     DashboardPage.componentsView().resultsMask().shouldBe(visible);
 
     DashboardPage.applicationsTab().click();
-    DashboardPage.applicationsView().results().mask().shouldBe(visible);
+    DashboardPage.applicationsView().resultsMask().shouldBe(visible);
 
     DashboardPage.violationsTab().click();
 
@@ -383,10 +383,10 @@ public class DashboardFilterTest
     DashboardFilters.policyViolationStateFilter().twisty().click();
     DashboardFilters.policyViolationStateFilter().allItems().shouldBe(selected).click();
     DashboardFilters.policyViolationStateFilter().twisty().click();
-    DashboardPage.applicationsView().results().mask().shouldBe(visible);
+    DashboardPage.applicationsView().resultsMask().shouldBe(visible);
 
     DashboardFilters.apply();
-    DashboardPage.applicationsView().results().mask().shouldBe(hidden);
+    DashboardPage.applicationsView().resultsMask().shouldBe(hidden);
 
     // check all tabs - should have the same results
     DashboardPage.violationsTab().counter().shouldNot(exist);

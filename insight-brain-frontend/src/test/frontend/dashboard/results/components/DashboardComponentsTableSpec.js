@@ -14,12 +14,12 @@ import {
   NxTableHead,
   NxTableRow
 } from '@sonatype/react-shared-components';
-import { range } from 'ramda';
 
 import DashboardComponentsTableRow
   from '../../../../../main/frontend/dashboard/results/components/DashboardComponentsTableRow';
 import DashboardComponentsTable
   from '../../../../../main/frontend/dashboard/results/components/DashboardComponentsTable';
+import MaxResultsInfoRow from '../../../../../main/frontend/dashboard/results/MaxResultsInfoRow';
 
 describe('DashboardComponentsTable', function() {
   let minimalProps,
@@ -30,7 +30,11 @@ describe('DashboardComponentsTable', function() {
     minimalProps = {
       reload: jasmine.createSpy('reload'),
       sortComponents: jasmine.createSpy('sortComponents'),
-      stateGo: jasmine.createSpy('stateGo')
+      stateGo: jasmine.createSpy('stateGo'),
+      componentResults: {
+        results: [{hash: 'hash1'}, {hash: 'hash2'}],
+        sortFields: ['-score']
+      }
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(DashboardComponentsTable, minimalProps);
@@ -38,28 +42,14 @@ describe('DashboardComponentsTable', function() {
   });
 
   it('renders a NxTable', function() {
-    const dashboardComponentProps = {
-      componentResults: {
-        results: [{ hash: 'hash1' }, { hash: 'hash2' }],
-        sortFields: ['-score']
-      },
-      needsAcknowledgement: true
-    };
-
-    const dashboardComponentTable = getShallowComponent(dashboardComponentProps),
+    const dashboardComponentTable = getShallowComponent(),
         table = dashboardComponentTable.find(NxTable);
     expect(table).toExist();
   });
 
   describe('contents of the table', function() {
     it('renders a NxTableHead with a headers row with cells for each header', function() {
-      const dashboardComponentProps = {
-        componentResults: {
-          results: [{ hash: 'hash1' }, { hash: 'hash2' }],
-          sortFields: ['-score']
-        }
-      };
-      const dashboardComponentTable = getShallowComponent(dashboardComponentProps),
+      const dashboardComponentTable = getShallowComponent(),
           table = dashboardComponentTable.find(NxTable),
           head = table.find(NxTableHead),
           headerRow = head.find(NxTableRow),
@@ -80,13 +70,7 @@ describe('DashboardComponentsTable', function() {
     });
 
     it('renders DashboardViolationsTableRow per component to display inside the NxTableBody', function() {
-      const dashboardComponentProps = {
-        componentResults: {
-          results: [{ hash: 'hash1' }, { hash: 'hash2' }],
-          sortFields: ['-score']
-        }
-      };
-      const dashboardComponentTable = getShallowComponent(dashboardComponentProps),
+      const dashboardComponentTable = getShallowComponent(),
           table = dashboardComponentTable.find(NxTable),
           body = table.find(NxTableBody);
 
@@ -97,42 +81,51 @@ describe('DashboardComponentsTable', function() {
       expect(rows.at(1).key()).toBe('hash2');
     });
 
-    it('renders DashboardViolationsTableRow only for the first 100 results', function() {
-      const resultsRange = range(1, 120).map(number => {
-        return { hash: `hash${number}` };
-      });
+    it('Does not render max results row when there are less than 100 results', function() {
       const dashboardComponentProps = {
         componentResults: {
-          results: resultsRange,
-          numResults: 120,
-          sortFields: ['-score']
-        }
-      };
-
-      const dashBoardComponents = getShallowComponent(dashboardComponentProps),
-          table = dashBoardComponents.find(NxTable),
-          body = table.find(NxTableBody);
-      // expect 100 rows of results + 1 row of message of max results displayed
-      expect(body.children().length).toBe(101);
-    });
-
-    it('renders a message when trying to show more than 100 results', function() {
-      const resultsRange = range(1, 120).map(number => {
-        return { hash: `hash${number}` };
-      });
-      const dashboardComponentProps = {
-        componentResults: {
-          results: resultsRange,
-          numResults: 120,
-          sortFields: ['-score']
+          numResults: 99
         }
       };
 
       const dashBoardComponents = getShallowComponent(dashboardComponentProps),
           table = dashBoardComponents.find(NxTable),
           body = table.find(NxTableBody),
-          truncatedResultsMessage = body.find('#max-results-shown');
-      expect(truncatedResultsMessage).toHaveText('First 100 results shown');
+          maxResultsInfoRow = body.find(MaxResultsInfoRow);
+      expect(maxResultsInfoRow).not.toExist();
+    });
+
+    it('Does not render max results row when there are exactly 100 results', function() {
+      const dashboardComponentProps = {
+        ...minimalProps,
+        componentResults: {
+          ...minimalProps.componentResults,
+          numResults: 100
+        }
+      };
+
+      const dashBoardComponents = getShallowComponent(dashboardComponentProps),
+          table = dashBoardComponents.find(NxTable),
+          body = table.find(NxTableBody),
+          maxResultsInfoRow = body.find(MaxResultsInfoRow);
+      expect(maxResultsInfoRow).not.toExist();
+    });
+
+    it('renders max results row when there are more than 100 results', function() {
+      const dashboardComponentProps = {
+        ...minimalProps,
+        componentResults: {
+          ...minimalProps.componentResults,
+          numResults: 101
+        }
+      };
+
+      const dashBoardComponents = getShallowComponent(dashboardComponentProps),
+          table = dashBoardComponents.find(NxTable),
+          body = table.find(NxTableBody),
+          maxResultsInfoRow = body.find(MaxResultsInfoRow);
+
+      expect(maxResultsInfoRow).toExist();
     });
 
     it('renders a row with an alert message when the filter needs acknowledgement', function() {
@@ -143,7 +136,7 @@ describe('DashboardComponentsTable', function() {
         },
         needsAcknowledgement: true
       };
-      const dashboardComponentTable = getShallowComponent(dashboardComponentProps),
+      const dashboardComponentTable = getMountedComponent(dashboardComponentProps),
           table = dashboardComponentTable.find(NxTable),
           body = table.find(NxTableBody),
           alertRow = body.find(NxTableRow);

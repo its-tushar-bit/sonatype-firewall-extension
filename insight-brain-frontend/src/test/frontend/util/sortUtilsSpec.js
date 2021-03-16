@@ -5,7 +5,7 @@
  */
 import { map, props } from 'ramda';
 
-import { sortItemsByFields } from '../../../main/frontend/util/sortUtils';
+import { sortItemsByFields, sortColumn, getColumnDirection } from '../../../main/frontend/util/sortUtils';
 
 describe('sortUtils specs', function() {
   describe('sortItemsByFields', function() {
@@ -342,6 +342,98 @@ describe('sortUtils specs', function() {
     it('returns the list unchanged if no properties to sort by are supplied', function() {
       const result = sortItemsByFields([], input);
       expect(result).toBe(input);
+    });
+  });
+
+  describe('sortColumn', function() {
+    it('calls sort function with descending column when passed column is ascending, default sort being ascending',
+        function() {
+          let sortFunction = jasmine.createSpy('sortFunction');
+          sortColumn(sortFunction, 'colName', false, 'colName');
+          expect(sortFunction).toHaveBeenCalledTimes(1);
+          expect(sortFunction).toHaveBeenCalledWith(['-colName']);
+        });
+
+    it('calls sort function with descending column and returns ascending column, default sort being ascending',
+        function() {
+          let sortFunction = jasmine.createSpy('sortFunction');
+          sortColumn(sortFunction, 'colName', true, 'colName');
+          expect(sortFunction).toHaveBeenCalledTimes(1);
+          expect(sortFunction).toHaveBeenCalledWith(['colName']);
+        });
+
+    it('calls sort function with ascending column and returns descending column, default sort being descending',
+        function() {
+          let sortFunction = jasmine.createSpy('sortFunction');
+          sortColumn(sortFunction, 'colName', false, '-colName');
+          expect(sortFunction).toHaveBeenCalledTimes(1);
+          expect(sortFunction).toHaveBeenCalledWith(['-colName']);
+        });
+
+    it('calls sort function with undefined column and returns default column sorting, default sort being descending',
+        function() {
+          let sortFunction = jasmine.createSpy('sortFunction');
+          sortColumn(sortFunction, undefined, undefined, '-colName');
+          expect(sortFunction).toHaveBeenCalledTimes(1);
+          expect(sortFunction).toHaveBeenCalledWith(['-colName']);
+        });
+
+    it('calls sort function with undefined column and returns default column sorting, default sort being ascending',
+        function() {
+          let sortFunction = jasmine.createSpy('sortFunction');
+          sortColumn(sortFunction, undefined, undefined, 'colName');
+          expect(sortFunction).toHaveBeenCalledTimes(1);
+          expect(sortFunction).toHaveBeenCalledWith(['colName']);
+        });
+
+    it('calls sort function with null column and returns default column sorting, default sort being descending',
+        function() {
+          let sortFunction = jasmine.createSpy('sortFunction');
+          sortColumn(sortFunction, null, null, '-colName');
+          expect(sortFunction).toHaveBeenCalledTimes(1);
+          expect(sortFunction).toHaveBeenCalledWith(['-colName']);
+        });
+
+    it('calls sort function with null column and returns default column sorting, default sort being ascending',
+        function() {
+          let sortFunction = jasmine.createSpy('sortFunction');
+          sortColumn(sortFunction, null, null, 'colName');
+          expect(sortFunction).toHaveBeenCalledTimes(1);
+          expect(sortFunction).toHaveBeenCalledWith(['colName']);
+        });
+
+    it('calls sort function with default column over the current column', function() {
+      let sortFunction = jasmine.createSpy('sortFunction');
+      sortColumn(sortFunction, 'foobar', false, '-colName');
+      expect(sortFunction).toHaveBeenCalledTimes(1);
+      expect(sortFunction).toHaveBeenCalledWith(['-colName']);
+    });
+  });
+
+  describe('getColumnDirection', function() {
+    it('returns column sort direction as asc for a sorted column in ascending order', function() {
+      let sortDir = getColumnDirection('colName', false, 'colName');
+      expect(sortDir).toEqual('asc');
+    });
+
+    it('returns column sort direction as desc for a sorted column in descending order', function() {
+      let sortDir = getColumnDirection('colName', true, 'colName');
+      expect(sortDir).toEqual('desc');
+    });
+
+    it('returns column sort direction as null for an unsorted (undefined) column', function() {
+      let sortDir = getColumnDirection(undefined, undefined, 'colName');
+      expect(sortDir).toEqual(null);
+    });
+
+    it('returns column sort direction as null for an unsorted (null) column', function() {
+      let sortDir = getColumnDirection(null, null, 'colName');
+      expect(sortDir).toEqual(null);
+    });
+
+    it('returns null if column name does not match current column', function() {
+      let sortDir = getColumnDirection('colName', false, 'foobar');
+      expect(sortDir).toEqual(null);
     });
   });
 });

@@ -7,26 +7,24 @@ import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { partial } from 'ramda';
 
-import DashboardComponentsTable from './DashboardComponentsTable';
+import DashboardApplicationsTable from './DashboardApplicationsTable';
 import { heatMapColorStylerPropTypes } from '../DashboardHeatMapCell';
 import DashboardMask from '../dashboardMask/DashboardMask';
 
-export default function DashboardComponents(props) {
-  const COMPONENTS_RESULTS_TYPE = 'components';
+export const APPLICATIONS_RESULTS_TYPE = 'applications';
+
+export default function DashboardApplications(props) {
   const {
-        results,
-        filterLoading,
-        needsAcknowledgement,
-        filtersAreDirty,
-        loadResults,
-        sortResults,
-        stateGo
-      } = props,
-      componentResults = results && results[COMPONENTS_RESULTS_TYPE],
-      sortComponents = partial(sortResults, [COMPONENTS_RESULTS_TYPE]);
+    applicationResults,
+    filterLoading,
+    needsAcknowledgement,
+    filtersAreDirty,
+    loadResults,
+    sortResults
+  } = props;
 
   const doLoad = () => {
-    loadResults(COMPONENTS_RESULTS_TYPE);
+    loadResults(APPLICATIONS_RESULTS_TYPE);
   };
 
   useEffect(() => {
@@ -37,17 +35,16 @@ export default function DashboardComponents(props) {
 
   const tableProps = {
     reload: doLoad,
-    colorStyler: componentResults && componentResults.classyBrew,
-    componentResults,
-    needsAcknowledgement,
-    sortComponents,
-    stateGo
+    colorStyler: applicationResults && applicationResults.classyBrew,
+    sortApplications: partial(sortResults, [APPLICATIONS_RESULTS_TYPE]),
+    applicationResults,
+    needsAcknowledgement
   };
 
   return (
-    <div id="dashboard-components" className="iq-dashboard-components nx-viewport-sized__container">
-      { filtersAreDirty && <DashboardMask /> }
-      <DashboardComponentsTable {...tableProps}/>
+    <div id="dashboard-applications" className="iq-dashboard-applications nx-viewport-sized__container">
+      {filtersAreDirty && <DashboardMask />}
+      <DashboardApplicationsTable {...tableProps}/>
     </div>
   );
 }
@@ -55,19 +52,15 @@ export default function DashboardComponents(props) {
 const dashboardResultsShape = PropTypes.shape({
   results: PropTypes.array,
   sortFields: PropTypes.arrayOf(PropTypes.string),
-  numResults: PropTypes.number,
   error: PropTypes.string,
   classyBrew: heatMapColorStylerPropTypes
 });
 
-DashboardComponents.propTypes = {
-  results: PropTypes.shape({
-    components: dashboardResultsShape
-  }),
+DashboardApplications.propTypes = {
+  applicationResults: dashboardResultsShape,
   filterLoading: PropTypes.bool.isRequired,
   needsAcknowledgement: PropTypes.bool.isRequired,
   filtersAreDirty: PropTypes.bool.isRequired,
   loadResults: PropTypes.func.isRequired,
-  sortResults: PropTypes.func.isRequired,
-  stateGo: PropTypes.func.isRequired
+  sortResults: PropTypes.func.isRequired
 };

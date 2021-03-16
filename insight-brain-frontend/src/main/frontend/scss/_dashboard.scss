@@ -346,81 +346,6 @@ dashboard-results-container, violations, components, applications {
   margin-left: 8px;
 }
 
-/*
-  APPLICATIONS TAB
-*/
-.iq-cell--affected-apps,
-.iq-cell--total-risk,
-.iq-cell--critical-risk,
-.iq-cell--severe-risk,
-.iq-cell--moderate-risk,
-.iq-cell--low-risk {
-  width: $iq-cell-default-width;
-
-  &.white-text {
-    color: $iq-off-white;
-  }
-}
-
-.iq-applications-results {
-  padding-top: 37px;
-
-  .iq-table-row {
-    background-color: $iq-off-white;
-    border-top: 1px solid $iq-grey-2;
-    border-bottom: 1px solid $iq-grey-2;
-  }
-
-  .total-application-risks {
-    border-bottom: none;
-    margin-top: 4px;
-  }
-
-  .stage-application-risks {
-    + .stage-application-risks {
-      border-top: none;
-    }
-  }
-}
-
-.stage-application-risks {
-  .iq-cell--application-name {
-    text-align: right;
-  }
-}
-
-.iq-dashboard-headers {
-  .iq-cell--application-name {
-    width: calc(100% - (#{$iq-cell-default-width}) * 5);
-  }
-}
-
-.iq-applications-results {
-  .iq-cell--low-risk {
-    width: $iq-cell-default-width;
-    max-width: $iq-cell-default-width;
-  }
-}
-
-.iq-cell--application-name {
-  // in calc below 8px is header padding, 24px is L/R padding, 1px is borders
-  width: calc(100% - (#{$iq-cell-default-width}) * 5);
-}
-
-// If the scrollbar is present the cells must adjust to accommodate the lost space
-.scrollbar-present {
-  .iq-applications-results {
-    .iq-cell--low-risk {
-      width: $iq-cell-default-width - $iq-cell-scroll-bar-width - 1px;
-      max-width: $iq-cell-default-width - $iq-cell-scroll-bar-width - 1px;
-    }
-
-    .iq-cell--application-name {
-      width: calc((100% - (#{$iq-cell-default-width} * 5)) + #{$iq-cell-scroll-bar-width} + 1px);
-    }
-  }
-}
-
 // Allows dropdowns to appear above table headers
 .iq-dashboard-summary {
   position: relative;
@@ -443,4 +368,11 @@ dashboard-results-container, violations, components, applications {
   .tooltip-arrow {
     left: 10%;
   }
+}
+
+.iq-dashboard-form-mask {
+  top: $nx-table-cell-header-height;
+  right: 0;
+  height: auto;
+  padding: $iq-spacing-md;
 }

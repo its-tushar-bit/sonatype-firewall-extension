@@ -9,6 +9,7 @@ import * as enzymeUtils from '../../enzymeUtils';
 
 describe('DashboardViolationsTable', function() {
   let minimalProps,
+      minimalPropsWithMoreResults,
       getShallowComponent,
       reloadSpy,
       sortViolationsSpy,
@@ -55,7 +56,19 @@ describe('DashboardViolationsTable', function() {
             policyName: 'policyName3',
             applicationName: 'App1',
             firstOccurrenceTime: Date.now()
-          },
+          }
+        ],
+        numResults: 3,
+        sortFields: ['-threatLevel', '-firstOccurrenceTime']
+      }
+    };
+
+    minimalPropsWithMoreResults = {
+      ...minimalProps,
+      violations: {
+        ...minimalProps.violations,
+        results: [
+          ...minimalProps.violations.results,
           {
             policyViolationId: 'policyViolationId4',
             threatLevel: 6,
@@ -64,8 +77,7 @@ describe('DashboardViolationsTable', function() {
             firstOccurrenceTime: Date.now()
           }
         ],
-        numResults: 4,
-        sortFields: ['-threatLevel', '-firstOccurrenceTime']
+        numResults: 4
       }
     };
 
@@ -101,19 +113,19 @@ describe('DashboardViolationsTable', function() {
 
   describe('NxTableBody', () => {
     it('renders violations and a message if there are more results than MAX_RESULTS', () => {
-      const component = getShallowComponent(),
+      const component = getShallowComponent(minimalPropsWithMoreResults),
           tBody = component.find(NxTableBody),
           tRows = tBody.children(),
-          infoBox = tRows.at(3).find('#max-results-shown');
+          infoBox = tRows.at(4).dive().find('#max-results-shown');
 
-      expect(tRows.length).toEqual(4);
+      expect(tRows.length).toEqual(5);
       expect(infoBox).toHaveText('First 3 results shown');
     });
 
     it('renders a needs acknowledgement message if needsAcknowledgement is true', () => {
       const component = getShallowComponent({ needsAcknowledgement: true }),
           tBody = component.find(NxTableBody),
-          tRow = tBody.childAt(0),
+          tRow = tBody.childAt(0).dive(),
           infoBox = tRow.find('#needs-acknowledgement');
 
       expect(tBody.children().length).toEqual(1);

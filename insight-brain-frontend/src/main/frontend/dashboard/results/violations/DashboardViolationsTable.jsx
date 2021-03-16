@@ -6,19 +6,21 @@
 import React, { Fragment } from 'react';
 import * as PropTypes from 'prop-types';
 import {
-  NxInfoAlert,
   NxTable,
   NxTableBody,
   NxTableCell,
   NxTableHead,
   NxTableRow
 } from '@sonatype/react-shared-components';
-import { equals, take } from 'ramda';
+import { equals } from 'ramda';
 
 import DashboardViolationsTableRow, { violationPropTypes } from './DashboardViolationsTableRow';
-import { MAX_RESULTS } from '../../services/dashboard.data.service';
 import { extractSortFieldName } from '../../../util/sortUtils';
 import { Messages } from '../../../util/CommonServices';
+import MaxResultsInfoRow from '../MaxResultsInfoRow';
+import NeedsAcknowledgementInfoRow from '../NeedsAcknowledgementInfoRow';
+import { isNilOrEmpty } from '../../../util/jsUtil';
+import { MAX_RESULTS } from '../../services/dashboard.data.service';
 
 const DEFAULT_SORT_FIELDS = [
   ['-threatLevel', '-firstOccurrenceTime'],
@@ -43,11 +45,11 @@ export default function DashboardViolationsTable(props) {
         }
       } = props,
       isLoading = !error && !results && !needsAcknowledgement,
-      violationsToDisplay = results && take(MAX_RESULTS, results),
       sortedColumn = extractSortFieldName(sortFields[0]),
       isSortReversed = sortFields[0].includes('-'),
       emptyMessage = 'No data available ' + (maxDaysOld ? `in the last ${maxDaysOld} days ` : '') +
-          'given the applied filters and permissions.';
+          'given the applied filters and permissions.',
+      colSpan = 6;
 
   const getColumnDirection = (index, sortInverted = false) => {
     if (!results || !results.length || error) {
@@ -80,32 +82,14 @@ export default function DashboardViolationsTable(props) {
     }
   };
 
-  const maxResultsInfoRow = () => (
-    <NxTableRow>
-      <NxTableCell colSpan={6} metaInfo>
-        <span id="max-results-shown">First { MAX_RESULTS } results shown</span>
-      </NxTableCell>
-    </NxTableRow>
-  );
-
-  const needsAcknowledgementInfoRow = () => (
-    <NxTableRow>
-      <NxTableCell colSpan={6} metaInfo>
-        <NxInfoAlert id="needs-acknowledgement">
-          {'Select your filter criteria on the left, and click \'apply\' to see results.'}
-        </NxInfoAlert>
-      </NxTableCell>
-    </NxTableRow>
-  );
-
   const bodyFragment = () => {
-    if (violationsToDisplay && violationsToDisplay.length) {
+    if (!isNilOrEmpty(results)) {
       return (
         <Fragment>
-          { violationsToDisplay.map(violation =>
+          { results.map(violation =>
             <DashboardViolationsTableRow { ...({ stateGo, violation }) } key={violation.policyViolationId} />
           )}
-          { numResults > MAX_RESULTS && maxResultsInfoRow() }
+          { numResults > MAX_RESULTS && <MaxResultsInfoRow colSpan={colSpan} maxResults={MAX_RESULTS} /> }
         </Fragment>
       );
     }
@@ -143,7 +127,7 @@ export default function DashboardViolationsTable(props) {
                      error={ Messages.getHttpErrorMessage(error) }
                      retryHandler = { reload }>
           {
-            needsAcknowledgement ? needsAcknowledgementInfoRow() : bodyFragment()
+            needsAcknowledgement ? <NeedsAcknowledgementInfoRow colSpan={colSpan}/> : bodyFragment()
           }
         </NxTableBody>
       </NxTable>

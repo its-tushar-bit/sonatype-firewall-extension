@@ -6,6 +6,7 @@
 import * as enzymeUtils from '../../enzymeUtils';
 import DashboardViolations from '../../../../main/frontend/dashboard/results/violations/DashboardViolations';
 import DashboardViolationsTable from '../../../../main/frontend/dashboard/results/violations/DashboardViolationsTable';
+import DashboardMask from '../../../../main/frontend/dashboard/results/dashboardMask/DashboardMask';
 
 describe('DashboardViolations', function() {
   let minimalProps,
@@ -61,7 +62,8 @@ describe('DashboardViolations', function() {
 
   it('renders a form mask if filters are dirty', () => {
     const component = getShallowComponent({ filtersAreDirty: true });
-    expect(component.find('.form-mask')).toExist();
+
+    expect(component.find(DashboardMask)).toExist();
   });
 
   it('does not render a form mask if filters are dirty', () => {

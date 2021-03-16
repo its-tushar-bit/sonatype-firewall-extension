@@ -11,12 +11,6 @@
 .iq-dashboard-violations {
   position: relative;
 
-  .form-mask {
-    top: $nx-table-cell-header-height;
-    right: 0;
-    height: auto;
-  }
-
   .nx-table {
     background-color: $nx-white;
   }

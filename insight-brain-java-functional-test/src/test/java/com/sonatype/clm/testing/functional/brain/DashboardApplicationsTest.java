@@ -160,12 +160,12 @@ public class DashboardApplicationsTest
     app5Totals.get(2).shouldNotHave(cssClass("white-text"));
     app5Totals.get(3).shouldNotHave(cssClass("white-text"));
     app5Totals.get(4).shouldNotHave(cssClass("white-text"));
-    app5.getTotalsInRow(1).shouldHave(texts("8", "8", "0", "0", "0"))
+    app5.getTotalsInStageRow(0).shouldHave(texts("8", "8", "0", "0", "0"))
         .shouldHave(cssValues("background-color", "rgba(0, 0, 0, 0)", "rgba(0, 0, 0, 0)", // no heatmap
             "rgba(0, 0, 0, 0)", "rgba(0, 0, 0, 0)", "rgba(0, 0, 0, 0)"));
-    app5.getTotalsInRow(2).shouldHave(texts("0", "0", "0", "0", "0"));
-    app5.getTotalsInRow(3).shouldHave(texts("4", "0", "4", "0", "0"));
-    app5.getTotalsInRow(4).shouldHave(texts("2", "0", "0", "2", "0"));
+    app5.getTotalsInStageRow(1).shouldHave(texts("0", "0", "0", "0", "0"));
+    app5.getTotalsInStageRow(2).shouldHave(texts("4", "0", "4", "0", "0"));
+    app5.getTotalsInStageRow(3).shouldHave(texts("2", "0", "0", "2", "0"));
     app5.getStages().shouldHaveSize(4).shouldHave(texts(
         "Build",          //
         "Stage Release",  //
@@ -365,7 +365,7 @@ public class DashboardApplicationsTest
     table.maxResultsMessage().shouldBe(visible);
 
     // default - sorted by total risk desc
-    headers.totalRiskHeader().sortArrowDown().shouldBeSelected();
+    headers.totalRiskHeader().sortArrows().shouldBeDown();
     table.firstApplication().totalRisk().shouldHave(text("8"));
     table.application(40).totalRisk().shouldHave(text("4"));
     table.application(80).totalRisk().shouldHave(text("2"));
@@ -373,7 +373,7 @@ public class DashboardApplicationsTest
 
     // sort by total risk asc
     headers.totalRiskHeader().click();
-    headers.totalRiskHeader().sortArrowUp().shouldBeSelected();
+    headers.totalRiskHeader().sortArrows().shouldBeUp();
     table.firstApplication().totalRisk().shouldHave(text("1"));
     table.application(40).totalRisk().shouldHave(text("2"));
     table.application(80).totalRisk().shouldHave(text("4"));
@@ -381,7 +381,7 @@ public class DashboardApplicationsTest
 
     // sort by name asc
     headers.applicationNameHeader().click();
-    headers.applicationNameHeader().sortArrowUp().shouldBeSelected();
+    headers.applicationNameHeader().sortArrows().shouldBeUp();
     table.firstApplication().name().shouldHave(text("critical"));
     table.application(40).name().shouldHave(text("low"));
     table.application(80).name().shouldHave(text("moderate"));
@@ -389,7 +389,7 @@ public class DashboardApplicationsTest
 
     // sort by name desc
     headers.applicationNameHeader().click();
-    headers.applicationNameHeader().sortArrowDown().shouldBeSelected();
+    headers.applicationNameHeader().sortArrows().shouldBeDown();
     table.firstApplication().name().shouldHave(text("severe"));
     table.application(40).name().shouldHave(text("moderate"));
     table.application(80).name().shouldHave(text("low"));
@@ -397,56 +397,56 @@ public class DashboardApplicationsTest
 
     // sort by criticalRisk desc
     headers.criticalRiskHeader().click();
-    headers.criticalRiskHeader().sortArrowDown().shouldBeSelected();
+    headers.criticalRiskHeader().sortArrows().shouldBeDown();
     table.firstApplication().criticalRisk().shouldHave(text("8"));
     table.application(40).criticalRisk().shouldHave(text("0"));
     table.lastApplication().criticalRisk().shouldHave(text("0"));
 
     // sort by criticalRisk asc
     headers.criticalRiskHeader().click();
-    headers.criticalRiskHeader().sortArrowUp().shouldBeSelected();
+    headers.criticalRiskHeader().sortArrows().shouldBeUp();
     table.firstApplication().criticalRisk().shouldHave(text("0"));
     table.application(40).criticalRisk().shouldHave(text("0"));
     table.lastApplication().criticalRisk().shouldHave(text("0"));
 
     // sort by severeRisk desc
     headers.severeRiskHeader().click();
-    headers.severeRiskHeader().sortArrowDown().shouldBeSelected();
+    headers.severeRiskHeader().sortArrows().shouldBeDown();
     table.firstApplication().severeRisk().shouldHave(text("4"));
     table.application(40).severeRisk().shouldHave(text("0"));
     table.lastApplication().severeRisk().shouldHave(text("0"));
 
     // sort by severeRisk asc
     headers.severeRiskHeader().click();
-    headers.severeRiskHeader().sortArrowUp().shouldBeSelected();
+    headers.severeRiskHeader().sortArrows().shouldBeUp();
     table.firstApplication().severeRisk().shouldHave(text("0"));
     table.application(40).severeRisk().shouldHave(text("0"));
     table.lastApplication().severeRisk().shouldHave(text("0"));
 
     // sort by moderateRisk desc
     headers.moderateRiskHeader().click();
-    headers.moderateRiskHeader().sortArrowDown().shouldBeSelected();
+    headers.moderateRiskHeader().sortArrows().shouldBeDown();
     table.firstApplication().moderateRisk().shouldHave(text("2"));
     table.application(40).moderateRisk().shouldHave(text("0"));
     table.lastApplication().moderateRisk().shouldHave(text("0"));
 
     // sort by moderateRisk asc
     headers.moderateRiskHeader().click();
-    headers.moderateRiskHeader().sortArrowUp().shouldBeSelected();
+    headers.moderateRiskHeader().sortArrows().shouldBeUp();
     table.firstApplication().moderateRisk().shouldHave(text("0"));
     table.application(40).moderateRisk().shouldHave(text("0"));
     table.lastApplication().moderateRisk().shouldHave(text("0"));
 
     // sort by lowRisk desc
     headers.lowRiskHeader().click();
-    headers.lowRiskHeader().sortArrowDown().shouldBeSelected();
+    headers.lowRiskHeader().sortArrows().shouldBeDown();
     table.firstApplication().lowRisk().shouldHave(text("1"));
     table.application(40).lowRisk().shouldHave(text("0"));
     table.lastApplication().lowRisk().shouldHave(text("0"));
 
     // sort by lowRisk asc
     headers.lowRiskHeader().click();
-    headers.lowRiskHeader().sortArrowUp().shouldBeSelected();
+    headers.lowRiskHeader().sortArrows().shouldBeUp();
     table.firstApplication().lowRisk().shouldHave(text("0"));
     table.application(40).lowRisk().shouldHave(text("0"));
     table.lastApplication().lowRisk().shouldHave(text("0"));

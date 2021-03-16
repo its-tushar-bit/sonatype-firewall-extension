@@ -316,7 +316,7 @@ public class RepositoryComponentDAOTest
     setupMockDataForGetFirewallRepositoryComponents();
 
     // SETUP FILTER
-    final String sortField = FirewallSortableField.QUARANTINE_TIME.name();
+    final FirewallSortableField sortField = FirewallSortableField.QUARANTINE_TIME;
     FirewallRepositoryComponentFilter filter =
         new FirewallRepositoryComponentFilter(1, 2, false, true, sortField, true, Collections.emptyList());
 
@@ -335,7 +335,7 @@ public class RepositoryComponentDAOTest
     setupMockDataForGetFirewallRepositoryComponents();
 
     // SORT DESC
-    final String sortField = FirewallSortableField.QUARANTINE_TIME.name();
+    final FirewallSortableField sortField = FirewallSortableField.QUARANTINE_TIME;
     FirewallRepositoryComponentFilter filter =
         new FirewallRepositoryComponentFilter(1, 2, false, true, sortField, false, Collections.emptyList());
 

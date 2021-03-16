@@ -74,6 +74,23 @@ public class PaginationResponseBuilder<T>
     }
 
     // add pagination Link headers
+    final ResponseBuilder responseBuilder = addPaginationLinkHeaders(pathBuilder);
+
+    return responseBuilder.build();
+  }
+
+  public static long calculateLastPage(final int pageSize, final double total) {
+    return (long) Math.ceil(total / pageSize);
+  }
+
+  private ResponseBuilder addPaginationLinkHeaders(final UriBuilder pathBuilder) {
+    final ResponseBuilder responseBuilder = Response.ok(result);
+
+    // if total records is zero, no pagination exists so link headers are not needed
+    if (result.getTotal() == 0) {
+      return responseBuilder;
+    }
+
     List<Link> links = new ArrayList<>();
     final long lastPage = calculateLastPage(pageSize, result.getTotal());
 
@@ -92,15 +109,10 @@ public class PaginationResponseBuilder<T>
       links.add(Link.fromUri(pathBuilder.replaceQueryParam(PAGE_PARAM, page - 1).build()).rel(PREV_REL).build());
     }
 
-    final ResponseBuilder responseBuilder = Response.ok(result);
     for (Link link : links) {
       responseBuilder.link(link.getUri(), link.getRel());
     }
 
-    return responseBuilder.build();
-  }
-
-  public static long calculateLastPage(final int pageSize, final double total) {
-    return (long) Math.ceil(total / pageSize);
+    return responseBuilder;
   }
 }

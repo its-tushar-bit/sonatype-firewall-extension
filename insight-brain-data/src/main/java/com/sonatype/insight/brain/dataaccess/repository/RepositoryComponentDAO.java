@@ -147,11 +147,10 @@ public class RepositoryComponentDAO
 
     // SORTING
     if (null == filter.sortableField) {
-      filter.sortableField = FirewallSortableField.UNQUARANTINE_TIME.name();
+      filter.sortableField = FirewallSortableField.RELEASE_QUARANTINE_TIME;
     }
-    FirewallSortableField sortField = FirewallSortableField.valueOf(filter.sortableField);
 
-    sQuery.append(" ORDER BY component.").append(sortField.getColumn());
+    sQuery.append(" ORDER BY component.").append(filter.sortableField.getColumn());
     if (filter.asc) {
       sQuery.append(" ASC");
     }

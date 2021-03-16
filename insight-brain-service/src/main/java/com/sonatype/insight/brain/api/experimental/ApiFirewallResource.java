@@ -24,16 +24,18 @@ import javax.ws.rs.core.UriInfo;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallComponentDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallQuarantineSummaryDTO;
-import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineSummaryDTO;
-import com.sonatype.insight.brain.api.experimental.dto.FirewallConfigurationDTO;
-import com.sonatype.insight.brain.api.experimental.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineConfigDTO;
+import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineSummaryDTO;
+import com.sonatype.insight.brain.api.experimental.dto.ApiPageResult;
+import com.sonatype.insight.brain.api.experimental.dto.FirewallConfigurationDTO;
 import com.sonatype.insight.brain.api.experimental.dto.PaginationResponseBuilder;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField.FirewallFilterableField;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter;
+import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -65,7 +67,7 @@ public class ApiFirewallResource
 
   static final String COMPONENTS_PATH = "/components";
 
-  static final String UNQUARANTINE_PATH = COMPONENTS_PATH + "/unquarantine";
+  static final String UNQUARANTINE_PATH = COMPONENTS_PATH + "/autoReleasedFromQuarantine";
 
   private final ApiFirewallService apiFirewallService;
 
@@ -123,13 +125,31 @@ public class ApiFirewallResource
     if (!StringUtils.isEmpty(policyId)) {
       filterFields.add(new FirewallFilterField(FirewallFilterableField.POLICY_ID, policyId));
     }
+
+    final FirewallSortableField sortableField = initializeSortField(sortBy);
+
     final FirewallRepositoryComponentFilter firewallFilter =
-        new FirewallRepositoryComponentFilter(page, pageSize, false, true, sortBy, asc, filterFields);
+        new FirewallRepositoryComponentFilter(page, pageSize, false, true, sortableField, asc, filterFields);
 
     final ApiPageResult<ApiFirewallComponentDTO> result = apiFirewallService.getUnquarantineList(firewallFilter);
 
     return new PaginationResponseBuilder<>(uriInfo.getAbsolutePath().getPath(), page, pageSize, result)
         .queryParameters(uriInfo.getQueryParameters())
         .build();
+  }
+
+  private FirewallSortableField initializeSortField(String sortBy) {
+    if (StringUtils.isEmpty(sortBy)) {
+      sortBy = FirewallSortableField.RELEASE_QUARANTINE_TIME.getLabel();
+    }
+
+    final FirewallSortableField sortableField;
+    try {
+      sortableField = FirewallSortableField.getByLabel(sortBy);
+    }
+    catch (IllegalArgumentException exception) {
+      throw new BadRequestException("sortBy field is invalid");
+    }
+    return sortableField;
   }
 }

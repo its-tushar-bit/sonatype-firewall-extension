@@ -226,11 +226,12 @@ public class ApiFirewallService
   @Authorize(permission = Permission.READ)
   public ApiPageResult<ApiFirewallComponentDTO> getUnquarantineList(FirewallRepositoryComponentFilter filter) {
     if (null == filter.sortableField) {
-      filter.sortableField = FirewallSortableField.UNQUARANTINE_TIME.name();
+      filter.sortableField = FirewallSortableField.RELEASE_QUARANTINE_TIME;
     }
 
     // validate filter
     this.validateFirewallRepositoryComponentFilter(filter);
+
     // get a list of all auto-unquarantined repository components
     final List<RepositoryComponent> autoUnquarantinedComponents =
         repositoryComponentDAO.getFirewallRepositoryComponents(filter);
@@ -266,22 +267,17 @@ public class ApiFirewallService
 
   private void validateFirewallRepositoryComponentFilter(final FirewallRepositoryComponentFilter filter) {
     if (filter.page < MIN_PAGE) {
-      throw new BadRequestException("Invalid page: " + filter.page);
+      throw new BadRequestException("Invalid page: " + filter.page + ". Page shouldn't be lower than " + MIN_PAGE);
     }
 
     if (filter.pageSize < MIN_PAGE_SIZE || filter.pageSize > MAX_PAGE_SIZE) {
-      throw new BadRequestException("Invalid page size: " + filter.pageSize);
+      throw new BadRequestException(
+          "Invalid page size: " + filter.pageSize + ". Page size should be between " + MIN_PAGE_SIZE + " and " +
+              MAX_PAGE_SIZE);
     }
 
     if (filter.sortableField == null) {
       throw new BadRequestException("sortBy field is null");
-    }
-
-    try {
-      FirewallSortableField.valueOf(filter.sortableField);
-    }
-    catch (IllegalArgumentException exception) {
-      throw new BadRequestException("sortBy field is invalid");
     }
   }
 

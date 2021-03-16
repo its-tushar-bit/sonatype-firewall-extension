@@ -266,7 +266,7 @@ public class ApiFirewallResourceTest
         .query("page", 1)
         .query("pageSize", 2)
         .query("policyId", policy1.getId())
-        .query("sortBy", FirewallSortableField.UNQUARANTINE_TIME)
+        .query("sortBy", FirewallSortableField.RELEASE_QUARANTINE_TIME.getLabel())
         .query("asc", "false")
         .get();
 
@@ -316,37 +316,32 @@ public class ApiFirewallResourceTest
     HttpResponse response = restRequest()
         .path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.UNQUARANTINE_PATH)
         .query("page", ApiFirewallService.MIN_PAGE - 1)
-        .query("pageSize", 2)
-        .query("policyId", "policy_id")
-        .query("sortBy", FirewallSortableField.UNQUARANTINE_TIME)
-        .query("asc", "false")
         .get();
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST_400);
-    assertThat(response.getBodyText()).isEqualTo("Invalid page: " + (ApiFirewallService.MIN_PAGE - 1));
+    assertThat(response.getBodyText())
+        .isEqualTo("Invalid page: " + (ApiFirewallService.MIN_PAGE - 1) + ". Page shouldn't be lower than 1");
 
     // pageSize < MIN_PAGE_SIZE
     response = restRequest()
         .path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.UNQUARANTINE_PATH)
-        .query("page", 1)
         .query("pageSize", ApiFirewallService.MIN_PAGE_SIZE - 1)
-        .query("policyId", "policy_id")
-        .query("sortBy", FirewallSortableField.UNQUARANTINE_TIME)
-        .query("asc", "false")
         .get();
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST_400);
-    assertThat(response.getBodyText()).isEqualTo("Invalid page size: " + (ApiFirewallService.MIN_PAGE_SIZE - 1));
+    assertThat(response.getBodyText()).isEqualTo(
+        "Invalid page size: " + (ApiFirewallService.MIN_PAGE_SIZE - 1) + ". Page size should be between " +
+            ApiFirewallService.MIN_PAGE_SIZE + " and " +
+            ApiFirewallService.MAX_PAGE_SIZE);
 
     // pageSize > MAX_PAGE_SIZE
     response = restRequest()
         .path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.UNQUARANTINE_PATH)
-        .query("page", 1)
         .query("pageSize", ApiFirewallService.MAX_PAGE_SIZE + 1)
-        .query("policyId", "policy_id")
-        .query("sortBy", FirewallSortableField.UNQUARANTINE_TIME)
-        .query("asc", "false")
         .get();
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST_400);
-    assertThat(response.getBodyText()).isEqualTo("Invalid page size: " + (ApiFirewallService.MAX_PAGE_SIZE + 1));
+    assertThat(response.getBodyText())
+        .isEqualTo("Invalid page size: " + (ApiFirewallService.MAX_PAGE_SIZE + 1) + ". Page size should be between " +
+            ApiFirewallService.MIN_PAGE_SIZE + " and " +
+            ApiFirewallService.MAX_PAGE_SIZE);
   }
 
   @Test
@@ -354,11 +349,7 @@ public class ApiFirewallResourceTest
     // pageSize < 1
     HttpResponse response = restRequest()
         .path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.UNQUARANTINE_PATH)
-        .query("page", 1)
-        .query("pageSize", 2)
-        .query("policyId", "policy_id")
         .query("sortBy", "INVALID")
-        .query("asc", "false")
         .get();
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST_400);
     assertThat(response.getBodyText()).isEqualTo("sortBy field is invalid");

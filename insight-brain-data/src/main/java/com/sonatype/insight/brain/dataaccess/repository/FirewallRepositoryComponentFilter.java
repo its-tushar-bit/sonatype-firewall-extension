@@ -21,7 +21,7 @@ public class FirewallRepositoryComponentFilter
 
   public boolean includeAutoUnquarantine;
 
-  public String sortableField;
+  public FirewallSortableField sortableField;
 
   public boolean asc;
 
@@ -32,7 +32,7 @@ public class FirewallRepositoryComponentFilter
       final int pageSize,
       final boolean includeQuarantine,
       final boolean includeAutoUnquarantine,
-      final String sortableField,
+      final FirewallSortableField sortableField,
       final boolean asc,
       final List<FirewallFilterField> filterFields)
   {

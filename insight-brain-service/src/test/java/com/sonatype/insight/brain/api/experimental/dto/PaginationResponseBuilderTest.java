@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.experimental.dto;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -115,6 +116,25 @@ public class PaginationResponseBuilderTest
     assertThat(response.getLink(PaginationResponseBuilder.NEXT_REL)).isNull();
     assertThat(response.getLink(PaginationResponseBuilder.PREV_REL))
         .hasToString("<http://localhost/baseUrl/?page=3>; rel=\"prev\"");
+  }
+
+  @Test
+  public void testPage2WithResultsAnd2QueryParamsAndResultsIsEmpty() {
+    // SETUP
+    final ApiPageResult<String> apiPageResult = new ApiPageResult<>(0, 2, 3, Collections.emptyList());
+    Map<String, List<String>> queryParams = new HashMap<>();
+    queryParams.put("param1", Arrays.asList("value1", "value2"));
+    queryParams.put("param2", Arrays.asList("value3", "value4"));
+
+    // EXECUTE
+    final PaginationResponseBuilder<String> builder = new PaginationResponseBuilder<>(ABSOLUTE_PATH, 2, 3,
+        apiPageResult);
+    builder.queryParameters(queryParams);
+    final Response response = builder.build();
+
+    // VERIFY
+    assertThat(response.getEntity()).isEqualTo(apiPageResult);
+    assertThat(response.getLinks()).isEmpty();
   }
 
   @Test(expected = IllegalArgumentException.class)

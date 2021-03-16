@@ -7,16 +7,37 @@ package com.sonatype.insight.brain.dataaccess.repository;
 
 public enum FirewallSortableField
 {
-  QUARANTINE_TIME("quarantineTime"),
-  UNQUARANTINE_TIME("unquarantineTime");
+  QUARANTINE_TIME("quarantineTime", "quarantineTime"),
+  RELEASE_QUARANTINE_TIME("releaseQuarantineTime", "unquarantineTime");
+
+  private final String label;
 
   private final String column;
 
-  FirewallSortableField(final String column) {
+  FirewallSortableField(final String label, final String column) {
+    this.label = label;
     this.column = column;
   }
 
   public String getColumn() {
     return column;
+  }
+
+  public String getLabel() {
+    return label;
+  }
+
+  public static FirewallSortableField getByLabel(String label) {
+    if (label == null) {
+      return null;
+    }
+
+    for (FirewallSortableField sortableField : values()) {
+      if (label.equals(sortableField.getLabel())) {
+        return sortableField;
+      }
+    }
+
+    throw new IllegalArgumentException("Unknown sortable field with label: " + label);
   }
 }

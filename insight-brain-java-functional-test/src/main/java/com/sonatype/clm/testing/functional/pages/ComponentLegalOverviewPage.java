@@ -109,4 +109,46 @@ public class ComponentLegalOverviewPage
       return child("blockquote");
     }
   }
+
+  public static Licenses licenses() {
+    return new Licenses();
+  }
+
+  public static SelenideElement editLicensesButton() {
+    return $("#edit-licenses");
+  }
+
+  public static class Licenses
+      extends BasicElement<Licenses>
+  {
+    private static final String LICENSE_SECTION = "#license-texts-tile";
+
+    Licenses() {
+      super(ROOT, LICENSE_SECTION);
+    }
+
+    public License at(int index) {
+      return new License("#license-section-" + index);
+    }
+
+    public ElementsCollection all() {
+      return children(".nx-tile-subsection.legal-file");
+    }
+  }
+
+  public static class License
+      extends BasicElement<License>
+  {
+    License(String selector) {
+      super(selector);
+    }
+
+    public SelenideElement relPath() {
+      return child("h3");
+    }
+
+    public SelenideElement text() {
+      return child("blockquote");
+    }
+  }
 }

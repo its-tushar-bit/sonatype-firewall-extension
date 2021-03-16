@@ -7,6 +7,7 @@ import * as enzymeUtils from '../../enzymeUtils';
 import React from 'react';
 import LegalDashboardApplicationsTab from '../../../../main/frontend/legal/dashboard/LegalDashboardApplicationsTab';
 import LegalDashboardComponentsTab from '../../../../main/frontend/legal/dashboard/LegalDashboardComponentsTab';
+import LoadWrapper from '../../../../main/frontend/react/LoadWrapper';
 
 describe('LegalDashboardPage', function() {
   let minimalProps,
@@ -20,7 +21,7 @@ describe('LegalDashboardPage', function() {
 
   beforeEach(function() {
     LegalDashboardFilterContainerMock = jasmine.createSpy('MaximizedContainerMock')
-        .and.returnValue(<div>MaximizedContainer</div>);
+        .and.returnValue(<div>LegalDashboardFilterContainer</div>);
 
     LegalDashboardPage =
         require('inject-loader!../../../../main/frontend/legal/dashboard/LegalDashboardPage')({
@@ -33,14 +34,26 @@ describe('LegalDashboardPage', function() {
       components: [],
       loadResults: loadResultsSpy,
       isAuthorized: true,
+      loading: 'loading',
+      loadError: 'loadError',
       filtersAreDirty: 'filtersAreDirty'
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(LegalDashboardPage, minimalProps);
   });
 
+  it('is wrapped by a LoadWrapper with appropriate parameters', function() {
+    let loadWrapper = getShallowComponent().find(LoadWrapper);
+    expect(loadWrapper).toExist();
+    expect(loadWrapper).toHaveProp('loading', 'loading');
+    expect(loadWrapper).toHaveProp('error', 'loadError');
+    expect(loadWrapper).toHaveProp('retryHandler', loadResultsSpy);
+  });
+
   it('renders an aside and a main', function() {
-    expect(getShallowComponent().find('aside.nx-page-sidebar')).toExist();
+    let sidebar = getShallowComponent().find('aside.nx-page-sidebar');
+    expect(sidebar).toExist();
+    expect(sidebar.find(LegalDashboardFilterContainerMock)).toExist();
     expect(getShallowComponent().find('main.nx-page-main')).toExist();
   });
 

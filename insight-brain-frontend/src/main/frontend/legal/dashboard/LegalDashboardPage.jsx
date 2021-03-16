@@ -20,19 +20,13 @@ export default function LegalDashboardPage(props) {
     loadResults,
     loading,
     loadError,
-    isAuthorized,
     fetchBackendPage,
     changeSortField
   } = props;
 
-  const authErrorMessage = `It appears you do not have permission to access this page.
-    If you believe this to be incorrect, please contact your administrator.`;
-
-  const hasError = isAuthorized ? loadError : authErrorMessage;
-
   return (
     <div id="legal-dashboard" className="nx-page-content">
-      <LoadWrapper loading={ loading } error={ hasError } retryHandler={ loadResults }>
+      <LoadWrapper loading={ loading } error={ loadError } retryHandler={ loadResults }>
         <aside id="legal-dashboard-filter-container" className="nx-page-sidebar">
           <LegalDashboardFilterContainer />
         </aside>

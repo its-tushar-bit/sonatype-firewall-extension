@@ -19,13 +19,6 @@ function routes($stateProvider) {
         component: 'legalDashboard',
         data: {
           title: 'Legal Dashboard'
-        },
-        resolve: {
-          isAuthorized: [
-            'PermissionService', function(PermissionService) {
-              return PermissionService.isContextAuthorized(['LEGAL_REVIEWER'], 'organization', 'ROOT_ORGANIZATION_ID');
-            }
-          ]
         }
       });
 }

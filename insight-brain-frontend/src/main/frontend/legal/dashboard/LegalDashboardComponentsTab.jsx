@@ -21,6 +21,8 @@ export default function LegalDashboardComponentsTab({ components, filtersAreDirt
   const PAGE_SIZE = 5;
   const rows = slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE, components);
 
+  const emptyMessage = 'No components found given the applied filters and permissions.';
+
   return (
     <div className="nx-scrollable nx-table-container nx-viewport-sized__scrollable">
       { filtersAreDirty && <div className="form-mask" /> }
@@ -33,7 +35,7 @@ export default function LegalDashboardComponentsTab({ components, filtersAreDirt
             <NxTableCell>Review Progress</NxTableCell>
           </NxTableRow>
         </NxTableHead>
-        <NxTableBody emptyMessage="No components found">
+        <NxTableBody emptyMessage={emptyMessage}>
           { rows.map((row, index) => <LegalDashboardComponentRow key = { index } row={ row } />) }
         </NxTableBody>
       </NxTable>

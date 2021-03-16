@@ -67,6 +67,8 @@ export default function LegalDashboardApplicationsTab({
     setPage(0);
   }
 
+  const emptyMessage = 'No applications found given the applied filters and permissions.';
+
   return (
     <div className="nx-scrollable nx-table-container nx-viewport-sized__scrollable">
       { filtersAreDirty && <div className="form-mask" /> }
@@ -85,7 +87,7 @@ export default function LegalDashboardApplicationsTab({
             <NxTableCell>Components Reviewed</NxTableCell>
           </NxTableRow>
         </NxTableHead>
-        <NxTableBody emptyMessage="No applications found"
+        <NxTableBody emptyMessage={emptyMessage}
                      isLoading={applications.loading}
                      error={Messages.getHttpErrorMessage(applications.error)}>
           { rows.map((row, index) => <LegalDashboardApplicationRow key={ index } row={ row } />) }

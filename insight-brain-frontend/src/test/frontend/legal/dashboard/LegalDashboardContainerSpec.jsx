@@ -21,8 +21,7 @@ describe('LegalDashboardContainerSpec', function() {
         applications: 'applications',
         components: 'components',
         loading: 'loading',
-        loadError: 'loadError',
-        isAuthorized: 'isAuthorized'
+        loadError: 'loadError'
       },
       legalDashboardFilter: {
         filtersAreDirty: false
@@ -47,7 +46,6 @@ describe('LegalDashboardContainerSpec', function() {
     expect(wrapper).toHaveProp('components', 'components');
     expect(wrapper).toHaveProp('loading', 'loading');
     expect(wrapper).toHaveProp('loadError', 'loadError');
-    expect(wrapper).toHaveProp('isAuthorized', 'isAuthorized');
     expect(wrapper).toHaveProp('filtersAreDirty', false);
   });
 

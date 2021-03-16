@@ -11,7 +11,7 @@ import * as legalDashboardActions from './legalDashboardActions';
 
 function mapStateToProps({ legalDashboard, legalDashboardFilter }) {
   return {
-    ...pick(['applications', 'components', 'loading', 'loadError', 'isAuthorized'], legalDashboard),
+    ...pick(['applications', 'components', 'loading', 'loadError'], legalDashboard),
     ...pick(['filtersAreDirty'], legalDashboardFilter)
   };
 }

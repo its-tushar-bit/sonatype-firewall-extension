@@ -76,7 +76,6 @@
     <module>insight-brain-data</module>
     <module>insight-brain-policy</module>
     <module>insight-brain-event</module>
-    <module>insight-brain-scanner</module>
     <module>insight-brain-frontend</module>
     <module>insight-brain-service</module>
     <module>insight-brain-service-common</module>
@@ -174,11 +173,6 @@
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-service-common</artifactId>
-        <version>1.108.0-SNAPSHOT</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sonatype.insight.brain</groupId>
-        <artifactId>insight-brain-scanner</artifactId>
         <version>1.108.0-SNAPSHOT</version>
       </dependency>
       <dependency>

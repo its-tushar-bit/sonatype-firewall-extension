@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.experimental.legal;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -17,8 +18,10 @@ import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.license.dto.model.AnameAggregateFileGroup;
 import com.sonatype.insight.license.dto.model.ComponentLegalCommentDTO;
+import com.sonatype.insight.license.dto.model.ComponentLegalCommentFilePathsDTO;
 import com.sonatype.insight.license.dto.model.ComponentLegalFileDTO;
 import com.sonatype.insight.license.dto.model.LegalCommentDTO;
+import com.sonatype.insight.license.dto.model.LegalCommentFilesDTO;
 import com.sonatype.insight.license.dto.model.LegalCopyrightDTO;
 import com.sonatype.insight.license.dto.model.LegalFileDTO;
 import com.sonatype.insight.license.dto.model.LicenseMetadataDTO;
@@ -123,6 +126,75 @@ public class ApiLicenseLegalHdsServiceTest
         .thenReturn(expectedLegalComments.toArray(new ComponentLegalCommentDTO[2]));
 
     Set<ComponentLegalCommentDTO> results = apiLicenseLegalHdsService.getComponentLegalComments(components);
+
+    assertThat(results).isEqualTo(expectedLegalComments);
+  }
+
+  @Test
+  public void getGetAnameRawComponentLegalComments() {
+    final ComponentIdentifier componentId1 = ComponentIdentifier.createAnameCoordinates("groupId1", "", "version1");
+    final ComponentIdentifier componentId2 = ComponentIdentifier.createAnameCoordinates("groupId2", "", "version2");
+    final List<AnameAggregateFileGroup> aggregageFileGroups = ImmutableList.of(
+        new AnameAggregateFileGroup(
+            componentId1,
+            ImmutableList.of("11111111111111111111", "22222222222222222222")),
+        new AnameAggregateFileGroup(
+            componentId2,
+            ImmutableList.of("11111111111111111111", "33333333333333333333"))
+    );
+
+    final LegalCommentDTO legalComment1 = new LegalCommentDTO();
+    legalComment1.setContent("Content 1");
+    legalComment1.setCopyrights(Sets.newHashSet(new LegalCopyrightDTO("Content 1", "content1Hash", "Author 1", "Year1"),
+        new LegalCopyrightDTO("Content 1.1", "content11Hash", "Author 1.1", "Year1.1")));
+    final LegalCommentDTO legalComment2 = new LegalCommentDTO();
+    legalComment2.setContent("Content 2");
+    legalComment2
+        .setCopyrights(Sets.newHashSet(new LegalCopyrightDTO("Content 2", "content2Hash", "Author 2", "Year2")));
+    final LegalCommentDTO legalComment3 = new LegalCommentDTO();
+    legalComment3.setContent("Content 3");
+    legalComment3
+        .setCopyrights(Sets.newHashSet(new LegalCopyrightDTO("Content 3", "content3Hash", "Author 3", "Year3")));
+
+    final ComponentLegalCommentDTO componentLegalComment1 = createComponentCommentsDTO(
+        componentId1,
+        "11111111111111111111",
+        legalComment1
+    );
+    final ComponentLegalCommentDTO componentLegalComment2 = createComponentCommentsDTO(
+        componentId1,
+        "22222222222222222222",
+        legalComment2
+    );
+    final ComponentLegalCommentDTO componentLegalComment3 = createComponentCommentsDTO(
+        componentId2,
+        "11111111111111111111",
+        legalComment1
+    );
+    final ComponentLegalCommentDTO componentLegalComment4 = createComponentCommentsDTO(
+        componentId2,
+        "33333333333333333333",
+        legalComment3
+    );
+
+    final Set<ComponentLegalCommentDTO> expectedLegalComments =
+        new LinkedHashSet<>(Arrays.asList( 
+            componentLegalComment1,
+            componentLegalComment2,
+            componentLegalComment3,
+            componentLegalComment4));
+
+    doReturn(new ComponentLegalCommentDTO[]{
+        componentLegalComment1, componentLegalComment2, componentLegalComment3, componentLegalComment4
+    })
+        .when(mockHdsClient)
+        .post(ComponentLegalCommentDTO[].class,
+            ApiLicenseLegalHdsService.LEGAL_ANAME_COMMENT_URL,
+            aggregageFileGroups);
+
+    final Set<ComponentLegalCommentDTO> results = apiLicenseLegalHdsService.getAnameRawComponentLegalComments(
+        ImmutableSet.copyOf(aggregageFileGroups)
+    );
 
     assertThat(results).isEqualTo(expectedLegalComments);
   }
@@ -297,5 +369,37 @@ public class ApiLicenseLegalHdsServiceTest
 
     Set<ComponentLegalFileDTO> results = apiLicenseLegalHdsService.getComponentLegalFiles(components);
     assertThat(results).isEmpty();
+  }
+
+  @Test
+  public void testGetComponentLegalCommentsWithPaths() {
+    ComponentIdentifier component1 = ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version");
+
+    ComponentLegalCommentFilePathsDTO componentLegalComment1 = new ComponentLegalCommentFilePathsDTO();
+    componentLegalComment1.setComponentIdentifier(component1);
+    componentLegalComment1.setHash("hash1");
+    LegalCommentFilesDTO legalComment1 = new LegalCommentFilesDTO();
+    legalComment1.setContent("Content 1");
+    legalComment1.setCopyrightContentHashes(Sets.newHashSet("content1Hash", "content11Hash"));
+    legalComment1.setFilePaths(Sets.newHashSet("path1/file1", "path2/file"));
+    LegalCommentFilesDTO legalComment2 = new LegalCommentFilesDTO();
+    legalComment2.setContent("Content 2");
+    legalComment2.setCopyrightContentHashes(Sets.newHashSet("content2Hash"));
+    legalComment1.setFilePaths(Sets.newHashSet("path1/file2", "path2/file2"));
+    componentLegalComment1.setComments(Sets.newHashSet(legalComment1, legalComment2));
+
+    Set<ComponentLegalCommentFilePathsDTO> expectedLegalComments =
+        new LinkedHashSet<>(Arrays.asList(componentLegalComment1));
+
+    when(mockHdsClient
+        .post(ComponentLegalCommentFilePathsDTO[].class,
+            ApiLicenseLegalHdsService.LEGAL_COMMENT_FILE_PATHS_URL,
+            ImmutableList.of(component1)))
+        .thenReturn(expectedLegalComments.toArray(new ComponentLegalCommentFilePathsDTO[1]));
+
+    Collection<ComponentLegalCommentFilePathsDTO> results = apiLicenseLegalHdsService
+        .getComponentLegalCommentFilePaths(component1);
+
+    assertThat(results).isEqualTo(expectedLegalComments);
   }
 }

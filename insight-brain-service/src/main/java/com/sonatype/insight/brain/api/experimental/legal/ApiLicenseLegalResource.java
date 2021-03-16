@@ -28,10 +28,11 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationRep
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDashboardDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
-import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightWithOwnerDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightWithOwnerDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.CopyrightFilePathsDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalFilterDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -70,9 +71,19 @@ public class ApiLicenseLegalResource
   public static final String COMPONENT_OBLIGATION_ATTRIBUTION_DELETE_PATH =
       "/component/obligation/attribution/{componentObligationAttributionId}";
 
+  public static final String COMPONENT_COPYRIGHT_FILEPATHS =
+      "{ownerType: application|organization}/{ownerId}/component/" +
+          "{componentHash}/copyright/{copyrightContentHash}/filepaths";
+
+  public static final String COMPONENT_COPYRIGHT_FILEPATH_CONTEXT =
+      "{ownerType: application|organization}/{ownerId}/component/" +
+          "{componentHash}/copyright/{copyrightContentHash}/file/{filePath}/context";
+
   private final ApiLicenseLegalService apiLicenseLegalService;
 
   private final ComponentLegalService componentLegalService;
+
+  private final ApiLegalCopyrightService apiLegalCopyrightService;
 
   @Context
   private HttpServletRequest httpRequest;
@@ -80,10 +91,12 @@ public class ApiLicenseLegalResource
   @Inject
   public ApiLicenseLegalResource(
       final ApiLicenseLegalService apiLicenseLegalService,
-      final ComponentLegalService componentLegalService)
+      final ComponentLegalService componentLegalService,
+      final ApiLegalCopyrightService apiLegalCopyrightService)
   {
     this.apiLicenseLegalService = apiLicenseLegalService;
     this.componentLegalService = componentLegalService;
+    this.apiLegalCopyrightService = apiLegalCopyrightService;
   }
 
   @POST
@@ -273,5 +286,52 @@ public class ApiLicenseLegalResource
   @Audited(AuditEvent.DELETE_COMPONENT_OBLIGATION)
   public void deleteComponentObligation(@PathParam("componentObligationId") String componentObligationId) {
     componentLegalService.deleteComponentObligation(componentObligationId);
+  }
+
+  /**
+   * @since 1.108
+   */
+  @GET
+  @Path(COMPONENT_COPYRIGHT_FILEPATHS)
+  @Produces(MediaType.APPLICATION_JSON)
+  public CopyrightFilePathsDTO getCopyrightContexts(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId,
+      @PathParam("componentHash") String componentHash,
+      @PathParam("copyrightContentHash") String copyrightContentHash,
+      @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier,
+      @QueryParam("pageStart") int pageStart,
+      @QueryParam("pageLength") int pageLength)
+  {
+    return apiLegalCopyrightService.getCopyrightFilePaths(
+        ownerType,
+        ownerId,
+        componentIdentifier,
+        componentHash,
+        copyrightContentHash,
+        pageStart, pageLength);
+  }
+
+  /**
+   * @since 1.108
+   */
+  @GET
+  @Path(COMPONENT_COPYRIGHT_FILEPATH_CONTEXT)
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<String> getCopyrightContexts(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId,
+      @PathParam("componentHash") String componentHash,
+      @PathParam("copyrightContentHash") String copyrightContentHash,
+      @PathParam("filePath") String filePath,
+      @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier)
+  {
+    return apiLegalCopyrightService.getCopyrightContextContent(
+        ownerType,
+        ownerId,
+        componentIdentifier,
+        componentHash,
+        copyrightContentHash,
+        filePath);
   }
 }

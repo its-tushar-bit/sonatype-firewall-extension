@@ -23,10 +23,13 @@ import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.license.dto.model.AnameAggregateFileGroup;
 import com.sonatype.insight.license.dto.model.ComponentLegalCommentDTO;
+import com.sonatype.insight.license.dto.model.ComponentLegalCommentFilePathsDTO;
 import com.sonatype.insight.license.dto.model.ComponentLegalFileDTO;
 import com.sonatype.insight.license.dto.model.LegalCommentDTO;
 import com.sonatype.insight.license.dto.model.LicenseMetadataDTO;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
@@ -37,6 +40,8 @@ public class ApiLicenseLegalHdsService
   static final String METADATA_URL = "/rest/license/metadata";
 
   static final String LEGAL_COMMENT_URL = "/rest/legal/comment";
+
+  static final String LEGAL_COMMENT_FILE_PATHS_URL = "/rest/legal/comment/filepaths";
 
   static final String LEGAL_ANAME_COMMENT_URL = "/rest/legal/aname/comment";
 
@@ -68,6 +73,40 @@ public class ApiLicenseLegalHdsService
     return StreamSupport.stream(
         Iterables.partition(componentIdentifiers, insightConfig.getLicenseLegalHdsRequestLimit()).spliterator(), true)
         .flatMap(partition -> Arrays.stream(hdsClient.post(ComponentLegalFileDTO[].class, LEGAL_FILE_URL, partition)))
+        .collect(Collectors.toCollection(LinkedHashSet::new));
+  }
+
+  /**
+   * Returns non-processed comments for A-Name components. There will be single {@link ComponentLegalCommentDTO} object
+   * for each file containing a copyright
+   * <p>
+   * Use {@link #getAnameComponentLegalComments(Set, Map)} to get compact version of response where all copyrights for
+   * the same component are joined together
+   *
+   * @param anameAggregateFileGroups Set of {@link AnameAggregateFileGroup} to retrieve A-name comments
+   * @return Collection of {@link ComponentLegalCommentDTO}
+   */
+  public Set<ComponentLegalCommentDTO> getAnameRawComponentLegalComments(
+      final Set<AnameAggregateFileGroup> anameAggregateFileGroups)
+  {
+    final List<AnameAggregateFileGroup> filteredGroups = anameAggregateFileGroups.stream()
+        .filter(group -> !group.getAggregateHashes().isEmpty())
+        .collect(Collectors.toList());
+
+    if (filteredGroups.isEmpty()) {
+      return Collections.emptySet();
+    }
+
+    return StreamSupport.stream(
+        Iterables.partition(
+            filteredGroups,
+            insightConfig.getLicenseLegalHdsRequestLimit()).spliterator(),
+        true)
+        .flatMap(
+            partition -> Arrays
+                .stream(hdsClient.post(ComponentLegalCommentDTO[].class,
+                    LEGAL_ANAME_COMMENT_URL,
+                    partition)))
         .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
@@ -109,25 +148,7 @@ public class ApiLicenseLegalHdsService
       final Set<AnameAggregateFileGroup> anameAggregateFileGroups,
       final Map<ComponentIdentifier, String> componentIdentifierHash)
   {
-    final List<AnameAggregateFileGroup> filteredGroups = anameAggregateFileGroups.stream()
-        .filter(group -> !group.getAggregateHashes().isEmpty())
-        .collect(Collectors.toList());
-
-    if (filteredGroups.isEmpty()) {
-      return Collections.emptySet();
-    }
-
-    final Set<ComponentLegalCommentDTO> componentComments = StreamSupport.stream(
-        Iterables.partition(
-            filteredGroups,
-            insightConfig.getLicenseLegalHdsRequestLimit()).spliterator(),
-        true)
-        .flatMap(
-            partition -> Arrays
-                .stream(hdsClient.post(ComponentLegalCommentDTO[].class,
-                        LEGAL_ANAME_COMMENT_URL,
-                        partition)))
-        .collect(Collectors.toCollection(LinkedHashSet::new));
+    final Set<ComponentLegalCommentDTO> componentComments = getAnameRawComponentLegalComments(anameAggregateFileGroups);
 
     final Multimap<ComponentIdentifier, LegalCommentDTO> componentCommentMap = LinkedListMultimap.create();
 
@@ -147,7 +168,16 @@ public class ApiLicenseLegalHdsService
         .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
-  private ComponentLegalCommentDTO entryToComponentLegalComment(
+  public Collection<ComponentLegalCommentFilePathsDTO> getComponentLegalCommentFilePaths(
+      final ComponentIdentifier componentIdentifier)
+  {
+    return ImmutableSet.copyOf(hdsClient.post(
+        ComponentLegalCommentFilePathsDTO[].class,
+        LEGAL_COMMENT_FILE_PATHS_URL,
+        ImmutableList.of(componentIdentifier)));
+  }
+
+  private static ComponentLegalCommentDTO entryToComponentLegalComment(
       final Map.Entry<ComponentIdentifier, Collection<LegalCommentDTO>> entry,
       final String componentHash)
   {

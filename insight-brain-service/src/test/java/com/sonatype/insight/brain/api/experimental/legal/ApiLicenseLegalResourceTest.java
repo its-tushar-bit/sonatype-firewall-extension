@@ -46,6 +46,7 @@ import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
@@ -522,7 +523,7 @@ public class ApiLicenseLegalResourceTest
 
     final HttpResponse response = restRequest()
         .path(ApiLicenseLegalResource.COMPONENT_COPYRIGHT_FILEPATHS)
-        .parameter("hash", "copyright hash 2")
+        .parameter(OwnerType.ORGANIZATION.toString(), Organization.ROOT_ORGANIZATION_ID, "hash", "copyright hash 2")
         .query("componentIdentifier", mavenIdentifier)
         .query("pageStart", 0)
         .query("pageLength", 15)
@@ -560,7 +561,8 @@ public class ApiLicenseLegalResourceTest
 
     final HttpResponse response = restRequest()
         .path(ApiLicenseLegalResource.COMPONENT_COPYRIGHT_FILEPATH_CONTEXT)
-        .parameter("hash", "copyright hash 2", "path2/file1")
+        .parameter(OwnerType.ORGANIZATION.toString(), Organization.ROOT_ORGANIZATION_ID, "hash", "copyright hash 2",
+            "path2/file1")
         .query("componentIdentifier", mavenIdentifier)
         .get();
 

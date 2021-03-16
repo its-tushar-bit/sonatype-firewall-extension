@@ -19,12 +19,12 @@ describe('proxyConfigReducer', function() {
   };
 
   beforeEach(function() {
-    otherObject = {value: 'test value'};
+    otherObject = { value: 'test value' };
   });
 
   describe('unknown action', function() {
     it('returns original state', function() {
-      const state = Object.freeze({foo: 'bar'});
+      const state = Object.freeze({ foo: 'bar' });
       const action = {
         type: 'UNKNOWN'
       };
@@ -143,6 +143,72 @@ describe('proxyConfigReducer', function() {
 
       expect(newState.submitMaskState).toBe(null);
       expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('PROXY_CONFIG_SET_HOSTNAME action', function() {
+    it('sets isValid to false when using an invalid value', function() {
+      const state = Object.freeze({
+        formState: {
+          hostname: { value: '' },
+          port: { value: '' },
+          username: { value: '' },
+          password: { value: '' },
+          excludeHosts: { value: '' }
+        },
+        isValid: true
+      });
+
+      const newState = reduce(state, {
+        type: 'PROXY_CONFIG_SET_HOSTNAME',
+        payload: 'sonatype.com/host'
+      });
+
+      expect(newState.isValid).toBe(false);
+    });
+
+    it('sets validation errors on the hostname when using an invalid value', function() {
+      const state = Object.freeze({
+        formState: {
+          hostname: { value: '' },
+          port: { value: '' },
+          username: { value: '' },
+          password: { value: '' },
+          excludeHosts: { value: '' }
+        },
+        isValid: true
+      });
+
+      const newState = reduce(state, {
+        type: 'PROXY_CONFIG_SET_HOSTNAME',
+        payload: 'sonatype.com/host'
+      });
+
+      const { formState } = newState;
+      expect(formState.hostname.value).toEqual('sonatype.com/host');
+      expect(formState.hostname.validationErrors).toEqual(['Invalid host name']);
+    });
+
+    it('sets the hostname value when using a valid hostname', function() {
+      const state = Object.freeze({
+        formState: {
+          hostname: { value: 'host' },
+          port: { value: '' },
+          username: { value: '' },
+          password: { value: '' },
+          excludeHosts: { value: '' }
+        },
+        isValid: true
+      });
+
+      const newState = reduce(state, {
+        type: 'PROXY_CONFIG_SET_HOSTNAME',
+        payload: 'sonatype.com'
+      });
+
+      const { formState } = newState;
+      expect(formState.hostname.value).toEqual('sonatype.com');
+      expect(formState.hostname.validationErrors).toEqual([]);
     });
   });
 });

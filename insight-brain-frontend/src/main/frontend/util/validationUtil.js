@@ -4,6 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { applyTo, curryN, isNil, map, reject, test } from 'ramda';
+import isValidHostname from 'is-valid-hostname';
+
+export const validateHostname = (value) => isValidHostname(value) ? null : 'Invalid host name';
 
 export const validateNonEmpty = (val) => val && val.length ? null : 'Must be non-empty';
 

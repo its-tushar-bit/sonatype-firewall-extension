@@ -3,7 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {validateNonEmpty, validateMaxLength, hasValidationErrors} from '../../../main/frontend/util/validationUtil';
+import {
+  hasValidationErrors,
+  validateHostname,
+  validateMaxLength,
+  validateNonEmpty
+} from '../../../main/frontend/util/validationUtil';
 
 describe('validationUtil', function() {
   describe('validationNonEmpty', () => {
@@ -48,6 +53,22 @@ describe('validationUtil', function() {
     it('returns true for any string even empty ones', function() {
       expect(hasValidationErrors('')).toBe(true);
       expect(hasValidationErrors('this is a really big problem')).toBe(true);
+    });
+  });
+
+  describe('validateHostname', () => {
+    it('returns error message for empty values', function() {
+      expect(validateHostname(null)).toBe('Invalid host name');
+      expect(validateHostname('')).toBe('Invalid host name');
+    });
+
+    it('returns error message for non hostname strings', function() {
+      expect(validateHostname('sonatype.com/host')).toBe('Invalid host name');
+    });
+
+    it('returns null for valid hostnames', function() {
+      expect(validateHostname('8.5.4.5')).toBe(null);
+      expect(validateHostname('sonatype.com')).toBe(null);
     });
   });
 });

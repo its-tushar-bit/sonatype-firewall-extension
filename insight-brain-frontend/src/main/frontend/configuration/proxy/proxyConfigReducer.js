@@ -8,26 +8,31 @@ import { any, compose, curryN, map, pick, prop, values } from 'ramda';
 
 import { createReducerFromActionMap, propSetConst } from '../../util/reduxUtil';
 import { pathSet, propSet } from '../../util/jsUtil';
-import { combineValidators, hasValidationErrors, validateNonEmpty, validatePatternMatch }
-  from '../../util/validationUtil';
+import {
+  combineValidators,
+  hasValidationErrors,
+  validateHostname,
+  validateNonEmpty,
+  validatePatternMatch
+} from '../../util/validationUtil';
 
 import {
-  PROXY_CONFIG_LOAD_REQUESTED,
-  PROXY_CONFIG_LOAD_FULFILLED,
-  PROXY_CONFIG_LOAD_FAILED,
-  PROXY_CONFIG_SAVE_REQUESTED,
-  PROXY_CONFIG_SAVE_FULFILLED,
-  PROXY_CONFIG_SAVE_FAILED,
-  PROXY_CONFIG_DELETE_REQUESTED,
-  PROXY_CONFIG_DELETE_FULFILLED,
   PROXY_CONFIG_DELETE_FAILED,
+  PROXY_CONFIG_DELETE_FULFILLED,
+  PROXY_CONFIG_DELETE_REQUESTED,
+  PROXY_CONFIG_LOAD_FAILED,
+  PROXY_CONFIG_LOAD_FULFILLED,
+  PROXY_CONFIG_LOAD_REQUESTED,
   PROXY_CONFIG_RESET_FORM,
-  PROXY_CONFIG_SET_HOSTNAME,
-  PROXY_CONFIG_SET_PORT,
-  PROXY_CONFIG_SET_USERNAME,
-  PROXY_CONFIG_SET_PASSWORD,
+  PROXY_CONFIG_SAVE_FAILED,
+  PROXY_CONFIG_SAVE_FULFILLED,
+  PROXY_CONFIG_SAVE_REQUESTED,
   PROXY_CONFIG_SET_EXCLUDE_HOSTS,
+  PROXY_CONFIG_SET_HOSTNAME,
+  PROXY_CONFIG_SET_PASSWORD,
+  PROXY_CONFIG_SET_PORT,
   PROXY_CONFIG_SET_SHOW_DELETE_MODAL,
+  PROXY_CONFIG_SET_USERNAME,
   PROXY_CONFIG_SUBMIT_MASK_TIMER_DONE
 } from './proxyConfigActions';
 
@@ -59,9 +64,8 @@ const initialState = {
 };
 
 const textProps = ['hostname', 'port', 'username', 'password', 'excludeHosts'];
-
+const hostNameValidator = combineValidators([validateNonEmpty, validateHostname]);
 const portValidator = combineValidators([validateNonEmpty, validatePatternMatch(/^\d+$/, 'Must be a number')]);
-
 const clearedErrors = pick(['loadError', 'saveError', 'deleteError'], initialState);
 
 function setFormStateFromServerData(state) {
@@ -222,7 +226,7 @@ const reducerActionMap = {
   [PROXY_CONFIG_DELETE_FULFILLED]: deleteFulfilled,
   [PROXY_CONFIG_DELETE_FAILED]: deleteFailed,
   [PROXY_CONFIG_RESET_FORM]: resetForm,
-  [PROXY_CONFIG_SET_HOSTNAME]: setTextInput('hostname', validateNonEmpty),
+  [PROXY_CONFIG_SET_HOSTNAME]: setTextInput('hostname', hostNameValidator),
   [PROXY_CONFIG_SET_PORT]: setTextInput('port', portValidator),
   [PROXY_CONFIG_SET_USERNAME]: setTextInput('username', null),
   [PROXY_CONFIG_SET_PASSWORD]: setTextInput('password', null),

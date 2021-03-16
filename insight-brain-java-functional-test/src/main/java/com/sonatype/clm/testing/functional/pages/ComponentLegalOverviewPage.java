@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
+import com.sonatype.insight.brain.model.Owner;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -22,6 +23,11 @@ public class ComponentLegalOverviewPage
 
   public static String urlToApplicationScope(String publicAppId, String componentHash) {
     return BaseUrl.resolvePageUrl(String.format("/legal/application/%s/component/%s", publicAppId, componentHash));
+  }
+
+  public static String url(Owner owner, String componentHash) {
+    return BaseUrl.resolvePageUrl(
+        String.format("/legal/%s/%s/component/%s", owner.getType().toString(), owner.getPublicId(), componentHash));
   }
 
   public static CopyrightStatements copyrightStatements() {
@@ -59,6 +65,48 @@ public class ComponentLegalOverviewPage
 
     public String value() {
       return getElement().innerText();
+    }
+  }
+
+  public static Notices notices() {
+    return new Notices();
+  }
+
+  public static SelenideElement editNoticesButton() {
+    return $("#edit-notices");
+  }
+
+  public static class Notices
+      extends BasicElement<Notices>
+  {
+    private static final String NOTICE_SECTION = "#notice-texts-tile";
+
+    Notices() {
+      super(ROOT, NOTICE_SECTION);
+    }
+
+    public Notice at(int index) {
+      return new Notice("#notice-section-" + index);
+    }
+
+    public ElementsCollection all() {
+      return children(".nx-tile-subsection.legal-file");
+    }
+  }
+
+  public static class Notice
+      extends BasicElement<Notice>
+  {
+    Notice(String selector) {
+      super(selector);
+    }
+
+    public SelenideElement relPath() {
+      return child("h3");
+    }
+
+    public SelenideElement text() {
+      return child("blockquote");
     }
   }
 }

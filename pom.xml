@@ -1121,23 +1121,6 @@
           </configuration>
         </plugin>
         <plugin>
-          <groupId>com.github.wvengen</groupId>
-          <artifactId>proguard-maven-plugin</artifactId>
-          <executions>
-            <execution>
-              <id>obfuscate</id>
-              <phase>package</phase>
-              <goals>
-                <goal>proguard</goal>
-              </goals>
-            </execution>
-          </executions>
-          <configuration>
-            <addMavenDescriptor>true</addMavenDescriptor>
-            <maxMemory>896m</maxMemory>
-          </configuration>
-        </plugin>
-        <plugin>
           <groupId>com.github.klieber</groupId>
           <artifactId>phantomjs-maven-plugin</artifactId>
           <version>${phantomjs-maven-plugin.version}</version>
@@ -1410,64 +1393,6 @@
       <modules>
         <module>insight-brain-performance-test</module>
       </modules>
-    </profile>
-    <profile>
-      <id>obfuscate-java-8</id>
-      <activation>
-        <jdk>1.8</jdk>
-      </activation>
-      <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <groupId>com.github.wvengen</groupId>
-              <artifactId>proguard-maven-plugin</artifactId>
-              <configuration>
-                <libs>
-                  <lib>${rt.jar}</lib>
-                </libs>
-              </configuration>
-            </plugin>
-          </plugins>
-        </pluginManagement>
-      </build>
-    </profile>
-    <profile>
-      <id>obfuscate-java-9+</id>
-      <activation>
-        <jdk>[9,)</jdk>
-      </activation>
-      <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <groupId>com.github.wvengen</groupId>
-              <artifactId>proguard-maven-plugin</artifactId>
-              <configuration>
-                <libs>
-                  <lib>${java.home}/jmods/java.base.jmod</lib>
-                  <lib>${java.home}/jmods/java.datatransfer.jmod</lib>
-                  <lib>${java.home}/jmods/java.desktop.jmod</lib>
-                  <lib>${java.home}/jmods/java.logging.jmod</lib>
-                  <lib>${java.home}/jmods/java.sql.jmod</lib>
-                  <lib>${java.home}/jmods/java.xml.jmod</lib>
-                </libs>
-              </configuration>
-            </plugin>
-          </plugins>
-        </pluginManagement>
-      </build>
-    </profile>
-    <profile>
-      <id>obfuscate-ci-osx</id>
-      <activation>
-        <file>
-          <exists>${java.home}/../Classes/classes.jar</exists>
-        </file>
-      </activation>
-      <properties>
-        <rt.jar>${java.home}/../Classes/classes.jar</rt.jar>
-      </properties>
     </profile>
   </profiles>
 

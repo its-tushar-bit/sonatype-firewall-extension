@@ -162,11 +162,6 @@
           <trimStackTrace>false</trimStackTrace>
           <reuseForks>true</reuseForks>
           <forkedProcessTimeoutInSeconds>0</forkedProcessTimeoutInSeconds>
-          <!-- Exclude the dependencies we obfuscate in order to ensure the un-obfuscated code is not available. -->
-          <classpathDependencyExcludes>
-            <classpathDependencyExcludes>com.sonatype.insight.scan:insight-scanner-hashing*</classpathDependencyExcludes>
-            <classpathDependencyExcludes>org.ow2.asm:asm*</classpathDependencyExcludes>
-          </classpathDependencyExcludes>
         </configuration>
         <executions>
           <execution>
@@ -179,59 +174,4 @@
       </plugin>
     </plugins>
   </build>
-
-  <profiles>
-    <profile>
-      <id>obfuscate</id>
-      <activation>
-        <property>
-          <name>!skip-obfuscate</name>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>com.github.wvengen</groupId>
-            <artifactId>proguard-maven-plugin</artifactId>
-            <configuration>
-              <exclusions>
-                <exclusion>
-                  <!-- already embedded/inlined into the program jar -->
-                  <groupId>org.ow2.asm</groupId>
-                  <artifactId>*</artifactId>
-                </exclusion>
-              </exclusions>
-            </configuration>
-          </plugin>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>build-helper-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>seed-map</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>attach-artifact</goal>
-                </goals>
-                <configuration>
-                  <artifacts>
-                    <artifact>
-                      <file>${project.build.directory}/proguard_seed.txt</file>
-                      <classifier>seeds</classifier>
-                      <type>txt</type>
-                    </artifact>
-                    <artifact>
-                      <file>${project.build.directory}/proguard_map.txt</file>
-                      <classifier>map</classifier>
-                      <type>txt</type>
-                    </artifact>
-                  </artifacts>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 </project>

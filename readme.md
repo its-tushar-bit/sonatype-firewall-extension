@@ -66,9 +66,9 @@ For a full build, including all tests (WARNING: this takes a long time!):
 
 `mvn clean install`
 
-If you just want to build the project in order to get up and running quickly, you can skip all tests and JS obfuscation as follows (run from the root dir):
+If you just want to build the project in order to get up and running quickly, you can skip all tests as follows (run from the root dir):
 
-`mvn clean install -DskipTests -Dskip-obfuscate`
+`mvn clean install -DskipTests`
 
 ### Building for front-end development ###
 

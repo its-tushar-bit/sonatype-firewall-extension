@@ -27,8 +27,8 @@ describe('NoticesModalContainer', function() {
         component: {
           component: {
             licenseLegalData: {
-              originalComponentLegalFileScopeOwnerId: 'originalComponentLegalFileScopeOwnerId',
-              componentLegalFileScopeOwnerId: 'componentLegalFileScopeOwnerId',
+              originalComponentNoticesScopeOwnerId: 'originalComponentNoticesScopeOwnerId',
+              componentNoticesScopeOwnerId: 'componentNoticesScopeOwnerId',
               noticeFiles: 'noticeFiles',
               noticesError: 'noticesError',
               saveNoticesSubmitMask: 'saveNoticesSubmitMask'
@@ -61,8 +61,8 @@ describe('NoticesModalContainer', function() {
 
   it('maps the state slice to props', () => {
     const wrapper = shallow(vdom).dive();
-    expect(wrapper).toHaveProp('scope', 'componentLegalFileScopeOwnerId');
-    expect(wrapper).toHaveProp('originalScope', 'originalComponentLegalFileScopeOwnerId');
+    expect(wrapper).toHaveProp('scope', 'componentNoticesScopeOwnerId');
+    expect(wrapper).toHaveProp('originalScope', 'originalComponentNoticesScopeOwnerId');
     expect(wrapper).toHaveProp('availableScopes', 'availableScopes');
     expect(wrapper).toHaveProp('notices', 'noticeFiles');
     expect(wrapper).toHaveProp('error', 'noticesError');

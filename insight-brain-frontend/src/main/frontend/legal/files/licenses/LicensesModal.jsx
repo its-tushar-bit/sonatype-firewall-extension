@@ -17,42 +17,42 @@ import * as PropTypes from 'prop-types';
 import { availableScopesPropType, legalFilesPropType } from '../../advancedLegalPropTypes';
 import { faPlus } from '@fortawesome/pro-solid-svg-icons';
 
-export default function NoticesModal(props) {
+export default function LicensesModal(props) {
   const {
     // actions
-    cancelNoticesModal,
-    setNoticeContent,
-    setNoticeStatus,
-    addNotice,
-    setNoticesScope,
-    saveNotices,
+    cancelLicensesModal,
+    setLicenseContent,
+    setLicenseStatus,
+    addLicense,
+    setLicensesScope,
+    saveLicenses,
     // state
     scope,
     originalScope,
     availableScopes,
-    notices,
+    licenses,
     error,
     submitMaskState
   } = props;
 
-  const createFormRowItem = (notice, index) =>
-    <tr id={ 'notice-row-' + index } key={ index }>
+  const createFormRowItem = (license, index) =>
+    <tr id={ 'license-row-' + index } key={ index }>
       <td>
-        <NxTextInput id={ 'notice-text-input-' + index }
+        <NxTextInput id={ 'license-text-input-' + index }
                      className="nx-text-input nx-text-input--full"
                      type="textarea"
-                     value={ notice.content }
-                     isPristine={ notice.isPristine }
-                     onChange={ payload => setNoticeContent({ index: index, value: payload }) }
-                     disabled={ notice.status === 'disabled' }/>
+                     value={ license.content }
+                     isPristine={ license.isPristine }
+                     onChange={ payload => setLicenseContent({ index: index, value: payload }) }
+                     disabled={ license.status === 'disabled' }/>
       </td>
       <td>
-        <NxToggle inputId={ 'notice-status-toggle-' + index }
-                  onChange={ () => setNoticeStatus(
-                      { index: index, value: notice.status === 'enabled' ? 'disabled' : 'enabled' }) }
+        <NxToggle inputId={ 'license-status-toggle-' + index }
+                  onChange={ () => setLicenseStatus(
+                      { index: index, value: license.status === 'enabled' ? 'disabled' : 'enabled' }) }
                   className="nx-toggle nx-toggle--no-gap"
-                  isChecked={ notice.status === 'enabled' }>
-          { notice.status === 'enabled' ? 'Included' : 'Excluded' }
+                  isChecked={ license.status === 'enabled' }>
+          { license.status === 'enabled' ? 'Included' : 'Excluded' }
         </NxToggle>
       </td>
     </tr>;
@@ -61,20 +61,21 @@ export default function NoticesModal(props) {
     <option key={ value.id } value={ value.id }>{ value.label } - { value.name }</option>
   );
 
-  const notValidErrorMessage = 'A custom notice must have text.';
+  const notValidErrorMessage = 'A custom license must have text.';
 
   const isValid = () => {
-    return !notices.some(notice => notice.id === null && notice.originalContentHash === null && notice.content === '');
+    return !licenses.some(
+        license => license.id === null && license.originalContentHash === null && license.content === '');
   };
 
-  const notDirtyErrorMessage = 'Must add a new notice or change the content or status of a notice.';
+  const notDirtyErrorMessage = 'Must add a new license or change the content or status of a license.';
 
   const isDirty = () => {
     return scope !== originalScope ||
-        notices.some(notice =>
-          (notice.id === null && notice.originalContentHash === null) ||
-          (notice.content !== notice.originalContent) ||
-          (notice.status !== notice.originalStatus));
+        licenses.some(license =>
+          (license.id === null && license.originalContentHash === null) ||
+          (license.content !== license.originalContent) ||
+          (license.status !== license.originalStatus));
   };
 
   const getValidationErrors = () => {
@@ -87,42 +88,42 @@ export default function NoticesModal(props) {
     return undefined;
   };
 
-  return <NxModal id="edit-notices-attribution-modal" onClose={ cancelNoticesModal } variant="wide">
-    <NxForm onCancel={ cancelNoticesModal }
+  return <NxModal id="edit-licenses-attribution-modal" onClose={ cancelLicensesModal } variant="wide">
+    <NxForm onCancel={ cancelLicensesModal }
             submitBtnText="Save"
-            onSubmit={ saveNotices }
+            onSubmit={ saveLicenses }
             submitError={ error }
             submitMaskState={ submitMaskState }
             validationErrors={ getValidationErrors() }>
       <header className="nx-modal-header">
         <h2 className="nx-h2">
-          Edit Notice Texts
+          Edit License Texts
         </h2>
       </header>
       <div className="nx-modal-content">
         <table className="legal-file-override-table">
           <thead>
             <tr>
-              <th>Notice Text</th>
+              <th>License Text</th>
               <th>Attribution Report Status</th>
             </tr>
           </thead>
           <tbody>
-            { notices.length > 0 ? notices.map(createFormRowItem) :
-            <tr><td className="no-legal-texts-found">No notice texts found</td><td/></tr> }
+            { licenses.length > 0 ? licenses.map(createFormRowItem) :
+            <tr><td className="no-legal-texts-found">No license texts found</td><td/></tr> }
           </tbody>
         </table>
         <div className="nx-btn-bar nx-btn-bar--left">
-          <NxButton id="add-notice" type="button" variant="tertiary" onClick={ addNotice }>
+          <NxButton id="add-license" type="button" variant="tertiary" onClick={ addLicense }>
             <NxFontAwesomeIcon icon={ faPlus }/>
-            <span>Add Notice Text</span>
+            <span>Add License Text</span>
           </NxButton>
         </div>
         <NxFormGroup label="Scope" sublabel="Apply changes to" isRequired>
-          <select id="edit-notice-scope-selection"
+          <select id="edit-license-scope-selection"
                   className="nx-form-select nx-form-select--long"
                   value={ scope }
-                  onChange={ payload => setNoticesScope(payload.currentTarget.value) }>
+                  onChange={ payload => setLicensesScope(payload.currentTarget.value) }>
             { availableScopes.values.map(createScopeOption) }
           </select>
         </NxFormGroup>
@@ -131,17 +132,17 @@ export default function NoticesModal(props) {
   </NxModal>;
 }
 
-NoticesModal.propTypes = {
-  cancelNoticesModal: PropTypes.func.isRequired,
-  setNoticeContent: PropTypes.func.isRequired,
-  setNoticeStatus: PropTypes.func.isRequired,
-  addNotice: PropTypes.func.isRequired,
-  setNoticesScope: PropTypes.func.isRequired,
-  saveNotices: PropTypes.func.isRequired,
+LicensesModal.propTypes = {
+  cancelLicensesModal: PropTypes.func.isRequired,
+  setLicenseContent: PropTypes.func.isRequired,
+  setLicenseStatus: PropTypes.func.isRequired,
+  addLicense: PropTypes.func.isRequired,
+  setLicensesScope: PropTypes.func.isRequired,
+  saveLicenses: PropTypes.func.isRequired,
   scope: PropTypes.string.isRequired,
   originalScope: PropTypes.string.isRequired,
   availableScopes: availableScopesPropType,
-  notices: legalFilesPropType,
+  licenses: legalFilesPropType,
   error: PropTypes.string,
   submitMaskState: PropTypes.bool
 };

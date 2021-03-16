@@ -47,8 +47,10 @@ export const componentPropType = PropTypes.shape({
     licenseFiles: legalFilesPropType,
     componentCopyrightId: PropTypes.string,
     componentCopyrightScopeOwnerId: PropTypes.string,
-    componentLegalFileId: PropTypes.string,
-    componentLegalFileScopeOwnerId: PropTypes.string
+    componentNoticesId: PropTypes.string,
+    componentNoticesScopeOwnerId: PropTypes.string,
+    componentLicensesId: PropTypes.string,
+    componentLicensesScopeOwnerId: PropTypes.string
   }).isRequired
 });
 

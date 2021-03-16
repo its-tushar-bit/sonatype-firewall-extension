@@ -17,8 +17,8 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
-import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightWithOwnerDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.CopyrightOverrideDTO;
@@ -263,19 +263,20 @@ public class ComponentLegalService
   public ComponentLegalFileDTO getComponentLegalFile(
       @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) String ownerId,
-      ComponentIdentifier componentIdentifier)
+      ComponentIdentifier componentIdentifier,
+      LegalFileType legalFileType)
   {
     checkLicense();
     ComponentIdentifierValidator.validate(componentIdentifier);
     Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
-    ComponentLegalFile componentLegalFile =
-        componentLegalFileDAO.getByOwnerIdAndComponentIdentifierWithHierarchy(owner.getId(), componentIdentifier);
-    if (componentLegalFile == null) {
+    List<LegalFileOverride> legalFileOverrides = legalFileOverrideDAO
+        .getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(owner.getId(), componentIdentifier, legalFileType)
+        .stream().sorted(LegalReportBuilder::sortLegalFileOverrides).collect(Collectors.toList());
+    if (legalFileOverrides.isEmpty()) {
       return null;
     }
-    List<LegalFileOverride> legalFileOverrides =
-        legalFileOverrideDAO.getByComponentLegalFileId(componentLegalFile.getId()).stream()
-            .sorted(LegalReportBuilder::sortLegalFileOverrides).collect(Collectors.toList());
+    ComponentLegalFile componentLegalFile =
+        componentLegalFileDAO.getById(legalFileOverrides.get(0).getComponentLegalFileId());
     return new ComponentLegalFileDTO(componentLegalFile, legalFileOverrides);
   }
 

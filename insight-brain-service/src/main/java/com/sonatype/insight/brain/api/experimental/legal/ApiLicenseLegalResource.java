@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.legal.LegalFileType;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -176,9 +177,10 @@ public class ApiLicenseLegalResource
   public ComponentLegalFileDTO getComponentLegalFile(
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("ownerId") String ownerId,
-      @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier)
+      @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier,
+      @QueryParam("legalFileType") LegalFileType legalFileType)
   {
-    return componentLegalService.getComponentLegalFile(ownerType, ownerId, componentIdentifier);
+    return componentLegalService.getComponentLegalFile(ownerType, ownerId, componentIdentifier, legalFileType);
   }
 
   /**

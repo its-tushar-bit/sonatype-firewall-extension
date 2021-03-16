@@ -17,8 +17,8 @@ import {
 
 function mapStateToProps({ advancedLegal }) {
   return {
-    scope: advancedLegal.component.component.licenseLegalData.componentLegalFileScopeOwnerId,
-    originalScope: advancedLegal.component.component.licenseLegalData.originalComponentLegalFileScopeOwnerId,
+    scope: advancedLegal.component.component.licenseLegalData.componentNoticesScopeOwnerId,
+    originalScope: advancedLegal.component.component.licenseLegalData.originalComponentNoticesScopeOwnerId,
     availableScopes: advancedLegal.availableScopes,
     notices: advancedLegal.component.component.licenseLegalData.noticeFiles,
     error: advancedLegal.component.component.licenseLegalData.noticesError,

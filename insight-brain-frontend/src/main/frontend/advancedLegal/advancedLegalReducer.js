@@ -144,37 +144,53 @@ function loadComponentFulfilled(payload, state) {
           ownerId: 'ROOT_ORGANIZATION_ID'
         }];
       }
-      newObligation.attributions = newObligation.attributions.map(attribution => {
-        return {
+      newObligation.attributions = newObligation.attributions.map(attribution => (
+        {
           ...attribution,
           originalContent: attribution.content,
           originalOwnerId: attribution.ownerId,
           showAttributionModal: false,
           error: null,
           saveAttributionSubmitMask: null
-        };
-      });
+        }
+      ));
     }
     return newObligation;
   });
-  const newNoticeFiles = payload.component.licenseLegalData.noticeFiles.map(noticeFile => {
-    return {
+  const newNoticeFiles = payload.component.licenseLegalData.noticeFiles.map(noticeFile => (
+    {
       ...noticeFile,
       originalContent: noticeFile.content,
       originalStatus: noticeFile.status,
       isPristine: true
-    };
-  });
-  const componentLegalFileScopeOwnerId = payload.component.licenseLegalData.componentLegalFileScopeOwnerId ||
+    }
+  ));
+  const newLicenseFiles = payload.component.licenseLegalData.licenseFiles.map(licenseFile => (
+    {
+      ...licenseFile,
+      originalContent: licenseFile.content,
+      originalStatus: licenseFile.status,
+      isPristine: true
+    }
+  ));
+  const componentNoticesScopeOwnerId = payload.component.licenseLegalData.componentNoticesScopeOwnerId ||
+            'ROOT_ORGANIZATION_ID';
+  const componentLicensesScopeOwnerId = payload.component.licenseLegalData.componentLicensesScopeOwnerId ||
             'ROOT_ORGANIZATION_ID';
   const newLicenseLegalData = {
     ...payload.component.licenseLegalData,
     showNoticesModal: false,
-    componentLegalFileScopeOwnerId: componentLegalFileScopeOwnerId,
-    originalComponentLegalFileScopeOwnerId: componentLegalFileScopeOwnerId,
+    componentNoticesScopeOwnerId,
+    originalComponentNoticesScopeOwnerId: componentNoticesScopeOwnerId,
     noticeFiles: newNoticeFiles,
     noticesError: null,
-    saveNoticesSubmitMask: null
+    saveNoticesSubmitMask: null,
+    showLicensesModal: false,
+    componentLicensesScopeOwnerId,
+    originalComponentLicensesScopeOwnerId: componentLicensesScopeOwnerId,
+    licenseFiles: newLicenseFiles,
+    licensesError: null,
+    saveLicensesSubmitMask: null
   };
   return {
     ...state,

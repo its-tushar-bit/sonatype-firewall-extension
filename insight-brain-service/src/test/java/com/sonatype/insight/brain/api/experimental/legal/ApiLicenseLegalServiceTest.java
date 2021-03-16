@@ -1530,24 +1530,35 @@ public class ApiLicenseLegalServiceTest
   }
 
   @Test
-  public void testGetLicenseLegalComponentReport_HasComponentLegalFileIdAndScope() throws Exception {
-    Owner owner = tempEntity.newApplicationWithParent();
+  public void testGetLicenseLegalComponentReport_HasComponentLegalFileIdsAndScopes() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
     NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
     namedComponentDetails.setComponentIdentifier(componentIdentifier);
     doReturn(namedComponentDetails)
         .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
-    ComponentLegalFile componentLegalFile =
-        tempEntity.newComponentLegalFile(componentIdentifier, owner.getId(), "legalContentHash");
+    ComponentLegalFile componentLicense =
+        tempEntity.newComponentLegalFile(componentIdentifier, org.getId(), "legalContentHash");
+    tempEntity.newLegalFileOverride(LegalFileType.LICENSE, null, "hash2", "content2", ComponentLegalPartStatus.ENABLED,
+        componentLicense.getId());
+    ComponentLegalFile componentNotice =
+        tempEntity.newComponentLegalFile(componentIdentifier, app.getId(), "legalContentHash");
+    tempEntity.newLegalFileOverride(LegalFileType.NOTICE, null, "hash1", "content1", ComponentLegalPartStatus.ENABLED,
+        componentNotice.getId());
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
-        apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
+        apiLicenseLegalService.getLicenseLegalComponentReport(app.getType(), app.getPublicId(), componentIdentifier,
             null, null, null, IdentificationSource.SONATYPE.toString(), null);
 
-    assertThat(licenseLegalComponentReport.component.licenseLegalData.componentLegalFileId)
-        .isEqualTo(componentLegalFile.getId());
-    assertThat(licenseLegalComponentReport.component.licenseLegalData.componentLegalFileScopeOwnerId)
-        .isEqualTo(owner.getId());
+    assertThat(licenseLegalComponentReport.component.licenseLegalData.componentLicensesId)
+        .isEqualTo(componentLicense.getId());
+    assertThat(licenseLegalComponentReport.component.licenseLegalData.componentLicensesScopeOwnerId)
+        .isEqualTo(org.getId());
+    assertThat(licenseLegalComponentReport.component.licenseLegalData.componentNoticesId)
+        .isEqualTo(componentNotice.getId());
+    assertThat(licenseLegalComponentReport.component.licenseLegalData.componentNoticesScopeOwnerId)
+        .isEqualTo(app.getId());
   }
 
   @Test

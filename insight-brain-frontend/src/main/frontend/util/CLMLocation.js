@@ -320,9 +320,9 @@ export function getSaveLegalFileUrl(orgOrApp, ownerId) {
   return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/legalFile`;
 }
 
-export function getLegalFileUrl(orgOrApp, ownerId, componentIdentifier) {
+export function getLegalFileUrl(orgOrApp, ownerId, componentIdentifier, legalFileType) {
   return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/legalFile\
-?componentIdentifier=${JSON.stringify(componentIdentifier)}`;
+?componentIdentifier=${JSON.stringify(componentIdentifier)}&legalFileType=${legalFileType}`;
 }
 
 export default

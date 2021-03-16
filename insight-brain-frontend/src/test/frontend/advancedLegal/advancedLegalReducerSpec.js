@@ -84,7 +84,8 @@ describe('advancedLegalReducer', function () {
         obligations: [],
         component: {
           licenseLegalData: {
-            noticeFiles: []
+            noticeFiles: [],
+            licenseFiles: []
           }
         }
       };
@@ -111,7 +112,8 @@ describe('advancedLegalReducer', function () {
         obligations: [],
         component: {
           licenseLegalData: {
-            noticeFiles: []
+            noticeFiles: [],
+            licenseFiles: []
           }
         }
       };
@@ -157,7 +159,8 @@ describe('advancedLegalReducer', function () {
         obligations: [],
         component: {
           licenseLegalData: {
-            noticeFiles: []
+            noticeFiles: [],
+            licenseFiles: []
           }
         }
       };
@@ -192,7 +195,7 @@ describe('advancedLegalReducer', function () {
       });
     });
 
-    it('sets the notices view data', function() {
+    it('sets the notices and licenses view data', function() {
       const state = {
         component: {
           loading: true,
@@ -204,8 +207,10 @@ describe('advancedLegalReducer', function () {
         obligations: [],
         component: {
           licenseLegalData: {
-            componentLegalFileScopeOwnerId: 'appId',
-            noticeFiles: [{ content: 'content1', status: 'enabled' }, { content: '', status: 'disabled' }]
+            componentNoticesScopeOwnerId: 'appId',
+            noticeFiles: [{ content: 'content1', status: 'enabled' }, { content: '', status: 'disabled' }],
+            componentLicensesScopeOwnerId: 'appId',
+            licenseFiles: [{ content: 'content2', status: 'enabled' }, { content: '', status: 'disabled' }]
           }
         }
       };
@@ -216,8 +221,8 @@ describe('advancedLegalReducer', function () {
 
       expect(newState.component.component.licenseLegalData).toEqual({
         showNoticesModal: false,
-        componentLegalFileScopeOwnerId: 'appId',
-        originalComponentLegalFileScopeOwnerId: 'appId',
+        componentNoticesScopeOwnerId: 'appId',
+        originalComponentNoticesScopeOwnerId: 'appId',
         noticeFiles: [
           {
             originalContent: 'content1',
@@ -235,7 +240,28 @@ describe('advancedLegalReducer', function () {
           }
         ],
         noticesError: null,
-        saveNoticesSubmitMask: null
+        saveNoticesSubmitMask: null,
+        showLicensesModal: false,
+        componentLicensesScopeOwnerId: 'appId',
+        originalComponentLicensesScopeOwnerId: 'appId',
+        licenseFiles: [
+          {
+            originalContent: 'content2',
+            content: 'content2',
+            originalStatus: 'enabled',
+            status: 'enabled',
+            isPristine: true
+          },
+          {
+            originalContent: '',
+            content: '',
+            originalStatus: 'disabled',
+            status: 'disabled',
+            isPristine: true
+          }
+        ],
+        licensesError: null,
+        saveLicensesSubmitMask: null
       });
     });
 
@@ -251,8 +277,10 @@ describe('advancedLegalReducer', function () {
         obligations: [],
         component: {
           licenseLegalData: {
-            componentLegalFileScopeOwnerId: null,
-            noticeFiles: []
+            componentNoticesScopeOwnerId: null,
+            componentLicensesScopeOwnerId: null,
+            noticeFiles: [],
+            licenseFiles: []
           }
         }
       };
@@ -261,9 +289,12 @@ describe('advancedLegalReducer', function () {
         payload: componentInfo
       });
 
-      expect(newState.component.component.licenseLegalData.originalComponentLegalFileScopeOwnerId).toBe(
+      expect(newState.component.component.licenseLegalData.originalComponentNoticesScopeOwnerId).toBe(
           'ROOT_ORGANIZATION_ID');
-      expect(newState.component.component.licenseLegalData.componentLegalFileScopeOwnerId).toBe('ROOT_ORGANIZATION_ID');
+      expect(newState.component.component.licenseLegalData.componentNoticesScopeOwnerId).toBe('ROOT_ORGANIZATION_ID');
+      expect(newState.component.component.licenseLegalData.originalComponentLicensesScopeOwnerId).toBe(
+          'ROOT_ORGANIZATION_ID');
+      expect(newState.component.component.licenseLegalData.componentLicensesScopeOwnerId).toBe('ROOT_ORGANIZATION_ID');
     });
   });
 

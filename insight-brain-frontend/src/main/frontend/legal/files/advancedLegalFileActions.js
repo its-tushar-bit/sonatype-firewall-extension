@@ -6,7 +6,7 @@
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
 import { find, propEq } from 'ramda';
 import axios from 'axios';
-import { getSaveLegalFileUrl, getLegalFileUrl } from '../../util/CLMLocation';
+import { getLegalFileUrl, getSaveLegalFileUrl } from '../../util/CLMLocation';
 import { Messages } from '../../util/CommonServices';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { isScopeOverride } from '../legalUtility';
@@ -42,9 +42,9 @@ export function saveNotices() {
     const { values: availableScopeValues } = advancedLegalState.availableScopes;
     const { licenseLegalData, componentIdentifier } = advancedLegalState.component.component;
     const {
-      componentLegalFileId,
-      componentLegalFileScopeOwnerId: ownerId,
-      originalComponentLegalFileScopeOwnerId: originalOwnerId,
+      componentNoticesId,
+      componentNoticesScopeOwnerId: ownerId,
+      originalComponentNoticesScopeOwnerId: originalOwnerId,
       noticeFiles
     } = licenseLegalData;
     const scopeVisited = advancedLegalState.availableScopes.values[0];
@@ -53,22 +53,22 @@ export function saveNotices() {
     const ownerPublicId = scope.publicId;
     const isScopeOverrideValue = isScopeOverride(originalOwnerId, ownerId, availableScopeValues);
     const payload = {
-      id: isScopeOverrideValue ? null : componentLegalFileId,
+      id: isScopeOverrideValue ? null : componentNoticesId,
       componentIdentifier,
-      legalFileOverrides: noticeFiles.map(noticeFile => {
-        return {
+      legalFileOverrides: noticeFiles.map(noticeFile => (
+        {
           id: isScopeOverrideValue ? null : noticeFile.id,
           legalFileType: 'notice',
           originalContentHash: noticeFile.originalContentHash,
           content: noticeFile.content,
           status: noticeFile.status
-        };
-      })
+        }
+      ))
     };
 
     return axios.post(getSaveLegalFileUrl(ownerType, ownerPublicId), payload)
         .then(() => {
-          axios.get(getLegalFileUrl(scopeVisited.type, scopeVisited.publicId, componentIdentifier))
+          axios.get(getLegalFileUrl(scopeVisited.type, scopeVisited.publicId, componentIdentifier, 'notice'))
               .then(responsePayload => {
                 dispatch(saveNoticesSucceeded(responsePayload.data));
                 startSaveNoticesSubmitMaskDoneTimer(dispatch);
@@ -77,12 +77,84 @@ export function saveNotices() {
                 dispatch(saveNoticesFailed(Messages.getHttpErrorMessage(error)));
               });
         })
-        .catch(error => {
-          dispatch(saveNoticesFailed(Messages.getHttpErrorMessage(error)));
-        });
+        .catch(error => dispatch(saveNoticesFailed(Messages.getHttpErrorMessage(error))));
   };
 }
 
 function startSaveNoticesSubmitMaskDoneTimer(dispatch) {
   setTimeout(() => dispatch(saveNoticesSubmitMaskDone()), SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+}
+
+export const ADVANCED_LEGAL_SET_SHOW_LICENSES_MODAL = 'ADVANCED_LEGAL_SET_SHOW_LICENSES_MODAL';
+export const ADVANCED_LEGAL_CANCEL_LICENSES_MODAL = 'ADVANCED_LEGAL_CANCEL_LICENSES_MODAL';
+export const ADVANCED_LEGAL_SET_LICENSE_CONTENT = 'ADVANCED_LEGAL_SET_LICENSE_CONTENT';
+export const ADVANCED_LEGAL_SET_LICENSE_STATUS = 'ADVANCED_LEGAL_SET_LICENSE_STATUS';
+export const ADVANCED_LEGAL_ADD_LICENSE = 'ADVANCED_LEGAL_ADD_LICENSE';
+export const ADVANCED_LEGAL_SET_LICENSES_SCOPE = 'ADVANCED_LEGAL_SET_LICENSES_SCOPE';
+export const ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED = 'ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED';
+export const ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED = 'ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED';
+export const ADVANCED_LEGAL_SAVE_LICENSES_FAILED = 'ADVANCED_LEGAL_SAVE_LICENSES_FAILED';
+export const ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE = 'ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE';
+
+export const setShowLicensesModal = payloadParamActionCreator(ADVANCED_LEGAL_SET_SHOW_LICENSES_MODAL);
+export const cancelLicensesModal = noPayloadActionCreator(ADVANCED_LEGAL_CANCEL_LICENSES_MODAL);
+export const setLicenseContent = payloadParamActionCreator(ADVANCED_LEGAL_SET_LICENSE_CONTENT);
+export const setLicenseStatus = payloadParamActionCreator(ADVANCED_LEGAL_SET_LICENSE_STATUS);
+export const addLicense = payloadParamActionCreator(ADVANCED_LEGAL_ADD_LICENSE);
+export const setLicensesScope = payloadParamActionCreator(ADVANCED_LEGAL_SET_LICENSES_SCOPE);
+
+const saveLicensesRequested = noPayloadActionCreator(ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED);
+const saveLicensesSucceeded = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED);
+const saveLicensesFailed = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_LICENSES_FAILED);
+const saveLicensesSubmitMaskDone = noPayloadActionCreator(ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE);
+
+export function saveLicenses() {
+  return (dispatch, getState) => {
+    dispatch(saveLicensesRequested());
+
+    const advancedLegalState = getState().advancedLegal;
+    const { values: availableScopeValues } = advancedLegalState.availableScopes;
+    const { licenseLegalData, componentIdentifier } = advancedLegalState.component.component;
+    const {
+      componentLicensesId,
+      componentLicensesScopeOwnerId: ownerId,
+      originalComponentLicensesScopeOwnerId: originalOwnerId,
+      licenseFiles
+    } = licenseLegalData;
+    const scopeVisited = advancedLegalState.availableScopes.values[0];
+    const scope = find(propEq('id', ownerId), availableScopeValues);
+    const ownerType = scope.type;
+    const ownerPublicId = scope.publicId;
+    const isScopeOverrideValue = isScopeOverride(originalOwnerId, ownerId, availableScopeValues);
+    const payload = {
+      id: isScopeOverrideValue ? null : componentLicensesId,
+      componentIdentifier,
+      legalFileOverrides: licenseFiles.map(licenseFile => (
+        {
+          id: isScopeOverrideValue ? null : licenseFile.id,
+          legalFileType: 'license',
+          originalContentHash: licenseFile.originalContentHash,
+          content: licenseFile.content,
+          status: licenseFile.status
+        }
+      ))
+    };
+
+    return axios.post(getSaveLegalFileUrl(ownerType, ownerPublicId), payload)
+        .then(() => {
+          axios.get(getLegalFileUrl(scopeVisited.type, scopeVisited.publicId, componentIdentifier, 'license'))
+              .then(responsePayload => {
+                dispatch(saveLicensesSucceeded(responsePayload.data));
+                startSaveLicensesSubmitMaskDoneTimer(dispatch);
+              })
+              .catch(error => dispatch(saveLicensesFailed(Messages.getHttpErrorMessage(error))));
+        })
+        .catch(error => {
+          dispatch(saveLicensesFailed(Messages.getHttpErrorMessage(error)));
+        });
+  };
+}
+
+function startSaveLicensesSubmitMaskDoneTimer(dispatch) {
+  setTimeout(() => dispatch(saveLicensesSubmitMaskDone()), SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 }

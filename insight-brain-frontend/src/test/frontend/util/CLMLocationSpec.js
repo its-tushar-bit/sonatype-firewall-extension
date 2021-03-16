@@ -341,10 +341,10 @@ describe('CLMLocation.js', function() {
         version: '0.6'
       }
     };
-    expect(CLMLocation.getLegalFileUrl('ownerType', 'ownerId', componentIdentifier))
+    expect(CLMLocation.getLegalFileUrl('ownerType', 'ownerId', componentIdentifier, 'type'))
         .toBe('/api/experimental/licenseLegalMetadata/ownerType/ownerId/component/legalFile?' +
             'componentIdentifier=%7B%22format%22%3A%22maven%22%2C%22coordinates%22%3A%7B%22artifactId%22%3A%22' +
             'logback-access%22%2C%22classifier%22%3A%22%22%2C%22extension%22%3A%22jar%22%2C%22groupId%22%3A%22' +
-            'ch.qos.logback%22%2C%22version%22%3A%220.6%22%7D%7D');
+            'ch.qos.logback%22%2C%22version%22%3A%220.6%22%7D%7D&legalFileType=type');
   });
 });

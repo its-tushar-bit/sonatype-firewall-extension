@@ -663,25 +663,25 @@ public class ComponentLegalServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetComponentLegalFile_Unauthenticated() {
-    componentLegalService.getComponentLegalFile(null, null, null);
+    componentLegalService.getComponentLegalFile(null, null, null, null);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetComponentLegalFile_Unauthorized_RootOrganization() {
     login();
-    componentLegalService.getComponentLegalFile(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID, null);
+    componentLegalService.getComponentLegalFile(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID, null, null);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetComponentLegalFile_Unauthorized_Organization() {
     login();
-    componentLegalService.getComponentLegalFile(org.getType(), org.getPublicId(), null);
+    componentLegalService.getComponentLegalFile(org.getType(), org.getPublicId(), null, null);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetComponentLegalFile_Unauthorized_Application() {
     login();
-    componentLegalService.getComponentLegalFile(app.getType(), app.getPublicId(), null);
+    componentLegalService.getComponentLegalFile(app.getType(), app.getPublicId(), null, null);
   }
 
   @Test
@@ -689,9 +689,9 @@ public class ComponentLegalServiceAuthzTest
     grantLegalReviewerPermission(Organization.ROOT_ORGANIZATION_ID);
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     componentLegalService
-        .getComponentLegalFile(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID, componentIdentifier);
-    componentLegalService.getComponentLegalFile(org.getType(), org.getPublicId(), componentIdentifier);
-    componentLegalService.getComponentLegalFile(app.getType(), app.getPublicId(), componentIdentifier);
+        .getComponentLegalFile(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID, componentIdentifier, null);
+    componentLegalService.getComponentLegalFile(org.getType(), org.getPublicId(), componentIdentifier, null);
+    componentLegalService.getComponentLegalFile(app.getType(), app.getPublicId(), componentIdentifier, null);
   }
 
   @Test
@@ -699,9 +699,9 @@ public class ComponentLegalServiceAuthzTest
     grantLegalReviewerPermission(org.getId());
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(() -> componentLegalService
-        .getComponentLegalFile(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID, componentIdentifier));
-    componentLegalService.getComponentLegalFile(org.getType(), org.getPublicId(), componentIdentifier);
-    componentLegalService.getComponentLegalFile(app.getType(), app.getPublicId(), componentIdentifier);
+        .getComponentLegalFile(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID, componentIdentifier, null));
+    componentLegalService.getComponentLegalFile(org.getType(), org.getPublicId(), componentIdentifier, null);
+    componentLegalService.getComponentLegalFile(app.getType(), app.getPublicId(), componentIdentifier, null);
   }
 
   @Test
@@ -709,10 +709,10 @@ public class ComponentLegalServiceAuthzTest
     grantLegalReviewerPermission(app.getId());
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(() -> componentLegalService
-        .getComponentLegalFile(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID, componentIdentifier));
+        .getComponentLegalFile(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID, componentIdentifier, null));
     assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(
-        () -> componentLegalService.getComponentLegalFile(org.getType(), org.getPublicId(), componentIdentifier));
-    componentLegalService.getComponentLegalFile(app.getType(), app.getPublicId(), componentIdentifier);
+        () -> componentLegalService.getComponentLegalFile(org.getType(), org.getPublicId(), componentIdentifier, null));
+    componentLegalService.getComponentLegalFile(app.getType(), app.getPublicId(), componentIdentifier, null);
   }
 
   private ComponentObligationAttributionDTO buildComponentObligationAttributionDTO() {

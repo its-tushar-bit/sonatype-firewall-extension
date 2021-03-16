@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -451,16 +452,18 @@ public class ApiLicenseLegalService
         getCopyrightOverridesByComponentIdentifier(application.getId(), componentIdentifiers);
     Map<ComponentIdentifier, ComponentCopyright> componentCopyrights =
         getComponentCopyrights(application.getId(), componentIdentifiers);
-    Map<ComponentIdentifier, ComponentLegalFile> componentLegalFileByComponentIdentifier =
-        getComponentLegalFileByComponentIdentifier(application.getId(), componentIdentifiers);
     Map<ComponentIdentifier, Set<ComponentLegalFileDTO>> componentLegalFilesByComponentIdentifier =
         getComponentLegalFilesByComponentIdentifier(Collections.singleton(latestRawReport));
     Map<ComponentIdentifier, List<LegalFileOverride>> licenseOverridesByComponentIdentifier =
         getLegalFileOverridesByComponentIdentifier(application.getId(), componentIdentifiers,
             LegalFileType.LICENSE);
+    Map<ComponentIdentifier, ComponentLegalFile> componentLicenseByComponentIdentifier =
+        getComponentLegalFileByComponentIdentifier(licenseOverridesByComponentIdentifier);
     Map<ComponentIdentifier, List<LegalFileOverride>> noticeOverridesByComponentIdentifier =
         getLegalFileOverridesByComponentIdentifier(application.getId(), componentIdentifiers,
             LegalFileType.NOTICE);
+    Map<ComponentIdentifier, ComponentLegalFile> componentNoticeByComponentIdentifier =
+        getComponentLegalFileByComponentIdentifier(noticeOverridesByComponentIdentifier);
     log.info("Building license metadata report.");
     return legalReportBuilder
         .getLicenseLegalApplicationReport(
@@ -468,7 +471,8 @@ public class ApiLicenseLegalService
             componentLegalCommentsByComponentIdentifier,
             copyrightOverridesByComponentIdentifier,
             componentCopyrights,
-            componentLegalFileByComponentIdentifier,
+            componentLicenseByComponentIdentifier,
+            componentNoticeByComponentIdentifier,
             componentLegalFilesByComponentIdentifier,
             licenseOverridesByComponentIdentifier,
             noticeOverridesByComponentIdentifier,
@@ -552,15 +556,17 @@ public class ApiLicenseLegalService
         copyrightOverrideDAO.getByOwnerIdAndComponentIdentifierWithHierarchy(owner.getId(), compIdentifier);
     ComponentCopyright componentCopyright =
         componentCopyrightDAO.getByOwnerIdAndComponentIdentifierWithHierarchy(owner.getId(), compIdentifier);
-    ComponentLegalFile componentLegalFile =
-        componentLegalFileDAO.getByOwnerIdAndComponentIdentifierWithHierarchy(owner.getId(), compIdentifier);
     List<LegalFileOverride> licenseOverrides = legalFileOverrideDAO
         .getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(owner.getId(), compIdentifier, LegalFileType.LICENSE);
+    ComponentLegalFile componentLicense = licenseOverrides.isEmpty() ? null : componentLegalFileDAO
+        .getById(licenseOverrides.get(0).getComponentLegalFileId());
     List<LegalFileOverride> noticeOverrides = legalFileOverrideDAO
         .getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(owner.getId(), compIdentifier, LegalFileType.NOTICE);
-    ApiLicenseLegalDataDTO licenseLegalData =
-        legalReportBuilder.getLicenseLegalData(licenseData, componentLegalComments, copyrightOverrides,
-            componentCopyright, componentLegalFile, componentLegalFiles, licenseOverrides, noticeOverrides);
+    ComponentLegalFile componentNotice = noticeOverrides.isEmpty() ? null : componentLegalFileDAO
+        .getById(noticeOverrides.get(0).getComponentLegalFileId());
+    ApiLicenseLegalDataDTO licenseLegalData = legalReportBuilder.getLicenseLegalData(licenseData,
+        componentLegalComments, copyrightOverrides, componentCopyright, componentLicense, componentNotice,
+        componentLegalFiles, licenseOverrides, noticeOverrides);
     ApiLicenseLegalComponentDTO componentDTO =
         new ApiLicenseLegalComponentDTO(toComponentDTO(component), licenseLegalData);
     Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata = legalReportBuilder.getLicenseLegalMetadata(
@@ -850,18 +856,14 @@ public class ApiLicenseLegalService
   }
 
   private Map<ComponentIdentifier, ComponentLegalFile> getComponentLegalFileByComponentIdentifier(
-      final String ownerId,
-      final Set<ComponentIdentifier> componentIdentifiers)
+      final Map<ComponentIdentifier, List<LegalFileOverride>> legalFileOverridesByComponentIdentifier)
   {
     Map<ComponentIdentifier, ComponentLegalFile> componentLegalFileByComponentIdentifier = new HashMap<>();
     try (TransactionContext tx = componentLegalFileDAO.createTransactionContext()) {
-      for (ComponentIdentifier componentIdentifier : componentIdentifiers) {
-        ComponentLegalFile result =
-            componentLegalFileDAO.getByOwnerIdAndComponentIdentifier(tx, ownerId, componentIdentifier);
-        if (result != null) {
-          componentLegalFileByComponentIdentifier
-              .put(LegalComponentIdentifierUtil.removeClassifierAndExtension(componentIdentifier), result);
-        }
+      for (Entry<ComponentIdentifier, List<LegalFileOverride>> entry : legalFileOverridesByComponentIdentifier
+          .entrySet()) {
+        componentLegalFileByComponentIdentifier.put(entry.getKey(), entry.getValue().isEmpty() ? null :
+            componentLegalFileDAO.getById(tx, entry.getValue().get(0).getComponentLegalFileId()));
       }
     }
     return componentLegalFileByComponentIdentifier;
@@ -1025,11 +1027,11 @@ public class ApiLicenseLegalService
 
     Map<String, Set<String>> licenseIdObligationNamesMap =
         apiLicenseLegalHdsService.getLicenseMetadata(licenseIdsFound).parallelStream()
-        .collect(Collectors.toMap(
+            .collect(Collectors.toMap(
                 LicenseMetadataDTO::getLicenseId,
-            licenseMetadata -> licenseMetadata.getLicenseObligations().stream()
-                .map(LicenseObligationDTO::getName)
-                .collect(Collectors.toSet())));
+                licenseMetadata -> licenseMetadata.getLicenseObligations().stream()
+                    .map(LicenseObligationDTO::getName)
+                    .collect(Collectors.toSet())));
 
     for (ApiLicenseLegalApplicationDashboardDTO dto : result) {
       List<ApplicationComponentLicensesDTO> componentLicenses =

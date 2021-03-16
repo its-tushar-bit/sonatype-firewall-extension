@@ -7,7 +7,7 @@ import * as enzymeUtils from '../enzymeUtils';
 import React from 'react';
 import ComponentOverviewTile from '../../../main/frontend/legal/ComponentOverviewTile';
 import NoticeTextsTileContainer from '../../../main/frontend/legal/files/notices/NoticeTextsTileContainer';
-import LicenseTextsTile from '../../../main/frontend/legal/LicenseTextsTile';
+import LicenseTextsTileContainer from '../../../main/frontend/legal/files/licenses/LicenseTextsTileContainer';
 import LicenseDetailsTile from '../../../main/frontend/legal/LicenseDetailsTile';
 import CopyrightStatementsTile from '../../../main/frontend/legal/copyright/CopyrightStatementsTile';
 import ComponentLegalOverviewPage from '../../../main/frontend/legal/ComponentLegalOverviewPage';
@@ -148,9 +148,9 @@ describe('ComponentLegalOverviewPage', function() {
     expect(wrapper.find(LicenseObligationsTileContainer)).toExist();
   });
 
-  it('renders the LicenseTextsTile', function() {
+  it('renders the LicenseTextsTileContainer', function() {
     const wrapper = getShallowComponent();
-    expect(wrapper.find(LicenseTextsTile)).toExist();
+    expect(wrapper.find(LicenseTextsTileContainer)).toExist();
   });
 
   it('renders the NoticeTextsTileContainer', function() {

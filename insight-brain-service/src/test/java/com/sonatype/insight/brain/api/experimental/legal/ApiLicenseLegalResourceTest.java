@@ -32,8 +32,8 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDas
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
-import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightWithOwnerDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightWithOwnerDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalFilterDTO;
@@ -45,8 +45,11 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
+import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
+import com.sonatype.insight.brain.model.legal.LegalFileOverride;
+import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -439,22 +442,55 @@ public class ApiLicenseLegalResourceTest
   }
 
   @Test
-  public void testGetComponentLegalFile() throws Exception {
+  public void testGetComponentLegalFile_License() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     ComponentLegalFile componentLegalFile =
         tempEntity.newComponentLegalFile(componentIdentifier, app.getId(), "legalContentHash");
+    LegalFileOverride licenseOverride = tempEntity.newLegalFileOverride(LegalFileType.LICENSE, null, "hash1",
+        "content1", ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
+    tempEntity.newLegalFileOverride(LegalFileType.NOTICE, null, "hash1", "content1", ComponentLegalPartStatus.ENABLED,
+        componentLegalFile.getId());
 
     HttpResponse response = restRequest()
         .path(ApiLicenseLegalResource.COMPONENT_LEGAL_FILE_PATH)
         .parameter(app.getType(), app.getPublicId())
         .query("componentIdentifier", componentIdentifier)
+        .query("legalFileType", LegalFileType.LICENSE.toString())
         .get();
 
     assertResponseStatus(200, response);
     ComponentLegalFileDTO componentLegalFileDTO = response.getBody(ComponentLegalFileDTO.class);
     assertThat(componentLegalFileDTO).isNotNull();
     assertThat(componentLegalFile.getId()).isEqualTo(componentLegalFile.getId());
+    assertThat(componentLegalFileDTO.getLegalFileOverrides()).hasSize(1);
+    assertThat(componentLegalFileDTO.getLegalFileOverrides().get(0).getId()).isEqualTo(licenseOverride.getId());
+  }
+
+  @Test
+  public void testGetComponentLegalFile_Notice() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentLegalFile componentLegalFile =
+        tempEntity.newComponentLegalFile(componentIdentifier, app.getId(), "legalContentHash");
+    tempEntity.newLegalFileOverride(LegalFileType.LICENSE, null, "hash1", "content1", ComponentLegalPartStatus.ENABLED,
+        componentLegalFile.getId());
+    LegalFileOverride noticeOverride = tempEntity.newLegalFileOverride(LegalFileType.NOTICE, null, "hash1", "content1",
+        ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
+
+    HttpResponse response = restRequest()
+        .path(ApiLicenseLegalResource.COMPONENT_LEGAL_FILE_PATH)
+        .parameter(app.getType(), app.getPublicId())
+        .query("componentIdentifier", componentIdentifier)
+        .query("legalFileType", LegalFileType.NOTICE.toString())
+        .get();
+
+    assertResponseStatus(200, response);
+    ComponentLegalFileDTO componentLegalFileDTO = response.getBody(ComponentLegalFileDTO.class);
+    assertThat(componentLegalFileDTO).isNotNull();
+    assertThat(componentLegalFile.getId()).isEqualTo(componentLegalFile.getId());
+    assertThat(componentLegalFileDTO.getLegalFileOverrides()).hasSize(1);
+    assertThat(componentLegalFileDTO.getLegalFileOverrides().get(0).getId()).isEqualTo(noticeOverride.getId());
   }
 
   private void mockReport(PolicyEvaluation evaluation) {

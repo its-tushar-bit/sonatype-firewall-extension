@@ -315,6 +315,40 @@ describe('scmOnboardingReducer', function() {
       expect(newState.other).toEqual(otherObject);
     });
 
+    it('handles null lists of available repositories', function() {
+      // given non-empty repositories list
+      const state = Object.freeze({
+        other: otherObject,
+        viewState: {
+          loadingRepositories: true
+        },
+        formState: {
+          repositories: [{}]
+        },
+        sortConfiguration: {
+          key: 'namespace',
+          sortingOrder: ['namespace'],
+          dir: 'asc'
+        }
+      });
+
+      // and a payload with no available repos
+      const repositoriesPayload = {
+        'totalRepositories': 1,
+        'status': 'SUCCESS',
+        'availableRepositories': null
+      };
+
+      // when reduce is invoked
+      const newState = reduce(state, {
+        type: 'SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED',
+        payload: repositoriesPayload
+      });
+
+      // then the new list is an empty array, not null
+      expect(newState.formState.repositories).toEqual([]);
+    });
+
     it('sorts when repositories are populated', function() {
       // given empty repositories list
       const state = Object.freeze({
@@ -393,7 +427,7 @@ describe('scmOnboardingReducer', function() {
           isGitHostDialogVisible: false
         },
         formState: {
-          repositories: null
+          repositories: []
         },
         other: otherObject
       });

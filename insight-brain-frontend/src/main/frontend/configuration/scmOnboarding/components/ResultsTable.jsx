@@ -44,7 +44,7 @@ export default function ResultsTable(props) {
 
   const maxRowsPerPage = 15;
 
-  const filteredRepos = useMemo(() => repositories.filter(isRepositorySelectedByFilter),
+  const filteredRepos = useMemo(() => repositories === null ? null : repositories.filter(isRepositorySelectedByFilter),
       [repositories, filters]);
 
   function getPageCount() {

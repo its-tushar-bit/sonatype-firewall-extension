@@ -43,12 +43,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.openqa.selenium.Keys;
 
-import static com.codeborne.selenide.CollectionCondition.*;
+import static com.codeborne.selenide.CollectionCondition.exactTexts;
+import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
 import static com.codeborne.selenide.Condition.*;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.removeStub;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.google.common.collect.ImmutableMap.of;
@@ -265,6 +267,44 @@ public class ScmOnboardingTest
     // and form elements are hidden
     scmOnboardingPage.hostUrl().shouldBe(hidden);
     scmOnboardingPage.resultsTable().shouldBe(hidden);
+  }
+
+  @Test
+  public void testLoadAfterNewOrg() throws Exception {
+    // given mock repos and source control defaults
+    setupMockRepos();
+    setupSourceControl();
+
+    // given an existing app with a source control value configured
+    setupAppSourceControl("/org/repo.git");
+
+    // given an org that will return an error when we try to query
+    Organization orgCustomToken = tempEntity.newOrganization("Invalid Auth");
+    String encryptedPwd = new String(pwHandler.encryptPassword("foo".toCharArray()));
+    tempEntity.newSourceControl(orgCustomToken.getId(), null, encryptedPwd, null);
+    secondaryGitService.stubFor(get(urlMatching("/api/v3/user.*"))
+        .willReturn(aResponse()
+            .withStatus(HttpStatus.SC_UNAUTHORIZED)));
+    Application customApp = tempEntity.newApplication(orgCustomToken.getId());
+    tempEntity.newSourceControl(customApp.getId(), secondaryGitService.baseUrl() + "/customorg/repo.git", null);
+
+    // when the scm onboarding page is opened to the auth error org
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url() + "/" + orgCustomToken.getId());
+    loginAsAdmin();
+
+    // then we should receive an auth error
+    scmOnboardingPage.hostUrlAuthError().shouldHave(text("Authentication with GitHub failed."));
+    scmOnboardingPage.hostUrlCancelButton().click();
+
+    // when we create a new org
+    scmOnboardingPage.newOrgButton().click();
+    scmOnboardingPage.newOrgName().setValue("Foo Organization");
+    scmOnboardingPage.createOrgButton().click();
+    scmOnboardingPage.newOrgModal().shouldBe(hidden);
+
+    // then it should automatically query and fully populate
+    verifyAllReposLoaded(scmOnboardingPage);
   }
 
   @Test

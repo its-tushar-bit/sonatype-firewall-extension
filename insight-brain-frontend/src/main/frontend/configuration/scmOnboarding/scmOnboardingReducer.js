@@ -341,7 +341,7 @@ function loadRepositoriesRequested(payload, state) {
 
 function loadRepositoriesFulfilled(payload, state) {
   const repos = payload.availableRepositories ? sortItemsByFields(state.sortConfiguration.sortingOrder,
-      payload.availableRepositories) : null;
+      payload.availableRepositories) : [];
   return payload.status === 'SUCCESS' ? {
     ...state,
     viewState: {
@@ -383,7 +383,7 @@ function handleLoadRepositoriesFailed({generalError, loadRepositoriesAuthError},
     },
     formState: {
       ...state.formState,
-      repositories: null
+      repositories: []
     }
   };
 }

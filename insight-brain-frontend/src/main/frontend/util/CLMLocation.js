@@ -62,6 +62,10 @@ export function getNewestRisksUrl() {
   return uriTemplate`/rest/dashboard/policy/newestRisks`;
 }
 
+export function getNewestRisksExportUrl() {
+  return uriTemplate`/rest/dashboard/export/newestRisks`;
+}
+
 /**
  * Retrieve the list of application risk in the most recent stage.  Supports filters
  * @since 1.11
@@ -70,12 +74,20 @@ export function getApplicationRisksUrl() {
   return uriTemplate`/rest/dashboard/policy/applicationRisks`;
 }
 
+export function getApplicationRisksExportUrl() {
+  return uriTemplate`/rest/dashboard/export/applicationRisks`;
+}
+
 /**
  * Retrieve the list of components with violations in the most recent stage.  Supports filters
  * @since 1.11
  */
 export function getComponentRisksUrl() {
   return uriTemplate`/rest/dashboard/policy/componentRisks`;
+}
+
+export function getComponentRisksExportUrl() {
+  return uriTemplate`/rest/dashboard/export/componentRisks`;
 }
 
 export function getApplicationsUrl() {
@@ -470,21 +482,15 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
 
       getComponentRisksUrl,
 
-      getComponentRisksExportUrl: function() {
-        return baseUrl.get() + '/rest/dashboard/export/componentRisks';
-      },
+      getComponentRisksExportUrl,
 
       getApplicationRisksUrl,
 
-      getApplicationRisksExportUrl: function() {
-        return baseUrl.get() + '/rest/dashboard/export/applicationRisks';
-      },
+      getApplicationRisksExportUrl,
 
       getNewestRisksUrl,
 
-      getNewestRisksExportUrl: function() {
-        return baseUrl.get() + '/rest/dashboard/export/newestRisks';
-      },
+      getNewestRisksExportUrl,
 
       getApplicationTagsUrl,
 

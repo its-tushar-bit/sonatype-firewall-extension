@@ -3,17 +3,7 @@
   <div class="nx-page-title iq-page-title">
     <h1 class="nx-h1">Results</h1>
     <div class="nx-btn-bar">
-      <form id="export-results-form"
-            class="iq-form iq-form--no-border iq-form--no-padding"
-            name="export-results"
-            action="{{vm.getExportUrl()}}"
-            method="post"
-            enctype="multipart/form-data">
-        <input type="hidden" name="filter" value="{{vm.getExportRequestJson()}}">
-        <button id="export-results" class="btn btn-tertiary">
-          <i class="fa fa-file-o"></i>Export {{vm.exportTitle}} Data
-        </button>
-      </form>
+      <dashboard-results-export-button></dashboard-results-export-button>
     </div>
   </div>
   <dashboard-tabs></dashboard-tabs>

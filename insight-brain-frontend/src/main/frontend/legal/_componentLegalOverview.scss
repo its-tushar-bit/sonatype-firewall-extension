@@ -54,6 +54,9 @@ component-legal-overview {
     grid-row-end: 3;
     grid-column-start: 2;
     grid-column-end: 3;
+
+    // prevent wide unwrappable content from expanding the width of this element outside of the page grid
+    min-width: 0;
   }
 
   .license-no-legal-elements-text {

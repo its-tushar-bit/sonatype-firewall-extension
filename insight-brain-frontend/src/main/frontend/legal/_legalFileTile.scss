@@ -4,12 +4,17 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-.legal-file {
-  .nx-tile__actions {
-    float: right;
-  }
+ @import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+.legal-file-section-header {
+  display: flex;
+  justify-content: space-between;
 }
 
+.legal-file-path {
+  font-weight: bold;
+  @include nx-truncate-ellipsis;
+}
 .legal-file-content {
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -17,7 +22,6 @@
   overflow: hidden;
   white-space: pre-wrap;
 }
-
 .legal-file-override-table {
   width: 100%;
   display: grid;
@@ -54,6 +58,11 @@
   .no-legal-texts-found {
     margin-bottom: 32px;
   }
+}
+
+// TODO use a better classname for this element, it shouldn't be a .nx-tile__actions
+.legal-file .nx-tile__actions {
+  flex: none;
 }
 
 .nx-btn-bar.nx-btn-bar--left {

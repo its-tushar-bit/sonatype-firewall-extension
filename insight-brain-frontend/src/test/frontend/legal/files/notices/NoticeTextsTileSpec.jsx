@@ -36,9 +36,9 @@ describe('NoticeTextsTile', function() {
     const wrapper = getShallowComponent();
     const notices = wrapper.find('.legal-file');
     expect(notices.length).toBe(2);
-    expect(notices.at(0).find('h3')).toHaveText('path1/notice.txt');
+    expect(notices.at(0).find('.legal-file-path')).toHaveText('path1/notice.txt');
     expect(notices.at(0).find('blockquote')).toHaveText('notice content 1');
-    expect(notices.at(1).find('h3')).not.toExist();
+    expect(notices.at(1).find('.legal-file-path')).not.toExist();
     expect(notices.at(1).find('blockquote')).toHaveText('notice content 2');
   });
 

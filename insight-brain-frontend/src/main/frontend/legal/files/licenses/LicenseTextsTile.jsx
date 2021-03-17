@@ -46,14 +46,17 @@ export default function LicenseTextsTile(props) {
 
 const createItem = (license, index) => (
   <section id={ 'license-section-' + index } key={ index } className="nx-tile-subsection legal-file">
-    { license.relPath &&
-    <header className="nx-tile-subsection__header">
-      <h3 id={ 'license-path-' + index } className="nx-h3">{ license.relPath }</h3>
-    </header> }
-    <span className="nx-tile__actions">
-      <a href="">View More Details <NxFontAwesomeIcon icon={ faChevronRight }/></a>
-    </span>
-    <blockquote id={ 'license-text-' + index } className="legal-file-content">{ license.originalContent }</blockquote>
+    <div className="legal-file-section-header">
+      <span id={ 'license-path-' + index } className="legal-file-path">{ license.relPath }</span>
+      <span className="nx-tile__actions">
+        <a href="">View More Details <NxFontAwesomeIcon icon={ faChevronRight }/></a>
+      </span>
+    </div>
+    <blockquote id={ 'license-text-' + index } className="nx-blockquote">
+      <div className="legal-file-content">
+        { license.originalContent }
+      </div>
+    </blockquote>
   </section>
 );
 

@@ -16,8 +16,7 @@ import LicenseObligationAttributionTile from './LicenseObligationAttributionTile
 import { find, propEq } from 'ramda';
 
 function mapStateToProps({ advancedLegal }, ownProps) {
-  const obligationState = find(propEq('name', ownProps.name), advancedLegal.component.obligations);
-  const attributionState = obligationState.attributions[0];
+  const attributionState = find(propEq('obligationName', ownProps.name), advancedLegal.component.attributions);
   return {
     id: attributionState.id,
     originalAttributionText: attributionState.originalContent,

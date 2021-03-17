@@ -17,7 +17,7 @@ function mapStateToProps({ advancedLegal, router, copyrightOverrides }) {
     loading: component.loading || availableScopes.loading,
     error: component.error || availableScopes.error,
     availableScopes: availableScopes,
-    ...pick(['component', 'licenseLegalMetadata', 'obligations'], component),
+    ...pick(['component', 'licenseLegalMetadata', 'obligations', 'attributions'], component),
     ...pick(['hash', 'organizationId', 'applicationPublicId'], router.currentParams),
     ...pick(['showEditCopyrightOverrideModal'], copyrightOverrides)
   };

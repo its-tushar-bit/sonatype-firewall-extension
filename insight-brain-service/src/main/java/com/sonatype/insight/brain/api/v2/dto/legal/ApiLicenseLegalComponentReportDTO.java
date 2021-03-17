@@ -13,19 +13,15 @@ public class ApiLicenseLegalComponentReportDTO
 
   public Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata;
 
-  public Set<ApiLicenseLegalObligationDTO> obligations;
-
   public ApiLicenseLegalComponentReportDTO() {
     // for jackson
   }
 
   public ApiLicenseLegalComponentReportDTO(
       ApiLicenseLegalComponentDTO component,
-      Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata,
-      Set<ApiLicenseLegalObligationDTO> obligations)
+      Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata)
   {
     this.component = component;
     this.licenseLegalMetadata = licenseLegalMetadata;
-    this.obligations = obligations;
   }
 }

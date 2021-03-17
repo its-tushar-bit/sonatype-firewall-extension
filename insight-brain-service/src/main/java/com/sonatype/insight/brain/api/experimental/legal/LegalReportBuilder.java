@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.experimental.legal;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -13,6 +14,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.inject.Named;
@@ -27,17 +29,23 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalCopyrightDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalMetadataDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
+import com.sonatype.insight.brain.model.legal.ComponentObligation;
+import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
 import com.sonatype.insight.brain.model.legal.CopyrightOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
+import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.license.dto.model.ComponentLegalCommentDTO;
 import com.sonatype.insight.license.dto.model.ComponentLegalFileDTO;
 import com.sonatype.insight.license.dto.model.LegalFileDTO;
 import com.sonatype.insight.license.dto.model.LicenseMetadataDTO;
+import com.sonatype.insight.license.dto.model.LicenseObligationDTO;
 
 import static com.sonatype.insight.brain.api.experimental.legal.LegalComponentIdentifierUtil.removeClassifierAndExtension;
 
@@ -54,26 +62,33 @@ public class LegalReportBuilder
       Map<ComponentIdentifier, Set<ComponentLegalFileDTO>> componentLegalFilesByComponentIdentifier,
       Map<ComponentIdentifier, List<LegalFileOverride>> licenseOverridesByComponentIdentifier,
       Map<ComponentIdentifier, List<LegalFileOverride>> noticeOverridesByComponentIdentifier,
+      Map<ComponentIdentifier, List<ComponentObligation>> obligationByComponentIdentifier,
+      Map<ComponentIdentifier, List<ComponentObligationAttribution>> attributionByComponentIdentifier,
       Set<ApiLicenseDTO> multiLicenses,
       Set<License> licenses,
       Map<String, LicenseMetadataDTO> licenseMetadataById)
   {
+    Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata =
+        getLicenseLegalMetadata(multiLicenses, licenses, licenseMetadataById);
     List<ApiLicenseLegalComponentDTO> components =
         getLicenseLegalComponents(rawReport,
+            licenseLegalMetadata,
             componentLegalCommentsByComponentIdentifier,
             copyrightOverridesByComponentIdentifier,
             componentCopyrightsByComponentIdentifier,
             componentNoticesByComponentIdentifier,
             componentLicensesByComponentIdentifier,
             componentLegalFilesByComponentIdentifier,
-            licenseOverridesByComponentIdentifier, noticeOverridesByComponentIdentifier);
-    Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata =
-        getLicenseLegalMetadata(multiLicenses, licenses, licenseMetadataById);
+            licenseOverridesByComponentIdentifier,
+            noticeOverridesByComponentIdentifier,
+            obligationByComponentIdentifier,
+            attributionByComponentIdentifier);
     return new ApiLicenseLegalApplicationReportDTO(components, licenseLegalMetadata);
   }
 
   private List<ApiLicenseLegalComponentDTO> getLicenseLegalComponents(
       ApiReportRawDataDTOV2 rawReport,
+      Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata,
       Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>> componentLegalCommentsByComponentIdentifier,
       Map<ComponentIdentifier, List<CopyrightOverride>> copyrightOverridesByComponentIdentifier,
       Map<ComponentIdentifier, ComponentCopyright> componentCopyrightsByComponentIdentifier,
@@ -81,27 +96,33 @@ public class LegalReportBuilder
       Map<ComponentIdentifier, ComponentLegalFile> componentLicensesByComponentIdentifier,
       Map<ComponentIdentifier, Set<ComponentLegalFileDTO>> componentLegalFilesByComponentIdentifier,
       Map<ComponentIdentifier, List<LegalFileOverride>> licenseOverridesByComponentIdentifier,
-      Map<ComponentIdentifier, List<LegalFileOverride>> noticeOverridesByComponentIdentifier)
+      Map<ComponentIdentifier, List<LegalFileOverride>> noticeOverridesByComponentIdentifier,
+      Map<ComponentIdentifier, List<ComponentObligation>> obligationByComponentIdentifier,
+      Map<ComponentIdentifier, List<ComponentObligationAttribution>> attributionByComponentIdentifier)
   {
     return rawReport.components.stream()
         .filter(component -> component.componentIdentifier != null)
         .map(component -> {
           ComponentIdentifier key = removeClassifierAndExtension(component.componentIdentifier.toComponentIdentifier());
           return new ApiLicenseLegalComponentDTO(component, getLicenseLegalData(component.licenseData,
+              licenseLegalMetadata,
               componentLegalCommentsByComponentIdentifier.getOrDefault(key, new LinkedHashSet<>()),
               copyrightOverridesByComponentIdentifier.getOrDefault(key, Collections.emptyList()),
               componentCopyrightsByComponentIdentifier.getOrDefault(key, null),
-              componentNoticesByComponentIdentifier.getOrDefault(key, null),
               componentLicensesByComponentIdentifier.getOrDefault(key, null),
+              componentNoticesByComponentIdentifier.getOrDefault(key, null),
               componentLegalFilesByComponentIdentifier.getOrDefault(key, new LinkedHashSet<>()),
               licenseOverridesByComponentIdentifier.getOrDefault(key, Collections.emptyList()),
-              noticeOverridesByComponentIdentifier.getOrDefault(key, Collections.emptyList())));
+              noticeOverridesByComponentIdentifier.getOrDefault(key, Collections.emptyList()),
+              obligationByComponentIdentifier.getOrDefault(key, Collections.emptyList()),
+              attributionByComponentIdentifier.getOrDefault(key, Collections.emptyList())));
         })
         .collect(Collectors.toList());
   }
 
   ApiLicenseLegalDataDTO getLicenseLegalData(
       ApiLicenseDataDTOV2 sourceData,
+      Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata,
       Set<ComponentLegalCommentDTO> componentLegalComments,
       List<CopyrightOverride> copyrightOverrides,
       ComponentCopyright componentCopyright,
@@ -109,7 +130,9 @@ public class LegalReportBuilder
       ComponentLegalFile componentNotice,
       Set<ComponentLegalFileDTO> componentLegalFiles,
       List<LegalFileOverride> licenseOverrides,
-      List<LegalFileOverride> noticeOverrides)
+      List<LegalFileOverride> noticeOverrides,
+      List<ComponentObligation> obligations,
+      List<ComponentObligationAttribution> attributions)
   {
     if (sourceData == null) {
       return null;
@@ -123,6 +146,8 @@ public class LegalReportBuilder
         getCopyrights(componentLegalComments, copyrightOverrides),
         getLegalFiles(LegalFileType.LICENSE, componentLegalFiles, licenseOverrides),
         getLegalFiles(LegalFileType.NOTICE, componentLegalFiles, noticeOverrides),
+        getObligations(obligations, sourceData.effectiveLicenses, licenseLegalMetadata),
+        getAttributions(attributions),
         componentCopyright == null ? null : componentCopyright.getId(),
         componentCopyright == null ? null : componentCopyright.getOwnerId(),
         componentLicense == null ? null : componentLicense.getId(),
@@ -210,6 +235,55 @@ public class LegalReportBuilder
               legalFileOverride.getStatus());
         })
         .collect(Collectors.toList());
+  }
+
+  private List<ApiLicenseLegalObligationDTO> getObligations(
+      final List<ComponentObligation> obligations,
+      final List<ApiLicenseDTO> effectiveLicenses,
+      final Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata)
+  {
+    List<ApiLicenseLegalObligationDTO> licenseLegalObligation = new ArrayList<>();
+    Set<String> obligationNames = new HashSet<>();
+    for (ApiLicenseDTO licenseDTO : effectiveLicenses) {
+      obligationNames.addAll(getObligationNamesForLicense(licenseDTO.licenseId, licenseLegalMetadata));
+    }
+
+    Map<String, ComponentObligation> nameToObligation = obligations.stream()
+        .collect(Collectors.toMap(ComponentObligation::getObligationName, Function.identity()));
+
+    for (String obligationName : obligationNames) {
+      if (nameToObligation.containsKey(obligationName)) {
+        licenseLegalObligation.add(new ApiLicenseLegalObligationDTO(nameToObligation.get(obligationName)));
+      }
+      else {
+        ApiLicenseLegalObligationDTO apiLicenseLegalObligationDTO = new ApiLicenseLegalObligationDTO();
+        apiLicenseLegalObligationDTO.setName(obligationName);
+        apiLicenseLegalObligationDTO.setStatus(ObligationStatus.OPEN);
+        licenseLegalObligation.add(apiLicenseLegalObligationDTO);
+      }
+    }
+    return licenseLegalObligation;
+  }
+
+  private List<ComponentObligationAttributionDTO> getAttributions(
+      final List<ComponentObligationAttribution> attributions)
+  {
+    return attributions.stream()
+        .map(ComponentObligationAttributionDTO::new)
+        .collect(Collectors.toList());
+  }
+
+  private Set<String> getObligationNamesForLicense(
+      String licenseId, Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadataSet)
+  {
+    for (ApiLicenseLegalMetadataDTO llm : licenseLegalMetadataSet) {
+      if (llm.licenseId.equals(licenseId)) {
+        return llm.obligations.stream()
+            .map(LicenseObligationDTO::getName)
+            .collect(Collectors.toSet());
+      }
+    }
+    return Collections.emptySet();
   }
 
   public static int sortLegalFileOverrides(LegalFileOverride l1, LegalFileOverride l2) {

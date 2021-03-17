@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.v2.dto.legal;
 
 import java.util.Date;
-import java.util.List;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
@@ -25,8 +24,6 @@ public class ApiLicenseLegalObligationDTO
   private ObligationStatus status;
 
   private String comment;
-
-  private List<ComponentObligationAttributionDTO> attributions;
 
   private ApiComponentIdentifierDTOV2 componentIdentifier;
 
@@ -55,13 +52,11 @@ public class ApiLicenseLegalObligationDTO
   public ApiLicenseLegalObligationDTO(
       String name,
       ObligationStatus status,
-      String comment,
-      List<ComponentObligationAttributionDTO> attributions)
+      String comment)
   {
     this.name = name;
     this.status = status;
     this.comment = comment;
-    this.attributions = attributions;
   }
 
   public String getId() {
@@ -94,14 +89,6 @@ public class ApiLicenseLegalObligationDTO
 
   public void setComment(String comment) {
     this.comment = comment;
-  }
-
-  public List<ComponentObligationAttributionDTO> getAttributions() {
-    return attributions;
-  }
-
-  public void setAttributions(List<ComponentObligationAttributionDTO> attributions) {
-    this.attributions = attributions;
   }
 
   public ApiComponentIdentifierDTOV2 getComponentIdentifier() {

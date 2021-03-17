@@ -7,8 +7,10 @@ package com.sonatype.insight.brain.dataaccess.legal;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -28,6 +30,11 @@ import com.sonatype.insight.error.exception.NotFoundException;
 public class ComponentObligationAttributionDAO
     extends AbstractOperationalSqlDAO<ComponentObligationAttribution>
 {
+  public List<ComponentObligationAttribution> getAll() {
+    String sQuery = "SELECT entity FROM ComponentObligationAttribution entity";
+    return getList(sQuery);
+  }
+
   @Override
   public ComponentObligationAttribution getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM ComponentObligationAttribution entity" + //
@@ -76,6 +83,19 @@ public class ComponentObligationAttributionDAO
         ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()), obligationNames);
   }
 
+  public List<ComponentObligationAttribution> getByOwnerIdAndComponentIdentifier(
+      TransactionContext tx,
+      String ownerId,
+      ComponentIdentifier componentIdentifier)
+  {
+    String sQuery = "SELECT entity FROM ComponentObligationAttribution entity" + //
+        " WHERE entity.ownerId=?1" + //
+        " AND entity.componentIdFormat=?2" + //
+        " AND entity.componentIdCoordinatesJson=?3";
+    return getList(tx, sQuery, ownerId, componentIdentifier.getFormat(),
+        ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()));
+  }
+
   public List<ComponentObligationAttribution> getByOwnerIdAndComponentIdentifierAndObligationNames(
       String ownerId,
       ComponentIdentifier componentIdentifier,
@@ -83,6 +103,32 @@ public class ComponentObligationAttributionDAO
   {
     try (TransactionContext tx = createTransactionContext()) {
       return getByOwnerIdAndComponentIdentifierAndObligationNames(tx, ownerId, componentIdentifier, obligationNames);
+    }
+  }
+
+  public List<ComponentObligationAttribution> getByOwnerIdAndComponentIdentifierWithHierarchy(
+      TransactionContext tx,
+      String ownerId,
+      ComponentIdentifier componentIdentifier)
+  {
+    Map<String, ComponentObligationAttribution> obligationNameToAttribution = new HashMap<>();
+    OwnerDAO ownerDAO = new OwnerDAO();
+    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
+      List<ComponentObligationAttribution> componentObligationAttributions =
+          getByOwnerIdAndComponentIdentifier(tx, owner.getId(), componentIdentifier);
+      for (ComponentObligationAttribution attribution : componentObligationAttributions) {
+        obligationNameToAttribution.putIfAbsent(attribution.getObligationName(), attribution);
+      }
+    }
+    return new ArrayList<>(obligationNameToAttribution.values());
+  }
+
+  public List<ComponentObligationAttribution> getByOwnerIdAndComponentIdentifierWithHierarchy(
+      String ownerId,
+      ComponentIdentifier componentIdentifier)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByOwnerIdAndComponentIdentifierWithHierarchy(tx, ownerId, componentIdentifier);
     }
   }
 

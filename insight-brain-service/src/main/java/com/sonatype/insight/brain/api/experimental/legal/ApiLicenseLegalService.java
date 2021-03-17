@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardResultDTO;
@@ -45,9 +46,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDashb
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalMetadataDTO;
-import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApplicationLicenseUsageTelemetry;
-import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalResultsOrder;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalReviewStatus;
 import com.sonatype.insight.brain.api.v2.service.ApiLicenseDataAdapter;
@@ -56,7 +55,6 @@ import com.sonatype.insight.brain.dataaccess.AggregateFileDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentCopyrightDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentLegalFileDAO;
@@ -86,7 +84,6 @@ import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
 import com.sonatype.insight.brain.model.legal.CopyrightOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
-import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -185,8 +182,6 @@ public class ApiLicenseLegalService
 
   private final AggregateFileDAO aggregateFileDAO;
 
-  private final OwnerDAO ownerDAO;
-
   @Inject
   public ApiLicenseLegalService(
       MultiLicenseDAO multiLicenseDAO,
@@ -211,8 +206,7 @@ public class ApiLicenseLegalService
       LegalFileOverrideDAO legalFileOverrideDAO,
       ComponentObligationDAO componentObligationDAO,
       ComponentObligationAttributionDAO componentObligationAttributionDAO,
-      AggregateFileDAO aggregateFileDAO,
-      OwnerDAO ownerDAO)
+      AggregateFileDAO aggregateFileDAO)
   {
     this.multiLicenseDAO = multiLicenseDAO;
     this.apiLicenseLegalHdsService = apiLicenseLegalHdsService;
@@ -238,7 +232,6 @@ public class ApiLicenseLegalService
     this.componentObligationDAO = componentObligationDAO;
     this.componentObligationAttributionDAO = componentObligationAttributionDAO;
     this.aggregateFileDAO = aggregateFileDAO;
-    this.ownerDAO = ownerDAO;
   }
 
   public ApiLicenseLegalApplicationDashboardResultDTO getLicenseLegalApplicationsDashboard(
@@ -416,10 +409,6 @@ public class ApiLicenseLegalService
         .getApplicationsByIdsAndOrganizationIdsAndTagIdsNoAuthz(organizationIds, applicationIds, tagIds);
   }
 
-  /**
-   * @deprecated This method is used for generating legacy report page and should not be used by ALP code
-   */
-  @Deprecated
   @Authorize(permission = Permission.LEGAL_REVIEWER)
   public ApiLicenseLegalApplicationReportDTO getLicenseLegalApplicationReport(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
@@ -430,7 +419,12 @@ public class ApiLicenseLegalService
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     ApiReportRawDataDTOV2 latestRawReport = getLastRawApplicationReport(applicationPublicId)
         .orElseThrow(() -> new NotFoundException("Report for application " + applicationPublicId + " not found."));
-    Set<ApiLicenseDTO> multiLicenses = getReportMultiLicenses(latestRawReport);
+    Map<ComponentIdentifier, Set<ApiLicenseDTO>> componentIdentifierToMultiLicenses =
+        getReportMultiLicenses(latestRawReport);
+    Set<ApiLicenseDTO> multiLicenses = componentIdentifierToMultiLicenses.entrySet().stream()
+        .flatMap(e -> e.getValue().stream())
+        .collect(Collectors.toCollection(LinkedHashSet::new));
+
     Set<License> licenses = multiLicenses.stream()
         .map(multiLicense -> multiLicense.licenseId)
         .flatMap(multiLicenseId -> multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(multiLicenseId).stream())
@@ -445,6 +439,7 @@ public class ApiLicenseLegalService
                 .collect(Collectors.toCollection(LinkedHashSet::new)))
             .stream()
             .collect(toMap(LicenseMetadataDTO::getLicenseId, Function.identity()));
+
     Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>> componentLegalCommentsByComponentIdentifier =
         getComponentLegalCommentsByComponentIdentifier(Collections.singleton(latestRawReport));
     final Set<ComponentIdentifier> componentIdentifiers = getComponentIdentifiers(latestRawReport);
@@ -464,6 +459,11 @@ public class ApiLicenseLegalService
             LegalFileType.NOTICE);
     Map<ComponentIdentifier, ComponentLegalFile> componentNoticeByComponentIdentifier =
         getComponentLegalFileByComponentIdentifier(noticeOverridesByComponentIdentifier);
+    Map<ComponentIdentifier, List<ComponentObligation>> obligationByComponentIdentifier =
+        getComponentObligationsByComponentIdentifier(application.getId(), componentIdentifiers);
+    Map<ComponentIdentifier, List<ComponentObligationAttribution>> attributionsByComponentIdentifier =
+        getComponentObligationAttributionsByComponentIdentifier(application.getId(), componentIdentifiers);
+
     log.info("Building license metadata report.");
     return legalReportBuilder
         .getLicenseLegalApplicationReport(
@@ -476,6 +476,8 @@ public class ApiLicenseLegalService
             componentLegalFilesByComponentIdentifier,
             licenseOverridesByComponentIdentifier,
             noticeOverridesByComponentIdentifier,
+            obligationByComponentIdentifier,
+            attributionsByComponentIdentifier,
             multiLicenses,
             licenses,
             licenseMetadataById);
@@ -552,28 +554,59 @@ public class ApiLicenseLegalService
         getComponentLegalComments(compIdentifier, component.getHash());
     Set<ComponentLegalFileDTO> componentLegalFiles =
         apiLicenseLegalHdsService.getComponentLegalFiles(Collections.singleton(compIdentifier));
-    List<CopyrightOverride> copyrightOverrides =
-        copyrightOverrideDAO.getByOwnerIdAndComponentIdentifierWithHierarchy(owner.getId(), compIdentifier);
-    ComponentCopyright componentCopyright =
-        componentCopyrightDAO.getByOwnerIdAndComponentIdentifierWithHierarchy(owner.getId(), compIdentifier);
-    List<LegalFileOverride> licenseOverrides = legalFileOverrideDAO
-        .getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(owner.getId(), compIdentifier, LegalFileType.LICENSE);
-    ComponentLegalFile componentLicense = licenseOverrides.isEmpty() ? null : componentLegalFileDAO
-        .getById(licenseOverrides.get(0).getComponentLegalFileId());
-    List<LegalFileOverride> noticeOverrides = legalFileOverrideDAO
-        .getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(owner.getId(), compIdentifier, LegalFileType.NOTICE);
-    ComponentLegalFile componentNotice = noticeOverrides.isEmpty() ? null : componentLegalFileDAO
-        .getById(noticeOverrides.get(0).getComponentLegalFileId());
-    ApiLicenseLegalDataDTO licenseLegalData = legalReportBuilder.getLicenseLegalData(licenseData,
-        componentLegalComments, copyrightOverrides, componentCopyright, componentLicense, componentNotice,
-        componentLegalFiles, licenseOverrides, noticeOverrides);
-    ApiLicenseLegalComponentDTO componentDTO =
-        new ApiLicenseLegalComponentDTO(toComponentDTO(component), licenseLegalData);
+
+    List<CopyrightOverride> copyrightOverrides;
+    ComponentCopyright componentCopyright;
+    List<LegalFileOverride> licenseOverrides;
+    List<LegalFileOverride> noticeOverrides;
+    List<ComponentObligation> obligations;
+    List<ComponentObligationAttribution> attributions;
+    ComponentLegalFile componentNotice;
+    ComponentLegalFile componentLicense;
+
+    try (TransactionContext tx = copyrightOverrideDAO.createTransactionContext()) {
+      copyrightOverrides =
+          copyrightOverrideDAO.getByOwnerIdAndComponentIdentifierWithHierarchy(tx, owner.getId(), compIdentifier);
+      componentCopyright =
+          componentCopyrightDAO.getByOwnerIdAndComponentIdentifierWithHierarchy(tx, owner.getId(), compIdentifier);
+      licenseOverrides = legalFileOverrideDAO
+          .getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(tx, owner.getId(), compIdentifier,
+              LegalFileType.LICENSE);
+      noticeOverrides = legalFileOverrideDAO
+          .getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(tx, owner.getId(), compIdentifier,
+              LegalFileType.NOTICE);
+      componentNotice = noticeOverrides.isEmpty() ? null : componentLegalFileDAO
+          .getById(tx, noticeOverrides.get(0).getComponentLegalFileId());
+      componentLicense = licenseOverrides.isEmpty() ? null : componentLegalFileDAO
+          .getById(tx, licenseOverrides.get(0).getComponentLegalFileId());
+      obligations =
+          componentObligationDAO.getByOwnerIdAndComponentIdentifierWithHierarchy(tx, owner.getId(), compIdentifier);
+      attributions =
+          componentObligationAttributionDAO
+              .getByOwnerIdAndComponentIdentifierWithHierarchy(tx, owner.getId(), compIdentifier);
+    }
     Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata = legalReportBuilder.getLicenseLegalMetadata(
         licenseData.effectiveLicenses, licenses, licenseMetadataById);
-    Set<ApiLicenseLegalObligationDTO> obligations =
-        createApiLicenseLegalObligationDTOs(owner.getId(), compIdentifier, getObligationNames(licenseLegalMetadata));
-    return new ApiLicenseLegalComponentReportDTO(componentDTO, licenseLegalMetadata, obligations);
+
+    ApiLicenseLegalDataDTO licenseLegalData =
+        legalReportBuilder.getLicenseLegalData(
+            licenseData,
+            licenseLegalMetadata,
+            componentLegalComments,
+            copyrightOverrides,
+            componentCopyright,
+            componentLicense,
+            componentNotice,
+            componentLegalFiles,
+            licenseOverrides,
+            noticeOverrides,
+            obligations,
+            attributions);
+
+    ApiLicenseLegalComponentDTO componentDTO =
+        new ApiLicenseLegalComponentDTO(toComponentDTO(component), licenseLegalData);
+
+    return new ApiLicenseLegalComponentReportDTO(componentDTO, licenseLegalMetadata);
   }
 
   @VisibleForTesting
@@ -602,14 +635,6 @@ public class ApiLicenseLegalService
     return aggregateFileDAO.getByApplicationComponentId(lastByHash.getId()).stream()
         .map(AggregateFile::getHash)
         .collect(Collectors.toList());
-  }
-
-  private Set<String> getObligationNames(Set<ApiLicenseLegalMetadataDTO> apiLicenseLegalMetadataDTOs) {
-    return apiLicenseLegalMetadataDTOs.stream()
-        .filter(dto -> dto.obligations != null)
-        .flatMap(dto -> dto.obligations.stream())
-        .map(LicenseObligationDTO::getName)
-        .collect(Collectors.toSet());
   }
 
   private ComponentIdentifier getComponentIdentifier(
@@ -661,52 +686,33 @@ public class ApiLicenseLegalService
     return componentDTO;
   }
 
-  private Set<ApiLicenseLegalObligationDTO> createApiLicenseLegalObligationDTOs(
-      String ownerId,
-      ComponentIdentifier componentIdentifier,
-      Set<String> obligationNames)
+  private Map<ComponentIdentifier, List<ComponentObligation>> getComponentObligationsByComponentIdentifier(
+      final String ownerId,
+      final Set<ComponentIdentifier> componentIdentifiers)
   {
-    Set<ApiLicenseLegalObligationDTO> apiLicenseLegalObligationDTOs = new LinkedHashSet<>();
-    List<ComponentObligation> componentObligations = componentObligationDAO
-        .getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(ownerId, componentIdentifier,
-            obligationNames);
-    Map<String, ComponentObligation> componentObligationByName = componentObligations.stream()
-        .collect(toMap(ComponentObligation::getObligationName, Function.identity()));
-    List<ComponentObligationAttribution> allComponentObligationAttributions = componentObligationAttributionDAO
-        .getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(ownerId, componentIdentifier,
-            obligationNames);
-    Map<String, List<ComponentObligationAttribution>> allComponentObligationAttributionsByName =
-        allComponentObligationAttributions.stream()
-            .collect(groupingBy(ComponentObligationAttribution::getObligationName));
-    for (String obligationName : obligationNames) {
-      ApiLicenseLegalObligationDTO apiLicenseLegalObligationDTO = new ApiLicenseLegalObligationDTO();
-      apiLicenseLegalObligationDTO.setName(obligationName);
-      apiLicenseLegalObligationDTO.setStatus(ObligationStatus.OPEN);
-      apiLicenseLegalObligationDTO.setAttributions(new ArrayList<>());
-
-      ComponentObligation componentObligation = componentObligationByName.get(obligationName);
-      if (componentObligation != null) {
-        apiLicenseLegalObligationDTO.setId(componentObligation.getId());
-        apiLicenseLegalObligationDTO.setOwnerId(componentObligation.getOwnerId());
-        apiLicenseLegalObligationDTO.setStatus(componentObligation.getStatus());
-        apiLicenseLegalObligationDTO.setComment(componentObligation.getComment());
+    Map<ComponentIdentifier, List<ComponentObligation>> componentIdentifierToObligation = new HashMap<>();
+    try (TransactionContext tx = componentObligationDAO.createTransactionContext()) {
+      for (ComponentIdentifier componentIdentifier : componentIdentifiers) {
+        componentIdentifierToObligation.put(componentIdentifier,
+            componentObligationDAO
+                .getByOwnerIdAndComponentIdentifierWithHierarchy(tx, ownerId, componentIdentifier));
       }
-
-      List<ComponentObligationAttribution> componentObligationAttributions =
-          allComponentObligationAttributionsByName.getOrDefault(obligationName, Collections.emptyList());
-      for (ComponentObligationAttribution componentObligationAttribution : componentObligationAttributions) {
-        Owner owner = ownerDAO.getById(componentObligationAttribution.getOwnerId());
-        if (owner == null) {
-          continue;
-        }
-        ComponentObligationAttributionDTO componentObligationAttributionDTO =
-            new ComponentObligationAttributionDTO(componentObligationAttribution.getId(), owner.getId(),
-                componentObligationAttribution.getContent());
-        apiLicenseLegalObligationDTO.getAttributions().add(componentObligationAttributionDTO);
-      }
-      apiLicenseLegalObligationDTOs.add(apiLicenseLegalObligationDTO);
     }
-    return apiLicenseLegalObligationDTOs;
+    return componentIdentifierToObligation;
+  }
+
+  private Map<ComponentIdentifier, List<ComponentObligationAttribution>>
+      getComponentObligationAttributionsByComponentIdentifier(
+      final String ownerId, final Set<ComponentIdentifier> componentIdentifiers)
+  {
+    Map<ComponentIdentifier, List<ComponentObligationAttribution>> componentIdentifierToAttribution = new HashMap<>();
+    try (TransactionContext tx = componentObligationAttributionDAO.createTransactionContext()) {
+      for (ComponentIdentifier componentIdentifier : componentIdentifiers) {
+        componentIdentifierToAttribution.put(componentIdentifier, componentObligationAttributionDAO
+            .getByOwnerIdAndComponentIdentifierWithHierarchy(tx, ownerId, componentIdentifier));
+      }
+    }
+    return componentIdentifierToAttribution;
   }
 
   private Set<ComponentIdentifier> getComponentIdentifiers(Collection<ApiReportRawDataDTOV2> rawReports) {
@@ -739,11 +745,17 @@ public class ApiLicenseLegalService
         .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
-  private Set<ApiLicenseDTO> getReportMultiLicenses(ApiReportRawDataDTOV2 rawReport) {
-    return rawReport.components.stream()
-        .filter(component -> component.licenseData != null)
-        .flatMap(component -> getAllLicenses(component.licenseData).stream())
-        .collect(Collectors.toCollection(LinkedHashSet::new));
+  private Map<ComponentIdentifier, Set<ApiLicenseDTO>> getReportMultiLicenses(ApiReportRawDataDTOV2 rawReport) {
+    Map<ComponentIdentifier, Set<ApiLicenseDTO>> componentToLicenses = new HashMap<>();
+    for (final ApiReportComponentDTOV2 component : rawReport.components) {
+      if (component.licenseData == null) {
+        componentToLicenses.put(component.componentIdentifier.toComponentIdentifier(), new HashSet<>());
+      }
+      Set<ApiLicenseDTO> allLicenses = getAllLicenses(component.licenseData);
+      componentToLicenses.put(component.componentIdentifier.toComponentIdentifier(), allLicenses);
+    }
+
+    return componentToLicenses;
   }
 
   private Set<ApiLicenseDTO> getAllLicenses(ApiLicenseDataDTOV2 licenses) {
@@ -933,7 +945,7 @@ public class ApiLicenseLegalService
                 .collect(Collectors.toCollection(LinkedHashSet::new)),
             multiLicenses.stream()
                 .map(license -> license.licenseId)
-                .collect(Collectors.toCollection(LinkedHashSet::new))));
+                .collect(Collectors.toSet())));
 
     telemetrySender.send(telemetryData);
   }
@@ -946,7 +958,7 @@ public class ApiLicenseLegalService
   }
 
   private Map<String, List<String>> getTagNamesByApplicationIds(Set<String> applicationIds) {
-    Map<String, List<String>> mapApplicationIdTagNames = null;
+    Map<String, List<String>> mapApplicationIdTagNames;
     try (TransactionContext tx = tagDAO.createTransactionContext()) {
       mapApplicationIdTagNames = applicationIds.stream()
           .collect(Collectors.toMap(
@@ -960,7 +972,7 @@ public class ApiLicenseLegalService
   }
 
   private Comparator<ApiLicenseLegalApplicationDashboardDTO> newDashboardComparator(LicenseLegalResultsOrder order) {
-    Comparator<ApiLicenseLegalApplicationDashboardDTO> comparator = null;
+    Comparator<ApiLicenseLegalApplicationDashboardDTO> comparator;
     switch (order != null ? order : LicenseLegalResultsOrder.APPLICATION_NAME_ASC) {
       case APPLICATION_NAME_ASC:
         comparator = Comparator.comparing(dto -> dto.applicationName, String.CASE_INSENSITIVE_ORDER);

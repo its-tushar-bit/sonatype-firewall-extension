@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2.dto.legal;
 
 import java.util.Date;
+import java.util.Objects;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
@@ -109,4 +110,44 @@ public class ComponentObligationAttributionDTO
   public void setLastUpdatedByUsername(String lastUpdatedByUsername) {
     this.lastUpdatedByUsername = lastUpdatedByUsername;
   }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ComponentObligationAttributionDTO that = (ComponentObligationAttributionDTO) o;
+    return Objects.equals(getId(), that.getId()) &&
+        Objects.equals(getComponentIdentifier() == null ? null : getComponentIdentifier().toComponentIdentifier(),
+            that.getComponentIdentifier() == null ? null : getComponentIdentifier().toComponentIdentifier()) &&
+        Objects.equals(getOwnerId(), that.getOwnerId()) &&
+        Objects.equals(getObligationName(), that.getObligationName()) &&
+        Objects.equals(getContent(), that.getContent()) &&
+        Objects.equals(getLastUpdatedAt(), that.getLastUpdatedAt()) &&
+        Objects.equals(getLastUpdatedByUsername(), that.getLastUpdatedByUsername());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects
+        .hash(getId(), getComponentIdentifier(), getOwnerId(), getObligationName(), getContent(), getLastUpdatedAt(),
+            getLastUpdatedByUsername());
+  }
+
+  @Override
+  public String toString() {
+    return "ComponentObligationAttributionDTO{" +
+        "id='" + id + '\'' +
+        ", componentIdentifier=" + componentIdentifier +
+        ", ownerId='" + ownerId + '\'' +
+        ", obligationName='" + obligationName + '\'' +
+        ", content='" + content + '\'' +
+        ", lastUpdatedAt=" + lastUpdatedAt +
+        ", lastUpdatedByUsername='" + lastUpdatedByUsername + '\'' +
+        '}';
+  }
 }
+

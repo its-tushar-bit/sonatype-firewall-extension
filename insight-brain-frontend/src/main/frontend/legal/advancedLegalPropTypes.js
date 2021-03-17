@@ -33,6 +33,22 @@ export const legalFilesPropType = PropTypes.arrayOf(PropTypes.shape({
   originalContentHash: PropTypes.string
 }).isRequired).isRequired;
 
+export const licenseObligationsPropType = PropTypes.arrayOf(
+    PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      status: PropTypes.string.isRequired,
+      comment: PropTypes.string
+    })
+);
+
+export const licenseObligationAttributionsPropType = PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string,
+      content: PropTypes.string,
+      obligationName: PropTypes.string.isRequired
+    })
+);
+
 export const componentPropType = PropTypes.shape({
   displayName: PropTypes.string.isRequired,
   licenseLegalData: PropTypes.shape({
@@ -50,7 +66,9 @@ export const componentPropType = PropTypes.shape({
     componentNoticesId: PropTypes.string,
     componentNoticesScopeOwnerId: PropTypes.string,
     componentLicensesId: PropTypes.string,
-    componentLicensesScopeOwnerId: PropTypes.string
+    componentLicensesScopeOwnerId: PropTypes.string,
+    obligation: licenseObligationsPropType,
+    attributions: licenseObligationAttributionsPropType
   }).isRequired
 });
 
@@ -65,18 +83,6 @@ export const licenseLegalMetadataPropType = PropTypes.arrayOf(PropTypes.shape({
   }))
 }).isRequired);
 
-export const licenseObligationsPropType = PropTypes.arrayOf(
-    PropTypes.shape({
-      name: PropTypes.string.isRequired,
-      status: PropTypes.string.isRequired,
-      comment: PropTypes.string,
-      attributions: PropTypes.arrayOf(PropTypes.shape({
-        id: PropTypes.string,
-        content: PropTypes.string
-      }).isRequired).isRequired
-    })
-);
-
 export const licenseObligationLicensesPropTypes = PropTypes.arrayOf(PropTypes.shape({
   name: PropTypes.string.isRequired,
   texts: PropTypes.arrayOf(PropTypes.string).isRequired
@@ -86,11 +92,7 @@ export const licenseObligationPropType = PropTypes.shape({
   name: PropTypes.string.isRequired,
   licenses: licenseObligationLicensesPropTypes,
   status: PropTypes.string.isRequired,
-  comment: PropTypes.string,
-  attributions: PropTypes.arrayOf(PropTypes.shape({
-    id: PropTypes.string,
-    content: PropTypes.string
-  }).isRequired).isRequired
+  comment: PropTypes.string
 });
 
 export const licenseObligationsPropTypes = PropTypes.arrayOf(licenseObligationPropType.isRequired);

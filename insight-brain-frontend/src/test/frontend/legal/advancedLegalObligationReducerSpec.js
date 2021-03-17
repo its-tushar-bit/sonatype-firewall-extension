@@ -30,33 +30,34 @@ describe('advancedLegalObligationReducer', function () {
     it('sets the content of the first attribution of the matching obligation', function () {
       const state = {
         component: {
-          obligations: [{ name: 'obligation1', attributions: [{}] }, { name: 'obligation2' }]
+          obligations: [{ name: 'obligation1' }, { name: 'obligation2' }],
+          attributions: [{obligationName: 'obligation1'}]
         }
       };
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_SET_ATTRIBUTION_TEXT,
         payload: { name: 'obligation1', value: 'content' }
       });
-      const obligation1Attribution = newState.component.obligations[0].attributions[0];
-      expect(obligation1Attribution.content).toBe('content');
+      const attribution1 = newState.component.attributions[0];
+      expect(attribution1.content).toBe('content');
       expect(newState.component.obligations[1]).toEqual({ name: 'obligation2' });
     });
   });
 
-  describe('ADVANCED_LEGAL_SET_ATTRIBUTION_SCOPE action', function () {
-    it('sets the ownerId of the first attribution of the matching obligation', function () {
+  describe('ADVANCED_LEGAL_SET_ATTRIBUTION_SCOPE action', function() {
+    it('sets the ownerId of the first attribution of the matching obligation', function() {
       const state = {
         component: {
-          obligations: [{ name: 'obligation1', attributions: [{}] }, { name: 'obligation2' }]
-        }
+          obligations: [{name: 'obligation1'}, {name: 'obligation2'}],
+          attributions: [{obligationName: 'obligation1'}]}
       };
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_SET_ATTRIBUTION_SCOPE,
-        payload: { name: 'obligation1', value: 'ownerId' }
+        payload: {name: 'obligation1', value: 'ownerId'}
       });
-      const obligation1Attribution = newState.component.obligations[0].attributions[0];
-      expect(obligation1Attribution.ownerId).toBe('ownerId');
-      expect(newState.component.obligations[1]).toEqual({ name: 'obligation2' });
+      const attribution1 = newState.component.attributions[0];
+      expect(attribution1.ownerId).toBe('ownerId');
+      expect(newState.component.obligations[1]).toEqual({name: 'obligation2'});
     });
   });
 
@@ -65,16 +66,17 @@ describe('advancedLegalObligationReducer', function () {
         function() {
           const state = {
             component: {
-              obligations: [{ name: 'obligation1', attributions: [{}] }, { name: 'obligation2' }]
+              obligations: [{ name: 'obligation1'}, { name: 'obligation2' }],
+              attributions: []
             }
           };
           const newState = reduce(state, {
             type: ADVANCED_LEGAL_SET_SHOW_ATTRIBUTION_MODAL,
             payload: { name: 'obligation1', value: true }
           });
-          const obligation1Attribution = newState.component.obligations[0].attributions[0];
-          expect(obligation1Attribution.showAttributionModal).toBeTruthy();
-          expect(obligation1Attribution.error).toBeNull();
+          const attribution1 = newState.component.attributions[0];
+          expect(attribution1.showAttributionModal).toBeTruthy();
+          expect(attribution1.error).toBeNull();
           expect(newState.component.obligations[1]).toEqual({ name: 'obligation2' });
         });
   });
@@ -84,16 +86,17 @@ describe('advancedLegalObligationReducer', function () {
         function() {
           const state = {
             component: {
-              obligations: [{ name: 'obligation1', attributions: [{}] }, { name: 'obligation2' }]
+              obligations: [{ name: 'obligation1'}, { name: 'obligation2' }],
+              attributions: []
             }
           };
           const newState = reduce(state, {
             type: ADVANCED_LEGAL_SAVE_ATTRIBUTION_REQUESTED,
             payload: { name: 'obligation1' }
           });
-          const obligation1Attribution = newState.component.obligations[0].attributions[0];
-          expect(obligation1Attribution.error).toBeNull();
-          expect(obligation1Attribution.saveAttributionSubmitMask).toBeFalsy();
+          const attribution1 = newState.component.attributions[0];
+          expect(attribution1.error).toBeNull();
+          expect(attribution1.saveAttributionSubmitMask).toBeFalsy();
           expect(newState.component.obligations[1]).toEqual({ name: 'obligation2' });
         });
   });
@@ -103,23 +106,23 @@ describe('advancedLegalObligationReducer', function () {
       const state = {
         component: {
           obligations: [
-            { name: 'obligation1', attributions: [{}] }, { name: 'obligation2' }
-          ]
+            { name: 'obligation1'}, { name: 'obligation2' }
+          ],
+          attributions: []
         }
       };
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED,
         payload: { name: 'obligation1', value: { id: 'id', content: 'content', ownerId: 'ownerId' } }
       });
-      const obligation1 = newState.component.obligations[0];
-      const obligation1Attribution = obligation1.attributions[0];
-      expect(obligation1Attribution.id).toBe('id');
-      expect(obligation1Attribution.originalContent).toBe('content');
-      expect(obligation1Attribution.content).toBe('content');
-      expect(obligation1Attribution.originalOwnerId).toBe('ownerId');
-      expect(obligation1Attribution.ownerId).toBe('ownerId');
-      expect(obligation1Attribution.error).toBeNull();
-      expect(obligation1Attribution.saveAttributionSubmitMask).toBeTruthy();
+      const attribution1 = newState.component.attributions[0];
+      expect(attribution1.id).toBe('id');
+      expect(attribution1.originalContent).toBe('content');
+      expect(attribution1.content).toBe('content');
+      expect(attribution1.originalOwnerId).toBe('ownerId');
+      expect(attribution1.ownerId).toBe('ownerId');
+      expect(attribution1.error).toBeNull();
+      expect(attribution1.saveAttributionSubmitMask).toBeTruthy();
       expect(newState.component.obligations[1]).toEqual({ name: 'obligation2' });
     });
   });
@@ -131,17 +134,18 @@ describe('advancedLegalObligationReducer', function () {
       const state = {
         component: {
           obligations: [
-            { name: 'obligation1', attributions: [{}] }, { name: 'obligation2' }
-          ]
+            { name: 'obligation1'}, { name: 'obligation2' }
+          ],
+          attributions: []
         }
       };
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED,
         payload: { name: 'obligation1', value: 'error' }
       });
-      const obligation1Attribution = newState.component.obligations[0].attributions[0];
-      expect(obligation1Attribution.error).toBe('error');
-      expect(obligation1Attribution.saveAttributionSubmitMask).toBeNull();
+      const attribution1 = newState.component.attributions[0];
+      expect(attribution1.error).toBe('error');
+      expect(attribution1.saveAttributionSubmitMask).toBeNull();
       expect(newState.component.obligations[1]).toEqual({ name: 'obligation2' });
     });
   });
@@ -153,17 +157,18 @@ describe('advancedLegalObligationReducer', function () {
       const state = {
         component: {
           obligations: [
-            { name: 'obligation1', attributions: [{}] }, { name: 'obligation2' }
-          ]
+            { name: 'obligation1'}, { name: 'obligation2' }
+          ],
+          attributions: []
         }
       };
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_SAVE_ATTRIBUTION_SUBMIT_MASK_DONE,
         payload: { name: 'obligation1' }
       });
-      const obligation1Attribution = newState.component.obligations[0].attributions[0];
-      expect(obligation1Attribution.saveAttributionSubmitMask).toBeNull();
-      expect(obligation1Attribution.showAttributionModal).toBeFalsy();
+      const attribution1 = newState.component.attributions[0];
+      expect(attribution1.saveAttributionSubmitMask).toBeNull();
+      expect(attribution1.showAttributionModal).toBeFalsy();
       expect(newState.component.obligations[1]).toEqual({ name: 'obligation2' });
     });
   });
@@ -175,10 +180,15 @@ describe('advancedLegalObligationReducer', function () {
       const state = {
         component: {
           obligations: [
+            {name: 'obligation1'},
+            {name: 'obligation2' }
+          ],
+          attributions: [
             {
-              name: 'obligation1',
-              attributions: [{ originalContent: 'originalContent', originalOwnerId: 'originalOwnerId' }]
-            }, { name: 'obligation2' }
+              obligationName: 'obligation1',
+              originalContent: 'originalContent',
+              originalOwnerId: 'originalOwnerId'
+            }
           ]
         }
       };
@@ -186,10 +196,10 @@ describe('advancedLegalObligationReducer', function () {
         type: ADVANCED_LEGAL_CANCEL_ATTRIBUTION_MODAL,
         payload: { name: 'obligation1' }
       });
-      const obligation1Attribution = newState.component.obligations[0].attributions[0];
-      expect(obligation1Attribution.content).toBe('originalContent');
-      expect(obligation1Attribution.ownerId).toBe('originalOwnerId');
-      expect(obligation1Attribution.showAttributionModal).toBeFalsy();
+      const attribution1 = newState.component.attributions[0];
+      expect(attribution1.content).toBe('originalContent');
+      expect(attribution1.ownerId).toBe('originalOwnerId');
+      expect(attribution1.showAttributionModal).toBeFalsy();
       expect(newState.component.obligations[1]).toEqual({ name: 'obligation2' });
     });
   });

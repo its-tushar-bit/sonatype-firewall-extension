@@ -25,8 +25,9 @@ import {
 import { __, find, findIndex, lensPath, merge, over, propEq } from 'ramda';
 
 function updateAttribution(newAttribution, obligationName, state) {
-  const obligationIndex = findIndex(propEq('name', obligationName), state.component.obligations);
-  const lens = lensPath(['component', 'obligations', obligationIndex, 'attributions', 0]);
+  const attributionIndex = findIndex(propEq('obligationName', obligationName), state.component.attributions);
+  const lens = lensPath(
+      ['component', 'attributions', attributionIndex === -1 ? state.component.attributions.length : attributionIndex]);
   return over(lens, merge(__, newAttribution), state);
 }
 
@@ -79,11 +80,11 @@ function saveAttributionSubmitMaskDone(payload, state) {
 }
 
 function cancelAttributionModal(payload, state) {
-  const obligation = find(propEq('name', payload.name), state.component.obligations);
+  const attribution = find(propEq('obligationName', payload.name), state.component.attributions);
   return updateAttribution({
     showAttributionModal: false,
-    content: obligation.attributions[0].originalContent,
-    ownerId: obligation.attributions[0].originalOwnerId
+    content: attribution.originalContent,
+    ownerId: attribution.originalOwnerId
   }, payload.name, state);
 }
 

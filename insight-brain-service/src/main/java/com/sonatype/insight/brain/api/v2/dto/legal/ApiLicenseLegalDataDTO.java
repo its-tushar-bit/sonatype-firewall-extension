@@ -31,6 +31,10 @@ public class ApiLicenseLegalDataDTO
 
   public List<ApiLicenseLegalFileDTO> noticeFiles;
 
+  public List<ApiLicenseLegalObligationDTO> obligations;
+
+  public List<ComponentObligationAttributionDTO> attributions;
+
   /**
    * Persisted {@link ComponentCopyright} identifier associated with this component, if any.
    */
@@ -73,6 +77,8 @@ public class ApiLicenseLegalDataDTO
       final List<ApiLicenseLegalCopyrightDTO> copyrights,
       final List<ApiLicenseLegalFileDTO> licenseFiles,
       final List<ApiLicenseLegalFileDTO> noticeFiles,
+      final List<ApiLicenseLegalObligationDTO> obligations,
+      final List<ComponentObligationAttributionDTO> attributions,
       final String componentCopyrightId,
       final String componentCopyrightScopeOwnerId,
       final String componentLicensesId,
@@ -87,6 +93,8 @@ public class ApiLicenseLegalDataDTO
     this.copyrights = copyrights;
     this.licenseFiles = licenseFiles;
     this.noticeFiles = noticeFiles;
+    this.obligations = obligations;
+    this.attributions = attributions;
     this.componentCopyrightId = componentCopyrightId;
     this.componentCopyrightScopeOwnerId = componentCopyrightScopeOwnerId;
     this.componentLicensesId = componentLicensesId;
@@ -111,6 +119,8 @@ public class ApiLicenseLegalDataDTO
         Objects.equals(copyrights, that.copyrights) &&
         Objects.equals(licenseFiles, that.licenseFiles) &&
         Objects.equals(noticeFiles, that.noticeFiles) &&
+        Objects.equals(obligations, that.obligations) &&
+        Objects.equals(attributions, that.attributions) &&
         Objects.equals(componentCopyrightId, that.componentCopyrightId) &&
         Objects.equals(componentCopyrightScopeOwnerId, that.componentCopyrightScopeOwnerId) &&
         Objects.equals(componentLicensesId, that.componentLicensesId) &&
@@ -123,7 +133,7 @@ public class ApiLicenseLegalDataDTO
   public int hashCode() {
     return Objects
         .hash(declaredLicenses, observedLicenses, effectiveLicenses, effectiveLicenseThreats, copyrights, licenseFiles,
-            noticeFiles, componentCopyrightId, componentCopyrightScopeOwnerId, componentLicensesId,
-            componentLicensesScopeOwnerId, componentNoticesId, componentNoticesScopeOwnerId);
+            noticeFiles, obligations, attributions, componentCopyrightId, componentCopyrightScopeOwnerId,
+            componentLicensesId, componentLicensesScopeOwnerId, componentNoticesId, componentNoticesScopeOwnerId);
   }
 }

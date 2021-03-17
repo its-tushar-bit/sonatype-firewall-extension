@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.dto.legal;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import com.sonatype.insight.license.dto.model.LicenseObligationDTO;
@@ -20,7 +21,7 @@ public class ApiLicenseLegalMetadataDTO
 
   public String licenseText;
 
-  public Set<LicenseObligationDTO> obligations;
+  public Set<LicenseObligationDTO> obligations = new HashSet<>();
 
   public ApiLicenseLegalMetadataDTO() {
     // for jackson

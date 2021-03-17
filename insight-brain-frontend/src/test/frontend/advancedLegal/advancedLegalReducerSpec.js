@@ -19,8 +19,8 @@ import {
   ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
   ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED
 } from '../../../main/frontend/advancedLegal/advancedLegalActions.js';
-import { pick } from 'ramda';
-import { TEXT_BASED_OBLIGATIONS } from '../../../main/frontend/legal/advancedLegalConstants';
+import {pick} from 'ramda';
+import {TEXT_BASED_OBLIGATIONS} from '../../../main/frontend/legal/advancedLegalConstants';
 
 describe('advancedLegalReducer', function () {
   describe('initial state', function () {
@@ -81,11 +81,12 @@ describe('advancedLegalReducer', function () {
       };
       const componentInfo = {
         foo: 'bar',
-        obligations: [],
         component: {
           licenseLegalData: {
             noticeFiles: [],
-            licenseFiles: []
+            licenseFiles: [],
+            obligations: [],
+            attributions: []
           }
         }
       };
@@ -109,41 +110,41 @@ describe('advancedLegalReducer', function () {
       };
       const componentInfo = {
         foo: 'bar',
-        obligations: [],
         component: {
           licenseLegalData: {
             noticeFiles: [],
-            licenseFiles: []
+            licenseFiles: [],
+            obligations: [],
+            attributions: []
           }
         }
       };
       TEXT_BASED_OBLIGATIONS.forEach(element => {
-        componentInfo.obligations.push({ name: element, status: 'status', attributions: [] });
+        componentInfo.component.licenseLegalData.obligations.push({ name: element, status: 'status'});
       });
-      componentInfo.obligations.push({ name: 'other', status: 'status', attributions: [] });
+      componentInfo.component.licenseLegalData.obligations.push({ name: 'other', status: 'status'});
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
         payload: componentInfo
       });
 
-      const { component } = newState;
+      const {component} = newState;
       component.obligations.forEach(obligation => {
         expect(obligation.originalStatus).toBe(obligation.status);
-        if (TEXT_BASED_OBLIGATIONS.indexOf(obligation.name) >= 0) {
-          expect(obligation.attributions.length).toBeGreaterThan(0);
-          const attribution = obligation.attributions[0];
-          expect(attribution.id).toBeNull();
-          expect(attribution.content).toBe('');
-          expect(attribution.ownerId).toBe('ROOT_ORGANIZATION_ID');
-          expect(attribution.originalContent).toBe(attribution.content);
-          expect(attribution.originalOwnerId).toBe(attribution.ownerId);
-          expect(attribution.showAttributionModal).toBeFalsy();
-          expect(attribution.error).toBeNull();
-          expect(attribution.saveAttributionSubmitMask).toBeNull();
-        }
-        else {
-          expect(obligation.attributions.length).toBe(0);
-        }
+      });
+
+      expect(component.attributions.length).toBe(TEXT_BASED_OBLIGATIONS.length);
+      component.attributions.forEach(attribution => {
+        expect(TEXT_BASED_OBLIGATIONS).toContain(attribution.obligationName);
+        expect(attribution.obligationName).not.toBe('other');
+        expect(attribution.id).toBeNull();
+        expect(attribution.content).toBe('');
+        expect(attribution.ownerId).toBe('ROOT_ORGANIZATION_ID');
+        expect(attribution.originalContent).toBe(attribution.content);
+        expect(attribution.originalOwnerId).toBe(attribution.ownerId);
+        expect(attribution.showAttributionModal).toBeFalsy();
+        expect(attribution.error).toBeNull();
+        expect(attribution.saveAttributionSubmitMask).toBeNull();
       });
     });
 
@@ -156,19 +157,21 @@ describe('advancedLegalReducer', function () {
       };
       const componentInfo = {
         foo: 'bar',
-        obligations: [],
         component: {
           licenseLegalData: {
             noticeFiles: [],
-            licenseFiles: []
+            licenseFiles: [],
+            obligations: [],
+            attributions: []
           }
         }
       };
       TEXT_BASED_OBLIGATIONS.forEach(element => {
-        componentInfo.obligations.push(
-            { name: element, status: 'status', attributions: [{ id: 'id', content: 'content', ownerId: 'ownerId' }] });
+        componentInfo.component.licenseLegalData.obligations.push({ name: element, status: 'status' });
+        componentInfo.component.licenseLegalData.attributions.push(
+            {id: 'id', obligationName: element, content: 'content', ownerId: 'ownerId'});
       });
-      componentInfo.obligations.push({ name: 'other', status: 'status', attributions: [] });
+      componentInfo.component.licenseLegalData.obligations.push({ name: 'other', status: 'status'});
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
         payload: componentInfo
@@ -177,21 +180,19 @@ describe('advancedLegalReducer', function () {
       const { component } = newState;
       component.obligations.forEach(obligation => {
         expect(obligation.originalStatus).toBe(obligation.status);
-        if (TEXT_BASED_OBLIGATIONS.indexOf(obligation.name) >= 0) {
-          expect(obligation.attributions.length).toBeGreaterThan(0);
-          const attribution = obligation.attributions[0];
-          expect(attribution.id).toBe('id');
-          expect(attribution.content).toBe('content');
-          expect(attribution.ownerId).toBe('ownerId');
-          expect(attribution.originalContent).toBe(attribution.content);
-          expect(attribution.originalOwnerId).toBe(attribution.ownerId);
-          expect(attribution.showAttributionModal).toBeFalsy();
-          expect(attribution.error).toBeNull();
-          expect(attribution.saveAttributionSubmitMask).toBeNull();
-        }
-        else {
-          expect(obligation.attributions.length).toBe(0);
-        }
+      });
+
+      component.attributions.forEach(attribution => {
+        expect(TEXT_BASED_OBLIGATIONS).toContain(attribution.obligationName);
+        expect(attribution.obligationName).not.toBe('other');
+        expect(attribution.id).toBe('id');
+        expect(attribution.content).toBe('content');
+        expect(attribution.ownerId).toBe('ownerId');
+        expect(attribution.originalContent).toBe(attribution.content);
+        expect(attribution.originalOwnerId).toBe(attribution.ownerId);
+        expect(attribution.showAttributionModal).toBeFalsy();
+        expect(attribution.error).toBeNull();
+        expect(attribution.saveAttributionSubmitMask).toBeNull();
       });
     });
 
@@ -204,13 +205,14 @@ describe('advancedLegalReducer', function () {
       };
       const componentInfo = {
         foo: 'bar',
-        obligations: [],
         component: {
           licenseLegalData: {
             componentNoticesScopeOwnerId: 'appId',
             noticeFiles: [{ content: 'content1', status: 'enabled' }, { content: '', status: 'disabled' }],
             componentLicensesScopeOwnerId: 'appId',
-            licenseFiles: [{ content: 'content2', status: 'enabled' }, { content: '', status: 'disabled' }]
+            licenseFiles: [{ content: 'content2', status: 'enabled' }, { content: '', status: 'disabled' }],
+            obligations: [],
+            attributions: []
           }
         }
       };
@@ -239,6 +241,8 @@ describe('advancedLegalReducer', function () {
             isPristine: true
           }
         ],
+        obligations: [],
+        attributions: [],
         noticesError: null,
         saveNoticesSubmitMask: null,
         showLicensesModal: false,
@@ -274,13 +278,14 @@ describe('advancedLegalReducer', function () {
       };
       const componentInfo = {
         foo: 'bar',
-        obligations: [],
         component: {
           licenseLegalData: {
             componentNoticesScopeOwnerId: null,
             componentLicensesScopeOwnerId: null,
             noticeFiles: [],
-            licenseFiles: []
+            licenseFiles: [],
+            obligations: [],
+            attributions: []
           }
         }
       };

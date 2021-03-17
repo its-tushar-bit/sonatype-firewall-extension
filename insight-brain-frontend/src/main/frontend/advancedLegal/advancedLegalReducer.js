@@ -120,59 +120,65 @@ function loadComponentRequested() {
 }
 
 function loadComponentFulfilled(payload, state) {
-  const newObligations = payload.obligations.map(obligation => {
+  const newObligations = payload.component.licenseLegalData.obligations.map(obligation => {
     const status = obligation.status || 'OPEN';
     const comment = obligation.comment || '';
     const ownerId = obligation.ownerId || 'ROOT_ORGANIZATION_ID';
-    const newObligation = {
+    return {
       ...obligation,
-      status: status,
+      status,
       originalStatus: status,
-      comment: comment,
+      comment,
       originalComment: comment,
-      ownerId: ownerId,
+      ownerId,
       originalOwnerId: ownerId,
       showObligationModal: false,
       error: null,
       saveObligationSubmitMask: null
     };
-    if (TEXT_BASED_OBLIGATIONS.indexOf(newObligation.name) >= 0) {
-      if (newObligation.attributions.length === 0) {
-        newObligation.attributions = [...newObligation.attributions, {
-          id: null,
-          content: '',
-          ownerId: 'ROOT_ORGANIZATION_ID'
-        }];
-      }
-      newObligation.attributions = newObligation.attributions.map(attribution => (
-        {
+  });
+
+  const newAttributions = newObligations
+      .filter(obligation => TEXT_BASED_OBLIGATIONS.indexOf(obligation.name) >= 0)
+      .map(obligation => {
+        const attribution = payload.component.licenseLegalData.attributions.find(a => {
+          return a.obligationName === obligation.name;
+        });
+        if (attribution === undefined) {
+          return {
+            id: null,
+            obligationName: obligation.name,
+            content: '',
+            originalContent: '',
+            ownerId: 'ROOT_ORGANIZATION_ID',
+            originalOwnerId: 'ROOT_ORGANIZATION_ID',
+            showAttributionModal: false,
+            error: null,
+            saveAttributionSubmitMask: null
+          };
+        }
+        return {
           ...attribution,
           originalContent: attribution.content,
           originalOwnerId: attribution.ownerId,
           showAttributionModal: false,
           error: null,
           saveAttributionSubmitMask: null
-        }
-      ));
-    }
-    return newObligation;
-  });
-  const newNoticeFiles = payload.component.licenseLegalData.noticeFiles.map(noticeFile => (
-    {
-      ...noticeFile,
-      originalContent: noticeFile.content,
-      originalStatus: noticeFile.status,
-      isPristine: true
-    }
-  ));
-  const newLicenseFiles = payload.component.licenseLegalData.licenseFiles.map(licenseFile => (
-    {
-      ...licenseFile,
-      originalContent: licenseFile.content,
-      originalStatus: licenseFile.status,
-      isPristine: true
-    }
-  ));
+        };
+      });
+
+  const newNoticeFiles = payload.component.licenseLegalData.noticeFiles.map(noticeFile => ({
+    ...noticeFile,
+    originalContent: noticeFile.content,
+    originalStatus: noticeFile.status,
+    isPristine: true
+  }));
+  const newLicenseFiles = payload.component.licenseLegalData.licenseFiles.map(licenseFile => ({
+    ...licenseFile,
+    originalContent: licenseFile.content,
+    originalStatus: licenseFile.status,
+    isPristine: true
+  }));
   const componentNoticesScopeOwnerId = payload.component.licenseLegalData.componentNoticesScopeOwnerId ||
             'ROOT_ORGANIZATION_ID';
   const componentLicensesScopeOwnerId = payload.component.licenseLegalData.componentLicensesScopeOwnerId ||
@@ -202,7 +208,8 @@ function loadComponentFulfilled(payload, state) {
         ...payload.component,
         licenseLegalData: newLicenseLegalData
       },
-      obligations: newObligations
+      obligations: newObligations,
+      attributions: newAttributions
     }
   };
 }

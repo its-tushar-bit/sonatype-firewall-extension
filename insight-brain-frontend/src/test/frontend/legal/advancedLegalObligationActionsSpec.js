@@ -38,8 +38,9 @@ describe('advancedLegalObligationActions', function () {
             componentIdentifier: 'componentIdentifier'
           },
           obligations: [
-            { name: 'name', attributions: [{ id: 'id', content: 'content', ownerId: 'ROOT_ORGANIZATION_ID' }] }
-          ]
+            { name: 'name' }
+          ],
+          attributions: [{ id: 'id', obligationName: 'name', content: 'content', ownerId: 'ROOT_ORGANIZATION_ID' }]
         },
         availableScopes: {
           values: [
@@ -180,7 +181,7 @@ describe('advancedLegalObligationActions', function () {
         'no attribution at a higher scope',
     function(done) {
       let state = { ...initialState };
-      state.advancedLegal.component.obligations[0].attributions[0].content = '';
+      state.advancedLegal.component.attributions[0].content = '';
       store = SpecUtil.mockReduxStore(state);
       mockAxiosCalls({
         del: {
@@ -220,8 +221,8 @@ describe('advancedLegalObligationActions', function () {
         'an attribution at a higher scope',
     function(done) {
       let state = { ...initialState };
-      state.advancedLegal.component.obligations[0].attributions[0].content = '';
-      state.advancedLegal.component.obligations[0].attributions[0].ownerId = 'org';
+      state.advancedLegal.component.attributions[0].content = '';
+      state.advancedLegal.component.attributions[0].ownerId = 'org';
       store = SpecUtil.mockReduxStore(state);
       mockAxiosCalls({
         del: {
@@ -259,7 +260,7 @@ describe('advancedLegalObligationActions', function () {
 
     it('dispatches a ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED action when the API fails with delete', function(done) {
       let state = { ...initialState };
-      state.advancedLegal.component.obligations[0].attributions[0].content = '';
+      state.advancedLegal.component.attributions[0].content = '';
       store = SpecUtil.mockReduxStore(state);
       mockAxiosCalls({
         del: {

@@ -603,6 +603,7 @@ public class TemporaryEntity
       }
     }
 
+    componentObligationAttributionDAO.getAll().forEach(componentObligationAttributionDAO::delete);
     componentObligationDAO.getAll().forEach(componentObligationDAO::delete);
     componentCopyrightDAO.getAll().forEach(componentCopyrightDAO::delete);
     componentLegalFileDAO.getAll().forEach(componentLegalFileDAO::delete);
@@ -2893,12 +2894,13 @@ public class TemporaryEntity
   public ComponentObligationAttribution newComponentObligationAttribution(
       ComponentIdentifier componentIdentifier,
       String ownerId,
-      String name,
+      String obligationName,
       String content,
       String legalContentHash)
   {
     ComponentObligationAttribution componentObligationAttribution =
-        new ComponentObligationAttribution(componentIdentifier, ownerId, name, content, legalContentHash, "username");
+        new ComponentObligationAttribution(componentIdentifier, ownerId, obligationName, content,
+            legalContentHash, "username");
     componentObligationAttributionDAO.insert(componentObligationAttribution);
     return componentObligationAttribution;
   }

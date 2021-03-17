@@ -109,6 +109,19 @@ public class ComponentObligationDAO
         ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()), obligationNames);
   }
 
+  public List<ComponentObligation> getByOwnerIdAndComponentIdentifier(
+      TransactionContext tx,
+      String ownerId,
+      ComponentIdentifier componentIdentifier)
+  {
+    String sQuery = "SELECT entity FROM ComponentObligation entity" + //
+        " WHERE entity.ownerId=?1" + //
+        " AND entity.componentIdFormat=?2" + //
+        " AND entity.componentIdCoordinatesJson=?3";
+    return getList(tx, sQuery, ownerId, componentIdentifier.getFormat(),
+        ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()));
+  }
+
   public List<ComponentObligation> getByOwnerIdAndComponentIdentifierAndObligationNames(
       String ownerId,
       ComponentIdentifier componentIdentifier,
@@ -143,6 +156,23 @@ public class ComponentObligationDAO
     return results;
   }
 
+  public List<ComponentObligation> getByOwnerIdAndComponentIdentifierWithHierarchy(
+      TransactionContext tx,
+      String ownerId,
+      ComponentIdentifier componentIdentifier)
+  {
+    Map<String, ComponentObligation> nameToObligationMap = new HashMap<>();
+    OwnerDAO ownerDAO = new OwnerDAO();
+    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
+      List<ComponentObligation> componentObligations =
+          getByOwnerIdAndComponentIdentifier(tx, owner.getId(), componentIdentifier);
+      for (ComponentObligation componentObligation : componentObligations) {
+        nameToObligationMap.putIfAbsent(componentObligation.getObligationName(), componentObligation);
+      }
+    }
+    return new ArrayList<>(nameToObligationMap.values());
+  }
+
   public List<ComponentObligation> getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
       String ownerId,
       ComponentIdentifier componentIdentifier,
@@ -167,7 +197,7 @@ public class ComponentObligationDAO
               .computeIfAbsent(componentObligation.getComponentIdentifier(), key -> new HashSet<>());
           if (obligationNames.add(componentObligation.getObligationName())
               && (componentObligation.getStatus() == ObligationStatus.FULFILLED
-                  || componentObligation.getStatus() == ObligationStatus.IGNORED)) {
+              || componentObligation.getStatus() == ObligationStatus.IGNORED)) {
             // The obligation was not saved in the scope of the previous owner and has been addressed in the current one
             Set<String> obligationNamesAddressed = componentObligationsAddressed
                 .computeIfAbsent(componentObligation.getComponentIdentifier(), key -> new HashSet<>());

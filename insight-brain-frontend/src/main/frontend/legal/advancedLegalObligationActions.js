@@ -38,13 +38,12 @@ const saveAttributionRequested = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_A
 const saveAttributionFulfilled = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED);
 const saveAttributionFailed = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED);
 
-export function saveAttribution(name) {
+export function saveAttribution(obligationName) {
   return (dispatch, getState) => {
-    dispatch(saveAttributionRequested({ name }));
+    dispatch(saveAttributionRequested({ name: obligationName }));
 
     const advancedLegalState = getState().advancedLegal;
-    const obligationState = find(propEq('name', name), advancedLegalState.component.obligations);
-    const attributionState = obligationState.attributions[0];
+    const attributionState = find(propEq('obligationName', obligationName), advancedLegalState.component.attributions);
     const ownerId = attributionState.ownerId;
     const scopeVisited = advancedLegalState.availableScopes.values[0];
     const scope = find(propEq('id', ownerId), advancedLegalState.availableScopes.values);
@@ -55,28 +54,28 @@ export function saveAttribution(name) {
     if (attributionState.id !== null && attributionState.content === '') {
       return axios.delete(getDeleteComponentObligationAttributionUrl(attributionState.id))
           .then(() => onAttributionSaveSuccess(dispatch, scopeVisited.type, scopeVisited.publicId, componentIdentifier,
-              name))
+              obligationName))
           .catch(error => {
-            dispatch(saveAttributionFailed({ name, value: Messages.getHttpErrorMessage(error) }));
+            dispatch(saveAttributionFailed({ name: obligationName, value: Messages.getHttpErrorMessage(error) }));
           });
     }
     else {
-      const attributionPayload = getAttributionPayload(advancedLegalState, obligationState, attributionState);
+      const attributionPayload = getAttributionPayload(advancedLegalState, obligationName, attributionState);
       return axios.post(getSaveComponentObligationAttributionUrl(ownerType, ownerPublicId), attributionPayload)
           .then(() => onAttributionSaveSuccess(dispatch, scopeVisited.type, scopeVisited.publicId, componentIdentifier,
-              name))
+              obligationName))
           .catch(error => {
-            dispatch(saveAttributionFailed({ name, value: Messages.getHttpErrorMessage(error) }));
+            dispatch(saveAttributionFailed({ name: obligationName, value: Messages.getHttpErrorMessage(error) }));
           });
     }
   };
 }
 
-function getAttributionPayload(advancedLegalState, obligationState, attributionState) {
+function getAttributionPayload(advancedLegalState, obligationName, attributionState) {
   const payload = {
     'id': attributionState.id,
     'componentIdentifier': advancedLegalState.component.component.componentIdentifier,
-    'obligationName': obligationState.name,
+    'obligationName': obligationName,
     'content': attributionState.content
   };
   if (payload.id !== null && isScopeOverride(attributionState.originalOwnerId, attributionState.ownerId,

@@ -862,6 +862,7 @@ public class ApiLicenseLegalServiceTest
         new LinkedHashSet<>(Arrays.asList(componentLegalFiles)));
     assertComponentData(licenseMetadataReport.components, rawReport);
     assertLicenseThreatGroup(licenseMetadataReport.components);
+    assertObligations(licenseMetadataReport.components, licenseMetadata);
     List<Collection<ComponentIdentifier>> queriedComponents = componentIdentifiersArgumentCaptor.getAllValues();
     assertThat(queriedComponents).hasSize(2);
     queriedComponents.forEach(
@@ -1216,7 +1217,7 @@ public class ApiLicenseLegalServiceTest
     Owner owner = tempEntity.newApplicationWithParent();
     ComponentIdentifier c = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
     // Set the HDS data
-    List<LicenseMetadataDTO> licenseMetadataDTOs = createLicenseMetadataDTOs(Sets.newHashSet("MIT"));
+    List<LicenseMetadataDTO> licenseMetadataDTOs = createLicenseMetadataDTOs(Sets.newHashSet("Beerware"));
     licenseMetadataDTOs.get(0).setLicenseObligations(new LinkedHashSet<>(Arrays
         .asList(new LicenseObligationDTO("name1", Collections.emptySet()),
             new LicenseObligationDTO("name2", Collections.emptySet()),
@@ -1237,18 +1238,19 @@ public class ApiLicenseLegalServiceTest
         .getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), c, null, null, null, null, null);
 
     // Without saved obligation data (no obligations or obligation attributions), we get defaults
-    assertThat(licenseLegalComponentReport.obligations).extracting(ApiLicenseLegalObligationDTO::getId)
+    List<ApiLicenseLegalObligationDTO> obligationDTOS =
+        licenseLegalComponentReport.component.licenseLegalData.obligations;
+    assertThat(obligationDTOS).extracting(ApiLicenseLegalObligationDTO::getId)
         .containsExactly(null, null, null, null);
-    assertThat(licenseLegalComponentReport.obligations).extracting(ApiLicenseLegalObligationDTO::getOwnerId)
+    assertThat(obligationDTOS).extracting(ApiLicenseLegalObligationDTO::getOwnerId)
         .containsExactly(null, null, null, null);
-    assertThat(licenseLegalComponentReport.obligations).extracting(ApiLicenseLegalObligationDTO::getName)
+    assertThat(obligationDTOS).extracting(ApiLicenseLegalObligationDTO::getName)
         .containsExactlyInAnyOrder("name1", "name2", "name3", "name4");
-    assertThat(licenseLegalComponentReport.obligations).extracting(ApiLicenseLegalObligationDTO::getStatus)
+    assertThat(obligationDTOS).extracting(ApiLicenseLegalObligationDTO::getStatus)
         .containsExactly(ObligationStatus.OPEN, ObligationStatus.OPEN, ObligationStatus.OPEN, ObligationStatus.OPEN);
-    assertThat(licenseLegalComponentReport.obligations).extracting(ApiLicenseLegalObligationDTO::getComment)
+    assertThat(obligationDTOS).extracting(ApiLicenseLegalObligationDTO::getComment)
         .containsExactly(null, null, null, null);
-    assertThat(licenseLegalComponentReport.obligations).flatExtracting(ApiLicenseLegalObligationDTO::getAttributions)
-        .isEmpty();
+    assertThat(licenseLegalComponentReport.component.licenseLegalData.attributions).isEmpty();
 
     // Save some obligation data
     ComponentObligation componentObligation1 = tempEntity
@@ -1260,8 +1262,6 @@ public class ApiLicenseLegalServiceTest
         .newComponentObligation(c, owner.getId(), "name3", "comment3", ObligationStatus.IGNORED, "legalContentHash");
     ComponentObligationAttribution componentObligationAttribution1 =
         tempEntity.newComponentObligationAttribution(c, owner.getId(), "name1", "content1", "legalContentHash");
-    ComponentObligationAttribution componentObligationAttribution2 =
-        tempEntity.newComponentObligationAttribution(c, owner.getId(), "name1", "content2", "legalContentHash");
     ComponentObligationAttribution componentObligationAttribution3 =
         tempEntity.newComponentObligationAttribution(c, owner.getId(), "name2", "content3", "legalContentHash");
     // Obligation attribution but no obligation
@@ -1272,47 +1272,46 @@ public class ApiLicenseLegalServiceTest
         .getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), c, null, null, null, null, null);
 
     // With saved obligation data, the corresponding set is as expected
-    assertThat(licenseLegalComponentReport.obligations).isNotEmpty();
-    ApiLicenseLegalObligationDTO obligation1 = licenseLegalComponentReport.obligations.stream()
+    obligationDTOS =
+        licenseLegalComponentReport.component.licenseLegalData.obligations;
+    assertThat(obligationDTOS).isNotEmpty();
+    ApiLicenseLegalObligationDTO obligation1 = obligationDTOS.stream()
         .filter(o -> o.getName().equals(componentObligation1.getObligationName())).findFirst().orElse(null);
     assertThat(obligation1).isNotNull();
     assertThat(obligation1.getId()).isEqualTo(componentObligation1.getId());
     assertThat(obligation1.getOwnerId()).isEqualTo(componentObligation1.getOwnerId());
     assertThat(obligation1.getStatus()).isEqualTo(componentObligation1.getStatus());
     assertThat(obligation1.getComment()).isEqualTo(componentObligation1.getComment());
-    assertThat(obligation1.getAttributions()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
-        new ComponentObligationAttributionDTO(componentObligationAttribution1.getId(),
-            owner.getId(), componentObligationAttribution1.getContent()),
-        new ComponentObligationAttributionDTO(componentObligationAttribution2.getId(),
-            owner.getId(), componentObligationAttribution2.getContent()));
-    ApiLicenseLegalObligationDTO obligation2 = licenseLegalComponentReport.obligations.stream()
+
+    ApiLicenseLegalObligationDTO obligation2 = obligationDTOS.stream()
         .filter(o -> o.getName().equals(componentObligation2.getObligationName())).findFirst().orElse(null);
     assertThat(obligation2).isNotNull();
     assertThat(obligation2.getId()).isEqualTo(componentObligation2.getId());
     assertThat(obligation2.getOwnerId()).isEqualTo(componentObligation2.getOwnerId());
     assertThat(obligation2.getStatus()).isEqualTo(componentObligation2.getStatus());
     assertThat(obligation2.getComment()).isEqualTo(componentObligation2.getComment());
-    assertThat(obligation2.getAttributions()).usingRecursiveFieldByFieldElementComparator().containsExactly(
-        new ComponentObligationAttributionDTO(componentObligationAttribution3.getId(),
-            owner.getId(), componentObligationAttribution3.getContent()));
-    ApiLicenseLegalObligationDTO obligation3 = licenseLegalComponentReport.obligations.stream()
+
+    ApiLicenseLegalObligationDTO obligation3 = obligationDTOS.stream()
         .filter(o -> o.getName().equals(componentObligation3.getObligationName())).findFirst().orElse(null);
     assertThat(obligation3).isNotNull();
     assertThat(obligation3.getId()).isEqualTo(componentObligation3.getId());
     assertThat(obligation3.getOwnerId()).isEqualTo(componentObligation3.getOwnerId());
     assertThat(obligation3.getStatus()).isEqualTo(ObligationStatus.IGNORED);
     assertThat(obligation3.getComment()).isEqualTo(componentObligation3.getComment());
-    assertThat(obligation3.getAttributions()).isEmpty();
-    ApiLicenseLegalObligationDTO obligation4 = licenseLegalComponentReport.obligations.stream()
+
+    ApiLicenseLegalObligationDTO obligation4 = obligationDTOS.stream()
         .filter(o -> o.getName().equals(componentObligationAttribution4.getObligationName())).findFirst().orElse(null);
     assertThat(obligation4).isNotNull();
     assertThat(obligation4.getId()).isNull();
     assertThat(obligation4.getOwnerId()).isNull();
     assertThat(obligation4.getStatus()).isEqualTo(ObligationStatus.OPEN);
     assertThat(obligation4.getComment()).isNull();
-    assertThat(obligation4.getAttributions()).usingRecursiveFieldByFieldElementComparator().containsExactly(
-        new ComponentObligationAttributionDTO(componentObligationAttribution4.getId(),
-            owner.getId(), componentObligationAttribution4.getContent()));
+
+    assertThat(licenseLegalComponentReport.component.licenseLegalData.attributions)
+        .containsExactlyInAnyOrder(
+            new ComponentObligationAttributionDTO(componentObligationAttribution1),
+            new ComponentObligationAttributionDTO(componentObligationAttribution3),
+            new ComponentObligationAttributionDTO(componentObligationAttribution4));
   }
 
   private void testGetLicenseLegalComponentReport(
@@ -1781,7 +1780,7 @@ public class ApiLicenseLegalServiceTest
     assertThat(components).hasSize(rawReport.components.size());
     List<Collection<String>> licenseIds = licenseIdArgumentCaptor.getAllValues();
     assertThat(licenseIds).hasSize(1);
-    assertThat(licenseIds.get(0)).containsExactly(expectedLicenseIds);
+    assertThat(licenseIds.get(0)).containsExactlyInAnyOrder(expectedLicenseIds);
     Set<String> expectedLicenseLegalMetadataLicenseIds = new LinkedHashSet<>(Arrays.asList(expectedLicenseIds));
     expectedLicenseLegalMetadataLicenseIds.addAll(rawReport.components.stream()
         .flatMap(component -> Stream.concat(Stream.concat(component.licenseData.declaredLicenses.stream(),
@@ -1791,7 +1790,7 @@ public class ApiLicenseLegalServiceTest
         .collect(Collectors.toCollection(LinkedHashSet::new)));
     assertThat(licenseLegalMetadata).hasSize(expectedLicenseLegalMetadataLicenseIds.size());
     assertThat(licenseLegalMetadata).extracting(license -> license.licenseId)
-        .containsExactly(expectedLicenseLegalMetadataLicenseIds.toArray(new String[0]));
+        .containsExactlyInAnyOrder(expectedLicenseLegalMetadataLicenseIds.toArray(new String[0]));
     assertThat(components.stream()
         .flatMap(c -> c.licenseLegalData.copyrights.stream())
         .collect(Collectors.toSet())).hasSize(3);
@@ -1975,6 +1974,24 @@ public class ApiLicenseLegalServiceTest
     assertThat(licenseThreatGroups).usingRecursiveFieldByFieldElementComparator().contains(expectedLicenseThreatGroup);
   }
 
+  private void assertObligations(
+      final List<ApiLicenseLegalComponentDTO> components, final LicenseMetadataDTO[] licenseMetadata)
+  {
+    Map<String, LicenseMetadataDTO> licenseMetadataDTOMap = Arrays.stream(licenseMetadata)
+        .collect(Collectors.toMap(LicenseMetadataDTO::getLicenseId, Function.identity()));
+    for (ApiLicenseLegalComponentDTO componentDTO : components) {
+      Set<String> obligationNames =
+          componentDTO.licenseLegalData.obligations.stream().map(ApiLicenseLegalObligationDTO::getName).collect(
+              Collectors.toSet());
+      Set<String> expectedObligationNames = componentDTO.licenseLegalData.effectiveLicenses.stream()
+          .flatMap(l -> licenseMetadataDTOMap.get(l).getLicenseObligations().stream())
+          .map(LicenseObligationDTO::getName)
+          .collect(Collectors.toSet());
+
+      assertThat(obligationNames).containsAll(expectedObligationNames);
+    }
+  }
+
   private <T> T getContent(String resource, Class<? extends T> type) throws Exception {
     return JsonUtils.parse(IOUtils.toString(getClass().getResource("/" + getClass().getSimpleName() + "/" + resource),
         StandardCharsets.UTF_8), type);
@@ -2020,7 +2037,7 @@ public class ApiLicenseLegalServiceTest
                 Stream.concat(licenseData.declaredLicenses.stream(), licenseData.observedLicenses.stream()),
                 licenseData.effectiveLicenses.stream()))
             .map(license -> license.licenseId)
-            .collect(Collectors.toCollection(LinkedHashSet::new))));
+            .collect(Collectors.toSet())));
 
     assertThat(telemetryData).isNotNull();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.APPLICATION_LICENSE_USAGE);

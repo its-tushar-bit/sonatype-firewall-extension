@@ -102,7 +102,7 @@ public class ComponentLegalOverviewPage
     }
 
     public SelenideElement relPath() {
-      return child("h3");
+      return child(".legal-file-path");
     }
 
     public SelenideElement text() {
@@ -144,7 +144,7 @@ public class ComponentLegalOverviewPage
     }
 
     public SelenideElement relPath() {
-      return child("h3");
+      return child(".legal-file-path");
     }
 
     public SelenideElement text() {

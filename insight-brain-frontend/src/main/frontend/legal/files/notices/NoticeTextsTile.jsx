@@ -47,7 +47,7 @@ export default function NoticeTextsTile(props) {
 const createItem = (notice, index) => (
   <section id={ 'notice-section-' + index } key={ index } className="nx-tile-subsection legal-file">
     <div className="legal-file-section-header">
-      <span className="legal-file-path">{ notice.relPath } </span>
+      <span className="legal-file-path">{ notice.relPath }</span>
       <span className="nx-tile__actions">
         <a href="">View More Details <NxFontAwesomeIcon icon={ faChevronRight }/></a>
       </span>

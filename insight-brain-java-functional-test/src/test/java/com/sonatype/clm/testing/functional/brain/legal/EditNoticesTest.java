@@ -386,7 +386,7 @@ public class EditNoticesTest
 
   private void assertNotice(ComponentLegalOverviewPage.Notice notice, String relPath, String text) {
     if (relPath == null) {
-      notice.relPath().shouldNot(Condition.exist);
+      notice.relPath().shouldHave(Condition.exactText(""));
     }
     else {
       notice.relPath().shouldHave(Condition.exactText(relPath));

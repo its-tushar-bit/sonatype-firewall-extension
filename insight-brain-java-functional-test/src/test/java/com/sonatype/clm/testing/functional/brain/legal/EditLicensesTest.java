@@ -389,7 +389,7 @@ public class EditLicensesTest
 
   private void assertLicense(ComponentLegalOverviewPage.License license, String relPath, String text) {
     if (relPath == null) {
-      license.relPath().shouldNot(Condition.exist);
+      license.relPath().shouldHave(Condition.exactText(""));
     }
     else {
       license.relPath().shouldHave(Condition.exactText(relPath));

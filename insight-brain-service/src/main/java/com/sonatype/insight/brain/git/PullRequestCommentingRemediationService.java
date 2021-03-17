@@ -29,7 +29,6 @@ import com.sonatype.insight.brain.model.HasComponentId;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 @Named
@@ -37,8 +36,6 @@ import com.sonatype.insight.license.model.LicensedFeature;
 public class PullRequestCommentingRemediationService
 {
   private static final String VERSION_KEY = "version";
-
-  static final String BREAKING_CHANGES_IN_IQ_FOR_SCM = "breakingChangesInIqForScm";
 
   private final ApplicationDAO applicationDAO;
 
@@ -48,22 +45,18 @@ public class PullRequestCommentingRemediationService
 
   private final ProductLicense productLicense;
 
-  private final InsightConfig insightConfig;
-
   @Inject
   public PullRequestCommentingRemediationService(
       final ApplicationDAO applicationDAO,
       final ComponentInfoService componentInfoService,
       final ComponentRemediationService componentRemediationService,
-      final ProductLicense productLicense,
-      final InsightConfig insightConfig)
+      final ProductLicense productLicense)
   {
     this.applicationDAO = applicationDAO;
     this.componentInfoService = componentInfoService;
     componentInfoService.setToolName("ci");
     this.componentRemediationService = componentRemediationService;
     this.productLicense = productLicense;
-    this.insightConfig = insightConfig;
   }
 
   /**
@@ -120,9 +113,7 @@ public class PullRequestCommentingRemediationService
       final ComponentIdentifier remediationComponentIdentifier)
   {
     if (remediationComponentIdentifier != null) {
-      if (productLicense.hasFeature(LicensedFeature.BREAKING_CHANGE) &&
-          insightConfig.isExperimentalFeatureEnabled(BREAKING_CHANGES_IN_IQ_FOR_SCM) // to be removed at the end
-      ) {
+      if (productLicense.hasFeature(LicensedFeature.BREAKING_CHANGE)) {
         // Collect breaking changes info
         Optional<ComponentDetailsDTO> componentDetailsDTO = componentDetailsDTOs.stream()
             .filter(dto -> dto.componentIdentifier.compareTo(remediationComponentIdentifier) == 0)

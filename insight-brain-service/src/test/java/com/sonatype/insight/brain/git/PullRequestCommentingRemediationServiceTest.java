@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.git;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +24,6 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.junit.Before;
@@ -65,29 +63,19 @@ public class PullRequestCommentingRemediationServiceTest
   }
 
   @Test
-  public void testGetRemediationVersionMap_remediationFound_adpEnabled_featureFlagEnabled() {
-    testGetRemediationVersionMap_remediationFound(true, true);
+  public void testGetRemediationVersionMap_remediationFound_adpEnabled() {
+    testGetRemediationVersionMap_remediationFound(true);
   }
 
   @Test
-  public void testGetRemediationVersionMap_remediationFound_adpEnabled_featureFlagDisabled() {
-    testGetRemediationVersionMap_remediationFound(true, false);
+  public void testGetRemediationVersionMap_remediationFound_adpDisabled() {
+    testGetRemediationVersionMap_remediationFound(false);
   }
 
-  @Test
-  public void testGetRemediationVersionMap_remediationFound_adpDisabled_featureFlagEnabled() {
-    testGetRemediationVersionMap_remediationFound(false, true);
-  }
-
-  @Test
-  public void testGetRemediationVersionMap_remediationFound_adpDisabled_featureFlagDisabled() {
-    testGetRemediationVersionMap_remediationFound(false, false);
-  }
-
-  private void testGetRemediationVersionMap_remediationFound(boolean adpEnabled, boolean featureFlagEnabled) {
+  private void testGetRemediationVersionMap_remediationFound(boolean adpEnabled) {
     // given:
     service = new PullRequestCommentingRemediationService(new ApplicationDAO(), mockComponentInfoService,
-        mockComponentRemediationService, mockProductLicense, getInsightConfig(featureFlagEnabled));
+        mockComponentRemediationService, mockProductLicense);
 
     ComponentIdentifier id1 = ComponentIdentifier.createNpmCoordinates("artifact-1", "1.0.0");
 
@@ -107,7 +95,7 @@ public class PullRequestCommentingRemediationServiceTest
     // then: remediation version returned in map
     assertThat(versionMap.containsKey(id1)).isTrue();
     assertThat(versionMap.get(id1).getVersion()).isEqualTo("1.2.0");
-    if (adpEnabled && featureFlagEnabled) {
+    if (adpEnabled) {
       assertThat(versionMap.get(id1).getBreakingChangesCount()).isEqualTo(7);
     }
     else {
@@ -119,7 +107,7 @@ public class PullRequestCommentingRemediationServiceTest
   public void testGetRemediationVersionMap_remediationNotFound() {
     // given:
     service = new PullRequestCommentingRemediationService(new ApplicationDAO(), mockComponentInfoService,
-        mockComponentRemediationService, mockProductLicense, getInsightConfig(true));
+        mockComponentRemediationService, mockProductLicense);
 
     ComponentIdentifier id2 = ComponentIdentifier.createNpmCoordinates("artifact-2", "2.0.0");
 
@@ -177,15 +165,5 @@ public class PullRequestCommentingRemediationServiceTest
     }
     when(mockComponentRemediationService.getSuggestedRemediation(
         any(), any(), any(), any(), any())).thenReturn(remediationValueDto);
-  }
-
-  private InsightConfig getInsightConfig(boolean featureFlagEnabled) {
-    InsightConfig config = new InsightConfig();
-    Map<String, Boolean> experimentalFeatures = new HashMap<>();
-    if (featureFlagEnabled) {
-      experimentalFeatures.put(PullRequestCommentingRemediationService.BREAKING_CHANGES_IN_IQ_FOR_SCM, true);
-    }
-    config.setExperimentalFeatures(experimentalFeatures);
-    return config;
   }
 }

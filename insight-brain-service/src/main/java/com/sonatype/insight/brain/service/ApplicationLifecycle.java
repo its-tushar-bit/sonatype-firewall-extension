@@ -82,7 +82,12 @@ public class ApplicationLifecycle
     taskScheduler.start();
     licenseManager.loadLicense();
     // If a license is not installed and the config has a license file path, then try to install it from there.
-    licenseManager.installLicenseIfUnlicensed(configuration.getLicenseFile());
+    try {
+      licenseManager.installLicenseIfUnlicensed(configuration.getLicenseFile());
+    }
+    catch (Exception e) {
+      log.warn("The license {} could not be installed", configuration.getLicenseFile(), e);
+    }
 
     LicenseDataUpdater.setUpdater(licenseDataUpdater);
 

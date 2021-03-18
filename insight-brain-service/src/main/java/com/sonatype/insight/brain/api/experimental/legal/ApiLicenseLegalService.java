@@ -1037,7 +1037,7 @@ public class ApiLicenseLegalService
           componentObligationDAO::getAddressedObligationsByOwnerIdWithHierarchy);
     }
 
-    Map<String, Set<String>> licenseIdObligationNamesMap =
+    Map<String, Set<String>> licenseIdObligationNamesMap = licenseIdsFound.isEmpty() ? new HashMap<>(0) :
         apiLicenseLegalHdsService.getLicenseMetadata(licenseIdsFound).parallelStream()
             .collect(Collectors.toMap(
                 LicenseMetadataDTO::getLicenseId,

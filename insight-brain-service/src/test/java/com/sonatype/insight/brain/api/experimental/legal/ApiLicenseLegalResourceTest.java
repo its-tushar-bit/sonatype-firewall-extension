@@ -19,6 +19,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -69,6 +70,7 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.common.collect.ImmutableSet;
+import org.assertj.core.api.Condition;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -566,6 +568,43 @@ public class ApiLicenseLegalResourceTest
     final Collection<String> contents = response.getBodySet(String.class);
 
     assertThat(contents).containsExactlyInAnyOrder("Content 1", "Content 2");
+  }
+
+  @Test
+  public void testGetCopyrightFileCount() throws Exception {
+    final ComponentIdentifier mavenIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+
+    final LegalCommentFilesDTO commentFilesDTO1 = new LegalCommentFilesDTO();
+    commentFilesDTO1.setContent("Content 1");
+    commentFilesDTO1.setCopyrightContentHashes(ImmutableSet.of("copyright hash 1", "copyright hash 2"));
+    commentFilesDTO1.setFilePaths(ImmutableSet.of("path1/file1", "path2/file1"));
+
+    final LegalCommentFilesDTO commentFilesDTO2 = new LegalCommentFilesDTO();
+    commentFilesDTO2.setContent("Content 2");
+    commentFilesDTO2.setCopyrightContentHashes(ImmutableSet.of("copyright hash 3", "copyright hash 2"));
+    commentFilesDTO2.setFilePaths(ImmutableSet.of("path2/file2", "path1/file1", "path2/file1"));
+
+    final ComponentLegalCommentFilePathsDTO hdsResponse = new ComponentLegalCommentFilePathsDTO();
+    hdsResponse.setHash("hash");
+    hdsResponse.setComponentIdentifier(mavenIdentifier);
+    hdsResponse.setComments(ImmutableSet.of(commentFilesDTO1, commentFilesDTO2));
+
+    hdsRespondWith(ImmutableSet.of(hdsResponse)).atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_FILE_PATHS_URL);
+
+    final HttpResponse response = restRequest()
+        .path(ApiLicenseLegalResource.COMPONENT_COPYRIGHT_FILE_COUNT)
+        .parameter(OwnerType.ORGANIZATION.toString(), Organization.ROOT_ORGANIZATION_ID, "hash")
+        .query("componentIdentifier", mavenIdentifier)
+        .get();
+
+    assertResponseStatus(200, response);
+    final Map<String, Integer> fileCounts = (Map<String, Integer>)response.getBody(Map.class);
+
+    assertThat(fileCounts).hasSize(3)
+        .hasEntrySatisfying("copyright hash 1", new Condition<>(Predicate.isEqual(2), "hash 1"))
+        .hasEntrySatisfying("copyright hash 2", new Condition<>(Predicate.isEqual(5), "hash 2"))
+        .hasEntrySatisfying("copyright hash 3", new Condition<>(Predicate.isEqual(3), "hash 3"));
+
   }
 
   private void mockReport(PolicyEvaluation evaluation) {

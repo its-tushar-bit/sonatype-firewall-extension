@@ -144,6 +144,31 @@ public class ApiLegalCopyrightService
         .collect(Collectors.toList());
   }
 
+  /**
+   * Returns a number map of copyright content hashes to a number of source files that copyright appears in
+   */
+  @Authorize(permission = Permission.LEGAL_REVIEWER)
+  public Map<String, Integer> getCopyrightFileCount(
+      final @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      final @AuthzContext(AuthzContext.Key.ID) String ownerId,
+      final ComponentIdentifier componentIdentifier,
+      final String componentHash)
+  {
+    checkLicense();
+    componentIdentifier.validate();
+
+    final Map<String, Integer> copyrightFileCount = new HashMap<>();
+
+    loadCopyrightContexts(componentIdentifier, componentHash).forEach(
+        context -> context.getCopyrightContentHashes().forEach(copyrightHash -> {
+          final int existing = copyrightFileCount.computeIfAbsent(copyrightHash, key -> 0);
+          copyrightFileCount.put(copyrightHash, existing + context.getFilePaths().size());
+        })
+    );
+
+    return copyrightFileCount;
+  }
+
   private Collection<CopyrightContextDTO> loadCopyrightContexts(
       final ComponentIdentifier componentIdentifier,
       final String componentHash)

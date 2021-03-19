@@ -65,6 +65,16 @@ public class ApiLegalCopyrightServiceAuthzTest
   }
 
   @Test
+  public void testGetCopyrightFilePaths_Authorized() {
+    grantLegalReviewerPermission(org.getPublicId());
+    assertThatNoException().isThrownBy(() ->
+        apiLegalCopyrightService.getCopyrightFilePaths(
+            OwnerType.ORGANIZATION, org.getPublicId(),
+            COMPONENT_IDENTIFIER,
+            "hash", "copyright hash 2", 0, 10));
+  }
+
+  @Test
   public void testGetCopyrightContextContent_Unauthenticated() {
     assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() ->
         apiLegalCopyrightService.getCopyrightContextContent(
@@ -95,12 +105,25 @@ public class ApiLegalCopyrightServiceAuthzTest
   }
 
   @Test
-  public void testGetCopyrightFilePaths_Authorized() {
+  public void testGetCopyrightFileCount_Unauthenticated() {
+    assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() ->
+        apiLegalCopyrightService.getCopyrightFileCount(
+            OwnerType.ORGANIZATION, org.getPublicId(), COMPONENT_IDENTIFIER, "hash"));
+  }
+
+  @Test
+  public void testGetCopyrightFileCount_Unauthorized() {
+    login();
+    assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(() ->
+        apiLegalCopyrightService.getCopyrightFileCount(
+            OwnerType.ORGANIZATION, org.getPublicId(), COMPONENT_IDENTIFIER, "hash"));
+  }
+
+  @Test
+  public void testGetCopyrightFileCount_Authorized() {
     grantLegalReviewerPermission(org.getPublicId());
     assertThatNoException().isThrownBy(() ->
-        apiLegalCopyrightService.getCopyrightFilePaths(
-            OwnerType.ORGANIZATION, org.getPublicId(),
-            COMPONENT_IDENTIFIER,
-            "hash", "copyright hash 2", 0, 10));
+        apiLegalCopyrightService.getCopyrightFileCount(
+            OwnerType.ORGANIZATION, org.getPublicId(), COMPONENT_IDENTIFIER, "hash"));
   }
 }

@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.api.experimental.legal;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
 
 import javax.inject.Inject;
 
@@ -34,6 +36,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Binder;
+import org.assertj.core.api.Condition;
 import org.junit.Test;
 import org.mockito.Mock;
 
@@ -67,6 +70,16 @@ public class ApiLegalCopyrightServiceTest
             OwnerType.APPLICATION, "1",
             ComponentIdentifier.createMavenCoordinates("g", "a", "v"),
             "hash", "copyright hash 2", 0, 10));
+  }
+
+  @Test
+  public void testGetCopyrightFileCount_Unlicensed() {
+    testProductLicense.setMissingFeatures(LicensedFeature.ADVANCED_LEGAL_PACK);
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
+        apiLegalCopyrightService.getCopyrightFileCount(
+            OwnerType.APPLICATION, "1",
+            ComponentIdentifier.createMavenCoordinates("g", "a", "v"),
+            "hash"));
   }
 
   @Test
@@ -340,6 +353,88 @@ public class ApiLegalCopyrightServiceTest
     assertThat(copyrightContextContent2).containsExactly("Content 2");
   }
 
+  @Test
+  public void testGetNonAnameCopyrightFileCount() {
+    final ComponentIdentifier mavenIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+
+    final LegalCommentFilesDTO commentFilesDTO1 = new LegalCommentFilesDTO();
+    commentFilesDTO1.setContent("Content 1");
+    commentFilesDTO1.setCopyrightContentHashes(ImmutableSet.of("copyright hash 1", "copyright hash 2"));
+    commentFilesDTO1.setFilePaths(ImmutableSet.of("path1/file1", "path2/file1"));
+
+    final LegalCommentFilesDTO commentFilesDTO2 = new LegalCommentFilesDTO();
+    commentFilesDTO2.setContent("Content 2");
+    commentFilesDTO2.setCopyrightContentHashes(ImmutableSet.of("copyright hash 3", "copyright hash 2"));
+    commentFilesDTO2.setFilePaths(ImmutableSet.of("path2/file2", "path1/file1", "path2/file1"));
+
+    final ComponentLegalCommentFilePathsDTO hdsResponse = new ComponentLegalCommentFilePathsDTO();
+    hdsResponse.setHash("hash");
+    hdsResponse.setComponentIdentifier(mavenIdentifier);
+    hdsResponse.setComments(ImmutableSet.of(commentFilesDTO1, commentFilesDTO2));
+
+    doReturn(ImmutableSet.of(hdsResponse))
+        .when(mockHdsService)
+        .getComponentLegalCommentFilePaths(mavenIdentifier);
+
+    final Map<String, Integer> copyrightFileCount = apiLegalCopyrightService.getCopyrightFileCount(
+        OwnerType.APPLICATION, "1", mavenIdentifier, "hash");
+
+    assertThat(copyrightFileCount).hasSize(3)
+        .hasEntrySatisfying("copyright hash 1", new Condition<>(Predicate.isEqual(2), "hash 1"))
+        .hasEntrySatisfying("copyright hash 2", new Condition<>(Predicate.isEqual(5), "hash 2"))
+        .hasEntrySatisfying("copyright hash 3", new Condition<>(Predicate.isEqual(3), "hash 3"));
+  }
+
+  @Test
+  public void testGetAnameCopyrightFileCount() {
+    final ComponentIdentifier anameIdentifier = ComponentIdentifier.createAnameCoordinates("n", "q", "v");
+    final String componentHash = "compHash";
+
+    final Application app = tempEntity.newApplicationWithParent();
+    final ApplicationComponent appComp =
+        tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, componentHash, anameIdentifier);
+    tempEntity.newAggregateFile(appComp.getId(), "aggregate_file_hash1",
+        ImmutableSet.of("some/path", "other/path", "z/path"));
+    tempEntity.newAggregateFile(appComp.getId(), "aggregate_file_hash2", ImmutableSet.of("other/path"));
+
+    final LegalCommentDTO commentDTO1 = new LegalCommentDTO();
+    commentDTO1.setContent("Content 1");
+    commentDTO1.setCopyrights(ImmutableSet.of(new LegalCopyrightDTO("Content 1", "content1Hash", "Author 1", "Year1"),
+        new LegalCopyrightDTO("Content A", "contentAHash", "Author A", "Year A")));
+
+    final LegalCommentDTO commentDTO2 = new LegalCommentDTO();
+    commentDTO2.setContent("Content 2");
+    commentDTO2.setCopyrights(ImmutableSet.of(new LegalCopyrightDTO("Content 2", "content2Hash", "Author 2", "Year2"),
+        new LegalCopyrightDTO("Content A", "contentAHash", "Author A", "Year A")));
+
+    final ComponentLegalCommentDTO comment1 = new ComponentLegalCommentDTO();
+    comment1.setHash("aggregate_file_hash1");
+    comment1.setComponentIdentifier(anameIdentifier);
+    comment1.setComments(ImmutableSet.of(commentDTO1));
+
+    final ComponentLegalCommentDTO comment2 = new ComponentLegalCommentDTO();
+    comment2.setHash("aggregate_file_hash2");
+    comment2.setComponentIdentifier(anameIdentifier);
+    comment2.setComments(ImmutableSet.of(commentDTO2));
+
+    final AnameAggregateFileGroup aggregateFileGroup = new AnameAggregateFileGroup(
+        anameIdentifier,
+        ImmutableList.of("aggregate_file_hash1", "aggregate_file_hash2"));
+
+    doReturn(ImmutableSet.of(comment1, comment2))
+        .when(mockHdsService)
+        .getAnameRawComponentLegalComments(ImmutableSet.of(aggregateFileGroup));
+
+    final Map<String, Integer> copyrightFileCount = apiLegalCopyrightService.getCopyrightFileCount(
+        OwnerType.APPLICATION, "1",
+        anameIdentifier, componentHash);
+
+    assertThat(copyrightFileCount).hasSize(3)
+        .hasEntrySatisfying("content1Hash", new Condition<>(Predicate.isEqual(3), "content1Hash"))
+        .hasEntrySatisfying("content2Hash", new Condition<>(Predicate.isEqual(1), "content2Hash"))
+        .hasEntrySatisfying("contentAHash", new Condition<>(Predicate.isEqual(4), "contentAHash"));
+  }
+
   private ComponentIdentifier createInvalidComponentIdentifier()
       throws JsonProcessingException
   {
@@ -351,3 +446,4 @@ public class ApiLegalCopyrightServiceTest
         "            }}", ComponentIdentifier.class);
   }
 }
+

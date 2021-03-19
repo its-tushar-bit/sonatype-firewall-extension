@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.experimental.legal;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -55,14 +56,11 @@ public class ApiLicenseLegalResource
 
   public static final String COMPONENT_PATH = "{ownerType: application|organization}/{ownerId}/component";
 
-  public static final String COMPONENT_COPYRIGHT_PATH =
-      "{ownerType: application|organization}/{ownerId}/component/copyright";
+  public static final String COMPONENT_COPYRIGHT_PATH = COMPONENT_PATH + "/copyright";
 
-  public static final String COMPONENT_LEGAL_FILE_PATH =
-      "{ownerType: application|organization}/{ownerId}/component/legalFile";
+  public static final String COMPONENT_LEGAL_FILE_PATH = COMPONENT_PATH + "/legalFile";
 
-  public static final String COMPONENT_OBLIGATION_PATH =
-      "{ownerType: application|organization}/{ownerId}/component/obligation";
+  public static final String COMPONENT_OBLIGATION_PATH = COMPONENT_PATH + "/obligation";
 
   public static final String COMPONENT_OBLIGATION_DELETE_PATH = "/component/obligation/{componentObligationId}";
 
@@ -72,12 +70,12 @@ public class ApiLicenseLegalResource
       "/component/obligation/attribution/{componentObligationAttributionId}";
 
   public static final String COMPONENT_COPYRIGHT_FILEPATHS =
-      "{ownerType: application|organization}/{ownerId}/component/" +
-          "{componentHash}/copyright/{copyrightContentHash}/filepaths";
+      COMPONENT_PATH + "{componentHash}/copyright/{copyrightContentHash}/filepaths";
 
   public static final String COMPONENT_COPYRIGHT_FILEPATH_CONTEXT =
-      "{ownerType: application|organization}/{ownerId}/component/" +
-          "{componentHash}/copyright/{copyrightContentHash}/file/{filePath}/context";
+      COMPONENT_PATH + "{componentHash}/copyright/{copyrightContentHash}/file/{filePath}/context";
+
+  public static final String COMPONENT_COPYRIGHT_FILE_COUNT = COMPONENT_PATH + "{componentHash}/copyright/fileCount";
 
   private final ApiLicenseLegalService apiLicenseLegalService;
 
@@ -333,5 +331,24 @@ public class ApiLicenseLegalResource
         componentHash,
         copyrightContentHash,
         filePath);
+  }
+
+  /**
+   * @since 1.108
+   */
+  @GET
+  @Path(COMPONENT_COPYRIGHT_FILE_COUNT)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Map<String, Integer> getCopyrightFileCount(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId,
+      @PathParam("componentHash") String componentHash,
+      @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier)
+  {
+    return apiLegalCopyrightService.getCopyrightFileCount(
+        ownerType,
+        ownerId,
+        componentIdentifier,
+        componentHash);
   }
 }

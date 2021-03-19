@@ -43,17 +43,6 @@ public class LegalFileOverrideDAO
     }
   }
 
-  public List<LegalFileOverride> getByComponentLegalFileIdAndType(
-      TransactionContext tx,
-      String componentLegalFileId,
-      LegalFileType type)
-  {
-    String sQuery = "SELECT entity FROM LegalFileOverride entity" + //
-        " WHERE entity.componentLegalFileId=?1" + //
-        " AND entity.type=?2";
-    return getList(tx, sQuery, componentLegalFileId, type);
-  }
-
   public List<LegalFileOverride> getByOwnerIdAndComponentIdentifierAndType(
       TransactionContext tx,
       String ownerId,
@@ -62,11 +51,11 @@ public class LegalFileOverrideDAO
   {
     ComponentLegalFileDAO componentLegalFileDAO = new ComponentLegalFileDAO();
     ComponentLegalFile componentLegalFile =
-        componentLegalFileDAO.getByOwnerIdAndComponentIdentifier(tx, ownerId, componentIdentifier);
+        componentLegalFileDAO.getByOwnerIdAndComponentIdentifierAndType(tx, ownerId, componentIdentifier, type);
     if (componentLegalFile == null) {
       return Collections.emptyList();
     }
-    return getByComponentLegalFileIdAndType(tx, componentLegalFile.getId(), type);
+    return getByComponentLegalFileId(tx, componentLegalFile.getId());
   }
 
   public List<LegalFileOverride> getByOwnerIdAndComponentIdentifierAndType(

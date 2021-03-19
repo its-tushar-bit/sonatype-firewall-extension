@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.LegalFileOverride;
+import com.sonatype.insight.brain.model.legal.LegalFileType;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -29,6 +30,8 @@ public class ComponentLegalFileDTO
 
   private String ownerId;
 
+  private LegalFileType legalFileType;
+
   private List<LegalFileOverrideDTO> legalFileOverrides = new ArrayList<>();
 
   private Date lastUpdatedAt;
@@ -44,6 +47,7 @@ public class ComponentLegalFileDTO
     componentIdentifier =
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentLegalFile.getComponentIdentifier());
     ownerId = componentLegalFile.getOwnerId();
+    legalFileType = componentLegalFile.getType();
     this.legalFileOverrides = legalFileOverrides.stream().map(LegalFileOverrideDTO::new).collect(Collectors.toList());
     lastUpdatedAt = componentLegalFile.getLastUpdatedAt();
     lastUpdatedByUsername = componentLegalFile.getLastUpdatedByUsername();
@@ -71,6 +75,14 @@ public class ComponentLegalFileDTO
 
   public void setOwnerId(String ownerId) {
     this.ownerId = ownerId;
+  }
+
+  public LegalFileType getLegalFileType() {
+    return legalFileType;
+  }
+
+  public void setLegalFileType(LegalFileType legalFileType) {
+    this.legalFileType = legalFileType;
   }
 
   public List<LegalFileOverrideDTO> getLegalFileOverrides() {

@@ -40,6 +40,7 @@ public class ComponentLegalFileDAOTest
     Date now = new Date();
     ComponentLegalFile componentLegalFile =
         new ComponentLegalFile(ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(),
+            LegalFileType.NOTICE,
             "legalContentHash", "username");
     componentLegalFile.setLastUpdatedAt(new Date(now.getTime() - 1));
     dao.insert(componentLegalFile);
@@ -67,6 +68,7 @@ public class ComponentLegalFileDAOTest
   public void testInsert_SetsDateIfNull() {
     ComponentLegalFile componentLegalFile =
         new ComponentLegalFile(ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(),
+            LegalFileType.NOTICE,
             "legalContentHash", "username");
     componentLegalFile.setLastUpdatedAt(null);
     Date now = new Date();
@@ -77,28 +79,31 @@ public class ComponentLegalFileDAOTest
   }
 
   @Test
-  public void testInsert_SameOwnerAndComponent() {
+  public void testInsert_SameOwnerAndComponentAndType() {
     ComponentLegalFile componentLegalFile1 =
         new ComponentLegalFile(ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(),
+            LegalFileType.NOTICE,
             "legalContentHash1", "username1");
     dao.insert(componentLegalFile1);
     ComponentLegalFile componentLegalFile2 =
         new ComponentLegalFile(ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(),
+            LegalFileType.NOTICE,
             "legalContentHash2", "username2");
 
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> dao.insert(componentLegalFile2))
         .withMessageContaining(
             "Component legal file already exists for owner with id " + componentLegalFile2.getOwnerId() +
-                " and component " + componentLegalFile2.getComponentIdentifier() + ".");
+                " and component " + componentLegalFile2.getComponentIdentifier() +
+                " and type " + componentLegalFile2.getType().toString() + ".");
   }
 
   @Test
   public void testUpdate_SetsDate() {
     Date now = new Date();
-    ComponentLegalFile componentLegalFile =
-        new ComponentLegalFile(ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(),
-            "legalContentHash", "username");
+    ComponentLegalFile componentLegalFile = new ComponentLegalFile(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(), LegalFileType.NOTICE,
+        "legalContentHash", "username");
     componentLegalFile.setLastUpdatedAt(new Date(now.getTime() - 1));
     dao.insert(componentLegalFile);
     assertThat(dao.getById(componentLegalFile.getId()).getLastUpdatedAt()).isBefore(now);
@@ -110,9 +115,9 @@ public class ComponentLegalFileDAOTest
 
   @Test
   public void testUpdate_DoesNotExist() {
-    ComponentLegalFile componentLegalFile =
-        new ComponentLegalFile(ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(),
-            "legalContentHash", "username");
+    ComponentLegalFile componentLegalFile = new ComponentLegalFile(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(), LegalFileType.NOTICE,
+        "legalContentHash", "username");
     componentLegalFile.setId("doesNotExist");
 
     assertThatExceptionOfType(BadRequestException.class)
@@ -124,95 +129,123 @@ public class ComponentLegalFileDAOTest
   @Test
   public void testGetByOwnerId() {
     ComponentLegalFile componentLegalFile1 = tempEntity.newComponentLegalFile(
-        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), organization.getId(), "legalContentHash1");
+        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), organization.getId(), LegalFileType.NOTICE,
+        "legalContentHash1");
     ComponentLegalFile componentLegalFile2 = tempEntity.newComponentLegalFile(
-        ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"), organization.getId(), "legalContentHash2");
+        ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"), organization.getId(), LegalFileType.NOTICE,
+        "legalContentHash2");
     tempEntity.newComponentLegalFile(ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3"), application.getId(),
-        "legalContentHash3");
+        LegalFileType.NOTICE, "legalContentHash3");
 
     assertThat(dao.getByOwnerId(organization.getId())).usingRecursiveFieldByFieldElementComparator()
         .containsExactlyInAnyOrder(componentLegalFile1, componentLegalFile2);
   }
 
   @Test
-  public void testGetByOwnerIdAndComponentIdentifier() {
+  public void testGetByOwnerIdAndComponentIdentifierAndType() {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
-    ComponentLegalFile componentLegalFile = tempEntity.newComponentLegalFile(componentIdentifier, organization.getId(),
-        "legalContentHash1");
+    ComponentLegalFile componentLegalFile =
+        tempEntity.newComponentLegalFile(componentIdentifier, organization.getId(), LegalFileType.NOTICE,
+            "legalContentHash1");
     tempEntity.newComponentLegalFile(componentIdentifier.createAlternativeVersion("v2"), organization.getId(),
+        LegalFileType.NOTICE,
         "legalContentHash2");
-    tempEntity.newComponentLegalFile(componentIdentifier, application.getId(), "legalContentHash3");
+    tempEntity
+        .newComponentLegalFile(componentIdentifier, application.getId(), LegalFileType.NOTICE, "legalContentHash3");
+    tempEntity.newComponentLegalFile(componentIdentifier, organization.getId(), LegalFileType.LICENSE,
+        "legalContentHash4");
 
-    assertThat(dao.getByOwnerIdAndComponentIdentifier(organization.getId(), componentIdentifier))
+    assertThat(
+        dao.getByOwnerIdAndComponentIdentifierAndType(organization.getId(), componentIdentifier, LegalFileType.NOTICE))
         .usingRecursiveComparison().isEqualTo(componentLegalFile);
   }
 
   @Test
   public void testGetAll() {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
-    ComponentLegalFile componentLegalFile1 = tempEntity.newComponentLegalFile(componentIdentifier, organization.getId(),
-        "legalContentHash1");
-    ComponentLegalFile componentLegalFile2 = tempEntity.newComponentLegalFile(componentIdentifier, application.getId(),
-        "legalContentHash2");
+    ComponentLegalFile componentLegalFile1 =
+        tempEntity.newComponentLegalFile(componentIdentifier, organization.getId(), LegalFileType.NOTICE,
+            "legalContentHash1");
+    ComponentLegalFile componentLegalFile2 =
+        tempEntity.newComponentLegalFile(componentIdentifier, application.getId(), LegalFileType.NOTICE,
+            "legalContentHash2");
 
     assertThat(dao.getAll()).usingRecursiveFieldByFieldElementComparator()
         .containsExactlyInAnyOrder(componentLegalFile1, componentLegalFile2);
   }
 
   @Test
-  public void testGetByOwnerIdAndComponentIdentifierWithHierarchy() {
+  public void testGetByOwnerIdAndComponentIdentifierAndTypeWithHierarchy() {
     ComponentIdentifier compIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     ComponentLegalFile rootOrgComponentLegalFile = tempEntity.newComponentLegalFile(compIdentifier,
-        Organization.ROOT_ORGANIZATION_ID, "legalContentHash1");
+        Organization.ROOT_ORGANIZATION_ID, LegalFileType.NOTICE, "legalContentHash1");
     ComponentLegalFile orgComponentLegalFile = tempEntity.newComponentLegalFile(compIdentifier,
-        organization.getId(), "legalContentHash2");
+        organization.getId(), LegalFileType.NOTICE, "legalContentHash2");
     ComponentLegalFile appComponentLegalFile = tempEntity.newComponentLegalFile(compIdentifier,
-        application.getId(), "legalContentHash3");
+        application.getId(), LegalFileType.NOTICE, "legalContentHash3");
 
-    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(Organization.ROOT_ORGANIZATION_ID, compIdentifier))
+    assertThat(
+        dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(Organization.ROOT_ORGANIZATION_ID, compIdentifier,
+            LegalFileType.NOTICE))
         .usingRecursiveComparison().isEqualTo(rootOrgComponentLegalFile);
-    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(organization.getId(), compIdentifier))
+    assertThat(dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(organization.getId(), compIdentifier,
+        LegalFileType.NOTICE))
         .usingRecursiveComparison().isEqualTo(orgComponentLegalFile);
-    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(), compIdentifier))
+    assertThat(dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(application.getId(), compIdentifier,
+        LegalFileType.NOTICE))
         .usingRecursiveComparison().isEqualTo(appComponentLegalFile);
 
     dao.delete(appComponentLegalFile);
 
-    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(Organization.ROOT_ORGANIZATION_ID, compIdentifier))
+    assertThat(
+        dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(Organization.ROOT_ORGANIZATION_ID, compIdentifier,
+            LegalFileType.NOTICE))
         .usingRecursiveComparison().isEqualTo(rootOrgComponentLegalFile);
-    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(organization.getId(), compIdentifier))
+    assertThat(dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(organization.getId(), compIdentifier,
+        LegalFileType.NOTICE))
         .usingRecursiveComparison().isEqualTo(orgComponentLegalFile);
-    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(), compIdentifier))
+    assertThat(dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(application.getId(), compIdentifier,
+        LegalFileType.NOTICE))
         .usingRecursiveComparison().isEqualTo(orgComponentLegalFile);
 
     dao.delete(orgComponentLegalFile);
 
-    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(Organization.ROOT_ORGANIZATION_ID, compIdentifier))
+    assertThat(
+        dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(Organization.ROOT_ORGANIZATION_ID, compIdentifier,
+            LegalFileType.NOTICE))
         .usingRecursiveComparison().isEqualTo(rootOrgComponentLegalFile);
-    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(organization.getId(), compIdentifier))
+    assertThat(dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(organization.getId(), compIdentifier,
+        LegalFileType.NOTICE))
         .usingRecursiveComparison().isEqualTo(rootOrgComponentLegalFile);
-    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(), compIdentifier))
+    assertThat(dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(application.getId(), compIdentifier,
+        LegalFileType.NOTICE))
         .usingRecursiveComparison().isEqualTo(rootOrgComponentLegalFile);
 
     dao.delete(rootOrgComponentLegalFile);
 
-    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(Organization.ROOT_ORGANIZATION_ID, compIdentifier))
+    assertThat(
+        dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(Organization.ROOT_ORGANIZATION_ID, compIdentifier,
+            LegalFileType.NOTICE))
         .isNull();
-    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(organization.getId(), compIdentifier)).isNull();
-    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(), compIdentifier)).isNull();
+    assertThat(dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(organization.getId(), compIdentifier,
+        LegalFileType.NOTICE)).isNull();
+    assertThat(dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(application.getId(), compIdentifier,
+        LegalFileType.NOTICE)).isNull();
   }
 
   @Test
   public void testDelete_CascadesToLegalFileOverrides() {
     ComponentLegalFile componentLegalFile = tempEntity.newComponentLegalFile(
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(), "legalContentHash");
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(), LegalFileType.NOTICE,
+        "legalContentHash");
     ComponentLegalFile otherComponentLegalFile = tempEntity.newComponentLegalFile(
-        ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"), organization.getId(), "legalContentHash2");
-    LegalFileOverride legalFileOverride1 = tempEntity.newLegalFileOverride(LegalFileType.NOTICE, "originalHash1",
+        ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"), organization.getId(), LegalFileType.NOTICE,
+        "legalContentHash2");
+    LegalFileOverride legalFileOverride1 = tempEntity.newLegalFileOverride("originalHash1",
         "hash1", "content1", ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
-    LegalFileOverride legalFileOverride2 = tempEntity.newLegalFileOverride(LegalFileType.NOTICE, "originalHash2",
+    LegalFileOverride legalFileOverride2 = tempEntity.newLegalFileOverride("originalHash2",
         "hash2", "content2", ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
-    LegalFileOverride otherLegalFileOverride = tempEntity.newLegalFileOverride(LegalFileType.NOTICE, "originalHash3",
+    LegalFileOverride otherLegalFileOverride = tempEntity.newLegalFileOverride("originalHash3",
         "hash3", "content3", ComponentLegalPartStatus.ENABLED, otherComponentLegalFile.getId());
 
     dao.delete(componentLegalFile);

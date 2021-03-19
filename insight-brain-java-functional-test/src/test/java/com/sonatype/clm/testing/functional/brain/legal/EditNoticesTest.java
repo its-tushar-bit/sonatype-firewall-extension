@@ -252,8 +252,8 @@ public class EditNoticesTest
 
   private void testLoadExisting(Owner owner, Owner scope) {
     ComponentLegalFile componentLegalFile =
-        tempEntity.newComponentLegalFile(componentIdentifier, owner.getId(), "legalContentHash");
-    LegalFileOverride legalFileOverride = tempEntity.newLegalFileOverride(LegalFileType.NOTICE,
+        tempEntity.newComponentLegalFile(componentIdentifier, owner.getId(), LegalFileType.NOTICE, "legalContentHash");
+    LegalFileOverride legalFileOverride = tempEntity.newLegalFileOverride(
         "ceeb94cfb8ad27ae26ad0703a3e46babb828499fee29ff036b7eb9c80cd659e4", "hash", "content",
         ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
     refreshOrOpen(ComponentLegalOverviewPage.url(scope, "033e7a20b23ea284d474"));
@@ -353,16 +353,18 @@ public class EditNoticesTest
     if (owners.indexOf(newOwner) > owners.indexOf(owner)) {
       for (int index = owners.indexOf(owner); index < owners.size(); index++) {
         ComponentLegalFile componentLegalFile = tempEntity
-            .newComponentLegalFile(componentIdentifier, owners.get(index).getId(), "legalContentHash" + index);
-        tempEntity.newLegalFileOverride(LegalFileType.NOTICE,
+            .newComponentLegalFile(componentIdentifier, owners.get(index).getId(), LegalFileType.NOTICE,
+                "legalContentHash" + index);
+        tempEntity.newLegalFileOverride(
             "ceeb94cfb8ad27ae26ad0703a3e46babb828499fee29ff036b7eb9c80cd659e4", "hash", "content",
             ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
       }
     }
     else {
       ComponentLegalFile componentLegalFile =
-          tempEntity.newComponentLegalFile(componentIdentifier, owner.getId(), "legalContentHash");
-      tempEntity.newLegalFileOverride(LegalFileType.NOTICE,
+          tempEntity
+              .newComponentLegalFile(componentIdentifier, owner.getId(), LegalFileType.NOTICE, "legalContentHash");
+      tempEntity.newLegalFileOverride(
           "ceeb94cfb8ad27ae26ad0703a3e46babb828499fee29ff036b7eb9c80cd659e4", "hash", "content",
           ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
     }
@@ -376,7 +378,9 @@ public class EditNoticesTest
     editNoticesModal.shouldNotBe(Condition.visible);
     if (owners.indexOf(newOwner) > owners.indexOf(owner)) {
       assertThat(componentLegalFileDAO.getAll()).hasSize(size - 1);
-      assertThat(componentLegalFileDAO.getByOwnerIdAndComponentIdentifier(owner.getId(), componentIdentifier)).isNull();
+      assertThat(componentLegalFileDAO
+          .getByOwnerIdAndComponentIdentifierAndType(owner.getId(), componentIdentifier, LegalFileType.NOTICE))
+          .isNull();
     }
     else {
       assertThat(componentLegalFileDAO.getAll()).hasSize(size + 1);
@@ -447,7 +451,6 @@ public class EditNoticesTest
 
   private List<Tuple> getNoticeContentsAndStatuses(List<LegalFileOverride> legalFileOverrides) {
     return legalFileOverrides.stream()
-        .filter(legalFileOverride -> legalFileOverride.getType() == LegalFileType.NOTICE)
         .map(legalFileOverride -> new Tuple(legalFileOverride.getContent(),
             legalFileOverride.getStatus() == ComponentLegalPartStatus.ENABLED)).collect(Collectors.toList());
   }
@@ -458,7 +461,8 @@ public class EditNoticesTest
       ComponentIdentifier componentIdentifier)
   {
     ComponentLegalFile componentLegalFile =
-        componentLegalFileDAO.getByOwnerIdAndComponentIdentifier(owner.getId(), componentIdentifier);
+        componentLegalFileDAO
+            .getByOwnerIdAndComponentIdentifierAndType(owner.getId(), componentIdentifier, LegalFileType.NOTICE);
     assertThat(componentLegalFile).isNotNull();
     List<LegalFileOverride> legalFileOverrides =
         legalFileOverrideDAO.getByComponentLegalFileId(componentLegalFile.getId());

@@ -940,18 +940,18 @@ CREATE TABLE component_legal_file (
   component_id_format varchar(10) NOT NULL,
   component_id_coordinates_json varchar(1000) NOT NULL,
   owner_id varchar(50) NOT NULL,
+  type varchar(20) NOT NULL,
   legal_content_hash varchar(64) NOT NULL,
   last_updated_by_username varchar(256) NOT NULL,
   last_updated_at timestamp NOT NULL,
   CONSTRAINT component_legal_file_pk PRIMARY KEY (component_legal_file_id),
-  CONSTRAINT component_legal_file_uk UNIQUE (owner_id, component_id_format, component_id_coordinates_json)
+  CONSTRAINT component_legal_file_uk UNIQUE (owner_id, component_id_format, component_id_coordinates_json, type)
 );
-CREATE INDEX component_legal_file_owner_component_idx ON component_legal_file(owner_id, component_id_format, component_id_coordinates_json);
+CREATE INDEX component_legal_file_owner_component_type_idx ON component_legal_file(owner_id, component_id_format, component_id_coordinates_json, type);
 
 -- Since 1.105
 CREATE TABLE legal_file_override (
   legal_file_override_id varchar(50) NOT NULL,
-  type varchar(20) NOT NULL,
   original_content_hash varchar(64),
   content_hash varchar(64) NOT NULL,
   content text NOT NULL,

@@ -290,7 +290,7 @@ public class ApiLicenseLegalResourceTest
     Owner owner = tempEntity.newApplicationWithParent();
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     ComponentLegalFile componentLegalFile =
-        tempEntity.newComponentLegalFile(componentIdentifier, owner.getId(), "legalContentHash");
+        tempEntity.newComponentLegalFile(componentIdentifier, owner.getId(), LegalFileType.NOTICE, "legalContentHash");
     ComponentLegalFileDTO bodyDto = new ComponentLegalFileDTO(componentLegalFile, Collections.emptyList());
     bodyDto.setLastUpdatedByUsername(null);
     bodyDto.setLastUpdatedAt(null);
@@ -453,11 +453,9 @@ public class ApiLicenseLegalResourceTest
     Application app = tempEntity.newApplicationWithParent();
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     ComponentLegalFile componentLegalFile =
-        tempEntity.newComponentLegalFile(componentIdentifier, app.getId(), "legalContentHash");
-    LegalFileOverride licenseOverride = tempEntity.newLegalFileOverride(LegalFileType.LICENSE, null, "hash1",
+        tempEntity.newComponentLegalFile(componentIdentifier, app.getId(), LegalFileType.LICENSE, "legalContentHash");
+    LegalFileOverride licenseOverride = tempEntity.newLegalFileOverride(null, "hash1",
         "content1", ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
-    tempEntity.newLegalFileOverride(LegalFileType.NOTICE, null, "hash1", "content1", ComponentLegalPartStatus.ENABLED,
-        componentLegalFile.getId());
 
     HttpResponse response = restRequest()
         .path(ApiLicenseLegalResource.COMPONENT_LEGAL_FILE_PATH)
@@ -479,15 +477,13 @@ public class ApiLicenseLegalResourceTest
     Application app = tempEntity.newApplicationWithParent();
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     ComponentLegalFile componentLegalFile =
-        tempEntity.newComponentLegalFile(componentIdentifier, app.getId(), "legalContentHash");
-    tempEntity.newLegalFileOverride(LegalFileType.LICENSE, null, "hash1", "content1", ComponentLegalPartStatus.ENABLED,
-        componentLegalFile.getId());
-    LegalFileOverride noticeOverride = tempEntity.newLegalFileOverride(LegalFileType.NOTICE, null, "hash1", "content1",
+        tempEntity.newComponentLegalFile(componentIdentifier, app.getId(), LegalFileType.NOTICE, "legalContentHash");
+    LegalFileOverride noticeOverride = tempEntity.newLegalFileOverride(null, "hash1", "content1",
         ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
 
     HttpResponse response = restRequest()
         .path(ApiLicenseLegalResource.COMPONENT_LEGAL_FILE_PATH)
-        .parameter(app.getType(), app.getPublicId())
+        .parameter(app.getType(), app.getPublicId(), LegalFileType.NOTICE.toString())
         .query("componentIdentifier", componentIdentifier)
         .query("legalFileType", LegalFileType.NOTICE.toString())
         .get();

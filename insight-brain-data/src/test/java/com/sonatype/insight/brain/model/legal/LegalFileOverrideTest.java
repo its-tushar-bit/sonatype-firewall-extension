@@ -13,14 +13,14 @@ public class LegalFileOverrideTest
 {
   @Test
   public void testIsUserCreated_True() {
-    assertThat(new LegalFileOverride(null, null, null, null, null, null).isUserCreated()).isTrue();
-    assertThat(new LegalFileOverride(null, "", null, null, null, null).isUserCreated()).isTrue();
-    assertThat(new LegalFileOverride(null, " \t", null, null, null, null).isUserCreated()).isTrue();
+    assertThat(new LegalFileOverride(null, null, null, null, null).isUserCreated()).isTrue();
+    assertThat(new LegalFileOverride(null, "", null, null, null).isUserCreated()).isTrue();
+    assertThat(new LegalFileOverride(null, " \t", null, null, null).isUserCreated()).isTrue();
   }
 
   @Test
   public void testIsUserCreated_False() {
-    LegalFileOverride legalFileOverride = new LegalFileOverride(LegalFileType.NOTICE, "originalHash", "hash", "content",
+    LegalFileOverride legalFileOverride = new LegalFileOverride("originalHash", "hash", "content",
         ComponentLegalPartStatus.ENABLED, "componentCopyrightId");
 
     assertThat(legalFileOverride.isUserCreated()).isFalse();

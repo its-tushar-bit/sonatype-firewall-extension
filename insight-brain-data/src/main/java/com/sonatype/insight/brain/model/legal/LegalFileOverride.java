@@ -28,10 +28,6 @@ public class LegalFileOverride
   @Column(name = "legal_file_override_id")
   private String id;
 
-  @Column(name = "type")
-  @Enumerated(EnumType.STRING)
-  private LegalFileType type;
-
   @Column(name = "original_content_hash")
   private String originalContentHash;
 
@@ -52,14 +48,12 @@ public class LegalFileOverride
   }
 
   public LegalFileOverride(
-      LegalFileType type,
       String originalContentHash,
       String contentHash,
       String content,
       ComponentLegalPartStatus status,
       String componentLegalFileId)
   {
-    this.type = type;
     this.originalContentHash = originalContentHash;
     this.contentHash = contentHash;
     this.content = content;
@@ -75,14 +69,6 @@ public class LegalFileOverride
   @Override
   public void setId(String id) {
     this.id = id;
-  }
-
-  public LegalFileType getType() {
-    return type;
-  }
-
-  public void setType(LegalFileType type) {
-    this.type = type;
   }
 
   public String getOriginalContentHash() {

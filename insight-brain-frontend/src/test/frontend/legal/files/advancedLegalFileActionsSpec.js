@@ -81,6 +81,7 @@ describe('advancedLegalFileActions', function() {
       });
       const expectedPostBody = {
         id: null,
+        legalFileType: 'notice',
         componentIdentifier: 'componentIdentifier',
         legalFileOverrides: []
       };
@@ -122,18 +123,17 @@ describe('advancedLegalFileActions', function() {
       });
       const expectedPostBody = {
         id: 'componentNoticesId',
+        legalFileType: 'notice',
         componentIdentifier: 'componentIdentifier',
         legalFileOverrides: [
           {
             id: 'id1',
-            legalFileType: 'notice',
             originalContentHash: 'originalContentHash1',
             content: 'content1',
             status: 'enabled'
           },
           {
             id: null,
-            legalFileType: 'notice',
             originalContentHash: null,
             content: 'content2',
             status: 'disabled'
@@ -174,18 +174,17 @@ describe('advancedLegalFileActions', function() {
       });
       const expectedPostBody = {
         id: null,
+        legalFileType: 'notice',
         componentIdentifier: 'componentIdentifier',
         legalFileOverrides: [
           {
             id: null,
-            legalFileType: 'notice',
             originalContentHash: 'originalContentHash1',
             content: 'content1',
             status: 'enabled'
           },
           {
             id: null,
-            legalFileType: 'notice',
             originalContentHash: null,
             content: 'content2',
             status: 'disabled'
@@ -219,6 +218,7 @@ describe('advancedLegalFileActions', function() {
       });
       const expectedPostBody = {
         id: null,
+        legalFileType: 'notice',
         componentIdentifier: 'componentIdentifier',
         legalFileOverrides: []
       };
@@ -251,6 +251,7 @@ describe('advancedLegalFileActions', function() {
       });
       const expectedPostBody = {
         id: null,
+        legalFileType: 'notice',
         componentIdentifier: 'componentIdentifier',
         legalFileOverrides: []
       };
@@ -333,6 +334,7 @@ describe('advancedLegalFileActions', function() {
       });
       const expectedPostBody = {
         id: null,
+        legalFileType: 'license',
         componentIdentifier: 'componentIdentifier',
         legalFileOverrides: []
       };
@@ -375,18 +377,17 @@ describe('advancedLegalFileActions', function() {
       });
       const expectedPostBody = {
         id: 'componentLicensesId',
+        legalFileType: 'license',
         componentIdentifier: 'componentIdentifier',
         legalFileOverrides: [
           {
             id: 'id1',
-            legalFileType: 'license',
             originalContentHash: 'originalContentHash1',
             content: 'content1',
             status: 'enabled'
           },
           {
             id: null,
-            legalFileType: 'license',
             originalContentHash: null,
             content: 'content2',
             status: 'disabled'
@@ -428,18 +429,17 @@ describe('advancedLegalFileActions', function() {
       });
       const expectedPostBody = {
         id: null,
+        legalFileType: 'license',
         componentIdentifier: 'componentIdentifier',
         legalFileOverrides: [
           {
             id: null,
-            legalFileType: 'license',
             originalContentHash: 'originalContentHash1',
             content: 'content1',
             status: 'enabled'
           },
           {
             id: null,
-            legalFileType: 'license',
             originalContentHash: null,
             content: 'content2',
             status: 'disabled'
@@ -473,6 +473,7 @@ describe('advancedLegalFileActions', function() {
       });
       const expectedPostBody = {
         id: null,
+        legalFileType: 'license',
         componentIdentifier: 'componentIdentifier',
         legalFileOverrides: []
       };
@@ -505,6 +506,7 @@ describe('advancedLegalFileActions', function() {
       });
       const expectedPostBody = {
         id: null,
+        legalFileType: 'license',
         componentIdentifier: 'componentIdentifier',
         legalFileOverrides: []
       };

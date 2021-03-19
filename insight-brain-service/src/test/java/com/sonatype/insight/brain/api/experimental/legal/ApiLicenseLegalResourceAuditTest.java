@@ -125,25 +125,20 @@ public class ApiLicenseLegalResourceAuditTest
   }
 
   @Test
-  public void testSaveComponentLegalFile() throws Exception {
+  public void testSaveComponentLegalFile_Notices() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     ComponentLegalFileDTO componentLegalFileDTO = new ComponentLegalFileDTO();
     componentLegalFileDTO
         .setComponentIdentifier(ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
+    componentLegalFileDTO.setLegalFileType(LegalFileType.NOTICE);
     LegalFileOverrideDTO notice1 =
-        new LegalFileOverrideDTO(LegalFileType.NOTICE, null, "notice1", ComponentLegalPartStatus.ENABLED);
+        new LegalFileOverrideDTO(null, "notice1", ComponentLegalPartStatus.ENABLED);
     LegalFileOverrideDTO notice2 =
-        new LegalFileOverrideDTO(LegalFileType.NOTICE, null, "notice2", ComponentLegalPartStatus.ENABLED);
+        new LegalFileOverrideDTO(null, "notice2", ComponentLegalPartStatus.ENABLED);
     LegalFileOverrideDTO notice3 =
-        new LegalFileOverrideDTO(LegalFileType.NOTICE, null, "notice3", ComponentLegalPartStatus.DISABLED);
-    LegalFileOverrideDTO license1 =
-        new LegalFileOverrideDTO(LegalFileType.LICENSE, null, "license1", ComponentLegalPartStatus.ENABLED);
-    LegalFileOverrideDTO license2 =
-        new LegalFileOverrideDTO(LegalFileType.LICENSE, null, "license2", ComponentLegalPartStatus.ENABLED);
-    LegalFileOverrideDTO license3 =
-        new LegalFileOverrideDTO(LegalFileType.LICENSE, null, "license3", ComponentLegalPartStatus.DISABLED);
-    componentLegalFileDTO.setLegalFileOverrides(Arrays.asList(notice1, notice2, notice3, license1, license2, license3));
+        new LegalFileOverrideDTO(null, "notice3", ComponentLegalPartStatus.DISABLED);
+    componentLegalFileDTO.setLegalFileOverrides(Arrays.asList(notice1, notice2, notice3));
 
     HttpResponse response = restRequest().path(ApiLicenseLegalResource.COMPONENT_LEGAL_FILE_PATH)
         .parameter(app.getType().toString(), app.getPublicId())
@@ -156,8 +151,35 @@ public class ApiLicenseLegalResourceAuditTest
     assertCustomObject(auditDTO, "componentIdentifier", componentIdentifier);
     assertCustomData(auditDTO, "notices", Arrays
         .asList(resultDto.getLegalFileOverrides().get(0).getId(), resultDto.getLegalFileOverrides().get(1).getId()));
+  }
+  
+  @Test
+  public void testSaveComponentLegalFile_Licenses() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentLegalFileDTO componentLegalFileDTO = new ComponentLegalFileDTO();
+    componentLegalFileDTO.setLegalFileType(LegalFileType.LICENSE);
+    componentLegalFileDTO
+        .setComponentIdentifier(ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
+    LegalFileOverrideDTO license1 =
+        new LegalFileOverrideDTO(null, "license1", ComponentLegalPartStatus.ENABLED);
+    LegalFileOverrideDTO license2 =
+        new LegalFileOverrideDTO(null, "license2", ComponentLegalPartStatus.ENABLED);
+    LegalFileOverrideDTO license3 =
+        new LegalFileOverrideDTO(null, "license3", ComponentLegalPartStatus.DISABLED);
+    componentLegalFileDTO.setLegalFileOverrides(Arrays.asList(license1, license2, license3));
+
+    HttpResponse response = restRequest().path(ApiLicenseLegalResource.COMPONENT_LEGAL_FILE_PATH)
+        .parameter(app.getType().toString(), app.getPublicId())
+        .body(componentLegalFileDTO)
+        .post();
+
+    ComponentLegalFileDTO resultDto = response.getBody(ComponentLegalFileDTO.class);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_COMPONENT_LEGAL_FILE, null);
+    assertApplicationData(auditDTO, app);
+    assertCustomObject(auditDTO, "componentIdentifier", componentIdentifier);
     assertCustomData(auditDTO, "licenses", Arrays
-        .asList(resultDto.getLegalFileOverrides().get(3).getId(), resultDto.getLegalFileOverrides().get(4).getId()));
+        .asList(resultDto.getLegalFileOverrides().get(0).getId(), resultDto.getLegalFileOverrides().get(1).getId()));
   }
 
   @Test
@@ -165,7 +187,7 @@ public class ApiLicenseLegalResourceAuditTest
     Application app = tempEntity.newApplicationWithParent();
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     ComponentLegalFile componentLegalFile =
-        tempEntity.newComponentLegalFile(componentIdentifier, app.getId(), "legalContentHash");
+        tempEntity.newComponentLegalFile(componentIdentifier, app.getId(), LegalFileType.NOTICE, "legalContentHash");
 
     restRequest().path(ApiLicenseLegalResource.COMPONENT_LEGAL_FILE_PATH)
         .parameter(app.getType().toString(), app.getPublicId())

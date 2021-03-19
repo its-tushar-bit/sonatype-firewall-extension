@@ -17,8 +17,8 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
-import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightWithOwnerDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightWithOwnerDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.CopyrightOverrideDTO;
@@ -231,7 +231,6 @@ public class ComponentLegalService
         .map(dto -> {
           String content = StringUtils.trimToEmpty(dto.getContent());
           LegalFileOverride legalFileOverride = new LegalFileOverride(
-              dto.getLegalFileType(),
               dto.getOriginalContentHash(),
               ContentHashUtil.getContentHash(content),
               content,
@@ -245,6 +244,7 @@ public class ComponentLegalService
     ComponentLegalFile componentLegalFile = new ComponentLegalFile(
         componentLegalFileDTO.getComponentIdentifier().toComponentIdentifier(),
         owner.getId(),
+        componentLegalFileDTO.getLegalFileType(),
         NOT_IMPLEMENTED,
         currentUser.getUsername()
     );
@@ -585,8 +585,8 @@ public class ComponentLegalService
       ComponentLegalFile componentLegalFile)
   {
     ComponentLegalFile conflictingComponentLegalFile = componentLegalFileDAO
-        .getByOwnerIdAndComponentIdentifier(tx, componentLegalFile.getOwnerId(),
-            componentLegalFile.getComponentIdentifier());
+        .getByOwnerIdAndComponentIdentifierAndType(tx, componentLegalFile.getOwnerId(),
+            componentLegalFile.getComponentIdentifier(), componentLegalFile.getType());
     if (conflictingComponentLegalFile == null ||
         conflictingComponentLegalFile.getId().equals(componentLegalFile.getId())) {
       return Optional.empty();
@@ -628,14 +628,8 @@ public class ComponentLegalService
       List<LegalFileOverride> legalFileOverrides)
   {
     AuditData.get().setComponentIdentifier(componentLegalFile.getComponentIdentifier());
-    AuditData.get().setData("notices",
+    AuditData.get().setData(componentLegalFile.getType().toString() + "s",
         legalFileOverrides.stream()
-            .filter(clf -> clf.getType() == LegalFileType.NOTICE)
-            .filter(clf -> clf.getStatus() == ComponentLegalPartStatus.ENABLED)
-            .map(LegalFileOverride::getId).collect(Collectors.toList()));
-    AuditData.get().setData("licenses",
-        legalFileOverrides.stream()
-            .filter(clf -> clf.getType() == LegalFileType.LICENSE)
             .filter(clf -> clf.getStatus() == ComponentLegalPartStatus.ENABLED)
             .map(LegalFileOverride::getId).collect(Collectors.toList()));
   }
@@ -751,10 +745,11 @@ public class ComponentLegalService
   private void validateComponentLegalFileDTO(ComponentLegalFileDTO componentLegalFileDTO) {
     validateApiComponentIdentifierDTOV2(componentLegalFileDTO.getComponentIdentifier());
 
+    if (componentLegalFileDTO.getLegalFileType() == null) {
+      throw new BadRequestException("ComponentLegalFileDTO must have a legal file type.");
+    }
+
     for (LegalFileOverrideDTO legalFileOverrideDTO : componentLegalFileDTO.getLegalFileOverrides()) {
-      if (legalFileOverrideDTO.getLegalFileType() == null) {
-        throw new BadRequestException("LegalFileOverride must have a legal file type.");
-      }
       if (legalFileOverrideDTO.getStatus() == null) {
         throw new BadRequestException("LegalFileOverride must have a status.");
       }

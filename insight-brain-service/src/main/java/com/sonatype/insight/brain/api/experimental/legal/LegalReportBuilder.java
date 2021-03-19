@@ -217,12 +217,11 @@ public class LegalReportBuilder
 
     return legalFileOverrides.stream()
         .sorted(LegalReportBuilder::sortLegalFileOverrides)
-        .filter(legalFileOverride -> legalFileOverride.getType() == legalFileType)
         .map(legalFileOverride -> {
           //Find the relPath by matching the contentHash.
           String relPath = componentLegalFiles.stream()
               .flatMap(c -> c.getLegalFiles().stream())
-              .filter(l -> l.getType().equalsIgnoreCase(legalFileOverride.getType().toString()) &&
+              .filter(l -> l.getType().equalsIgnoreCase(legalFileType.toString()) &&
                   l.getContentHash().equals(legalFileOverride.getOriginalContentHash()))
               .findFirst()
               .map(LegalFileDTO::getRelPath)

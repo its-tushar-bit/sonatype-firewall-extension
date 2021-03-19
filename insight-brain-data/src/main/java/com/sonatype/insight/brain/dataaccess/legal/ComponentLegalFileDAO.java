@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapte
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.LegalFileOverride;
+import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -43,37 +44,41 @@ public class ComponentLegalFileDAO
     }
   }
 
-  public ComponentLegalFile getByOwnerIdAndComponentIdentifier(
+  public ComponentLegalFile getByOwnerIdAndComponentIdentifierAndType(
       TransactionContext tx,
       String ownerId,
-      ComponentIdentifier componentIdentifier)
+      ComponentIdentifier componentIdentifier,
+      LegalFileType legalFileType)
   {
     String sQuery = "SELECT entity FROM ComponentLegalFile entity" + //
         " WHERE entity.ownerId=?1" + //
         " AND entity.componentIdFormat=?2" + //
-        " AND entity.componentIdCoordinatesJson=?3";
+        " AND entity.componentIdCoordinatesJson=?3" + //
+        " AND entity.type=?4";
     return get(tx, sQuery, ownerId, componentIdentifier.getFormat(),
-        ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()));
+        ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()), legalFileType);
   }
 
-  public ComponentLegalFile getByOwnerIdAndComponentIdentifier(
+  public ComponentLegalFile getByOwnerIdAndComponentIdentifierAndType(
       String ownerId,
-      ComponentIdentifier componentIdentifier)
+      ComponentIdentifier componentIdentifier,
+      LegalFileType legalFileType)
   {
     try (TransactionContext tx = createTransactionContext()) {
-      return getByOwnerIdAndComponentIdentifier(tx, ownerId, componentIdentifier);
+      return getByOwnerIdAndComponentIdentifierAndType(tx, ownerId, componentIdentifier, legalFileType);
     }
   }
 
-  public ComponentLegalFile getByOwnerIdAndComponentIdentifierWithHierarchy(
+  public ComponentLegalFile getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(
       TransactionContext tx,
       String ownerId,
-      ComponentIdentifier componentIdentifier)
+      ComponentIdentifier componentIdentifier,
+      LegalFileType legalFileType)
   {
     OwnerDAO ownerDAO = new OwnerDAO();
     for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
       ComponentLegalFile componentLegalFile =
-          getByOwnerIdAndComponentIdentifier(tx, owner.getId(), componentIdentifier);
+          getByOwnerIdAndComponentIdentifierAndType(tx, owner.getId(), componentIdentifier, legalFileType);
       if (componentLegalFile != null) {
         return componentLegalFile;
       }
@@ -81,12 +86,13 @@ public class ComponentLegalFileDAO
     return null;
   }
 
-  public ComponentLegalFile getByOwnerIdAndComponentIdentifierWithHierarchy(
+  public ComponentLegalFile getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(
       String ownerId,
-      ComponentIdentifier componentIdentifier)
+      ComponentIdentifier componentIdentifier,
+      LegalFileType legalFileType)
   {
     try (TransactionContext tx = createTransactionContext()) {
-      return getByOwnerIdAndComponentIdentifierWithHierarchy(tx, ownerId, componentIdentifier);
+      return getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(tx, ownerId, componentIdentifier, legalFileType);
     }
   }
 
@@ -97,11 +103,12 @@ public class ComponentLegalFileDAO
 
   @Override
   public void insert(TransactionContext tx, ComponentLegalFile componentLegalFile) {
-    if (getByOwnerIdAndComponentIdentifier(tx, componentLegalFile.getOwnerId(),
-        componentLegalFile.getComponentIdentifier()) != null) {
+    if (getByOwnerIdAndComponentIdentifierAndType(tx, componentLegalFile.getOwnerId(),
+        componentLegalFile.getComponentIdentifier(), componentLegalFile.getType()) != null) {
       throw new BadRequestException(
           "Component legal file already exists for owner with id " + componentLegalFile.getOwnerId() +
-              " and component " + componentLegalFile.getComponentIdentifier() + ".");
+              " and component " + componentLegalFile.getComponentIdentifier() +
+              " and type " + componentLegalFile.getType() + ".");
     }
     if (componentLegalFile.getLastUpdatedAt() == null) {
       componentLegalFile.setLastUpdatedAt(new Date());

@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
+import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
@@ -215,7 +216,7 @@ public class ComponentLegalServiceAuthzTest
   public void testSaveComponentLegalFile_Unauthorized_UpdateAtLowerScope() {
     ComponentLegalFileDTO componentLegalFileDTO = buildComponentLegalFileDTO();
     ComponentLegalFile componentLegalFile = tempEntity.newComponentLegalFile(
-        componentLegalFileDTO.getComponentIdentifier().toComponentIdentifier(), org.getId(),
+        componentLegalFileDTO.getComponentIdentifier().toComponentIdentifier(), org.getId(), LegalFileType.NOTICE,
         ComponentLegalService.NOT_IMPLEMENTED);
     componentLegalFileDTO.setId(componentLegalFile.getId());
     grantLegalReviewerPermission(app.getId());
@@ -224,6 +225,7 @@ public class ComponentLegalServiceAuthzTest
 
   private ComponentLegalFileDTO buildComponentLegalFileDTO() {
     ComponentLegalFileDTO componentLegalFileDTO = new ComponentLegalFileDTO();
+    componentLegalFileDTO.setLegalFileType(LegalFileType.NOTICE);
     componentLegalFileDTO.setComponentIdentifier(
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g", "a", "v")));
     return componentLegalFileDTO;

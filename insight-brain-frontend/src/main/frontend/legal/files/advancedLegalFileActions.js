@@ -54,11 +54,11 @@ export function saveNotices() {
     const isScopeOverrideValue = isScopeOverride(originalOwnerId, ownerId, availableScopeValues);
     const payload = {
       id: isScopeOverrideValue ? null : componentNoticesId,
+      legalFileType: 'notice',
       componentIdentifier,
       legalFileOverrides: noticeFiles.map(noticeFile => (
         {
           id: isScopeOverrideValue ? null : noticeFile.id,
-          legalFileType: 'notice',
           originalContentHash: noticeFile.originalContentHash,
           content: noticeFile.content,
           status: noticeFile.status
@@ -128,11 +128,11 @@ export function saveLicenses() {
     const isScopeOverrideValue = isScopeOverride(originalOwnerId, ownerId, availableScopeValues);
     const payload = {
       id: isScopeOverrideValue ? null : componentLicensesId,
+      legalFileType: 'license',
       componentIdentifier,
       legalFileOverrides: licenseFiles.map(licenseFile => (
         {
           id: isScopeOverrideValue ? null : licenseFile.id,
-          legalFileType: 'license',
           originalContentHash: licenseFile.originalContentHash,
           content: licenseFile.content,
           status: licenseFile.status

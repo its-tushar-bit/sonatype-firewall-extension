@@ -1041,12 +1041,14 @@ public class ApiLicenseLegalServiceTest
     CopyrightOverride copyrightOverrideDisabled =
         tempEntity.newCopyrightOverride("originalHash2", "hash2", "overrideContent2",
             ComponentLegalPartStatus.DISABLED, componentCopyright.getId());
-    ComponentLegalFile componentLegalFile =
-        tempEntity.newComponentLegalFile(componentIdentifier, application.getId(), "legalContentHash");
-    LegalFileOverride noticeOverride = tempEntity.newLegalFileOverride(LegalFileType.NOTICE, "originalHash2", "hash2",
-        "overrideContent", ComponentLegalPartStatus.DISABLED, componentLegalFile.getId());
-    LegalFileOverride licenseOverride = tempEntity.newLegalFileOverride(LegalFileType.LICENSE, "originalHash3", "hash3",
-        "overrideContent", ComponentLegalPartStatus.DISABLED, componentLegalFile.getId());
+    ComponentLegalFile noticeLegalFile = tempEntity.newComponentLegalFile(componentIdentifier, application.getId(),
+        LegalFileType.NOTICE, "legalContentHash");
+    LegalFileOverride noticeOverride = tempEntity.newLegalFileOverride("originalHash2", "hash2",
+        "overrideContent", ComponentLegalPartStatus.DISABLED, noticeLegalFile.getId());
+    ComponentLegalFile licenseLegalFile = tempEntity.newComponentLegalFile(componentIdentifier, application.getId(),
+        LegalFileType.LICENSE, "legalContentHash");
+    LegalFileOverride licenseOverride = tempEntity.newLegalFileOverride("originalHash3", "hash3",
+        "overrideContent", ComponentLegalPartStatus.DISABLED, licenseLegalFile.getId());
 
     licenseLegalComponentReport = apiLicenseLegalService
         .getLicenseLegalComponentReport(application.getType(), application.getPublicId(), componentIdentifier, null,
@@ -1098,12 +1100,14 @@ public class ApiLicenseLegalServiceTest
         tempEntity.newComponentCopyright(componentIdentifier, application.getId(), "legalContentHash");
     CopyrightOverride copyrightOverride = tempEntity.newCopyrightOverride("originalHash1", "hash1", "overrideContent",
         ComponentLegalPartStatus.ENABLED, componentCopyright.getId());
-    ComponentLegalFile componentLegalFile =
-        tempEntity.newComponentLegalFile(componentIdentifier, application.getId(), "legalContentHash");
-    LegalFileOverride noticeOverride = tempEntity.newLegalFileOverride(LegalFileType.NOTICE, "originalHash2", "hash2",
-        "overrideContent", ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
-    LegalFileOverride licenseOverride = tempEntity.newLegalFileOverride(LegalFileType.LICENSE, "originalHash3", "hash3",
-        "overrideContent", ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
+    ComponentLegalFile noticeLegalFile = tempEntity.newComponentLegalFile(componentIdentifier, application.getId(),
+        LegalFileType.NOTICE, "legalContentHash");
+    LegalFileOverride noticeOverride = tempEntity.newLegalFileOverride("originalHash2", "hash2",
+        "overrideContent", ComponentLegalPartStatus.ENABLED, noticeLegalFile.getId());
+    ComponentLegalFile licenseLegalFile = tempEntity.newComponentLegalFile(componentIdentifier, application.getId(),
+        LegalFileType.LICENSE, "legalContentHash");
+    LegalFileOverride licenseOverride = tempEntity.newLegalFileOverride("originalHash3", "hash3",
+        "overrideContent", ComponentLegalPartStatus.ENABLED, licenseLegalFile.getId());
 
     PolicyEvaluation policyEvaluation =
         tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
@@ -1538,12 +1542,12 @@ public class ApiLicenseLegalServiceTest
     doReturn(namedComponentDetails)
         .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
     ComponentLegalFile componentLicense =
-        tempEntity.newComponentLegalFile(componentIdentifier, org.getId(), "legalContentHash");
-    tempEntity.newLegalFileOverride(LegalFileType.LICENSE, null, "hash2", "content2", ComponentLegalPartStatus.ENABLED,
+        tempEntity.newComponentLegalFile(componentIdentifier, org.getId(), LegalFileType.LICENSE, "legalContentHash");
+    tempEntity.newLegalFileOverride(null, "hash2", "content2", ComponentLegalPartStatus.ENABLED,
         componentLicense.getId());
     ComponentLegalFile componentNotice =
-        tempEntity.newComponentLegalFile(componentIdentifier, app.getId(), "legalContentHash");
-    tempEntity.newLegalFileOverride(LegalFileType.NOTICE, null, "hash1", "content1", ComponentLegalPartStatus.ENABLED,
+        tempEntity.newComponentLegalFile(componentIdentifier, app.getId(), LegalFileType.NOTICE, "legalContentHash");
+    tempEntity.newLegalFileOverride(null, "hash1", "content1", ComponentLegalPartStatus.ENABLED,
         componentNotice.getId());
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
@@ -1660,24 +1664,26 @@ public class ApiLicenseLegalServiceTest
     namedComponentDetails.setComponentIdentifier(componentIdentifier);
     doReturn(namedComponentDetails)
         .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
-    ComponentLegalFile componentLegalFile =
-        tempEntity.newComponentLegalFile(componentIdentifier, owner.getId(), "legalContentHash1");
-    tempEntity.newLegalFileOverride(LegalFileType.NOTICE, null,
-        "hash1", "y", ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
-    tempEntity.newLegalFileOverride(LegalFileType.NOTICE, null,
-        "hash2", "b", ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
-    tempEntity.newLegalFileOverride(LegalFileType.NOTICE, "originalHash1",
-        "hash3", "z", ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
-    tempEntity.newLegalFileOverride(LegalFileType.NOTICE, "originalHash2",
-        "hash4", "a", ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
-    tempEntity.newLegalFileOverride(LegalFileType.LICENSE, null,
-        "hash1", "y", ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
-    tempEntity.newLegalFileOverride(LegalFileType.LICENSE, null,
-        "hash2", "b", ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
-    tempEntity.newLegalFileOverride(LegalFileType.LICENSE, "originalHash1",
-        "hash3", "z", ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
-    tempEntity.newLegalFileOverride(LegalFileType.LICENSE, "originalHash2",
-        "hash4", "a", ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
+    ComponentLegalFile noticeLegalFile =
+        tempEntity.newComponentLegalFile(componentIdentifier, owner.getId(), LegalFileType.NOTICE, "legalContentHash1");
+    tempEntity.newLegalFileOverride(null,
+        "hash1", "y", ComponentLegalPartStatus.ENABLED, noticeLegalFile.getId());
+    tempEntity.newLegalFileOverride(null,
+        "hash2", "b", ComponentLegalPartStatus.ENABLED, noticeLegalFile.getId());
+    tempEntity.newLegalFileOverride("originalHash1",
+        "hash3", "z", ComponentLegalPartStatus.ENABLED, noticeLegalFile.getId());
+    tempEntity.newLegalFileOverride("originalHash2",
+        "hash4", "a", ComponentLegalPartStatus.ENABLED, noticeLegalFile.getId());
+    ComponentLegalFile licenseLegalFile = tempEntity.newComponentLegalFile(componentIdentifier, owner.getId(),
+        LegalFileType.LICENSE, "legalContentHash1");
+    tempEntity.newLegalFileOverride(null,
+        "hash1", "y", ComponentLegalPartStatus.ENABLED, licenseLegalFile.getId());
+    tempEntity.newLegalFileOverride(null,
+        "hash2", "b", ComponentLegalPartStatus.ENABLED, licenseLegalFile.getId());
+    tempEntity.newLegalFileOverride("originalHash1",
+        "hash3", "z", ComponentLegalPartStatus.ENABLED, licenseLegalFile.getId());
+    tempEntity.newLegalFileOverride("originalHash2",
+        "hash4", "a", ComponentLegalPartStatus.ENABLED, licenseLegalFile.getId());
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,

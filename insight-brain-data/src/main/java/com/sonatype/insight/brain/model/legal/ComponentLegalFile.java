@@ -9,6 +9,8 @@ import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -32,6 +34,10 @@ public class ComponentLegalFile
   @Column(name = "owner_id")
   private String ownerId;
 
+  @Column(name = "type")
+  @Enumerated(EnumType.STRING)
+  private LegalFileType type;
+
   @Column(name = "legal_content_hash")
   private String legalContentHash;
 
@@ -48,11 +54,13 @@ public class ComponentLegalFile
   public ComponentLegalFile(
       ComponentIdentifier componentIdentifier,
       String ownerId,
+      LegalFileType legalFileType,
       String legalContentHash,
       String lastUpdatedByUsername)
   {
     setComponentIdentifier(componentIdentifier);
     this.ownerId = ownerId;
+    this.type = legalFileType;
     this.legalContentHash = legalContentHash;
     this.lastUpdatedByUsername = lastUpdatedByUsername;
   }
@@ -73,6 +81,14 @@ public class ComponentLegalFile
 
   public void setOwnerId(String ownerId) {
     this.ownerId = ownerId;
+  }
+
+  public LegalFileType getType() {
+    return type;
+  }
+
+  public void setType(LegalFileType type) {
+    this.type = type;
   }
 
   public String getLegalContentHash() {

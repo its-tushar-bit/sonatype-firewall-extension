@@ -2855,16 +2855,16 @@ public class TemporaryEntity
   public ComponentLegalFile newComponentLegalFile(
       ComponentIdentifier componentIdentifier,
       String ownerId,
+      LegalFileType legalFileType,
       String legalContentHash)
   {
     ComponentLegalFile componentLegalFile =
-        new ComponentLegalFile(componentIdentifier, ownerId, legalContentHash, "username");
+        new ComponentLegalFile(componentIdentifier, ownerId, legalFileType, legalContentHash, "username");
     componentLegalFileDAO.insert(componentLegalFile);
     return componentLegalFile;
   }
 
   public LegalFileOverride newLegalFileOverride(
-      LegalFileType legalFileType,
       String originalHash,
       String hash,
       String content,
@@ -2872,7 +2872,7 @@ public class TemporaryEntity
       String componentLegalFileId)
   {
     LegalFileOverride legalFileOverride =
-        new LegalFileOverride(legalFileType, originalHash, hash, content, status, componentLegalFileId);
+        new LegalFileOverride(originalHash, hash, content, status, componentLegalFileId);
     legalFileOverrideDAO.insert(legalFileOverride);
     return legalFileOverride;
   }

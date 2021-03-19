@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.api.v2.dto.legal;
 
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.legal.LegalFileOverride;
-import com.sonatype.insight.brain.model.legal.LegalFileType;
 
 /**
  * @since 1.107
@@ -15,8 +14,6 @@ import com.sonatype.insight.brain.model.legal.LegalFileType;
 public class LegalFileOverrideDTO
 {
   private String id;
-
-  private LegalFileType legalFileType;
 
   private String originalContentHash;
 
@@ -29,12 +26,10 @@ public class LegalFileOverrideDTO
   }
 
   public LegalFileOverrideDTO(
-      LegalFileType legalFileType,
       String originalContentHash,
       String content,
       ComponentLegalPartStatus status)
   {
-    this.legalFileType = legalFileType;
     this.originalContentHash = originalContentHash;
     this.content = content;
     this.status = status;
@@ -42,7 +37,6 @@ public class LegalFileOverrideDTO
 
   public LegalFileOverrideDTO(LegalFileOverride legalFileOverride) {
     id = legalFileOverride.getId();
-    legalFileType = legalFileOverride.getType();
     originalContentHash = legalFileOverride.getOriginalContentHash();
     content = legalFileOverride.getContent();
     status = legalFileOverride.getStatus();
@@ -54,14 +48,6 @@ public class LegalFileOverrideDTO
 
   public void setId(String id) {
     this.id = id;
-  }
-
-  public LegalFileType getLegalFileType() {
-    return legalFileType;
-  }
-
-  public void setLegalFileType(LegalFileType legalFileType) {
-    this.legalFileType = legalFileType;
   }
 
   public String getOriginalContentHash() {

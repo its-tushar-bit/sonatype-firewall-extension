@@ -40,9 +40,9 @@
             <input type="radio" ng-model="label.selectedOwner" name="selectedOwner" value="{{labelOwner.id + '$$' + labelOwner.type}}">
             <span>Assign label<span ng-if="displayName"> to component <em ng-repeat="part in displayName.parts">{{part.value}}</em></span> for </span>
             <span ng-switch on="labelOwner.type">
-              <span ng-switch-when="organization"><span>all of organization </span><strong>{{labelOwner.name}}</strong></span>
-              <span ng-switch-when="application"><span>application </span><strong>{{labelOwner.name}}</strong></span>
-              <span ng-switch-default><strong>{{labelOwner.name}}</strong></span>
+              <span ng-switch-when="organization"><span>all of organization </span><strong class="labelOwnerName">{{labelOwner.name}}</strong></span>
+              <span ng-switch-when="application"><span>application </span><strong class="labelOwnerName">{{labelOwner.name}}</strong></span>
+              <span ng-switch-default><strong class="labelOwnerName">{{labelOwner.name}}</strong></span>
             </span>
           </label>
         </div>

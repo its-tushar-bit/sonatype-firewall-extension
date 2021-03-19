@@ -126,3 +126,7 @@ span.clmLabel .tooltip {
   width: 49.5%;
   vertical-align: top;
 }
+
+#label-assign-scope-modal .labelOwnerName {
+  word-break: break-all;
+}

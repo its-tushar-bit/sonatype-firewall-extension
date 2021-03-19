@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.experimental;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -192,7 +193,7 @@ public class ApiFirewallResourceTest
 
     // and value is present
     List<ApiFirewallReleaseQuarantineConfigDTO> dtos = response.getBody(List.class);
-    assertThat(dtos.size()).isGreaterThan(0);
+    assertThat(dtos).isNotNull().isNotEmpty();
   }
 
   @Test
@@ -217,6 +218,47 @@ public class ApiFirewallResourceTest
     // when GETing config
     HttpResponse response = restRequest().path(ApiFirewallResource.RESOURCE_PATH,
         ApiFirewallResource.RELEASE_QUARANTINE_CONFIGURATION_PATH).get();
+
+    // then result is payment required 402
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.PAYMENT_REQUIRED_402);
+  }
+
+  @Test
+  public void testSetFirewallAutoUnquarantineConfig() throws Exception {
+    // when SETing config
+    HttpResponse response = restRequest().path(ApiFirewallResource.RESOURCE_PATH,
+        ApiFirewallResource.RELEASE_QUARANTINE_CONFIGURATION_PATH).body(new ArrayList<>()).put();
+
+    // then result is OK
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK_200);
+
+    // and value is present
+    List<ApiFirewallReleaseQuarantineConfigDTO> dtos = response.getBody(List.class);
+    assertThat(dtos).isNotNull().isNotEmpty();
+  }
+
+  @Test
+  public void testSetFirewallAutoUnquarantineConfig_FeatureFlagDisabled() throws Exception {
+    //disable feature flag
+    initServer(
+        config -> config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), false)));
+
+    // when SETing config
+    HttpResponse response = restRequest().path(ApiFirewallResource.RESOURCE_PATH,
+        ApiFirewallResource.RELEASE_QUARANTINE_CONFIGURATION_PATH).put();
+
+    // then result is bad request 400
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST_400);
+  }
+
+  @Test
+  public void testSetFirewallAutoUnquarantineConfig_MissingLicensedFeature() throws Exception {
+    // setup remove firewall feature
+    getTestProductLicenseManager().setFeatures(LicensedFeature.FIREWALL);
+
+    // when SETing config
+    HttpResponse response = restRequest().path(ApiFirewallResource.RESOURCE_PATH,
+        ApiFirewallResource.RELEASE_QUARANTINE_CONFIGURATION_PATH).put();
 
     // then result is payment required 402
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.PAYMENT_REQUIRED_402);

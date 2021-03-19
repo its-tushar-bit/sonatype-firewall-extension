@@ -20,10 +20,10 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallComponentDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallQuarantineSummaryDTO;
+import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineConfigDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.experimental.dto.FirewallConfigurationDTO;
-import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineConfigDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyViolationAdapter;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -172,6 +172,73 @@ public class ApiFirewallService
         .filter(ConditionType::isAutoUnquarantineSupported)
         .map(conditionType -> generateReleaseQuarantineConfigDto(enabledPolicyConditionTypes, conditionType))
         .collect(Collectors.toList());
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  public List<ApiFirewallReleaseQuarantineConfigDTO> setReleaseQuarantineConfig(
+      final List<ApiFirewallReleaseQuarantineConfigDTO> apiFirewallReleaseQuarantineConfigDTOS)
+  {
+    checkExperimentalFeatureFlag();
+    checkProductLicense();
+
+    if (apiFirewallReleaseQuarantineConfigDTOS == null) {
+      throw new BadRequestException("No policy condition types were specified for update.");
+    }
+
+    validateInputConfigurationDtos(apiFirewallReleaseQuarantineConfigDTOS);
+
+    if (!apiFirewallReleaseQuarantineConfigDTOS.isEmpty()) {
+      executeWithAuditSession(() -> {
+        disablePolicyConditionTypesForMonitoring(apiFirewallReleaseQuarantineConfigDTOS.stream()
+            .filter(conditionType -> !conditionType.autoReleaseQuarantineEnabled).collect(
+                Collectors.toList()));
+
+        enablePolicyConditionTypesForMonitoring(apiFirewallReleaseQuarantineConfigDTOS.stream()
+            .filter(conditionType -> conditionType.autoReleaseQuarantineEnabled).collect(
+                Collectors.toList()));
+      });
+    }
+
+    return getReleaseQuarantineConfig();
+  }
+
+  private void validateInputConfigurationDtos(
+      final List<ApiFirewallReleaseQuarantineConfigDTO> apiFirewallReleaseQuarantineConfigDTOS)
+  {
+    apiFirewallReleaseQuarantineConfigDTOS.forEach(conditionType -> {
+      if (null == conditionType.id) {
+        throw new BadRequestException("Some Policy Condition Types do not have ID's specified.");
+      }
+
+      if (null == conditionType.autoReleaseQuarantineEnabled) {
+        throw new BadRequestException(String
+            .format("Policy Condition Type with id '%s' does not have the enabled flag specified.", conditionType.id));
+      }
+    });
+  }
+
+  private void disablePolicyConditionTypesForMonitoring(
+      final List<ApiFirewallReleaseQuarantineConfigDTO> apiFirewallReleaseQuarantineConfigDTOS)
+  {
+    apiFirewallReleaseQuarantineConfigDTOS.forEach(conditionType -> {
+      final AutoUnquarantinePolicyConditionType autoUnquarantinePolicyConditionType =
+          autoUnquarantinePolicyConditionTypeDAO.getById(conditionType.id);
+      if (autoUnquarantinePolicyConditionType != null) {
+        autoUnquarantinePolicyConditionTypeDAO.delete(autoUnquarantinePolicyConditionType);
+      }
+    });
+  }
+
+  private void enablePolicyConditionTypesForMonitoring(
+      final List<ApiFirewallReleaseQuarantineConfigDTO> apiFirewallReleaseQuarantineConfigDTOS)
+  {
+    apiFirewallReleaseQuarantineConfigDTOS.forEach(conditionType -> {
+      if (autoUnquarantinePolicyConditionTypeDAO.getById(conditionType.id) == null) {
+        AutoUnquarantinePolicyConditionType autoUnquarantinePolicyConditionType =
+            new AutoUnquarantinePolicyConditionType(conditionType.id);
+        autoUnquarantinePolicyConditionTypeDAO.insert(autoUnquarantinePolicyConditionType);
+      }
+    });
   }
 
   private ApiFirewallReleaseQuarantineConfigDTO generateReleaseQuarantineConfigDto(

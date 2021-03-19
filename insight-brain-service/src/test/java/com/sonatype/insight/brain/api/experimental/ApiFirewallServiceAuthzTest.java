@@ -5,16 +5,17 @@
  */
 package com.sonatype.insight.brain.api.experimental;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallComponentDTO;
+import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineConfigDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.experimental.dto.FirewallConfigurationDTO;
-import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineConfigDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -75,9 +76,9 @@ public class ApiFirewallServiceAuthzTest
     config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
     grantGlobalPermission(Permission.READ);
 
-    List<ApiFirewallReleaseQuarantineConfigDTO> dto = apiFirewallService.getReleaseQuarantineConfig();
+    List<ApiFirewallReleaseQuarantineConfigDTO> dtos = apiFirewallService.getReleaseQuarantineConfig();
 
-    assertThat(dto.size()).isGreaterThan(0);
+    assertThat(dtos).isNotNull().isNotEmpty();
   }
 
   @Test
@@ -91,6 +92,30 @@ public class ApiFirewallServiceAuthzTest
   public void testGetFirewallAutoUnquarantineConfig_Unauthenticated() {
     assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() ->
         apiFirewallService.getReleaseQuarantineConfig());
+  }
+
+  @Test
+  public void testSetFirewallAutoUnquarantineConfig_Authorized() {
+    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
+    grantGlobalPermission(Permission.READ);
+    grantGlobalPermission(Permission.WRITE);
+
+    List<ApiFirewallReleaseQuarantineConfigDTO> dtos = apiFirewallService.setReleaseQuarantineConfig(new ArrayList<>());
+
+    assertThat(dtos).isNotNull().isNotEmpty();
+  }
+
+  @Test
+  public void testSetFirewallAutoUnquarantineConfig_Unauthorized() {
+    login();
+    assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(() ->
+        apiFirewallService.setReleaseQuarantineConfig(null));
+  }
+
+  @Test
+  public void testSetFirewallAutoUnquarantineConfig_Unauthenticated() {
+    assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() ->
+        apiFirewallService.setReleaseQuarantineConfig(null));
   }
 
   @Test

@@ -152,7 +152,6 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.notification.UserViewedProductNotification;
 import com.sonatype.insight.brain.model.policy.AutoUnquarantinePolicyConditionType;
 import com.sonatype.insight.brain.model.policy.Condition;
-import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -2905,9 +2904,9 @@ public class TemporaryEntity
     return componentObligationAttribution;
   }
 
-  public AutoUnquarantinePolicyConditionType newAutoUnquarantinePolicyConditionType(ConditionType conditionType) {
+  public AutoUnquarantinePolicyConditionType newAutoUnquarantinePolicyConditionType(String conditionTypeId) {
     final AutoUnquarantinePolicyConditionType autoUnquarantinePolicyConditionType =
-        new AutoUnquarantinePolicyConditionType(conditionType.getId());
+        new AutoUnquarantinePolicyConditionType(conditionTypeId);
     autoUnquarantinePolicyConditionTypeDAO.insert(autoUnquarantinePolicyConditionType);
     return autoUnquarantinePolicyConditionType;
   }

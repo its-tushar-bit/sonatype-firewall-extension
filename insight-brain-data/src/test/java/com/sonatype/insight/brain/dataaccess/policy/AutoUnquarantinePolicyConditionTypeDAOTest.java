@@ -9,8 +9,9 @@ import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.policy.AutoUnquarantinePolicyConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.IntegrityRatingConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
@@ -49,7 +50,7 @@ public class AutoUnquarantinePolicyConditionTypeDAOTest
   @Test
   public void testInsert_alreadyExist() {
     // SETUP
-    tempEntity.newAutoUnquarantinePolicyConditionType(new IntegrityRatingConditionType());
+    tempEntity.newAutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID);
     final String id = new IntegrityRatingConditionType().getId();
     final AutoUnquarantinePolicyConditionType entity = new AutoUnquarantinePolicyConditionType(id);
     AutoUnquarantinePolicyConditionTypeDAO dao = new AutoUnquarantinePolicyConditionTypeDAO();
@@ -60,10 +61,22 @@ public class AutoUnquarantinePolicyConditionTypeDAOTest
   }
 
   @Test
+  public void testInsert_notSupportedConditionType() {
+    // SETUP
+    final AutoUnquarantinePolicyConditionType entity =
+        new AutoUnquarantinePolicyConditionType(AgeInDaysConditionType.ID);
+    AutoUnquarantinePolicyConditionTypeDAO dao = new AutoUnquarantinePolicyConditionTypeDAO();
+
+    // EXECUTE & Verify
+    assertThatThrownBy(() -> dao.insert(entity)).isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("Condition type with id 'AgeInDays' does not support auto release from quarantine.");
+  }
+
+  @Test
   public void testGetAll() {
     // SETUP
-    tempEntity.newAutoUnquarantinePolicyConditionType(new IntegrityRatingConditionType());
-    tempEntity.newAutoUnquarantinePolicyConditionType(new HygieneRatingConditionType());
+    tempEntity.newAutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID);
+    tempEntity.newAutoUnquarantinePolicyConditionType(LicenseConditionType.ID);
 
     AutoUnquarantinePolicyConditionTypeDAO dao = new AutoUnquarantinePolicyConditionTypeDAO();
 
@@ -72,8 +85,9 @@ public class AutoUnquarantinePolicyConditionTypeDAOTest
 
     // VERIFY
     assertThat(entities.size()).isEqualTo(2);
-    assertThat(entities.get(0).getId()).isEqualTo(HygieneRatingConditionType.ID);
-    assertThat(entities.get(1).getId()).isEqualTo(IntegrityRatingConditionType.ID);
+    assertThat(entities).extracting(AutoUnquarantinePolicyConditionType::getId)
+        .contains(IntegrityRatingConditionType.ID);
+    assertThat(entities).extracting(AutoUnquarantinePolicyConditionType::getId).contains(LicenseConditionType.ID);
   }
 
   @Test

@@ -39,6 +39,10 @@ public class AutoUnquarantinePolicyConditionTypeDAO
   {
     // will throw IllegalArgumentException if the id is not a valid ConditionType
     final ConditionType conditionType = ConditionTypes.getById(entity.getId());
+    if (!conditionType.isAutoUnquarantineSupported()) {
+      throw new IllegalArgumentException(
+          String.format("Condition type with id '%s' does not support auto release from quarantine.", entity.getId()));
+    }
 
     final AutoUnquarantinePolicyConditionType retrievedEntity = getById(tx, conditionType.getId());
     if (retrievedEntity != null) {

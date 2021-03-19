@@ -88,6 +88,15 @@ public class ApiFirewallResource
     return apiFirewallService.getReleaseQuarantineConfig();
   }
 
+  @PUT
+  @Path(RELEASE_QUARANTINE_CONFIGURATION_PATH)
+  @Audited(AuditEvent.CONFIGURE_CONTINUOUS_MONITORING)
+  public List<ApiFirewallReleaseQuarantineConfigDTO> setFirewallAutoUnquarantineConfig(
+      final List<ApiFirewallReleaseQuarantineConfigDTO> apiFirewallReleaseQuarantineConfigDTOS)
+  {
+    return apiFirewallService.setReleaseQuarantineConfig(apiFirewallReleaseQuarantineConfigDTOS);
+  }
+
   /**
    * @since 1.106.0
    */

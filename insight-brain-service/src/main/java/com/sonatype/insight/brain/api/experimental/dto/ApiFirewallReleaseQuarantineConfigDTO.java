@@ -11,5 +11,5 @@ public class ApiFirewallReleaseQuarantineConfigDTO
 
   public String name;
 
-  public boolean autoReleaseQuarantineEnabled;
+  public Boolean autoReleaseQuarantineEnabled;
 }

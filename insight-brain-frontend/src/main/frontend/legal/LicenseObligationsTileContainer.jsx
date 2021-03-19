@@ -10,7 +10,7 @@ import LicenseObligationsTile from './LicenseObligationsTile';
 
 function mapStateToProps({ advancedLegal }) {
   return {
-    licenseObligations: advancedLegal.component.obligations,
+    licenseObligations: advancedLegal.component.component.licenseLegalData.obligations,
     licenseLegalMetadata: advancedLegal.component.licenseLegalMetadata
   };
 }

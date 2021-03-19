@@ -41,7 +41,8 @@ describe('advancedLegalReducer', function () {
       expect(newState.viewStateApplicationReport.loading).toBeFalsy();
       expect(newState.viewStateApplicationReport.error).toBeNull();
       expect(newState.applicationReport).toBeNull();
-      expect(newState.component.loading).toBeTruthy();
+      expect(newState.component.loading).toBeFalsy();
+      expect(newState.component.error).toBeNull();
 
       expect(newState.availableScopes.loading).toBeFalsy();
       expect(newState.availableScopes.error).toBeNull();
@@ -129,12 +130,12 @@ describe('advancedLegalReducer', function () {
       });
 
       const {component} = newState;
-      component.obligations.forEach(obligation => {
+      component.component.licenseLegalData.obligations.forEach(obligation => {
         expect(obligation.originalStatus).toBe(obligation.status);
       });
 
-      expect(component.attributions.length).toBe(TEXT_BASED_OBLIGATIONS.length);
-      component.attributions.forEach(attribution => {
+      expect(component.component.licenseLegalData.attributions.length).toBe(TEXT_BASED_OBLIGATIONS.length);
+      component.component.licenseLegalData.attributions.forEach(attribution => {
         expect(TEXT_BASED_OBLIGATIONS).toContain(attribution.obligationName);
         expect(attribution.obligationName).not.toBe('other');
         expect(attribution.id).toBeNull();
@@ -178,11 +179,11 @@ describe('advancedLegalReducer', function () {
       });
 
       const { component } = newState;
-      component.obligations.forEach(obligation => {
+      component.component.licenseLegalData.obligations.forEach(obligation => {
         expect(obligation.originalStatus).toBe(obligation.status);
       });
 
-      component.attributions.forEach(attribution => {
+      component.component.licenseLegalData.attributions.forEach(attribution => {
         expect(TEXT_BASED_OBLIGATIONS).toContain(attribution.obligationName);
         expect(attribution.obligationName).not.toBe('other');
         expect(attribution.id).toBe('id');

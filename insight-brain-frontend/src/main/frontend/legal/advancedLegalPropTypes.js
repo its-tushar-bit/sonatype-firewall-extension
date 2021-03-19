@@ -67,7 +67,7 @@ export const componentPropType = PropTypes.shape({
     componentNoticesScopeOwnerId: PropTypes.string,
     componentLicensesId: PropTypes.string,
     componentLicensesScopeOwnerId: PropTypes.string,
-    obligation: licenseObligationsPropType,
+    obligations: licenseObligationsPropType,
     attributions: licenseObligationAttributionsPropType
   }).isRequired
 });

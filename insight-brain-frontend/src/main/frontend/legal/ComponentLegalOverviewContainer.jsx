@@ -11,13 +11,14 @@ import {loadAvailableScopes, loadComponent} from '../advancedLegal/advancedLegal
 import * as copyrightOverrideFormActions from './copyright/copyrightOverrideFormActions';
 
 function mapStateToProps({ advancedLegal, router, copyrightOverrides }) {
-  let component = advancedLegal.component || {};
-  let availableScopes = advancedLegal.availableScopes || {};
+  let component = advancedLegal.component;
+  let availableScopes = advancedLegal.availableScopes;
   return {
     loading: component.loading || availableScopes.loading,
     error: component.error || availableScopes.error,
     availableScopes: availableScopes,
-    ...pick(['component', 'licenseLegalMetadata', 'obligations', 'attributions'], component),
+    ...pick(['component', 'licenseLegalMetadata'], component),
+    obligations: component.component ? component.component.licenseLegalData.obligations : null,
     ...pick(['hash', 'organizationId', 'applicationPublicId'], router.currentParams),
     ...pick(['showEditCopyrightOverrideModal'], copyrightOverrides)
   };

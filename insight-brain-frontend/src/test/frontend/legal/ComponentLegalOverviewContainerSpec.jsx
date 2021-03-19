@@ -20,9 +20,12 @@ describe('ComponentLegalOverviewContainer', function() {
     state = {
       advancedLegal: {
         component: {
-          component: 'component',
+          component: {
+            licenseLegalData: {
+              obligations: 'obligations'
+            }
+          },
           licenseLegalMetadata: 'licenseLegalMetadata',
-          obligations: 'obligations',
           loading: 'loading',
           error: 'error'
         },
@@ -56,7 +59,11 @@ describe('ComponentLegalOverviewContainer', function() {
 
   it('maps the state slice to props', () => {
     let wrapper = shallow(vdom).dive();
-    expect(wrapper).toHaveProp('component', 'component');
+    expect(wrapper).toHaveProp('component', {
+      licenseLegalData: {
+        obligations: 'obligations'
+      }
+    });
     expect(wrapper).toHaveProp('licenseLegalMetadata', 'licenseLegalMetadata');
     expect(wrapper).toHaveProp('obligations', 'obligations');
     expect(wrapper).toHaveProp('loading', 'loading');

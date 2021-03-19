@@ -43,7 +43,8 @@ export function saveAttribution(obligationName) {
     dispatch(saveAttributionRequested({ name: obligationName }));
 
     const advancedLegalState = getState().advancedLegal;
-    const attributionState = find(propEq('obligationName', obligationName), advancedLegalState.component.attributions);
+    const attributionState = find(propEq('obligationName', obligationName),
+        advancedLegalState.component.component.licenseLegalData.attributions);
     const ownerId = attributionState.ownerId;
     const scopeVisited = advancedLegalState.availableScopes.values[0];
     const scope = find(propEq('id', ownerId), advancedLegalState.availableScopes.values);
@@ -129,7 +130,8 @@ export function saveObligation(name) {
     dispatch(saveObligationRequested({ name }));
 
     const advancedLegalState = getState().advancedLegal;
-    const obligationState = find(propEq('name', name), advancedLegalState.component.obligations);
+    const obligationState = find(propEq('name', name),
+        advancedLegalState.component.component.licenseLegalData.obligations);
     const ownerId = obligationState.ownerId;
     const scopeVisited = advancedLegalState.availableScopes.values[0];
     const scope = find(propEq('id', ownerId), advancedLegalState.availableScopes.values);

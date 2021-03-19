@@ -98,30 +98,30 @@ export default function ComponentLegalOverviewPage(props) {
                    error={ error }
                    retryHandler={ load }>
         <NxBackButton href="#" />
+        { component &&
         <div className="nx-page-title">
           <h1 className="nx-h1">
-            { component && component.displayName }
+            { component.displayName }
           </h1>
           { createSubtitle() }
-        </div>
+        </div>}
+        { component &&
         <div id="component-legal-overview-details">
           <ComponentOverviewTile obligationCount={ obligations && obligations.length }
-                                 licenseNames={ licenseNames }
-          />
-          { licenseLegalMetadata && obligations && <LicenseObligationsTileContainer /> }
+                                 licenseNames={ licenseNames }/>
+          <LicenseObligationsTileContainer />
           <div id="component-legal-overview-details-right">
             <LicenseDetailsTile licenseNames={ licenseNames }/>
             <CopyrightStatementsTile
                 component={ component }
                 availableScopes={ availableScopes }
                 showEditCopyrightOverrideModal = { showEditCopyrightOverrideModal }
-                setDisplayCopyrightOverrideModal = {setDisplayCopyrightOverrideModal }/>
+                setDisplayCopyrightOverrideModal = { setDisplayCopyrightOverrideModal }/>
             <NoticeTextsTileContainer/>
             <LicenseTextsTileContainer/>
-            { obligations &&
-            obligations.filter(isTextBasedObligation).map(createLicenseObligationAttributionTileContainer) }
+            { obligations.filter(isTextBasedObligation).map(createLicenseObligationAttributionTileContainer) }
           </div>
-        </div>
+        </div>}
       </LoadWrapper>
     </main>
   );

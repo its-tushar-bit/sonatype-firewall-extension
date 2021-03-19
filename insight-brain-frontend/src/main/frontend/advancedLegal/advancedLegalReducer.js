@@ -36,7 +36,8 @@ const initialState = {
   },
   applicationReport: null,
   component: {
-    loading: true
+    loading: false,
+    error: null
   },
   availableScopes: {
     loading: false,
@@ -196,7 +197,9 @@ function loadComponentFulfilled(payload, state) {
     originalComponentLicensesScopeOwnerId: componentLicensesScopeOwnerId,
     licenseFiles: newLicenseFiles,
     licensesError: null,
-    saveLicensesSubmitMask: null
+    saveLicensesSubmitMask: null,
+    obligations: newObligations,
+    attributions: newAttributions
   };
   return {
     ...state,
@@ -207,9 +210,7 @@ function loadComponentFulfilled(payload, state) {
       component: {
         ...payload.component,
         licenseLegalData: newLicenseLegalData
-      },
-      obligations: newObligations,
-      attributions: newAttributions
+      }
     }
   };
 }

@@ -65,29 +65,42 @@ describe('ComponentLegalOverviewPage', function() {
     const obligations = [{
       name: 'obligation 1',
       status: 'OPEN',
-      comment: null,
-      attributions: []
+      comment: null
     },
     {
       name: 'obligation 2',
       status: 'IGNORED',
-      comment: 'comment',
-      attributions: [{ id: 'attribution1', content: 'attributionText' }]
+      comment: 'comment'
     },
     {
       name: 'obligation 3',
       status: 'FULFILLED',
-      comment: null,
-      attributions: [
-        { id: 'attribution2', content: 'attributionText1' }, { id: 'attribution3', content: 'attributionText2' }
-      ]
+      comment: null
     }];
+
+    const availableScopes = {
+      values: [
+        {
+          id: 'ROOT_ORGANIZATION_ID',
+          name: 'Root Organization',
+          label: 'Organization'
+        }
+      ]
+    };
+
+    const component = {
+      licenseLegalData: {
+        effectiveLicenses: []
+      }
+    };
 
     minimalProps = {
       loadComponent: loadComponentSpy,
       loadAvailableScopes: loadAvailableScopesSpy,
       licenseLegalMetadata,
       obligations,
+      availableScopes,
+      component,
       hash: '1e48256a2341047e7d72'
     };
 

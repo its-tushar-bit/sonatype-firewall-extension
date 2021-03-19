@@ -25,9 +25,10 @@ import {
 import { __, find, findIndex, lensPath, merge, over, propEq } from 'ramda';
 
 function updateAttribution(newAttribution, obligationName, state) {
-  const attributionIndex = findIndex(propEq('obligationName', obligationName), state.component.attributions);
-  const lens = lensPath(
-      ['component', 'attributions', attributionIndex === -1 ? state.component.attributions.length : attributionIndex]);
+  const attributionIndex = findIndex(propEq('obligationName', obligationName),
+      state.component.component.licenseLegalData.attributions);
+  const lens = lensPath(['component', 'component', 'licenseLegalData', 'attributions', attributionIndex === -1 ?
+    state.component.component.licenseLegalData.attributions.length : attributionIndex]);
   return over(lens, merge(__, newAttribution), state);
 }
 
@@ -80,7 +81,8 @@ function saveAttributionSubmitMaskDone(payload, state) {
 }
 
 function cancelAttributionModal(payload, state) {
-  const attribution = find(propEq('obligationName', payload.name), state.component.attributions);
+  const attribution = find(propEq('obligationName', payload.name),
+      state.component.component.licenseLegalData.attributions);
   return updateAttribution({
     showAttributionModal: false,
     content: attribution.originalContent,
@@ -89,8 +91,9 @@ function cancelAttributionModal(payload, state) {
 }
 
 function updateObligation(newObligation, obligationName, state) {
-  const obligationIndex = findIndex(propEq('name', obligationName), state.component.obligations);
-  const lens = lensPath(['component', 'obligations', obligationIndex]);
+  const obligationIndex = findIndex(propEq('name', obligationName),
+      state.component.component.licenseLegalData.obligations);
+  const lens = lensPath(['component', 'component', 'licenseLegalData', 'obligations', obligationIndex]);
   return over(lens, merge(__, newObligation), state);
 }
 
@@ -149,7 +152,7 @@ function saveObligationSubmitMaskDone(payload, state) {
 }
 
 function cancelObligationModal(payload, state) {
-  const obligation = find(propEq('name', payload.name), state.component.obligations);
+  const obligation = find(propEq('name', payload.name), state.component.component.licenseLegalData.obligations);
   return updateObligation({
     showObligationModal: false,
     status: obligation.originalStatus,

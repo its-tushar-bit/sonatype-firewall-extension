@@ -1250,7 +1250,7 @@
           <dependency>
             <groupId>com.sonatype</groupId>
             <artifactId>checkstyle-checks</artifactId>
-            <version>11</version>
+            <version>13</version>
           </dependency>
         </dependencies>
       </plugin>
@@ -1279,7 +1279,7 @@
           <dependency>
             <groupId>com.sonatype</groupId>
             <artifactId>pmd-ruleset</artifactId>
-            <version>13</version>
+            <version>15</version>
           </dependency>
         </dependencies>
       </plugin>

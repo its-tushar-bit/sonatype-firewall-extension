@@ -10,7 +10,7 @@
   <parent>
     <groupId>com.sonatype.buildsupport</groupId>
     <artifactId>private-parent</artifactId>
-    <version>24</version>
+    <version>27</version>
     <relativePath />
   </parent>
 
@@ -29,6 +29,7 @@
 
     <phantomjs-maven-plugin.version>0.7</phantomjs-maven-plugin.version>
     <phantomjs.version>2.1.1</phantomjs.version>
+    <maven.version.range>[3.2.0,)</maven.version.range>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <animal-sniffer-signature>java18</animal-sniffer-signature>
@@ -1260,6 +1261,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>3.1.0</version>
         <configuration>
           <consoleOutput>true</consoleOutput>
           <configLocation>sonatype/checkstyle-configuration.xml</configLocation>
@@ -1333,6 +1335,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-pmd-plugin</artifactId>
+            <version>3.13.0</version>
           </plugin>
         </plugins>
       </build>

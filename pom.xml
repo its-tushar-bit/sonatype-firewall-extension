@@ -1131,34 +1131,6 @@
           </configuration>
         </plugin>
         <plugin>
-          <artifactId>maven-pmd-plugin</artifactId>
-          <configuration>
-            <linkXRef>false</linkXRef>
-            <printFailingErrors>true</printFailingErrors>
-            <includeTests>true</includeTests>
-            <rulesets>
-              <ruleset>pmd-ruleset/ruleset.xml</ruleset>
-            </rulesets>
-            <excludes>
-              <exclude>rst/pdfbox/layout/text/TextLine.java</exclude>
-            </excludes>
-          </configuration>
-          <executions>
-            <execution>
-              <goals>
-                <goal>check</goal>
-              </goals>
-            </execution>
-          </executions>
-          <dependencies>
-            <dependency>
-              <groupId>com.sonatype</groupId>
-              <artifactId>pmd-ruleset</artifactId>
-              <version>13</version>
-            </dependency>
-          </dependencies>
-        </plugin>
-        <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-failsafe-plugin</artifactId>
           <configuration>
@@ -1282,6 +1254,35 @@
           </dependency>
         </dependencies>
       </plugin>
+      <plugin>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <version>3.13.0</version>
+        <configuration>
+          <linkXRef>false</linkXRef>
+          <printFailingErrors>true</printFailingErrors>
+          <includeTests>true</includeTests>
+          <rulesets>
+            <ruleset>pmd-ruleset/ruleset.xml</ruleset>
+          </rulesets>
+          <excludes>
+            <exclude>rst/pdfbox/layout/text/TextLine.java</exclude>
+          </excludes>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>com.sonatype</groupId>
+            <artifactId>pmd-ruleset</artifactId>
+            <version>13</version>
+          </dependency>
+        </dependencies>
+      </plugin>
     </plugins>
   </build>
 
@@ -1318,24 +1319,6 @@
                 </goals>
               </execution>
             </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>pmd</id>
-      <activation>
-        <file>
-          <!-- only activate PMD plugin for Java modules such that the pmd-ruleset module doesn't depend on its output -->
-          <exists>${basedir}/src/main/java</exists>
-        </file>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-pmd-plugin</artifactId>
-            <version>3.13.0</version>
           </plugin>
         </plugins>
       </build>

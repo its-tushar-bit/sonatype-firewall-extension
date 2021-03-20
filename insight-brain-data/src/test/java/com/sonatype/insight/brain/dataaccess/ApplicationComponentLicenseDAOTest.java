@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -128,7 +129,7 @@ public class ApplicationComponentLicenseDAOTest
         stageType.getId(), "hash7", ComponentIdentifier.createMavenCoordinates("g7", "a7", "v7"));
     tempEntity.newApplicationComponentLicense(applicationComponent7.getId(), "license-7");
 
-    assertThat(dao.getApplicationComponentEffectiveLicenses(application.getId(), stageType.getId()))
+    assertThat(dao.getApplicationComponentEffectiveLicenses(application.getId(), Sets.newHashSet(stageType.getId())))
         .usingFieldByFieldElementComparator()
         .containsExactlyInAnyOrder(
             newApplicationComponentLicensesDTO(applicationComponent1, "license-1"),
@@ -143,7 +144,7 @@ public class ApplicationComponentLicenseDAOTest
       String... licenses)
   {
     ComponentIdentifier componentIdentifier = applicationComponent.getComponentIdentifier();
-    return new ApplicationComponentLicensesDTO(componentIdentifier.getFormat(),
+    return new ApplicationComponentLicensesDTO(applicationComponent.getHash(), componentIdentifier.getFormat(),
         JsonUtils.writeUnformatted(applicationComponent.getComponentIdentifier().getCoordinates()),
         StringUtils.join(licenses, '\n'));
   }

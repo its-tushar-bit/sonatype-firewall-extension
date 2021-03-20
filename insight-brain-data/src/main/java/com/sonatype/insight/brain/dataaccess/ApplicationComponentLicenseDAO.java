@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -55,17 +56,17 @@ public class ApplicationComponentLicenseDAO
    * existing record in the table application_component_license (found during evaluation).
    * 
    * @param applicationId Application ID to query.
-   * @param stageTypeId Stage type ID to query.
+   * @param stageTypeIds Stage type IDs to query.
    * @return A list of {@link ApplicationComponentLicensesDTO} where a {@link ComponentIdentifier} has the list of
    *         licenses.
    */
   @SuppressWarnings("unchecked")
   public List<ApplicationComponentLicensesDTO> getApplicationComponentEffectiveLicenses(
       String applicationId,
-      String stageTypeId)
+      Set<String> stageTypeIds)
   {
     try (TransactionContext tx = createTransactionContext()) {
-      String sQuery = "SELECT ac.component_id_format," + //
+      String sQuery = "SELECT ac.hash, ac.component_id_format," + //
           "  ac.component_id_coordinates_json," + //
           "  STRING_AGG(DISTINCT COALESCE(li.license_id, li2.license_id, li3.license_id, acl.effective_license_id)," +
           "    CHR(10)) licenses" +
@@ -93,17 +94,18 @@ public class ApplicationComponentLicenseDAO
           "   LEFT JOIN insight_brain_ods.application_component_license acl" + //
           "     ON acl.application_component_id = ac.application_component_id" + //
           " WHERE ac.application_id = ?2" + //
-          " AND ac.stage_type_id = ?3" + //
-          " GROUP BY ac.component_id_format,ac.component_id_coordinates_json";
+          " AND ac.stage_type_id IN " + buildPositionalParameters(stageTypeIds, 3) + //
+          " GROUP BY ac.hash, ac.component_id_format,ac.component_id_coordinates_json";
 
       javax.persistence.Query query = tx.createNativeQuery(sQuery);
       query.setParameter(1, Organization.ROOT_ORGANIZATION_ID);
       query.setParameter(2, applicationId);
-      query.setParameter(3, stageTypeId);
+      addPositionalParameters(query, stageTypeIds, 3);
 
       return ((Stream<Object[]>) query.getResultStream()).parallel()
           .filter(array -> array[0] != null && array[1] != null)
-          .map(array -> new ApplicationComponentLicensesDTO((String) array[0], (String) array[1], (String) array[2]))
+          .map(array -> new ApplicationComponentLicensesDTO((String) array[0], (String) array[1], (String) array[2],
+              (String) array[3]))
           .collect(Collectors.toList());
     }
   }

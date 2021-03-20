@@ -24,6 +24,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDashboardDTO;
@@ -34,6 +35,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightWithOwnerDT
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.CopyrightFilePathsDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalApplicationComponentsFilterDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalFilterDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -51,6 +53,8 @@ public class ApiLicenseLegalResource
   public static final String DASHBOARD_APPLICATIONS_PATH = "dashboard/applications";
 
   public static final String DASHBOARD_COMPONENTS_PATH = "dashboard/components";
+
+  public static final String DASHBOARD_APPLICATION_PATH = "dashboard/application/{applicationPublicId}";
 
   public static final String APPLICATION_PATH = "application/{applicationPublicId}";
 
@@ -83,6 +87,8 @@ public class ApiLicenseLegalResource
 
   private final ApiLegalCopyrightService apiLegalCopyrightService;
 
+  private final LegalApplicationDashboardService legalApplicationDashboardService;
+
   @Context
   private HttpServletRequest httpRequest;
 
@@ -90,11 +96,13 @@ public class ApiLicenseLegalResource
   public ApiLicenseLegalResource(
       final ApiLicenseLegalService apiLicenseLegalService,
       final ComponentLegalService componentLegalService,
-      final ApiLegalCopyrightService apiLegalCopyrightService)
+      final ApiLegalCopyrightService apiLegalCopyrightService,
+      final LegalApplicationDashboardService legalApplicationDashboardService)
   {
     this.apiLicenseLegalService = apiLicenseLegalService;
     this.componentLegalService = componentLegalService;
     this.apiLegalCopyrightService = apiLegalCopyrightService;
+    this.legalApplicationDashboardService = legalApplicationDashboardService;
   }
 
   @POST
@@ -114,6 +122,16 @@ public class ApiLicenseLegalResource
   public List<ApiLicenseLegalComponentDashboardDTO> getLicenseLegalComponentsDashboard(LicenseLegalFilterDTO filter) {
     return apiLicenseLegalService.getLicenseLegalComponentsDashboard(filter.organizationIds, filter.applicationIds,
         filter.tagIds, filter.stageTypeIds, filter.licenseIds);
+  }
+
+  @POST
+  @Path(DASHBOARD_APPLICATION_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<ApiLicenseLegalApplicationComponentDTO> getLicenseLegalApplicationDashboard(
+      @PathParam("applicationPublicId") String applicationPublicId,
+      LicenseLegalApplicationComponentsFilterDTO filter)
+  {
+    return legalApplicationDashboardService.getLicenseLegalApplicationDashboard(applicationPublicId, filter);
   }
 
   @GET

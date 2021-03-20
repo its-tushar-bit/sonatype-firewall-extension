@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.license;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -57,6 +58,42 @@ public class LicenseThreatGroupDAO
         " WHERE licenseThreatGroup.id=licenseThreatGroupLicense.licenseThreatGroupId" + //
         " AND licenseThreatGroup.ownerId=?1 AND licenseThreatGroupLicense.licenseId=?2";
     return getList(sQuery, ownerId, licenseId);
+  }
+
+  /**
+   * Queries the {@link LicenseThreatGroup}s for a given set of license IDs for a given owner ID and its hierarchy.
+   * 
+   * @param tx          Current transaction.
+   * @param ownerId     Owner id in which the hierarchical query should start from.
+   * @param licenseIds  License IDs to check.
+   * @return A {@link Map} where the the key is each license ID and as the value is the list of
+   *         {@link LicenseThreatGroup} containing that license ID.
+   */
+  @SuppressWarnings("unchecked")
+  public Map<String, List<LicenseThreatGroup>> getLicenseIdThreatGroupsByOwnerIdAndLicenseIdsWithHierarchy(
+      TransactionContext tx,
+      String ownerId,
+      Set<String> licenseIds)
+  {
+    Map<String, List<LicenseThreatGroup>> result = new HashMap<>();
+
+    String sQuery = "SELECT licenseThreatGroupLicense.licenseId, licenseThreatGroup" + //
+        " FROM LicenseThreatGroup licenseThreatGroup, LicenseThreatGroupLicense licenseThreatGroupLicense" + //
+        " WHERE licenseThreatGroup.id=licenseThreatGroupLicense.licenseThreatGroupId" + //
+        " AND licenseThreatGroup.ownerId=?1 AND licenseThreatGroupLicense.licenseId IN (?2)";
+
+    for (Owner currentOwner : ownerDAO.walkHierarchy(tx, ownerId)) {
+      javax.persistence.Query query = tx.createQuery(sQuery);
+      query.setParameter(1, currentOwner.getId());
+      query.setParameter(2, licenseIds);
+
+      ((List<Object[]>) query.getResultList()).forEach(array -> {
+        List<LicenseThreatGroup> list = result.computeIfAbsent((String) array[0], licenseId -> new ArrayList<>());
+        list.add((LicenseThreatGroup) array[1]);
+      });
+    }
+
+    return result;
   }
 
   public List<LicenseThreatGroup> getByIds(Set<String> licenseThreatGroupIds) {

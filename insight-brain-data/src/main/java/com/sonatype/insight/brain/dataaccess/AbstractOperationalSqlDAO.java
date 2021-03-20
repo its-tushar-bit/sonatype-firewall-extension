@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import java.util.Collection;
+import java.util.StringJoiner;
+
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -74,5 +77,19 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
   protected SearchIndexChange newSearchIndexChange(@SuppressWarnings("unused") T entity) {
     // by default, no contribution to the search index
     return null;
+  }
+
+  protected String buildPositionalParameters(Collection<?> collection, int startFrom) {
+    StringJoiner joiner = new StringJoiner(",");
+    for (int i = 0; i < collection.size(); i++) {
+      joiner.add("?" + (i + startFrom));
+    }
+    return "(" + joiner.toString() + ")";
+  }
+
+  protected void addPositionalParameters(javax.persistence.Query query, Collection<?> collection, int startFrom) {
+    for (Object object : collection) {
+      query.setParameter(startFrom++, object);
+    }
   }
 }

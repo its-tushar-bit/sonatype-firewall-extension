@@ -51,7 +51,6 @@ public class ApiLicenseDataAdapter
     return licenseDataDTO;
   }
 
-  // Visible for testing
   public ApiLicenseThreatDTOV2 convert(LicenseThreatGroup ltg) {
     ApiLicenseThreatDTOV2 threat = new ApiLicenseThreatDTOV2();
     threat.licenseThreatGroupLevel = ltg.getThreatLevel();

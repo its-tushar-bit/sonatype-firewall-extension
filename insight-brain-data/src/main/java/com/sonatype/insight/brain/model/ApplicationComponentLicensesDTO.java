@@ -7,7 +7,8 @@ package com.sonatype.insight.brain.model;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
@@ -21,6 +22,8 @@ public class ApplicationComponentLicensesDTO
   /** The licenses delimiter character escaped for regular expressions. */
   private static final String LICENSES_DELIMITER_REGEX = "\\" + LICENSES_DELIMITER_CHAR;
 
+  private String hash;
+
   private String componentIdFormat;
 
   private String componentIdCoordinatesJson;
@@ -30,13 +33,19 @@ public class ApplicationComponentLicensesDTO
   private ComponentIdentifier componentIdentifier;
 
   public ApplicationComponentLicensesDTO(
+      String hash,
       String componentIdFormat,
       String componentIdCoordinatesJson,
       String licensesString)
   {
+    this.hash = hash;
     this.componentIdFormat = componentIdFormat;
     this.componentIdCoordinatesJson = componentIdCoordinatesJson;
     this.licensesString = licensesString;
+  }
+
+  public String getHash() {
+    return hash;
   }
 
   public ComponentIdentifier getComponentIdentifier() {
@@ -50,11 +59,11 @@ public class ApplicationComponentLicensesDTO
     return componentIdentifier;
   }
 
-  public List<String> getLicenses() {
+  public Set<String> getLicenses() {
     if (StringUtils.isEmpty(licensesString)) {
-      return Collections.emptyList();
+      return Collections.emptySet();
     }
 
-    return Arrays.asList(licensesString.split(LICENSES_DELIMITER_REGEX));
+    return new HashSet<>(Arrays.asList(licensesString.split(LICENSES_DELIMITER_REGEX)));
   }
 }

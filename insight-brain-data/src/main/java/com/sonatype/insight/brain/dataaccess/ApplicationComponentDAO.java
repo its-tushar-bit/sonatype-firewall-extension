@@ -10,7 +10,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -19,8 +18,6 @@ import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.ApplicationComponentLicense;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.dataaccess.TransactionContext;
-
-import com.google.common.annotations.VisibleForTesting;
 
 /**
  * @since 1.11
@@ -266,21 +263,5 @@ public class ApplicationComponentDAO
 
   private boolean requiresManualFilter(Collection<?> items) {
     return isDatabaseEmbedded() && items.size() >= H2_IN_OPERATOR_THRESHOLD_COMPLEX_QUERY;
-  }
-
-  @VisibleForTesting
-  String buildPositionalParameters(Collection<?> collection, int startFrom) {
-    StringJoiner joiner = new StringJoiner(",");
-    for (int i = 0; i < collection.size(); i++) {
-      joiner.add("?" + (i + startFrom));
-    }
-    return "(" + joiner.toString() + ")";
-  }
-
-  @VisibleForTesting
-  void addPositionalParameters(javax.persistence.Query query, Collection<?> collection, int startFrom) {
-    for (Object object : collection) {
-      query.setParameter(startFrom++, object);
-    }
   }
 }

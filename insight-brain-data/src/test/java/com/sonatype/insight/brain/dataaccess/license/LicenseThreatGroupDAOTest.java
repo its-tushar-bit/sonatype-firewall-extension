@@ -6,8 +6,11 @@
 package com.sonatype.insight.brain.dataaccess.license;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -19,8 +22,10 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
@@ -503,6 +508,46 @@ public class LicenseThreatGroupDAOTest
     assertThat(threatLevelsByLicenseId.get("GPL-2.0")).isEqualTo(5);
     assertThat(threatLevelsByLicenseId.get("GPL-3.0")).isEqualTo(9);
     assertThat(threatLevelsByLicenseId).hasSize(3);
+  }
+
+  @Test
+  public void testGetLicenseIdThreatGroupsByOwnerIdAndLicenseIdsWithHierarchy() {
+    tempEntity.newLicenseThreatGroup(application.getId(), "Group 1", 0, "GPL-1.0", "GPL-2.0");
+    tempEntity.newLicenseThreatGroup(organization.getId(), "Group 2", 5, "MIT");
+    tempEntity.newLicenseThreatGroup(organization.getParentOrganizationId(), "Group 3", 9, "GPL-1.0", "GPL-3.0");
+
+    Set<String> licenseIds = Sets.newHashSet("GPL-1.0", "GPL-2.0", "MIT", "GPL-3.0", "Apache-2.0");
+
+    try (TransactionContext tx = licenseThreatGroupDAO.createTransactionContext()) {
+      Map<String, List<LicenseThreatGroup>> result = licenseThreatGroupDAO
+          .getLicenseIdThreatGroupsByOwnerIdAndLicenseIdsWithHierarchy(tx, application.getId(), licenseIds);
+
+      assertThat(result.keySet()).containsExactlyInAnyOrder("GPL-1.0", "GPL-2.0", "MIT", "GPL-3.0");
+
+      List<LicenseThreatGroup> groups = result.get("GPL-1.0");
+      assertThat(groups.stream()
+          .map(LicenseThreatGroup::getName)
+          .collect(Collectors.toList()))
+          .containsExactlyInAnyOrder("Group 1", "Group 3");
+
+      groups = result.get("GPL-2.0");
+      assertThat(groups.stream()
+          .map(LicenseThreatGroup::getName)
+          .collect(Collectors.toList()))
+          .containsExactly("Group 1");
+
+      groups = result.get("MIT");
+      assertThat(groups.stream()
+          .map(LicenseThreatGroup::getName)
+          .collect(Collectors.toList()))
+          .containsExactly("Group 2");
+
+      groups = result.get("GPL-3.0");
+      assertThat(groups.stream()
+          .map(LicenseThreatGroup::getName)
+          .collect(Collectors.toList()))
+          .containsExactly("Group 3");
+    }
   }
 
   private void assertUpdateLicenseThreatGroupWithDuplicateName(final String ownerId,

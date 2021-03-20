@@ -23,12 +23,14 @@ import java.util.function.Predicate;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
@@ -40,11 +42,14 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ComponentLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.CopyrightFilePathDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.CopyrightFilePathsDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalApplicationComponentsFilterDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalFilterDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.LicenseObligationReviewStatus;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentLegalFileDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationAttributionDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -140,6 +145,73 @@ public class ApiLicenseLegalResourceTest
     assertThat(dto.lastScanTime).isEqualTo(policyEvaluation.getTime().getTime());
     assertThat(dto.componentsReviewedCount).isZero();
     assertThat(dto.componentsTotalCount).isZero();
+  }
+
+  @Test
+  public void testGetLicenseLegalApplicationDashboard_ApplicationNotFound() throws Exception {
+    LicenseLegalApplicationComponentsFilterDTO filter = new LicenseLegalApplicationComponentsFilterDTO();
+
+    HttpResponse response = restRequest().path(ApiLicenseLegalResource.DASHBOARD_APPLICATION_PATH)
+        .parameter("fake-app-id").body(filter).post();
+
+    assertResponseStatus(404, response);
+  }
+
+  @Test
+  public void testGetLicenseLegalApplicationDashboard_NoResults() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    LicenseLegalApplicationComponentsFilterDTO filter = new LicenseLegalApplicationComponentsFilterDTO();
+
+    HttpResponse response =
+        restRequest().path(ApiLicenseLegalResource.DASHBOARD_APPLICATION_PATH).parameter(application.getPublicId())
+            .body(filter).post();
+
+    assertResponseStatus(200, response);
+    List<ApiLicenseLegalApplicationComponentDTO> result =
+        Arrays.asList(response.getBody(ApiLicenseLegalApplicationComponentDTO[].class));
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testGetLicenseLegalApplicationDashboard() throws Exception {
+    doTestGetLicenseLegalApplicationDashboard(new LicenseLegalApplicationComponentsFilterDTO());
+  }
+
+  @Test
+  public void testGetLicenseLegalApplicationDashboard_WithoutBody() throws Exception {
+    doTestGetLicenseLegalApplicationDashboard(null);
+  }
+
+  private void doTestGetLicenseLegalApplicationDashboard(
+      LicenseLegalApplicationComponentsFilterDTO filter) throws Exception
+  {
+    Application application = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ApplicationComponent applicationComponent =
+        tempEntity.newApplicationComponent(application.getId(), BuildStageType.ID, "hash", componentIdentifier);
+    tempEntity.newApplicationComponentLicense(applicationComponent.getId(), "MIT");
+
+    hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.METADATA_URL);
+
+    HttpResponse response = restRequest()
+        .path(ApiLicenseLegalResource.DASHBOARD_APPLICATION_PATH)
+        .parameter(application.getPublicId())
+        .body(filter)
+        .auth()
+        .post();
+
+    assertResponseStatus(200, response);
+    List<ApiLicenseLegalApplicationComponentDTO> result =
+        Arrays.asList(response.getBody(ApiLicenseLegalApplicationComponentDTO[].class));
+    assertThat(result).hasSize(1);
+
+    ApiLicenseLegalApplicationComponentDTO dto = result.get(0);
+    assertThat(dto.hash).isEqualTo(applicationComponent.getHash());
+    assertThat(dto.displayName).isEqualTo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString());
+    assertThat(dto.licenses.get(0).licenseId).isEqualTo("MIT");
+    assertThat(dto.reviewCompletedCount).isZero();
+    assertThat(dto.reviewTotalCount).isZero();
+    assertThat(dto.reviewStatus).isEqualTo(LicenseObligationReviewStatus.COMPLETED);
   }
 
   @Test

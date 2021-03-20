@@ -1024,8 +1024,8 @@ public class ApiLicenseLegalService
     Map<String, Map<ComponentIdentifier, Set<String>>> applicationIdAddressedObligationsMap = new HashMap<>();
 
     for (ApiLicenseLegalApplicationDashboardDTO dto : result) {
-      List<ApplicationComponentLicensesDTO> componentLicenses =
-          applicationComponentLicenseDAO.getApplicationComponentEffectiveLicenses(dto.applicationId, dto.stageTypeId);
+      List<ApplicationComponentLicensesDTO> componentLicenses = applicationComponentLicenseDAO
+          .getApplicationComponentEffectiveLicenses(dto.applicationId, Sets.newHashSet(dto.stageTypeId));
 
       applicationIdStageTypeIdComponentLicensesMap.put(dto.applicationId, dto.stageTypeId, componentLicenses);
       // Collect all licenses to make a single HDS call instead of one per component

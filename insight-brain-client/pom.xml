@@ -136,12 +136,6 @@
               <rules>
                 <enforceBytecodeVersion>
                   <maxJdkVersion>${maven.compiler.target}</maxJdkVersion>
-                  <ignoreClasses>
-                    <ignoreClass>com.thoughtworks.xstream.mapper.LambdaMapper</ignoreClass>
-                    <ignoreClass>com.thoughtworks.xstream.converters.reflection.LambdaConverter</ignoreClass>
-                    <ignoreClass>com.thoughtworks.xstream.converters.time.*</ignoreClass>
-                    <ignoreClass>com.thoughtworks.xstream.core.util.ISO8601JavaTimeConverter</ignoreClass>
-                  </ignoreClasses>
                   <ignoredScopes>
                     <ignoredScope>system</ignoredScope>
                     <ignoredScope>provided</ignoredScope>

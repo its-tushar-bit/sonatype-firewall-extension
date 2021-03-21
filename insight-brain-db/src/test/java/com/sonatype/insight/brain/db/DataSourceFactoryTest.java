@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.db;
 
 import com.sonatype.insight.db.H2DatabaseEngine;
+import com.sonatype.insight.db.PostgresDatabaseEngine;
 
 import org.junit.Test;
 

@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.SortedMap;
 
+import com.sonatype.insight.db.PostgresDatabaseEngine;
 import com.sonatype.insight.postgres.PostgresServer;
 
 import org.junit.Test;

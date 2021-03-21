@@ -17,6 +17,7 @@ import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.db.DatabaseEngine;
 import com.sonatype.insight.db.DatabaseException;
 import com.sonatype.insight.db.H2DatabaseEngine;
+import com.sonatype.insight.db.PostgresDatabaseEngine;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

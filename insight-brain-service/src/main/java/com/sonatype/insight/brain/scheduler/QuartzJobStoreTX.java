@@ -16,12 +16,12 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
-import com.sonatype.insight.brain.db.PostgresDatabaseEngine;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseListener;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.db.DatabaseEngine;
 import com.sonatype.insight.db.H2DatabaseEngine;
+import com.sonatype.insight.db.PostgresDatabaseEngine;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.quartz.JobPersistenceException;

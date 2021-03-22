@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Inject;
@@ -29,6 +30,7 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.api.experimental.ApiFirewallService;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
@@ -46,7 +48,6 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
-import com.sonatype.insight.brain.model.policy.conditions.IntegrityRatingConditionType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -72,7 +73,8 @@ public class PolicyMonitor
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyMonitor.class);
 
-  static final int MAX_DAYS_FOR_UPDATED_INTEGRITY_RATING = 7;
+  // derived from https://docs.sonatype.com/display/ADP/Firewall+Auto+Release+Quarantine+Policy+Condition+Types
+  static final int MAX_REEVALUATION_DAYS_FOR_AUTO_RELEASED = 14;
 
   private final InsightWork work;
 
@@ -92,6 +94,8 @@ public class PolicyMonitor
 
   private final RepositoryService repositoryService;
 
+  private final ApiFirewallService apiFirewallService;
+
   @Inject
   public PolicyMonitor(
       InsightWork work,
@@ -102,7 +106,8 @@ public class PolicyMonitor
       AuditRecorder auditRecorder,
       ThirdPartyScanService thirdPartyScanService,
       RepositoryPolicyEvaluator repositoryPolicyEvaluator,
-      RepositoryService repositoryService)
+      RepositoryService repositoryService,
+      ApiFirewallService apiFirewallService)
   {
     this.work = work;
     this.uploader = uploader;
@@ -113,6 +118,7 @@ public class PolicyMonitor
     this.thirdPartyScanService = thirdPartyScanService;
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.repositoryService = repositoryService;
+    this.apiFirewallService = apiFirewallService;
   }
 
   public void run() {
@@ -201,6 +207,9 @@ public class PolicyMonitor
 
     OwnerDAO ownerDAO = new OwnerDAO();
 
+    final Set<String> autoUnquarantineEnabledConditionTypes =
+        apiFirewallService.getAutoUnquarantineEnabledPolicyConditionTypesIds();
+
     List<Repository> repositories = new RepositoryDAO().getAll();
     for (Repository repository : repositories) {
       PolicyMonitoring policyMonitoring = null;
@@ -216,7 +225,7 @@ public class PolicyMonitor
       }
 
       RepositoryComponentEvaluationDataRequestList applicableQuarantinedComponentEvaluationRequestList =
-          getApplicableQuarantinedComponentRequestList(repository);
+          getApplicableQuarantinedComponentRequestList(repository, autoUnquarantineEnabledConditionTypes);
       if (applicableQuarantinedComponentEvaluationRequestList.isEmpty()) {
         continue;
       }
@@ -252,18 +261,18 @@ public class PolicyMonitor
   }
 
   private RepositoryComponentEvaluationDataRequestList getApplicableQuarantinedComponentRequestList(
-      final Repository repository)
+      final Repository repository, Set<String> autoUnquarantineEnabledConditionTypes)
   {
     RepositoryComponentEvaluationDataRequestList evaluationDataRequests =
         new RepositoryComponentEvaluationDataRequestList(RepositoryComponentEvaluationDataRequestList.REEVALUATION);
 
-    Date minQuarantineDate = Date.from(Instant.now().minus(Duration.ofDays(MAX_DAYS_FOR_UPDATED_INTEGRITY_RATING)));
+    Date minQuarantineDate = Date.from(Instant.now().minus(Duration.ofDays(MAX_REEVALUATION_DAYS_FOR_AUTO_RELEASED)));
 
     List<RepositoryComponent> components =
         new RepositoryComponentDAO().getQuarantinedByRepositoryIdAndDate(repository.getId(), minQuarantineDate);
 
     for (RepositoryComponent component : components) {
-      if (shouldCheckForUpdatedIntegrityRating(component)) {
+      if (shouldCheckForUpdatedConditionTypes(component, autoUnquarantineEnabledConditionTypes)) {
         RepositoryComponentEvaluationDataRequest evaluationDataRequest =
             new RepositoryComponentEvaluationDataRequest(repository.getFormat(), component.getPathname(),
                 component.getHash());
@@ -273,14 +282,17 @@ public class PolicyMonitor
     return evaluationDataRequests;
   }
 
-  private boolean shouldCheckForUpdatedIntegrityRating(final RepositoryComponent quarantinedComponent) {
+  private boolean shouldCheckForUpdatedConditionTypes(
+      final RepositoryComponent quarantinedComponent,
+      final Set<String> supportedConditionTypes)
+  {
     List<RepositoryPolicyViolation> violations = new RepositoryPolicyViolationDAO()
         .getByRepositoryIdAndPathname(quarantinedComponent.getRepositoryId(), quarantinedComponent.getPathname());
 
     for (RepositoryPolicyViolation violation : violations) {
       for (ConstraintFact constraintFact : violation.getConstraintFacts()) {
         for (ConditionFact conditionFact : constraintFact.getConditionFacts()) {
-          if (conditionFact.getConditionTypeId().equals(IntegrityRatingConditionType.ID)) {
+          if (supportedConditionTypes.contains(conditionFact.getConditionTypeId())) {
             return true;
           }
         }
@@ -295,7 +307,7 @@ public class PolicyMonitor
       final RepositoryComponentEvaluationDataList evaluationResults)
   {
     int unquarantineCount = 0;
-    for (RepositoryComponentEvaluationData evaluationData: evaluationResults.componentEvalResults) {
+    for (RepositoryComponentEvaluationData evaluationData : evaluationResults.componentEvalResults) {
       if (!hasFailViolation(evaluationData.policyAlerts)) {
         RepositoryComponentEvaluationDataRequest request =
             applicableQuarantinedComponentEvaluationRequestList.components.get(evaluationData.requestIndex);

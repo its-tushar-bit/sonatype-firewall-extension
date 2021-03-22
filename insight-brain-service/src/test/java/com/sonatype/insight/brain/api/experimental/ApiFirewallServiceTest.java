@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -390,6 +391,30 @@ public class ApiFirewallServiceTest
     //then: expect bad request exception
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
         apiFirewallService.setReleaseQuarantineConfig(null));
+  }
+
+  @Test
+  public void testGetAutoUnquarantineEnabledPolicyConditionTypesIds() {
+    //setup
+    tempEntity.newAutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID);
+    tempEntity.newAutoUnquarantinePolicyConditionType(LicenseConditionType.ID);
+
+    //when: getting all ids of condition types that are auto-unquarantine enabled
+    final Set<String> actuals = apiFirewallService.getAutoUnquarantineEnabledPolicyConditionTypesIds();
+
+    //then: expect to get a set of valid ids
+    assertThat(actuals.size()).isEqualTo(2);
+    assertThat(actuals).contains(IntegrityRatingConditionType.ID);
+    assertThat(actuals).contains(LicenseConditionType.ID);
+  }
+
+  @Test
+  public void testGetAutoUnquarantineEnabledPolicyConditionTypesIds_emptyResults() {
+    //when: getting all ids of condition types that are auto-unquarantine enabled
+    final Set<String> actuals = apiFirewallService.getAutoUnquarantineEnabledPolicyConditionTypesIds();
+
+    //then: expect empty set
+    assertThat(actuals).isEmpty();
   }
 
   @Test

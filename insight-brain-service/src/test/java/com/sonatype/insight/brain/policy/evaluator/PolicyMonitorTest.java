@@ -677,6 +677,8 @@ public class PolicyMonitorTest
 
   @Test
   public void testRepositoryMonitored_MonitoringNotEnabled() {
+    tempEntity.newAutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID);
+
     Condition condition = new Condition(IntegrityRatingConditionType.ID, "is", "2");
     Constraint constraint = new Constraint("c1", "constraint1", LogicalOperator.OR);
     constraint.addCondition(condition);
@@ -698,7 +700,9 @@ public class PolicyMonitorTest
   }
 
   @Test
-  public void testRepositoryMonitored_IntegrityRatingNotChanged() {
+  public void testRepositoryMonitored_AutoUnquarantineDataNotChanged() {
+    tempEntity.newAutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID);
+
     Condition condition = new Condition(IntegrityRatingConditionType.ID, "is", "2");
     Constraint constraint = new Constraint("c1", "constraint1", LogicalOperator.OR);
     constraint.addCondition(condition);
@@ -722,7 +726,9 @@ public class PolicyMonitorTest
   }
 
   @Test
-  public void testRepositoryMonitored_IntegrityRatingChanged() {
+  public void testRepositoryMonitored_AutoUnquarantineDataChanged() {
+    tempEntity.newAutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID);
+
     Condition condition = new Condition(IntegrityRatingConditionType.ID, "is", "2");
     Constraint constraint = new Constraint("c1", "constraint1", LogicalOperator.OR);
     constraint.addCondition(condition);
@@ -745,7 +751,57 @@ public class PolicyMonitorTest
   }
 
   @Test
-  public void testRepositoryMonitored_IntegrityRatingChangedWithOtherFailViolation() {
+  public void testRepositoryMonitored_AutoUnquarantineNotSupportedForConditionType() {
+    Condition condition = new Condition(HygieneRatingConditionType.ID, "is", "4");
+    Constraint constraint = new Constraint("c1", "constraint1", LogicalOperator.OR);
+    constraint.addCondition(condition);
+    Policy policy = createPolicy("policy", new Stage(ProxyStageType.ID), FailActionType.ID, constraint);
+
+    Repository repository = tempEntity.newRepository();
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
+        "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
+    assertThat(component.isQuarantined()).isTrue();
+
+    createPolicyViolation(policy, component, FailActionType.ID);
+    tempEntity.newPolicyMonitoring(repository.getId(), ProxyStageType.ID);
+
+    mockFirewallResponse(getFirewallHdsResponse(component, "hash1", new HygieneRating(1, "Exemplar")));
+
+    policyMonitor.run();
+
+    assertThat(new RepositoryComponentDAO().getById(component.getId()).isQuarantined()).isTrue();
+    assertThat(new RepositoryComponentDAO().getById(component.getId()).getAutoUnquarantined()).isNull();
+    assertThat(new RepositoryPolicyViolationDAO().getByRepositoryId(repository.getId())).hasSize(1);
+  }
+
+  @Test
+  public void testRepositoryMonitored_AutoUnquarantineDisabled() {
+    Condition condition = new Condition(IntegrityRatingConditionType.ID, "is", "2");
+    Constraint constraint = new Constraint("c1", "constraint1", LogicalOperator.OR);
+    constraint.addCondition(condition);
+    Policy policy = createPolicy("policy", new Stage(ProxyStageType.ID), FailActionType.ID, constraint);
+
+    Repository repository = tempEntity.newRepository();
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
+        "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
+    assertThat(component.isQuarantined()).isTrue();
+
+    createPolicyViolation(policy, component, FailActionType.ID);
+    tempEntity.newPolicyMonitoring(repository.getId(), ProxyStageType.ID);
+
+    mockFirewallResponse(getFirewallHdsResponse(component, "hash1", new IntegrityRating(0, "Normal")));
+
+    policyMonitor.run();
+
+    assertThat(new RepositoryComponentDAO().getById(component.getId()).isQuarantined()).isTrue();
+    assertThat(new RepositoryComponentDAO().getById(component.getId()).getAutoUnquarantined()).isNull();
+    assertThat(new RepositoryPolicyViolationDAO().getByRepositoryId(repository.getId())).hasSize(1);
+  }
+
+  @Test
+  public void testRepositoryMonitored_AutoUnquarantineDataChangedWithOtherFailViolation() {
+    tempEntity.newAutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID);
+
     Constraint constraint = new Constraint("c1", "constraint1", LogicalOperator.OR);
     Condition condition = new Condition(IntegrityRatingConditionType.ID, "is", "2");
     constraint.addCondition(condition);
@@ -771,7 +827,9 @@ public class PolicyMonitorTest
   }
 
   @Test
-  public void testRepositoryMonitored_IntegrityRatingChangedWithOtherNonFailViolation() {
+  public void testRepositoryMonitored_AutoUnquarantineDataChangedWithOtherNonFailViolation() {
+    tempEntity.newAutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID);
+
     Constraint constraint1 = new Constraint("c1", "constraint1", LogicalOperator.OR);
     Condition condition1 = new Condition(IntegrityRatingConditionType.ID, "is", "2");
     constraint1.addCondition(condition1);
@@ -800,7 +858,9 @@ public class PolicyMonitorTest
   }
 
   @Test
-  public void testRepositoryMonitored_IntegrityRatingViolationNotQuarantined() {
+  public void testRepositoryMonitored_AutoUnquarantineDataChangedWithViolationNotQuarantined() {
+    tempEntity.newAutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID);
+
     Condition condition = new Condition(IntegrityRatingConditionType.ID, "is", "2");
     Constraint constraint = new Constraint("c1", "constraint1", LogicalOperator.OR);
     constraint.addCondition(condition);
@@ -814,7 +874,7 @@ public class PolicyMonitorTest
     createPolicyViolation(policy, component, FailActionType.ID);
     tempEntity.newPolicyMonitoring(repository.getId(), ProxyStageType.ID);
 
-    // if the component gets re-evaluated, it will quarantined due matching policy condition
+    // if the component gets re-evaluated, it be will quarantined due matching policy condition
     mockFirewallResponse(getFirewallHdsResponse(component, "hash1", new IntegrityRating(2, "Pending")));
 
     policyMonitor.run();
@@ -824,7 +884,7 @@ public class PolicyMonitorTest
   }
 
   @Test
-  public void testRepositoryMonitored_IntegrityRatingViolationQuarantinedBeyondMaxDays() {
+  public void testRepositoryMonitored_AutoUnquarantineDataChangedWithViolationQuarantinedBeyondMaxDays() {
     Condition condition = new Condition(IntegrityRatingConditionType.ID, "is", "2");
     Constraint constraint = new Constraint("c1", "constraint1", LogicalOperator.OR);
     constraint.addCondition(condition);
@@ -832,7 +892,7 @@ public class PolicyMonitorTest
 
     Repository repository = tempEntity.newRepository();
     Date quarantineTime = Date.from(
-        LocalDateTime.now().minusDays(PolicyMonitor.MAX_DAYS_FOR_UPDATED_INTEGRITY_RATING + 1)
+        LocalDateTime.now().minusDays(PolicyMonitor.MAX_REEVALUATION_DAYS_FOR_AUTO_RELEASED + 1)
             .atZone(ZoneId.systemDefault()).toInstant());
     RepositoryComponent component = tempEntity
         .newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1", "hash1",
@@ -903,6 +963,23 @@ public class PolicyMonitorTest
       final String hash,
       final IntegrityRating integrityRating)
   {
+    return getFirewallHdsResponse(component, hash, integrityRating, new HygieneRating(4, "Laggard"));
+  }
+
+  private ComponentEvaluationDataList getFirewallHdsResponse(
+      final RepositoryComponent component,
+      final String hash,
+      final HygieneRating hygieneRating)
+  {
+    return getFirewallHdsResponse(component, hash, new IntegrityRating(1, "Suspicious"), hygieneRating);
+  }
+
+  private ComponentEvaluationDataList getFirewallHdsResponse(
+      final RepositoryComponent component,
+      final String hash,
+      final IntegrityRating integrityRating,
+      final HygieneRating hygieneRating)
+  {
     ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
     ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
     componentEvaluationData.hash = hash;
@@ -913,7 +990,7 @@ public class PolicyMonitorTest
     componentEvaluationData.securityVulnerabilities = new ArrayList<>();
     componentEvaluationData.securityVulnerabilities.add(new SecurityVulnerability("refid", "source", 10F));
     componentEvaluationData.integrityRating = integrityRating;
-    componentEvaluationData.hygieneRating = new HygieneRating(4, "Laggard");
+    componentEvaluationData.hygieneRating = hygieneRating;
     hdsResult.components.add(componentEvaluationData);
     return hdsResult;
   }

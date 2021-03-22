@@ -98,6 +98,8 @@ public class PolicyMonitorAuditTest
 
   @Test
   public void testRunEvaluation_RepositoryWithMonitoring() {
+    tempEntity.newAutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID);
+
     Repository repository = tempEntity.newRepository();
     RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
         "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
@@ -119,6 +121,31 @@ public class PolicyMonitorAuditTest
     auditDTOs.forEach(auditDTO -> assertRepositoryData(auditDTO, repository));
     auditDTOs.sort(Comparator.comparing(dto -> (Integer) dto.data.get("componentCount")));
     assertRepositoryEvaluationData(auditDTOs.get(0), 1, RepositoryComponentEvaluationDataRequestList.REEVALUATION);
+  }
+
+  @Test
+  public void testRunEvaluation_RepositoryWithAutoUnquarantineDisabled() {
+    Repository repository = tempEntity.newRepository();
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
+        "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
+    assertThat(component.isQuarantined()).isTrue();
+
+    Condition condition = new Condition(IntegrityRatingConditionType.ID, "is", "2");
+    Constraint constraint = new Constraint("c1", "constraint1", LogicalOperator.OR);
+    constraint.addCondition(condition);
+    Policy policy = createPolicy("policy", new Stage(ProxyStageType.ID), constraint);
+
+    createPolicyViolationFail(policy, component);
+    tempEntity.newPolicyMonitoring(repository.getId(), ProxyStageType.ID);
+
+    mockFirewallResponse(getFirewallHdsResponse(component, "hash1", new IntegrityRating(0, "Normal")));
+
+    policyMonitor.run();
+
+    List<AuditDTO> auditDTOs = awaitLogEntries(AuditEvent.EVALUATE_REPOSITORY, 0);
+    auditDTOs.forEach(auditDTO -> assertRepositoryData(auditDTO, repository));
+    auditDTOs.sort(Comparator.comparing(dto -> (Integer) dto.data.get("componentCount")));
+    assertThat(auditDTOs).isEmpty();
   }
 
   @Test

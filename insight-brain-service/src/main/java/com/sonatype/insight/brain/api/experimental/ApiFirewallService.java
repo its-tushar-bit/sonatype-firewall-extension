@@ -164,9 +164,7 @@ public class ApiFirewallService
     checkExperimentalFeatureFlag();
     checkProductLicense();
 
-    final Set<String> enabledPolicyConditionTypes = autoUnquarantinePolicyConditionTypeDAO.getAll().stream()
-        .map(AutoUnquarantinePolicyConditionType::getId)
-        .collect(Collectors.toSet());
+    final Set<String> enabledPolicyConditionTypes = getAutoUnquarantineEnabledPolicyConditionTypesIds();
 
     return ConditionTypes.getAll().stream()
         .filter(ConditionType::isAutoUnquarantineSupported)
@@ -239,6 +237,12 @@ public class ApiFirewallService
         autoUnquarantinePolicyConditionTypeDAO.insert(autoUnquarantinePolicyConditionType);
       }
     });
+  }
+
+  public Set<String> getAutoUnquarantineEnabledPolicyConditionTypesIds() {
+    return autoUnquarantinePolicyConditionTypeDAO.getAll().stream()
+        .map(AutoUnquarantinePolicyConditionType::getId)
+        .collect(Collectors.toSet());
   }
 
   private ApiFirewallReleaseQuarantineConfigDTO generateReleaseQuarantineConfigDto(

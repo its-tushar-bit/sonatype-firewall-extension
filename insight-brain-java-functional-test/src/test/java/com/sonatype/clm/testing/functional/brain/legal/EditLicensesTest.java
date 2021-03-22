@@ -193,6 +193,7 @@ public class EditLicensesTest
     assertButton(editLicensesModal.save(), true, null);
     editLicensesModal.save().click();
     editLicensesModal.shouldNotBe(Condition.visible);
+    ComponentLegalOverviewPage.licenses().all().shouldHaveSize(1);
     ComponentLegalOverviewPage.editLicensesButton().click();
     license.statusCheckbox().shouldNotBe(Condition.selected);
   }

@@ -21,6 +21,8 @@ export default function LicenseTextsTile(props) {
 
   const isLicensePresent = () => licenseFiles.length > 0;
 
+  const enabledLicenses = licenseFiles.filter(licenseFile => licenseFile.originalStatus === 'enabled');
+
   const classes = classnames('nx-tile-content', { 'license-no-legal-elements-text': !isLicensePresent() });
 
   return (
@@ -38,7 +40,7 @@ export default function LicenseTextsTile(props) {
         { showLicensesModal && <LicensesModalContainer/> }
       </header>
       <div className={ classes }>
-        { isLicensePresent() ? licenseFiles.map(createItem) : 'None found' }
+        { enabledLicenses.length > 0 ? enabledLicenses.map(createItem) : 'None found' }
       </div>
     </section>
   );

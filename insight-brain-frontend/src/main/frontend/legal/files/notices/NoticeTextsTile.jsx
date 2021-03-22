@@ -21,6 +21,8 @@ export default function NoticeTextsTile(props) {
 
   const isNoticePresent = () => noticeFiles.length > 0;
 
+  const enabledNotices = noticeFiles.filter(noticeFile => noticeFile.originalStatus === 'enabled');
+
   const classes = classnames('nx-tile-content', { 'license-no-legal-elements-text': !isNoticePresent() });
 
   return (
@@ -38,7 +40,7 @@ export default function NoticeTextsTile(props) {
         { showNoticesModal && <NoticesModalContainer/> }
       </header>
       <div className={ classes }>
-        { isNoticePresent() ? noticeFiles.map(createItem) : 'None found' }
+        { enabledNotices.length > 0 ? enabledNotices.map(createItem) : 'None found' }
       </div>
     </section>
   );

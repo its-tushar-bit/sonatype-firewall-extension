@@ -19,8 +19,22 @@ describe('LicenseTextsTile', function() {
     minimalProps = {
       setShowLicensesModal: setShowLicensesModalSpy,
       licenseFiles: [
-        { originalContent: 'license content 1', content: 'license content 1', relPath: 'path1/license.txt' },
-        { originalContent: 'license content 2', content: 'license content 2' }
+        {
+          originalStatus: 'enabled',
+          originalContent: 'license content 1',
+          content: 'license content 1',
+          relPath: 'path1/license.txt'
+        },
+        {
+          originalStatus: 'enabled',
+          originalContent: 'license content 2',
+          content: 'license content 2'
+        },
+        {
+          originalStatus: 'disabled',
+          originalContent: 'license content 3',
+          content: 'license content 3'
+        }
       ],
       showLicensesModal: false
     };

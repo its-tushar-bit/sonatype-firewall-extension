@@ -19,8 +19,22 @@ describe('NoticeTextsTile', function() {
     minimalProps = {
       setShowNoticesModal: setShowNoticesModalSpy,
       noticeFiles: [
-        { originalContent: 'notice content 1', content: 'notice content 1', relPath: 'path1/notice.txt' },
-        { originalContent: 'notice content 2', content: 'notice content 2' }
+        {
+          originalStatus: 'enabled',
+          originalContent: 'notice content 1',
+          content: 'notice content 1',
+          relPath: 'path1/notice.txt'
+        },
+        {
+          originalStatus: 'enabled',
+          originalContent: 'notice content 2',
+          content: 'notice content 2'
+        },
+        {
+          originalStatus: 'disabled',
+          originalContent: 'notice content 3',
+          content: 'notice content 3'
+        }
       ],
       showNoticesModal: false
     };

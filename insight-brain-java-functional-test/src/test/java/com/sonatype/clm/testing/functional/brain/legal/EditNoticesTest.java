@@ -190,6 +190,7 @@ public class EditNoticesTest
     assertButton(editNoticesModal.save(), true, null);
     editNoticesModal.save().click();
     editNoticesModal.shouldNotBe(Condition.visible);
+    ComponentLegalOverviewPage.notices().all().shouldHaveSize(1);
     ComponentLegalOverviewPage.editNoticesButton().click();
     notice.statusCheckbox().shouldNotBe(Condition.selected);
   }

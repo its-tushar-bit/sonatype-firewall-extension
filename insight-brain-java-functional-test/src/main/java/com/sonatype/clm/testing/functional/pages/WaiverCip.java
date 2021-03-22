@@ -253,6 +253,10 @@ public class WaiverCip
       return $("#request-waiver-policy-violation-id");
     }
 
+    public static SelenideElement policyViolationPageLink() {
+      return $(".request-waiver-policy-violation-page-link > a");
+    }
+
     public static SelenideElement policyCurlExample() {
       return $("#request-waiver-curl-example");
     }

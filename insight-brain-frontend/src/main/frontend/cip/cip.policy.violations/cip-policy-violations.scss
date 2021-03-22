@@ -3,6 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
+@import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
 .cip-policy-table {
   width: 100%;
   border-bottom: 1px solid #CFD0D2;
@@ -141,6 +144,10 @@
 #waiver-comment {
   margin-bottom: 18px;
   width: 515px;
+}
+
+.request-waiver-policy-violation-page-link {
+  @include nx-truncate-ellipsis;
 }
 
 /* XXX Remove in favour of new-ui styling */

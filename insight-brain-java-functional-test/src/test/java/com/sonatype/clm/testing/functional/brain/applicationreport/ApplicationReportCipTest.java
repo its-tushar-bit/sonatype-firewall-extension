@@ -35,6 +35,7 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipOccurr
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipSimilarTab;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportPage;
+import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
 import com.sonatype.clm.testing.functional.pages.WaiverCip;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.ConfirmRemoveWaiverDialog;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.ExistingWaiver;
@@ -359,9 +360,13 @@ public class ApplicationReportCipTest
     RequestWaiverDialog.constraintName().shouldHave(exactText(constraintName));
     RequestWaiverDialog.waiverConditions().shouldHave(exactText(conditions));
     RequestWaiverDialog.policyViolationId().shouldNotBe(empty);
+    RequestWaiverDialog.policyViolationPageLink().shouldNotBe(empty);
 
     String policyViolationId = RequestWaiverDialog.policyViolationId().getText();
     String requestWaiverUrl = Configuration.baseUrl + "api/v2/policyWaiver/" + policyViolationId + "/application";
+    String policyViolationPageURL = ViolationDetailsPage.url(policyViolationId);
+
+    assertThat(RequestWaiverDialog.policyViolationPageLink().attr("href")).contains(policyViolationPageURL);
     assertThat(RequestWaiverDialog.policyCurlExample().getText()).contains(requestWaiverUrl);
 
     eyesWatcher.eyesCheck("Request Waiver");

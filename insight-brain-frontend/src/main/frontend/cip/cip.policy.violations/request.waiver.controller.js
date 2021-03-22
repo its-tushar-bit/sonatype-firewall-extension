@@ -3,11 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, CLM */
-import getThreatColor from "./threatColorUtil";
+/*global angular */
+import getThreatColor from './threatColorUtil';
 
-export default function RequestWaiverController($scope, $http, CLMLocations, OwnerContext, SelectedComponent,
-                                                messages, policy) {
+export default function RequestWaiverController($scope, $state, CLMLocations, SelectedComponent, policy) {
   $scope.getThreatColor = getThreatColor;
 
   function doLoad() {
@@ -17,6 +16,7 @@ export default function RequestWaiverController($scope, $http, CLMLocations, Own
 
     if (policy.policyViolationId) {
       $scope.curlExample = getCurlExample(policy.policyViolationId);
+      $scope.policyViolationPageUrl = getPolicyViolationDetailsPageURL(policy.policyViolationId);
     }
   }
 
@@ -31,11 +31,14 @@ export default function RequestWaiverController($scope, $http, CLMLocations, Own
   }
 
   function getCurlExample(policyViolationId) {
-    return `curl -X POST -u user:pass -H "Content-Type: text/plain; `
-         + `charset=UTF-8" ${CLMLocations.getRequestWaiverUrl(policyViolationId)} --data-binary 'waiver comment (optional)'`
+    return 'curl -X POST -u user:pass -H "Content-Type: text/plain; charset=UTF-8" '
+         + `${CLMLocations.getRequestWaiverUrl(policyViolationId)} --data-binary 'waiver comment (optional)'`;
+  }
+
+  function getPolicyViolationDetailsPageURL(policyViolationId) {
+    return $state.href('sidebarView.violation', { id: policyViolationId }, { absolute: true });
   }
 
   doLoad();
 }
-RequestWaiverController.$inject = ['$scope', '$http', 'CLMLocations', 'OwnerContext','SelectedComponent',
-                                   'Messages', 'policy'];
+RequestWaiverController.$inject = ['$scope', '$state', 'CLMLocations', 'SelectedComponent', 'policy'];

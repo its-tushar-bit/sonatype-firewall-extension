@@ -23,7 +23,7 @@ public class ApplicationEvalSelectorTest
   // VALUES("", "", "", "", Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, "");
   private static final String[] POLICY_EVAL_COLS = new String[] { "policy_evaluation_id", "application_id",
       "stage_type_id", "scan_id", "reevaluation", "for_monitoring", "for_obsolete_scan", "time", "initiator",
-      "trigger_type"};
+      "scan_trigger_type"};
 
   // VALUES('', '', '', '', '', 0, '', '', TS, TS, TS, false, false);
   private static final String[] POLICY_VIOLATION_COLS = new String[] { "policy_violation_id", "application_id",

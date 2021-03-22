@@ -9,7 +9,7 @@ import java.io.IOException;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluationTriggerType;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
@@ -49,7 +49,7 @@ public class ReportResourceAuthzTest
     String scanId = "scanId";
     mockReport(scanId, "/ReportResourceTest/report");
     ScanPolicyEvaluator scanPolicyEvaluator = getCLMServer().getInstance(ScanPolicyEvaluator.class);
-    scanPolicyEvaluator.evaluate(app, scanId, new Stage(Stage.ID_BUILD), PolicyEvaluationTriggerType.CLI);
+    scanPolicyEvaluator.evaluate(app, scanId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI);
 
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
 

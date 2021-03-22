@@ -57,6 +57,7 @@ import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.model.HasStringId;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
@@ -64,6 +65,7 @@ import com.codeborne.selenide.ElementsCollection;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.openjpa.enhance.PersistenceCapable;
 import org.joda.time.format.DateTimeFormat;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -129,9 +131,11 @@ public class ApplicationReportTest
         .print(policyEvaluationTime.getTime());
     reportPage.shouldBe(visible);
     reportPage.reportTitle().shouldHave(text(app.getName() + " Build Report"));
-    reportPage.policyEvaluationTriggerType()
-        .shouldHave(text("Triggered by " + policyEvaluation.getTriggerType().getDisplayName() + " on "));
-    reportPage.reportDate().shouldHave(text(policyEvaluationTimeStr));
+    reportPage.scanTriggerType()
+        .shouldHave(text("Triggered by " + policyEvaluation.getScanTriggerType().getDisplayName()));
+    reportPage.forContinuousMonitoring().shouldBe(hidden);
+    reportPage.reevaluation().shouldBe(hidden);
+    reportPage.reportDate().shouldHave(text(" on " + policyEvaluationTimeStr));
     reportPage.commitHash().shouldHave(text(policyEvaluation.getCommitHash()));
 
     reportPage.policyTypeFilterWarning().shouldNot(exist);
@@ -155,6 +159,49 @@ public class ApplicationReportTest
 
     grandfatheringIndicator = reportPage.grandfatheringIndicator();
     grandfatheringIndicator.caption().shouldHave(exactText("46 Grandfathered"));
+
+    // The activateGrandfathering above re-evals and refreshes the page
+    policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(app.getId(), SCAN_ID);
+    policyEvaluationTime = policyEvaluation.getTime();
+    policyEvaluationTimeStr =
+        DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss 'UTC'Z").print(policyEvaluationTime.getTime());
+    refresh();
+    reportPage.shouldBe(visible);
+    reportPage.scanTriggerType()
+        .shouldHave(text("Triggered by " + policyEvaluation.getScanTriggerType().getDisplayName()));
+    reportPage.forContinuousMonitoring().shouldBe(hidden);
+    reportPage.reevaluation().shouldHave(text("(Re-evaluation)"));
+    reportPage.reportDate().shouldHave(text(" on " + policyEvaluationTimeStr));
+    reportPage.commitHash().shouldHave(text(policyEvaluation.getCommitHash()));
+
+    // Update the policy evaluation to look like it was for monitoring
+    policyEvaluation = updateForMonitoring(policyEvaluation);
+    policyEvaluationTime = policyEvaluation.getTime();
+    policyEvaluationTimeStr =
+        DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss 'UTC'Z").print(policyEvaluationTime.getTime());
+    refresh();
+    reportPage.shouldBe(visible);
+    reportPage.scanTriggerType()
+        .shouldHave(text("Triggered by " + policyEvaluation.getScanTriggerType().getDisplayName()));
+    reportPage.forContinuousMonitoring().shouldHave(text("(Continuous Monitoring)"));
+    reportPage.reevaluation().shouldBe(hidden);
+    reportPage.reportDate().shouldHave(text(" on " + policyEvaluationTimeStr));
+    reportPage.commitHash().shouldHave(text(policyEvaluation.getCommitHash()));
+  }
+
+  private PolicyEvaluation updateForMonitoring(PolicyEvaluation policyEvaluation) {
+    policyEvaluation.setForMonitoring(true);
+    policyEvaluation.setTime(new Date(policyEvaluation.getTime().getTime() + 1000));
+    detachEntity(policyEvaluation);
+    new PolicyEvaluationDAO().insert(policyEvaluation);
+    return policyEvaluation;
+  }
+
+  private <E extends HasStringId> void detachEntity(E entity) {
+    PersistenceCapable pc = (PersistenceCapable) entity;
+    pc.pcSetDetachedState(null);
+    pc.pcReplaceStateManager(null);
+    entity.setId(null);
   }
 
   @Test

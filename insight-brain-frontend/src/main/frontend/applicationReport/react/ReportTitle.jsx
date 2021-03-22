@@ -96,7 +96,9 @@ ReportTitle.propTypes = {
   metadataDetails: PropTypes.shape({
     reportTitle: PropTypes.string.isRequired,
     reportTime: PropTypes.number.isRequired,
-    policyEvaluationTriggerType: PropTypes.string.isRequired,
+    scanTriggerType: PropTypes.string.isRequired,
+    reevaluation: PropTypes.bool.isRequired,
+    forMonitoring: PropTypes.bool.isRequired,
     commitHash: PropTypes.string,
     application: PropTypes.shape({
       name: PropTypes.string.isRequired

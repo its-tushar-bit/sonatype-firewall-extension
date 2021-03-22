@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -30,7 +31,7 @@ import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluationTriggerType;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -292,20 +293,38 @@ public class ReportServiceTest
     assertThat(metadata.getApplication().getId()).isEqualTo(app.getId());
     assertThat(metadata.getReportTitle()).isEqualTo("Build Report");
     assertThat(metadata.getReportTime()).isEqualTo(eval1.getTime());
-    assertThat(metadata.getPolicyEvaluationTriggerType()).isEqualTo(eval1.getTriggerType().getDisplayName());
+    assertThat(metadata.getScanTriggerType()).isEqualTo(eval1.getScanTriggerType().getDisplayName());
     assertThat(metadata.getStageId()).isEqualTo("build");
     assertThat(metadata.getCommitHash()).isNull();
     assertThat(metadata.getInitiator()).isEqualTo("system");
+    assertThat(metadata.isForMonitoring()).isFalse();
+    assertThat(metadata.isReevaluation()).isFalse();
 
     // Verify Response for scan 2
     metadata = reportService.getReportMetadata(app.getPublicId(), scanId2);
     assertThat(metadata.getApplication().getId()).isEqualTo(app.getId());
     assertThat(metadata.getReportTitle()).isEqualTo("Release Report");
     assertThat(metadata.getReportTime()).isEqualTo(eval2.getTime());
-    assertThat(metadata.getPolicyEvaluationTriggerType()).isEqualTo(eval2.getTriggerType().getDisplayName());
+    assertThat(metadata.getScanTriggerType()).isEqualTo(eval2.getScanTriggerType().getDisplayName());
     assertThat(metadata.getStageId()).isEqualTo("release");
     assertThat(metadata.getCommitHash()).isEqualTo(commitHash);
     assertThat(metadata.getInitiator()).isEqualTo("system");
+    assertThat(metadata.isForMonitoring()).isFalse();
+    assertThat(metadata.isReevaluation()).isFalse();
+
+    // Verify response for monitoring/re-evaluation
+    PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId2,
+        true /* isReevaluation */, true/* isForMonitoring */, new Date());
+    metadata = reportService.getReportMetadata(app.getPublicId(), scanId2);
+    assertThat(metadata.getApplication().getId()).isEqualTo(app.getId());
+    assertThat(metadata.getReportTitle()).isEqualTo("Build Report");
+    assertThat(metadata.getReportTime()).isEqualTo(eval3.getTime());
+    assertThat(metadata.getScanTriggerType()).isEqualTo(eval3.getScanTriggerType().getDisplayName());
+    assertThat(metadata.getStageId()).isEqualTo("build");
+    assertThat(metadata.getCommitHash()).isNull();
+    assertThat(metadata.getInitiator()).isEqualTo("system");
+    assertThat(metadata.isForMonitoring()).isTrue();
+    assertThat(metadata.isReevaluation()).isTrue();
 
     // Unknown scan id
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
@@ -412,7 +431,7 @@ public class ReportServiceTest
   @Test
   public void testGetBomForPolicyEvaluation_NoPolicyEvaluation() {
     PolicyEvaluation policyEvaluation =
-        new PolicyEvaluation(app.getId(), BuildStageType.ID, "SCAN_ID", "system", PolicyEvaluationTriggerType.CLI);
+        new PolicyEvaluation(app.getId(), BuildStageType.ID, "SCAN_ID", "system", ScanTriggerType.CLI);
 
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> createReportService().getBomForPolicyEvaluation(policyEvaluation));

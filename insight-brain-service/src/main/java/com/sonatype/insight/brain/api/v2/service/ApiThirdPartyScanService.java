@@ -30,7 +30,7 @@ import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluationTriggerType;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.StageTypeService;
@@ -116,7 +116,7 @@ public class ApiThirdPartyScanService
     ScanResult scanResult = createScanFile(app, sbom, source);
 
     policyEvaluateService.evaluateWithPolling(scanRequestId, app, ClientScanType.SONATYPE_THIRD_PARTY,
-        new Stage(stageTypeId), PolicyEvaluationTriggerType.THIRD_PARTY, scanResult.getScanFile(), "api",
+        new Stage(stageTypeId), ScanTriggerType.THIRD_PARTY, scanResult.getScanFile(), "api",
         clientUserAgent);
 
     return scanTicketDTO;

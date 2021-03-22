@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluationTriggerType;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
@@ -73,7 +73,7 @@ public class PullRequestLocationDiscoveryServiceTest
   private String applicationId = "appId";
 
   private PolicyEvaluation evaluation =
-      new PolicyEvaluation(applicationId, "stage-type-id", "scan-id", "system", PolicyEvaluationTriggerType.CLI);
+      new PolicyEvaluation(applicationId, "stage-type-id", "scan-id", "system", ScanTriggerType.CLI);
 
   // Subject
   private PullRequestLocationDiscoveryService locationDiscoveryService;

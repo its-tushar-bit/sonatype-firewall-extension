@@ -361,7 +361,7 @@ CREATE TABLE policy_evaluation (
   time timestamp NOT NULL,
   commit_hash varchar(128),
   initiator varchar(60) NOT NULL,
-  trigger_type varchar(50) NOT NULL,
+  scan_trigger_type varchar(50) NOT NULL,
   CONSTRAINT policy_evaluation_pk PRIMARY KEY (policy_evaluation_id),
   CONSTRAINT policy_evaluation_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id)
 );
@@ -793,7 +793,7 @@ CREATE TABLE source_control_event (
   complete_time timestamp,
   status_id varchar(50),
   user_agent varchar(255),
-  policy_evaluation_trigger_type varchar(50),
+  scan_trigger_type varchar(50),
   CONSTRAINT source_control_event_pk PRIMARY KEY (source_control_event_id),
   CONSTRAINT source_control_event_application_fk FOREIGN KEY (application_id) REFERENCES application (application_id),
   CONSTRAINT source_control_event_policy_evaluation_fk FOREIGN KEY (policy_evaluation_id) REFERENCES policy_evaluation (policy_evaluation_id)

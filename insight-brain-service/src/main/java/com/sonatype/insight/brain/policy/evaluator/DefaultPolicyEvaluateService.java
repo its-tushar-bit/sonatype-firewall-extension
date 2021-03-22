@@ -29,7 +29,7 @@ import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluationTriggerType;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.StageTypeService;
@@ -117,11 +117,11 @@ public class DefaultPolicyEvaluateService
       Application application,
       String scanId,
       Stage stage,
-      PolicyEvaluationTriggerType policyEvaluationTriggerType)
+      ScanTriggerType scanTriggerType)
       throws IOException
   {
     ScanPolicyEvaluatorResults results =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, policyEvaluationTriggerType);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, scanTriggerType);
     PolicyEvaluationResult policyEvaluationResult = scanPolicyEvaluator.createPolicyEvaluationResult(results.evaluation,
         results.allViolations, true);
 
@@ -138,7 +138,7 @@ public class DefaultPolicyEvaluateService
       @AuthzContext(Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
       String scanId,
       Stage stage,
-      PolicyEvaluationTriggerType policyEvaluationTriggerType) throws IOException
+      ScanTriggerType scanTriggerType) throws IOException
   {
     log.debug("Received request to evaluate policy for app public id {}, scan id {}, stageTypeId {}",
         applicationPublicId, scanId, stage.getStageTypeId());
@@ -149,7 +149,7 @@ public class DefaultPolicyEvaluateService
       throw new NotFoundException("Cannot find scan with ID " + scanId);
     }
 
-    return evaluate(app, scanId, stage, policyEvaluationTriggerType);
+    return evaluate(app, scanId, stage, scanTriggerType);
   }
 
   /**
@@ -194,7 +194,7 @@ public class DefaultPolicyEvaluateService
     String thirdPartyScanType =
         clientScanType == ClientScanType.SONATYPE_THIRD_PARTY ? integrationType.toString() : null;
 
-    evaluateWithPolling(statusId, app, clientScanType, stage, getPolicyEvaluationTriggerType(integrationType),
+    evaluateWithPolling(statusId, app, clientScanType, stage, getScanTriggerType(integrationType),
         tempScanFile, thirdPartyScanType, DefaultHdsClient.getClientUserAgent(req));
 
     PolicyEvaluationReceipt policyEvaluationReceipt = new PolicyEvaluationReceipt();
@@ -203,14 +203,14 @@ public class DefaultPolicyEvaluateService
     return policyEvaluationReceipt;
   }
 
-  private PolicyEvaluationTriggerType getPolicyEvaluationTriggerType(IntegrationType integrationType) {
+  private ScanTriggerType getScanTriggerType(IntegrationType integrationType) {
     switch (integrationType) {
       case CI:
-        return PolicyEvaluationTriggerType.CONTINUOUS_INTEGRATION;
+        return ScanTriggerType.CONTINUOUS_INTEGRATION;
       case CLI:
-        return PolicyEvaluationTriggerType.CLI;
+        return ScanTriggerType.CLI;
       case RM:
-        return PolicyEvaluationTriggerType.REPOSITORY_MANAGER;
+        return ScanTriggerType.REPOSITORY_MANAGER;
       default:
         throw new IllegalArgumentException("Unknown integration type " + integrationType);
     }
@@ -222,7 +222,7 @@ public class DefaultPolicyEvaluateService
       Application app,
       ClientScanType clientScanType,
       Stage stage,
-      PolicyEvaluationTriggerType policyEvaluationTriggerType,
+      ScanTriggerType scanTriggerType,
       File tempScanFile,
       String thirdPartyScanType,
       String clientUserAgent)
@@ -238,7 +238,7 @@ public class DefaultPolicyEvaluateService
     TelemetryData thirdPartyTelemetryData =
         buildThirdPartyScanTelemetryData(app.getPublicId(), stage, thirdPartyScanType, clientUserAgent);
     AuditData.get().continueAsync(
-        new Task(app, clientScanType, statusId, stage, policyEvaluationTriggerType, tempScanFile,
+        new Task(app, clientScanType, statusId, stage, scanTriggerType, tempScanFile,
             thirdPartyTelemetryData, persistedPolicyEvaluationPollingResult, clientUserAgent),
         executor::submit);
   }
@@ -297,7 +297,7 @@ public class DefaultPolicyEvaluateService
 
     private final Stage stage;
 
-    private final PolicyEvaluationTriggerType policyEvaluationTriggerType;
+    private final ScanTriggerType scanTriggerType;
 
     private final File tempScanFile;
 
@@ -314,7 +314,7 @@ public class DefaultPolicyEvaluateService
         final ClientScanType clientScanType,
         final String statusId,
         final Stage stage,
-        final PolicyEvaluationTriggerType policyEvaluationTriggerType,
+        final ScanTriggerType scanTriggerType,
         final File tempScanFile,
         final TelemetryData telemetryData,
         final PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult,
@@ -324,7 +324,7 @@ public class DefaultPolicyEvaluateService
       this.clientScanType = clientScanType;
       this.statusId = statusId;
       this.stage = stage;
-      this.policyEvaluationTriggerType = policyEvaluationTriggerType;
+      this.scanTriggerType = scanTriggerType;
       this.tempScanFile = tempScanFile;
       this.telemetryData = telemetryData;
       this.persistedPolicyEvaluationPollingResult = persistedPolicyEvaluationPollingResult;
@@ -357,7 +357,7 @@ public class DefaultPolicyEvaluateService
             "Evaluating policy for app public id {}, scan id {}, stageTypeId {}. The status ID of the operation is {}.",
             app.getPublicId(), scanId, stage.getStageTypeId(), statusId);
 
-        PolicyEvaluationResult policyEvaluationResult = evaluate(app, scanId, stage, policyEvaluationTriggerType);
+        PolicyEvaluationResult policyEvaluationResult = evaluate(app, scanId, stage, scanTriggerType);
 
         log.debug(
             "Evaluated policy for app public id {}, scan id {}, stageTypeId {} in {} ms."

@@ -14,7 +14,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluationTriggerType;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingConditionType;
@@ -37,7 +37,7 @@ public class PolicyViolationTelemetryCollectorTest
   private static final String TEST_STAGE = "testStage";
 
   private static final PolicyEvaluation policyEvaluation =
-      new PolicyEvaluation(TEST_APP_ID, TEST_STAGE, "scanId123", "system", PolicyEvaluationTriggerType.CLI);
+      new PolicyEvaluation(TEST_APP_ID, TEST_STAGE, "scanId123", "system", ScanTriggerType.CLI);
 
   private static final ComponentIdentifier commonsLang3 = ComponentIdentifier.createMavenCoordinates(
       "org.apache.commons", "commons-lang3", "3.8.1");

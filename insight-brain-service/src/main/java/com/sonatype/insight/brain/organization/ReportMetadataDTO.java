@@ -23,7 +23,11 @@ public class ReportMetadataDTO
 
   private String initiator;
 
-  private String policyEvaluationTriggerType;
+  private String scanTriggerType;
+
+  private boolean isReevaluation;
+
+  private boolean isForMonitoring;
 
   public Date getReportTime() {
     return reportTime;
@@ -73,11 +77,27 @@ public class ReportMetadataDTO
     this.initiator = initiator;
   }
 
-  public String getPolicyEvaluationTriggerType() {
-    return policyEvaluationTriggerType;
+  public String getScanTriggerType() {
+    return scanTriggerType;
   }
 
-  public void setPolicyEvaluationTriggerType(final String policyEvaluationTriggerType) {
-    this.policyEvaluationTriggerType = policyEvaluationTriggerType;
+  public void setScanTriggerType(final String scanTriggerType) {
+    this.scanTriggerType = scanTriggerType;
+  }
+
+  public boolean isReevaluation() {
+    return isReevaluation;
+  }
+
+  public void setReevaluation(boolean isReevaluation) {
+    this.isReevaluation = isReevaluation;
+  }
+
+  public boolean isForMonitoring() {
+    return isForMonitoring;
+  }
+
+  public void setForMonitoring(boolean isForMonitoring) {
+    this.isForMonitoring = isForMonitoring;
   }
 }

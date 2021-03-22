@@ -66,7 +66,6 @@ import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.hds.DefaultComponentDetailsLoader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluationTriggerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
@@ -296,7 +295,7 @@ public class ReportResource
     }
 
     scanPolicyEvaluator.evaluate(application, scanId, new Stage(policyEvaluation.getStageTypeId()),
-        PolicyEvaluationTriggerType.REEVALUATION);
+        policyEvaluation.getScanTriggerType());
 
     return Response.ok().build();
   }

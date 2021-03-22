@@ -62,9 +62,9 @@ public class PolicyEvaluation
   /**
    * @since 1.105
    */
-  @Column(name = "trigger_type")
+  @Column(name = "scan_trigger_type")
   @Enumerated(EnumType.STRING)
-  private PolicyEvaluationTriggerType triggerType;
+  private ScanTriggerType scanTriggerType;
 
   public PolicyEvaluation() {
   }
@@ -74,13 +74,13 @@ public class PolicyEvaluation
       String stageTypeId,
       String scanId,
       String initiator,
-      PolicyEvaluationTriggerType triggerType)
+      ScanTriggerType scanTriggerType)
   {
     this.applicationId = applicationId;
     this.stageTypeId = stageTypeId;
     this.scanId = scanId;
     this.initiator = initiator;
-    this.triggerType = triggerType;
+    this.scanTriggerType = scanTriggerType;
   }
 
   public PolicyEvaluation(
@@ -90,7 +90,7 @@ public class PolicyEvaluation
       boolean isReevaluation,
       boolean isForMonitoring,
       String initiator,
-      PolicyEvaluationTriggerType triggerType)
+      ScanTriggerType scanTriggerType)
   {
     this.applicationId = applicationId;
     this.stageTypeId = stageTypeId;
@@ -98,7 +98,7 @@ public class PolicyEvaluation
     this.isReevaluation = isReevaluation;
     this.isForMonitoring = isForMonitoring;
     this.initiator = initiator;
-    this.triggerType = triggerType;
+    this.scanTriggerType = scanTriggerType;
   }
 
   @Override
@@ -183,12 +183,12 @@ public class PolicyEvaluation
     this.initiator = initiator;
   }
 
-  public PolicyEvaluationTriggerType getTriggerType() {
-    return triggerType;
+  public ScanTriggerType getScanTriggerType() {
+    return scanTriggerType;
   }
 
-  public void setTriggerType(PolicyEvaluationTriggerType triggerType) {
-    this.triggerType = triggerType;
+  public void setScanTriggerType(ScanTriggerType scanTriggerType) {
+    this.scanTriggerType = scanTriggerType;
   }
 
   @Override

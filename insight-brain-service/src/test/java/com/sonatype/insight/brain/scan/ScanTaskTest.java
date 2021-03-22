@@ -17,7 +17,7 @@ import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluationTriggerType;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluatorResults;
@@ -187,7 +187,7 @@ public class ScanTaskTest
     task.run();
 
     verify(scanPolicyEvaluator).evaluate(eq(app), eq(scanReceipt.getScanId()), match(stage),
-        eq(PolicyEvaluationTriggerType.WEB_UI));
+        eq(ScanTriggerType.WEB_UI));
   }
 
   @Test
@@ -212,7 +212,7 @@ public class ScanTaskTest
     results.notifiableViolations = new ArrayList<>();
     results.allViolations = new ArrayList<>();
     when(scanPolicyEvaluator.evaluate(eq(app), eq(scanReceipt.getScanId()), match(stage),
-        eq(PolicyEvaluationTriggerType.WEB_UI))).thenReturn(results);
+        eq(ScanTriggerType.WEB_UI))).thenReturn(results);
 
     task.run();
 

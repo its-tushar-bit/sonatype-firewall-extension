@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.dataaccess.scan.PersistedScanTicketDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluationTriggerType;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.scan.PersistedScanTicket;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
@@ -244,7 +244,7 @@ class ScanTask
       persistedScanTicketDAO.update(toPersistedScanTicket());
       // The ScanPolicyEvaluator will fetch the report if it's not there
       ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(app, scanReceipt.getScanId(), stage,
-          PolicyEvaluationTriggerType.WEB_UI);
+          ScanTriggerType.WEB_UI);
       if (sendNotifications) {
         policyAlertNotifier.sendNotifications(app, results);
       }

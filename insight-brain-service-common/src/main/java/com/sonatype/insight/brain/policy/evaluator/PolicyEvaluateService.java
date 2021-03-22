@@ -16,7 +16,7 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluationTriggerType;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.scan.model.ClientScanType;
 
 /**
@@ -30,13 +30,13 @@ public interface PolicyEvaluateService
    * @param applicationPublicId public shared id
    * @param scanId the id of the scan
    * @param stage {@link Stage}
-   * @param policyEvaluationTriggerType The trigger type for this evaluation {@link PolicyEvaluationTriggerType}
+   * @param scanTriggerType The trigger type for the scan for this evaluation {@link ScanTriggerType}
    */
   PolicyEvaluationResult evaluate(
       final String applicationPublicId,
       final String scanId,
       final Stage stage,
-      final PolicyEvaluationTriggerType policyEvaluationTriggerType) throws IOException;
+      final ScanTriggerType scanTriggerType) throws IOException;
 
   /**
    * Starts the evaluation of an application, integration, type and stage. After starting will
@@ -66,7 +66,7 @@ public interface PolicyEvaluateService
    * @param application {@link Application}
    * @param clientScanType {@link ClientScanType}
    * @param stage {@link Stage}
-   * @param policyEvaluationTriggerType the type of trigger for this evaluation {@link PolicyEvaluationTriggerType}
+   * @param scanTriggerType the type of trigger for the scan for this evaluation {@link ScanTriggerType}
    * @param tempScanFile {@link File} to temporary store scanned result to
    * @param thirdPartyScanType string value of an {@link IntegrationType} if <code>clientScanType</code>
    *          is {@link ClientScanType#SONATYPE_THIRD_PARTY} or null otherwise
@@ -77,7 +77,7 @@ public interface PolicyEvaluateService
       final Application application,
       final ClientScanType clientScanType,
       final Stage stage,
-      final PolicyEvaluationTriggerType policyEvaluationTriggerType,
+      final ScanTriggerType scanTriggerType,
       final File tempScanFile,
       final String thirdPartyScanType,
       final String userAgent);

@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluationTriggerType;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
@@ -48,7 +48,7 @@ public class PolicyEvaluationDAOTest
 
     // Create
     PolicyEvaluation policyEvaluation =
-        new PolicyEvaluation(application.getId(), stageTypeId, scanId, "system", PolicyEvaluationTriggerType.CLI);
+        new PolicyEvaluation(application.getId(), stageTypeId, scanId, "system", ScanTriggerType.CLI);
     assertThat(policyEvaluation.getId()).isNull();
     dao.insert(policyEvaluation);
     assertThat(policyEvaluation.getId()).isNotNull();
@@ -379,7 +379,7 @@ public class PolicyEvaluationDAOTest
 
     PolicyEvaluation policyEvaluation =
         new PolicyEvaluation(application.getId(), ReleaseStageType.ID, "scanId", "system",
-            PolicyEvaluationTriggerType.CLI);
+            ScanTriggerType.CLI);
     policyEvaluation.setForObsoleteScan(true);
     assertThatThrownBy(() -> {
       dao.insert(policyEvaluation);

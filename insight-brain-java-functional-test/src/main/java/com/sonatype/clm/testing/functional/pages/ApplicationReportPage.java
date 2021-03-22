@@ -48,8 +48,16 @@ public class ApplicationReportPage
     return child(".nx-page-title .nx-h1");
   }
 
-  public SelenideElement policyEvaluationTriggerType() {
-    return child("#application-report-policy-eval-trigger-type");
+  public SelenideElement scanTriggerType() {
+    return child("#application-report-scan-trigger-type");
+  }
+
+  public SelenideElement forContinuousMonitoring() {
+    return child("#application-report-for-monitoring");
+  }
+
+  public SelenideElement reevaluation() {
+    return child("#application-report-reevaluation");
   }
 
   public SelenideElement reportDate() {

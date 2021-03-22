@@ -15,7 +15,7 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluationTriggerType;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
@@ -226,7 +226,7 @@ public class PolicyThreatsAdapterTest
                                                String actionType)
   {
     PolicyEvaluation evaluation =
-        new PolicyEvaluation("applicationId1", "stageId1", "scanId1", "system", PolicyEvaluationTriggerType.CLI);
+        new PolicyEvaluation("applicationId1", "stageId1", "scanId1", "system", ScanTriggerType.CLI);
     evaluation.setTime(new Date());
 
     PolicyViolation violation = new PolicyViolation(evaluation, policyId, policyId, threatLevel,

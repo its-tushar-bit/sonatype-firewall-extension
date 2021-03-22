@@ -23,7 +23,7 @@ public class OrganizationSelectorTest
   // VALUES("", "", "", "", Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, "");
   private static final String[] POLICY_EVAL_COLS = new String[] { "policy_evaluation_id", "application_id",
       "stage_type_id", "scan_id", "reevaluation", "for_monitoring", "for_obsolete_scan", "time", "initiator",
-      "trigger_type"};
+      "scan_trigger_type"};
 
   private void defaults() throws Exception {
     insert("application", APPLICATION_COLS, new Object[] { "app1", "a1", "a1", "a1", "a1", "org1", "smitty" });

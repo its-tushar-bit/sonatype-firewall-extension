@@ -22,7 +22,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluationTriggerType;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -49,6 +49,6 @@ public class PolicyEvaluateResource
                                          final Stage stage) throws IOException
   {
     AuditData.get().setScanId(scanId);
-    return policyEvaluateService.evaluate(applicationPublicId, scanId, stage, PolicyEvaluationTriggerType.UNKNOWN);
+    return policyEvaluateService.evaluate(applicationPublicId, scanId, stage, ScanTriggerType.UNKNOWN);
   }
 }

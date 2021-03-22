@@ -24,7 +24,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
 import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluationTriggerType;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluatorResults;
@@ -116,7 +116,7 @@ public class ApiPromoteScanServiceV2Test
     ScanPolicyEvaluatorResults evaluatorResults = new ScanPolicyEvaluatorResults();
     evaluatorResults.evaluation = tempEntity.newPolicyEvaluation(app.getId(), toStageId, NEW_SCAN_ID);
     when(scanPolicyEvaluator.evaluate(any(Application.class), eq(NEW_SCAN_ID), any(Stage.class),
-        eq(PolicyEvaluationTriggerType.CLI))).thenReturn(evaluatorResults);
+        eq(ScanTriggerType.CLI))).thenReturn(evaluatorResults);
 
     ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 = service.promoteScan(app.getId(),
         ApiPromoteScanRequestDTOV2.fromStage(Stage.ID_BUILD, toStageId), null /* userAgent */);
@@ -249,7 +249,7 @@ public class ApiPromoteScanServiceV2Test
     ScanPolicyEvaluatorResults evaluatorResults = new ScanPolicyEvaluatorResults();
     evaluatorResults.evaluation = tempEntity.newPolicyEvaluation(app.getId(), toStageId, NEW_SCAN_ID);
     when(scanPolicyEvaluator.evaluate(any(Application.class), eq(NEW_SCAN_ID), any(Stage.class),
-        eq(PolicyEvaluationTriggerType.CLI))).thenReturn(evaluatorResults);
+        eq(ScanTriggerType.CLI))).thenReturn(evaluatorResults);
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
     ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 = service
         .promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, toStageId), null /* userAgent */);

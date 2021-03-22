@@ -55,7 +55,7 @@ import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluationTriggerType;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
@@ -156,23 +156,23 @@ public class PolicyEvaluateServiceTest
   private void assertPolicyEvaluation(
       String applicationId,
       String scanId,
-      PolicyEvaluationTriggerType policyEvaluationTriggerType,
+      ScanTriggerType scanTriggerType,
       boolean isReevaluation)
   {
-    assertPolicyEvaluation(applicationId, scanId, policyEvaluationTriggerType, isReevaluation,
+    assertPolicyEvaluation(applicationId, scanId, scanTriggerType, isReevaluation,
         false /* isForObsoleteScan */);
   }
 
   private void assertPolicyEvaluation(
       String applicationId,
       String scanId,
-      PolicyEvaluationTriggerType policyEvaluationTriggerType,
+      ScanTriggerType scanTriggerType,
       boolean isReevaluation,
       boolean isForObsoleteScan)
   {
     PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO()
         .getLastByApplicationIdAndScanId(applicationId, scanId);
-    assertThat(policyEvaluation.getTriggerType()).isEqualTo(policyEvaluationTriggerType);
+    assertThat(policyEvaluation.getScanTriggerType()).isEqualTo(scanTriggerType);
     assertThat(policyEvaluation.isReevaluation()).isEqualTo(isReevaluation);
     assertThat(policyEvaluation.isForObsoleteScan()).isEqualTo(isForObsoleteScan);
   }
@@ -214,8 +214,8 @@ public class PolicyEvaluateServiceTest
 
     // evaluate policy
     PolicyEvaluationResult policyEvaluationResult =
-        policyEvaluateService.evaluate(app.getPublicId(), scanId, stage, PolicyEvaluationTriggerType.CLI);
-    assertEvaluate(scanId, stage, PolicyEvaluationTriggerType.CLI, policyEvaluationResult, policy1, mockJiraClient,
+        policyEvaluateService.evaluate(app.getPublicId(), scanId, stage, ScanTriggerType.CLI);
+    assertEvaluate(scanId, stage, ScanTriggerType.CLI, policyEvaluationResult, policy1, mockJiraClient,
         appComponentDAO, mailA, mailB);
   }
 
@@ -226,12 +226,12 @@ public class PolicyEvaluateServiceTest
 
     // Verify that policy evaluation is successful for the app owning the scan.
     Stage stage = new Stage(Stage.ID_BUILD);
-    policyEvaluateService.evaluate(app.getPublicId(), scanId, stage, PolicyEvaluationTriggerType.CLI);
+    policyEvaluateService.evaluate(app.getPublicId(), scanId, stage, ScanTriggerType.CLI);
 
     // Verify that policy evaluation fails for a different app (doesn't own the scan).
     Application app1 = tempEntity.newApplicationWithParent();
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      policyEvaluateService.evaluate(app1.getPublicId(), scanId, stage, PolicyEvaluationTriggerType.CLI);
+      policyEvaluateService.evaluate(app1.getPublicId(), scanId, stage, ScanTriggerType.CLI);
     }).withMessage("Cannot find scan with ID " + scanId);
   }
 
@@ -247,7 +247,7 @@ public class PolicyEvaluateServiceTest
     ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId);
 
     PolicyEvaluationResult policyEvaluationResult =
-        policyEvaluateService.evaluate(app.getPublicId(), scanId, stage, PolicyEvaluationTriggerType.CLI);
+        policyEvaluateService.evaluate(app.getPublicId(), scanId, stage, ScanTriggerType.CLI);
 
     // Threat Level 1 Should not show up in any counts
     assertThat(policyEvaluationResult.getAffectedComponentCount()).isEqualTo(0);
@@ -266,7 +266,7 @@ public class PolicyEvaluateServiceTest
 
     // Threat Level 2 should show up as moderate
     policyEvaluationResult =
-        policyEvaluateService.evaluate(app.getPublicId(), scanId, stage, PolicyEvaluationTriggerType.CLI);
+        policyEvaluateService.evaluate(app.getPublicId(), scanId, stage, ScanTriggerType.CLI);
     assertThat(policyEvaluationResult.getAffectedComponentCount()).isEqualTo(7);
     assertThat(policyEvaluationResult.getCriticalComponentCount()).isEqualTo(0);
     assertThat(policyEvaluationResult.getSevereComponentCount()).isEqualTo(0);
@@ -283,7 +283,7 @@ public class PolicyEvaluateServiceTest
 
     // Threat Level 4 should show up as severe
     policyEvaluationResult =
-        policyEvaluateService.evaluate(app.getPublicId(), scanId, stage, PolicyEvaluationTriggerType.CLI);
+        policyEvaluateService.evaluate(app.getPublicId(), scanId, stage, ScanTriggerType.CLI);
     assertThat(policyEvaluationResult.getAffectedComponentCount()).isEqualTo(7);
     assertThat(policyEvaluationResult.getCriticalComponentCount()).isEqualTo(0);
     assertThat(policyEvaluationResult.getSevereComponentCount()).isEqualTo(7);
@@ -300,7 +300,7 @@ public class PolicyEvaluateServiceTest
 
     // Threat Level 8 should show up as severe
     policyEvaluationResult =
-        policyEvaluateService.evaluate(app.getPublicId(), scanId, stage, PolicyEvaluationTriggerType.CLI);
+        policyEvaluateService.evaluate(app.getPublicId(), scanId, stage, ScanTriggerType.CLI);
     assertThat(policyEvaluationResult.getAffectedComponentCount()).isEqualTo(7);
     assertThat(policyEvaluationResult.getCriticalComponentCount()).isEqualTo(7);
     assertThat(policyEvaluationResult.getSevereComponentCount()).isEqualTo(0);
@@ -319,7 +319,7 @@ public class PolicyEvaluateServiceTest
     scanId = simulateReportIsAvailable();
     ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId);
     policyEvaluationResult =
-        policyEvaluateService.evaluate(app.getPublicId(), scanId, stage, PolicyEvaluationTriggerType.CLI);
+        policyEvaluateService.evaluate(app.getPublicId(), scanId, stage, ScanTriggerType.CLI);
     assertThat(policyEvaluationResult.getAffectedComponentCount()).isEqualTo(7);
     assertThat(policyEvaluationResult.getCriticalComponentCount()).isEqualTo(7);
     assertThat(policyEvaluationResult.getSevereComponentCount()).isEqualTo(0);
@@ -347,7 +347,7 @@ public class PolicyEvaluateServiceTest
     ScanHelper.createDummyScanFile(lookup(InsightWork.class), app.getId(), scanId);
 
     PolicyEvaluationResult policyEvaluationResult =
-        policyEvaluateService.evaluate(app.getPublicId(), scanId, stage, PolicyEvaluationTriggerType.CLI);
+        policyEvaluateService.evaluate(app.getPublicId(), scanId, stage, ScanTriggerType.CLI);
 
     List<PolicyFact> policyFacts = new ArrayList<>();
     for (PolicyAlert policyAlert : policyEvaluationResult.getAlerts()) {
@@ -400,11 +400,11 @@ public class PolicyEvaluateServiceTest
     String scanId = simulateReportIsAvailable();
     ScanHelper.createDummyScanFile(lookup(InsightWork.class), app.getId(), scanId);
     PolicyEvaluationResult policyEvaluationResult =
-        policyEvaluateService.evaluate(app.getPublicId(), scanId, stage, PolicyEvaluationTriggerType.CLI);
+        policyEvaluateService.evaluate(app.getPublicId(), scanId, stage, ScanTriggerType.CLI);
 
     List<PolicyAlert> policyAlerts = policyEvaluationResult.getAlerts();
     assertThat(policyAlerts).hasSize(36);
-    assertPolicyEvaluation(app.getId(), scanId, PolicyEvaluationTriggerType.CLI, false /* isReevaluation */);
+    assertPolicyEvaluation(app.getId(), scanId, ScanTriggerType.CLI, false /* isReevaluation */);
 
     // Notification message should have been sent
     assertNotifications(notifications, 1, 5000);
@@ -416,10 +416,10 @@ public class PolicyEvaluateServiceTest
 
     // Evaluate policy again for the same scan
     policyEvaluationResult =
-        policyEvaluateService.evaluate(app.getPublicId(), scanId, stage, PolicyEvaluationTriggerType.CLI);
+        policyEvaluateService.evaluate(app.getPublicId(), scanId, stage, ScanTriggerType.CLI);
     policyAlerts = policyEvaluationResult.getAlerts();
     assertThat(policyAlerts).hasSize(36);
-    assertPolicyEvaluation(app.getId(), scanId, PolicyEvaluationTriggerType.CLI, true /* isReevaluation */);
+    assertPolicyEvaluation(app.getId(), scanId, ScanTriggerType.CLI, true /* isReevaluation */);
 
     // Notification message should not have been sent since this is a re-evaluation
     assertNotifications(notifications, 0, 5000);
@@ -428,24 +428,24 @@ public class PolicyEvaluateServiceTest
   @Test
   public void testEvaluateWithPolling_CI() throws Exception {
     testEvaluateWithPolling(LicensedFeature.CI_INTEGRATION, IntegrationType.CI,
-        PolicyEvaluationTriggerType.CONTINUOUS_INTEGRATION);
+        ScanTriggerType.CONTINUOUS_INTEGRATION);
   }
 
   @Test
   public void testEvaluateWithPolling_CLI() throws Exception {
-    testEvaluateWithPolling(LicensedFeature.CLI_INTEGRATION, IntegrationType.CLI, PolicyEvaluationTriggerType.CLI);
+    testEvaluateWithPolling(LicensedFeature.CLI_INTEGRATION, IntegrationType.CLI, ScanTriggerType.CLI);
   }
 
   @Test
   public void testEvaluateWithPolling_RepoManager() throws Exception {
     testEvaluateWithPolling(LicensedFeature.RM_STAGING_INTEGRATION, IntegrationType.RM,
-        PolicyEvaluationTriggerType.REPOSITORY_MANAGER);
+        ScanTriggerType.REPOSITORY_MANAGER);
   }
 
   private void testEvaluateWithPolling(
       LicensedFeature requiredFeature,
       IntegrationType integrationType,
-      PolicyEvaluationTriggerType policyEvaluationTriggerType)
+      ScanTriggerType scanTriggerType)
       throws Exception
   {
     productLicenseManager.setFeatures(requiredFeature, LicensedFeature.NOTIFICATIONS);
@@ -512,7 +512,7 @@ public class PolicyEvaluateServiceTest
     assertThat(policyEvaluationPollingResult.getResult()).isNotNull();
     assertThat(policyEvaluationPollingResult.getScanReceipt()).usingRecursiveComparison().isEqualTo(scanReceipt);
 
-    assertEvaluate(scanId, stage, policyEvaluationTriggerType, policyEvaluationResult, policy1, mockJiraClient,
+    assertEvaluate(scanId, stage, scanTriggerType, policyEvaluationResult, policy1, mockJiraClient,
         appComponentDAO, mailA, mailB);
 
     assertThat(clientUserAgentArgCaptor.getValue()).isEqualTo(testClientUserAgent);
@@ -590,7 +590,7 @@ public class PolicyEvaluateServiceTest
         return super.answer(invocation);
       }
     }).when(spyService).evaluate(any(Application.class), anyString(), any(Stage.class),
-        any(PolicyEvaluationTriggerType.class));
+        any(ScanTriggerType.class));
 
     // evaluate policy
     PolicyEvaluationReceipt policyEvaluationReceipt =
@@ -789,7 +789,7 @@ public class PolicyEvaluateServiceTest
   private void assertEvaluate(
       String scanId,
       Stage stage,
-      PolicyEvaluationTriggerType policyEvaluationTriggerType,
+      ScanTriggerType scanTriggerType,
       PolicyEvaluationResult policyEvaluationResult,
       Policy policy1,
       JiraClient mockJiraClient,
@@ -809,7 +809,7 @@ public class PolicyEvaluateServiceTest
     for (PolicyAlert policyAlert : policyAlerts) {
       AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlert);
     }
-    assertPolicyEvaluation(app.getId(), scanId, policyEvaluationTriggerType, false /* isReevaluation */);
+    assertPolicyEvaluation(app.getId(), scanId, scanTriggerType, false /* isReevaluation */);
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId())) {
@@ -853,13 +853,13 @@ public class PolicyEvaluateServiceTest
 
     // evaluate policy again
     policyEvaluationResult =
-        policyEvaluateService.evaluate(app.getPublicId(), scanId, stage, policyEvaluationTriggerType);
+        policyEvaluateService.evaluate(app.getPublicId(), scanId, stage, scanTriggerType);
     policyAlerts = policyEvaluationResult.getAlerts();
     assertThat(policyAlerts).hasSize(72);
     for (PolicyAlert policyAlert : policyAlerts) {
       AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlert);
     }
-    assertPolicyEvaluation(app.getId(), scanId, policyEvaluationTriggerType, true /* isReevaluation */);
+    assertPolicyEvaluation(app.getId(), scanId, scanTriggerType, true /* isReevaluation */);
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId())) {
       if (policyViolation.getPolicyId().equals(policy1.getId())) {

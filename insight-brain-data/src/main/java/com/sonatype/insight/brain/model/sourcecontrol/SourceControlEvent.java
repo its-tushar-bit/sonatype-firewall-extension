@@ -16,7 +16,7 @@ import javax.persistence.Table;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.HasComponentId;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluationTriggerType;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.model.HasStringId;
 
 /**
@@ -138,9 +138,9 @@ public class  SourceControlEvent
    * 
    * @since 1.105
    */
-  @Column(name = "policy_evaluation_trigger_type")
+  @Column(name = "scan_trigger_type")
   @Enumerated(EnumType.STRING)
-  private PolicyEvaluationTriggerType policyEvaluationTriggerType;
+  private ScanTriggerType scanTriggerType;
 
   public SourceControlEvent() {
     eventStatus = EVENT_STATUS_NEW;
@@ -423,12 +423,12 @@ public class  SourceControlEvent
     return this;
   }
 
-  public PolicyEvaluationTriggerType getPolicyEvaluationTriggerType() {
-    return policyEvaluationTriggerType;
+  public ScanTriggerType getScanTriggerType() {
+    return scanTriggerType;
   }
 
-  public SourceControlEvent setPolicyEvaluationTriggerType(PolicyEvaluationTriggerType policyEvaluationTriggerType) {
-    this.policyEvaluationTriggerType = policyEvaluationTriggerType;
+  public SourceControlEvent setScanTriggerType(ScanTriggerType scanTriggerType) {
+    this.scanTriggerType = scanTriggerType;
     return this;
   }
 }

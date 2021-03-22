@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField.FirewallFilterableField;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter;
+import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -68,6 +69,8 @@ public class ApiFirewallResource
   static final String COMPONENTS_PATH = "/components";
 
   static final String UNQUARANTINE_PATH = COMPONENTS_PATH + "/autoReleasedFromQuarantine";
+
+  static final String QUARANTINED_PATH = COMPONENTS_PATH + "/quarantined";
 
   private final ApiFirewallService apiFirewallService;
 
@@ -130,28 +133,54 @@ public class ApiFirewallResource
       @DefaultValue("true") @QueryParam("asc") boolean asc
   )
   {
+    return getComponents(uriInfo, page, pageSize, policyId, sortBy, FirewallSortableField.RELEASE_QUARANTINE_TIME, asc,
+        FirewallComponentFilterState.UNQUARANTINE_AUTO);
+  }
+
+  @GET
+  @Path(QUARANTINED_PATH)
+  public Response getQuarantineList(
+      @Context UriInfo uriInfo,
+      @DefaultValue("1") @QueryParam("page") int page,
+      @DefaultValue("10") @QueryParam("pageSize") int pageSize,
+      @QueryParam("policyId") String policyId,
+      @QueryParam("sortBy") String sortBy,
+      @DefaultValue("true") @QueryParam("asc") boolean asc
+  )
+  {
+    return getComponents(uriInfo, page, pageSize, policyId, sortBy, FirewallSortableField.QUARANTINE_TIME, asc,
+        FirewallComponentFilterState.QUARANTINE);
+  }
+
+  private Response getComponents(
+      final UriInfo uriInfo,
+      final int page,
+      final int pageSize,
+      final String policyId,
+      final String sortBy,
+      final FirewallSortableField defaultSortableField,
+      final boolean asc,
+      final FirewallComponentFilterState firewallComponentFilterState)
+  {
     List<FirewallFilterField> filterFields = new ArrayList<>();
     if (!StringUtils.isEmpty(policyId)) {
       filterFields.add(new FirewallFilterField(FirewallFilterableField.POLICY_ID, policyId));
     }
 
-    final FirewallSortableField sortableField = initializeSortField(sortBy);
+    final FirewallSortableField sortableField = sortBy == null ? defaultSortableField : initializeSortField(sortBy);
 
     final FirewallRepositoryComponentFilter firewallFilter =
-        new FirewallRepositoryComponentFilter(page, pageSize, false, true, sortableField, asc, filterFields);
+        new FirewallRepositoryComponentFilter(page, pageSize, firewallComponentFilterState, sortableField,
+            asc, filterFields);
 
-    final ApiPageResult<ApiFirewallComponentDTO> result = apiFirewallService.getUnquarantineList(firewallFilter);
+    final ApiPageResult<ApiFirewallComponentDTO> result = apiFirewallService.getComponents(firewallFilter);
 
     return new PaginationResponseBuilder<>(uriInfo.getAbsolutePath().getPath(), page, pageSize, result)
         .queryParameters(uriInfo.getQueryParameters())
         .build();
   }
 
-  private FirewallSortableField initializeSortField(String sortBy) {
-    if (StringUtils.isEmpty(sortBy)) {
-      sortBy = FirewallSortableField.RELEASE_QUARANTINE_TIME.getLabel();
-    }
-
+  private FirewallSortableField initializeSortField(final String sortBy) {
     final FirewallSortableField sortableField;
     try {
       sortableField = FirewallSortableField.getByLabel(sortBy);

@@ -397,6 +397,117 @@ public class ApiFirewallResourceTest
     assertThat(response.getBodyText()).isEqualTo("sortBy field is invalid");
   }
 
+  @Test
+  public void testGetQuarantineList() throws Exception {
+    Date june1st2020 = Date.from(LocalDateTime.of(2020, 6, 1, 1, 0).toInstant(ZoneOffset.UTC));
+
+    Repository repository = tempEntity.newRepository(tempEntity.newRepositoryManager(), "repo1", true, true);
+    Condition condition = new Condition("RelativePopularity", "<=", "10");
+    Constraint constraint = new Constraint("c1", "constraint1", LogicalOperator.OR);
+    constraint.addCondition(condition);
+    Policy policy1 = tempEntity.newPolicy("policy1", constraint);
+
+    // ADD COMPONENT
+    final RepositoryComponent component1 =
+        tempEntity.newRepositoryComponent(repository.getId(), "/quarantined1", june1st2020, null, false);
+
+    // CREATE POLICY VIOLATION
+    final RepositoryPolicyViolation policyViolation1 = PolicyViolationTestHelper
+        .createPolicyViolationFail(policy1, component1, tempEntity);
+
+    HttpResponse response = restRequest()
+        .path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.QUARANTINED_PATH)
+        .query("page", 1)
+        .query("pageSize", 2)
+        .query("policyId", policy1.getId())
+        .query("sortBy", FirewallSortableField.RELEASE_QUARANTINE_TIME.getLabel())
+        .query("asc", "false")
+        .get();
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK_200);
+    ApiPageResult<ApiFirewallComponentDTO> responseDTO = getBodyByTypeReference(response.getBodyBytes(),
+        new TypeReference<ApiPageResult<ApiFirewallComponentDTO>>() { });
+    assertThat(responseDTO.getTotal()).isEqualTo(1);
+    final ApiFirewallComponentDTO componentDTO1 = responseDTO.getResults().get(0);
+    ApiFirewallServiceTest
+        .assertRepositoryComponentWithOnePolicyViolation(policyViolation1, componentDTO1, june1st2020, null);
+  }
+
+  @Test
+  public void testGetQuarantineList_defaultValues() throws Exception {
+    Date june1st2020 = Date.from(LocalDateTime.of(2020, 6, 1, 1, 0).toInstant(ZoneOffset.UTC));
+
+    Repository repository = tempEntity.newRepository(tempEntity.newRepositoryManager(), "repo1", true, true);
+    Condition condition = new Condition("RelativePopularity", "<=", "10");
+    Constraint constraint = new Constraint("c1", "constraint1", LogicalOperator.OR);
+    constraint.addCondition(condition);
+    Policy policy1 = tempEntity.newPolicy("policy1", constraint);
+
+    // ADD COMPONENT
+    final RepositoryComponent component1 =
+        tempEntity.newRepositoryComponent(repository.getId(), "/quarantined1", june1st2020, null, false);
+
+    // CREATE POLICY VIOLATION
+    final RepositoryPolicyViolation policyViolation1 = PolicyViolationTestHelper
+        .createPolicyViolationFail(policy1, component1, tempEntity);
+
+    HttpResponse response = restRequest()
+        .path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.QUARANTINED_PATH).get();
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK_200);
+    ApiPageResult<ApiFirewallComponentDTO> responseDTO = getBodyByTypeReference(response.getBodyBytes(),
+        new TypeReference<ApiPageResult<ApiFirewallComponentDTO>>() { });
+    assertThat(responseDTO.getTotal()).isEqualTo(1);
+    final ApiFirewallComponentDTO componentDTO1 = responseDTO.getResults().get(0);
+    ApiFirewallServiceTest
+        .assertRepositoryComponentWithOnePolicyViolation(policyViolation1, componentDTO1, june1st2020, null);
+  }
+
+  @Test
+  public void testGetQuarantineList_invalid() throws Exception {
+    // pageSize < MIN_PAGE
+    HttpResponse response = restRequest()
+        .path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.QUARANTINED_PATH)
+        .query("page", ApiFirewallService.MIN_PAGE - 1)
+        .get();
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST_400);
+    assertThat(response.getBodyText())
+        .isEqualTo("Invalid page: " + (ApiFirewallService.MIN_PAGE - 1) + ". Page shouldn't be lower than 1");
+
+    // pageSize < MIN_PAGE_SIZE
+    response = restRequest()
+        .path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.QUARANTINED_PATH)
+        .query("pageSize", ApiFirewallService.MIN_PAGE_SIZE - 1)
+        .get();
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST_400);
+    assertThat(response.getBodyText()).isEqualTo(
+        "Invalid page size: " + (ApiFirewallService.MIN_PAGE_SIZE - 1) + ". Page size should be between " +
+            ApiFirewallService.MIN_PAGE_SIZE + " and " +
+            ApiFirewallService.MAX_PAGE_SIZE);
+
+    // pageSize > MAX_PAGE_SIZE
+    response = restRequest()
+        .path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.QUARANTINED_PATH)
+        .query("pageSize", ApiFirewallService.MAX_PAGE_SIZE + 1)
+        .get();
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST_400);
+    assertThat(response.getBodyText())
+        .isEqualTo("Invalid page size: " + (ApiFirewallService.MAX_PAGE_SIZE + 1) + ". Page size should be between " +
+            ApiFirewallService.MIN_PAGE_SIZE + " and " +
+            ApiFirewallService.MAX_PAGE_SIZE);
+  }
+
+  @Test
+  public void testGetQuarantineList_invalidSortField() throws Exception {
+    // pageSize < 1
+    HttpResponse response = restRequest()
+        .path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.QUARANTINED_PATH)
+        .query("sortBy", "INVALID")
+        .get();
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST_400);
+    assertThat(response.getBodyText()).isEqualTo("sortBy field is invalid");
+  }
+
   private <T> T getBodyByTypeReference(byte[] bodyBytes, final TypeReference<T> typeRef) {
     try {
       return JSON.readValue(bodyBytes, typeRef);

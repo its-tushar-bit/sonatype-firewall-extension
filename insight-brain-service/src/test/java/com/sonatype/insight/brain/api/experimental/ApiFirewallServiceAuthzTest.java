@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.api.experimental.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.experimental.dto.FirewallConfigurationDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter;
+import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -194,32 +195,35 @@ public class ApiFirewallServiceAuthzTest
   }
 
   @Test
-  public void testGetUnquarantineList_Authorized() {
+  public void testGetComponents_Authorized() {
     config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
     grantGlobalPermission(Permission.READ);
 
     final FirewallRepositoryComponentFilter filter =
-        new FirewallRepositoryComponentFilter(1, 2, false, true, null, true, Collections.emptyList());
-    final ApiPageResult<ApiFirewallComponentDTO> dto = apiFirewallService.getUnquarantineList(filter);
+        new FirewallRepositoryComponentFilter(1, 2, FirewallComponentFilterState.UNQUARANTINE_AUTO, null, true,
+            Collections.emptyList());
+    final ApiPageResult<ApiFirewallComponentDTO> dto = apiFirewallService.getComponents(filter);
 
     assertThat(dto.getTotal()).isZero();
   }
 
   @Test
-  public void testGetUnquarantineList_Unauthorized() {
+  public void testGetComponents_Unauthorized() {
     login();
 
     final FirewallRepositoryComponentFilter filter =
-        new FirewallRepositoryComponentFilter(1, 2, false, true, null, true, Collections.emptyList());
+        new FirewallRepositoryComponentFilter(1, 2, FirewallComponentFilterState.UNQUARANTINE_AUTO, null, true,
+            Collections.emptyList());
     assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(() ->
-        apiFirewallService.getUnquarantineList(filter));
+        apiFirewallService.getComponents(filter));
   }
 
   @Test
-  public void testGetUnquarantineList_Unauthenticated() {
+  public void testGetComponents_Unauthenticated() {
     final FirewallRepositoryComponentFilter filter =
-        new FirewallRepositoryComponentFilter(1, 2, false, true, null, true, Collections.emptyList());
+        new FirewallRepositoryComponentFilter(1, 2, FirewallComponentFilterState.UNQUARANTINE_AUTO, null, true,
+            Collections.emptyList());
     assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() ->
-        apiFirewallService.getUnquarantineList(filter));
+        apiFirewallService.getComponents(filter));
   }
 }

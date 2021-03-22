@@ -17,29 +17,25 @@ public class FirewallRepositoryComponentFilter
 
   public int pageSize;
 
-  public boolean includeQuarantine;
-
-  public boolean includeAutoUnquarantine;
-
   public FirewallSortableField sortableField;
 
   public boolean asc;
 
   public List<FirewallFilterField> filterFields;
 
+  public FirewallComponentFilterState firewallComponentFilterState;
+
   public FirewallRepositoryComponentFilter(
       final int page,
       final int pageSize,
-      final boolean includeQuarantine,
-      final boolean includeAutoUnquarantine,
+      FirewallComponentFilterState firewallComponentFilterState,
       final FirewallSortableField sortableField,
       final boolean asc,
       final List<FirewallFilterField> filterFields)
   {
     this.page = page;
     this.pageSize = pageSize;
-    this.includeQuarantine = includeQuarantine;
-    this.includeAutoUnquarantine = includeAutoUnquarantine;
+    this.firewallComponentFilterState = firewallComponentFilterState;
     this.sortableField = sortableField;
     this.asc = asc;
     this.filterFields = filterFields;
@@ -53,5 +49,15 @@ public class FirewallRepositoryComponentFilter
     }
 
     return map;
+  }
+
+  public enum FirewallComponentFilterState
+  {
+    AUDIT,
+    QUARANTINE,
+    UNQUARANTINE_ALL,
+    UNQUARANTINE_MANUAL,
+    UNQUARANTINE_AUTO,
+    ALL
   }
 }

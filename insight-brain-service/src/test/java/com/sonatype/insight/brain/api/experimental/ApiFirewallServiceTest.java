@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.api.v2.service.PolicyViolationTestHelper;
 import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter;
+import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
@@ -620,7 +621,7 @@ public class ApiFirewallServiceTest
   }
 
   @Test
-  public void getUnquarantineList_withPolicyViolations() {
+  public void testGetComponents_withPolicyViolations() {
     // SETUP
     Date june1st2020 = Date.from(LocalDateTime.of(2020, 6, 1, 1, 0).toInstant(ZoneOffset.UTC));
     Date june2nd2020 = Date.from(LocalDateTime.of(2020, 6, 2, 1, 0).toInstant(ZoneOffset.UTC));
@@ -657,10 +658,11 @@ public class ApiFirewallServiceTest
 
     final FirewallSortableField sortField = FirewallSortableField.RELEASE_QUARANTINE_TIME;
     final FirewallRepositoryComponentFilter filter =
-        new FirewallRepositoryComponentFilter(1, 2, false, true, sortField, true, Collections.emptyList());
+        new FirewallRepositoryComponentFilter(1, 2, FirewallComponentFilterState.UNQUARANTINE_AUTO, sortField, true,
+            Collections.emptyList());
 
     // EXECUTE
-    final ApiPageResult<ApiFirewallComponentDTO> unquarantineList = apiFirewallService.getUnquarantineList(filter);
+    final ApiPageResult<ApiFirewallComponentDTO> unquarantineList = apiFirewallService.getComponents(filter);
 
     // VERIFY
     assertThat(unquarantineList.getTotal()).isEqualTo(3);
@@ -674,7 +676,7 @@ public class ApiFirewallServiceTest
   }
 
   @Test
-  public void getUnquarantineList_withoutPolicyViolations() {
+  public void testGetComponents_withoutPolicyViolations() {
     // SETUP
     Date june1st2020 = Date.from(LocalDateTime.of(2020, 6, 1, 1, 0).toInstant(ZoneOffset.UTC));
     Date june2nd2020 = Date.from(LocalDateTime.of(2020, 6, 2, 1, 0).toInstant(ZoneOffset.UTC));
@@ -698,10 +700,11 @@ public class ApiFirewallServiceTest
 
     final FirewallSortableField sortField = FirewallSortableField.RELEASE_QUARANTINE_TIME;
     final FirewallRepositoryComponentFilter filter =
-        new FirewallRepositoryComponentFilter(1, 2, false, true, sortField, true, Collections.emptyList());
+        new FirewallRepositoryComponentFilter(1, 2, FirewallComponentFilterState.UNQUARANTINE_AUTO, sortField, true,
+            Collections.emptyList());
 
     // EXECUTE
-    final ApiPageResult<ApiFirewallComponentDTO> unquarantineList = apiFirewallService.getUnquarantineList(filter);
+    final ApiPageResult<ApiFirewallComponentDTO> unquarantineList = apiFirewallService.getComponents(filter);
 
     // VERIFY
     assertThat(unquarantineList.getTotal()).isEqualTo(1);
@@ -712,7 +715,7 @@ public class ApiFirewallServiceTest
   }
 
   @Test
-  public void getUnquarantineList_NoSortField() {
+  public void testGetComponents_NoSortField() {
     // SETUP
     Date june1st2020 = Date.from(LocalDateTime.of(2020, 6, 1, 1, 0).toInstant(ZoneOffset.UTC));
     Date june2nd2020 = Date.from(LocalDateTime.of(2020, 6, 2, 1, 0).toInstant(ZoneOffset.UTC));
@@ -748,10 +751,11 @@ public class ApiFirewallServiceTest
         component3.getComponentIdentifier());
 
     final FirewallRepositoryComponentFilter filter =
-        new FirewallRepositoryComponentFilter(1, 2, false, true, null, true, Collections.emptyList());
+        new FirewallRepositoryComponentFilter(1, 2, FirewallComponentFilterState.UNQUARANTINE_AUTO, null, true,
+            Collections.emptyList());
 
     // EXECUTE
-    final ApiPageResult<ApiFirewallComponentDTO> unquarantineList = apiFirewallService.getUnquarantineList(filter);
+    final ApiPageResult<ApiFirewallComponentDTO> unquarantineList = apiFirewallService.getComponents(filter);
 
     // VERIFY
     assertThat(unquarantineList.getTotal()).isEqualTo(3);
@@ -765,13 +769,14 @@ public class ApiFirewallServiceTest
   }
 
   @Test
-  public void getUnquarantineList_noComponents() {
+  public void testGetComponents_noComponents() {
     // SETUP
     final FirewallRepositoryComponentFilter filter =
-        new FirewallRepositoryComponentFilter(1, 2, false, true, null, true, Collections.emptyList());
+        new FirewallRepositoryComponentFilter(1, 2, FirewallComponentFilterState.UNQUARANTINE_AUTO, null, true,
+            Collections.emptyList());
 
     // EXECUTE
-    final ApiPageResult<ApiFirewallComponentDTO> unquarantineList = apiFirewallService.getUnquarantineList(filter);
+    final ApiPageResult<ApiFirewallComponentDTO> unquarantineList = apiFirewallService.getComponents(filter);
 
     // VERIFY
     assertThat(unquarantineList.getTotal()).isZero();
@@ -779,23 +784,38 @@ public class ApiFirewallServiceTest
   }
 
   @Test(expected = BadRequestException.class)
-  public void getUnquarantineList_pageLessThanOne() {
+  public void testGetComponents_pageLessThanOne() {
     // SETUP
     final FirewallRepositoryComponentFilter filter =
-        new FirewallRepositoryComponentFilter(0, 2, false, true, null, true, Collections.emptyList());
+        new FirewallRepositoryComponentFilter(0, 2, FirewallComponentFilterState.UNQUARANTINE_AUTO, null, true,
+            Collections.emptyList());
 
     // EXECUTE
-    apiFirewallService.getUnquarantineList(filter);
+    apiFirewallService.getComponents(filter);
   }
 
   @Test(expected = BadRequestException.class)
-  public void getUnquarantineList_pageSizeLessThanOne() {
+  public void testGetComponents_pageSizeLessThanOne() {
     // SETUP
     final FirewallRepositoryComponentFilter filter =
-        new FirewallRepositoryComponentFilter(1, 0, false, true, null, true, Collections.emptyList());
+        new FirewallRepositoryComponentFilter(1, 0, FirewallComponentFilterState.UNQUARANTINE_AUTO, null, true,
+            Collections.emptyList());
 
     // EXECUTE
-    apiFirewallService.getUnquarantineList(filter);
+    apiFirewallService.getComponents(filter);
+  }
+
+  @Test
+  public void testGetComponents_noStateSpecified() {
+    // SETUP
+    final FirewallRepositoryComponentFilter filter =
+        new FirewallRepositoryComponentFilter(1, 10, null, null, true,
+            Collections.emptyList());
+
+    // EXECUTE
+    assertThatThrownBy(() -> apiFirewallService.getComponents(filter))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("firewallComponentFilterState is required and cannot be null.");
   }
 
   static void assertRepositoryComponentWithOnePolicyViolation(

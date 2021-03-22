@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField.Fire
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 /**
  * @since 1.17
@@ -195,15 +196,7 @@ public class RepositoryComponentDAO
         + " WHERE component.repositoryId = policyViolation.repositoryId"
         + " AND component.pathname = policyViolation.pathname");
 
-    // include auto released components from quarantine?
-    if (filter.includeAutoUnquarantine) {
-      sQuery.append(" AND (component.quarantineTime IS NOT NULL AND component.unquarantineTime IS NOT NULL"
-          + " AND component.autoUnquarantined = true)");
-    }
-    else {
-      sQuery.append(" AND (component.quarantineTime IS NULL OR component.unquarantineTime IS NULL OR" +
-          " component.autoUnquarantined = false)");
-    }
+    sQuery.append(getFirewallComponentStateClause(filter));
 
     // FILTER
     if (filter.getFilterFieldsMap().containsKey(FirewallFilterableField.POLICY_ID)) {
@@ -211,6 +204,31 @@ public class RepositoryComponentDAO
     }
 
     return sQuery.toString();
+  }
+
+  private static String getFirewallComponentStateClause(
+      final FirewallRepositoryComponentFilter filter)
+  {
+    if (filter.firewallComponentFilterState == null) {
+      throw new BadRequestException("firewallComponentFilterState is required and cannot be null.");
+    }
+
+    switch (filter.firewallComponentFilterState) {
+      case AUDIT:
+        return " AND (component.quarantineTime IS NULL)";
+      case QUARANTINE:
+        return " AND (component.quarantineTime IS NOT NULL AND component.unquarantineTime IS NULL)";
+      case UNQUARANTINE_AUTO:
+        return " AND (component.unquarantineTime IS NOT NULL AND component.autoUnquarantined = true)";
+      case UNQUARANTINE_MANUAL:
+        return " AND (component.unquarantineTime IS NOT NULL AND (component.autoUnquarantined = false OR" +
+            " component.autoUnquarantined IS NULL))";
+      case UNQUARANTINE_ALL:
+        return " AND (component.unquarantineTime IS NOT NULL)";
+      case ALL:
+      default:
+        return "";
+    }
   }
 
   public List<RepositoryComponent> getByRepositoryIdAndMatchStateId(String repositoryId, String matchStateId) {

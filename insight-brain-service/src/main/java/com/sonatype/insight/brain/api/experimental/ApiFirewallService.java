@@ -295,7 +295,7 @@ public class ApiFirewallService
   }
 
   @Authorize(permission = Permission.READ)
-  public ApiPageResult<ApiFirewallComponentDTO> getUnquarantineList(FirewallRepositoryComponentFilter filter) {
+  public ApiPageResult<ApiFirewallComponentDTO> getComponents(FirewallRepositoryComponentFilter filter) {
     if (null == filter.sortableField) {
       filter.sortableField = FirewallSortableField.RELEASE_QUARANTINE_TIME;
     }
@@ -349,6 +349,10 @@ public class ApiFirewallService
 
     if (filter.sortableField == null) {
       throw new BadRequestException("sortBy field is null");
+    }
+
+    if (null == filter.firewallComponentFilterState) {
+      throw new BadRequestException("firewallComponentFilterState is required and cannot be null.");
     }
   }
 

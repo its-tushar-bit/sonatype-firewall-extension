@@ -375,4 +375,8 @@ dashboard-results-container, violations, components, applications {
   right: 0;
   height: auto;
   padding: $iq-spacing-md;
+
+  .nx-alert {
+    display: inline-flex;
+  }
 }

@@ -5,11 +5,14 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
+import { NxInfoAlert } from '@sonatype/react-shared-components';
 
 export default function DashboardMask() {
   return (
     <div className="form-mask iq-dashboard-form-mask">
-      Please apply or revert filter to see results
+      <NxInfoAlert>
+        Please apply or revert filter to see results.
+      </NxInfoAlert>
     </div>
   );
 }

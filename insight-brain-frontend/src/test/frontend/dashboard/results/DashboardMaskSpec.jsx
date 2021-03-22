@@ -5,6 +5,7 @@
  */
 import * as enzymeUtils from '../../enzymeUtils';
 import DashboardMask from '../../../../main/frontend/dashboard/results/dashboardMask/DashboardMask';
+import { NxInfoAlert } from '@sonatype/react-shared-components';
 
 describe('DashboardMask', function() {
   let getShallowComponent;
@@ -17,9 +18,9 @@ describe('DashboardMask', function() {
     expect(getShallowComponent()).toExist();
   });
 
-  it('has informative text', () => {
+  it('renders message within NxInfoAlert', () => {
     const component = getShallowComponent();
 
-    expect(component).toHaveText('Please apply or revert filter to see results');
+    expect(component.find(NxInfoAlert)).toHaveText('Please apply or revert filter to see results.');
   });
 });

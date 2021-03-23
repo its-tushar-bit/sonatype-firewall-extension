@@ -26,8 +26,6 @@ export default function ScmOnboarding(props) {
     // configuration state
     loadingPage,
     isScmOnboardingFeatureEnabled,
-    isScmTokenConfigured,
-    isScmTokenOverridden,
     scmProvider,
 
     // repositories state
@@ -40,19 +38,9 @@ export default function ScmOnboarding(props) {
     $state
   } = props;
 
-  const scmConfigurationHref = $state.href($state.get('management.edit.organization.edit-source-control'), {
-        organizationId: isScmTokenOverridden ? preselectedOrganizationId : 'ROOT_ORGANIZATION_ID'
-      }),
-      tokenNotConfiguredFragment = (
-        <Fragment>
-          The selected Organization does not have SCM configured. You can configure it{' '}
-          <a href={scmConfigurationHref}>here</a>.
-        </Fragment>
-      ),
-      pageError = !isAuthorized ? iqAuthorizationErrorMessage :
-        isScmOnboardingFeatureEnabled === false ? scmFeatureDisabledErrorMessage :
-          isScmTokenConfigured === false ? tokenNotConfiguredFragment :
-            null;
+  const pageError = !isAuthorized ? iqAuthorizationErrorMessage :
+    isScmOnboardingFeatureEnabled === false ? scmFeatureDisabledErrorMessage :
+      null;
 
   function load() {
     loadPage(preselectedOrganizationId);
@@ -117,7 +105,6 @@ ScmOnboarding.propTypes = {
   loadingPage: PropTypes.bool.isRequired,
   isScmOnboardingFeatureEnabled: PropTypes.bool,
   $state: PropTypes.object.isRequired,
-  isScmTokenConfigured: PropTypes.bool,
   isScmTokenOverridden: PropTypes.bool,
   scmProvider: PropTypes.string,
 

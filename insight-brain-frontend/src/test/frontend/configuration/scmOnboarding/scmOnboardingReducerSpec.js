@@ -52,7 +52,10 @@ describe('scmOnboardingReducer', function() {
       previousState = {
         other: otherObject,
         viewState: {
-          loadingPage: true
+          loadingPage: true,
+          isGitHostNeeded: false,
+          isGitHostDialogVisible: false,
+          isSelectingOrganization: false
         },
         configState: {
           isScmTokenConfigured: null,
@@ -79,14 +82,14 @@ describe('scmOnboardingReducer', function() {
             'name': 'name1',
             'id': 'id1'
           },
-          sourceControl: {provider: 'github', token: {value: null}}
+          sourceControl: {provider: 'github', token: {value: null, parentValue: 'parentValue'}}
         }
       ];
       defaultOrganizationsPayload = [...defaultOrganizationsPayloadWithoutRoot, rootOrgPayload];
     });
 
     describe('FULFILLED', function() {
-      it('updates the state with the data loaded from IQ', function() {
+      it('updates the state with the data loaded from IQ with a selected org', function() {
         // given an initial state
         const state = Object.freeze(previousState);
 
@@ -114,7 +117,8 @@ describe('scmOnboardingReducer', function() {
             isScmOnboardingFeatureEnabled: true,
             isScmTokenConfigured: true,
             isScmTokenOverridden: false,
-            scmProvider: 'github'
+            scmProvider: 'github',
+            rootOrgHasToken: true
           },
           formState: {
             selectedOrganization: defaultOrganizationsPayload[1],
@@ -122,6 +126,52 @@ describe('scmOnboardingReducer', function() {
             defaultHostUrl: 'http://localhost/',
             currentHostUrlState: initialState('http://localhost/'),
             preselectedOrganizationId: 'id1'
+          }
+        });
+      });
+
+      it('updates the state with the data loaded from IQ with no selected org', function() {
+        // given an initial state
+        const state = Object.freeze({
+          ...previousState,
+          formState: {
+            ...previousState.formState,
+            preselectedOrganizationId: null
+          }
+        });
+
+        // and several orgs returned in the payload but not selected details
+        const payload = {
+          configResults: { scmOnboardingFeatureEnabled: true },
+          organizationsResults: defaultOrganizationsPayload,
+          compositeSourceControlResults: null,
+          hostUrlResult: {defaultHostUrl: null}
+        };
+
+        // when reduce is invoked
+        const newState = reduce(state, {type: SCM_ONBOARDING_LOAD_PAGE_FULFILLED, payload: payload});
+
+        // then state is updated
+        expect(newState).toEqual({
+          other: otherObject,
+          viewState: {
+            loadingPage: false,
+            isGitHostNeeded: false,
+            isGitHostDialogVisible: false,
+            isSelectingOrganization: false
+          },
+          configState: {
+            isScmOnboardingFeatureEnabled: true,
+            isScmTokenConfigured: true,
+            scmProvider: 'github',
+            rootOrgHasToken: true
+          },
+          formState: {
+            selectedOrganization: null,
+            organizations: defaultOrganizationsPayloadWithoutRoot,
+            defaultHostUrl: null,
+            currentHostUrlState: textInputStateHelpers.initialState(''),
+            preselectedOrganizationId: null
           }
         });
       });
@@ -154,7 +204,8 @@ describe('scmOnboardingReducer', function() {
             isScmOnboardingFeatureEnabled: true,
             isScmTokenConfigured: true,
             isScmTokenOverridden: false,
-            scmProvider: 'github'
+            scmProvider: 'github',
+            rootOrgHasToken: true
           },
           formState: {
             selectedOrganization: defaultOrganizationsPayload[1],
@@ -541,7 +592,7 @@ describe('scmOnboardingReducer', function() {
                 defaultHostUrl: ''
               },
               formState: {
-                selectedOrganization: {sourceControl: {token: {value: null}}}
+                selectedOrganization: {sourceControl: {token: {value: null, parentValue: 'redacted'}}}
               }
             },
             expectedValue: true
@@ -591,7 +642,7 @@ describe('scmOnboardingReducer', function() {
             });
 
             // when reduce is invoked without an identified URL
-            const selectedOrganization = {sourceControl: {token: {value: null}}};
+            const selectedOrganization = {sourceControl: {token: {value: null, parentValue: 'redacted'}}};
             const newState = reduce(state, {
               type: SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED,
               payload: {

@@ -100,7 +100,6 @@ describe('scmOnboardingActions', function() {
           expect(actions.map(a => a.type)).toEqual([
             SCM_ONBOARDING_LOAD_PAGE_REQUESTED,
             SCM_ONBOARDING_LOAD_PAGE_FULFILLED,
-            SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED,
             // the call to load repos fails in our loadPage promise, falling into the loadPage
             // catch block - we didn't stub out the calls to load repos
             SCM_ONBOARDING_LOAD_PAGE_FAILED
@@ -122,12 +121,16 @@ describe('scmOnboardingActions', function() {
 
           // then the SCM_ONBOARDING_LOAD_PAGE_REQUESTED action is created with the expected payload
           let actions = store.getActions();
-          expect(actions.length).toBe(2);
-          expect(actions[0].type).toBe('SCM_ONBOARDING_LOAD_PAGE_REQUESTED');
+          expect(actions.map(a => a.type)).toEqual([
+            SCM_ONBOARDING_LOAD_PAGE_REQUESTED,
+            SCM_ONBOARDING_LOAD_PAGE_FULFILLED,
+            // the call to load repos fails in our loadPage promise, falling into the loadPage
+            // catch block - we didn't stub out the calls to load repos
+            SCM_ONBOARDING_LOAD_PAGE_FAILED
+          ]);
           expect(actions[0].payload).toEqual('id2');
 
           // and the SCM_ONBOARDING_LOAD_PAGE_FULFILLED action is created with the expected payload
-          expect(actions[1].type).toBe('SCM_ONBOARDING_LOAD_PAGE_FULFILLED');
           expect(actions[1].payload.configResults).toEqual(scmOnboardingConfigPayload);
           expect(actions[1].payload.organizationsResults).toEqual(orgResults);
           expect(actions[1].payload.compositeSourceControlResults).toEqual(unconfiguredCompositeSourceControlPayload);
@@ -528,7 +531,8 @@ describe('scmOnboardingActions', function() {
           },
           configState: {
             isScmTokenOverridden: false,
-            scmProvider: 'configuredProvider'
+            scmProvider: 'configuredProvider',
+            rootOrgHasToken: true
           }
         }
       };
@@ -551,7 +555,7 @@ describe('scmOnboardingActions', function() {
               expect(actions[0].type).toBe('SCM_ONBOARDING_ADD_ORGANIZATION_FULFILLED');
               expect(actions[0].payload).toEqual({
                 organization: createOrgPayload,
-                sourceControl: {provider: 'configuredProvider', token: {value: null}}
+                sourceControl: {provider: 'configuredProvider', token: {value: null, parentValue: 'redacted'}}
               });
               // also triggers actions to set target organization
               expect(actions[1].type).toBe('SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED');
@@ -578,7 +582,13 @@ describe('scmOnboardingActions', function() {
       });
 
       it('dispatches SCM_ONBOARDING_ADD_ORGANIZATION_FAILED', function(done) {
-
+        store = SpecUtil.mockReduxStore({
+          scmOnboarding: {
+            configState: {
+              rootOrgHasToken: null
+            }
+          }
+        });
         store.dispatch(scmOnboardingActions.addOrganization('My Organization'))
             .then(() => {
               actions = store.getActions();

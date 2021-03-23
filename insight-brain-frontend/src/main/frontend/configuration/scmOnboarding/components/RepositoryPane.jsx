@@ -20,6 +20,7 @@ import LoadError from '../../../react/LoadError';
 import GitHostModal from './GitHostModal';
 import {displayName} from '../utils/providers';
 import CredentialsError from './CredentialsError';
+import ownerConstant from '../../../utility/services/owner.constant';
 
 /*
  The tile which contains the repository list and all other associated UI elements
@@ -41,6 +42,7 @@ export default function RepositoryPane(props) {
     defaultHostUrl,
     isGitHostNeeded,
     isSelectingOrganization,
+    isScmTokenConfigured,
     $state,
 
     // sorting
@@ -57,6 +59,24 @@ export default function RepositoryPane(props) {
     setShowHostDialog
   } = props;
 
+  const orgsAndPoliciesHref = !selectedOrganization ? '' : $state.href($state.get('management.view.organization'),
+      {organizationId: selectedOrganization.organization.id});
+  const orgsAndPoliciesRootOrgHref = $state.href($state.get('management.view.organization'),
+      {organizationId: ownerConstant.ROOT_ORGANIZATION_ID});
+
+  const tokenNotConfiguredMessage = () => {
+    if (!selectedOrganization) {
+      return null;
+    }
+    return (
+      <span>
+        We could not find a token. You can configure a token to be shared across organizations in the
+        Root Organization&apos;s <a href={orgsAndPoliciesRootOrgHref}>Source Control Configuration</a> page,
+        or you can provide a custom token for
+        the <a href={orgsAndPoliciesHref}>{selectedOrganization.organization.name}</a> Organization.
+      </span>
+    );
+  };
   const gitHostUrlMessage = (addModalLink = false) => {
     return (
       <div>
@@ -81,8 +101,6 @@ export default function RepositoryPane(props) {
   };
 
   const updateScmConfigMessage = () => {
-    const orgsAndPoliciesHref = !selectedOrganization ? '' : $state.href($state.get('management.view.organization'),
-        {organizationId: selectedOrganization.organization.id});
     if (selectedOrganization && selectedOrganization.organization && selectedOrganization.name) {
       return (
         <p>IQ Server was unable to connect to {defaultHostUrl} using the credentials associated
@@ -118,9 +136,10 @@ export default function RepositoryPane(props) {
     );
   };
 
-  const resultsTableError = isGitHostNeeded ? gitHostUrlMessage(true) :
-    loadRepositoriesErrorCode ? scmAuthenticationErrorFragment(loadRepositoriesErrorCode, true) :
-      loadRepoGitHostMessage(generalError ? generalError.message : null);
+  const resultsTableError = !isScmTokenConfigured ? tokenNotConfiguredMessage() :
+    isGitHostNeeded ? gitHostUrlMessage(true) :
+      loadRepositoriesErrorCode ? scmAuthenticationErrorFragment(loadRepositoriesErrorCode, true) :
+        loadRepoGitHostMessage(generalError ? generalError.message : null);
 
   const [isAllChecked, setIsAllChecked] = useState(false),
       [selectedRepositories, setSelectedRepositories] = useState([]);
@@ -240,6 +259,7 @@ RepositoryPane.propTypes = {
   isSelectingOrganization: PropTypes.bool,
   $state: PropTypes.object.isRequired,
   isNewOrganizationModalVisible: PropTypes.bool.isRequired,
+  isScmTokenConfigured: PropTypes.bool,
 
   // actions
   setSorting: PropTypes.func,

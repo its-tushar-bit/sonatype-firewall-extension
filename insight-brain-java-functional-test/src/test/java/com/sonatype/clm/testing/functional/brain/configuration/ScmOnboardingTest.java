@@ -231,15 +231,15 @@ public class ScmOnboardingTest
 
   @Test
   public void testGenericErrorsForwardedFromIq() {
+    // given an SCM with authentication failure
+    setupSourceControl();
+    gitService.stubFor(get(urlPathEqualTo("/api/v3/user/repos"))
+        .willReturn(aResponse().withStatus(HttpStatus.SC_BAD_GATEWAY)));
+
     // given the onboarding page
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
 
-    // and an invalid configuration
-    PasswordHandler pwHandler = testCLMServer.getCLMServer().getInstance(PasswordHandler.class);
-    String encryptedPwd = new String(pwHandler.encryptPassword("".toCharArray()));
-    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, encryptedPwd, GITHUB);
-
-    // when we open the onboarding page as unprivileged user
+    // when we open the onboarding page
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
 
@@ -261,9 +261,9 @@ public class ScmOnboardingTest
     loginAsAdmin();
 
     // then a permission denied error is shown
-    scmOnboardingPage.loadError().shouldHave(text(
-        "An error occurred loading data. The selected Organization does not" +
-            " have SCM configured. You can configure it here. Retry"));
+    scmOnboardingPage.loadError().shouldHave(text("We could not find a token. You can configure a token to be " +
+        "shared across organizations in the Root Organization's Source Control Configuration page, " +
+        "or you can provide a custom token for the Test Org Organization."));
 
     // and form elements are hidden
     scmOnboardingPage.hostUrl().shouldBe(hidden);

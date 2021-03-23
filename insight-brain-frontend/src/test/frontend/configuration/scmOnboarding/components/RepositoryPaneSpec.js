@@ -9,10 +9,13 @@ import RepositoryPane from '../../../../../main/frontend/configuration/scmOnboar
 
 describe('RepositoryPane', function () {
   let minimalProps,
-      getShallowComponent;
+      getShallowComponent,
+      mock$State;
 
   beforeEach(() => {
-    minimalProps = {};
+    mock$State = jasmine.createSpyObj('$state', ['get', 'href']);
+
+    minimalProps = {$state: mock$State};
 
     getShallowComponent = enzymeUtils.getShallowComponent(RepositoryPane, minimalProps);
   });

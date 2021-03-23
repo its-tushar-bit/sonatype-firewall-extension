@@ -45,7 +45,8 @@ const initialState = {
     isScmOnboardingFeatureEnabled: null,
     isScmTokenConfigured: null,
     isScmTokenOverridden: null,
-    scmProvider: ''
+    scmProvider: '',
+    rootOrgHasToken: null
   },
   viewState: {
     loadingPage: false,
@@ -146,6 +147,8 @@ function loadPageFulfilled(payload, state) {
   const rootOrg = payload.organizationsResults.find(org => org.organization.id === ownerConstant.ROOT_ORGANIZATION_ID);
   const selectedOrganization = payload.organizationsResults.find(org =>
     org.organization.id === state.formState.preselectedOrganizationId);
+  const hasToken = (selectedOrganization && !!selectedOrganization.sourceControl.token.value)
+      || !!rootOrg.sourceControl.token.value;
   let newState = {
     ...state,
     viewState: {
@@ -155,8 +158,9 @@ function loadPageFulfilled(payload, state) {
     configState: {
       ...state.configState,
       isScmOnboardingFeatureEnabled: payload.configResults.scmOnboardingFeatureEnabled,
-      isScmTokenConfigured: !!rootOrg.sourceControl.token.value,
-      scmProvider: rootOrg !== null ? rootOrg.sourceControl.provider : null
+      isScmTokenConfigured: hasToken,
+      scmProvider: rootOrg !== null ? rootOrg.sourceControl.provider : null,
+      rootOrgHasToken: rootOrg !== null
     },
     formState: {
       ...state.formState,
@@ -164,6 +168,9 @@ function loadPageFulfilled(payload, state) {
           org => org.organization.id !== ownerConstant.ROOT_ORGANIZATION_ID)
     }
   };
+  if (!selectedOrganization) {
+    return newState;
+  }
   return setTargetOrgFulfilled({
     defaultHostUrl: payload.hostUrlResult ? payload.hostUrlResult.defaultHostUrl : null,
     selectedOrganization: selectedOrganization
@@ -227,20 +234,22 @@ function setTargetOrgFulfilled({selectedOrganization, defaultHostUrl}, state) {
   const currOrg = selectedOrganization;
   const currTokenOverridden = !!selectedOrganization && !!selectedOrganization.sourceControl &&
       !!selectedOrganization.sourceControl.token.value;
+  const hasToken = selectedOrganization &&
+      (!!selectedOrganization.sourceControl.token.value || !!selectedOrganization.sourceControl.token.parentValue);
 
   const isAuthFailure = !!state.viewState.loadRepositoriesErrorCode;
 
   const prevGitHostNeeded = state.viewState.isGitHostNeeded;
 
-  // we need to prompt the user to enter a host URL when:
+  // we need to prompt the user to enter a host URL when they have a token AND:
   // A. we get an authentication failure OR
   // B. the default host URL is empty AND an org is selected AND
   //    1. the token is overridden at the org level
   //    2. OR the previous token was overridden at the org level
   //    3. OR the previous org was empty (ie: this is the first selected org)
   //    4. OR the user needed to enter the git URL in the previous org
-  const showHostDialog = isAuthFailure ||
-      (!defaultHostUrl && !!currOrg && (currTokenOverridden || prevTokenOverridden || !prevOrg || prevGitHostNeeded));
+  const showHostDialog = hasToken && (isAuthFailure ||
+      (!defaultHostUrl && !!currOrg && (currTokenOverridden || prevTokenOverridden || !prevOrg || prevGitHostNeeded)));
 
   // we will set the current host URL to a default cloud value if the current host URL is empty
   const overrideCurrentHostUrl = !defaultHostUrl;
@@ -255,7 +264,8 @@ function setTargetOrgFulfilled({selectedOrganization, defaultHostUrl}, state) {
     },
     configState: {
       ...state.configState,
-      isScmTokenOverridden: currTokenOverridden
+      isScmTokenOverridden: currTokenOverridden,
+      isScmTokenConfigured: hasToken
     },
     formState: {
       ...state.formState,

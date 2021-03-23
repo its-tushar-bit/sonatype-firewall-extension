@@ -79,7 +79,11 @@ export function loadPage(orgId) {
             compositeSourceControlResults: compositeSourceControlResults ? compositeSourceControlResults.data : null,
             hostUrlResult: hostUrlResult ? hostUrlResult.data : null
           }));
-          if (orgId && hostUrlResult && hostUrlResult.data.defaultHostUrl) {
+          const selectedOrganization = organizationsResults.data.find(org => org.organization.id === orgId);
+          const hasToken = selectedOrganization &&
+              (selectedOrganization.sourceControl.token.value !== null
+                  || selectedOrganization.sourceControl.token.parentValue);
+          if (orgId && hasToken && hostUrlResult && hostUrlResult.data.defaultHostUrl) {
             dispatch(loadRepositories(orgId, hostUrlResult.data.defaultHostUrl));
           }
         })
@@ -147,12 +151,13 @@ export function setSelectedOrganization(selectedOrg) {
 
 export function addOrganization(organizationName) {
   return function(dispatch, getState) {
+    const rootToken = getState().scmOnboarding.configState.rootOrgHasToken ? 'redacted' : null;
     return axios.post(getOrganizationsUrl(), {name: organizationName})
         .then(({data}) => {
           // Note INT-4477: provider is set here in preparation for work to be done in the epic to support multiple SCMs
           const newOrganization = {
             sourceControl: {
-              token: {value: null},
+              token: {value: null, parentValue: rootToken},
               provider: getState().scmOnboarding.configState.scmProvider},
             organization: data
           };

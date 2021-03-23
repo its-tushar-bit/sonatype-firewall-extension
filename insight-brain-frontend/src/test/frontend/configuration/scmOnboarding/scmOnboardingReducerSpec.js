@@ -18,7 +18,7 @@ import {
   SCM_ONBOARDING_SHOW_HOST_DIALOG
 } from '../../../../main/frontend/configuration/scmOnboarding/scmOnboardingActions';
 import ownerConstant from '../../../../main/frontend/utility/services/owner.constant';
-import {SCM_AUTHN_FAILURE} from "../../../../main/frontend/configuration/scmOnboarding/utils/errorCodes";
+import {SCM_AUTHN_FAILURE} from '../../../../main/frontend/configuration/scmOnboarding/utils/errorCodes';
 
 describe('scmOnboardingReducer', function() {
   let otherObject;

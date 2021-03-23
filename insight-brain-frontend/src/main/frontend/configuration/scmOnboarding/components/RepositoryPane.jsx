@@ -32,7 +32,7 @@ export default function RepositoryPane(props) {
     organizations,
     selectedOrganization,
     onRepositorySelectionChanged,
-    loadRepositoriesAuthError,
+    loadRepositoriesErrorCode,
     generalError,
     addOrganizationError,
     isNewOrganizationModalVisible,
@@ -57,6 +57,29 @@ export default function RepositoryPane(props) {
     setShowHostDialog
   } = props;
 
+  const gitHostUrlMessage = (addModalLink = false) => {
+    return (
+      <div>
+        {loadRepositoriesErrorCode &&
+        <p>{scmAuthenticationErrorFragment(loadRepositoriesErrorCode)}</p>
+        }
+        {!defaultHostUrl && !loadRepositoriesErrorCode &&
+        <p>IQ Server was unable to identify the URL for your {displayName(scmProvider)} host.
+          You need to {scmUrlLink(addModalLink)} in order to proceed.</p>
+        }
+        {updateScmConfigMessage()}
+      </div>
+    );
+  };
+
+  const scmUrlLink = (addModalLink) => {
+    const linkText = 'provide a SCM URL';
+    if (addModalLink) {
+      return <a onClick={() => setShowHostDialog(true)}>{linkText}</a>;
+    }
+    return linkText;
+  };
+
   const updateScmConfigMessage = () => {
     const orgsAndPoliciesHref = !selectedOrganization ? '' : $state.href($state.get('management.view.organization'),
         {organizationId: selectedOrganization.organization.id});
@@ -77,20 +100,6 @@ export default function RepositoryPane(props) {
     }
   };
 
-  const gitHostUrlMessage = () => {
-    return (
-      <div>
-        {loadRepositoriesAuthError &&
-        <p>{scmAuthenticationErrorFragment(loadRepositoriesAuthError)}</p>
-        }
-        {!defaultHostUrl && !loadRepositoriesAuthError &&
-        <p>IQ Server was unable to identify the URL for your {displayName(scmProvider)} host.</p>
-        }
-        {updateScmConfigMessage()}
-      </div>
-    );
-  };
-
   const loadRepoGitHostMessage = (errorText) => {
     if (errorText) {
       return (
@@ -102,11 +111,16 @@ export default function RepositoryPane(props) {
     }
   };
 
-  const scmAuthenticationErrorFragment = error => (
-    <CredentialsError { ...{error, $state, selectedOrganization}} />),
-      resultsTableError = loadRepoGitHostMessage(isGitHostNeeded ? gitHostUrlMessage() :
-        loadRepositoriesAuthError ? scmAuthenticationErrorFragment(loadRepositoriesAuthError) :
-          generalError ? generalError.message : null);
+  const scmAuthenticationErrorFragment = (errorCode, inLoadWrapper = false) => {
+    return (
+      <CredentialsError hostUrlClicked={() => setShowHostDialog(true)}
+                        { ...{errorCode, inLoadWrapper, $state, selectedOrganization, scmProvider}} />
+    );
+  };
+
+  const resultsTableError = isGitHostNeeded ? gitHostUrlMessage(true) :
+    loadRepositoriesErrorCode ? scmAuthenticationErrorFragment(loadRepositoriesErrorCode, true) :
+      loadRepoGitHostMessage(generalError ? generalError.message : null);
 
   const [isAllChecked, setIsAllChecked] = useState(false),
       [selectedRepositories, setSelectedRepositories] = useState([]);
@@ -166,21 +180,23 @@ export default function RepositoryPane(props) {
           }
           <RepoStatus {...{repositories, totalRepositories}} />
         </div>
-        <LoadWrapper loading={loadingRepositories || isSelectingOrganization} error={resultsTableError}
-                     retryHandler={retryLoadRepos}>
-          <ResultsTable { ...{
-            repositories,
-            loadingRepositories,
-            sortConfiguration,
-            setSorting,
-            setSortingParameters,
-            isAllChecked,
-            setIsAllChecked,
-            selectedRepositories,
-            setSelectedRepositories,
-            onRepositorySelectionChanged
-          }} />
-        </LoadWrapper>
+        <div id="scm-repo-table">
+          <LoadWrapper loading={loadingRepositories || isSelectingOrganization} error={resultsTableError}
+                       retryHandler={retryLoadRepos}>
+            <ResultsTable { ...{
+              repositories,
+              loadingRepositories,
+              sortConfiguration,
+              setSorting,
+              setSortingParameters,
+              isAllChecked,
+              setIsAllChecked,
+              selectedRepositories,
+              setSelectedRepositories,
+              onRepositorySelectionChanged
+            }} />
+          </LoadWrapper>
+        </div>
         <GitHostModal {...props} errorText={gitHostUrlMessage()} />
       </div>
       { repositoryCount > 0 &&
@@ -239,6 +255,6 @@ RepositoryPane.propTypes = {
 
   // errors
   generalError: LoadWrapper.propTypes.error,
-  loadRepositoriesAuthError: LoadWrapper.propTypes.error,
+  loadRepositoriesErrorCode: PropTypes.string,
   addOrganizationError: LoadError.propTypes.error
 };

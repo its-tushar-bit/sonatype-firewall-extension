@@ -247,7 +247,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.organizationsDropdown().shouldBe(visible);
 
     // then the message from IQ server is forwarded
-    scmOnboardingPage.loadError()
+    scmOnboardingPage.repoTableLoadError()
         .shouldHave(text("An error occurred loading data. Request failed with status code 500"));
   }
 
@@ -261,7 +261,8 @@ public class ScmOnboardingTest
     loginAsAdmin();
 
     // then a permission denied error is shown
-    scmOnboardingPage.loadError().shouldHave(text("An error occurred loading data. The selected Organization does not" +
+    scmOnboardingPage.loadError().shouldHave(text(
+        "An error occurred loading data. The selected Organization does not" +
             " have SCM configured. You can configure it here. Retry"));
 
     // and form elements are hidden
@@ -294,7 +295,7 @@ public class ScmOnboardingTest
     loginAsAdmin();
 
     // then we should receive an auth error
-    scmOnboardingPage.hostUrlAuthError().shouldHave(text("Authentication with GitHub failed."));
+    scmOnboardingPage.hostUrlAuthError().shouldHave(text("Authentication Error"));
     scmOnboardingPage.hostUrlCancelButton().click();
 
     // when we create a new org
@@ -320,8 +321,11 @@ public class ScmOnboardingTest
     loginAsAdmin();
 
     // then an authentication error is displayed
-    scmOnboardingPage.gitHostError().shouldHave(text("Authentication with GitHub failed. " +
-            "You can update your login credentials here."));
+    scmOnboardingPage.gitHostError().shouldHave(text(
+        "Authentication Error. IQ Server was unable to authenticate with GitHub using the credentials " +
+            "associated with the Test Org Organization. You may try a different host URL or manage your " +
+            "SCM configuration in the Orgs & Policies page."
+    ));
 
     // when authentication is fixed and retry button is pressed
     removeStub(stubMapping);
@@ -347,9 +351,11 @@ public class ScmOnboardingTest
     loginAsAdmin();
 
     // then an authorization error is displayed
-    scmOnboardingPage.loadError().shouldHave(text("An error occurred loading data. Permission denied by GitHub."));
-    scmOnboardingPage.gitHostError().shouldHave(text("Permission denied by GitHub. " +
-        "You can update your login credentials here."));
+    scmOnboardingPage.repoTableLoadError().shouldHave(text(
+        "Due to an Authorization Error, IQ Server was unable to connect to GitHub " +
+            "using the credentials associated with the Test Org Organization. " +
+            "You may try a different host URL or manage your SCM configuration in the Orgs & Policies page."));
+    scmOnboardingPage.gitHostError().shouldHave(text("Authorization Error. IQ Server was unable to connect to GitHub"));
   }
 
   @Test
@@ -373,7 +379,7 @@ public class ScmOnboardingTest
 
     // then the git host dialog is loaded
     scmOnboardingPage.modalDialog().shouldBe(visible);
-    scmOnboardingPage.gitHostError().shouldHave(text("IQ Server was unable to identify the URL for your GitHub host."));
+    scmOnboardingPage.gitHostInfo().shouldHave(text("IQ Server was unable to identify the URL for your GitHub host."));
 
     // when we update the URL and attempt to load
     scmOnboardingPage.hostUrl().setValue(gitService.baseUrl());
@@ -383,7 +389,7 @@ public class ScmOnboardingTest
 
     // then an authorization error is displayed
     scmOnboardingPage.modalDialog().shouldBe(visible);
-    scmOnboardingPage.gitHostError().shouldHave(text("Authentication with GitHub failed."));
+    scmOnboardingPage.gitHostError().shouldHave(text("Authentication Error."));
 
     // when we cancel and switch to a new org
     scmOnboardingPage.hostUrlCancelButton().click();
@@ -392,7 +398,7 @@ public class ScmOnboardingTest
 
     // then we should get a git host dialog prompting us for the git host URL
     scmOnboardingPage.modalDialog().shouldBe(visible);
-    scmOnboardingPage.gitHostError().shouldHave(text("IQ Server was unable to identify the URL for your GitHub host."));
+    scmOnboardingPage.gitHostInfo().shouldHave(text("IQ Server was unable to identify the URL for your GitHub host."));
   }
 
   @Test
@@ -408,9 +414,9 @@ public class ScmOnboardingTest
     loginAsAdmin();
 
     // then an error indicating a connection failure is shown
-    scmOnboardingPage.loadError()
+    scmOnboardingPage.repoTableLoadError()
         .shouldHave(text("An error occurred loading data. Request failed with status code 500"));
-    scmOnboardingPage.loadError().shouldHave(text("Click here to change the git host URL."));
+    scmOnboardingPage.repoTableLoadError().shouldHave(text("Click here to change the git host URL."));
     scmOnboardingPage.gitHostError().shouldNotBe(visible);
   }
 
@@ -1204,7 +1210,7 @@ public class ScmOnboardingTest
 
     // then it prompts us for a git host
     scmOnboardingPage.modalDialog().shouldBe(visible);
-    scmOnboardingPage.gitHostError().shouldHave(text("IQ Server was unable to identify the URL for your GitHub host."));
+    scmOnboardingPage.gitHostInfo().shouldHave(text("IQ Server was unable to identify the URL for your GitHub host."));
 
     // when we cancel
     scmOnboardingPage.hostUrlCancelButton().click();
@@ -1213,11 +1219,10 @@ public class ScmOnboardingTest
     scmOnboardingPage.modalDialog().shouldNotBe(visible);
 
     // then we see an error message with a link enabling us to relaunch the dialog
-    scmOnboardingPage.loadError().shouldHave(text(
-        "An error occurred loading data. IQ Server was unable to identify the URL for your GitHub host.\n" +
-        "Click here to change the git host URL.\n" +
-        "Retry"));
-    scmOnboardingPage.loadErrorAnchor().click();
+    scmOnboardingPage.repoTableLoadError().shouldHave(text(
+        "IQ Server was unable to identify the URL for your GitHub host. " +
+            "You need to provide a SCM URL in order to proceed."));
+    scmOnboardingPage.repoTableLoadErrorLink().click();
 
     // then the dialog is visible again
     scmOnboardingPage.modalDialog().shouldBe(visible);
@@ -1529,13 +1534,12 @@ public class ScmOnboardingTest
 
     // then an authentication error is displayed inside the results table
     String expectedUrl = SourceControlEditorPage.url("organization", ROOT_ORGANIZATION_ID);
-    scmOnboardingPage.loadError().shouldHave(text("An error occurred loading data. Authentication with github failed." +
-        " You can update your login credentials here."));
-    scmOnboardingPage.loadErrorLink().shouldHave(attribute("href", expectedUrl));
+    scmOnboardingPage.repoTableLoadError().shouldHave(text(
+        "Due to an Authentication Error, IQ Server was unable to authenticate with GitHub"));
+    scmOnboardingPage.repoTableLoadErrorLink("Orgs & Policies").shouldHave(attribute("href", expectedUrl));
 
     // and an authentication error is displayed in the host URL modal
-    scmOnboardingPage.hostUrlAuthError().shouldHave(text("Authentication with github failed." +
-        " You can update your login credentials here."));
+    scmOnboardingPage.hostUrlAuthError().shouldHave(text("IQ Server was unable to authenticate with GitHub"));
     scmOnboardingPage.hostUrlAuthErrorLink().shouldHave(attribute("href", expectedUrl));
   }
 
@@ -1563,13 +1567,14 @@ public class ScmOnboardingTest
 
     // then an authentication error is displayed inside the results table
     String expectedUrl = SourceControlEditorPage.url("organization", orgCustomToken.getId());
-    scmOnboardingPage.loadError().shouldHave(text("An error occurred loading data. Authentication with github failed." +
-        " You can update your login credentials here."));
-    scmOnboardingPage.loadErrorLink().shouldHave(attribute("href", expectedUrl));
+    scmOnboardingPage.repoTableLoadError().shouldHave(text(
+        "Due to an Authentication Error, IQ Server was unable to authenticate with GitHub using the " +
+            "credentials associated with the Custom Host Organization."));
+    scmOnboardingPage.repoTableLoadErrorLink("Orgs & Policies").shouldHave(attribute("href", expectedUrl));
 
     // and an authentication error is displayed in the host URL modal
-    scmOnboardingPage.hostUrlAuthError().shouldHave(text("Authentication with github failed." +
-        " You can update your login credentials here."));
+    scmOnboardingPage.hostUrlAuthError().shouldHave(text("Authentication Error. IQ Server was unable to authenticate " +
+            "with GitHub using the credentials associated with the Custom Host Organization."));
     scmOnboardingPage.hostUrlAuthErrorLink().shouldHave(attribute("href", expectedUrl));
 
   }

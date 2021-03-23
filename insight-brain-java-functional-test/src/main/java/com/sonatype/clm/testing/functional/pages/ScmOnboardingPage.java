@@ -12,6 +12,7 @@ import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 
 public class ScmOnboardingPage
@@ -47,12 +48,28 @@ public class ScmOnboardingPage
     return modalDialog().$(".nx-alert--error");
   }
 
+  public SelenideElement gitHostInfo() {
+    return modalDialog().$(".nx-alert--info");
+  }
+
   public SelenideElement loadError() {
     return child(".nx-alert--load-error");
   }
 
-  public SelenideElement loadErrorLink() {
-    return child(".nx-alert--load-error a");
+  public SelenideElement repoTableLoadError() {
+    return child("#scm-repo-table .nx-alert--load-error");
+  }
+
+  public SelenideElement repoTableLoadErrorLink() {
+    return child("#scm-repo-table .nx-alert--load-error a");
+  }
+
+  public SelenideElement repoTableLoadErrorLink(String filterName) {
+    return repoTableLoadErrorLinks().filter(text(filterName)).get(0);
+  }
+
+  public ElementsCollection repoTableLoadErrorLinks() {
+    return children("#scm-repo-table .nx-alert--load-error a");
   }
 
   public SelenideElement hostUrlAuthError() {
@@ -61,10 +78,6 @@ public class ScmOnboardingPage
 
   public SelenideElement hostUrlAuthErrorLink() {
     return child(".nx-modal .nx-alert--error a");
-  }
-
-  public SelenideElement loadErrorAnchor() {
-    return child(".nx-alert--load-error a");
   }
 
   public SelenideElement retry() {

@@ -18,6 +18,7 @@ import {
   SCM_ONBOARDING_SHOW_HOST_DIALOG
 } from '../../../../main/frontend/configuration/scmOnboarding/scmOnboardingActions';
 import ownerConstant from '../../../../main/frontend/utility/services/owner.constant';
+import {SCM_AUTHN_FAILURE} from "../../../../main/frontend/configuration/scmOnboarding/utils/errorCodes";
 
 describe('scmOnboardingReducer', function() {
   let otherObject;
@@ -215,7 +216,7 @@ describe('scmOnboardingReducer', function() {
           loadingRepositories: false,
           isSelectingOrganization: false,
           validatingCompositeSourceControl: false,
-          loadRepositoriesAuthError: null,
+          loadRepositoriesErrorCode: null,
           isNewOrganizationModalVisible: false,
           addOrganizationError: null,
           generalError: {
@@ -237,7 +238,7 @@ describe('scmOnboardingReducer', function() {
         viewState: {
           loadingRepositories: false,
           generalError: 'general error',
-          loadRepositoriesAuthError: 'auth error'
+          loadRepositoriesErrorCode: SCM_AUTHN_FAILURE
         },
         formState: {
           repositories: ['a'],
@@ -262,7 +263,7 @@ describe('scmOnboardingReducer', function() {
       });
       expect(newState.viewState.loadingRepositories).toBe(true);
       expect(newState.viewState.generalError).toBe(null);
-      expect(newState.viewState.loadRepositoriesAuthError).toBe(null);
+      expect(newState.viewState.loadRepositoriesErrorCode).toBe(null);
 
       // and other properties are not modified
       expect(newState.other).toEqual(otherObject);
@@ -423,7 +424,7 @@ describe('scmOnboardingReducer', function() {
         viewState: {
           loadingRepositories: false,
           generalError: errorResponse,
-          loadRepositoriesAuthError: null,
+          loadRepositoriesErrorCode: null,
           isGitHostDialogVisible: false
         },
         formState: {
@@ -434,7 +435,7 @@ describe('scmOnboardingReducer', function() {
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
 
-    it('sets loadRepositoriesAuthError field to value of error', function() {
+    it('sets loadRepositoriesErrorCode field to value of error', function() {
       const state = Object.freeze({
         viewState: {
           loadingRepositories: true
@@ -444,37 +445,14 @@ describe('scmOnboardingReducer', function() {
         }
       });
       const response = {
-        status: 'SCM_AUTHN_FAILURE'
+        status: SCM_AUTHN_FAILURE
       };
 
       const newState = reduce(state, {type: 'SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED', payload: response});
 
       expect(newState.viewState).toEqual({
         loadingRepositories: false,
-        loadRepositoriesAuthError: new Error('Authentication with provider failed'),
-        generalError: null,
-        isGitHostDialogVisible: true
-      });
-    });
-
-    it('sets loadRepositoriesAuthError field to value of error', function() {
-      const state = Object.freeze({
-        viewState: {
-          loadingRepositories: true
-        },
-        configState: {
-          scmProvider: 'provider'
-        }
-      });
-      const response = {
-        status: 'SCM_AUTHZ_FAILURE'
-      };
-
-      const newState = reduce(state, {type: 'SCM_ONBOARDING_LOAD_REPOSITORIES_FULFILLED', payload: response});
-
-      expect(newState.viewState).toEqual({
-        loadingRepositories: false,
-        loadRepositoriesAuthError: new Error('Permission denied by provider'),
+        loadRepositoriesErrorCode: SCM_AUTHN_FAILURE,
         generalError: null,
         isGitHostDialogVisible: true
       });
@@ -648,7 +626,7 @@ describe('scmOnboardingReducer', function() {
           other: otherObject,
           viewState: {
             isSelectingOrganization: false,
-            loadRepositoriesAuthError: { }
+            loadRepositoriesErrorCode: 'preexisting-value'
           }
         });
 
@@ -660,7 +638,7 @@ describe('scmOnboardingReducer', function() {
         // then state is updated
         expect(newState.viewState).toEqual({
           isSelectingOrganization: true,
-          loadRepositoriesAuthError: null
+          loadRepositoriesErrorCode: null
         });
 
         // and other properties are not modified
@@ -1080,7 +1058,7 @@ describe('scmOnboardingReducer', function() {
         isImportStatusDialogVisible: false,
 
         generalError: null,
-        loadRepositoriesAuthError: null,
+        loadRepositoriesErrorCode: null,
         isNewOrganizationModalVisible: false,
         addOrganizationError: null
       });

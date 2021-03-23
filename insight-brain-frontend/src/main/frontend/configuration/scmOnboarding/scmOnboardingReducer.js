@@ -39,7 +39,6 @@ import {over, lensPath} from 'ramda';
 import { propSet } from '../../util/jsUtil';
 import {UI_ROUTER_ON_FINISH} from '../../reduxUiRouter/routerActions';
 import ownerConstant from '../../utility/services/owner.constant';
-import {displayName} from './utils/providers';
 
 const initialState = {
   configState: {
@@ -59,7 +58,7 @@ const initialState = {
     isImportStatusDialogVisible: false,
 
     generalError: null,
-    loadRepositoriesAuthError: null,
+    loadRepositoriesErrorCode: null,
     addOrganizationError: null
   },
   formState: {
@@ -207,7 +206,7 @@ function setTargetOrgRequested(payload, state) {
     viewState: {
       ...state.viewState,
       isSelectingOrganization: true,
-      loadRepositoriesAuthError: null
+      loadRepositoriesErrorCode: null
     }
   };
 }
@@ -229,7 +228,7 @@ function setTargetOrgFulfilled({selectedOrganization, defaultHostUrl}, state) {
   const currTokenOverridden = !!selectedOrganization && !!selectedOrganization.sourceControl &&
       !!selectedOrganization.sourceControl.token.value;
 
-  const isAuthFailure = !!state.viewState.loadRepositoriesAuthError;
+  const isAuthFailure = !!state.viewState.loadRepositoriesErrorCode;
 
   const prevGitHostNeeded = state.viewState.isGitHostNeeded;
 
@@ -327,7 +326,7 @@ function loadRepositoriesRequested(payload, state) {
       ...state.viewState,
       loadingRepositories: true,
       generalError: null,
-      loadRepositoriesAuthError: null
+      loadRepositoriesErrorCode: null
     },
     formState: {
       ...state.formState,
@@ -353,33 +352,22 @@ function loadRepositoriesFulfilled(payload, state) {
       repositories: repos,
       totalRepositories: payload.totalRepositories
     }
-  } : handleLoadRepositoriesFailed({
-    loadRepositoriesAuthError: (() => {
-      switch (payload.status) {
-        case 'SCM_AUTHN_FAILURE':
-          return new Error(`Authentication with ${displayName(state.configState.scmProvider)} failed`);
-        case 'SCM_AUTHZ_FAILURE':
-          return new Error(`Permission denied by ${displayName(state.configState.scmProvider)}`);
-        default:
-          return new Error('Unknown Error');
-      }
-    })()
-  }, state);
+  } : handleLoadRepositoriesFailed({loadRepositoriesErrorCode: payload.status}, state);
 }
 
 function loadRepositoriesFailed(payload, state) {
   return handleLoadRepositoriesFailed({generalError: payload}, state);
 }
 
-function handleLoadRepositoriesFailed({generalError, loadRepositoriesAuthError}, state) {
+function handleLoadRepositoriesFailed({generalError, loadRepositoriesErrorCode}, state) {
   return {
     ...state,
     viewState: {
       ...state.viewState,
       loadingRepositories: false,
       generalError: generalError ? generalError : null,
-      loadRepositoriesAuthError: loadRepositoriesAuthError ? loadRepositoriesAuthError : null,
-      isGitHostDialogVisible: state.viewState.isGitHostNeeded || !!loadRepositoriesAuthError
+      loadRepositoriesErrorCode: loadRepositoriesErrorCode ? loadRepositoriesErrorCode : null,
+      isGitHostDialogVisible: state.viewState.isGitHostNeeded || !!loadRepositoriesErrorCode
     },
     formState: {
       ...state.formState,

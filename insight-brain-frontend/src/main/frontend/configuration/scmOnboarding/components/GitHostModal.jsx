@@ -5,13 +5,12 @@
  */
 import React, {Fragment} from 'react';
 import * as PropTypes from 'prop-types';
-import {NxModal, NxForm, NxTextInput, NxErrorAlert} from '@sonatype/react-shared-components';
+import {NxModal, NxForm, NxTextInput, NxErrorAlert, NxInfoAlert} from '@sonatype/react-shared-components';
 import {organizationPropType} from '../ScmOnboarding';
 import {textInputPropType} from './ImportApplicationsForm';
 import {hasValidationErrors} from '../../../util/validationUtil';
 import {validateHostUrl} from '../utils/validators';
 import CredentialsError from './CredentialsError';
-import LoadWrapper from '../../../react/LoadWrapper';
 /*
  The dialog which prompts users for a base host URL
  */
@@ -24,8 +23,9 @@ export default function GitHostModal(props) {
     setCurrentHostUrl,
     validateScmHostUrl,
     loadRepositories,
-    loadRepositoriesAuthError,
+    loadRepositoriesErrorCode,
     isGitHostDialogVisible,
+    isGitHostNeeded,
     setShowHostDialog,
     setIsGitHostNeeded,
     errorText,
@@ -49,16 +49,32 @@ export default function GitHostModal(props) {
     }
   }
 
+  const title = () => {
+    if (loadRepositoriesErrorCode === null) {
+      return 'SCM Server Needed';
+    }
+    switch (loadRepositoriesErrorCode) {
+      case 'SCM_AUTHN_FAILURE':
+        return 'Authentication Error';
+      case 'SCM_AUTHZ_FAILURE':
+        return 'Authorization Error';
+      default:
+        return 'Connection Error';
+    }
+  };
+
   const errorMessage = () => {
     return (
-      loadRepositoriesAuthError
-        ? <NxErrorAlert>
-          <CredentialsError
-              $state={$state}
-              error={loadRepositoriesAuthError}
-              selectedOrganization={selectedOrganization} />
-        </NxErrorAlert>
-        : <NxErrorAlert>{errorText}</NxErrorAlert>
+      isGitHostNeeded ? <NxInfoAlert>{errorText}</NxInfoAlert> :
+        loadRepositoriesErrorCode
+          ? <NxErrorAlert>
+            <CredentialsError
+                $state={$state}
+                errorCode={loadRepositoriesErrorCode}
+                selectedOrganization={selectedOrganization}
+                scmProvider={scmProvider}/>
+          </NxErrorAlert>
+          : <NxErrorAlert>{errorText}</NxErrorAlert>
     );
   };
 
@@ -68,7 +84,7 @@ export default function GitHostModal(props) {
       <NxModal onClose={onCancelClicked}>
         <header className="nx-modal-header">
           <h2 className="nx-h2">
-            <span>Unable to connect</span>
+            <span>{title()}</span>
           </h2>
         </header>
         <div className="nx-modal-content">
@@ -104,9 +120,10 @@ GitHostModal.propTypes = {
   validateScmHostUrl: PropTypes.func.isRequired,
   selectedOrganization: PropTypes.shape(organizationPropType),
   isGitHostDialogVisible: PropTypes.bool,
+  isGitHostNeeded: PropTypes.bool,
   setShowHostDialog: PropTypes.func,
   errorText: PropTypes.object,
   setIsGitHostNeeded: PropTypes.func,
   $state: PropTypes.object.isRequired,
-  loadRepositoriesAuthError: LoadWrapper.propTypes.error
+  loadRepositoriesErrorCode: PropTypes.string
 };

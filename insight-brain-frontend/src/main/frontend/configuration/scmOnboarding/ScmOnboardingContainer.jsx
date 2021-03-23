@@ -52,7 +52,7 @@ function mapStateToProps({ scmOnboarding, router }) {
 
     // error state
     generalError: scmOnboarding.viewState.generalError,
-    loadRepositoriesAuthError: scmOnboarding.viewState.loadRepositoriesAuthError,
+    loadRepositoriesErrorCode: scmOnboarding.viewState.loadRepositoriesErrorCode,
     addOrganizationError: scmOnboarding.viewState.addOrganizationError
   };
 }

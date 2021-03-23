@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -1017,11 +1018,13 @@ public class PolicyEvaluationDAOTest
     String commitHash = "hash";
 
     // add a couple BUILD stage policy evaluations for the same commit hash
-    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scan-build-1", new Date(), commitHash);
-    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scan-build-2", new Date(), commitHash);
+    Calendar now = Calendar.getInstance();
+    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scan-build-1", now.getTime(), commitHash);
+    now.add(Calendar.MINUTE, 10);
+    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scan-build-2", now.getTime(), commitHash);
 
     // add one DEVELOP stage policy evaluation for the same commit hash
-    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_DEVELOP, "scan-develop-1", new Date(), commitHash);
+    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_DEVELOP, "scan-develop-1", now.getTime(), commitHash);
 
     // when fetching last BUILD evaluation for the given app and commit hash
     PolicyEvaluation policyEvaluation =

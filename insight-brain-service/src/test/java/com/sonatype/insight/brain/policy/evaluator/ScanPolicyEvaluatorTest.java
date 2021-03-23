@@ -59,10 +59,10 @@ import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ComponentCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
@@ -717,50 +717,55 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_ApplicationStageComponentCounts() throws Exception {
+  public void testEvaluate_SendsEvaluationTelemetry() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");
 
-    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI);
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.WEB_UI);
 
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(mockTelemetrySender, times(2)).send(telemetryDataArgumentCaptor.capture());
     Map<String, Object> expectedAttributes = new HashMap<>();
     expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate(application.getId()));
     expectedAttributes.put("stage_id", Stage.ID_BUILD);
+    expectedAttributes.put("scan_trigger_type", "WEB_UI");
     expectedAttributes.put("number_of_maven_components", "28");
     expectedAttributes.put("number_of_components", "28");
-    assertApplicationStageAttributes(telemetryDataArgumentCaptor.getAllValues().get(0), expectedAttributes);
+    assertPolicyEvaluationTelemetryData(telemetryDataArgumentCaptor.getAllValues().get(0), expectedAttributes);
   }
 
   @Test
-  public void testSendApplicationStageComponentCounts_NoComponents() {
-    scanPolicyEvaluator.sendApplicationStageComponentCounts("applicationId", "stageId", new ArrayList<>());
+  public void testSendEvaluationTelemetry_NoComponents() {
+    scanPolicyEvaluator.sendEvaluationTelemetry("applicationId", "stageId", ScanTriggerType.THIRD_PARTY,
+        new ArrayList<>());
 
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
     Map<String, Object> expectedAttributes = new HashMap<>();
     expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate("applicationId"));
     expectedAttributes.put("stage_id", "stageId");
+    expectedAttributes.put("scan_trigger_type", "THIRD_PARTY");
     expectedAttributes.put("number_of_components", "0");
-    assertApplicationStageAttributes(telemetryDataArgumentCaptor.getValue(), expectedAttributes);
+    assertPolicyEvaluationTelemetryData(telemetryDataArgumentCaptor.getValue(), expectedAttributes);
   }
 
   @Test
-  public void testSendApplicationStageComponentCounts() {
+  public void testSendEvaluationTelemetry() {
     Object[] formatsAndCounts = new Object[]{
         "unknown", 1, ComponentIdentifier.FORMAT_MAVEN, 2, ComponentIdentifier.FORMAT_NPM, 3,
         ComponentIdentifier.FORMAT_NUGET, 4, ComponentIdentifier.FORMAT_ANAME, 5, ComponentIdentifier.FORMAT_PYPI, 6,
         ComponentIdentifier.FORMAT_RPM, 7, ComponentIdentifier.FORMAT_RUBYGEMS, 8
     };
 
-    scanPolicyEvaluator.sendApplicationStageComponentCounts("applicationId", "stageId", components(formatsAndCounts));
+    scanPolicyEvaluator.sendEvaluationTelemetry("applicationId", "stageId", ScanTriggerType.CONTINUOUS_INTEGRATION,
+        components(formatsAndCounts));
 
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
     Map<String, Object> expectedAttributes = new HashMap<>();
     expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate("applicationId"));
     expectedAttributes.put("stage_id", "stageId");
+    expectedAttributes.put("scan_trigger_type", "CONTINUOUS_INTEGRATION");
     expectedAttributes.put("number_of_unknown_components", "1");
     expectedAttributes.put("number_of_maven_components", "2");
     expectedAttributes.put("number_of_npm_components", "3");
@@ -770,7 +775,7 @@ public class ScanPolicyEvaluatorTest
     expectedAttributes.put("number_of_rpm_components", "7");
     expectedAttributes.put("number_of_gem_components", "8");
     expectedAttributes.put("number_of_components", "36");
-    assertApplicationStageAttributes(telemetryDataArgumentCaptor.getValue(), expectedAttributes);
+    assertPolicyEvaluationTelemetryData(telemetryDataArgumentCaptor.getValue(), expectedAttributes);
   }
 
   @Test
@@ -878,7 +883,10 @@ public class ScanPolicyEvaluatorTest
     }
   }
 
-  private void assertApplicationStageAttributes(TelemetryData telemetryData, Map<String, Object> expectedAttributes) {
+  private void assertPolicyEvaluationTelemetryData(
+      TelemetryData telemetryData,
+      Map<String, Object> expectedAttributes)
+  {
     assertThat(telemetryData).isNotNull();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.APPLICATION_EVALUATION_COMPONENT_COUNTS);
     assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());

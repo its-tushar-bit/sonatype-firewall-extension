@@ -232,7 +232,7 @@ public class ScanPolicyEvaluator
           securityReportEntry.buf, bomReportEntry.buf, dependenciesReportEntry.buf);
     }
 
-    sendApplicationStageComponentCounts(application.getId(), stage.getStageTypeId(), components);
+    sendEvaluationTelemetry(application.getId(), stage.getStageTypeId(), scanTriggerType, components);
 
     // Evaluate the policies
     String appId = application.getId();
@@ -812,26 +812,28 @@ public class ScanPolicyEvaluator
   }
 
   @VisibleForTesting
-  void sendApplicationStageComponentCounts(String applicationId, String stageId, Collection<Component> components) {
-    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.APPLICATION_EVALUATION_COMPONENT_COUNTS);
-    telemetryData.setAttributes(getApplicationStageComponentCountsAttributes(applicationId, stageId, components));
-    telemetrySender.send(telemetryData);
-  }
-
-  private Map<String, Object> getApplicationStageComponentCountsAttributes(String applicationId,
-                                                                           String stageId,
-                                                                           Collection<Component> components)
+  void sendEvaluationTelemetry(
+      String applicationId,
+      String stageId,
+      ScanTriggerType scanTriggerType,
+      Collection<Component> components)
   {
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.APPLICATION_EVALUATION_COMPONENT_COUNTS);
+
     Map<String, Object> attributes = new HashMap<>();
     attributes.put("application_id", HdsClientAnalytics.obfuscate(applicationId));
     attributes.put("stage_id", stageId);
+    attributes.put("scan_trigger_type", scanTriggerType.getId());
     Map<String, Long> componentCounts = getComponentCounts(components);
     for (String format : componentCounts.keySet()) {
       attributes
           .put("number_of_" + format.replace("-", "") + "_components", String.valueOf(componentCounts.get(format)));
     }
     attributes.put("number_of_components", String.valueOf(components.size()));
-    return attributes;
+
+    telemetryData.setAttributes(attributes);
+
+    telemetrySender.send(telemetryData);
   }
 
   private Map<String, Long> getComponentCounts(Collection<Component> components) {

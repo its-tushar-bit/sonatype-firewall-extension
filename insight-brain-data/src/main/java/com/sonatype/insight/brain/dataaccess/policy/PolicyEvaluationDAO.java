@@ -18,6 +18,8 @@ import com.sonatype.insight.brain.model.policy.LastPolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * @since 1.11
  */
@@ -380,5 +382,25 @@ public class PolicyEvaluationDAO
     Query<PolicyEvaluation> query = new Query<>(sQuery, applicationId);
     query.setMaxResults(maxResultsToReturn);
     return query.getList();
+  }
+
+  /**
+   * Fetches the latest policy evaluation for the given application, commit hash and stage, if any.
+   * It returns {@code null} if no matches are found, or if commit hash is blank/missing.
+   */
+  public PolicyEvaluation getLastByApplicationIdCommitHashAndStageId(
+      String applicationId,
+      String commitHash,
+      String stageTypeId)
+  {
+    if (StringUtils.isBlank(commitHash)) {
+      return null;
+    }
+    String sQuery = "SELECT entity FROM PolicyEvaluation entity " + //
+        "WHERE entity.applicationId = ?1 " + //
+        "AND entity.commitHash = ?2 " + //
+        "AND entity.stageTypeId = ?3 " +
+        "ORDER BY entity.time DESC";
+    return createQuery(sQuery, applicationId, commitHash, stageTypeId).forceSingleResult().get();
   }
 }

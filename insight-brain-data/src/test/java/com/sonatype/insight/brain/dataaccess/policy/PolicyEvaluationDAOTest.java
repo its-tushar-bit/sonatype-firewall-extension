@@ -1010,6 +1010,64 @@ public class PolicyEvaluationDAOTest
     assertThat(policyEvaluations).hasSize(policyEvalCount - 1);
   }
 
+  @Test
+  public void testGetLastByApplicationIdCommitHashAndStageId() {
+    // setup
+    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+    String commitHash = "hash";
+
+    // add a couple BUILD stage policy evaluations for the same commit hash
+    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scan-build-1", new Date(), commitHash);
+    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scan-build-2", new Date(), commitHash);
+
+    // add one DEVELOP stage policy evaluation for the same commit hash
+    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_DEVELOP, "scan-develop-1", new Date(), commitHash);
+
+    // when fetching last BUILD evaluation for the given app and commit hash
+    PolicyEvaluation policyEvaluation =
+        dao.getLastByApplicationIdCommitHashAndStageId(application.getId(), commitHash, Stage.ID_BUILD);
+
+    // then assert that the second BUILD evaluation is returned
+    assertThat(policyEvaluation).isNotNull();
+    assertThat(policyEvaluation).extracting(PolicyEvaluation::getScanId).isEqualTo("scan-build-2");
+
+    // when fetching last DEVELOP evaluation for the given app and commit hash
+    policyEvaluation =
+        dao.getLastByApplicationIdCommitHashAndStageId(application.getId(), commitHash, Stage.ID_DEVELOP);
+
+    // then assert that the only DEVELOP evaluation is returned
+    assertThat(policyEvaluation).isNotNull();
+    assertThat(policyEvaluation).extracting(PolicyEvaluation::getScanId).isEqualTo("scan-develop-1");
+
+    // when fetching last RELEASE evaluation for the given app and commit hash
+    policyEvaluation =
+        dao.getLastByApplicationIdCommitHashAndStageId(application.getId(), commitHash, Stage.ID_RELEASE);
+
+    // then assert that no evaluation is returned
+    assertThat(policyEvaluation).isNull();
+
+    // when fetching last evaluation for null commit hash
+    policyEvaluation =
+        dao.getLastByApplicationIdCommitHashAndStageId(application.getId(), null, Stage.ID_BUILD);
+
+    // then assert that no evaluation is returned
+    assertThat(policyEvaluation).isNull();
+
+    // when fetching last evaluation for non-existent app and given commit hash
+    policyEvaluation =
+        dao.getLastByApplicationIdCommitHashAndStageId("no-application", commitHash, Stage.ID_BUILD);
+
+    // then assert that no evaluation is returned
+    assertThat(policyEvaluation).isNull();
+
+    // when fetching last evaluation for the given app and non-existent commit hash
+    policyEvaluation =
+        dao.getLastByApplicationIdCommitHashAndStageId(application.getId(), "no-hash", Stage.ID_BUILD);
+
+    // then assert that no evaluation is returned
+    assertThat(policyEvaluation).isNull();
+  }
+
   @FunctionalInterface
   interface PolicyEvaluationChooser
   {

@@ -36,6 +36,7 @@ function mapStateToProps({ scmOnboarding, router }) {
     failedRepos: scmOnboarding.formState.failedRepos,
     newlyImportedRepos: scmOnboarding.formState.newlyImportedRepos,
     isImportStatusDialogVisible: scmOnboarding.viewState.isImportStatusDialogVisible,
+    isImporting: scmOnboarding.viewState.isImporting,
 
     // host URL
     defaultHostUrl: scmOnboarding.formState.defaultHostUrl,

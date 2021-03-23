@@ -661,6 +661,10 @@ public class ScmOnboardingTest
     // when we import the selected repos
     scmOnboardingPage.importRepoButton().click();
 
+    // then the import spinners should not be visible
+    // NB: submit is so fast, it's not possible to reliable test for 'shouldBe(visible)
+    scmOnboardingPage.submitLoadingSpinner().shouldNotBe(visible);
+
     // then we see a success message in the status dialog
     scmOnboardingPage.importStatusModal().shouldBe(visible);
     scmOnboardingPage.successMessage().shouldBe(visible);
@@ -1576,6 +1580,5 @@ public class ScmOnboardingTest
     scmOnboardingPage.hostUrlAuthError().shouldHave(text("Authentication Error. IQ Server was unable to authenticate " +
             "with GitHub using the credentials associated with the Custom Host Organization."));
     scmOnboardingPage.hostUrlAuthErrorLink().shouldHave(attribute("href", expectedUrl));
-
   }
 }

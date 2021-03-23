@@ -9,7 +9,7 @@ import React, {Fragment, useState} from 'react';
 import * as PropTypes from 'prop-types';
 import {organizationPropType, repositoryPropType} from '../ScmOnboarding';
 import NxButton from '@sonatype/react-shared-components/components/NxButton/NxButton';
-import {NxFontAwesomeIcon, NxTooltip} from '@sonatype/react-shared-components';
+import {NxFontAwesomeIcon, NxTooltip, NxSubmitMask} from '@sonatype/react-shared-components';
 import {faPlus, faQuestionCircle} from '@fortawesome/pro-solid-svg-icons';
 import ResultsTable from './ResultsTable';
 import TargetOrganizationDropdown from './TargetOrganizationDropdown';
@@ -43,6 +43,7 @@ export default function RepositoryPane(props) {
     isGitHostNeeded,
     isSelectingOrganization,
     isScmTokenConfigured,
+    isImporting,
     $state,
 
     // sorting
@@ -235,6 +236,9 @@ export default function RepositoryPane(props) {
           </div>
         </footer>
       }
+      {isImporting &&
+        <NxSubmitMask fullscreen />
+      }
     </Fragment>
   );
 }
@@ -257,6 +261,7 @@ RepositoryPane.propTypes = {
   defaultHostUrl: PropTypes.string,
   isGitHostNeeded: PropTypes.bool,
   isSelectingOrganization: PropTypes.bool,
+  isImporting: PropTypes.bool,
   $state: PropTypes.object.isRequired,
   isNewOrganizationModalVisible: PropTypes.bool.isRequired,
   isScmTokenConfigured: PropTypes.bool,

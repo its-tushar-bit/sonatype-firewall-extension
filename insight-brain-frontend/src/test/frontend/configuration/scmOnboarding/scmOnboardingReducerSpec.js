@@ -9,6 +9,7 @@ import { initialState } from '@sonatype/react-shared-components/components/NxTex
 import * as textInputStateHelpers from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
 import {UI_ROUTER_ON_FINISH} from '../../../../main/frontend/reduxUiRouter/routerActions';
 import {
+  SCM_ONBOARDING_IMPORT_REPOS_REQUESTED,
   SCM_ONBOARDING_IS_GIT_HOST_NEEDED,
   SCM_ONBOARDING_IS_IMPORT_STATUS_MODAL_VISIBLE,
   SCM_ONBOARDING_LOAD_PAGE_FULFILLED,
@@ -253,7 +254,8 @@ describe('scmOnboardingReducer', function() {
         const state = Object.freeze({
           viewState: {
             loadingPage: true,
-            generalError: null
+            generalError: null,
+            isImporting: true
           },
           configState: {
             isScmOnboardingFeatureEnabled: null
@@ -275,7 +277,8 @@ describe('scmOnboardingReducer', function() {
           },
           isGitHostNeeded: false,
           isGitHostDialogVisible: false,
-          isImportStatusDialogVisible: false
+          isImportStatusDialogVisible: false,
+          isImporting: false
         });
       });
     });
@@ -812,6 +815,35 @@ describe('scmOnboardingReducer', function() {
   });
 
   describe('import repositories', () => {
+    describe('requested', () => {
+      it('sets the isImporting flag', () => {
+        const state = Object.freeze({
+          viewState: {
+            isImporting: false
+          },
+          other: otherObject
+        });
+
+        // when reduce is invoked
+        const newState = reduce(state, {
+          type: SCM_ONBOARDING_IMPORT_REPOS_REQUESTED
+        });
+
+        // then importing state is updated
+        expect(newState.formState).toEqual({
+          selectedRepositoryCount: 0,
+          failedImportCount: 0,
+          failedRepos: []
+        });
+        expect(newState.viewState).toEqual({
+          isImporting: true
+        });
+
+        // and other properties are not modified
+        expect(newState.other).toBe(otherObject);
+      });
+    });
+
     describe('partial success', () => {
       it('updates the new repository list', function() {
         // given previous state with token
@@ -833,7 +865,8 @@ describe('scmOnboardingReducer', function() {
             failedImportCount: 0
           },
           viewState: {
-            isImportStatusDialogVisible: false
+            isImportStatusDialogVisible: false,
+            isImporting: true
           },
           other: otherObject
         });
@@ -863,7 +896,8 @@ describe('scmOnboardingReducer', function() {
           {httpCloneUrl: 'http://host/prj/f'}
         ]);
         expect(newState.viewState).toEqual({
-          isImportStatusDialogVisible: true
+          isImportStatusDialogVisible: true,
+          isImporting: false
         });
 
         // and other properties are not modified
@@ -875,7 +909,8 @@ describe('scmOnboardingReducer', function() {
       it('sets generalError field to value of error', function() {
         const state = Object.freeze({
           viewState: {
-            generalError: null
+            generalError: null,
+            isImporting: true
           },
           other: otherObject
         });
@@ -885,7 +920,8 @@ describe('scmOnboardingReducer', function() {
 
         expect(newState).toEqual({
           viewState: {
-            generalError: errorResponse
+            generalError: errorResponse,
+            isImporting: false
           },
           other: otherObject
         });
@@ -1107,6 +1143,7 @@ describe('scmOnboardingReducer', function() {
         isGitHostDialogVisible: false,
         isSelectingOrganization: false,
         isImportStatusDialogVisible: false,
+        isImporting: false,
 
         generalError: null,
         loadRepositoriesErrorCode: null,

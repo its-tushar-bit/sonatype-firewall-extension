@@ -57,6 +57,7 @@ const initialState = {
     isGitHostDialogVisible: false,
     isNewOrganizationModalVisible: false,
     isImportStatusDialogVisible: false,
+    isImporting: false,
 
     generalError: null,
     loadRepositoriesErrorCode: null,
@@ -389,6 +390,10 @@ function handleLoadRepositoriesFailed({generalError, loadRepositoriesErrorCode},
 function importRepositoriesRequested(payload, state) {
   return {
     ...state,
+    viewState: {
+      ...state.viewState,
+      isImporting: true
+    },
     formState: {
       ...state.formState,
       selectedRepositoryCount: 0,
@@ -416,7 +421,8 @@ function importRepositoriesFulfilled(payload, state) {
     },
     viewState: {
       ...state.viewState,
-      isImportStatusDialogVisible: true
+      isImportStatusDialogVisible: true,
+      isImporting: false
     }
   };
 }
@@ -426,7 +432,8 @@ function importRepositoriesFailed(payload, state) {
     ...state,
     viewState: {
       ...state.viewState,
-      generalError: payload
+      generalError: payload,
+      isImporting: false
     }
   };
 }

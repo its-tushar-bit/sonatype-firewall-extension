@@ -80,6 +80,18 @@ public class ScmOnboardingPage
     return child(".nx-modal .nx-alert--error a");
   }
 
+  public SelenideElement loadErrorAnchor() {
+    return child(".nx-alert--load-error a");
+  }
+
+  public SelenideElement submitMask() {
+    return child(".nx-submit-mask--fullscreen");
+  }
+
+  public SelenideElement submitLoadingSpinner() {
+    return submitMask().$(".nx-loading-spinner");
+  }
+
   public SelenideElement retry() {
     return child(".nx-load-error__retry");
   }

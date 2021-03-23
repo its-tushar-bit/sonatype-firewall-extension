@@ -5,6 +5,8 @@
  */
 
 #license-obligations-tile {
+  min-width: 0;
+
   .nx-accordion {
     summary {
       list-style: none;
@@ -15,11 +17,8 @@
     }
 
     .nx-segmented-btn {
+      white-space: nowrap;
       z-index: unset;
-    }
-
-    .nx-truncate-ellipsis {
-      max-width: 290px;
     }
   }
 

@@ -8,8 +8,8 @@ import {
   NxAccordion,
   NxFontAwesomeIcon,
   NxOverflowTooltip,
-  NxStatefulAccordion,
-  NxSegmentedButton
+  NxSegmentedButton,
+  NxStatefulAccordion
 } from '@sonatype/react-shared-components';
 import { licenseLegalMetadataPropType, licenseObligationsPropTypes } from './advancedLegalPropTypes';
 import { OBLIGATION_STATUS_TO_DISPLAY, OBLIGATION_STATUSES } from './advancedLegalConstants';

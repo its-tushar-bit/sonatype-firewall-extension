@@ -33,10 +33,7 @@ Alternatively, you can also launch the server using the compiled jar (NOTE: repl
 
 Note that the above deploy command includes a reference to a configuration file: [`insight-brain-service/src/test/resources/config-dev.yml`](./src/test/resources/config-dev.yml).
 
-This file is checked into the project and does not need to be modified for use in a typical development environment.
-Sometimes, depending on the work you’re doing, you may need to change this config. For example, the default config
-has the `hdsUrl` config set to the HDS production environment, but you might want to use a local deploy of HDS or the
-staging environment instead.
+This file is checked into the project and does not need to be modified for use in a typical development environment. Sometimes, depending on the work you’re doing, you may need to change this config. For example, the default config has the `hdsUrl` config set to the common HDS staging environment, but you might want to use a local deploy of HDS instead.
 
 When you need a custom config, we suggest creating a local copy of this file, allowing you to easily maintain a separate config (or set of configs) that suits your own needs. When deploying, simply update the path in the above deploy command to point to your new locally-maintained config file.
 

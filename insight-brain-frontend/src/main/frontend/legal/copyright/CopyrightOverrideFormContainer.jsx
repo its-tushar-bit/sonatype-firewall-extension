@@ -7,16 +7,21 @@
 import {connect} from 'react-redux';
 import CopyrightOverrideForm from './CopyrightOverrideForm';
 import {saveCopyrightOverride, setDisplayCopyrightOverrideModal} from './copyrightOverrideFormActions';
+import {setObligationScope, setObligationStatus} from '../advancedLegalObligationActions';
 
 const mapDispatchToProps = {
   saveCopyrightOverride,
-  setDisplayCopyrightOverrideModal
+  setDisplayCopyrightOverrideModal,
+  setObligationScope,
+  setObligationStatus
 };
 
 function mapStateToProps({advancedLegal, copyrightOverrides}) {
   return {
     availableScopes: advancedLegal.availableScopes,
     component: advancedLegal.component.component,
+    existingObligation: advancedLegal.component.component.licenseLegalData.obligations
+        .find(o => o.name === 'Inclusion of Copyright'),
     ...copyrightOverrides
   };
 }

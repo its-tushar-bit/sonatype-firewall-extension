@@ -13,6 +13,7 @@ import {
   SET_DISPLAY_COPYRIGHT_OVERRIDE_MODAL
 } from './copyrightOverrideFormActions';
 import {Messages} from '../../util/CommonServices';
+import {ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE} from '../advancedLegalObligationActions';
 
 const initialState = Object.freeze({
   saveCopyrightError: null,
@@ -65,6 +66,7 @@ const reducerActionMap = {
   [COPYRIGHT_OVERRIDE_SAVE_REQUESTED]: propSetConst('submitMaskState', false),
   [COPYRIGHT_OVERRIDE_SAVE_FULFILLED]: saveCopyrightFulfilled,
   [COPYRIGHT_OVERRIDE_SUBMIT_MASK_DONE]: saveCopyrightOverrideSubmitMaskDone,
+  [ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE]: (payload, state) => saveCopyrightOverrideSubmitMaskDone(state),
   [SET_DISPLAY_COPYRIGHT_OVERRIDE_MODAL]: setEditCopyrightOverrideModal
 };
 

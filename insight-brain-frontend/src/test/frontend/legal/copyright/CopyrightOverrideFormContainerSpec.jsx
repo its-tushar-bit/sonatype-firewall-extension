@@ -12,6 +12,7 @@ import CopyrightOverrideForm from '../../../../main/frontend/legal/copyright/Cop
 describe('CopyrightOverrideFormContainer', function() {
   let store,
       vdom,
+      componentPart,
       state,
       CopyrightOverrideFormContainer,
       saveCopyrightOverrideMock,
@@ -32,6 +33,21 @@ describe('CopyrightOverrideFormContainer', function() {
       }
     }).default;
 
+    componentPart = {
+      hash: '6f394c7df5600d11b221',
+      licenseLegalData: {
+        obligations: [
+          {
+            'name': 'Inclusion of Copyright',
+            'status': 'FLAGGED'
+          },
+          {
+            'name': 'Something else'
+          }
+        ]
+      }
+    };
+
     state = {
       copyrightOverrides: {
         saveCopyrightError: 'Some error',
@@ -45,7 +61,7 @@ describe('CopyrightOverrideFormContainer', function() {
           values: []
         },
         component: {
-          component: 'component'
+          component: componentPart
         }
       }
     };
@@ -59,8 +75,9 @@ describe('CopyrightOverrideFormContainer', function() {
     expect(wrapper).toHaveProp('saveCopyrightError', 'Some error');
     expect(wrapper).toHaveProp('submitMaskState', true);
     expect(wrapper).toHaveProp('showEditCopyrightOverrideModal', true);
-    expect(wrapper).toHaveProp('component', 'component');
+    expect(wrapper).toHaveProp('component', componentPart);
     expect(wrapper).toHaveProp('availableScopes', {loading: false, error: null, values: []});
+    expect(wrapper).toHaveProp('existingObligation', {'name': 'Inclusion of Copyright', 'status': 'FLAGGED'});
   });
 
   it('correctly maps actions', () => {

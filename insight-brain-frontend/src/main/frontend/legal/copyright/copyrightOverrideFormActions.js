@@ -9,6 +9,7 @@ import {getComponentCopyrightOverrideUrl, getSaveComponentCopyrightOverrideUrl} 
 import axios from 'axios';
 import {SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS} from '@sonatype/react-shared-components';
 import {isScopeOverride} from '../legalUtility';
+import {saveObligation} from '../advancedLegalObligationActions';
 
 export const COPYRIGHT_OVERRIDE_SAVE_REQUESTED = 'COPYRIGHT_OVERRIDE_SAVE_REQUESTED';
 export const COPYRIGHT_OVERRIDE_SAVE_FULFILLED = 'COPYRIGHT_OVERRIDE_SAVE_FULFILLED';
@@ -16,47 +17,57 @@ export const COPYRIGHT_OVERRIDE_FAILED = 'COPYRIGHT_OVERRIDE_FAILED';
 export const COPYRIGHT_OVERRIDE_SUBMIT_MASK_DONE = 'COPYRIGHT_OVERRIDE_SUBMIT_MASK_DONE';
 export const SET_DISPLAY_COPYRIGHT_OVERRIDE_MODAL = 'SET_DISPLAY_COPYRIGHT_OVERRIDE_MODAL';
 
-export function saveCopyrightOverride({copyrights, scopeOwnerId}) {
+export function saveCopyrightOverride(
+  {copyrights, scopeOwnerId, existingObligation, isCopyrightsDirty, isObligationDirty}) {
   return function(dispatch, getState) {
-    const advancedLegalState = getState().advancedLegal;
-    const {availableScopes} = advancedLegalState;
-    const componentIdentifier = advancedLegalState.component.component.componentIdentifier;
-    const existingComponentCopyrightScopeOwnerId =
-        advancedLegalState.component.component.licenseLegalData.componentCopyrightScopeOwnerId;
+    if (isCopyrightsDirty) {
+      const advancedLegalState = getState().advancedLegal;
+      const { availableScopes } = advancedLegalState;
+      const componentIdentifier = advancedLegalState.component.component.componentIdentifier;
+      const existingComponentCopyrightScopeOwnerId =
+          advancedLegalState.component.component.licenseLegalData.componentCopyrightScopeOwnerId;
 
-    //If the scope is lower, then we need to create a new ComponentCopyright. We do this
-    // by setting the ID to null. If scope is higher, we will modify the existing entity.
-    const isScopeOverrideValue = isScopeOverride(existingComponentCopyrightScopeOwnerId, scopeOwnerId,
-        availableScopes.values);
-    const componentCopyrightId = isScopeOverrideValue ? null :
-      advancedLegalState.component.component.licenseLegalData.componentCopyrightId;
+      //If the scope is lower, then we need to create a new ComponentCopyright. We do this
+      // by setting the ID to null. If scope is higher, we will modify the existing entity.
+      const isScopeOverrideValue = isScopeOverride(existingComponentCopyrightScopeOwnerId, scopeOwnerId,
+          availableScopes.values);
+      const componentCopyrightId = isScopeOverrideValue ? null :
+        advancedLegalState.component.component.licenseLegalData.componentCopyrightId;
 
-    const payload = {
-      id: componentCopyrightId,
-      componentIdentifier: componentIdentifier,
-      copyrightOverrides: copyrights.map(
-          copyright => ({ ...copyright, id: isScopeOverrideValue ? null : copyright.id }))
-    };
+      const payload = {
+        id: componentCopyrightId,
+        componentIdentifier: componentIdentifier,
+        copyrightOverrides: copyrights.map(
+            copyright => ({ ...copyright, id: isScopeOverrideValue ? null : copyright.id }))
+      };
 
-    dispatch(saveRequested());
-    const matchingScope = availableScopes.values.find(s => s.id === scopeOwnerId);
-    const visitedScope = availableScopes.values[0];
-    return axios.post(getSaveComponentCopyrightOverrideUrl(matchingScope.type, matchingScope.publicId), payload)
-        .then(() => {
-          //Fetch the updated ComponentCopyright separately in case we need values at a higher scope.
-          axios.get(getComponentCopyrightOverrideUrl(visitedScope.type, visitedScope.publicId, componentIdentifier))
-              .then((getResponsePayload) => {
-                const descriptiveResponse = {
-                  ...getResponsePayload.data.componentCopyrightDTO,
-                  componentCopyrightScopeOwnerId: getResponsePayload.data.ownerId
-                };
-                dispatch(saveFulfilled(descriptiveResponse));
-                startSaveCopyrightOverrideSubmitMaskDoneTimer(dispatch);
-              });
-        })
-        .catch(error => {
-          dispatch(saveFailed(error));
-        });
+      dispatch(saveRequested());
+      const matchingScope = availableScopes.values.find(s => s.id === scopeOwnerId);
+      const visitedScope = availableScopes.values[0];
+      return axios.post(getSaveComponentCopyrightOverrideUrl(matchingScope.type, matchingScope.publicId), payload)
+          .then(() => {
+            //Fetch the updated ComponentCopyright separately in case we need values at a higher scope.
+            axios.get(getComponentCopyrightOverrideUrl(visitedScope.type, visitedScope.publicId, componentIdentifier))
+                .then((getResponsePayload) => {
+                  const descriptiveResponse = {
+                    ...getResponsePayload.data.componentCopyrightDTO,
+                    componentCopyrightScopeOwnerId: getResponsePayload.data.ownerId
+                  };
+                  dispatch(saveFulfilled(descriptiveResponse));
+                  isObligationDirty ? saveObligation(existingObligation.name)(dispatch,
+                      getState) : startSaveCopyrightOverrideSubmitMaskDoneTimer(dispatch);
+                });
+          })
+          .catch(error => {
+            dispatch(saveFailed(error));
+          });
+    }
+    else if (isObligationDirty) {
+      return saveObligation(existingObligation.name)(dispatch, getState);
+    }
+    else {
+      return;
+    }
   };
 }
 

@@ -3,13 +3,24 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, {useState} from 'react';
-import {NxButton, NxFontAwesomeIcon, NxForm, NxFormGroup, NxModal, NxTextInput, nxTextInputStateHelpers, NxToggle}
-  from '@sonatype/react-shared-components';
-import {availableScopesPropType, componentPropType} from '../advancedLegalPropTypes';
+import React, {Fragment, useState} from 'react';
+import {
+  NxButton,
+  NxDropdown,
+  NxFontAwesomeIcon,
+  NxForm,
+  NxFormGroup,
+  NxModal,
+  NxTextInput,
+  nxTextInputStateHelpers,
+  NxToggle,
+  useToggle
+} from '@sonatype/react-shared-components';
+import {availableScopesPropType, componentPropType, licenseObligationPropType} from '../advancedLegalPropTypes';
 import * as PropTypes from 'prop-types';
-import {faPlus} from '@fortawesome/pro-solid-svg-icons';
+import {faCheckCircle, faExclamationTriangle, faMinusCircle, faPlus} from '@fortawesome/pro-solid-svg-icons';
 import {pathSet} from '../../util/jsUtil';
+import {OBLIGATION_STATUS_TO_DISPLAY, OBLIGATION_STATUSES} from '../advancedLegalConstants';
 
 const { initialState, userInput } = nxTextInputStateHelpers;
 
@@ -20,10 +31,13 @@ export default function CopyrightOverrideForm(props) {
     availableScopes,
     saveCopyrightError,
     submitMaskState,
+    existingObligation,
 
     //actions
     saveCopyrightOverride,
-    setDisplayCopyrightOverrideModal
+    setDisplayCopyrightOverrideModal,
+    setObligationStatus,
+    setObligationScope
   } = props;
 
   const [copyrights, setCopyrights] = useState(component.licenseLegalData.copyrights.map(({ content, ...rest }) => ({
@@ -59,6 +73,62 @@ export default function CopyrightOverrideForm(props) {
       </td>
     </tr>;
 
+  const createChangeObligationStatus = () => {
+    const createObligationStatusIcon = obligationStatus => {
+      switch (obligationStatus) {
+        case 'FULFILLED':
+          return <NxFontAwesomeIcon icon={ faCheckCircle } className="copyright-obligation-fulfilled-icon" />;
+        case 'FLAGGED':
+          return <NxFontAwesomeIcon icon={ faExclamationTriangle } className="copyright-obligation-flagged-icon"/>;
+        case 'IGNORED':
+          return <NxFontAwesomeIcon icon={ faMinusCircle } className="copyright-obligation-ignored-icon"/>;
+      }
+    };
+
+    const createObligationStatusOption = value => (
+      <Fragment>
+        { createObligationStatusIcon(value) }
+        <span>{ OBLIGATION_STATUS_TO_DISPLAY[value] }</span>
+      </Fragment>
+    );
+
+    const [isOpen, onToggleCollapse] = useToggle(false),
+        labelElement = createObligationStatusOption(existingObligation ? existingObligation.status : 'OPEN');
+
+    const obligationStatusDropdownOptions = () =>
+      OBLIGATION_STATUSES
+          .filter(value => existingObligation.status !== value)
+          .map(value => (<button key={ value + '-dropdown-option' }
+                                 type="button"
+                                 className="nx-dropdown-button"
+                                 onClick={ () => {
+                                   setObligationStatus({ name: existingObligation.name, value: value });
+                                   if (value === existingObligation.originalStatus) {
+                                     setObligationScope(
+                                         { name: existingObligation.name, value: existingObligation.originalScope });
+                                   }
+                                   else {
+                                     setObligationScope({ name: existingObligation.name, value: scope });
+                                   }
+                                   onToggleCollapse();
+                                 } }>
+            { createObligationStatusOption(value) }
+          </button>));
+
+    return <div id="edit-copyright-obligation-status-selection-group">
+      <label><span className="nx-label__text">Update Obligation Review Status</span></label>
+      <div className="nx-sub-label">
+        Change the review status of the obligation &quot;Must Inlcude Copyright&quot; to
+      </div>
+      <NxDropdown label={labelElement}
+                  isOpen={isOpen}
+                  onToggleCollapse={onToggleCollapse}
+                  id="edit-copyright-obligation-status-selection">
+        { obligationStatusDropdownOptions() }
+      </NxDropdown>
+    </div>;
+  };
+
   const createScopeOption = value => <option key={value.id} value={value.id}>{value.label} - {value.name}</option>;
 
   const onCopyrightContentChange = index => content => {
@@ -69,6 +139,12 @@ export default function CopyrightOverrideForm(props) {
       pathSet([index, 'status'], flipStatus(copyright.status), copyrights));
 
   const setComponentCopyrightScope = (event) => setScope(event.target.value);
+
+  const setObligationScopeIfNeeded = (event) => {
+    if (existingObligation && existingObligation.status !== existingObligation.originalStatus) {
+      setObligationScope({ name: existingObligation.name, value: event.target.value });
+    }
+  };
 
   const flipStatus = (status) => status === 'enabled' ? 'disabled' : 'enabled';
 
@@ -92,11 +168,14 @@ export default function CopyrightOverrideForm(props) {
             content: content.trimmedValue,
             ...rest
           })),
-      scopeOwnerId: scope
+      scopeOwnerId: scope,
+      existingObligation,
+      isCopyrightsDirty: isCopyrightsDirty(),
+      isObligationDirty: isObligationDirty()
     });
   };
 
-  function isDirty() {
+  function isCopyrightsDirty() {
     for (let i = component.licenseLegalData.copyrights.length; i < copyrights.length; i++) {
       if (copyrights[i].content.trimmedValue.length !== 0) {
         return true;
@@ -114,16 +193,49 @@ export default function CopyrightOverrideForm(props) {
     return false;
   }
 
+  function isObligationDirty() {
+    return existingObligation && existingObligation.status !== existingObligation.originalStatus;
+  }
+
+  const resetExistingObligation = () => {
+    if (existingObligation) {
+      setObligationStatus({ name: existingObligation.name, value: existingObligation.originalStatus });
+      setObligationScope({ name: existingObligation.name, value: existingObligation.originalScope });
+    }
+  };
+
+  const getSubmitMaskState = () => {
+    const nullIfUndef = (b) => b === undefined ? null : b;
+    const copyrightsSubmitMaskState = nullIfUndef(submitMaskState);
+    if (nullIfUndef(existingObligation) === null) {
+      return copyrightsSubmitMaskState;
+    }
+    if (copyrightsSubmitMaskState === null) {
+      return existingObligation.saveObligationSubmitMask;
+    }
+    const obligationSubmitMaskState = nullIfUndef(existingObligation.saveObligationSubmitMask);
+    if (obligationSubmitMaskState === null) {
+      return copyrightsSubmitMaskState;
+    }
+    return copyrightsSubmitMaskState && obligationSubmitMaskState;
+  };
+
   return (
     <NxModal id="edit-copyright-attribution-modal"
-             onClose={() => setDisplayCopyrightOverrideModal(false)}
+             onClose={() => {
+               setDisplayCopyrightOverrideModal(false);
+               resetExistingObligation();
+             }}
              variant="wide">
-      <NxForm onCancel={() => setDisplayCopyrightOverrideModal(false)}
+      <NxForm onCancel={() => {
+        setDisplayCopyrightOverrideModal(false);
+        resetExistingObligation();
+      }}
               submitBtnText="Save"
-              submitError={saveCopyrightError}
-              submitMaskState={submitMaskState}
+              submitError={saveCopyrightError || (existingObligation ? existingObligation.error : false)}
+              submitMaskState={getSubmitMaskState()}
               onSubmit={trySave}
-              validationErrors={isDirty() ? null : 'No modifications'}>
+              validationErrors={(isCopyrightsDirty() || isObligationDirty()) ? null : 'No modifications'}>
         <header className="nx-modal-header">
           <h2 className="nx-h2">
             Edit Copyrights
@@ -150,11 +262,15 @@ export default function CopyrightOverrideForm(props) {
               </NxButton>
             </div>
           </div>
+          { existingObligation && createChangeObligationStatus() }
           <NxFormGroup id="edit-copyright-scope-selection-group" label="Scope" sublabel="Apply changes to" isRequired>
             <select className="nx-form-select nx-form-select--long"
                     id="edit-copyright-scope-selection"
                     value={scope}
-                    onChange={setComponentCopyrightScope}>
+                    onChange={(event) => {
+                      setComponentCopyrightScope(event);
+                      setObligationScopeIfNeeded(event);
+                    }}>
               {availableScopes.values.map(createScopeOption)}
             </select>
           </NxFormGroup>
@@ -166,11 +282,14 @@ export default function CopyrightOverrideForm(props) {
 
 CopyrightOverrideForm.propTypes =
     {
+      setObligationStatus: PropTypes.func.isRequired,
+      setObligationScope: PropTypes.func.isRequired,
       component: componentPropType,
       availableScopes: availableScopesPropType,
       saveCopyrightOverride: PropTypes.func,
       saveCopyrightError: PropTypes.string,
       submitMaskState: PropTypes.bool,
+      existingObligation: licenseObligationPropType,
       setDisplayCopyrightOverrideModal: PropTypes.func.isRequired
     }
 ;

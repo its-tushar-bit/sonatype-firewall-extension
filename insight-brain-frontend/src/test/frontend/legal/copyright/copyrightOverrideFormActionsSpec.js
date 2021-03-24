@@ -12,10 +12,17 @@ import {
   COPYRIGHT_OVERRIDE_SUBMIT_MASK_DONE,
   saveCopyrightOverride
 } from '../../../../main/frontend/legal/copyright/copyrightOverrideFormActions';
+import {
+  ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED,
+  ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED,
+  ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE
+} from '../../../../main/frontend/legal/advancedLegalObligationActions.js';
 import {SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS} from '@sonatype/react-shared-components';
 import {
   getComponentCopyrightOverrideUrl,
-  getSaveComponentCopyrightOverrideUrl
+  getSaveComponentCopyrightOverrideUrl,
+  getComponentObligationUrl,
+  getSaveComponentObligationUrl
 } from '../../../../main/frontend/util/CLMLocation';
 import {pathSet} from '@sonatype/react-shared-components/util/jsUtil';
 
@@ -32,6 +39,13 @@ describe('copyrightOverrideFormAction', function() {
             licenseLegalData: {
               componentCopyrightId: 'componentCopyrightId'
             }
+          },
+          existingObligation: {
+            'id': 'd387da0b87a9428fbc352f437c8294cf',
+            'name': 'Inclusion of Copyright',
+            'status': 'FLAGGED',
+            'comment': 'Test comment',
+            'ownerId': 'ROOT_ORGANIZATION_ID'
           }
         },
         availableScopes: {
@@ -62,7 +76,8 @@ describe('copyrightOverrideFormAction', function() {
       store = SpecUtil.mockReduxStore(initialState);
       store.dispatch(saveCopyrightOverride({
         copyrights: copyrights,
-        scopeOwnerId: 'org'
+        scopeOwnerId: 'org',
+        isCopyrightsDirty: true
       }));
 
       const actions = store.getActions();
@@ -70,20 +85,102 @@ describe('copyrightOverrideFormAction', function() {
       expect(actions[0].type).toBe(COPYRIGHT_OVERRIDE_SAVE_REQUESTED);
     });
 
-    it('immediately dispatches a COPYRIGHT_OVERRIDE_SAVE_REQUESTED action', function() {
+    it('does not dispatch anything when not dirty', function() {
       store = SpecUtil.mockReduxStore(initialState);
       store.dispatch(saveCopyrightOverride({
         copyrights: copyrights,
-        scopeOwnerId: 'org'
+        scopeOwnerId: 'org',
+        isCopyrightsDirty: false,
+        isObligationDirty: false
       }));
 
       const actions = store.getActions();
-      expect(actions.length).toBe(1);
-      expect(actions[0].type).toBe(COPYRIGHT_OVERRIDE_SAVE_REQUESTED);
+      expect(actions.length).toBe(0);
     });
 
     it('dispatches COPYRIGHT_OVERRIDE_SAVE_FULFILLED & COPYRIGHT_OVERRIDE_SUBMIT_MASK_DONE when ' +
         'saveCopyrightOverride succeeds', function(done) {
+      store = SpecUtil.mockReduxStore(initialState);
+      const expectedPostBody = {
+        'id': 'componentCopyrightId',
+        'componentIdentifier': 'componentIdentifier',
+        'copyrightOverrides': [
+          {
+            'id': '1',
+            'content': 'Copyright 2043',
+            'originalContentHash': 'originalContentHash1',
+            'status': 'enabled'
+          },
+          {
+            'id': '',
+            'content': 'Copyright 2',
+            'originalContentHash': 'originalContentHash2',
+            'status': 'disabled'
+          }
+        ]
+      };
+      mockAxiosCalls({
+        post: {
+          [getSaveComponentCopyrightOverrideUrl('organization', 'org')]: Promise.resolve(
+              {
+                data: {
+                  data: 'dataPOST'
+                }
+              }),
+          [getSaveComponentObligationUrl('organization', 'org')]: Promise.resolve(
+              {
+                data: {
+                  data: 'dataPOST2'
+                }
+              })
+        },
+        get: {
+          [getComponentCopyrightOverrideUrl('organization', 'org', 'componentIdentifier')]: Promise.resolve(
+              {
+                data: {
+                  componentCopyrightDTO: {data: 'dataGET'},
+                  ownerId: 'realOwner'
+                }
+              }),
+          [getComponentObligationUrl('organization', 'org', 'componentIdentifier', 'Inclusion of Copyright')]:
+          Promise.resolve(
+              {
+                data: {
+                  componentCopyrightDTO: {data: 'dataGET2'},
+                  ownerId: 'realOwner'
+                }
+              })
+        }
+      });
+      store.dispatch(saveCopyrightOverride(
+          {
+            copyrights: copyrights,
+            scopeOwnerId: 'org',
+            existingObligation: {'status': 'FULFILLED'},
+            isCopyrightsDirty: true,
+            isObligationDirty: false
+          })).then(() => {
+        setTimeout(() => {
+          const actions = store.getActions();
+          expect(axios.post).toHaveBeenCalledWith(
+              '/api/experimental/licenseLegalMetadata/organization/org/component/copyright', expectedPostBody);
+          expect(axios.get).toHaveBeenCalledWith(
+              '/api/experimental/licenseLegalMetadata/organization/org' +
+              '/component/copyright?componentIdentifier=%22componentIdentifier%22');
+          expect(actions.length).toBe(3);
+          expect(actions[1].type).toBe(COPYRIGHT_OVERRIDE_SAVE_FULFILLED);
+          expect(actions[1].payload).toEqual({data: 'dataGET', componentCopyrightScopeOwnerId: 'realOwner'});
+          expect(actions[2].type).toBe(COPYRIGHT_OVERRIDE_SUBMIT_MASK_DONE);
+          done();
+        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+      });
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(COPYRIGHT_OVERRIDE_SAVE_REQUESTED);
+    });
+
+    it('does not save obligation when it is missing', function(done) {
       store = SpecUtil.mockReduxStore(initialState);
       const expectedPostBody = {
         'id': 'componentCopyrightId',
@@ -125,7 +222,9 @@ describe('copyrightOverrideFormAction', function() {
       store.dispatch(saveCopyrightOverride(
           {
             copyrights: copyrights,
-            scopeOwnerId: 'org'
+            scopeOwnerId: 'org',
+            isCopyrightsDirty: true,
+            isObligationDirty: false
           })).then(() => {
         setTimeout(() => {
           const actions = store.getActions();
@@ -174,7 +273,7 @@ describe('copyrightOverrideFormAction', function() {
       });
 
       store.dispatch(saveCopyrightOverride(
-          {copyrights: copyrights, scopeOwnerId: 'org'})).then(() => {
+          {copyrights: copyrights, scopeOwnerId: 'org', isCopyrightsDirty: true})).then(() => {
         const actions = store.getActions();
         expect(axios.post).toHaveBeenCalledWith(
             '/api/experimental/licenseLegalMetadata/organization/org/component/copyright', expectedPostBody);
@@ -337,6 +436,12 @@ describe('copyrightOverrideFormAction', function() {
                 data: {
                   data: 'data'
                 }
+              }),
+          [getSaveComponentObligationUrl(orgOrApp, expectedScope)]: Promise.resolve(
+              {
+                data: {
+                  data: 'dataPOST2'
+                }
               })
         },
         get: {
@@ -346,13 +451,24 @@ describe('copyrightOverrideFormAction', function() {
                   componentCopyrightDTO: {data: 'dataGET'},
                   ownerId: 'realOwner'
                 }
+              }),
+          [getComponentObligationUrl('application', 'app', 'componentIdentifier', 'Inclusion of Copyright')]:
+          Promise.resolve(
+              {
+                data: {
+                  componentCopyrightDTO: {data: 'dataGET2'},
+                  ownerId: 'realOwner'
+                }
               })
         }
       });
       store.dispatch(saveCopyrightOverride(
           {
             copyrights,
-            scopeOwnerId: expectedScope
+            scopeOwnerId: expectedScope,
+            existingObligation: {'status': 'FULFILLED'},
+            isCopyrightsDirty: true,
+            isObligationDirty: false
           })).then(() => {
         setTimeout(() => {
           const actions = store.getActions();
@@ -380,6 +496,12 @@ describe('copyrightOverrideFormAction', function() {
                 data: {
                   data: 'dataPOST'
                 }
+              }),
+          [getSaveComponentObligationUrl(orgOrApp, persistedAtScope)]: Promise.resolve(
+              {
+                data: {
+                  data: 'dataPOST2'
+                }
               })
         },
         get: {
@@ -389,13 +511,24 @@ describe('copyrightOverrideFormAction', function() {
                   componentCopyrightDTO: {data: 'dataGET'},
                   ownerId: 'realOwner'
                 }
+              }),
+          [getComponentObligationUrl('application', 'app', 'componentIdentifier', 'Inclusion of Copyright')]:
+          Promise.resolve(
+              {
+                data: {
+                  componentCopyrightDTO: {data: 'dataGET2'},
+                  ownerId: 'realOwner'
+                }
               })
         }
       });
       store.dispatch(saveCopyrightOverride(
           {
             copyrights,
-            scopeOwnerId: persistedAtScope
+            scopeOwnerId: persistedAtScope,
+            existingObligation: {'status': 'FULFILLED'},
+            isCopyrightsDirty: true,
+            isObligationDirty: true
           })).then(() => {
         const actions = store.getActions();
         expect(axios.post).toHaveBeenCalledWith(
@@ -404,9 +537,10 @@ describe('copyrightOverrideFormAction', function() {
         expect(axios.get).toHaveBeenCalledWith(
             '/api/experimental/licenseLegalMetadata/application/app' +
             '/component/copyright?componentIdentifier=%22componentIdentifier%22');
-        expect(actions.length).toBe(2);
+        expect(actions.length).toBe(3);
         expect(actions[1].type).toBe(COPYRIGHT_OVERRIDE_SAVE_FULFILLED);
         expect(actions[1].payload).toEqual({data: 'dataGET', componentCopyrightScopeOwnerId: 'realOwner'});
+        expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED);
         done();
       });
 
@@ -414,6 +548,164 @@ describe('copyrightOverrideFormAction', function() {
       expect(actions.length).toBe(1);
       expect(actions[0].type).toBe(COPYRIGHT_OVERRIDE_SAVE_REQUESTED);
     }
+  });
+
+  describe('save copyright override and obligation', function() {
+    let store;
+    const initialState = {
+      advancedLegal: {
+        component: {
+          component: {
+            componentIdentifier: 'componentIdentifier',
+            licenseLegalData: {
+              componentCopyrightId: 'componentCopyrightId',
+              componentCopyrightScopeOwnerId: 'ROOT_ORGANIZATION_ID',
+              obligations: [
+                {
+                  id: 'd387da0b87a9428fbc352f437c8294cf',
+                  name: 'Inclusion of Copyright',
+                  status: 'FLAGGED',
+                  comment: 'comment',
+                  ownerId: 'ROOT_ORGANIZATION_ID'
+                }
+              ]
+            }
+          }
+        },
+        availableScopes: {
+          values: [
+            { id: 'ROOT_ORGANIZATION_ID', publicId: 'ROOT_ORGANIZATION_ID', type: 'organization' }
+          ]
+        }
+      }
+    };
+    const copyrights = [
+      {
+        id: '1',
+        content: 'Copyright 2043',
+        originalContentHash: 'originalContentHash1',
+        status: 'enabled'
+      },
+      {
+        id: '2',
+        content: 'Copyright 2',
+        originalContentHash: 'originalContentHash2',
+        status: 'disabled'
+      }
+    ];
+
+    it('dispatches the expected actions on success', function(done) {
+      store = SpecUtil.mockReduxStore(initialState);
+      const expectedPostBody = {
+        id: 'componentCopyrightId',
+        componentIdentifier: 'componentIdentifier',
+        copyrightOverrides: [
+          {
+            id: '1',
+            content: 'Copyright 2043',
+            originalContentHash: 'originalContentHash1',
+            status: 'enabled'
+          },
+          {
+            id: '2',
+            content: 'Copyright 2',
+            originalContentHash: 'originalContentHash2',
+            status: 'disabled'
+          }
+        ]
+      };
+      mockAxiosCalls({
+        post: {
+          [getSaveComponentCopyrightOverrideUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve(
+              {
+                data: {
+                  data: 'dataPOST1'
+                }
+              }),
+          [getSaveComponentObligationUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve(
+              {
+                data: {
+                  data: 'dataPOST2'
+                }
+              })
+        },
+        get: {
+          [getComponentCopyrightOverrideUrl('organization', 'ROOT_ORGANIZATION_ID',
+              'componentIdentifier')]: Promise.resolve(
+              {
+                data: {
+                  componentCopyrightDTO: { data: 'dataGET1' },
+                  ownerId: 'ROOT_ORGANIZATION_ID'
+                }
+              }),
+          [getComponentObligationUrl('organization', 'ROOT_ORGANIZATION_ID', 'componentIdentifier',
+              'Inclusion of Copyright')]:
+              Promise.resolve(
+                  {
+                    data: {
+                      id: 'd387da0b87a9428fbc352f437c8294cf',
+                      comment: 'comment',
+                      ownerId: 'ROOT_ORGANIZATION_ID',
+                      status: 'FLAGGED',
+                      name: 'Inclusion of Copyright'
+                    }
+                  })
+        }
+      });
+      store.dispatch(saveCopyrightOverride(
+          {
+            copyrights,
+            scopeOwnerId: 'ROOT_ORGANIZATION_ID',
+            existingObligation: { name: 'Inclusion of Copyright', 'status': 'FLAGGED' },
+            isCopyrightsDirty: true,
+            isObligationDirty: true
+          })).then(() => {
+        setTimeout(() => {
+          const actions = store.getActions();
+          expect(axios.post).toHaveBeenCalledWith(
+              '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/copyright',
+              expectedPostBody);
+          expect(axios.get).toHaveBeenCalledWith(
+              '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID' +
+              '/component/copyright?componentIdentifier=%22componentIdentifier%22');
+          expect(axios.post).toHaveBeenCalledWith(
+              '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/obligation',
+              {
+                id: 'd387da0b87a9428fbc352f437c8294cf',
+                componentIdentifier: 'componentIdentifier',
+                name: 'Inclusion of Copyright',
+                comment: 'comment',
+                status: 'FLAGGED'
+              });
+          expect(axios.get).toHaveBeenCalledWith(
+              '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID' +
+              '/component/obligation?componentIdentifier=%22componentIdentifier%22' +
+              '&obligationName=Inclusion%20of%20Copyright');
+          expect(actions.length).toBe(5);
+          expect(actions[1].type).toBe(COPYRIGHT_OVERRIDE_SAVE_FULFILLED);
+          expect(actions[1].payload).toEqual(
+              { data: 'dataGET1', componentCopyrightScopeOwnerId: 'ROOT_ORGANIZATION_ID' });
+          expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED);
+          expect(actions[3].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
+          expect(actions[3].payload).toEqual({
+            name: 'Inclusion of Copyright',
+            value: {
+              id: 'd387da0b87a9428fbc352f437c8294cf',
+              comment: 'comment',
+              ownerId: 'ROOT_ORGANIZATION_ID',
+              status: 'FLAGGED'
+            }
+          });
+          expect(actions[4].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE);
+          expect(actions[4].payload).toEqual({ name: 'Inclusion of Copyright' });
+          done();
+        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS * 2);
+      });
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(COPYRIGHT_OVERRIDE_SAVE_REQUESTED);
+    });
   });
 
 });

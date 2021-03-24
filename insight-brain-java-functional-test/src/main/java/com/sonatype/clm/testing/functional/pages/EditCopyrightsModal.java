@@ -44,6 +44,10 @@ public class EditCopyrightsModal
     return $("#edit-copyright-scope-selection");
   }
 
+  public SelenideElement statusDropdown() {
+    return $("#edit-copyright-obligation-status-selection");
+  }
+
   public Button save() {
     return new Button(childSelector(".nx-btn--primary"));
   }

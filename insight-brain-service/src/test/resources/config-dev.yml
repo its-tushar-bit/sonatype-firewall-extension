@@ -25,6 +25,7 @@ logging:
     "org.quartz": INFO
     "org.springframework.jdbc.datasource.init.ResourceDatabasePopulator": INFO
     "org.zeroturnaround.exec" : INFO
+    "org.thymeleaf" : INFO
     "com.sonatype.insight.audit":
       appenders:
       - type: console

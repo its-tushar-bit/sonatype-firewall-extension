@@ -1,0 +1,185 @@
+<!DOCTYPE HTML>
+<!--
+  ~ Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+  ~ Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+  ~ "Sonatype" is a trademark of Sonatype, Inc.
+  -->
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <title>Application Report Content</title>
+  <style>
+    body {
+      margin: auto;
+      width: 90%;
+      font-family: Open Sans, sans-serif;
+    }
+
+    h1 {
+      width: 50%;
+      padding: 10px;
+      font-family: Open Sans, sans-serif;
+      font-size: 26px;
+      margin-bottom: 16px;
+      margin-top: 16px;
+    }
+
+    h4 {
+      font-family: Open Sans, sans-serif;
+      margin-bottom: 24px;
+      margin-top: 16px;
+    }
+
+    pre {
+      /* text wrap in <pre>
+          https://css-tricks.com/snippets/css/make-pre-text-wrap/ */
+      white-space: pre-wrap; /* css-3 */
+      white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+      white-space: -o-pre-wrap; /* Opera 7 */
+      word-wrap: break-word; /* Internet Explorer 5.5+ */
+    }
+
+    .licenseName {
+      font-family: Open Sans, sans-serif;
+      font-weight: 300;
+      color: #2C2000;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    .componentTitle {
+      font-family: Open Sans, sans-serif;
+      font-weight: 900;
+      color: #2C2C2C;
+      font-size: 26px;
+      margin-bottom: 32px;
+      margin-top: 32px;
+      width: 90%;
+    }
+
+    .fileContent {
+      font-family: Open Sans, sans-serif;
+      color: #2C2000;
+      font-size: 10px;
+      margin: 20px;
+    }
+
+    .subsection {
+      font-family: Open Sans, sans-serif;
+      font-weight: 300;
+      color: #2C2000;
+      font-size: 16px;
+      margin-left: 24px;
+    }
+
+    .containerBox {
+      border: 1px solid;
+      border-radius: 3px;
+      padding: 5px;
+      margin: 24px;
+      border-color: #B7BFDB;
+      background-color: #F4F5F9;
+    }
+
+    .componentBox {
+      width: 85%;
+      border: 1px solid darkslategrey;
+      padding: 10px;
+      border-radius: 3px;
+      border-color: #B7BFDB;
+      margin-bottom: 32px;
+    }
+
+    ul.csv {
+      list-style: none;
+      margin-left: 24px;
+      padding: 0;
+    }
+
+    ul.csv li {
+      display: inline;
+    }
+
+    ul.csv li:after {
+      content: ",";
+    }
+
+    ul.csv li:last-child:after {
+      content: "";
+    }
+  </style>
+</head>
+<body>
+<h1 th:text="${'Attribution Report for ' + applicationPublicId}"></h1>
+
+<!-- Component Loop -->
+<div th:each="component : ${applicationReport.components}" class="componentBox">
+  <h2 th:text="${component.displayName}" class="componentTitle">Component data</h2>
+
+  <!-- Effective Licenses -->
+  <h4>Licensed Under</h4>
+  <ul class="csv">
+    <li th:each="license : ${component.licenseLegalData.effectiveLicenses}"
+        th:text="${license}" class="licenseName">License Data
+    </li>
+  </ul>
+
+  <!-- Copyrights -->
+  <h4 th:if="${component.licenseLegalData.copyrights != null && #lists.size(component.licenseLegalData.copyrights) > 0}">
+    Copyright Statements</h4>
+  <pre th:each="copyright : ${component.licenseLegalData.copyrights}"
+       th:if="${#strings.equals(copyright.status, 'enabled')}"
+       th:text="${copyright.content}" class="subsection">Copyright Data</pre>
+
+  <!-- Notice Files -->
+  <div th:if="${component.licenseLegalData.noticeFiles != null && #lists.size(component.licenseLegalData.noticeFiles) > 0}">
+    <h4>Notice Files</h4>
+    <div class="containerBox">
+                <pre th:each="noticeFile : ${component.licenseLegalData.noticeFiles}"
+                     th:if="${#strings.equals(noticeFile.status, 'enabled')}"
+                     th:text="${noticeFile.content}" class="fileContent">Included Notice Files</pre>
+    </div>
+  </div>
+
+  <!-- License Files -->
+  <div th:if="${component.licenseLegalData.licenseFiles != null && #lists.size(component.licenseLegalData.licenseFiles) > 0}">
+    <h4>License Files</h4>
+    <div class="containerBox">
+                <pre th:each="licenseFile : ${component.licenseLegalData.licenseFiles}"
+                     th:if="${#strings.equals(licenseFile .status, 'enabled')}"
+                     th:text="${licenseFile.content}" class="fileContent">Included License Files</pre>
+    </div>
+  </div>
+
+  <!-- Attributions -->
+  <div th:if="${component.licenseLegalData.attributions != null &&
+          #lists.size(component.licenseLegalData.attributions) > 0}">
+    <h4>Attributions</h4>
+    <div th:each="attribution: ${component.licenseLegalData.attributions}" class="containerBox">
+      <pre th:text="${attribution.content}" class="fileContent"></pre>
+    </div>
+
+  </div>
+
+  <!-- License Text -->
+  <div th:if="${(component.licenseLegalData.licenseFiles == null  ||
+            #lists.size(component.licenseLegalData.licenseFiles) == 0) &&
+            component.licenseLegalData.effectiveLicenses != null &&
+            #lists.size(component.licenseLegalData.effectiveLicenses) > 0}">
+    <h4>Standard License Text</h4>
+    <div th:each="effectiveLicense : ${component.licenseLegalData.effectiveLicenses}">
+      <div th:each="license : ${applicationReport.licenseLegalMetadata}">
+        <div th:if="${license.licenseName == effectiveLicense && !#strings.isEmpty(license.licenseText)}">
+          <div class="containerBox">
+                        <pre th:text="${license.licenseText}" class="fileContent">Standard License Text
+                        </pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

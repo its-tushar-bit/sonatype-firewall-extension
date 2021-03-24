@@ -38,10 +38,11 @@ public class ComponentObligationAttributionDTO
     // for jackson
   }
 
-  public ComponentObligationAttributionDTO(String id, String ownerId, String content) {
+  public ComponentObligationAttributionDTO(String id, String ownerId, String obligationName,  String content) {
     this.id = id;
     this.ownerId = ownerId;
     this.content = content;
+    this.obligationName = obligationName;
   }
 
   public ComponentObligationAttributionDTO(ComponentObligationAttribution componentObligationAttribution) {

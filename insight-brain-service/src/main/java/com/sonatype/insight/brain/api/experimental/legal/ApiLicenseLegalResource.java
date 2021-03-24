@@ -24,6 +24,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.experimental.legal.report.ApplicationAttributionReportBuilder;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
@@ -58,6 +59,8 @@ public class ApiLicenseLegalResource
 
   public static final String APPLICATION_PATH = "application/{applicationPublicId}";
 
+  public static final String APPLICATION_REPORT_PATH = APPLICATION_PATH + "/report";
+
   public static final String COMPONENT_PATH = "{ownerType: application|organization}/{ownerId}/component";
 
   public static final String COMPONENT_COPYRIGHT_PATH = COMPONENT_PATH + "/copyright";
@@ -87,6 +90,8 @@ public class ApiLicenseLegalResource
 
   private final ApiLegalCopyrightService apiLegalCopyrightService;
 
+  private final ApplicationAttributionReportBuilder applicationAttributionReportBuilder;
+
   private final LegalApplicationDashboardService legalApplicationDashboardService;
 
   @Context
@@ -97,12 +102,14 @@ public class ApiLicenseLegalResource
       final ApiLicenseLegalService apiLicenseLegalService,
       final ComponentLegalService componentLegalService,
       final ApiLegalCopyrightService apiLegalCopyrightService,
-      final LegalApplicationDashboardService legalApplicationDashboardService)
+      final LegalApplicationDashboardService legalApplicationDashboardService,
+      final ApplicationAttributionReportBuilder applicationAttributionReportBuilder)
   {
     this.apiLicenseLegalService = apiLicenseLegalService;
     this.componentLegalService = componentLegalService;
     this.apiLegalCopyrightService = apiLegalCopyrightService;
     this.legalApplicationDashboardService = legalApplicationDashboardService;
+    this.applicationAttributionReportBuilder = applicationAttributionReportBuilder;
   }
 
   @POST
@@ -141,6 +148,15 @@ public class ApiLicenseLegalResource
       @PathParam("applicationPublicId") String applicationPublicId)
   {
     return apiLicenseLegalService.getLicenseLegalApplicationReport(applicationPublicId);
+  }
+
+  @GET
+  @Path(APPLICATION_REPORT_PATH)
+  @Produces(MediaType.TEXT_HTML)
+  public String getLicenseLegalApplicationHTMLReport(
+      @PathParam("applicationPublicId") String applicationPublicId)
+  {
+    return applicationAttributionReportBuilder.generateLegalApplicationAttributionReport(applicationPublicId);
   }
 
   @GET

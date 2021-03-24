@@ -693,9 +693,10 @@ public class ApiLicenseLegalService
     Map<ComponentIdentifier, List<ComponentObligation>> componentIdentifierToObligation = new HashMap<>();
     try (TransactionContext tx = componentObligationDAO.createTransactionContext()) {
       for (ComponentIdentifier componentIdentifier : componentIdentifiers) {
-        componentIdentifierToObligation.put(componentIdentifier,
-            componentObligationDAO
-                .getByOwnerIdAndComponentIdentifierWithHierarchy(tx, ownerId, componentIdentifier));
+        componentIdentifierToObligation
+            .put(LegalComponentIdentifierUtil.removeClassifierAndExtension(componentIdentifier),
+                componentObligationDAO
+                    .getByOwnerIdAndComponentIdentifierWithHierarchy(tx, ownerId, componentIdentifier));
       }
     }
     return componentIdentifierToObligation;
@@ -708,8 +709,10 @@ public class ApiLicenseLegalService
     Map<ComponentIdentifier, List<ComponentObligationAttribution>> componentIdentifierToAttribution = new HashMap<>();
     try (TransactionContext tx = componentObligationAttributionDAO.createTransactionContext()) {
       for (ComponentIdentifier componentIdentifier : componentIdentifiers) {
-        componentIdentifierToAttribution.put(componentIdentifier, componentObligationAttributionDAO
-            .getByOwnerIdAndComponentIdentifierWithHierarchy(tx, ownerId, componentIdentifier));
+        componentIdentifierToAttribution
+            .put(LegalComponentIdentifierUtil.removeClassifierAndExtension(componentIdentifier),
+                componentObligationAttributionDAO
+                    .getByOwnerIdAndComponentIdentifierWithHierarchy(tx, ownerId, componentIdentifier));
       }
     }
     return componentIdentifierToAttribution;
@@ -748,6 +751,9 @@ public class ApiLicenseLegalService
   private Map<ComponentIdentifier, Set<ApiLicenseDTO>> getReportMultiLicenses(ApiReportRawDataDTOV2 rawReport) {
     Map<ComponentIdentifier, Set<ApiLicenseDTO>> componentToLicenses = new HashMap<>();
     for (final ApiReportComponentDTOV2 component : rawReport.components) {
+      if (component.componentIdentifier == null) {
+        continue;
+      }
       if (component.licenseData == null) {
         componentToLicenses.put(component.componentIdentifier.toComponentIdentifier(), new HashSet<>());
       }

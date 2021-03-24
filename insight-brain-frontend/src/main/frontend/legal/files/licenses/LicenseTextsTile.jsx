@@ -4,10 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
-import { faChevronRight } from '@fortawesome/free-solid-svg-icons';
-import { legalFilesPropType } from '../../advancedLegalPropTypes';
-import { faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';
+import {NxButton, NxFontAwesomeIcon} from '@sonatype/react-shared-components';
+import {legalFilesPropType} from '../../advancedLegalPropTypes';
+import {faPen, faPlus} from '@fortawesome/pro-solid-svg-icons';
 import LicensesModalContainer from './LicensesModalContainer';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
@@ -50,9 +49,6 @@ const createItem = (license, index) => (
   <section id={ 'license-section-' + index } key={ index } className="nx-tile-subsection legal-file">
     <div className="legal-file-section-header">
       <span id={ 'license-path-' + index } className="legal-file-path">{ license.relPath }</span>
-      <span className="nx-tile__actions">
-        <a href="">View More Details <NxFontAwesomeIcon icon={ faChevronRight }/></a>
-      </span>
     </div>
     <blockquote id={ 'license-text-' + index } className="nx-blockquote">
       <div className="legal-file-content">

@@ -6,7 +6,6 @@
 import * as enzymeUtils from '../../enzymeUtils';
 import React from 'react';
 import LegalDashboardApplicationsTab from '../../../../main/frontend/legal/dashboard/LegalDashboardApplicationsTab';
-import LegalDashboardComponentsTab from '../../../../main/frontend/legal/dashboard/LegalDashboardComponentsTab';
 import LoadWrapper from '../../../../main/frontend/react/LoadWrapper';
 
 describe('LegalDashboardPage', function() {
@@ -65,11 +64,4 @@ describe('LegalDashboardPage', function() {
     expect(applicationsTab).toHaveProp('filtersAreDirty', 'filtersAreDirty');
   });
 
-  it('renders an LegalDashboardComponentsTab', function() {
-    const wrapper = getShallowComponent();
-    let componentsTab = wrapper.find(LegalDashboardComponentsTab);
-    expect(componentsTab).toExist();
-    expect(componentsTab).toHaveProp('components');
-    expect(componentsTab).toHaveProp('filtersAreDirty', 'filtersAreDirty');
-  });
 });

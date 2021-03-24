@@ -19,9 +19,6 @@ export default function LicenseDetailsTile(props) {
         <div className="nx-tile-header__title">
           <h2 className="nx-h2">Licenses</h2>
         </div>
-        <div className="nx-tile__actions">
-          <a href="">View Details</a>
-        </div>
       </header>
       <div className="nx-tile-content">
         <ul className="nx-list">

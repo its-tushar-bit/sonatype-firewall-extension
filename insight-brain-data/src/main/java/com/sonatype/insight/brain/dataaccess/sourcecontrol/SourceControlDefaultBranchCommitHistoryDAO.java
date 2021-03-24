@@ -19,6 +19,10 @@ public class SourceControlDefaultBranchCommitHistoryDAO
 
   private static final String SELECT_ENTITY = "SELECT entity FROM SourceControlDefaultBranchCommitHistory entity ";
 
+  public static final String WHERE_ENTITY_APPLICATION_ID_1 = "WHERE entity.applicationId=?1 ";
+
+  public static final String ORDER_BY_ENTITY_COMMIT_TIME_DESC = "ORDER BY entity.commitTime DESC";
+
   @Override
   public SourceControlDefaultBranchCommitHistory getById(final String id) {
     return get(SELECT_ENTITY + "WHERE entity.id=?1", id);
@@ -29,8 +33,13 @@ public class SourceControlDefaultBranchCommitHistoryDAO
   }
 
   public List<SourceControlDefaultBranchCommitHistory> getByApplicationIdSortedByDateDesc(String applicationId) {
-    return getList(SELECT_ENTITY + "WHERE entity.applicationId=?1" +
-        "ORDER BY entity.commitTime DESC", applicationId);
+    return getList(SELECT_ENTITY + WHERE_ENTITY_APPLICATION_ID_1 +
+        ORDER_BY_ENTITY_COMMIT_TIME_DESC, applicationId);
+  }
+
+  public SourceControlDefaultBranchCommitHistory getLatestCommitForApplicationId(String applicationId) {
+    return createQuery(SELECT_ENTITY + WHERE_ENTITY_APPLICATION_ID_1 +
+        ORDER_BY_ENTITY_COMMIT_TIME_DESC, applicationId).forceSingleResult().get();
   }
 
   public SourceControlDefaultBranchCommitHistory getByApplicationIdAndCommitHash(
@@ -82,7 +91,7 @@ public class SourceControlDefaultBranchCommitHistoryDAO
   {
     String sQuery = SELECT_ENTITY +
         "WHERE entity.applicationId=?1 AND entity.policyEvaluationId IS NOT NULL " +
-        "ORDER BY entity.commitTime DESC";
+        ORDER_BY_ENTITY_COMMIT_TIME_DESC;
     return createQuery(sQuery, applicationId).setMaxResults(1).get();
   }
 
@@ -114,7 +123,7 @@ public class SourceControlDefaultBranchCommitHistoryDAO
       final String applicationId)
   {
     List<SourceControlDefaultBranchCommitHistory> commitHistoryList = getList(
-        tx, SELECT_ENTITY + "WHERE entity.applicationId=?1", applicationId);
+        tx, SELECT_ENTITY + WHERE_ENTITY_APPLICATION_ID_1, applicationId);
     for (SourceControlDefaultBranchCommitHistory defaultBranchCommitHistory : commitHistoryList) {
       delete(tx, defaultBranchCommitHistory);
     }

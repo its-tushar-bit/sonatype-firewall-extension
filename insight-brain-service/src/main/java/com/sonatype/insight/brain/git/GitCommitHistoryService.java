@@ -160,4 +160,8 @@ public class GitCommitHistoryService
     commitHistory.setUpdateTime(new Date());
     commitHistoryDAO.update(commitHistory);
   }
+
+  public SourceControlDefaultBranchCommitHistory getLatestCommitForApplication(String applicationId) {
+    return commitHistoryDAO.getLatestCommitForApplicationId(applicationId);
+  }
 }

@@ -788,6 +788,27 @@ public class GitCommitHistoryServiceTest
     assertThat(sourceControlDefaultBranchCommitHistories).hasSize(0);
   }
 
+  @Test
+  public void testGetLatestCommitForApplication() {
+    // given
+    policyEvaluation = setupPolicyEvaluation(COMMIT_HASH);
+    final PullRequest pullRequest = new GithubPullRequest();
+    pullRequest.setBase("ANOTHER_BRANCH");
+    pullRequest.setBaseCommitHash("ANOTHER_COMMIT");
+    final Date date = new Date();
+    setupHistoryItemWithEvaluation("OLD_COMMIT", new Date(date.getTime() - 1000));
+    setupHistoryItemWithEvaluation("HISTORY_COMMIT_HASH", date);
+    setupHistoryItemWithoutEvaluation("OLDER_COMMIT", new Date(date.getTime() - 2000));
+    setupHistoryItemWithoutEvaluation("OLDEST_COMMIT", new Date(date.getTime() - 3000));
+
+    // when
+    final SourceControlDefaultBranchCommitHistory latestCommitForApplication =
+        gitCommitHistoryService.getLatestCommitForApplication(application.getId());
+
+    assertThat(latestCommitForApplication).isNotNull();
+    assertThat(latestCommitForApplication.getCommitHash()).isEqualTo("HISTORY_COMMIT_HASH");
+  }
+
   private void setupHistoryItemWithEvaluation(final String commitHash) {
     setupHistoryItemWithEvaluation(commitHash, new Date());
   }

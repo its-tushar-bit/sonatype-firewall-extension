@@ -309,6 +309,43 @@ public class SourceControlDefaultBranchCommitHistoryDAOTest
     commitHistoryList.forEach(entry -> assertThat(entry.getApplicationId()).isEqualTo(app2.getId()));
   }
 
+  @Test
+  public void testGetLatestCommitForApplicationId() {
+    // given : a set of commit history entries, some linked to a policy evaluation, some not, and some for a different
+    //         application
+    String policyEvaluationId =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan", "commit1")
+            .getId();
+    Date commitTime = new Date();
+    Date latestCommitTime = new Date(commitTime.getTime() + 5000);
+
+    // app 1
+    tempEntity.newSourceControlDefaultBranchCommitHistory(
+        application.getId(), "commit1", commitTime, policyEvaluationId);
+    tempEntity.newSourceControlDefaultBranchCommitHistory(application.getId(), "commit2", latestCommitTime, null);
+    // app 2
+    Application app2 = tempEntity.newApplication("app2", organization.getId());
+    String policyEvaluationId2 =
+        tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scan2", "commit7").getId();
+    tempEntity.newSourceControlDefaultBranchCommitHistory(app2.getId(), "commit7", commitTime, policyEvaluationId2);
+    tempEntity.newSourceControlDefaultBranchCommitHistory(app2.getId(), "commit8", commitTime, null);
+
+    // when : fetch all entries for first application
+    SourceControlDefaultBranchCommitHistory latestCommitForApplicationId =
+        defaultBranchCommitHistoryDAO.getLatestCommitForApplicationId(application.getId());
+
+    assertThat(latestCommitForApplicationId).isNotNull();
+    assertThat(latestCommitForApplicationId.getCommitHash()).isEqualTo("commit2");
+  }
+
+  @Test
+  public void testGetLatestCommitForApplicationId_NoCommits() {
+    SourceControlDefaultBranchCommitHistory latestCommitForApplicationId =
+        defaultBranchCommitHistoryDAO.getLatestCommitForApplicationId(application.getId());
+
+    assertThat(latestCommitForApplicationId).isNull();
+  }
+
   private Date createTime(int offsetInMinutes) {
     LocalDateTime dateTime = LocalDateTime.now();
     return toDate(offsetInMinutes < 0

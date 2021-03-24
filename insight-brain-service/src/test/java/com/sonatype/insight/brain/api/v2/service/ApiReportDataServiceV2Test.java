@@ -172,10 +172,8 @@ public class ApiReportDataServiceV2Test
         "http://osvdb.org/36079", "moderate");
     assertSv(component.securityData.securityIssues.get(1), "Open", "osvdb", "62054", null, "http://osvdb.org/62054",
         "moderate");
-    assertThat(component.innerSourceData.isInnerSource()).isTrue();
     assertThat(component.innerSourceData.getOwnerApplicationName()).isEqualTo("owningApplicationName");
     assertThat(component.innerSourceData.getOwnerApplicationId()).isEqualTo("123");
-    assertThat(component.innerSourceData.getOwnerComponentName()).isEqualTo("A");
 
     component = data.components.get(1);
     assertThat(component.hash).isEqualTo("69b58197caabec2e0d06");

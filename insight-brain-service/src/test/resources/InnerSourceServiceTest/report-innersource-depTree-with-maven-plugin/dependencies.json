@@ -1,0 +1,160 @@
+{
+  "dependencyTree": {
+    "componentIdentifier": {
+      "format": "maven",
+      "coordinates": {
+        "artifactId": "InnerSource-Consumer",
+        "classifier": "",
+        "extension": "pom",
+        "groupId": "org.example",
+        "version": "1.0.0"
+      }
+    },
+    "children": [
+      {
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "artifactId": "known-direct",
+            "classifier": "",
+            "extension": "jar",
+            "groupId": "com.innersource",
+            "version": "2.8.1"
+          }
+        },
+        "children": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "known-transitive1",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.innersource",
+                "version": "2.8.1"
+              }
+            },
+            "children": [
+              {
+                "componentIdentifier": {
+                  "format": "maven",
+                  "coordinates": {
+                    "artifactId": "known-transitive1-2",
+                    "classifier": "",
+                    "extension": "jar",
+                    "groupId": "com.innersource",
+                    "version": "2.8.1"
+                  }
+                },
+                "children": [
+                ]
+              }
+            ]
+          },
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "unknown-transitive1",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.innersource",
+                "version": "2.8.1"
+              }
+            },
+            "children": [
+            ]
+          }
+        ],
+        "direct": true
+      },
+      {
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "artifactId": "InnerSource-SubModule",
+            "classifier": "",
+            "extension": "jar",
+            "groupId": "com.innersource",
+            "version": "2.0.0"
+          }
+        },
+        "children": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "unknown-direct",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.innersource",
+                "version": "1.0.0-SNAPSHOT"
+              }
+            },
+            "children": [
+              {
+                "componentIdentifier": {
+                  "format": "maven",
+                  "coordinates": {
+                    "artifactId": "known-transitive3",
+                    "classifier": "",
+                    "extension": "jar",
+                    "groupId": "com.innersource",
+                    "version": "1.0.0-SNAPSHOT"
+                  }
+                },
+                "children": [
+                ]
+              },
+              {
+                "componentIdentifier": {
+                  "format": "maven",
+                  "coordinates": {
+                    "artifactId": "known-transitive1-2",
+                    "classifier": "",
+                    "extension": "jar",
+                    "groupId": "com.innersource",
+                    "version": "2.8.1"
+                  }
+                },
+                "children": [
+                ]
+              }
+            ],
+            "direct": true
+          }
+        ],
+        "module": true
+      },
+      {
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "artifactId": "InnerSource-Producer",
+            "classifier": "",
+            "extension": "jar",
+            "groupId": "com.innersource",
+            "version": "3.0.0"
+          }
+        },
+        "children": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "producer-transitive",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "com.innersource",
+                "version": "3.0.0"
+              }
+            },
+            "children": [
+            ]
+          }
+        ],
+        "direct": true
+      }
+    ]
+  }
+}

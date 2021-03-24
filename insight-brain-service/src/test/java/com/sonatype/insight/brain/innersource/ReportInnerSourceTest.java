@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -246,23 +247,23 @@ public class ReportInnerSourceTest extends InjectedTest
 
     assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
 
-    Map<ComponentIdentifier, String> dependencyComponentNameMap = new HashMap<>();
-    dependencyComponentNameMap
+    Map<ComponentIdentifier, String> dependencyComponentPurls = new HashMap<>();
+    dependencyComponentPurls
         .put(ComponentIdentifier.createMavenCoordinates("com.google.code.gson", "gson", "2.8.1", "", "jar"),
-            "insight-scanner-archive");
-    dependencyComponentNameMap
+            "pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar");
+    dependencyComponentPurls
         .put(ComponentIdentifier.createMavenCoordinates("xmlpull", "xmlpull", "1.1.3.1", "", "jar"),
-            "insight-module-model");
-    dependencyComponentNameMap.put(
+            "pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar");
+    dependencyComponentPurls.put(
         ComponentIdentifier.createMavenCoordinates("org.seleniumhq.selenium", "selenium-leg-rc", "2.48.2", "", "jar"),
-        "insight-scanner-archive");
-    dependencyComponentNameMap
+        "pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar");
+    dependencyComponentPurls
         .put(ComponentIdentifier.createMavenCoordinates("org.slf4j", "slf4j-api", "1.7.30", "", "jar"),
-            "insight-module-model");
-    dependencyComponentNameMap.put(ComponentIdentifier
+            "pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar");
+    dependencyComponentPurls.put(ComponentIdentifier
             .createMavenCoordinates("org.seleniumhq.selenium", "selenium-remote-driver", "2.48.2", "", "jar"),
-        "insight-scanner-archive");
-    assertComponentNameForTransitiveDependencies(bomInnerSourceDependencies, dependencyComponentNameMap);
+        "pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar");
+    assertComponentNameForTransitiveDependencies(bomInnerSourceDependencies, dependencyComponentPurls);
 
     Set<String> innerSourceIds = new HashSet<>();
     innerSourceIds.add(model.getApplicationId());
@@ -401,7 +402,7 @@ public class ReportInnerSourceTest extends InjectedTest
     for (JsonNode bomChild : bomJson.get("aaData")) {
       JsonNode innerSourceData = bomChild.get("innerSourceData");
       if (innerSourceData != null) {
-        JsonNode innerSourceNodeParent = innerSourceData.get("innerSource");
+        JsonNode innerSourceNodeParent = bomChild.get("innerSource");
         if (innerSourceNodeParent != null && innerSourceNodeParent.asBoolean()) {
           bomInnerSourceParent.add(bomChild);
         }
@@ -594,6 +595,151 @@ public class ReportInnerSourceTest extends InjectedTest
     verify(telemetrySender, never()).send(Mockito.any(TelemetryData.class));
   }
 
+  @Test
+  public void testProcessDependencyTree_not_maven_plugin() throws Exception {
+    JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-depTree-not-maven-plugin/dependencies.json");
+    JsonNode bomJson = getJsonNodeInformation("report-innersource-depTree-not-maven-plugin/bom.json");
+    JsonNode summaryJson = getJsonNodeInformation("report-innersource-depTree-not-maven-plugin/summary.json");
+    JsonNode dataJson = getJsonNodeInformation("report-innersource-depTree-not-maven-plugin/data.json");
+
+    ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender);
+
+    ComponentIdentifier knownDirect =
+        ComponentIdentifier.createMavenCoordinates("com.innersource", "known-direct", "2.8.1", "", "jar");
+    ComponentIdentifier knownTransitive1 =
+        ComponentIdentifier.createMavenCoordinates("com.innersource", "known-transitive1", "2.8.1", "", "jar");
+    ComponentIdentifier knownTransitive1Level2 =
+        ComponentIdentifier.createMavenCoordinates("com.innersource", "known-transitive1-2", "2.8.1", "", "jar");
+    ComponentIdentifier unknownTransitive1 =
+        ComponentIdentifier.createMavenCoordinates("com.innersource", "unknown-transitive1", "2.8.1", "", "jar");
+    ComponentIdentifier unknownDirect =
+        ComponentIdentifier.createMavenCoordinates("com.innersource", "unknown-direct", "1.0.0-SNAPSHOT", "", "jar");
+    ComponentIdentifier knownTransitive3 =
+        ComponentIdentifier.createMavenCoordinates("com.innersource", "known-transitive3", "1.0.0-SNAPSHOT", "", "jar");
+
+    assertBomNodeDependencyInfo(bomJson, knownDirect, true, null);
+    assertBomNodeDependencyInfo(bomJson, knownTransitive1, false, knownDirect);
+    assertBomNodeDependencyInfo(bomJson, knownTransitive1Level2, false, knownTransitive1);
+    assertBomNodeDependencyInfo(bomJson, unknownTransitive1, false, knownDirect);
+    assertBomNodeDependencyInfo(bomJson, unknownDirect, true, null);
+    assertBomNodeDependencyInfo(bomJson, knownTransitive3, false, unknownDirect);
+  }
+
+  @Test
+  public void testProcessDependencyTree_with_maven_plugin() throws Exception {
+    Application appInnerSource = tempEntity.newApplicationWithParent();
+    tempEntity.newInnerSourceComponent("pkg:maven/com.innersource/InnerSource-Producer", appInnerSource);
+
+    JsonNode dependenciesJson =
+        getJsonNodeInformation("report-innersource-depTree-with-maven-plugin/dependencies.json");
+    JsonNode bomJson = getJsonNodeInformation("report-innersource-depTree-with-maven-plugin/bom.json");
+    JsonNode summaryJson = getJsonNodeInformation("report-innersource-depTree-with-maven-plugin/summary.json");
+    JsonNode dataJson = getJsonNodeInformation("report-innersource-depTree-with-maven-plugin/data.json");
+
+    ReportInnerSource.processDependencyTree(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender);
+
+    ComponentIdentifier knownDirect =
+        ComponentIdentifier.createMavenCoordinates("com.innersource", "known-direct", "2.8.1", "", "jar");
+    ComponentIdentifier knownTransitive1 =
+        ComponentIdentifier.createMavenCoordinates("com.innersource", "known-transitive1", "2.8.1", "", "jar");
+    ComponentIdentifier knownTransitive1Level2 =
+        ComponentIdentifier.createMavenCoordinates("com.innersource", "known-transitive1-2", "2.8.1", "", "jar");
+    ComponentIdentifier unknownTransitive1 =
+        ComponentIdentifier.createMavenCoordinates("com.innersource", "unknown-transitive1", "2.8.1", "", "jar");
+    ComponentIdentifier unknownDirect =
+        ComponentIdentifier.createMavenCoordinates("com.innersource", "unknown-direct", "1.0.0-SNAPSHOT", "", "jar");
+    ComponentIdentifier knownTransitive3 =
+        ComponentIdentifier.createMavenCoordinates("com.innersource", "known-transitive3", "1.0.0-SNAPSHOT", "", "jar");
+    ComponentIdentifier innerSourceProducer =
+        ComponentIdentifier.createMavenCoordinates("com.innersource", "InnerSource-Producer", "3.0.0", "", "jar");
+    ComponentIdentifier producerTransitive1 =
+        ComponentIdentifier.createMavenCoordinates("com.innersource", "producer-transitive", "3.0.0", "", "jar");
+
+    InnerSourceData isDataForProducer = new InnerSourceData(appInnerSource.getName(), appInnerSource.getId(), null);
+    InnerSourceData isDataForProducerTransitive = new InnerSourceData(appInnerSource.getName(), appInnerSource.getId(),
+        PackageUrlIdentifier.toPackageUrl(innerSourceProducer));
+
+    assertBomNodeDependencyInfo(bomJson, knownDirect, true, null);
+    assertBomNodeDependencyInfo(bomJson, knownTransitive1, false, knownDirect);
+    assertBomNodeDependencyInfo(bomJson, knownTransitive1Level2, false, knownTransitive1);
+    assertBomNodeDependencyInfo(bomJson, unknownTransitive1, false, knownDirect);
+    assertBomNodeDependencyInfo(bomJson, unknownDirect, true, false, null, null);
+    assertBomNodeDependencyInfo(bomJson, knownTransitive3, false, false, unknownDirect, null);
+    assertBomNodeDependencyInfo(bomJson, innerSourceProducer, true, true, null, isDataForProducer);
+    assertBomNodeDependencyInfo(bomJson, producerTransitive1, false, false, innerSourceProducer,
+        isDataForProducerTransitive);
+  }
+
+  private void assertBomNodeDependencyInfo(
+      final JsonNode bomJson,
+      final ComponentIdentifier componentIdentifier,
+      final boolean isDirect,
+      final ComponentIdentifier parentId)
+  {
+    assertBomNodeDependencyInfo(bomJson, componentIdentifier, isDirect, false, parentId, null);
+  }
+
+  private void assertBomNodeDependencyInfo(
+      final JsonNode bomJson,
+      final ComponentIdentifier componentIdentifier,
+      final boolean isDirect,
+      final boolean isInnerSource,
+      final ComponentIdentifier parentId,
+      final InnerSourceData innerSourceData)
+  {
+    JsonNode bomNode = findNodeById(bomJson, componentIdentifier);
+    assertThat(bomNode.get("directDependency").asBoolean()).isEqualTo(isDirect);
+    assertThat(bomNode.get("innerSource").asBoolean()).isEqualTo(isInnerSource);
+    assertThat(getAttributeTextSafely(bomNode, "parentComponentPurl"))
+        .isEqualTo(parentId == null ? null : PackageUrlIdentifier.toPackageUrl(parentId));
+    if (innerSourceData != null) {
+      JsonNode innerSourceDataNode = bomNode.get("innerSourceData");
+      assertThat(innerSourceDataNode.get("ownerApplicationName").asText())
+          .isEqualTo(innerSourceData.getOwnerApplicationName());
+      assertThat(innerSourceDataNode.get("ownerApplicationId").asText())
+          .isEqualTo(innerSourceData.getOwnerApplicationId());
+      if (innerSourceData.getInnerSourceComponentPurl() == null) {
+        assertThat(innerSourceDataNode.get("innerSourceComponentPurl")).isNull();
+      }
+      else {
+        assertThat(innerSourceDataNode.get("innerSourceComponentPurl").asText())
+            .isEqualTo(innerSourceData.getInnerSourceComponentPurl());
+      }
+    }
+  }
+
+  private String getAttributeTextSafely(final JsonNode bomNode, final String fieldName) {
+    JsonNode purlNode = bomNode.get(fieldName);
+    return purlNode == null ? null : purlNode.asText();
+  }
+
+  private JsonNode findNodeById(final JsonNode bomJson, final ComponentIdentifier identifier) {
+    for (JsonNode node : bomJson.get("aaData")) {
+      ComponentIdentifier nodeId = ComponentIdentifierAdapter.getComponentIdentifier(node);
+      if (nodeId != null) {
+        if (Objects.equals(identifier, nodeId)) {
+          return node;
+        }
+      }
+      else {
+        String mavenIdString = toMavenIdString(identifier);
+        for (final JsonNode pathElement : node.get("pathnames")) {
+          if (pathElement.asText().contains(mavenIdString)) {
+            return node;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  private String toMavenIdString(final ComponentIdentifier identifier) {
+    return String.format("%s:%s:jar:%s",
+        identifier.get(ComponentIdentifier.MAVEN_GROUP_ID),
+        identifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID),
+        identifier.get(ComponentIdentifier.VERSION));
+  }
+
   private void assertInnerSourceParent(
       JsonNode bomInnerSource,
       Application app,
@@ -614,7 +760,7 @@ public class ReportInnerSourceTest extends InjectedTest
         new AnalyzerFeatures(AnalysisSource.THIRD_PARTY, AnalysisType.COORDINATE, "mvn");
     assertIdentificationSourceAndAnalyzerFeatures(bomInnerSource, IdentificationSource.PACKAGE_MANIFEST.getId(),
         analyzerFeaturesExpected);
-    assertInnerSourceTree(bomInnerSource, app, componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID));
+    assertInnerSourceTree(bomInnerSource, app);
   }
 
   private void assertIdentificationSourceAndAnalyzerFeatures(
@@ -632,25 +778,29 @@ public class ReportInnerSourceTest extends InjectedTest
       final List<JsonNode> bomInnerSourceDependencies,
       final Application appInnerSource)
   {
-    for (JsonNode transitiveDependencies : bomInnerSourceDependencies) {
-      assertThat(transitiveDependencies).isNotNull();
-      assertThat(transitiveDependencies.get("componentIdentifier")).isNotNull();
-      assertThat(transitiveDependencies.get("innerSourceData").get("ownerApplicationName").asText())
+    assertThat(bomInnerSourceDependencies).allSatisfy(transitiveDependency -> {
+      assertThat(transitiveDependency).isNotNull();
+      assertThat(transitiveDependency.get("componentIdentifier")).isNotNull();
+      assertThat(transitiveDependency.get("directDependency").asBoolean()).isFalse();
+      assertThat(transitiveDependency.get("parentComponentPurl")).isNotNull();
+      assertThat(transitiveDependency.get("innerSource").asBoolean()).isFalse();
+      assertThat(transitiveDependency.get("innerSourceData").get("ownerApplicationName").asText())
           .isEqualTo(appInnerSource.getName());
-      assertThat(transitiveDependencies.get("innerSourceData").get("ownerApplicationId").asText())
+      assertThat(transitiveDependency.get("innerSourceData").get("ownerApplicationId").asText())
           .isEqualTo(appInnerSource.getId());
-    }
+      assertThat(transitiveDependency.get("innerSourceData").get("innerSourceComponentPurl").asText()).isNotNull();
+    });
   }
 
   private void assertComponentNameForTransitiveDependencies(
       final List<JsonNode> bomInnerSourceDependencies,
-      final Map<ComponentIdentifier, String> dependencyComponentNameMap)
+      final Map<ComponentIdentifier, String> dependencyComponentPurls)
   {
     for (JsonNode transitiveDependencies : bomInnerSourceDependencies) {
       ComponentIdentifier componentIdentifier =
           ComponentIdentifierAdapter.getComponentIdentifier(transitiveDependencies);
-      String expectedComponentName = dependencyComponentNameMap.get(componentIdentifier);
-      assertThat(transitiveDependencies.get("innerSourceData").get("ownerComponentName").asText())
+      String expectedComponentName = dependencyComponentPurls.get(componentIdentifier);
+      assertThat(transitiveDependencies.get("innerSourceData").get("innerSourceComponentPurl").asText())
           .isEqualTo(expectedComponentName);
     }
   }
@@ -677,12 +827,10 @@ public class ReportInnerSourceTest extends InjectedTest
 
   private void assertInnerSourceTree(
       JsonNode innerSourceNode,
-      Application app,
-      String innerSourceComponentName)
+      Application app)
       throws IOException
   {
-    InnerSourceData expectedInnerSourceData =
-        new InnerSourceData(app.getName(), app.getId(), innerSourceComponentName, true);
+    InnerSourceData expectedInnerSourceData = new InnerSourceData(app.getName(), app.getId(), null);
     InnerSourceData innerSourceDataInBom =
         JsonUtils.asPojo(innerSourceNode.get("innerSourceData"), InnerSourceData.class);
     assertThat(innerSourceDataInBom).usingRecursiveComparison().isEqualTo(expectedInnerSourceData);

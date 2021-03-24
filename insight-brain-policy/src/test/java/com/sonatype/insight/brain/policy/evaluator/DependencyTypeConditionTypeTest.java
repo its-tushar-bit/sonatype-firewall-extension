@@ -110,7 +110,6 @@ public class DependencyTypeConditionTypeTest
     List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     InnerSourceData innerSourceData = new InnerSourceData();
-    innerSourceData.setInnerSource(true);
     component1.setInnerSourceData(innerSourceData);
     components.add(component1);
     Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
@@ -131,7 +130,6 @@ public class DependencyTypeConditionTypeTest
     List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     InnerSourceData innerSourceData = new InnerSourceData();
-    innerSourceData.setInnerSource(true);
     component1.setInnerSourceData(innerSourceData);
     components.add(component1);
     Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);

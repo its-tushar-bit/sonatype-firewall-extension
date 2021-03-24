@@ -5,15 +5,17 @@
  */
 package com.sonatype.insight.brain.model.component;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 public class InnerSourceData
 {
   private String ownerApplicationName;
 
   private String ownerApplicationId;
 
-  private String ownerComponentName;
-
-  private boolean innerSource;
+  @JsonInclude(Include.NON_NULL)
+  private String innerSourceComponentPurl;
 
   public InnerSourceData() {
   }
@@ -21,23 +23,11 @@ public class InnerSourceData
   public InnerSourceData(
       final String ownerApplicationName,
       final String ownerApplicationId,
-      final String ownerComponentName)
+      final String innerSourceComponentPurl)
   {
     this.ownerApplicationName = ownerApplicationName;
     this.ownerApplicationId = ownerApplicationId;
-    this.ownerComponentName = ownerComponentName;
-  }
-
-  public InnerSourceData(
-      final String ownerApplicationName,
-      final String ownerApplicationId,
-      final String ownerComponentName,
-      final boolean innerSource)
-  {
-    this.ownerApplicationName = ownerApplicationName;
-    this.ownerApplicationId = ownerApplicationId;
-    this.ownerComponentName = ownerComponentName;
-    this.innerSource = innerSource;
+    this.innerSourceComponentPurl = innerSourceComponentPurl;
   }
 
   public String getOwnerApplicationName() {
@@ -48,12 +38,8 @@ public class InnerSourceData
     return ownerApplicationId;
   }
 
-  public String getOwnerComponentName() {
-    return ownerComponentName;
-  }
-
-  public boolean isInnerSource() {
-    return innerSource;
+  public String getInnerSourceComponentPurl() {
+    return innerSourceComponentPurl;
   }
 
   public void setOwnerApplicationName(final String ownerApplicationName) {
@@ -64,11 +50,7 @@ public class InnerSourceData
     this.ownerApplicationId = ownerApplicationId;
   }
 
-  public void setInnerSource(final boolean innerSource) {
-    this.innerSource = innerSource;
-  }
-
-  public void setOwnerComponentName(final String ownerComponentName) {
-    this.ownerComponentName = ownerComponentName;
+  public void setInnerSourceComponentPurl(final String ownerComponentName) {
+    this.innerSourceComponentPurl = ownerComponentName;
   }
 }

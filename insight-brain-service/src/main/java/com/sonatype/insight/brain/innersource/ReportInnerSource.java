@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.innersource;
 
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -35,6 +34,7 @@ import com.sonatype.insight.util.ComponentIdentifierHelper;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,13 +67,19 @@ public final class ReportInnerSource
 
       if (!dependencyTreeNode.isMissingNode()) {
         DependencyNode tree = JsonUtils.asPojo(dependencyTreeNode, DependencyNode.class);
-        if (tree != null && tree.getComponentIdentifier() != null) {
-          InnerSourceComponentDAO innerSourceComponentDAO = new InnerSourceComponentDAO();
-          boolean isValidRootArtifact =
-              saveInnerSourceComponent(tree.getComponentIdentifier(), application.getId(), innerSourceComponentDAO);
-          if (isValidRootArtifact) {
-            processInnerSourceDependencies(tree.getChildren(), bomJson, dataJson, summaryJson, application,
-                innerSourceComponentDAO, telemetrySender);
+        if (tree != null) {
+          if (tree.getComponentIdentifier() != null) {
+            InnerSourceComponentDAO innerSourceComponentDAO = new InnerSourceComponentDAO();
+            boolean isValidRootArtifact =
+                saveInnerSourceComponent(tree.getComponentIdentifier(), application.getId(), innerSourceComponentDAO);
+            if (isValidRootArtifact) {
+              processInnerSourceDependencies(tree.getChildren(), bomJson, dataJson, summaryJson, application,
+                  innerSourceComponentDAO, telemetrySender);
+            }
+          }
+          // no root ComponentIdentifier refers to a tree derived based on HDS data
+          else if (CollectionUtils.isNotEmpty(tree.getChildren())) {
+            updateDependencyInfoForComponentChildren(tree.getChildren(), true, false, null, bomJson);
           }
         }
       }
@@ -215,12 +221,12 @@ public final class ReportInnerSource
       final Set<String> innerSourceAppIds,
       final Set<ComponentIdentifier> directDependencies)
   {
-    ComponentIdentifier parentComponent = directDependency.getComponentIdentifier();
+    ComponentIdentifier dependencyId = directDependency.getComponentIdentifier();
 
-    if (parentComponent != null) {
+    if (dependencyId != null) {
       ComponentIdentifier simplifiedComponent =
-          ComponentIdentifier.createMavenCoordinates(parentComponent.get(ComponentIdentifier.MAVEN_GROUP_ID),
-              parentComponent.get(ComponentIdentifier.MAVEN_ARTIFACT_ID), null);
+          ComponentIdentifier.createMavenCoordinates(dependencyId.get(ComponentIdentifier.MAVEN_GROUP_ID),
+              dependencyId.get(ComponentIdentifier.MAVEN_ARTIFACT_ID), null);
 
       InnerSourceComponent innerSourceComponent =
           innerSourceComponentDAO.getByPackageUrl(PackageUrlIdentifier.fromComponentIdentifier(simplifiedComponent));
@@ -229,33 +235,42 @@ public final class ReportInnerSource
         Application innerSourceApp = applicationDAO.getByIdNotNull(innerSourceComponent.getApplicationId());
 
         boolean isInnerSourceDependency =
-            updateDependencyBomAsInnerSource(bom, parentComponent, innerSourceApp, currentApplication,
-                knownArtifactCount,
+            updateDependencyBomAsInnerSource(bom, dependencyId, innerSourceApp, currentApplication, knownArtifactCount,
                 exactlyMatchedComponentCount);
 
         if (isInnerSourceDependency) {
           innerSourceAppIds.add(innerSourceApp.getId());
-
-          List<DependencyNode> childrenComponents = getAllTransitiveDependencies(directDependency.getChildren());
-
-          log.info("InnerSource component found '{}' with {} transitive dependencies", parentComponent,
-              childrenComponents.size());
-          processTransitiveDependencies(bom, childrenComponents, innerSourceApp, innerSourceComponentDAO,
-              knownArtifactCount, exactlyMatchedComponentCount, directDependency, directDependencies);
+          processTransitiveDependencies(bom, directDependency.getChildren(), innerSourceApp, innerSourceComponentDAO,
+              knownArtifactCount, exactlyMatchedComponentCount, directDependency,
+              directDependency.getComponentIdentifier(), directDependencies);
         }
+      }
+      else {
+        // a regular (non InnerSource) dependency
+        updateBomNodeDependencyInformation(bom, true, false, dependencyId, null, null);
+        updateDependencyInfoForComponentChildren(directDependency.getChildren(), false, false,
+            directDependency.getComponentIdentifier(), bom);
       }
     }
   }
 
-  private static List<DependencyNode> getAllTransitiveDependencies(List<DependencyNode> children) {
-    List<DependencyNode> result = new LinkedList<>();
-    for (DependencyNode child : children) {
-      result.add(child);
-      if (!child.getChildren().isEmpty()) {
-        result.addAll(getAllTransitiveDependencies(child.getChildren()));
+  private static void updateDependencyInfoForComponentChildren(
+      final List<DependencyNode> children,
+      final boolean isDirect,
+      final boolean isInnerSource,
+      final ComponentIdentifier parentIdentifier,
+      final JsonNode bomJson)
+  {
+    for (DependencyNode node : children) {
+      if (node != null && node.getComponentIdentifier() != null) {
+        updateBomNodeDependencyInformation(bomJson, isDirect, isInnerSource, node.getComponentIdentifier(),
+            parentIdentifier, null);
+        if (CollectionUtils.isNotEmpty(node.getChildren())) {
+          updateDependencyInfoForComponentChildren(node.getChildren(), false, isInnerSource,
+              node.getComponentIdentifier(), bomJson);
+        }
       }
     }
-    return result;
   }
 
   private static void updateReportSummaryWithInnerSourceResults(
@@ -292,10 +307,8 @@ public final class ReportInnerSource
         // it does not need to be identified as InnerSource as it belongs to the app of the current report,
         // but it can be marked as a known component
         if (!Objects.equals(currentApplication.getId(), innerSourceApp.getId())) {
-          String innerSourceComponentName = getComponentName(innerSourceComponentIdentifier);
-          InnerSourceData innerSourceData =
-              new InnerSourceData(innerSourceApp.getName(), innerSourceApp.getId(), innerSourceComponentName, true);
-          bomObjectNode.set("innerSourceData", JsonUtils.asTree(innerSourceData));
+          InnerSourceData innerSourceData = new InnerSourceData(innerSourceApp.getName(), innerSourceApp.getId(), null);
+          updateBomNodeDependencyInformation(bom, true, true, bomComponentIdentifier, null, innerSourceData);
           isInnerSourceDependency = true;
         }
 
@@ -333,6 +346,34 @@ public final class ReportInnerSource
         AnalysisType.COORDINATE, analyzerFeatures.get("scanClient").asText())));
   }
 
+  private static void updateBomNodeDependencyInformation(
+      final JsonNode bomJson,
+      final boolean isDirect,
+      final boolean isInnerSource,
+      final ComponentIdentifier componentId,
+      final ComponentIdentifier parentComponentId,
+      final InnerSourceData innerSourceData)
+  {
+    for (JsonNode bomChild : bomJson.get("aaData")) {
+      ComponentIdentifier bomComponentIdentifier = getBomComponentIdentifier(bomChild);
+      if (Objects.equals(bomComponentIdentifier, componentId)) {
+        ObjectNode bomObjectNode = (ObjectNode) bomChild;
+        //At the moment we don't support multiple parents. So if a certain dependency found in multiple positions
+        //of a tree we keep the first resolved relationship
+        if (bomObjectNode.get("directDependency") == null) {
+          bomObjectNode.put("directDependency", isDirect);
+          bomObjectNode.put("innerSource", isInnerSource);
+          if (!isDirect && parentComponentId != null) {
+            bomObjectNode.put("parentComponentPurl", PackageUrlIdentifier.toPackageUrl(parentComponentId));
+          }
+          if (innerSourceData != null) {
+            bomObjectNode.set("innerSourceData", JsonUtils.asTree(innerSourceData));
+          }
+        }
+      }
+    }
+  }
+
   private static void processTransitiveDependencies(
       final JsonNode bom,
       final List<DependencyNode> transitiveDependencies,
@@ -340,7 +381,8 @@ public final class ReportInnerSource
       final InnerSourceComponentDAO innerSourceComponentDAO,
       final AtomicInteger knownArtifactCount,
       final AtomicInteger exactlyMatchedComponentCount,
-      final DependencyNode parentDependency,
+      final DependencyNode innerSourceParent,
+      final ComponentIdentifier parentComponentIdentifier,
       final Set<ComponentIdentifier> directDependencies)
   {
     for (DependencyNode dependency : transitiveDependencies) {
@@ -351,10 +393,10 @@ public final class ReportInnerSource
             Objects.equals(bomComponentIdentifier, dependency.getComponentIdentifier())) {
           ObjectNode bomObjectNode = (ObjectNode) bomChild;
 
-          String innerSourceComponentName = getComponentName(parentDependency.getComponentIdentifier());
-          InnerSourceData innerSourceData =
-              new InnerSourceData(innerSourceApp.getName(), innerSourceApp.getId(), innerSourceComponentName);
-          bomObjectNode.set("innerSourceData", JsonUtils.asTree(innerSourceData));
+          InnerSourceData innerSourceData = new InnerSourceData(innerSourceApp.getName(), innerSourceApp.getId(),
+              PackageUrlIdentifier.toPackageUrl(innerSourceParent.getComponentIdentifier()));
+          updateBomNodeDependencyInformation(bom, false, false, bomComponentIdentifier,
+              parentComponentIdentifier, innerSourceData);
           log.debug("Component {} associated with InnerSource app {}", bomComponentIdentifier,
               innerSourceApp.getName());
 
@@ -365,13 +407,12 @@ public final class ReportInnerSource
           break;
         }
       }
+      if (CollectionUtils.isNotEmpty(dependency.getChildren())) {
+        processTransitiveDependencies(bom, dependency.getChildren(), innerSourceApp, innerSourceComponentDAO,
+            knownArtifactCount, exactlyMatchedComponentCount, innerSourceParent,
+            dependency.getComponentIdentifier(), directDependencies);
+      }
     }
-  }
-
-  private static String getComponentName(ComponentIdentifier componentIdentifier) {
-    PackageUrlIdentifier packageUrlIdentifier =
-        PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
-    return packageUrlIdentifier.getName();
   }
 
   private static ComponentIdentifier getBomComponentIdentifier(JsonNode bomChild) {

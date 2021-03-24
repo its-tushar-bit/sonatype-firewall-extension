@@ -199,7 +199,7 @@ export function getFirewallStatusUrl() {
 }
 
 export function getFirewallConfigurationUrl() {
-  return uriTemplate`/api/experimental/firewall/configuration`;
+  return uriTemplate`/api/experimental/firewall/releaseQuarantine/configuration`;
 }
 
 export function getFirewallReleaseQuarantineSummaryUrl() {

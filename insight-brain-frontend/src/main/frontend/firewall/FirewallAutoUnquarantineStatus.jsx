@@ -20,14 +20,9 @@ export default function FirewallAutoUnquarantineStatus(props) {
     totalPolicyConditionTypesCount
   } = props;
 
-  //serverState
+  //configurationState
   const {
     autoUnquarantineEnabled
-  } = props;
-
-  //custom
-  const {
-    showCounts
   } = props;
 
   return (
@@ -40,9 +35,9 @@ export default function FirewallAutoUnquarantineStatus(props) {
           <StatusIndicatorIcon status={autoUnquarantineEnabled}/>
           <span>{autoUnquarantineEnabled ? 'Active' : 'Inactive'}</span>
         </div>
-        { showCounts && <div className="nx-card__text">
+        <div className="nx-card__text">
           releasing {enabledPolicyConditionTypesCount} of {totalPolicyConditionTypesCount} policy types
-        </div>}
+        </div>
       </div>
       <footer className="nx-card__footer">
         <a className="nx-text-link" onClick={openConfigurationModal}>Configure</a>
@@ -55,7 +50,6 @@ FirewallAutoUnquarantineStatus.propTypes = {
   autoUnquarantineEnabled: PropTypes.bool.isRequired,
   enabledPolicyConditionTypesCount: PropTypes.number.isRequired,
   totalPolicyConditionTypesCount: PropTypes.number.isRequired,
-  openConfigurationModal: PropTypes.func.isRequired,
-  showCounts: PropTypes.bool.isRequired
+  openConfigurationModal: PropTypes.func.isRequired
 };
 

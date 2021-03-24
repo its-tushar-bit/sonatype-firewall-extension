@@ -65,7 +65,7 @@ export default function FirewallAutoUnquarantinePage(props) {
         <div className="nx-card-container nx-card-container--no-wrap">
           <FirewallAutoReleaseQuarantineMtd autoReleaseQuarantineCountMTD={autoReleaseQuarantineCountMTD}/>
           <FirewallAutoReleaseQuarantineYtd autoReleaseQuarantineCountYTD={autoReleaseQuarantineCountYTD}/>
-          <FirewallAutoUnquarantineStatus { ...props } showCounts={false}/>
+          <FirewallAutoUnquarantineStatus { ...props }/>
           <FirewallPolicyConditionTypes { ...props }/>
         </div>
         <FirewallUnquarantineTable/>

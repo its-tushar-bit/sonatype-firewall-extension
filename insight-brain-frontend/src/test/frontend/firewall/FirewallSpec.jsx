@@ -95,7 +95,6 @@ describe('Firewall', function() {
     expect(card).toHaveProp('autoUnquarantineEnabled', false);
     expect(card).toHaveProp('enabledPolicyConditionTypesCount', 3);
     expect(card).toHaveProp('totalPolicyConditionTypesCount', 4);
-    expect(card).toHaveProp('showCounts', true);
     expect(card).toHaveProp('openConfigurationModal', openConfigurationModalSpy);
   });
 

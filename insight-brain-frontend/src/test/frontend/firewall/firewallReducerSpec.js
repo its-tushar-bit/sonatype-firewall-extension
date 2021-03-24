@@ -41,7 +41,7 @@ describe('firewallReducer', function() {
       expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(false);
       expect(newState.autoUnquarantineState.viewState.loadConfigurationError).toBeNull();
       expect(newState.autoUnquarantineState.viewState.enabledPolicyConditionTypesCount).toBe(0);
-      expect(newState.autoUnquarantineState.viewState.totalPolicyConditionTypesCount).toBe(1);
+      expect(newState.autoUnquarantineState.viewState.totalPolicyConditionTypesCount).toBe(0);
 
       //quarantineSummaryState.viewState
       expect(newState.quarantineSummaryState.viewState.loadedQuarantineSummary).toBe(false);
@@ -355,10 +355,13 @@ describe('firewallReducer', function() {
             loadedConfiguration: false,
             loadConfigurationError: 'error!',
             enabledPolicyConditionTypesCount: 0,
-            totalPolicyConditionTypesCount: 1
+            totalPolicyConditionTypesCount: 0
           }
         },
-        configurationState: null,
+        configurationState: {
+          other: otherObject,
+          autoUnquarantineEnabled: false
+        },
         quarantineSummaryState: {
           other: otherObject,
           viewState: {
@@ -368,14 +371,14 @@ describe('firewallReducer', function() {
       });
       const newState = reduce(state, {
         type: 'FIREWALL_LOAD_CONFIGURATION_FULFILLED',
-        payload: {autoUnquarantineEnabled: true}
+        payload: [{autoReleaseQuarantineEnabled: true}, {autoReleaseQuarantineEnabled: false}]
       });
 
       // autoUnquarantineState
       expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(true);
       expect(newState.autoUnquarantineState.viewState.loadConfigurationError).toBeNull();
       expect(newState.autoUnquarantineState.viewState.enabledPolicyConditionTypesCount).toBe(1);
-      expect(newState.autoUnquarantineState.viewState.totalPolicyConditionTypesCount).toBe(1);
+      expect(newState.autoUnquarantineState.viewState.totalPolicyConditionTypesCount).toBe(2);
 
       // configurationState
       expect(newState.configurationState).toEqual({autoUnquarantineEnabled: true});
@@ -823,7 +826,7 @@ describe('firewallReducer', function() {
       expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(false);
       expect(newState.autoUnquarantineState.viewState.loadConfigurationError).toBeNull();
       expect(newState.autoUnquarantineState.viewState.enabledPolicyConditionTypesCount).toBe(0);
-      expect(newState.autoUnquarantineState.viewState.totalPolicyConditionTypesCount).toBe(1);
+      expect(newState.autoUnquarantineState.viewState.totalPolicyConditionTypesCount).toBe(0);
 
       //configurationState
       expect(newState.configurationState.autoUnquarantineEnabled).toBe(false);

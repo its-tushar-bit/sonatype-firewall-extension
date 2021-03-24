@@ -22,8 +22,7 @@ describe('FirewallAutoUnquarantineStatus', function() {
       openConfigurationModal: openConfigurationModalSpy,
       enabledPolicyConditionTypesCount: 1,
       totalPolicyConditionTypesCount: 2,
-      autoUnquarantineEnabled: true,
-      showCounts: true
+      autoUnquarantineEnabled: true
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(FirewallAutoUnquarantineStatus, minimalProps);
@@ -69,19 +68,12 @@ describe('FirewallAutoUnquarantineStatus', function() {
     expect(icon).toHaveProp('status', false);
   });
 
-  it('renders counts when showCounts is true', function() {
+  it('renders counts', function() {
     const component = getShallowComponent(),
         counts = component.find('.nx-card__text');
 
     expect(counts).toExist();
     expect(counts).toHaveText('releasing 1 of 2 policy types');
-  });
-
-  it('does not render counts when showCounts is false', function() {
-    const component = getShallowComponent({showCounts: false}),
-        counts = component.find('.nx-card__text');
-
-    expect(counts).not.toExist();
   });
 
   it('renders card footer', function() {

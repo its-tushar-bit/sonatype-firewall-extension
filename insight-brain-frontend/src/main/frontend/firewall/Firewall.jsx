@@ -66,7 +66,7 @@ export default function Firewall(props) {
         <FirewallStatus { ...props }/>
         <div className="nx-card-container nx-card-container--no-wrap">
           <FirewallQuarantineStatus { ...props }/>
-          <FirewallAutoUnquarantineStatus { ...props } showCounts={true}/>
+          <FirewallAutoUnquarantineStatus { ...props }/>
           <FirewallQuarantine { ...props }/>
           <FirewallAutoReleaseQuarantine autoReleaseQuarantineCountMTD={autoReleaseQuarantineCountMTD}
                                          $state={$state}/>

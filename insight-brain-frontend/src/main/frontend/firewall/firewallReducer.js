@@ -44,7 +44,7 @@ const initialState = Object.freeze({
       autoReleaseQuarantineCountMTD: '-',
       autoReleaseQuarantineCountYTD: '-',
       enabledPolicyConditionTypesCount: 0,
-      totalPolicyConditionTypesCount: 1
+      totalPolicyConditionTypesCount: 0
     })
   }),
   configurationState: Object.freeze({
@@ -139,7 +139,7 @@ const setShowConfigurationModal = (payload, state) => ({
 const saveConfigurationFulfilled = (payload, state) => ({
   ...state,
   autoUnquarantineState: pathSet(['viewState', 'enabledPolicyConditionTypesCount'],
-      numberOfenabledPolicyConditionTypesCount(payload), state.autoUnquarantineState),
+      payload.autoUnquarantineEnabled ? 1 : 0, state.autoUnquarantineState),
   configurationState: propSet('autoUnquarantineEnabled', payload.autoUnquarantineEnabled, state.configurationState)
 });
 
@@ -157,11 +157,13 @@ const loadConfigurationFulfilled = (payload, state) => ({
       ...state.autoUnquarantineState.viewState,
       loadedConfiguration: true,
       loadConfigurationError: null,
-      enabledPolicyConditionTypesCount: numberOfenabledPolicyConditionTypesCount(payload),
-      totalPolicyConditionTypesCount: 1
+      enabledPolicyConditionTypesCount: numberOfEnabledPolicyConditionTypesCount(payload),
+      totalPolicyConditionTypesCount: payload.length
     }
   },
-  configurationState: payload
+  configurationState: {
+    autoUnquarantineEnabled: numberOfEnabledPolicyConditionTypesCount(payload) > 0
+  }
 });
 
 const loadConfigurationFailed = (payload, state) => {
@@ -172,8 +174,10 @@ const loadConfigurationFailed = (payload, state) => {
   return pathSet(['viewState', 'loadError'], newState.viewState.loadError || payload, newState);
 };
 
-function numberOfenabledPolicyConditionTypesCount(payload) {
-  return payload.autoUnquarantineEnabled ? 1 : 0;
+function numberOfEnabledPolicyConditionTypesCount(payload) {
+  return payload.filter(function(conditionType) {
+    return conditionType.autoReleaseQuarantineEnabled === true;
+  }).length;
 }
 
 const quarantineSummaryRequested = (payload, state) => ({

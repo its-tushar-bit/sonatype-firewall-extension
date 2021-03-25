@@ -217,32 +217,29 @@ public final class ReportInnerSource
   {
     ComponentIdentifier parentComponent = directDependency.getComponentIdentifier();
 
-    if (parentComponent != null) {
-      ComponentIdentifier simplifiedComponent =
-          ComponentIdentifier.createMavenCoordinates(parentComponent.get(ComponentIdentifier.MAVEN_GROUP_ID),
-              parentComponent.get(ComponentIdentifier.MAVEN_ARTIFACT_ID), null);
+    ComponentIdentifier simplifiedComponent =
+        ComponentIdentifier.createMavenCoordinates(parentComponent.get(ComponentIdentifier.MAVEN_GROUP_ID),
+            parentComponent.get(ComponentIdentifier.MAVEN_ARTIFACT_ID), null);
 
-      InnerSourceComponent innerSourceComponent =
-          innerSourceComponentDAO.getByPackageUrl(PackageUrlIdentifier.fromComponentIdentifier(simplifiedComponent));
+    InnerSourceComponent innerSourceComponent =
+        innerSourceComponentDAO.getByPackageUrl(PackageUrlIdentifier.fromComponentIdentifier(simplifiedComponent));
 
-      if (innerSourceComponent != null) {
-        Application innerSourceApp = applicationDAO.getByIdNotNull(innerSourceComponent.getApplicationId());
+    if (innerSourceComponent != null) {
+      Application innerSourceApp = applicationDAO.getByIdNotNull(innerSourceComponent.getApplicationId());
 
-        boolean isInnerSourceDependency =
-            updateDependencyBomAsInnerSource(bom, parentComponent, innerSourceApp, currentApplication,
-                knownArtifactCount,
-                exactlyMatchedComponentCount);
+      boolean isInnerSourceDependency =
+          updateDependencyBomAsInnerSource(bom, parentComponent, innerSourceApp, currentApplication, knownArtifactCount,
+              exactlyMatchedComponentCount);
 
-        if (isInnerSourceDependency) {
-          innerSourceAppIds.add(innerSourceApp.getId());
+      if (isInnerSourceDependency) {
+        innerSourceAppIds.add(innerSourceApp.getId());
 
-          List<DependencyNode> childrenComponents = getAllTransitiveDependencies(directDependency.getChildren());
+        List<DependencyNode> childrenComponents = getAllTransitiveDependencies(directDependency.getChildren());
 
-          log.info("InnerSource component found '{}' with {} transitive dependencies", parentComponent,
-              childrenComponents.size());
-          processTransitiveDependencies(bom, childrenComponents, innerSourceApp, innerSourceComponentDAO,
-              knownArtifactCount, exactlyMatchedComponentCount, directDependency, directDependencies);
-        }
+        log.info("InnerSource component found '{}' with {} transitive dependencies", parentComponent,
+            childrenComponents.size());
+        processTransitiveDependencies(bom, childrenComponents, innerSourceApp, innerSourceComponentDAO,
+            knownArtifactCount, exactlyMatchedComponentCount, directDependency, directDependencies);
       }
     }
   }

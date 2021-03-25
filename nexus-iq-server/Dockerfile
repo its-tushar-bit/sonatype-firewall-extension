@@ -52,7 +52,10 @@ RUN echo "/usr/bin/java \${JAVA_OPTS} -jar nexus-iq-server-${IQ_SERVER_VERSION}.
 
 # Add group and user
 RUN groupadd -g 1000 nexus \
-&& adduser -u 997 -d ${IQ_HOME} -c "Nexus IQ user" -g nexus -s /bin/false -r nexus
+&& adduser -u 997 -d ${IQ_HOME} -c "Nexus IQ user" -g nexus -s /bin/false -r nexus \
+&& cp /etc/passwd /home/jboss/passwd && chmod ug+rwX /home/jboss /home/jboss/passwd
+# The above addition of cp-ing the /etc/password folder is required due to changes 
+# to the OpenJDK8 image : https://access.redhat.com/articles/4859371
 
 # Change owner to nexus user
 RUN chown -R nexus:nexus ${IQ_HOME} \

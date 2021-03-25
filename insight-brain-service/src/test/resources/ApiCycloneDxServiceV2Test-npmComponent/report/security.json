@@ -1,0 +1,91 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "lodash",
+        "version" : "4.17.19"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "d60a2eb7c051d8d933df",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-28500",
+    "reference" : "CVE-2020-28500",
+    "source" : "cve",
+    "score" : 5.3,
+    "cwe" : "400",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "lodash",
+        "version" : "4.17.19"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "d60a2eb7c051d8d933df",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-23337",
+    "reference" : "CVE-2021-23337",
+    "source" : "cve",
+    "score" : 7.2,
+    "cwe" : "77",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:H/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "lodash",
+        "version" : "4.17.19"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "d60a2eb7c051d8d933df",
+    "url" : null,
+    "reference" : "sonatype-2019-0467",
+    "source" : "sonatype",
+    "score" : 9.8,
+    "cwe" : "20",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "lodash",
+        "version" : "4.17.19"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "d60a2eb7c051d8d933df",
+    "url" : null,
+    "reference" : "sonatype-2020-0739",
+    "source" : "sonatype",
+    "score" : 9.8,
+    "cwe" : "471",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "functional", "data" ]
+  } ]
+}

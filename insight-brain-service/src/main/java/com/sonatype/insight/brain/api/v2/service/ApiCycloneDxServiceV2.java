@@ -187,9 +187,13 @@ public class ApiCycloneDxServiceV2
 
         String parentCandidate = pathSegments.stream().collect(Collectors.joining("/"));
         if (pathToComponent.containsKey(parentCandidate)) {
-          childToParent.computeIfAbsent(pathToComponent.get(path), c -> new HashSet<>())
-              .add(pathToComponent.get(parentCandidate));
-          return;
+          ApiReportComponentDTOV2 parent = pathToComponent.get(parentCandidate);
+          ApiReportComponentDTOV2 child = pathToComponent.get(path);
+
+          if (parent != child) {
+            childToParent.computeIfAbsent(child, c -> new HashSet<>()).add(parent);
+            return;
+          }
         }
       }
       // no parent

@@ -1,0 +1,29 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "lodash",
+        "version" : "4.17.19"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "d60a2eb7c051d8d933df",
+    "declaredLicenses" : [ "MIT" ],
+    "observedLicenses" : [ "Not Supported" ],
+    "effectiveLicenses" : [ "MIT" ],
+    "securityCounters" : {
+      "Critical" : 3,
+      "Severe" : 1,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : 9.8,
+    "catalogDate" : 1594228480866
+  } ]
+}

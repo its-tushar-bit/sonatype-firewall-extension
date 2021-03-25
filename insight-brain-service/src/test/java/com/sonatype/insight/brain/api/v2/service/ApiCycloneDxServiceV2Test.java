@@ -68,6 +68,14 @@ public class ApiCycloneDxServiceV2Test
     tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId);
   }
 
+  private void createNpmComponentReportAndPolicyEvaluation() throws IOException {
+    File reportFile = work.getReportFile(application.getId(), scanId);
+    FileUtils.copyURLToFile(ReportHelper.zipReport("/" + getClass().getSimpleName() + "-npmComponent/report", tempDir),
+        reportFile);
+
+    tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId);
+  }
+
   @Test
   public void testGetByScanId_unknownApplicationId() {
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
@@ -87,6 +95,22 @@ public class ApiCycloneDxServiceV2Test
     createReportAndPolicyEvaluation();
     Response response = service.getByScanId(application.getId(), scanId);
     assertBom(response);
+  }
+
+  @Test
+  public void testGetByScanId_npmComponent() throws Exception {
+    createNpmComponentReportAndPolicyEvaluation();
+    Response response = service.getByScanId(application.getId(), scanId);
+
+    Bom bom = new XmlParser().parse(response.getEntity().toString().getBytes(StandardCharsets.UTF_8));
+
+    assertThat(bom.getSerialNumber()).isEqualTo(toUuid(scanId));
+    assertThat(bom.getExternalReferences()).hasSize(1);
+
+    Component component = createComponent(null, "lodash", "4.17.19", "pkg:npm/lodash@4.17.19", "d60a2eb7c051d8d933df",
+        "MIT", "Not-Supported");
+
+    assertThat(bom.getComponents()).contains(component);
   }
 
   @Test

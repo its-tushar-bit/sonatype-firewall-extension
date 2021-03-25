@@ -164,7 +164,7 @@ public class ManifestScanServiceTest
     sourceControlEvent.setApplicationId(APP_ID);
     sourceControlEvent.setStageTypeId(Stage.ID_DEVELOP);
     sourceControlEvent.setUserAgent("userAgent");
-    sourceControlEvent.setScanTriggerType(ScanTriggerType.SOURCE_CONTROL_INTERNAL);
+    sourceControlEvent.setScanTriggerType(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
 
     // and a source control configuration
     doReturn(mockGitRepositoryInfo).when(spySourceControlUtils)
@@ -190,7 +190,7 @@ public class ManifestScanServiceTest
     // and it evaluates a policy
     verify(policyEvaluateService).evaluateWithPolling(eq("statusId"),
         isA(Application.class), eq(ClientScanType.SONATYPE), argThat(s -> s.getStageTypeId().equals(Stage.ID_DEVELOP)),
-        eq(ScanTriggerType.SOURCE_CONTROL_INTERNAL), isA(File.class), eq("api"),
+        eq(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING), isA(File.class), eq("api"),
         eq("userAgent"));
   }
 }

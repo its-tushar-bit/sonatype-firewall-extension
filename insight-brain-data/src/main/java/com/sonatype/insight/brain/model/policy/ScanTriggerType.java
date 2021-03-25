@@ -14,7 +14,8 @@ public enum ScanTriggerType
   CONTINUOUS_INTEGRATION("Continuous Integration"), //
   REPOSITORY_MANAGER("Repository Manager"), //
   SOURCE_CONTROL_API("Source Control API"), //
-  SOURCE_CONTROL_INTERNAL("Source Control Internal"), //
+  SOURCE_CONTROL_INTERNAL_ONBOARDING("Source Control Onboarding"), //
+  SOURCE_CONTROL_INTERNAL_PULL_REQUEST("Source Control Pull Request"), //
   THIRD_PARTY("Third Party"), //
   WEB_UI("Web UI"), //
   // The Unknown trigger type is only for policy evaluations created before scan trigger type was introduced.

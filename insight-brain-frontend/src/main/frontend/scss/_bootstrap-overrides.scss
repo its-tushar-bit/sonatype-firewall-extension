@@ -101,6 +101,13 @@
   }
 }
 
+.nx-toggle__input {
+  &[type=checkbox]{
+    margin: 0 0 0 29px;
+    width: 0;
+  }
+}
+
 .nx-h1,
 .nx-h2,
 .nx-h3,

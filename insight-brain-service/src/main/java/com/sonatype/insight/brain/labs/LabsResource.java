@@ -1,0 +1,91 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.labs;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
+
+import org.codehaus.plexus.util.StringUtils;
+
+@Named
+@Path(LabsResource.RESOURCE_PATH)
+public class LabsResource
+{
+  public static final String RESOURCE_PATH = "rest/labs";
+
+  private final LabsService labsService;
+
+  @Inject
+  public LabsResource(LabsService labsService) {
+    this.labsService = labsService;
+  }
+
+  @POST
+  public Response labsPostMethod(@Context final HttpServletRequest httpRequest,
+                                 @Context final HttpServletResponse httpResponse) throws IOException
+  {
+    return labsService.getLabsResponse(httpRequest, null);
+  }
+
+  @POST
+  @Path("/{var:.*}")
+  public Response labsPostMethodExtended(@Context final HttpServletRequest httpRequest,
+                                 @Context final HttpServletResponse httpResponse) throws IOException
+  {
+    return labsService.getLabsResponse(httpRequest, null);
+  }
+
+  @GET
+  public Response labsGetMethod(@Context final HttpServletRequest httpRequest,
+                                @Context final HttpServletResponse httpResponse,
+                                @QueryParam("command") String command,
+                                @QueryParam("values") String values)
+      throws IOException
+  {
+    Map<String, String> queryParams = getQueryParamsMap(command, values);
+
+    return labsService.getLabsResponse(httpRequest, queryParams);
+  }
+
+  @GET
+  @Path("/{var:.*}")
+  public Response labsGetMethodExtended(@PathParam("var") String path, @Context final HttpServletRequest httpRequest,
+                                @Context final HttpServletResponse httpResponse,
+                                @QueryParam("command") String command,
+                                @QueryParam("values") String values)
+      throws IOException
+  {
+    Map<String, String> queryParams = getQueryParamsMap(command, values);
+
+    return labsService.getLabsResponse(httpRequest, queryParams);
+  }
+
+  private Map<String, String> getQueryParamsMap(
+      @QueryParam("command") final String command,
+      @QueryParam("values") final String values)
+  {
+    Map<String, String> queryParams = null;
+    if (StringUtils.isNotEmpty(command)) {
+      queryParams = new HashMap<>();
+      queryParams.put("command", command);
+      queryParams.put("values", values);
+    }
+    return queryParams;
+  }
+}

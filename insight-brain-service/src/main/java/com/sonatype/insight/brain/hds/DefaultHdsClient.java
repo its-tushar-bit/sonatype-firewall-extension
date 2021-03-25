@@ -228,6 +228,14 @@ public class DefaultHdsClient
     return execute(cloudReq, clazz);
   }
 
+  public HttpResponse forwardingProxy(HttpServletRequest request, Map<String, String> queryParams)
+      throws IOException
+  {
+    String url = buildUri(request, request.getPathInfo(), queryParams);
+    HttpUriRequest labReq = createRequest(request, url, null);
+    return execute(labReq);
+  }
+
   private <T> T fromHttpResponse(HttpResponse response, Class<T> clazz) {
     throwErrorIfNeeded(response);
     boolean usingStream = false;
@@ -433,14 +441,14 @@ public class DefaultHdsClient
     return execute(cloudReq, clazz);
   }
 
-  private <T> T execute(HttpUriRequest request, Class<T> clazz) {
+  private HttpResponse execute(HttpUriRequest request) {
     log.debug("Starting request: {} {}", request.getMethod(), request.getURI());
     long start = System.currentTimeMillis();
     StatusLine statusLine = null;
     try {
       HttpResponse response = client.execute(request);
       statusLine = response.getStatusLine();
-      return fromHttpResponse(response, clazz);
+      return response;
     }
     catch (HttpHostConnectException e) {
       throw new GatewayTimeoutException(e.getMessage(), e);
@@ -461,6 +469,11 @@ public class DefaultHdsClient
       log.debug("Completed request in {} ms. {}", System.currentTimeMillis() - start,
           statusLine != null ? statusLine.getStatusCode() : "");
     }
+  }
+
+  private <T> T execute(HttpUriRequest request, Class<T> clazz) {
+    HttpResponse response = execute(request);
+    return fromHttpResponse(response, clazz);
   }
 
   private HttpPost createPostRequest(String url, HdsClientAnalytics analytics, String clientUserAgent) {

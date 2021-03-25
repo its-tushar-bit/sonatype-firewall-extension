@@ -751,4 +751,35 @@ public class DefaultHdsClientTest
     client.put(null, String.class, "client_user_agent", testPath, tempDir.newFile(), Collections.emptyMap());
     assertThat(queryString[0]).isNull();
   }
+
+  @Test
+  public void testLabsProxy_Headers() throws Exception {
+    final Map<String, String> headers = new HashMap<>();
+    config.setBaseUrl("http://localhost:8070");
+    handler = new AbstractHandler()
+    {
+      @Override
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
+        for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements();) {
+          String headerName = en.nextElement();
+          headers.put(headerName, request.getHeader(headerName));
+        }
+        baseRequest.setHandled(true);
+      }
+    };
+
+    HttpServletRequest request = mock(HttpServletRequest.class);
+    when(request.getHeaderNames()).thenReturn(Collections.enumeration(Collections.emptyList()));
+    when(request.getMethod()).thenReturn("GET");
+    when(request.getPathInfo()).thenReturn("/rest/labs");
+
+    Application app = new Application();
+    app.setId("test-app-id");
+    Map<String, String> queryParams = new HashMap<>();
+    queryParams.put("command", "command");
+    queryParams.put("values", "values");
+    client.forwardingProxy(request, queryParams);
+    assertThat(headers).containsEntry("X-CLM-Token", "license-fingerprint");
+    assertThat(headers).containsEntry("X-CLM-Instance-Id", telemetryId.getId());
+  }
 }

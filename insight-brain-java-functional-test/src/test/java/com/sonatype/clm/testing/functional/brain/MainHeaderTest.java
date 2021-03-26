@@ -15,6 +15,7 @@ import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
 import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.User;
@@ -206,5 +207,32 @@ public class MainHeaderTest
     refresh();
     MainHeader.firewallNavigationButton().shouldBe(visible).click();
     waitUntilUrl(FirewallPage.url());
+  }
+
+  @Test
+  public void testLegalNavigationButton_HiddenByDefault() {
+    setMissingFeature(LicensedFeature.ADVANCED_LEGAL_PACK);
+    refresh();
+    MainHeader.legalNavigationButton().shouldBe(hidden);
+  }
+
+  @Test
+  public void testLegalNavigationButton_FeatureAvailableAdmin() {
+    MainHeader.legalNavigationButton().shouldBe(visible);
+  }
+
+  @Test
+  public void testLegalNavigationButton_FeatureAvailableNonAdmin() {
+    User user = tempEntity.newUser();
+    refreshOrOpen(DashboardPage.url());
+    logout();
+    login(user.getUsername(), user.getPassword());
+    MainHeader.legalNavigationButton().shouldBe(visible);
+  }
+
+  @Test
+  public void testLegalNavigation_toLegalDashboard() throws Exception {
+    MainHeader.legalNavigationButton().shouldBe(visible).click();
+    waitUntilUrl(BaseUrl.resolvePageUrl("/legal/dashboard"));
   }
 }

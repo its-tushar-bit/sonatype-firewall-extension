@@ -47,6 +47,10 @@ public class MainHeader
     return new MainHeaderNavigationButton("#firewall-navigation-button");
   }
 
+  public static MainHeaderNavigationButton legalNavigationButton() {
+    return new MainHeaderNavigationButton("#advanced-legal-navigation-button");
+  }
+
   public static UserMenu userMenu() {
     return new UserMenu();
   }

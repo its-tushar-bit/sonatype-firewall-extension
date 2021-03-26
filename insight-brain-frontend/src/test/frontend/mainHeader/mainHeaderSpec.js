@@ -106,6 +106,27 @@ describe('mainHeaderSpec', function() {
     expect(vm.isFirewallSupported).toBe(false);
   });
 
+  it('properly loads on supported advanced legal pack', function() {
+    mockProductFeatures.isAvailable.and.callFake(function(feature) {
+      return feature === 'advanced-legal-pack';
+    });
+    vm.$onInit();
+    loginDeferred.resolve();
+    productFeaturesDeferred.resolve();
+    $scope.$digest();
+
+    expect(vm.isAdvancedLegalPackSupported).toBe(true);
+  });
+
+  it('properly loads on not supported advanced legal pack', function() {
+    vm.$onInit();
+    loginDeferred.resolve();
+    productFeaturesDeferred.resolve();
+    $scope.$digest();
+
+    expect(vm.isAdvancedLegalPackSupported).toBe(false);
+  });
+
   it('does not load success metrics, permissions, or features until after login', function() {
     vm.$onInit();
 

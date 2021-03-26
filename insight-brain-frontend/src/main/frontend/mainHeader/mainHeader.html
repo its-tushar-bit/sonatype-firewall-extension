@@ -88,6 +88,15 @@
                                 size="'2x'"></nx-font-awesome-icon>
           <div class="iq-main-nav__button-label">Firewall</div>
         </a>
+        <a ui-sref="legalDashboard"
+           class="iq-navigation__button"
+           id="advanced-legal-navigation-button"
+           ng-class="{ 'active' : vm.$state.includes('legalDashboard') }"
+           ng-if="vm.isLicensed() && vm.isAdvancedLegalPackSupported">
+          <nx-font-awesome-icon icon="vm.faGavel" class="iq-main-nav__button-icon"
+                                size="'2x'"></nx-font-awesome-icon>
+          <div class="iq-main-nav__button-label">Legal</div>
+        </a>
       </div>
       <div class="iq-nav-bar--system">
         <user-menu></user-menu>

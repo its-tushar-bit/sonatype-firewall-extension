@@ -8,6 +8,7 @@ import {
   faBug,
   faFileAlt,
   faFireSmoke,
+  faGavel,
   faSearch,
   faSitemap,
   faTachometerAltFast,
@@ -23,7 +24,8 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
                               systemConfigurationPropertyService, routeStateUtilService, $ngRedux) {
   var vm = this;
 
-  Object.assign(vm, {faTachometerAltFast, faFileAlt, faSitemap, faAnalytics, faBug, faSearch, faUserAlt, faFireSmoke});
+  Object.assign(vm,
+      {faTachometerAltFast, faFileAlt, faSitemap, faAnalytics, faBug, faSearch, faUserAlt, faFireSmoke, faGavel});
   vm.$state = $state;
   vm.isDashboardAvailable = ProductFeatures.isDashboardAvailable;
   vm.isReportsListAvailable = ProductFeatures.isReportsListAvailable;
@@ -40,6 +42,7 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
   vm.shouldShowLoginButton = shouldShowLoginButton;
   vm.isFirewallSupported = false;
   vm.isFirewallEnabled = false;
+  vm.isAdvancedLegalPackSupported = false;
 
   function getReleaseVersion() {
     const serverVersionWithoutBuildNumber = clmServerVersion.substring(0, clmServerVersion.indexOf('-'));
@@ -87,8 +90,9 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
 
         vm.isFirewallSupported = ProductFeatures.isAvailable('firewall') &&
             ProductFeatures.isAvailable('release-integrity');
-      });
 
+        vm.isAdvancedLegalPackSupported = ProductFeatures.isAvailable('advanced-legal-pack');
+      });
     });
   }
 

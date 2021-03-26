@@ -36,6 +36,7 @@ export default function ComponentLegalOverviewPage(props) {
     hash,
     availableScopes,
     showEditCopyrightOverrideModal,
+    $state,
 
     //actions
     setDisplayCopyrightOverrideModal,
@@ -107,8 +108,10 @@ export default function ComponentLegalOverviewPage(props) {
         </div>}
         { component &&
         <div id="component-legal-overview-details">
-          <ComponentOverviewTile obligationCount={ obligations && obligations.length }
-                                 licenseNames={ licenseNames }/>
+          <ComponentOverviewTile applicationPublicId={applicationPublicId}
+                                 component={component}
+                                 licenseNames={licenseNames}
+                                 $state={$state}/>
           <LicenseObligationsTileContainer />
           <div id="component-legal-overview-details-right">
             <LicenseDetailsTile licenseNames={ licenseNames }/>
@@ -140,5 +143,6 @@ ComponentLegalOverviewPage.propTypes = {
   loadAvailableScopes: PropTypes.func,
   availableScopes: availableScopesPropType,
   showEditCopyrightOverrideModal: PropTypes.bool.isRequired,
-  setDisplayCopyrightOverrideModal: PropTypes.func.isRequired
+  setDisplayCopyrightOverrideModal: PropTypes.func.isRequired,
+  $state: PropTypes.object.isRequired
 };

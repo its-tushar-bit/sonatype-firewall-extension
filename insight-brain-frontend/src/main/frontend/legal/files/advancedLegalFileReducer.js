@@ -109,6 +109,8 @@ const saveNoticesSucceeded = (payload, state) => {
     componentNoticesId: payload.id,
     originalComponentNoticesScopeOwnerId: payload.ownerId,
     componentNoticesScopeOwnerId: payload.ownerId,
+    componentNoticesLastUpdatedByUsername: payload.lastUpdatedByUsername,
+    componentNoticesLastUpdatedAt: payload.lastUpdatedAt,
     noticeFiles,
     noticesError: null,
     saveNoticesSubmitMask: true
@@ -206,6 +208,8 @@ const saveLicensesSucceeded = (payload, state) => {
     componentLicensesId: payload.id,
     originalComponentLicensesScopeOwnerId: payload.ownerId,
     componentLicensesScopeOwnerId: payload.ownerId,
+    componentLicensesLastUpdatedByUsername: payload.lastUpdatedByUsername,
+    componentLicensesLastUpdatedAt: payload.lastUpdatedAt,
     licenseFiles,
     licensesError: null,
     saveLicensesSubmitMask: true

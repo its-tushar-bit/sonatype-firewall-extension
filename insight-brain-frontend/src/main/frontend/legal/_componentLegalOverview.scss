@@ -20,23 +20,80 @@ component-legal-overview {
   #component-overview-tile {
     grid-column: 1 / span 2;
 
-    .nx-grid-col {
-      margin-top: 0px;
-      padding-left: $nx-spacing-xxl;
-      padding-right: $nx-spacing-xxl;
-
-      &:first-child {
-        padding-left: 0px;
-      }
-
-      > * {
-        @include nx-truncate-ellipsis;
-      }
-
-      dt {
-        margin-bottom: 8px;
-      }
+    .stage-scan {
+      padding-right: $nx-spacing-xs;
     }
+
+    .nx-grid-col {
+      align-content: space-between;
+      display: grid;
+    }
+
+    .nx-read-only {
+      display: contents;
+    }
+
+    .nx-read-only__label {
+      margin-top: 0;
+    }
+
+    .nx-grid-col:first-child {
+      grid-template:
+        'review-status review-status'
+        'last-modified modified-by';
+    }
+
+    .nx-grid-col:nth-child(2) {
+      grid-template:
+        'review-progress review-progress review-progress'
+        'fulfilled flagged not-applicable';
+    }
+
+    .nx-grid-col:last-child {
+      grid-template:
+        'licenses highest-threat'
+        'stages stages';
+    }
+  }
+
+  .license-component-overview__review-status {
+    grid-area: review-status;
+  }
+
+  .license-component-overview__last-modified {
+    grid-area: last-modified;
+  }
+
+  .license-component-overview__modified-by {
+    grid-area: modified-by;
+  }
+
+  .license-component-overview__review-progress {
+    grid-area: review-progress;
+  }
+
+  .license-component-overview__fulfilled {
+    grid-area: fulfilled;
+  }
+
+  .license-component-overview__flagged {
+    grid-area: flagged;
+  }
+
+  .license-component-overview__not-applicable {
+    grid-area: not-applicable;
+  }
+
+  .license-component-overview__licenses {
+    grid-area: licenses;
+  }
+
+  .license-component-overview__highest-threat {
+    grid-area: highest-threat;
+  }
+
+  .license-component-overview__stages {
+    grid-area: stages;
   }
 
   #license-obligations-tile {

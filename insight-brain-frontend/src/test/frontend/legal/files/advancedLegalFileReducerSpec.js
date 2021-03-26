@@ -278,6 +278,8 @@ describe('advancedLegalFileReducer', function() {
         payload: {
           id: 'id',
           ownerId: 'ownerId',
+          lastUpdatedByUsername: 'admin',
+          lastUpdatedAt: 1618873200000,
           legalFileOverrides: [
             {
               id: 'id1',
@@ -307,6 +309,8 @@ describe('advancedLegalFileReducer', function() {
         componentNoticesId: 'id',
         originalComponentNoticesScopeOwnerId: 'ownerId',
         componentNoticesScopeOwnerId: 'ownerId',
+        componentNoticesLastUpdatedByUsername: 'admin',
+        componentNoticesLastUpdatedAt: 1618873200000,
         noticeFiles: [
           {
             originalContentHash: 'originalContentHash1',
@@ -637,6 +641,8 @@ describe('advancedLegalFileReducer', function() {
         payload: {
           id: 'id',
           ownerId: 'ownerId',
+          lastUpdatedByUsername: 'admin',
+          lastUpdatedAt: 1618873200000,
           legalFileOverrides: [
             {
               id: 'id1',
@@ -666,6 +672,8 @@ describe('advancedLegalFileReducer', function() {
         componentLicensesId: 'id',
         originalComponentLicensesScopeOwnerId: 'ownerId',
         componentLicensesScopeOwnerId: 'ownerId',
+        componentLicensesLastUpdatedByUsername: 'admin',
+        componentLicensesLastUpdatedAt: 1618873200000,
         licenseFiles: [
           {
             originalContentHash: 'originalContentHash1',

@@ -61,6 +61,8 @@ function saveAttributionFulfilled(payload, state) {
     content: payload.value.content,
     originalOwnerId: payload.value.ownerId,
     ownerId: payload.value.ownerId,
+    lastUpdatedByUsername: payload.value.lastUpdatedByUsername,
+    lastUpdatedAt: payload.value.lastUpdatedAt,
     error: null,
     saveAttributionSubmitMask: true
   }, payload.name, state);
@@ -132,6 +134,8 @@ function saveObligationSucceeded(payload, state) {
     comment: payload.value.comment,
     originalOwnerId: payload.value.ownerId,
     ownerId: payload.value.ownerId,
+    lastUpdatedByUsername: payload.value.lastUpdatedByUsername,
+    lastUpdatedAt: payload.value.lastUpdatedAt,
     error: null,
     saveObligationSubmitMask: true
   }, payload.name, state);

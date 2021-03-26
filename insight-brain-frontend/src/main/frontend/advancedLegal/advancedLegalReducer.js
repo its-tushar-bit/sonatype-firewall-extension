@@ -261,6 +261,8 @@ function saveCopyrightOverrideFulfilled(payload, state) {
     ...lld,
     componentCopyrightId: payload.id,
     componentCopyrightScopeOwnerId: payload.componentCopyrightScopeOwnerId,
+    componentCopyrightLastUpdatedByUsername: payload.componentCopyrightLastUpdatedByUsername,
+    componentCopyrightLastUpdatedAt: payload.componentCopyrightLastUpdatedAt,
     copyrights: payload.copyrightOverrides
   }), state);
 }

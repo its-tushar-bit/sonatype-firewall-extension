@@ -10,7 +10,7 @@ import withStoreProvider from '../reactAdapter/StoreProvider';
 
 export default angular.module('legalModule', [])
     .component('componentLegalOverview',
-        react2angular(withStoreProvider(ComponentLegalOverviewContainer), [], ['$ngRedux']))
+        react2angular(withStoreProvider(ComponentLegalOverviewContainer), [], ['$ngRedux', '$state']))
     .component('legalApplicationDetails',
         react2angular(withStoreProvider(LegalApplicationDetailsContainer), [], ['$ngRedux']))
     .config(routes);

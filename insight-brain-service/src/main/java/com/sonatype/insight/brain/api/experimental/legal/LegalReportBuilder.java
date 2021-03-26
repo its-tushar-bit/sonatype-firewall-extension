@@ -22,6 +22,7 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDTO;
@@ -104,7 +105,7 @@ public class LegalReportBuilder
         .filter(component -> component.componentIdentifier != null)
         .map(component -> {
           ComponentIdentifier key = removeClassifierAndExtension(component.componentIdentifier.toComponentIdentifier());
-          return new ApiLicenseLegalComponentDTO(component, getLicenseLegalData(component.licenseData,
+          return new ApiLicenseLegalComponentDTO(component, getLicenseLegalData(component.licenseData, null,
               licenseLegalMetadata,
               componentLegalCommentsByComponentIdentifier.getOrDefault(key, new LinkedHashSet<>()),
               copyrightOverridesByComponentIdentifier.getOrDefault(key, Collections.emptyList()),
@@ -115,13 +116,14 @@ public class LegalReportBuilder
               licenseOverridesByComponentIdentifier.getOrDefault(key, Collections.emptyList()),
               noticeOverridesByComponentIdentifier.getOrDefault(key, Collections.emptyList()),
               obligationByComponentIdentifier.getOrDefault(key, Collections.emptyList()),
-              attributionByComponentIdentifier.getOrDefault(key, Collections.emptyList())));
+              attributionByComponentIdentifier.getOrDefault(key, Collections.emptyList())), null);
         })
         .collect(Collectors.toList());
   }
 
   ApiLicenseLegalDataDTO getLicenseLegalData(
       ApiLicenseDataDTOV2 sourceData,
+      ApiLicenseThreatDTOV2 highestEffectiveLicenseThreatGroup,
       Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata,
       Set<ComponentLegalCommentDTO> componentLegalComments,
       List<CopyrightOverride> copyrightOverrides,
@@ -142,7 +144,7 @@ public class LegalReportBuilder
         toLicenseIds(sourceData.declaredLicenses),
         toLicenseIds(sourceData.observedLicenses),
         toLicenseIds(sourceData.effectiveLicenses),
-        sourceData.effectiveLicenseThreats,
+        highestEffectiveLicenseThreatGroup,
         getCopyrights(componentLegalComments, copyrightOverrides),
         getLegalFiles(LegalFileType.LICENSE, componentLegalFiles, licenseOverrides),
         getLegalFiles(LegalFileType.NOTICE, componentLegalFiles, noticeOverrides),
@@ -150,10 +152,16 @@ public class LegalReportBuilder
         getAttributions(attributions),
         componentCopyright == null ? null : componentCopyright.getId(),
         componentCopyright == null ? null : componentCopyright.getOwnerId(),
+        componentCopyright == null ? null : componentCopyright.getLastUpdatedByUsername(),
+        componentCopyright == null ? null : componentCopyright.getLastUpdatedAt(),
         componentLicense == null ? null : componentLicense.getId(),
         componentLicense == null ? null : componentLicense.getOwnerId(),
+        componentLicense == null ? null : componentLicense.getLastUpdatedByUsername(),
+        componentLicense == null ? null : componentLicense.getLastUpdatedAt(),
         componentNotice == null ? null : componentNotice.getId(),
-        componentNotice == null ? null : componentNotice.getOwnerId());
+        componentNotice == null ? null : componentNotice.getOwnerId(),
+        componentNotice == null ? null : componentNotice.getLastUpdatedByUsername(),
+        componentNotice == null ? null : componentNotice.getLastUpdatedAt());
   }
 
   private List<String> toLicenseIds(List<ApiLicenseDTO> licenses) {

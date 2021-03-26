@@ -37,7 +37,9 @@ export const licenseObligationsPropType = PropTypes.arrayOf(
     PropTypes.shape({
       name: PropTypes.string.isRequired,
       status: PropTypes.string.isRequired,
-      comment: PropTypes.string
+      comment: PropTypes.string,
+      lastUpdatedByUsername: PropTypes.string,
+      lastUpdatedAt: PropTypes.number
     })
 );
 
@@ -45,31 +47,51 @@ export const licenseObligationAttributionsPropType = PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.string,
       content: PropTypes.string,
-      obligationName: PropTypes.string.isRequired
+      obligationName: PropTypes.string.isRequired,
+      lastUpdatedByUsername: PropTypes.string,
+      lastUpdatedAt: PropTypes.number
     })
 );
 
+export const licenseLegalDataPropType = PropTypes.shape({
+  effectiveLicenses: PropTypes.arrayOf(PropTypes.string.isRequired).isRequired,
+  copyrights: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string,
+    content: PropTypes.string.isRequired,
+    originalContentHash: PropTypes.string,
+    status: PropTypes.string.isRequired
+  }).isRequired).isRequired,
+  highestEffectiveLicenseThreatGroup: PropTypes.shape({
+    licenseThreatGroupCategory: PropTypes.string.isRequired,
+    licenseThreatGroupLevel: PropTypes.number.isRequired,
+    licenseThreatGroupName: PropTypes.string.isRequired
+  }),
+  noticeFiles: legalFilesPropType,
+  licenseFiles: legalFilesPropType,
+  componentCopyrightId: PropTypes.string,
+  componentCopyrightScopeOwnerId: PropTypes.string,
+  componentCopyrightLastUpdatedByUsername: PropTypes.string,
+  componentCopyrightLastUpdatedAt: PropTypes.number,
+  componentNoticesId: PropTypes.string,
+  componentNoticesScopeOwnerId: PropTypes.string,
+  componentNoticesLastUpdatedByUsername: PropTypes.string,
+  componentNoticesLastUpdatedAt: PropTypes.number,
+  componentLicensesId: PropTypes.string,
+  componentLicensesScopeOwnerId: PropTypes.string,
+  componentLicensesLastUpdatedByUsername: PropTypes.string,
+  componentLicensesLastUpdatedAt: PropTypes.number,
+  obligations: licenseObligationsPropType,
+  attributions: licenseObligationAttributionsPropType
+});
+
 export const componentPropType = PropTypes.shape({
   displayName: PropTypes.string.isRequired,
-  licenseLegalData: PropTypes.shape({
-    effectiveLicenses: PropTypes.arrayOf(PropTypes.string.isRequired).isRequired,
-    copyrights: PropTypes.arrayOf(PropTypes.shape({
-      id: PropTypes.string,
-      content: PropTypes.string.isRequired,
-      originalContentHash: PropTypes.string,
-      status: PropTypes.string.isRequired
-    }).isRequired).isRequired,
-    noticeFiles: legalFilesPropType,
-    licenseFiles: legalFilesPropType,
-    componentCopyrightId: PropTypes.string,
-    componentCopyrightScopeOwnerId: PropTypes.string,
-    componentNoticesId: PropTypes.string,
-    componentNoticesScopeOwnerId: PropTypes.string,
-    componentLicensesId: PropTypes.string,
-    componentLicensesScopeOwnerId: PropTypes.string,
-    obligations: licenseObligationsPropType,
-    attributions: licenseObligationAttributionsPropType
-  }).isRequired
+  licenseLegalData: licenseLegalDataPropType,
+  stageScans: PropTypes.arrayOf(PropTypes.shape({
+    stageName: PropTypes.string.isRequired,
+    scanId: PropTypes.string,
+    scanDate: PropTypes.number
+  }))
 });
 
 export const licenseLegalMetadataPropType = PropTypes.arrayOf(PropTypes.shape({

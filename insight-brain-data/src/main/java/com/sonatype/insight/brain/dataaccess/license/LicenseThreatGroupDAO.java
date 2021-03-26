@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess.license;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -259,6 +260,31 @@ public class LicenseThreatGroupDAO
   }
 
   /**
+   * @since 1.108
+   */
+  public LicenseThreatGroup getHighestLicenseThreatGroupWithHierarchy(
+      TransactionContext tx,
+      String ownerId,
+      Set<String> licenseIds)
+  {
+    return getByOwnerIdAndLicenseIdsWithHierarchy(tx, ownerId, licenseIds).stream()
+        .sorted(Comparator.comparing(LicenseThreatGroup::getNameLowercaseNoWhitespace))
+        .max(Comparator.comparingInt(LicenseThreatGroup::getThreatLevel)).orElse(null);
+  }
+
+  /**
+   * @since 1.108
+   */
+  public LicenseThreatGroup getHighestLicenseThreatGroupWithHierarchy(
+      String ownerId,
+      Set<String> licenseIds)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getHighestLicenseThreatGroupWithHierarchy(tx, ownerId, licenseIds);
+    }
+  }
+
+  /**
    * @since 1.6
    */
   private Integer max(Integer threatLevel, List<LicenseThreatGroup> licenseThreatGroups) {
@@ -301,5 +327,24 @@ public class LicenseThreatGroupDAO
     String sQuery = "SELECT entity FROM LicenseThreatGroup entity" + //
         " WHERE entity.ownerId IN (?1)";
     return getList(sQuery, ownerIds);
+  }
+
+  public List<LicenseThreatGroup> getByOwnerIdAndLicenseIdsWithHierarchy(
+      TransactionContext tx,
+      String ownerId,
+      Set<String> licenseIds)
+  {
+    List<LicenseThreatGroup> result = new ArrayList<>();
+
+    String sQuery = "SELECT licenseThreatGroup" + //
+        " FROM LicenseThreatGroup licenseThreatGroup, LicenseThreatGroupLicense licenseThreatGroupLicense" + //
+        " WHERE licenseThreatGroup.id=licenseThreatGroupLicense.licenseThreatGroupId" + //
+        " AND licenseThreatGroup.ownerId=?1 AND licenseThreatGroupLicense.licenseId IN (?2)";
+
+    for (Owner currentOwner : ownerDAO.walkHierarchy(tx, ownerId)) {
+      result.addAll(getList(tx, sQuery, currentOwner.getId(), licenseIds));
+    }
+
+    return result;
   }
 }

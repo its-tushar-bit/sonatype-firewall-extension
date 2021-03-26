@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardDTO;
@@ -46,6 +47,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDashb
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalMetadataDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalStageScanDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApplicationLicenseUsageTelemetry;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalResultsOrder;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalReviewStatus;
@@ -63,6 +65,7 @@ import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
 import com.sonatype.insight.brain.dataaccess.legal.CopyrightOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.legal.LegalFileOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
@@ -86,6 +89,7 @@ import com.sonatype.insight.brain.model.legal.LegalFileOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -182,6 +186,8 @@ public class ApiLicenseLegalService
 
   private final AggregateFileDAO aggregateFileDAO;
 
+  private final LicenseThreatGroupDAO licenseThreatGroupDAO;
+
   @Inject
   public ApiLicenseLegalService(
       MultiLicenseDAO multiLicenseDAO,
@@ -206,7 +212,8 @@ public class ApiLicenseLegalService
       LegalFileOverrideDAO legalFileOverrideDAO,
       ComponentObligationDAO componentObligationDAO,
       ComponentObligationAttributionDAO componentObligationAttributionDAO,
-      AggregateFileDAO aggregateFileDAO)
+      AggregateFileDAO aggregateFileDAO,
+      LicenseThreatGroupDAO licenseThreatGroupDAO)
   {
     this.multiLicenseDAO = multiLicenseDAO;
     this.apiLicenseLegalHdsService = apiLicenseLegalHdsService;
@@ -232,6 +239,7 @@ public class ApiLicenseLegalService
     this.componentObligationDAO = componentObligationDAO;
     this.componentObligationAttributionDAO = componentObligationAttributionDAO;
     this.aggregateFileDAO = aggregateFileDAO;
+    this.licenseThreatGroupDAO = licenseThreatGroupDAO;
   }
 
   public ApiLicenseLegalApplicationDashboardResultDTO getLicenseLegalApplicationsDashboard(
@@ -563,6 +571,8 @@ public class ApiLicenseLegalService
     List<ComponentObligationAttribution> attributions;
     ComponentLegalFile componentNotice;
     ComponentLegalFile componentLicense;
+    ApiLicenseThreatDTOV2 highestEffectiveLicenseThreatGroup;
+    List<ApiLicenseLegalStageScanDTO> stageScansForOwnerAndHash;
 
     try (TransactionContext tx = copyrightOverrideDAO.createTransactionContext()) {
       copyrightOverrides =
@@ -584,6 +594,10 @@ public class ApiLicenseLegalService
       attributions =
           componentObligationAttributionDAO
               .getByOwnerIdAndComponentIdentifierWithHierarchy(tx, owner.getId(), compIdentifier);
+      highestEffectiveLicenseThreatGroup = getHighestLicenseThreatGroupWithHierarchy(tx, owner.getId(),
+          licenseData.effectiveLicenses.stream().map(effectiveLicense -> effectiveLicense.licenseId)
+              .collect(Collectors.toCollection(LinkedHashSet::new)));
+      stageScansForOwnerAndHash = getStageScansForOwnerAndHash(tx, owner, component.getHash());
     }
     Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata = legalReportBuilder.getLicenseLegalMetadata(
         licenseData.effectiveLicenses, licenses, licenseMetadataById);
@@ -591,6 +605,7 @@ public class ApiLicenseLegalService
     ApiLicenseLegalDataDTO licenseLegalData =
         legalReportBuilder.getLicenseLegalData(
             licenseData,
+            highestEffectiveLicenseThreatGroup,
             licenseLegalMetadata,
             componentLegalComments,
             copyrightOverrides,
@@ -604,9 +619,50 @@ public class ApiLicenseLegalService
             attributions);
 
     ApiLicenseLegalComponentDTO componentDTO =
-        new ApiLicenseLegalComponentDTO(toComponentDTO(component), licenseLegalData);
+        new ApiLicenseLegalComponentDTO(toComponentDTO(component), licenseLegalData, stageScansForOwnerAndHash);
 
     return new ApiLicenseLegalComponentReportDTO(componentDTO, licenseLegalMetadata);
+  }
+
+  private ApiLicenseThreatDTOV2 getHighestLicenseThreatGroupWithHierarchy(
+      TransactionContext tx, String ownerId, Set<String> licenseIds)
+  {
+    LicenseThreatGroup result =
+        licenseThreatGroupDAO.getHighestLicenseThreatGroupWithHierarchy(tx, ownerId, licenseIds);
+    return result == null ? null : new ApiLicenseDataAdapter().convert(result);
+  }
+
+  private List<ApiLicenseLegalStageScanDTO> getStageScansForOwnerAndHash(
+      TransactionContext tx,
+      Owner owner,
+      String hash)
+  {
+    if (owner.getType() != OwnerType.APPLICATION) {
+      return null;
+    }
+    List<ApiLicenseLegalStageScanDTO> results = new ArrayList<>();
+    List<ApplicationComponent> applicationComponents =
+        applicationComponentDAO.getByApplicationIdAndHash(tx, owner.getId(), hash);
+    for (StageType stageType : StageTypes.getAll()) {
+      if (StageTypes.isIgnoredForDashboard(stageType.getId())) {
+        continue;
+      }
+      ApiLicenseLegalStageScanDTO apiLicenseLegalStageScanDTO = new ApiLicenseLegalStageScanDTO();
+      apiLicenseLegalStageScanDTO.setStageName(stageType.getName());
+      ApplicationComponent applicationComponentForStage = applicationComponents.stream()
+          .filter(applicationComponent -> stageType.getId().equals(applicationComponent.getStageTypeId())).findFirst()
+          .orElse(null);
+      if (applicationComponentForStage != null) {
+        PolicyEvaluation policyEvaluation =
+            policyEvaluationDAO.getLastByApplicationIdAndStageId(tx, owner.getId(), stageType.getId());
+        if (policyEvaluation != null) {
+          apiLicenseLegalStageScanDTO.setScanId(policyEvaluation.getScanId());
+          apiLicenseLegalStageScanDTO.setScanDate(policyEvaluation.getTime());
+        }
+      }
+      results.add(apiLicenseLegalStageScanDTO);
+    }
+    return results;
   }
 
   @VisibleForTesting
@@ -704,7 +760,7 @@ public class ApiLicenseLegalService
 
   private Map<ComponentIdentifier, List<ComponentObligationAttribution>>
       getComponentObligationAttributionsByComponentIdentifier(
-      final String ownerId, final Set<ComponentIdentifier> componentIdentifiers)
+          final String ownerId, final Set<ComponentIdentifier> componentIdentifiers)
   {
     Map<ComponentIdentifier, List<ComponentObligationAttribution>> componentIdentifierToAttribution = new HashMap<>();
     try (TransactionContext tx = componentObligationAttributionDAO.createTransactionContext()) {

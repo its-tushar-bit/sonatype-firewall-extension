@@ -78,7 +78,7 @@ public class ApplicationAttributionReportBuilderTest
     licenseLegalData1.attributions = attributions;
 
     reportDTO.components = new ArrayList<>();
-    reportDTO.components.add(new ApiLicenseLegalComponentDTO(component1, licenseLegalData1));
+    reportDTO.components.add(new ApiLicenseLegalComponentDTO(component1, licenseLegalData1, null));
 
     //Second Component
     ApiComponentDTOV2 component2 = new ApiComponentDTOV2();
@@ -107,9 +107,9 @@ public class ApplicationAttributionReportBuilderTest
     licenseLegalData3.effectiveLicenses = Lists.newArrayList("LicenseOneName");
 
     reportDTO.components = new ArrayList<>();
-    reportDTO.components.add(new ApiLicenseLegalComponentDTO(component1, licenseLegalData1));
-    reportDTO.components.add(new ApiLicenseLegalComponentDTO(component2, licenseLegalData2));
-    reportDTO.components.add(new ApiLicenseLegalComponentDTO(component3, licenseLegalData3));
+    reportDTO.components.add(new ApiLicenseLegalComponentDTO(component1, licenseLegalData1, null));
+    reportDTO.components.add(new ApiLicenseLegalComponentDTO(component2, licenseLegalData2, null));
+    reportDTO.components.add(new ApiLicenseLegalComponentDTO(component3, licenseLegalData3, null));
 
     when(apiLicenseLegalService.getLicenseLegalApplicationReport("appId"))
         .thenReturn(reportDTO);

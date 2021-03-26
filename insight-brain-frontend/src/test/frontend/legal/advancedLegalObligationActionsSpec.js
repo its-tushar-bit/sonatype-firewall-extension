@@ -344,7 +344,9 @@ describe('advancedLegalObligationActions', function () {
                   comment: 'comment',
                   ownerId: 'ROOT_ORGANIZATION_ID',
                   status: 'OPEN',
-                  foo: 'bar'
+                  foo: 'bar',
+                  lastUpdatedByUsername: 'admin',
+                  lastUpdatedAt: 1618873200000
                 }
               })
         }
@@ -363,7 +365,14 @@ describe('advancedLegalObligationActions', function () {
           expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
           expect(actions[1].payload).toEqual({
             name: 'name',
-            value: { id: 'id', comment: 'comment', ownerId: 'ROOT_ORGANIZATION_ID', status: 'OPEN' }
+            value: {
+              id: 'id',
+              comment: 'comment',
+              ownerId: 'ROOT_ORGANIZATION_ID',
+              status: 'OPEN',
+              lastUpdatedByUsername: 'admin',
+              lastUpdatedAt: 1618873200000
+            }
           });
           expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE);
           expect(actions[2].payload).toEqual({ name: 'name' });
@@ -503,7 +512,16 @@ describe('advancedLegalObligationActions', function () {
         get: {
           [getComponentObligationUrl('organization', 'org', 'componentIdentifier',
               'name')]: Promise.resolve(
-              { data: { id: 'id2', comment: 'comment2', ownerId: 'ROOT_ORGANIZATION_ID', status: 'FLAGGED' } })
+              {
+                data: {
+                  id: 'id2',
+                  comment: 'comment2',
+                  ownerId: 'ROOT_ORGANIZATION_ID',
+                  status: 'FLAGGED',
+                  lastUpdatedByUsername: 'admin',
+                  lastUpdatedAt: 1618873200000
+                }
+              })
         }
       });
 
@@ -520,7 +538,14 @@ describe('advancedLegalObligationActions', function () {
           expect(actions[1].payload).toEqual(
               {
                 name: 'name',
-                value: { id: 'id2', comment: 'comment2', ownerId: 'ROOT_ORGANIZATION_ID', status: 'FLAGGED' }
+                value: {
+                  id: 'id2',
+                  comment: 'comment2',
+                  ownerId: 'ROOT_ORGANIZATION_ID',
+                  status: 'FLAGGED',
+                  lastUpdatedByUsername: 'admin',
+                  lastUpdatedAt: 1618873200000
+                }
               });
           expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE);
           expect(actions[2].payload).toEqual({ name: 'name' });

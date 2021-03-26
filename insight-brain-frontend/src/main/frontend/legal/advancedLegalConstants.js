@@ -24,3 +24,17 @@ export const DASHBOARD = {
     pagesToFill: 1
   }
 };
+
+export const STAGE_NAME_TO_DISPLAY = {
+  'Build': 'Build',
+  'Stage Release': 'Stage',
+  'Release': 'Release',
+  'Operate': 'Operate'
+};
+
+export const STAGE_NAME_TO_ID = {
+  'Build': 'build',
+  'Stage Release': 'stage-release',
+  'Release': 'release',
+  'Operate': 'operate'
+};

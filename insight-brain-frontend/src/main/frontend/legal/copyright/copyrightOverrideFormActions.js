@@ -51,7 +51,10 @@ export function saveCopyrightOverride(
                 .then((getResponsePayload) => {
                   const descriptiveResponse = {
                     ...getResponsePayload.data.componentCopyrightDTO,
-                    componentCopyrightScopeOwnerId: getResponsePayload.data.ownerId
+                    componentCopyrightScopeOwnerId: getResponsePayload.data.ownerId,
+                    componentCopyrightLastUpdatedByUsername:
+                      getResponsePayload.data.componentCopyrightDTO.lastUpdatedByUsername,
+                    componentCopyrightLastUpdatedAt: getResponsePayload.data.componentCopyrightDTO.lastUpdatedAt
                   };
                   dispatch(saveFulfilled(descriptiveResponse));
                   isObligationDirty ? saveObligation(existingObligation.name)(dispatch,

@@ -37,15 +37,19 @@ describe('copyrightOverrideFormAction', function() {
           component: {
             componentIdentifier: 'componentIdentifier',
             licenseLegalData: {
-              componentCopyrightId: 'componentCopyrightId'
+              componentCopyrightId: 'componentCopyrightId',
+              obligations: [
+                {
+                  id: 'd387da0b87a9428fbc352f437c8294cf',
+                  name: 'Inclusion of Copyright',
+                  status: 'FLAGGED',
+                  comment: 'comment',
+                  ownerId: 'ROOT_ORGANIZATION_ID',
+                  lastUpdatedByUsername: 'admin',
+                  lastUpdatedAt: 1618873200000
+                }
+              ]
             }
-          },
-          existingObligation: {
-            'id': 'd387da0b87a9428fbc352f437c8294cf',
-            'name': 'Inclusion of Copyright',
-            'status': 'FLAGGED',
-            'comment': 'Test comment',
-            'ownerId': 'ROOT_ORGANIZATION_ID'
           }
         },
         availableScopes: {
@@ -77,7 +81,8 @@ describe('copyrightOverrideFormAction', function() {
       store.dispatch(saveCopyrightOverride({
         copyrights: copyrights,
         scopeOwnerId: 'org',
-        isCopyrightsDirty: true
+        isCopyrightsDirty: true,
+        isObligationDirty: false
       }));
 
       const actions = store.getActions();
@@ -138,7 +143,11 @@ describe('copyrightOverrideFormAction', function() {
           [getComponentCopyrightOverrideUrl('organization', 'org', 'componentIdentifier')]: Promise.resolve(
               {
                 data: {
-                  componentCopyrightDTO: {data: 'dataGET'},
+                  componentCopyrightDTO: {
+                    data: 'dataGET',
+                    lastUpdatedByUsername: 'admin',
+                    lastUpdatedAt: 1618873200000
+                  },
                   ownerId: 'realOwner'
                 }
               }),
@@ -146,8 +155,12 @@ describe('copyrightOverrideFormAction', function() {
           Promise.resolve(
               {
                 data: {
-                  componentCopyrightDTO: {data: 'dataGET2'},
-                  ownerId: 'realOwner'
+                  id: 'id',
+                  comment: 'comment',
+                  status: 'OPEN',
+                  ownerId: 'realOwner',
+                  lastUpdatedByUsername: 'admin',
+                  lastUpdatedAt: 1618873200000
                 }
               })
         }
@@ -156,7 +169,7 @@ describe('copyrightOverrideFormAction', function() {
           {
             copyrights: copyrights,
             scopeOwnerId: 'org',
-            existingObligation: {'status': 'FULFILLED'},
+            existingObligation: { name: 'Inclusion of Copyright', 'status': 'FULFILLED' },
             isCopyrightsDirty: true,
             isObligationDirty: false
           })).then(() => {
@@ -169,7 +182,14 @@ describe('copyrightOverrideFormAction', function() {
               '/component/copyright?componentIdentifier=%22componentIdentifier%22');
           expect(actions.length).toBe(3);
           expect(actions[1].type).toBe(COPYRIGHT_OVERRIDE_SAVE_FULFILLED);
-          expect(actions[1].payload).toEqual({data: 'dataGET', componentCopyrightScopeOwnerId: 'realOwner'});
+          expect(actions[1].payload).toEqual({
+            data: 'dataGET',
+            lastUpdatedByUsername: 'admin',
+            lastUpdatedAt: 1618873200000,
+            componentCopyrightScopeOwnerId: 'realOwner',
+            componentCopyrightLastUpdatedByUsername: 'admin',
+            componentCopyrightLastUpdatedAt: 1618873200000
+          });
           expect(actions[2].type).toBe(COPYRIGHT_OVERRIDE_SUBMIT_MASK_DONE);
           done();
         }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
@@ -213,7 +233,11 @@ describe('copyrightOverrideFormAction', function() {
           [getComponentCopyrightOverrideUrl('organization', 'org', 'componentIdentifier')]: Promise.resolve(
               {
                 data: {
-                  componentCopyrightDTO: {data: 'dataGET'},
+                  componentCopyrightDTO: {
+                    data: 'dataGET',
+                    lastUpdatedByUsername: 'admin',
+                    lastUpdatedAt: 1618873200000
+                  },
                   ownerId: 'realOwner'
                 }
               })
@@ -235,7 +259,14 @@ describe('copyrightOverrideFormAction', function() {
               '/component/copyright?componentIdentifier=%22componentIdentifier%22');
           expect(actions.length).toBe(3);
           expect(actions[1].type).toBe(COPYRIGHT_OVERRIDE_SAVE_FULFILLED);
-          expect(actions[1].payload).toEqual({data: 'dataGET', componentCopyrightScopeOwnerId: 'realOwner'});
+          expect(actions[1].payload).toEqual({
+            data: 'dataGET',
+            lastUpdatedByUsername: 'admin',
+            lastUpdatedAt: 1618873200000,
+            componentCopyrightScopeOwnerId: 'realOwner',
+            componentCopyrightLastUpdatedByUsername: 'admin',
+            componentCopyrightLastUpdatedAt: 1618873200000
+          });
           expect(actions[2].type).toBe(COPYRIGHT_OVERRIDE_SUBMIT_MASK_DONE);
           done();
         }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
@@ -272,8 +303,12 @@ describe('copyrightOverrideFormAction', function() {
         }
       });
 
-      store.dispatch(saveCopyrightOverride(
-          {copyrights: copyrights, scopeOwnerId: 'org', isCopyrightsDirty: true})).then(() => {
+      store.dispatch(saveCopyrightOverride({
+        copyrights: copyrights,
+        scopeOwnerId: 'org',
+        isCopyrightsDirty: true,
+        isObligationDirty: false
+      })).then(() => {
         const actions = store.getActions();
         expect(axios.post).toHaveBeenCalledWith(
             '/api/experimental/licenseLegalMetadata/organization/org/component/copyright', expectedPostBody);
@@ -298,7 +333,18 @@ describe('copyrightOverrideFormAction', function() {
             componentIdentifier: 'componentIdentifier',
             licenseLegalData: {
               componentCopyrightId: 'componentCopyrightId',
-              componentCopyrightScopeOwnerId: 'app'
+              componentCopyrightScopeOwnerId: 'app',
+              obligations: [
+                {
+                  id: 'd387da0b87a9428fbc352f437c8294cf',
+                  name: 'Inclusion of Copyright',
+                  status: 'FLAGGED',
+                  comment: 'comment',
+                  ownerId: 'ROOT_ORGANIZATION_ID',
+                  lastUpdatedByUsername: 'admin',
+                  lastUpdatedAt: 1618873200000
+                }
+              ]
             }
           }
         },
@@ -448,16 +494,24 @@ describe('copyrightOverrideFormAction', function() {
           [getComponentCopyrightOverrideUrl('application', 'app', 'componentIdentifier')]: Promise.resolve(
               {
                 data: {
-                  componentCopyrightDTO: {data: 'dataGET'},
+                  componentCopyrightDTO: {
+                    data: 'dataGET',
+                    lastUpdatedByUsername: 'admin',
+                    lastUpdatedAt: 1618873200000
+                  },
                   ownerId: 'realOwner'
                 }
               }),
-          [getComponentObligationUrl('application', 'app', 'componentIdentifier', 'Inclusion of Copyright')]:
+          [getComponentObligationUrl(orgOrApp, expectedScope, 'componentIdentifier', 'Inclusion of Copyright')]:
           Promise.resolve(
               {
                 data: {
-                  componentCopyrightDTO: {data: 'dataGET2'},
-                  ownerId: 'realOwner'
+                  id: 'id',
+                  comment: 'comment',
+                  status: 'OPEN',
+                  ownerId: 'realOwner',
+                  lastUpdatedByUsername: 'admin',
+                  lastUpdatedAt: 1618873200000
                 }
               })
         }
@@ -466,7 +520,7 @@ describe('copyrightOverrideFormAction', function() {
           {
             copyrights,
             scopeOwnerId: expectedScope,
-            existingObligation: {'status': 'FULFILLED'},
+            existingObligation: { name: 'Inclusion of Copyright', 'status': 'FULFILLED' },
             isCopyrightsDirty: true,
             isObligationDirty: false
           })).then(() => {
@@ -477,7 +531,14 @@ describe('copyrightOverrideFormAction', function() {
               expectedPostBody);
           expect(actions.length).toBe(3);
           expect(actions[1].type).toBe(COPYRIGHT_OVERRIDE_SAVE_FULFILLED);
-          expect(actions[1].payload).toEqual({data: 'dataGET', componentCopyrightScopeOwnerId: 'realOwner'});
+          expect(actions[1].payload).toEqual({
+            data: 'dataGET',
+            lastUpdatedByUsername: 'admin',
+            lastUpdatedAt: 1618873200000,
+            componentCopyrightScopeOwnerId: 'realOwner',
+            componentCopyrightLastUpdatedByUsername: 'admin',
+            componentCopyrightLastUpdatedAt: 1618873200000
+          });
           expect(actions[2].type).toBe(COPYRIGHT_OVERRIDE_SUBMIT_MASK_DONE);
           done();
         }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
@@ -497,7 +558,7 @@ describe('copyrightOverrideFormAction', function() {
                   data: 'dataPOST'
                 }
               }),
-          [getSaveComponentObligationUrl(orgOrApp, persistedAtScope)]: Promise.resolve(
+          [getSaveComponentObligationUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve(
               {
                 data: {
                   data: 'dataPOST2'
@@ -508,16 +569,25 @@ describe('copyrightOverrideFormAction', function() {
           [getComponentCopyrightOverrideUrl('application', 'app', 'componentIdentifier')]: Promise.resolve(
               {
                 data: {
-                  componentCopyrightDTO: {data: 'dataGET'},
+                  componentCopyrightDTO: {
+                    data: 'dataGET',
+                    lastUpdatedByUsername: 'admin',
+                    lastUpdatedAt: 1618873200000
+                  },
                   ownerId: 'realOwner'
                 }
               }),
-          [getComponentObligationUrl('application', 'app', 'componentIdentifier', 'Inclusion of Copyright')]:
+          [getComponentObligationUrl(orgOrApp, persistedAtScope, 'componentIdentifier',
+              'Inclusion of Copyright')]:
           Promise.resolve(
               {
                 data: {
-                  componentCopyrightDTO: {data: 'dataGET2'},
-                  ownerId: 'realOwner'
+                  id: 'id',
+                  comment: 'comment',
+                  status: 'OPEN',
+                  ownerId: 'realOwner',
+                  lastUpdatedByUsername: 'admin',
+                  lastUpdatedAt: 1618873200000
                 }
               })
         }
@@ -526,7 +596,7 @@ describe('copyrightOverrideFormAction', function() {
           {
             copyrights,
             scopeOwnerId: persistedAtScope,
-            existingObligation: {'status': 'FULFILLED'},
+            existingObligation: { name: 'Inclusion of Copyright', 'status': 'FULFILLED' },
             isCopyrightsDirty: true,
             isObligationDirty: true
           })).then(() => {
@@ -539,7 +609,14 @@ describe('copyrightOverrideFormAction', function() {
             '/component/copyright?componentIdentifier=%22componentIdentifier%22');
         expect(actions.length).toBe(3);
         expect(actions[1].type).toBe(COPYRIGHT_OVERRIDE_SAVE_FULFILLED);
-        expect(actions[1].payload).toEqual({data: 'dataGET', componentCopyrightScopeOwnerId: 'realOwner'});
+        expect(actions[1].payload).toEqual({
+          data: 'dataGET',
+          lastUpdatedByUsername: 'admin',
+          lastUpdatedAt: 1618873200000,
+          componentCopyrightScopeOwnerId: 'realOwner',
+          componentCopyrightLastUpdatedByUsername: 'admin',
+          componentCopyrightLastUpdatedAt: 1618873200000
+        });
         expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED);
         done();
       });
@@ -566,7 +643,9 @@ describe('copyrightOverrideFormAction', function() {
                   name: 'Inclusion of Copyright',
                   status: 'FLAGGED',
                   comment: 'comment',
-                  ownerId: 'ROOT_ORGANIZATION_ID'
+                  ownerId: 'ROOT_ORGANIZATION_ID',
+                  lastUpdatedByUsername: 'admin',
+                  lastUpdatedAt: 1618873200000
                 }
               ]
             }
@@ -634,7 +713,11 @@ describe('copyrightOverrideFormAction', function() {
               'componentIdentifier')]: Promise.resolve(
               {
                 data: {
-                  componentCopyrightDTO: { data: 'dataGET1' },
+                  componentCopyrightDTO: {
+                    data: 'dataGET1',
+                    lastUpdatedByUsername: 'admin',
+                    lastUpdatedAt: 1618873200000
+                  },
                   ownerId: 'ROOT_ORGANIZATION_ID'
                 }
               }),
@@ -647,7 +730,9 @@ describe('copyrightOverrideFormAction', function() {
                       comment: 'comment',
                       ownerId: 'ROOT_ORGANIZATION_ID',
                       status: 'FLAGGED',
-                      name: 'Inclusion of Copyright'
+                      name: 'Inclusion of Copyright',
+                      lastUpdatedByUsername: 'admin',
+                      lastUpdatedAt: 1618873200000
                     }
                   })
         }
@@ -683,8 +768,14 @@ describe('copyrightOverrideFormAction', function() {
               '&obligationName=Inclusion%20of%20Copyright');
           expect(actions.length).toBe(5);
           expect(actions[1].type).toBe(COPYRIGHT_OVERRIDE_SAVE_FULFILLED);
-          expect(actions[1].payload).toEqual(
-              { data: 'dataGET1', componentCopyrightScopeOwnerId: 'ROOT_ORGANIZATION_ID' });
+          expect(actions[1].payload).toEqual({
+            data: 'dataGET1',
+            lastUpdatedByUsername: 'admin',
+            lastUpdatedAt: 1618873200000,
+            componentCopyrightScopeOwnerId: 'ROOT_ORGANIZATION_ID',
+            componentCopyrightLastUpdatedByUsername: 'admin',
+            componentCopyrightLastUpdatedAt: 1618873200000
+          });
           expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED);
           expect(actions[3].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
           expect(actions[3].payload).toEqual({
@@ -693,7 +784,9 @@ describe('copyrightOverrideFormAction', function() {
               id: 'd387da0b87a9428fbc352f437c8294cf',
               comment: 'comment',
               ownerId: 'ROOT_ORGANIZATION_ID',
-              status: 'FLAGGED'
+              status: 'FLAGGED',
+              lastUpdatedByUsername: 'admin',
+              lastUpdatedAt: 1618873200000
             }
           });
           expect(actions[4].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE);

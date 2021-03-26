@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2.dto.legal;
 
+import java.util.List;
+
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
@@ -24,23 +26,35 @@ public class ApiLicenseLegalComponentDTO
 
   public ApiLicenseLegalDataDTO licenseLegalData;
 
+  public List<ApiLicenseLegalStageScanDTO> stageScans;
+
   public ApiLicenseLegalComponentDTO() {
     // for jackson
   }
 
-  public ApiLicenseLegalComponentDTO(ApiReportComponentDTOV2 component, ApiLicenseLegalDataDTO licenseLegalData) {
+  public ApiLicenseLegalComponentDTO(
+      ApiReportComponentDTOV2 component,
+      ApiLicenseLegalDataDTO licenseLegalData,
+      List<ApiLicenseLegalStageScanDTO> stageScans)
+  {
     this.packageUrl = component.packageUrl;
     this.hash = component.hash;
     this.componentIdentifier = component.componentIdentifier;
     this.displayName = component.displayName;
     this.licenseLegalData = licenseLegalData;
+    this.stageScans = stageScans;
   }
 
-  public ApiLicenseLegalComponentDTO(ApiComponentDTOV2 component, ApiLicenseLegalDataDTO licenseLegalData) {
+  public ApiLicenseLegalComponentDTO(
+      ApiComponentDTOV2 component,
+      ApiLicenseLegalDataDTO licenseLegalData,
+      List<ApiLicenseLegalStageScanDTO> stageScans)
+  {
     this.packageUrl = component.packageUrl;
     this.hash = component.hash;
     this.componentIdentifier = component.componentIdentifier;
     this.displayName = component.displayName;
     this.licenseLegalData = licenseLegalData;
+    this.stageScans = stageScans;
   }
 }

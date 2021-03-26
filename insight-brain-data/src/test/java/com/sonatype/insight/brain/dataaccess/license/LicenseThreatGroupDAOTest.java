@@ -5,7 +5,10 @@
  */
 package com.sonatype.insight.brain.dataaccess.license;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -14,6 +17,7 @@ import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.NameHelperTest;
@@ -548,6 +552,56 @@ public class LicenseThreatGroupDAOTest
           .collect(Collectors.toList()))
           .containsExactly("Group 3");
     }
+  }
+
+  @Test
+  public void testGetByOwnerIdAndLicenseIdWithHierarchy() {
+    tempEntity.newLicenseThreatGroup(application.getId(), "Group 1", 0, "GPL-2.0");
+    tempEntity.newLicenseThreatGroup(organization.getId(), "Group 2", 5, "MIT");
+    tempEntity.newLicenseThreatGroup(organization.getParentOrganizationId(), "Group 3", 9, "GPL-3.0");
+
+    try (TransactionContext tx = licenseThreatGroupDAO.createTransactionContext()) {
+      List<LicenseThreatGroup> result = licenseThreatGroupDAO.getByOwnerIdAndLicenseIdsWithHierarchy(tx,
+          application.getId(), Sets.newHashSet("GPL-2.0", "MIT", "GPL-3.0"));
+      assertThat(result).hasSize(3);
+
+      assertThat(result.stream()
+          .map(LicenseThreatGroup::getName)
+          .collect(Collectors.toList()))
+          .containsExactlyInAnyOrder("Group 1", "Group 2", "Group 3");
+    }
+  }
+
+  @Test
+  public void testGetHighestLicenseTheatGroupWithHierarchy() {
+    Organization root = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+
+    assertThat(licenseThreatGroupDAO.getHighestLicenseThreatGroupWithHierarchy(app.getId(),
+        Collections.singleton("Apache-2.0"))).isNull();
+
+    LicenseThreatGroup ltg1 = tempEntity.newLicenseThreatGroup(null, root.getId(), "name1", 7, "Apache-2.0");
+
+    assertThat(licenseThreatGroupDAO.getHighestLicenseThreatGroupWithHierarchy(app.getId(),
+        Collections.singleton("Apache-2.0"))).extracting(LicenseThreatGroup::getId).isEqualTo(ltg1.getId());
+
+    LicenseThreatGroup ltg2 =
+        tempEntity.newLicenseThreatGroup(null, org.getId(), "name2", 8, "Apache-2.0");
+
+    assertThat(licenseThreatGroupDAO.getHighestLicenseThreatGroupWithHierarchy(app.getId(),
+        Collections.singleton("Apache-2.0"))).extracting(LicenseThreatGroup::getId).isEqualTo(ltg2.getId());
+
+    LicenseThreatGroup ltg3 = tempEntity.newLicenseThreatGroup(null, app.getId(), "name3", 9, "Apache-2.0");
+
+    assertThat(licenseThreatGroupDAO.getHighestLicenseThreatGroupWithHierarchy(app.getId(),
+        Collections.singleton("Apache-2.0"))).extracting(LicenseThreatGroup::getId).isEqualTo(ltg3.getId());
+
+    LicenseThreatGroup ltg4 = tempEntity.newLicenseThreatGroup(null, root.getId(), "name4", 10, "Beerware");
+
+    assertThat(licenseThreatGroupDAO.getHighestLicenseThreatGroupWithHierarchy(app.getId(),
+        new HashSet<>(Arrays.asList("Apache-2.0", "Beerware"))))
+        .extracting(LicenseThreatGroup::getId).isEqualTo(ltg4.getId());
   }
 
   private void assertUpdateLicenseThreatGroupWithDuplicateName(final String ownerId,

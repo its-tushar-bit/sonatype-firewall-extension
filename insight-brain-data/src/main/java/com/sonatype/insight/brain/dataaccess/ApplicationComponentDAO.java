@@ -92,9 +92,15 @@ public class ApplicationComponentDAO
   }
 
   public List<ApplicationComponent> getByApplicationIdAndHash(String appId, String hash) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByApplicationIdAndHash(tx, appId, hash);
+    }
+  }
+
+  public List<ApplicationComponent> getByApplicationIdAndHash(TransactionContext tx, String appId, String hash) {
     String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
         " WHERE entity.applicationId=?1 AND entity.hash=?2";
-    return getList(sQuery, appId, hash);
+    return getList(tx, sQuery, appId, hash);
   }
 
   public ApplicationComponent getLastByHash(String hash) {

@@ -89,7 +89,8 @@ function getAttributionPayload(advancedLegalState, obligationName, attributionSt
 const onAttributionSaveSuccess = (dispatch, ownerType, ownerPublicId, componentIdentifier, name) =>
   axios.get(getComponentObligationAttributionUrl(ownerType, ownerPublicId, componentIdentifier, name))
       .then(payload => {
-        const value = payload.data.length > 0 ? pick(['id', 'content', 'ownerId'], payload.data[0]) :
+        const value = payload.data.length > 0 ?
+          pick(['id', 'content', 'ownerId', 'lastUpdatedByUsername', 'lastUpdatedAt'], payload.data[0]) :
           { id: null, content: '', ownerId: 'ROOT_ORGANIZATION_ID' };
         dispatch(saveAttributionFulfilled({ name, value }));
         startSaveAttributionSubmitMaskDoneTimer(dispatch, { name });
@@ -178,7 +179,8 @@ function getObligationPayload(advancedLegalState, obligationState) {
 const onObligationSaveSuccess = (dispatch, ownerType, ownerPublicId, componentIdentifier, name) =>
   axios.get(getComponentObligationUrl(ownerType, ownerPublicId, componentIdentifier, name))
       .then(payload => {
-        const value = payload.data ? pick(['id', 'comment', 'ownerId', 'status'], payload.data) :
+        const value = payload.data ?
+          pick(['id', 'comment', 'ownerId', 'status', 'lastUpdatedByUsername', 'lastUpdatedAt'], payload.data) :
           { id: null, comment: '', ownerId: 'ROOT_ORGANIZATION_ID', status: 'OPEN' };
         dispatch(saveObligationSucceeded({ name, value }));
         startSaveObligationSubmitMaskDoneTimer(dispatch, { name });

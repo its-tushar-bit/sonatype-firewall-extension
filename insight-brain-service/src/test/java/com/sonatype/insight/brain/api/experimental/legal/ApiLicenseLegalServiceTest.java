@@ -53,6 +53,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalMetadataDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalStageScanDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApplicationLicenseUsageTelemetry;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalResultsOrder;
@@ -861,7 +862,6 @@ public class ApiLicenseLegalServiceTest
     assertComponentLegalFiles(licenseMetadataReport.components,
         new LinkedHashSet<>(Arrays.asList(componentLegalFiles)));
     assertComponentData(licenseMetadataReport.components, rawReport);
-    assertLicenseThreatGroup(licenseMetadataReport.components);
     assertObligations(licenseMetadataReport.components, licenseMetadata);
     List<Collection<ComponentIdentifier>> queriedComponents = componentIdentifiersArgumentCaptor.getAllValues();
     assertThat(queriedComponents).hasSize(2);
@@ -1389,10 +1389,6 @@ public class ApiLicenseLegalServiceTest
     Set<String> expectedLicenseIds = getExpectedLicenseIds(namedComponentDetails);
     assertThat(licenseLegalComponent.licenseLegalData.effectiveLicenses)
         .containsExactly(expectedLicenseIds.toArray(new String[0]));
-    assertThat(licenseLegalComponent.licenseLegalData.effectiveLicenseThreats)
-        .usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(apiLicenseDataAdapterSpy.convertToDTOV2(component).effectiveLicenseThreats
-            .toArray(new ApiLicenseThreatDTOV2[0]));
     assertThat(licenseLegalComponent.licenseLegalData.copyrights).hasSize(8)
         .allMatch(copyright -> copyright.content.endsWith("content"));
     assertThat(licenseLegalComponent.licenseLegalData.licenseFiles).hasSize(4)
@@ -1695,6 +1691,107 @@ public class ApiLicenseLegalServiceTest
         .containsExactly("a", "z", "b", "y");
   }
 
+  @Test
+  public void testGetLicenseLegalComponentReport_HasHighestEffectiveLicenseThreatGroup() throws Exception {
+    Owner owner = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
+    namedComponentDetails.setComponentIdentifier(componentIdentifier);
+    doReturn(namedComponentDetails)
+        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+
+    ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
+        apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
+            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+
+    ApiLicenseThreatDTOV2 expected = new ApiLicenseThreatDTOV2();
+    expected.licenseThreatGroupCategory = "severe";
+    expected.licenseThreatGroupName = "Non Standard";
+    expected.licenseThreatGroupLevel = 6;
+    assertThat(licenseLegalComponentReport.component.licenseLegalData.highestEffectiveLicenseThreatGroup)
+        .usingRecursiveComparison().isEqualTo(expected);
+  }
+
+  @Test
+  public void testGetLicenseLegalComponentReport_HasNoHighestEffectiveLicenseThreatGroup() throws Exception {
+    Owner owner = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    tempEntity.newLicenseOverride(owner.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "GLWTPL");
+    NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
+    namedComponentDetails.setComponentIdentifier(componentIdentifier);
+    doReturn(namedComponentDetails)
+        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+
+    ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
+        apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
+            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+
+    assertThat(licenseLegalComponentReport.component.licenseLegalData.highestEffectiveLicenseThreatGroup).isNull();
+  }
+
+  @Test
+  public void testGetLicenseLegalComponentReport_HasStageScansWithoutEvaluations() throws Exception {
+    Owner owner = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
+    namedComponentDetails.setComponentIdentifier(componentIdentifier);
+    doReturn(namedComponentDetails)
+        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+
+    ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
+        apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
+            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+
+    assertThat(licenseLegalComponentReport.component.stageScans)
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(
+            new ApiLicenseLegalStageScanDTO(StageTypes.BUILD.getName(), null, null),
+            new ApiLicenseLegalStageScanDTO(StageTypes.STAGE_RELEASE.getName(), null, null),
+            new ApiLicenseLegalStageScanDTO(StageTypes.RELEASE.getName(), null, null),
+            new ApiLicenseLegalStageScanDTO(StageTypes.OPERATE.getName(), null, null));
+  }
+
+  @Test
+  public void testGetLicenseLegalComponentReport_HasStageScansWithEvaluations() throws Exception {
+    Owner owner = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
+    namedComponentDetails.setComponentIdentifier(componentIdentifier);
+    doReturn(namedComponentDetails)
+        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+    tempEntity.newApplicationComponent(owner.getId(), StageTypes.BUILD.getId(), namedComponentDetails.getHash(),
+        componentIdentifier);
+    tempEntity.newApplicationComponent(owner.getId(), StageTypes.STAGE_RELEASE.getId(), namedComponentDetails.getHash(),
+        componentIdentifier);
+    tempEntity.newApplicationComponent(owner.getId(), StageTypes.RELEASE.getId(), namedComponentDetails.getHash(),
+        componentIdentifier);
+    tempEntity.newApplicationComponent(owner.getId(), StageTypes.OPERATE.getId(), namedComponentDetails.getHash(),
+        componentIdentifier);
+    PolicyEvaluation buildEval = tempEntity.newPolicyEvaluation(owner.getId(), StageTypes.BUILD.getId(), "scanIdBuild",
+        new Date(1));
+    PolicyEvaluation stageReleaseEval = tempEntity.newPolicyEvaluation(owner.getId(), StageTypes.STAGE_RELEASE.getId(),
+        "scanIdStageRelease", new Date(2));
+    PolicyEvaluation releaseEval = tempEntity.newPolicyEvaluation(owner.getId(), StageTypes.RELEASE.getId(),
+        "scanIdRelease", new Date(3));
+    PolicyEvaluation operateEval = tempEntity.newPolicyEvaluation(owner.getId(), StageTypes.OPERATE.getId(),
+        "scanIdStageOperate", new Date(4));
+
+    ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
+        apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
+            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+
+    assertThat(licenseLegalComponentReport.component.stageScans)
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(
+            new ApiLicenseLegalStageScanDTO(StageTypes.BUILD.getName(), buildEval.getScanId(), buildEval.getTime()),
+            new ApiLicenseLegalStageScanDTO(StageTypes.STAGE_RELEASE.getName(), stageReleaseEval.getScanId(),
+                stageReleaseEval.getTime()),
+            new ApiLicenseLegalStageScanDTO(StageTypes.RELEASE.getName(), releaseEval.getScanId(),
+                releaseEval.getTime()),
+            new ApiLicenseLegalStageScanDTO(StageTypes.OPERATE.getName(), operateEval.getScanId(),
+                operateEval.getTime()));
+  }
+
   private NamedComponentDetails createNamedComponentDetails() {
     return createNamedComponentDetails(Arrays.asList("Apache-2.0+", "Apache-2.0-MIT"),
         Arrays.asList("GPL-3.0-LGPL-2.0", "Beerware"));
@@ -1963,21 +2060,6 @@ public class ApiLicenseLegalServiceTest
           .withFailMessage("Component " + component.displayName + " does not contain actual license: " + actualLicense)
           .contains(actualLicense);
     });
-  }
-
-  private void assertLicenseThreatGroup(List<ApiLicenseLegalComponentDTO> components) {
-    ApiLicenseThreatDTOV2 expectedLicenseThreatGroup = new ApiLicenseThreatDTOV2();
-    expectedLicenseThreatGroup.licenseThreatGroupName = "Sonatype Special Licenses";
-    expectedLicenseThreatGroup.licenseThreatGroupLevel = 5;
-    expectedLicenseThreatGroup.licenseThreatGroupCategory = "severe";
-
-    Set<ApiLicenseThreatDTOV2> licenseThreatGroups = components.stream()
-        .filter(component -> component.displayName
-            .equals("com.fasterxml.jackson.datatype : jackson-datatype-jdk8 : 2.10.3"))
-        .flatMap(component -> component.licenseLegalData.effectiveLicenseThreats.stream())
-        .collect(Collectors.toCollection(LinkedHashSet::new));
-
-    assertThat(licenseThreatGroups).usingRecursiveFieldByFieldElementComparator().contains(expectedLicenseThreatGroup);
   }
 
   private void assertObligations(

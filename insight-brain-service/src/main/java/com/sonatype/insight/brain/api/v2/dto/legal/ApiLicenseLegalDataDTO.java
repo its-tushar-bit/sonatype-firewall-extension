@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.dto.legal;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -23,7 +24,7 @@ public class ApiLicenseLegalDataDTO
 
   public List<String> effectiveLicenses;
 
-  public List<ApiLicenseThreatDTOV2> effectiveLicenseThreats;
+  public ApiLicenseThreatDTOV2 highestEffectiveLicenseThreatGroup;
 
   public List<ApiLicenseLegalCopyrightDTO> copyrights;
 
@@ -45,6 +46,10 @@ public class ApiLicenseLegalDataDTO
    */
   public String componentCopyrightScopeOwnerId;
 
+  public String componentCopyrightLastUpdatedByUsername;
+
+  public Date componentCopyrightLastUpdatedAt;
+
   /**
    * Persisted {@link ComponentLegalFile} identifier associated with the licenses of this component, if any.
    */
@@ -54,6 +59,10 @@ public class ApiLicenseLegalDataDTO
    * Internal owner ID of the licenses {@link ComponentLegalFile} scope.
    */
   public String componentLicensesScopeOwnerId;
+
+  public String componentLicensesLastUpdatedByUsername;
+
+  public Date componentLicensesLastUpdatedAt;
 
   /**
    * Persisted {@link ComponentLegalFile} identifier associated with the notices of this component, if any.
@@ -65,6 +74,10 @@ public class ApiLicenseLegalDataDTO
    */
   public String componentNoticesScopeOwnerId;
 
+  public String componentNoticesLastUpdatedByUsername;
+
+  public Date componentNoticesLastUpdatedAt;
+
   public ApiLicenseLegalDataDTO() {
     // for jackson
   }
@@ -73,7 +86,7 @@ public class ApiLicenseLegalDataDTO
       final List<String> declaredLicenses,
       final List<String> observedLicenses,
       final List<String> effectiveLicenses,
-      final List<ApiLicenseThreatDTOV2> effectiveLicenseThreats,
+      final ApiLicenseThreatDTOV2 highestEffectiveLicenseThreatGroup,
       final List<ApiLicenseLegalCopyrightDTO> copyrights,
       final List<ApiLicenseLegalFileDTO> licenseFiles,
       final List<ApiLicenseLegalFileDTO> noticeFiles,
@@ -81,15 +94,21 @@ public class ApiLicenseLegalDataDTO
       final List<ComponentObligationAttributionDTO> attributions,
       final String componentCopyrightId,
       final String componentCopyrightScopeOwnerId,
+      final String componentCopyrightLastUpdatedByUsername,
+      final Date componentCopyrightLastUpdatedAt,
       final String componentLicensesId,
       final String componentLicensesScopeOwnerId,
+      final String componentLicensesLastUpdatedByUsername,
+      final Date componentLicensesLastUpdatedAt,
       final String componentNoticesId,
-      final String componentNoticesScopeOwnerId)
+      final String componentNoticesScopeOwnerId,
+      final String componentNoticesLastUpdatedByUsername,
+      final Date componentNoticesLastUpdatedAt)
   {
     this.declaredLicenses = declaredLicenses;
     this.observedLicenses = observedLicenses;
     this.effectiveLicenses = effectiveLicenses;
-    this.effectiveLicenseThreats = effectiveLicenseThreats;
+    this.highestEffectiveLicenseThreatGroup = highestEffectiveLicenseThreatGroup;
     this.copyrights = copyrights;
     this.licenseFiles = licenseFiles;
     this.noticeFiles = noticeFiles;
@@ -97,10 +116,16 @@ public class ApiLicenseLegalDataDTO
     this.attributions = attributions;
     this.componentCopyrightId = componentCopyrightId;
     this.componentCopyrightScopeOwnerId = componentCopyrightScopeOwnerId;
+    this.componentCopyrightLastUpdatedByUsername = componentCopyrightLastUpdatedByUsername;
+    this.componentCopyrightLastUpdatedAt = componentCopyrightLastUpdatedAt;
     this.componentLicensesId = componentLicensesId;
     this.componentLicensesScopeOwnerId = componentLicensesScopeOwnerId;
+    this.componentLicensesLastUpdatedByUsername = componentLicensesLastUpdatedByUsername;
+    this.componentLicensesLastUpdatedAt = componentLicensesLastUpdatedAt;
     this.componentNoticesId = componentNoticesId;
     this.componentNoticesScopeOwnerId = componentNoticesScopeOwnerId;
+    this.componentNoticesLastUpdatedByUsername = componentNoticesLastUpdatedByUsername;
+    this.componentNoticesLastUpdatedAt = componentNoticesLastUpdatedAt;
   }
 
   @Override
@@ -115,7 +140,7 @@ public class ApiLicenseLegalDataDTO
     return Objects.equals(declaredLicenses, that.declaredLicenses) &&
         Objects.equals(observedLicenses, that.observedLicenses) &&
         Objects.equals(effectiveLicenses, that.effectiveLicenses) &&
-        Objects.equals(effectiveLicenseThreats, that.effectiveLicenseThreats) &&
+        Objects.equals(highestEffectiveLicenseThreatGroup, that.highestEffectiveLicenseThreatGroup) &&
         Objects.equals(copyrights, that.copyrights) &&
         Objects.equals(licenseFiles, that.licenseFiles) &&
         Objects.equals(noticeFiles, that.noticeFiles) &&
@@ -123,17 +148,26 @@ public class ApiLicenseLegalDataDTO
         Objects.equals(attributions, that.attributions) &&
         Objects.equals(componentCopyrightId, that.componentCopyrightId) &&
         Objects.equals(componentCopyrightScopeOwnerId, that.componentCopyrightScopeOwnerId) &&
+        Objects.equals(componentCopyrightLastUpdatedByUsername, that.componentCopyrightLastUpdatedByUsername) &&
+        Objects.equals(componentCopyrightLastUpdatedAt, that.componentCopyrightLastUpdatedAt) &&
         Objects.equals(componentLicensesId, that.componentLicensesId) &&
         Objects.equals(componentLicensesScopeOwnerId, that.componentLicensesScopeOwnerId) &&
+        Objects.equals(componentLicensesLastUpdatedByUsername, that.componentLicensesLastUpdatedByUsername) &&
+        Objects.equals(componentLicensesLastUpdatedAt, that.componentLicensesLastUpdatedAt) &&
         Objects.equals(componentNoticesId, that.componentNoticesId) &&
-        Objects.equals(componentNoticesScopeOwnerId, that.componentNoticesScopeOwnerId);
+        Objects.equals(componentNoticesScopeOwnerId, that.componentNoticesScopeOwnerId) &&
+        Objects.equals(componentNoticesLastUpdatedByUsername, that.componentNoticesLastUpdatedByUsername) &&
+        Objects.equals(componentNoticesLastUpdatedAt, that.componentNoticesLastUpdatedAt);
   }
 
   @Override
   public int hashCode() {
     return Objects
-        .hash(declaredLicenses, observedLicenses, effectiveLicenses, effectiveLicenseThreats, copyrights, licenseFiles,
-            noticeFiles, obligations, attributions, componentCopyrightId, componentCopyrightScopeOwnerId,
-            componentLicensesId, componentLicensesScopeOwnerId, componentNoticesId, componentNoticesScopeOwnerId);
+        .hash(declaredLicenses, observedLicenses, effectiveLicenses, highestEffectiveLicenseThreatGroup, copyrights,
+            licenseFiles, noticeFiles, obligations, attributions, componentCopyrightId, componentCopyrightScopeOwnerId,
+            componentCopyrightLastUpdatedByUsername, componentCopyrightLastUpdatedAt, componentLicensesId,
+            componentLicensesScopeOwnerId, componentLicensesLastUpdatedByUsername, componentLicensesLastUpdatedAt,
+            componentNoticesId, componentNoticesScopeOwnerId, componentNoticesLastUpdatedByUsername,
+            componentNoticesLastUpdatedAt);
   }
 }

@@ -181,7 +181,7 @@ public class RepositoryComponentDAO
       parameters.add(filter.getFilterFieldsMap().get(FirewallFilterableField.POLICY_ID));
     }
 
-    String sQuery = getBaseFirewallComponentsQueryAndViolations(filter, "SELECT COUNT(component)");
+    String sQuery = getBaseFirewallComponentsQueryAndViolations(filter, "SELECT COUNT(DISTINCT component)");
 
     return getSingle(Long.class, sQuery, parameters.toArray());
   }

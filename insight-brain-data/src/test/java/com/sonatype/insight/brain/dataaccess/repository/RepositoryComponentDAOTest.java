@@ -363,7 +363,7 @@ public class RepositoryComponentDAOTest
   }
 
   @Test
-  public void testGetFirewallRepositoryComponents_MaunualUnquarantinedOnly() {
+  public void testGetFirewallRepositoryComponents_ManualUnquarantinedOnly() {
     setupMockDataForGetFirewallRepositoryComponents();
 
     // SETUP FILTER
@@ -602,6 +602,22 @@ public class RepositoryComponentDAOTest
         .hasMessage("firewallComponentFilterState is required and cannot be null.");
   }
 
+  @Test
+  public void testGetTotalFirewallRepositoryComponents_MultiplePolicyViolations() {
+    setupMockDataForGetFirewallRepositoryComponents();
+
+    // FILTER
+    FirewallRepositoryComponentFilter filter =
+        new FirewallRepositoryComponentFilter(1, 2, FirewallComponentFilterState.UNQUARANTINE_AUTO, null, true,
+            Collections.emptyList());
+
+    // EXECUTE
+    final long autoUnquarantinedComponentsCount = dao.getTotalFirewallRepositoryComponents(filter);
+
+    // ASSERTION
+    assertThat(autoUnquarantinedComponentsCount).isEqualTo(4);
+  }
+
   private void setupMockDataForGetFirewallRepositoryComponents() {
     // ADD COMPONENT
     final RepositoryComponent component1 =
@@ -630,10 +646,14 @@ public class RepositoryComponentDAOTest
         component3.getComponentIdentifier());
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "/autoreleased4", false, "policy_id_4", "policy_4",
         component4.getComponentIdentifier());
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "/autoreleased4", false, "policy_id_4_another",
+        "policy_4_another", component4.getComponentIdentifier());
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "/quarantined1", false, "policy_id_5", "policy_5",
         component5.getComponentIdentifier());
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "/quarantined2", false, "policy_id_6", "policy_6",
         component6.getComponentIdentifier());
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "/quarantined2", false, "policy_id_6_another",
+        "policy_6_another", component6.getComponentIdentifier());
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "/manualreleased1", false, "policy_id_7", "policy_7",
         component7.getComponentIdentifier());
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "/audit1", false, "policy_id_8", "policy_8",

@@ -102,6 +102,48 @@ describe('advancedLegalReducer', function () {
       expect(component.foo).toBe('bar');
     });
 
+    it('sorts the obligations', function () {
+      const state = {
+        component: {
+          loading: true,
+          error: null
+        }
+      };
+      const componentInfo = {
+        component: {
+          licenseLegalData: {
+            noticeFiles: [],
+            licenseFiles: [],
+            obligations: [
+              { name: 'Must Give Credit' },
+              { name: 'Must State Changes' },
+              { name: 'z' },
+              { name: 'Inclusion of Install Instructions' },
+              { name: 'Inclusion of Notice' },
+              { name: 'a' },
+              { name: 'Inclusion of License' },
+              { name: 'Inclusion of Copyright' }
+            ],
+            attributions: []
+          }
+        }
+      };
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
+        payload: componentInfo
+      });
+      expect(newState.component.component.licenseLegalData.obligations.map(o => pick(['name'], o))).toEqual([
+        { name: 'Inclusion of Copyright' },
+        { name: 'Inclusion of Notice' },
+        { name: 'Inclusion of License' },
+        { name: 'Inclusion of Install Instructions' },
+        { name: 'Must Give Credit' },
+        { name: 'Must State Changes' },
+        { name: 'a' },
+        { name: 'z' }
+      ]);
+    });
+
     it('sets the obligation attribution data for text based obligations without attributions', function () {
       const state = {
         component: {

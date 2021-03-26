@@ -1792,6 +1792,61 @@ public class ApiLicenseLegalServiceTest
                 operateEval.getTime()));
   }
 
+  @Test
+  public void testGetLicenseLegalComponentReport_SortsObligations() throws Exception {
+    Owner owner = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
+    namedComponentDetails.setComponentIdentifier(componentIdentifier);
+    doReturn(namedComponentDetails)
+        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+    List<String> licenses = Collections.singletonList("Beerware");
+    List<LicenseMetadataDTO> licenseMetadataDTOs = createLicenseMetadataDTOs(licenses);
+    licenseMetadataDTOs.get(0).setLicenseObligations(new LinkedHashSet<>(Arrays
+        .asList(
+            new LicenseObligationDTO("z", Collections.emptySet()),
+            new LicenseObligationDTO("k", Collections.emptySet()),
+            new LicenseObligationDTO("a", Collections.emptySet()),
+            new LicenseObligationDTO("y", Collections.emptySet()),
+            new LicenseObligationDTO("b", Collections.emptySet()),
+            new LicenseObligationDTO("x", Collections.emptySet())
+        )));
+    doReturn(licenseMetadataDTOs)
+        .when(mockApiLicenseLegalHdsService).getLicenseMetadata(argThat(list -> list.containsAll(licenses)));
+
+    ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
+        apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
+            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+
+    assertThat(licenseLegalComponentReport.component.licenseLegalData.obligations).extracting(
+        ApiLicenseLegalObligationDTO::getName).containsExactly("a", "b", "k", "x", "y", "z");
+  }
+
+  @Test
+  public void testGetLicenseLegalComponentReport_SortsAttributions() throws Exception {
+    Owner owner = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
+    namedComponentDetails.setComponentIdentifier(componentIdentifier);
+    doReturn(namedComponentDetails)
+        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+    tempEntity.newComponentObligationAttribution(componentIdentifier, owner.getId(), "z", "content", "hash");
+    tempEntity.newComponentObligationAttribution(componentIdentifier, owner.getId(), "k", "content", "hash");
+    tempEntity.newComponentObligationAttribution(componentIdentifier, owner.getId(), "a", "content", "hash");
+    tempEntity.newComponentObligationAttribution(componentIdentifier, owner.getId(), null, "content", "hash");
+    tempEntity.newComponentObligationAttribution(componentIdentifier, owner.getId(), "y", "content", "hash");
+    tempEntity.newComponentObligationAttribution(componentIdentifier, owner.getId(), "b", "content", "hash");
+    tempEntity.newComponentObligationAttribution(componentIdentifier, owner.getId(), "x", "content", "hash");
+
+    ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
+        apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
+            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+
+    assertThat(licenseLegalComponentReport.component.licenseLegalData.attributions).extracting(
+        ComponentObligationAttributionDTO::getObligationName)
+        .containsExactly("a", "b", "k", "x", "y", "z", null);
+  }
+
   private NamedComponentDetails createNamedComponentDetails() {
     return createNamedComponentDetails(Arrays.asList("Apache-2.0+", "Apache-2.0-MIT"),
         Arrays.asList("GPL-3.0-LGPL-2.0", "Beerware"));

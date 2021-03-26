@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -269,6 +270,7 @@ public class LegalReportBuilder
         licenseLegalObligation.add(apiLicenseLegalObligationDTO);
       }
     }
+    licenseLegalObligation.sort(Comparator.comparing(ApiLicenseLegalObligationDTO::getName));
     return licenseLegalObligation;
   }
 
@@ -277,7 +279,18 @@ public class LegalReportBuilder
   {
     return attributions.stream()
         .map(ComponentObligationAttributionDTO::new)
+        .sorted(LegalReportBuilder::sortAttributions)
         .collect(Collectors.toList());
+  }
+
+  private static int sortAttributions(ComponentObligationAttributionDTO a1, ComponentObligationAttributionDTO a2) {
+    if (a1.getObligationName() != null && a2.getObligationName() == null) {
+      return -1;
+    }
+    if (a1.getObligationName() == null && a2.getObligationName() != null) {
+      return 1;
+    }
+    return Objects.compare(a1.getObligationName(), a2.getObligationName(), String::compareTo);
   }
 
   private Set<String> getObligationNamesForLicense(

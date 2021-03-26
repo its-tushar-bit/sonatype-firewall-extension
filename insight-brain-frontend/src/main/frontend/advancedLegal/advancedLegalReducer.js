@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {createReducerFromActionMap} from '../util/reduxUtil';
+import { createReducerFromActionMap } from '../util/reduxUtil';
 import {
   ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FAILED,
   ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FULFILLED,
@@ -18,11 +18,11 @@ import {
   ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
   ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED
 } from './advancedLegalActions';
-import {TEXT_BASED_OBLIGATIONS} from '../legal/advancedLegalConstants';
-import {COPYRIGHT_OVERRIDE_SAVE_FULFILLED} from '../legal/copyright/copyrightOverrideFormActions';
-import {lensPath, over} from 'ramda';
-import {advancedLegalObligationReducerActionMap} from '../legal/advancedLegalObligationReducer';
-import {advancedLegalFileReducerActionMap} from '../legal/files/advancedLegalFileReducer';
+import { ACTIONABLE_OBLIGATIONS, TEXT_BASED_OBLIGATIONS } from '../legal/advancedLegalConstants';
+import { COPYRIGHT_OVERRIDE_SAVE_FULFILLED } from '../legal/copyright/copyrightOverrideFormActions';
+import { lensPath, over } from 'ramda';
+import { advancedLegalObligationReducerActionMap } from '../legal/advancedLegalObligationReducer';
+import { advancedLegalFileReducerActionMap } from '../legal/files/advancedLegalFileReducer';
 
 const initialState = {
   viewStateApplications: {
@@ -137,6 +137,19 @@ function loadComponentFulfilled(payload, state) {
       error: null,
       saveObligationSubmitMask: null
     };
+  }).sort((o1, o2) => {
+    const o1Index = ACTIONABLE_OBLIGATIONS.indexOf(o1.name);
+    const o2Index = ACTIONABLE_OBLIGATIONS.indexOf(o2.name);
+    if (o1Index === -1 && o2Index === -1) {
+      return o1.name.localeCompare(o2.name);
+    }
+    if (o2Index === -1) {
+      return -1;
+    }
+    if (o1Index === -1) {
+      return 1;
+    }
+    return o1Index - o2Index;
   });
 
   const newAttributions = newObligations

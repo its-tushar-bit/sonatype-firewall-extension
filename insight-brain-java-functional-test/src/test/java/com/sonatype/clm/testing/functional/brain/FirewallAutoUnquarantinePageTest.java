@@ -82,6 +82,8 @@ public class FirewallAutoUnquarantinePageTest
 
     refreshOrOpen(FirewallAutoUnquarantinePage.url());
 
+    eyesWatcher.eyesCheck("Auto Unquarantine Page - Auto Unquarantine Feature is Set");
+
     page.shouldBe(visible);
     page.firewallAutoUnquarantineStatus().shouldBe(visible);
     page.firewallAutoReleaseQuarantineMtd().shouldBe(visible);
@@ -137,6 +139,8 @@ public class FirewallAutoUnquarantinePageTest
     page.firewallConfigurationModal().cancelButton().shouldBe(visible);
     page.firewallConfigurationModal().autoUnquarantineToggle().shouldBe(visible);
     page.firewallConfigurationModal().autoUnquarantineCheckBox().shouldNotBe(checked);
+
+    eyesWatcher.eyesCheck("Auto Unquarantine Page - Auto Release from Quarantine Configuration Modal");
 
     page.firewallConfigurationModal().cancelButton().click();
     page.firewallConfigurationModal().shouldBe(hidden);
@@ -347,6 +351,8 @@ public class FirewallAutoUnquarantinePageTest
     testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL);
 
     refreshOrOpen(FirewallAutoUnquarantinePage.url());
+
+    eyesWatcher.eyesCheck("Auto Unquarantine Page - Load Error");
 
     //verify initial status with error
     page.shouldBe(visible);

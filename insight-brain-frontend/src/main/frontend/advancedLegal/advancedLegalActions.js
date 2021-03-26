@@ -59,11 +59,11 @@ export function loadApplications() {
   };
 }
 
-export function loadApplicationReport(publicId) {
+export function loadApplicationReport(applicationId) {
   return (dispatch) => {
     dispatch(loadApplicationReportRequested());
 
-    return axios.get(getLicenseLegalApplicationReportUrl(publicId))
+    return axios.get(getLicenseLegalApplicationReportUrl(applicationId))
         .then(({ data }) => {
           dispatch(loadApplicationReportFulfilled(data));
         })

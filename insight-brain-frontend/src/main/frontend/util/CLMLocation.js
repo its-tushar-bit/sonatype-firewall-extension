@@ -280,12 +280,12 @@ export function checkUserTokenExistenceUrl() {
   return `${userTokenUrl()}/hasToken`;
 }
 
-export function getLicenseLegalApplicationReportUrl(applicationPublicId) {
-  return uriTemplate`/api/experimental/licenseLegalMetadata/application/${applicationPublicId}`;
+export function getLicenseLegalApplicationReportUrl(applicationId) {
+  return uriTemplate`/api/v2/licenseLegalMetadata/application/${applicationId}`;
 }
 
 export function getLicenseLegalComponentUrl(orgOrApp, ownerId, hash) {
-  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component?hash=${hash}`;
+  return uriTemplate`/api/v2/licenseLegalMetadata/${orgOrApp}/${ownerId}/component?hash=${hash}`;
 }
 
 export function getLegalDashboardApplicationsUrl() {

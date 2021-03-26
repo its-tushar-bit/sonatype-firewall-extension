@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.lang.annotation.ElementType;
@@ -14,13 +15,17 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
@@ -40,9 +45,11 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelpe
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.jira.JiraClient;
 import com.sonatype.insight.brain.jira.JiraClientFactory;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseResource;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.scheduler.TestQuartzJobStoreTx;
@@ -279,6 +286,30 @@ public abstract class AbstractBrainServiceTest
     String scanId = tempEntity.uuid();
     mockReport(scanId, resourceName);
     return scanId;
+  }
+
+  protected void mockReport(PolicyEvaluation evaluation, String classSimpleName) {
+    try {
+      Path reportDir = getCLMServer().getInstance(InsightWork.class)
+          .getReportDir(evaluation.getApplicationId(), evaluation.getScanId()).toPath();
+      Files.createDirectories(reportDir);
+      Files.write(reportDir.resolve("report.zip"), Collections.singletonList("report.zip"));
+      File reportFile = reportDir.resolve("report.zip").toFile();
+      try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(reportFile))) {
+        zos.putNextEntry(new ZipEntry("index.html"));
+      }
+      String[] filenames = {
+          Report.BOM_JSON_FILENAME, Report.SECURITY_JSON_FILENAME, Report.LICENSES_JSON_FILENAME,
+          Report.DATA_JSON_FILENAME, Report.DEPENDENCIES_JSON_FILENAME
+      };
+      for (String filename : filenames) {
+        File file = Report.getCacheFile(reportFile, filename);
+        FileUtils.copyURLToFile(getClass().getResource("/" + classSimpleName + "/report/" + filename), file);
+      }
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 
   protected void mockReport(String scanId, String resourceName) {

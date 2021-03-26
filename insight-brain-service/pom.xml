@@ -415,7 +415,6 @@
     <dependency>
       <groupId>com.sonatype.insight.portal</groupId>
       <artifactId>insight-license-dto-model</artifactId>
-      <version>${hds.version}</version>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.portal</groupId>

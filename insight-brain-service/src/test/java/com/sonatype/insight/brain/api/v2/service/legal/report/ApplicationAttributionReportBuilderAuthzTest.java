@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.experimental.legal.report;
+package com.sonatype.insight.brain.api.v2.service.legal.report;
 
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -21,18 +21,18 @@ public class ApplicationAttributionReportBuilderAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testGenerateLegalAttributionApplicationReport_Unauthenticated() {
-    applicationAttributionReportBuilder.generateLegalApplicationAttributionReport(app.getPublicId());
+    applicationAttributionReportBuilder.generateLegalApplicationAttributionReport(app);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGenerateLegalAttributionApplicationReport_Unauthorized() {
     login();
-    applicationAttributionReportBuilder.generateLegalApplicationAttributionReport(app.getPublicId());
+    applicationAttributionReportBuilder.generateLegalApplicationAttributionReport(app);
   }
 
   @Test(expected = NotFoundException.class)
   public void testGenerateLegalAttributionApplicationReport_Authorized() {
     grantLegalReviewerPermission(app.getId());
-    applicationAttributionReportBuilder.generateLegalApplicationAttributionReport(app.getPublicId());
+    applicationAttributionReportBuilder.generateLegalApplicationAttributionReport(app);
   }
 }

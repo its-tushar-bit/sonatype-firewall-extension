@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.experimental.legal;
+package com.sonatype.insight.brain.api.v2.service.legal;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -32,6 +32,8 @@ import javax.servlet.http.HttpServletRequest;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalHdsService;
+import com.sonatype.insight.brain.api.experimental.legal.LegalComponentIdentifierUtil;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
@@ -100,6 +102,7 @@ import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.IdUtils;
@@ -419,14 +422,13 @@ public class ApiLicenseLegalService
 
   @Authorize(permission = Permission.LEGAL_REVIEWER)
   public ApiLicenseLegalApplicationReportDTO getLicenseLegalApplicationReport(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
+      @AuthzContext(Key.OWNER) Owner application)
   {
     checkLicense();
 
-    log.info("Processing license metadata request for {}", applicationPublicId);
-    Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    ApiReportRawDataDTOV2 latestRawReport = getLastRawApplicationReport(applicationPublicId)
-        .orElseThrow(() -> new NotFoundException("Report for application " + applicationPublicId + " not found."));
+    log.info("Processing license metadata request for {}", application.getId());
+    ApiReportRawDataDTOV2 latestRawReport = getLastRawApplicationReport(application.getPublicId())
+        .orElseThrow(() -> new NotFoundException("Report for application " + application.getId() + " not found."));
     Map<ComponentIdentifier, Set<ApiLicenseDTO>> componentIdentifierToMultiLicenses =
         getReportMultiLicenses(latestRawReport);
     Set<ApiLicenseDTO> multiLicenses = componentIdentifierToMultiLicenses.entrySet().stream()
@@ -438,7 +440,7 @@ public class ApiLicenseLegalService
         .flatMap(multiLicenseId -> multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(multiLicenseId).stream())
         .collect(Collectors.toCollection(LinkedHashSet::new));
 
-    sendApplicationTelemetryData(applicationPublicId, latestRawReport, multiLicenses);
+    sendApplicationTelemetryData(application.getPublicId(), latestRawReport, multiLicenses);
 
     Map<String, LicenseMetadataDTO> licenseMetadataById = multiLicenses.isEmpty() ? Collections.emptyMap() :
         apiLicenseLegalHdsService.getLicenseMetadata(

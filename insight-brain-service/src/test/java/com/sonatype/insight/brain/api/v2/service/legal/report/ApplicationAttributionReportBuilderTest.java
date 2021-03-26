@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.experimental.legal.report;
+package com.sonatype.insight.brain.api.v2.service.legal.report;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -12,7 +12,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
-import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalService;
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDTO;
@@ -21,34 +22,38 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalMetadataDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
+import com.sonatype.insight.brain.api.v2.service.legal.ApiLicenseLegalService;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 
+import com.google.inject.Binder;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
 public class ApplicationAttributionReportBuilderTest
+    extends AbstractComponentTest
 {
   @Mock
-  private ApiLicenseLegalService apiLicenseLegalService;
+  private ApiLicenseLegalService mockApiLicenseLegalService;
 
+  @Inject
   private ApplicationAttributionReportBuilder reportBuilder;
 
-  @Before
-  public void setup() {
-    reportBuilder = new ApplicationAttributionReportBuilder(apiLicenseLegalService);
+  @Override
+  public void configure(final Binder binder) {
+    binder.bind(ApiLicenseLegalService.class).toInstance(mockApiLicenseLegalService);
+    super.configure(binder);
   }
 
   @Test
   public void testSuccessfulReport() throws IOException {
+    Application application = tempEntity.newApplicationWithParent("appId");
     ApiLicenseLegalApplicationReportDTO reportDTO = new ApiLicenseLegalApplicationReportDTO();
 
     //First Component
@@ -111,7 +116,7 @@ public class ApplicationAttributionReportBuilderTest
     reportDTO.components.add(new ApiLicenseLegalComponentDTO(component2, licenseLegalData2, null));
     reportDTO.components.add(new ApiLicenseLegalComponentDTO(component3, licenseLegalData3, null));
 
-    when(apiLicenseLegalService.getLicenseLegalApplicationReport("appId"))
+    when(mockApiLicenseLegalService.getLicenseLegalApplicationReport(application))
         .thenReturn(reportDTO);
 
     reportDTO.licenseLegalMetadata = new HashSet<>();
@@ -120,7 +125,7 @@ public class ApplicationAttributionReportBuilderTest
             new HashSet<>());
     reportDTO.licenseLegalMetadata.add(licenseLegalMetadataDTO);
 
-    String content = reportBuilder.generateLegalApplicationAttributionReport("appId");
+    String content = reportBuilder.generateLegalApplicationAttributionReport(application);
     String expectedContent = IOUtils.toString(Objects.requireNonNull(getClass().getClassLoader()
             .getResource("ApplicationAttributionReportTest/expectedApplicationAttributionReport.html")),
         StandardCharsets.UTF_8);
@@ -129,10 +134,13 @@ public class ApplicationAttributionReportBuilderTest
 
   @Test
   public void testEmptyReport() {
+    Application application = tempEntity.newApplicationWithParent("appId");
     ApiLicenseLegalApplicationReportDTO reportDTO = new ApiLicenseLegalApplicationReportDTO();
 
-    when(apiLicenseLegalService.getLicenseLegalApplicationReport("appId")).thenReturn(reportDTO);
+    when(mockApiLicenseLegalService.getLicenseLegalApplicationReport(application))
+        .thenReturn(reportDTO);
 
-    assertThat(reportBuilder.generateLegalApplicationAttributionReport("appId")).isNotNull();
+    assertThat(reportBuilder.generateLegalApplicationAttributionReport(application))
+        .isNotNull();
   }
 }

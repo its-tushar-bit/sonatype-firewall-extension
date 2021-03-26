@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.experimental.legal.report;
+package com.sonatype.insight.brain.api.v2.service.legal.report;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -12,11 +12,13 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalService;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
+import com.sonatype.insight.brain.api.v2.service.legal.ApiLicenseLegalService;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzContext.Key;
 
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -45,14 +47,12 @@ public class ApplicationAttributionReportBuilder
   }
 
   @Authorize(permission = Permission.LEGAL_REVIEWER)
-  public String generateLegalApplicationAttributionReport(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
-  {
+  public String generateLegalApplicationAttributionReport(@AuthzContext(Key.OWNER) Owner application) {
     ApiLicenseLegalApplicationReportDTO applicationReportDTO =
-        apiLicenseLegalService.getLicenseLegalApplicationReport(applicationPublicId);
+        apiLicenseLegalService.getLicenseLegalApplicationReport(application);
     Map<String, Object> contextMap = new HashMap<>(2);
     contextMap.put("applicationReport", applicationReportDTO);
-    contextMap.put("applicationPublicId", applicationPublicId);
+    contextMap.put("applicationPublicId", application.getPublicId());
     return templateEngine.process("application_attribution_report", new Context(Locale.getDefault(), contextMap));
   }
 }

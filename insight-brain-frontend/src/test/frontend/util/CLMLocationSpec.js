@@ -213,13 +213,13 @@ describe('CLMLocation.js', function() {
   });
 
   it('should return the license legal metadata url for the application', function() {
-    expect(CLMLocation.getLicenseLegalApplicationReportUrl('appPublicId'))
-        .toBe('/api/experimental/licenseLegalMetadata/application/appPublicId');
+    expect(CLMLocation.getLicenseLegalApplicationReportUrl('appId'))
+        .toBe('/api/v2/licenseLegalMetadata/application/appId');
   });
 
   it('should return the license legal component url for the application', function() {
     expect(CLMLocation.getLicenseLegalComponentUrl('orgOrApp', 'ownerId', 'hash'))
-        .toBe('/api/experimental/licenseLegalMetadata/orgOrApp/ownerId/component?hash=hash');
+        .toBe('/api/v2/licenseLegalMetadata/orgOrApp/ownerId/component?hash=hash');
   });
 
   it('should return the legal dashboard applicationsUrl url', function() {

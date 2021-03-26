@@ -49,6 +49,11 @@
     </dependency>
 
     <dependency>
+      <groupId>com.sonatype.insight.portal</groupId>
+      <artifactId>insight-license-dto-model</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
       <version>${javax-servlet-api.version}</version>

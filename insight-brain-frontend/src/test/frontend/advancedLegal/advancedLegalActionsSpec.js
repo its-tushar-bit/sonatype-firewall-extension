@@ -106,18 +106,18 @@ describe('advancedLegalActions', function () {
     });
 
     it('dispatches a ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FULFILLED action with applications', function (done) {
-      const applicationPublicId = 'appId';
+      const applicationId = 'appId';
       const applicationReport = {
         components: [{ displayName: 'groupId : artifactId : version' }],
         licenseLegalMetadata: [{ licenseId: 'License Test' }]
       };
       mockAxiosCalls({
         get: {
-          [getLicenseLegalApplicationReportUrl(applicationPublicId)]: Promise.resolve({ data: applicationReport })
+          [getLicenseLegalApplicationReportUrl(applicationId)]: Promise.resolve({ data: applicationReport })
         }
       });
 
-      store.dispatch(loadApplicationReport(applicationPublicId)).then(() => {
+      store.dispatch(loadApplicationReport(applicationId)).then(() => {
         const actions = store.getActions();
         expect(actions.length).toBe(2);
         expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FULFILLED);
@@ -127,15 +127,15 @@ describe('advancedLegalActions', function () {
     });
 
     it('dispatches a ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FAILED action when API fails', function (done) {
-      const applicationPublicId = 'appId';
+      const applicationId = 'appId';
       const errorTest = 'Error test';
       mockAxiosCalls({
         get: {
-          [getLicenseLegalApplicationReportUrl(applicationPublicId)]: Promise.reject(errorTest)
+          [getLicenseLegalApplicationReportUrl(applicationId)]: Promise.reject(errorTest)
         }
       });
 
-      store.dispatch(loadApplicationReport(applicationPublicId)).then(() => {
+      store.dispatch(loadApplicationReport(applicationId)).then(() => {
         const actions = store.getActions();
         expect(actions.length).toBe(2);
         expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FAILED);

@@ -37,15 +37,15 @@ import com.google.common.collect.Multimap;
 @Named
 public class ApiLicenseLegalHdsService
 {
-  static final String METADATA_URL = "/rest/license/metadata";
+  public static final String METADATA_URL = "/rest/license/metadata";
 
-  static final String LEGAL_COMMENT_URL = "/rest/legal/comment";
+  public static final String LEGAL_COMMENT_URL = "/rest/legal/comment";
 
   static final String LEGAL_COMMENT_FILE_PATHS_URL = "/rest/legal/comment/filepaths";
 
   static final String LEGAL_ANAME_COMMENT_URL = "/rest/legal/aname/comment";
 
-  static final String LEGAL_FILE_URL = "/rest/legal/file";
+  public static final String LEGAL_FILE_URL = "/rest/legal/file";
 
   private final HdsClient hdsClient;
 

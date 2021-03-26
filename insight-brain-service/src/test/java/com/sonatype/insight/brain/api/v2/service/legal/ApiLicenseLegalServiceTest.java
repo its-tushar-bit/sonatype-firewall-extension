@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.experimental.legal;
+package com.sonatype.insight.brain.api.v2.service.legal;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -38,6 +38,8 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalHdsService;
+import com.sonatype.insight.brain.api.experimental.legal.LegalComponentIdentifierUtil;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
@@ -851,7 +853,7 @@ public class ApiLicenseLegalServiceTest
         .thenReturn(new LinkedHashSet<>(Arrays.asList(componentLegalFiles)));
 
     ApiLicenseLegalApplicationReportDTO licenseMetadataReport =
-        apiLicenseLegalServiceSpy.getLicenseLegalApplicationReport(app.getPublicId());
+        apiLicenseLegalServiceSpy.getLicenseLegalApplicationReport(app);
 
     assertThat(licenseMetadataReport).isNotNull();
     assertlicenseLegalMetadata(licenseMetadataReport.components, licenseMetadataReport.licenseLegalMetadata, rawReport,
@@ -884,7 +886,7 @@ public class ApiLicenseLegalServiceTest
         .thenReturn(new HashSet<>());
 
     ApiLicenseLegalApplicationReportDTO licenseMetadataReport =
-        apiLicenseLegalServiceSpy.getLicenseLegalApplicationReport(app.getPublicId());
+        apiLicenseLegalServiceSpy.getLicenseLegalApplicationReport(app);
 
     verify(mockApiLicenseLegalHdsService, never()).getLicenseMetadata(any());
     assertThat(licenseMetadataReport.components).hasSize(3);
@@ -896,7 +898,7 @@ public class ApiLicenseLegalServiceTest
   @Test
   public void testGetLicenseLegalApplicationReport_NoReport() {
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(
-        () -> apiLicenseLegalService.getLicenseLegalApplicationReport(tempEntity.newApplicationWithParent().getId()));
+        () -> apiLicenseLegalService.getLicenseLegalApplicationReport(tempEntity.newApplicationWithParent()));
     verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
   }
 
@@ -904,7 +906,7 @@ public class ApiLicenseLegalServiceTest
   public void testGetLicenseLegalApplicationReport_Unlicensed() {
     setUnlicensedForAdvancedLegalPack();
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(
-        () -> apiLicenseLegalService.getLicenseLegalApplicationReport("someAppId"));
+        () -> apiLicenseLegalService.getLicenseLegalApplicationReport(tempEntity.newApplicationWithParent()));
   }
 
   @Test
@@ -1115,7 +1117,7 @@ public class ApiLicenseLegalServiceTest
 
     //Verify that the application report contains the overridden data
     ApiLicenseLegalApplicationReportDTO apiLicenseLegalApplicationReportDTO =
-        apiLicenseLegalService.getLicenseLegalApplicationReport(application.getPublicId());
+        apiLicenseLegalService.getLicenseLegalApplicationReport(application);
     ApiLicenseLegalComponentDTO apiLicenseLegalComponentDTO =
         apiLicenseLegalApplicationReportDTO.components.stream()
             .filter(c -> c.componentIdentifier.toComponentIdentifier().equals(

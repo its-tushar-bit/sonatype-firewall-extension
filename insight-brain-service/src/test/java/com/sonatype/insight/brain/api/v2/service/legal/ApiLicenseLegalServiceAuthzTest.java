@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.experimental.legal;
+package com.sonatype.insight.brain.api.v2.service.legal;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -12,6 +12,7 @@ import java.util.HashSet;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalHdsService;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardResultDTO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.model.ApplicationComponent;
@@ -121,19 +122,19 @@ public class ApiLicenseLegalServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetLicenseLegalApplicationReport_Unauthenticated() {
-    apiLicenseLegalService.getLicenseLegalApplicationReport(app.getPublicId());
+    apiLicenseLegalService.getLicenseLegalApplicationReport(app);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetLicenseLegalApplicationReport_Unauthorized() {
     login();
-    apiLicenseLegalService.getLicenseLegalApplicationReport(app.getPublicId());
+    apiLicenseLegalService.getLicenseLegalApplicationReport(app);
   }
 
   @Test(expected = NotFoundException.class)
   public void testGetLicenseLegalApplicationReport_Authorized() {
     grantLegalReviewerPermission(app.getId());
-    apiLicenseLegalService.getLicenseLegalApplicationReport(app.getPublicId());
+    apiLicenseLegalService.getLicenseLegalApplicationReport(app);
   }
 
   @Test(expected = UnauthenticatedException.class)

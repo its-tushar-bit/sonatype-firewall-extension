@@ -53,7 +53,7 @@ export default function AdvancedLegalApplicationsPage(props) {
                   </a>
                 </NxTableCell>
                 <NxTableCell>
-                  <a href={getLicenseLegalApplicationReportUrl(application.publicId)}
+                  <a href={getLicenseLegalApplicationReportUrl(application.id)}
                      target="_blank" rel="noopener noreferrer" >
                     Download Application Legal Data
                   </a>

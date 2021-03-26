@@ -1097,6 +1097,11 @@
         <version>2.23.2</version>
         <scope>test</scope>
       </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.portal</groupId>
+        <artifactId>insight-license-dto-model</artifactId>
+        <version>${hds.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 

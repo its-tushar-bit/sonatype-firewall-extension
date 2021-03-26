@@ -102,5 +102,7 @@ public class PublicApiPaths
   
   public static final String LICENSE_LEGAL_RESOURCE_PATH = EXPERIMENTAL_PATH + "licenseLegalMetadata";
 
+  public static final String LICENSE_LEGAL_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "licenseLegalMetadata";
+
   public static final String PING_RESOURCE_PATH = "/ping";
 }

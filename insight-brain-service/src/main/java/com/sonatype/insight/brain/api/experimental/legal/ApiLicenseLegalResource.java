@@ -5,13 +5,11 @@
  */
 package com.sonatype.insight.brain.api.experimental.legal;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -19,17 +17,13 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.experimental.legal.report.ApplicationAttributionReportBuilder;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardResultDTO;
-import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDashboardDTO;
-import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightWithOwnerDTO;
@@ -38,6 +32,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributio
 import com.sonatype.insight.brain.api.v2.dto.legal.CopyrightFilePathsDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalApplicationComponentsFilterDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalFilterDTO;
+import com.sonatype.insight.brain.api.v2.service.legal.ApiLicenseLegalService;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -56,10 +51,6 @@ public class ApiLicenseLegalResource
   public static final String DASHBOARD_COMPONENTS_PATH = "dashboard/components";
 
   public static final String DASHBOARD_APPLICATION_PATH = "dashboard/application/{applicationPublicId}";
-
-  public static final String APPLICATION_PATH = "application/{applicationPublicId}";
-
-  public static final String APPLICATION_REPORT_PATH = APPLICATION_PATH + "/report";
 
   public static final String COMPONENT_PATH = "{ownerType: application|organization}/{ownerId}/component";
 
@@ -90,26 +81,19 @@ public class ApiLicenseLegalResource
 
   private final ApiLegalCopyrightService apiLegalCopyrightService;
 
-  private final ApplicationAttributionReportBuilder applicationAttributionReportBuilder;
-
   private final LegalApplicationDashboardService legalApplicationDashboardService;
-
-  @Context
-  private HttpServletRequest httpRequest;
 
   @Inject
   public ApiLicenseLegalResource(
       final ApiLicenseLegalService apiLicenseLegalService,
       final ComponentLegalService componentLegalService,
       final ApiLegalCopyrightService apiLegalCopyrightService,
-      final LegalApplicationDashboardService legalApplicationDashboardService,
-      final ApplicationAttributionReportBuilder applicationAttributionReportBuilder)
+      final LegalApplicationDashboardService legalApplicationDashboardService)
   {
     this.apiLicenseLegalService = apiLicenseLegalService;
     this.componentLegalService = componentLegalService;
     this.apiLegalCopyrightService = apiLegalCopyrightService;
     this.legalApplicationDashboardService = legalApplicationDashboardService;
-    this.applicationAttributionReportBuilder = applicationAttributionReportBuilder;
   }
 
   @POST
@@ -139,40 +123,6 @@ public class ApiLicenseLegalResource
       LicenseLegalApplicationComponentsFilterDTO filter)
   {
     return legalApplicationDashboardService.getLicenseLegalApplicationDashboard(applicationPublicId, filter);
-  }
-
-  @GET
-  @Path(APPLICATION_PATH)
-  @Produces(MediaType.APPLICATION_JSON)
-  public ApiLicenseLegalApplicationReportDTO getLicenseLegalApplicationReport(
-      @PathParam("applicationPublicId") String applicationPublicId)
-  {
-    return apiLicenseLegalService.getLicenseLegalApplicationReport(applicationPublicId);
-  }
-
-  @GET
-  @Path(APPLICATION_REPORT_PATH)
-  @Produces(MediaType.TEXT_HTML)
-  public String getLicenseLegalApplicationHTMLReport(
-      @PathParam("applicationPublicId") String applicationPublicId)
-  {
-    return applicationAttributionReportBuilder.generateLegalApplicationAttributionReport(applicationPublicId);
-  }
-
-  @GET
-  @Path(COMPONENT_PATH)
-  @Produces(MediaType.APPLICATION_JSON)
-  public ApiLicenseLegalComponentReportDTO getLicenseLegalComponentReport(
-      @PathParam("ownerType") OwnerType ownerType,
-      @PathParam("ownerId") String ownerId,
-      @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier,
-      @QueryParam("packageUrl") String packageUrl,
-      @QueryParam("hash") String hash,
-      @QueryParam("identificationSource") String identificationSource,
-      @QueryParam("scanId") String scanId) throws IOException
-  {
-    return apiLicenseLegalService.getLicenseLegalComponentReport(ownerType, ownerId, componentIdentifier, packageUrl,
-        hash, httpRequest, identificationSource, scanId);
   }
 
   @POST

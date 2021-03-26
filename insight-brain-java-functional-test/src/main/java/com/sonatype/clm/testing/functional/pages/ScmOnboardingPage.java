@@ -186,7 +186,7 @@ public class ScmOnboardingPage
   }
 
   public SelenideElement hostUrlCancelButton() {
-    return child(".nx-modal .nx-btn-bar .nx-btn--undefined");
+    return child(".nx-modal .nx-btn-bar .nx-form__cancel-btn");
   }
 
   public SelenideElement loadingSpinner() {

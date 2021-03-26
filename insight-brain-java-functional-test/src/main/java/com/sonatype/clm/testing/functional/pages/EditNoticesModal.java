@@ -7,7 +7,6 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.Button;
-import com.sonatype.clm.testing.functional.pages.ComponentLegalOverviewPage.Notice;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -42,7 +41,7 @@ public class EditNoticesModal
   }
 
   public Button cancel() {
-    return new Button(childSelector(".nx-btn--undefined"));
+    return new Button(childSelector(".nx-form__cancel-btn"));
   }
 
   public static class Notice

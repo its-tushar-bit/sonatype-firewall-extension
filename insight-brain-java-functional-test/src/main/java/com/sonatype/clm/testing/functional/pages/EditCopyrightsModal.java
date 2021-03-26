@@ -53,7 +53,6 @@ public class EditCopyrightsModal
   }
 
   public Button cancel() {
-    //Note: currently no way to pass a class/id to cancel button
-    return new Button(childSelector(".nx-btn--undefined"));
+    return new Button(childSelector(".nx-form__cancel-btn"));
   }
 }

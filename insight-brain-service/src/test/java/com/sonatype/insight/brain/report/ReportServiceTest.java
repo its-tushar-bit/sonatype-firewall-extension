@@ -314,7 +314,7 @@ public class ReportServiceTest
 
     // Verify response for monitoring/re-evaluation
     PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId2,
-        true /* isReevaluation */, true/* isForMonitoring */, new Date());
+        true /* isReevaluation */, true/* isForMonitoring */, new Date(System.currentTimeMillis() + 1));
     metadata = reportService.getReportMetadata(app.getPublicId(), scanId2);
     assertThat(metadata.getApplication().getId()).isEqualTo(app.getId());
     assertThat(metadata.getReportTitle()).isEqualTo("Build Report");

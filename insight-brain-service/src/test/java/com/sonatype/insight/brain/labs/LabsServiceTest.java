@@ -16,7 +16,9 @@ import com.sonatype.insight.test.InjectedTest;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
+import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntity;
+import org.apache.http.ParseException;
 import org.apache.http.StatusLine;
 import org.junit.Test;
 
@@ -32,6 +34,27 @@ public class LabsServiceTest extends InjectedTest
   @Test
   public void testConvertResponse() throws Exception {
     int statusCode = 200;
+    StatusLine statusLine = mock(StatusLine.class);
+    when(statusLine.getStatusCode()).thenReturn(statusCode);
+
+    org.apache.http.HttpResponse httpMockResponse = mock(org.apache.http.HttpResponse.class);
+    when(httpMockResponse.getStatusLine()).thenReturn(statusLine);
+
+    Header customHeader1 = createHeader("customHeaderName1", "customHeaderValue1");
+    Header customHeader2 = createHeader("customHeaderName2", "customHeaderValue2");
+
+    Header[] mockHeaders = { customHeader1, customHeader2 };
+    when(httpMockResponse.getAllHeaders()).thenReturn(mockHeaders);
+
+    Response jaxRSResponse = labsService.convertResponse(httpMockResponse);
+    assertThat(jaxRSResponse.getStatus()).isEqualTo(statusCode);
+    assertThat(jaxRSResponse.getHeaderString(customHeader1.getName())).isEqualTo(customHeader1.getValue());
+    assertThat(jaxRSResponse.getHeaderString(customHeader2.getName())).isEqualTo(customHeader2.getValue());
+  }
+
+  @Test
+  public void testConvertResponse_WithEntity_ContentTypeOnEntityAndHeader() throws Exception {
+    int statusCode = 200;
     String contentType = "text/html";
     String contentString = "content";
     InputStream contentStream = IOUtils.toInputStream(contentString, StandardCharsets.UTF_8);
@@ -39,21 +62,131 @@ public class LabsServiceTest extends InjectedTest
     StatusLine statusLine = mock(StatusLine.class);
     when(statusLine.getStatusCode()).thenReturn(statusCode);
 
-    org.apache.http.HttpResponse httpResponse = mock(org.apache.http.HttpResponse.class);
-    when(httpResponse.getStatusLine()).thenReturn(statusLine);
+    org.apache.http.HttpResponse httpMockResponse = mock(org.apache.http.HttpResponse.class);
+    when(httpMockResponse.getStatusLine()).thenReturn(statusLine);
 
-    Header header = mock(Header.class);
-    when(header.getValue()).thenReturn(contentType);
+    Header contentTypeHeader = createHeader("Content-Type", contentType);
 
     HttpEntity httpEntity = mock(HttpEntity.class);
-    when(httpEntity.getContentType()).thenReturn(header);
+    // basically setting Content-Type header twice, here and in headers
+    when(httpEntity.getContentType()).thenReturn(contentTypeHeader);
     when(httpEntity.getContent()).thenReturn(contentStream);
 
-    when(httpResponse.getEntity()).thenReturn(httpEntity);
+    when(httpMockResponse.getEntity()).thenReturn(httpEntity);
 
-    Response httpResponseTest = labsService.convertResponse(httpResponse);
-    assertThat(httpResponseTest.getStatus()).isEqualTo(statusCode);
-    assertThat(httpResponseTest.getMediaType()).isEqualTo(MediaType.valueOf(contentType));
-    assertThat(httpResponseTest.getEntity()).isEqualTo(contentStream);
+    Header customHeader1 = createHeader("customHeaderName1", "customHeaderValue1");
+    Header customHeader2 = createHeader("customHeaderName2", "customHeaderValue2");
+
+    Header[] mockHeaders = { contentTypeHeader, customHeader1, customHeader2 };
+    when(httpMockResponse.getAllHeaders()).thenReturn(mockHeaders);
+
+    Response jaxRSResponse = labsService.convertResponse(httpMockResponse);
+    assertThat(jaxRSResponse.getStatus()).isEqualTo(statusCode);
+    assertThat(jaxRSResponse.getMediaType()).isEqualTo(MediaType.valueOf(contentType));
+    assertThat(jaxRSResponse.getEntity()).isEqualTo(contentStream);
+    assertThat(jaxRSResponse.getHeaderString(contentTypeHeader.getName())).isEqualTo(contentTypeHeader.getValue());
+    assertThat(jaxRSResponse.getHeaderString(customHeader1.getName())).isEqualTo(customHeader1.getValue());
+    assertThat(jaxRSResponse.getHeaderString(customHeader2.getName())).isEqualTo(customHeader2.getValue());
+  }
+
+  @Test
+  public void testConvertResponse_NoEntity_NoHeadersSet() throws Exception {
+    int statusCode = 204;
+
+    StatusLine statusLine = mock(StatusLine.class);
+    when(statusLine.getStatusCode()).thenReturn(statusCode);
+
+    org.apache.http.HttpResponse httpMockResponse = mock(org.apache.http.HttpResponse.class);
+    when(httpMockResponse.getStatusLine()).thenReturn(statusLine);
+
+    when(httpMockResponse.getEntity()).thenReturn(null);
+
+    Response jaxRSResponse = labsService.convertResponse(httpMockResponse);
+    assertThat(jaxRSResponse.getStatus()).isEqualTo(statusCode);
+    assertThat(jaxRSResponse.getEntity()).isNull();
+    assertThat(jaxRSResponse.getHeaderString("Content-Type")).isNull();
+  }
+
+  @Test
+  public void testConvertResponse_WithEntity_NoContentTypeSetOnEntity() throws Exception {
+    int statusCode = 200;
+    String contentType = "text/html";
+    String contentString = "content";
+    InputStream contentStream = IOUtils.toInputStream(contentString, StandardCharsets.UTF_8);
+
+    StatusLine statusLine = mock(StatusLine.class);
+    when(statusLine.getStatusCode()).thenReturn(statusCode);
+
+    org.apache.http.HttpResponse httpMockResponse = mock(org.apache.http.HttpResponse.class);
+    when(httpMockResponse.getStatusLine()).thenReturn(statusLine);
+
+    Header contentTypeHeader = createHeader("Content-Type", contentType);
+
+    HttpEntity httpEntity = mock(HttpEntity.class);
+    // not setting content type on entity
+    when(httpEntity.getContentType()).thenReturn(null);
+    when(httpEntity.getContent()).thenReturn(contentStream);
+
+    when(httpMockResponse.getEntity()).thenReturn(httpEntity);
+
+    Header[] mockHeaders = { contentTypeHeader };
+    when(httpMockResponse.getAllHeaders()).thenReturn(mockHeaders);
+
+    Response jaxRSResponse = labsService.convertResponse(httpMockResponse);
+    assertThat(jaxRSResponse.getStatus()).isEqualTo(statusCode);
+    // Jersey Jax-RS implementation media type is set if Content-Type header is set, we are able to read contentStream
+    assertThat(jaxRSResponse.getMediaType()).isEqualTo(MediaType.valueOf(contentType));
+    assertThat(jaxRSResponse.getEntity()).isEqualTo(contentStream);
+
+    assertThat(jaxRSResponse.getHeaderString(contentTypeHeader.getName())).isEqualTo(contentTypeHeader.getValue());
+  }
+
+  @Test
+  public void testConvertResponse_WithEntity_ContentTypeHeaderNotDirectlySet() throws Exception {
+    int statusCode = 200;
+    String contentType = "text/html";
+    String contentString = "content";
+    InputStream contentStream = IOUtils.toInputStream(contentString, StandardCharsets.UTF_8);
+
+    StatusLine statusLine = mock(StatusLine.class);
+    when(statusLine.getStatusCode()).thenReturn(statusCode);
+
+    org.apache.http.HttpResponse httpMockResponse = mock(org.apache.http.HttpResponse.class);
+    when(httpMockResponse.getStatusLine()).thenReturn(statusLine);
+
+    Header contentTypeHeader = createHeader("Content-Type", contentType);
+
+    HttpEntity httpEntity = mock(HttpEntity.class);
+    when(httpEntity.getContentType()).thenReturn(contentTypeHeader);
+    when(httpEntity.getContent()).thenReturn(contentStream);
+
+    when(httpMockResponse.getEntity()).thenReturn(httpEntity);
+
+    Response jaxRSResponse = labsService.convertResponse(httpMockResponse);
+    assertThat(jaxRSResponse.getStatus()).isEqualTo(statusCode);
+    assertThat(jaxRSResponse.getMediaType()).isEqualTo(MediaType.valueOf(contentType));
+    assertThat(jaxRSResponse.getEntity()).isEqualTo(contentStream);
+    // header added by Jax-RS if set on entity
+    assertThat(jaxRSResponse.getHeaderString(contentTypeHeader.getName())).isEqualTo(contentTypeHeader.getValue());
+  }
+
+  private Header createHeader(String name, String value) {
+    return new Header()
+    {
+      @Override
+      public HeaderElement[] getElements() throws ParseException {
+        return new HeaderElement[0];
+      }
+
+      @Override
+      public String getName() {
+        return name;
+      }
+
+      @Override
+      public String getValue() {
+        return value;
+      }
+    };
   }
 }

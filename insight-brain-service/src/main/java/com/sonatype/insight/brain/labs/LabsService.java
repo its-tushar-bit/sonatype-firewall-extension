@@ -13,11 +13,15 @@ import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.hds.DefaultHdsClient;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 
 @Named
@@ -39,10 +43,30 @@ public class LabsService
 
   @VisibleForTesting
   protected Response convertResponse(final HttpResponse httpResponseBack) throws IOException {
-    return Response
-        .status(Status.fromStatusCode(httpResponseBack.getStatusLine().getStatusCode()))
-        .type(httpResponseBack.getEntity().getContentType().getValue())
-        .entity(httpResponseBack.getEntity().getContent())
-        .build();
+    HttpEntity entity = httpResponseBack.getEntity();
+    ResponseBuilder responseBuilder = Response
+        .status(Status.fromStatusCode(httpResponseBack.getStatusLine().getStatusCode()));
+    String entityContentTypeValue = null;
+    if (entity != null) {
+      responseBuilder.entity(httpResponseBack.getEntity().getContent());
+
+      Header contentType = entity.getContentType();
+      if (contentType != null) {
+        entityContentTypeValue = contentType.getValue();
+        responseBuilder.type(httpResponseBack.getEntity().getContentType().getValue());
+      }
+    }
+
+    Header[] allHeaders = httpResponseBack.getAllHeaders();
+    if (allHeaders != null) {
+      for (Header header : allHeaders) {
+        // Jax-RS will throw exception if Content-Type header is set twice, setting the content type on the entity
+        // automatically will set this header
+        if (!header.getName().equals(HttpHeaders.CONTENT_TYPE) || entityContentTypeValue == null) {
+          responseBuilder.header(header.getName(), header.getValue());
+        }
+      }
+    }
+    return responseBuilder.build();
   }
 }

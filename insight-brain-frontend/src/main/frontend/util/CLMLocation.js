@@ -94,6 +94,10 @@ export function getApplicationsUrl() {
   return uriTemplate`/rest/application`;
 }
 
+export function getApplicationUrl(applicationPublicId) {
+  return uriTemplate`/rest/application/${applicationPublicId}`;
+}
+
 export function getDashboardStageUrl() {
   return uriTemplate`/rest/policy/stages?context=dashboard`;
 }
@@ -286,6 +290,10 @@ export function getLicenseLegalComponentUrl(orgOrApp, ownerId, hash) {
 
 export function getLegalDashboardApplicationsUrl() {
   return uriTemplate`/api/experimental/licenseLegalMetadata/dashboard/applications`;
+}
+
+export function getLegalDashboardApplicationUrl(applicationPublicId) {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/dashboard/application/${applicationPublicId}`;
 }
 
 export function getOwnerHierarchyUrl(ownerType, ownerId) {

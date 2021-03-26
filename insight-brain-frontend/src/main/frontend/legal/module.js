@@ -32,7 +32,7 @@ function routes($stateProvider) {
         }
       })
       .state('legalApplicationDetails', {
-        url: '/legal/application/{applicationPublicId}',
+        url: '/legal/application/{applicationPublicId}/stage/{stageTypeId}',
         component: 'legalApplicationDetails',
         data: {
           title: 'Application Details'

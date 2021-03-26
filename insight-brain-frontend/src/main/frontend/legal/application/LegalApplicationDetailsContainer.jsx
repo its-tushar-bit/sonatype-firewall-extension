@@ -5,13 +5,20 @@
  */
 
 import { connect } from 'react-redux';
+import { pick } from 'ramda';
 import LegalApplicationDetailsPage from './LegalApplicationDetailsPage';
+import * as legalApplicationDetailsActions from './legalApplicationDetailsActions';
 
-function mapStateToProps() {
-  return {};
+function mapStateToProps({ legalApplicationDetails, router }) {
+  return {
+    ...pick(['application', 'stageType', 'components'], legalApplicationDetails),
+    ...pick(['applicationPublicId', 'stageTypeId'], router.currentParams)
+  };
 }
 
-const mapDispatchToProps = {};
+const mapDispatchToProps = {
+  ...legalApplicationDetailsActions
+};
 
 const LegalApplicationDetailsContainer = connect(mapStateToProps, mapDispatchToProps)(LegalApplicationDetailsPage);
 export default LegalApplicationDetailsContainer;

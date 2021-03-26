@@ -31,6 +31,7 @@ import firewallReducer from '../firewall/firewallReducer';
 import firewallConfigurationModalReducer from '../firewall/config/firewallConfigurationModalReducer';
 import manageLegalFiltersReducer from '../legal/dashboard/filter/manageLegalFiltersReducer';
 import copyrightOverrideReducer from '../legal/copyright/copyrightOverrideReducer';
+import legalApplicationDetailsReducer from '../legal/application/legalApplicationDetailsReducer';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -59,5 +60,6 @@ export default combineReducers({
   copyrightOverrides: copyrightOverrideReducer,
   firewall: firewallReducer,
   firewallConfigurationModal: firewallConfigurationModalReducer,
-  manageLegalFilters: manageLegalFiltersReducer
+  manageLegalFilters: manageLegalFiltersReducer,
+  legalApplicationDetails: legalApplicationDetailsReducer
 });

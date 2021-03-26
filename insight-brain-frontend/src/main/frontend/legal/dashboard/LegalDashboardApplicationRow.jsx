@@ -11,7 +11,7 @@ import { terseAgo } from '../../util/CommonServices';
 
 export default function LegalDashboardApplicationRow({ row }) {
   const percentage =
-      row.componentsTotalCount > 0 ? Math.min(100, row.componentsReviewedCount * 100 / row.componentsTotalCount) : 0;
+      row.componentsTotalCount > 0 ? Math.min(100, row.componentsReviewedCount * 100 / row.componentsTotalCount) : 100;
 
   const scanTimeDisplay = (row.lastScanTime ? terseAgo(row.lastScanTime) + ' - ' : '') + row.stageTypeName;
 

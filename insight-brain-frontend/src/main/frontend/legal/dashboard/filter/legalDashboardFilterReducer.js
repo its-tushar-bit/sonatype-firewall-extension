@@ -22,7 +22,7 @@ import {
   LEGAL_DASHBOARD_TOGGLE_FILTER
 } from './legalDashboardFilterActions';
 import defaultFilter from './defaultFilter';
-import { progressOptions } from './staticFilterEntries';
+import { progressOptions } from '../legalDashboardConstants';
 
 const initState = Object.freeze({
   loading: true,

@@ -13,3 +13,11 @@ export const progressOptions = [
     name: 'In Progress or Completed'
   }
 ];
+
+export const reviewStatusDisplayNames = {
+  FLAGGED: 'Flagged',
+  IN_PROGRESS: 'In Progress',
+  NOT_STARTED: 'Not Started',
+  UNREVIEWED: 'Unreviewed',
+  COMPLETED: 'Completed'
+};

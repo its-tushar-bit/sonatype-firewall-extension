@@ -347,4 +347,13 @@ describe('CLMLocation.js', function() {
             'logback-access%22%2C%22classifier%22%3A%22%22%2C%22extension%22%3A%22jar%22%2C%22groupId%22%3A%22' +
             'ch.qos.logback%22%2C%22version%22%3A%220.6%22%7D%7D&legalFileType=type');
   });
+
+  it('should return the application details url', function() {
+    expect(CLMLocation.getApplicationUrl('application-id')).toBe('/rest/application/application-id');
+  });
+
+  it('should return the legal application details url', function() {
+    expect(CLMLocation.getLegalDashboardApplicationUrl('application-id'))
+        .toBe('/api/experimental/licenseLegalMetadata/dashboard/application/application-id');
+  });
 });

@@ -50,7 +50,7 @@ describe('LegalDashboardApplicationRow component', function() {
     expect(cells.at(3).childAt(1).text()).toEqual('12 / 20');
   });
 
-  it('passes a 0 percentage in if there are no reviews', function() {
+  it('passes a 100 percentage in if there are no reviews', function() {
     const props = {
       row: {
         applicationId: 'appId1',
@@ -67,7 +67,7 @@ describe('LegalDashboardApplicationRow component', function() {
     let cells = tableRow.find(NxTableCell);
     let donutChart = cells.at(3).find(NxBinaryDonutChart);
     expect(donutChart).toExist();
-    expect(donutChart).toHaveProp('percent', 0);
+    expect(donutChart).toHaveProp('percent', 100);
     expect(cells.at(3).childAt(1).text()).toEqual('0 / 0');
   });
 

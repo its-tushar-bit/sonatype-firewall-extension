@@ -18,8 +18,8 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.dataaccess.TransactionContext;
-import com.sonatype.insight.scan.file.clair.ClairScannerResult;
-import com.sonatype.insight.scan.file.clair.ClairScannerVulnerability;
+import com.sonatype.insight.scan.manifest.ClairScannerResult;
+import com.sonatype.insight.scan.manifest.ClairScannerVulnerability;
 
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;

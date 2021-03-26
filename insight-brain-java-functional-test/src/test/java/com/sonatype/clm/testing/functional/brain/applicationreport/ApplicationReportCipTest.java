@@ -984,7 +984,7 @@ public class ApplicationReportCipTest
         .shouldHave(exactText("Transitive Dependency"));
     cipModal.closeButton().click();
 
-    reportPage.resultRow(12).click();
+    reportPage.resultRow(11).click();
 
     cipModal.getElement().shouldBe(visible);
     cipModal.header().shouldHave(text("javax.inject : javax.inject : 1"));

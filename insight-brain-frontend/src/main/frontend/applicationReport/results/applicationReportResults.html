@@ -158,7 +158,7 @@
             </tr>
           </thead>
           <tbody id="iq-application-report-results" class="iq-table--fixed__content iq-table--fixed__content--filtered">
-            <tr class="iq-table-row iq-clickable {{component.innerSourceData && component.innerSourceData.innerSource ? 'tm-inner-source' : component.innerSourceTDIndicator ? 'tm-inner-source-transitive' : ''}}"
+            <tr class="iq-table-row iq-clickable {{component.innerSource ? 'tm-inner-source' : component.innerSourceTDIndicator ? 'tm-inner-source-transitive' : ''}}"
                 ng-repeat="component in vm.renderedEntries"
                 ng-click="vm.openCipModal($index)">
               <td class="iq-cell iq-cell--application-report-policy-threat-level {{component.innerSourceTDIndicator ?
@@ -182,10 +182,10 @@
                 </span>
                 <div ng-if="component.dependencyInfo"
                      class="iq-dependency-indicator"
-                     data-tooltip="{{component.innerSourceData.innerSource ? 'InnerSource' :
+                     data-tooltip="{{component.innerSource ? 'InnerSource' :
                                      component.dependencyInfo.isDirectDependency ? 'Direct Dependency' : 'Transitive Dependency'}}"
                      data-tooltip-append-to-body="true"
-                     ng-class="component.innerSourceData.innerSource ? 'inner-source' :
+                     ng-class="component.innerSource ? 'inner-source' :
                                component.dependencyInfo.isDirectDependency ? 'direct' : 'transitive'">
                   <span ng-if="component.innerSourceDependencyType">{{component.innerSourceDependencyType.shortLabel}}</span>
                   <span ng-if="component.dependencyInfo.isDirectDependency && !component.innerSourceData">D</span>

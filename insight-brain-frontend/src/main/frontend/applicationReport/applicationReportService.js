@@ -197,15 +197,14 @@ function augmentInnerSourceIndicator(components) {
   toPairs(groupedResult).forEach(([innerSource, entries]) => {
     if (innerSource !== '') {
       entries.forEach(entry => {
-        entry.innerSourceTDIndicator = !entry.innerSourceData.innerSource;
-        entry.dependencyType = entry.innerSourceData.innerSource ? 'D' : 'TD';
+        entry.innerSourceTDIndicator = !entry.innerSource;
+        entry.dependencyType = entry.innerSource ? 'D' : 'TD';
         let dependencyType = {};
         if (entry.dependencyInfo) {
           dependencyType = entry.dependencyInfo.isDirectDependency ?
             innerSourceDependencyType.innerSourceDD : innerSourceDependencyType.innerSourceTD;
         }
-        entry.innerSourceDependencyType = entry.innerSourceData.innerSource ?
-          innerSourceDependencyType.innerSource : dependencyType;
+        entry.innerSourceDependencyType = entry.innerSource ? innerSourceDependencyType.innerSource : dependencyType;
         isInnerSourceEnabled = true;
         result.push(entry);
       });

@@ -42,11 +42,10 @@ describe('cipTabPanel', function() {
           format: 'format'
         },
         dependencyInfo: {isDirectDependency: false},
+        innerSource: true,
         innerSourceData: {
-          innerSource: true,
           ownerApplicationId: 'id',
-          ownerApplicationName: 'appName',
-          ownerComponentName: 'componentName'
+          ownerApplicationName: 'appName'
         }
       };
     }));

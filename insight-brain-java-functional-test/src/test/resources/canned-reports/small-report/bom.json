@@ -190,8 +190,8 @@
     "lastModifiedTime" : 1413088396000,
     "lastModifiedEntryTime" : 1054324540000,
     "website" : null,
+    "innerSource": true,
     "innerSourceData": {
-      "innerSource": true,
       "ownerApplicationName" : "ApplicationReportTest"
     }
   }, {
@@ -218,8 +218,8 @@
     "createTime" : 1138653346000,
     "lastModifiedTime" : 1413088396000,
     "lastModifiedEntryTime" : 1054324540000,
+    "innerSource": false,
     "innerSourceData": {
-      "innerSource": false,
       "ownerApplicationName" : "ApplicationReportTest"
     },
     "website" : null
@@ -281,11 +281,10 @@
       } ],
       "name" : "javax.inject"
     },
+    "innerSource" : false,
     "innerSourceData" : {
       "ownerApplicationName" : "ApplicationReportTest2",
-      "ownerApplicationId" : "09895fab56384b61adb3161fa1ec58cd",
-      "ownerComponentName" : "test-business",
-      "innerSource" : false
+      "ownerApplicationId" : "09895fab56384b61adb3161fa1ec58cd"
     }
   }, {
     "componentIdentifier" : {
@@ -345,11 +344,10 @@
       } ],
       "name" : "commons-io"
     },
+    "innerSource" : false,
     "innerSourceData" : {
       "ownerApplicationName" : "ApplicationReportTest2",
-      "ownerApplicationId" : "09895fab56384b61adb3161fa1ec58cd",
-      "ownerComponentName" : "test-business",
-      "innerSource" : false
+      "ownerApplicationId" : "09895fab56384b61adb3161fa1ec58cd"
     }
   }, {
     "componentIdentifier" : {
@@ -406,11 +404,10 @@
       } ],
       "name" : "test-business"
     },
+    "innerSource" : true,
     "innerSourceData" : {
       "ownerApplicationName" : "ApplicationReportTest2",
-      "ownerApplicationId" : "09895fab56384b61adb3161fa1ec58cd",
-      "ownerComponentName" : "test-business",
-      "innerSource" : true
+      "ownerApplicationId" : "09895fab56384b61adb3161fa1ec58cd"
     }
   }, {
     "componentIdentifier" : {
@@ -467,11 +464,10 @@
       } ],
       "name" : "test-data"
     },
+    "innerSource" : false,
     "innerSourceData" : {
       "ownerApplicationName" : "ApplicationReportTest2",
-      "ownerApplicationId" : "09895fab56384b61adb3161fa1ec58cd",
-      "ownerComponentName" : "test-business",
-      "innerSource" : false
+      "ownerApplicationId" : "09895fab56384b61adb3161fa1ec58cd"
     }
   }]
 }

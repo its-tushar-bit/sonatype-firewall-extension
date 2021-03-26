@@ -928,7 +928,8 @@ public class InsightConfig
     PR_LINE_COMMENTING("prLineCommenting"),
     CODE_INSIGHTS("codeInsights"),
     SCM_ONBOARDING("scmOnboarding"),
-    FIREWALL_AUTO_UNQUARANTINE("firewallAutoUnquarantine");
+    FIREWALL_AUTO_UNQUARANTINE("firewallAutoUnquarantine"),
+    DEPENDENCY_DATA_IN_API("dependencyDataInApi");
 
     private String flag;
 

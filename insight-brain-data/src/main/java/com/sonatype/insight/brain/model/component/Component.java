@@ -89,6 +89,10 @@ public class Component
 
   private Boolean directDependency;
 
+  private Boolean innerSource;
+
+  private String parentComponentPurl;
+
   public Component() {
   }
 
@@ -456,5 +460,21 @@ public class Component
 
   public void setInnerSourceData(final InnerSourceData innerSourceData) {
     this.innerSourceData = innerSourceData;
+  }
+
+  public Boolean getInnerSource() {
+    return innerSource;
+  }
+
+  public void setInnerSource(final Boolean innerSource) {
+    this.innerSource = innerSource;
+  }
+
+  public String getParentComponentPurl() {
+    return parentComponentPurl;
+  }
+
+  public void setParentComponentPurl(final String parentComponentPurl) {
+    this.parentComponentPurl = parentComponentPurl;
   }
 }

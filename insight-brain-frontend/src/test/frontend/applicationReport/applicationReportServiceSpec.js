@@ -985,11 +985,10 @@ describe('applicationReportService', function() {
                   version: '1'
                 }
               },
+              innerSource: true,
               innerSourceData: {
-                innerSource: true,
                 ownerApplicationName: 'app',
-                ownerApplicationId: '123',
-                ownerComponentName: 'A'
+                ownerApplicationId: '123'
               }
             }, {
               hash: 'barHash',
@@ -1001,10 +1000,11 @@ describe('applicationReportService', function() {
                   version: '2'
                 }
               },
+              innerSource: false,
               innerSourceData: {
                 ownerApplicationName: 'app',
                 ownerApplicationId: '123',
-                ownerComponentName: 'A'
+                innerSourceComponentPurl: 'pkg:maven/tranGroup/tran@2.0.0?type=jar'
               }
             }]
           }, policyThreatData = {
@@ -1065,11 +1065,10 @@ describe('applicationReportService', function() {
           }
         },
         derivedDependencyType: 'direct',
+        innerSource: true,
         innerSourceData: {
-          innerSource: true,
           ownerApplicationName: 'app',
-          ownerApplicationId: '123',
-          ownerComponentName: 'A'
+          ownerApplicationId: '123'
         },
         innerSourceTDIndicator: false,
         dependencyType: 'D'
@@ -1085,10 +1084,11 @@ describe('applicationReportService', function() {
             version: '2'
           }
         },
+        innerSource: false,
         innerSourceData: {
           ownerApplicationName: 'app',
           ownerApplicationId: '123',
-          ownerComponentName: 'A'
+          innerSourceComponentPurl: 'pkg:maven/tranGroup/tran@2.0.0?type=jar'
         },
         innerSourceTDIndicator: true,
         derivedDependencyType: 'transitive',

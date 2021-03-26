@@ -62,7 +62,11 @@ describe('cipModal', function() {
             format: 'format'
           },
           dependencyInfo: { isDirectDependency: false },
-          innerSourceData: { innerSource: true }
+          innerSource: true,
+          innerSourceData: {
+            ownerApplicationName: 'app',
+            ownerApplicationId: '123'
+          }
         };
       });
 

@@ -258,17 +258,17 @@ describe('applicationReportReducer', function() {
         {
           policyThreatLevel: 10,
           grandfathered: true,
+          innerSource: true,
           innerSourceData: {
-            innerSource: true,
-            ownerApplicationName: 'myISApp',
-            ownerComponentName: 'A'
+            ownerApplicationId: '12345',
+            ownerApplicationName: 'myISApp'
           }
         },
         {policyThreatLevel: 10},
         {policyThreatLevel: 6,
           innerSourceData: {
-            ownerApplicationName: 'myISApp',
-            ownerComponentName: 'A'
+            ownerApplicationId: '12345',
+            ownerApplicationName: 'myISApp'
           }
         }
       ];
@@ -291,17 +291,17 @@ describe('applicationReportReducer', function() {
             },
             {
               grandfathered: true,
+              innerSource: true,
               innerSourceData: {
-                innerSource: true,
                 ownerApplicationName: 'myISApp',
-                ownerComponentName: 'A'
+                ownerApplicationId: '12345'
               },
               policyThreatLevel: 10
             },
             {
               innerSourceData: {
                 ownerApplicationName: 'myISApp',
-                ownerComponentName: 'A'
+                ownerApplicationId: '12345'
               },
               policyThreatLevel: 6
             }

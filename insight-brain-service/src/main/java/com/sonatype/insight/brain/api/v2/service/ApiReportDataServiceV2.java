@@ -22,6 +22,7 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationBaseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiDependencyDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentPolicyViolationsDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportConstraintConditionDTOV2;
@@ -47,6 +48,8 @@ import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -80,17 +83,21 @@ public class ApiReportDataServiceV2
 
   private final ApiSecurityDataAdapter securityDataAdapter;
 
+  private final InsightConfig insightConfig;
+
   @Inject
   public ApiReportDataServiceV2(
       ApplicationDAO appDAO,
       ReportService reportService,
       ApiLicenseDataAdapter licenseDataAdapter,
-      ApiSecurityDataAdapter securityDataAdapter)
+      ApiSecurityDataAdapter securityDataAdapter,
+      InsightConfig insightConfig)
   {
     this.appDAO = appDAO;
     this.reportService = reportService;
     this.licenseDataAdapter = licenseDataAdapter;
     this.securityDataAdapter = securityDataAdapter;
+    this.insightConfig = insightConfig;
   }
 
   @Authorize(permission = Permission.READ)
@@ -302,8 +309,9 @@ public class ApiReportDataServiceV2
         component.securityData = securityDataAdapter.convertToDTO(comp);
         component.licenseData = licenseDataAdapter.convertToDTOV2(comp);
       }
-      if (comp.getInnerSourceData() != null) {
-        component.innerSourceData = comp.getInnerSourceData();
+
+      if (isDependencyDataInRestApiSupported()) {
+        populateDependencyData(comp, component);
       }
       data.components.add(component);
     }
@@ -313,6 +321,28 @@ public class ApiReportDataServiceV2
     data.matchSummary.totalComponentCount = dataJson.get("totalArtifactCount").intValue();
 
     return data;
+  }
+
+  private boolean isDependencyDataInRestApiSupported() {
+    Map<String, Boolean> experimentalFeatures = insightConfig.getExperimentalFeatures();
+    return experimentalFeatures != null ? experimentalFeatures
+        .getOrDefault(Feature.DEPENDENCY_DATA_IN_API.getFlag(), false) : false;
+  }
+
+  private void populateDependencyData(final Component comp, final ApiReportComponentDTOV2 component) {
+    if (comp.getDirectDependency() != null) {
+      component.dependencyData = new ApiDependencyDataDTO();
+      component.dependencyData.directDependency = comp.getDirectDependency();
+      if (comp.getParentComponentPurl() != null) {
+        component.dependencyData.parentComponentPurl = comp.getParentComponentPurl();
+      }
+      if (comp.getInnerSource() != null) {
+        component.dependencyData.innerSource = comp.getInnerSource();
+      }
+      if (comp.getInnerSourceData() != null) {
+        component.dependencyData.innerSourceData = comp.getInnerSourceData();
+      }
+    }
   }
 
   private void setPathnames(Component comp, ApiReportComponentDTOV2 component) {

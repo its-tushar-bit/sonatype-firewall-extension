@@ -59,6 +59,8 @@ import static java.util.stream.Collectors.toMap;
 
 public class ComponentDAO
 {
+  private static final String DIRECT_DEPENDENCY_FIELD = "directDependency";
+
   private MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
 
   private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
@@ -198,8 +200,8 @@ public class ComponentDAO
     }
   }
 
-  private List<Component> getAll(byte[] bomData) {
-    List<Component> components = new ArrayList<>();
+  private BomData getAll(byte[] bomData) {
+    BomData bomComponents = new BomData();
 
     JsonNode bomJson = loadJson(bomData);
     if (bomJson != null) {
@@ -277,12 +279,30 @@ public class ComponentDAO
           JsonNode innerSourceDataNode = componentJson.get("innerSourceData");
           setInnerSourceData(innerSourceDataNode, component);
 
-          components.add(component);
+          JsonNode directDependencyNode = componentJson.get(DIRECT_DEPENDENCY_FIELD);
+          if (directDependencyNode != null) {
+            component.setDirectDependency(directDependencyNode.asBoolean());
+            if (bomComponents.dependenciesResolved == null) {
+              bomComponents.dependenciesResolved = true;
+            }
+          }
+
+          JsonNode innerSourceNode = componentJson.get("innerSource");
+          if (innerSourceNode != null) {
+            component.setInnerSource(innerSourceNode.asBoolean());
+          }
+
+          JsonNode parentComponentPurlNode = componentJson.get("parentComponentPurl");
+          if (parentComponentPurlNode != null) {
+            component.setParentComponentPurl(parentComponentPurlNode.asText());
+          }
+
+          bomComponents.components.add(component);
         }
       }
     }
 
-    return components;
+    return bomComponents;
   }
   
   private void setAnalyzerFeatures(JsonNode analyzerFeaturesNode, Component component) {
@@ -352,12 +372,12 @@ public class ComponentDAO
       final byte[] dependencyData)
   {
     // Load bom data
-    List<Component> bomComponents = getAll(bomData);
+    BomData bomComponents = getAll(bomData);
 
     final Map<ComponentIdentifier, List<Component>> componentsByIdentifier = new LinkedHashMap<>();
     final Map<String, Component> componentsByHash = new LinkedHashMap<>();
     List<Component> unhashedComponents = new ArrayList<>();
-    for (Component component : bomComponents) {
+    for (Component component : bomComponents.components) {
       ComponentIdentifier componentIdentifier = component.getComponentIdentifier();
       List<Component> components = componentsByIdentifier.get(componentIdentifier);
       if (components == null) {
@@ -434,15 +454,17 @@ public class ComponentDAO
       }
     }
 
-    // Load dependency data
-    JsonNode dependencyJson = loadJson(dependencyData);
-    if (dependencyJson != null) {
-      Map<ComponentIdentifier, Boolean> componentDependencyType = getDependencyTypes(dependencyJson);
-      for (ComponentIdentifier componentIdentifier : componentsByIdentifier.keySet()) {
-        List<Component> components = componentsByIdentifier.get(componentIdentifier);
-        if (components != null) {
-          for (Component component : components) {
-            component.setDirectDependency(componentDependencyType.get(componentIdentifier));
+    if (bomComponents.dependenciesResolved == null || !bomComponents.dependenciesResolved) {
+      // Load dependency data based on dependencyGraph (for reports produced prior to 108)
+      JsonNode dependencyJson = loadJson(dependencyData);
+      if (dependencyJson != null) {
+        Map<ComponentIdentifier, Boolean> componentDependencyType = getDependencyTypes(dependencyJson);
+        for (ComponentIdentifier componentIdentifier : componentsByIdentifier.keySet()) {
+          List<Component> components = componentsByIdentifier.get(componentIdentifier);
+          if (components != null) {
+            for (Component component : components) {
+              component.setDirectDependency(componentDependencyType.get(componentIdentifier));
+            }
           }
         }
       }
@@ -473,8 +495,8 @@ public class ComponentDAO
     Map<ComponentIdentifier, Boolean> componentDependencyType = new HashMap<>();
     for (JsonNode child : dependencyGraphNode) {
       ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(child);
-      if (componentIdentifier != null && child.has("directDependency")) {
-        componentDependencyType.put(componentIdentifier, child.get("directDependency").asBoolean());
+      if (componentIdentifier != null && child.has(DIRECT_DEPENDENCY_FIELD)) {
+        componentDependencyType.put(componentIdentifier, child.get(DIRECT_DEPENDENCY_FIELD).asBoolean());
       }
     }
 
@@ -620,5 +642,12 @@ public class ComponentDAO
     catch (final IOException e) {
       throw new IllegalStateException(e);
     }
+  }
+
+  private static class BomData
+  {
+    Boolean dependenciesResolved;
+
+    List<Component> components = new ArrayList<>();
   }
 }

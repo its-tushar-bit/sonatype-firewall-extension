@@ -1,7 +1,7 @@
 {
-  "totalArtifactCount" : 2,
-  "knownArtifactCount" : 1,
+  "totalArtifactCount" : 3,
+  "knownArtifactCount" : 2,
   "partiallyMatchedComponentCount": 0,
-  "exactlyMatchedComponentCount": 1,
-  "grandfatheredPolicyViolationCount": 3
+  "exactlyMatchedComponentCount": 2,
+  "grandfatheredPolicyViolationCount": 2
 }

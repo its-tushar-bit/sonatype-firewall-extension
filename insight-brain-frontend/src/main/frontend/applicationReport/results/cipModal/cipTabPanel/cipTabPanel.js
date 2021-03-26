@@ -91,7 +91,7 @@ function CipTabPanelController($scope, CLMLocations, $http, Messages) {
     }
 
     const innerSourceData = vm.selectedComponent.innerSourceData;
-    if (innerSourceData && innerSourceData.innerSource && innerSourceData.ownerApplicationId) {
+    if (vm.selectedComponent.innerSource && innerSourceData && innerSourceData.ownerApplicationId) {
       $http.get(CLMLocations.getApplicationReportsUrl(innerSourceData.ownerApplicationId))
           .then(function(response) {
             const { data } = response;

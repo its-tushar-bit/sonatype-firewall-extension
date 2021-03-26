@@ -315,11 +315,10 @@ describe('applicationReportActions', function() {
         displayedEntries: [
           {
             componentName: 'a',
+            innerSource: true,
             innerSourceData: {
-              innerSource: true,
               ownerApplicationId: 'id',
-              ownerApplicationName: 'appName',
-              ownerComponentName: 'componentName'
+              ownerApplicationName: 'appName'
             }
           },
           {
@@ -332,11 +331,10 @@ describe('applicationReportActions', function() {
 
       const selectedComponent = {
         componentName: 'a',
+        innerSource: true,
         innerSourceData: {
-          innerSource: true,
           ownerApplicationId: 'id',
-          ownerApplicationName: 'appName',
-          ownerComponentName: 'componentName'
+          ownerApplicationName: 'appName'
         }
       };
 

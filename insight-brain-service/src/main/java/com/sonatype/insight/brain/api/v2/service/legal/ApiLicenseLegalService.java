@@ -422,6 +422,18 @@ public class ApiLicenseLegalService
 
   @Authorize(permission = Permission.LEGAL_REVIEWER)
   public ApiLicenseLegalApplicationReportDTO getLicenseLegalApplicationReport(
+      @AuthzContext(Key.OWNER) Owner application, String stageId)
+  {
+    checkLicense();
+    log.info("Processing license metadata request for {}", application.getId());
+    ApiReportRawDataDTOV2 latestRawReport = getLastRawApplicationReportByStageId(application.getPublicId(), stageId)
+        .orElseThrow(() -> new NotFoundException(
+            "Report for application " + application.getId() + " at stage " + stageId + " not found."));
+    return getApplicationReportFromReportRawData(application, latestRawReport);
+  }
+
+  @Authorize(permission = Permission.LEGAL_REVIEWER)
+  public ApiLicenseLegalApplicationReportDTO getLicenseLegalApplicationReport(
       @AuthzContext(Key.OWNER) Owner application)
   {
     checkLicense();
@@ -429,6 +441,12 @@ public class ApiLicenseLegalService
     log.info("Processing license metadata request for {}", application.getId());
     ApiReportRawDataDTOV2 latestRawReport = getLastRawApplicationReport(application.getPublicId())
         .orElseThrow(() -> new NotFoundException("Report for application " + application.getId() + " not found."));
+    return getApplicationReportFromReportRawData(application, latestRawReport);
+  }
+
+  private ApiLicenseLegalApplicationReportDTO getApplicationReportFromReportRawData(
+      final Owner application, final ApiReportRawDataDTOV2 latestRawReport)
+  {
     Map<ComponentIdentifier, Set<ApiLicenseDTO>> componentIdentifierToMultiLicenses =
         getReportMultiLicenses(latestRawReport);
     Set<ApiLicenseDTO> multiLicenses = componentIdentifierToMultiLicenses.entrySet().stream()
@@ -762,7 +780,7 @@ public class ApiLicenseLegalService
 
   private Map<ComponentIdentifier, List<ComponentObligationAttribution>>
       getComponentObligationAttributionsByComponentIdentifier(
-          final String ownerId, final Set<ComponentIdentifier> componentIdentifiers)
+      final String ownerId, final Set<ComponentIdentifier> componentIdentifiers)
   {
     Map<ComponentIdentifier, List<ComponentObligationAttribution>> componentIdentifierToAttribution = new HashMap<>();
     try (TransactionContext tx = componentObligationAttributionDAO.createTransactionContext()) {
@@ -972,11 +990,22 @@ public class ApiLicenseLegalService
     return legalFileOverridesByComponentIdentifier;
   }
 
-  // Visible for testing
+  @VisibleForTesting
   Optional<ApiReportRawDataDTOV2> getLastRawApplicationReport(String applicationPublicId) {
     return Optional.ofNullable(applicationDAO.getByPublicId(applicationPublicId)).flatMap(
         application -> policyEvaluationDAO
             .getLastByApplicationIds(Collections.singleton(application.getId()))
+            .stream()
+            .max(Comparator.comparing(PolicyEvaluation::getTime))
+            .map(policyEvaluation -> getLastRawApplicationReport(application.getPublicId(), policyEvaluation)));
+  }
+
+  @VisibleForTesting
+  Optional<ApiReportRawDataDTOV2> getLastRawApplicationReportByStageId(String applicationPublicId, String stageId) {
+    return Optional.ofNullable(applicationDAO.getByPublicId(applicationPublicId)).flatMap(
+        application -> policyEvaluationDAO
+            .getLastByApplicationIdsAndStageIds(Collections.singleton(application.getId()),
+                Collections.singleton(stageId))
             .stream()
             .max(Comparator.comparing(PolicyEvaluation::getTime))
             .map(policyEvaluation -> getLastRawApplicationReport(application.getPublicId(), policyEvaluation)));

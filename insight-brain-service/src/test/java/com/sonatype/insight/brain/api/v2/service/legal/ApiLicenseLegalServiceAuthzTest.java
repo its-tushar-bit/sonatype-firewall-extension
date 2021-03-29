@@ -138,6 +138,23 @@ public class ApiLicenseLegalServiceAuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
+  public void testGetLicenseLegalApplicationReportByStage_Unauthenticated() {
+    apiLicenseLegalService.getLicenseLegalApplicationReport(app, BuildStageType.ID);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetLicenseLegalApplicationReportByStage_Unauthorized() {
+    login();
+    apiLicenseLegalService.getLicenseLegalApplicationReport(app, BuildStageType.ID);
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testGetLicenseLegalApplicationReportByStage_Authorized() {
+    grantLegalReviewerPermission(app.getId());
+    apiLicenseLegalService.getLicenseLegalApplicationReport(app, BuildStageType.ID);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
   public void testGetLicenseLegalComponentReport_ApplicationUnauthenticated() throws Exception {
     apiLicenseLegalService.getLicenseLegalComponentReport(app.getType(), app.getPublicId(), ComponentIdentifier
         .createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null, null);

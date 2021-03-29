@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributio
 import com.sonatype.insight.brain.api.v2.service.legal.ApiLicenseLegalService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.google.inject.Binder;
@@ -116,7 +117,7 @@ public class ApplicationAttributionReportBuilderTest
     reportDTO.components.add(new ApiLicenseLegalComponentDTO(component2, licenseLegalData2, null));
     reportDTO.components.add(new ApiLicenseLegalComponentDTO(component3, licenseLegalData3, null));
 
-    when(mockApiLicenseLegalService.getLicenseLegalApplicationReport(application))
+    when(mockApiLicenseLegalService.getLicenseLegalApplicationReport(application, BuildStageType.ID))
         .thenReturn(reportDTO);
 
     reportDTO.licenseLegalMetadata = new HashSet<>();
@@ -125,7 +126,7 @@ public class ApplicationAttributionReportBuilderTest
             new HashSet<>());
     reportDTO.licenseLegalMetadata.add(licenseLegalMetadataDTO);
 
-    String content = reportBuilder.generateLegalApplicationAttributionReport(application);
+    String content = reportBuilder.generateLegalApplicationAttributionReport(application, BuildStageType.ID);
     String expectedContent = IOUtils.toString(Objects.requireNonNull(getClass().getClassLoader()
             .getResource("ApplicationAttributionReportTest/expectedApplicationAttributionReport.html")),
         StandardCharsets.UTF_8);
@@ -137,10 +138,10 @@ public class ApplicationAttributionReportBuilderTest
     Application application = tempEntity.newApplicationWithParent("appId");
     ApiLicenseLegalApplicationReportDTO reportDTO = new ApiLicenseLegalApplicationReportDTO();
 
-    when(mockApiLicenseLegalService.getLicenseLegalApplicationReport(application))
+    when(mockApiLicenseLegalService.getLicenseLegalApplicationReport(application, BuildStageType.ID))
         .thenReturn(reportDTO);
 
-    assertThat(reportBuilder.generateLegalApplicationAttributionReport(application))
+    assertThat(reportBuilder.generateLegalApplicationAttributionReport(application, BuildStageType.ID))
         .isNotNull();
   }
 }

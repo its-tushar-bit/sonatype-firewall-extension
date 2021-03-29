@@ -19,7 +19,7 @@ public interface ApiLicenseLegalResourceV2
 {
   ApiLicenseLegalApplicationReportDTO getLicenseLegalApplicationReport(String applicationId);
 
-  String getLicenseLegalApplicationHTMLReport(String applicationId);
+  String getLicenseLegalApplicationHTMLReport(String applicationId, String stageId);
 
   ApiLicenseLegalComponentReportDTO getLicenseLegalComponentReport(
       OwnerType ownerType,

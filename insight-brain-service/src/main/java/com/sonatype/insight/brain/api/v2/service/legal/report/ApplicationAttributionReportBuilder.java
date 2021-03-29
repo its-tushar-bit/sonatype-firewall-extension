@@ -47,9 +47,9 @@ public class ApplicationAttributionReportBuilder
   }
 
   @Authorize(permission = Permission.LEGAL_REVIEWER)
-  public String generateLegalApplicationAttributionReport(@AuthzContext(Key.OWNER) Owner application) {
+  public String generateLegalApplicationAttributionReport(@AuthzContext(Key.OWNER) Owner application, String stageId) {
     ApiLicenseLegalApplicationReportDTO applicationReportDTO =
-        apiLicenseLegalService.getLicenseLegalApplicationReport(application);
+        apiLicenseLegalService.getLicenseLegalApplicationReport(application, stageId);
     Map<String, Object> contextMap = new HashMap<>(2);
     contextMap.put("applicationReport", applicationReportDTO);
     contextMap.put("applicationPublicId", application.getPublicId());

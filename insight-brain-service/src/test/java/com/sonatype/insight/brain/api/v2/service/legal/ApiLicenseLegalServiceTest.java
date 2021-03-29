@@ -798,6 +798,53 @@ public class ApiLicenseLegalServiceTest
   }
 
   @Test
+  public void testGetLastRawApplicationReportByStageId() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Application otherApp = tempEntity.newApplicationWithParent();
+
+    PolicyEvaluation policyEvaluation1 =
+        tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, tempEntity.uuid(), new Date(1));
+    tempEntity.newPolicyEvaluation(app.getId(), StageReleaseStageType.ID, tempEntity.uuid(), new Date(2));
+
+    PolicyEvaluation policyEvaluation2 =
+        tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, tempEntity.uuid(), new Date(2));
+    PolicyEvaluation policyEvaluation3 =
+        tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, tempEntity.uuid(), new Date(3));
+
+    mockReport(policyEvaluation1);
+    mockReport(policyEvaluation2);
+    mockReport(policyEvaluation3);
+
+    tempEntity.newPolicyEvaluation(otherApp.getId(), ReleaseStageType.ID, tempEntity.uuid(), new Date(4));
+
+    Optional<ApiReportRawDataDTOV2> lastRawReportForApplication =
+        apiLicenseLegalService.getLastRawApplicationReportByStageId(app.getPublicId(), BuildStageType.ID);
+
+    assertThat(lastRawReportForApplication).isPresent().get().usingRecursiveComparison()
+        .isEqualTo(apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), policyEvaluation1.getScanId()));
+
+    lastRawReportForApplication =
+        apiLicenseLegalService.getLastRawApplicationReportByStageId(app.getPublicId(), ReleaseStageType.ID);
+
+    assertThat(lastRawReportForApplication).isPresent().get().usingRecursiveComparison()
+        .isEqualTo(apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), policyEvaluation3.getScanId()));
+  }
+
+  @Test
+  public void testGetLastRawApplicationReportByStage_NoApplication() {
+    assertThat(apiLicenseLegalService.getLastRawApplicationReportByStageId("doesNotExist", ReleaseStageType.ID))
+        .isEmpty();
+  }
+
+  @Test
+  public void testGetLastRawApplicationReportByStage_NoEvaluations() {
+    Application app = tempEntity.newApplicationWithParent();
+
+    assertThat(apiLicenseLegalService.getLastRawApplicationReportByStageId(app.getPublicId(), ReleaseStageType.ID))
+        .isEmpty();
+  }
+
+  @Test
   public void testGetLastRawApplicationReport_NoApplication() {
     assertThat(apiLicenseLegalService.getLastRawApplicationReport("doesNotExist")).isEmpty();
   }
@@ -818,7 +865,23 @@ public class ApiLicenseLegalServiceTest
     ApiReportRawDataDTOV2 rawReport =
         apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), policyEvaluation.getScanId());
     apiLicenseLegalServiceSpy = spy(apiLicenseLegalService);
-    testGetLicenseLegalApplicationReport(app, rawReport, "lls-license-metadata.json", EXPECTED_LICENSE_IDS);
+    testGetLicenseLegalApplicationReport(app, rawReport, "lls-license-metadata.json", EXPECTED_LICENSE_IDS, null);
+  }
+
+  @Test
+  public void testGetLicenseLegalApplicationReport_ByStage() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    PolicyEvaluation policyEvaluation1 =
+        tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, tempEntity.uuid());
+    PolicyEvaluation policyEvaluation2 =
+        tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, tempEntity.uuid());
+    mockReport(policyEvaluation1);
+    mockReport(policyEvaluation2);
+    ApiReportRawDataDTOV2 rawReport =
+        apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), policyEvaluation2.getScanId());
+    apiLicenseLegalServiceSpy = spy(apiLicenseLegalService);
+    testGetLicenseLegalApplicationReport(app, rawReport, "lls-license-metadata.json", EXPECTED_LICENSE_IDS,
+        ReleaseStageType.ID);
   }
 
   @Test
@@ -828,14 +891,15 @@ public class ApiLicenseLegalServiceTest
     apiLicenseLegalServiceSpy = spy(apiLicenseLegalService);
     doReturn(Optional.of(rawReport)).when(apiLicenseLegalServiceSpy).getLastRawApplicationReport(anyString());
     testGetLicenseLegalApplicationReport(app, rawReport, "lls-license-metadata-multilicense.json",
-        EXPECTED_LICENSE_IDS_FOR_MULTILICENSE);
+        EXPECTED_LICENSE_IDS_FOR_MULTILICENSE, null);
   }
 
   private void testGetLicenseLegalApplicationReport(
       Application app,
       ApiReportRawDataDTOV2 rawReport,
       String licenseMetadataResource,
-      String[] expectedLicenseFiles)
+      String[] expectedLicenseFiles,
+      String stageId)
       throws Exception
   {
     ComponentIdentifier[] expectedComponentIdentifiers = rawReport.components.stream()
@@ -853,7 +917,8 @@ public class ApiLicenseLegalServiceTest
         .thenReturn(new LinkedHashSet<>(Arrays.asList(componentLegalFiles)));
 
     ApiLicenseLegalApplicationReportDTO licenseMetadataReport =
-        apiLicenseLegalServiceSpy.getLicenseLegalApplicationReport(app);
+        stageId == null ? apiLicenseLegalServiceSpy.getLicenseLegalApplicationReport(app) : apiLicenseLegalServiceSpy
+            .getLicenseLegalApplicationReport(app, stageId);
 
     assertThat(licenseMetadataReport).isNotNull();
     assertlicenseLegalMetadata(licenseMetadataReport.components, licenseMetadataReport.licenseLegalMetadata, rawReport,

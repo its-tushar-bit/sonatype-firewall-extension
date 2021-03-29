@@ -37,7 +37,7 @@ public class DefaultApiLicenseLegalResourceV2
 {
   public static final String APPLICATION_PATH = "application/{applicationId}";
 
-  public static final String APPLICATION_REPORT_PATH = APPLICATION_PATH + "/report";
+  public static final String APPLICATION_REPORT_PATH = APPLICATION_PATH + "/stage/{stageId}/report";
 
   public static final String COMPONENT_PATH = "{ownerType: application|organization}/{ownerId}/component";
 
@@ -73,10 +73,11 @@ public class DefaultApiLicenseLegalResourceV2
   @Path(APPLICATION_REPORT_PATH)
   @Produces(MediaType.TEXT_HTML)
   public String getLicenseLegalApplicationHTMLReport(
-      @PathParam("applicationId") String applicationId)
+      @PathParam("applicationId") String applicationId, @PathParam("stageId") String stageId)
   {
     return applicationAttributionReportBuilder
-        .generateLegalApplicationAttributionReport(IdUtils.getOwnerNotNull(OwnerType.APPLICATION, applicationId));
+        .generateLegalApplicationAttributionReport(
+            IdUtils.getOwnerNotNull(OwnerType.APPLICATION, applicationId), stageId);
   }
 
   @Override

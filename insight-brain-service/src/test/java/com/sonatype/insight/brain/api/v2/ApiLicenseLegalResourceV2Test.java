@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -56,7 +57,8 @@ public class ApiLicenseLegalResourceV2Test
     hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.LEGAL_FILE_URL);
 
     HttpResponse response =
-        restRequest().path(DefaultApiLicenseLegalResourceV2.APPLICATION_PATH).parameter(application.getId())
+        restRequest().path(DefaultApiLicenseLegalResourceV2.APPLICATION_PATH)
+            .parameter(application.getId())
             .get();
 
     assertResponseStatus(200, response);
@@ -78,7 +80,8 @@ public class ApiLicenseLegalResourceV2Test
     hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.LEGAL_FILE_URL);
 
     HttpResponse response =
-        restRequest().path(DefaultApiLicenseLegalResourceV2.APPLICATION_REPORT_PATH).parameter(application.getId())
+        restRequest().path(DefaultApiLicenseLegalResourceV2.APPLICATION_REPORT_PATH)
+            .parameter(application.getId(), BuildStageType.ID)
             .get();
 
     assertResponseStatus(200, response);
@@ -86,11 +89,31 @@ public class ApiLicenseLegalResourceV2Test
   }
 
   @Test
+  public void testGetLicenseLegalApplicationHTMLReport_NoStage() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+    mockReport(policyEvaluation, getClass().getSimpleName());
+    hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.METADATA_URL);
+    hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
+    hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.LEGAL_FILE_URL);
+
+    HttpResponse response =
+        restRequest().path(DefaultApiLicenseLegalResourceV2.APPLICATION_REPORT_PATH)
+            .parameter(application.getId(), ReleaseStageType.ID)
+            .get();
+
+    assertResponseStatus(404, response);
+  }
+
+  @Test
   public void testGetLicenseLegalApplicationReport_NotFound() throws Exception {
     String applicationPublicId = "doesNotExist";
 
     HttpResponse response =
-        restRequest().path(DefaultApiLicenseLegalResourceV2.APPLICATION_PATH).parameter(applicationPublicId).get();
+        restRequest().path(DefaultApiLicenseLegalResourceV2.APPLICATION_PATH)
+            .parameter(applicationPublicId)
+            .get();
 
     assertResponseStatus(404, response);
     assertThat(response.getBodyText())

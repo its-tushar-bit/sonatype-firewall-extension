@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
+import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
@@ -156,7 +157,23 @@ public class LegalApplicationDashboardServiceTest
   }
 
   @Test
-  public void testGetLicenseLegalApplicationDashboard_OpenObligation() {
+  public void testGetLicenseLegalApplicationDashboard_CompletedObligation_LicensesWithoutObligations() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    List<String> licenseIds = Arrays.asList("MIT");
+    List<ApiLicenseDTOV2> licenses = getApiLicenses(licenseIds);
+
+    Application app = setupApplicationWithLicenses(componentIdentifier, licenseIds.get(0)).getLeft();
+
+    List<ApiLicenseLegalApplicationComponentDTO> result =
+        legalApplicationDashboardService.getLicenseLegalApplicationDashboard(app.getPublicId(), null);
+    assertThat(result).hasSize(1);
+
+    assertApiLicenseLegalApplicationComponentDTO(result.get(0), componentIdentifier, licenses, 0, 0,
+        LicenseObligationReviewStatus.COMPLETED);
+  }
+
+  @Test
+  public void testGetLicenseLegalApplicationDashboard_UnreviewedObligation() {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     List<String> licenseIds = Arrays.asList("MIT");
     List<ApiLicenseDTOV2> licenses = getApiLicenses(licenseIds);
@@ -169,6 +186,39 @@ public class LegalApplicationDashboardServiceTest
     assertThat(result).hasSize(1);
 
     assertApiLicenseLegalApplicationComponentDTO(result.get(0), componentIdentifier, licenses, 0, 2,
+        LicenseObligationReviewStatus.UNREVIEWED);
+  }
+
+  @Test
+  public void testGetLicenseLegalApplicationDashboard_UnreviewedObligation_ComponentWithoutLicenses() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    List<ApiLicenseDTOV2> licenses = Collections.emptyList();
+
+    Application app = setupApplicationWithLicenses(componentIdentifier).getLeft();
+
+    List<ApiLicenseLegalApplicationComponentDTO> result =
+        legalApplicationDashboardService.getLicenseLegalApplicationDashboard(app.getPublicId(), null);
+    assertThat(result).hasSize(1);
+
+    assertApiLicenseLegalApplicationComponentDTO(result.get(0), componentIdentifier, licenses, 0, 0,
+        LicenseObligationReviewStatus.UNREVIEWED);
+  }
+
+  @Test
+  public void testGetLicenseLegalApplicationDashboard_UnreviewedObligation_ComponentWithUnspecifiedLicenses() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    List<String> licenseIds = Arrays.asList(License.NO_SOURCE_LICENSE_ID, License.NO_SOURCES_ID,
+        License.NOT_DECLARED_ID, License.NOT_SUPPORTED_ID, License.UNSPECIFIED_ID);
+    List<ApiLicenseDTOV2> licenses = getApiLicenses(licenseIds);
+
+    Application app =
+        setupApplicationWithLicenses(componentIdentifier, licenseIds.stream().toArray(String[]::new)).getLeft();
+
+    List<ApiLicenseLegalApplicationComponentDTO> result =
+        legalApplicationDashboardService.getLicenseLegalApplicationDashboard(app.getPublicId(), null);
+    assertThat(result).hasSize(1);
+
+    assertApiLicenseLegalApplicationComponentDTO(result.get(0), componentIdentifier, licenses, 0, 0,
         LicenseObligationReviewStatus.UNREVIEWED);
   }
 

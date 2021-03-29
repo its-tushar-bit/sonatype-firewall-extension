@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponentLicensesDTO;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
+import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.policy.StageType;
@@ -167,18 +168,19 @@ public class LegalApplicationDashboardService
           }
         }
 
-        LicenseObligationReviewStatus reviewStatus;
+        LicenseObligationReviewStatus reviewStatus = LicenseObligationReviewStatus.IN_PROGRESS;
         if (flaggedCount > 0) {
           reviewStatus = LicenseObligationReviewStatus.FLAGGED;
         }
-        else if (addressedCount == allObligationNames.size()) {
-          reviewStatus = LicenseObligationReviewStatus.COMPLETED;
+        else if (isEmpty(allObligationNames)) {
+          reviewStatus = isEmptyOrUnspecifiedLicenses(licenseIds) ? LicenseObligationReviewStatus.UNREVIEWED
+              : LicenseObligationReviewStatus.COMPLETED;
         }
-        else if (openCount == allObligationNames.size() || obligations.isEmpty()) {
+        else if (openCount == allObligationNames.size()) {
           reviewStatus = LicenseObligationReviewStatus.UNREVIEWED;
         }
-        else {
-          reviewStatus = LicenseObligationReviewStatus.IN_PROGRESS;
+        else if (addressedCount >= allObligationNames.size()) {
+          reviewStatus = LicenseObligationReviewStatus.COMPLETED;
         }
 
         if (isEmpty(reviewStatuses) || reviewStatuses.contains(reviewStatus)) {
@@ -245,6 +247,10 @@ public class LegalApplicationDashboardService
         return license != null ? license.getShortDisplayName() : licenseId;
       }));
     }
+  }
+
+  private boolean isEmptyOrUnspecifiedLicenses(Set<String> licenseIds) {
+    return isEmpty(licenseIds) || licenseIds.stream().allMatch(License::isEffectivelyUnspecified);
   }
 
   private List<ApiLicenseDTOV2> newApiLicenses(

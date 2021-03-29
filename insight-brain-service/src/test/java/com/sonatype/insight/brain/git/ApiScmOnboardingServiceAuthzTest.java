@@ -3,13 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.experimental;
+package com.sonatype.insight.brain.git;
 
 import java.util.Collections;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.api.experimental.dto.ImportRepositoriesRequest;
+import com.sonatype.insight.brain.git.dto.ImportRepositoriesRequest;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.BadRequestException;

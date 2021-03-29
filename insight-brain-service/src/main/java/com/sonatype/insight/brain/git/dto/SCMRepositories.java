@@ -3,14 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.experimental.dto;
+package com.sonatype.insight.brain.git.dto;
 
 import java.util.List;
 
-import com.sonatype.insight.brain.api.experimental.ScmResultStatus;
+import com.sonatype.insight.brain.git.ScmResultStatus;
 import com.sonatype.nexus.scm.api.model.SCMRepository;
 
-import static com.sonatype.insight.brain.api.experimental.ScmResultStatus.SUCCESS;
+import static com.sonatype.insight.brain.git.ScmResultStatus.SUCCESS;
 
 /**
  * DTO object encapsulating a collection of SCM repositories that are not yet configured for this IQ server,

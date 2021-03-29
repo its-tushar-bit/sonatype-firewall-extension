@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.experimental;
+package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -14,8 +14,9 @@ import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.api.experimental.dto.ImportRepositoriesRequest;
-import com.sonatype.insight.brain.api.experimental.dto.SCMRepositories;
+import com.sonatype.insight.brain.git.dto.ImportRepositoriesRequest;
+import com.sonatype.insight.brain.git.dto.ImportResults;
+import com.sonatype.insight.brain.git.dto.SCMRepositories;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -35,11 +36,11 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static com.sonatype.insight.brain.api.experimental.ApiScmOnboardingResource.DEFAULT_HOST_URL;
-import static com.sonatype.insight.brain.api.experimental.ApiScmOnboardingResource.IMPORT_REPO_PATH;
-import static com.sonatype.insight.brain.api.experimental.ApiScmOnboardingResource.LOAD_REPO_PATH;
-import static com.sonatype.insight.brain.api.experimental.ApiScmOnboardingResource.RESOURCE_PATH;
-import static com.sonatype.insight.brain.api.experimental.ApiScmOnboardingResource.VALIDATE_SCM_HOST_URL;
+import static com.sonatype.insight.brain.git.ApiScmOnboardingResource.DEFAULT_HOST_URL;
+import static com.sonatype.insight.brain.git.ApiScmOnboardingResource.IMPORT_REPO_PATH;
+import static com.sonatype.insight.brain.git.ApiScmOnboardingResource.LOAD_REPO_PATH;
+import static com.sonatype.insight.brain.git.ApiScmOnboardingResource.RESOURCE_PATH;
+import static com.sonatype.insight.brain.git.ApiScmOnboardingResource.VALIDATE_SCM_HOST_URL;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;

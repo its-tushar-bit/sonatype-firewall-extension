@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.experimental;
+package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -19,11 +19,13 @@ import java.util.stream.IntStream;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.api.experimental.dto.ImportRepositoriesRequest;
-import com.sonatype.insight.brain.api.experimental.dto.SCMRepositories;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
+import com.sonatype.insight.brain.git.dto.ImportFailure;
+import com.sonatype.insight.brain.git.dto.ImportRepositoriesRequest;
+import com.sonatype.insight.brain.git.dto.ImportResults;
+import com.sonatype.insight.brain.git.dto.SCMRepositories;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
@@ -53,7 +55,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static com.sonatype.insight.brain.api.experimental.ApiScmOnboardingService.MAX_PUBLICID_RENAME_ATTEMPTS;
+import static com.sonatype.insight.brain.git.ApiScmOnboardingService.MAX_PUBLICID_RENAME_ATTEMPTS;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;

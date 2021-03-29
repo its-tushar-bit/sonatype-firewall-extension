@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.experimental;
+package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -17,16 +17,18 @@ import java.util.stream.IntStream;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.api.experimental.dto.ImportRepositoriesRequest;
-import com.sonatype.insight.brain.api.experimental.dto.OnboardingOrganization;
-import com.sonatype.insight.brain.api.experimental.dto.SCMRepositories;
-import com.sonatype.insight.brain.api.experimental.dto.ValidationResponse;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiCompositeSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiCompositeSourceControlService;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
+import com.sonatype.insight.brain.git.dto.ImportFailure;
+import com.sonatype.insight.brain.git.dto.ImportRepositoriesRequest;
+import com.sonatype.insight.brain.git.dto.ImportResults;
+import com.sonatype.insight.brain.git.dto.OnboardingOrganization;
+import com.sonatype.insight.brain.git.dto.SCMRepositories;
+import com.sonatype.insight.brain.git.dto.ValidationResponse;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -51,8 +53,8 @@ import org.apache.http.client.HttpResponseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.api.experimental.ScmResultStatus.SCM_AUTHN_FAILURE;
-import static com.sonatype.insight.brain.api.experimental.ScmResultStatus.SCM_AUTHZ_FAILURE;
+import static com.sonatype.insight.brain.git.ScmResultStatus.SCM_AUTHN_FAILURE;
+import static com.sonatype.insight.brain.git.ScmResultStatus.SCM_AUTHZ_FAILURE;
 import static com.sonatype.nexus.git.utils.repository.RepositoryUrlFinderUtils.sanitizeUrl;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;

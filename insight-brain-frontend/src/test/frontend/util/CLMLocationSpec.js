@@ -208,7 +208,7 @@ describe('CLMLocation.js', function() {
 
   it('should return the scm repositories url', function() {
     expect(CLMLocation.getScmRepositoriesUrl('organizationId', 'http://localhost:1234')).toBe(
-        '/api/experimental/onboarding/loadRepositories?orgId=organizationId' +
+        '/rest/onboarding/loadRepositories?orgId=organizationId' +
         '&defaultHostUrl=http%3A%2F%2Flocalhost%3A1234');
   });
 

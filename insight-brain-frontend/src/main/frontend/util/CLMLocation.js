@@ -107,7 +107,7 @@ export function getOrganizationsUrl() {
 }
 
 export function getScmOrganizationsUrl() {
-  return uriTemplate`/api/experimental/onboarding/organizations`;
+  return uriTemplate`/rest/onboarding/organizations`;
 }
 
 export function getApplicationSummaryUrl(applicationPublicId) {
@@ -151,20 +151,20 @@ export function getScmOnboardingConfigUrl() {
 }
 
 export function getScmRepositoriesUrl(organizationId, defaultHostUrl) {
-  return uriTemplate`/api/experimental/onboarding/loadRepositories?\
+  return uriTemplate`/rest/onboarding/loadRepositories?\
 orgId=${organizationId}&defaultHostUrl=${defaultHostUrl}`;
 }
 
 export function getScmDefaultHostUrl(organizationId, provider) {
-  return uriTemplate`/api/experimental/onboarding/defaultHostUrl?orgId=${organizationId}&provider=${provider}`;
+  return uriTemplate`/rest/onboarding/defaultHostUrl?orgId=${organizationId}&provider=${provider}`;
 }
 
 export function getImportRepositoriesUrl(organizationId) {
-  return uriTemplate`/api/experimental/onboarding/importRepositories/${organizationId}`;
+  return uriTemplate`/rest/onboarding/importRepositories/${organizationId}`;
 }
 
 export function getValidateScmConfigUrl(scmProvider, scmHostUrl) {
-  return uriTemplate`/api/experimental/onboarding/validate/${scmProvider}?scmHostUrl=${scmHostUrl}`;
+  return uriTemplate`/rest/onboarding/validate/${scmProvider}?scmHostUrl=${scmHostUrl}`;
 }
 
 export function getCompositeSourceControlUrl(ownerType, ownerId) {

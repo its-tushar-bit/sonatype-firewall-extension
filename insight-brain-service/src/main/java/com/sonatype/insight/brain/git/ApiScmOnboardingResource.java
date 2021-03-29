@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.experimental;
+package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
 import java.util.List;
@@ -19,11 +19,11 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.experimental.dto.ImportRepositoriesRequest;
-import com.sonatype.insight.brain.api.experimental.dto.OnboardingOrganization;
-import com.sonatype.insight.brain.api.experimental.dto.SCMRepositories;
-import com.sonatype.insight.brain.api.experimental.dto.ValidationResponse;
+import com.sonatype.insight.brain.git.dto.ImportRepositoriesRequest;
+import com.sonatype.insight.brain.git.dto.ImportResults;
+import com.sonatype.insight.brain.git.dto.OnboardingOrganization;
+import com.sonatype.insight.brain.git.dto.SCMRepositories;
+import com.sonatype.insight.brain.git.dto.ValidationResponse;
 
 import com.codahale.metrics.annotation.Timed;
 import com.google.common.collect.ImmutableMap;
@@ -38,7 +38,7 @@ import com.google.common.collect.ImmutableMap;
 @Path(ApiScmOnboardingResource.RESOURCE_PATH)
 public class ApiScmOnboardingResource
 {
-  static final String RESOURCE_PATH = PublicApiPaths.BASE_PATH + "/experimental/onboarding";
+  static final String RESOURCE_PATH = "rest/onboarding";
 
   static final String LOAD_REPO_PATH = "loadRepositories";
 

@@ -38,7 +38,7 @@ public class ApiCompositeSourceControlServiceAuthzTest
   public ApiCompositeSourceControlService sourceControlService;
 
   @Test
-  public void testGetCompositeSourceControlByOwner_Authorized() {
+  public void testGetCompositeSourceControlByOwner_AuthorizedApp() {
     grantReadPermission(app.getId());
     SourceControl sourceControl = tempEntity.newSourceControl(
         app.getId(), VALID_URL, "token", null);
@@ -46,6 +46,17 @@ public class ApiCompositeSourceControlServiceAuthzTest
         sourceControlService.getCompositeSourceControlByOwner(
             OwnerType.APPLICATION, app.getId());
     assertThat(sourceControlByApplicationId.id).isEqualTo(sourceControl.getId());
+  }
+
+  @Test
+  public void testGetCompositeSourceControlByOwner_AuthorizedOrg() {
+    grantReadPermission(org.getId());
+    SourceControl sourceControl = tempEntity.newSourceControl(
+        org.getId(), null, null);
+    ApiCompositeSourceControlDTO sourceControlByOrgId =
+        sourceControlService.getCompositeSourceControlByOwner(
+            OwnerType.ORGANIZATION, org.getId());
+    assertThat(sourceControlByOrgId.id).isEqualTo(sourceControl.getId());
   }
 
   @Test(expected = UnauthenticatedException.class)

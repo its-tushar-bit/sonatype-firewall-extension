@@ -36,17 +36,17 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static com.sonatype.insight.brain.git.ApiScmOnboardingResource.DEFAULT_HOST_URL;
-import static com.sonatype.insight.brain.git.ApiScmOnboardingResource.IMPORT_REPO_PATH;
-import static com.sonatype.insight.brain.git.ApiScmOnboardingResource.LOAD_REPO_PATH;
-import static com.sonatype.insight.brain.git.ApiScmOnboardingResource.RESOURCE_PATH;
-import static com.sonatype.insight.brain.git.ApiScmOnboardingResource.VALIDATE_SCM_HOST_URL;
+import static com.sonatype.insight.brain.git.ScmOnboardingResource.DEFAULT_HOST_URL;
+import static com.sonatype.insight.brain.git.ScmOnboardingResource.IMPORT_REPO_PATH;
+import static com.sonatype.insight.brain.git.ScmOnboardingResource.LOAD_REPO_PATH;
+import static com.sonatype.insight.brain.git.ScmOnboardingResource.RESOURCE_PATH;
+import static com.sonatype.insight.brain.git.ScmOnboardingResource.VALIDATE_SCM_HOST_URL;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ApiScmOnboardingResourceTest
+public class ScmOnboardingResourceTest
     extends AbstractResourceTest
 {
   @Rule

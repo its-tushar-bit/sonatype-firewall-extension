@@ -35,8 +35,8 @@ import com.google.common.collect.ImmutableMap;
  */
 @Named
 @Timed
-@Path(ApiScmOnboardingResource.RESOURCE_PATH)
-public class ApiScmOnboardingResource
+@Path(ScmOnboardingResource.RESOURCE_PATH)
+public class ScmOnboardingResource
 {
   static final String RESOURCE_PATH = "rest/onboarding";
 
@@ -50,11 +50,11 @@ public class ApiScmOnboardingResource
 
   static final String ORGANIZATIONS = "organizations";
 
-  private final ApiScmOnboardingService apiScmOnboardingService;
+  private final ScmOnboardingService scmOnboardingService;
 
   @Inject
-  public ApiScmOnboardingResource(final ApiScmOnboardingService apiScmOnboardingService) {
-    this.apiScmOnboardingService = apiScmOnboardingService;
+  public ScmOnboardingResource(final ScmOnboardingService scmOnboardingService) {
+    this.scmOnboardingService = scmOnboardingService;
   }
 
   @Path(LOAD_REPO_PATH)
@@ -65,7 +65,7 @@ public class ApiScmOnboardingResource
       @QueryParam("defaultHostUrl") String defaultHostUrl)
       throws IOException
   {
-    return apiScmOnboardingService.loadRepositories(orgId, defaultHostUrl);
+    return scmOnboardingService.loadRepositories(orgId, defaultHostUrl);
   }
 
   @Path(DEFAULT_HOST_URL)
@@ -75,7 +75,7 @@ public class ApiScmOnboardingResource
       @QueryParam("provider") String provider,
       @QueryParam("orgId") String orgId)
   {
-    return ImmutableMap.of("defaultHostUrl", apiScmOnboardingService.getDefaultHostUrl(provider, orgId));
+    return ImmutableMap.of("defaultHostUrl", scmOnboardingService.getDefaultHostUrl(provider, orgId));
   }
 
   @Path(IMPORT_REPO_PATH)
@@ -85,7 +85,7 @@ public class ApiScmOnboardingResource
       @PathParam("orgId") String orgId,
       final ImportRepositoriesRequest importReposRequest)
   {
-    return apiScmOnboardingService.importRepositories(orgId, importReposRequest);
+    return scmOnboardingService.importRepositories(orgId, importReposRequest);
   }
 
   @GET
@@ -95,13 +95,13 @@ public class ApiScmOnboardingResource
       @PathParam("scmProvider") String scmProvider,
       @QueryParam("scmHostUrl") String scmHostUrl)
   {
-    return apiScmOnboardingService.validateScmHostUrl(scmProvider, scmHostUrl);
+    return scmOnboardingService.validateScmHostUrl(scmProvider, scmHostUrl);
   }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path(ORGANIZATIONS)
   public List<OnboardingOrganization> getOrgsForOnboarding() {
-    return apiScmOnboardingService.getOrgsForOnboarding();
+    return scmOnboardingService.getOrgsForOnboarding();
   }
 }

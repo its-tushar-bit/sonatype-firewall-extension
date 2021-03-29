@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.organization.ApplicationHelper;
+import com.sonatype.insight.brain.organization.OrganizationService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
@@ -65,9 +66,9 @@ import static java.util.stream.Collectors.counting;
  *
  * @since 1.98
  */
-public class ApiScmOnboardingService
+public class ScmOnboardingService
 {
-  private static final Logger log = LoggerFactory.getLogger(ApiScmOnboardingService.class);
+  private static final Logger log = LoggerFactory.getLogger(ScmOnboardingService.class);
 
   public static final int MAX_PUBLICID_RENAME_ATTEMPTS = 5;
 
@@ -83,6 +84,8 @@ public class ApiScmOnboardingService
 
   private final ApiSourceControlService apiSourceControlService;
 
+  private final OrganizationService organizationService;
+
   private final ApiCompositeSourceControlService apiCompositeSourceControlService;
 
   private final GitApiClientFactory gitApiClientFactory;
@@ -92,15 +95,16 @@ public class ApiScmOnboardingService
   private final ScmApplicationNameConverter applicationNameConverter;
 
   @Inject
-  public ApiScmOnboardingService(final SourceControlDAO sourceControlDAO,
-                                 final ApplicationDAO appDAO,
-                                 final OrganizationDAO orgDAO,
-                                 final ApplicationHelper applicationHelper,
-                                 final ApiSourceControlService apiSourceControlService,
-                                 final ApiCompositeSourceControlService apiCompositeSourceControlService,
-                                 final GitApiClientFactory gitApiClientFactory,
-                                 final TelemetrySender telemetrySender,
-                                 final ScmApplicationNameConverter applicationNameConverter)
+  public ScmOnboardingService(final SourceControlDAO sourceControlDAO,
+                              final ApplicationDAO appDAO,
+                              final OrganizationDAO orgDAO,
+                              final ApplicationHelper applicationHelper,
+                              final ApiSourceControlService apiSourceControlService,
+                              final ApiCompositeSourceControlService apiCompositeSourceControlService,
+                              OrganizationService organizationService,
+                              final GitApiClientFactory gitApiClientFactory,
+                              final TelemetrySender telemetrySender,
+                              final ScmApplicationNameConverter applicationNameConverter)
   {
     this.sourceControlDAO = sourceControlDAO;
     this.appDAO = appDAO;
@@ -108,6 +112,7 @@ public class ApiScmOnboardingService
     this.applicationHelper = applicationHelper;
     this.apiSourceControlService = apiSourceControlService;
     this.apiCompositeSourceControlService = apiCompositeSourceControlService;
+    this.organizationService = organizationService;
     this.gitApiClientFactory = gitApiClientFactory;
     this.telemetrySender = telemetrySender;
     this.applicationNameConverter = applicationNameConverter;
@@ -368,8 +373,9 @@ public class ApiScmOnboardingService
             applicationNameConverter.buildPublicId(scmRepository) + "]"));
   }
 
+  // Delegate auth checks to the organizationService and apiCompositeSourceControlService
   public List<OnboardingOrganization> getOrgsForOnboarding() {
-    return orgDAO.getAll().stream()
+    return organizationService.getAll().stream()
         .map(organization -> new OnboardingOrganization(organization, apiCompositeSourceControlService
             .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, organization.getId())))
         .collect(Collectors.toList());

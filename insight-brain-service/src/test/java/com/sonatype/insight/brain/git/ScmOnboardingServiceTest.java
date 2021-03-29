@@ -55,7 +55,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static com.sonatype.insight.brain.git.ApiScmOnboardingService.MAX_PUBLICID_RENAME_ATTEMPTS;
+import static com.sonatype.insight.brain.git.ScmOnboardingService.MAX_PUBLICID_RENAME_ATTEMPTS;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -64,7 +64,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-public class ApiScmOnboardingServiceTest
+public class ScmOnboardingServiceTest
     extends AbstractComponentTest
 {
   private static final String PAGE_0 = "/ApiScmOnboardingServiceTest/allRepos0.json";
@@ -75,7 +75,7 @@ public class ApiScmOnboardingServiceTest
   public WireMockRule gitService = new WireMockRule(wireMockConfig().dynamicPort());
 
   @Inject
-  private ApiScmOnboardingService apiScmOnboardingService;
+  private ScmOnboardingService scmOnboardingService;
 
   private Application app;
 
@@ -132,7 +132,7 @@ public class ApiScmOnboardingServiceTest
     mockRepoForPage(gitService, 1, getResourceAsString(PAGE_1));
 
     // then loading repositories returns the expected results
-    SCMRepositories repositories = apiScmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
+    SCMRepositories repositories = scmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
     assertThat(repositories.availableRepositories.size()).isEqualTo(13);
   }
 
@@ -149,7 +149,7 @@ public class ApiScmOnboardingServiceTest
 
     // then loading repositories fails
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> {
-      apiScmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
+      scmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
     }).withMessageContaining("'token' must not be null");
   }
 
@@ -159,7 +159,7 @@ public class ApiScmOnboardingServiceTest
     mockRepoForPage(gitService, 1, getResourceAsString(PAGE_1));
 
     // then loading repositories returns the expected results
-    SCMRepositories repositories = apiScmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
+    SCMRepositories repositories = scmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
     assertThat(repositories.availableRepositories.size()).isEqualTo(13);
     assertThat(repositories.totalRepositories).isEqualTo(13);
   }
@@ -191,7 +191,7 @@ public class ApiScmOnboardingServiceTest
     tempEntity.newSourceControl(tmpapp3.getId(), gitService.baseUrl() + repo2, new Date());
 
     // then loading repositories returns the trimmed results
-    SCMRepositories repositories = apiScmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
+    SCMRepositories repositories = scmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
     assertThat(repositories.availableRepositories.size()).isEqualTo(11);
     assertThat(repositories.totalRepositories).isEqualTo(13);
   }
@@ -207,7 +207,7 @@ public class ApiScmOnboardingServiceTest
     assertThat(page0).contains("https://admin@localhost/sonatype-nexus-community/nexus-repository-p2.git");
 
     // then the repository listing will strip out this embedded information to ensure it doesn't leak
-    SCMRepositories repositories = apiScmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
+    SCMRepositories repositories = scmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
     Optional<SCMRepository> createReactApp = repositories.availableRepositories.stream()
         .filter(repository -> repository.getProject().equals("create-react-app")).findFirst();
     assertThat(createReactApp.get().getHttpCloneUrl()).isEqualTo("https://localhost/depshield-ci/create-react-app");
@@ -220,7 +220,7 @@ public class ApiScmOnboardingServiceTest
   @Test
   public void testLoadRepositories_invalidOrgId() {
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      apiScmOnboardingService.loadRepositories("organizationThatDoesntExist", gitService.baseUrl());
+      scmOnboardingService.loadRepositories("organizationThatDoesntExist", gitService.baseUrl());
     }).withMessageContaining("Cannot find organization with ID organizationThatDoesntExist.");
   }
 
@@ -248,14 +248,14 @@ public class ApiScmOnboardingServiceTest
 
   private void testNoProvider(String provider) {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      apiScmOnboardingService.getDefaultHostUrl(provider, "org-id-not-checked");
+      scmOnboardingService.getDefaultHostUrl(provider, "org-id-not-checked");
     }).withMessageContaining("Provider has not been specified");
   }
 
   @Test
   public void testDefaultHostUrl_invalidProvider() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      apiScmOnboardingService.getDefaultHostUrl("invalid", "org-id-not-checked");
+      scmOnboardingService.getDefaultHostUrl("invalid", "org-id-not-checked");
     }).withMessageContaining("Invalid provider: invalid");
   }
 
@@ -267,7 +267,7 @@ public class ApiScmOnboardingServiceTest
   }
 
   private void testDefaultByProvider(String provider, String expectedUrl) {
-    assertThat(apiScmOnboardingService.getDefaultHostUrl(provider, org.getId())).isEqualTo(expectedUrl);
+    assertThat(scmOnboardingService.getDefaultHostUrl(provider, org.getId())).isEqualTo(expectedUrl);
   }
 
   @Test
@@ -316,7 +316,7 @@ public class ApiScmOnboardingServiceTest
     sourceControlDAO.insert(sourceControl);
 
     // when we get the host URL
-    String defaultHostUrl = apiScmOnboardingService.getDefaultHostUrl(provider, organization.getId());
+    String defaultHostUrl = scmOnboardingService.getDefaultHostUrl(provider, organization.getId());
 
     // then it should be custom, not the github default
     assertThat(defaultHostUrl).isEqualTo(expectedDefaultHosturl);
@@ -350,7 +350,7 @@ public class ApiScmOnboardingServiceTest
     Application newApp = tempEntity.newApplicationWithParent();
 
     // when we get the host URL for an org without SCMs defined
-    String defaultHostUrl = apiScmOnboardingService.getDefaultHostUrl("github", newApp.getOrganizationId());
+    String defaultHostUrl = scmOnboardingService.getDefaultHostUrl("github", newApp.getOrganizationId());
 
     // then it should be the URL defined in the existing org, using the host with the largest count
     assertThat(defaultHostUrl).isEqualTo("http://prefix.example.com");
@@ -375,7 +375,7 @@ public class ApiScmOnboardingServiceTest
     ;
 
     // when we get the host URL for an org without SCMs defined
-    String defaultHostUrl = apiScmOnboardingService.getDefaultHostUrl("github", org.getId());
+    String defaultHostUrl = scmOnboardingService.getDefaultHostUrl("github", org.getId());
 
     // then it should be just the default and skip the app
     assertThat(defaultHostUrl).isEqualTo("");
@@ -384,7 +384,7 @@ public class ApiScmOnboardingServiceTest
   @Test
   public void testDefaultHostUrl_orgWithNoScm() {
     // when we get the host URL for an org with no SCM defined
-    String defaultHostUrl = apiScmOnboardingService.getDefaultHostUrl("github", org.getId());
+    String defaultHostUrl = scmOnboardingService.getDefaultHostUrl("github", org.getId());
 
     // then it should be the default
     assertThat(defaultHostUrl).isEqualTo("");
@@ -408,7 +408,7 @@ public class ApiScmOnboardingServiceTest
     int prevImportedCount = 10;
 
     // when the repos are be imported
-    ImportResults response = apiScmOnboardingService.importRepositories(org.getId(),
+    ImportResults response = scmOnboardingService.importRepositories(org.getId(),
         new ImportRepositoriesRequest(Arrays.asList(reposToImport), totalRepoCount, prevImportedCount));
 
     // then the imported repo is returned
@@ -463,7 +463,7 @@ public class ApiScmOnboardingServiceTest
     int prevImportedCount = 8;
 
     // when the repos are be imported
-    ImportResults response = apiScmOnboardingService.importRepositories(org.getId(),
+    ImportResults response = scmOnboardingService.importRepositories(org.getId(),
         new ImportRepositoriesRequest(Arrays.asList(reposToImport), totalRepoCount, prevImportedCount));
 
     // then the imported repo is returned
@@ -515,7 +515,7 @@ public class ApiScmOnboardingServiceTest
     int prevImportedCount = 8;
 
     // when the repos are be imported
-    ImportResults response = apiScmOnboardingService.importRepositories(org.getId(),
+    ImportResults response = scmOnboardingService.importRepositories(org.getId(),
         new ImportRepositoriesRequest(Arrays.asList(reposToImport), totalRepoCount, prevImportedCount));
 
     // then the imported repo is returned
@@ -557,7 +557,7 @@ public class ApiScmOnboardingServiceTest
   @Test(expected = BadRequestException.class)
   public void testImportRepos_nullScmRepos() {
     // when import with null scm repos, it throws an exception
-    apiScmOnboardingService.importRepositories(org.getId(), new ImportRepositoriesRequest());
+    scmOnboardingService.importRepositories(org.getId(), new ImportRepositoriesRequest());
   }
 
   @Test
@@ -577,7 +577,7 @@ public class ApiScmOnboardingServiceTest
         };
 
     // and we call import
-    apiScmOnboardingService
+    scmOnboardingService
         .importRepositories(org.getId(),
             new ImportRepositoriesRequest(Arrays.asList(reposToImport), totalRepoCount, prevImportedCount))
         .getImportedRepositories();
@@ -615,7 +615,7 @@ public class ApiScmOnboardingServiceTest
     String repoUrl = "https://localhost:5333/org/repo.git";
     List<SCMRepository> toAdd = Arrays.asList(new SCMRepository(SourceControlProvider.GITHUB,
         repoUrl, true, "??invalidorg??", "!!invalidproject!!", null));
-    ImportResults importResults = apiScmOnboardingService.importRepositories(org.getId(),
+    ImportResults importResults = scmOnboardingService.importRepositories(org.getId(),
         new ImportRepositoriesRequest(toAdd, 5, 2));
 
     // then the response is OK
@@ -635,14 +635,14 @@ public class ApiScmOnboardingServiceTest
     String repoUrl1 = "https://localhost:5333/org/repo1.git";
     List<SCMRepository> toAdd = Arrays.asList(new SCMRepository(SourceControlProvider.GITHUB,
         repoUrl1, true, "org", "project", null));
-    apiScmOnboardingService.importRepositories(org.getId(),
+    scmOnboardingService.importRepositories(org.getId(),
         new ImportRepositoriesRequest(toAdd, 5, 2));
 
     // when we import another repository where the name only differs in invalid characters that have been stripped out
     String repoUrl2 = "https://localhost:5333/org/repo2.git";
     List<SCMRepository> toAddConflicting = Arrays.asList(new SCMRepository(SourceControlProvider.GITHUB,
         repoUrl2, true, "org", "project!!", null));
-    ImportResults importResults = apiScmOnboardingService.importRepositories(org.getId(),
+    ImportResults importResults = scmOnboardingService.importRepositories(org.getId(),
         new ImportRepositoriesRequest(toAddConflicting, 5, 2));
 
     // then the response is OK
@@ -666,7 +666,7 @@ public class ApiScmOnboardingServiceTest
         .mapToObj(i -> new SCMRepository(SourceControlProvider.GITHUB, "https://localhost:5333/org/repo" + i + ".git",
             true, "org", "project!!", null))
         .collect(Collectors.toList());
-    ImportResults importResults = apiScmOnboardingService.importRepositories(org.getId(),
+    ImportResults importResults = scmOnboardingService.importRepositories(org.getId(),
         new ImportRepositoriesRequest(toAdd, 5, 2));
 
     // then the response is OK
@@ -684,18 +684,18 @@ public class ApiScmOnboardingServiceTest
   @Test
   public void testValidation() {
     // expect null response when no error is found
-    assertThat(apiScmOnboardingService.validateScmHostUrl("github", "http://example.com/").isValid).isTrue();
+    assertThat(scmOnboardingService.validateScmHostUrl("github", "http://example.com/").isValid).isTrue();
 
     // expect provider to be case insensitive
-    assertThat(apiScmOnboardingService.validateScmHostUrl("GiThUb", "http://example.com/").isValid).isTrue();
+    assertThat(scmOnboardingService.validateScmHostUrl("GiThUb", "http://example.com/").isValid).isTrue();
 
     // expect server side parsing error messages
-    assertThat(apiScmOnboardingService.validateScmHostUrl("github", "http://example.com/ ").errorMessages)
+    assertThat(scmOnboardingService.validateScmHostUrl("github", "http://example.com/ ").errorMessages)
         .isEqualTo(singletonList("Unable to parse repository URL: java.net.URISyntaxException: Illegal character in " +
             "path at index 19: http://example.com/ "));
 
     // expect provider to be case insensitive
-    assertThat(apiScmOnboardingService.validateScmHostUrl("invalid", "http://example.com/").errorMessages)
+    assertThat(scmOnboardingService.validateScmHostUrl("invalid", "http://example.com/").errorMessages)
         .isEqualTo(singletonList("Invalid SCM provider."));
   }
 

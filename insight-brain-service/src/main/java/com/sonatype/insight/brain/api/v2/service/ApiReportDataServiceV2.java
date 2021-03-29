@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.InnerSourceData;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
@@ -182,6 +183,15 @@ public class ApiReportDataServiceV2
           component.pathnames = getPathnames(componentJson);
           component.displayName = ComponentDAO.getDisplayName(componentJson);
           component.violations = violationsByHash.getOrDefault(component.hash, Collections.emptyList());
+          if (isDependencyDataInRestApiSupported()) {
+            component.dependencyData = new ApiDependencyDataDTO();
+            component.dependencyData.directDependency = componentJson.get("directDependency").booleanValue();
+            component.dependencyData.innerSource = componentJson.get("innerSource").booleanValue();
+            component.dependencyData.parentComponentPurl =
+                JsonUtils.getNullableString(componentJson.get("parentComponentPurl"));
+            component.dependencyData.innerSourceData =
+                JsonUtils.asPojo(componentJson.get("innerSourceData"), InnerSourceData.class);
+          }
           components.add(component);
         }
       }

@@ -274,7 +274,8 @@ public class ApiReportDataServiceV2Test
   }
 
   @Test
-  public void testGetPolicyViolationsData() throws Exception {
+  public void testGetPolicyViolationsData_DependencyDataConfigEnabled() throws Exception {
+    config.getExperimentalFeatures().put(Feature.DEPENDENCY_DATA_IN_API.getFlag(), true);
     ComponentIdentifier innerSourceId = ComponentIdentifier
         .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-archive", "1.0.0-SNAPSHOT", "", "jar");
     ComponentIdentifier innerSourceChildId =
@@ -284,41 +285,96 @@ public class ApiReportDataServiceV2Test
     populatePolicyThreats("report-1", "policythreats.json");
     ApiReportPolicyDataDTOV2 data = reportDataService.getPolicyViolationsData(app.getPublicId(), scanId);
 
-    // metadata
-    assertThat(data.reportTime).isEqualTo(policyEvaluation.getTime());
-    assertThat(data.reportTitle).isEqualTo("Release Report");
-    assertThat(data.commitHash).isEqualTo(policyEvaluation.getCommitHash());
-    assertThat(data.initiator).isEqualTo("system");
-    assertThat(data.application.id).isEqualTo(app.getId());
-    assertThat(data.application.publicId).isEqualTo("app-id");
-    assertThat(data.application.name).isEqualTo(app.getName());
-    assertThat(data.application.organizationId).isEqualTo(app.getOrganizationId());
-    assertThat(data.application.contactUserName).isEqualTo(app.getContactInternalName());
-
-    // counts
-    assertThat(data.counts.get("exactlyMatchedComponentCount")).isEqualTo(2);
-    assertThat(data.counts.get("partiallyMatchedComponentCount")).isEqualTo(0);
-    assertThat(data.counts.get("totalComponentCount")).isEqualTo(3);
-    assertThat(data.counts.get("grandfatheredPolicyViolationCount")).isEqualTo(2);
-
-    assertThat(data.components).hasSize(3);
-    data.components.sort((o1, o2) -> o1.hash.compareTo(o2.hash));
+    assertMetadataAndCounts(data);
 
     // component 1
     ApiReportComponentPolicyViolationsDTOV2 component = data.components.get(0);
-    assertThat(component.hash).isEqualTo("02a8e0aa38a2e21cb39e");
-    assertThat(component.matchState).isEqualTo("exact");
-    assertThat(component.proprietary).isFalse();
-    assertThat(component.pathnames).containsExactlyInAnyOrder(
-        "com.sonatype.nexus:nexus-platform-api:jar:1.0.0/com.google.code.gson:gson:jar:2.8.1");
-    assertThat(component.displayName).isEqualTo("com.google.code.gson : gson : 2.8.1");
-    // component identifier should be derived from bom.json
-    assertThat(ApiComponentIdentifierDTOV2.toComponentIdentifier(component.componentIdentifier))
-        .isEqualTo(innerSourceChildId);
-    assertThat(component.packageUrl).isEqualTo("pkg:maven/com.google.code.gson/gson@2.8.1?type=jar");
+    assertInnerSourceTransitiveComponent(innerSourceChildId, component);
+    // dependency info
+    assertThat(component.dependencyData).isNotNull();
+    assertThat(component.dependencyData.directDependency).isFalse();
+    assertThat(component.dependencyData.innerSource).isFalse();
+    assertThat(component.dependencyData.parentComponentPurl)
+        .isEqualTo("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar");
+    assertThat(component.dependencyData.innerSourceData.getOwnerApplicationName()).isEqualTo("insight-scanner-archive");
+    assertThat(component.dependencyData.innerSourceData.getOwnerApplicationId())
+        .isEqualTo("ccba77f38eba4171a17b603e4ab9d7e5");
+    assertThat(component.dependencyData.innerSourceData.getInnerSourceComponentPurl())
+        .isEqualTo("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar");
 
     // component 2
     component = data.components.get(1);
+    assertInnerSourceComponent(innerSourceId, component);
+
+    // dependency info
+    assertThat(component.dependencyData).isNotNull();
+    assertThat(component.dependencyData.directDependency).isTrue();
+    assertThat(component.dependencyData.innerSource).isTrue();
+    assertThat(component.dependencyData.parentComponentPurl).isNull();
+    assertThat(component.dependencyData.innerSourceData.getOwnerApplicationName()).isEqualTo("insight-scanner-archive");
+    assertThat(component.dependencyData.innerSourceData.getOwnerApplicationId())
+        .isEqualTo("ccba77f38eba4171a17b603e4ab9d7e5");
+    assertThat(component.dependencyData.innerSourceData.getInnerSourceComponentPurl()).isNull();
+
+    // component 3
+    component = data.components.get(2);
+    assertUnknownComponent(component);
+    // dependency info
+
+    assertThat(component.dependencyData.directDependency).isFalse();
+    assertThat(component.dependencyData.innerSource).isFalse();
+    assertThat(component.dependencyData.innerSourceData).isNull();
+
+    config.getExperimentalFeatures().clear();
+  }
+
+  @Test
+  public void testGetPolicyViolationsData_DependencyDataConfigDisabled() throws Exception {
+    ComponentIdentifier innerSourceId = ComponentIdentifier
+        .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-archive", "1.0.0-SNAPSHOT", "", "jar");
+    ComponentIdentifier innerSourceChildId =
+        ComponentIdentifier.createMavenCoordinates("com.google.code.gson", "gson", "2.8.1", "", "jar");
+
+    makeReport("report-1");
+    populatePolicyThreats("report-1", "policythreats.json");
+    ApiReportPolicyDataDTOV2 data = reportDataService.getPolicyViolationsData(app.getPublicId(), scanId);
+
+    assertMetadataAndCounts(data);
+
+    // component 1
+    ApiReportComponentPolicyViolationsDTOV2 component = data.components.get(0);
+    assertInnerSourceTransitiveComponent(innerSourceChildId, component);
+    // dependency info
+    assertThat(component.dependencyData).isNull();
+
+    // component 2
+    component = data.components.get(1);
+    assertInnerSourceComponent(innerSourceId, component);
+
+    // dependency info
+    assertThat(component.dependencyData).isNull();
+
+    // component 3
+    component = data.components.get(2);
+    assertUnknownComponent(component);
+
+    // dependency info
+    assertThat(component.dependencyData).isNull();
+  }
+
+  private void assertUnknownComponent(final ApiReportComponentPolicyViolationsDTOV2 component) {
+    assertThat(component.hash).isEqualTo("69b58197caabec2e0d06");
+    assertThat(component.matchState).isEqualTo("unknown");
+    assertThat(component.proprietary).isFalse();
+    assertThat(component.violations).isEmpty();
+    assertThat(component.pathnames).containsExactlyInAnyOrder("sample-application.zip");
+    assertThat(component.displayName).isEqualTo("sample-application.zip");
+  }
+
+  private void assertInnerSourceComponent(
+      final ComponentIdentifier innerSourceId,
+      final ApiReportComponentPolicyViolationsDTOV2 component)
+  {
     assertThat(component.hash).isEqualTo("5398a935d7fbeccac7b1");
     assertThat(component.matchState).isEqualTo("exact");
     assertThat(component.proprietary).isTrue();
@@ -361,15 +417,44 @@ public class ApiReportDataServiceV2Test
         .isEqualTo("Found security vulnerability CVE-2018-1199 with status 'Open', not 'Not Applicable'.");
 
     assertThat(component.violations.get(1).policyId).isEqualTo("644a8c0052eb42b2829d6f9fcaba7ea3");
+  }
 
-    // component 3
-    component = data.components.get(2);
-    assertThat(component.hash).isEqualTo("69b58197caabec2e0d06");
-    assertThat(component.matchState).isEqualTo("unknown");
+  private void assertInnerSourceTransitiveComponent(
+      final ComponentIdentifier innerSourceChildId,
+      final ApiReportComponentPolicyViolationsDTOV2 component)
+  {
+    assertThat(component.hash).isEqualTo("02a8e0aa38a2e21cb39e");
+    assertThat(component.matchState).isEqualTo("exact");
     assertThat(component.proprietary).isFalse();
-    assertThat(component.violations).isEmpty();
-    assertThat(component.pathnames).containsExactlyInAnyOrder("sample-application.zip");
-    assertThat(component.displayName).isEqualTo("sample-application.zip");
+    assertThat(component.pathnames).containsExactlyInAnyOrder(
+        "com.sonatype.nexus:nexus-platform-api:jar:1.0.0/com.google.code.gson:gson:jar:2.8.1");
+    assertThat(component.displayName).isEqualTo("com.google.code.gson : gson : 2.8.1");
+    // component identifier should be derived from bom.json
+    assertThat(ApiComponentIdentifierDTOV2.toComponentIdentifier(component.componentIdentifier))
+        .isEqualTo(innerSourceChildId);
+    assertThat(component.packageUrl).isEqualTo("pkg:maven/com.google.code.gson/gson@2.8.1?type=jar");
+  }
+
+  private void assertMetadataAndCounts(final ApiReportPolicyDataDTOV2 data) {
+    // metadata
+    assertThat(data.reportTime).isEqualTo(policyEvaluation.getTime());
+    assertThat(data.reportTitle).isEqualTo("Release Report");
+    assertThat(data.commitHash).isEqualTo(policyEvaluation.getCommitHash());
+    assertThat(data.initiator).isEqualTo("system");
+    assertThat(data.application.id).isEqualTo(app.getId());
+    assertThat(data.application.publicId).isEqualTo("app-id");
+    assertThat(data.application.name).isEqualTo(app.getName());
+    assertThat(data.application.organizationId).isEqualTo(app.getOrganizationId());
+    assertThat(data.application.contactUserName).isEqualTo(app.getContactInternalName());
+
+    // counts
+    assertThat(data.counts.get("exactlyMatchedComponentCount")).isEqualTo(2);
+    assertThat(data.counts.get("partiallyMatchedComponentCount")).isEqualTo(0);
+    assertThat(data.counts.get("totalComponentCount")).isEqualTo(3);
+    assertThat(data.counts.get("grandfatheredPolicyViolationCount")).isEqualTo(2);
+
+    assertThat(data.components).hasSize(3);
+    data.components.sort((o1, o2) -> o1.hash.compareTo(o2.hash));
   }
 
   @Test

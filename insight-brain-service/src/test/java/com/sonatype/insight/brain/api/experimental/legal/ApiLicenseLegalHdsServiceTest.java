@@ -178,7 +178,7 @@ public class ApiLicenseLegalHdsServiceTest
     );
 
     final Set<ComponentLegalCommentDTO> expectedLegalComments =
-        new LinkedHashSet<>(Arrays.asList( 
+        new LinkedHashSet<>(Arrays.asList(
             componentLegalComment1,
             componentLegalComment2,
             componentLegalComment3,

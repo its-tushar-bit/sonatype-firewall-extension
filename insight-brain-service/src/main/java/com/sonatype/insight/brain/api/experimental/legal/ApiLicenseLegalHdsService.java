@@ -63,7 +63,9 @@ public class ApiLicenseLegalHdsService
 
   public Set<ComponentLegalCommentDTO> getComponentLegalComments(Collection<ComponentIdentifier> componentIdentifiers) {
     return StreamSupport.stream(
-        Iterables.partition(componentIdentifiers, insightConfig.getLicenseLegalHdsRequestLimit()).spliterator(), true)
+        Iterables
+            .partition(filterComponentIdentifiers(componentIdentifiers), insightConfig.getLicenseLegalHdsRequestLimit())
+            .spliterator(), true)
         .flatMap(
             partition -> Arrays.stream(hdsClient.post(ComponentLegalCommentDTO[].class, LEGAL_COMMENT_URL, partition)))
         .collect(Collectors.toCollection(LinkedHashSet::new));
@@ -71,9 +73,19 @@ public class ApiLicenseLegalHdsService
 
   public Set<ComponentLegalFileDTO> getComponentLegalFiles(Collection<ComponentIdentifier> componentIdentifiers) {
     return StreamSupport.stream(
-        Iterables.partition(componentIdentifiers, insightConfig.getLicenseLegalHdsRequestLimit()).spliterator(), true)
+        Iterables
+            .partition(filterComponentIdentifiers(componentIdentifiers), insightConfig.getLicenseLegalHdsRequestLimit())
+            .spliterator(), true)
         .flatMap(partition -> Arrays.stream(hdsClient.post(ComponentLegalFileDTO[].class, LEGAL_FILE_URL, partition)))
         .collect(Collectors.toCollection(LinkedHashSet::new));
+  }
+
+  private Collection<ComponentIdentifier> filterComponentIdentifiers(
+      final Collection<ComponentIdentifier> componentIdentifiers)
+  {
+    return componentIdentifiers.stream()
+        .filter(c -> ComponentIdentifier.getSupportedFormats().contains(c.getFormat()))
+        .collect(Collectors.toSet());
   }
 
   /**

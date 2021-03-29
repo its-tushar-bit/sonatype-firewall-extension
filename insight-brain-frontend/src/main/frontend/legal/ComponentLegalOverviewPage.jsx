@@ -33,6 +33,7 @@ export default function ComponentLegalOverviewPage(props) {
     error,
     organizationId,
     applicationPublicId,
+    stageTypeId,
     hash,
     availableScopes,
     showEditCopyrightOverrideModal,
@@ -93,12 +94,19 @@ export default function ComponentLegalOverviewPage(props) {
     );
   };
 
+  const backHref = applicationPublicId && stageTypeId ?
+    $state.href($state.get('legalApplicationDetails'), {
+      applicationPublicId: applicationPublicId,
+      stageTypeId: stageTypeId
+    })
+    : $state.href($state.get('legalDashboard'));
+
   return (
     <main className="nx-page-main">
       <LoadWrapper loading={ loading }
                    error={ error }
                    retryHandler={ load }>
-        <NxBackButton href="#" />
+        <NxBackButton href={ backHref } text="Back" />
         { component &&
         <div className="nx-page-title">
           <h1 className="nx-h1">
@@ -136,6 +144,7 @@ ComponentLegalOverviewPage.propTypes = {
   error: PropTypes.string,
   organizationId: PropTypes.string,
   applicationPublicId: PropTypes.string,
+  stageTypeId: PropTypes.string,
   hash: PropTypes.string,
   licenseLegalMetadata: licenseLegalMetadataPropType,
   obligations: licenseObligationsPropType,

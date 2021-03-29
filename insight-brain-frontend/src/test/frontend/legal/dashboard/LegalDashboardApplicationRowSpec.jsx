@@ -9,17 +9,21 @@ import { NxBinaryDonutChart, NxTableCell, NxTableRow } from '@sonatype/react-sha
 describe('LegalDashboardApplicationRow component', function() {
 
   let getShallowComponent, terseAgoSpy, LegalDashboardApplicationRow;
+  const stateGoSpy = jasmine.createSpy('stateGo');
 
   const minimalProps = {
     row: {
       applicationId: 'appId1',
+      applicationPublicId: 'app ID 1',
       applicationName: 'appName1',
       lastScanTime: 1607030429000,
       applicationTagNames: ['tag1', 'tag2'],
       stageTypeName: 'Build',
+      stageTypeId: 'build',
       componentsReviewedCount: 12,
       componentsTotalCount: 20
-    }
+    },
+    stateGo: stateGoSpy
   };
 
   terseAgoSpy = jasmine.createSpy('terseAgo').and.returnValue('2d');
@@ -38,6 +42,8 @@ describe('LegalDashboardApplicationRow component', function() {
     const wrapper = getShallowComponent();
     let tableRow = wrapper.find(NxTableRow);
     expect(tableRow).toExist();
+    expect(tableRow).toHaveProp('isClickable', true);
+    expect(tableRow).toHaveProp('onClick', jasmine.any(Function));
     let cells = tableRow.find(NxTableCell);
     expect(cells.length).toEqual(4);
     expect(cells.at(0).children().text()).toEqual('appName1');
@@ -48,6 +54,15 @@ describe('LegalDashboardApplicationRow component', function() {
     expect(donutChart).toExist();
     expect(donutChart).toHaveProp('percent', 60);
     expect(cells.at(3).childAt(1).text()).toEqual('12 / 20');
+  });
+
+  it('links to the application details page', function() {
+    const tableRow = getShallowComponent().find(NxTableRow);
+    tableRow.simulate('click');
+    expect(stateGoSpy).toHaveBeenCalledWith('legalApplicationDetails', {
+      applicationPublicId: 'app ID 1',
+      stageTypeId: 'build'
+    });
   });
 
   it('passes a 100 percentage in if there are no reviews', function() {

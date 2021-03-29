@@ -24,7 +24,8 @@ export default function LegalDashboardApplicationsTab({
   applications,
   filtersAreDirty,
   fetchBackendPage,
-  changeSortField
+  changeSortField,
+  stateGo
 }) {
   const [page, setPage] = useState(0);
   const { itemsPerPage, pagesToFill } = DASHBOARD.applications;
@@ -90,7 +91,7 @@ export default function LegalDashboardApplicationsTab({
         <NxTableBody emptyMessage={emptyMessage}
                      isLoading={applications.loading}
                      error={Messages.getHttpErrorMessage(applications.error)}>
-          { rows.map((row, index) => <LegalDashboardApplicationRow key={ index } row={ row } />) }
+          { rows.map((row, index) => <LegalDashboardApplicationRow key={ index } row={ row } stateGo={ stateGo } />) }
         </NxTableBody>
       </NxTable>
       { applications && !isNilOrEmpty(applications.results) &&
@@ -108,5 +109,6 @@ LegalDashboardApplicationsTab.propTypes = {
   applications: applicationsTabPropType,
   fetchBackendPage: PropTypes.func.isRequired,
   filtersAreDirty: PropTypes.bool,
-  changeSortField: PropTypes.func.isRequired
+  changeSortField: PropTypes.func.isRequired,
+  stateGo: PropTypes.func.isRequired
 };

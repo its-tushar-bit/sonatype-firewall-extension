@@ -13,7 +13,8 @@ describe('LegalApplicationDetailsContainer', function() {
       state,
       vdom,
       LegalApplicationDetailsContainer,
-      loadApplicationMock;
+      loadApplicationMock,
+      stateGoMock;
 
   beforeEach(function() {
     state = {
@@ -31,10 +32,15 @@ describe('LegalApplicationDetailsContainer', function() {
     };
 
     loadApplicationMock = jasmine.createSpy('loadApplication').and.returnValue({ type: 'FOO' });
+    stateGoMock = jasmine.createSpy('stateGo').and.returnValue({ type: 'BAR' });
+
     LegalApplicationDetailsContainer =
         require('inject-loader!../../../../main/frontend/legal/application/LegalApplicationDetailsContainer')({
           './legalApplicationDetailsActions': {
             loadApplication: loadApplicationMock
+          },
+          '../../reduxUiRouter/routerActions': {
+            stateGo: stateGoMock
           }
         }).default;
 
@@ -59,6 +65,11 @@ describe('LegalApplicationDetailsContainer', function() {
     expect(store.getActions()).toEqual([]);
     loadApplicationActionCreator('test');
     expect(store.getActions()).toEqual([{ type: 'FOO' }]);
+
+    const stateGoActionCreator = wrapper.prop('stateGo');
+    expect(stateGoActionCreator).toEqual(jasmine.any(Function));
+    stateGoActionCreator('test');
+    expect(store.getActions()[1]).toEqual({ type: 'BAR' });
   });
 
   it('renders LegalApplicationDetailsPage component', function() {

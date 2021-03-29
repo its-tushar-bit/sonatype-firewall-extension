@@ -36,7 +36,12 @@ describe('ComponentLegalOverviewContainer', function() {
         }
       },
       router: {
-        currentParams: { hash: 'fooHash', organizationId: 'organizationId', applicationPublicId: 'applicationPublicId' }
+        currentParams: {
+          hash: 'fooHash',
+          organizationId: 'organizationId',
+          applicationPublicId: 'applicationPublicId',
+          stageTypeId: 'stage-type-id'
+        }
       },
       copyrightOverrides: {
         showEditCopyrightOverrideModal: false
@@ -71,6 +76,7 @@ describe('ComponentLegalOverviewContainer', function() {
     expect(wrapper).toHaveProp('hash', 'fooHash');
     expect(wrapper).toHaveProp('organizationId', 'organizationId');
     expect(wrapper).toHaveProp('applicationPublicId', 'applicationPublicId');
+    expect(wrapper).toHaveProp('stageTypeId', 'stage-type-id');
     expect(wrapper).toHaveProp('availableScopes', { loading: false, error: null, values: [] });
   });
 

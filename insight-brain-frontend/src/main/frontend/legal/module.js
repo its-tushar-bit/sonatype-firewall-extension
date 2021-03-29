@@ -12,7 +12,7 @@ export default angular.module('legalModule', [])
     .component('componentLegalOverview',
         react2angular(withStoreProvider(ComponentLegalOverviewContainer), [], ['$ngRedux', '$state']))
     .component('legalApplicationDetails',
-        react2angular(withStoreProvider(LegalApplicationDetailsContainer), [], ['$ngRedux']))
+        react2angular(withStoreProvider(LegalApplicationDetailsContainer), [], ['$ngRedux', '$state']))
     .config(routes);
 
 function routes($stateProvider) {
@@ -31,18 +31,25 @@ function routes($stateProvider) {
           title: 'Component - Legal Overview'
         }
       })
-      .state('legalApplicationDetails', {
-        url: '/legal/application/{applicationPublicId}/stage/{stageTypeId}',
-        component: 'legalApplicationDetails',
-        data: {
-          title: 'Application Details'
-        }
-      })
       .state('applicationComponentLegalOverview', {
         url: '/legal/application/{applicationPublicId}/component/{hash}',
         component: 'componentLegalOverview',
         data: {
           title: 'Component - Legal Overview'
+        }
+      })
+      .state('applicationStageTypeComponentLegalOverview', {
+        url: '/legal/application/{applicationPublicId}/stage/{stageTypeId}/component/{hash}',
+        component: 'componentLegalOverview',
+        data: {
+          title: 'Component - Legal Overview'
+        }
+      })
+      .state('legalApplicationDetails', {
+        url: '/legal/application/{applicationPublicId}/stage/{stageTypeId}',
+        component: 'legalApplicationDetails',
+        data: {
+          title: 'Application Details'
         }
       });
 }

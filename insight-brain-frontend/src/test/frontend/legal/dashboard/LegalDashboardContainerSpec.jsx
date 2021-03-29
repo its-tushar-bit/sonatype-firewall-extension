@@ -13,7 +13,8 @@ describe('LegalDashboardContainerSpec', function() {
       state,
       vdom,
       LegalDashboardContainer,
-      loadResultsMock;
+      loadResultsMock,
+      stateGoMock;
 
   beforeEach(function() {
     state = {
@@ -29,10 +30,15 @@ describe('LegalDashboardContainerSpec', function() {
     };
 
     loadResultsMock = jasmine.createSpy('loadResults').and.returnValue({ type: 'FOO' });
+    stateGoMock = jasmine.createSpy('stateGo').and.returnValue({ type: 'BAR' });
+
     LegalDashboardContainer =
         require('inject-loader!../../../../main/frontend/legal/dashboard/LegalDashboardContainer')({
           './legalDashboardActions': {
             loadResults: loadResultsMock
+          },
+          '../../reduxUiRouter/routerActions': {
+            stateGo: stateGoMock
           }
         }).default;
 
@@ -57,6 +63,11 @@ describe('LegalDashboardContainerSpec', function() {
     expect(store.getActions()).toEqual([]);
     loadResultsActionCreator('test');
     expect(store.getActions()).toEqual([{ type: 'FOO' }]);
+
+    const stateGoActionCreator = wrapper.prop('stateGo');
+    expect(stateGoActionCreator).toEqual(jasmine.any(Function));
+    stateGoActionCreator('test');
+    expect(store.getActions()[1]).toEqual({ type: 'BAR' });
   });
 
   it('renders LegalDashboardPage component', function() {

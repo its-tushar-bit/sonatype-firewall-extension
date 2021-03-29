@@ -8,8 +8,10 @@ import LoadWrapper from '../react/LoadWrapper';
 
 export const applicationPropType = PropTypes.shape({
   applicationId: PropTypes.string.isRequired,
+  applicationPublicId: PropTypes.string.isRequired,
   applicationName: PropTypes.string.isRequired,
   lastScanTime: PropTypes.number.isRequired,
+  stageTypeId: PropTypes.string.isRequired,
   applicationTagNames: PropTypes.arrayOf(PropTypes.string).isRequired,
   componentsReviewedCount: PropTypes.number.isRequired,
   componentsTotalCount: PropTypes.number.isRequired

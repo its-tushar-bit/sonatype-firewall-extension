@@ -10,7 +10,7 @@ import { flatten, join, map, pipe, prop } from 'ramda';
 import { isNilOrEmpty } from '../../util/jsUtil';
 import { reviewStatusDisplayNames } from '../dashboard/legalDashboardConstants';
 
-export default function LegalApplicationDetailsComponentRow({ row }) {
+export default function LegalApplicationDetailsComponentRow({ applicationPublicId, stageTypeId, row, stateGo }) {
 
   const {
     displayName,
@@ -30,8 +30,16 @@ export default function LegalApplicationDetailsComponentRow({ row }) {
     ? '- / -'
     : `${reviewCompletedCount} / ${reviewTotalCount}`;
 
+  function goToComponentPage() {
+    stateGo('applicationStageTypeComponentLegalOverview', {
+      applicationPublicId: applicationPublicId,
+      stageTypeId: stageTypeId,
+      hash: hash
+    });
+  }
+
   return (
-    <NxTableRow key={ hash }>
+    <NxTableRow key={ hash } isClickable onClick={ goToComponentPage }>
       <NxTableCell className="legal-application-details-component-name nx-truncate-ellipsis">
         { displayName }
       </NxTableCell>
@@ -61,6 +69,8 @@ export default function LegalApplicationDetailsComponentRow({ row }) {
 }
 
 LegalApplicationDetailsComponentRow.propTypes = {
+  applicationPublicId: PropTypes.string,
+  stageTypeId: PropTypes.string,
   row: PropTypes.shape({
     displayName: PropTypes.string.isRequired,
     hash: PropTypes.string.isRequired,
@@ -76,5 +86,6 @@ LegalApplicationDetailsComponentRow.propTypes = {
     reviewCompletedCount: PropTypes.number.isRequired,
     reviewStatus: PropTypes.string.isRequired,
     reviewTotalCount: PropTypes.number.isRequired
-  }).isRequired
+  }).isRequired,
+  stateGo: PropTypes.func.isRequired
 };

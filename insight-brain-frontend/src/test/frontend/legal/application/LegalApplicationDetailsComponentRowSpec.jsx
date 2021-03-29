@@ -11,15 +11,19 @@ import { NxBinaryDonutChart, NxTableCell, NxTableRow, NxThreatIndicator } from '
 describe('LegalApplicationDetailsComponentRow component', function () {
 
   let getShallowComponent;
+  const stateGoSpy = jasmine.createSpy('stateGo');
 
   const minimalProps = {
+    applicationPublicId: 'app-id',
+    stageTypeId: 'stage-id',
     row: {
       displayName: 'g : a : v',
       hash: 'some-hash',
       reviewCompletedCount: 0,
       reviewStatus: 'COMPLETED',
       reviewTotalCount: 0
-    }
+    },
+    stateGo: stateGoSpy
   };
 
   beforeEach(function () {
@@ -30,6 +34,8 @@ describe('LegalApplicationDetailsComponentRow component', function () {
     const wrapper = getShallowComponent();
     const tableRow = wrapper.find(NxTableRow);
     expect(tableRow).toExist();
+    expect(tableRow).toHaveProp('isClickable', true);
+    expect(tableRow).toHaveProp('onClick', jasmine.any(Function));
     const cells = tableRow.find(NxTableCell);
     expect(cells.length).toEqual(4);
     expect(cells.at(0).children().text()).toEqual('g : a : v');
@@ -37,6 +43,16 @@ describe('LegalApplicationDetailsComponentRow component', function () {
     expect(cells.at(2).children().length).toEqual(0);
     expect(cells.at(3).children().text()).toEqual('Completed');
     expect(cells.at(3)).toHaveClassName('status-COMPLETED');
+  });
+
+  it('links to the component overview page', function() {
+    const tableRow = getShallowComponent().find(NxTableRow);
+    tableRow.simulate('click');
+    expect(stateGoSpy).toHaveBeenCalledWith('applicationStageTypeComponentLegalOverview', {
+      applicationPublicId: 'app-id',
+      stageTypeId: 'stage-id',
+      hash: 'some-hash'
+    });
   });
 
   it('renders licenses review progress indicators for component with licenses and obligations', function () {

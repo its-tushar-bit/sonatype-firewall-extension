@@ -6,6 +6,7 @@
 
 import { connect } from 'react-redux';
 import { pick } from 'ramda';
+import { stateGo } from '../../reduxUiRouter/routerActions';
 import LegalApplicationDetailsPage from './LegalApplicationDetailsPage';
 import * as legalApplicationDetailsActions from './legalApplicationDetailsActions';
 
@@ -17,7 +18,8 @@ function mapStateToProps({ legalApplicationDetails, router }) {
 }
 
 const mapDispatchToProps = {
-  ...legalApplicationDetailsActions
+  ...legalApplicationDetailsActions,
+  stateGo
 };
 
 const LegalApplicationDetailsContainer = connect(mapStateToProps, mapDispatchToProps)(LegalApplicationDetailsPage);

@@ -6,6 +6,7 @@
 import * as enzymeUtils from '../../enzymeUtils';
 import { NxTable, NxTableBody } from '@sonatype/react-shared-components';
 import LoadWrapper from '../../../../main/frontend/react/LoadWrapper';
+import BackButton from '../../../../main/frontend/react/BackButton';
 import LegalApplicationDetailsPage from '../../../../main/frontend/legal/application/LegalApplicationDetailsPage';
 import LegalApplicationDetailsComponentRow
   from '../../../../main/frontend/legal/application/LegalApplicationDetailsComponentRow';
@@ -13,10 +14,12 @@ import LegalApplicationDetailsComponentRow
 describe('LegalApplicationDetailsPage', function () {
   let minimalProps,
       loadApplicationSpy,
+      stateSpy,
       getShallowComponent;
 
   beforeEach(function () {
     loadApplicationSpy = jasmine.createSpy('loadApplication');
+    stateSpy = jasmine.createSpyObj('$state', ['get', 'href']);
     minimalProps = {
       applicationPublicId: 'app-id',
       stageTypeId: 'stage-id',
@@ -52,7 +55,8 @@ describe('LegalApplicationDetailsPage', function () {
         error: null,
         loading: false
       },
-      loadApplication: loadApplicationSpy
+      loadApplication: loadApplicationSpy,
+      $state: stateSpy
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(LegalApplicationDetailsPage, minimalProps);
@@ -101,6 +105,14 @@ describe('LegalApplicationDetailsPage', function () {
     const loadWrapper = getShallowComponent(minimalProps).find(LoadWrapper);
     expect(loadWrapper).toHaveProp('loading', false);
     expect(loadWrapper).toHaveProp('error', 'some other error');
+  });
+
+  it('renders a BackButton with the dashboard state name and the provided $state object, ', function() {
+    const backButton = getShallowComponent().find(BackButton);
+
+    expect(backButton).toExist();
+    expect(backButton).toHaveProp('stateName', 'legalDashboard');
+    expect(backButton).toHaveProp('$state', stateSpy);
   });
 
   it('renders a main', function () {

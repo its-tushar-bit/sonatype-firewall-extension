@@ -5,6 +5,7 @@
  */
 import * as enzymeUtils from '../enzymeUtils';
 import React from 'react';
+import { NxBackButton } from '@sonatype/react-shared-components';
 import ComponentOverviewTile from '../../../main/frontend/legal/ComponentOverviewTile';
 import NoticeTextsTileContainer from '../../../main/frontend/legal/files/notices/NoticeTextsTileContainer';
 import LicenseTextsTileContainer from '../../../main/frontend/legal/files/licenses/LicenseTextsTileContainer';
@@ -18,11 +19,21 @@ describe('ComponentLegalOverviewPage', function() {
   let minimalProps,
       loadComponentSpy,
       loadAvailableScopesSpy,
-      getShallowComponent;
+      getShallowComponent,
+      spy$State;
 
   beforeEach(function() {
     loadComponentSpy = jasmine.createSpy('loadComponent');
     loadAvailableScopesSpy = jasmine.createSpy('loadAvailableScopes');
+    spy$State = jasmine.createSpyObj('$state', ['get', 'href']);
+    spy$State.get.and.callFake(stateName => stateName);
+    spy$State.href.and.callFake((stateName, stateParams) => {
+      if (stateParams) {
+        return `${stateName}-${JSON.stringify(stateParams)}`;
+      }
+      return stateName;
+    });
+
     const licenseLegalMetadata = {
       0: {
         licenseName: 'license1',
@@ -97,6 +108,7 @@ describe('ComponentLegalOverviewPage', function() {
     minimalProps = {
       loadComponent: loadComponentSpy,
       loadAvailableScopes: loadAvailableScopesSpy,
+      $state: spy$State,
       licenseLegalMetadata,
       obligations,
       availableScopes,
@@ -131,10 +143,62 @@ describe('ComponentLegalOverviewPage', function() {
   });
 
   it('does not load the data if there is no hash', function() {
-    const component = mount(<ComponentLegalOverviewPage loadComponent={ loadComponentSpy } loading={true} />);
+    const component = mount(<ComponentLegalOverviewPage loadComponent={ loadComponentSpy }
+                                                        loading={true}
+                                                        $state={ spy$State} />);
     expect(loadComponentSpy).not.toHaveBeenCalled();
     expect(loadAvailableScopesSpy).not.toHaveBeenCalled();
     component.unmount();
+  });
+
+  it('renders a NxBackButton to go to the app details page when using app public id and stage type id', function () {
+    const wrapper = getShallowComponent({
+      ...minimalProps,
+      applicationPublicId: 'appId',
+      stageTypeId: 'stage'
+    });
+
+    const backButton = wrapper.find(NxBackButton);
+    expect(backButton).toExist();
+    expect(backButton).toHaveProp('href',
+        'legalApplicationDetails-{"applicationPublicId":"appId","stageTypeId":"stage"}');
+    expect(spy$State.href).toHaveBeenCalled();
+  });
+
+  it('renders a NxBackButton to go to the dashboard page when using app public id but no stage type id', function () {
+    const wrapper = getShallowComponent({
+      ...minimalProps,
+      applicationPublicId: 'appId'
+    });
+
+    const backButton = wrapper.find(NxBackButton);
+    expect(backButton).toExist();
+    expect(backButton).toHaveProp('href', 'legalDashboard');
+    expect(spy$State.href).toHaveBeenCalled();
+  });
+
+  it('renders a NxBackButton to go to the dashboard page when using stage type id but no app public id', function () {
+    const wrapper = getShallowComponent({
+      ...minimalProps,
+      stageTypeId: 'stage'
+    });
+
+    const backButton = wrapper.find(NxBackButton);
+    expect(backButton).toExist();
+    expect(backButton).toHaveProp('href', 'legalDashboard');
+    expect(spy$State.href).toHaveBeenCalled();
+  });
+
+  it('renders a NxBackButton to go to the dashboard page when not using stage type id and app public id', function () {
+    const wrapper = getShallowComponent({
+      ...minimalProps,
+      organizationId: 'orgId'
+    });
+
+    const backButton = wrapper.find(NxBackButton);
+    expect(backButton).toExist();
+    expect(backButton).toHaveProp('href', 'legalDashboard');
+    expect(spy$State.href).toHaveBeenCalled();
   });
 
   it('renders a component with the "nx-page-main" class', function() {

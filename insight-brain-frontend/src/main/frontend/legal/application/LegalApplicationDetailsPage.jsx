@@ -15,6 +15,7 @@ import {
   NxTableRow
 } from '@sonatype/react-shared-components';
 import { Messages } from '../../util/CommonServices';
+import BackButton from '../../react/BackButton';
 import LegalApplicationDetailsComponentRow from './LegalApplicationDetailsComponentRow';
 
 export default function LegalApplicationDetailsPage(props) {
@@ -24,11 +25,15 @@ export default function LegalApplicationDetailsPage(props) {
     application,
     stageType,
     components,
-    loadApplication
+    $state,
+    loadApplication,
+    stateGo
   } = props;
 
   useEffect(() => {
-    loadApplication(applicationPublicId, stageTypeId);
+    if (applicationPublicId && stageTypeId) {
+      loadApplication(applicationPublicId, stageTypeId);
+    }
   }, [applicationPublicId, stageTypeId]);
 
   return (
@@ -36,6 +41,7 @@ export default function LegalApplicationDetailsPage(props) {
       <LoadWrapper loading={ application.loading || stageType.loading }
                    error={ application.error || stageType.error }
                    retryHandler={ () => loadApplication(applicationPublicId, stageTypeId) }>
+        <BackButton stateName="legalDashboard" $state={ $state } text="Back to Dashboard"/>
         <div className="nx-page-title">
           <h1 className="nx-h1">{ application.name } Obligations</h1>
           <div className="nx-btn-bar">
@@ -63,7 +69,11 @@ export default function LegalApplicationDetailsPage(props) {
                          isLoading={components.loading}
                          error={Messages.getHttpErrorMessage(components.error)}>
               {components.results.map((row, index) =>
-                <LegalApplicationDetailsComponentRow key={index} row={row} />)
+                <LegalApplicationDetailsComponentRow key={index}
+                                                     applicationPublicId={applicationPublicId}
+                                                     stageTypeId={stageTypeId}
+                                                     row={row}
+                                                     stateGo={stateGo} />)
               }
             </NxTableBody>
           </NxTable>
@@ -74,8 +84,8 @@ export default function LegalApplicationDetailsPage(props) {
 }
 
 LegalApplicationDetailsPage.propTypes = {
-  applicationPublicId: PropTypes.string.isRequired,
-  stageTypeId: PropTypes.string.isRequired,
+  applicationPublicId: PropTypes.string,
+  stageTypeId: PropTypes.string,
   application: PropTypes.shape({
     name: PropTypes.string,
     loading: PropTypes.bool,
@@ -91,5 +101,7 @@ LegalApplicationDetailsPage.propTypes = {
     loading: PropTypes.bool,
     error: LoadWrapper.propTypes.error
   }),
-  loadApplication: PropTypes.func.isRequired
+  $state: PropTypes.object.isRequired,
+  loadApplication: PropTypes.func.isRequired,
+  stateGo: PropTypes.func.isRequired
 };

@@ -19,7 +19,8 @@ export default function LegalDashboardPage(props) {
     loading,
     loadError,
     fetchBackendPage,
-    changeSortField
+    changeSortField,
+    stateGo
   } = props;
 
   return (
@@ -42,7 +43,8 @@ export default function LegalDashboardPage(props) {
                   <LegalDashboardApplicationsTab applications = { applications }
                                                  fetchBackendPage = { fetchBackendPage }
                                                  filtersAreDirty = { filtersAreDirty }
-                                                 changeSortField = { changeSortField } />
+                                                 changeSortField = { changeSortField }
+                                                 stateGo = { stateGo } />
                 </NxTabPanel>
               </NxStatefulTabs>
             </div>
@@ -62,5 +64,6 @@ LegalDashboardPage.propTypes = {
   loading: PropTypes.bool.isRequired,
   loadError: LoadWrapper.propTypes.error,
   fetchBackendPage: PropTypes.func.isRequired,
-  changeSortField: PropTypes.func.isRequired
+  changeSortField: PropTypes.func.isRequired,
+  stateGo: PropTypes.func.isRequired
 };

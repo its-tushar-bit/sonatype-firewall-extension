@@ -6,6 +6,7 @@
 
 import { connect } from 'react-redux';
 import { pick } from 'ramda';
+import { stateGo } from '../../reduxUiRouter/routerActions';
 import LegalDashboardPage from './LegalDashboardPage';
 import * as legalDashboardActions from './legalDashboardActions';
 
@@ -17,7 +18,8 @@ function mapStateToProps({ legalDashboard, legalDashboardFilter }) {
 }
 
 const mapDispatchToProps = {
-  ...legalDashboardActions
+  ...legalDashboardActions,
+  stateGo
 };
 
 const LegalDashboardContainer = connect(mapStateToProps, mapDispatchToProps)(LegalDashboardPage);

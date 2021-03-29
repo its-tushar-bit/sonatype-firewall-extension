@@ -6,17 +6,25 @@
 import React from 'react';
 import { NxBinaryDonutChart, NxTableCell, NxTableRow } from '@sonatype/react-shared-components';
 import { join } from 'ramda';
+import * as PropTypes from 'prop-types';
 import { applicationPropType } from '../advancedLegalPropTypes';
 import { terseAgo } from '../../util/CommonServices';
 
-export default function LegalDashboardApplicationRow({ row }) {
+export default function LegalDashboardApplicationRow({ row, stateGo }) {
   const percentage =
       row.componentsTotalCount > 0 ? Math.min(100, row.componentsReviewedCount * 100 / row.componentsTotalCount) : 100;
 
   const scanTimeDisplay = (row.lastScanTime ? terseAgo(row.lastScanTime) + ' - ' : '') + row.stageTypeName;
 
+  function goToApplicationDetailsPage() {
+    stateGo('legalApplicationDetails', {
+      applicationPublicId: row.applicationPublicId,
+      stageTypeId: row.stageTypeId
+    });
+  }
+
   return (
-    <NxTableRow key={ row.applicationId }>
+    <NxTableRow key={ `${row.applicationId}-${row.stageTypeId}` } isClickable onClick={ goToApplicationDetailsPage }>
       <NxTableCell className="legal-dashboard-applications-application-name nx-truncate-ellipsis">
         { row.applicationName }
       </NxTableCell>
@@ -35,5 +43,6 @@ export default function LegalDashboardApplicationRow({ row }) {
 }
 
 LegalDashboardApplicationRow.propTypes = {
-  row: applicationPropType
+  row: applicationPropType,
+  stateGo: PropTypes.func.isRequired
 };

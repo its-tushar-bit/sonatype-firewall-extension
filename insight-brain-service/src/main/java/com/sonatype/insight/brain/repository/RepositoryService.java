@@ -56,6 +56,8 @@ import org.slf4j.LoggerFactory;
 @Named
 public class RepositoryService
 {
+  public static final int MAX_REPOSITORY_EVALUATION_REQUEST_SIZE = 100;
+
   private static final Logger log = LoggerFactory.getLogger(RepositoryService.class);
 
   private static final RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
@@ -361,7 +363,7 @@ public class RepositoryService
   public void reevaluateRepository(@AuthzContext(Key.REPOSITORY_ID) String repositoryId) {
     Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
     AuditData.get().continueAsync(reevalExecutor, new RepositoryReevaluationTask(repository, repositoryPolicyEvaluator,
-        reevalExecutor));
+        reevalExecutor, MAX_REPOSITORY_EVALUATION_REQUEST_SIZE));
   }
 
   private static Executor createReevaluationExecutor() {

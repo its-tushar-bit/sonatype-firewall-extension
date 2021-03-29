@@ -146,7 +146,7 @@ public class RepositoryReevaluationTaskTest
         new RepositoryPolicyEvaluator(componentPolicyEvaluator, repositoryComponentDAO, repositoryPolicyViolationDAO,
             auditHdsClient, null, policyViolationLoggerFactory, firewallIgnorePatternService,
             componentDetailsLoaderFactory, repositoryComponentDeleteService, repositoryPolicyAlertEmailer),
-        executorService);
+        executorService, 10);
     createHdsResponse();
   }
 

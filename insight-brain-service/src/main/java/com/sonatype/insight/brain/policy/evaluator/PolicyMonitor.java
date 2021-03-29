@@ -10,7 +10,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -205,10 +207,18 @@ public class PolicyMonitor
       return;
     }
 
-    OwnerDAO ownerDAO = new OwnerDAO();
-
     final Set<String> autoUnquarantineEnabledConditionTypes =
         apiFirewallService.getAutoUnquarantineEnabledPolicyConditionTypesIds();
+
+    if (autoUnquarantineEnabledConditionTypes.isEmpty()) {
+      log.debug("Skipping Firewall Policy Monitoring.  Auto un-quarantine condition types are not enabled.");
+      return;
+    }
+
+    long start = System.currentTimeMillis();
+    log.info("Starting policy monitoring of repositories");
+
+    OwnerDAO ownerDAO = new OwnerDAO();
 
     List<Repository> repositories = new RepositoryDAO().getAll();
     for (Repository repository : repositories) {
@@ -224,27 +234,46 @@ public class PolicyMonitor
         continue;
       }
 
-      RepositoryComponentEvaluationDataRequestList applicableQuarantinedComponentEvaluationRequestList =
-          getApplicableQuarantinedComponentRequestList(repository, autoUnquarantineEnabledConditionTypes);
-      if (applicableQuarantinedComponentEvaluationRequestList.isEmpty()) {
+      log.debug("Getting quarantined components supporting auto un-quarantine of repository {}", repository.getName());
+      List<RepositoryComponent> applicableQuarantinedComponents =
+          getApplicableQuarantinedComponents(repository, autoUnquarantineEnabledConditionTypes);
+      if (applicableQuarantinedComponents.isEmpty()) {
         continue;
       }
 
-      try (AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.EVALUATE_REPOSITORY)) {
-        log.info("Re-evaluating {} quarantined components for repository {}",
-            applicableQuarantinedComponentEvaluationRequestList.components.size(), repository.getName());
-        long start = System.currentTimeMillis();
-        auditRepositoryComponentEvaluationList(repository, applicableQuarantinedComponentEvaluationRequestList);
-        RepositoryComponentEvaluationDataList evaluationResults = repositoryPolicyEvaluator
-            .evaluate(repository, applicableQuarantinedComponentEvaluationRequestList, false, false,
-                null);
-        log.info("Re-evaluated {} quarantined components for repository {} in {} ms",
-            evaluationResults.componentEvalResults.size(), repository.getName(), System.currentTimeMillis() - start);
-
-        unquarantineComponentsWithNoViolations(repository, applicableQuarantinedComponentEvaluationRequestList,
-            evaluationResults);
+      log.debug("Starting re-evaluation for {} repository components", applicableQuarantinedComponents.size());
+      Iterator<RepositoryComponent> componentIterator = applicableQuarantinedComponents.iterator();
+      int totalUnquarantineCount = 0;
+      while (componentIterator.hasNext()) {
+        try (AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.EVALUATE_REPOSITORY)) {
+          totalUnquarantineCount += autoUnquarantineComponents(repository, componentIterator);
+        }
       }
+      log.info("Auto un-quarantined {} components of repository {}:{} ({})", totalUnquarantineCount,
+          repository.getRepositoryManagerId(), repository.getPublicId(), repository.getId());
     }
+    log.info("Finished policy monitoring repositories in {} ms", System.currentTimeMillis() - start);
+  }
+
+  private int autoUnquarantineComponents(
+      final Repository repository,
+      final Iterator<RepositoryComponent> componentIterator)
+  {
+    RepositoryComponentEvaluationDataRequestList evaluationRequestList =
+        getRepositoryEvaluationRequest(repository, componentIterator);
+    try {
+      auditRepositoryComponentEvaluationList(repository, evaluationRequestList);
+      RepositoryComponentEvaluationDataList evaluationResults =
+          repositoryPolicyEvaluator.evaluate(repository, evaluationRequestList, false, false, null);
+      return unquarantineComponentsWithNoViolations(repository, evaluationRequestList, evaluationResults);
+    }
+    catch (RuntimeException e) {
+      AuditData.get().setException(e);
+      log.error("Failed policy monitoring for {} components of repository '{}': {}",
+          evaluationRequestList.components.size(), repository.getName(), e.getMessage());
+    }
+
+    return 0;
   }
 
   private void auditRepositoryComponentEvaluationList(
@@ -260,25 +289,40 @@ public class PolicyMonitor
     }
   }
 
-  private RepositoryComponentEvaluationDataRequestList getApplicableQuarantinedComponentRequestList(
+  private List<RepositoryComponent> getApplicableQuarantinedComponents(
       final Repository repository, Set<String> autoUnquarantineEnabledConditionTypes)
+  {
+    Date minQuarantineDate = Date.from(Instant.now().minus(Duration.ofDays(MAX_REEVALUATION_DAYS_FOR_AUTO_RELEASED)));
+
+    List<RepositoryComponent> quarantinedComponents =
+        new RepositoryComponentDAO().getQuarantinedByRepositoryIdAndDate(repository.getId(), minQuarantineDate);
+
+    List<RepositoryComponent> applicableQuarantinedComponents = new ArrayList<>();
+
+    for (RepositoryComponent component : quarantinedComponents) {
+      if (shouldCheckForUpdatedConditionTypes(component, autoUnquarantineEnabledConditionTypes)) {
+        applicableQuarantinedComponents.add(component);
+      }
+    }
+    return applicableQuarantinedComponents;
+  }
+
+  private RepositoryComponentEvaluationDataRequestList getRepositoryEvaluationRequest(
+      Repository repository,
+      Iterator<RepositoryComponent> componentIterator)
   {
     RepositoryComponentEvaluationDataRequestList evaluationDataRequests =
         new RepositoryComponentEvaluationDataRequestList(RepositoryComponentEvaluationDataRequestList.REEVALUATION);
-
-    Date minQuarantineDate = Date.from(Instant.now().minus(Duration.ofDays(MAX_REEVALUATION_DAYS_FOR_AUTO_RELEASED)));
-
-    List<RepositoryComponent> components =
-        new RepositoryComponentDAO().getQuarantinedByRepositoryIdAndDate(repository.getId(), minQuarantineDate);
-
-    for (RepositoryComponent component : components) {
-      if (shouldCheckForUpdatedConditionTypes(component, autoUnquarantineEnabledConditionTypes)) {
-        RepositoryComponentEvaluationDataRequest evaluationDataRequest =
-            new RepositoryComponentEvaluationDataRequest(repository.getFormat(), component.getPathname(),
-                component.getHash());
-        evaluationDataRequests.components.add(evaluationDataRequest);
-      }
+    int componentCount = 0;
+    while (componentIterator.hasNext() && componentCount < RepositoryService.MAX_REPOSITORY_EVALUATION_REQUEST_SIZE) {
+      RepositoryComponent component = componentIterator.next();
+      RepositoryComponentEvaluationDataRequest evaluationDataRequest =
+          new RepositoryComponentEvaluationDataRequest(repository.getFormat(), component.getPathname(),
+              component.getHash());
+      evaluationDataRequests.components.add(evaluationDataRequest);
+      componentCount++;
     }
+
     return evaluationDataRequests;
   }
 
@@ -301,7 +345,7 @@ public class PolicyMonitor
     return false;
   }
 
-  private void unquarantineComponentsWithNoViolations(
+  private int unquarantineComponentsWithNoViolations(
       final Repository repository,
       final RepositoryComponentEvaluationDataRequestList applicableQuarantinedComponentEvaluationRequestList,
       final RepositoryComponentEvaluationDataList evaluationResults)
@@ -315,7 +359,9 @@ public class PolicyMonitor
         unquarantineCount++;
       }
     }
-    log.info("un-quarantined {} components for repository {}", unquarantineCount, repository.getName());
+    log.debug("Auto un-quarantined {} of {} components for repository {}", unquarantineCount,
+        evaluationResults.componentEvalResults.size(), repository.getName());
+    return unquarantineCount;
   }
 
   private boolean hasFailViolation(final List<PolicyAlert> policyAlerts) {

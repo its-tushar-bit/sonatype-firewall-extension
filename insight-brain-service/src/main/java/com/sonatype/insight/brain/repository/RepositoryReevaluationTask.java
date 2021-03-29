@@ -39,14 +39,18 @@ public class RepositoryReevaluationTask
 
   private final Executor executor;
 
+  private final int maxRepositoryEvaluationRequestSize;
+
   public RepositoryReevaluationTask(
       Repository repository,
       RepositoryPolicyEvaluator repositoryPolicyEvaluator,
-      Executor executor)
+      Executor executor,
+      int maxRepositoryEvaluationRequestSize)
   {
     this.repository = repository;
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.executor = executor;
+    this.maxRepositoryEvaluationRequestSize = maxRepositoryEvaluationRequestSize;
   }
 
   @Override
@@ -108,7 +112,7 @@ public class RepositoryReevaluationTask
 
     RepositoryComponentEvaluationDataRequestList request = new RepositoryComponentEvaluationDataRequestList(
         RepositoryComponentEvaluationDataRequestList.REEVALUATION);
-    while (components.hasNext() && limit++ < 100) {
+    while (components.hasNext() && limit++ < maxRepositoryEvaluationRequestSize) {
       RepositoryComponent component = components.next();
       request.components.add(new RepositoryComponentEvaluationDataRequest(repository.getFormat(), component
           .getPathname(), component.getHash()));

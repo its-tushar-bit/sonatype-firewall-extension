@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
@@ -59,7 +60,8 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 
     validate(params, restClient);
 
-    ClientScanResult clientScanResult = scan(params, getProprietaryConfiguration(params, restClient), restClient);
+    ClientScanResult clientScanResult = scan(params, getProprietaryConfiguration(params, restClient),
+        getLicensedFeatures(params, restClient), restClient);
 
     evaluatePolicy(params, restClient, clientScanResult, getClientScanType());
   }
@@ -121,6 +123,17 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
   {
   }
 
+  protected Set<String> getLicensedFeatures(P params, RestClient restClient) throws ExitException {
+    log.debug("Retrieving licensed features from the IQ Server...");
+    try {
+      return restClient.getLicensedFeatures();
+    }
+    catch (Exception e) {
+      log.error("Could not retrieve licensed features from the IQ Server", e);
+      throw new ExitException(params.isIgnoreSystemErrors(), e);
+    }
+  }
+
   protected ProprietaryConfig getProprietaryConfiguration(P params, RestClient restClient) throws ExitException {
     log.debug("Retrieving configuration for proprietary components from the IQ Server...");
     try {
@@ -150,9 +163,11 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     }
   }
 
-  protected ClientScanResult scan(P params,
-                                  ProprietaryConfig proprietaryConfig,
-                                  RestClient restClient) throws ExitException
+  protected ClientScanResult scan(
+      P params,
+      ProprietaryConfig proprietaryConfig,
+      Set<String> licensedFeatures,
+      RestClient restClient) throws ExitException
   {
     ScanMetadata scanMetadata = verifyAndPopulateMetadata(params);
     try {
@@ -166,7 +181,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
       log.debug("Saving scan file to {}", scanFile.getAbsolutePath());
 
       return scanner.scan(scanFile, params.getBaseDir(), files,
-          getScanConfiguration(params, proprietaryConfig), scanMetadata);
+          getScanConfiguration(params, proprietaryConfig), scanMetadata, licensedFeatures);
     }
     catch (IOException e) {
       log.error("The scan could not be performed", e);

@@ -52,7 +52,7 @@ public class JUnitPolicyEvaluatorTestRunner
       final ProprietaryConfig proprietaryConfig,
       final RestClient restClient) throws Exception
   {
-    return executeTest(() -> evaluator.scan(params, proprietaryConfig, restClient));
+    return executeTest(() -> evaluator.scan(params, proprietaryConfig, null, restClient));
   }
 
   @Override

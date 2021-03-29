@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.application.ApplicationSummary;
@@ -405,5 +406,14 @@ public class ConfigurationClientTest
       return (Integer.valueOf(versionAsString.substring(0, dotAt)) + 1) + "." + versionAsString.substring(dotAt + 1);
     }
     return String.valueOf(Integer.valueOf(versionAsString) + 1);
+  }
+
+  @Test
+  public void testGetLicensedFeatures() throws Exception {
+    Configuration config = getCLMServer().getClientConfiguration();
+    ConfigurationClient client = new ConfigurationClient(config);
+
+    Set<String> licensedFeatures = client.getLicensedFeatures();
+    assertThat(licensedFeatures).isNotEmpty();
   }
 }

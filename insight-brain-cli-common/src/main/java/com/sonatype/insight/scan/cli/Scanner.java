@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -64,7 +65,7 @@ public class Scanner
       final Properties config,
       final ScanMetadata metadata) throws IOException
   {
-    return this.scan(scanFile, null, targets, config, metadata);
+    return this.scan(scanFile, null, targets, config, metadata, null);
   }
 
   public ClientScanResult scan(
@@ -72,7 +73,8 @@ public class Scanner
       final File baseDir,
       final List<File> targets,
       final Properties config,
-      final ScanMetadata metadata) throws IOException
+      final ScanMetadata metadata,
+      final Set<String> licensedFeatures) throws IOException
   {
     log.info("Starting scan...");
 
@@ -85,6 +87,7 @@ public class Scanner
       writer.writeMetadata(metadata);
       scan.getSummary().setStartTime();
       ScanSession scanSession = new ScanSession(scan, writer);
+      scanSession.setLicensedFeatures(licensedFeatures);
       clientScanner.scan(new ClientScanRequest(scan));
       FileScanRequest fileScanRequest = new FileScanRequest(scanSession, targets);
       fileScanRequest.setBasedir(baseDir);

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.client;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Set;
 
 import javax.inject.Named;
 
@@ -169,6 +170,10 @@ public class RestClientFactory
      */
     public void addOrUpdateSourceControlRecord(String publicId, String repositoryUrl) throws IOException {
       new SourceControlClient(config).addOrUpdateSourceControlRecord(publicId, repositoryUrl);
+    }
+
+    public Set<String> getLicensedFeatures() throws IOException {
+      return new ConfigurationClient(config).getLicensedFeatures();
     }
   }
 }

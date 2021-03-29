@@ -7,10 +7,12 @@ package com.sonatype.insight.brain.client;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
@@ -28,6 +30,11 @@ import org.sonatype.aether.version.Version;
 public class ConfigurationClient
     extends AbstractRequestClient
 {
+  public Set<String> getLicensedFeatures() throws IOException {
+    Result result = path("rest/product/features").get();
+    return new HashSet<>(Arrays.asList(parseResult(result, String[].class)));
+  }
+
   public enum Context
   {
     ALL, CI, CLI, QA, RM, MAVEN

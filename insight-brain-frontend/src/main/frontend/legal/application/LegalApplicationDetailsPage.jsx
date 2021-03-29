@@ -36,6 +36,8 @@ export default function LegalApplicationDetailsPage(props) {
     }
   }, [applicationPublicId, stageTypeId]);
 
+  const reportUrl = `/api/v2/licenseLegalMetadata/application/${applicationPublicId}/stage/${stageTypeId}/report`;
+
   return (
     <main id="legal-application-details-container" className="nx-page-main nx-viewport-sized">
       <LoadWrapper loading={ application.loading || stageType.loading }
@@ -45,7 +47,11 @@ export default function LegalApplicationDetailsPage(props) {
         <div className="nx-page-title">
           <h1 className="nx-h1">{ application.name } Obligations</h1>
           <div className="nx-btn-bar">
-            <NxButton variant="primary">Create Attribution Report</NxButton>
+            <NxButton
+                variant="primary"
+                onClick={() => window.open(reportUrl, '_blank')}>
+              Create Attribution Report
+            </NxButton>
           </div>
           <div className="nx-page-title__description">
             <div className="nx-tile-header__subtitle">{ stageType.name } Stage</div>

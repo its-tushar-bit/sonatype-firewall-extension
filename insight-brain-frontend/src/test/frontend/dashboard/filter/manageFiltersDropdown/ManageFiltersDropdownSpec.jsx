@@ -245,13 +245,6 @@ describe('ManageFiltersDropdown', function() {
   });
 
   describe('onToggleCollapse handler', function() {
-    it('fires the action to close the dropdown if open', function() {
-      const component = getShallowComponent();
-
-      component.simulate('toggleCollapse');
-      expect(toggleFiltersDropdown).toHaveBeenCalledWith(false);
-    });
-
     it('fires the action to open the dropdown if closed', function() {
       const component = getShallowComponent({
         filtersDropdownOpen: false

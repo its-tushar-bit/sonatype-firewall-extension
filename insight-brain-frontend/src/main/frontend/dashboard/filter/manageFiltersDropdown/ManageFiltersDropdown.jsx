@@ -34,7 +34,7 @@ export default function ManageFiltersDropdown(props) {
   };
 
   const handleDropdownToggle = () => {
-    toggleFiltersDropdown(!filtersDropdownOpen);
+    toggleFiltersDropdown(true);
   };
 
   const handleDeleteFilter = ({ name }) => {

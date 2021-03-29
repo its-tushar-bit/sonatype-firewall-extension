@@ -45,6 +45,7 @@ import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
+import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.*;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
@@ -60,6 +61,7 @@ import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.openqa.selenium.Keys.BACK_SPACE;
 
 public class ScmOnboardingTest
     extends AbstractFunctionalTest
@@ -1261,6 +1263,78 @@ public class ScmOnboardingTest
 
     // then it loads the page immediately with our secondary git service results
     scmOnboardingPage.resultsTableProject().shouldHaveSize(1);
+  }
+
+  @Test
+  public void testOrgDropdown_filterMultiple() throws Exception {
+    // given a mock git service
+    setupMockRepos();
+    setupSourceControl();
+
+    // given several additional organizations
+    tempEntity.newOrganization("A-b");
+    tempEntity.newOrganization("A-c");
+    tempEntity.newOrganization("a-Bb");
+    tempEntity.newOrganization("C");
+
+    // given SCM onboarding page with a selected organization
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
+    loginAsAdmin();
+
+    // then the org dropdown is shown
+    scmOnboardingPage.organizationsDropdown().shouldBe(enabled);
+    scmOnboardingPage.organizationsDropdown().selectedOrganization().shouldHave(text("Test Org"));
+
+    // when we pull down the list and filter we should see matching values
+    scmOnboardingPage.organizationsDropdown().click();
+    scmOnboardingPage.orgDropdownFilter().setValue("a-");
+    // note that "Test Org" is the current org and will show up as the first entry regardless of the filter
+    scmOnboardingPage.orgDropdownItems().shouldHave(texts("Test Org", "A-b", "A-c", "a-Bb"));
+    clearOrgFilter(scmOnboardingPage);
+    scmOnboardingPage.orgDropdownFilter().setValue("A-");
+    scmOnboardingPage.orgDropdownItems().shouldHave(texts("Test Org", "A-b", "A-c", "a-Bb"));
+    clearOrgFilter(scmOnboardingPage);
+    scmOnboardingPage.orgDropdownFilter().setValue("foo");
+    scmOnboardingPage.orgDropdownItems().shouldBe(texts("Test Org"));
+    clearOrgFilter(scmOnboardingPage);
+    scmOnboardingPage.orgDropdownFilter().setValue("A-b");
+    scmOnboardingPage.orgDropdownItems().shouldHave(texts("Test Org", "A-b", "a-Bb"));
+  }
+
+  private void clearOrgFilter(final ScmOnboardingPage scmOnboardingPage) {
+    // not sure why .clear isn't working, so send a flurry of backspaces instead
+    for (int i = 0; i < 15; i++) {
+      scmOnboardingPage.orgDropdownFilter().sendKeys(BACK_SPACE);
+    }
+  }
+
+  @Test
+  public void testOrgDropdown_filterSingle() throws Exception {
+    // given a mock git service
+    setupMockRepos();
+    setupSourceControl();
+
+    // given SCM onboarding page with a selected organization
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url(org.getId()));
+    loginAsAdmin();
+
+    // then the org dropdown is shown
+    scmOnboardingPage.organizationsDropdown().shouldBe(enabled);
+    scmOnboardingPage.organizationsDropdown().selectedOrganization().shouldHave(text("Test Org"));
+
+    // when we pull down the list and filter we should see matching values
+    scmOnboardingPage.organizationsDropdown().click();
+    scmOnboardingPage.orgDropdownFilter().setValue("est");
+    // note that "Test Org" is the current org and will show up as the first entry regardless of the fitler
+    scmOnboardingPage.orgDropdownItems().shouldHave(texts("Test Org", "Test Org"));
+    clearOrgFilter(scmOnboardingPage);
+    scmOnboardingPage.orgDropdownFilter().setValue("foo");
+    scmOnboardingPage.orgDropdownItems().shouldHave(texts("Test Org"));
+    clearOrgFilter(scmOnboardingPage);
+    scmOnboardingPage.orgDropdownFilter().setValue("st or");
+    scmOnboardingPage.orgDropdownItems().shouldBe(texts("Test Org", "Test Org"));
   }
 
   @Test

@@ -45,5 +45,5 @@ server:
       port: 8070
 
 experimentalFeatures:
-  scmOnboarding: false
+  scmOnboarding: true
   firewallAutoUnquarantine: false

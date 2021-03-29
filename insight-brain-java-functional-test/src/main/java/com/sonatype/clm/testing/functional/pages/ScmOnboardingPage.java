@@ -249,6 +249,10 @@ public class ScmOnboardingPage
     return children("#iq-scm-target-organization button");
   }
 
+  public SelenideElement orgDropdownFilter() {
+    return child("#iq-scm-target-organization input");
+  }
+
   public OrganizationsDropdown organizationsDropdown() {
     return new OrganizationsDropdown();
   }

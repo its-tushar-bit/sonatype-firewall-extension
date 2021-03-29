@@ -3,11 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {NxDropdown} from '@sonatype/react-shared-components';
 import React, {useState} from 'react';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
 import {organizationPropType} from '../ScmOnboarding';
+import DropdownFilterInput from './DropdownFilterInput';
 
 export default function TargetOrganizationDropdown(props) {
   const {
@@ -35,8 +35,19 @@ export default function TargetOrganizationDropdown(props) {
     });
   }
 
+  const filterFn = (orgButton, filterValue) => {
+    if (!filterValue) {
+      return true;
+    }
+    if (!orgButton || !orgButton.props || !orgButton.props.children) {
+      return false;
+    }
+    return orgButton.props.children.toLowerCase().includes(filterValue.toLowerCase());
+  };
+
   return (
-    <NxDropdown
+    <DropdownFilterInput
+      filterFn={filterFn}
       id='iq-scm-target-organization'
       label={ loadingOrganizations
         ? 'Loading...'
@@ -56,7 +67,7 @@ export default function TargetOrganizationDropdown(props) {
               {org.organization.name}
             </button>
           )}
-    </NxDropdown>
+    </DropdownFilterInput>
   );
 }
 

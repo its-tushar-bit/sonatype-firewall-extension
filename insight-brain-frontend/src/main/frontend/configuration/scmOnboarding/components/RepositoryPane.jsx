@@ -13,7 +13,7 @@ import {NxFontAwesomeIcon, NxTooltip, NxSubmitMask} from '@sonatype/react-shared
 import {faPlus, faQuestionCircle} from '@fortawesome/pro-solid-svg-icons';
 import ResultsTable from './ResultsTable';
 import TargetOrganizationDropdown from './TargetOrganizationDropdown';
-import {textInputPropType} from './ImportApplicationsForm';
+import {textInputPropType} from '../scmPropTypes';
 import RepoStatus from './RepoStatus';
 import NewOrganizationModal from './NewOrganizationModal';
 import LoadError from '../../../react/LoadError';

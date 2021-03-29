@@ -7,7 +7,7 @@ import React, {Fragment} from 'react';
 import * as PropTypes from 'prop-types';
 import {NxModal, NxForm, NxTextInput, NxErrorAlert, NxInfoAlert} from '@sonatype/react-shared-components';
 import {organizationPropType} from '../ScmOnboarding';
-import {textInputPropType} from './ImportApplicationsForm';
+import {textInputPropType} from '../scmPropTypes';
 import {hasValidationErrors} from '../../../util/validationUtil';
 import {validateHostUrl} from '../utils/validators';
 import CredentialsError from './CredentialsError';

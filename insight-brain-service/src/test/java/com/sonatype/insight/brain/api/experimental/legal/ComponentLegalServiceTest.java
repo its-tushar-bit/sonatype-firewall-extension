@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.dataaccess.legal.ComponentCopyrightDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentLegalFileDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationAttributionDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
+import com.sonatype.insight.brain.dataaccess.legal.CopyrightOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.legal.LegalFileOverrideDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -79,6 +80,9 @@ public class ComponentLegalServiceTest
   private LegalFileOverrideDAO legalFileOverrideDAO;
 
   @Inject
+  private CopyrightOverrideDAO copyrightOverrideDAO;
+
+  @Inject
   private TestProductLicense testProductLicense;
 
   @Test
@@ -108,6 +112,12 @@ public class ComponentLegalServiceTest
                 "originalContentHash2",
                 "content2",
                 ComponentLegalPartStatus.DISABLED
+            ),
+            new CopyrightOverrideDTO(
+                null,
+                null,
+                null,
+                ComponentLegalPartStatus.ENABLED
             )
         ),
         null,
@@ -257,8 +267,8 @@ public class ComponentLegalServiceTest
 
   /**
    * The scenario is the following: - a ComponentCopyright with ID A exists at the OrgScope - a ComponentCopyright with
-   * ID B exists at the ApplicationScope - user modifies ComponentCopyright B to OrgScope. The ComponentCopyright A is
-   * deleted, now we only have ComponentCopyright B at the OrgScope.
+   * ID B exists at the ApplicationScope - user modifies ComponentCopyright B to OrgScope. ComponentCopyright A is
+   * updated to match ComponentCopyright B except in scope and ComponentCopyright A is deleted.
    */
   @Test
   public void testConflictingComponentCopyrightWhileUpdating() {
@@ -300,9 +310,9 @@ public class ComponentLegalServiceTest
     ComponentCopyrightDTO returnedComponentCopyrightDTO = componentLegalService
         .saveComponentCopyright(OwnerType.ORGANIZATION, organization.getPublicId(), componentCopyrightDTO);
 
-    assertThat(componentCopyrightDAO.getById(orgComponentCopyright.getId())).isNull();
+    assertThat(componentCopyrightDAO.getById(appComponentCopyright.getId())).isNull();
     assertThat(returnedComponentCopyrightDTO.getCopyrightOverrides()).hasSize(2);
-    assertThat(returnedComponentCopyrightDTO.getId()).isEqualTo(appComponentCopyright.getId());
+    assertThat(returnedComponentCopyrightDTO.getId()).isEqualTo(orgComponentCopyright.getId());
 
     ComponentCopyright persistedComponentCopyright =
         componentCopyrightDAO.getById(returnedComponentCopyrightDTO.getId());
@@ -312,7 +322,7 @@ public class ComponentLegalServiceTest
   /**
    * The scenario is the following: Inserting a new ComponentCopyright at an existing scope. A ComponentCopyright with
    * ID A exists at the OrgScope. The user inserts a new ComponentCopyright from the application scope at the OrgScope.
-   * There is a conflict. The ComponentCopyright A is deleted, now we only have ComponentCopyright B at the OrgScope.
+   * There is a conflict. The ComponentCopyright A is updated to match the new ComponentCopyright.
    */
   @Test
   public void testConflictingComponentCopyrightWhileInserting() {
@@ -321,21 +331,20 @@ public class ComponentLegalServiceTest
 
     Organization organization = tempEntity.newOrganization();
 
-    ComponentCopyright orgComponentCopyright =
-        tempEntity.newComponentCopyright(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"),
-            organization.getId(), "lch");
+    tempEntity.newComponentCopyright(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"),
+        organization.getId(), "lch");
 
     ComponentCopyrightDTO componentCopyrightDTO = new ComponentCopyrightDTO(
         null, //null ID signifies we are creating a new ComponentCopyright
         componentIdentifier,
         Lists.newArrayList(new CopyrightOverrideDTO(
-                "123",
+                null,
                 "originalContentHash",
                 "content",
                 ComponentLegalPartStatus.ENABLED
             ),
             new CopyrightOverrideDTO(
-                "456",
+                null,
                 "originalContentHash2",
                 "content2",
                 ComponentLegalPartStatus.DISABLED
@@ -348,7 +357,7 @@ public class ComponentLegalServiceTest
     ComponentCopyrightDTO returnedComponentCopyrightDTO = componentLegalService
         .saveComponentCopyright(OwnerType.ORGANIZATION, organization.getPublicId(), componentCopyrightDTO);
 
-    assertThat(componentCopyrightDAO.getById(orgComponentCopyright.getId())).isNull();
+    assertThat(componentCopyrightDAO.getAll()).hasSize(1);
     assertThat(returnedComponentCopyrightDTO.getCopyrightOverrides()).hasSize(2);
 
     ComponentCopyright persistedComponentCopyright =
@@ -571,7 +580,7 @@ public class ComponentLegalServiceTest
     ComponentLegalFileDTO resultDto = componentLegalService
         .saveComponentLegalFile(org.getType(), org.getPublicId(), componentLegalFileDTO);
 
-    assertThat(componentLegalFileDAO.getById(componentLegalFile.getId())).isNull();
+    componentLegalFileDTO.setId(componentLegalFile.getId());
     assertComponentLegalFile(resultDto, componentLegalFileDTO, org.getId(), date);
     assertComponentLegalFile(resultDto,
         new ComponentLegalFileDTO(componentLegalFileDAO.getById(resultDto.getId()), Collections.emptyList()),
@@ -579,8 +588,10 @@ public class ComponentLegalServiceTest
     assertThat(resultDto.getLegalFileOverrides()).usingRecursiveFieldByFieldElementComparator(
         RecursiveComparisonConfiguration.builder().withIgnoredFields("id").build())
         .containsExactlyInAnyOrder(notice1, notice2);
+    assertThat(legalFileOverrideDAO
+        .getByOwnerIdAndComponentIdentifierAndType(org.getId(), componentIdentifier, LegalFileType.NOTICE)).hasSize(2);
     for (LegalFileOverrideDTO legalFileOverride : resultDto.getLegalFileOverrides()) {
-      assertThat(legalFileOverride.getId()).isNotNull().isNotEqualTo(noticeOverride.getId());
+      assertThat(legalFileOverride.getId()).isNotNull();
       assertLegalFileOverride(new LegalFileOverrideDTO(legalFileOverrideDAO.getById(legalFileOverride.getId())),
           legalFileOverride);
     }
@@ -608,7 +619,7 @@ public class ComponentLegalServiceTest
     ComponentLegalFileDTO resultDto = componentLegalService
         .saveComponentLegalFile(org.getType(), org.getPublicId(), componentLegalFileDTO);
 
-    assertThat(componentLegalFileDAO.getById(componentLegalFile.getId())).isNull();
+    componentLegalFileDTO.setId(componentLegalFile.getId());
     assertComponentLegalFile(resultDto, componentLegalFileDTO, org.getId(), date);
     assertComponentLegalFile(resultDto,
         new ComponentLegalFileDTO(componentLegalFileDAO.getById(resultDto.getId()), Collections.emptyList()),
@@ -616,8 +627,10 @@ public class ComponentLegalServiceTest
     assertThat(resultDto.getLegalFileOverrides()).usingRecursiveFieldByFieldElementComparator(
         RecursiveComparisonConfiguration.builder().withIgnoredFields("id").build())
         .containsExactlyInAnyOrder(license1, license2);
+    assertThat(legalFileOverrideDAO
+        .getByOwnerIdAndComponentIdentifierAndType(org.getId(), componentIdentifier, LegalFileType.LICENSE)).hasSize(2);
     for (LegalFileOverrideDTO legalFileOverride : resultDto.getLegalFileOverrides()) {
-      assertThat(legalFileOverride.getId()).isNotNull().isNotEqualTo(licenseOverride.getId());
+      assertThat(legalFileOverride.getId()).isNotNull();
       assertLegalFileOverride(new LegalFileOverrideDTO(legalFileOverrideDAO.getById(legalFileOverride.getId())),
           legalFileOverride);
     }
@@ -648,7 +661,8 @@ public class ComponentLegalServiceTest
     ComponentLegalFileDTO resultDto = componentLegalService
         .saveComponentLegalFile(org.getType(), org.getPublicId(), componentLegalFileDTO);
 
-    assertThat(componentLegalFileDAO.getById(orgComponentLegalFile.getId())).isNull();
+    assertThat(componentLegalFileDAO.getById(appComponentLegalFile.getId())).isNull();
+    componentLegalFileDTO.setId(orgComponentLegalFile.getId());
     assertComponentLegalFile(resultDto, componentLegalFileDTO, org.getId(), date);
     assertComponentLegalFile(resultDto,
         new ComponentLegalFileDTO(componentLegalFileDAO.getById(resultDto.getId()), Collections.emptyList()),
@@ -941,6 +955,94 @@ public class ComponentLegalServiceTest
         )
     ).withMessageContaining(
         "ComponentObligationAttribution with ID " + componentObligationAttributionDTO.getId() + " does not exist.");
+  }
+
+  @Test
+  public void testSaveComponentCopyright_Update_NotFound() {
+    Application application = tempEntity.newApplicationWithParent();
+    ComponentCopyrightDTO componentCopyrightDTO = new ComponentCopyrightDTO();
+    componentCopyrightDTO.setId("doesNotExist");
+    componentCopyrightDTO.setComponentIdentifier(
+        ApiComponentIdentifierDTOV2
+            .fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g", "a", "v")));
+
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() ->
+        componentLegalService.saveComponentCopyright(
+            application.getType(),
+            application.getPublicId(),
+            componentCopyrightDTO
+        )
+    ).withMessageContaining("ComponentCopyright with ID " + componentCopyrightDTO.getId() + " does not exist.");
+  }
+
+  @Test
+  public void testSaveComponentCopyright_Update_OverrideNotFound() {
+    Application application = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentCopyright componentCopyright = tempEntity
+        .newComponentCopyright(componentIdentifier, application.getId(), "legalContentHash");
+    ComponentCopyrightDTO componentCopyrightDTO = new ComponentCopyrightDTO();
+    componentCopyrightDTO.setId(componentCopyright.getId());
+    componentCopyrightDTO
+        .setComponentIdentifier(ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
+    CopyrightOverrideDTO copyrightOverrideDTO = new CopyrightOverrideDTO();
+    copyrightOverrideDTO.setId("doesNotExist");
+    copyrightOverrideDTO.setContent("content");
+    copyrightOverrideDTO.setStatus(ComponentLegalPartStatus.ENABLED);
+    componentCopyrightDTO.setCopyrightOverrides(Collections.singletonList(copyrightOverrideDTO));
+
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() ->
+        componentLegalService.saveComponentCopyright(
+            application.getType(),
+            application.getPublicId(),
+            componentCopyrightDTO
+        )
+    ).withMessageContaining("CopyrightOverride with ID " + copyrightOverrideDTO.getId() + " does not exist.");
+  }
+
+  @Test
+  public void testSaveComponentLegalFile_Update_NotFound() {
+    Application application = tempEntity.newApplicationWithParent();
+    ComponentLegalFileDTO componentLegalFileDTO = new ComponentLegalFileDTO();
+    componentLegalFileDTO.setId("doesNotExist");
+    componentLegalFileDTO.setLegalFileType(LegalFileType.NOTICE);
+    componentLegalFileDTO.setComponentIdentifier(
+        ApiComponentIdentifierDTOV2
+            .fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g", "a", "v")));
+
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() ->
+        componentLegalService.saveComponentLegalFile(
+            application.getType(),
+            application.getPublicId(),
+            componentLegalFileDTO
+        )
+    ).withMessageContaining("ComponentLegalFile with ID " + componentLegalFileDTO.getId() + " does not exist.");
+  }
+
+  @Test
+  public void testSaveComponentLegalFile_Update_OverrideNotFound() {
+    Application application = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentLegalFile componentLegalFile = tempEntity
+        .newComponentLegalFile(componentIdentifier, application.getId(), LegalFileType.NOTICE, "legalContentHash");
+    ComponentLegalFileDTO componentLegalFileDTO = new ComponentLegalFileDTO();
+    componentLegalFileDTO.setId(componentLegalFile.getId());
+    componentLegalFileDTO.setLegalFileType(LegalFileType.NOTICE);
+    componentLegalFileDTO
+        .setComponentIdentifier(ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
+    LegalFileOverrideDTO legalFileOverrideDTO = new LegalFileOverrideDTO();
+    legalFileOverrideDTO.setId("doesNotExist");
+    legalFileOverrideDTO.setContent("content");
+    legalFileOverrideDTO.setStatus(ComponentLegalPartStatus.ENABLED);
+    componentLegalFileDTO.setLegalFileOverrides(Collections.singletonList(legalFileOverrideDTO));
+
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() ->
+        componentLegalService.saveComponentLegalFile(
+            application.getType(),
+            application.getPublicId(),
+            componentLegalFileDTO
+        )
+    ).withMessageContaining("LegalFileOverride with ID " + legalFileOverrideDTO.getId() + " does not exist.");
   }
 
   @Test
@@ -1261,9 +1363,8 @@ public class ComponentLegalServiceTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
     Organization org = tempEntity.newOrganization();
 
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> componentLegalService
-        .getComponentCopyrightWithHierarchy(OwnerType.ORGANIZATION, org.getPublicId(), componentIdentifier))
-        .withMessageContaining("No component copyright");
+    assertThat(componentLegalService
+        .getComponentCopyrightWithHierarchy(OwnerType.ORGANIZATION, org.getPublicId(), componentIdentifier)).isNull();
   }
 
   @Test
@@ -1535,6 +1636,90 @@ public class ComponentLegalServiceTest
         .getComponentLegalFile(app.getType(), app.getPublicId(), componentIdentifier, LegalFileType.NOTICE))
         .usingRecursiveComparison().isEqualTo(new ComponentLegalFileDTO(componentLegalFile,
         Arrays.asList(legalFileOverride4, legalFileOverride3, legalFileOverride2, legalFileOverride1)));
+  }
+
+  @Test
+  public void testSaveComponentCopyright_DeletesExistingOverridesIfNeeded() {
+    Application app = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentCopyright existingComponentCopyright =
+        tempEntity.newComponentCopyright(componentIdentifier, app.getId(), "legalContentHash");
+    CopyrightOverride existingCopyrightOverride1 = tempEntity.newCopyrightOverride(null, "hash1", "content1",
+        ComponentLegalPartStatus.ENABLED, existingComponentCopyright.getId());
+    CopyrightOverride existingCopyrightOverride2 = tempEntity.newCopyrightOverride(null, "hash2", "content2",
+        ComponentLegalPartStatus.ENABLED, existingComponentCopyright.getId());
+    ComponentCopyrightDTO componentCopyrightDTO = new ComponentCopyrightDTO(existingComponentCopyright.getId(),
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier),
+        Collections.singletonList(CopyrightOverrideDTO.fromCopyrightOverride(existingCopyrightOverride1)), null, null);
+
+    componentLegalService.saveComponentCopyright(app.getType(), app.getPublicId(), componentCopyrightDTO);
+
+    assertThat(copyrightOverrideDAO.getById(existingCopyrightOverride2.getId())).isNull();
+  }
+
+  @Test
+  public void testSaveComponentLegalFile_DeletesExistingOverridesIfNeeded() {
+    Application app = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentLegalFile existingComponentLegalFile =
+        tempEntity.newComponentLegalFile(componentIdentifier, app.getId(), LegalFileType.NOTICE, "legalContentHash");
+    LegalFileOverride existingLegalFileOverride1 = tempEntity.newLegalFileOverride(null, "hash1", "content1",
+        ComponentLegalPartStatus.ENABLED, existingComponentLegalFile.getId());
+    LegalFileOverride existingLegalFileOverride2 = tempEntity.newLegalFileOverride(null, "hash2", "content2",
+        ComponentLegalPartStatus.ENABLED, existingComponentLegalFile.getId());
+    ComponentLegalFileDTO componentLegalFileDTO =
+        new ComponentLegalFileDTO(existingComponentLegalFile, Collections.singletonList(existingLegalFileOverride1));
+
+    componentLegalService.saveComponentLegalFile(app.getType(), app.getPublicId(), componentLegalFileDTO);
+
+    assertThat(copyrightOverrideDAO.getById(existingLegalFileOverride2.getId())).isNull();
+  }
+
+  @Test
+  public void testSaveComponentObligation_Update_Conflict() {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentObligation orgScopeExisting = tempEntity
+        .newComponentObligation(componentIdentifier, org.getId(), "name", "comment1", ObligationStatus.OPEN,
+            ComponentLegalService.NOT_IMPLEMENTED);
+    ComponentObligation appScopeExisting = tempEntity
+        .newComponentObligation(componentIdentifier, app.getId(), "name", "comment2", ObligationStatus.OPEN,
+            ComponentLegalService.NOT_IMPLEMENTED);
+    ApiLicenseLegalObligationDTO dto = new ApiLicenseLegalObligationDTO(appScopeExisting);
+
+    ApiLicenseLegalObligationDTO result =
+        componentLegalService.saveComponentObligation(org.getType(), org.getPublicId(), dto);
+
+    assertThat(componentObligationDAO.getById(appScopeExisting.getId())).isNull();
+    ComponentObligation componentObligation = componentObligationDAO.getByIdNotNull(result.getId());
+    dto.setId(orgScopeExisting.getId());
+    assertComponentObligation(componentObligation, org, dto);
+    assertComponentObligation(result, componentObligation);
+  }
+
+  @Test
+  public void testSaveComponentObligationAttribution_Update_Conflict() {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentObligationAttribution orgScopeExisting = tempEntity
+        .newComponentObligationAttribution(componentIdentifier, org.getId(), "name", "content1",
+            ComponentLegalService.NOT_IMPLEMENTED);
+    ComponentObligationAttribution appScopeExisting = tempEntity
+        .newComponentObligationAttribution(componentIdentifier, app.getId(), "name", "content2",
+            ComponentLegalService.NOT_IMPLEMENTED);
+    ComponentObligationAttributionDTO dto = new ComponentObligationAttributionDTO(appScopeExisting);
+
+    ComponentObligationAttributionDTO result =
+        componentLegalService.saveComponentObligationAttribution(org.getType(), org.getPublicId(), dto);
+
+    assertThat(componentObligationAttributionDAO.getById(appScopeExisting.getId())).isNull();
+    ComponentObligationAttribution componentObligation =
+        componentObligationAttributionDAO.getByIdNotNull(result.getId());
+    dto.setId(orgScopeExisting.getId());
+    assertComponentObligationAttribution(componentObligation, org, dto);
+    assertComponentObligationAttribution(result, componentObligation);
   }
 
   private ApiLicenseLegalObligationDTO createMinimalComponentObligationDTO() {

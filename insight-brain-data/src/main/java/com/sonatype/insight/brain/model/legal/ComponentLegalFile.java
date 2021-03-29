@@ -16,6 +16,7 @@ import javax.persistence.Table;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.HasComponentId;
+import com.sonatype.insight.brain.model.HasOwnerId;
 import com.sonatype.insight.model.HasStringId;
 
 /**
@@ -25,7 +26,7 @@ import com.sonatype.insight.model.HasStringId;
 @Table(name = "component_legal_file")
 public class ComponentLegalFile
     extends HasComponentId
-    implements HasStringId
+    implements HasStringId, HasOwnerId
 {
   @Id
   @Column(name = "component_legal_file_id")
@@ -75,10 +76,12 @@ public class ComponentLegalFile
     this.id = id;
   }
 
+  @Override
   public String getOwnerId() {
     return ownerId;
   }
 
+  @Override
   public void setOwnerId(String ownerId) {
     this.ownerId = ownerId;
   }

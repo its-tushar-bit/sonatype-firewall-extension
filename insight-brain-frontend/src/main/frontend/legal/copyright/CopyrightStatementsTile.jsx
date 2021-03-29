@@ -34,7 +34,7 @@ export default function CopyrightStatementsTile(props) {
         <div className="nx-tile__actions">
           <NxButton id="edit-copyrights" variant="tertiary" onClick={() => setDisplayCopyrightOverrideModal(true)}>
             <NxFontAwesomeIcon icon={faPen}/>
-            <span>Edit Copyrights</span>
+            <span>Edit</span>
           </NxButton>
         </div>
         {showEditCopyrightOverrideModal && createAttributionModal}

@@ -37,6 +37,8 @@ import {getFirewallConfigurationUrl, getFirewallReleaseQuarantineSummaryUrl, get
   getFirewallQuarantineSummaryUrl}
   from '../../../main/frontend/util/CLMLocation';
 import {SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS} from '@sonatype/react-shared-components';
+import {INTEGRITY_RATING_POLICY_TYPE_ID} from
+  '../../../main/frontend/firewall/config/firewallConfigurationModalReducer';
 
 describe('firewallActions', function() {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios),
@@ -69,10 +71,14 @@ describe('firewallActions', function() {
           totalPolicyConditionTypesCount: 1
         }),
         serverState: Object.freeze({
-          autoUnquarantineEnabled: false
+          conditionTypes: [
+            {'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'name': 'Integrity Rating', 'autoReleaseQuarantineEnabled': false}
+          ]
         }),
         formState: Object.freeze({
-          autoUnquarantineEnabled: false
+          conditionTypes: [
+            {'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'name': 'Integrity Rating', 'autoReleaseQuarantineEnabled': false}
+          ]
         })
       })
     };
@@ -221,7 +227,8 @@ describe('firewallActions', function() {
   describe('saveConfiguration', function() {
 
     afterEach(function() {
-      expect(axios.put).toHaveBeenCalledWith(firewallConfigUrl, state.firewallConfigurationModal.formState);
+      expect(axios.put)
+          .toHaveBeenCalledWith(firewallConfigUrl, state.firewallConfigurationModal.formState.conditionTypes);
     });
 
     it('immediately dispatches a FIREWALL_SAVE_CONFIGURATION_REQUESTED action', function() {
@@ -255,7 +262,11 @@ describe('firewallActions', function() {
                   expect(actions[0].type).toBe(FIREWALL_SAVE_CONFIGURATION_REQUESTED);
                   expect(actions[0].payload).toBeUndefined();
                   expect(actions[1].type).toBe(FIREWALL_SAVE_CONFIGURATION_FULFILLED);
-                  expect(actions[1].payload).toEqual({autoUnquarantineEnabled: false});
+                  expect(actions[1].payload).toEqual([
+                    {'id': INTEGRITY_RATING_POLICY_TYPE_ID,
+                      'name': 'Integrity Rating',
+                      'autoReleaseQuarantineEnabled': false}
+                  ]);
                   done();
                 });
 

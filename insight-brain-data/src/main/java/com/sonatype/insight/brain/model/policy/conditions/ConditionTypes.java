@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.model.policy.ConditionType;
 
@@ -101,6 +102,11 @@ public class ConditionTypes
 
   public static Collection<ConditionType> getAll() {
     return Collections.unmodifiableCollection(allConditionTypes.values());
+  }
+
+  public static Collection<ConditionType> getAllWithAutoUnquarantineSupported() {
+    return Collections.unmodifiableCollection(
+        getAll().stream().filter(ConditionType::isAutoUnquarantineSupported).collect(Collectors.toList()));
   }
 
   public static ConditionType getById(final String conditionTypeId) {

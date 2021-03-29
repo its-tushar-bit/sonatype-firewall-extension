@@ -166,8 +166,7 @@ public class ApiFirewallService
 
     final Set<String> enabledPolicyConditionTypes = getAutoUnquarantineEnabledPolicyConditionTypesIds();
 
-    return ConditionTypes.getAll().stream()
-        .filter(ConditionType::isAutoUnquarantineSupported)
+    return ConditionTypes.getAllWithAutoUnquarantineSupported().stream()
         .map(conditionType -> generateReleaseQuarantineConfigDto(enabledPolicyConditionTypes, conditionType))
         .collect(Collectors.toList());
   }

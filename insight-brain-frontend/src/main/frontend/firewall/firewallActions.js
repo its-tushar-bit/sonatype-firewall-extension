@@ -44,9 +44,11 @@ const saveConfigurationFulfilled = payloadParamActionCreator(FIREWALL_SAVE_CONFI
 const saveConfigurationFailed = payloadParamActionCreator(FIREWALL_SAVE_CONFIGURATION_FAILED);
 
 export const FIREWALL_TOGGLE_AUTO_UNQUARANTINE_ENABLED = 'FIREWALL_TOGGLE_AUTO_UNQUARANTINE_ENABLED';
+export const FIREWALL_TOGGLE_AUTO_UNQUARANTINE_ALL = 'FIREWALL_TOGGLE_AUTO_UNQUARANTINE_ALL';
 export const FIREWALL_CONFIGURATION_SAVE_MASK_TIMER_DONE = 'FIREWALL_CONFIGURATION_SAVE_MASK_TIMER_DONE';
 
-export const toggleAutoUnquarantineEnabled = noPayloadActionCreator(FIREWALL_TOGGLE_AUTO_UNQUARANTINE_ENABLED);
+export const toggleAutoUnquarantineEnabled = payloadParamActionCreator(FIREWALL_TOGGLE_AUTO_UNQUARANTINE_ENABLED);
+export const toggleAutoUnquarantineAll = payloadParamActionCreator(FIREWALL_TOGGLE_AUTO_UNQUARANTINE_ALL);
 const configurationSaveMaskTimerDone = noPayloadActionCreator(FIREWALL_CONFIGURATION_SAVE_MASK_TIMER_DONE);
 
 export const FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED = 'FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED';
@@ -118,7 +120,7 @@ export function saveConfiguration() {
   return (dispatch, getState) => {
     dispatch(saveConfigurationRequested());
 
-    const serverData = getState().firewallConfigurationModal.formState;
+    const serverData = getState().firewallConfigurationModal.formState.conditionTypes;
 
     const endpointUrl = getFirewallConfigurationUrl();
     return axios.put(endpointUrl, serverData)

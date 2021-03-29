@@ -163,8 +163,7 @@ public class ApiFirewallServiceTest
     tempEntity.newAutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID);
     tempEntity.newAutoUnquarantinePolicyConditionType(LicenseConditionType.ID);
 
-    final String[] autoUnquarantinedConditionTypes = ConditionTypes.getAll().stream()
-        .filter(ConditionType::isAutoUnquarantineSupported)
+    final String[] autoUnquarantinedConditionTypes = ConditionTypes.getAllWithAutoUnquarantineSupported().stream()
         .map(ConditionType::getName)
         .toArray(String[]::new);
 
@@ -234,8 +233,7 @@ public class ApiFirewallServiceTest
     security.autoReleaseQuarantineEnabled = true;
     list.add(security);
 
-    final String[] autoUnquarantinedConditionTypes = ConditionTypes.getAll().stream()
-        .filter(ConditionType::isAutoUnquarantineSupported)
+    final String[] autoUnquarantinedConditionTypes = ConditionTypes.getAllWithAutoUnquarantineSupported().stream()
         .map(ConditionType::getName)
         .toArray(String[]::new);
 
@@ -286,8 +284,7 @@ public class ApiFirewallServiceTest
     licenceThreatGroup.autoReleaseQuarantineEnabled = false;
     list.add(licenceThreatGroup);
 
-    final String[] autoUnquarantinedConditionTypes = ConditionTypes.getAll().stream()
-        .filter(ConditionType::isAutoUnquarantineSupported)
+    final String[] autoUnquarantinedConditionTypes = ConditionTypes.getAllWithAutoUnquarantineSupported().stream()
         .map(ConditionType::getName)
         .toArray(String[]::new);
 

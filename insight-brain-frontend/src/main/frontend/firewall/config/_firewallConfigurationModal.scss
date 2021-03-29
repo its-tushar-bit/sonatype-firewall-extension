@@ -3,6 +3,18 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-#auto-unquarantine-toggle .nx-toggle__content {
-  flex: none;
+
+@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
+@import '~@sonatype/react-shared-components/scss-shared/nx-colors';
+
+#auto-release-condition-toggles {
+  .nx-toggle {
+    margin-block: 0;
+  }
+
+  padding-top: $nx-spacing-l;
+  border-top: 1px solid $nx-indigo-100;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $nx-spacing-md;
 }

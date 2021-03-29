@@ -283,7 +283,7 @@ describe('firewallReducer', function() {
       });
       const newState = reduce(state, {
         type: 'FIREWALL_SAVE_CONFIGURATION_FULFILLED',
-        payload: {autoUnquarantineEnabled: true}
+        payload: [{id: 'IntegrityRating', autoReleaseQuarantineEnabled: true}]
       });
       // autoUnquarantineState
       expect(newState.autoUnquarantineState.viewState.enabledPolicyConditionTypesCount).toBe(1);
@@ -297,7 +297,7 @@ describe('firewallReducer', function() {
       expect(newState.statusState.other).toBe(otherObject);
       expect(newState.autoUnquarantineState.other).toBe(otherObject);
       expect(newState.autoUnquarantineState.viewState.other).toBe(otherObject);
-      expect(newState.configurationState.other).toEqual(otherObject);
+      expect(newState.configurationState.other).toBeUndefined();
       expect(newState.quarantineSummaryState.other).toBe(otherObject);
     });
   });

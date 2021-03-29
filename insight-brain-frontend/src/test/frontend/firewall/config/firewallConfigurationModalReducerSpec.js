@@ -4,7 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import reduce from '../../../../main/frontend/firewall/config/firewallConfigurationModalReducer';
+import reduce, {INTEGRITY_RATING_POLICY_TYPE_ID} from
+  '../../../../main/frontend/firewall/config/firewallConfigurationModalReducer';
 
 describe('firewallConfigurationModalReducer', function() {
   let otherObject;
@@ -30,10 +31,12 @@ describe('firewallConfigurationModalReducer', function() {
       expect(newState.viewState.isDirty).toBe(false);
 
       //serverState
-      expect(newState.serverState.autoUnquarantineEnabled).toBe(false);
+      expect(newState.serverState).toEqual(
+          {conditionTypes: [{'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': false}]});
 
       //formState
-      expect(newState.formState.autoUnquarantineEnabled).toBe(false);
+      expect(newState.formState).toEqual(
+          {conditionTypes: [{'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': false}]});
     });
   });
 
@@ -161,9 +164,11 @@ describe('firewallConfigurationModalReducer', function() {
       expect(newState.viewState.submitMaskSuccessState).toBeNull();
       expect(newState.viewState.saveConfigurationError).toBeNull();
       //serverState
-      expect(newState.serverState.autoUnquarantineEnabled).toBe(false);
+      expect(newState.serverState).toEqual(
+          {conditionTypes: [{'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': false}]});
       //formState
-      expect(newState.formState.autoUnquarantineEnabled).toBe(false);
+      expect(newState.formState).toEqual(
+          {conditionTypes: [{'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': false}]});
       //others to be undefined
       expect(newState.other).toBeUndefined();
       expect(newState.viewState.other).toBeUndefined();
@@ -182,23 +187,23 @@ describe('firewallConfigurationModalReducer', function() {
         },
         serverState: {
           other: otherObject,
-          autoUnquarantineEnabled: null
+          conditionTypes: [{'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': false}]
         },
         formState: {
           other: otherObject,
-          autoUnquarantineEnabled: null
+          conditionTypes: [{'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': false}]
         }
       });
       const newState = reduce(state, {
         type: 'FIREWALL_LOAD_CONFIGURATION_FULFILLED',
-        payload: {autoUnquarantineEnabled: true}
+        payload: [{'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': true}]
       });
       //viewState
       expect(newState.viewState.isDirty).toBe(false);
       //serverState
-      expect(newState.serverState.autoUnquarantineEnabled).toBe(true);
+      expect(newState.serverState.conditionTypes[0].autoReleaseQuarantineEnabled).toBe(true);
       //formState
-      expect(newState.formState.autoUnquarantineEnabled).toBe(true);
+      expect(newState.formState.conditionTypes[0].autoReleaseQuarantineEnabled).toBe(true);
       // other properties are not modified for state and viewState
       expect(newState.other).toBe(otherObject);
       expect(newState.viewState.other).toEqual(otherObject);
@@ -209,7 +214,7 @@ describe('firewallConfigurationModalReducer', function() {
   });
 
   describe('FIREWALL_TOGGLE_AUTO_UNQUARANTINE_ENABLED action', function() {
-    it('updates the state and toggles the autoUnquarantineEnabled', function() {
+    it('updates the state and toggles the autoUnquarantineEnabled for the given condition type', function() {
       const state = Object.freeze({
         other: otherObject,
         viewState: {
@@ -219,20 +224,27 @@ describe('firewallConfigurationModalReducer', function() {
           other: otherObject
         },
         formState: {
-          autoUnquarantineEnabled: false,
-          other: otherObject
+          conditionTypes: [
+            {'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': false},
+            {'id': 'testId', 'autoReleaseQuarantineEnabled': false}
+          ]
         }
       });
       const newState = reduce(state, {
-        type: 'FIREWALL_TOGGLE_AUTO_UNQUARANTINE_ENABLED'
+        type: 'FIREWALL_TOGGLE_AUTO_UNQUARANTINE_ENABLED',
+        payload: 'testId'
       });
       //formState
-      expect(newState.formState.autoUnquarantineEnabled).toBe(true);
+      expect(newState.formState).toEqual({
+        conditionTypes: [
+          {'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': false},
+          {'id': 'testId', 'autoReleaseQuarantineEnabled': true}
+        ]
+      });
       // other properties are not modified
       expect(newState.other).toBe(otherObject);
       expect(newState.viewState.other).toEqual(otherObject);
       expect(newState.serverState.other).toEqual(otherObject);
-      expect(newState.formState.other).toEqual(otherObject);
     });
 
     it('updates sets the isDirty flag to true if changed', function() {
@@ -243,26 +255,41 @@ describe('firewallConfigurationModalReducer', function() {
           isDirty: false
         },
         serverState: {
-          autoUnquarantineEnabled: false,
-          other: otherObject
+          conditionTypes: [
+            {'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': false},
+            {'id': 'testId', 'autoReleaseQuarantineEnabled': false}
+          ]
         },
         formState: {
-          autoUnquarantineEnabled: false,
-          other: otherObject
+          conditionTypes: [
+            {'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': false},
+            {'id': 'testId', 'autoReleaseQuarantineEnabled': false}
+          ]
         }
       });
       const newState = reduce(state, {
-        type: 'FIREWALL_TOGGLE_AUTO_UNQUARANTINE_ENABLED'
+        type: 'FIREWALL_TOGGLE_AUTO_UNQUARANTINE_ENABLED',
+        payload: 'testId'
       });
       //viewState
       expect(newState.viewState.isDirty).toBe(true);
       //formState
-      expect(newState.formState.autoUnquarantineEnabled).toBe(true);
+      expect(newState.formState).toEqual({
+        conditionTypes: [
+          {'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': false},
+          {'id': 'testId', 'autoReleaseQuarantineEnabled': true}
+        ]
+      });
+      //serverState
+      expect(newState.serverState).toEqual({
+        conditionTypes: [
+          {'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': false},
+          {'id': 'testId', 'autoReleaseQuarantineEnabled': false}
+        ]
+      });
       // other properties are not modified
       expect(newState.other).toBe(otherObject);
       expect(newState.viewState.other).toEqual(otherObject);
-      expect(newState.serverState.other).toEqual(otherObject);
-      expect(newState.formState.other).toEqual(otherObject);
     });
 
     it('updates sets the isDirty flag to false if not changed', function() {
@@ -273,26 +300,34 @@ describe('firewallConfigurationModalReducer', function() {
           isDirty: true
         },
         serverState: {
-          autoUnquarantineEnabled: false,
-          other: otherObject
+          conditionTypes: [
+            {'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': false},
+            {'id': 'testId', 'autoReleaseQuarantineEnabled': true}
+          ]
         },
         formState: {
-          autoUnquarantineEnabled: true,
-          other: otherObject
+          conditionTypes: [
+            {'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': false},
+            {'id': 'testId', 'autoReleaseQuarantineEnabled': false}
+          ]
         }
       });
       const newState = reduce(state, {
-        type: 'FIREWALL_TOGGLE_AUTO_UNQUARANTINE_ENABLED'
+        type: 'FIREWALL_TOGGLE_AUTO_UNQUARANTINE_ENABLED',
+        payload: 'testId'
       });
       //viewState
       expect(newState.viewState.isDirty).toBe(false);
       //formState
-      expect(newState.formState.autoUnquarantineEnabled).toBe(false);
+      expect(newState.formState).toEqual({
+        conditionTypes: [
+          {'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': false},
+          {'id': 'testId', 'autoReleaseQuarantineEnabled': true}
+        ]
+      });
       // other properties are not modified
       expect(newState.other).toBe(otherObject);
       expect(newState.viewState.other).toEqual(otherObject);
-      expect(newState.serverState.other).toEqual(otherObject);
-      expect(newState.formState.other).toEqual(otherObject);
     });
   });
 
@@ -323,6 +358,132 @@ describe('firewallConfigurationModalReducer', function() {
       expect(newState.viewState.other).toEqual(otherObject);
       expect(newState.serverState.other).toEqual(otherObject);
       expect(newState.formState.other).toEqual(otherObject);
+    });
+  });
+
+  describe('FIREWALL_TOGGLE_AUTO_UNQUARANTINE_ALL action', function() {
+    it('updates the state and toggles the autoUnquarantineEnabled for all condition types excluding integrity rating',
+        function() {
+          const state = Object.freeze({
+            other: otherObject,
+            viewState: {
+              other: otherObject
+            },
+            serverState: {
+              other: otherObject
+            },
+            formState: {
+              conditionTypes: [
+                {'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': false},
+                {'id': 'testId', 'autoReleaseQuarantineEnabled': false},
+                {'id': 'testId2', 'autoReleaseQuarantineEnabled': false}
+              ]
+            }
+          });
+          const newState = reduce(state, {
+            type: 'FIREWALL_TOGGLE_AUTO_UNQUARANTINE_ALL',
+            payload: true
+          });
+          //formState
+          expect(newState.formState).toEqual({conditionTypes: [
+            {'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': false},
+            {'id': 'testId', 'autoReleaseQuarantineEnabled': true},
+            {'id': 'testId2', 'autoReleaseQuarantineEnabled': true}
+          ]});
+          // other properties are not modified
+          expect(newState.other).toBe(otherObject);
+          expect(newState.viewState.other).toEqual(otherObject);
+          expect(newState.serverState.other).toEqual(otherObject);
+        });
+
+    it('updates sets the isDirty flag to true if changed', function() {
+      const state = Object.freeze({
+        other: otherObject,
+        viewState: {
+          other: otherObject,
+          isDirty: false
+        },
+        serverState: {
+          conditionTypes: [
+            {'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': false},
+            {'id': 'testId', 'autoReleaseQuarantineEnabled': false},
+            {'id': 'testId2', 'autoReleaseQuarantineEnabled': false}
+          ]
+        },
+        formState: {
+          conditionTypes: [
+            {'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': false},
+            {'id': 'testId', 'autoReleaseQuarantineEnabled': false},
+            {'id': 'testId2', 'autoReleaseQuarantineEnabled': false}
+          ]
+        }
+      });
+      const newState = reduce(state, {
+        type: 'FIREWALL_TOGGLE_AUTO_UNQUARANTINE_ALL',
+        payload: true
+      });
+      //viewState
+      expect(newState.viewState.isDirty).toBe(true);
+      //formState
+      expect(newState.formState).toEqual({conditionTypes: [
+        {'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': false},
+        {'id': 'testId', 'autoReleaseQuarantineEnabled': true},
+        {'id': 'testId2', 'autoReleaseQuarantineEnabled': true}
+      ]});
+      //serverState
+      expect(newState.serverState).toEqual({conditionTypes: [
+        {'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': false},
+        {'id': 'testId', 'autoReleaseQuarantineEnabled': false},
+        {'id': 'testId2', 'autoReleaseQuarantineEnabled': false}
+      ]});
+      // other properties are not modified
+      expect(newState.other).toBe(otherObject);
+      expect(newState.viewState.other).toEqual(otherObject);
+    });
+
+    it('updates sets the isDirty flag to false if not changed', function() {
+      const state = Object.freeze({
+        other: otherObject,
+        viewState: {
+          other: otherObject,
+          isDirty: true
+        },
+        serverState: {
+          conditionTypes: [
+            {'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': false},
+            {'id': 'testId', 'autoReleaseQuarantineEnabled': true},
+            {'id': 'testId2', 'autoReleaseQuarantineEnabled': true}
+          ]
+        },
+        formState: {
+          conditionTypes: [
+            {'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': false},
+            {'id': 'testId', 'autoReleaseQuarantineEnabled': false},
+            {'id': 'testId2', 'autoReleaseQuarantineEnabled': false}
+          ]
+        }
+      });
+      const newState = reduce(state, {
+        type: 'FIREWALL_TOGGLE_AUTO_UNQUARANTINE_ALL',
+        payload: true
+      });
+      //viewState
+      expect(newState.viewState.isDirty).toBe(false);
+      //formState
+      expect(newState.formState).toEqual({conditionTypes: [
+        {'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': false},
+        {'id': 'testId', 'autoReleaseQuarantineEnabled': true},
+        {'id': 'testId2', 'autoReleaseQuarantineEnabled': true}
+      ]});
+      //serverState
+      expect(newState.serverState).toEqual({conditionTypes: [
+        {'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': false},
+        {'id': 'testId', 'autoReleaseQuarantineEnabled': true},
+        {'id': 'testId2', 'autoReleaseQuarantineEnabled': true}
+      ]});
+      // other properties are not modified
+      expect(newState.other).toBe(otherObject);
+      expect(newState.viewState.other).toEqual(otherObject);
     });
   });
 });

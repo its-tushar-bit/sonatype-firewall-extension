@@ -6,32 +6,23 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.pages.FirewallAutoUnquarantinePage;
-import com.sonatype.clm.testing.functional.pages.FirewallConfigurationModal;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallAutoUnquarantineMtd;
-import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallAutoUnquarantineStatus;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallAutoUnquarantineYtd;
-import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallPolicyConditionTypes;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
-import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
-import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codeborne.selenide.Condition;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.checked;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.visible;
 import static com.google.common.collect.ImmutableMap.of;
-import static com.sonatype.insight.brain.model.repository.RepositoryContainer.REPOSITORY_CONTAINER_ID;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class FirewallAutoUnquarantinePageTest
     extends AbstractFunctionalTest
@@ -137,8 +128,8 @@ public class FirewallAutoUnquarantinePageTest
     page.firewallConfigurationModal().loadError().shouldBe(hidden);
     page.firewallConfigurationModal().saveButton().shouldBe(visible);
     page.firewallConfigurationModal().cancelButton().shouldBe(visible);
-    page.firewallConfigurationModal().autoUnquarantineToggle().shouldBe(visible);
-    page.firewallConfigurationModal().autoUnquarantineCheckBox().shouldNotBe(checked);
+    page.firewallConfigurationModal().autoUnquarantineToggleIntegrityRating().shouldBe(visible);
+    page.firewallConfigurationModal().autoUnquarantineCheckBoxIntegrityRating().shouldNotBe(checked);
 
     eyesWatcher.eyesCheck("Auto Unquarantine Page - Auto Release from Quarantine Configuration Modal");
 
@@ -150,184 +141,15 @@ public class FirewallAutoUnquarantinePageTest
     page.firewallConfigurationModal().loadError().shouldBe(hidden);
     page.firewallConfigurationModal().saveButton().shouldBe(visible);
     page.firewallConfigurationModal().cancelButton().shouldBe(visible);
-    page.firewallConfigurationModal().autoUnquarantineToggle().shouldBe(visible);
-    page.firewallConfigurationModal().autoUnquarantineCheckBox().shouldNotBe(checked);
+    page.firewallConfigurationModal().autoUnquarantineToggleIntegrityRating().shouldBe(visible);
+    page.firewallConfigurationModal().autoUnquarantineCheckBoxIntegrityRating().shouldNotBe(checked);
+
+    page.firewallConfigurationModal().cancelButton().click();
+    page.firewallConfigurationModal().shouldBe(hidden);
   }
 
   @Test
-  @Ignore("Updating in separate PR")
-  public void testFirewallAutoUnquarantinePage_EnableAutoUnquarantineFromStatus() {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
-
-    refreshOrOpen(FirewallAutoUnquarantinePage.url());
-
-    page.shouldBe(visible);
-
-    final FirewallAutoUnquarantineStatus firewallAutoUnquarantineStatus = page.firewallAutoUnquarantineStatus();
-    firewallAutoUnquarantineStatus.shouldBe(visible);
-
-    FirewallConfigurationModal firewallConfigurationModal = page.firewallConfigurationModal();
-    firewallConfigurationModal.shouldBe(hidden);
-
-    //verify initial auto unquarantine status
-    firewallAutoUnquarantineStatus.statusIndicatorIcon().shouldBe(visible);
-    firewallAutoUnquarantineStatus.statusIndicatorIconActive().shouldBe(hidden);
-    firewallAutoUnquarantineStatus.statusLabel().shouldHave(Condition.text("Inactive"));
-    firewallAutoUnquarantineStatus.statusDescription().shouldBe(visible);
-
-    //open modal
-    firewallAutoUnquarantineStatus.configureLink().click();
-
-    //toggle
-    page.firewallConfigurationModal().autoUnquarantineToggle().click();
-
-    //save
-    firewallConfigurationModal.saveButton().click();
-
-    //after save
-    NxSubmitMask.seeAndWaitForDismissal();
-    firewallConfigurationModal.shouldBe(hidden);
-
-    PolicyMonitoring policyMonitoring = policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID);
-    assertThat(policyMonitoring).isNotNull();
-    assertThat(policyMonitoring.getOwnerId()).isEqualTo(REPOSITORY_CONTAINER_ID);
-    assertThat(policyMonitoring.getStageTypeId()).isEqualTo(StageTypes.PROXY.getId());
-
-    //verify auto unquarantine status after save
-    firewallAutoUnquarantineStatus.statusIndicatorIcon().shouldBe(visible);
-    firewallAutoUnquarantineStatus.statusIndicatorIconActive().shouldBe(visible);
-    firewallAutoUnquarantineStatus.statusLabel().shouldHave(Condition.text("Active"));
-    firewallAutoUnquarantineStatus.statusDescription().shouldBe(visible);
-  }
-
-  @Test
-  @Ignore("Updating in separate PR")
-  public void testFirewallAutoUnquarantine_DisableAutoUnquarantineFromStatus() {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
-    tempEntity.newPolicyMonitoring(REPOSITORY_CONTAINER_ID, StageTypes.PROXY.getId());
-
-    refreshOrOpen(FirewallAutoUnquarantinePage.url());
-
-    page.shouldBe(visible);
-
-    final FirewallAutoUnquarantineStatus firewallAutoUnquarantineStatus = page.firewallAutoUnquarantineStatus();
-    firewallAutoUnquarantineStatus.shouldBe(visible);
-
-    FirewallConfigurationModal firewallConfigurationModal = page.firewallConfigurationModal();
-    firewallConfigurationModal.shouldBe(hidden);
-
-    //verify initial auto unquarantine status
-    firewallAutoUnquarantineStatus.statusIndicatorIcon().shouldBe(visible);
-    firewallAutoUnquarantineStatus.statusIndicatorIconActive().shouldBe(hidden);
-    firewallAutoUnquarantineStatus.statusLabel().shouldHave(Condition.text("Active"));
-    firewallAutoUnquarantineStatus.statusDescription().shouldBe(visible);
-
-    //open modal
-    page.firewallAutoUnquarantineStatus().configureLink().click();
-
-    //toggle
-    page.firewallConfigurationModal().autoUnquarantineToggle().click();
-
-    //save
-    firewallConfigurationModal.saveButton().click();
-
-    //after save
-    NxSubmitMask.seeAndWaitForDismissal();
-    firewallConfigurationModal.shouldBe(hidden);
-
-    assertThat(policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID)).isNull();
-
-    //verify auto unquarantine status after save
-    firewallAutoUnquarantineStatus.statusIndicatorIcon().shouldBe(visible);
-    firewallAutoUnquarantineStatus.statusIndicatorIconActive().shouldBe(hidden);
-    firewallAutoUnquarantineStatus.statusLabel().shouldHave(Condition.text("Inactive"));
-    firewallAutoUnquarantineStatus.statusDescription().shouldBe(visible);
-  }
-
-  @Test
-  @Ignore("Updating in separate PR")
-  public void testFirewallAutoUnquarantinePage_EnableAutoUnquarantineFromPolicyConditionTypes() {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
-
-    refreshOrOpen(FirewallAutoUnquarantinePage.url());
-
-    page.shouldBe(visible);
-
-    final FirewallPolicyConditionTypes firewallPolicyConditionTypes = page.firewallPolicyConditionTypes();
-    firewallPolicyConditionTypes.shouldBe(visible);
-
-    final FirewallConfigurationModal firewallConfigurationModal = page.firewallConfigurationModal();
-    firewallConfigurationModal.shouldBe(hidden);
-
-    //open modal
-    firewallPolicyConditionTypes.moreLink().click();
-
-    //toggle
-    page.firewallConfigurationModal().autoUnquarantineToggle().click();
-
-    //save
-    firewallConfigurationModal.saveButton().click();
-
-    //after save
-    NxSubmitMask.seeAndWaitForDismissal();
-    firewallConfigurationModal.shouldBe(hidden);
-
-    PolicyMonitoring policyMonitoring = policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID);
-    assertThat(policyMonitoring).isNotNull();
-    assertThat(policyMonitoring.getOwnerId()).isEqualTo(REPOSITORY_CONTAINER_ID);
-    assertThat(policyMonitoring.getStageTypeId()).isEqualTo(StageTypes.PROXY.getId());
-
-    //verify auto unquarantine status after save
-    page.firewallAutoUnquarantineStatus().statusIndicatorIcon().shouldBe(visible);
-    page.firewallAutoUnquarantineStatus().statusIndicatorIconActive().shouldBe(visible);
-    page.firewallAutoUnquarantineStatus().statusLabel().shouldHave(Condition.text("Active"));
-    page.firewallAutoUnquarantineStatus().statusDescription().shouldBe(visible);
-  }
-
-  @Test
-  @Ignore("Updating in separate PR")
-  public void testFirewallAutoUnquarantine_DisableAutoUnquarantineFromPolicyConditionTypes() {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
-    tempEntity.newPolicyMonitoring(REPOSITORY_CONTAINER_ID, StageTypes.PROXY.getId());
-
-    refreshOrOpen(FirewallAutoUnquarantinePage.url());
-
-    page.shouldBe(visible);
-
-    final FirewallPolicyConditionTypes firewallPolicyConditionTypes = page.firewallPolicyConditionTypes();
-    firewallPolicyConditionTypes.shouldBe(visible);
-
-    final FirewallConfigurationModal firewallConfigurationModal = page.firewallConfigurationModal();
-    firewallConfigurationModal.shouldBe(hidden);
-
-    //open modal
-    page.firewallAutoUnquarantineStatus().configureLink().click();
-
-    //toggle
-    page.firewallConfigurationModal().autoUnquarantineToggle().click();
-
-    //save
-    firewallConfigurationModal.saveButton().click();
-
-    //after save
-    NxSubmitMask.seeAndWaitForDismissal();
-    firewallConfigurationModal.shouldBe(hidden);
-
-    assertThat(policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID)).isNull();
-
-    //verify auto unquarantine status after save
-    page.firewallAutoUnquarantineStatus().statusIndicatorIcon().shouldBe(visible);
-    page.firewallAutoUnquarantineStatus().statusIndicatorIconActive().shouldBe(hidden);
-    page.firewallAutoUnquarantineStatus().statusLabel().shouldHave(Condition.text("Inactive"));
-    page.firewallAutoUnquarantineStatus().statusDescription().shouldBe(visible);
-  }
-
-  @Test
-  public void testFirewallAutoUnquarantine_BackToFirewallButton() {
+  public void testFirewallAutoUnquarantinePage_BackToFirewallButton() {
     testCLMServer.getCLMServer().getConfiguration()
         .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
 

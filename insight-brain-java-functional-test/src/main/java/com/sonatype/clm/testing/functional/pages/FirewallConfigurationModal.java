@@ -18,12 +18,24 @@ public class FirewallConfigurationModal
     super(rootSelector, "#firewall-configuration-modal");
   }
 
-  public SelenideElement autoUnquarantineToggle() {
-    return child("#auto-unquarantine-toggle");
+  public SelenideElement autoUnquarantineToggleIntegrityRating() {
+    return child("#auto-unquarantine-toggle-integrity-rating");
   }
 
-  public NxCheckbox autoUnquarantineCheckBox() {
-    return new NxCheckbox(autoUnquarantineToggle());
+  public NxCheckbox autoUnquarantineCheckBoxIntegrityRating() {
+    return new NxCheckbox(autoUnquarantineToggleIntegrityRating());
+  }
+
+  public SelenideElement autoUnquarantineToggleAll() {
+    return child("#auto-unquarantine-toggle-all");
+  }
+
+  public SelenideElement autoUnquarantineToggleWithIndex(int index) {
+    return child("#auto-release-condition-toggles .nx-toggle:nth-of-type(" + index + ")");
+  }
+
+  public NxCheckbox autoUnquarantineCheckBoxWithIndex(int index) {
+    return new NxCheckbox(autoUnquarantineToggleWithIndex(index));
   }
 
   public Button saveButton() {

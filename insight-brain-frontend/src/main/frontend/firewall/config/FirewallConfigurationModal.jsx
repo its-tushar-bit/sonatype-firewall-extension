@@ -7,6 +7,7 @@
 import React from 'react';
 import {NxFieldset, NxForm, NxModal, NxToggle} from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
+import {INTEGRITY_RATING_POLICY_TYPE_ID} from './firewallConfigurationModalReducer';
 
 export default function FirewallConfigurationModal(props) {
   // Actions
@@ -14,7 +15,8 @@ export default function FirewallConfigurationModal(props) {
     toggleAutoUnquarantineEnabled,
     saveConfiguration,
     loadConfiguration,
-    closeConfigurationModal
+    closeConfigurationModal,
+    toggleAutoUnquarantineAll
   } = props;
 
   //viewState
@@ -26,7 +28,7 @@ export default function FirewallConfigurationModal(props) {
 
   //formState
   const {
-    autoUnquarantineEnabled
+    conditionTypes
   } = props;
 
   //autoUnquarantineState
@@ -34,6 +36,15 @@ export default function FirewallConfigurationModal(props) {
     loadedConfiguration,
     loadConfigurationError
   } = props;
+
+  const globalToggleState = (!conditionTypes
+      .filter(condition => condition.id !== INTEGRITY_RATING_POLICY_TYPE_ID)
+      .filter(condition => !condition.autoReleaseQuarantineEnabled)
+      .length > 0);
+
+  const getIntegrityRatingIndex = () => {
+    return conditionTypes.findIndex(element => element.id === INTEGRITY_RATING_POLICY_TYPE_ID);
+  };
 
   return (
     <NxModal id="firewall-configuration-modal" onClose={closeConfigurationModal}>
@@ -53,15 +64,38 @@ export default function FirewallConfigurationModal(props) {
         <div className="nx-modal-content">
           <NxFieldset isRequired
                       label="Auto Release From Quarantine"
-                      sublabel="When Auto Unquarantine is set to active, quarantined components will be automatically
-                                released when they are confirmed not malicious.">
-            <NxToggle id="auto-unquarantine-toggle"
-                      inputId="auto-unquarantine-check"
-                      onChange={toggleAutoUnquarantineEnabled}
-                      isChecked={autoUnquarantineEnabled}>
-              Release Integrity Policy
+                      sublabel="When Auto Release from Quarantine is set to active, quarantined components will be
+                      automatically released when they are confirmed not malicious.">
+            <NxToggle id="auto-unquarantine-toggle-integrity-rating"
+                      className="nx-toggle--no-gap"
+                      onChange={() => toggleAutoUnquarantineEnabled(INTEGRITY_RATING_POLICY_TYPE_ID)}
+                      isChecked={conditionTypes[getIntegrityRatingIndex()].autoReleaseQuarantineEnabled}>
+              {conditionTypes[getIntegrityRatingIndex()].name} policy condition type
             </NxToggle>
           </NxFieldset>
+          <NxFieldset id="auto-release-manage-all"
+                      isRequired
+                      label="Auto Release Additional Policy Condition Types"
+                      sublabel="By default Auto Release from Quarantine will be ‘on’ for components with the policy
+                      condition type Integrity Rating. All policy condition types can be turned to ‘on’ or ‘off’
+                      individually.">
+            <NxToggle id="auto-unquarantine-toggle-all"
+                      className="nx-toggle--no-gap"
+                      onChange={() => toggleAutoUnquarantineAll(!globalToggleState)}
+                      isChecked={globalToggleState}>
+              Manage all additional policy condition types
+            </NxToggle>
+          </NxFieldset>
+          <fieldset id="auto-release-condition-toggles">
+            {conditionTypes.filter(condition => condition.id !== INTEGRITY_RATING_POLICY_TYPE_ID)
+                .map((condition, index) => (
+                  <NxToggle onChange={() => toggleAutoUnquarantineEnabled(condition.id)}
+                            isChecked={condition.autoReleaseQuarantineEnabled}
+                            key={index}>
+                    {condition.name}
+                  </NxToggle>
+                ))}
+          </fieldset>
         </div>
       </NxForm>
     </NxModal>
@@ -72,11 +106,12 @@ FirewallConfigurationModal.propTypes = {
   loadedConfiguration: PropTypes.bool.isRequired,
   loadConfigurationError: PropTypes.object,
   loadConfiguration: PropTypes.func.isRequired,
-  autoUnquarantineEnabled: PropTypes.bool.isRequired,
+  conditionTypes: PropTypes.array.isRequired,
   submitMaskSuccessState: PropTypes.bool,
   saveConfiguration: PropTypes.func.isRequired,
   saveConfigurationError: PropTypes.string,
   toggleAutoUnquarantineEnabled: PropTypes.func.isRequired,
   closeConfigurationModal: PropTypes.func.isRequired,
-  isDirty: PropTypes.bool.isRequired
+  isDirty: PropTypes.bool.isRequired,
+  toggleAutoUnquarantineAll: PropTypes.func.isRequired
 };

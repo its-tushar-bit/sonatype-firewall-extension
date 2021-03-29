@@ -7,10 +7,13 @@ import { shallow } from 'enzyme';
 import React from 'react';
 import configureStore from 'redux-mock-store';
 import FirewallConfigurationModal from '../../../../main/frontend/firewall/config/FirewallConfigurationModal';
+import {INTEGRITY_RATING_POLICY_TYPE_ID} from
+  '../../../../main/frontend/firewall/config/firewallConfigurationModalReducer';
 
 describe('FirewallConfigurationModalContainer', function() {
   let FirewallConfigurationModalContainer,
       toggleAutoUnquarantineEnabledMock,
+      toggleAutoUnquarantineAllMock,
       saveConfigurationMock,
       loadConfigurationMock,
       closeConfigurationModalMock,
@@ -22,6 +25,11 @@ describe('FirewallConfigurationModalContainer', function() {
     toggleAutoUnquarantineEnabledMock = jasmine.createSpy('toggleAutoUnquarantineEnabledMock').and
         .returnValue({
           type: 'TOGGLE_FIREWALL_AUTO_RELEASE_ENABLED'
+        });
+
+    toggleAutoUnquarantineAllMock = jasmine.createSpy('toggleAutoUnquarantineAllMock').and
+        .returnValue({
+          type: 'TOGGLE_FIREWALL_AUTO_RELEASE_ALL'
         });
 
     saveConfigurationMock = jasmine.createSpy('saveConfigurationMock').and.returnValue({
@@ -40,6 +48,7 @@ describe('FirewallConfigurationModalContainer', function() {
         require('inject-loader!../../../../main/frontend/firewall/config/FirewallConfigurationModalContainer')({
           '../firewallActions': {
             toggleAutoUnquarantineEnabled: toggleAutoUnquarantineEnabledMock,
+            toggleAutoUnquarantineAll: toggleAutoUnquarantineAllMock,
             saveConfiguration: saveConfigurationMock,
             loadConfiguration: loadConfigurationMock,
             closeConfigurationModal: closeConfigurationModalMock
@@ -63,7 +72,7 @@ describe('FirewallConfigurationModalContainer', function() {
           isDirty: false
         },
         formState: {
-          autoUnquarantineEnabled: false
+          conditionTypes: [{'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': false}]
         }
       }
     };
@@ -80,7 +89,9 @@ describe('FirewallConfigurationModalContainer', function() {
     expect(wrapper).toHaveProp('submitMaskSuccessState', null);
     expect(wrapper).toHaveProp('saveConfigurationError', null);
     expect(wrapper).toHaveProp('isDirty', false);
-    expect(wrapper).toHaveProp('autoUnquarantineEnabled', false);
+    expect(wrapper).toHaveProp('conditionTypes', [
+      {'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': false}
+    ]);
 
     state = {
       ...state,
@@ -104,8 +115,7 @@ describe('FirewallConfigurationModalContainer', function() {
           isDirty: true
         },
         formState: {
-          ...state.firewallConfigurationModal.formState,
-          autoUnquarantineEnabled: true
+          conditionTypes: [{'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': true}]
         }
       }
     };
@@ -116,17 +126,21 @@ describe('FirewallConfigurationModalContainer', function() {
     expect(wrapper).toHaveProp('submitMaskSuccessState', true);
     expect(wrapper).toHaveProp('saveConfigurationError', 'error');
     expect(wrapper).toHaveProp('isDirty', true);
-    expect(wrapper).toHaveProp('autoUnquarantineEnabled', true);
+    expect(wrapper).toHaveProp('conditionTypes', [
+      {'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': true}
+    ]);
   });
 
   it('maps action creators to props', function() {
     const wrapper = shallow(vdom).dive();
     const toggleAutoUnquarantineEnabledActionCreator = wrapper.prop('toggleAutoUnquarantineEnabled');
+    const toggleAutoUnquarantineAllActionCreator = wrapper.prop('toggleAutoUnquarantineAll');
     const saveConfigurationActionCreator = wrapper.prop('saveConfiguration');
     const loadConfigurationActionCreator = wrapper.prop('loadConfiguration');
     const closeConfigurationModalActionCreator = wrapper.prop('closeConfigurationModal');
 
     expect(toggleAutoUnquarantineEnabledActionCreator).toEqual(jasmine.any(Function));
+    expect(toggleAutoUnquarantineAllActionCreator).toEqual(jasmine.any(Function));
     expect(saveConfigurationActionCreator).toEqual(jasmine.any(Function));
     expect(loadConfigurationActionCreator).toEqual(jasmine.any(Function));
     expect(closeConfigurationModalActionCreator).toEqual(jasmine.any(Function));
@@ -155,6 +169,15 @@ describe('FirewallConfigurationModalContainer', function() {
       { type: 'SAVE_FIREWALL_CONFIGURATION' },
       { type: 'LOAD_FIREWALL_CONFIGURATION'},
       { type: 'CLOSE_FIREWALL_CONFIGURATION_MODAL'}
+    ]);
+
+    toggleAutoUnquarantineAllActionCreator();
+    expect(store.getActions()).toEqual([
+      { type: 'TOGGLE_FIREWALL_AUTO_RELEASE_ENABLED' },
+      { type: 'SAVE_FIREWALL_CONFIGURATION' },
+      { type: 'LOAD_FIREWALL_CONFIGURATION'},
+      { type: 'CLOSE_FIREWALL_CONFIGURATION_MODAL'},
+      { type: 'TOGGLE_FIREWALL_AUTO_RELEASE_ALL' }
     ]);
   });
 

@@ -23,7 +23,7 @@ import {
   FIREWALL_QUARANTINE_SUMMARY_FAILED
 } from './firewallActions';
 import {__, always, lensPath, over, merge} from 'ramda';
-import {pathSet, propSet} from '../util/jsUtil';
+import {pathSet} from '../util/jsUtil';
 
 const initialState = Object.freeze({
   viewState: Object.freeze({
@@ -138,9 +138,17 @@ const setShowConfigurationModal = (payload, state) => ({
 
 const saveConfigurationFulfilled = (payload, state) => ({
   ...state,
-  autoUnquarantineState: pathSet(['viewState', 'enabledPolicyConditionTypesCount'],
-      payload.autoUnquarantineEnabled ? 1 : 0, state.autoUnquarantineState),
-  configurationState: propSet('autoUnquarantineEnabled', payload.autoUnquarantineEnabled, state.configurationState)
+  autoUnquarantineState: {
+    ...state.autoUnquarantineState,
+    viewState: {
+      ...state.autoUnquarantineState.viewState,
+      enabledPolicyConditionTypesCount: numberOfEnabledPolicyConditionTypesCount(payload),
+      totalPolicyConditionTypesCount: payload.length
+    }
+  },
+  configurationState: {
+    autoUnquarantineEnabled: numberOfEnabledPolicyConditionTypesCount(payload) > 0
+  }
 });
 
 const loadConfigurationRequested = (_, state) =>

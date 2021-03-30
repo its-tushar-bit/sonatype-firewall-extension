@@ -37,6 +37,9 @@ export default function ComponentOverviewTile(props) {
     if (obligationCounts.FLAGGED > 0) {
       return 'Flagged';
     }
+    if (obligations.length === 0) {
+      return licenseLegalData.effectiveLicenses.length === 0 ? 'Unreviewed' : 'Complete';
+    }
     if (reviewedCount === 0) {
       return 'Unreviewed';
     }

@@ -24,6 +24,7 @@ describe('ComponentOverviewTile', function() {
     minimalProps = {
       component: {
         licenseLegalData: {
+          effectiveLicenses: ['license'],
           componentCopyrightLastUpdatedAt: 1616356809832,
           componentCopyrightLastUpdatedByUsername: 'user1',
           componentNoticesLastUpdatedAt: 1618873200000,
@@ -183,6 +184,45 @@ describe('ComponentOverviewTile', function() {
     });
     expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('In Progress');
   });
+
+  it('renders the review status as unreviewed if there are no obligations and no effective licenses', function() {
+    const wrapper = getShallowComponent({
+      component: {
+        ...minimalProps.component,
+        licenseLegalData: {
+          ...minimalProps.component.licenseLegalData,
+          effectiveLicenses: [],
+          obligations: []
+        }
+      }
+    });
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Unreviewed');
+  });
+
+  it('renders the review status as complete if there are no obligations and one or more effective licenses',
+      function() {
+        let wrapper = getShallowComponent({
+          component: {
+            ...minimalProps.component,
+            licenseLegalData: {
+              ...minimalProps.component.licenseLegalData,
+              obligations: []
+            }
+          }
+        });
+        expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Complete');
+        wrapper = getShallowComponent({
+          component: {
+            ...minimalProps.component,
+            licenseLegalData: {
+              ...minimalProps.component.licenseLegalData,
+              effectiveLicenses: ['license1', 'license2'],
+              obligations: []
+            }
+          }
+        });
+        expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Complete');
+      });
 
   it('renders no last modified and modified by', function() {
     const wrapper = getShallowComponent({

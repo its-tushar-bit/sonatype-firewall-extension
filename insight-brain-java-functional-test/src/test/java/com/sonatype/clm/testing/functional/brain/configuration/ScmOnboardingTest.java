@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
+import com.codeborne.selenide.WebDriverRunner;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -42,6 +43,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.openqa.selenium.Keys;
+import org.openqa.selenium.interactions.Actions;
 
 import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
@@ -270,6 +272,8 @@ public class ScmOnboardingTest
     // and form elements are hidden
     scmOnboardingPage.hostUrl().shouldBe(hidden);
     scmOnboardingPage.resultsTable().shouldBe(hidden);
+
+    eyesWatcher.eyesCheck("ScmOnboarding error token not found");
   }
 
   @Test
@@ -328,6 +332,8 @@ public class ScmOnboardingTest
             "associated with the Test Org Organization. You may try a different host URL or manage your " +
             "SCM configuration in the Orgs & Policies page."
     ));
+
+    eyesWatcher.eyesCheck("ScmOnboarding authentication error");
 
     // when authentication is fixed and retry button is pressed
     removeStub(stubMapping);
@@ -776,6 +782,8 @@ public class ScmOnboardingTest
         "org2/broken-url-2 failed with Unsupported repository URL format: `ht://host/org2/broken-url-2.git`"
     ));
 
+    eyesWatcher.eyesCheck("ScmOnboarding import success / error message");
+
     // and can dismiss the dialog
     scmOnboardingPage.importStatusContinue().click();
     scmOnboardingPage.importStatusModal().shouldBe(hidden);
@@ -1020,6 +1028,13 @@ public class ScmOnboardingTest
     // and pagination buttons are present
     scmOnboardingPage.paginationButtons().shouldHaveSize(2);
 
+    // and move viewport and perform visual test
+    eyesWatcher.eyesCheck("ScmOnboarding list of repositories");
+    Actions actions = new Actions(WebDriverRunner.getWebDriver());
+    actions.moveToElement(scmOnboardingPage.paginationButtons().first());
+    actions.perform();
+    eyesWatcher.eyesCheck("ScmOnboarding pagination visible");
+
     // and be on the first page
     scmOnboardingPage.paginationButtons().get(0).shouldHave(cssClass("selected"));
 
@@ -1090,6 +1105,8 @@ public class ScmOnboardingTest
 
     // when we pull down the list
     OrganizationsDropdownMenu menu = scmOnboardingPage.organizationsDropdown().dropdownMenu();
+
+    eyesWatcher.eyesCheck("ScmOnboarding select organization dropdown");
 
     // then the org list is complete
     menu.options().containsAll(Arrays.asList(org, org2, org3, org4, org5));
@@ -1185,6 +1202,8 @@ public class ScmOnboardingTest
     scmOnboardingPage.loadingSpinner().shouldNotBe(visible);
     scmOnboardingPage.modalDialog().shouldBe(visible);
     scmOnboardingPage.hostUrl().shouldBe(visible, enabled);
+
+    eyesWatcher.eyesCheck("ScmOnboarding default host url modal");
 
     // and the git host URL field should default to the cloud provider
     scmOnboardingPage.hostUrl().shouldHave(value("https://github.com/"));
@@ -1360,6 +1379,8 @@ public class ScmOnboardingTest
     // then the status modal should appear
     scmOnboardingPage.importStatusModal().shouldBe(visible);
 
+    eyesWatcher.eyesCheck("ScmOnboarding cta modal dialog");
+
     // when we click the reports button
     scmOnboardingPage.importStatusCta().click();
 
@@ -1447,6 +1468,10 @@ public class ScmOnboardingTest
     scmOnboardingPage.createOrgButton().shouldHave(cssClass("disabled"));
     scmOnboardingPage.newOrgName().setValue("Foo Organization");
     scmOnboardingPage.createOrgButton().shouldNotHave(cssClass("disabled"));
+
+    eyesWatcher.eyesCheck("ScmOnboarding new organization modal");
+
+    // and pressing the create button
     scmOnboardingPage.createOrgButton().click();
     scmOnboardingPage.newOrgModal().shouldBe(hidden);
 

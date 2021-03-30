@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2.dto.legal;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTOV2;
 
@@ -16,7 +16,7 @@ public class ApiLicenseLegalApplicationComponentDTO
 
   public String displayName;
 
-  public List<ApiLicenseDTOV2> licenses = new ArrayList<>();
+  public Set<ApiLicenseDTOV2> licenses = new HashSet<>();
 
   public int reviewCompletedCount;
 

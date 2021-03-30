@@ -43,9 +43,9 @@ export default function LegalApplicationDetailsComponentRow({ applicationPublicI
       <NxTableCell className="legal-application-details-component-name nx-truncate-ellipsis">
         { displayName }
       </NxTableCell>
-      <NxTableCell className="legal-application-details-licenses nx-truncate-ellipsis">
+      <NxTableCell className="legal-application-details-licenses">
         {!isNilOrEmpty(licenses) &&
-          <div>
+          <div className="nx-truncate-ellipsis">
             <NxThreatIndicator policyThreatLevel={threatGroupLevel} />
             { pipe(map(prop('licenseName')), join(', '))(licenses) }
           </div>

@@ -265,6 +265,24 @@ public class LegalApplicationDashboardServiceTest
   }
 
   @Test
+  public void testGetLicenseLegalApplicationDashboard_SortedLicenses() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    List<String> licenseIds = Arrays.asList("MIT", "Apache-2.0", "LGPL-2.1", "Apache-1.0");
+
+    Triple<Application, Tag, PolicyEvaluation> triple =
+        setupApplicationWithLicenses(componentIdentifier, licenseIds.toArray(new String[0]));
+    Application app = triple.getLeft();
+
+    LicenseLegalApplicationComponentsFilterDTO filter = new LicenseLegalApplicationComponentsFilterDTO();
+
+    List<ApiLicenseLegalApplicationComponentDTO> result =
+        legalApplicationDashboardService.getLicenseLegalApplicationDashboard(app.getPublicId(), filter);
+
+    assertThat(result.get(0).licenses.stream().map(license -> license.licenseName)).containsExactly("Apache-1.0",
+        "Apache-2.0", "LGPL-2.1", "MIT");
+  }
+
+  @Test
   public void testGetLicenseLegalApplicationDashboard_ByReviewStatus_Unreviewed() {
     testGetLicenseLegalApplicationDashboard_ByReviewStatus(LicenseObligationReviewStatus.UNREVIEWED,
         ObligationStatus.OPEN, ObligationStatus.FLAGGED);

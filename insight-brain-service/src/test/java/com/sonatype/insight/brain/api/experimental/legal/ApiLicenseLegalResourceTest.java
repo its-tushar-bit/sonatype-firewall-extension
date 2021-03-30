@@ -191,7 +191,7 @@ public class ApiLicenseLegalResourceTest
     ApiLicenseLegalApplicationComponentDTO dto = result.get(0);
     assertThat(dto.hash).isEqualTo(applicationComponent.getHash());
     assertThat(dto.displayName).isEqualTo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString());
-    assertThat(dto.licenses.get(0).licenseId).isEqualTo("MIT");
+    assertThat(dto.licenses.iterator().next().licenseId).isEqualTo("MIT");
     assertThat(dto.reviewCompletedCount).isZero();
     assertThat(dto.reviewTotalCount).isZero();
     assertThat(dto.reviewStatus).isEqualTo(LicenseObligationReviewStatus.COMPLETED);

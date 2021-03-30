@@ -7,9 +7,11 @@ package com.sonatype.insight.brain.api.experimental.legal;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -253,13 +255,13 @@ public class LegalApplicationDashboardService
     return isEmpty(licenseIds) || licenseIds.stream().allMatch(License::isEffectivelyUnspecified);
   }
 
-  private List<ApiLicenseDTOV2> newApiLicenses(
+  private Set<ApiLicenseDTOV2> newApiLicenses(
       Set<String> licenseIds,
       Set<String> licenseThreatGroupNamesToInclude,
       Map<String, List<LicenseThreatGroup>> threatGroupsByLicenseId,
       Map<String, String> licenseNamesByLicenseId)
   {
-    List<ApiLicenseDTOV2> licenses = new ArrayList<>(licenseIds.size());
+    Set<ApiLicenseDTOV2> licenses = new TreeSet<>(Comparator.comparing(dto -> dto.licenseName));
     ApiLicenseDataAdapter licenseDataAdapter = new ApiLicenseDataAdapter();
 
     for (String licenseId : licenseIds) {

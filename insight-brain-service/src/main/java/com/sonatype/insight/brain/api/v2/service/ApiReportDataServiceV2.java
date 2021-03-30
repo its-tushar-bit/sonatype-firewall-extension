@@ -184,19 +184,26 @@ public class ApiReportDataServiceV2
           component.displayName = ComponentDAO.getDisplayName(componentJson);
           component.violations = violationsByHash.getOrDefault(component.hash, Collections.emptyList());
           if (isDependencyDataInRestApiSupported()) {
-            component.dependencyData = new ApiDependencyDataDTO();
-            component.dependencyData.directDependency = componentJson.get("directDependency").booleanValue();
-            component.dependencyData.innerSource = componentJson.get("innerSource").booleanValue();
-            component.dependencyData.parentComponentPurl =
-                JsonUtils.getNullableString(componentJson.get("parentComponentPurl"));
-            component.dependencyData.innerSourceData =
-                JsonUtils.asPojo(componentJson.get("innerSourceData"), InnerSourceData.class);
+            Boolean directDependency = getBooleanValue(componentJson, "directDependency");
+            if (directDependency != null) {
+              component.dependencyData = new ApiDependencyDataDTO();
+              component.dependencyData.directDependency = directDependency;
+              component.dependencyData.innerSource = getBooleanValue(componentJson, "innerSource");
+              component.dependencyData.parentComponentPurl =
+                  JsonUtils.getNullableString(componentJson.get("parentComponentPurl"));
+              component.dependencyData.innerSourceData =
+                  JsonUtils.asPojo(componentJson.get("innerSourceData"), InnerSourceData.class);
+            }
           }
           components.add(component);
         }
       }
     }
     return components;
+  }
+
+  private Boolean getBooleanValue(JsonNode node, String fieldName) {
+    return node.get(fieldName) == null ? null : node.get(fieldName).booleanValue();
   }
 
   private ApiApplicationBaseDTO getApplicationMetadata(Application application) {

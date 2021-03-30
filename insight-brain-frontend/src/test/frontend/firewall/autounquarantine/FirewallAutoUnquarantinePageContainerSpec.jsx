@@ -9,8 +9,8 @@ import configureStore from 'redux-mock-store';
 import FirewallAutoUnquarantinePage
   from '../../../../main/frontend/firewall/autounquarantine/FirewallAutoUnquarantinePage';
 
-describe('FirewallAutoUnqaurantinePageContainer', function() {
-  let FirewallAutoUnqaurantinePageContainer,
+describe('FirewallAutoUnquarantinePageContainer', function() {
+  let FirewallAutoUnquarantinePageContainer,
       loadDataMock,
       openConfigurationModalMock,
       store,
@@ -26,9 +26,9 @@ describe('FirewallAutoUnqaurantinePageContainer', function() {
       type: 'OPEN_FIREWALL_CONFIGURATION'
     });
 
-    FirewallAutoUnqaurantinePageContainer =
+    FirewallAutoUnquarantinePageContainer =
         require(
-            'inject-loader!../../../../main/frontend/firewall/autounquarantine/FirewallAutoUnqaurantinePageContainer')({
+            'inject-loader!../../../../main/frontend/firewall/autounquarantine/FirewallAutoUnquarantinePageContainer')({
           '../firewallActions': {
             loadData: loadDataMock,
             openConfigurationModal: openConfigurationModalMock
@@ -63,7 +63,7 @@ describe('FirewallAutoUnqaurantinePageContainer', function() {
     };
 
     store = configureStore()(() => state);
-    vdom = <FirewallAutoUnqaurantinePageContainer store={store}/>;
+    vdom = <FirewallAutoUnquarantinePageContainer store={store}/>;
   });
 
   it('maps the state slice to props', () => {

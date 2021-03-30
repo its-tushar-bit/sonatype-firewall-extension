@@ -26,7 +26,7 @@ import waiversModule from './waivers/module';
 import reportModule from './applicationReport/react/module';
 import advancedLegalModule from './advancedLegal/module';
 import FirewallContainer from './firewall/FirewallContainer';
-import FirewallAutoUnqaurantinePageContainer from './firewall/autounquarantine/FirewallAutoUnqaurantinePageContainer';
+import FirewallAutoUnquarantinePageContainer from './firewall/autounquarantine/FirewallAutoUnquarantinePageContainer';
 
 export default angular.module('managementApp',
     [
@@ -38,7 +38,7 @@ export default angular.module('managementApp',
     ])
     .component('advancedSearch', react2angular(withStoreProvider(AdvancedSearchContainer), [], ['$ngRedux', '$state']))
     .component('firewall', react2angular(withStoreProvider(FirewallContainer), [], ['$ngRedux', '$state']))
-    .component('firewallAutoUnquarantine', react2angular(withStoreProvider(FirewallAutoUnqaurantinePageContainer), [],
+    .component('firewallAutoUnquarantine', react2angular(withStoreProvider(FirewallAutoUnquarantinePageContainer), [],
         ['$ngRedux', '$state']))
     .config(routes);
 

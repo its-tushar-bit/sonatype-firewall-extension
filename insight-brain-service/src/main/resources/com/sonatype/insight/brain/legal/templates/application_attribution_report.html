@@ -30,6 +30,10 @@
       margin-top: 16px;
     }
 
+    h5 {
+      margin-left: 20px;
+    }
+
     pre {
       /* text wrap in <pre>
           https://css-tricks.com/snippets/css/make-pre-text-wrap/ */
@@ -134,20 +138,20 @@
   <!-- Notice Files -->
   <div th:if="${component.licenseLegalData.noticeFiles != null && #lists.size(component.licenseLegalData.noticeFiles) > 0}">
     <h4>Notice Files</h4>
-    <div class="containerBox">
-                <pre th:each="noticeFile : ${component.licenseLegalData.noticeFiles}"
-                     th:if="${#strings.equals(noticeFile.status, 'enabled')}"
-                     th:text="${noticeFile.content}" class="fileContent">Included Notice Files</pre>
+    <div class="containerBox"
+         th:each="noticeFile : ${component.licenseLegalData.noticeFiles}"
+         th:if="${#strings.equals(noticeFile.status, 'enabled')}">
+      <pre th:text="${noticeFile.content}" class="fileContent">Included Notice Files</pre>
     </div>
   </div>
 
   <!-- License Files -->
   <div th:if="${component.licenseLegalData.licenseFiles != null && #lists.size(component.licenseLegalData.licenseFiles) > 0}">
     <h4>License Files</h4>
-    <div class="containerBox">
-                <pre th:each="licenseFile : ${component.licenseLegalData.licenseFiles}"
-                     th:if="${#strings.equals(licenseFile .status, 'enabled')}"
-                     th:text="${licenseFile.content}" class="fileContent">Included License Files</pre>
+    <div class="containerBox"
+         th:each="licenseFile : ${component.licenseLegalData.licenseFiles}"
+         th:if="${#strings.equals(licenseFile .status, 'enabled')}">
+      <pre th:text="${licenseFile.content}" class="fileContent">Included License Files</pre>
     </div>
   </div>
 
@@ -155,8 +159,11 @@
   <div th:if="${component.licenseLegalData.attributions != null &&
           #lists.size(component.licenseLegalData.attributions) > 0}">
     <h4>Attributions</h4>
-    <div th:each="attribution: ${component.licenseLegalData.attributions}" class="containerBox">
-      <pre th:text="${attribution.content}" class="fileContent"></pre>
+    <div th:each="attribution: ${component.licenseLegalData.attributions}">
+      <h5 th:text="${attribution.obligationName}"></h5>
+      <div class="containerBox">
+        <pre th:text="${attribution.content}" class="fileContent"></pre>
+      </div>
     </div>
 
   </div>
@@ -171,8 +178,7 @@
       <div th:each="license : ${applicationReport.licenseLegalMetadata}">
         <div th:if="${license.licenseName == effectiveLicense && !#strings.isEmpty(license.licenseText)}">
           <div class="containerBox">
-                        <pre th:text="${license.licenseText}" class="fileContent">Standard License Text
-                        </pre>
+            <pre th:text="${license.licenseText}" class="fileContent">Standard License Text</pre>
           </div>
         </div>
       </div>

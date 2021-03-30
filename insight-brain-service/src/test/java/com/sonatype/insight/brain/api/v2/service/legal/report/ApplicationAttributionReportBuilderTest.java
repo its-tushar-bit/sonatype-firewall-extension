@@ -73,7 +73,8 @@ public class ApplicationAttributionReportBuilderTest
         .add(new ApiLicenseLegalFileDTO("id2", "path2", "DISABLED", "hash4", ComponentLegalPartStatus.DISABLED));
 
     List<ComponentObligationAttributionDTO> attributions = new ArrayList<>();
-    attributions.add(new ComponentObligationAttributionDTO("id", "owner", "myObligaton", "myAttributionContent"));
+    attributions
+        .add(new ComponentObligationAttributionDTO("id", "owner", "Must State Changes", "myAttributionContent"));
 
     ApiLicenseLegalDataDTO licenseLegalData1 = new ApiLicenseLegalDataDTO();
     licenseLegalData1.copyrights = copyrights1;
@@ -130,6 +131,7 @@ public class ApplicationAttributionReportBuilderTest
     String expectedContent = IOUtils.toString(Objects.requireNonNull(getClass().getClassLoader()
             .getResource("ApplicationAttributionReportTest/expectedApplicationAttributionReport.html")),
         StandardCharsets.UTF_8);
+
     assertThat(content).isEqualToIgnoringWhitespace(expectedContent);
   }
 

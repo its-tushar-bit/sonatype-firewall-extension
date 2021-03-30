@@ -42,3 +42,7 @@ export const STAGE_NAME_TO_ID = {
   'Release': 'release',
   'Operate': 'operate'
 };
+
+export const EFFECTIVELY_UNSPECIFIED_LICENSES = [
+  'Not-Declared', 'No-Sources', 'No-Source-License', 'UNSPECIFIED', 'Not-Supported'
+];

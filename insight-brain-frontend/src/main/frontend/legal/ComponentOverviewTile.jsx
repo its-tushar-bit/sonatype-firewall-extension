@@ -7,7 +7,7 @@ import React from 'react';
 import * as PropTypes from 'prop-types';
 import { componentPropType } from './advancedLegalPropTypes';
 import { terseAgo } from '../util/CommonServices';
-import { STAGE_NAME_TO_DISPLAY, STAGE_NAME_TO_ID } from './advancedLegalConstants';
+import { EFFECTIVELY_UNSPECIFIED_LICENSES, STAGE_NAME_TO_DISPLAY, STAGE_NAME_TO_ID } from './advancedLegalConstants';
 import { NxPolicyViolationIndicator } from '@sonatype/react-shared-components';
 import { inc, prop, reduceBy } from 'ramda';
 
@@ -38,7 +38,8 @@ export default function ComponentOverviewTile(props) {
       return 'Flagged';
     }
     if (obligations.length === 0) {
-      return licenseLegalData.effectiveLicenses.length === 0 ? 'Unreviewed' : 'Complete';
+      return (licenseLegalData.effectiveLicenses.length === 0 || licenseLegalData.effectiveLicenses.every(
+          license => EFFECTIVELY_UNSPECIFIED_LICENSES.indexOf(license) !== -1)) ? 'Unreviewed' : 'Complete';
     }
     if (reviewedCount === 0) {
       return 'Unreviewed';

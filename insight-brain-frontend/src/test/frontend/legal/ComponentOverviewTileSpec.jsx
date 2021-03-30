@@ -224,6 +224,83 @@ describe('ComponentOverviewTile', function() {
         expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Complete');
       });
 
+  it('renders the review status as unreviewed if there are no obligations and effectively unspecified licenses',
+      function() {
+        let wrapper = getShallowComponent({
+          component: {
+            ...minimalProps.component,
+            licenseLegalData: {
+              ...minimalProps.component.licenseLegalData,
+              effectiveLicenses: ['Not-Declared'],
+              obligations: []
+            }
+          }
+        });
+        expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Unreviewed');
+
+        wrapper = getShallowComponent({
+          component: {
+            ...minimalProps.component,
+            licenseLegalData: {
+              ...minimalProps.component.licenseLegalData,
+              effectiveLicenses: ['No-Sources'],
+              obligations: []
+            }
+          }
+        });
+        expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Unreviewed');
+
+        wrapper = getShallowComponent({
+          component: {
+            ...minimalProps.component,
+            licenseLegalData: {
+              ...minimalProps.component.licenseLegalData,
+              effectiveLicenses: ['No-Source-License'],
+              obligations: []
+            }
+          }
+        });
+        expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Unreviewed');
+
+        wrapper = getShallowComponent({
+          component: {
+            ...minimalProps.component,
+            licenseLegalData: {
+              ...minimalProps.component.licenseLegalData,
+              effectiveLicenses: ['UNSPECIFIED'],
+              obligations: []
+            }
+          }
+        });
+        expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Unreviewed');
+
+        wrapper = getShallowComponent({
+          component: {
+            ...minimalProps.component,
+            licenseLegalData: {
+              ...minimalProps.component.licenseLegalData,
+              effectiveLicenses: ['Not-Supported'],
+              obligations: []
+            }
+          }
+        });
+        expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Unreviewed');
+
+        wrapper = getShallowComponent({
+          component: {
+            ...minimalProps.component,
+            licenseLegalData: {
+              ...minimalProps.component.licenseLegalData,
+              effectiveLicenses: [
+                'Not-Declared', 'No-Sources', 'No-Source-License', 'UNSPECIFIED', 'Not-Supported', 'Not-Supported'
+              ],
+              obligations: []
+            }
+          }
+        });
+        expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Unreviewed');
+      });
+
   it('renders no last modified and modified by', function() {
     const wrapper = getShallowComponent({
       component: {

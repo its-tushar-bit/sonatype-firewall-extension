@@ -11,6 +11,7 @@ describe('ComponentOverviewTile', function() {
       $state,
       now,
       terseAgoSpy,
+      timeAgoSpy,
       minimalProps,
       ComponentOverviewTile;
 
@@ -21,6 +22,10 @@ describe('ComponentOverviewTile', function() {
     };
     now = new Date();
     terseAgoSpy = jasmine.createSpy('terseAgo').and.callFake(time => 'terseAgo ' + time);
+    timeAgoSpy = jasmine.createSpy('timeAgo').and.callFake(time => ({
+      age: 'timeAgo ' + time,
+      qualifier: 'ago'
+    }));
     minimalProps = {
       component: {
         licenseLegalData: {
@@ -51,7 +56,7 @@ describe('ComponentOverviewTile', function() {
     };
     ComponentOverviewTile =
         require('inject-loader!../../../main/frontend/legal/ComponentOverviewTile')({
-          '../util/CommonServices': { terseAgo: terseAgoSpy }
+          '../util/CommonServices': { terseAgo: terseAgoSpy, timeAgo: timeAgoSpy }
         }).default;
     getShallowComponent = enzymeUtils.getShallowComponent(ComponentOverviewTile, minimalProps);
   });
@@ -346,7 +351,7 @@ describe('ComponentOverviewTile', function() {
         }
       }
     });
-    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText('terseAgo ' + getTimeDaysAgo(1) + ' ago');
+    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText('timeAgo ' + getTimeDaysAgo(1) + ' ago');
     expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText('user1');
 
     wrapper = getShallowComponent({
@@ -371,7 +376,7 @@ describe('ComponentOverviewTile', function() {
         }
       }
     });
-    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText('terseAgo ' + getTimeDaysAgo(2) + ' ago');
+    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText('timeAgo ' + getTimeDaysAgo(2) + ' ago');
     expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText('user2');
 
     wrapper = getShallowComponent({
@@ -396,7 +401,7 @@ describe('ComponentOverviewTile', function() {
         }
       }
     });
-    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText('terseAgo ' + getTimeDaysAgo(3) + ' ago');
+    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText('timeAgo ' + getTimeDaysAgo(3) + ' ago');
     expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText('user3');
 
     wrapper = getShallowComponent({
@@ -421,7 +426,7 @@ describe('ComponentOverviewTile', function() {
         }
       }
     });
-    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText('terseAgo ' + getTimeDaysAgo(4) + ' ago');
+    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText('timeAgo ' + getTimeDaysAgo(4) + ' ago');
     expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText('user4');
 
     wrapper = getShallowComponent({
@@ -446,7 +451,7 @@ describe('ComponentOverviewTile', function() {
         }
       }
     });
-    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText('terseAgo ' + getTimeDaysAgo(5) + ' ago');
+    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText('timeAgo ' + getTimeDaysAgo(5) + ' ago');
     expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText('user5');
 
     wrapper = getShallowComponent({
@@ -471,7 +476,7 @@ describe('ComponentOverviewTile', function() {
         }
       }
     });
-    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText('terseAgo ' + getTimeDaysAgo(6) + ' ago');
+    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText('timeAgo ' + getTimeDaysAgo(6) + ' ago');
     expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText('user6');
 
     wrapper = getShallowComponent({
@@ -496,7 +501,7 @@ describe('ComponentOverviewTile', function() {
         }
       }
     });
-    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText('terseAgo ' + getTimeDaysAgo(7) + ' ago');
+    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText('timeAgo ' + getTimeDaysAgo(7) + ' ago');
     expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText('user7');
   });
 

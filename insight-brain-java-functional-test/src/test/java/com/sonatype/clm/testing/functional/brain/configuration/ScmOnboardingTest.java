@@ -43,6 +43,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.openqa.selenium.Keys;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.interactions.Actions;
 
 import static com.codeborne.selenide.CollectionCondition.exactTexts;
@@ -1192,8 +1193,8 @@ public class ScmOnboardingTest
     scmOnboardingPage.organizationsDropdown().click();
     ElementsCollection menuButtons = scmOnboardingPage.orgDropdownItems();
 
-    // then the org list is complete. Should be sorted alphabetically with the current option at the top, duped
-    menuButtons.shouldHave(exactTexts("Select", "Custom Host", "Custom Token", "Test Org", "Test Org 2"));
+    // then the org list is complete. Should be sorted alphabetically
+    menuButtons.shouldHave(exactTexts("Custom Host", "Custom Token", "Test Org", "Test Org 2"));
 
     // when we select an org
     menuButtons.find(exactText("Test Org")).click();
@@ -1308,17 +1309,16 @@ public class ScmOnboardingTest
     // when we pull down the list and filter we should see matching values
     scmOnboardingPage.organizationsDropdown().click();
     scmOnboardingPage.orgDropdownFilter().setValue("a-");
-    // note that "Test Org" is the current org and will show up as the first entry regardless of the filter
-    scmOnboardingPage.orgDropdownItems().shouldHave(texts("Test Org", "A-b", "A-c", "a-Bb"));
+    scmOnboardingPage.orgDropdownItems().shouldHave(texts("A-b", "A-c", "a-Bb"));
     clearOrgFilter(scmOnboardingPage);
     scmOnboardingPage.orgDropdownFilter().setValue("A-");
-    scmOnboardingPage.orgDropdownItems().shouldHave(texts("Test Org", "A-b", "A-c", "a-Bb"));
+    scmOnboardingPage.orgDropdownItems().shouldHave(texts("A-b", "A-c", "a-Bb"));
     clearOrgFilter(scmOnboardingPage);
     scmOnboardingPage.orgDropdownFilter().setValue("foo");
-    scmOnboardingPage.orgDropdownItems().shouldBe(texts("Test Org"));
+    scmOnboardingPage.orgDropdownItems().shouldHaveSize(0);
     clearOrgFilter(scmOnboardingPage);
     scmOnboardingPage.orgDropdownFilter().setValue("A-b");
-    scmOnboardingPage.orgDropdownItems().shouldHave(texts("Test Org", "A-b", "a-Bb"));
+    scmOnboardingPage.orgDropdownItems().shouldHave(texts("A-b", "a-Bb"));
   }
 
   private void clearOrgFilter(final ScmOnboardingPage scmOnboardingPage) {
@@ -1346,14 +1346,13 @@ public class ScmOnboardingTest
     // when we pull down the list and filter we should see matching values
     scmOnboardingPage.organizationsDropdown().click();
     scmOnboardingPage.orgDropdownFilter().setValue("est");
-    // note that "Test Org" is the current org and will show up as the first entry regardless of the fitler
-    scmOnboardingPage.orgDropdownItems().shouldHave(texts("Test Org", "Test Org"));
-    clearOrgFilter(scmOnboardingPage);
-    scmOnboardingPage.orgDropdownFilter().setValue("foo");
     scmOnboardingPage.orgDropdownItems().shouldHave(texts("Test Org"));
     clearOrgFilter(scmOnboardingPage);
+    scmOnboardingPage.orgDropdownFilter().setValue("foo");
+    scmOnboardingPage.orgDropdownItems().shouldHaveSize(0);
+    clearOrgFilter(scmOnboardingPage);
     scmOnboardingPage.orgDropdownFilter().setValue("st or");
-    scmOnboardingPage.orgDropdownItems().shouldBe(texts("Test Org", "Test Org"));
+    scmOnboardingPage.orgDropdownItems().shouldBe(texts("Test Org"));
   }
 
   @Test
@@ -1679,5 +1678,50 @@ public class ScmOnboardingTest
     scmOnboardingPage.hostUrlAuthError().shouldHave(text("Authentication Error. IQ Server was unable to authenticate " +
             "with GitHub using the credentials associated with the Custom Host Organization."));
     scmOnboardingPage.hostUrlAuthErrorLink().shouldHave(attribute("href", expectedUrl));
+  }
+
+  @Test
+  public void testSelectOrganization_updatesUrl() throws Exception {
+    // given an org
+    setupOrgSourceControl();
+    setupMockRepos();
+    Organization otherOrg = tempEntity.newOrganization("Other Org");
+    refreshOrOpen(ScmOnboardingPage.url(otherOrg.getId()));
+    loginAsAdmin();
+
+    // when a different org is selected
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    scmOnboardingPage.hostUrlContinueButton().click();
+    scmOnboardingPage.organizationsDropdown().click();
+    scmOnboardingPage.orgDropdownItems().find(exactText("Test Org")).click();
+
+    // then the URL is updated
+    WebDriver driver = WebDriverRunner.getWebDriver();
+    assertThat(driver.getCurrentUrl()).endsWith("#/onboarding/" + org.getId());
+
+    // when switching back to the original org
+    scmOnboardingPage.organizationsDropdown().click();
+    scmOnboardingPage.orgDropdownItems().find(exactText("Other Org")).click();
+
+    // then the URL is updated
+    assertThat(driver.getCurrentUrl()).endsWith("#/onboarding/" + otherOrg.getId());
+
+    // when navigating back expect org to change to previous org
+    driver.navigate().back();
+    scmOnboardingPage.organizationsDropdown().shouldBe(enabled);
+    scmOnboardingPage.organizationsDropdown().selectedOrganization().shouldHave(text("Test Org"));
+    assertThat(driver.getCurrentUrl()).endsWith("#/onboarding/" + org.getId());
+
+    // when reloading the browser expect org to stay the same
+    driver.navigate().refresh();
+    scmOnboardingPage.organizationsDropdown().shouldBe(enabled);
+    scmOnboardingPage.organizationsDropdown().selectedOrganization().shouldHave(text("Test Org"));
+    assertThat(driver.getCurrentUrl()).endsWith("#/onboarding/" + org.getId());
+
+    // when navigating forward expect org to change to previous org
+    driver.navigate().forward();
+    scmOnboardingPage.organizationsDropdown().shouldBe(enabled);
+    scmOnboardingPage.organizationsDropdown().selectedOrganization().shouldHave(text("Other Org"));
+    assertThat(driver.getCurrentUrl()).endsWith("#/onboarding/" + otherOrg.getId());
   }
 }

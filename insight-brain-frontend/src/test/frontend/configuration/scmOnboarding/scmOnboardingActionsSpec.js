@@ -73,6 +73,24 @@ describe('scmOnboardingActions', function() {
         });
       });
 
+      beforeEach(function() {
+        store = SpecUtil.mockReduxStore({
+          scmOnboarding: {
+            formState: {
+              selectedOrganization: null
+            }
+          },
+          router: {
+            currentState: {
+              name: 'scmOnboardingOrg'
+            },
+            prevState: {
+              name: null
+            }
+          }
+        });
+      });
+
       it('always loads the feature flag and org list', () => {
         // when loadPage action is dispatched
         return store.dispatch(scmOnboardingActions.loadPage()).then(() => {
@@ -143,6 +161,24 @@ describe('scmOnboardingActions', function() {
       const organizationsPayload = [{id: 'ownerId'}, {id: undefined}];
 
       function testFailure(testLabel, responsesSupplier) {
+        beforeEach(function() {
+          store = SpecUtil.mockReduxStore({
+            scmOnboarding: {
+              formState: {
+                selectedOrganization: orgResults[0]
+              }
+            },
+            router: {
+              currentState: {
+                name: 'scmOnboardingOrg'
+              },
+              prevState: {
+                name: null
+              }
+            }
+          });
+        });
+
         it(`fails properly when it calls ${testLabel}`, function() {
           mockAxiosCalls(responsesSupplier());
 

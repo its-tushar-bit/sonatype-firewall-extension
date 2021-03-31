@@ -18,16 +18,12 @@ export default function TargetOrganizationDropdown(props) {
     // output: selected organization
     selectedOrganization,
 
-    // action
-    setSelectedOrganization
+    // angular state
+    $state
   } = props;
 
   const [isOpen, setOpen] = useState(false),
-      onToggleCollapse = () => { setOpen(!isOpen); },
-      onClick = (event) => {
-        setSelectedOrganization(event);
-        setOpen(false);
-      };
+      onToggleCollapse = () => { setOpen(!isOpen); };
 
   function getOptionClassNames(isSelected) {
     return classnames('nx-dropdown-button', 'iq-scm-onboarding-dropdown__option', {
@@ -60,12 +56,12 @@ export default function TargetOrganizationDropdown(props) {
       { organizations
           .filter(org => org.id !== 'ROOT_ORGANIZATION_ID')
           .map(org =>
-            <button key={org.organization.id}
-                    onClick={() => {onClick(org);}}
-                    className={getOptionClassNames(selectedOrganization &&
-                        selectedOrganization.organization.id === org.id)}>
+            <a key={org.organization.id}
+               href={$state.href('scmOnboardingOrg', {organizationId: org.organization.id})}
+               className={getOptionClassNames(selectedOrganization &&
+                  selectedOrganization.organization.id === org.id)}>
               {org.organization.name}
-            </button>
+            </a>
           )}
     </DropdownFilterInput>
   );
@@ -74,6 +70,6 @@ export default function TargetOrganizationDropdown(props) {
 TargetOrganizationDropdown.propTypes = {
   organizations: PropTypes.arrayOf(PropTypes.shape(organizationPropType)),
   loadingOrganizations: PropTypes.bool,
-  setSelectedOrganization: PropTypes.func.isRequired,
-  selectedOrganization: PropTypes.shape(organizationPropType)
+  selectedOrganization: PropTypes.shape(organizationPropType),
+  $state: PropTypes.object.isRequired
 };

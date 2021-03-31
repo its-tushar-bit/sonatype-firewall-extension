@@ -203,7 +203,6 @@ ResultsTable.propTypes = {
   totalRepositories: PropTypes.number,
   selectedRepositoryCount: PropTypes.number,
   importedRepositoryCount: PropTypes.number,
-  preselectedOrganizationId: PropTypes.string,
   selectedRepositories: PropTypes.arrayOf(PropTypes.shape(repositoryPropType)),
   isAllChecked: PropTypes.bool,
   sortConfiguration: PropTypes.shape({

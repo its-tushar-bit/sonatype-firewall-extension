@@ -1118,7 +1118,16 @@ describe('scmOnboardingReducer', function() {
         }
       });
 
-      const newState = reduce(state, { type: UI_ROUTER_ON_FINISH });
+      const payload = {
+        toState: {
+          name: 'scmOnboarding'
+        },
+        toParams: {
+          organizationId: 'org1'
+        }
+      };
+
+      const newState = reduce(state, { type: UI_ROUTER_ON_FINISH, payload: payload });
 
       // then state is reset
       expect(newState.formState).toEqual({
@@ -1158,6 +1167,47 @@ describe('scmOnboardingReducer', function() {
       expect(newState.rootCustomProp).toBeUndefined();
 
       // and configState is retained
+      expect(newState.configState).toEqual(state.configState);
+    });
+
+    it('retains all state when organizationId changes', () => {
+      // given a state with lots of values set
+      const state = Object.freeze({
+        configState: {
+          isScmOnboardingFeatureEnabled: true,
+          customProp: 'configValue'
+        },
+        viewState: {
+          customProp: 'viewValue'
+        },
+        formState: {
+          customProp: 'formValue'
+        },
+        sortConfiguration: {
+          customProp: 'sortValue'
+        },
+        rootCustomProp: {
+          mykey: 'rootCustomPropValue'
+        }
+      });
+
+      // retains state when not 'leaving' scmOnboarding
+      const payload = {
+        toState: {
+          name: 'scmOnboardingOrg'
+        },
+        fromState: {
+          name: 'scmOnboardingOrg'
+        }
+      };
+
+      const newState = reduce(state, { type: UI_ROUTER_ON_FINISH, payload: payload });
+
+      // then state is retained
+      expect(newState.formState).toEqual(state.formState);
+      expect(newState.viewState).toEqual(state.viewState);
+      expect(newState.sortConfiguration).toEqual(state.sortConfiguration);
+      expect(newState.rootCustomProp).toEqual(state.rootCustomProp);
       expect(newState.configState).toEqual(state.configState);
     });
   });

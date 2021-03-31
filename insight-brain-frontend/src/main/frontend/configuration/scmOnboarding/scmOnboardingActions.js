@@ -59,7 +59,21 @@ export const SCM_ONBOARDING_SHOW_HOST_DIALOG = 'SCM_ONBOARDING_SHOW_HOST_DIALOG'
 export const SCM_ONBOARDING_IS_IMPORT_STATUS_MODAL_VISIBLE = 'SCM_ONBOARDING_IS_IMPORT_STATUS_MODAL_VISIBLE';
 
 export function loadPage(orgId) {
-  return function(dispatch) {
+
+  function isRoutedFromAndToScmOnboarding(getState) {
+    return getState().router.currentState.name === 'scmOnboardingOrg'
+        && getState().router.prevState.name === 'scmOnboardingOrg';
+  }
+
+  return function(dispatch, getState) {
+    // retain state if navigating using router within the same page
+    if (isRoutedFromAndToScmOnboarding(getState)) {
+      // update form with values from router
+      const selectedOrganization = getState().scmOnboarding.formState.organizations
+          .find(org => org.organization.id === orgId);
+      dispatch(setSelectedOrganization(selectedOrganization));
+      return;
+    }
     dispatch(loadPageRequested(orgId));
 
     let config = axios.get(getScmOnboardingConfigUrl());

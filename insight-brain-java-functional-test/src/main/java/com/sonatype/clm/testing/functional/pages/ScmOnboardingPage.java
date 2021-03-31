@@ -246,7 +246,7 @@ public class ScmOnboardingPage
   }
 
   public ElementsCollection orgDropdownItems() {
-    return children("#iq-scm-target-organization button");
+    return children("#iq-scm-target-organization a");
   }
 
   public SelenideElement orgDropdownFilter() {

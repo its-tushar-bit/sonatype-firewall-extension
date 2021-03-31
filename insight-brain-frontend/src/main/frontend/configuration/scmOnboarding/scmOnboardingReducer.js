@@ -85,9 +85,15 @@ const initialState = {
 };
 
 /*
- resets the page to a clean state, ready for subsequent calls
+ * Router information has changed
  */
-function resetPage(payload, state) {
+function onRouterFinish(payload, state) {
+  // retain state if navigating using router within the same page
+  if (payload.toState.name === 'scmOnboardingOrg' && payload.fromState.name === 'scmOnboardingOrg') {
+    return state;
+  }
+
+  // resets the page to a clean state, ready for subsequent calls
   return {
     ...initialState,
     // retain only the config
@@ -540,7 +546,7 @@ const reducerActionMap = {
 
   [SCM_ONBOARDING_IS_IMPORT_STATUS_MODAL_VISIBLE]: setIsImportStatusDialogVisibleChanged,
 
-  [UI_ROUTER_ON_FINISH]: resetPage
+  [UI_ROUTER_ON_FINISH]: onRouterFinish
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

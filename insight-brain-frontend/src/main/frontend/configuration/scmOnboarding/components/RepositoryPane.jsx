@@ -186,7 +186,8 @@ export default function RepositoryPane(props) {
           <TargetOrganizationDropdown { ...{
             organizations,
             selectedOrganization,
-            setSelectedOrganization
+            setSelectedOrganization,
+            $state
           }}/>
           <NxButton onClick={() => setIsNewOrganizationModalVisible(true)} id='repository-pane-add-org'>
             <NxFontAwesomeIcon icon={faPlus}/> New Organization

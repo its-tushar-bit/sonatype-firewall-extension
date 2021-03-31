@@ -170,8 +170,7 @@ export default function ComponentOverviewTile(props) {
                 <dd id="component-overview-tile-highest-license-threat-group" className="nx-read-only__data">
                   {licenseLegalData.highestEffectiveLicenseThreatGroup ?
                     <NxPolicyViolationIndicator
-                      threatLevelCategory=
-                        {licenseLegalData.highestEffectiveLicenseThreatGroup.licenseThreatGroupCategory}>
+                      policyThreatLevel={licenseLegalData.highestEffectiveLicenseThreatGroup.licenseThreatGroupLevel}>
                       {licenseLegalData.highestEffectiveLicenseThreatGroup.licenseThreatGroupName}
                     </NxPolicyViolationIndicator> : 'N/A'}
                 </dd>

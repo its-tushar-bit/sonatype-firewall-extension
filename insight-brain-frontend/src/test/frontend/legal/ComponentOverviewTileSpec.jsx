@@ -32,6 +32,7 @@ describe('ComponentOverviewTile', function() {
           componentLicensesLastUpdatedAt: 1618700400000,
           componentLicensesLastUpdatedByUsername: 'user3',
           highestEffectiveLicenseThreatGroup: {
+            licenseThreatGroupLevel: 8,
             licenseThreatGroupCategory: 'severe',
             licenseThreatGroupName: 'MyLtg'
           },
@@ -673,7 +674,7 @@ describe('ComponentOverviewTile', function() {
   it('renders the highest license threat group', function() {
     const wrapper = getShallowComponent();
     const policyViolationIndicator = wrapper.find(NxPolicyViolationIndicator);
-    expect(policyViolationIndicator).toHaveProp('threatLevelCategory', 'severe');
+    expect(policyViolationIndicator).toHaveProp('policyThreatLevel', 8);
     expect(policyViolationIndicator).toHaveText('MyLtg');
   });
 

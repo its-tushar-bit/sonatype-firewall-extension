@@ -1722,6 +1722,82 @@ public class ComponentLegalServiceTest
     assertComponentObligationAttribution(result, componentObligation);
   }
 
+  @Test
+  public void testSaveComponentCopyright_MaintainsFormatting() {
+    Application app = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentCopyrightDTO componentCopyrightDTO = new ComponentCopyrightDTO();
+    componentCopyrightDTO
+        .setComponentIdentifier(ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
+    CopyrightOverrideDTO copyrightOverrideDTO = new CopyrightOverrideDTO();
+    copyrightOverrideDTO.setContent("   Copyright with some formatting   ");
+    copyrightOverrideDTO.setStatus(ComponentLegalPartStatus.ENABLED);
+    componentCopyrightDTO.setCopyrightOverrides(Collections.singletonList(copyrightOverrideDTO));
+
+    componentLegalService.saveComponentCopyright(app.getType(), app.getPublicId(), componentCopyrightDTO);
+
+    assertThat(copyrightOverrideDAO.getByOwnerIdAndComponentIdentifier(app.getId(), componentIdentifier).get(0)
+        .getContent()).isEqualTo(copyrightOverrideDTO.getContent());
+  }
+
+  @Test
+  public void testSaveComponentCopyright_TrimsBlank() {
+    Application app = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentCopyrightDTO componentCopyrightDTO = new ComponentCopyrightDTO();
+    componentCopyrightDTO
+        .setComponentIdentifier(ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
+    CopyrightOverrideDTO copyrightOverrideDTO = new CopyrightOverrideDTO();
+    copyrightOverrideDTO.setOriginalContentHash("originalContentHash");
+    copyrightOverrideDTO.setContent("      ");
+    copyrightOverrideDTO.setStatus(ComponentLegalPartStatus.ENABLED);
+    componentCopyrightDTO.setCopyrightOverrides(Collections.singletonList(copyrightOverrideDTO));
+
+    componentLegalService.saveComponentCopyright(app.getType(), app.getPublicId(), componentCopyrightDTO);
+
+    assertThat(copyrightOverrideDAO.getByOwnerIdAndComponentIdentifier(app.getId(), componentIdentifier).get(0)
+        .getContent()).isEmpty();
+  }
+
+  @Test
+  public void testSaveComponentLegalFile_MaintainsFormatting() {
+    Application app = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentLegalFileDTO componentLegalFileDTO = new ComponentLegalFileDTO();
+    componentLegalFileDTO.setLegalFileType(LegalFileType.NOTICE);
+    componentLegalFileDTO
+        .setComponentIdentifier(ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
+    LegalFileOverrideDTO legalFileOverrideDTO = new LegalFileOverrideDTO();
+    legalFileOverrideDTO.setContent("   Legal file with some formatting   ");
+    legalFileOverrideDTO.setStatus(ComponentLegalPartStatus.ENABLED);
+    componentLegalFileDTO.setLegalFileOverrides(Collections.singletonList(legalFileOverrideDTO));
+
+    componentLegalService.saveComponentLegalFile(app.getType(), app.getPublicId(), componentLegalFileDTO);
+
+    assertThat(legalFileOverrideDAO.getByOwnerIdAndComponentIdentifierAndType(app.getId(), componentIdentifier,
+        LegalFileType.NOTICE).get(0).getContent()).isEqualTo(legalFileOverrideDTO.getContent());
+  }
+
+  @Test
+  public void testSaveComponentLegalFile_TrimsBlank() {
+    Application app = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentLegalFileDTO componentLegalFileDTO = new ComponentLegalFileDTO();
+    componentLegalFileDTO.setLegalFileType(LegalFileType.NOTICE);
+    componentLegalFileDTO
+        .setComponentIdentifier(ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
+    LegalFileOverrideDTO legalFileOverrideDTO = new LegalFileOverrideDTO();
+    legalFileOverrideDTO.setOriginalContentHash("originalContentHash");
+    legalFileOverrideDTO.setContent("      ");
+    legalFileOverrideDTO.setStatus(ComponentLegalPartStatus.ENABLED);
+    componentLegalFileDTO.setLegalFileOverrides(Collections.singletonList(legalFileOverrideDTO));
+
+    componentLegalService.saveComponentLegalFile(app.getType(), app.getPublicId(), componentLegalFileDTO);
+
+    assertThat(legalFileOverrideDAO.getByOwnerIdAndComponentIdentifierAndType(app.getId(), componentIdentifier,
+        LegalFileType.NOTICE).get(0).getContent()).isEmpty();
+  }
+
   private ApiLicenseLegalObligationDTO createMinimalComponentObligationDTO() {
     ApiLicenseLegalObligationDTO componentObligationDTO = new ApiLicenseLegalObligationDTO();
     componentObligationDTO.setComponentIdentifier(

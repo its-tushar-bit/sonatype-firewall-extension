@@ -145,7 +145,7 @@ public class ComponentLegalService
     componentCopyright.setId(componentCopyrightDTO.getId());
     List<CopyrightOverride> copyrightOverrides = componentCopyrightDTO.getCopyrightOverrides().stream()
         .map(dto -> {
-          final String content = StringUtils.trimToEmpty(dto.getContent());
+          final String content = StringUtils.isBlank(dto.getContent()) ? "" : dto.getContent();
           CopyrightOverride copyrightOverride = new CopyrightOverride(
               dto.getOriginalContentHash(),
               ContentHashUtil.getContentHash(content),
@@ -251,7 +251,7 @@ public class ComponentLegalService
     componentLegalFile.setId(componentLegalFileDTO.getId());
     List<LegalFileOverride> legalFileOverrides = componentLegalFileDTO.getLegalFileOverrides().stream()
         .map(dto -> {
-          String content = StringUtils.trimToEmpty(dto.getContent());
+          String content = StringUtils.isBlank(dto.getContent()) ? "" : dto.getContent();
           LegalFileOverride legalFileOverride = new LegalFileOverride(
               dto.getOriginalContentHash(),
               ContentHashUtil.getContentHash(content),

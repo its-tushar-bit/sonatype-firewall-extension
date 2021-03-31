@@ -109,7 +109,7 @@ export default function ComponentOverviewTile(props) {
     <section id="component-overview-tile" className="nx-tile">
       <div className="nx-tile-content">
         <div className="nx-grid-row">
-          <div className="nx-grid-col nx-grid-col--33">
+          <div className="nx-grid-col">
             <dl className="nx-read-only">
               <div className="license-component-overview__review-status">
                 <dt className="nx-read-only__label">Review Status</dt>
@@ -131,7 +131,7 @@ export default function ComponentOverviewTile(props) {
               </div>
             </dl>
           </div>
-          <div className="nx-grid-col nx-grid-col--33">
+          <div className="nx-grid-col">
             <dl className="nx-read-only">
               <div className="license-component-overview__review-progress">
                 <dt className="nx-read-only__label">Review Progress</dt>
@@ -159,7 +159,7 @@ export default function ComponentOverviewTile(props) {
               </div>
             </dl>
           </div>
-          <div className="nx-grid-col nx-grid-col--33">
+          <div className="nx-grid-col">
             <dl className="nx-read-only">
               <div className="license-component-overview__licenses">
                 <dt className="nx-read-only__label">Licenses</dt>

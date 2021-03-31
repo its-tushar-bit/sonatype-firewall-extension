@@ -27,6 +27,10 @@ component-legal-overview {
     .nx-grid-col {
       align-content: space-between;
       display: grid;
+      flex: initial;
+      gap: $nx-spacing-xl;
+      padding-left: $nx-spacing-xl;
+      padding-right: $nx-spacing-xl;
     }
 
     .nx-read-only {
@@ -41,6 +45,8 @@ component-legal-overview {
       grid-template:
         'review-status review-status'
         'last-modified modified-by';
+
+      padding-left: 0;
     }
 
     .nx-grid-col:nth-child(2) {
@@ -52,7 +58,13 @@ component-legal-overview {
     .nx-grid-col:last-child {
       grid-template:
         'licenses highest-threat'
-        'stages stages';
+        'stages .';
+
+      padding-right: 0;
+    }
+
+    .nx-policy-violation-indicator {
+      margin: 0;
     }
   }
 

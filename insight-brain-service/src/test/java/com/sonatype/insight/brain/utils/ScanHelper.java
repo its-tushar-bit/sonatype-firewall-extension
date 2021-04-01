@@ -14,11 +14,12 @@ import com.sonatype.insight.brain.service.InsightWork;
 
 public class ScanHelper
 {
-  public static void createDummyScanFile(InsightWork insightWork, String appId, String scanId) {
+  public static File createDummyScanFile(InsightWork insightWork, String appId, String scanId) {
     File scanFile = insightWork.getScanFile(appId, scanId);
     try {
       Files.createDirectories(scanFile.getParentFile().toPath());
       Files.write(scanFile.toPath(), new byte[0]);
+      return scanFile;
     }
     catch (IOException e) {
       throw new UncheckedIOException(e);

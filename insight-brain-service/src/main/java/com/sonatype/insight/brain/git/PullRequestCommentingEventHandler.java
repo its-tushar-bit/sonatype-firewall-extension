@@ -105,7 +105,8 @@ public class PullRequestCommentingEventHandler
       String applicationId = event.ownerId;
       GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
 
-      if (!gitRepositoryInfo.provider.supportsPullRequestCommenting()) {
+      if (!gitRepositoryInfo.provider.supportsPullRequestCommenting() ||
+          sourceControlUtils.isBitbucketCloud(gitRepositoryInfo)) {
         log.debug("'{}' not currently supported for pull request commenting", gitRepositoryInfo.provider.toString());
       }
       else {

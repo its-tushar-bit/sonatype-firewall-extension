@@ -11,7 +11,7 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationStatusDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiManifestEvaluationRequestDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlEvaluationRequestDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
@@ -29,21 +29,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This service creates and publishes a <i>SourceControlEvent</i> of type MANIFEST_SCAN_EVENT
+ * This service creates and publishes a <i>SourceControlEvent</i> of type SOURCE_CONTROL_EVALUATION
  *
  * @since 1.101
  */
-public class ApiManifestEvaluationService
+public class ApiSourceControlEvaluationService
     extends AbstractApiApplicationEvaluationService
 {
-  private static final Logger log = LoggerFactory.getLogger(ApiManifestEvaluationService.class);
+  private static final Logger log = LoggerFactory.getLogger(ApiSourceControlEvaluationService.class);
 
   private final SourceControlEventPublisher sourceControlEventPublisher;
 
   private final SourceControlUtils sourceControlUtils;
 
   @Inject
-  public ApiManifestEvaluationService(
+  public ApiSourceControlEvaluationService(
       final SourceControlEventPublisher sourceControlEventPublisher,
       final SourceControlUtils sourceControlUtils,
       DefaultPolicyEvaluateService policyEvaluateService,
@@ -55,12 +55,12 @@ public class ApiManifestEvaluationService
   }
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
-  public ApiApplicationEvaluationStatusDTOV2 doManifestEvaluation(
+  public ApiApplicationEvaluationStatusDTOV2 doSourceControlEvaluation(
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
-      ApiManifestEvaluationRequestDTO manifestEvaluationRequest,
+      ApiSourceControlEvaluationRequestDTO sourceControlEvaluationRequest,
       final String userAgent)
   {
-    validateRequest(manifestEvaluationRequest);
+    validateRequest(sourceControlEvaluationRequest);
 
     final GitRepositoryInfo gitRepositoryInfo =
         sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
@@ -71,15 +71,16 @@ public class ApiManifestEvaluationService
     Application application = applicationDAO.getByIdNotNull(applicationId);
     String statusId = UUID.randomUUID().toString().replace("-", "");
     log.debug(
-        "Received request to do manifest evaluation for application {}, stage {} and branch {}."
+        "Received request to do source control evaluation for application {}, stage {} and branch {}."
             + " The status ID of the operation is {}.",
-        application.getName(), manifestEvaluationRequest.stageId, manifestEvaluationRequest.branchName, statusId);
+        application.getName(), sourceControlEvaluationRequest.stageId, sourceControlEvaluationRequest.branchName,
+        statusId);
 
     policyEvaluateService.createPersistedPolicyEvaluationPollingResultIfNeeded(application, statusId);
 
     String branchName;
-    if (manifestEvaluationRequest.branchName != null) {
-      branchName = manifestEvaluationRequest.branchName;
+    if (sourceControlEvaluationRequest.branchName != null) {
+      branchName = sourceControlEvaluationRequest.branchName;
     }
     else {
       branchName = gitRepositoryInfo.getBaseBranch();
@@ -87,9 +88,9 @@ public class ApiManifestEvaluationService
     }
 
     SourceControlEvent sourceControlEvent = new SourceControlEvent() //
+        .forSourceControlEvaluation()
         .setApplicationId(applicationId) //
-        .setEventType(SourceControlEvent.MANIFEST_EVALUATION_EVENT) //
-        .setStageTypeId(manifestEvaluationRequest.stageId) //
+        .setStageTypeId(sourceControlEvaluationRequest.stageId) //
         .setStatusId(statusId) //
         .setBranchName(branchName) //
         .setUserAgent(userAgent) //
@@ -102,13 +103,13 @@ public class ApiManifestEvaluationService
     return result;
   }
 
-  private void validateRequest(ApiManifestEvaluationRequestDTO manifestEvaluationRequest) {
-    if (manifestEvaluationRequest == null) {
+  private void validateRequest(ApiSourceControlEvaluationRequestDTO sourceControlEvaluationRequest) {
+    if (sourceControlEvaluationRequest == null) {
       throw new BadRequestException("Missing parameters.");
     }
 
-    if (!Stage.isValidStageTypeId(manifestEvaluationRequest.stageId)) {
-      throw new BadRequestException("Stage " + manifestEvaluationRequest.stageId + " is invalid.");
+    if (!Stage.isValidStageTypeId(sourceControlEvaluationRequest.stageId)) {
+      throw new BadRequestException("Stage " + sourceControlEvaluationRequest.stageId + " is invalid.");
     }
   }
 }

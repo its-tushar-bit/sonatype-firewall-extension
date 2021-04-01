@@ -408,6 +408,18 @@ public class ApplicationDAO
     return getList(tx, oQuery, organizationId, labelLowercase);
   }
 
+  /**
+   * fetches the #Application objects associated with the given repository URL;  the association is specified via
+   * the #SourceControl entries
+   *
+   * @return List of #Application objects associated with the given repository URL or an empty list if there are none
+   */
+  public List<Application> getByRepositoryUrl(String repositoryUrl) {
+    final String sQuery = "SELECT app FROM Application app, SourceControl sc " +
+        " WHERE app.id = sc.ownerId AND sc.repositoryUrl = ?1";
+    return getList(sQuery, repositoryUrl);
+  }
+
   public static String normalizePublicId(String publicId) {
     return publicId.trim().toLowerCase(Locale.ENGLISH);
   }

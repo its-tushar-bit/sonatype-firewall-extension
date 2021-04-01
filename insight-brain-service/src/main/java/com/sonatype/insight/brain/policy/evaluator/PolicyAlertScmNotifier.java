@@ -21,6 +21,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.git.PullRequestCommentingRemediationService;
 import com.sonatype.insight.brain.git.PullRequestFeatureCheck;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
+import com.sonatype.insight.brain.git.RemediationBranchNamePrefixGenerator;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
@@ -45,8 +46,6 @@ public class PolicyAlertScmNotifier
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyAlertScmNotifier.class);
 
-  public static final int APP_ID_BRANCH_TRUNCATE_INDEX = 6;
-
   private static final String POLICY_ALERT = "policy alert";
 
   private final PullRequestFeatureCheck pullRequestFeatureCheck;
@@ -54,6 +53,9 @@ public class PolicyAlertScmNotifier
   private final PullRequestCommentingRemediationService remediationService;
 
   private final PolicyAlertSourceCodeOrganizer policyAlertSourceCodeOrganizer;
+
+  private final RemediationBranchNamePrefixGenerator remediationBranchNamePrefixGenerator =
+      new RemediationBranchNamePrefixGenerator();
 
   private final VersionRemediationTitleGenerator versionRemediationTitleGenerator =
       new VersionRemediationTitleGenerator();
@@ -169,8 +171,8 @@ public class PolicyAlertScmNotifier
 
   private void publishRemediationPullRequestEvent(PullRequestRemediationDetails pullRequestRemediationDetails) {
     SourceControlEvent event = new SourceControlEvent()
+        .forRemediationPullRequest()
         .withComponentIdentifier(pullRequestRemediationDetails.getToBeRemediated())
-        .setEventType(SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT)
         .setApplicationId(pullRequestRemediationDetails.getApp().getId())
         .setRemediationVersion(pullRequestRemediationDetails.getRemediatedVersion())
         .setScanId(pullRequestRemediationDetails.getScanId())
@@ -191,7 +193,7 @@ public class PolicyAlertScmNotifier
       final ComponentIdentifier componentIdentifier,
       final String nextVersion)
   {
-    String branchPrefix = application.getId().substring(0, APP_ID_BRANCH_TRUNCATE_INDEX);
+    String branchPrefix = remediationBranchNamePrefixGenerator.generatePrefixForApplication(application.getId());
     return versionRemediationTitleGenerator.generateBranchNameForVersionRemediation(
         branchPrefix, componentIdentifier, nextVersion);
   }

@@ -14,10 +14,11 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
@@ -26,14 +27,13 @@ import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.PullRequestInfoProvider;
 import com.sonatype.nexus.scm.api.model.ProjectUri;
 import com.sonatype.nexus.scm.api.model.PullRequest;
-import com.sonatype.nexus.scm.bitbucket.BitbucketApiClientUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.nexus.scm.SourceControlProvider.BITBUCKET;
+import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Named
@@ -49,11 +49,13 @@ public class PullRequestPollingService
 
   private static final String POLLING = "polling";
 
+  private final ApplicationDAO applicationDAO;
+
+  private final PolicyEvaluationDAO policyEvaluationDAO;
+
   private final SourceControlDAO sourceControlDAO;
 
   private final SourceControlEventPublisher sourceControlEventPublisher;
-
-  private final PolicyEvaluationDAO policyEvaluationDAO;
 
   private final SourceControlUtils sourceControlUtils;
 
@@ -61,21 +63,26 @@ public class PullRequestPollingService
 
   private final PullRequestRepositoryValidator pullRequestRepositoryValidator;
 
+  private final RemediationBranchNamePrefixGenerator remediationBranchNamePrefixGenerator =
+      new RemediationBranchNamePrefixGenerator();
+
   private final SourceControlInstanceManager sourceControlInstanceManager;
 
   @Inject
   public PullRequestPollingService(
+      ApplicationDAO applicationDAO,
+      PolicyEvaluationDAO policyEvaluationDAO,
       SourceControlDAO sourceControlDAO,
       SourceControlEventPublisher sourceControlEventPublisher,
-      PolicyEvaluationDAO policyEvaluationDAO,
       SourceControlUtils sourceControlUtils,
       GitClientFactory gitClientFactory,
       PullRequestRepositoryValidator pullRequestRepositoryValidator,
       SourceControlInstanceManager sourceControlInstanceManager)
   {
+    this.applicationDAO = applicationDAO;
+    this.policyEvaluationDAO = policyEvaluationDAO;
     this.sourceControlDAO = sourceControlDAO;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
-    this.policyEvaluationDAO = policyEvaluationDAO;
     this.sourceControlUtils = sourceControlUtils;
     this.gitClientFactory = gitClientFactory;
     this.pullRequestRepositoryValidator = pullRequestRepositoryValidator;
@@ -94,53 +101,66 @@ public class PullRequestPollingService
 
     // the pull requests we get back can be for any app that the related org and key have access to
     for (PullRequest pullRequest : getPullRequestsFromScm(pollingTracker)) {
-      // a given commit could be associated with multiple applications
-      List<PolicyEvaluation> sourcePolicyEvaluations =
-          policyEvaluationDAO.getLastByCommitHashPerApplication(pullRequest.getHeadCommitHash());
+      // we'll check all apps associated with the pull request's repository
+      List<Application> applications = applicationDAO.getByRepositoryUrl(pullRequest.getRepository());
+      applications.forEach(app -> {
+        GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(app.getId());
 
-      if (CollectionUtils.isEmpty(sourcePolicyEvaluations)) {
-        log.debug("Policy evaluation not yet available for '{}' pull request '{}'", pullRequest.getRepository(),
-            pullRequest.getNumber());
-        if (pollingTracker.onPullRequestProcessed(pullRequest)) {
-          log.debug("Pull request polling time updated for '{}'", pullRequest.getRepository());
+        if (isRemediationPullRequest(pullRequest, app)) {
+          log.debug("Pull request {} for branch {} is determined to be an IQ Server generated remediation PR." +
+                  "  We will not comment on it.",
+              pullRequest.getNumber(), pullRequest.getHead());
         }
-      }
-
-      for (PolicyEvaluation sourcePolicyEvaluation : sourcePolicyEvaluations) {
-        String applicationId = sourcePolicyEvaluation.getApplicationId();
-
-        GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
-
-        if (null != gitRepositoryInfo) {
-          if (!pullRequestRepositoryValidator.isInternalRepository(gitRepositoryInfo) &&
-              !pullRequest.isRepositoryPrivate()) {
-            log.debug("Repository is not valid for pull requests, check that it is private: {}",
-                gitRepositoryInfo.repositoryUrl);
-          }
-          else {
-            if (!isPullRequestFromBaseBranch(pullRequest, gitRepositoryInfo)) {
-              createAndSendDiscoveredPullRequestEvent(applicationId, pullRequest.getNumber(), pullRequest.getHead(),
-                  pullRequest.getHeadCommitHash());
-            }
-            else {
-              log.debug(
-                  "application '{}' pull request '{}' is for the base branch, skipping commenting for this PR",
-                  applicationId, pullRequest.getNumber());
-            }
-          }
+        else if (!pullRequestRepositoryValidator.isInternalRepository(gitRepositoryInfo) &&
+            !pullRequest.isRepositoryPrivate()) {
+          log.debug("Repository is not valid for pull requests, check that it is private: {}",
+              gitRepositoryInfo.getRepositoryUrl());
         }
-        pollingTracker.onPullRequestProcessedForApplication(applicationId, pullRequest.getCreated());
+        else if (isPullRequestForBaseBranch(pullRequest, gitRepositoryInfo)) {
+          log.debug(
+              "Repository '{}' pull request '{}' is for application '{}' base branch, skipping commenting",
+              gitRepositoryInfo.getRepositoryUrl(), pullRequest.getNumber(), app.getPublicId());
+        }
+        else if (!targetsBaseBranch(pullRequest, gitRepositoryInfo)
+            && !hasFeatureBranchPolicyEvaluation(app.getId(), pullRequest.getHeadCommitHash())) {
+          log.debug(
+              "Repository '{}' pull request '{}' for application '{}' neither targets the default branch nor has a " +
+                  "policy evaluation associated with the head commit, skipping commenting",
+              gitRepositoryInfo.getRepositoryUrl(), pullRequest.getNumber(), app.getPublicId());
+        }
+        else {
+          createAndSendDiscoveredPullRequestEvent(app.getId(), pullRequest.getNumber(), pullRequest.getHead(),
+              pullRequest.getHeadCommitHash());
+        }
+
+        pollingTracker.onPullRequestProcessedForApplication(app.getId(), pullRequest.getCreated());
         log.debug("Pull request polling time updated for '{}'", pullRequest.getRepository());
-      }
+      });
     }
+  }
+
+  /**
+   * Determines whether or not the given pull request is a remediation PR created by IQ Server
+   */
+  private boolean isRemediationPullRequest(PullRequest pullRequest, Application application) {
+    return pullRequest.getHead()
+        .startsWith(remediationBranchNamePrefixGenerator.generatePrefixForApplication(application.getId()));
   }
 
   /**
    * Does the given pull request represent a merge from the configured default/base branch into some other branch?
    * We don't support those types of PRs with respect to PR commenting
    */
-  private boolean isPullRequestFromBaseBranch(PullRequest pullRequest, GitRepositoryInfo gitRepositoryInfo) {
+  private boolean isPullRequestForBaseBranch(PullRequest pullRequest, GitRepositoryInfo gitRepositoryInfo) {
     return pullRequest.getHead().equalsIgnoreCase(gitRepositoryInfo.baseBranch);
+  }
+
+  private boolean targetsBaseBranch(PullRequest pullRequest, GitRepositoryInfo gitRepositoryInfo) {
+    return pullRequest.getBase().equalsIgnoreCase(gitRepositoryInfo.getBaseBranch());
+  }
+
+  private boolean hasFeatureBranchPolicyEvaluation(String applicationId, String commitHash) {
+    return policyEvaluationDAO.getLastByApplicationAndCommitHash(applicationId, commitHash) != null;
   }
 
   private void createAndSendDiscoveredPullRequestEvent(
@@ -150,10 +170,10 @@ public class PullRequestPollingService
       String pullRequestHeadCommitHash)
   {
     SourceControlEvent event = new SourceControlEvent()
+        .forDiscoveredPullRequest()
         .setApplicationId(applicationId)
         .setBranchName(branchName)
         .setCommitHash(pullRequestHeadCommitHash)
-        .setEventType(SourceControlEvent.DISCOVERED_PULL_REQUEST_EVENT)
         .setPullRequestNumber(pullRequestNumber)
         .setInitiator(POLLING);
     sourceControlEventPublisher.publishEvent(event);
@@ -198,11 +218,11 @@ public class PullRequestPollingService
 
         String token = gitRepositoryInfo.token;
 
-        Date currentCutoffTime = pollingTracker.getCachedCutoffTime(org, repo, gitRepositoryInfo.token,
-            sourceControl.getPullRequestPollTime());
+        Date currentCutoffTime =
+            pollingTracker.getCachedCutoffTime(org, repo, token, sourceControl.getPullRequestPollTime());
 
         if (pollingTracker.visitAndCheckKeyAlreadyUsed(org, repo, token)) {
-          // we've already used this key combination and any results for the given repo would have already come back;
+          // we've already used this key combination and any results for the given repo would have already come back.
           // so, we just need to advance the polling times for this repo
           pollingTracker.onPullRequestProcessed(sourceControl.getId(), org, repo, token, currentCutoffTime);
         }
@@ -217,16 +237,15 @@ public class PullRequestPollingService
                 currentCutoffTime.toInstant().atOffset(ZoneOffset.UTC),
                 PULL_REQUESTS_PER_MONITOR_CYCLE);
 
-            if (isNotBlank(repo)) {
-              log.debug("Fetched {} pull request(s) for org '{}' repo '{}' since {}", pullRequestResults.size(),
-                  org, repo, currentCutoffTime);
-            }
-            else {
-              log.debug("Fetched {} pull request(s) for org '{}' since {}", pullRequestResults.size(), org,
-                  currentCutoffTime);
-            }
+            log.debug("Fetched {} pull request(s) for org '{}'{} since {}",
+                pullRequestResults.size(),
+                org,
+                isNotBlank(repo) ? format(" repo '%s'", repo) : "",
+                currentCutoffTime);
 
-            pullRequests.addAll(pullRequestResults);
+            if (CollectionUtils.isNotEmpty(pullRequestResults)) {
+              pullRequests.addAll(pullRequestResults);
+            }
 
             // if we've gotten back fewer than requested that means we've exhausted the available PRs and are now
             // 'up to date';  thus, advance the poll time to now;  this is especially important for SCM providers
@@ -247,7 +266,7 @@ public class PullRequestPollingService
               log.warn(
                   "Could not fetch pull requests for org '{}' repo '{}'; will retry in {}.  Please check that the" +
                       " configured project url {} is correct, that it is for '{}' and that the API token is valid",
-                  org, repo, retryDelay,gitRepositoryInfo.repositoryUrl, gitRepositoryInfo.provider, e);
+                  org, repo, retryDelay, gitRepositoryInfo.repositoryUrl, gitRepositoryInfo.provider, e);
             }
             else {
               log.warn(
@@ -270,7 +289,8 @@ public class PullRequestPollingService
     if (null == gitRepositoryInfo || null == gitRepositoryInfo.provider) {
       return false;
     }
-    if (!gitRepositoryInfo.provider.supportsPullRequestCommenting() || isBitbucketCloud(gitRepositoryInfo)) {
+    if (!gitRepositoryInfo.provider.supportsPullRequestCommenting() ||
+        sourceControlUtils.isBitbucketCloud(gitRepositoryInfo)) {
       if (log.isDebugEnabled()) {
         log.debug("{} is not currently supported for pull request commenting on repository {}",
             gitRepositoryInfo.provider.toString().toUpperCase(), gitRepositoryInfo.repositoryUrl);
@@ -278,14 +298,5 @@ public class PullRequestPollingService
       return false;
     }
     return sourceControlUtils.isScmEnabled(gitRepositoryInfo);
-  }
-
-  /**
-   * Pull request commenting features are not yet supported for Bitbucket cloud so provide logic to recognize any
-   * repositories in that SCM.
-   */
-  private boolean isBitbucketCloud(GitRepositoryInfo gitRepositoryInfo) {
-    return gitRepositoryInfo.provider.equals(BITBUCKET) &&
-        BitbucketApiClientUtils.isCloudHosted(gitRepositoryInfo.repositoryUrl);
   }
 }

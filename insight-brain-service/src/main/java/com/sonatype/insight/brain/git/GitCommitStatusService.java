@@ -99,7 +99,7 @@ public class GitCommitStatusService
 
     sourceControlEventPublisher.publishEvent(
         new SourceControlEvent()
-            .setEventType(SourceControlEvent.STATUS_UPDATE_EVENT)
+            .forStatusUpdate()
             .setEventPriority(SourceControlEvent.EVENT_PRIORITY_HIGHER)
             .setApplicationId(event.ownerId)
             .setPolicyEvaluationId(event.policyEvaluationId)

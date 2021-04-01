@@ -22,15 +22,19 @@ import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.policy.PolicyImportExport;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -49,6 +53,10 @@ public class ReportListTest
   public static final String BUILD_SCAN_ID = "BUILD_SCAN_ID";
 
   public static final String STAGE_SCAN_ID = "STAGE_SCAN_ID";
+
+  private static final String CANNED_LARGE_REPORT_URI = "/canned-reports/large-report";
+
+  private static final String CANNED_SMALL_REPORT_URI = "/canned-reports/small-report";
 
   public Application app;
 
@@ -69,21 +77,22 @@ public class ReportListTest
     tempEntity.newUser("user1", "reallylongfirst", "even longer last name junior senior", "a@a.com");
     app = tempEntity.newApplication("ApplicationReportTestWithAReallyLongName",
         "ApplicationReportTestWithAReallyLongName", org.getId(), "user1");
-    URL zippedLargeReport = ReportHelper.zipReport("/canned-reports/large-report", tempDir);
-    URL zippedSmallReport = ReportHelper.zipReport("/canned-reports/small-report", tempDir);
-    InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
 
     // Build report
-    TestReportEvaluator evaluatorBuild = new TestReportEvaluator(app, BUILD_SCAN_ID, zippedLargeReport,
-        Configuration.baseUrl, work);
-    evaluatorBuild.evaluatePolicy();
+    evaluatePolicy(BUILD_SCAN_ID, CANNED_LARGE_REPORT_URI, Stage.ID_BUILD);
 
     // Stage Release report
-    TestReportEvaluator stageBuild = new TestReportEvaluator(app, STAGE_SCAN_ID, zippedSmallReport,
-        Configuration.baseUrl, work, Stage.ID_STAGE_RELEASE);
-    stageBuild.evaluatePolicy();
+    evaluatePolicy(STAGE_SCAN_ID, CANNED_SMALL_REPORT_URI, Stage.ID_STAGE_RELEASE);
 
     refreshOrOpen(ReportListPage.url());
+  }
+
+  private void evaluatePolicy(String scanId, String reportDir, String stageId) throws IOException {
+    URL zippedReport = ReportHelper.zipReport(reportDir, tempDir);
+    InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
+
+    new TestReportEvaluator(app, scanId, zippedReport, Configuration.baseUrl, work, stageId)
+        .evaluatePolicy();
   }
 
   @Test
@@ -126,6 +135,44 @@ public class ReportListTest
     refreshOrOpen(ReportListPage.url());
 
     stageReleaseLink.click();
+    reportPage.shouldBe(visible);
+  }
+
+  @Test
+  public void testSourceStage() throws IOException, InterruptedException {
+    // given: initial checks for app with no source control scans
+    final String pendingExpectedText = "pending";
+    ReportListRow firstRow = ReportListPage.firstRow();
+    firstRow.shouldBe(visible);
+
+    SelenideElement sourceStageCell = firstRow.sourceStageCell();
+    sourceStageCell.shouldNot(Condition.text("pending"));
+    SelenideElement sourceLink = firstRow.sourceReportLink();
+    sourceLink.shouldNotBe(visible);
+
+    // when: request a source control scan
+    SourceControlEvent sourceControlEvent = tempEntity.newSourceControlEvaluationEvent(app);
+    Selenide.sleep(2000);
+    refreshOrOpen(ReportListPage.url());
+
+    // then: source stage should reflect pending scan
+    sourceStageCell.should(Condition.text(pendingExpectedText));
+
+    // when: complete source stage policy eval
+    sourceControlEvent.setEventStatus(SourceControlEvent.EVENT_STATUS_COMPLETE);
+    new SourceControlEventDAO().update(sourceControlEvent);
+    evaluatePolicy("id-source-scan", CANNED_SMALL_REPORT_URI, Stage.ID_SOURCE);
+    Selenide.sleep(2000);
+    refreshOrOpen(ReportListPage.url());
+
+    // then: pending has gone away and we now have a report
+    sourceStageCell.shouldNotHave(Condition.text(pendingExpectedText));
+    sourceLink.shouldBe(visible);
+
+    // and then: we can access the report
+    ApplicationReportPage reportPage = new ApplicationReportPage();
+
+    sourceLink.click();
     reportPage.shouldBe(visible);
   }
 

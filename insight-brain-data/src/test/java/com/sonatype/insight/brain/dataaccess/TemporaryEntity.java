@@ -1780,8 +1780,7 @@ public class TemporaryEntity
       final Application application,
       final PolicyEvaluation sourcePolicyEvaluation)
   {
-    SourceControlEvent sourceControlEvent = new SourceControlEvent();
-    sourceControlEvent
+    SourceControlEvent sourceControlEvent = new SourceControlEvent()
         .setApplicationId(application.getId())
         .setCommitHash("abcdefg")
         .setEventType(SourceControlEvent.DISCOVERED_PULL_REQUEST_EVENT)
@@ -1793,6 +1792,15 @@ public class TemporaryEntity
 
     SourceControlEventDAO sourceControlEventDAO = new SourceControlEventDAO();
     sourceControlEventDAO.insert(sourceControlEvent);
+    return sourceControlEvent;
+  }
+
+  public SourceControlEvent newSourceControlEvaluationEvent(final Application application) {
+    SourceControlEvent sourceControlEvent = new SourceControlEvent()
+        .setApplicationId(application.getId())
+        .setEventType(SourceControlEvent.SOURCE_CONTROL_EVALUATION);
+
+    new SourceControlEventDAO().insert(sourceControlEvent);
     return sourceControlEvent;
   }
 
@@ -2420,6 +2428,10 @@ public class TemporaryEntity
     automaticApplicationsConfigurationDAO.setOrganizationId(organization.getId());
     automaticApplicationsConfigurationDAO.setEnabled(true);
     return organization;
+  }
+
+  public SourceControl newSourceControl(String ownerId, String repositoryUrl) {
+    return newSourceControl(ownerId, repositoryUrl, null, null, null, true, true, "master", null);
   }
 
   public SourceControl newSourceControl(String ownerId, String repositoryUrl, Date pullRequestPollTime) {

@@ -110,7 +110,7 @@ public class GitCommitHistoryService
    * update the commit history for the given single commit
    *
    * @return the created or updated SourceControlDefaultBranchCommitHistory object, if there was one, AND iff the given
-   *         commit has a related policy evaluation, null otherwise
+   * commit has a related policy evaluation, null otherwise
    */
   private SourceControlDefaultBranchCommitHistory updateCommitHistoryForCommit(String applicationId, Commit commit) {
     SourceControlDefaultBranchCommitHistory moreRecentCommitHistory = null;
@@ -161,7 +161,9 @@ public class GitCommitHistoryService
     commitHistoryDAO.update(commitHistory);
   }
 
-  public SourceControlDefaultBranchCommitHistory getLatestCommitForApplication(String applicationId) {
-    return commitHistoryDAO.getLatestCommitForApplicationId(applicationId);
+  public String getLatestCommitForApplication(String applicationId) {
+    SourceControlDefaultBranchCommitHistory commitHistory =
+        commitHistoryDAO.getLatestCommitForApplicationId(applicationId);
+    return null != commitHistory ? commitHistory.getCommitHash() : null;
   }
 }

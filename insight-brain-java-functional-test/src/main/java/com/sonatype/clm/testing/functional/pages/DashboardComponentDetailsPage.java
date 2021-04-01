@@ -132,20 +132,24 @@ public class DashboardComponentDetailsPage
       return child("td.risk-column");
     }
 
-    public Cell build() {
+    public Cell source() {
       return new Cell(childSelector("td.stage-column", nthChild(stageColumnOffset + 1)));
     }
 
-    public Cell stage() {
+    public Cell build() {
       return new Cell(childSelector("td.stage-column", nthChild(stageColumnOffset + 2)));
     }
 
-    public Cell release() {
+    public Cell stage() {
       return new Cell(childSelector("td.stage-column", nthChild(stageColumnOffset + 3)));
     }
 
-    public Cell operate() {
+    public Cell release() {
       return new Cell(childSelector("td.stage-column", nthChild(stageColumnOffset + 4)));
+    }
+
+    public Cell operate() {
+      return new Cell(childSelector("td.stage-column", nthChild(stageColumnOffset + 5)));
     }
   }
 

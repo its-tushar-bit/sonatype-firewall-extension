@@ -18,7 +18,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiManifestEvaluationRequestDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlEvaluationRequestDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentEvaluationServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ComponentEvaluationV2Helper;
@@ -174,16 +174,18 @@ public class ApiEvaluationResourceV2AuditTest
         new String(pwHandler.encryptPassword("TOKEN".toCharArray())), null, null, true, "TestBaseBranchName", null);
 
     return restRequest().with(user)
-        .path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, DefaultApiEvaluationResourceV2.MANIFEST_EVALUATION_PATH)
-        .parameter(applicationId).body(new ApiManifestEvaluationRequestDTO(stageId, "TestBranchName")).post();
+        .path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2,
+            DefaultApiEvaluationResourceV2.SOURCE_CONTROL_EVALUATION_PATH)
+        .parameter(applicationId).body(new ApiSourceControlEvaluationRequestDTO(stageId, "TestBranchName")).post();
   }
 
-  private HttpResponse promoteScan(boolean createScanFile,
-                                   boolean createReport,
-                                   Consumer<HttpRequest> user,
-                                   String applicationId,
-                                   String scanId,
-                                   String stageId) throws Exception
+  private HttpResponse promoteScan(
+      boolean createScanFile,
+      boolean createReport,
+      Consumer<HttpRequest> user,
+      String applicationId,
+      String scanId,
+      String stageId) throws Exception
   {
     if (createScanFile) {
       createScanFile(app.getId(), SCAN_ID);

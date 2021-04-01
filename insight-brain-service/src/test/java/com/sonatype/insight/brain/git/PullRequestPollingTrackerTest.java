@@ -10,8 +10,6 @@ import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
-import com.sonatype.nexus.scm.api.model.PullRequest;
-import com.sonatype.nexus.scm.github.dto.GithubPullRequest;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
@@ -28,7 +26,6 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -73,36 +70,6 @@ public class PullRequestPollingTrackerTest
 
     // then: we've already seen both source controls in this tracker so expecting null now
     assertThat(sourceControl).isNull();
-  }
-
-  @Test
-  public void testOnPullRequestProcessed_forPullRequest() {
-    // given: source control entry and DAO setup to return expected values
-    Date oldPollDate = new Date(currentTimeMillis() - 30_000);
-    SourceControl sourceControl = createSourceControl("sc1");
-    sourceControl.setPullRequestPollTime(oldPollDate);
-    sourceControl.setPullRequestErrorCount(5);
-    doReturn(ImmutableList.of(sourceControl)).when(sourceControlDAO).getByRepositoryOwnerAndName("org/yes");
-    doReturn(null).when(sourceControlDAO).getByRepositoryOwnerAndName("org/no");
-
-    // when: update entry WITHOUT matching repo
-    PullRequest pullRequest = new GithubPullRequest();
-    pullRequest.setRepository("org/no");
-    boolean updated = pollingTracker.onPullRequestProcessed(pullRequest);
-
-    // then: should NOT have been updated
-    verify(sourceControlDAO, never()).update(any(SourceControl.class));
-    assertThat(updated).isFalse();
-
-    // when: update entry WITH matching repo
-    pullRequest.setRepository("org/yes");
-    Date prCreated = new Date();
-    pullRequest.setCreated(prCreated);
-    updated = pollingTracker.onPullRequestProcessed(pullRequest);
-
-    // then: should have been updated and errors cleared
-    assertThat(updated).isTrue();
-    verify(sourceControlDAO, times(1)).updatePollTimeAndErrorCounts(sourceControl.getId(), prCreated, 0);
   }
 
   @Test

@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
 
 /**
- * This service configures manifest scans.
+ * This service configures source control scans.
  *
  * @since 1.99
  */

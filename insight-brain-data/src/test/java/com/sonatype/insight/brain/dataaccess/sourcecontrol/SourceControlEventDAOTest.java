@@ -9,6 +9,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -22,7 +24,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_COMPLETE;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_ERROR;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_IN_PROGRESS;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_NEW;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.SOURCE_CONTROL_EVALUATION;
 import static java.lang.System.currentTimeMillis;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -33,12 +39,15 @@ public class SourceControlEventDAOTest
 
   private Application app;
 
+  private Application app2;
+
   private Date testStartTime;
 
   @Override
   @Before
   public void setup() {
     app = tempEntity.newApplicationWithParent();
+    app2 = tempEntity.newApplicationWithParent();
     testStartTime = toDate(LocalDateTime.now().minusSeconds(1));
   }
 
@@ -288,6 +297,29 @@ public class SourceControlEventDAOTest
   }
 
   @Test
+  public void testGetPendingOrInProgressSourceControlEvaluationEvents() {
+    // given: a set of events, some we're interested in and some not
+    createNewSourceControlEvaluationEvent(app.getId(), EVENT_STATUS_NEW);
+    createNewSourceControlEvaluationEvent(app2.getId(), EVENT_STATUS_IN_PROGRESS);
+    createNewSourceControlEvaluationEvent(app.getId(), EVENT_STATUS_COMPLETE);
+    createNewSourceControlEvaluationEvent(app2.getId(), EVENT_STATUS_ERROR);
+    createNewSourceControlEvents(3);
+
+    // when:  get new and in progress events
+    List<SourceControlEvent> events = sourceControlEventDAO.getPendingOrInProgressSourceControlEvaluationEvents();
+
+    // then:
+    assertThat(events).isNotEmpty();
+    assertThat(events.size()).isEqualTo(2);
+    List<String> pendingEventStatus =
+        Collections.unmodifiableList(Arrays.asList(EVENT_STATUS_NEW, EVENT_STATUS_IN_PROGRESS));
+    events.forEach(event -> {
+      assertThat(pendingEventStatus).contains(event.getEventStatus());
+      assertThat(event.getEventType()).isEqualTo(SOURCE_CONTROL_EVALUATION);
+    });
+  }
+
+  @Test
   public void testHasRemediationEventForBranch() {
     // given: no events yet
     final String branchName = "abc/org/repo";
@@ -364,6 +396,18 @@ public class SourceControlEventDAOTest
         .setScmUsername("user")
         .setInitiator("webhook")
         .setCreateTime(testStartTime);
+  }
+
+  private SourceControlEvent createNewSourceControlEvaluationEvent(String appId, String eventStatus) {
+    SourceControlEvent event = new SourceControlEvent()
+        .setApplicationId(appId)
+        .setEventType(SOURCE_CONTROL_EVALUATION)
+        .setEventStatus(eventStatus)
+        .setStageTypeId(StageTypes.SOURCE.getId())
+        .setCreateTime(testStartTime);
+
+    sourceControlEventDAO.insert(event);
+    return event;
   }
 
   private void createNewSourceControlEvents(final int count) {

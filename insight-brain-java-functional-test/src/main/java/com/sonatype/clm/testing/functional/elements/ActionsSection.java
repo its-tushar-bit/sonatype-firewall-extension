@@ -26,6 +26,10 @@ public class ActionsSection
     return new Stage(ROOT_SELECTOR, "develop");
   }
 
+  public Stage source() {
+    return new Stage(ROOT_SELECTOR, "source");
+  }
+
   public Stage build() {
     return new Stage(ROOT_SELECTOR, "build");
   }
@@ -51,7 +55,7 @@ public class ActionsSection
   }
 
   public ElementsCollection headers() {
-    return $$(createSelector(ROOT_SELECTOR, "th:nth-child(n+2):nth-child(-n+7)"));
+    return $$(createSelector(ROOT_SELECTOR, "th:nth-child(n+2):nth-child(-n+8)"));
   }
 
   public static class Stage

@@ -10,23 +10,29 @@ import java.io.IOException;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.scan.Scanner;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.SourceControlConfig;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.scan.model.ClientScanType;
+import com.sonatype.insight.scan.model.ScanMetadata;
 import com.sonatype.nexus.git.utils.api.GitApi;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -49,7 +55,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ManifestScanServiceTest
+public class SourceControlScanServiceTest
     extends VerifiableLoggingTestBase
 {
   private static final String APP_ID = "app-id";
@@ -83,6 +89,9 @@ public class ManifestScanServiceTest
   @Mock
   private Scanner scanner;
 
+  @Mock
+  private AuditRecorder mockAuditRecorder;
+
   private SourceControlConfig sourceControlConfig;
 
   private Application application;
@@ -99,10 +108,12 @@ public class ManifestScanServiceTest
   private ProprietaryConfig proprietaryConfig;
 
   // subject
-  private ManifestScanService service;
+  private SourceControlScanService service;
 
-  public ManifestScanServiceTest() {
-    super(ManifestScanService.class);
+  private final InsightConfig insightConfig = new InsightConfig();
+
+  public SourceControlScanServiceTest() {
+    super(SourceControlScanService.class);
   }
 
   @Before
@@ -132,8 +143,8 @@ public class ManifestScanServiceTest
 
     spySourceControlUtils = spy(new SourceControlUtils(null, mockApplicationDAO, mockInsightWork, fileCleaner));
 
-    service = new ManifestScanService(mockGitApiFactory, spySourceControlUtils, mockApplicationDAO,
-        proprietaryConfigService, policyEvaluateService, mockInsightWork, scanner);
+    service = new SourceControlScanService(mockGitApiFactory, spySourceControlUtils, mockApplicationDAO,
+        proprietaryConfigService, policyEvaluateService, mockInsightWork, scanner, mockAuditRecorder, insightConfig);
 
     proprietaryConfig = new ProprietaryConfig();
     when(proprietaryConfigService.getProprietaryConfig(eq(OwnerType.APPLICATION), eq("public-app-id")))
@@ -146,8 +157,8 @@ public class ManifestScanServiceTest
     doReturn(null).when(spySourceControlUtils)
         .getGitRepositoryInfoForApplication(sourceControlEvent.getApplicationId());
 
-    // when we receive a manifest scan event
-    service.onManifestScan(sourceControlEvent);
+    // when we receive a source control scan event
+    service.onSourceControlScan(sourceControlEvent);
 
     // then it hasn't create any new directories
     assertThat(sourceControlDir).isEmptyDirectory();
@@ -176,10 +187,11 @@ public class ManifestScanServiceTest
     File scanDir = mock(File.class);
     scanResult.setScanFile(mock(File.class));
     when(mockInsightWork.getScanDir(eq(APP_ID))).thenReturn(scanDir);
-    when(scanner.scan(any(File.class), isNull(), eq(scanDir), eq(proprietaryConfig))).thenReturn(scanResult);
+    when(scanner.scan(any(File.class), isNull(), eq(scanDir), eq(proprietaryConfig), any(ScanMetadata.class)))
+        .thenReturn(scanResult);
 
-    // when we receive a manifest scan event
-    service.onManifestScan(sourceControlEvent);
+    // when we receive a source control scan event
+    service.onSourceControlScan(sourceControlEvent);
 
     // then it creates the target directory
     assertThat(new File(sourceControlDir, APP_ID)).isDirectory();
@@ -192,6 +204,41 @@ public class ManifestScanServiceTest
         isA(Application.class), eq(ClientScanType.SONATYPE), argThat(s -> s.getStageTypeId().equals(Stage.ID_DEVELOP)),
         eq(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING), isA(File.class), eq("api"),
         eq("userAgent"));
+  }
+
+  @Test
+  public void testDoSynchronousSourceControlScan() throws Exception {
+    // and a source control configuration
+    doReturn(mockGitRepositoryInfo).when(spySourceControlUtils)
+        .getGitRepositoryInfoForApplication(sourceControlEvent.getApplicationId());
+    when(mockGitApiFactory.createGitApi(mockGitRepositoryInfo)).thenReturn(mockGitApi);
+
+    // and a scan result
+    scanResult = new ScanResult();
+    File scanDir = mock(File.class);
+    scanResult.setScanFile(mock(File.class));
+    when(mockInsightWork.getScanDir(eq(APP_ID))).thenReturn(scanDir);
+    when(scanner.scan(any(File.class), isNull(), eq(scanDir), eq(proprietaryConfig), any(ScanMetadata.class)))
+        .thenReturn(scanResult);
+
+    // and a policy evaluation
+    Stage stage = new Stage(Stage.ID_DEVELOP);
+    PolicyEvaluation policyEvaluation = new PolicyEvaluation();
+    when(policyEvaluateService.evaluateSynchronousNoAuth(any(Application.class), any(ClientScanType.class),
+        any(File.class), eq(stage), eq(ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST), eq(null)))
+            .thenReturn(policyEvaluation);
+
+    // it evaluates the SCM repository content and it returns the expected policy evaluation
+    assertThat(service.doSynchronousSourceControlScan(APP_ID, stage, "testBranchName")).isEqualTo(policyEvaluation);
+  }
+
+  @Test
+  public void testDoSynchronousSourceControlScan_InternalSourceControlPolicyEvaluationsDisabled() throws Exception {
+    // given internal SCM policy evaluations are disable
+    insightConfig.setFeatures(ImmutableMap.of(Feature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS.getFlag(), false));
+
+    // it does not evaluate the SCM repository content and it returns null
+    assertThat(service.doSynchronousSourceControlScan(APP_ID, new Stage(Stage.ID_DEVELOP), "testBranchName")).isNull();
   }
 }
 

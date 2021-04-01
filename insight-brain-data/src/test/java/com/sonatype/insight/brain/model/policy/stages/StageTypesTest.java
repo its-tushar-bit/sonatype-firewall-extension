@@ -42,7 +42,7 @@ public class StageTypesTest
 
   @Test
   public void testGetAll_ChronologicalOrdering() {
-    assertThat(StageTypes.getAll()).containsExactly(StageTypes.PROXY, StageTypes.DEVELOP, StageTypes.BUILD,
-        StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE);
+    assertThat(StageTypes.getAll()).containsExactly(StageTypes.PROXY, StageTypes.DEVELOP, StageTypes.SOURCE,
+        StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE);
   }
 }

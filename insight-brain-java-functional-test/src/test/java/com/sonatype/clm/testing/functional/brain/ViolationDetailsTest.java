@@ -124,23 +124,27 @@ public class ViolationDetailsTest
     tile.threatLevel().shouldHave(text("7"));
     tile.policyOwnerLink().shouldHave(text("Root Organization"));
 
-    tile.stages().shouldHaveSize(4);
+    tile.stages().shouldHaveSize(5);
 
-    tile.stage(0).shouldHave(text("Build 2d"));
+    tile.stage(0).shouldHave(text("Source"));
     tile.stage(0).icon().should(exist);
-    tile.stage(0).shouldNotBe(ViolationDetailsPage.ViolationDetailsStage.unused());
+    tile.stage(0).shouldBe(ViolationDetailsPage.ViolationDetailsStage.unused());
 
-    tile.stage(1).shouldHave(text("Stage"));
+    tile.stage(1).shouldHave(text("Build 2d"));
     tile.stage(1).icon().should(exist);
-    tile.stage(1).shouldBe(ViolationDetailsPage.ViolationDetailsStage.unused());
+    tile.stage(1).shouldNotBe(ViolationDetailsPage.ViolationDetailsStage.unused());
 
-    tile.stage(2).shouldHave(text("Release 1d"));
-    tile.stage(2).icon().shouldNot(exist);
-    tile.stage(2).shouldNotBe(ViolationDetailsPage.ViolationDetailsStage.unused());
+    tile.stage(2).shouldHave(text("Stage"));
+    tile.stage(2).icon().should(exist);
+    tile.stage(2).shouldBe(ViolationDetailsPage.ViolationDetailsStage.unused());
 
-    tile.stage(3).shouldHave(text("Operate 1d"));
-    tile.stage(3).icon().should(exist);
+    tile.stage(3).shouldHave(text("Release 1d"));
+    tile.stage(3).icon().shouldNot(exist);
     tile.stage(3).shouldNotBe(ViolationDetailsPage.ViolationDetailsStage.unused());
+
+    tile.stage(4).shouldHave(text("Operate 1d"));
+    tile.stage(4).icon().should(exist);
+    tile.stage(4).shouldNotBe(ViolationDetailsPage.ViolationDetailsStage.unused());
   }
 
   @Test
@@ -159,17 +163,17 @@ public class ViolationDetailsTest
     refreshOrOpen(ViolationDetailsPage.url(securityPolicyViolation.getId()));
     ViolationDetailsPage.ViolationDetailsTile tile = new ViolationDetailsPage().detailsTile();
 
-    tile.stage(0).link().shouldHave(text("Build")).click();
+    tile.stage(1).link().shouldHave(text("Build")).click();
     waitUntilUrl(ApplicationReportPage.url(application, "scan1"));
 
     refreshOrOpen(ViolationDetailsPage.url(securityPolicyViolation.getId()));
 
-    tile.stage(2).link().shouldHave(text("Release")).click();
+    tile.stage(3).link().shouldHave(text("Release")).click();
     waitUntilUrl(ApplicationReportPage.url(application, "scan2"));
 
     refreshOrOpen(ViolationDetailsPage.url(securityPolicyViolation.getId()));
-    tile.stage(1).link().shouldNot(exist);
-    tile.stage(3).link().should(exist);
+    tile.stage(2).link().shouldNot(exist);
+    tile.stage(4).link().should(exist);
   }
 
   @Test

@@ -30,14 +30,14 @@ public class DashboardUtilsTest
 
   @Test
   public void testGetStageTypes_StageTypeIdsNull() {
-    assertThat(dashboardUtils.getStageTypes(null)).containsExactly(StageTypes.BUILD, StageTypes.STAGE_RELEASE,
-        StageTypes.RELEASE, StageTypes.OPERATE);
+    assertThat(dashboardUtils.getStageTypes(null)).containsExactly(StageTypes.SOURCE, StageTypes.BUILD,
+        StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE);
   }
 
   @Test
   public void testGetStageTypes_StageTypeIdsEmpty() {
-    assertThat(dashboardUtils.getStageTypes(Collections.emptySet())).containsExactly(StageTypes.BUILD,
-        StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE);
+    assertThat(dashboardUtils.getStageTypes(Collections.emptySet())).containsExactly(StageTypes.SOURCE,
+        StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE);
   }
 
   @Test

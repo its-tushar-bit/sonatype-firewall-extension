@@ -271,6 +271,7 @@ public class OrganizationSummaryViewTest
 
     List<String> contextIds = Arrays.asList(
         Stage.ID_DEVELOP,
+        Stage.ID_SOURCE,
         Stage.ID_BUILD,
         Stage.ID_STAGE_RELEASE,
         Stage.ID_RELEASE,
@@ -298,6 +299,14 @@ public class OrganizationSummaryViewTest
     customMaxCount.setPurgingEnabled(true);
     customMaxCount.setMaxCount(6);
     dao.insert(customMaxCount);
+
+    DataRetentionPolicy sourceMaxAgeWeeks = new DataRetentionPolicy();
+    sourceMaxAgeWeeks.setOwnerId(organization.getId());
+    sourceMaxAgeWeeks.setContextId(Stage.ID_SOURCE);
+    sourceMaxAgeWeeks.setPurgingEnabled(true);
+    sourceMaxAgeWeeks.setMaxAgeInDays(21);
+    dao.insert(sourceMaxAgeWeeks);
+
     DataRetentionPolicy customMaxAgeAndMaxCount = new DataRetentionPolicy();
     customMaxAgeAndMaxCount.setOwnerId(organization.getId());
     customMaxAgeAndMaxCount.setContextId(Stage.ID_BUILD);
@@ -305,17 +314,20 @@ public class OrganizationSummaryViewTest
     customMaxAgeAndMaxCount.setMaxAgeInDays(14);
     customMaxAgeAndMaxCount.setMaxCount(8);
     dao.insert(customMaxAgeAndMaxCount);
+
     DataRetentionPolicy disabled = new DataRetentionPolicy();
     disabled.setOwnerId(organization.getId());
     disabled.setContextId(Stage.ID_RELEASE);
     disabled.setPurgingEnabled(false);
     dao.insert(disabled);
+
     DataRetentionPolicy customMaxAge = new DataRetentionPolicy();
     customMaxAge.setOwnerId(organization.getId());
     customMaxAge.setContextId(Stage.ID_OPERATE);
     customMaxAge.setPurgingEnabled(true);
     customMaxAge.setMaxAgeInDays(7);
     dao.insert(customMaxAge);
+
     DataRetentionPolicy dontPurgeSuccessMetrics = new DataRetentionPolicy();
     dontPurgeSuccessMetrics.setOwnerId(organization.getId());
     dontPurgeSuccessMetrics.setContextId(DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS);
@@ -328,6 +340,9 @@ public class OrganizationSummaryViewTest
 
     tile.maxAge(Stage.ID_DEVELOP).shouldBe(visible).shouldHave(exactTextCaseSensitive(DataRetentionTile.NOT_AVAILABLE));
     tile.maxReport(Stage.ID_DEVELOP).shouldBe(visible).shouldHave(exactTextCaseSensitive("6"));
+    tile.maxAge(Stage.ID_SOURCE).shouldBe(visible).shouldHave(exactTextCaseSensitive("3 weeks"));
+    tile.maxReport(Stage.ID_SOURCE).shouldBe(visible)
+        .shouldHave(exactTextCaseSensitive(DataRetentionTile.NOT_AVAILABLE));
     tile.maxAge(Stage.ID_BUILD).shouldBe(visible).shouldHave(exactTextCaseSensitive("2 weeks"));
     tile.maxReport(Stage.ID_BUILD).shouldBe(visible).shouldHave(exactTextCaseSensitive("8"));
     tile.maxAge(Stage.ID_RELEASE).shouldBe(visible).shouldHave(exactTextCaseSensitive(DataRetentionTile.DONT_PURGE));

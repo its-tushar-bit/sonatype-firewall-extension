@@ -127,6 +127,7 @@ public class DashboardComponentDetailsTest
       row.pie().shouldBe(visible);
       row.shareOfRisk().shouldHave(text("64%"));
       row.risk().shouldHave(text("9"));
+      row.source().shouldBe(empty);
       row.build().anchor().shouldHave(text("1min"), attribute("title", "View application report"),
           attribute("href", ApplicationReportPage.url(app1, eval1.getScanId())));
       row.stage().shouldBe(empty);
@@ -153,6 +154,7 @@ public class DashboardComponentDetailsTest
       row.pie().shouldBe(visible);
       row.shareOfRisk().shouldHave(text("36%"));
       row.risk().shouldHave(text("5"));
+      row.source().shouldBe(empty);
       row.build().shouldBe(empty);
       row.stage().shouldBe(empty);
       row.release().anchor().shouldHave(text("1min"), attribute("title", "View application report"),

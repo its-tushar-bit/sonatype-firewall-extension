@@ -12,7 +12,6 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.cssClass;
-
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class PolicyTileList
@@ -44,7 +43,7 @@ public class PolicyTileList
   }
 
   public HeaderColumn buildHeaderColumn() {
-    return this.header(4);
+    return this.header(5);
   }
 
   public static Condition threatLevel(int threatLevel) {
@@ -84,20 +83,24 @@ public class PolicyTileList
       return column(3);
     }
 
-    public SelenideElement build() {
+    public SelenideElement source() {
       return column(4);
     }
 
-    public SelenideElement stageRelease() {
+    public SelenideElement build() {
       return column(5);
     }
 
-    public SelenideElement release() {
+    public SelenideElement stageRelease() {
       return column(6);
     }
 
-    public SelenideElement operate() {
+    public SelenideElement release() {
       return column(7);
+    }
+
+    public SelenideElement operate() {
+      return column(8);
     }
 
     public SelenideElement column(int num) {

@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -26,10 +27,15 @@ import com.sonatype.insight.brain.git.dto.ImportFailure;
 import com.sonatype.insight.brain.git.dto.ImportRepositoriesRequest;
 import com.sonatype.insight.brain.git.dto.ImportResults;
 import com.sonatype.insight.brain.git.dto.SCMRepositories;
+import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -41,6 +47,7 @@ import com.sonatype.nexus.scm.api.model.SCMRepository;
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Binder;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
@@ -60,6 +67,8 @@ import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -93,6 +102,12 @@ public class ScmOnboardingServiceTest
   @Inject
   private PlexusCipher plexusCipher;
 
+  @Inject
+  private InsightConfig insightConfig;
+
+  @Mock
+  private SourceControlEventPublisher mockSourceControlEventPublisher;
+
   private static final String ENC = "CMMDwoV";
 
   @Mock
@@ -100,6 +115,7 @@ public class ScmOnboardingServiceTest
 
   @Override
   public void configure(final Binder binder) {
+    binder.bind(SourceControlEventPublisher.class).toInstance(mockSourceControlEventPublisher);
     binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
     super.configure(binder);
   }
@@ -134,6 +150,9 @@ public class ScmOnboardingServiceTest
     // then loading repositories returns the expected results
     SCMRepositories repositories = scmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
     assertThat(repositories.availableRepositories.size()).isEqualTo(13);
+
+    // and: no source control evaluation events
+    verifyNoManifestEvaluationEventsCreated();
   }
 
   @Test
@@ -151,6 +170,9 @@ public class ScmOnboardingServiceTest
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> {
       scmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
     }).withMessageContaining("'token' must not be null");
+
+    // and: no source control evaluation events
+    verifyNoManifestEvaluationEventsCreated();
   }
 
   @Test
@@ -162,6 +184,9 @@ public class ScmOnboardingServiceTest
     SCMRepositories repositories = scmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
     assertThat(repositories.availableRepositories.size()).isEqualTo(13);
     assertThat(repositories.totalRepositories).isEqualTo(13);
+
+    // and: no source control evaluation events
+    verifyNoManifestEvaluationEventsCreated();
   }
 
   @Test
@@ -194,6 +219,9 @@ public class ScmOnboardingServiceTest
     SCMRepositories repositories = scmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
     assertThat(repositories.availableRepositories.size()).isEqualTo(11);
     assertThat(repositories.totalRepositories).isEqualTo(13);
+
+    // and: no source control evaluation events
+    verifyNoManifestEvaluationEventsCreated();
   }
 
   @Test
@@ -215,6 +243,9 @@ public class ScmOnboardingServiceTest
         .filter(repository -> repository.getProject().equals("nexus-repository-p2")).findFirst();
     assertThat(nxrmP2.get().getHttpCloneUrl())
         .isEqualTo("https://localhost/sonatype-nexus-community/nexus-repository-p2");
+
+    // and: no source control evaluation events
+    verifyNoManifestEvaluationEventsCreated();
   }
 
   @Test
@@ -222,6 +253,9 @@ public class ScmOnboardingServiceTest
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       scmOnboardingService.loadRepositories("organizationThatDoesntExist", gitService.baseUrl());
     }).withMessageContaining("Cannot find organization with ID organizationThatDoesntExist.");
+
+    // and: no source control evaluation events
+    verifyNoManifestEvaluationEventsCreated();
   }
 
   private String getResourceAsString(String filename) throws IOException {
@@ -439,6 +473,9 @@ public class ScmOnboardingServiceTest
         .map(SourceControl::getRepositoryUrl)).containsExactly("http://localhost/org/repo1",
         "http://localhost/org/repo2", "http://localhost/org/repo3", "http://localhost/org/repo4");
 
+    // and: source control evaluation request events were created
+    verifyManifestEvaluationEventsCreated(imported.size());
+
     // and the telemetry was sent properly
     int batchPercent = 8;
     int batchCount = reposToImport.length;
@@ -490,6 +527,9 @@ public class ScmOnboardingServiceTest
         .collect(Collectors.toList());
     assertThat(allSourceControlApps.stream().map(Application::getPublicId))
         .containsExactlyInAnyOrder("repo1__org");
+
+    // and: a source control evaluation event was created
+    verifyManifestEvaluationEventsCreated(1);
 
     // and the telemetry was sent properly indicating no items were imported
     int batchPercent = reposToImport.length * 2;
@@ -543,6 +583,9 @@ public class ScmOnboardingServiceTest
     assertThat(allSourceControlApps.stream().map(Application::getPublicId))
         .containsExactlyInAnyOrder("repo1__org");
 
+    // and: a source control evaluation event was created for each imported repository
+    verifyManifestEvaluationEventsCreated(imported.size());
+
     // and the telemetry was sent properly indicating no items were imported
     int batchPercent = reposToImport.length * 2;
     int batchCount = reposToImport.length;
@@ -574,7 +617,7 @@ public class ScmOnboardingServiceTest
     // given a list of repos to import
     SCMRepository[] reposToImport = new SCMRepository[]{
         new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo1", false, "org", "repo1", "")
-        };
+    };
 
     // and we call import
     scmOnboardingService
@@ -697,6 +740,78 @@ public class ScmOnboardingServiceTest
     // expect provider to be case insensitive
     assertThat(scmOnboardingService.validateScmHostUrl("invalid", "http://example.com/").errorMessages)
         .isEqualTo(singletonList("Invalid SCM provider."));
+  }
+
+  @Test
+  public void testImportRepositories_disabledSourceControlPolicyEvaluations() {
+    // given SCM imports are enabled and internal SCM policy evaluations are disabled
+    automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
+    insightConfig.setFeatures(ImmutableMap.of(Feature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS.getFlag(), false));
+
+    // given a repo to import
+    SCMRepository scmRepository =
+        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo", true, "org", "repo", "");
+    int totalRepoCount = 10;
+    int prevImportedCount = 1;
+
+    // when the repo is imported
+    ImportResults response = scmOnboardingService.importRepositories(org.getId(),
+        new ImportRepositoriesRequest(Collections.singletonList(scmRepository), totalRepoCount, prevImportedCount));
+
+    // then the repo is imported
+    List<SCMRepository> importedSCMRepositories = response.getImportedRepositories();
+    assertThat(importedSCMRepositories).hasSize(1);
+    SCMRepository importedSCMRepository = importedSCMRepositories.get(0);
+    assertThat(importedSCMRepository.getNamespace()).isEqualTo(scmRepository.getNamespace());
+    assertThat(importedSCMRepository.getProject()).isEqualTo(scmRepository.getProject());
+    assertThat(importedSCMRepository.getHttpCloneUrl()).isEqualTo(scmRepository.getHttpCloneUrl());
+    assertThat(importedSCMRepository.getSourceControlProvider()).isEqualTo(scmRepository.getSourceControlProvider());
+    assertThat(importedSCMRepository.getDescription()).isEqualTo(scmRepository.getDescription());
+
+    // and the repo exists in the DB
+    List<Application> allApps = sourceControlDAO.getAll().stream() //
+        .filter(sc -> !sc.getOwnerId().equals(ROOT_ORGANIZATION_ID)) //
+        .map(sc -> applicationDAO.getById(sc.getOwnerId())) //
+        .collect(Collectors.toList());
+    assertThat(allApps).hasSize(1);
+    assertThat(allApps.get(0).getPublicId()).isEqualTo("repo__org");
+    assertThat(allApps.get(0).getName()).isEqualTo("Repo - Org");
+
+    // and that all of the clone URLs were added
+    assertThat(sourceControlDAO.getAll().stream() //
+        .filter(sc -> sc.getOwnerId() != ROOT_ORGANIZATION_ID) //
+        .map(SourceControl::getRepositoryUrl)).containsExactly("http://localhost/org/repo");
+
+    // and source control evaluation request events were not created
+    verifyNoManifestEvaluationEventsCreated();
+
+    // and the telemetry was sent properly
+    int batchPercent = 10;
+    int batchCount = 1;
+    int totalPercent = (prevImportedCount + batchCount) * 100 / totalRepoCount;
+    assertTelemetry(batchPercent, batchCount, totalPercent, batchCount);
+  }
+
+  private void verifyNoManifestEvaluationEventsCreated() {
+    verifyManifestEvaluationEventsCreated(0);
+  }
+
+  private void verifyManifestEvaluationEventsCreated(int count) {
+    if (count > 0) {
+      ArgumentCaptor<SourceControlEvent> eventCaptor = ArgumentCaptor.forClass(SourceControlEvent.class);
+      verify(mockSourceControlEventPublisher, times(count)).publishEvent(eventCaptor.capture());
+      assertThat(eventCaptor.getAllValues().size()).isEqualTo(count);
+      eventCaptor.getAllValues().forEach(
+          event -> {
+            assertThat(event.getEventType()).isEqualTo(SourceControlEvent.SOURCE_CONTROL_EVALUATION);
+            assertThat(event.getScanTriggerType())
+                .isEqualTo(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
+          }
+      );
+    }
+    else {
+      verify(mockSourceControlEventPublisher, never()).publishEvent(any());
+    }
   }
 
   private void assertTelemetry(final int batchPercent, final int batchCount, final int totalPercent, int updateCount) {

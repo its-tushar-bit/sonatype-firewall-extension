@@ -95,24 +95,26 @@ public class ComponentDetailServiceTest
     assertThat(policyViolationSummaryDTO).isNotNull();
     assertThat(policyViolationSummaryDTO.policyName).isEqualTo(policy1.getName());
     assertThat(policyViolationSummaryDTO.threatLevel).isEqualTo(2);
-    assertThat(policyViolationSummaryDTO.stageDetails).hasSize(4);
-    assertStageDetails(policyViolationSummaryDTO.stageDetails.get(0), StageTypes.BUILD, null,
+    assertThat(policyViolationSummaryDTO.stageDetails).hasSize(5);
+    assertStageDetails(policyViolationSummaryDTO.stageDetails.get(0), StageTypes.SOURCE, null, null, null);
+    assertStageDetails(policyViolationSummaryDTO.stageDetails.get(1), StageTypes.BUILD, null,
         policyEvaluation1.getScanId(), policyEvaluation1.getTime().getTime());
-    assertStageDetails(policyViolationSummaryDTO.stageDetails.get(1), StageTypes.STAGE_RELEASE, null, null, null);
-    assertStageDetails(policyViolationSummaryDTO.stageDetails.get(2), StageTypes.RELEASE, null,
+    assertStageDetails(policyViolationSummaryDTO.stageDetails.get(2), StageTypes.STAGE_RELEASE, null, null, null);
+    assertStageDetails(policyViolationSummaryDTO.stageDetails.get(3), StageTypes.RELEASE, null,
         policyEvaluation2.getScanId(), policyEvaluation2.getTime().getTime());
-    assertStageDetails(policyViolationSummaryDTO.stageDetails.get(3), StageTypes.OPERATE, null, null, null);
+    assertStageDetails(policyViolationSummaryDTO.stageDetails.get(4), StageTypes.OPERATE, null, null, null);
 
     policyViolationSummaryDTO = getPolicyViolationSummaryDTO(policy2.getId(), appComponentDetailsDTO.policyViolations);
     assertThat(policyViolationSummaryDTO).isNotNull();
     assertThat(policyViolationSummaryDTO.policyName).isEqualTo(policy2.getName());
     assertThat(policyViolationSummaryDTO.threatLevel).isEqualTo(5);
-    assertThat(policyViolationSummaryDTO.stageDetails).hasSize(4);
-    assertStageDetails(policyViolationSummaryDTO.stageDetails.get(0), StageTypes.BUILD, null,
+    assertThat(policyViolationSummaryDTO.stageDetails).hasSize(5);
+    assertStageDetails(policyViolationSummaryDTO.stageDetails.get(0), StageTypes.SOURCE, null, null, null);
+    assertStageDetails(policyViolationSummaryDTO.stageDetails.get(1), StageTypes.BUILD, null,
         policyEvaluation1.getScanId(), policyEvaluation1.getTime().getTime());
-    assertStageDetails(policyViolationSummaryDTO.stageDetails.get(1), StageTypes.STAGE_RELEASE, null, null, null);
-    assertStageDetails(policyViolationSummaryDTO.stageDetails.get(2), StageTypes.RELEASE, null, null, null);
-    assertStageDetails(policyViolationSummaryDTO.stageDetails.get(3), StageTypes.OPERATE, null, null, null);
+    assertStageDetails(policyViolationSummaryDTO.stageDetails.get(2), StageTypes.STAGE_RELEASE, null, null, null);
+    assertStageDetails(policyViolationSummaryDTO.stageDetails.get(3), StageTypes.RELEASE, null, null, null);
+    assertStageDetails(policyViolationSummaryDTO.stageDetails.get(4), StageTypes.OPERATE, null, null, null);
   }
 
   @Test
@@ -149,12 +151,13 @@ public class ComponentDetailServiceTest
     assertThat(policyViolationSummaryDTO).isNotNull();
     assertThat(policyViolationSummaryDTO.policyName).isEqualTo(policy.getName());
     assertThat(policyViolationSummaryDTO.threatLevel).isEqualTo(5);
-    assertThat(policyViolationSummaryDTO.stageDetails).hasSize(4);
-    assertStageDetails(policyViolationSummaryDTO.stageDetails.get(0), StageTypes.BUILD, null,
+    assertThat(policyViolationSummaryDTO.stageDetails).hasSize(5);
+    assertStageDetails(policyViolationSummaryDTO.stageDetails.get(0), StageTypes.SOURCE, null, null, null);
+    assertStageDetails(policyViolationSummaryDTO.stageDetails.get(1), StageTypes.BUILD, null,
         policyEvaluation.getScanId(), policyEvaluation.getTime().getTime());
-    assertStageDetails(policyViolationSummaryDTO.stageDetails.get(1), StageTypes.STAGE_RELEASE, null, null, null);
-    assertStageDetails(policyViolationSummaryDTO.stageDetails.get(2), StageTypes.RELEASE, null, null, null);
-    assertStageDetails(policyViolationSummaryDTO.stageDetails.get(3), StageTypes.OPERATE, null, null, null);
+    assertStageDetails(policyViolationSummaryDTO.stageDetails.get(2), StageTypes.STAGE_RELEASE, null, null, null);
+    assertStageDetails(policyViolationSummaryDTO.stageDetails.get(3), StageTypes.RELEASE, null, null, null);
+    assertStageDetails(policyViolationSummaryDTO.stageDetails.get(4), StageTypes.OPERATE, null, null, null);
   }
 
   @Test
@@ -185,18 +188,20 @@ public class ComponentDetailServiceTest
     assertThat(appComponentDetailsDTOs).hasSize(1);
     ApplicationComponentDetailsDTO dto = appComponentDetailsDTOs.get(0);
     assertThat(dto.application.getId()).isEqualTo(app2.getId());
-    assertThat(dto.stageDetails).hasSize(4);
-    assertStageDetails(dto.stageDetails.get(0), StageTypes.BUILD, null, "scanId1", evaluation3.getTime().getTime());
-    assertStageDetails(dto.stageDetails.get(1), StageTypes.STAGE_RELEASE, null, null, null);
-    assertStageDetails(dto.stageDetails.get(2), StageTypes.RELEASE, null, null, null);
-    assertStageDetails(dto.stageDetails.get(3), StageTypes.OPERATE, null, null, null);
+    assertThat(dto.stageDetails).hasSize(5);
+    assertStageDetails(dto.stageDetails.get(0), StageTypes.SOURCE, null, null, null);
+    assertStageDetails(dto.stageDetails.get(1), StageTypes.BUILD, null, "scanId1", evaluation3.getTime().getTime());
+    assertStageDetails(dto.stageDetails.get(2), StageTypes.STAGE_RELEASE, null, null, null);
+    assertStageDetails(dto.stageDetails.get(3), StageTypes.RELEASE, null, null, null);
+    assertStageDetails(dto.stageDetails.get(4), StageTypes.OPERATE, null, null, null);
     assertThat(dto.policyViolations).hasSize(1);
-    assertThat(dto.policyViolations.get(0).stageDetails).hasSize(4);
-    assertStageDetails(dto.policyViolations.get(0).stageDetails.get(0), StageTypes.BUILD, null,
+    assertThat(dto.policyViolations.get(0).stageDetails).hasSize(5);
+    assertStageDetails(dto.policyViolations.get(0).stageDetails.get(0), StageTypes.SOURCE, null, null, null);
+    assertStageDetails(dto.policyViolations.get(0).stageDetails.get(1), StageTypes.BUILD, null,
         evaluation3.getScanId(), evaluation3.getTime().getTime());
-    assertStageDetails(dto.policyViolations.get(0).stageDetails.get(1), StageTypes.STAGE_RELEASE, null, null, null);
-    assertStageDetails(dto.policyViolations.get(0).stageDetails.get(2), StageTypes.RELEASE, null, null, null);
-    assertStageDetails(dto.policyViolations.get(0).stageDetails.get(3), StageTypes.OPERATE, null, null, null);
+    assertStageDetails(dto.policyViolations.get(0).stageDetails.get(2), StageTypes.STAGE_RELEASE, null, null, null);
+    assertStageDetails(dto.policyViolations.get(0).stageDetails.get(3), StageTypes.RELEASE, null, null, null);
+    assertStageDetails(dto.policyViolations.get(0).stageDetails.get(4), StageTypes.OPERATE, null, null, null);
   }
 
   @Test
@@ -223,8 +228,8 @@ public class ComponentDetailServiceTest
     ApplicationComponentDetailsDTO dto = appComponentDetailsDTOs.get(0);
     assertThat(dto.application.getId()).isEqualTo(app1.getId());
     assertThat(dto.policyViolations).hasSize(1);
-    assertThat(dto.policyViolations.get(0).stageDetails).hasSize(4);
-    assertStageDetails(dto.policyViolations.get(0).stageDetails.get(0), StageTypes.BUILD, FailActionType.ID,
+    assertThat(dto.policyViolations.get(0).stageDetails).hasSize(5);
+    assertStageDetails(dto.policyViolations.get(0).stageDetails.get(1), StageTypes.BUILD, FailActionType.ID,
         evaluation2.getScanId(), evaluation1.getTime().getTime());
   }
 
@@ -257,13 +262,14 @@ public class ComponentDetailServiceTest
     assertThat(appComponentDetailsDTOs).hasSize(1);
     ApplicationComponentDetailsDTO dto = appComponentDetailsDTOs.get(0);
     assertThat(dto.application.getId()).isEqualTo(app1.getId());
-    assertThat(dto.stageDetails).hasSize(4);
+    assertThat(dto.stageDetails).hasSize(5);
     // should show the first occurence time and link to most recent scan report
-    assertStageDetails(dto.stageDetails.get(0), StageTypes.BUILD, WarnActionType.ID, "scanId2", evaluation1.getTime()
+    assertStageDetails(dto.stageDetails.get(0), StageTypes.SOURCE, null, null, null);
+    assertStageDetails(dto.stageDetails.get(1), StageTypes.BUILD, WarnActionType.ID, "scanId2", evaluation1.getTime()
         .getTime());
-    assertStageDetails(dto.stageDetails.get(1), StageTypes.STAGE_RELEASE, null, null, null);
-    assertStageDetails(dto.stageDetails.get(2), StageTypes.RELEASE, null, null, null);
-    assertStageDetails(dto.stageDetails.get(3), StageTypes.OPERATE, null, null, null);
+    assertStageDetails(dto.stageDetails.get(2), StageTypes.STAGE_RELEASE, null, null, null);
+    assertStageDetails(dto.stageDetails.get(3), StageTypes.RELEASE, null, null, null);
+    assertStageDetails(dto.stageDetails.get(4), StageTypes.OPERATE, null, null, null);
   }
 
   @Test

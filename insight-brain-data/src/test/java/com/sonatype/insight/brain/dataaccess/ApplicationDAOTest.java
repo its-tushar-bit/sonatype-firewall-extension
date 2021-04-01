@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -162,6 +163,43 @@ public class ApplicationDAOTest
     Set<String> publicIds = new HashSet<>();
     List<Application> retrievedApplications = new ArrayList<>(applicationDAO.getByPublicIds(publicIds));
     assertThat(retrievedApplications).isEmpty();
+  }
+
+  @Test
+  public void testGetByRepositoryUrl() {
+    // given: a set of applications, a repository URL and some apps associated with that URL and some not
+    final String repositoryURL = "http://test.gitlab.com/org/mono-repo";
+
+    // set root org source control
+    tempEntity.newSourceControl(organization.getParentOrganizationId(), null, "token", SourceControlProvider.GITLAB);
+
+    // app1 is associated with the repo URL
+    tempEntity.newApplicationWithSpecificId("app1", "application 1", "app1", organization.getId());
+    tempEntity.newSourceControl("app1", repositoryURL);
+
+    // app2 is NOT associated with the repo URL
+    tempEntity.newApplicationWithSpecificId("app2", "application 2", "app2", organization.getId());
+
+    // app3 is associated with the repo URL
+    tempEntity.newApplicationWithSpecificId("app3", "application 3", "app3", organization.getId());
+    tempEntity.newSourceControl("app3", repositoryURL);
+
+    // when: fetch apps associated with the given repo URL
+    List<Application> repoApps = applicationDAO.getByRepositoryUrl(repositoryURL);
+
+    // then: app1 and app3 associated, app2 is NOT
+    assertThat(repoApps).hasSize(2);
+    Set<String> applicationIds = repoApps.stream().map(p -> p.getId()).collect(Collectors.toSet());
+    assertThat(applicationIds).contains("app1");
+    assertThat(applicationIds).contains("app3");
+    assertThat(applicationIds).doesNotContain("app2");
+
+    // when: fetch using repo URL not associated with any applications
+    repoApps = applicationDAO.getByRepositoryUrl("bogus URL");
+
+    // then: no matches, yet list not null
+    assertThat(repoApps).isNotNull();
+    assertThat(repoApps).isEmpty();
   }
 
   @Test

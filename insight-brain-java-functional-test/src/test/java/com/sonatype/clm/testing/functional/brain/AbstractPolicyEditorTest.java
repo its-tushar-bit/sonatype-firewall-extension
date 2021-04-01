@@ -1390,7 +1390,7 @@ public abstract class AbstractPolicyEditorTest
   private void testCreatePolicy_actionsSection() {
     // header names
     ActionsSection actionsTable = PolicyEditorPage.actionsSection();
-    actionsTable.headers().shouldHave(texts("PROXY", "DEVELOP", "BUILD", "STAGE", "RELEASE", "OPERATE"));
+    actionsTable.headers().shouldHave(texts("PROXY", "DEVELOP", "SOURCE", "BUILD", "STAGE", "RELEASE", "OPERATE"));
 
     // column hover
     ConditionUtils.shouldNotHave(actionsTable.build().cells(), activeClass());

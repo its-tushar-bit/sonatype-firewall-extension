@@ -27,6 +27,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO.PULL_REQUEST_POLLING_INITIAL_OFFSET_MS;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITLAB;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -56,18 +57,20 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void testInitializePullRequestPollTimes_appWithPolicyEvaluationAndNeedingPollTime() {
-    // given: several policy evaluations at different times and a related source control without a poll time
+  public void testInitializePullRequestPollTimes_appWithOlderPolicyEvaluationAndNeedingPollTime() {
+    // given: several policy evaluations at different times and a related source control without a poll time;
+    //        the oldest policy eval is older than the polling offset
+    final long pollingOffset = PULL_REQUEST_POLLING_INITIAL_OFFSET_MS / (1000L * 60 * 60);
     LocalDateTime now = LocalDateTime.now();
-    Date scanTime = toDate(now.minusDays(3));
+    Date scanTime = toDate(now.minusHours(pollingOffset + 2));
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
     tempEntity.newSourceControl(app.getId(), "http://a.com/org/repo", null);
     tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId2", false, false, false,
-        toDate(now.minusDays(2)), "commitHash1234");
+        toDate(now.minusHours(pollingOffset - 2)), "commitHash1234");
     tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId", false, false, false, scanTime,
         "commitHash123");
     tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId3", false, false, false,
-        toDate(now.minusDays(1)), "commitHash1235");
+        toDate(now.minusHours(pollingOffset - 4)), "commitHash1235");
 
     // when: fetch source control
     SourceControl sourceControl = sourceControlDAO.getByOwnerId(app.getId());
@@ -81,6 +84,38 @@ public class SourceControlDAOTest
 
     // then: source control poll time for app was updated to the earliest policy eval time
     assertThat(sourceControl.getPullRequestPollTime()).isEqualTo(scanTime);
+  }
+
+  @Test
+  public void testInitializePullRequestPollTimes_appWithNewerPolicyEvaluationAndNeedingPollTime() {
+    // given: several policy evaluations at different times and a related source control without a poll time;
+    //        the oldest policy eval is newer than the polling offset
+    final long pollingOffset = PULL_REQUEST_POLLING_INITIAL_OFFSET_MS / (1000L * 60 * 60);
+    LocalDateTime now = LocalDateTime.now();
+    final Date defaultPollingTime = toDate(now.minusHours(pollingOffset));
+    Date scanTime = toDate(now.minusHours(pollingOffset - 2));
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
+    tempEntity.newSourceControl(app.getId(), "http://a.com/org/repo", null);
+    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId2", false, false, false,
+        toDate(now.minusHours(pollingOffset - 4)), "commitHash1234");
+    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId", false, false, false, scanTime,
+        "commitHash123");
+    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId3", false, false, false,
+        toDate(now.minusHours(pollingOffset - 6)), "commitHash1235");
+
+    // when: fetch source control
+    SourceControl sourceControl = sourceControlDAO.getByOwnerId(app.getId());
+
+    // then: poll time is not set
+    assertThat(sourceControl.getPullRequestPollTime()).isNull();
+
+    // when: update poll times and fetch app source control
+    sourceControlDAO.initializePullRequestPollTimes();
+    sourceControl = sourceControlDAO.getByOwnerId(app.getId());
+
+    // then: source control poll time for app was updated to the default offset time
+    assertThat(sourceControl.getPullRequestPollTime()).isBefore(scanTime);
+    assertThat(sourceControl.getPullRequestPollTime()).isAfterOrEqualTo(defaultPollingTime);
   }
 
   @Test
@@ -110,7 +145,6 @@ public class SourceControlDAOTest
   @Test
   public void testInitializePullRequestPollTimes_appWithRepoUrlAndNeedsPollTime() {
     // given: app source control without poll time and no related policy evals
-    Date startTime = new Date();
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
     tempEntity.newSourceControl(app.getId(), "http://a.com/org/repo", null);
 
@@ -121,12 +155,14 @@ public class SourceControlDAOTest
     assertThat(sourceControl.getPullRequestPollTime()).isNull();
 
     // when: update poll times and refetch
+    Date expectedPullRequestPollTime =
+        new Date(System.currentTimeMillis() - PULL_REQUEST_POLLING_INITIAL_OFFSET_MS);
     sourceControlDAO.initializePullRequestPollTimes();
     sourceControl = sourceControlDAO.getByOwnerId(app.getId());
 
     // then: new poll time was assigned
     assertThat(sourceControl.getPullRequestPollTime()).isNotNull();
-    assertThat(sourceControl.getPullRequestPollTime()).isAfterOrEqualTo(startTime);
+    assertThat(sourceControl.getPullRequestPollTime()).isAfterOrEqualTo(expectedPullRequestPollTime);
   }
 
   @Test

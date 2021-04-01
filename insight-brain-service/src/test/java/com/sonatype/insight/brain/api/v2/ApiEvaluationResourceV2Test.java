@@ -27,7 +27,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiManifestEvaluationRequestDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlEvaluationRequestDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentEvaluationServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ComponentEvaluationV2Helper;
@@ -555,13 +555,13 @@ public class ApiEvaluationResourceV2Test
     // and events are empty
     assertThat(sourceControlEventDAO.getAll()).isEmpty();
 
-    // when application manifest is scanned
-    ApiManifestEvaluationRequestDTO apiManifestEvaluationRequestDTO =
-        new ApiManifestEvaluationRequestDTO(Stage.ID_DEVELOP, "customBranch");
+    // when application source control is scanned
+    ApiSourceControlEvaluationRequestDTO apiSourceControlEvaluationRequestDTO =
+        new ApiSourceControlEvaluationRequestDTO(Stage.ID_DEVELOP, "customBranch");
     HttpResponse response = restRequest() //
-        .path(APPLICATION_EVALUATION_PATH_V2, DefaultApiEvaluationResourceV2.MANIFEST_EVALUATION_PATH) //
+        .path(APPLICATION_EVALUATION_PATH_V2, DefaultApiEvaluationResourceV2.SOURCE_CONTROL_EVALUATION_PATH) //
         .parameter(app.getId()) //
-        .body(apiManifestEvaluationRequestDTO).post();
+        .body(apiSourceControlEvaluationRequestDTO).post();
 
     // the response contains status ID
     assertResponseStatus(200, response);
@@ -576,7 +576,7 @@ public class ApiEvaluationResourceV2Test
     // and it matches expected values
     SourceControlEvent event = allEvents.get(0);
     assertThat(event.getApplicationId()).isEqualTo(app.getId());
-    assertThat(event.getEventType()).isEqualTo(SourceControlEvent.MANIFEST_EVALUATION_EVENT);
+    assertThat(event.getEventType()).isEqualTo(SourceControlEvent.SOURCE_CONTROL_EVALUATION);
     assertThat(event.getStageTypeId()).isEqualTo("develop");
     assertThat(event.getBranchName()).isEqualTo("customBranch");
   }

@@ -17,10 +17,10 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.sonatype.insight.brain.concurrent.SemaphorePool;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.GitCommitStatusService;
-import com.sonatype.insight.brain.git.ManifestScanService;
 import com.sonatype.insight.brain.git.PullRequestCommentingEventHandler;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
 import com.sonatype.insight.brain.git.SourceControlInstanceManager;
+import com.sonatype.insight.brain.git.SourceControlScanService;
 import com.sonatype.insight.brain.git.SourceControlService;
 import com.sonatype.insight.brain.git.VerifiableLoggingTestBase;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
@@ -71,7 +71,7 @@ public class SourceControlEventServiceTest
   private GitCommitStatusService mockGitCommitStatusService;
 
   @Mock
-  private ManifestScanService mockManifestScanService;
+  private SourceControlScanService mockSourceControlScanService;
 
   @Mock
   private SemaphorePool mockRepoAccessController;
@@ -92,7 +92,7 @@ public class SourceControlEventServiceTest
     super.setup();
     eventService = spy(new SourceControlEventService(mockSourceControlEventDAO, mockSourceControlInstanceManager,
         mockPullRequestCommentingEventHandler, mockPullRequestRemediationService, mockGitCommitStatusService,
-        mockManifestScanService, mockSourceControlService));
+        mockSourceControlScanService, mockSourceControlService));
     when(mockSourceControlInstanceManager.canProcessEvents()).thenReturn(true);
   }
 
@@ -216,8 +216,8 @@ public class SourceControlEventServiceTest
 
   @Test
   public void testProcessEvents_onManifestScanEvent() throws Exception {
-    // given: an event DAO setup to return a manifest scan event
-    List<SourceControlEvent> events = generateEvents("1:app1:" + SourceControlEvent.MANIFEST_EVALUATION_EVENT);
+    // given: an event DAO setup to return a source control scan event
+    List<SourceControlEvent> events = generateEvents("1:app1:" + SourceControlEvent.SOURCE_CONTROL_EVALUATION);
     when(mockSourceControlEventDAO
         .selectEventsForInstance(eq(eventService.getInstanceId()), anyInt()))
         .thenReturn(events);
@@ -227,7 +227,7 @@ public class SourceControlEventServiceTest
     // when: process the events
     eventService.processEvents();
 
-    // then: manifest scan invoked for the given event
+    // then: source control scan invoked for the given event
     verifyUnlatched(eventsProcessedLatch);
     verifyProcessEventsActions(events.get(0),
         EventProcessAction.markedInProgress,
@@ -242,7 +242,7 @@ public class SourceControlEventServiceTest
 
   @Test
   public void testProcessEvents_onRepoUrlChangedEvent() throws Exception {
-    // given: an event DAO setup to return a manifest scan event
+    // given: an event DAO setup to return a source control scan event
     List<SourceControlEvent> events = generateEvents("1:app1:" + SourceControlEvent.REPOSITORY_URL_UPDATED_EVENT);
     when(mockSourceControlEventDAO
         .selectEventsForInstance(eq(eventService.getInstanceId()), anyInt()))
@@ -253,7 +253,7 @@ public class SourceControlEventServiceTest
     // when: process the events
     eventService.processEvents();
 
-    // then: manifest scan invoked for the given event
+    // then: source control scan invoked for the given event
     verifyUnlatched(eventsProcessedLatch);
     verifyProcessEventsActions(events.get(0),
         EventProcessAction.markedInProgress,
@@ -319,7 +319,16 @@ public class SourceControlEventServiceTest
   @Test
   public void testProcessEvents_eventCounts() {
     // given: a list of events
-    List<SourceControlEvent> events = generateEvents("12:app1:" + SourceControlEvent.APPLICATION_EVALUATION_EVENT);
+    // We generate THREAD_POOL_SIZE + 2 events.
+    // After the events are selected for processing, the thread pool will consume THREAD_POOL_SIZE events from the
+    // queue, leaving 2 events in the queue.
+    // The lock below will block any processing threads except one. so one thread executes and it's free to pick up
+    // another event from the queue, leaving 1 event in the queue.
+    // Since the lock is never unlocked and the SourceControlEventService only allows one event to be processed for an
+    // application at any point in time, only one event is ever processed.
+    int generatedEventsCount = SourceControlEventService.THREAD_POOL_SIZE + 2;
+    List<SourceControlEvent> events =
+        generateEvents(generatedEventsCount + ":app1:" + SourceControlEvent.APPLICATION_EVALUATION_EVENT);
 
     // and given: an event DAO setup to return the list of events and the count of events requested
     ArgumentCaptor<Integer> requestCountCaptor = ArgumentCaptor.forClass(Integer.class);
@@ -335,7 +344,8 @@ public class SourceControlEventServiceTest
     }).when(mockPullRequestCommentingEventHandler).onApplicationEvaluation(any(SourceControlEvent.class));
 
     // when: process events for an "unloaded" event service, which will load up the service
-    eventService.processEvents();
+    int eventsSubmittedForProcessing = eventService.processEvents();
+    assertThat(eventsSubmittedForProcessing).isEqualTo(generatedEventsCount);
 
     // then: the maximum number of events was requested
     verify(mockSourceControlEventDAO, atLeast(1))
@@ -348,7 +358,8 @@ public class SourceControlEventServiceTest
           .isEqualTo(SourceControlEventService.TASK_QUEUE_CAPACITY - 1);
     });
 
-    eventService.processEvents();
+    eventsSubmittedForProcessing = eventService.processEvents();
+    assertThat(eventsSubmittedForProcessing).isEqualTo(generatedEventsCount);
 
     // then: the count of events requested = max load - those still in work from previous request
     final int expectedRequestCount = SourceControlEventService.MAX_LOAD - (events.size() - 1);
@@ -362,11 +373,11 @@ public class SourceControlEventServiceTest
     SourceControlEvent completedEvent = eventCaptor.getValue();
 
     assertThatLogMessagesEqual(
-        debug("Requested " + SourceControlEventService.TASK_QUEUE_CAPACITY + " source control events, processing 12"),
+        debug("Requested " + SourceControlEventService.TASK_QUEUE_CAPACITY + " source control events, processing "
+            + generatedEventsCount),
         debug(getProcessedEventMessage(completedEvent)),
-        debug("Requested " + (SourceControlEventService.TASK_QUEUE_CAPACITY - 1) +
-            " source control events, processing 12")
-    );
+        debug("Requested " + (SourceControlEventService.TASK_QUEUE_CAPACITY - 1) + " source control events, processing "
+            + generatedEventsCount));
   }
 
   @Test
@@ -777,7 +788,7 @@ public class SourceControlEventServiceTest
       verify(mockPullRequestCommentingEventHandler, never()).onDiscoveredPullRequest(eq(event));
       verify(mockPullRequestCommentingEventHandler, never()).onApplicationEvaluation(eq(event));
       verify(mockPullRequestRemediationService, never()).onRemediateComponent(eq(event));
-      verify(mockManifestScanService, never()).onManifestScan(any(SourceControlEvent.class));
+      verify(mockSourceControlScanService, never()).onSourceControlScan(any(SourceControlEvent.class));
       verify(mockGitCommitStatusService, never()).onSendCommitStatus(eq(event));
       verify(mockSourceControlService, never()).onRepositoryUrlUpdated(eq(event));
     }
@@ -785,7 +796,7 @@ public class SourceControlEventServiceTest
       verify(mockPullRequestCommentingEventHandler, times(1)).onApplicationEvaluation(eq(event));
       verify(mockPullRequestCommentingEventHandler, never()).onDiscoveredPullRequest(eq(event));
       verify(mockPullRequestRemediationService, never()).onRemediateComponent(eq(event));
-      verify(mockManifestScanService, never()).onManifestScan(any(SourceControlEvent.class));
+      verify(mockSourceControlScanService, never()).onSourceControlScan(any(SourceControlEvent.class));
       verify(mockGitCommitStatusService, never()).onSendCommitStatus(eq(event));
       verify(mockSourceControlService, never()).onRepositoryUrlUpdated(eq(event));
     }
@@ -793,7 +804,7 @@ public class SourceControlEventServiceTest
       verify(mockPullRequestCommentingEventHandler, times(1)).onDiscoveredPullRequest(eq(event));
       verify(mockPullRequestCommentingEventHandler, never()).onApplicationEvaluation(eq(event));
       verify(mockPullRequestRemediationService, never()).onRemediateComponent(eq(event));
-      verify(mockManifestScanService, never()).onManifestScan(any(SourceControlEvent.class));
+      verify(mockSourceControlScanService, never()).onSourceControlScan(any(SourceControlEvent.class));
       verify(mockGitCommitStatusService, never()).onSendCommitStatus(eq(event));
       verify(mockSourceControlService, never()).onRepositoryUrlUpdated(eq(event));
     }
@@ -801,24 +812,24 @@ public class SourceControlEventServiceTest
       verify(mockPullRequestRemediationService, times(1)).onRemediateComponent(eq(event));
       verify(mockPullRequestCommentingEventHandler, never()).onDiscoveredPullRequest(eq(event));
       verify(mockPullRequestCommentingEventHandler, never()).onApplicationEvaluation(eq(event));
-      verify(mockManifestScanService, never()).onManifestScan(any(SourceControlEvent.class));
+      verify(mockSourceControlScanService, never()).onSourceControlScan(any(SourceControlEvent.class));
       verify(mockGitCommitStatusService, never()).onSendCommitStatus(eq(event));
       verify(mockSourceControlService, never()).onRepositoryUrlUpdated(eq(event));
     }
     else if (actionSet.contains(EventProcessAction.onManifestScan)) {
-      verify(mockManifestScanService, times(1)).onManifestScan(eq(event));
+      verify(mockSourceControlScanService, times(1)).onSourceControlScan(eq(event));
       verifyNoMoreInteractions(mockPullRequestCommentingEventHandler, mockPullRequestRemediationService,
           mockGitCommitStatusService, mockSourceControlService);
     }
     else if (actionSet.contains(EventProcessAction.onStatusUpdate)) {
       verify(mockGitCommitStatusService, times(1)).onSendCommitStatus(eq(event));
       verifyNoMoreInteractions(mockPullRequestCommentingEventHandler, mockPullRequestRemediationService,
-          mockManifestScanService, mockSourceControlService);
+          mockSourceControlScanService, mockSourceControlService);
     }
     else if (actionSet.contains(EventProcessAction.onRepositoryUrlUpdated)) {
       verify(mockSourceControlService, times(1)).onRepositoryUrlUpdated(eq(event));
       verifyNoMoreInteractions(mockPullRequestCommentingEventHandler, mockPullRequestRemediationService,
-          mockManifestScanService, mockSourceControlService);
+          mockSourceControlScanService, mockSourceControlService);
     }
   }
 }

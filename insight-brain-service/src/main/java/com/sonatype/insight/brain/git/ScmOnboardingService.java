@@ -12,12 +12,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiCompositeSourceControlDTO;
+import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiCompositeSourceControlService;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -29,13 +32,17 @@ import com.sonatype.insight.brain.git.dto.ImportResults;
 import com.sonatype.insight.brain.git.dto.OnboardingOrganization;
 import com.sonatype.insight.brain.git.dto.SCMRepositories;
 import com.sonatype.insight.brain.git.dto.ValidationResponse;
+import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.organization.ApplicationHelper;
 import com.sonatype.insight.brain.organization.OrganizationService;
 import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -70,11 +77,15 @@ public class ScmOnboardingService
 {
   private static final Logger log = LoggerFactory.getLogger(ScmOnboardingService.class);
 
+  private static final String SOURCE_CONTROL_EVALUATION_STAGE = Stage.ID_SOURCE;
+
   public static final int MAX_PUBLICID_RENAME_ATTEMPTS = 5;
 
   public static final int INITIAL_RENAME_POSTFIX = 2;
 
   private final SourceControlDAO sourceControlDAO;
+
+  private SourceControlEventPublisher sourceControlEventPublisher;
 
   private final ApplicationDAO appDAO;
 
@@ -94,19 +105,25 @@ public class ScmOnboardingService
 
   private final ScmApplicationNameConverter applicationNameConverter;
 
+  private final InsightConfig insightConfig;
+
   @Inject
-  public ScmOnboardingService(final SourceControlDAO sourceControlDAO,
-                              final ApplicationDAO appDAO,
-                              final OrganizationDAO orgDAO,
-                              final ApplicationHelper applicationHelper,
-                              final ApiSourceControlService apiSourceControlService,
-                              final ApiCompositeSourceControlService apiCompositeSourceControlService,
-                              OrganizationService organizationService,
-                              final GitApiClientFactory gitApiClientFactory,
-                              final TelemetrySender telemetrySender,
-                              final ScmApplicationNameConverter applicationNameConverter)
+  public ScmOnboardingService(
+      final SourceControlDAO sourceControlDAO,
+      final SourceControlEventPublisher sourceControlEventPublisher,
+      final ApplicationDAO appDAO,
+      final OrganizationDAO orgDAO,
+      final ApplicationHelper applicationHelper,
+      final ApiSourceControlService apiSourceControlService,
+      final ApiCompositeSourceControlService apiCompositeSourceControlService,
+      final OrganizationService organizationService,
+      final GitApiClientFactory gitApiClientFactory,
+      final TelemetrySender telemetrySender,
+      final ScmApplicationNameConverter applicationNameConverter,
+      final InsightConfig insightConfig)
   {
     this.sourceControlDAO = sourceControlDAO;
+    this.sourceControlEventPublisher = sourceControlEventPublisher;
     this.appDAO = appDAO;
     this.orgDAO = orgDAO;
     this.applicationHelper = applicationHelper;
@@ -116,6 +133,7 @@ public class ScmOnboardingService
     this.gitApiClientFactory = gitApiClientFactory;
     this.telemetrySender = telemetrySender;
     this.applicationNameConverter = applicationNameConverter;
+    this.insightConfig = insightConfig;
   }
 
   @Authorize(permission = Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION)
@@ -172,6 +190,7 @@ public class ScmOnboardingService
 
   /**
    * calculates the default host URL for use in onboarding
+   *
    * @param orgId optional, if provided will attempt to use existing SCM repos in this org
    */
   @Authorize(permission = Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION)
@@ -183,7 +202,7 @@ public class ScmOnboardingService
     try {
       provider = SourceControlProvider.fromString(providerString);
     }
-    catch (IllegalArgumentException e ) {
+    catch (IllegalArgumentException e) {
       throw new BadRequestException("Invalid provider: " + providerString, e);
     }
 
@@ -277,7 +296,7 @@ public class ScmOnboardingService
     ArrayList<ImportFailure> failedRepos = new ArrayList<>();
     for (SCMRepository scmRepository : importReposRequest.scmRepositories) {
       try {
-        SCMRepository importResult = importRepository(orgId, scmRepository);
+        SCMRepository importResult = importRepositoryAndInitiatePolicyEvaluation(orgId, scmRepository);
         importedRepos.add(importResult);
       }
       catch (Exception e) {
@@ -331,7 +350,10 @@ public class ScmOnboardingService
     }
   }
 
-  private SCMRepository importRepository(final String orgId, final SCMRepository scmRepository) {
+  private SCMRepository importRepositoryAndInitiatePolicyEvaluation(
+      final String orgId,
+      final SCMRepository scmRepository)
+  {
     String publicId = applicationNameConverter.buildPublicId(scmRepository);
     String name = applicationNameConverter.buildName(scmRepository);
     String cloneUrl = sanitizeUrl(scmRepository.getHttpCloneUrl());
@@ -348,8 +370,47 @@ public class ScmOnboardingService
         app = createApplicationWithPostfix(orgId, scmRepository);
       }
     }
-    apiSourceControlService.addOrUpdateSourceControl(app.getPublicId(), cloneUrl);
+    ApiSourceControlDTO apiSourceControlDTO =
+        apiSourceControlService.addOrUpdateSourceControl(app.getPublicId(), cloneUrl);
+
+    if (insightConfig.isFeatureEnabled(InsightConfig.Feature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS)) {
+      initiateSourceControlEvaluation(apiSourceControlDTO);
+    }
+
     return scmRepository;
+  }
+
+  private void initiateSourceControlEvaluation(ApiSourceControlDTO sourceControlDTO) {
+    try {
+      String statusId = UUID.randomUUID().toString().replace("-", "");
+
+      if (null == sourceControlDTO.baseBranch) {
+        ApiCompositeSourceControlDTO dto = apiCompositeSourceControlService
+            .getCompositeSourceControlByOwner(OwnerType.APPLICATION, sourceControlDTO.ownerId);
+        if (null != dto) {
+          sourceControlDTO.baseBranch =
+              dto.baseBranch.value != null ? dto.baseBranch.value : dto.baseBranch.parentValue;
+        }
+      }
+
+      SourceControlEvent sourceControlEvent = new SourceControlEvent() //
+          .forSourceControlEvaluation() //
+          .setApplicationId(sourceControlDTO.ownerId) //
+          .setStageTypeId(SOURCE_CONTROL_EVALUATION_STAGE) //
+          .setScanTriggerType(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING) //
+          .setStatusId(statusId) //
+          .setBranchName(sourceControlDTO.baseBranch);
+
+      log.debug("Initiating a source control evaluation for application {}, stage {} and branch {} with status ID {}.",
+          sourceControlEvent.getApplicationId(), sourceControlEvent.getStageTypeId(),
+          sourceControlEvent.getBranchName(),
+          sourceControlEvent.getStatusId());
+
+      sourceControlEventPublisher.publishEvent(sourceControlEvent);
+    }
+    catch (Exception e) {
+      log.error(e.getMessage(), e);
+    }
   }
 
   private Application createApplicationWithPostfix(

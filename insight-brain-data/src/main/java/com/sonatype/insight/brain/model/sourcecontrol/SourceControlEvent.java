@@ -32,7 +32,7 @@ public class  SourceControlEvent
 
   public static final String DISCOVERED_PULL_REQUEST_EVENT = "discovered pull request";
 
-  public static final String MANIFEST_EVALUATION_EVENT = "manifest evaluation";
+  public static final String SOURCE_CONTROL_EVALUATION = "source control evaluation";
 
   public static final String REMEDIATION_PULL_REQUEST_EVENT = "remediation pull request";
 
@@ -198,7 +198,7 @@ public class  SourceControlEvent
   }
 
   public SourceControlEvent forSourceControlEvaluation() {
-    return setEventType(MANIFEST_EVALUATION_EVENT);
+    return setEventType(SOURCE_CONTROL_EVALUATION);
   }
 
   public SourceControlEvent forRemediationPullRequest() {

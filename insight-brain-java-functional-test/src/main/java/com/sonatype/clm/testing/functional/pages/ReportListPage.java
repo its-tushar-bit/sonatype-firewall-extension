@@ -117,28 +117,36 @@ public class ReportListPage
       return new Tooltip(".report-organization-name-tooltip");
     }
 
-    public SelenideElement buildReportLink() {
+    public SelenideElement sourceStageCell() {
+      return child(".iq-cell:nth-child(4)");
+    }
+
+    public SelenideElement sourceReportLink() {
       return child(".iq-cell:nth-child(4) .iq-report-list__report-links a");
     }
 
-    public SelenideElement stageReleaseReportLink() {
+    public SelenideElement buildReportLink() {
       return child(".iq-cell:nth-child(5) .iq-report-list__report-links a");
     }
 
-    public SelenideElement releaseReportLink() {
+    public SelenideElement stageReleaseReportLink() {
       return child(".iq-cell:nth-child(6) .iq-report-list__report-links a");
     }
 
-    public IQThreatIndicators buildReportThreatIndicators() {
-      return new IQThreatIndicators(".iq-cell:nth-child(4) .iq-threat-indicators");
+    public SelenideElement releaseReportLink() {
+      return child(".iq-cell:nth-child(7) .iq-report-list__report-links a");
     }
 
-    public IQThreatIndicators stageReleaseReportThreatIndicators() {
+    public IQThreatIndicators buildReportThreatIndicators() {
       return new IQThreatIndicators(".iq-cell:nth-child(5) .iq-threat-indicators");
     }
 
-    public IQThreatIndicators releaseReportThreatIndicators() {
+    public IQThreatIndicators stageReleaseReportThreatIndicators() {
       return new IQThreatIndicators(".iq-cell:nth-child(6) .iq-threat-indicators");
+    }
+
+    public IQThreatIndicators releaseReportThreatIndicators() {
+      return new IQThreatIndicators(".iq-cell:nth-child(7) .iq-threat-indicators");
     }
   }
 

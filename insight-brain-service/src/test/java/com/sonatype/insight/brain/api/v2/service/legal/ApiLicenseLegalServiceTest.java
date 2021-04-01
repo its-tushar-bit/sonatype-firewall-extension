@@ -1812,6 +1812,7 @@ public class ApiLicenseLegalServiceTest
     assertThat(licenseLegalComponentReport.component.stageScans)
         .usingRecursiveFieldByFieldElementComparator()
         .containsExactlyInAnyOrder(
+            new ApiLicenseLegalStageScanDTO(StageTypes.SOURCE.getName(), null, null),
             new ApiLicenseLegalStageScanDTO(StageTypes.BUILD.getName(), null, null),
             new ApiLicenseLegalStageScanDTO(StageTypes.STAGE_RELEASE.getName(), null, null),
             new ApiLicenseLegalStageScanDTO(StageTypes.RELEASE.getName(), null, null),
@@ -1826,6 +1827,8 @@ public class ApiLicenseLegalServiceTest
     namedComponentDetails.setComponentIdentifier(componentIdentifier);
     doReturn(namedComponentDetails)
         .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+    tempEntity.newApplicationComponent(owner.getId(), StageTypes.SOURCE.getId(), namedComponentDetails.getHash(),
+        componentIdentifier);
     tempEntity.newApplicationComponent(owner.getId(), StageTypes.BUILD.getId(), namedComponentDetails.getHash(),
         componentIdentifier);
     tempEntity.newApplicationComponent(owner.getId(), StageTypes.STAGE_RELEASE.getId(), namedComponentDetails.getHash(),
@@ -1834,6 +1837,8 @@ public class ApiLicenseLegalServiceTest
         componentIdentifier);
     tempEntity.newApplicationComponent(owner.getId(), StageTypes.OPERATE.getId(), namedComponentDetails.getHash(),
         componentIdentifier);
+    PolicyEvaluation sourceEval =
+        tempEntity.newPolicyEvaluation(owner.getId(), StageTypes.SOURCE.getId(), "scanIdSource", new Date(0));
     PolicyEvaluation buildEval = tempEntity.newPolicyEvaluation(owner.getId(), StageTypes.BUILD.getId(), "scanIdBuild",
         new Date(1));
     PolicyEvaluation stageReleaseEval = tempEntity.newPolicyEvaluation(owner.getId(), StageTypes.STAGE_RELEASE.getId(),
@@ -1850,6 +1855,7 @@ public class ApiLicenseLegalServiceTest
     assertThat(licenseLegalComponentReport.component.stageScans)
         .usingRecursiveFieldByFieldElementComparator()
         .containsExactlyInAnyOrder(
+            new ApiLicenseLegalStageScanDTO(StageTypes.SOURCE.getName(), sourceEval.getScanId(), sourceEval.getTime()),
             new ApiLicenseLegalStageScanDTO(StageTypes.BUILD.getName(), buildEval.getScanId(), buildEval.getTime()),
             new ApiLicenseLegalStageScanDTO(StageTypes.STAGE_RELEASE.getName(), stageReleaseEval.getScanId(),
                 stageReleaseEval.getTime()),

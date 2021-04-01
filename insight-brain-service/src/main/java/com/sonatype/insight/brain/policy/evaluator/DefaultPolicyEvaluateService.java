@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -120,16 +121,26 @@ public class DefaultPolicyEvaluateService
       ScanTriggerType scanTriggerType)
       throws IOException
   {
+    ScanPolicyEvaluatorResults results = evaluateAndSendNotifications(application, scanId, stage, scanTriggerType);
+
+    return scanPolicyEvaluator.createPolicyEvaluationResult(results.evaluation,
+        results.allViolations, true);
+  }
+
+  private ScanPolicyEvaluatorResults evaluateAndSendNotifications(
+      Application application,
+      String scanId,
+      Stage stage,
+      ScanTriggerType scanTriggerType) throws IOException
+  {
     ScanPolicyEvaluatorResults results =
         scanPolicyEvaluator.evaluate(application, scanId, stage, scanTriggerType);
-    PolicyEvaluationResult policyEvaluationResult = scanPolicyEvaluator.createPolicyEvaluationResult(results.evaluation,
-        results.allViolations, true);
 
     if (!results.evaluation.isReevaluation()) {
       policyAlertNotifier.sendNotifications(application, results);
     }
 
-    return policyEvaluationResult;
+    return results;
   }
 
   @Override
@@ -383,6 +394,48 @@ public class DefaultPolicyEvaluateService
       }
       persistedPolicyEvaluationPollingResult.setPolicyEvaluationPollingResult(policyEvaluationPollingResult);
       persistedPolicyEvaluationPollingResultDAO.update(persistedPolicyEvaluationPollingResult);
+    }
+  }
+
+  @Override
+  public PolicyEvaluation evaluateSynchronousNoAuth(
+      Application application,
+      ClientScanType clientScanType,
+      File scanFile,
+      Stage stage,
+      ScanTriggerType scanTriggerType,
+      String clientUserAgent) throws IOException
+  {
+    log.debug("Received request to evaluate policy for app public id {}, stageTypeId {}",
+        application.getPublicId(), stage.getStageTypeId());
+
+    String scanId = null;
+
+    try {
+      TelemetryData thirdPartyTelemetryData = buildThirdPartyScanTelemetryData(application.getPublicId(), stage,
+          null /* thirdPartyScanType */, clientUserAgent);
+      ScanReceipt scanReceipt = scanHandler.handle(scanFile, application, clientScanType, thirdPartyTelemetryData,
+          stage.getStageTypeId(), clientUserAgent);
+      scanId = scanReceipt.getScanId();
+
+      log.debug("Evaluating policy for app public id {}, scan id {}, stageTypeId {}.", application.getPublicId(),
+          scanId, stage.getStageTypeId());
+
+      long start = System.currentTimeMillis();
+      ScanPolicyEvaluatorResults results =
+          evaluateAndSendNotifications(application, scanId, stage, scanTriggerType);
+
+      log.debug("Evaluated policy for app public id {}, scan id {}, stageTypeId {} in {} ms.",
+          application.getPublicId(), scanId, stage.getStageTypeId(), System.currentTimeMillis() - start);
+
+      return results.evaluation;
+    }
+    catch (Exception e) {
+      log.error("Failed to evaluate policy for app public id {}, scan id {}, stageTypeId {}.",
+          application.getPublicId(), scanId, stage.getStageTypeId());
+      AuditData.get()
+          .setException(new RuntimeException(errorResponseGenerator.mapExceptionAndLog(e).getMessageBody(), e));
+      throw e;
     }
   }
 }

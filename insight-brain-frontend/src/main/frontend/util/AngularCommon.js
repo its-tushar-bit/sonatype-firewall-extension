@@ -223,6 +223,7 @@ angularCommon.filter('filterReportColumns', function() {
     if (items) {
       angular.forEach(items, function(item) {
         switch (item.stageName) {
+          case 'Source':
           case 'Build':
           case 'Stage Release':
           case 'Release':

@@ -22,6 +22,8 @@ import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.nexus.scm.SourceControlProvider.BITBUCKET;
+import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -142,7 +144,7 @@ public class SourceControlUtilsTest
     SourceControl rootOrgSourceControl = new SourceControl.Builder()
         .setOwnerId(org.getParentOrganizationId())
         .setToken(TOKEN)
-            .setProvider(SourceControlProvider.GITHUB)
+        .setProvider(SourceControlProvider.GITHUB)
         .build();
 
     when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(Organization.ROOT_ORGANIZATION_ID)))
@@ -290,5 +292,26 @@ public class SourceControlUtilsTest
 
     sourceControlUtils.deleteCheckoutDirectory(application);
     assertThat(expectedSourceControlDir).doesNotExist();
+  }
+
+  @Test
+  public void testIsBitbucketCloud() {
+    // BB cloud
+    GitRepositoryInfo gitRepositoryInfo =
+        new GitRepositoryInfo("https://bitbucket.org/organization/project", "user", TOKEN, BITBUCKET,
+            "base-branch", true, true);
+    assertThat(sourceControlUtils.isBitbucketCloud(gitRepositoryInfo)).isTrue();
+
+    // BB server
+    gitRepositoryInfo =
+        new GitRepositoryInfo("https://my.domain.com/organization/project", "user", TOKEN, BITBUCKET,
+            "base-branch", true, true);
+    assertThat(sourceControlUtils.isBitbucketCloud(gitRepositoryInfo)).isFalse();
+
+    // Not BB
+    gitRepositoryInfo =
+        new GitRepositoryInfo("https://my.domain.com/organization/project", "user", TOKEN, GITHUB,
+            "base-branch", true, true);
+    assertThat(sourceControlUtils.isBitbucketCloud(gitRepositoryInfo)).isFalse();
   }
 }

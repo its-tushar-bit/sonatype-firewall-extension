@@ -19,6 +19,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.git.PullRequestCommentingRemediationService;
 import com.sonatype.insight.brain.git.PullRequestFeatureCheck;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
+import com.sonatype.insight.brain.git.RemediationBranchNamePrefixGenerator;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
@@ -38,7 +39,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static com.sonatype.insight.brain.policy.evaluator.PolicyAlertScmNotifier.APP_ID_BRANCH_TRUNCATE_INDEX;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
@@ -199,8 +199,8 @@ public class PolicyAlertScmNotifierTest
 
     when(mockPullRequestRemediationService.isFormatSupportedForPullRequestRemediation(any())).thenReturn(true);
 
-    String truncatedAppId = application.getId().substring(0, APP_ID_BRANCH_TRUNCATE_INDEX);
-    String branchName = truncatedAppId + "/groupid/Package1/1.2.3-to-2.0.1";
+    String branchPrefix = new RemediationBranchNamePrefixGenerator().generatePrefixForApplication(application.getId());
+    String branchName = branchPrefix + "/groupid/Package1/1.2.3-to-2.0.1";
 
     // and the branch already exists in the event table
     CountDownLatch finished = new CountDownLatch(1);
@@ -238,8 +238,8 @@ public class PolicyAlertScmNotifierTest
     when(mockPullRequestRemediationService.isFormatSupportedForPullRequestRemediation(any())).thenReturn(true);
 
     when(baseUrl.getConfigured()).thenReturn("foo");
-    String truncatedAppId = application.getId().substring(0, APP_ID_BRANCH_TRUNCATE_INDEX);
-    final String branchName = truncatedAppId + "/groupid/Package1/1.2.3-to-2.0.1";
+    String branchPrefix = new RemediationBranchNamePrefixGenerator().generatePrefixForApplication(application.getId());
+    final String branchName = branchPrefix + "/groupid/Package1/1.2.3-to-2.0.1";
 
     // and the branch does not yet exist in the event table
     when(mockSourceControlEventPublisher.doesRemediationEventExistForBranch(eq(application.getId()), eq(branchName)))

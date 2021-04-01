@@ -74,6 +74,7 @@ public class DataRetentionPolicyDAOTest
     assertThat(dao.getByOwnerId(Organization.ROOT_ORGANIZATION_ID).values())
         .extracting(DataRetentionPolicy::getContextId).containsExactlyInAnyOrder( //
             Stage.ID_DEVELOP, //
+            Stage.ID_SOURCE, //
             Stage.ID_BUILD, //
             Stage.ID_STAGE_RELEASE, //
             Stage.ID_RELEASE, //
@@ -84,7 +85,7 @@ public class DataRetentionPolicyDAOTest
 
   @Test
   public void testGetAll() {
-    assertThat(dao.getAll()).hasSize(7);
+    assertThat(dao.getAll()).hasSize(8);
   }
 
   @Test

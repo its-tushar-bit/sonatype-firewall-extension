@@ -27,6 +27,8 @@ import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 
+import org.apache.commons.collections4.CollectionUtils;
+
 /**
  * Used by the IQ for SCM feature to retrieve component details useful for the auto PRs and PR commenting flows,
  * in particular whether a component is a direct or transitive dependency and its display name.
@@ -107,7 +109,7 @@ public class SourceControlComponentLoader
       final SourceControlComponentDetails componentDetails,
       final List<PolicyViolation> policyViolations)
   {
-    if (policyViolations == null) {
+    if (CollectionUtils.isEmpty(policyViolations)) {
       return;
     }
     Map<String, ComponentInfo> byHashMap = componentDetails.getHashToComponentInfoMap();
@@ -132,6 +134,9 @@ public class SourceControlComponentLoader
       final SourceControlComponentDetails componentDetails,
       final List<PullRequestLineCommentDTO> pullRequestLineComments)
   {
+    if (CollectionUtils.isEmpty(pullRequestLineComments)) {
+      return;
+    }
     Map<ComponentIdentifier, ComponentInfo> byIdentifierMap = componentDetails.getIdentifierToComponentInfoMap();
     Map<String, ComponentInfo> byHashMap = componentDetails.getHashToComponentInfoMap();
     for  (PullRequestLineCommentDTO pullRequestLineComment : pullRequestLineComments) {

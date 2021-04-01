@@ -59,16 +59,7 @@ import org.junit.Test;
 import static com.codeborne.selenide.CollectionCondition.empty;
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.cssClass;
-import static com.codeborne.selenide.Condition.disabled;
-import static com.codeborne.selenide.Condition.exactText;
-import static com.codeborne.selenide.Condition.exist;
-import static com.codeborne.selenide.Condition.hidden;
-import static com.codeborne.selenide.Condition.not;
-import static com.codeborne.selenide.Condition.selected;
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.value;
-import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.*;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.DashboardFilters.ACTIVE;
@@ -1041,11 +1032,12 @@ public class DashboardFilterTest
 
   private void assertStageFilterDefaultState() {
     StageFilter stageFilter = DashboardFilters.stageFilter();
-    stageFilter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("4"));
+    stageFilter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("5"));
     stageFilter.multiSelectList().forEach(selenideElement -> selenideElement.shouldBe(hidden));
     stageFilter.twisty().shouldBe(visible).click();
-    stageFilter.multiSelectList().shouldHave(size(5));
+    stageFilter.multiSelectList().shouldHave(size(6));
     stageFilter.allItems().shouldNotBe(selected).label().shouldHave(text("all/none"));
+    stageFilter.source().shouldNotBe(selected).label().shouldHave(text("Source"));
     stageFilter.build().shouldNotBe(selected).label().shouldHave(text("Build"));
     stageFilter.stageRelase().shouldNotBe(selected).label().shouldHave(text("Stage Release"));
     stageFilter.release().shouldNotBe(selected).label().shouldHave(text("Release"));
@@ -1081,7 +1073,7 @@ public class DashboardFilterTest
     DashboardFilters.applicationFilter().counter().shouldHave(cssClass("nx-counter--active"))
         .shouldHave(text("1 of 2"));
     DashboardFilters.applicationCategoryFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 3"));
-    DashboardFilters.stageFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 4"));
+    DashboardFilters.stageFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 5"));
     DashboardFilters.policyTypeFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 4"));
     DashboardFilters.policyViolationStateFilter().counter().shouldBe(ACTIVE).shouldHave(text("3 of 3"));
     DashboardFilters.policyThreatLevelFilter().counter().shouldHave(text("2 – 7"));

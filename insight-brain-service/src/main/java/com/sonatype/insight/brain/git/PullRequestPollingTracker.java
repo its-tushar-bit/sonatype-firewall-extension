@@ -8,16 +8,13 @@ package com.sonatype.insight.brain.git;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
-import com.sonatype.nexus.scm.api.model.PullRequest;
 
 import com.google.common.base.Joiner;
-import org.apache.commons.collections4.CollectionUtils;
 
 import static java.lang.System.currentTimeMillis;
 
@@ -136,23 +133,6 @@ class PullRequestPollingTracker
     if (sourceControl != null) {
       updateSourceControl(sourceControl.getId(), time, 0);
     }
-  }
-
-  /**
-   * For the given pull request object find and update any source control entries that match on the repo owner/name
-   * specified in the pull request
-   *
-   * @param pullRequest PullRequest object
-   * @return true if there were any source control entries matching the given pull request, false otherwise
-   */
-  boolean onPullRequestProcessed(PullRequest pullRequest) {
-    List<SourceControl> sourceControlList = sourceControlDAO.getByRepositoryOwnerAndName(pullRequest.getRepository());
-    if (CollectionUtils.isNotEmpty(sourceControlList)) {
-      Date created = pullRequest.getCreated();
-      sourceControlList.forEach(sourceControl -> updateSourceControl(sourceControl.getId(), created, 0));
-      return true;
-    }
-    return false;
   }
 
   private void updateSourceControl(String sourceControlId, Date pollTime, int errors) {

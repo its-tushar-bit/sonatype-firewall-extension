@@ -351,6 +351,7 @@ public class CLMLicenseManagerTest
 
     assertThat(productLicense.getStageTypes()).containsExactlyInAnyOrder( //
         StageTypes.DEVELOP, //
+        StageTypes.SOURCE, //
         StageTypes.BUILD, //
         StageTypes.STAGE_RELEASE, //
         StageTypes.RELEASE, //
@@ -366,6 +367,7 @@ public class CLMLicenseManagerTest
 
     assertThat(productLicense.getStageTypes()).containsExactlyInAnyOrder( //
         StageTypes.DEVELOP, //
+        StageTypes.SOURCE, //
         StageTypes.BUILD, //
         StageTypes.STAGE_RELEASE, //
         StageTypes.RELEASE, //

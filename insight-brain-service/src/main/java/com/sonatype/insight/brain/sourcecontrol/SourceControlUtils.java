@@ -22,11 +22,14 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.nexus.scm.bitbucket.BitbucketApiClientUtils;
 
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.nexus.scm.SourceControlProvider.BITBUCKET;
 
 @Named
 @Singleton
@@ -186,5 +189,14 @@ public class SourceControlUtils
     catch (FileDeletionException e) {
       log.error("Failed to remove checkout directory '{}': {}", checkoutDir.getAbsolutePath(), e.getMessage(), e);
     }
+  }
+
+  /**
+   * Pull request commenting features are not yet supported for Bitbucket cloud so provide logic to recognize any
+   * repositories in that SCM.
+   */
+  public boolean isBitbucketCloud(GitRepositoryInfo gitRepositoryInfo) {
+    return gitRepositoryInfo.provider.equals(BITBUCKET) &&
+        BitbucketApiClientUtils.isCloudHosted(gitRepositoryInfo.repositoryUrl);
   }
 }

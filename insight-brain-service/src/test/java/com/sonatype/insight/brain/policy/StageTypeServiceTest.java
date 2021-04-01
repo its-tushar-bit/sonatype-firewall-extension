@@ -38,6 +38,7 @@ public class StageTypeServiceTest
     assertThat(stageTypeService.getLicensedStageTypes()).containsExactly( //
         StageTypes.PROXY, //
         StageTypes.DEVELOP, //
+        StageTypes.SOURCE, //
         StageTypes.BUILD, //
         StageTypes.STAGE_RELEASE, //
         StageTypes.RELEASE, //
@@ -51,6 +52,7 @@ public class StageTypeServiceTest
     assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.ALL_CONTEXT)).containsExactly( //
         StageTypes.PROXY, //
         StageTypes.DEVELOP, //
+        StageTypes.SOURCE, //
         StageTypes.BUILD, //
         StageTypes.STAGE_RELEASE, //
         StageTypes.RELEASE, //
@@ -62,6 +64,7 @@ public class StageTypeServiceTest
     testProductLicense.setStageTypes(StageTypes.getAll());
 
     assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.DASHBOARD_CONTEXT)).containsExactly( //
+        StageTypes.SOURCE, //
         StageTypes.BUILD, //
         StageTypes.STAGE_RELEASE, //
         StageTypes.RELEASE, //
@@ -74,6 +77,7 @@ public class StageTypeServiceTest
 
     assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.CI_CONTEXT)).containsExactly( //
         StageTypes.DEVELOP, //
+        StageTypes.SOURCE, //
         StageTypes.BUILD, //
         StageTypes.STAGE_RELEASE, //
         StageTypes.RELEASE, //
@@ -86,6 +90,7 @@ public class StageTypeServiceTest
 
     assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.CLI_CONTEXT)).containsExactly( //
         StageTypes.DEVELOP, //
+        StageTypes.SOURCE, //
         StageTypes.BUILD, //
         StageTypes.STAGE_RELEASE, //
         StageTypes.RELEASE, //
@@ -97,6 +102,7 @@ public class StageTypeServiceTest
     testProductLicense.setStageTypes(StageTypes.getAll());
 
     assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.QA_CONTEXT)).containsExactly( //
+        StageTypes.SOURCE, //
         StageTypes.BUILD, //
         StageTypes.STAGE_RELEASE, //
         StageTypes.RELEASE, //
@@ -108,6 +114,7 @@ public class StageTypeServiceTest
     testProductLicense.setStageTypes(StageTypes.getAll());
 
     assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.RM_CONTEXT)).containsExactly( //
+        StageTypes.SOURCE, //
         StageTypes.BUILD, //
         StageTypes.STAGE_RELEASE, //
         StageTypes.RELEASE, //
@@ -120,6 +127,7 @@ public class StageTypeServiceTest
 
     assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.MAVEN_CONTEXT)).containsExactly( //
         StageTypes.DEVELOP, //
+        StageTypes.SOURCE, //
         StageTypes.BUILD, //
         StageTypes.STAGE_RELEASE, //
         StageTypes.RELEASE, //

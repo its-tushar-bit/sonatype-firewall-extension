@@ -182,7 +182,7 @@ public class ReportPurgerTest
   @Test
   public void testPurgeReports_ForRegularStages() {
     String[] appEvalStageIds =
-        {Stage.ID_DEVELOP, Stage.ID_BUILD, Stage.ID_STAGE_RELEASE, Stage.ID_RELEASE, Stage.ID_OPERATE};
+        {Stage.ID_DEVELOP, Stage.ID_SOURCE, Stage.ID_BUILD, Stage.ID_STAGE_RELEASE, Stage.ID_RELEASE, Stage.ID_OPERATE};
     for (String stageId : appEvalStageIds) {
       dataRetentionPolicyDAO.insert(new DataRetentionPolicy(org.getId(), stageId, true, 1, null));
       mockReport(tempEntity.newPolicyEvaluation(app.getId(), stageId, stageId + "-obsolete", daysAgo(1)));
@@ -194,6 +194,7 @@ public class ReportPurgerTest
 
     assertThat(work.getReportDir(app.getId()).list()).containsExactlyInAnyOrder( //
         Stage.ID_DEVELOP + "-latest", Stage.ID_DEVELOP + "-monitored", //
+        Stage.ID_SOURCE + "-latest", Stage.ID_SOURCE + "-monitored", //
         Stage.ID_BUILD + "-latest", Stage.ID_BUILD + "-monitored", //
         Stage.ID_STAGE_RELEASE + "-latest", Stage.ID_STAGE_RELEASE + "-monitored", //
         Stage.ID_RELEASE + "-latest", Stage.ID_RELEASE + "-monitored", //

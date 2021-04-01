@@ -15,6 +15,7 @@ import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.scan.model.ItemContentType;
 import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.ScanItem;
+import com.sonatype.insight.scan.model.ScanMetadata;
 import com.sonatype.insight.scan.model.io.ScanReader;
 
 import org.apache.commons.io.FileUtils;
@@ -114,10 +115,16 @@ public class ScannerTest extends InjectedTest
   }
 
   @Test
-  public void testManifestScan() throws Exception {
-    File scanDir = new File("src/test/resources/ScannerTest/manifestScan");
+  public void testSourceControlScan() throws Exception {
+    // given: setup and configs what would be used by a client for a source control scan
+    File scanDir = new File("src/test/resources/ScannerTest/sourceControlScan");
     ProprietaryConfig proprietaryConfig = new ProprietaryConfig();
-    ScanResult scanResult = scanner.scan(scanDir, null, tempDir.getRoot(), proprietaryConfig);
+    ScanMetadata scanMetadata = new ScanMetadata().withCommitHash("commit-xyz");
+
+    // when: perform the scan
+    ScanResult scanResult = scanner.scan(scanDir, null, tempDir.getRoot(), proprietaryConfig, scanMetadata);
+
+    // then: scan contains expected results
     assertThat(scanResult.getScanFile()).isFile();
 
     Scan scan = scanReader.read(scanResult.getScanFile());
@@ -128,5 +135,6 @@ public class ScannerTest extends InjectedTest
     assertThat(item.getItems()).hasSize(0);
     assertThat(item.isProprietary()).isNull();
     assertThat(item.getContentType()).isEqualTo(ItemContentType.PYTHON_REQUIREMENTS);
+    assertThat(scan.getMetadata().getCommitHash()).isEqualTo(scanMetadata.getCommitHash());
   }
 }

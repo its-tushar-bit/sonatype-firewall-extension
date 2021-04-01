@@ -29,6 +29,8 @@ public class ApplicationManagementSummaryDTO
 
   private ContactDTO contact;
 
+  private boolean hasPendingSourceControlPolicyEvaluation;
+
   public String getId() {
     return id;
   }
@@ -103,6 +105,18 @@ public class ApplicationManagementSummaryDTO
    */
   public void setContact(final ContactDTO contact) {
     this.contact = contact;
+  }
+
+  /**
+   * @return true if there is source control evaluation source control event (new or in progress) for this
+   * application;  false otherwise
+   */
+  public boolean getHasPendingSourceControlPolicyEvaluation() {
+    return hasPendingSourceControlPolicyEvaluation;
+  }
+
+  public void setHasPendingSourceControlPolicyEvaluation(boolean hasPendingSourceControlPolicyEvaluation) {
+    this.hasPendingSourceControlPolicyEvaluation = hasPendingSourceControlPolicyEvaluation;
   }
 
   @Override

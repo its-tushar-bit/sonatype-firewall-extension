@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -16,6 +17,10 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_IN_PROGRESS;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_NEW;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.SOURCE_CONTROL_EVALUATION;
 
 public class SourceControlEventDAO
     extends AbstractOperationalSqlDAO<SourceControlEvent>
@@ -78,9 +83,15 @@ public class SourceControlEventDAO
     String sQuery = SELECT_ENTITY +
         "WHERE entity.instanceId = ?1 AND entity.eventStatus = ?2 ORDER BY entity.eventPriority, entity.createTime";
     Query<SourceControlEvent> query =
-        new Query<SourceControlEvent>(sQuery, instanceId, SourceControlEvent.EVENT_STATUS_NEW);
+        new Query<SourceControlEvent>(sQuery, instanceId, EVENT_STATUS_NEW);
     query.setMaxResults(quantity);
     return query.getList();
+  }
+
+  public List<SourceControlEvent> getPendingOrInProgressSourceControlEvaluationEvents() {
+    List<String> statuses = Arrays.asList(EVENT_STATUS_NEW, EVENT_STATUS_IN_PROGRESS);
+    String sQuery = SELECT_ENTITY + "WHERE entity.eventType = ?1 AND entity.eventStatus IN ?2";
+    return getList(sQuery, SOURCE_CONTROL_EVALUATION, statuses);
   }
 
   public void markEventInProgress(final String eventId) {

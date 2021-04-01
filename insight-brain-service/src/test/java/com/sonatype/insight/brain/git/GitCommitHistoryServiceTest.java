@@ -802,11 +802,11 @@ public class GitCommitHistoryServiceTest
     setupHistoryItemWithoutEvaluation("OLDEST_COMMIT", new Date(date.getTime() - 3000));
 
     // when
-    final SourceControlDefaultBranchCommitHistory latestCommitForApplication =
+    final String latestCommitForApplication =
         gitCommitHistoryService.getLatestCommitForApplication(application.getId());
 
     assertThat(latestCommitForApplication).isNotNull();
-    assertThat(latestCommitForApplication.getCommitHash()).isEqualTo("HISTORY_COMMIT_HASH");
+    assertThat(latestCommitForApplication).isEqualTo("HISTORY_COMMIT_HASH");
   }
 
   private void setupHistoryItemWithEvaluation(final String commitHash) {

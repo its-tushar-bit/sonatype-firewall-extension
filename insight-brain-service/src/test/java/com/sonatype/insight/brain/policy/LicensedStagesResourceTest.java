@@ -23,8 +23,8 @@ public class LicensedStagesResourceTest
     HttpResponse response = restRequest().path(LicensedStagesResource.RESOURCE_PATH).get();
     assertResponseStatus(200, response);
     Stage[] stages = response.getBody(Stage[].class);
-    assertStages(stages, StageTypes.DEVELOP, StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE,
-        StageTypes.OPERATE);
+    assertStages(stages, StageTypes.DEVELOP, StageTypes.SOURCE, StageTypes.BUILD, StageTypes.STAGE_RELEASE,
+        StageTypes.RELEASE, StageTypes.OPERATE);
   }
 
   @Test
@@ -33,8 +33,8 @@ public class LicensedStagesResourceTest
         .query("context", StageTypeService.ALL_CONTEXT).get();
     assertResponseStatus(200, response);
     Stage[] stages = response.getBody(Stage[].class);
-    assertStages(stages, StageTypes.PROXY, StageTypes.DEVELOP, StageTypes.BUILD, StageTypes.STAGE_RELEASE,
-        StageTypes.RELEASE, StageTypes.OPERATE);
+    assertStages(stages, StageTypes.PROXY, StageTypes.DEVELOP, StageTypes.SOURCE, StageTypes.BUILD,
+        StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE);
   }
 
   private void assertStages(final Stage[] actualStages, final StageType... expectedStages) {

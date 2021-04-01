@@ -14,9 +14,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
@@ -81,38 +83,15 @@ public class PullRequestPollingServiceTest
   }
 
   @Test
-  public void testFetchAndSendPullRequestsForCommenting_noSourcePolicyEvals() throws IOException {
-    // given: missing source policy eval
-    final Date pullRequestCreateDate = new Date();
-    final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 1000);
-    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
-        .forRepository("app1", "orgNspe/repoNspe", SourceControlProvider.GITHUB, "head-commit-xyz-1")
-        .withPollingTime(pullRequestPollingTime)
-        .withPullRequest(10, pullRequestCreateDate, "feature-branch")
-        .build();
-
-    // when: fetch and send
-    pollingService.fetchAndSendPullRequestsForCommenting();
-
-    // then: event emitted
-    verify(sourceControlEventPublisher, never()).publishEvent(any(SourceControlEvent.class));
-    assertThatLogMessagesEqual(
-        debug("Fetched 1 pull request(s) for org 'orgNspe' since " + pullRequestPollingTime),
-        debug("Policy evaluation not yet available for 'orgNspe/repoNspe' pull request '10'"),
-        debug("Pull request polling time updated for 'orgNspe/repoNspe'")
-    );
-  }
-
-  @Test
   public void testFetchAndSendPullRequestsForCommenting_pullRequestIsForBaseBranch() throws IOException {
     // given: necessary ingredients to emit a discovered pull request event
     final Date pullRequestCreateDate = new Date();
     final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 1000);
     PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
-        .forRepository("app1", "orgBb/repoBb", SourceControlProvider.GITHUB, "head-commit-xyz-1")
+        .forRepository("org5/repo5", SourceControlProvider.GITHUB)
+        .withApplication("appBaseBranch", "develop")
         .withPollingTime(pullRequestPollingTime)
-        .withPullRequest(10, pullRequestCreateDate, "master")
-        .withSourcePolicyEvaluation("app1", "spe1")
+        .withPullRequest(10, pullRequestCreateDate, "develop", "main-branch", "feature-commit-xyz-1")
         .build();
 
     // when: fetch and send
@@ -121,9 +100,10 @@ public class PullRequestPollingServiceTest
     // then: event emitted
     verify(sourceControlEventPublisher, never()).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
-        debug("Fetched 1 pull request(s) for org 'orgBb' since " + pullRequestPollingTime),
-        debug("application 'app1' pull request '10' is for the base branch, skipping commenting for this PR"),
-        debug("Pull request polling time updated for 'orgBb/repoBb'")
+        debug("Fetched 1 pull request(s) for org 'org5' since " + pullRequestPollingTime),
+        debug("Repository 'https://domain.com/org5/repo5' pull request '10' is for application 'appBaseBranch' base " +
+            "branch, skipping commenting"),
+        debug("Pull request polling time updated for 'https://domain.com/org5/repo5'")
     );
   }
 
@@ -131,12 +111,12 @@ public class PullRequestPollingServiceTest
   public void testFetchAndSendPullRequestsForCommenting_shouldPostEvent() throws IOException {
     // given: necessary ingredients to emit a discovered pull request event
     final Date pullRequestCreateDate = new Date();
-    final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 1000);
+    final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 3000);
     PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
-        .forRepository("app1", "orgOk/repoOk", SourceControlProvider.GITHUB, "head-commit-xyz-1")
+        .forRepository("org7/repo7", SourceControlProvider.GITHUB)
+        .withApplication("appPost", "main-branch")
         .withPollingTime(pullRequestPollingTime)
-        .withPullRequest(10, pullRequestCreateDate, "feature-branch")
-        .withSourcePolicyEvaluation("app1", "spe1")
+        .withPullRequest(10, pullRequestCreateDate, "feature-branch", "main-branch", "feature-commit-xyz-1")
         .build();
 
     // when: fetch and send
@@ -145,9 +125,62 @@ public class PullRequestPollingServiceTest
     // then: event emitted
     verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
-        debug("Fetched 1 pull request(s) for org 'orgOk' since " + pullRequestPollingTime),
-        info("Sent pull request discovered event for application 'app1' with PR# '10' and commit 'head-commit-xyz-1'"),
-        debug("Pull request polling time updated for 'orgOk/repoOk'")
+        debug("Fetched 1 pull request(s) for org 'org7' since " + pullRequestPollingTime),
+        info("Sent pull request discovered event for application 'appPost' with PR# '10' and commit " +
+            "'feature-commit-xyz-1'"),
+        debug("Pull request polling time updated for 'https://domain.com/org7/repo7'")
+    );
+  }
+
+  @Test
+  public void testFetchAndSendPullRequestsForCommenting_noPolicyEvalAndDoesNotTargetBaseBranch() throws IOException {
+    // given: PR without associated policy eval and PR does not target a base branch for any application
+    final Date pullRequestCreateDate = new Date();
+    final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 5000);
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
+        .forRepository("org9/repo9", SourceControlProvider.GITHUB)
+        .withApplication("appNoTarget", "main-branch")
+        .withPollingTime(pullRequestPollingTime)
+        .withPullRequest(10, pullRequestCreateDate, "feature-branch", "not-main-branch", "feature-commit-xyz-1")
+        .build();
+
+    // when: fetch and send
+    pollingService.fetchAndSendPullRequestsForCommenting();
+
+    // then: event emitted
+    verify(sourceControlEventPublisher, never()).publishEvent(any(SourceControlEvent.class));
+    assertThatLogMessagesEqual(
+        debug("Fetched 1 pull request(s) for org 'org9' since " + pullRequestPollingTime),
+        debug("Repository 'https://domain.com/org9/repo9' pull request '10' for application 'appNoTarget' neither " +
+            "targets the default branch nor has a policy evaluation associated with the head commit, skipping " +
+            "commenting"),
+        debug("Pull request polling time updated for 'https://domain.com/org9/repo9'")
+    );
+  }
+
+  @Test
+  public void testFetchAndSendPullRequestsForCommenting_withPolicyEvalAndDoesNotTargetBaseBranch() throws IOException {
+    // given: PR without associated policy eval and PR does not target a base branch for any application
+    final Date pullRequestCreateDate = new Date();
+    final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 1000);
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
+        .forRepository("org3/repo3", SourceControlProvider.GITHUB)
+        .withApplication("appWithPolicy", "main-branch")
+        .withPollingTime(pullRequestPollingTime)
+        .withPullRequest(10, pullRequestCreateDate, "feature-branch", "not-main-branch", "feature-commit-xyz-1")
+        .withPolicyEvaluation()
+        .build();
+
+    // when: fetch and send
+    pollingService.fetchAndSendPullRequestsForCommenting();
+
+    // then: event emitted
+    verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
+    assertThatLogMessagesEqual(
+        debug("Fetched 1 pull request(s) for org 'org3' since " + pullRequestPollingTime),
+        info("Sent pull request discovered event for application 'appWithPolicy' with PR# '10' and commit " +
+            "'feature-commit-xyz-1'"),
+        debug("Pull request polling time updated for 'https://domain.com/org3/repo3'")
     );
   }
 
@@ -157,10 +190,10 @@ public class PullRequestPollingServiceTest
     final Date pullRequestCreateDate = new Date();
     final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 1000);
     PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
-        .forRepository("app1", "orgInt/repoInt", SourceControlProvider.GITHUB, "head-commit-xyz-1")
+        .forRepository("orgInt/repoInt", SourceControlProvider.GITHUB)
+        .withApplication("appInternal", "main-branch")
         .withPollingTime(pullRequestPollingTime)
-        .withPullRequest(10, pullRequestCreateDate, "feature-branch")
-        .withSourcePolicyEvaluation("app1", "spe1")
+        .withPullRequest(10, pullRequestCreateDate, "feature-branch", "main-branch", "feature-commit-xyz-1")
         .withGitRepositoryPrivate(false)
         .withGitRepositoryInternal(true)
         .build();
@@ -172,8 +205,9 @@ public class PullRequestPollingServiceTest
     verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
         debug("Fetched 1 pull request(s) for org 'orgInt' since " + pullRequestPollingTime),
-        info("Sent pull request discovered event for application 'app1' with PR# '10' and commit 'head-commit-xyz-1'"),
-        debug("Pull request polling time updated for 'orgInt/repoInt'")
+        info("Sent pull request discovered event for application 'appInternal' with PR# '10' and commit " +
+            "'feature-commit-xyz-1'"),
+        debug("Pull request polling time updated for 'https://domain.com/orgInt/repoInt'")
     );
   }
 
@@ -182,7 +216,8 @@ public class PullRequestPollingServiceTest
     // given:
     String repositoryUrl = "https://bitbucket.org/orgBbcns/repoBbcns";
     PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
-        .forRepository(repositoryUrl, "app1", "orgBbcns/repoBbcns", SourceControlProvider.BITBUCKET, "commit-123")
+        .forRepository(repositoryUrl, "orgBbcns/repoBbcns", SourceControlProvider.BITBUCKET)
+        .withApplication("appBitbucket", "main-branch")
         .build();
 
     // when: fetch and send
@@ -201,10 +236,10 @@ public class PullRequestPollingServiceTest
     final Date pullRequestCreateDate = new Date();
     final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 1000);
     PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
-        .forRepository("app1", "orgNp/repoNp", SourceControlProvider.GITHUB, "head-commit-xyz-1")
+        .forRepository("orgNp/repoNp", SourceControlProvider.GITHUB)
+        .withApplication("appNotPrivate", "main-branch")
         .withPollingTime(pullRequestPollingTime)
-        .withPullRequest(10, pullRequestCreateDate, "feature-branch")
-        .withSourcePolicyEvaluation("app1", "spe1")
+        .withPullRequest(10, pullRequestCreateDate, "feature-branch", "main-branch", "feature-commit-xyz-1")
         .withGitRepositoryPrivate(false)
         .build();
 
@@ -216,7 +251,7 @@ public class PullRequestPollingServiceTest
     assertThatLogMessagesEqual(
         debug("Fetched 1 pull request(s) for org 'orgNp' since " + pullRequestPollingTime),
         debug("Repository is not valid for pull requests, check that it is private: https://domain.com/orgNp/repoNp"),
-        debug("Pull request polling time updated for 'orgNp/repoNp'")
+        debug("Pull request polling time updated for 'https://domain.com/orgNp/repoNp'")
     );
   }
 
@@ -225,11 +260,11 @@ public class PullRequestPollingServiceTest
     // given:
     Date pullRequestCreateDate = new Date(System.currentTimeMillis() - 1000);
     PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
-        .forRepository("app1", "orgErr/repoErr", SourceControlProvider.GITHUB, "head-commit-xyz-1")
+        .forRepository("orgErr/repoErr", SourceControlProvider.GITHUB)
+        .withApplication("appGithub", "main-branch")
         .withPollingTime(new Date())
         .withId("sourceControl1")
-        .withPullRequest(10, pullRequestCreateDate, "feature-branch")
-        .withSourcePolicyEvaluation("app1", "spe1")
+        .withPullRequest(10, pullRequestCreateDate, "feature-branch", "main-branch", "feature-commit-xyz-1")
         .build();
     doThrow(new IOException("scm error"))
         .when(mockClientMap.get("orgErr/repoErr"))
@@ -254,11 +289,11 @@ public class PullRequestPollingServiceTest
     // given:
     Date pullRequestCreateDate = new Date(System.currentTimeMillis() - 1000);
     PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
-        .forRepository("app1", "orgErr/repoErr", SourceControlProvider.GITLAB, "head-commit-xyz-1")
+        .forRepository("orgErr/repoErr", SourceControlProvider.GITLAB)
+        .withApplication("appGitLab", "main-branch")
         .withPollingTime(new Date())
         .withId("sourceControl1")
-        .withPullRequest(10, pullRequestCreateDate, "feature-branch")
-        .withSourcePolicyEvaluation("app1", "spe1")
+        .withPullRequest(10, pullRequestCreateDate, "feature-branch", "main-branch", "feature-commit-xyz-1")
         .build();
     doThrow(new IOException("scm error"))
         .when(mockClientMap.get("orgErr/repoErr"))
@@ -287,15 +322,15 @@ public class PullRequestPollingServiceTest
     final Date repo2pullRequestPollingTime = new Date(System.currentTimeMillis() - 8000);
     PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
 
-        .forRepository("app1", "org/multi-1", SourceControlProvider.GITLAB, "head-commit-xyz-1")
+        .forRepository("org/multi-1", SourceControlProvider.GITLAB)
+        .withApplication("gitlab1", "main-branch")
         .withPollingTime(repo1pullRequestPollingTime)
-        .withPullRequest(10, repo1pullRequestCreateDate, "feature-branch")
-        .withSourcePolicyEvaluation("app1", "spe1")
+        .withPullRequest(10, repo1pullRequestCreateDate, "feature-branch", "main-branch", "feature-commit-xyz-1")
 
-        .forRepository("app2", "org/multi-2", SourceControlProvider.GITLAB, "head-commit-abc-2")
+        .forRepository("org/multi-2", SourceControlProvider.GITLAB)
+        .withApplication("gitlab2", "main-branch")
         .withPollingTime(repo2pullRequestPollingTime)
-        .withPullRequest(20, repo2pullRequestCreateDate, "R2-feature-branch")
-        .withSourcePolicyEvaluation("app2", "spe2")
+        .withPullRequest(20, repo2pullRequestCreateDate, "R2-feature-branch", "main-branch", "feature-commit-abc-2")
 
         .build();
 
@@ -307,10 +342,42 @@ public class PullRequestPollingServiceTest
     assertThatLogMessagesEqual(
         debug("Fetched 1 pull request(s) for org 'org' repo 'multi-1' since " + repo1pullRequestPollingTime),
         debug("Fetched 1 pull request(s) for org 'org' repo 'multi-2' since " + repo2pullRequestPollingTime),
-        info("Sent pull request discovered event for application 'app1' with PR# '10' and commit 'head-commit-xyz-1'"),
-        debug("Pull request polling time updated for 'org/multi-1'"),
-        info("Sent pull request discovered event for application 'app2' with PR# '20' and commit 'head-commit-abc-2'"),
-        debug("Pull request polling time updated for 'org/multi-2'")
+        info(
+            "Sent pull request discovered event for application 'gitlab1' with PR# '10' and commit " +
+                "'feature-commit-xyz-1'"),
+        debug("Pull request polling time updated for 'https://domain.com/org/multi-1'"),
+        info(
+            "Sent pull request discovered event for application 'gitlab2' with PR# '20' and commit " +
+                "'feature-commit-abc-2'"),
+        debug("Pull request polling time updated for 'https://domain.com/org/multi-2'")
+    );
+  }
+
+  @Test
+  public void testFetchAndSendPullRequestsForCommenting_isRemediationPullRequest() throws IOException {
+    // given: polling service setup to fetch a remediation PR
+    final Date pullRequestCreateDate = new Date();
+    final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 5000);
+    final String appId = "app123456";
+    String branchPrefix = new RemediationBranchNamePrefixGenerator().generatePrefixForApplication(appId);
+
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
+        .forRepository("githubOrg/remediation", SourceControlProvider.GITHUB)
+        .withApplication(appId, "main-branch")
+        .withPollingTime(pullRequestPollingTime)
+        .withPullRequest(10, pullRequestCreateDate, branchPrefix + "/com.sonatype/iq-server/1.108", "main-branch",
+            "feature-commit-xyz-1")
+        .build();
+
+    // when: fetch and send PRs
+    pollingService.fetchAndSendPullRequestsForCommenting();
+
+    // then: no events sent and log message explains why
+    verify(sourceControlEventPublisher, never()).publishEvent(any(SourceControlEvent.class));
+    assertThatLogMessagesContain(
+        debug("Pull request 10 for branch app123/com.sonatype/iq-server/1.108 is determined to be an IQ Server " +
+            "generated remediation PR.  We will not comment on it."),
+        debug("Pull request polling time updated for 'https://domain.com/githubOrg/remediation'")
     );
   }
 
@@ -323,15 +390,15 @@ public class PullRequestPollingServiceTest
     final Date repo2pullRequestPollingTime = new Date(System.currentTimeMillis() - 8000);
     PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
 
-        .forRepository("app1", "githubOrg/multi-1", SourceControlProvider.GITHUB, "head-commit-xyz-1")
+        .forRepository("githubOrg/multi-1", SourceControlProvider.GITHUB)
+        .withApplication("github1", "main-branch")
         .withPollingTime(repo1pullRequestPollingTime)
-        .withPullRequest(10, repo1pullRequestCreateDate, "feature-branch")
-        .withSourcePolicyEvaluation("app1", "spe1")
+        .withPullRequest(10, repo1pullRequestCreateDate, "feature-branch", "main-branch", "feature-commit-xyz-1")
 
-        .forRepository("app2", "githubOrg/multi-2", SourceControlProvider.GITHUB, "head-commit-abc-2")
+        .forRepository("githubOrg/multi-2", SourceControlProvider.GITHUB)
+        .withApplication("github2", "main-branch")
         .withPollingTime(repo2pullRequestPollingTime)
-        .withPullRequest(20, repo2pullRequestCreateDate, "R2-feature-branch")
-        .withSourcePolicyEvaluation("app2", "spe2")
+        .withPullRequest(20, repo2pullRequestCreateDate, "R2-feature-branch", "main-branch", "feature-commit-abc-2")
 
         .build();
 
@@ -342,10 +409,14 @@ public class PullRequestPollingServiceTest
     verify(sourceControlEventPublisher, times(2)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
         debug("Fetched 2 pull request(s) for org 'githubOrg' since " + repo1pullRequestPollingTime),
-        info("Sent pull request discovered event for application 'app1' with PR# '10' and commit 'head-commit-xyz-1'"),
-        debug("Pull request polling time updated for 'githubOrg/multi-1'"),
-        info("Sent pull request discovered event for application 'app2' with PR# '20' and commit 'head-commit-abc-2'"),
-        debug("Pull request polling time updated for 'githubOrg/multi-2'")
+        info(
+            "Sent pull request discovered event for application 'github1' with PR# '10' and commit " +
+                "'feature-commit-xyz-1'"),
+        debug("Pull request polling time updated for 'https://domain.com/githubOrg/multi-1'"),
+        info(
+            "Sent pull request discovered event for application 'github2' with PR# '20' and commit " +
+                "'feature-commit-abc-2'"),
+        debug("Pull request polling time updated for 'https://domain.com/githubOrg/multi-2'")
     );
   }
 
@@ -353,16 +424,21 @@ public class PullRequestPollingServiceTest
   {
     private List<MockRepo> mockRepoList = new ArrayList<>();
 
+    private Map<String, List<Application>> repoApplications = new HashMap<>();
+
     private MockRepo currentMockRepo;
+
+    @Mock
+    private ApplicationDAO mockApplicationDAO;
+
+    @Mock
+    private PolicyEvaluationDAO mockPolicyEvaluationDAO;
 
     @Mock
     private SourceControlDAO mockSourceControlDAO;
 
     @Mock
     private SourceControlInstanceManager mockSourceControlInstanceManager;
-
-    @Mock
-    private PolicyEvaluationDAO mockPolicyEvaluationDAO;
 
     @Mock
     private SourceControlUtils mockSourceControlUtils;
@@ -395,11 +471,14 @@ public class PullRequestPollingServiceTest
         doReturn(mockRepo.gitRepositoryInfo).when(mockSourceControlUtils)
             .getGitRepositoryInfoForApplication(eq(mockRepo.applicationId));
 
+        String repositoryURL = mockRepo.gitRepositoryInfo.getRepositoryUrl();
+        doReturn(repoApplications.get(repositoryURL)).when(mockApplicationDAO)
+            .getByRepositoryUrl(repositoryURL);
+
         doReturn(false).when(mockSourceControlUtils).isScmEnabled((GitRepositoryInfo) null);
         doReturn(true).when(mockSourceControlUtils).isScmEnabled(mockRepo.gitRepositoryInfo);
-
-        doReturn(buildSourcePolicyEvaluationList(mockRepo)).when(mockPolicyEvaluationDAO)
-            .getLastByCommitHashPerApplication(mockRepo.commitHash);
+        doReturn(mockRepo.gitRepositoryInfo.repositoryUrl.contains("bitbucket.org"))
+            .when(mockSourceControlUtils).isBitbucketCloud(mockRepo.gitRepositoryInfo);
 
         if (null != mockRepo.gitRepositoryInfo) {
           ProjectUri projectUri = new SimpleProjectUri(mockRepo.gitRepositoryInfo.repositoryUrl);
@@ -428,6 +507,11 @@ public class PullRequestPollingServiceTest
         mockRepo.pullRequests.forEach(pullRequest -> pullRequest.setRepositoryPrivate(mockRepo.isGitRepositoryPrivate));
 
         doReturn(true).when(mockSourceControlInstanceManager).canPoll();
+
+        if (mockRepo.hasPolicyEvaluation) {
+          doReturn(new PolicyEvaluation()).when(mockPolicyEvaluationDAO)
+              .getLastByApplicationAndCommitHash(any(), any());
+        }
       }
 
       // setup next repo to poll sequence
@@ -442,8 +526,8 @@ public class PullRequestPollingServiceTest
         doReturn(sourceControlList.get(0)).when(mockSourceControlDAO).getNextRepositoryToPoll();
       }
 
-      return new PullRequestPollingService(mockSourceControlDAO, sourceControlEventPublisher, mockPolicyEvaluationDAO,
-          mockSourceControlUtils, mockGitClientFactory, mockPullRequestRepositoryValidator,
+      return new PullRequestPollingService(mockApplicationDAO, mockPolicyEvaluationDAO, mockSourceControlDAO,
+          sourceControlEventPublisher, mockSourceControlUtils, mockGitClientFactory, mockPullRequestRepositoryValidator,
           mockSourceControlInstanceManager);
     }
 
@@ -451,39 +535,42 @@ public class PullRequestPollingServiceTest
       return null != mockRepo.sourceControl ? ImmutableList.of(mockRepo.sourceControl) : new ArrayList<>();
     }
 
-    private List<PolicyEvaluation> buildSourcePolicyEvaluationList(MockRepo mockRepo) {
-      return null != mockRepo.sourcePolicyEvaluation
-          ? ImmutableList.of(mockRepo.sourcePolicyEvaluation) : new ArrayList<>();
-    }
-
     TestablePullRequestPollingServiceBuilder forRepository(
-        String applicationId,
         String orgAndRepoName,
-        SourceControlProvider provider,
-        String headCommit)
+        SourceControlProvider provider)
     {
-      return forRepository("https://domain.com/" + orgAndRepoName, applicationId, orgAndRepoName, provider, headCommit);
+      return forRepository("https://domain.com/" + orgAndRepoName, orgAndRepoName, provider);
     }
 
     TestablePullRequestPollingServiceBuilder forRepository(
         String url,
-        String applicationId,
         String orgAndRepoName,
-        SourceControlProvider provider,
-        String headCommit)
+        SourceControlProvider provider)
     {
       currentMockRepo = new MockRepo(orgAndRepoName);
-      currentMockRepo.commitHash = headCommit;
+      currentMockRepo.repositoryUrl = url;
+      currentMockRepo.sourceControlProvider = provider;
       mockRepoList.add(currentMockRepo);
       mockClientMap.put(orgAndRepoName, mock(PullRequestInfoProvider.class));
 
-      currentMockRepo.applicationId = applicationId;
+      return this;
+    }
 
-      String username = provider.requiresUsername() ? "username" : null;
+    TestablePullRequestPollingServiceBuilder withApplication(String applicationId, String defaultBranch) {
+      currentMockRepo.applicationId = applicationId;
+      List<Application> repoApps =
+          repoApplications.computeIfAbsent(currentMockRepo.repositoryUrl, appList -> new ArrayList<>());
+      Application application = new Application(applicationId, applicationId, null);
+      application.setId(applicationId);
+      repoApps.add(application);
+
+      String username = currentMockRepo.sourceControlProvider.requiresUsername() ? "username" : null;
       currentMockRepo.sourceControl =
-          new SourceControl(applicationId, url, username, "token", provider, true, true, "master");
+          new SourceControl(applicationId, currentMockRepo.repositoryUrl, username, "token",
+              currentMockRepo.sourceControlProvider, true, true, defaultBranch);
       currentMockRepo.sourceControl.setId(UUID.randomUUID().toString());
-      currentMockRepo.gitRepositoryInfo = new GitRepositoryInfo(url, username, "token", provider, "master", true, true);
+      currentMockRepo.gitRepositoryInfo = new GitRepositoryInfo(currentMockRepo.repositoryUrl, username, "token",
+          currentMockRepo.sourceControlProvider, defaultBranch, true, true);
       return this;
     }
 
@@ -492,23 +579,23 @@ public class PullRequestPollingServiceTest
       return this;
     }
 
+    TestablePullRequestPollingServiceBuilder withPolicyEvaluation() {
+      currentMockRepo.hasPolicyEvaluation = true;
+      return this;
+    }
+
     TestablePullRequestPollingServiceBuilder withId(String id) {
       currentMockRepo.sourceControl.setId(id);
       return this;
     }
 
-    TestablePullRequestPollingServiceBuilder withSourcePolicyEvaluation(
-        String applicationId,
-        String policyEvaluationId)
+    TestablePullRequestPollingServiceBuilder withPullRequest(
+        int id,
+        Date created,
+        String headBranch,
+        String baseBranch,
+        String headCommit)
     {
-      PolicyEvaluation policyEvaluation = new PolicyEvaluation();
-      policyEvaluation.setApplicationId(applicationId);
-      policyEvaluation.setId(policyEvaluationId);
-      currentMockRepo.sourcePolicyEvaluation = policyEvaluation;
-      return this;
-    }
-
-    TestablePullRequestPollingServiceBuilder withPullRequest(int id, Date created, String headBranch) {
       PullRequest pullRequest;
       switch (currentMockRepo.gitRepositoryInfo.provider) {
         case GITLAB:
@@ -521,9 +608,11 @@ public class PullRequestPollingServiceTest
       pullRequest.setNumber(id);
       pullRequest.setCreated(created);
       pullRequest.setHead(headBranch);
-      pullRequest.setRepository(currentMockRepo.orgAndRepoName);
+      pullRequest.setBase(baseBranch);
+      pullRequest.setRepository(currentMockRepo.repositoryUrl);
+      pullRequest.setUrl(currentMockRepo.repositoryUrl);
       pullRequest.setRepositoryPrivate(currentMockRepo.isGitRepositoryPrivate);
-      pullRequest.setHeadCommitHash(currentMockRepo.commitHash);
+      pullRequest.setHeadCommitHash(headCommit);
       currentMockRepo.pullRequests.add(pullRequest);
       return this;
     }
@@ -547,19 +636,21 @@ public class PullRequestPollingServiceTest
 
     String applicationId;
 
-    String commitHash;
+    String repositoryUrl;
 
     boolean isGitRepositoryInternal = false;
 
     boolean isGitRepositoryPrivate = true;
 
+    SourceControlProvider sourceControlProvider;
+
     SourceControl sourceControl;
 
     GitRepositoryInfo gitRepositoryInfo;
 
-    PolicyEvaluation sourcePolicyEvaluation;
-
     List<PullRequest> pullRequests = new ArrayList<>();
+
+    boolean hasPolicyEvaluation;
 
     MockRepo(String orgAndRepoName) {
       this.orgAndRepoName = orgAndRepoName;

@@ -25,10 +25,10 @@ import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationStatusDTOV2
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiManifestEvaluationRequestDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlEvaluationRequestDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentEvaluationServiceV2;
-import com.sonatype.insight.brain.api.v2.service.ApiManifestEvaluationService;
+import com.sonatype.insight.brain.api.v2.service.ApiSourceControlEvaluationService;
 import com.sonatype.insight.brain.api.v2.service.ApiPromoteScanServiceV2;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -46,23 +46,23 @@ public class DefaultApiEvaluationResourceV2 implements ApiEvaluationResourceV2
 {
   public static final String PROMOTE_SCAN_PATH = "{applicationId}/promoteScan";
 
-  public static final String MANIFEST_EVALUATION_PATH = "{applicationId}/manifestEvaluation";
+  public static final String SOURCE_CONTROL_EVALUATION_PATH = "{applicationId}/manifestEvaluation";
 
   private final ApiComponentEvaluationServiceV2 componentEvaluationService;
 
   private final ApiPromoteScanServiceV2 promoteScanService;
 
-  private final ApiManifestEvaluationService manifestEvaluationService;
+  private final ApiSourceControlEvaluationService sourceControlEvaluationService;
 
   @Inject
   public DefaultApiEvaluationResourceV2(
       final ApiComponentEvaluationServiceV2 componentEvaluationService,
       final ApiPromoteScanServiceV2 apiPromoteScanServiceV2,
-      ApiManifestEvaluationService manifestEvaluationService)
+      ApiSourceControlEvaluationService sourceControlEvaluationService)
   {
     this.componentEvaluationService = componentEvaluationService;
     this.promoteScanService = apiPromoteScanServiceV2;
-    this.manifestEvaluationService = manifestEvaluationService;
+    this.sourceControlEvaluationService = sourceControlEvaluationService;
   }
 
   @Override
@@ -107,17 +107,17 @@ public class DefaultApiEvaluationResourceV2 implements ApiEvaluationResourceV2
   }
 
   @Override
-  @Path(MANIFEST_EVALUATION_PATH)
+  @Path(SOURCE_CONTROL_EVALUATION_PATH)
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(value = AuditEvent.EVALUATE_APPLICATION)
-  public ApiApplicationEvaluationStatusDTOV2 doManifestEvaluation(
+  public ApiApplicationEvaluationStatusDTOV2 doSourceControlEvaluation(
       @PathParam("applicationId") String applicationId,
-      ApiManifestEvaluationRequestDTO manifestEvaluationRequest,
+      ApiSourceControlEvaluationRequestDTO sourceControlEvaluationRequest,
       @Context HttpServletRequest request)
   {
-    return manifestEvaluationService.doManifestEvaluation(applicationId, manifestEvaluationRequest,
+    return sourceControlEvaluationService.doSourceControlEvaluation(applicationId, sourceControlEvaluationRequest,
         DefaultHdsClient.getClientUserAgent(request));
   }
 

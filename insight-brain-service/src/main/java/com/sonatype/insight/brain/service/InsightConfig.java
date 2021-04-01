@@ -924,11 +924,12 @@ public class InsightConfig
 
   public enum Feature
   {
-    PR_COMMENTING("prCommenting"),
-    PR_LINE_COMMENTING("prLineCommenting"),
-    CODE_INSIGHTS("codeInsights"),
-    SCM_ONBOARDING("scmOnboarding"),
-    FIREWALL_AUTO_UNQUARANTINE("firewallAutoUnquarantine"),
+    PR_COMMENTING("prCommenting"), //
+    PR_LINE_COMMENTING("prLineCommenting"), //
+    CODE_INSIGHTS("codeInsights"), //
+    SCM_ONBOARDING("scmOnboarding"), //
+    FIREWALL_AUTO_UNQUARANTINE("firewallAutoUnquarantine"), //
+    INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS("internalSourceControlPolicyEvaluations"), //
     DEPENDENCY_DATA_IN_API("dependencyDataInApi");
 
     private String flag;

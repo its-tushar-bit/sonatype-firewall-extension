@@ -191,6 +191,11 @@ public class PolicyEvaluation
     this.scanTriggerType = scanTriggerType;
   }
 
+  public boolean wasInternallyTriggered() {
+    return ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING == scanTriggerType ||
+        ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST == scanTriggerType;
+  }
+
   @Override
   public String toString() {
     return "PolicyEvaluation{" + //

@@ -26,11 +26,13 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.git.event.SourceControlEventFinder;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.security.Authorize;
@@ -75,6 +77,8 @@ public class ApplicationService
 
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
+  private final SourceControlEventFinder sourceControlEventFinder;
+
   @Inject
   public ApplicationService(
       ApplicationDAO applicationDAO,
@@ -85,7 +89,8 @@ public class ApplicationService
       final OrganizationDAO organizationDAO,
       ScanPolicyEvaluator scanPolicyEvaluator,
       final PolicyViolationLoggerFactory policyViolationLoggerFactory,
-      final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO)
+      final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
+      final SourceControlEventFinder sourceControlEventFinder)
   {
     this.applicationDAO = applicationDAO;
     this.userDirectory = userDirectory;
@@ -96,6 +101,7 @@ public class ApplicationService
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
+    this.sourceControlEventFinder = sourceControlEventFinder;
   }
 
   public String validateApplicationPublicId(final String applicationPublicId) {
@@ -160,9 +166,10 @@ public class ApplicationService
   }
 
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
-  public List<Application> getApplicationsByIdsAndOrganizationIdsAndTagIds(@Nullable final Set<String> organizationIds,
-                                                                           @Nullable final Set<String> applicationIds,
-                                                                           @Nullable final Set<String> tagIds)
+  public List<Application> getApplicationsByIdsAndOrganizationIdsAndTagIds(
+      @Nullable final Set<String> organizationIds,
+      @Nullable final Set<String> applicationIds,
+      @Nullable final Set<String> tagIds)
   {
     return getApplicationsByIdsAndOrganizationIdsAndTagIdsNoAuthz(organizationIds, applicationIds, tagIds);
   }
@@ -307,6 +314,7 @@ public class ApplicationService
 
     loadPolicyEvaluations(applicationManagementSummaryDTOs);
     loadPolicyEvaluationsResults(applicationManagementSummaryDTOs);
+    loadPendingSourceControlPolicyEvaluations(applicationManagementSummaryDTOs);
 
     return applicationManagementSummaryDTOs;
   }
@@ -317,6 +325,16 @@ public class ApplicationService
     loadPolicyEvaluations(Arrays.asList(applicationManagement));
 
     return applicationManagement;
+  }
+
+  private void loadPendingSourceControlPolicyEvaluations(
+      List<ApplicationManagementSummaryDTO> applicationManagementSummaries)
+  {
+    Map<String, SourceControlEvent> applicationEventMap =
+        sourceControlEventFinder.getPendingOrInProgressManifestEvaluationEvents();
+    for (ApplicationManagementSummaryDTO summaryDTO : applicationManagementSummaries) {
+      summaryDTO.setHasPendingSourceControlPolicyEvaluation(applicationEventMap.containsKey(summaryDTO.getId()));
+    }
   }
 
   private void loadPolicyEvaluations(List<ApplicationManagementSummaryDTO> applicationManagementSummaries) {

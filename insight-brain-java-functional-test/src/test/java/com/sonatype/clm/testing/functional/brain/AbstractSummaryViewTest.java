@@ -766,10 +766,10 @@ public abstract class AbstractSummaryViewTest
     develop.anchor().shouldHave(text("DEVELOP"));
     develop.root.shouldHave(IQ_DISABLED);
     policyElement.column(3).shouldBe(visible).shouldHave(PolicyTile.noActionText()).shouldHave(IQ_DISABLED);
-    HeaderColumn operate = list.header(7);
+    HeaderColumn operate = list.header(8);
     operate.anchor().shouldHave(text("OPERATE"));
     operate.root.shouldHave(IQ_DISABLED);
-    policyElement.column(7).shouldBe(visible).shouldHave(PolicyTile.noActionText()).shouldHave(IQ_DISABLED);
+    policyElement.column(8).shouldBe(visible).shouldHave(PolicyTile.noActionText()).shouldHave(IQ_DISABLED);
 
     policyElement.chevron().shouldBe(visible);
     eyesWatcher.eyesCheck();

@@ -16,6 +16,7 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.scan.model.ClientScanType;
 
@@ -37,6 +38,17 @@ public interface PolicyEvaluateService
       final String scanId,
       final Stage stage,
       final ScanTriggerType scanTriggerType) throws IOException;
+
+  /**
+   * Evaluate an application using the given scan file
+   */
+  PolicyEvaluation evaluateSynchronousNoAuth(
+      Application application,
+      ClientScanType clientScanType,
+      File scanFile,
+      Stage stage,
+      ScanTriggerType scanTriggerType,
+      String clientUserAgent) throws IOException;
 
   /**
    * Starts the evaluation of an application, integration, type and stage. After starting will

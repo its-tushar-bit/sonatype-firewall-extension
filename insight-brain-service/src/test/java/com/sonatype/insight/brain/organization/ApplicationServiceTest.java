@@ -303,6 +303,28 @@ public class ApplicationServiceTest
   }
 
   @Test
+  public void testGetApplicationManagementSummaries_PendingSourceControlEvaluations() {
+    // given: app with source control evaluation event in the event queue
+    tempEntity.newSourceControlEvaluationEvent(app1);
+
+    // when: fetch summaries
+    List<ApplicationManagementSummaryDTO> applicationManagementSummaries = applicationService
+        .getApplicationManagementSummaries("", ApplicationManagementSummaryOrder.APP_NAME_DESC, 1, RESULTS_PER_PAGE);
+
+    // then: app1 summary indicates an eval is pending
+    assertThat(applicationManagementSummaries.stream()
+        .filter(summary -> summary.getId().equals(app1.getId()))
+        .findFirst().get()
+        .getHasPendingSourceControlPolicyEvaluation()).isTrue();
+
+    // and: app2's summary indicates no pending evaluations
+    assertThat(applicationManagementSummaries.stream()
+        .filter(summary -> summary.getId().equals(app2.getId()))
+        .findFirst().get()
+        .getHasPendingSourceControlPolicyEvaluation()).isFalse();
+  }
+
+  @Test
   public void testGetApplicationSummaries_MissingPageAndPageSize() {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> applicationService.getApplicationManagementSummaries(null, null, null, null))

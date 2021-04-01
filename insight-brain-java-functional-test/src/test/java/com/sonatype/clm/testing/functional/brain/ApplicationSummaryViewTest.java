@@ -182,6 +182,7 @@ public class ApplicationSummaryViewTest
   @Test
   public void testReportLinks() {
     List<StageType> stages = new ArrayList<>();
+    stages.add(StageTypes.SOURCE);
     stages.add(StageTypes.BUILD);
     stages.add(StageTypes.STAGE_RELEASE);
     stages.add(StageTypes.RELEASE);

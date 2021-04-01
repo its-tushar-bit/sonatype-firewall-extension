@@ -48,4 +48,10 @@ public class ApiLicenseLegalStageScanDTO
   public void setScanDate(Date scanDate) {
     this.scanDate = scanDate;
   }
+
+  @Override
+  public String toString() {
+    return "ApiLicenseLegalStageScanDTO [stageName=" + stageName + ", scanId=" + scanId + ", scanDate=" + scanDate
+        + "]";
+  }
 }

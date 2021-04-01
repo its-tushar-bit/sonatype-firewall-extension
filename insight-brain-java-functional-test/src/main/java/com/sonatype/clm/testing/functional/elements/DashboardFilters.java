@@ -280,20 +280,24 @@ public class DashboardFilters
       super(selector);
     }
 
-    public NxCheckbox build() {
+    public NxCheckbox source() {
       return checkboxItem(2);
     }
 
-    public NxCheckbox stageRelase() {
+    public NxCheckbox build() {
       return checkboxItem(3);
     }
 
-    public NxCheckbox release() {
+    public NxCheckbox stageRelase() {
       return checkboxItem(4);
     }
 
-    public NxCheckbox operate() {
+    public NxCheckbox release() {
       return checkboxItem(5);
+    }
+
+    public NxCheckbox operate() {
+      return checkboxItem(6);
     }
   }
 

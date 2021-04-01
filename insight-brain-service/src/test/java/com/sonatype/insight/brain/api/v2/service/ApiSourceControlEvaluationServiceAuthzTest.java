@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.api.v2.service;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.api.v2.dto.ApiManifestEvaluationRequestDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlEvaluationRequestDTO;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -19,36 +19,36 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-public class ApiManifestEvaluationServiceAuthzTest
+public class ApiSourceControlEvaluationServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
   @Inject
-  private ApiManifestEvaluationService service;
+  private ApiSourceControlEvaluationService service;
 
   @Test
   public void testDoManifestEvaluation_Authorized() throws Exception {
     grantEvaluateApplicationPermission(app.getId());
 
-    ApiManifestEvaluationRequestDTO apiManifestEvaluationRequestDTO =
-        new ApiManifestEvaluationRequestDTO(Stage.ID_DEVELOP, "a-branch");
+    ApiSourceControlEvaluationRequestDTO apiSourceControlEvaluationRequestDTO =
+        new ApiSourceControlEvaluationRequestDTO(Stage.ID_DEVELOP, "a-branch");
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.doManifestEvaluation(app.getId(), apiManifestEvaluationRequestDTO, "useragent");
+      service.doSourceControlEvaluation(app.getId(), apiSourceControlEvaluationRequestDTO, "useragent");
     }).withMessage("No SCM configuration defined for application ID " + app.getId());
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testDoManifestEvaluation_Unauthenticated() throws Exception {
-    ApiManifestEvaluationRequestDTO apiManifestEvaluationRequestDTO =
-        new ApiManifestEvaluationRequestDTO(Stage.ID_DEVELOP, "a-branch");
-    service.doManifestEvaluation(app.getId(), apiManifestEvaluationRequestDTO, "useragent");
+    ApiSourceControlEvaluationRequestDTO apiSourceControlEvaluationRequestDTO =
+        new ApiSourceControlEvaluationRequestDTO(Stage.ID_DEVELOP, "a-branch");
+    service.doSourceControlEvaluation(app.getId(), apiSourceControlEvaluationRequestDTO, "useragent");
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testDoManifestEvaluation_Unauthorized() throws Exception {
     login();
-    ApiManifestEvaluationRequestDTO apiManifestEvaluationRequestDTO =
-        new ApiManifestEvaluationRequestDTO(Stage.ID_DEVELOP, "a-branch");
-    service.doManifestEvaluation(app.getId(), apiManifestEvaluationRequestDTO, "useragent");
+    ApiSourceControlEvaluationRequestDTO apiSourceControlEvaluationRequestDTO =
+        new ApiSourceControlEvaluationRequestDTO(Stage.ID_DEVELOP, "a-branch");
+    service.doSourceControlEvaluation(app.getId(), apiSourceControlEvaluationRequestDTO, "useragent");
   }
 
   @Test(expected = UnauthenticatedException.class)

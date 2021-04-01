@@ -28,6 +28,7 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -165,6 +166,31 @@ public class PullRequestCommentingEventHandlerTest
     verify(mockPrCommentingMetricsService, never()).sendTelemetry(any());
     assertThatLogMessagesEqual(
         debug("scm disabled : skipping PR commenting for application 'app1' with policy evaluation 'pe1'"));
+  }
+
+  @Test
+  public void testOnApplicationEvaluation_bitbucketCloud() {
+    // given : commenting service object, scm is bitbucket cloud, and an event with a commit hash
+    PullRequestCommentingEventHandler commentingEventHandler = new TestablePullRequestCommentingEventHandlerBuilder()
+        .withScmEnabled(true)
+        .withSourceControlProvider(SourceControlProvider.BITBUCKET)
+        .withRepositoryUrl("https://bitbucket.org/test-org/test-app")
+        .build();
+
+    ApplicationEvaluationEvent event = new ApplicationEvaluationEventBuilder()
+        .withApplicationId("app1")
+        .withPolicyEvaluationId("pe1")
+        .withCommitHash("commit123")
+        .build();
+
+    // when : process event
+    commentingEventHandler.onApplicationEvaluation(event);
+
+    // then : comment was not created
+    verify(mockSourceControlEventPublisher, never()).publishEvent(any());
+    verify(mockPrCommentingMetricsService, never()).sendTelemetry(any());
+    assertThatLogMessagesEqual(
+        debug("'bitbucket' not currently supported for pull request commenting"));
   }
 
   @Test
@@ -364,15 +390,22 @@ public class PullRequestCommentingEventHandlerTest
 
     private boolean featureFlagEnabled = true;
 
+    private String repositoryUrl;
+
     private List<PullRequestPolicyEvaluationsDTO> pullRequestPolicyEvaluationsDTOs;
 
     PullRequestCommentingEventHandler build() {
       MockitoAnnotations.openMocks(this);
 
+      if (StringUtils.isEmpty(repositoryUrl)) {
+        repositoryUrl = String.format("http://%s.com/%s/%s", provider.toString(), org, repo);
+      }
+
       doReturn(scmEnabled).when(mockSourceControlUtils).isScmEnabled(any(String.class));
       doReturn(scmEnabled).when(mockSourceControlUtils).isScmEnabled(any(GitRepositoryInfo.class));
+      doReturn(repositoryUrl.contains("bitbucket.org"))
+          .when(mockSourceControlUtils).isBitbucketCloud(any(GitRepositoryInfo.class));
 
-      String repositoryUrl = String.format("http://%s.com/%s/%s", provider.toString(), org, repo);
       gitRepositoryInfo = new GitRepositoryInfo(repositoryUrl, username, token, provider, baseBranch,
           enablePullRequests, enableStatusChecks);
       doReturn(gitRepositoryInfo).when(mockSourceControlUtils).getGitRepositoryInfoForApplication(any());
@@ -406,6 +439,16 @@ public class PullRequestCommentingEventHandlerTest
 
     TestablePullRequestCommentingEventHandlerBuilder withScmEnabled(boolean scmEnabled) {
       this.scmEnabled = scmEnabled;
+      return this;
+    }
+
+    TestablePullRequestCommentingEventHandlerBuilder withRepositoryUrl(String repositoryUrl) {
+      this.repositoryUrl = repositoryUrl;
+      return this;
+    }
+
+    TestablePullRequestCommentingEventHandlerBuilder withSourceControlProvider(SourceControlProvider provider) {
+      this.provider = provider;
       return this;
     }
 

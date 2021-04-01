@@ -55,8 +55,8 @@ import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
@@ -90,7 +90,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
 import org.mockito.internal.stubbing.answers.CallsRealMethods;
 import org.mockito.invocation.InvocationOnMock;
 
@@ -123,7 +122,6 @@ public class PolicyEvaluateServiceTest
 
   private MockReportDownloader mockReportDownloader;
 
-  @Mock
   private ScanHandler mockScanHandler;
 
   private TelemetrySender mockTelemetrySender;
@@ -878,5 +876,62 @@ public class PolicyEvaluateServiceTest
 
     messagesA.clear();
     messagesB.clear();
+  }
+
+  @Test
+  public void testEvaluateSynchronousNoAuth() throws Exception {
+    InsightConfig insightConfig = lookup(InsightConfig.class);
+    insightConfig.setBaseUrl("http://localhost");
+
+    String mail = "userSynchronous@example.com";
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    Policy policy = tempEntity.newPolicy(app, 8, LogicalOperator.AND,
+        new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    addNotificationsToPolicy(policy, stage.getStageTypeId(), new UserNotification(mail, stage.getStageTypeId()));
+
+    String scanId = simulateReportIsAvailable();
+    File scanFile = ScanHelper.createDummyScanFile(lookup(InsightWork.class), app.getId(), scanId);
+
+    ApplicationComponentDAO appComponentDAO = new ApplicationComponentDAO();
+    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId())).isEmpty();
+
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(scanId);
+    ArgumentCaptor<String> clientUserAgentArgCaptor = ArgumentCaptor.forClass(String.class);
+    when(mockScanHandler.handle(eq(scanFile), eq(app), eq(ClientScanType.SONATYPE), any(TelemetryData.class),
+        eq(stage.getStageTypeId()), clientUserAgentArgCaptor.capture())).thenReturn(scanReceipt);
+
+    // evaluate policy
+    String testClientUserAgent = "testClientUserAgent";
+    ScanTriggerType scanTriggerType = ScanTriggerType.CLI;
+    PolicyEvaluation policyEvaluation = policyEvaluateService.evaluateSynchronousNoAuth(app, ClientScanType.SONATYPE,
+        scanFile, stage, scanTriggerType, testClientUserAgent);
+
+    assertThat(policyEvaluation.getApplicationId()).isEqualTo(app.getId());
+    assertThat(policyEvaluation.getScanId()).isEqualTo(scanId);
+    assertThat(policyEvaluation.getStageTypeId()).isEqualTo(stage.getStageTypeId());
+    assertThat(policyEvaluation.getScanTriggerType()).isEqualTo(scanTriggerType);
+    assertThat(policyEvaluation.isForMonitoring()).isFalse();
+    assertThat(policyEvaluation.isReevaluation()).isFalse();
+    assertThat(policyEvaluation.isForObsoleteScan()).isFalse();
+
+    List<PolicyViolation> policyViolations =
+        new PolicyViolationDAO().getActiveByApplicationIdAndStageId(app.getId(), stage.getStageTypeId());
+    assertThat(policyViolations).hasSize(36);
+    for (PolicyViolation policyViolation : policyViolations) {
+      assertThat(policyViolation.getPolicyId()).isEqualTo(policy.getId());
+      assertThat(policyViolation.getActionTypeId()).isEqualTo(Action.ID_FAIL);
+    }
+
+    // check components are associated with the application and stage
+    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId())).hasSize(28);
+
+    // notification message should also have been sent
+    List<Message> notifications = Mailbox.get(mail);
+    assertNotifications(notifications, 1, 5000);
+    assertThat(notifications.get(0).getSubject()).contains("Policy");
+
+    assertThat(clientUserAgentArgCaptor.getValue()).isEqualTo(testClientUserAgent);
   }
 }

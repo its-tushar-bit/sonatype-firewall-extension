@@ -27,9 +27,9 @@ public interface ApiEvaluationResourceV2
   /**
    * @since 1.101
    */
-  ApiApplicationEvaluationStatusDTOV2 doManifestEvaluation(
+  ApiApplicationEvaluationStatusDTOV2 doSourceControlEvaluation(
       String applicationId,
-      ApiManifestEvaluationRequestDTO manifestEvaluationRequest,
+      ApiSourceControlEvaluationRequestDTO sourceControlEvaluationRequest,
       HttpServletRequest request);
 
   ApiApplicationEvaluationResultDTOV2 getApplicationEvaluationStatus(String applicationId, String statusId);

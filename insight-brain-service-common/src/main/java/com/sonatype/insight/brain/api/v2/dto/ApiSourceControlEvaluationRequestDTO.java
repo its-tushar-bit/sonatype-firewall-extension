@@ -8,17 +8,17 @@ package com.sonatype.insight.brain.api.v2.dto;
 /**
  * @since 1.101
  */
-public class ApiManifestEvaluationRequestDTO
+public class ApiSourceControlEvaluationRequestDTO
 {
   public String stageId;
 
   public String branchName;
 
   // For JSON de-serialization
-  public ApiManifestEvaluationRequestDTO() {
+  public ApiSourceControlEvaluationRequestDTO() {
   }
 
-  public ApiManifestEvaluationRequestDTO(String stageId, String branchName) {
+  public ApiSourceControlEvaluationRequestDTO(String stageId, String branchName) {
     this.stageId = stageId;
     this.branchName = branchName;
   }

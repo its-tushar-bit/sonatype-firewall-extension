@@ -51,8 +51,9 @@ public class ApiDataRetentionPolicyServiceTest
 
     assertThat(dto).isNotNull();
     assertThat(dto.applicationReports).isNotNull();
-    assertThat(dto.applicationReports.stages).containsOnlyKeys(Stage.ID_DEVELOP, Stage.ID_BUILD, Stage.ID_STAGE_RELEASE,
-        Stage.ID_RELEASE, Stage.ID_OPERATE, DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING);
+    assertThat(dto.applicationReports.stages).containsOnlyKeys(Stage.ID_DEVELOP, Stage.ID_SOURCE, Stage.ID_BUILD,
+        Stage.ID_STAGE_RELEASE, Stage.ID_RELEASE, Stage.ID_OPERATE,
+        DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING);
     assertThat(dto.applicationReports.stages.values()).allSatisfy(policyDTO -> {
       assertThat(policyDTO).isNotNull();
     });

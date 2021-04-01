@@ -51,7 +51,7 @@
             </thead>
             <tbody ng-show="vm.noReports" class="iq-table--fixed__content">
               <tr class="iq-table-row">
-                <td colspan="6" id="no-reports-message" class="iq-cell iq-cell--empty">
+                <td colspan="7" id="no-reports-message" class="iq-cell iq-cell--empty">
                   No results found
                 </td>
               </tr>
@@ -92,6 +92,9 @@
                 </td><!--
              --><td ng-repeat="stage in vm.stages | filterReportColumns"
                     class="tm-report-list-stage-{{::stage.stageTypeId}} iq-cell iq-cell--stage">
+                  <div ng-if="stage.stageTypeId == 'source' && application.hasPendingSourceControlPolicyEvaluation && !application.policyEvaluationsResults[stage.stageTypeId]">
+                    <i class="fa fa-hourglass-half"></i> pending
+                  </div>
                   <div ng-if="application.policyEvaluationsResults[stage.stageTypeId]"
                        class="iq-report-list__stage-links">
                     <div class="iq-report-list__violation-links"
@@ -132,7 +135,7 @@
             </tbody>
             <tbody class="iq-table--fixed__content">
             <tr class="iq-table-row">
-              <td colspan="6" class="iq-cell">
+              <td colspan="7" class="iq-cell">
                 <span ng-if="vm.loadingApps">
                   <i class="fa fa-spin fa-circle-o-notch iq-spinner__icon"></i>Loading...
                 </span>

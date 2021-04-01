@@ -16,6 +16,8 @@ public class StageTypes
 {
   public static final StageType DEVELOP = new DevelopStageType();
 
+  public static final StageType SOURCE = new SourceStageType();
+
   public static final StageType BUILD = new BuildStageType();
 
   public static final StageType STAGE_RELEASE = new StageReleaseStageType();
@@ -31,6 +33,7 @@ public class StageTypes
   static {
     add(PROXY);
     add(DEVELOP);
+    add(SOURCE);
     add(BUILD);
     add(STAGE_RELEASE);
     add(RELEASE);

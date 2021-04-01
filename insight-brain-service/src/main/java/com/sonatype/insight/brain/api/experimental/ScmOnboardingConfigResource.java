@@ -20,7 +20,7 @@ import com.codahale.metrics.annotation.Timed;
 import com.google.common.collect.ImmutableMap;
 
 /**
- * Resource configuring manifest scans.
+ * Resource configuring source control scans.
  *
  * @since 1.99
  */
@@ -40,7 +40,7 @@ public class ScmOnboardingConfigResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public Map<String, Object> manifestScanConfiguration() {
+  public Map<String, Object> sourceControlScanConfiguration() {
     return ImmutableMap.of("scmOnboardingFeatureEnabled", scmOnboardingConfigService.isScmOnboardingEnabled());
   }
 }

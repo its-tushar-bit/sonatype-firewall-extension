@@ -35,6 +35,9 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 public class SourceControlDAO
     extends AbstractOperationalSqlDAO<SourceControl>
 {
+  // Visible for tests
+  static final long PULL_REQUEST_POLLING_INITIAL_OFFSET_MS = 1000L * 60 * 60 * 72; // 72 hours
+
   private final ApplicationDAO applicationDAO = new ApplicationDAO();
 
   private final OrganizationDAO organizationDAO = new OrganizationDAO();
@@ -48,12 +51,13 @@ public class SourceControlDAO
    *
    * Consistency means:
    * 1 - if the source control entry has no repo URL then it's of no interest so we set the poll time to null
-   * 2 - for an 'application' source control entry and if not already set, set the poll time to the time of the
-   * earliest policy evaluation we have for that application that also has a commit associated
-   * 3 - otherwise, set the poll time to the current timestamp where it is not otherwise set and a repo url exists
+   * 2 - for an 'application' source control entry set the poll time to:
+   *     (a) the initial default polling time (now - 72 hours) if it's not already set, or
+   *     (b) the minimum of the earliest policy evaluation timestamp or the initial default polling time
    *
-   * Poll time is used to determine for which repos and in what sequence we will query the SCM to determine if there
-   * are any open pull requests that we can possibly comment on.
+   * Poll time is used to determine (a) for which repos and in what sequence we will query the SCM to determine if there
+   * are any open pull requests that we can possibly comment on and (b) the cutoff time after which the pull request
+   * was created.
    */
   public void initializePullRequestPollTimes() {
     updatePullRequestPollTimesPerPolicyEvaluations();
@@ -67,12 +71,17 @@ public class SourceControlDAO
     try (TransactionContext txn = new TransactionContext(em)) {
       txn.begin();
 
-      // for each application where the poll time is not already set, the poll time is set to the earliest policy
-      // evaluation with an associated commit
+      // for each application where the poll time is not already set, the poll time is set to earliest date between
+      // the earliest policy evaluation with an associated commit or the initial default polling offset
+      Date initialPollingTime = new Date(System.currentTimeMillis() - PULL_REQUEST_POLLING_INITIAL_OFFSET_MS);
       em.createNativeQuery(
           "UPDATE insight_brain_ods.source_control sc" +
               " SET pull_request_poll_time = (" +
-              " SELECT first_commit_time" +
+              " SELECT" +
+              "  CASE WHEN first_commit_time IS NULL THEN ?1" +
+              "       WHEN first_commit_time < ?1 THEN first_commit_time" +
+              "       ELSE ?1" +
+              "       END" +
               " FROM (" +
               "     SELECT application_id, min(time) AS first_commit_time" +
               "     FROM insight_brain_ods.policy_evaluation" +
@@ -81,7 +90,7 @@ public class SourceControlDAO
               "     ) AS first_policy_eval_commit" +
               " WHERE sc.owner_id = first_policy_eval_commit.application_id)" +
               " WHERE sc.pull_request_poll_time IS NULL;"
-      ).executeUpdate();
+      ).setParameter(1, initialPollingTime).executeUpdate();
       txn.commit();
     }
   }
@@ -91,11 +100,12 @@ public class SourceControlDAO
 
     try (TransactionContext txn = new TransactionContext(em)) {
       txn.begin();
-      // where not set and a repo url exists set the poll time to the current timestamp
+      // where not set and a repo url exists set the poll time to -72 hours
+      Date initialPollingTime = new Date(System.currentTimeMillis() - PULL_REQUEST_POLLING_INITIAL_OFFSET_MS);
       em.createNativeQuery(
-          "UPDATE insight_brain_ods.source_control SET pull_request_poll_time = CURRENT_TIMESTAMP" +
+          "UPDATE insight_brain_ods.source_control SET pull_request_poll_time = ?1" +
               " WHERE pull_request_poll_time IS NULL AND repository_url IS NOT NULL;"
-      ).executeUpdate();
+      ).setParameter(1, initialPollingTime) .executeUpdate();
       txn.commit();
     }
   }

@@ -32,7 +32,7 @@ public class NotificationsSection
   }
 
   public ElementsCollection headers() {
-    return $$(createSelector(ROOT_SELECTOR, "th:nth-child(n+2):nth-child(-n+8)"));
+    return $$(createSelector(ROOT_SELECTOR, "th:nth-child(n+2):nth-child(-n+9)"));
   }
 
   public static class NotificationItem
@@ -52,20 +52,24 @@ public class NotificationsSection
       return new IqCheckbox($(createSelector(rootSelector, "td", nthChild(3), "iq-checkbox")));
     }
 
-    public IqCheckbox build() {
+    public IqCheckbox source() {
       return new IqCheckbox($(createSelector(rootSelector, "td", nthChild(4), "iq-checkbox")));
     }
 
-    public IqCheckbox stageRelease() {
+    public IqCheckbox build() {
       return new IqCheckbox($(createSelector(rootSelector, "td", nthChild(5), "iq-checkbox")));
     }
 
-    public IqCheckbox release() {
+    public IqCheckbox stageRelease() {
       return new IqCheckbox($(createSelector(rootSelector, "td", nthChild(6), "iq-checkbox")));
     }
 
-    public IqCheckbox operate() {
+    public IqCheckbox release() {
       return new IqCheckbox($(createSelector(rootSelector, "td", nthChild(7), "iq-checkbox")));
+    }
+
+    public IqCheckbox operate() {
+      return new IqCheckbox($(createSelector(rootSelector, "td", nthChild(8), "iq-checkbox")));
     }
 
     public IqCheckbox continuousMonitoring() {

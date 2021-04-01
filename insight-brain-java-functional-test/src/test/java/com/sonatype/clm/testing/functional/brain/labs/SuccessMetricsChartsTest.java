@@ -211,9 +211,10 @@ public class SuccessMetricsChartsTest
     SummaryStatementTile.title().shouldHave(text("Test"));
     String reportUpdated = DateTimeFormat.forPattern("MMM d, YYYY").withLocale(Locale.ENGLISH)
         .print(Ordering.natural().max(LocalDate.now().withDayOfMonth(1), LocalDate.now().withDayOfWeek(1)));
-    SummaryStatementTile.averages().shouldHave(text("This report contains data for 2 applications, evaluated over the" +
-        " past 4 months, aggregated and deduplicated over the build, stage release, release, and operate stages. Last" +
-        " updated " + reportUpdated + "."));
+    SummaryStatementTile.averages()
+        .shouldHave(text("This report contains data for 2 applications, evaluated over the"
+            + " past 4 months, aggregated and deduplicated over the source, build, stage release, release, and operate"
+            + " stages. Last updated " + reportUpdated + "."));
   }
 
   @Test

@@ -27,6 +27,7 @@ import com.sonatype.insight.scan.model.ItemContentType;
 import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.ScanConfiguration;
 import com.sonatype.insight.scan.model.ScanItem;
+import com.sonatype.insight.scan.model.ScanMetadata;
 import com.sonatype.insight.scan.model.io.ScanWriter;
 import com.sonatype.insight.scan.model.io.ScanWriterFactory;
 import com.sonatype.insight.scan.util.HashUtils;
@@ -65,11 +66,12 @@ public class Scanner
   private final FileCleaner fileCleaner;
 
   @Inject
-  public Scanner(ScanPropertiesLoader configLoader,
-                 ClientScanner clientScanner,
-                 FileScanner fileScanner,
-                 ScanWriterFactory writerFactory,
-                 FileCleaner fileCleaner)
+  public Scanner(
+      ScanPropertiesLoader configLoader,
+      ClientScanner clientScanner,
+      FileScanner fileScanner,
+      ScanWriterFactory writerFactory,
+      FileCleaner fileCleaner)
   {
     this.configLoader = configLoader;
     this.clientScanner = clientScanner;
@@ -85,6 +87,23 @@ public class Scanner
   public ScanResult scan(File target, String filename, File scanDir, ProprietaryConfig proprietaryConfig)
       throws IOException
   {
+    return this.scan(target, filename, scanDir, proprietaryConfig, null);
+  }
+
+  /**
+   *
+   * This scan variant includes the addition of the {@link ScanMetadata} param which allows the caller to provide the
+   * commit hash that should be associated with the scan, if it's available (as should be the case for source
+   * control scanning, for example)
+   */
+  public ScanResult scan(
+      File target,
+      String filename,
+      File scanDir,
+      ProprietaryConfig proprietaryConfig,
+      ScanMetadata scanMetadata)
+      throws IOException
+  {
     Files.createDirectories(scanDir.toPath());
     File scanFile = Files.createTempFile(scanDir.toPath(), TEMP_SCAN_PREFIX, SCAN_SUFFIX).toFile();
     log.debug("Saving scan of {} to {}", target, scanFile);
@@ -93,14 +112,16 @@ public class Scanner
     try {
       Scan scan = new Scan();
       scan.setConfiguration(new ScanConfiguration(getScanConfigProps(proprietaryConfig)));
+      scan.setMetadata(scanMetadata);
       try (ScanWriter writer = writerFactory.newWriter(scanFile)) {
         writer.openScan(scan);
         writer.writeConfiguration(scan.getConfiguration());
+        writer.writeMetadata(scanMetadata);
         scan.getSummary().setStartTime();
         ScanSession scanSession = new ScanSession(scan, writer);
         clientScanner.scan(new ClientScanRequest(scan));
         if (filename == null || target.isDirectory()) {
-          // for manifest scan: use all files in the folder
+          // for source control scan: use all files in the folder
           fileScanner.scan(new FileScanRequest(scanSession).addFiles(target));
         }
         else {

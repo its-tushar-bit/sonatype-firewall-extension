@@ -16,7 +16,7 @@
  --></span>
     {{::(vm.monthCount === 1 ? 'month' : 'months')}}<!--
 --></span><!--
--->, aggregated and deduplicated over the build, stage release, release, and operate stages. Last updated
+-->, aggregated and deduplicated over the source, build, stage release, release, and operate stages. Last updated
   {{::vm.lastUpdated | date: vm.dateFormat}}.
 </p>
 <div ng-if="vm.showNoDataMessage" class="iq-alert iq-alert--info" id="no-data-warning">

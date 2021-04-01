@@ -20,10 +20,10 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.concurrent.SemaphorePool;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.GitCommitStatusService;
-import com.sonatype.insight.brain.git.ManifestScanService;
 import com.sonatype.insight.brain.git.PullRequestCommentingEventHandler;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
 import com.sonatype.insight.brain.git.SourceControlInstanceManager;
+import com.sonatype.insight.brain.git.SourceControlScanService;
 import com.sonatype.insight.brain.git.SourceControlService;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 
@@ -61,10 +61,11 @@ public class SourceControlEventService
 {
   private static final Logger log = LoggerFactory.getLogger(SourceControlEventService.class);
 
-  private static final int THREAD_POOL_SIZE = 10;
+  @VisibleForTesting
+  static final int THREAD_POOL_SIZE = 25;
 
   @VisibleForTesting
-  static final int TASK_QUEUE_CAPACITY = 20;
+  static final int TASK_QUEUE_CAPACITY = 40;
 
   @VisibleForTesting
   static final int MAX_LOAD = THREAD_POOL_SIZE + TASK_QUEUE_CAPACITY;
@@ -92,7 +93,7 @@ public class SourceControlEventService
 
   private final GitCommitStatusService gitCommitStatusService;
 
-  private final ManifestScanService manifestScanService;
+  private final SourceControlScanService sourceControlScanService;
 
   private final SourceControlService sourceControlService;
 
@@ -103,7 +104,7 @@ public class SourceControlEventService
       PullRequestCommentingEventHandler pullRequestCommentingEventHandler,
       PullRequestRemediationService pullRequestRemediationService,
       GitCommitStatusService gitCommitStatusService,
-      ManifestScanService manifestScanService,
+      SourceControlScanService sourceControlScanService,
       SourceControlService sourceControlService)
   {
     this.sourceControlEventDAO = sourceControlEventDAO;
@@ -111,7 +112,7 @@ public class SourceControlEventService
     this.pullRequestCommentingEventHandler = pullRequestCommentingEventHandler;
     this.pullRequestRemediationService = pullRequestRemediationService;
     this.gitCommitStatusService = gitCommitStatusService;
-    this.manifestScanService = manifestScanService;
+    this.sourceControlScanService = sourceControlScanService;
     this.sourceControlService = sourceControlService;
   }
 
@@ -258,8 +259,8 @@ public class SourceControlEventService
           pullRequestCommentingEventHandler.onDiscoveredPullRequest(event);
           break;
 
-        case SourceControlEvent.MANIFEST_EVALUATION_EVENT:
-          manifestScanService.onManifestScan(event);
+        case SourceControlEvent.SOURCE_CONTROL_EVALUATION:
+          sourceControlScanService.onSourceControlScan(event);
           break;
 
         case SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT:
@@ -307,6 +308,7 @@ public class SourceControlEventService
         TimeUnit.SECONDS,
         new LinkedBlockingQueue<>(TASK_QUEUE_CAPACITY),
         threadFactory);
+    threadPoolExecutor.allowCoreThreadTimeOut(true);
   }
 
   private ThreadPoolExecutor getThreadPoolExecutor() {

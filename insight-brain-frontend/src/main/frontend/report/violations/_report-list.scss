@@ -35,7 +35,7 @@
 }
 
 .iq-scrollable--report-list {
-  @include table-fixed-widths(6);
+  @include table-fixed-widths(7);
 
   max-height: 100%;
   width: 100%;
@@ -46,15 +46,15 @@
 .iq-scrollable--report-list.scrollbar-present {
   .iq-table--fixed__header, .iq-table--fixed__content {
     .iq-cell--contact {
-      width: calc(((100% + #{$iq-cell-scroll-bar-width}) / 6) - #{$iq-cell-scroll-bar-width});
+      width: calc(((100% + #{$iq-cell-scroll-bar-width}) / 7) - #{$iq-cell-scroll-bar-width});
     }
 
     .iq-cell:last-child {
-      width: calc(100% / 6);
+      width: calc(100% / 7);
     }
 
     .iq-cell--header:last-child {
-      width: calc(((100% + #{$iq-cell-scroll-bar-width}) / 6) + #{$iq-spacing-xs});
+      width: calc(((100% + #{$iq-cell-scroll-bar-width}) / 7) + #{$iq-spacing-xs});
     }
   }
 }

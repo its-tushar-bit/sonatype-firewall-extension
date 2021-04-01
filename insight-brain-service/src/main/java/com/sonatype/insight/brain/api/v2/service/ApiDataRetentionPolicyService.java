@@ -46,6 +46,7 @@ public class ApiDataRetentionPolicyService
   private static final Set<String> VALID_REPORT_CONTEXT_IDS =
       Collections.unmodifiableSet(new LinkedHashSet<>(Arrays.asList( //
           Stage.ID_DEVELOP, //
+          Stage.ID_SOURCE, //
           Stage.ID_BUILD, //
           Stage.ID_STAGE_RELEASE, //
           Stage.ID_RELEASE, //

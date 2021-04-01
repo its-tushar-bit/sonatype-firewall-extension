@@ -88,8 +88,10 @@ public class SuccessMetricsChartsSingleApplicationTest
     successMetricsReportPage.should(appear);
     SummaryStatementTile.root().shouldBe(visible);
     SummaryStatementTile.title().shouldHave(text("Test"));
-    SummaryStatementTile.averages().shouldHave(text("This report contains data for 1 application, evaluated over the " +
-        "past 3 months, aggregated and deduplicated over the build, stage release, release, and operate stages."));
+    SummaryStatementTile.averages()
+        .shouldHave(text("This report contains data for 1 application, evaluated over the "
+            + "past 3 months, aggregated and deduplicated over the source, build, stage release, release, and operate "
+            + "stages."));
   }
 
   @Test

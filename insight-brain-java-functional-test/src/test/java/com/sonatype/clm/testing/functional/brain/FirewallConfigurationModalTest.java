@@ -98,7 +98,7 @@ public class FirewallConfigurationModalTest
     firewallConfigurationModal.autoUnquarantineCheckBoxIntegrityRating().shouldNotBe(checked);
     IntStream.range(1, supportedConditionTypesExcludingIntegrityRatingCount + 1).forEach(index -> {
       firewallConfigurationModal.autoUnquarantineToggleWithIndex(index).shouldBe(visible);
-      firewallConfigurationModal.autoUnquarantineCheckBoxWithIndex(index).input().shouldNotBe(checked);;
+      firewallConfigurationModal.autoUnquarantineCheckBoxWithIndex(index).input().shouldNotBe(checked);
     });
     firewallConfigurationModal.cancelButton().shouldBe(visible);
     firewallConfigurationModal.saveButton().shouldBe(visible).shouldHave(Condition.cssClass("disabled")).hover();
@@ -111,7 +111,7 @@ public class FirewallConfigurationModalTest
     firewallConfigurationModal.autoUnquarantineCheckBoxIntegrityRating().shouldNotBe(checked);
     IntStream.range(1, supportedConditionTypesExcludingIntegrityRatingCount + 1).forEach(index -> {
       firewallConfigurationModal.autoUnquarantineToggleWithIndex(index).shouldBe(visible);
-      firewallConfigurationModal.autoUnquarantineCheckBoxWithIndex(index).input().shouldNotBe(checked);;
+      firewallConfigurationModal.autoUnquarantineCheckBoxWithIndex(index).input().shouldNotBe(checked);
     });
     firewallConfigurationModal.cancelButton().shouldBe(visible);
     firewallConfigurationModal.saveButton().shouldBe(visible).shouldHave(Condition.cssClass("disabled")).hover();
@@ -150,7 +150,7 @@ public class FirewallConfigurationModalTest
     firewallConfigurationModal.autoUnquarantineCheckBoxIntegrityRating().input().shouldBe(checked);
     IntStream.range(1, supportedConditionTypesExcludingIntegrityRatingCount + 1).forEach(index -> {
       firewallConfigurationModal.autoUnquarantineToggleWithIndex(index).shouldBe(visible);
-      firewallConfigurationModal.autoUnquarantineCheckBoxWithIndex(index).input().shouldNotBe(checked);;
+      firewallConfigurationModal.autoUnquarantineCheckBoxWithIndex(index).input().shouldNotBe(checked);
     });
     firewallConfigurationModal.cancelButton().shouldBe(visible);
     firewallConfigurationModal.saveButton().shouldBe(visible, enabled);
@@ -205,7 +205,7 @@ public class FirewallConfigurationModalTest
     firewallConfigurationModal.autoUnquarantineCheckBoxIntegrityRating().input().shouldNotBe(checked);
     IntStream.range(1, supportedConditionTypesExcludingIntegrityRatingCount + 1).forEach(index -> {
       firewallConfigurationModal.autoUnquarantineToggleWithIndex(index).shouldBe(visible);
-      firewallConfigurationModal.autoUnquarantineCheckBoxWithIndex(index).input().shouldBe(checked);;
+      firewallConfigurationModal.autoUnquarantineCheckBoxWithIndex(index).input().shouldBe(checked);
     });
     firewallConfigurationModal.cancelButton().shouldBe(visible);
     firewallConfigurationModal.saveButton().shouldBe(visible, enabled);
@@ -215,7 +215,7 @@ public class FirewallConfigurationModalTest
 
     IntStream.range(1, supportedConditionTypesExcludingIntegrityRatingCount + 1).forEach(index -> {
       firewallConfigurationModal.autoUnquarantineToggleWithIndex(index).shouldBe(visible);
-      firewallConfigurationModal.autoUnquarantineCheckBoxWithIndex(index).input().shouldNotBe(checked);;
+      firewallConfigurationModal.autoUnquarantineCheckBoxWithIndex(index).input().shouldNotBe(checked);
     });
 
     //toggle
@@ -223,7 +223,7 @@ public class FirewallConfigurationModalTest
 
     IntStream.range(1, supportedConditionTypesExcludingIntegrityRatingCount + 1).forEach(index -> {
       firewallConfigurationModal.autoUnquarantineToggleWithIndex(index).shouldBe(visible);
-      firewallConfigurationModal.autoUnquarantineCheckBoxWithIndex(index).input().shouldBe(checked);;
+      firewallConfigurationModal.autoUnquarantineCheckBoxWithIndex(index).input().shouldBe(checked);
     });
 
     //save
@@ -276,7 +276,7 @@ public class FirewallConfigurationModalTest
     firewallConfigurationModal.autoUnquarantineCheckBoxIntegrityRating().input().shouldNotBe(checked);
     IntStream.range(2, supportedConditionTypesExcludingIntegrityRatingCount + 1).forEach(index -> {
       firewallConfigurationModal.autoUnquarantineToggleWithIndex(index).shouldBe(visible);
-      firewallConfigurationModal.autoUnquarantineCheckBoxWithIndex(index).input().shouldNotBe(checked);;
+      firewallConfigurationModal.autoUnquarantineCheckBoxWithIndex(index).input().shouldNotBe(checked);
     });
     firewallConfigurationModal.autoUnquarantineCheckBoxWithIndex(1).shouldBe(visible);
     firewallConfigurationModal.autoUnquarantineCheckBoxWithIndex(1).shouldBe(visible);

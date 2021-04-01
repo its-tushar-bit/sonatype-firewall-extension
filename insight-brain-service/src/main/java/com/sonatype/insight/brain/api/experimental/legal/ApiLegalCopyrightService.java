@@ -89,8 +89,8 @@ public class ApiLegalCopyrightService
    */
   @Authorize(permission = Permission.LEGAL_REVIEWER)
   public CopyrightFilePathsDTO getCopyrightFilePaths(
-      final @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
-      final @AuthzContext(AuthzContext.Key.ID) String ownerId,
+      @SuppressWarnings("unused") final @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @SuppressWarnings("unused") final @AuthzContext(AuthzContext.Key.ID) String ownerId,
       final ComponentIdentifier componentIdentifier,
       final String componentHash,
       final String copyrightContentHash,
@@ -124,8 +124,8 @@ public class ApiLegalCopyrightService
    */
   @Authorize(permission = Permission.LEGAL_REVIEWER)
   public List<String> getCopyrightContextContent(
-      final @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
-      final @AuthzContext(AuthzContext.Key.ID) String ownerId,
+      @SuppressWarnings("unused") final @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @SuppressWarnings("unused") final @AuthzContext(AuthzContext.Key.ID) String ownerId,
       final ComponentIdentifier componentIdentifier,
       final String componentHash,
       final String copyrightContentHash,
@@ -149,8 +149,8 @@ public class ApiLegalCopyrightService
    */
   @Authorize(permission = Permission.LEGAL_REVIEWER)
   public Map<String, Integer> getCopyrightFileCount(
-      final @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
-      final @AuthzContext(AuthzContext.Key.ID) String ownerId,
+      @SuppressWarnings("unused") final @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @SuppressWarnings("unused") final @AuthzContext(AuthzContext.Key.ID) String ownerId,
       final ComponentIdentifier componentIdentifier,
       final String componentHash)
   {

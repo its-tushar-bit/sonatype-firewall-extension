@@ -27,7 +27,7 @@ describe('FirewallAutoReleaseQuarantineMtd', function() {
 
   it('renders a card header', function() {
     expect(getShallowComponent().find('.nx-card__header')).toExist();
-    expect(getShallowComponent().find('.nx-card__header')).toHaveText('Auto Released from Quarantine MTD');
+    expect(getShallowComponent().find('.nx-card__header')).toHaveText('Auto Released (Month to Date)');
   });
 
   it('renders card content', function() {

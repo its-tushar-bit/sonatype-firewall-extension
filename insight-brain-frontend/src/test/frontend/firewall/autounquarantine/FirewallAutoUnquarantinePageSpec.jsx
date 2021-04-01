@@ -12,8 +12,6 @@ import FirewallAutoReleaseQuarantineMtd
 import FirewallAutoReleaseQuarantineYtd
   from '../../../../main/frontend/firewall/autounquarantine/FirewallAutoReleaseQuarantineYtd';
 import FirewallAutoUnquarantineStatus from '../../../../main/frontend/firewall/FirewallAutoUnquarantineStatus';
-import FirewallPolicyConditionTypes
-  from '../../../../main/frontend/firewall/autounquarantine/FirewallPolicyConditionTypes';
 import FirewallUnquarantineTable from '../../../../main/frontend/firewall/autounquarantine/FirewallUnquarantineTable';
 
 describe('FirewallAutoUnquarantinePage', function() {
@@ -105,14 +103,6 @@ describe('FirewallAutoUnquarantinePage', function() {
     expect(card).toHaveProp('autoUnquarantineEnabled', false);
     expect(card).toHaveProp('enabledPolicyConditionTypesCount', 3);
     expect(card).toHaveProp('totalPolicyConditionTypesCount', 4);
-    expect(card).toHaveProp('openConfigurationModal', openConfigurationModalSpy);
-  });
-
-  it('renders a FirewallPolicyConditionTypes card', function() {
-    const component = getShallowComponent(),
-        card = component.find(FirewallPolicyConditionTypes);
-
-    expect(card).toExist();
     expect(card).toHaveProp('openConfigurationModal', openConfigurationModalSpy);
   });
 

@@ -10,7 +10,6 @@ import FirewallAutoUnquarantineStatus from '../FirewallAutoUnquarantineStatus';
 import FirewallUnquarantineTable from './FirewallUnquarantineTable';
 import * as PropTypes from 'prop-types';
 import BackButton from '../../react/BackButton';
-import FirewallPolicyConditionTypes from './FirewallPolicyConditionTypes';
 import FirewallConfigurationModalContainer from '../config/FirewallConfigurationModalContainer';
 import FirewallAutoReleaseQuarantineMtd from './FirewallAutoReleaseQuarantineMtd';
 import FirewallAutoReleaseQuarantineYtd from './FirewallAutoReleaseQuarantineYtd';
@@ -66,7 +65,6 @@ export default function FirewallAutoUnquarantinePage(props) {
           <FirewallAutoReleaseQuarantineMtd autoReleaseQuarantineCountMTD={autoReleaseQuarantineCountMTD}/>
           <FirewallAutoReleaseQuarantineYtd autoReleaseQuarantineCountYTD={autoReleaseQuarantineCountYTD}/>
           <FirewallAutoUnquarantineStatus { ...props }/>
-          <FirewallPolicyConditionTypes { ...props }/>
         </div>
         <FirewallUnquarantineTable/>
       </LoadWrapper>

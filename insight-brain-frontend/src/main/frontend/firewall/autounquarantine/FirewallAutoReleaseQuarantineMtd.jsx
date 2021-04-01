@@ -16,7 +16,7 @@ export default function FirewallAutoReleaseQuarantineMtd(props) {
   return (
     <section id="firewall-auto-release-quarantine-mtd" className="nx-card">
       <header className="nx-card__header">
-        <h3 className="nx-h3">Auto Released from Quarantine MTD</h3>
+        <h3 className="nx-h3">Auto Released (Month to Date)</h3>
       </header>
       <div className="nx-card__content">
         <div className="nx-card__call-out">

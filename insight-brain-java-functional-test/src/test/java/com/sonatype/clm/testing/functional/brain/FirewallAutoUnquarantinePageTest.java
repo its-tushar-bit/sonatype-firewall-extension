@@ -62,7 +62,6 @@ public class FirewallAutoUnquarantinePageTest
     page.firewallAutoReleaseQuarantineYtd().shouldBe(hidden);
     page.firewallUnquarantineTable().shouldBe(hidden);
     page.firewallConfigurationModal().shouldBe(hidden);
-    page.firewallPolicyConditionTypes().shouldBe(hidden);
     page.backToFirewallButton().shouldBe(hidden);
   }
 
@@ -81,7 +80,6 @@ public class FirewallAutoUnquarantinePageTest
     page.firewallAutoReleaseQuarantineYtd().shouldBe(visible);
     page.firewallUnquarantineTable().shouldBe(visible);
     page.firewallConfigurationModal().shouldBe(hidden);
-    page.firewallPolicyConditionTypes().shouldBe(visible);
     page.backToFirewallButton().shouldBe(visible);
   }
 
@@ -135,17 +133,6 @@ public class FirewallAutoUnquarantinePageTest
 
     page.firewallConfigurationModal().cancelButton().click();
     page.firewallConfigurationModal().shouldBe(hidden);
-
-    page.firewallPolicyConditionTypes().moreLink().click();
-    page.firewallConfigurationModal().shouldBe(visible);
-    page.firewallConfigurationModal().loadError().shouldBe(hidden);
-    page.firewallConfigurationModal().saveButton().shouldBe(visible);
-    page.firewallConfigurationModal().cancelButton().shouldBe(visible);
-    page.firewallConfigurationModal().autoUnquarantineToggleIntegrityRating().shouldBe(visible);
-    page.firewallConfigurationModal().autoUnquarantineCheckBoxIntegrityRating().shouldNotBe(checked);
-
-    page.firewallConfigurationModal().cancelButton().click();
-    page.firewallConfigurationModal().shouldBe(hidden);
   }
 
   @Test
@@ -181,7 +168,6 @@ public class FirewallAutoUnquarantinePageTest
     page.firewallConfigurationModal().shouldBe(hidden);
     page.firewallAutoUnquarantineStatus().shouldBe(hidden);
     page.firewallAutoReleaseQuarantineMtd().shouldBe(hidden);
-    page.firewallPolicyConditionTypes().shouldBe(hidden);
     page.firewallAutoReleaseQuarantineYtd().shouldBe(hidden);
     page.loadError().shouldBe(visible);
     page.retryButton().shouldBe(visible);
@@ -196,7 +182,6 @@ public class FirewallAutoUnquarantinePageTest
     page.firewallConfigurationModal().shouldBe(hidden);
     page.firewallAutoUnquarantineStatus().shouldBe(visible);
     page.firewallAutoReleaseQuarantineMtd().shouldBe(visible);
-    page.firewallPolicyConditionTypes().shouldBe(visible);
     page.firewallAutoReleaseQuarantineYtd().shouldBe(visible);
     page.loadError().shouldBe(hidden);
     page.retryButton().shouldBe(hidden);

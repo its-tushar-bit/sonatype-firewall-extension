@@ -11,7 +11,6 @@ import com.sonatype.clm.testing.functional.elements.NxBackButton;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallAutoUnquarantineMtd;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallAutoUnquarantineStatus;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallAutoUnquarantineYtd;
-import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallPolicyConditionTypes;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallUnquarantineTable;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
@@ -54,10 +53,6 @@ public class FirewallAutoUnquarantinePage
 
   public FirewallUnquarantineTable firewallUnquarantineTable() {
     return new FirewallUnquarantineTable(ROOT);
-  }
-
-  public FirewallPolicyConditionTypes firewallPolicyConditionTypes() {
-    return new FirewallPolicyConditionTypes(ROOT);
   }
 
   public FirewallConfigurationModal firewallConfigurationModal() {

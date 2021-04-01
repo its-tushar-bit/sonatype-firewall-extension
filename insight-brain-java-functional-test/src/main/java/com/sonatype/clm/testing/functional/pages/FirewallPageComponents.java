@@ -159,16 +159,4 @@ public class FirewallPageComponents
       return child(FirewallAutoUnquarantinePage.CHILD_HEADER_CSS_CLASS);
     }
   }
-
-  public static class FirewallPolicyConditionTypes
-      extends BasicElement<FirewallPolicyConditionTypes>
-  {
-    public FirewallPolicyConditionTypes(String rootSelector) {
-      super(rootSelector, "#firewall-policy-condition-types");
-    }
-
-    public SelenideElement moreLink() {
-      return child(".nx-text-link");
-    }
-  }
 }

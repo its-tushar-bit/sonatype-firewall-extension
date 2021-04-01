@@ -12,11 +12,9 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -37,26 +35,23 @@ public class LabsResource
   }
 
   @POST
-  public Response labsPostMethod(@Context final HttpServletRequest httpRequest,
-                                 @Context final HttpServletResponse httpResponse) throws IOException
+  public Response labsPostMethod(@Context final HttpServletRequest httpRequest) throws IOException
   {
     return labsService.getLabsResponse(httpRequest, null);
   }
 
   @POST
   @Path("/{var:.*}")
-  public Response labsPostMethodExtended(@Context final HttpServletRequest httpRequest,
-                                 @Context final HttpServletResponse httpResponse) throws IOException
+  public Response labsPostMethodExtended(@Context final HttpServletRequest httpRequest) throws IOException
   {
     return labsService.getLabsResponse(httpRequest, null);
   }
 
   @GET
-  public Response labsGetMethod(@Context final HttpServletRequest httpRequest,
-                                @Context final HttpServletResponse httpResponse,
-                                @QueryParam("command") String command,
-                                @QueryParam("values") String values)
-      throws IOException
+  public Response labsGetMethod(
+      @Context final HttpServletRequest httpRequest,
+      @QueryParam("command") String command,
+      @QueryParam("values") String values) throws IOException
   {
     Map<String, String> queryParams = getQueryParamsMap(command, values);
 
@@ -65,11 +60,10 @@ public class LabsResource
 
   @GET
   @Path("/{var:.*}")
-  public Response labsGetMethodExtended(@PathParam("var") String path, @Context final HttpServletRequest httpRequest,
-                                @Context final HttpServletResponse httpResponse,
-                                @QueryParam("command") String command,
-                                @QueryParam("values") String values)
-      throws IOException
+  public Response labsGetMethodExtended(
+      @Context final HttpServletRequest httpRequest,
+      @QueryParam("command") String command,
+      @QueryParam("values") String values) throws IOException
   {
     Map<String, String> queryParams = getQueryParamsMap(command, values);
 

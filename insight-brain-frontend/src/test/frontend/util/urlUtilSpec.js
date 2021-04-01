@@ -59,6 +59,24 @@ describe('urlUtil', function() {
 
       expect(uriTemplate`/api/myApi/${foo}?stuff=${baz}`)
           .toBe('http://test-host:8888/api/myApi/bar%2F%3F%3D?stuff=qwerty%26%25%EF%BC%A1%EF%BC%B3%EF%BC%A4%EF%BC%A6');
+
+      expect(uriTemplate`/api/myApi/${foo}?stuff=${baz}extraendstuff`)
+          .toBe('http://test-host:8888/api/myApi/bar%2F%3F%3D?stuff=qwerty' +
+            '%26%25%EF%BC%A1%EF%BC%B3%EF%BC%A4%EF%BC%A6extraendstuff');
+    });
+
+    it('strips whitespace out of the template', function() {
+      const foo = 'FOOPARAM',
+          baz = 'BAZPARAM',
+          result = uriTemplate` /api/myApi/
+            ${foo}/
+            asdfa  asdfdfhefgd
+            /
+
+            ?baz=	${baz} 
+          `;
+
+      expect(result).toBe('http://test-host:8888/api/myApi/FOOPARAM/asdfaasdfdfhefgd/?baz=BAZPARAM');
     });
   });
 });

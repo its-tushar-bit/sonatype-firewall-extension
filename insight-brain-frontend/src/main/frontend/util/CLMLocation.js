@@ -328,8 +328,8 @@ export function getSaveComponentObligationUrl(orgOrApp, ownerId) {
 }
 
 export function getComponentObligationUrl(orgOrApp, ownerId, componentIdentifier, obligationName) {
-  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/obligation\
-?componentIdentifier=${JSON.stringify(componentIdentifier)}&obligationName=${obligationName}`;
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/obligation
+    ?componentIdentifier=${JSON.stringify(componentIdentifier)}&obligationName=${obligationName}`;
 }
 
 export function getDeleteComponentObligationUrl(componentObligationId) {
@@ -341,8 +341,8 @@ export function getSaveLegalFileUrl(orgOrApp, ownerId) {
 }
 
 export function getLegalFileUrl(orgOrApp, ownerId, componentIdentifier, legalFileType) {
-  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/legalFile\
-?componentIdentifier=${JSON.stringify(componentIdentifier)}&legalFileType=${legalFileType}`;
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/legalFile
+    ?componentIdentifier=${JSON.stringify(componentIdentifier)}&legalFileType=${legalFileType}`;
 }
 
 export default

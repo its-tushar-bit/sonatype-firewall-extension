@@ -35,15 +35,13 @@ public class LabsResource
   }
 
   @POST
-  public Response labsPostMethod(@Context final HttpServletRequest httpRequest) throws IOException
-  {
+  public Response labsPostMethod(@Context final HttpServletRequest httpRequest) throws IOException {
     return labsService.getLabsResponse(httpRequest, null);
   }
 
   @POST
   @Path("/{var:.*}")
-  public Response labsPostMethodExtended(@Context final HttpServletRequest httpRequest) throws IOException
-  {
+  public Response labsPostMethodExtended(@Context final HttpServletRequest httpRequest) throws IOException {
     return labsService.getLabsResponse(httpRequest, null);
   }
 

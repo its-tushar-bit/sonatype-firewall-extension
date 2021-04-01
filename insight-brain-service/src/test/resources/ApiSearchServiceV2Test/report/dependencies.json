@@ -1,0 +1,469 @@
+{
+  "dependencyGraph" : [ {
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jackson-databind",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.fasterxml.jackson.core",
+          "version" : "2.9.8"
+        }
+      },
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "insight-module-model",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.sonatype.insight.scan",
+          "version" : "1.0.0-SNAPSHOT"
+        }
+      },
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "insight-scanner-archive",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.sonatype.insight.scan",
+          "version" : "1.0.0-SNAPSHOT"
+        }
+      },
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "insight-client-utils",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.sonatype.insight.scan",
+          "version" : "1.0.0-SNAPSHOT"
+        }
+      },
+      "directDependency" : true
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-annotations",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.0"
+      }
+    },
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.8"
+      }
+    },
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.8"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jackson-annotations",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.fasterxml.jackson.core",
+          "version" : "2.9.0"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jackson-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.fasterxml.jackson.core",
+          "version" : "2.9.8"
+        }
+      }
+    } ],
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "gson",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.google.code.gson",
+        "version" : "2.8.1"
+      }
+    },
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "insight-client-utils",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.sonatype.insight.scan",
+        "version" : "1.0.0-SNAPSHOT"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "httpcore",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.apache.httpcomponents",
+          "version" : "4.4.6"
+        }
+      }
+    } ],
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "insight-module-model",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.sonatype.insight.scan",
+        "version" : "1.0.0-SNAPSHOT"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "slf4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.slf4j",
+          "version" : "1.7.30"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "xmlpull",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "xmlpull",
+          "version" : "1.1.3.1"
+        }
+      }
+    } ],
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "insight-scanner-archive",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.sonatype.insight.scan",
+        "version" : "1.0.0-SNAPSHOT"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "gson",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.google.code.gson",
+          "version" : "2.8.1"
+        }
+      }
+    } ],
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "httpcore",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.httpcomponents",
+        "version" : "4.4.6"
+      }
+    },
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "slf4j-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.slf4j",
+        "version" : "1.7.30"
+      }
+    },
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "xmlpull",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "xmlpull",
+        "version" : "1.1.3.1"
+      }
+    },
+    "directDependency" : false
+  } ],
+  "gavDepths" : {
+    "org.apache.httpcomponents:httpcore:4.4.6" : [ 2 ],
+    "com.google.code.gson:gson:2.8.1" : [ 2 ],
+    "org.slf4j:slf4j-api:1.7.30" : [ 2 ],
+    "com.fasterxml.jackson.core:jackson-databind:2.9.8" : [ 1 ],
+    "xmlpull:xmlpull:1.1.3.1" : [ 2 ],
+    "com.fasterxml.jackson.core:jackson-annotations:2.9.0" : [ 2 ],
+    "com.fasterxml.jackson.core:jackson-core:2.9.8" : [ 2 ]
+  },
+  "componentDepths" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.8"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-annotations",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.0"
+      }
+    },
+    "depths" : [ 2 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.8"
+      }
+    },
+    "depths" : [ 2 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "slf4j-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.slf4j",
+        "version" : "1.7.30"
+      }
+    },
+    "depths" : [ 2 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "xmlpull",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "xmlpull",
+        "version" : "1.1.3.1"
+      }
+    },
+    "depths" : [ 2 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "gson",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.google.code.gson",
+        "version" : "2.8.1"
+      }
+    },
+    "depths" : [ 2 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "httpcore",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.httpcomponents",
+        "version" : "4.4.6"
+      }
+    },
+    "depths" : [ 2 ]
+  } ],
+  "dependencyTree" : {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "nexus-platform-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.sonatype.nexus",
+        "version" : "1.0.0"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "insight-module-model",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.sonatype.insight.scan",
+          "version" : "1.0.0-SNAPSHOT"
+        }
+      },
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "slf4j-api",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.slf4j",
+            "version" : "1.7.30"
+          }
+        }
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "xmlpull",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "xmlpull",
+            "version" : "1.1.3.1"
+          }
+        }
+      } ],
+      "direct" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "insight-scanner-archive",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.sonatype.insight.scan",
+          "version" : "1.0.0-SNAPSHOT"
+        }
+      },
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "gson",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.google.code.gson",
+            "version" : "2.8.1"
+          }
+        }
+      } ],
+      "direct" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "jackson-databind",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.fasterxml.jackson.core",
+          "version" : "2.9.8"
+        }
+      },
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "jackson-annotations",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.fasterxml.jackson.core",
+            "version" : "2.9.0"
+          }
+        }
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "jackson-core",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.fasterxml.jackson.core",
+            "version" : "2.9.8"
+          }
+        }
+      } ],
+      "direct" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "insight-client-utils",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.sonatype.insight.scan",
+          "version" : "1.0.0-SNAPSHOT"
+        }
+      },
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "httpcore",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.apache.httpcomponents",
+            "version" : "4.4.6"
+          }
+        }
+      } ],
+      "direct" : true
+    } ],
+    "module" : true
+  }
+}

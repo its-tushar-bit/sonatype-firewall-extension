@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,26 +17,35 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiDependencyDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultsDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.ArtifactCoordinate;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.report.Report;
+import com.sonatype.insight.brain.report.ReportEntry;
+import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import org.apache.commons.collections4.MapUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,24 +68,34 @@ public class ApiSearchServiceV2
 
   private final PolicyViolationDAO policyViolationDAO;
 
+  private final ReportService reportService;
+
+  private final InsightConfig insightConfig;
+
   @Inject
-  public ApiSearchServiceV2(final BaseUrl baseUrl,
-                            final ApplicationDAO applicationDAO,
-                            final PolicyEvaluationDAO policyEvaluationDAO,
-                            final ApplicationComponentDAO applicationComponentDAO,
-                            final PolicyViolationDAO policyViolationDAO)
+  public ApiSearchServiceV2(
+      final BaseUrl baseUrl,
+      final ApplicationDAO applicationDAO,
+      final PolicyEvaluationDAO policyEvaluationDAO,
+      final ApplicationComponentDAO applicationComponentDAO,
+      final PolicyViolationDAO policyViolationDAO,
+      final ReportService reportService,
+      final InsightConfig insightConfig)
   {
     this.baseUrl = baseUrl;
     this.applicationDAO = applicationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.applicationComponentDAO = applicationComponentDAO;
     this.policyViolationDAO = policyViolationDAO;
+    this.reportService = reportService;
+    this.insightConfig = insightConfig;
   }
 
-  public ApiSearchResultsDTOV2 searchComponent(String stageId,
-                                               String hash,
-                                               ComponentIdentifier componentIdentifier,
-                                               String packageUrl)
+  public ApiSearchResultsDTOV2 searchComponent(
+      String stageId,
+      String hash,
+      ComponentIdentifier componentIdentifier,
+      String packageUrl)
   {
     AuditData.get().setComponentHash(hash).setComponentIdentifier(componentIdentifier);
 
@@ -156,7 +177,7 @@ public class ApiSearchServiceV2
         results.results.add(result);
         result.threatLevel = getMaxThreatLevel(
             policyViolationDAO.getActiveByApplicationIdAndStageIdAndHash(app.getId(), stageId, candidateHash));
-
+        result.dependencyData =  getApiDependencyDataDTO(app, eval, candidateHash);
         if (hash != null) {
           break;
         }
@@ -169,6 +190,46 @@ public class ApiSearchServiceV2
         componentIdentifier, System.currentTimeMillis() - start, results.results.size());
 
     return results;
+  }
+
+  private ApiDependencyDataDTO getApiDependencyDataDTO(
+      final Application app,
+      final PolicyEvaluation eval,
+      final String candidateHash)
+  {
+    ApiDependencyDataDTO dependencyData = new ApiDependencyDataDTO();
+    boolean isEnabledComponentSearchApiWithInnerSource = MapUtils.emptyIfNull(insightConfig.getExperimentalFeatures())
+        .getOrDefault(Feature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.getFlag(), false);
+
+    if (!isEnabledComponentSearchApiWithInnerSource) {
+      return null;
+    }
+
+    try {
+      File reportFile = reportService.fetchReport(app, eval.getScanId());
+      final ReportEntry bomReportEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
+      final ReportEntry dependenciesReportEntry = Report.getEntry(reportFile, Report.DEPENDENCIES_JSON_FILENAME);
+
+      if (bomReportEntry != null && dependenciesReportEntry != null) {
+        List<Component> components =
+            new ComponentDAO(app).getAll(null, null, bomReportEntry.buf, dependenciesReportEntry.buf);
+
+        for (Component component : components) {
+          if (candidateHash.equals(component.getHash())) {
+            dependencyData.innerSourceData = component.getInnerSourceData();
+            dependencyData.parentComponentPurl = component.getParentComponentPurl();
+            dependencyData.directDependency = component.getDirectDependency();
+            dependencyData.innerSource = component.getInnerSource();
+            return dependencyData;
+          }
+        }
+      }
+    }
+    catch (IOException e) {
+      log.warn("Dependency data is incomplete for component with hash {} and report id {}.", candidateHash,
+          eval.getScanId());
+    }
+    return dependencyData;
   }
 
   private boolean coordsDoesNotMatch(

@@ -32,6 +32,7 @@ public class ApiSearchResourceV2AuditTest
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scanId");
     tempEntity.newApplicationComponent(app.getId(), Stage.ID_BUILD, hash, null /* componentIdentifier */);
     tempEntity.newApplicationWithParent();
+    mockReport("scanId", "/" + getClass().getSimpleName() + "/report");
 
     restRequest().query("hash", hash).get();
 
@@ -49,6 +50,7 @@ public class ApiSearchResourceV2AuditTest
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scanId");
     tempEntity.newApplicationComponent(app.getId(), Stage.ID_BUILD, "hash", componentIdentifier);
     tempEntity.newApplicationWithParent();
+    mockReport("scanId", "/" + getClass().getSimpleName() + "/report");
 
     restRequest().query("componentIdentifier", componentIdentifier).get();
 
@@ -68,6 +70,7 @@ public class ApiSearchResourceV2AuditTest
     tempEntity.newApplicationComponent(app.getId(), Stage.ID_BUILD, "hash",
         componentIdentifier);
     tempEntity.newApplicationWithParent();
+    mockReport("scanId", "/" + getClass().getSimpleName() + "/report");
 
     restRequest().query("packageUrl", packageUrl).get();
 
@@ -86,6 +89,7 @@ public class ApiSearchResourceV2AuditTest
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scanId");
     tempEntity.newApplicationComponent(app.getId(), Stage.ID_BUILD, hash, componentIdentifier);
     tempEntity.newApplicationWithParent();
+    mockReport("scanId", "/" + getClass().getSimpleName() + "/report");
 
     restRequest().query("hash", hash).query("componentIdentifier", componentIdentifier).get();
 
@@ -105,6 +109,7 @@ public class ApiSearchResourceV2AuditTest
     ComponentIdentifier componentIdentifier = new PackageUrlIdentifier(packageUrl).toComponentIdentifier();
     tempEntity.newApplicationComponent(app.getId(), Stage.ID_BUILD, hash, componentIdentifier);
     tempEntity.newApplicationWithParent();
+    mockReport("scanId", "/" + getClass().getSimpleName() + "/report");
 
     restRequest().query("hash", hash).query("packageUrl", packageUrl).get();
 

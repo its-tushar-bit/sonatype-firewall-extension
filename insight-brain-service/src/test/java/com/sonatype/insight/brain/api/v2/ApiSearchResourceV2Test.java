@@ -122,8 +122,10 @@ public class ApiSearchResourceV2Test
 
   @Test
   public void testSearchComponent_RestrictedToStage() throws Exception {
-    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
-    helper.createAppWithScan("search-app-2", Stage.ID_RELEASE, appToComponentMap.get("search-app-2"));
+    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"), "scanId1");
+    mockReport("scanId1", "/" + getClass().getSimpleName() + "/report");
+    helper.createAppWithScan("search-app-2", Stage.ID_RELEASE, appToComponentMap.get("search-app-2"), "scanId2");
+    mockReport("scanId2", "/" + getClass().getSimpleName() + "/report");
 
     HttpResponse response = searchRequest(Stage.ID_BUILD).with(hash("1249e25aebb15358bedd")).get();
     assertResponseStatus(200, response);
@@ -137,8 +139,10 @@ public class ApiSearchResourceV2Test
 
   @Test
   public void testSearchComponent_ByHash() throws Exception {
-    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
-    helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
+    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"), "scanId1");
+    mockReport("scanId1", "/" + getClass().getSimpleName() + "/report");
+    helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"), "scanId2");
+    mockReport("scanId2", "/" + getClass().getSimpleName() + "/report");
 
     HttpResponse response = searchRequest(Stage.ID_BUILD).with(hash("1249e25aebb15358bedd")).get();
     assertResponseStatus(200, response);
@@ -155,7 +159,8 @@ public class ApiSearchResourceV2Test
 
   @Test
   public void testSearchComponent_ByHash_FullHashString() throws Exception {
-    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
+    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"), "scanId");
+    mockReport("scanId", "/" + getClass().getSimpleName() + "/report");
 
     HttpResponse response = searchRequest(Stage.ID_BUILD).with(hash("1249E25aEbb15358bEdd00000000000000000000")).get();
     assertResponseStatus(200, response);
@@ -169,7 +174,8 @@ public class ApiSearchResourceV2Test
 
   @Test
   public void testSearchComponent_ByHash_UnknownComponent() throws Exception {
-    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
+    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"), "scanId");
+    mockReport("scanId", "/" + getClass().getSimpleName() + "/report");
 
     HttpResponse response = searchRequest(Stage.ID_BUILD).with(hash("69b58197caabec2e0d06")).get();
     assertResponseStatus(200, response);
@@ -182,7 +188,8 @@ public class ApiSearchResourceV2Test
 
   @Test
   public void testSearchComponent_ByGav_WithEmptyCoordinates() throws Exception {
-    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
+    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"), "scanId");
+    mockReport("scanId", "/" + getClass().getSimpleName() + "/report");
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("", "tomcat-util", "");
     HttpResponse response = searchRequest(Stage.ID_BUILD).with(coords(componentIdentifier)).get();
@@ -207,8 +214,10 @@ public class ApiSearchResourceV2Test
 
   @Test
   public void testSearchComponent_ByGav() throws Exception {
-    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
-    helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
+    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"), "scanId1");
+    mockReport("scanId1", "/" + getClass().getSimpleName() + "/report");
+    helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"), "scanId2");
+    mockReport("scanId2", "/" + getClass().getSimpleName() + "/report");
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("tomcat", "*", "*");
     HttpResponse response = searchRequest(Stage.ID_BUILD).with(coords(componentIdentifier)).get();
@@ -217,8 +226,10 @@ public class ApiSearchResourceV2Test
 
   @Test
   public void testSearchComponent_Purl_ByGav() throws Exception {
-    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
-    helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
+    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"), "scanId1");
+    mockReport("scanId1", "/" + getClass().getSimpleName() + "/report");
+    helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"), "scanId2");
+    mockReport("scanId2", "/" + getClass().getSimpleName() + "/report");
 
     String packageUrl = "pkg:maven/tomcat/*@*";
     HttpResponse response = searchRequest(Stage.ID_BUILD).with(purl(packageUrl)).get();
@@ -262,8 +273,10 @@ public class ApiSearchResourceV2Test
 
   @Test
   public void testSearchComponent_ByGavec_WithNonEmptyClassifier() throws Exception {
-    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
-    helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
+    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"), "scanId1");
+    mockReport("scanId1", "/" + getClass().getSimpleName() + "/report");
+    helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"), "scanId2");
+    mockReport("scanId2", "/" + getClass().getSimpleName() + "/report");
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("tomcat", "*", "*", "sources",
         "jar");
@@ -273,8 +286,10 @@ public class ApiSearchResourceV2Test
 
   @Test
   public void testSearchComponent_Purl_ByGavec_WithNonEmptyClassifier() throws Exception {
-    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
-    helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
+    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"), "scanId1");
+    mockReport("scanId1", "/" + getClass().getSimpleName() + "/report");
+    helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"), "scanId2");
+    mockReport("scanId2", "/" + getClass().getSimpleName() + "/report");
 
     String pacakageUrl = "pkg:maven/tomcat/*@*?classifier=sources&type=jar";
     HttpResponse response = searchRequest(Stage.ID_BUILD).with(purl(pacakageUrl)).get();
@@ -297,7 +312,8 @@ public class ApiSearchResourceV2Test
 
   @Test
   public void testSearchComponent_ByGavec_WithEmptyClassifier() throws Exception {
-    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
+    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"), "scanId");
+    mockReport("scanId", "/" + getClass().getSimpleName() + "/report");
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "*",
         "", "jar");
@@ -314,7 +330,8 @@ public class ApiSearchResourceV2Test
 
   @Test
   public void testSearchComponent_Purl_ByGavec_WithEmptyClassifier() throws Exception {
-    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
+    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"), "scanId");
+    mockReport("scanId", "/" + getClass().getSimpleName() + "/report");
 
     //With Purl we cannot represent an empty query param (which will be dropped/ignored by PackageURL constructor
     // (inline with purl-spec). So effectively this is treated it as no classifier (null)
@@ -336,10 +353,12 @@ public class ApiSearchResourceV2Test
 
   @Test
   public void testSearchComponent_ByGave_WithNullClassifier() throws Exception {
-    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
-    helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
-    
-    ComponentIdentifier componentIdentifier = 
+    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"), "scanId1");
+    mockReport("scanId1", "/" + getClass().getSimpleName() + "/report");
+    helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"), "scanId2");
+    mockReport("scanId2", "/" + getClass().getSimpleName() + "/report");
+
+    ComponentIdentifier componentIdentifier =
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", null, "jar");
     HttpResponse response = searchRequest(Stage.ID_BUILD).with(coords(componentIdentifier)).get();
     assertResponseStatus(200, response);
@@ -363,8 +382,10 @@ public class ApiSearchResourceV2Test
 
   @Test
   public void testSearchComponent_ByNugetComponent() throws Exception {
-    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
-    helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
+    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"), "scanId1");
+    mockReport("scanId1", "/" + getClass().getSimpleName() + "/report");
+    helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"), "scanId2");
+    mockReport("scanId2", "/" + getClass().getSimpleName() + "/report");
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createNugetCoordinates("simplejson", "*");
     HttpResponse response = searchRequest(Stage.ID_BUILD).with(coords(componentIdentifier)).get();
@@ -373,8 +394,10 @@ public class ApiSearchResourceV2Test
 
   @Test
   public void testSearchComponent_Purl_ByNugetComponent() throws Exception {
-    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
-    helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
+    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"), "scanId1");
+    mockReport("scanId1", "/" + getClass().getSimpleName() + "/report");
+    helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"), "scanId2");
+    mockReport("scanId2", "/" + getClass().getSimpleName() + "/report");
 
     String packageUrl = "pkg:nuget/simplejson@*";
     HttpResponse response = searchRequest(Stage.ID_BUILD).with(purl(packageUrl)).get();
@@ -396,8 +419,10 @@ public class ApiSearchResourceV2Test
 
   @Test
   public void testSearchComponent_ByGavAndHash() throws Exception {
-    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
-    helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
+    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"), "scanId1");
+    mockReport("scanId1", "/" + getClass().getSimpleName() + "/report");
+    helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"), "scanId2");
+    mockReport("scanId2", "/" + getClass().getSimpleName() + "/report");
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("tomcat", "*", "*");
     HttpResponse response =
@@ -407,8 +432,10 @@ public class ApiSearchResourceV2Test
 
   @Test
   public void testSearchComponent_Purl_ByGavAndHash() throws Exception {
-    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
-    helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
+    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"), "scanId1");
+    mockReport("scanId1", "/" + getClass().getSimpleName() + "/report");
+    helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"), "scanId2");
+    mockReport("scanId2", "/" + getClass().getSimpleName() + "/report");
 
     String packageUrl = "pkg:maven/tomcat/*@*";
     HttpResponse response =
@@ -432,8 +459,10 @@ public class ApiSearchResourceV2Test
 
   @Test
   public void testSearchComponent_ByGavAndHash_NoIntersection() throws Exception {
-    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
-    helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
+    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"), "scanId1");
+    mockReport("scanId1", "/" + getClass().getSimpleName() + "/report");
+    helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"), "scanId2");
+    mockReport("scanId2", "/" + getClass().getSimpleName() + "/report");
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("*", "tomcat-util", "*");
     HttpResponse response =
@@ -443,9 +472,10 @@ public class ApiSearchResourceV2Test
 
   @Test
   public void testSearchComponent_Purl_ByGavAndHash_NoIntersection() throws Exception {
-    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
-    helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
-
+    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"), "scanId1");
+    mockReport("scanId1", "/" + getClass().getSimpleName() + "/report");
+    helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"), "scanId2");
+    mockReport("scanId2", "/" + getClass().getSimpleName() + "/report");
     String packageUrl = "pkg:maven/*/tomcat-util@*";
     HttpResponse response =
         searchRequest(Stage.ID_BUILD).with(hash("a397f601582e5ccd4b1a")).with(purl(packageUrl)).get();
@@ -502,21 +532,23 @@ public class ApiSearchResourceV2Test
 
   @Test
   public void testSearchComponent_NoHitsAmongAppComponents() throws Exception {
-    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
+    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"), "scanId");
+    mockReport("scanId", "/" + getClass().getSimpleName() + "/report");
 
-    HttpResponse response = searchRequest(Stage.ID_BUILD).with(hash( "1249E25aEbb15358bEdf")).get();
+    HttpResponse response = searchRequest(Stage.ID_BUILD).with(hash("1249E25aEbb15358bEdf")).get();
     assertSearchComponent_EmptyResults(response);
   }
 
   @Test
   public void testSearchComponent_PypiCaseInsensitive() throws Exception {
-    List<ComponentInfo> pipyAppComponentInfos =  new ArrayList<>();
+    List<ComponentInfo> pipyAppComponentInfos = new ArrayList<>();
     List<PolicyViolationInfo> appPolicyViolationInfos = new ArrayList<>();
     appPolicyViolationInfos.add(new PolicyViolationInfo("Test Policy", "Found red Label", 4));
     ComponentIdentifier pypiCoordinates = ComponentIdentifier.createPypiCoordinates(
         "PyYAML", "3.11", "WIN32-py3.2", "TAR.gz");
     pipyAppComponentInfos.add(new ComponentInfo("1249e25aebb15358bedd", pypiCoordinates, appPolicyViolationInfos));
-    helper.createAppWithScan("search-app-3", Stage.ID_BUILD, pipyAppComponentInfos);
+    helper.createAppWithScan("search-app-3", Stage.ID_BUILD, pipyAppComponentInfos, "scanId");
+    mockReport("scanId", "/" + getClass().getSimpleName() + "/report");
 
     String packageUrl = "pkg:pypi/pyyaml@3.11?qualifier=win*&extension=t*";
     HttpResponse response =

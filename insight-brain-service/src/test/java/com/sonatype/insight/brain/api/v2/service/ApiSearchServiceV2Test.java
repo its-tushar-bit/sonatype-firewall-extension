@@ -1,0 +1,114 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.api.v2.service;
+
+import java.io.IOException;
+import java.net.URISyntaxException;
+
+import javax.inject.Inject;
+
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultsDTOV2;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.json.store.JsonUtils;
+
+import com.google.common.collect.ImmutableMap;
+import org.junit.Test;
+
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static com.sonatype.insight.brain.report.ReportTestUtils.createReportFile;
+import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class ApiSearchServiceV2Test
+    extends AbstractComponentTest
+{
+  @Inject
+  private ApiSearchServiceV2 apiSearchServiceV2;
+
+  @Inject
+  private InsightWork insightWork;
+
+  @Inject
+  private InsightConfig insightConfig;
+
+  @Override
+  protected void customizeConfig(InsightConfig config) {
+    config.setBaseUrl("http://localhost:8070");
+  }
+
+  @Test
+  public void testSearchComponent_InnerSourceData_WithEnabledComponentSearchApiWithInnerSource()
+      throws URISyntaxException, IOException
+  {
+    insightConfig
+        .setExperimentalFeatures(ImmutableMap.of(Feature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.getFlag(), true));
+    Application application = tempEntity.newApplication(ROOT_ORGANIZATION_ID);
+    ApplicationComponent appComponent1 = tempEntity
+        .newApplicationComponent(application.getId(), BuildStageType.ID, "2b8e230d2ab644e4ecaa",
+            ComponentIdentifier.createMavenCoordinates("xmlpull", "xmlpull", "1.1.3.1"));
+    ApplicationComponent appComponent2 = tempEntity
+        .newApplicationComponent(application.getId(), BuildStageType.ID, "e3fd8ced1f52c7574af9",
+            ComponentIdentifier.createMavenCoordinates("org.apache.httpcomponents", "httpcore", "4.4.6"));
+    tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-id");
+
+    createReportFile(application.getId(), "scan-id", zipReportDir("/ApiSearchServiceV2Test/report", tempDir),
+        insightWork);
+
+    ApiSearchResultsDTOV2 result = apiSearchServiceV2
+        .searchComponent(BuildStageType.ID, appComponent1.getHash(), appComponent1.getComponentIdentifier(),
+            "pkg:maven/xmlpull/xmlpull@1.1.3.1");
+
+    assertThat(result).isNotNull();
+    assertThat(result.results.get(0).dependencyData.directDependency).isFalse();
+    assertThat(result.results.get(0).dependencyData.parentComponentPurl)
+        .isEqualTo("pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar");
+    assertThat(result.results.get(0).dependencyData.innerSource).isFalse();
+    assertThat(result.results.get(0).dependencyData).hasFieldOrProperty("innerSourceData");
+    assertThat(result.results.get(0).dependencyData.innerSourceData.getOwnerApplicationId())
+        .isEqualTo("7509f572645749eba3e19b826e111c8b");
+    assertThat(result.results.get(0).dependencyData.innerSourceData.getInnerSourceComponentPurl())
+        .isEqualTo("pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar");
+
+    result = apiSearchServiceV2
+        .searchComponent(BuildStageType.ID, appComponent2.getHash(), appComponent2.getComponentIdentifier(),
+            "pkg:maven/org.apache.httpcomponents/httpcore@4.4.6");
+    assertThat(result).isNotNull();
+    assertThat(result.results.get(0).dependencyData.directDependency).isFalse();
+    assertThat(result.results.get(0).dependencyData.parentComponentPurl)
+        .isEqualTo("pkg:maven/com.sonatype.insight.scan/insight-client-utils@1.0.0-SNAPSHOT?type=jar");
+    assertThat(result.results.get(0).dependencyData.innerSource).isFalse();
+    assertThat(JsonUtils.writeUnformatted(result)).doesNotContain("innerSourceData");
+  }
+
+  @Test
+  public void testSearchComponent_InnerSourceData_WithDisabledComponentSearchApiWithInnerSource()
+      throws URISyntaxException, IOException
+  {
+    insightConfig
+        .setExperimentalFeatures(ImmutableMap.of(Feature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.getFlag(), false));
+    Application application = tempEntity.newApplication(ROOT_ORGANIZATION_ID);
+    ApplicationComponent appComponent = tempEntity
+        .newApplicationComponent(application.getId(), BuildStageType.ID, "2b8e230d2ab644e4ecaa",
+            ComponentIdentifier.createMavenCoordinates("xmlpull", "xmlpull", "1.1.3.1"));
+    tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-id");
+    createReportFile(application.getId(), "scan-id", zipReportDir("/ApiSearchServiceV2Test/report", tempDir),
+        insightWork);
+
+    ApiSearchResultsDTOV2 result = apiSearchServiceV2
+        .searchComponent(BuildStageType.ID, appComponent.getHash(), appComponent.getComponentIdentifier(),
+            "pkg:maven/xmlpull/xmlpull@1.1.3.1");
+
+    assertThat(result).isNotNull();
+    assertThat(JsonUtils.writeUnformatted(result.results.get(0))).doesNotContain("dependencyData");
+  }
+}

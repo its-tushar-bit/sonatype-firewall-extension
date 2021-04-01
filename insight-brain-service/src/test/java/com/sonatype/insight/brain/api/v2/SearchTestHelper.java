@@ -12,7 +12,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.UUID;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
@@ -106,17 +105,22 @@ public class SearchTestHelper
     this.tempEntity = tempEntity;
   }
 
-  public Application createAppWithScan(String appPublicId, String stageId, List<ComponentInfo> componentInfos)
+  public Application createAppWithScan(
+      String appPublicId,
+      String stageId,
+      List<ComponentInfo> componentInfos,
+      String scanId)
       throws Exception
   {
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(appPublicId.toUpperCase(Locale.ENGLISH), appPublicId, org.getId());
-    createScanForApp(app, stageId, componentInfos);
+    createScanForApp(app, stageId, componentInfos, scanId);
     return app;
   }
 
-  void createScanForApp(Application app, String stageId, List<ComponentInfo> componentInfos) throws Exception {
-    String scanId = UUID.randomUUID().toString().replace("-", "");
+  void createScanForApp(Application app, String stageId, List<ComponentInfo> componentInfos, String scanId)
+      throws Exception
+  {
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), stageId, scanId);
 
     Map<String, Policy> policies = new HashMap<>();

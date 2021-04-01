@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 /**
  * Describes a single component within an application that matches the search criteria.
  *
@@ -18,12 +21,14 @@ public class ApiSearchResultDTOV2
 
   /**
    * Relative path of the report.
+   *
    * @since 1.76
    */
   public String reportHtmlUrl;
 
   /**
    * Absolute path of the report.
+   *
    * @deprecated Will be removed in next API version in favor of returning relative URL only.
    */
   @Deprecated  // CLM-9330
@@ -36,4 +41,7 @@ public class ApiSearchResultDTOV2
   public String packageUrl;
 
   public Integer threatLevel;
+
+  @JsonInclude(Include.NON_NULL)
+  public ApiDependencyDataDTO dependencyData;
 }

@@ -18,8 +18,11 @@ import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.inject.Binder;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -62,8 +65,11 @@ public class PolicyMonitorSchedulerTest
 
     policyMonitorScheduler.start();
 
-    verify(taskSchedulerMock).scheduleDailyTask(PolicyMonitoringTask.class, PolicyMonitoringTask.NAME,
-        LocalTime.of(insightConfig.getPolicyMonitoringHour(), 0));
+    ArgumentCaptor<LocalTime> startTimeCaptor = ArgumentCaptor.forClass(LocalTime.class);
+    verify(taskSchedulerMock).scheduleDailyTask(eq(PolicyMonitoringTask.class), eq(PolicyMonitoringTask.NAME),
+        startTimeCaptor.capture());
+    assertThat(startTimeCaptor.getValue()).isBetween(LocalTime.of(insightConfig.getPolicyMonitoringHour(), 0),
+        LocalTime.of(insightConfig.getPolicyMonitoringHour(), 15));
   }
 
   @Test
@@ -72,8 +78,11 @@ public class PolicyMonitorSchedulerTest
 
     policyMonitorScheduler.productLicenseChanged();
 
-    verify(taskSchedulerMock).scheduleDailyTask(PolicyMonitoringTask.class, PolicyMonitoringTask.NAME,
-        LocalTime.of(insightConfig.getPolicyMonitoringHour(), 0));
+    ArgumentCaptor<LocalTime> startTimeCaptor = ArgumentCaptor.forClass(LocalTime.class);
+    verify(taskSchedulerMock).scheduleDailyTask(eq(PolicyMonitoringTask.class), eq(PolicyMonitoringTask.NAME),
+        startTimeCaptor.capture());
+    assertThat(startTimeCaptor.getValue()).isBetween(LocalTime.of(insightConfig.getPolicyMonitoringHour(), 0),
+        LocalTime.of(insightConfig.getPolicyMonitoringHour(), 15));
   }
 
   @Test

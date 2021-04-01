@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.time.LocalTime;
+import java.util.Random;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -53,8 +54,9 @@ public class PolicyMonitorScheduler
     if (disableForTesting) {
       return;
     }
-    taskScheduler.scheduleDailyTask(PolicyMonitoringTask.class, PolicyMonitoringTask.NAME,
-        LocalTime.of(config.getPolicyMonitoringHour(), 0));
+    // randomize minute to avoid coordinated load spike for HDS scan processing
+    LocalTime startTime = LocalTime.of(config.getPolicyMonitoringHour(), new Random().nextInt(15));
+    taskScheduler.scheduleDailyTask(PolicyMonitoringTask.class, PolicyMonitoringTask.NAME, startTime);
     log.info("Next Policy Monitor execution scheduled for {}",
         taskScheduler.getNextExecutionTime(PolicyMonitoringTask.NAME));
   }

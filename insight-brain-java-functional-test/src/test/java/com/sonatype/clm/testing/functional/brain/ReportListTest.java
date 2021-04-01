@@ -139,7 +139,7 @@ public class ReportListTest
   }
 
   @Test
-  public void testSourceStage() throws IOException, InterruptedException {
+  public void testSourceStage() throws Exception {
     // given: initial checks for app with no source control scans
     final String pendingExpectedText = "pending";
     ReportListRow firstRow = ReportListPage.firstRow();

@@ -527,7 +527,7 @@ public class ApiLicenseLegalResourceTest
         .get();
 
     assertResponseStatus(200, response);
-    final Map<String, Integer> fileCounts = (Map<String, Integer>) response.getBody(Map.class);
+    final Map<String, Integer> fileCounts = response.getBody(Map.class);
 
     assertThat(fileCounts).hasSize(3)
         .hasEntrySatisfying("copyright hash 1", new Condition<>(Predicate.isEqual(2), "hash 1"))

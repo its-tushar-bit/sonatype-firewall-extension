@@ -13,6 +13,8 @@
 
 .legal-file-path {
   font-weight: bold;
+  // Truncate with ellipsis from the left
+  direction: rtl;
   @include nx-truncate-ellipsis;
 }
 .legal-file-content {

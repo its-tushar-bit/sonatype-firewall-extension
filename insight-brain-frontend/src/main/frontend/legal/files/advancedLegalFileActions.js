@@ -3,13 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
-import { find, propEq } from 'ramda';
+import {noPayloadActionCreator, payloadParamActionCreator} from '../../util/reduxUtil';
+import {find, propEq} from 'ramda';
 import axios from 'axios';
-import { getLegalFileUrl, getSaveLegalFileUrl } from '../../util/CLMLocation';
-import { Messages } from '../../util/CommonServices';
-import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
-import { isScopeOverride } from '../legalUtility';
+import {getLegalFileUrl, getSaveLegalFileUrl} from '../../util/CLMLocation';
+import {Messages} from '../../util/CommonServices';
+import {SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS} from '@sonatype/react-shared-components';
+import {isScopeOverride} from '../legalUtility';
 
 export const ADVANCED_LEGAL_SET_SHOW_NOTICES_MODAL = 'ADVANCED_LEGAL_SET_SHOW_NOTICES_MODAL';
 export const ADVANCED_LEGAL_CANCEL_NOTICES_MODAL = 'ADVANCED_LEGAL_CANCEL_NOTICES_MODAL';

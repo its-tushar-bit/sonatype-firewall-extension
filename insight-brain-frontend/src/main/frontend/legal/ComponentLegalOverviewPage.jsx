@@ -5,8 +5,7 @@
  */
 import React, {useEffect} from 'react';
 import * as PropTypes from 'prop-types';
-import {NxBackButton, NxFontAwesomeIcon} from '@sonatype/react-shared-components';
-import {faGlobe, faSitemap, faTerminal} from '@fortawesome/free-solid-svg-icons';
+import {NxBackButton} from '@sonatype/react-shared-components';
 import ComponentOverviewTile from './ComponentOverviewTile';
 import LicenseDetailsTile from './LicenseDetailsTile';
 import CopyrightStatementsTile from './copyright/CopyrightStatementsTile';
@@ -23,6 +22,7 @@ import {TEXT_BASED_OBLIGATIONS} from './advancedLegalConstants';
 import LicenseObligationsTileContainer from './LicenseObligationsTileContainer';
 import NoticeTextsTileContainer from './files/notices/NoticeTextsTileContainer';
 import LicenseTextsTileContainer from './files/licenses/LicenseTextsTileContainer';
+import {createSubtitle} from './legalUtility';
 
 export default function ComponentLegalOverviewPage(props) {
   const {
@@ -64,6 +64,9 @@ export default function ComponentLegalOverviewPage(props) {
 
   useEffect(load, [hash]);
 
+  const ownerType = applicationPublicId ? 'application' : 'organization';
+  const ownerId = applicationPublicId || organizationId || 'ROOT_ORGANIZATION_ID';
+
   const getLicenseNames = effectiveLicenses => map(
       pipe(propEq('licenseId'), flip(find)(licenseLegalMetadata), prop('licenseName')), effectiveLicenses);
 
@@ -73,26 +76,9 @@ export default function ComponentLegalOverviewPage(props) {
     return TEXT_BASED_OBLIGATIONS.indexOf(licenseObligation.name) >= 0;
   };
 
-  const createLicenseObligationAttributionTileContainer = (licenseObligation, index) => {
-    return <LicenseObligationAttributionTileContainer key={ index } name={ licenseObligation.name }/>;
-  };
-
-  const createSubtitle = () => {
-    let availableScopeValuesReversed = availableScopes && availableScopes.values && [...availableScopes.values] || [];
-    availableScopeValuesReversed.reverse();
-    return (
-      <div className="nx-page-title__description">
-        { availableScopeValuesReversed.map((availableScope, index) => {
-          return <span key={ index } className="iq-violation-details__subtitle-part">
-            <NxFontAwesomeIcon
-                icon={ availableScope.id === 'ROOT_ORGANIZATION_ID' ? faGlobe : availableScope.type ===
-                'organization' ? faSitemap : faTerminal }/>
-            <span>{ availableScope.name }</span>
-          </span>;
-        }) }
-      </div>
-    );
-  };
+  const createLicenseObligationAttributionTileContainer = (licenseObligation, index) => (
+    <LicenseObligationAttributionTileContainer key={index} name={licenseObligation.name}/>
+  );
 
   const backHref = applicationPublicId && stageTypeId ?
     $state.href($state.get('legalApplicationDetails'), {
@@ -112,7 +98,7 @@ export default function ComponentLegalOverviewPage(props) {
           <h1 className="nx-h1">
             { component.displayName }
           </h1>
-          { createSubtitle() }
+          { createSubtitle(availableScopes) }
         </div>}
         { component &&
         <div id="component-legal-overview-details">
@@ -122,12 +108,16 @@ export default function ComponentLegalOverviewPage(props) {
                                  $state={$state}/>
           <LicenseObligationsTileContainer />
           <div id="component-legal-overview-details-right">
-            <LicenseDetailsTile licenseNames={ licenseNames }/>
+            <LicenseDetailsTile licenseNames={licenseNames}/>
             <CopyrightStatementsTile
-                component={ component }
-                availableScopes={ availableScopes }
-                showEditCopyrightOverrideModal = { showEditCopyrightOverrideModal }
-                setDisplayCopyrightOverrideModal = { setDisplayCopyrightOverrideModal }/>
+              component={ component }
+              availableScopes={ availableScopes }
+              ownerType = { ownerType }
+              ownerId = { ownerId }
+              hash = { hash }
+              $state = { $state }
+              showEditCopyrightOverrideModal={ showEditCopyrightOverrideModal }
+              setDisplayCopyrightOverrideModal={ setDisplayCopyrightOverrideModal }/>
             <NoticeTextsTileContainer/>
             <LicenseTextsTileContainer/>
             { obligations.filter(isTextBasedObligation).map(createLicenseObligationAttributionTileContainer) }

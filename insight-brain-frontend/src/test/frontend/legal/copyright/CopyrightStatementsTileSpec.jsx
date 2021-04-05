@@ -35,6 +35,10 @@ describe('CopyrightStatementsTile component', function() {
             }
           ]
       }
+    },
+    $state: {
+      get: () => '',
+      href: () => ''
     }
   };
 

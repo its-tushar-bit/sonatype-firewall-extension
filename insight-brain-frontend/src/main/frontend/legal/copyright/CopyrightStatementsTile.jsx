@@ -6,7 +6,7 @@
 import React from 'react';
 import {availableScopesPropType, componentPropType} from '../advancedLegalPropTypes';
 import {NxButton, NxFontAwesomeIcon} from '@sonatype/react-shared-components';
-import {faPen} from '@fortawesome/pro-solid-svg-icons';
+import {faAngleRight, faPen} from '@fortawesome/pro-solid-svg-icons';
 import CopyrightOverrideFormContainer from './CopyrightOverrideFormContainer';
 import * as PropTypes from 'prop-types';
 
@@ -14,6 +14,10 @@ export default function CopyrightStatementsTile(props) {
   const {
     component,
     showEditCopyrightOverrideModal,
+    ownerType,
+    ownerId,
+    hash,
+    $state,
 
     //actions
     setDisplayCopyrightOverrideModal
@@ -24,6 +28,20 @@ export default function CopyrightStatementsTile(props) {
   const isCopyrightPresent = () => component.licenseLegalData.copyrights.filter(c => c.status === 'enabled').length > 0;
 
   const noDataText = () => component.licenseLegalData.copyrights.length > 0 ? 'None enabled' : 'None found';
+
+  const createItem = (copyright, index) => {
+    return (
+      <li className="nx-list__item nx-list__item--link" key={index}>
+        <a className="nx-list__link"
+           href={$state.href('componentCopyrightDetails', {ownerType, ownerId, hash, copyrightIndex: index})}>
+          <span className="nx-list__text">
+            {copyright.content}
+          </span>
+          <NxFontAwesomeIcon icon={faAngleRight} className="nx-chevron"/>
+        </a>
+      </li>
+    );
+  };
 
   return (
     <section id="copyright-statements-tile" className="nx-tile">
@@ -40,30 +58,28 @@ export default function CopyrightStatementsTile(props) {
         {showEditCopyrightOverrideModal && createAttributionModal}
       </header>
       <div className="nx-tile-content">
-        <ul className="nx-list">
-          {isCopyrightPresent() ?
-            component.licenseLegalData.copyrights.filter(c => c.status === 'enabled').map(createItem) :
-            noDataText()
-            }
+        <ul className="nx-list nx-list--clickable">
+          {isCopyrightPresent()
+            ? component.licenseLegalData.copyrights
+                .map((c, index) => [c, index])
+                .filter(pair => pair[0].status === 'enabled')
+                .map(pair => createItem(pair[0], pair[1]))
+            : noDataText()}
         </ul>
       </div>
     </section>
   );
 }
 
-const createItem = (copyright, index) => {
-  return <li className="nx-list__item" key={index}>
-    <span className="nx-list__text">
-      { copyright.content }
-    </span>
-  </li>;
-};
-
 CopyrightStatementsTile.propTypes =
   {
     component: componentPropType,
     availableScopes: availableScopesPropType,
     showEditCopyrightOverrideModal: PropTypes.bool,
-    setDisplayCopyrightOverrideModal: PropTypes.func.isRequired
+    setDisplayCopyrightOverrideModal: PropTypes.func.isRequired,
+    ownerType: PropTypes.string.isRequired,
+    ownerId: PropTypes.string.isRequired,
+    hash: PropTypes.string.isRequired,
+    $state: PropTypes.object.isRequired
   }
 ;

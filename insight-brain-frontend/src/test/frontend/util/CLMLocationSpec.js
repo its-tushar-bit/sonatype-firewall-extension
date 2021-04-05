@@ -356,4 +356,26 @@ describe('CLMLocation.js', function() {
     expect(CLMLocation.getLegalDashboardApplicationUrl('application-id'))
         .toBe('/api/experimental/licenseLegalMetadata/dashboard/application/application-id');
   });
+
+  describe('ComponentCopyrightDetails', function() {
+    it('getCopyrightFilePathsUrl should return the URL for copyright file paths', function() {
+      expect(CLMLocation.getCopyrightFilePathsUrl('organization', 'org', 'hash', 'identifier',
+          'copyrightHash', 10, 15)).toBe('/api/experimental/licenseLegalMetadata/organization/org/' +
+          'component/hash/copyright/copyrightHash/filePaths' +
+          '?componentIdentifier=%22identifier%22&pageStart=10&pageLength=15');
+    });
+
+    it('getCopyrightContextUrl should return the URL for copyright context', function() {
+      expect(CLMLocation.getCopyrightContextUrl('organization', 'org', 'hash', 'identifier',
+          'copyrightHash', 'path/file')).toBe('/api/experimental/licenseLegalMetadata/organization/org/' +
+          'component/hash/copyright/copyrightHash/context' +
+          '?componentIdentifier=%22identifier%22&filePath=path%2Ffile');
+    });
+
+    it('getCopyrightFileCountUrl should return the URL for copyright file count', function() {
+      expect(CLMLocation.getCopyrightFileCountUrl('organization', 'org', 'hash', 'identifier'))
+          .toBe('/api/experimental/licenseLegalMetadata/organization/org/' +
+          'component/hash/copyright/fileCount?componentIdentifier=%22identifier%22');
+    });
+  });
 });

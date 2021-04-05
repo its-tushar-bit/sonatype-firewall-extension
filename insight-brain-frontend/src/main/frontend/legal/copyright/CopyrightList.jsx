@@ -1,0 +1,74 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import React from 'react';
+import {componentCopyrightDetailsPropType, componentPropType} from '../advancedLegalPropTypes';
+import classnames from 'classnames';
+import * as PropTypes from 'prop-types';
+
+export default function CopyrightList(props) {
+  const {
+    component,
+    copyrightIndex,
+    ownerType,
+    ownerId,
+    hash,
+    componentCopyrightDetails,
+    $state
+  } = props;
+
+  const plural = (count, name) => count > 1 ? `${count} ${name}s` : `1 ${name}`;
+
+  const listLinkClass = (index) => classnames('nx-list__link',
+      {'selected': index === parseInt(copyrightIndex)});
+
+  const getCopyrightFileCount = (itemHash) => {
+    const count = componentCopyrightDetails.copyrightFileCounts[itemHash] || -1;
+    return count > 0
+      ? `Found in ${plural(count, 'file')}`
+      : 'Not found in source files';
+  };
+
+  const attributionStatus = (item) => item.status === 'enabled'
+    ? 'Included in attribution report'
+    : 'Excluded from attribution report';
+
+  const copyrightSource = (item) => item.originalContentHash
+    ? getCopyrightFileCount(item.originalContentHash)
+    : 'Manually added';
+
+  const listItems = component && component.licenseLegalData
+    ? (component.licenseLegalData.copyrights.map((item, index) =>
+      <li key={index} className="nx-list__item nx-list__item--link">
+        <a href={$state.href('componentCopyrightDetails', {ownerType, ownerId, hash, copyrightIndex: index})}
+           className={listLinkClass(index)}>
+          <div className="nx-list__text nx-truncate-ellipsis">{item.content}</div>
+          <div className="nx-list__subtext">
+            <p className="copyright-detail-p">{attributionStatus(item)}</p>
+            <p className="copyright-detail-p">{copyrightSource(item)}</p>
+          </div>
+        </a>
+      </li>
+    ))
+    : '';
+
+  return (
+    <aside className="nx-scrollable nx-viewport-sized__scrollable">
+      <ul className="nx-list nx-list--clickable">
+        {listItems}
+      </ul>
+    </aside>
+  );
+}
+
+CopyrightList.propTypes = {
+  component: componentPropType,
+  componentCopyrightDetails: componentCopyrightDetailsPropType,
+  ownerType: PropTypes.string,
+  ownerId: PropTypes.string,
+  hash: PropTypes.string,
+  $state: PropTypes.object.isRequired,
+  copyrightIndex: PropTypes.string.isRequired
+};

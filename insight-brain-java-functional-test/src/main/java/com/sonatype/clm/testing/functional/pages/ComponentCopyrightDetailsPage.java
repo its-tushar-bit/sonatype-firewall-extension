@@ -1,0 +1,122 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.clm.testing.functional.pages;
+
+import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
+import com.sonatype.insight.brain.model.Owner;
+
+import com.codeborne.selenide.SelenideElement;
+
+import static com.codeborne.selenide.Selenide.$;
+
+public final class ComponentCopyrightDetailsPage
+{
+  private ComponentCopyrightDetailsPage() {}
+
+  public static String urlToApplicationScope(String publicAppId, String componentHash, int copyrightIndex) {
+    return BaseUrl.resolvePageUrl(String.format("/legal/application/%s/component/%s/copyrights/%d",
+        publicAppId, componentHash, copyrightIndex));
+  }
+
+  public static String url(Owner owner, String componentHash, int copyrightIndex) {
+    return BaseUrl.resolvePageUrl(
+        String.format("/legal/%s/%s/component/%s/copyrights/%d",
+            owner.getType().toString(), owner.getPublicId(), componentHash, copyrightIndex));
+  }
+
+  public static CopyrightOverview copyrightOverview() {
+    return new CopyrightOverview();
+  }
+
+  public static CopyrightFilePaths copyrightFilePaths() {
+    return new CopyrightFilePaths();
+  }
+
+  public static CopyrightList copyrightList() {
+    return new CopyrightList();
+  }
+
+  public static class CopyrightOverview
+      extends BasicElement<CopyrightOverview>
+  {
+    private static final String COPYRIGHT_DETAILS_TILE = "#copyright-details-tile";
+
+    public CopyrightOverview() {
+      super(COPYRIGHT_DETAILS_TILE);
+    }
+
+    private SelenideElement dataAt(final int index) {
+      return $(String.format("dl .copyright-overview-item:nth-child(%d) .nx-read-only__data", index));
+    }
+
+    public SelenideElement getAttributionReportStatus() {
+      return dataAt(1);
+    }
+
+    public SelenideElement getScope() {
+      return dataAt(2);
+    }
+
+    public SelenideElement getSource() {
+      return dataAt(3);
+    }
+
+    public SelenideElement getCopyrightText() {
+      return $("dl .copyright-overview-text .nx-read-only__data");
+    }
+  }
+
+  public static class CopyrightFilePaths
+      extends BasicElement<CopyrightFilePaths>
+  {
+    private static final String COPYRIGHT_FILE_PATHS =
+        "#component-copyright-details-right > section:nth-child(2) > div > div";
+
+    public CopyrightFilePaths() {
+      super(COPYRIGHT_FILE_PATHS);
+    }
+
+    public SelenideElement pathAt(final int index) {
+      return $(String.format(".file-path-item:nth-child(%d)", index));
+    }
+
+    public boolean isOpen(final int index) {
+      final SelenideElement element = pathAt(index);
+      return element.attr("class").toLowerCase().contains("nx-tree-view--expanded");
+    }
+
+    public SelenideElement getFilePath(final int index) {
+      return pathAt(index).$(".nx-tree-view__text");
+    }
+
+    public SelenideElement getCopyrightContextText(final int index) {
+      return pathAt(index).$(".nx-tree-view__children");
+    }
+  }
+
+  public static class CopyrightList
+      extends BasicElement<CopyrightList>
+  {
+    private static final String COPYRIGHT_LIST_SELECTOR = "#component-copyright-details-content";
+
+    public CopyrightList() {
+      super(COPYRIGHT_LIST_SELECTOR);
+    }
+
+    private SelenideElement itemAt(final int index) {
+      return $(String.format("ul li:nth-child(%d)", index));
+    }
+
+    public SelenideElement attributionInclusion(final int index) {
+      return itemAt(index).$("div.nx-list__subtext p:nth-child(1)");
+    }
+
+    public SelenideElement getItemFileCount(final int index) {
+      return itemAt(index).$("div.nx-list__subtext p:nth-child(2)");
+    }
+  }
+}

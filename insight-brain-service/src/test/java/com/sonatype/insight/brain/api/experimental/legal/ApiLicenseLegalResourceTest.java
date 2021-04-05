@@ -488,9 +488,9 @@ public class ApiLicenseLegalResourceTest
 
     final HttpResponse response = restRequest()
         .path(ApiLicenseLegalResource.COMPONENT_COPYRIGHT_FILEPATH_CONTEXT)
-        .parameter(OwnerType.ORGANIZATION.toString(), Organization.ROOT_ORGANIZATION_ID, "hash", "copyright hash 2",
-            "path2/file1")
+        .parameter(OwnerType.ORGANIZATION.toString(), Organization.ROOT_ORGANIZATION_ID, "hash", "copyright hash 2")
         .query("componentIdentifier", mavenIdentifier)
+        .query("filePath", "path2/file1")
         .get();
 
     assertResponseStatus(200, response);

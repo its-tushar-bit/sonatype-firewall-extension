@@ -68,12 +68,12 @@ public class ApiLicenseLegalResource
       "/component/obligation/attribution/{componentObligationAttributionId}";
 
   public static final String COMPONENT_COPYRIGHT_FILEPATHS =
-      COMPONENT_PATH + "{componentHash}/copyright/{copyrightContentHash}/filepaths";
+      COMPONENT_PATH + "/{componentHash}/copyright/{copyrightContentHash}/filePaths";
 
   public static final String COMPONENT_COPYRIGHT_FILEPATH_CONTEXT =
-      COMPONENT_PATH + "{componentHash}/copyright/{copyrightContentHash}/file/{filePath}/context";
+      COMPONENT_PATH + "/{componentHash}/copyright/{copyrightContentHash}/context";
 
-  public static final String COMPONENT_COPYRIGHT_FILE_COUNT = COMPONENT_PATH + "{componentHash}/copyright/fileCount";
+  public static final String COMPONENT_COPYRIGHT_FILE_COUNT = COMPONENT_PATH + "/{componentHash}/copyright/fileCount";
 
   private final ApiLicenseLegalService apiLicenseLegalService;
 
@@ -271,12 +271,12 @@ public class ApiLicenseLegalResource
   }
 
   /**
-   * @since 1.108
+   * @since 1.109
    */
   @GET
   @Path(COMPONENT_COPYRIGHT_FILEPATHS)
   @Produces(MediaType.APPLICATION_JSON)
-  public CopyrightFilePathsDTO getCopyrightContexts(
+  public CopyrightFilePathsDTO getCopyrightFilePaths(
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("ownerId") String ownerId,
       @PathParam("componentHash") String componentHash,
@@ -295,7 +295,7 @@ public class ApiLicenseLegalResource
   }
 
   /**
-   * @since 1.108
+   * @since 1.109
    */
   @GET
   @Path(COMPONENT_COPYRIGHT_FILEPATH_CONTEXT)
@@ -305,7 +305,7 @@ public class ApiLicenseLegalResource
       @PathParam("ownerId") String ownerId,
       @PathParam("componentHash") String componentHash,
       @PathParam("copyrightContentHash") String copyrightContentHash,
-      @PathParam("filePath") String filePath,
+      @QueryParam("filePath") String filePath,
       @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier)
   {
     return apiLegalCopyrightService.getCopyrightContextContent(
@@ -318,7 +318,7 @@ public class ApiLicenseLegalResource
   }
 
   /**
-   * @since 1.108
+   * @since 1.109
    */
   @GET
   @Path(COMPONENT_COPYRIGHT_FILE_COUNT)

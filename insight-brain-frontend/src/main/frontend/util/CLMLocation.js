@@ -345,6 +345,24 @@ export function getLegalFileUrl(orgOrApp, ownerId, componentIdentifier, legalFil
     ?componentIdentifier=${JSON.stringify(componentIdentifier)}&legalFileType=${legalFileType}`;
 }
 
+export function getCopyrightFilePathsUrl(orgOrApp, ownerId, componentHash, componentIdentifier,
+                                         copyrightHash, pageStart, pageLength) {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/${componentHash}/copyright\
+/${copyrightHash}/filePaths?\
+componentIdentifier=${JSON.stringify(componentIdentifier)}&pageStart=${pageStart}&pageLength=${pageLength}`;
+}
+
+export function getCopyrightContextUrl(orgOrApp, ownerId, componentHash, componentIdentifier,
+                                       copyrightHash, filePath) {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/${componentHash}/copyright\
+/${copyrightHash}/context?componentIdentifier=${JSON.stringify(componentIdentifier)}&filePath=${filePath}`;
+}
+
+export function getCopyrightFileCountUrl(orgOrApp, ownerId, componentHash, componentIdentifier) {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/${componentHash}/copyright\
+/fileCount?componentIdentifier=${JSON.stringify(componentIdentifier)}`;
+}
+
 export default
 angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl', '$window', function(baseUrl, $window) {

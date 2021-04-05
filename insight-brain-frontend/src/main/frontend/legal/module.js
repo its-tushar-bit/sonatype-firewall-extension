@@ -7,12 +7,15 @@ import { react2angular } from 'react2angular';
 import ComponentLegalOverviewContainer from './ComponentLegalOverviewContainer';
 import LegalApplicationDetailsContainer from './application/LegalApplicationDetailsContainer';
 import withStoreProvider from '../reactAdapter/StoreProvider';
+import ComponentCopyrightDetailsContainer from './copyright/ComponentCopyrightDetailsContainer';
 
 export default angular.module('legalModule', [])
     .component('componentLegalOverview',
         react2angular(withStoreProvider(ComponentLegalOverviewContainer), [], ['$ngRedux', '$state']))
     .component('legalApplicationDetails',
         react2angular(withStoreProvider(LegalApplicationDetailsContainer), [], ['$ngRedux', '$state']))
+    .component('componentCopyrightDetails',
+        react2angular(withStoreProvider(ComponentCopyrightDetailsContainer), [], ['$ngRedux', '$state']))
     .config(routes);
 
 function routes($stateProvider) {
@@ -50,6 +53,12 @@ function routes($stateProvider) {
         component: 'legalApplicationDetails',
         data: {
           title: 'Application Details'
+        }
+      }).state('componentCopyrightDetails', {
+        url: '/legal/{ownerType}/{ownerId}/component/{hash}/copyrights/{copyrightIndex}',
+        component: 'componentCopyrightDetails',
+        data: {
+          title: 'Copyright Details'
         }
       });
 }

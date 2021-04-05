@@ -55,14 +55,16 @@ export const licenseObligationAttributionsPropType = PropTypes.arrayOf(
     })
 );
 
+export const copyrightPropType = PropTypes.shape({
+  id: PropTypes.string,
+  content: PropTypes.string.isRequired,
+  originalContentHash: PropTypes.string,
+  status: PropTypes.string.isRequired
+});
+
 export const licenseLegalDataPropType = PropTypes.shape({
   effectiveLicenses: PropTypes.arrayOf(PropTypes.string.isRequired).isRequired,
-  copyrights: PropTypes.arrayOf(PropTypes.shape({
-    id: PropTypes.string,
-    content: PropTypes.string.isRequired,
-    originalContentHash: PropTypes.string,
-    status: PropTypes.string.isRequired
-  }).isRequired).isRequired,
+  copyrights: PropTypes.arrayOf(copyrightPropType.isRequired).isRequired,
   highestEffectiveLicenseThreatGroup: PropTypes.shape({
     licenseThreatGroupCategory: PropTypes.string.isRequired,
     licenseThreatGroupLevel: PropTypes.number.isRequired,
@@ -133,3 +135,19 @@ export const availableScopesPropType = PropTypes.shape({
   error: PropTypes.string,
   values: PropTypes.arrayOf(scopePropType)
 }).isRequired;
+
+export const componentCopyrightDetailsPropType = PropTypes.shape({
+  loading: PropTypes.bool,
+  selectedCopyright: copyrightPropType,
+  filePathsPage: PropTypes.number.isRequired,
+  filePaths: PropTypes.arrayOf(PropTypes.shape({
+    filePath: PropTypes.string.isRequired,
+    copyrightMatches: PropTypes.number.isRequired
+  })),
+  totalFileMatches: PropTypes.number.isRequired,
+  selectedFilePath: PropTypes.string,
+  copyrightFileCounts: PropTypes.objectOf(
+      PropTypes.number
+  ),
+  copyrightContexts: PropTypes.arrayOf(PropTypes.string.isRequired)
+});

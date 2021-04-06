@@ -143,7 +143,7 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void testInitializePullRequestPollTimes_appWithRepoUrlAndNeedsPollTime() {
+  public void testInitializePullRequestPollTimes_appWithRepoUrlAndNeedsPollTime_GitLab() {
     // given: app source control without poll time and no related policy evals
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
     tempEntity.newSourceControl(app.getId(), "http://a.com/org/repo", null);
@@ -157,6 +157,30 @@ public class SourceControlDAOTest
     // when: update poll times and refetch
     Date expectedPullRequestPollTime =
         new Date(System.currentTimeMillis() - PULL_REQUEST_POLLING_INITIAL_OFFSET_MS);
+    Date now = new Date();
+    sourceControlDAO.initializePullRequestPollTimes();
+    sourceControl = sourceControlDAO.getByOwnerId(app.getId());
+
+    // then: new poll time was assigned
+    assertThat(sourceControl.getPullRequestPollTime()).isNotNull();
+    assertThat(sourceControl.getPullRequestPollTime()).isAfterOrEqualTo(expectedPullRequestPollTime);
+    assertThat(sourceControl.getPullRequestPollTime()).isBefore(now);
+  }
+
+  @Test
+  public void testInitializePullRequestPollTimes_appWithRepoUrlAndNeedsPollTime_GitHub() {
+    // given: app source control without poll time and no related policy evals
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
+    tempEntity.newSourceControl(app.getId(), "http://a.com/org/repo", null);
+
+    // when: fetch source control
+    SourceControl sourceControl = sourceControlDAO.getByOwnerId(app.getId());
+
+    // then: poll time missing
+    assertThat(sourceControl.getPullRequestPollTime()).isNull();
+
+    // when: update poll times and refetch
+    Date expectedPullRequestPollTime = new Date();
     sourceControlDAO.initializePullRequestPollTimes();
     sourceControl = sourceControlDAO.getByOwnerId(app.getId());
 

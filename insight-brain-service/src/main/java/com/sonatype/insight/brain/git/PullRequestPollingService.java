@@ -123,6 +123,10 @@ public class PullRequestPollingService
         }
         else if (!targetsBaseBranch(pullRequest, gitRepositoryInfo)
             && !hasFeatureBranchPolicyEvaluation(app.getId(), pullRequest.getHeadCommitHash())) {
+          // we have 2 ways to associate a pull request with a specific application:
+          // The PR repo must match the application's source control repo AND either:
+          //   (a) via a policy evaluation for the head commit (eval commit = PR head commit)
+          //   (b) the PR target branch matches the application default branch
           log.debug(
               "Repository '{}' pull request '{}' for application '{}' neither targets the default branch nor has a " +
                   "policy evaluation associated with the head commit, skipping commenting",

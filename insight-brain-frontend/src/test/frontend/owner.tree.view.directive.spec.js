@@ -115,7 +115,7 @@ describe('owner.tree.view.directive.spec.js', function() {
       it('checks if an organization or application is selected', function() {
         // vaguely perf tracking, minor changes w/ Angular versions aren't an issue but large changes could indicate a
         // potential perf issue with a large number of apps+orgs
-        expect(scope.vm.$state.includes.calls.count()).toBe(permissions.length > 0 ? 24 : 23);
+        expect(scope.vm.$state.includes.calls.count()).toBe(permissions.length > 0 ? 30 : 29);
         expect(scope.vm.$state.includes).toHaveBeenCalledWith('management.view.organization', {
           organizationId: ownerList.organizations[2].id
         });

@@ -164,41 +164,6 @@ public class ScmOnboardingTest
   }
 
   @Test
-  public void testFeatureIsDisabled() {
-    // given the feature flag is false
-    testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(of(SCM_ONBOARDING.getFlag(), false));
-    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
-
-    // when we open the onboarding page as admin
-    refreshOrOpen(ScmOnboardingPage.url());
-    loginAsAdmin();
-
-    // then the onboarding page is disabled
-    scmOnboardingPage.loadError().shouldBe(visible).shouldHave(text("This feature has not been enabled"));
-
-    // and no page titles are visible
-    scmOnboardingPage.getPageTitleElements().shouldHaveSize(0);
-  }
-
-  @Test
-  public void testFeatureIsDisabled_WithOrg() {
-    // given the feature flag is false and source control is configured
-    setupSourceControl();
-    testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(of(SCM_ONBOARDING.getFlag(), false));
-    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
-
-    // when we open the onboarding page as admin
-    refreshOrOpen(ScmOnboardingPage.url());
-    loginAsAdmin();
-
-    // then the onboarding page is disabled
-    scmOnboardingPage.loadError().shouldBe(visible).shouldHave(text("This feature has not been enabled"));
-
-    // and no page titles are visible
-    scmOnboardingPage.getPageTitleElements().shouldHaveSize(0);
-  }
-
-  @Test
   public void testFeatureIsEnabled() throws IOException {
     // given the onboarding page
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();

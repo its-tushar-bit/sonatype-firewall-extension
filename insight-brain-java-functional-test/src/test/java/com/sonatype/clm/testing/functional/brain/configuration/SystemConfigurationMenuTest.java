@@ -77,8 +77,8 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.emailConfiguration().shouldBe(visible);
     systemConfigMenu.proxyConfiguration().shouldBe(visible);
     systemConfigMenu.advancedSearchConfiguration().shouldBe(visible);
-    systemConfigMenu.earlyAccessHeader().shouldBe(hidden);
-    systemConfigMenu.scmOnboarding().shouldBe(hidden);
+    systemConfigMenu.earlyAccessHeader().shouldBe(visible);
+    systemConfigMenu.scmOnboarding().shouldBe(visible);
   }
 
   @Test

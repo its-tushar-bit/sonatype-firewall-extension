@@ -14,8 +14,6 @@ import {displayName} from './utils/providers';
 import ImportStatusModal from './components/ImportStatusModal';
 
 const iqAuthorizationErrorMessage = `It appears you do not have permission to access this page.
-        If you believe this to be incorrect please contact your administrator.`,
-    scmFeatureDisabledErrorMessage = `This feature has not been enabled.
         If you believe this to be incorrect please contact your administrator.`;
 
 export default function ScmOnboarding(props) {
@@ -25,7 +23,6 @@ export default function ScmOnboarding(props) {
 
     // configuration state
     loadingPage,
-    isScmOnboardingFeatureEnabled,
     scmProvider,
 
     // repositories state
@@ -38,9 +35,7 @@ export default function ScmOnboarding(props) {
     $state
   } = props;
 
-  const pageError = !isAuthorized ? iqAuthorizationErrorMessage :
-    isScmOnboardingFeatureEnabled === false ? scmFeatureDisabledErrorMessage :
-      null;
+  const pageError = !isAuthorized ? iqAuthorizationErrorMessage : null;
 
   function load() {
     loadPage(preselectedOrganizationId);
@@ -103,7 +98,6 @@ export const repositoryPropType = {
 ScmOnboarding.propTypes = {
   // config
   loadingPage: PropTypes.bool.isRequired,
-  isScmOnboardingFeatureEnabled: PropTypes.bool,
   $state: PropTypes.object.isRequired,
   isScmTokenOverridden: PropTypes.bool,
   scmProvider: PropTypes.string,

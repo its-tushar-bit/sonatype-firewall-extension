@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.experimental.legal;
 
+import java.util.List;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -433,43 +435,43 @@ public class ComponentLegalServiceAuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testSaveComponentObligation_ApplicationScope_Unauthenticated() {
+  public void testSaveComponentObligations_ApplicationScope_Unauthenticated() {
     componentLegalService
-        .saveComponentObligation(app.getType(), app.getPublicId(), createMinimalComponentObligationDTO());
+        .saveComponentObligations(app.getType(), app.getPublicId(), createMinimalComponentObligationDTOs());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testSaveComponentObligation_ApplicationScope_Unauthorized() {
+  public void testSaveComponentObligations_ApplicationScope_Unauthorized() {
     login();
     componentLegalService
-        .saveComponentObligation(app.getType(), app.getPublicId(), createMinimalComponentObligationDTO());
+        .saveComponentObligations(app.getType(), app.getPublicId(), createMinimalComponentObligationDTOs());
   }
 
   @Test
-  public void testSaveComponentObligation_ApplicationScope_Authorized() {
+  public void testSaveComponentObligations_ApplicationScope_Authorized() {
     grantLegalReviewerPermission(app.getId());
     componentLegalService
-        .saveComponentObligation(app.getType(), app.getPublicId(), createMinimalComponentObligationDTO());
+        .saveComponentObligations(app.getType(), app.getPublicId(), createMinimalComponentObligationDTOs());
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testSaveComponentObligation_OrganizationScope_Unauthenticated() {
+  public void testSaveComponentObligations_OrganizationScope_Unauthenticated() {
     componentLegalService
-        .saveComponentObligation(org.getType(), org.getPublicId(), createMinimalComponentObligationDTO());
+        .saveComponentObligations(org.getType(), org.getPublicId(), createMinimalComponentObligationDTOs());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testSaveComponentObligation_OrganizationScope_Unauthorized() {
+  public void testSaveComponentObligations_OrganizationScope_Unauthorized() {
     login();
     componentLegalService
-        .saveComponentObligation(org.getType(), org.getPublicId(), createMinimalComponentObligationDTO());
+        .saveComponentObligations(org.getType(), org.getPublicId(), createMinimalComponentObligationDTOs());
   }
 
   @Test
-  public void testSaveComponentObligation_OrganizationScope_Authorized() {
+  public void testSaveComponentObligations_OrganizationScope_Authorized() {
     grantLegalReviewerPermission(org.getId());
     componentLegalService
-        .saveComponentObligation(org.getType(), org.getPublicId(), createMinimalComponentObligationDTO());
+        .saveComponentObligations(org.getType(), org.getPublicId(), createMinimalComponentObligationDTOs());
   }
 
   @Test(expected = UnauthenticatedException.class)
@@ -583,15 +585,16 @@ public class ComponentLegalServiceAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testSaveComponentObligation_Unauthorized_UpdateAtLowerScope() {
-    ApiLicenseLegalObligationDTO componentObligationDTO = createMinimalComponentObligationDTO();
+  public void testSaveComponentObligations_Unauthorized_UpdateAtLowerScope() {
+    List<ApiLicenseLegalObligationDTO> componentObligationDTOs = createMinimalComponentObligationDTOs();
     ComponentObligation componentObligation = tempEntity.newComponentObligation(
-        componentObligationDTO.getComponentIdentifier().toComponentIdentifier(), app.getOrganizationId(),
-        componentObligationDTO.getName(), null, componentObligationDTO.getStatus(),
+        componentObligationDTOs.get(0).getComponentIdentifier().toComponentIdentifier(), app.getOrganizationId(),
+        componentObligationDTOs.get(0).getName(), null,
+        componentObligationDTOs.get(0).getStatus(),
         ComponentLegalService.NOT_IMPLEMENTED);
-    componentObligationDTO.setId(componentObligation.getId());
+    componentObligationDTOs.get(0).setId(componentObligation.getId());
     grantLegalReviewerPermission(app.getId());
-    componentLegalService.saveComponentObligation(OwnerType.APPLICATION, app.getPublicId(), componentObligationDTO);
+    componentLegalService.saveComponentObligations(OwnerType.APPLICATION, app.getPublicId(), componentObligationDTOs);
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -725,12 +728,12 @@ public class ComponentLegalServiceAuthzTest
     return componentObligationAttributionDTO;
   }
 
-  private ApiLicenseLegalObligationDTO createMinimalComponentObligationDTO() {
+  private List<ApiLicenseLegalObligationDTO> createMinimalComponentObligationDTOs() {
     ApiLicenseLegalObligationDTO componentObligationDTO = new ApiLicenseLegalObligationDTO();
     componentObligationDTO.setComponentIdentifier(
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g", "a", "v")));
     componentObligationDTO.setName("obligationName");
     componentObligationDTO.setStatus(ObligationStatus.OPEN);
-    return componentObligationDTO;
+    return Lists.newArrayList(componentObligationDTO);
   }
 }

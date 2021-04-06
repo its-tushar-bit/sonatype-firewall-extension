@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.experimental.legal;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -59,6 +60,8 @@ public class ApiLicenseLegalResource
   public static final String COMPONENT_LEGAL_FILE_PATH = COMPONENT_PATH + "/legalFile";
 
   public static final String COMPONENT_OBLIGATION_PATH = COMPONENT_PATH + "/obligation";
+
+  public static final String COMPONENT_OBLIGATIONS_PATH = COMPONENT_PATH + "/obligations";
 
   public static final String COMPONENT_OBLIGATION_DELETE_PATH = "/component/obligation/{componentObligationId}";
 
@@ -247,16 +250,30 @@ public class ApiLicenseLegalResource
   @POST
   @Path(COMPONENT_OBLIGATION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  @Audited(AuditEvent.CREATE_COMPONENT_OBLIGATION)
+  @Audited(AuditEvent.SAVE_COMPONENT_OBLIGATIONS)
   public ApiLicenseLegalObligationDTO saveComponentObligation(
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("ownerId") String ownerId,
       ApiLicenseLegalObligationDTO componentObligationDTO)
   {
-    if (componentObligationDTO.getId() != null) {
-      AuditData.get().setEvent(AuditEvent.UPDATE_COMPONENT_OBLIGATION);
-    }
-    return componentLegalService.saveComponentObligation(ownerType, ownerId, componentObligationDTO);
+    return componentLegalService
+        .saveComponentObligations(ownerType, ownerId, Collections.singletonList(componentObligationDTO))
+        .get(0);
+  }
+
+  /**
+   * @since 1.109
+   */
+  @POST
+  @Path(COMPONENT_OBLIGATIONS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.SAVE_COMPONENT_OBLIGATIONS)
+  public List<ApiLicenseLegalObligationDTO> saveComponentObligations(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId,
+      List<ApiLicenseLegalObligationDTO> componentObligationDTOs)
+  {
+    return componentLegalService.saveComponentObligations(ownerType, ownerId, componentObligationDTOs);
   }
 
   /**

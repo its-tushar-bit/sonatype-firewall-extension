@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.experimental.legal;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -28,6 +29,8 @@ import com.sonatype.insight.brain.api.v2.dto.legal.CopyrightOverrideDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LegalFileOverrideDTO;
 import com.sonatype.insight.brain.api.v2.service.legal.LegalReportBuilder;
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.component.ComponentIdentifierValidator;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -308,52 +311,62 @@ public class ComponentLegalService
   }
 
   /**
-   * Create or update a {@link ComponentObligation}. If {@link ApiLicenseLegalObligationDTO#getId()} is null, then the
+   * Create or update a {@link ComponentObligation}s. If {@link ApiLicenseLegalObligationDTO#getId()} is null, then the
    * {@link ComponentObligation} will be created. Otherwise, if {@link ApiLicenseLegalObligationDTO#getId()} is not
    * null, then it must correspond to an existing {@link ComponentObligation#getId()} and this will be updated. Note
    * that in either case, {@link ApiLicenseLegalObligationDTO#getComponentIdentifier()} must be valid, {@link
    * ApiLicenseLegalObligationDTO#getName()} must not be null or empty, and {@link
    * ApiLicenseLegalObligationDTO#getStatus()} must not be null.
    *
-   * @param ownerType              the owner type for the {@link ComponentObligation} owner.
-   * @param ownerId                the owner id for the {@link ComponentObligation} owner.
-   * @param componentObligationDTO the {@link ApiLicenseLegalObligationDTO} representing the {@link ComponentObligation}
-   *                               to be created/updated.
-   * @return a {@link ApiLicenseLegalObligationDTO} representing the created/updated {@link ComponentObligation}.
+   * @param ownerType               the owner type for the {@link ComponentObligation} owner.
+   * @param ownerId                 the owner id for the {@link ComponentObligation} owner.
+   * @param componentObligationDTOs the {@link ApiLicenseLegalObligationDTO}s representing the {@link
+   *                                ComponentObligation}s to be created/updated.
+   * @return a list of {@link ApiLicenseLegalObligationDTO}s representing the created/updated {@link
+   * ComponentObligation}s.
    * @since 1.106
    */
   @Authorize(permission = Permission.LEGAL_REVIEWER)
-  public ApiLicenseLegalObligationDTO saveComponentObligation(
+  public List<ApiLicenseLegalObligationDTO> saveComponentObligations(
       @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) String ownerId,
-      ApiLicenseLegalObligationDTO componentObligationDTO)
+      List<ApiLicenseLegalObligationDTO> componentObligationDTOs)
   {
     checkLicense();
-    validateComponentObligationDTO(componentObligationDTO);
-    ComponentIdentifier componentIdentifier = componentObligationDTO.getComponentIdentifier().toComponentIdentifier();
+    componentObligationDTOs.forEach(this::validateComponentObligationDTO);
     Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
-    auditComponentObligation(owner, componentIdentifier, componentObligationDTO.getName(),
-        componentObligationDTO.getStatus(), componentObligationDTO.getComment());
-    ComponentObligation componentObligation = new ComponentObligation(
-        componentIdentifier,
-        owner.getId(),
-        componentObligationDTO.getName(),
-        componentObligationDTO.getComment(),
-        componentObligationDTO.getStatus(),
-        NOT_IMPLEMENTED,
-        currentUser.getUsername());
-    componentObligation.setId(componentObligationDTO.getId());
+    List<ApiLicenseLegalObligationDTO> result = new ArrayList<>();
     try (TransactionContext tx = componentObligationDAO.createTransactionContext()) {
       tx.begin();
-      save(tx,
-          componentObligation,
-          componentObligationDAO.getById(tx, componentObligation.getId()),
-          componentObligationDAO.getByOwnerIdAndComponentIdentifierAndObligationName(tx, owner.getId(),
-              componentIdentifier, componentObligation.getObligationName()),
-          componentObligationDAO);
+      componentObligationDTOs.forEach(componentObligationDTO -> {
+        AuditEvent auditEvent = componentObligationDTO.getId() ==
+            null ? AuditEvent.CREATE_COMPONENT_OBLIGATION : AuditEvent.UPDATE_COMPONENT_OBLIGATION;
+        try (AuditSession ignored = AuditData.get().recordSubEvent(auditEvent, false)) {
+          ComponentIdentifier componentIdentifier =
+              componentObligationDTO.getComponentIdentifier().toComponentIdentifier();
+          auditComponentObligation(owner, componentIdentifier, componentObligationDTO.getName(),
+              componentObligationDTO.getStatus(), componentObligationDTO.getComment());
+          ComponentObligation componentObligation = new ComponentObligation(
+              componentIdentifier,
+              owner.getId(),
+              componentObligationDTO.getName(),
+              componentObligationDTO.getComment(),
+              componentObligationDTO.getStatus(),
+              NOT_IMPLEMENTED,
+              currentUser.getUsername());
+          componentObligation.setId(componentObligationDTO.getId());
+          save(tx,
+              componentObligation,
+              componentObligationDAO.getById(tx, componentObligation.getId()),
+              componentObligationDAO.getByOwnerIdAndComponentIdentifierAndObligationName(tx, owner.getId(),
+                  componentIdentifier, componentObligation.getObligationName()),
+              componentObligationDAO);
+          result.add(new ApiLicenseLegalObligationDTO(componentObligation));
+        }
+      });
       tx.commit();
     }
-    return new ApiLicenseLegalObligationDTO(componentObligation);
+    return result;
   }
 
   /**

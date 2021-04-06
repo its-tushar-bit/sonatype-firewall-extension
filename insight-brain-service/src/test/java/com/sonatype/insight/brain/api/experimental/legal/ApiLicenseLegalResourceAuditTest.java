@@ -334,6 +334,7 @@ public class ApiLicenseLegalResourceAuditTest
         .body(bodyDto)
         .post();
 
+    assertAuditLog(AuditEvent.SAVE_COMPONENT_OBLIGATIONS, null);
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_COMPONENT_OBLIGATION, null);
     assertComponentObligationData(auditDTO, application, bodyDto);
   }
@@ -354,7 +355,7 @@ public class ApiLicenseLegalResourceAuditTest
         .with(unauthorizedUser())
         .post();
 
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_COMPONENT_OBLIGATION, "unauthorized");
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.SAVE_COMPONENT_OBLIGATIONS, "unauthorized");
     assertApplicationData(auditDTO, application);
   }
 
@@ -373,6 +374,7 @@ public class ApiLicenseLegalResourceAuditTest
         .body(bodyDto)
         .post();
 
+    assertAuditLog(AuditEvent.SAVE_COMPONENT_OBLIGATIONS, null);
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_COMPONENT_OBLIGATION, null);
     assertComponentObligationData(auditDTO, application, bodyDto);
   }
@@ -393,7 +395,7 @@ public class ApiLicenseLegalResourceAuditTest
         .with(unauthorizedUser())
         .post();
 
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_COMPONENT_OBLIGATION, "unauthorized");
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.SAVE_COMPONENT_OBLIGATIONS, "unauthorized");
     assertApplicationData(auditDTO, application);
   }
 
